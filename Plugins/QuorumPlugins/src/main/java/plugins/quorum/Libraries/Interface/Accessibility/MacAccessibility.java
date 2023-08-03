@@ -49,7 +49,6 @@ public class MacAccessibility {
             String nativeFile = runLocation + "/jni/libaccesskit_jni.dylib";
             System.load(nativeFile);
 
-            System.out.println("Attempting to get mac handle");
             long handle = GLFWNativeCocoa.glfwGetCocoaWindow(DesktopDisplay.window);
 
             adapter = MacosSubclassingAdapter.forWindow(handle, new TreeUpdateSupplier() {
@@ -72,7 +71,6 @@ public class MacAccessibility {
             NodeId id = itemKit.GetNodeID();
             builder.addChild(id);
             update.add(id, itemKit.Build());
-            System.out.println("Item name: " + id.toString());
         }
         Node root = builder.build();
         update.add(ROOT_ID, root);
@@ -95,7 +93,7 @@ public class MacAccessibility {
 
     public void  TextFieldUpdatePassword(TextField_ field) {}
 
-    public void  Update() {
+    public void  NativeUpdate() {
         if (dirty) {
             adapter.updateIfActive(new TreeUpdateSupplier() {
                 @Override
@@ -138,7 +136,6 @@ public class MacAccessibility {
 
     private void SetTreeUpdateFocus(TreeUpdate update) {
         if (isWindowFocused) {
-            System.out.println("Setting focus in set tree update to: " + focus);
             update.setFocus(focus);
         } else {
             update.clearFocus();
