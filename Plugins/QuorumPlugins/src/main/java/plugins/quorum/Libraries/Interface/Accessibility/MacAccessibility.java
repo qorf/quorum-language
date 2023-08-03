@@ -37,7 +37,7 @@ public class MacAccessibility {
     public java.lang.Object me_ = null;
     private MacosSubclassingAdapter adapter;
     private boolean isWindowFocused = true;
-    private NodeId focus = ROOT_NODE_ID;
+    private NodeId focus = ROOT_ID;
     // TODO: smarter tracking of what was actually changed
     private boolean dirty = false;
 
