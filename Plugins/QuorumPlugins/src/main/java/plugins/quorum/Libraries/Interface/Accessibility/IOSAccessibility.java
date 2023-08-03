@@ -4,6 +4,7 @@ import org.robovm.apple.coregraphics.CGRect;
 import org.robovm.apple.uikit.*;
 import plugins.quorum.Libraries.Game.IOSApplication;
 import plugins.quorum.Libraries.Interface.Accessibility.IOS.ButtonIOS;
+import plugins.quorum.Libraries.Interface.Accessibility.IOS.ItemIOS;
 import quorum.Libraries.Interface.Controls.Button_;
 import quorum.Libraries.Interface.Controls.TextField_;
 import quorum.Libraries.Interface.Controls.ToggleButton_;
@@ -16,7 +17,7 @@ import java.util.HashMap;
 
 public class IOSAccessibility {
     public Object me_ = null;
-    public HashMap mapAccessibilityElements = new HashMap<UIAccessibilityElement, Item_>();
+    public HashMap mapAccessibilityElements = new HashMap<Item_, ItemIOS>();
 
     public void  NameChanged(Item_ item) {}
 
@@ -39,10 +40,9 @@ public class IOSAccessibility {
 
     public void  FocusChanged(FocusEvent_ event) throws Exception {
         Item_ item = event.GetNewFocus();
-        System.out.println("Focus Changed to " + item.GetName());
         UIAccessibilityElement element = (UIAccessibilityElement) mapAccessibilityElements.get(item);
+        System.out.println("Focus Changed to " + element.getAccessibilityLabel());
         UIAccessibilityGlobals.postNotification(UIAccessibilityNotification.LayoutChangedNotification, element);
-
     }
 
     public boolean NativeAdd(Item_ item) {
@@ -56,7 +56,8 @@ public class IOSAccessibility {
             return false;
         }
 
-        UIAccessibilityElement element = new UIAccessibilityElement(IOSApplication.accessibilityContainer);
+        ItemIOS element = new ItemIOS(IOSApplication.accessibilityContainer);
+        element.Initialize(item);
 
         //Get the accessibility code and do custom controls.
         //Many of the traits and properties here are incorrect, but the structure is there which can get us started
@@ -115,7 +116,7 @@ public class IOSAccessibility {
 
         // Add the accessibility element to the list
         IOSApplication.accessibilityContainer.getAccessibilityElements().add(element);
-        mapAccessibilityElements.put(element, item);
+        mapAccessibilityElements.put(item, element);
 
         // Inform iOS that the accessibility elements have changed
         UIAccessibilityGlobals.postNotification(UIAccessibilityNotification.ScreenChangedNotification, element);
