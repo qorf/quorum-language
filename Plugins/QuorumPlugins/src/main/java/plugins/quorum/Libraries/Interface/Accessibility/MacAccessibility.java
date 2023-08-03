@@ -2,13 +2,13 @@ package plugins.quorum.Libraries.Interface.Accessibility;
 
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import dev.accesskit.Role;
-import dev.accesskit.TreeUpdate;
+import dev.accesskit.*;
+import org.lwjgl.glfw.GLFWNativeCocoa;
 import plugins.quorum.Libraries.Game.DesktopDisplay;
-import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Interface.Accessibility.accesskit.*;
 import plugins.quorum.Libraries.Interface.AccessibilityManager;
 import quorum.Libraries.Interface.Controls.Button_;
@@ -33,7 +33,12 @@ import quorum.Libraries.Interface.Selections.TextFieldSelection_;
  */
 public class MacAccessibility {
     public java.lang.Object me_ = null;
+    private static MacosSubclassingAdapter adapter;
+    private static boolean isWindowFocused = true;
 
+    private static TreeUpdate weirdTreeState = null;
+    private static final NodeId ROOT_ID = new NodeId(1);
+    static NodeId focus = ROOT_ID;
     static {
         try
         {
@@ -41,12 +46,32 @@ public class MacAccessibility {
             String runLocation = file.getParentFile().getAbsolutePath();
             String nativeFile = runLocation + "/jni/libaccesskit_jni.dylib";
             System.load(nativeFile);
+
+            System.out.println("Attempting to get mac handle");
+            long handle = GLFWNativeCocoa.glfwGetCocoaWindow(DesktopDisplay.window);
+
+            NodeBuilder builder = new NodeBuilder(Role.WINDOW);
+            Node root = builder.build();
+            TreeUpdate result = new TreeUpdate();
+            result.add(ROOT_ID, root);
+            result.setTree(new Tree(ROOT_ID));
+            weirdTreeState = result;
+
+            adapter = MacosSubclassingAdapter.forWindow(handle, new TreeUpdateSupplier() {
+                @Override
+                public TreeUpdate get() {
+                    System.out.println("FIred the weird state tree thing.");
+                    SetTreeUpdateFocus(weirdTreeState);
+                    return result;
+                }
+            });
         }
         catch (URISyntaxException ex)
         {
             Logger.getLogger(AccessibilityManager.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
 
     HashMap<Integer, ItemKit> items = new HashMap<Integer, ItemKit>();
 
@@ -93,18 +118,31 @@ public class MacAccessibility {
 
     public void  ToggleButtonToggled(ToggleButton_ button) {}
 
+    private static void SetTreeUpdateFocus(TreeUpdate update) {
+        if (isWindowFocused) {
+            System.out.println("Setting focus in set tree update to: " + focus);
+            update.setFocus(focus);
+        } else {
+            update.clearFocus();
+        }
+    }
+
     public void  FocusChanged(FocusEvent_ event) {
         Item_ item = event.GetNewFocus();
         if(item != null) {
             ItemKit kit = items.get((item.GetHashCode()));
-            if(kit != null) { //somehow send this to access kit.
-
+            if(kit != null) {
+                focus = kit.GetNodeID();
+                TreeUpdate update = new TreeUpdate();
+                System.out.println("Setting focus to: " + item.GetName());
+                SetTreeUpdateFocus(update);
             }
         }
     }
 
     public boolean NativeAdd(Item_ item)
     {
+        isWindowFocused = true;
         int code = item.GetAccessibilityCode();
         Role role = null;
         ItemKit itemKit = null;
@@ -203,11 +241,47 @@ public class MacAccessibility {
         if(itemKit != null) {
             itemKit.SetItem(item);
             items.put(item.GetHashCode(), itemKit);
+//            Node build = itemKit.Build();
+//
+//            NodeBuilder builder = new NodeBuilder(Role.WINDOW);
+//            builder.addChild(itemKit.GetNodeID());
+//
+//            TreeUpdate update = new TreeUpdate();
+//            update.add(itemKit.GetNodeID(), build);
+//            update.setTree(new Tree(ROOT_ID));
+//            SetTreeUpdateFocus(update);
         }
-        //no idea what this does, but something I presume
-        //itemKit is the new thing to be added to the system
-        TreeUpdate tree = new TreeUpdate();
 
+
+        //this is dumb so don't keep this
+
+
+        System.out.println("About to update focus.");
+        adapter.updateIfActive(new TreeUpdateSupplier() {
+            @Override
+            public TreeUpdate get() {
+                TreeUpdate update = new TreeUpdate();
+                NodeBuilder builder = new NodeBuilder(Role.WINDOW);
+                Iterator<ItemKit> iterator = items.values().iterator();
+                System.out.println("Starting Add");
+                while(iterator.hasNext()) {
+                    ItemKit next = iterator.next();
+                    NodeId id = next.GetNodeID();
+                    builder.addChild(id);
+                    update.add(id, next.Build());
+                    System.out.println("Item name: " + id.toString());
+                }
+                Node root = builder.build();
+                update.add(ROOT_ID, root);
+                update.setTree(new Tree(ROOT_ID));
+                weirdTreeState = update;
+                SetTreeUpdateFocus(update);
+                return update;
+            }
+        });
+
+
+        //SetTreeUpdateFocus(update);
         return false;
     }
 

@@ -1,6 +1,6 @@
 package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 
-import dev.accesskit.Role;
+import dev.accesskit.*;
 import plugins.quorum.Libraries.Game.GameStateManager;
 import quorum.Libraries.Game.DesktopDisplay_;
 import quorum.Libraries.Game.Shapes.Rectangle_;
@@ -13,6 +13,26 @@ import quorum.Libraries.Language.Object_;
 public class ItemKit {
     private Role role = null;
     private Item_ item = null;
+
+    /*
+        Needs to be replaced for general items.
+     */
+    public Node Build() {
+        Item_ item = GetItem();
+        if(item != null) {
+            Rect rect = GetBoundingRectangle();
+            NodeBuilder builder = new NodeBuilder(GetRole());
+            builder.setBounds(rect);
+            builder.setName(item.GetName());
+            return builder.build();
+        }
+        return null;
+    }
+
+    public NodeId GetNodeID() {
+        NodeId id = new NodeId(item.GetHashCode());
+        return id;
+    }
 
     public Item_ GetItem() {
         return item;
@@ -30,19 +50,18 @@ public class ItemKit {
         this.role = role;
     }
 
-    public double[] GetBoundingRectangle()
+    public Rect GetBoundingRectangle()
     {
         // The order of values in the bounding box is left, top, width, height.
+        Rect rect;
         double[] bounds = new double[4];
 
         DesktopDisplay_ display = (DesktopDisplay_) GameStateManager.display;
 
         if (display == null)
         {
-            for (int i = 0; i < bounds.length; i++)
-                bounds[i] = 0;
-
-            return bounds;
+            rect = new Rect(0,0,0,0);
+            return rect;
         }
 
         double windowX = display.GetDisplayX();
@@ -66,10 +85,12 @@ public class ItemKit {
             if (itemY == Double.NaN)
                 itemY = 0;
 
-            bounds[0] = windowX + itemX;
-            bounds[1] = windowY + (windowHeight - (itemY + ((Item2D_) item).GetHeight()));
-            bounds[2] = ((Item2D_) item).GetWidth();
-            bounds[3] = ((Item2D_) item).GetHeight();
+            rect = new Rect(
+            windowX + itemX,
+            windowY + (windowHeight - (itemY + ((Item2D_) item).GetHeight())),
+                ((Item2D_) item).GetWidth(),
+                ((Item2D_) item).GetHeight()
+                            );
         }
         else if (item instanceof Item3D_)
         {
@@ -78,19 +99,18 @@ public class ItemKit {
             // check how we calculate mouse input detection for 3D objects.
 
             Rectangle_ rectangle = ((Item3D_) item).GetScreenBounds();
-
-            bounds[0] = windowX + rectangle.GetX();
-            bounds[1] = windowY + (windowHeight - (rectangle.GetY() + rectangle.GetHeight()));
-            bounds[2] = rectangle.GetWidth();
-            bounds[3] = rectangle.GetHeight();
+            rect = new Rect(
+                    windowX + rectangle.GetX(),
+                    windowY + (windowHeight - (rectangle.GetY() + rectangle.GetHeight())),
+                    rectangle.GetWidth(),
+                    rectangle.GetHeight()
+            );
         }
         else
         {
-            // If we don't know what it is, we set the values to 0 to provide a safe default.
-            for (int i = 0; i < bounds.length; i++)
-                bounds[i] = 0;
+            rect = new Rect(0,0,0,0);
         }
 
-        return bounds;
+        return rect;
     }
 }
