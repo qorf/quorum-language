@@ -4,7 +4,9 @@ import org.robovm.apple.coregraphics.CGRect;
 import org.robovm.apple.uikit.*;
 import plugins.quorum.Libraries.Game.IOSApplication;
 import plugins.quorum.Libraries.Interface.Accessibility.IOS.ButtonIOS;
+import plugins.quorum.Libraries.Interface.Accessibility.IOS.CheckboxIOS;
 import quorum.Libraries.Interface.Controls.Button_;
+import quorum.Libraries.Interface.Controls.Checkbox_;
 import quorum.Libraries.Interface.Controls.TextField_;
 import quorum.Libraries.Interface.Controls.ToggleButton_;
 import quorum.Libraries.Interface.Events.*;
@@ -73,6 +75,10 @@ public class IOSAccessibility {
         } else if (code == item.Get_Libraries_Interface_Item__CHECKBOX_()) {
             element.setAccessibilityTraits(UIAccessibilityTraits.AllowsDirectInteraction);
             //element.setAccessibilityTraits(UIAccessibilityTraits.);
+            System.out.println("Added a Checkbox");
+            CheckboxIOS checkbox = new CheckboxIOS(IOSApplication.accessibilityContainer);
+            checkbox.Initialize((Checkbox_) item);
+            element = checkbox;
         } else if (code == item.Get_Libraries_Interface_Item__RADIO_BUTTON_()) {
             element.setAccessibilityTraits(UIAccessibilityTraits.AllowsDirectInteraction);
             element.setAccessibilityTraits(UIAccessibilityTraits.Button);
