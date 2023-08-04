@@ -1,6 +1,7 @@
 package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 
 import dev.accesskit.*;
+import java.util.ArrayList;
 import plugins.quorum.Libraries.Game.GameStateManager;
 import quorum.Libraries.Game.DesktopDisplay_;
 import quorum.Libraries.Game.Shapes.Rectangle_;
@@ -13,25 +14,33 @@ import quorum.Libraries.Language.Object_;
 public class ItemKit {
     private Role role = null;
     private Item_ item = null;
+    private ItemKit parent = null;
+    private int indexInParent = -1;
+    private ArrayList<ItemKit> children = new ArrayList<ItemKit>;
 
     /*
         Needs to be replaced for general items.
      */
     public Node Build() {
+        NodeBuilder builder = new NodeBuilder(GetRole());
         Item_ item = GetItem();
         if(item != null) {
             Rect rect = GetBoundingRectangle();
-            NodeBuilder builder = new NodeBuilder(GetRole());
             builder.setBounds(rect);
             builder.setName(item.GetName());
-            return builder.build();
         }
-        return null;
+        for (ItemKit child : children) {
+            builder.addChild(child.GetNodeID());
+        }
+        return builder.build();
     }
 
     public NodeId GetNodeID() {
-        NodeId id = new NodeId(item.GetHashCode());
-        return id;
+        return GetNodeID(item);
+    }
+
+    public static NodeId GetNodeID(Item_ item) {
+        return new NodeId(item.GetHashCode());
     }
 
     public Item_ GetItem() {
@@ -48,6 +57,36 @@ public class ItemKit {
 
     public void SetRole(Role role) {
         this.role = role;
+    }
+
+    public final ItemKit GetParent() {
+        return parent;
+    }
+
+    public final int GetIndexInParent() {
+        return indexInParent;
+    }
+
+    public final Iterable<ItemKit> GetChildren() {
+        return children;
+    }
+
+    public final void AddChild(ItemKit child) {
+        int index = children.size();
+        children.add(child);
+        child.parent = this;
+        child.indexInParent = index;
+    }
+
+    public void RemoveFromParent() {
+        if (parent.children.get(indexInParent) != this) {
+            throw new RuntimeException("corrupt parent/child structure");
+        }
+        parent.children.remove(indexInParent);
+        for (int i = indexInParent; i < parent.children.size(); i++) {
+            parent.children.get(i).indexInParent = i;
+        }
+        parent = null;
     }
 
     public Rect GetBoundingRectangle()

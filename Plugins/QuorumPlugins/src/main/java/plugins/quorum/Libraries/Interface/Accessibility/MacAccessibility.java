@@ -2,8 +2,7 @@ package plugins.quorum.Libraries.Interface.Accessibility;
 
 import java.net.URISyntaxException;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,19 +32,14 @@ import quorum.Libraries.Interface.Selections.TextFieldSelection_;
  * @author andreasstefik
  */
 public class MacAccessibility {
-    private static final NodeId ROOT_ID = new NodeId(1);
-
     public java.lang.Object me_ = null;
     private MacosSubclassingAdapter adapter;
     private boolean isWindowFocused = true;
-    private NodeId focus = ROOT_ID;
-    private ItemKit focusItem = null;
-
-    //HashMap<Integer, ItemKit> items = new HashMap<Integer, ItemKit>();
-    HashMap<Integer, LinkedList<ItemKit>> parents = new HashMap<Integer, LinkedList<ItemKit>>();
-
-    // TODO: smarter tracking of what was actually changed
-    private boolean dirty = false;
+    private final RootItemKit root = new RootItemKit();
+    private final HashMap<NodeId, ItemKit> items = new HashMap<NodeId, ItemKit>();
+    private NodeId focus = root.GetNodeID();
+    private final HashSet<NodeId> dirtyNodes = new HashSet<NodeId>();
+    private boolean isFocusDirty = false;
 
     public MacAccessibility() {
         try
@@ -60,7 +54,7 @@ public class MacAccessibility {
             adapter = MacosSubclassingAdapter.forWindow(handle, new TreeUpdateSupplier() {
                 @Override
                 public TreeUpdate get() {
-                    return BuildTree();
+                    return BuildFullTree();
                 }
             });
         }
@@ -70,36 +64,21 @@ public class MacAccessibility {
         }
     }
 
-    private TreeUpdate BuildTree() {
-        int hash = 1;
-        NodeBuilder builder = null;
-        if(focusItem != null) {
-            hash = focusItem.GetItem().GetHashCode();
-            builder = new NodeBuilder(focusItem.GetRole());
-        } else {
-            builder = new NodeBuilder(Role.WINDOW);
+    private static void Traverse(ItemKit itemKit, TreeUpdate update) {
+        update.add(itemKit.GetNodeID(), itemKit.Build());
+        for (ItemKit child : itemKit.GetChildren()) {
+            Traverse(child, update);
         }
-        LinkedList<ItemKit> moms = parents.get(hash);
+    }
+
+    private TreeUpdate BuildFullTree() {
         TreeUpdate update = new TreeUpdate();
-
-        for (ItemKit itemKit : moms) {
-            NodeId id = itemKit.GetNodeID();
-            builder.addChild(id);
-            update.add(id, itemKit.Build());
-        }
-        Node root = builder.build();
-        if(focusItem != null) {
-            NodeId id = focusItem.GetNodeID();
-            update.add(id, focusItem.Build());
-            update.setTree(new Tree(id));
-        } else {
-            update.add(ROOT_ID, root);
-            update.setTree(new Tree(ROOT_ID));
-        }
-
+        Traverse(root, update);
+        update.setTree(new Tree(root.GetNodeID()));
         SetTreeUpdateFocus(update);
         return update;
     }
+
 
     public void  NameChanged(Item_ item) {}
 
@@ -113,15 +92,21 @@ public class MacAccessibility {
     public void  TextFieldUpdatePassword(TextField_ field) {}
 
     public void  NativeUpdate() {
-        if (dirty) {
+        if (!dirtyNodes.isEmpty() || isFocusDirty) {
             adapter.updateIfActive(new TreeUpdateSupplier() {
                 @Override
                 public TreeUpdate get() {
-                    // TODO: somehow create an incremental tree update
-                    return BuildTree();
+                    TreeUpdate update = new TreeUpdate();
+                    for (NodeId id : dirtyNodes) {
+                        ItemKit kit = items.get(id);
+                        update.add(id, kit.Build());
+                    }
+                    SetTreeUpdateFocus(update);
+                    return update;
                 }
             });
-            dirty = false;
+            dirtyNodes.clear();
+            isFocusDirty = false;
         }
     }
 
@@ -148,8 +133,6 @@ public class MacAccessibility {
         if(button == null) {
             return;
         }
-
-        //items.get(button.GetHashCode()); //commented this out. Does this need to inform accessibility on Mac?
     }
 
     public void  ToggleButtonToggled(ToggleButton_ button) {}
@@ -162,42 +145,14 @@ public class MacAccessibility {
         }
     }
 
-    private ItemKit GetKitFromAccessibleParent(Item_ item) { //assume non-null
-        int itemHash = item.GetHashCode();
-        Item_ mom = item.GetAccessibleParent();
-        int hash = 1;
-        if(mom != null) { //assume the root unless in a parent
-            hash = mom.GetHashCode();
-        }
-
-        LinkedList<ItemKit> moms = parents.get(hash);
-        ItemKit kit = null;
-        //this makes focus changes O(n) from the parent. This is not ideal, but
-        //gets around an issue in voice over related to how it calculates ordering with the voice over keys
-        //This can likely be fixed by changing that to a tree and tree traversal, ordered by index,
-        //but I did not attempt this here.
-        Iterator<ItemKit> iterator = moms.iterator();
-        boolean finished = false;
-        while(iterator.hasNext() && !finished) {
-            ItemKit next = iterator.next();
-            int nextHash = next.GetItem().GetHashCode();
-            if(nextHash == itemHash) { //found
-                kit = next;
-                finished = true;
-            }
-        }
-        return kit;
-    }
-
     public void  FocusChanged(FocusEvent_ event) {
         Item_ item = event.GetNewFocus();
         if(item != null) {
-            ItemKit kit = GetKitFromAccessibleParent(item);
+            NodeId id = ItemKit.GetNodeID(item);
+            ItemKit kit = items.get(id);
             if(kit != null) {
-                focus = kit.GetNodeID();
-                focusItem = kit;
-                // TODO: somehow indicate that no nodes actually changed
-                dirty = true;
+                focus = id;
+                isFocusDirty = true;
             }
         }
     }
@@ -302,26 +257,18 @@ public class MacAccessibility {
 
         if(itemKit != null) {
             itemKit.SetItem(item);
-            Item_ mom = item.GetAccessibleParent();
-            int hash = 1;
-            //in this case, the parent
-            if(mom != null) { //if this is null, it's in the root
-                System.out.println("Name of Mom: " + mom.GetName());
-                hash = mom.GetHashCode();
+            NodeId id = itemKit.GetNodeID();
+            items.put(id, itemKit);
+            dirtyNodes.add(id);
+            ItemKit parentKit;
+            Item_ parent = item.GetAccessibleParent();
+            if (parent != null) {
+                parentKit = items.get(ItemKit.GetNodeID(parent));
             } else {
-                System.out.println("Is in the root");
+                parentKit = root;
             }
-
-            LinkedList<ItemKit> moms = parents.get(hash);
-            if(moms == null) { //make new moms
-                moms = new LinkedList<ItemKit>();
-                parents.put(hash, moms);
-            }
-
-            moms.add(itemKit);
-
-            // TODO: indicate that only the item's parent (e.g. root) changed
-            dirty = true;
+            parentKit.AddChild(itemKit);
+            dirtyNodes.add(parentKit.GetNodeID());
         }
 
         return false;
@@ -330,19 +277,11 @@ public class MacAccessibility {
     public boolean NativeRemove(Item_ item)
     {
         if(item != null) {
-            int itemHash = item.GetHashCode();
-            Item_ mom = item.GetAccessibleParent();
-            int hash = 1;
-            if(mom != null) { //assume the root unless in a parent
-                hash = mom.GetHashCode();
-            }
-
-            LinkedList<ItemKit> moms = parents.get(hash);
-            boolean removed = moms.removeFirstOccurrence(item.GetHashCode());
-            //ItemKit kit = items.remove((item.GetHashCode()));
-            if(removed) {
-                // TODO: indicate that only the item's parent (e.g. root) changed
-                dirty = true;
+            ItemKit kit = items.remove(ItemKit.GetNodeID(item));
+            if(kit != null) {
+                ItemKit parent = kit.GetParent();
+                dirtyNodes.add(parent.GetNodeID());
+                kit.RemoveFromParent();
             }
         }
         return false;
