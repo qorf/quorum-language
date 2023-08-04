@@ -9,6 +9,7 @@ import quorum.Libraries.Interface.Item2D_;
 import quorum.Libraries.Interface.Item3D_;
 import quorum.Libraries.Interface.Item_;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class ItemIOS extends UIAccessibilityElement implements UIAccessibilityAction, UIAccessibilityFocus{
@@ -22,6 +23,8 @@ public class ItemIOS extends UIAccessibilityElement implements UIAccessibilityAc
         super(container);
     }
 
+    private NSArray<UIAccessibilityCustomAction> customActions;
+    private Set<String> assistiveTechnologyFocusedIdentifiers;
     Item_ item;
     boolean focused = false;
 
@@ -34,7 +37,8 @@ public class ItemIOS extends UIAccessibilityElement implements UIAccessibilityAc
         this.item = item;
         UIAccessibilityTraits traits = UIAccessibilityTraits.Button;
         this.setAccessibilityTraits(traits);
-
+        customActions = new NSArray<UIAccessibilityCustomAction>();
+        assistiveTechnologyFocusedIdentifiers = new HashSet<String>();
     }
 
     @Override
@@ -78,12 +82,12 @@ public class ItemIOS extends UIAccessibilityElement implements UIAccessibilityAc
 
     @Override
     public NSArray<UIAccessibilityCustomAction> getAccessibilityCustomActions() {
-        return null;
+        return customActions;
     }
 
     @Override
     public void setAccessibilityCustomActions(NSArray<UIAccessibilityCustomAction> v) {
-
+        customActions = v;
     }
 
     @Override
@@ -135,7 +139,7 @@ public class ItemIOS extends UIAccessibilityElement implements UIAccessibilityAc
 
     @Override
     public Set<String> getAssistiveTechnologyFocusedIdentifiers() {
-        return null;
+        return assistiveTechnologyFocusedIdentifiers;
     }
 }
 
