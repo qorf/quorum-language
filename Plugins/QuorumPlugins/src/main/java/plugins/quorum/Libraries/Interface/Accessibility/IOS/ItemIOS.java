@@ -3,6 +3,7 @@ package plugins.quorum.Libraries.Interface.Accessibility.IOS;
 import org.robovm.apple.coregraphics.CGRect;
 import org.robovm.apple.foundation.NSArray;
 import org.robovm.apple.uikit.*;
+import org.robovm.objc.block.Block1;
 import plugins.quorum.Libraries.Game.IOSApplication;
 import quorum.Libraries.Game.Shapes.Rectangle_;
 import quorum.Libraries.Interface.Item2D_;
@@ -21,10 +22,32 @@ public class ItemIOS extends UIAccessibilityElement implements UIAccessibilityAc
     public ItemIOS(UIAccessibilityContainer container)
     {
         super(container);
+        accessibilityCustomRotors = new NSArray<UIAccessibilityCustomRotor>(buildRotor());
     }
 
     private NSArray<UIAccessibilityCustomAction> customActions;
     private Set<String> assistiveTechnologyFocusedIdentifiers;
+    public NSArray<UIAccessibilityCustomRotor> accessibilityCustomRotors;
+
+    private UIAccessibilityCustomRotor buildRotor()
+    {
+        UIAccessibilityCustomRotor rotor = new UIAccessibilityCustomRotor();
+        rotor.setName("Quorum Navigation");
+        UIAccessibilityElement target = this;
+        Block1<UIAccessibilityCustomRotorSearchPredicate, UIAccessibilityCustomRotorItemResult> block = uiAccessibilityCustomRotorSearchPredicate -> {
+            if (uiAccessibilityCustomRotorSearchPredicate.getSearchDirection() == UIAccessibilityCustomRotorDirection.Next) {
+                item.GetNextFocus().Focus();
+                System.out.println("Rotor Forward");
+            } else {
+                item.GetPreviousFocus().Focus();
+                System.out.println("Rotor Backward");
+            }
+            return new UIAccessibilityCustomRotorItemResult(target, null);
+        };
+        rotor.setItemSearchBlock(block);
+        return rotor;
+    }
+
     Item_ item;
     boolean focused = false;
 
@@ -33,9 +56,17 @@ public class ItemIOS extends UIAccessibilityElement implements UIAccessibilityAc
         this.item = item;
     }
 
+    public void setAccessibilityCustomRotors(NSArray<UIAccessibilityCustomRotor> accessibilityCustomRotors) {
+        this.accessibilityCustomRotors = accessibilityCustomRotors;
+    }
+
+    public NSArray<UIAccessibilityCustomRotor> getAccessibilityCustomRotors() {
+        return accessibilityCustomRotors;
+    }
+
     public void Initialize(Item_ item) {
         this.item = item;
-        UIAccessibilityTraits traits = UIAccessibilityTraits.Button;
+        UIAccessibilityTraits traits = UIAccessibilityTraits.None;
         this.setAccessibilityTraits(traits);
         customActions = new NSArray<UIAccessibilityCustomAction>();
         assistiveTechnologyFocusedIdentifiers = new HashSet<String>();
@@ -123,6 +154,7 @@ public class ItemIOS extends UIAccessibilityElement implements UIAccessibilityAc
     @Override
     public void didBecomeFocused() {
         System.out.println(item.GetName() + " gained focus");
+        item.Focus();
         focused = true;
     }
 
