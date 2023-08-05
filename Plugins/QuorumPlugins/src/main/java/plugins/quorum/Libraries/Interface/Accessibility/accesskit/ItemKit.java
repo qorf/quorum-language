@@ -16,7 +16,7 @@ public class ItemKit {
     private Item_ item = null;
     private ItemKit parent = null;
     private int indexInParent = -1;
-    private ArrayList<ItemKit> children = new ArrayList<ItemKit>;
+    private ArrayList<ItemKit> children = new ArrayList<ItemKit>();
 
     /*
         Needs to be replaced for general items.

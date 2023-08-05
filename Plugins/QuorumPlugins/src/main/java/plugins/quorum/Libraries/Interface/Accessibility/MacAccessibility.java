@@ -145,6 +145,7 @@ public class MacAccessibility {
         }
     }
 
+
     public void  FocusChanged(FocusEvent_ event) {
         Item_ item = event.GetNewFocus();
         if(item != null) {
@@ -157,14 +158,11 @@ public class MacAccessibility {
         }
     }
 
-    public boolean NativeAdd(Item_ item)
-    {
-        isWindowFocused = true;
+    private ItemKit GetKitFromCode(Item_ item) {
         int code = item.GetAccessibilityCode();
-        Role role = null;
         ItemKit itemKit = null;
         if (code == item.Get_Libraries_Interface_Item__NOT_ACCESSIBLE_() || !item.IsShowing()) {
-            return false;
+            return null;
         } else if (code == item.Get_Libraries_Interface_Item__ITEM_()) {
             itemKit = new ItemKit();
         } else if (code == item.Get_Libraries_Interface_Item__CUSTOM_()) {
@@ -254,21 +252,49 @@ public class MacAccessibility {
             LabelKit kit = new LabelKit();
             itemKit = kit;
         }
+        return itemKit;
+    }
+    public boolean NativeAdd(Item_ item)
+    {
+        isWindowFocused = true;
+        //first has this item already been added
+        ItemKit existingKit = items.get(ItemKit.GetNodeID(item));
+        if(existingKit != null) {
+            return true;
+        }
+
+        //second, if it's been added, accesskit seems to require parent hierarchies, at least in this design
+        //be ordered parent to child. That might be dangerous quorum side, because that's definitely a contract
+        //someone could violate, but we'll give it a try for the end of the hackathon.
+        //as such, try the parent next
+        Item_ parent = item.GetAccessibleParent();
+        ItemKit parentKit;
+        if (parent != null) {
+            parentKit = items.get(ItemKit.GetNodeID(parent));
+
+            if(parentKit == null) { //the parent isn't actually a node, it needs to be added to the hierarchy
+                boolean addedParent = NativeAdd(parent); //if false, the contract is violated. Throw an exception
+                if(false) { //not sure if this will ever fire. If it does, we'll need a different parent/child solution.
+                    throw new RuntimeException("Parent to Node cannot be added for item " + item.GetName() + " with parent: " + parent.GetName());
+                }
+                parentKit = items.get(ItemKit.GetNodeID(parent)); //it was added, so it must be in there.
+            }
+        } else {
+            parentKit = root;
+        }
+
+        int code = item.GetAccessibilityCode();
+        Role role = null;
+        ItemKit itemKit = GetKitFromCode(item);
 
         if(itemKit != null) {
             itemKit.SetItem(item);
             NodeId id = itemKit.GetNodeID();
             items.put(id, itemKit);
             dirtyNodes.add(id);
-            ItemKit parentKit;
-            Item_ parent = item.GetAccessibleParent();
-            if (parent != null) {
-                parentKit = items.get(ItemKit.GetNodeID(parent));
-            } else {
-                parentKit = root;
-            }
             parentKit.AddChild(itemKit);
             dirtyNodes.add(parentKit.GetNodeID());
+            return true;
         }
 
         return false;
