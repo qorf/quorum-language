@@ -2,7 +2,9 @@ package plugins.quorum.Libraries.Interface.Accessibility.IOS;
 
 import org.robovm.apple.coregraphics.CGRect;
 import org.robovm.apple.foundation.NSArray;
+import org.robovm.apple.foundation.NSMutableArray;
 import org.robovm.apple.uikit.*;
+import org.robovm.objc.Selector;
 import org.robovm.objc.block.Block1;
 import plugins.quorum.Libraries.Game.IOSApplication;
 import quorum.Libraries.Game.Shapes.Rectangle_;
@@ -23,6 +25,9 @@ public class ItemIOS extends UIAccessibilityElement implements UIAccessibilityAc
     {
         super(container);
         accessibilityCustomRotors = new NSArray<UIAccessibilityCustomRotor>(buildRotor());
+//        customActions = new NSArray<>();
+//        customActions.add(MakeNextFocusCustomAction());
+//        customActions.add(MakePreviousFocusCustomAction());
     }
 
     private NSArray<UIAccessibilityCustomAction> customActions;
@@ -109,6 +114,30 @@ public class ItemIOS extends UIAccessibilityElement implements UIAccessibilityAc
         }
 
         return new CGRect(x, y, width, height);
+    }
+    private UIAccessibilityCustomAction MakeNextFocusCustomAction() {
+        UIAccessibilityCustomAction action = new UIAccessibilityCustomAction();
+        action.setName("Next Focus");
+        action.setTarget(this);
+        action.setSelector(Selector.register("GetNextFocus"));
+        return action;
+    }
+
+    private  UIAccessibilityCustomAction MakePreviousFocusCustomAction() {
+        UIAccessibilityCustomAction action = new UIAccessibilityCustomAction();
+        action.setName("Previous Focus");
+        action.setTarget(this);
+        action.setSelector(Selector.register("GetPreviousFocus"));
+        return action;
+    }
+
+    // These will tell Quorum to focus on the next item but voiceover will not be notified as they are now
+    public void GetNextFocus() {
+        item.GetNextFocus().Focus();
+    }
+
+    public void GetPreviousFocus() {
+        item.GetPreviousFocus().Focus();
     }
 
     @Override
