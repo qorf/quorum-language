@@ -13,7 +13,19 @@ function plugins_quorum_Libraries_Game_WebInput_()
         plugins_quorum_Libraries_Game_WebInput_.mouseInfo.y = 0;
         plugins_quorum_Libraries_Game_WebInput_.mouseInfo.buttons = 0;
         plugins_quorum_Libraries_Game_WebInput_.mouseInfo.wheel = 0;
-        
+
+        // If we previously defined the listener functions, remove the old ones before we do any more initialization.
+        if (plugins_quorum_Libraries_Game_WebInput_.KeyDown !== undefined)
+        {
+            document.removeEventListener('keydown', plugins_quorum_Libraries_Game_WebInput_.KeyDown);
+            document.removeEventListener('keyup', plugins_quorum_Libraries_Game_WebInput_.KeyUp);
+            document.removeEventListener('mousedown', plugins_quorum_Libraries_Game_WebInput_.MouseDown);
+            document.removeEventListener('mouseup', plugins_quorum_Libraries_Game_WebInput_.MouseUp);
+            document.removeEventListener('mousemove', plugins_quorum_Libraries_Game_WebInput_.MouseMove);
+            document.removeEventListener('contextmenu', plugins_quorum_Libraries_Game_WebInput_.ContextMenu);
+            document.removeEventListener('wheel', plugins_quorum_Libraries_Game_WebInput_.MouseScroll);
+        }
+
         plugins_quorum_Libraries_Game_WebInput_.IsFocused = function()
         {
             let accessibilityRoot;
