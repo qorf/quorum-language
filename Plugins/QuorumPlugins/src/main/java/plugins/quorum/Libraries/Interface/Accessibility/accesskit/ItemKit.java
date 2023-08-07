@@ -27,7 +27,7 @@ public class ItemKit {
         if(item != null) {
             Rect rect = GetBoundingRectangle();
             builder.setBounds(rect);
-            builder.setName(item.GetName());
+            builder.setName(item.GetName() + ", " + item.GetDescription());
         }
         for (ItemKit child : children) {
             builder.addChild(child.GetNodeID());
@@ -118,18 +118,21 @@ public class ItemKit {
             double itemX = ((Item2D_)item).GetScreenX();
             double itemY = (((Item2D_) item).GetScreenY());
 
-            if (itemX == Double.NaN)
+            if (itemX == Double.NaN) {
                 itemX = 0;
+            }
 
-            if (itemY == Double.NaN)
+            if (itemY == Double.NaN) {
                 itemY = 0;
+            }
 
+            //bounding boxes require a slightly different approach than UIA.
             rect = new Rect(
-            windowX + itemX,
-            windowY + (windowHeight - (itemY + ((Item2D_) item).GetHeight())),
-                ((Item2D_) item).GetWidth(),
-                ((Item2D_) item).GetHeight()
-                            );
+                    itemX,
+                    windowHeight - itemY - ((Item2D_) item).GetHeight(),
+                    ((Item2D_) item).GetWidth() + itemX,
+                    windowHeight - itemY
+            );
         }
         else if (item instanceof Item3D_)
         {
@@ -138,12 +141,19 @@ public class ItemKit {
             // check how we calculate mouse input detection for 3D objects.
 
             Rectangle_ rectangle = ((Item3D_) item).GetScreenBounds();
+//            rect = new Rect(
+//                    windowX + rectangle.GetX(),
+//                    windowY + (windowHeight - (rectangle.GetY() + rectangle.GetHeight())),
+//                    rectangle.GetWidth(),
+//                    rectangle.GetHeight()
+//            );
+
             rect = new Rect(
-                    windowX + rectangle.GetX(),
-                    windowY + (windowHeight - (rectangle.GetY() + rectangle.GetHeight())),
-                    rectangle.GetWidth(),
-                    rectangle.GetHeight()
-            );
+                    rectangle.GetX(),
+                    windowHeight - (rectangle.GetY() - rectangle.GetHeight()),
+                    rectangle.GetWidth() + rectangle.GetX(),
+                    windowHeight - rectangle.GetY()
+                    );
         }
         else
         {

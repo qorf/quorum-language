@@ -234,7 +234,7 @@ public class MacAccessibility {
             ProgressBarKit kit = new ProgressBarKit();
             itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__TREE_TABLE_CELL_()) {
-            TreeTableKit kit = new TreeTableKit();
+            TreeTableCellKit kit = new TreeTableCellKit();
             itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__GROUP_()) {
             GroupKit kit = new GroupKit();
@@ -274,10 +274,11 @@ public class MacAccessibility {
 
             if(parentKit == null) { //the parent isn't actually a node, it needs to be added to the hierarchy
                 boolean addedParent = NativeAdd(parent); //if false, the contract is violated. Throw an exception
-                if(false) { //not sure if this will ever fire. If it does, we'll need a different parent/child solution.
-                    throw new RuntimeException("Parent to Node cannot be added for item " + item.GetName() + " with parent: " + parent.GetName());
-                }
                 parentKit = items.get(ItemKit.GetNodeID(parent)); //it was added, so it must be in there.
+                //if the parent kit is still null, just add it to the root
+                if(parentKit == null) {
+                    parentKit = root;
+                }
             }
         } else {
             parentKit = root;
