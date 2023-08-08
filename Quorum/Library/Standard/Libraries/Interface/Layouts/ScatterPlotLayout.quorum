@@ -102,13 +102,26 @@ class ScatterPlotLayout is TwoVariableChartLayout
                     boolean positiveSlope = (line:CalculateDependentValue(1) - line:CalculateDependentValue(0)) >= 0
     
                     number residual = square:GetResidual()
-                    number percentHeight = residual / (yMax - yMin)
-                    if percentHeight < 0
-                        percentHeight = -percentHeight
+                    number percentSize = 0
+                    number realSize = 0
+
+                    if chart:GetHorizontalFlag()
+                        percentSize = residual / (yMax - yMin)
+                    else
+                        percentSize = residual / (xMax - xMin)
+                    end
+
+                    if percentSize < 0
+                        percentSize = -percentSize
                     end
     
-                    number realHeight = percentHeight * height
-                    square:SetSize(realHeight, realHeight)
+                    if chart:GetHorizontalFlag()
+                        realSize = percentSize * height
+                    else
+                        realSize = percentSize * width
+                    end
+
+                    square:SetSize(realSize, realSize)
     
                     number pointX = point:GetX() + point:GetWidth() / 2.0
                     number pointY = point:GetY() + point:GetHeight() / 2.0
@@ -117,13 +130,13 @@ class ScatterPlotLayout is TwoVariableChartLayout
                         if residual < 0
                             square:SetPosition(pointX, pointY)
                         else
-                            square:SetPosition(pointX - realHeight, pointY - realHeight)
+                            square:SetPosition(pointX - realSize, pointY - realSize)
                         end
                     else
                         if residual < 0
-                            square:SetPosition(pointX - realHeight, pointY)
+                            square:SetPosition(pointX - realSize, pointY)
                         else
-                            square:SetPosition(pointX, pointY - realHeight)
+                            square:SetPosition(pointX, pointY - realSize)
                         end
                     end
                 else
