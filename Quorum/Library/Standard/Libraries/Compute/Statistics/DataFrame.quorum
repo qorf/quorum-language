@@ -77,6 +77,7 @@ use Libraries.Compute.Statistics.Tests.CompareMeans
 use Libraries.Compute.Statistics.Tests.CompareMeansPairwise
 use Libraries.Compute.Statistics.Transforms.ColumnRoundTransform
 use Libraries.Compute.Statistics.Transforms.TransformLonger
+use Libraries.Compute.Statistics.Tests.ExperimentalDesign
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -2335,6 +2336,32 @@ class DataFrame
     end
 
     /*
+        This action uses an experimental design to pick and conduct the appropriate 
+        CompareMeans test.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareMeans
+        use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+    
+        ExperimentalDesign design
+        design:AddBetweenSubjectsFactor("Age")
+        design:AddBetweenSubjectsFactor("Group")
+        design:AddDependentVariable("Value")
+
+        DataFrame frame
+        frame:Load("Data.csv")
+        CompareMeans compare = frame:CompareMeans(design)
+        output compare:GetFormalSummary()
+    */
+    action CompareMeans(ExperimentalDesign design) returns CompareMeans       
+        CompareMeans compare
+        compare:SetExperimentalDesign(design)
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
         This action uses the selection to conduct a comparison between two or more independent columns. 
         The CompareMeans object returned gives information back in several formats, 
         including text formatted in the American Psychological Association (APA) style.
@@ -2911,6 +2938,33 @@ class DataFrame
         CompareVariances compare
         selection:CopyTo(cast(FactorInput, compare))
         selection:CopyTo(cast(ColumnInput, compare))
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
+        This action uses an experimental design to pick and conduct the appropriate 
+        CompareVariances test.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareVariances
+        use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+    
+        ExperimentalDesign design
+        design:AddSubjectIdentifier("id")
+        design:AddWithinSubjectsFactor("Time")
+        design:AddBetweenSubjectsFactor("Group")
+        design:AddDependentVariable("Value")
+
+        DataFrame frame
+        frame:Load("Data.csv")
+        CompareVariances compare = frame:CompareVariances(design)
+        output compare:GetFormalSummary()
+    */
+    action CompareVariances(ExperimentalDesign design) returns CompareVariances      
+        CompareVariances compare
+        compare:SetExperimentalDesign(design)
         compare:Calculate(me)
         return compare
     end

@@ -24,10 +24,16 @@ class CompareDependentVariancesTest is Test
         frame:Calculate(compare)
         
         CompareVariancesResult result = compare:GetResult()
-        Check(result:GetTestStatisticsTable():GetValue(result:GetSources():Get(0)):GetValue("W"), 0.009305677150793432)
-        Check(result:GetDegreesOfFreedomTable():GetValue(result:GetSources():Get(0)):GetValue("W"), 5.0)
-        Check(result:GetProbabilityValuesTable():GetValue(result:GetSources():Get(0)):GetValue("W"), 0.003785502714985345)
-        Check(result:GetGreenhouseGeisserCorrection(), 0.4723101080615549)
-        Check(result:GetHuynhFeldtCorrection(), 0.604842824109892)
+        text source = result:GetSources():Get(0)
+        number w = result:GetInformation():GetValue(source):GetValue("W")
+        number df = result:GetInformation():GetValue(source):GetValue("df")
+        number pval = result:GetInformation():GetValue(source):GetValue("p")
+        number gg = result:GetInformation():GetValue(source):GetValue("gg")
+        number hf = result:GetInformation():GetValue(source):GetValue("hf")
+        Check(w, 0.009305677150793432)
+        Check(df, 5.0)
+        Check(pval, 0.005074294006272859)
+        Check(gg, 0.4723101080615549)
+        Check(hf, 0.604842824109892)
     end
 end

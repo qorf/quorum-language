@@ -584,6 +584,9 @@ class CompareMeansResult is StatisticalTestResult
     action GetAssumptionTestSummary returns text
         text summary = ""
         text lf = summary:GetLineFeed()
+        text tab = "    "
+        integer digits = GetFormat():GetSignificantDigits()
+
         if GetDistributionResults() not= undefined
             integer i = 0
             repeat while i < GetDistributionResults():GetSize()
@@ -593,7 +596,7 @@ class CompareMeansResult is StatisticalTestResult
                 end
                 if dResult:GetGroups():GetSize() = 1
                     text group = dResult:GetGroups():Get(0):GetHeader()
-                    summary = summary + lf + " " + group + ": p = " + dResult:GetProbabilityValue()
+                    summary = summary + lf + tab + group + ": p = " + math:Round(dResult:GetProbabilityValue(), digits)
                     if dResult:IsSignificant()
                         summary = summary + " ** significant **"
                     end
@@ -604,9 +607,39 @@ class CompareMeansResult is StatisticalTestResult
         if GetVarianceResult() not= undefined
             CompareVariancesResult vResult = GetVarianceResult()
             summary = summary + lf + vResult:GetFormalTestName()
-            summary = summary + lf + " p = " + vResult:GetProbabilityValue()
-            if vResult:IsSignificant()
-                summary = summary + " ** significant **"
+            if repeated // (Mauchly's Sphericity Test)
+                Array<text> sources = vResult:GetSources()
+                i = 0
+                repeat while i < sources:GetSize()
+                    if vResult:GetInformation():GetValue(sources:Get(i)):HasKey("p")
+                        number p = vResult:GetInformation():GetValue(sources:Get(i)):GetValue("p")
+                        summary = summary + lf + tab + sources:Get(i) + ": p = " + math:Round(p, digits)
+                        if p <= GetSignificanceLevel()
+                            summary = summary + " ** significant **"
+                        end
+                    end
+                    i = i + 1
+                end
+            else
+                if vResult:GetGroupsTable():GetSize() > 0 // (Box's M Test)
+                    number p = 0
+                    if vResult:UseFApproximation()
+                        text statSource = vResult:GetSources():Get(0)+"F"
+                        p = vResult:GetProbabilityValuesTable():GetValue(statSource):GetValue(statSource)
+                    elseif vResult:UseX2Approximation()
+                        text statSource = vResult:GetSources():Get(0)+"χ2"
+                        p = vResult:GetProbabilityValuesTable():GetValue(statSource):GetValue(statSource)
+                    end
+                    summary = summary + lf + tab + vResult:GetSources():Get(0) + ": p = " + math:Round(p, digits)
+                    if p <= 0.001 // Box's M Test should be tested against a small alpha, See: https://www.statisticshowto.com/boxs-m-test/
+                        summary = summary + " ** significant **"
+                    end
+                else // (Levene's Homogeneity Test)
+                    summary = summary + lf + tab + vResult:GetSources():Get(0) + ": p = " + math:Round(vResult:GetProbabilityValue(), digits)
+                    if vResult:IsSignificant()
+                        summary = summary + " ** significant **"
+                    end
+                end
             end
         end
         return summary

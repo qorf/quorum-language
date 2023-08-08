@@ -33,15 +33,15 @@ package Libraries.Compute
 class ComplexNumber
     /** The square root of -1. */
     /** A complex number representing "0.0 + 1.0i" */
-    ComplexNumber I
+    ComplexNumber I = undefined
     /** A complex number representing "NaN + NaNi" */
-    ComplexNumber NAN
+    ComplexNumber NAN = undefined
     /** A complex number representing "+INF + INFi" */
-    ComplexNumber INF
+    ComplexNumber INF = undefined
     /** A complex number representing "1.0 + 0.0i" */
-    ComplexNumber ONE
+    ComplexNumber ONE = undefined
     /** A complex number representing "0.0 + 0.0i" */
-    ComplexNumber ZERO
+    ComplexNumber ZERO = undefined
 
     /* The imaginary part */
     private number imaginary = 0
@@ -54,14 +54,6 @@ class ComplexNumber
     private boolean isInfinite = false
 
     Math math
-
-    on create
-        I:SetValue(0.0,1.0)
-        NAN:SetValue(real:GetNotANumberValue(),real:GetNotANumberValue())
-        INF:SetValue(real:GetPositiveInfinityValue(),real:GetPositiveInfinityValue())
-        ONE:SetValue(1.0,0.0)
-        ZERO:SetValue(0.0,0.0)
-    end
 
     /**
      * Create a complex number given the real and imaginary parts.
@@ -138,7 +130,7 @@ class ComplexNumber
             alert("Cannot add undefined complex numbers")
         end
         if isNotANumber or value:IsNotANumber()
-            return NAN
+            return GetNotANumberValue()
         end
 
         ComplexNumber complex
@@ -156,7 +148,7 @@ class ComplexNumber
     */
     action Add(number value) returns ComplexNumber
         if isNotANumber or value:IsNotANumber()
-            return NAN
+            return GetNotANumberValue()
         end
 
         ComplexNumber complex
@@ -180,7 +172,7 @@ class ComplexNumber
      */
     action Conjugate() returns ComplexNumber
         if isNotANumber
-            return NAN
+            return GetNotANumberValue()
         end
 
         ComplexNumber complex
@@ -235,17 +227,17 @@ class ComplexNumber
             alert("Cannot divide undefined complex numbers")
         end
         if isNotANumber or divisor:IsNotANumber()
-            return NAN
+            return GetNotANumberValue()
         end
 
         number c = divisor:GetReal()
         number d = divisor:GetImaginary()
         if (c = 0.0 and d = 0.0)
-            return NAN
+            return GetNotANumberValue()
         end
 
         if (divisor:IsInfinite() and not isInfinite)
-            return ZERO
+            return GetZeroValue()
         end
 
         if (math:AbsoluteValue(c) < math:AbsoluteValue(d))
@@ -274,16 +266,16 @@ class ComplexNumber
      */
     action Divide(number divisor) returns ComplexNumber
         if isNotANumber or divisor:IsNotANumber()
-            return NAN
+            return GetNotANumberValue()
         end
         if (divisor = 0.0)
-            return NAN
+            return GetNotANumberValue()
         end
         if divisor:IsInfinite()
             if not isInfinite
-                return ZERO
+                return GetZeroValue()
             else
-                return NAN
+                return GetNotANumberValue()
             end
         end
         ComplexNumber complex
@@ -294,15 +286,15 @@ class ComplexNumber
     /** {@inheritDoc} */
     action Reciprocal() returns ComplexNumber
         if isNotANumber
-            return NAN
+            return GetNotANumberValue()
         end
 
         if real = 0.0 and imaginary = 0.0
-            return INF
+            return GetPositiveInfinityValue()
         end
 
         if isInfinite
-            return ZERO
+            return GetZeroValue()
         end
 
         if (math:AbsoluteValue(real) < math:AbsoluteValue(imaginary))
@@ -380,11 +372,11 @@ class ComplexNumber
             alert("Cannot multiply undefined complex numbers")
         end
         if isNotANumber or multiplier:IsNotANumber()
-            return NAN
+            return GetNotANumberValue()
         end
         if real:IsInfinite() or imaginary:IsInfinite() or multiplier:GetReal():IsInfinite() or multiplier:GetImaginary():IsInfinite()
             // we don't use isInfinite() to avoid testing for NaN again
-            return INF
+            return GetPositiveInfinityValue()
         end
         ComplexNumber complex
         complex:SetValue(real * multiplier:GetReal() - imaginary * multiplier:GetImaginary(), real * multiplier:GetImaginary() + imaginary * multiplier:GetReal())
@@ -401,11 +393,11 @@ class ComplexNumber
      */
     action Multiply(number multiplier) returns ComplexNumber
         if isNotANumber or multiplier:IsNotANumber()
-            return NAN
+            return GetNotANumberValue()
         end
         if real:IsInfinite() or imaginary:IsInfinite() or multiplier:IsInfinite()
             // we don't use isInfinite() to avoid testing for NaN again
-            return INF
+            return GetPositiveInfinityValue()
         end
         ComplexNumber complex
         complex:SetValue(real * multiplier, imaginary * multiplier)
@@ -421,7 +413,7 @@ class ComplexNumber
      */
     action Negate() returns ComplexNumber
         if isNotANumber
-            return NAN
+            return GetNotANumberValue()
         end
         ComplexNumber complex
         complex:SetValue(-real, -imaginary)
@@ -449,7 +441,7 @@ class ComplexNumber
             alert("Cannot subtract undefined complex numbers")
         end
         if isNotANumber or value:IsNotANumber()
-            return NAN
+            return GetNotANumberValue()
         end
 
         ComplexNumber complex
@@ -467,7 +459,7 @@ class ComplexNumber
      */
     action Subtract(number value) returns ComplexNumber
         if isNotANumber or value:IsNotANumber()
-            return NAN
+            return GetNotANumberValue()
         end
         ComplexNumber complex
         complex:SetValue(real - value, imaginary)
@@ -533,11 +525,11 @@ class ComplexNumber
      */
     action SquareRoot() returns ComplexNumber
         if isNotANumber
-            return NAN
+            return GetNotANumberValue()
         end
 
         if (real = 0.0 and imaginary = 0.0)
-            return ZERO
+            return GetZeroValue()
         end
 
         number t = math:SquareRoot((math:AbsoluteValue(real) + me:AbsoluteValue()) / 2.0)
@@ -593,7 +585,7 @@ class ComplexNumber
      */
     action NaturalLogarithm() returns ComplexNumber
         if isNotANumber
-            return NAN
+            return GetNotANumberValue()
         end
 
         ComplexNumber complex
@@ -618,10 +610,10 @@ class ComplexNumber
      */
     action InverseCosine() returns ComplexNumber
         if isNotANumber
-            return NAN
+            return GetNotANumberValue()
         end
 
-        return me:Add(me:SquareRoot1Z():Multiply(I)):NaturalLogarithm():Multiply(I:Negate())
+        return me:Add(me:SquareRoot1Z():Multiply(GetImaginaryOneValue())):NaturalLogarithm():Multiply(GetImaginaryOneValue():Negate())
     end
 
     /**
@@ -640,10 +632,10 @@ class ComplexNumber
      */
     action InverseSine() returns ComplexNumber
         if isNotANumber
-            return NAN
+            return GetNotANumberValue()
         end
     
-        return me:SquareRoot1Z():Add(me:Multiply(I)):NaturalLogarithm():Multiply(I:Negate())
+        return me:SquareRoot1Z():Add(me:Multiply(GetImaginaryOneValue())):NaturalLogarithm():Multiply(GetImaginaryOneValue():Negate())
     end
 
     /**
@@ -662,12 +654,12 @@ class ComplexNumber
      */
     action InverseTangent() returns ComplexNumber
         if isNotANumber
-            return NAN
+            return GetNotANumberValue()
         end
 
         ComplexNumber complex
         complex:SetValue(2.0, 0.0)
-        return me:Add(I):Divide(I:Subtract(me)):NaturalLogarithm():Multiply(I:Divide(complex))
+        return me:Add(GetImaginaryOneValue()):Divide(GetImaginaryOneValue():Subtract(me)):NaturalLogarithm():Multiply(GetImaginaryOneValue():Divide(complex))
     end
 
     /**
@@ -701,7 +693,7 @@ class ComplexNumber
      */
     action Cosine() returns ComplexNumber
         if isNotANumber
-            return NAN
+            return GetNotANumberValue()
         end
 
         ComplexNumber complex
@@ -742,7 +734,7 @@ class ComplexNumber
      */
     action HyperbolicCosine() returns ComplexNumber
         if isNotANumber
-            return NAN
+            return GetNotANumberValue()
         end
 
         ComplexNumber complex
@@ -784,7 +776,7 @@ class ComplexNumber
      */
     action Sine() returns ComplexNumber
         if isNotANumber
-            return NAN
+            return GetNotANumberValue()
         end
 
         ComplexNumber complex
@@ -825,7 +817,7 @@ class ComplexNumber
      */
     action HyperbolicSine() returns ComplexNumber
         if isNotANumber
-            return NAN
+            return GetNotANumberValue()
         end
 
         ComplexNumber complex
@@ -867,7 +859,7 @@ class ComplexNumber
      */
     action Tangent() returns ComplexNumber
         if isNotANumber or real:IsInfinite()
-            return NAN
+            return GetNotANumberValue()
         end
         if imaginary > 20.0
             ComplexNumber complex
@@ -921,7 +913,7 @@ class ComplexNumber
      */
     action HyperbolicTangent() returns ComplexNumber
         if isNotANumber or imaginary:IsInfinite()
-            return NAN
+            return GetNotANumberValue()
         end
         if real > 20.0
             ComplexNumber complex
@@ -975,7 +967,7 @@ class ComplexNumber
      */
     action NaturalExponent() returns ComplexNumber
         if isNotANumber
-            return NAN
+            return GetNotANumberValue()
         end
 
         number expReal = math:RaiseNaturalNumberToPower(real)
@@ -1038,4 +1030,48 @@ class ComplexNumber
         return real
     end
 
+    action GetNotANumberValue returns ComplexNumber
+        if NAN = undefined
+            ComplexNumber c
+            c:SetValue(real:GetNotANumberValue(),imaginary:GetNotANumberValue())
+            NAN = c
+        end
+        return NAN
+    end
+
+    action GetPositiveInfinityValue returns ComplexNumber
+        if INF = undefined
+            ComplexNumber c
+            c:SetValue(real:GetPositiveInfinityValue(),imaginary:GetPositiveInfinityValue())
+            INF = c
+        end
+        return INF
+    end
+
+    action GetImaginaryOneValue returns ComplexNumber
+        if I = undefined
+            ComplexNumber c
+            c:SetValue(0.0,1.0)
+            I = c
+        end
+        return I
+    end
+
+    action GetOneValue returns ComplexNumber
+        if ONE = undefined
+            ComplexNumber c
+            c:SetValue(1.0,0.0)
+            ONE = c
+        end
+        return ONE
+    end
+
+    action GetZeroValue returns ComplexNumber
+        if ZERO = undefined
+            ComplexNumber c
+            c:SetValue(0.0,0.0)
+            ZERO = c
+        end
+        return ZERO
+    end
 end
