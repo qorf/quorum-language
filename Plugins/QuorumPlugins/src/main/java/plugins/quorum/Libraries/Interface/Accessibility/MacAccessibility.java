@@ -139,9 +139,7 @@ public class MacAccessibility {
         if(button != null) {
             ItemKit kit = items.get(ItemKit.GetNodeID(button));
             if(kit != null) {
-                ItemKit parent = kit.GetParent();
                 dirtyNodes.add(kit.GetNodeID());
-                kit.RemoveFromParent();
             }
         }
     }
