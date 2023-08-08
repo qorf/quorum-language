@@ -135,7 +135,16 @@ public class MacAccessibility {
         }
     }
 
-    public void  ToggleButtonToggled(ToggleButton_ button) {}
+    public void  ToggleButtonToggled(ToggleButton_ button) {
+        if(button != null) {
+            ItemKit kit = items.get(ItemKit.GetNodeID(button));
+            if(kit != null) {
+                ItemKit parent = kit.GetParent();
+                dirtyNodes.add(kit.GetNodeID());
+                kit.RemoveFromParent();
+            }
+        }
+    }
 
     private void SetTreeUpdateFocus(TreeUpdate update) {
         if (isWindowFocused) {
@@ -308,6 +317,7 @@ public class MacAccessibility {
             if(kit != null) {
                 ItemKit parent = kit.GetParent();
                 dirtyNodes.add(parent.GetNodeID());
+                dirtyNodes.add(kit.GetNodeID());
                 kit.RemoveFromParent();
             }
         }
