@@ -37,6 +37,7 @@ public class MacAccessibility {
     private boolean isWindowFocused = true;
     private final RootItemKit root = new RootItemKit();
     private final HashMap<NodeId, ItemKit> items = new HashMap<NodeId, ItemKit>();
+
     private NodeId focus = root.GetNodeID();
     private final HashSet<NodeId> dirtyNodes = new HashSet<NodeId>();
     private boolean isFocusDirty = false;
@@ -113,6 +114,9 @@ public class MacAccessibility {
                     TreeUpdate update = new TreeUpdate();
                     for (NodeId id : dirtyNodes) {
                         ItemKit kit = items.get(id);
+                        if(id == focus) {
+                            System.out.println("Found in dirty: " + focus);
+                        }
                         update.add(id, kit.Build());
                     }
                     SetTreeUpdateFocus(update);
@@ -120,6 +124,20 @@ public class MacAccessibility {
                 }
             });
             dirtyNodes.clear();
+
+        }
+    }
+
+    private void SetTreeUpdateFocus(TreeUpdate update) {
+        if (isWindowFocused) {
+            ItemKit kit = items.get(focus);
+            if(kit != null) {
+                update.setFocus(focus);
+            } else {
+                isFocusDirty = true ; //catch it on the next frame.
+            }
+        } else {
+            update.clearFocus();
             isFocusDirty = false;
         }
     }
@@ -153,15 +171,19 @@ public class MacAccessibility {
 
         //The following is actually mimicing the focus, which is wrong. However, it gets us basic screen reader support
         //We need to polish everything, but it's a start.
+        ChangeFocusNextFrame(item);
+
+        return false;
+    }
+
+    private void ChangeFocusNextFrame(Item_ item) {
         NodeId id = ItemKit.GetNodeID(item);
         ItemKit kit = items.get(id);
         if(kit != null) {
             focus = id;
             isFocusDirty = true;
         }
-        return false;
     }
-
     public void  ButtonActivated(Button_ button) {
         if(button == null) {
             return;
@@ -172,24 +194,17 @@ public class MacAccessibility {
         SetItemToDirty(button);
     }
 
-    private void SetTreeUpdateFocus(TreeUpdate update) {
-        if (isWindowFocused) {
-            update.setFocus(focus);
-        } else {
-            update.clearFocus();
-        }
-    }
-
-
     public void  FocusChanged(FocusEvent_ event) {
         Item_ item = event.GetNewFocus();
         if(item != null) {
-            NodeId id = ItemKit.GetNodeID(item);
-            ItemKit kit = items.get(id);
-            if(kit != null) {
-                focus = id;
-                isFocusDirty = true;
-            }
+            ChangeFocusNextFrame(item);
+//            NodeId id = ItemKit.GetNodeID(item);
+//            ItemKit kit = items.get(id);
+//            if(kit != null) {
+//                focus = id;
+//                isFocusDirty = true;
+//                System.out.println("Focus: " + item.GetName());
+//            }
         }
     }
 
