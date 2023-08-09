@@ -53,6 +53,7 @@ public class MacAccessibility {
             adapter = MacosSubclassingAdapter.forWindow(handle, new TreeUpdateSupplier() {
                 @Override
                 public TreeUpdate get() {
+                    items.put(root.GetNodeID(), root);
                     return BuildFullTree();
                 }
             });
@@ -328,7 +329,8 @@ public class MacAccessibility {
     public boolean NativeRemove(Item_ item)
     {
         if(item != null) {
-            ItemKit kit = items.remove(ItemKit.GetNodeID(item));
+            NodeId id = ItemKit.GetNodeID(item);
+            ItemKit kit = items.remove(id);
             if(kit != null) {
                 ItemKit parent = kit.GetParent();
                 NodeId parentID = parent.GetNodeID();
