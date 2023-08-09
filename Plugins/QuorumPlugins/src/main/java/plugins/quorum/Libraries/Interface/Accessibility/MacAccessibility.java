@@ -12,6 +12,7 @@ import plugins.quorum.Libraries.Game.DesktopDisplay;
 import plugins.quorum.Libraries.Interface.Accessibility.accesskit.*;
 import plugins.quorum.Libraries.Interface.AccessibilityManager;
 import quorum.Libraries.Interface.Controls.Button_;
+import quorum.Libraries.Interface.Controls.Control_;
 import quorum.Libraries.Interface.Controls.TextField_;
 import quorum.Libraries.Interface.Controls.ToggleButton_;
 import quorum.Libraries.Interface.Events.ControlActivationEvent_;
@@ -79,17 +80,30 @@ public class MacAccessibility {
         return update;
     }
 
-
-    public void  NameChanged(Item_ item) {}
-
-    public void  DescriptionChanged(Item_ item) {}
-
-    public void  BoundsChanged(Item_ item) {
-
-
+    private void SetItemToDirty(Item_ item) {
+        if(item != null) {
+            ItemKit kit = items.get(ItemKit.GetNodeID(item));
+            if(kit != null) {
+                dirtyNodes.add(kit.GetNodeID());
+            }
+        }
     }
 
-    public void  TextFieldUpdatePassword(TextField_ field) {}
+    public void  NameChanged(Item_ item) {
+        SetItemToDirty(item);
+    }
+
+    public void  DescriptionChanged(Item_ item) {
+        SetItemToDirty(item);
+    }
+
+    public void  BoundsChanged(Item_ item) {
+        SetItemToDirty(item);
+    }
+
+    public void  TextFieldUpdatePassword(TextField_ item) {
+        SetItemToDirty(item);
+    }
 
     public void  NativeUpdate() {
         if (!dirtyNodes.isEmpty() || isFocusDirty) {
@@ -110,22 +124,32 @@ public class MacAccessibility {
         }
     }
 
-    public void  ProgressBarValueChanged(ProgressBarValueChangedEvent_ progress) {}
+    public void  ProgressBarValueChanged(ProgressBarValueChangedEvent_ item) {
+        SetItemToDirty(item.GetProgressBar());
+    }
 
-    public void  SelectionChanged(SelectionEvent_ event) {}
+    public void  SelectionChanged(SelectionEvent_ event) {
+        /*
+        Not sure what we do with this one yet, but I suspect it is relevant for radio groups and trees.
+         */
+    }
 
     public void TextSelectionChanged(TextBoxSelection_ selection)
     {
-
+        SetItemToDirty(selection.GetTextBox());
     }
 
     public void TextSelectionChanged(TextFieldSelection_ selection)
     {
-
+        SetItemToDirty(selection.GetTextField());
     }
 
     public boolean Select(Item_ item)
     {
+        /*
+        Not sure what we do in access kit here, but this is when the selection has changed, for example to a tree item.
+        I don't think this is directly a focus call, it's a selection call, so this may be different at the access kit level.
+         */
         return false;
     }
 
@@ -136,12 +160,7 @@ public class MacAccessibility {
     }
 
     public void  ToggleButtonToggled(ToggleButton_ button) {
-        if(button != null) {
-            ItemKit kit = items.get(ItemKit.GetNodeID(button));
-            if(kit != null) {
-                dirtyNodes.add(kit.GetNodeID());
-            }
-        }
+        SetItemToDirty(button);
     }
 
     private void SetTreeUpdateFocus(TreeUpdate update) {
@@ -325,21 +344,60 @@ public class MacAccessibility {
         return false;
     }
 
-    public void  MenuChanged(MenuChangeEvent_ event) {}
+    public void  MenuChanged(MenuChangeEvent_ event) {
+        /*
 
-    public void  TreeChanged(TreeChangeEvent_ event) {}
+        Mac menus are weird. How does this impact Access Kit?
+         */
+    }
 
-    public void  TreeTableChanged(TreeTableChangeEvent_ event) {}
+    public void  TreeChanged(TreeChangeEvent_ event) {
+        /*
+        There's no trees yet, but this is the structure of the tree. I'm guessing we just refresh it.
+        This may be too heavyweight.
+         */
+        SetItemToDirty(event.GetTree());
+    }
 
-    public void  ControlActivated(ControlActivationEvent_ event) {}
+    public void  TreeTableChanged(TreeTableChangeEvent_ event) {
+        SetItemToDirty(event.GetTreeTable());
+    }
 
-    public void  TextChanged(TextChangeEvent_ event) {}
+    public void  ControlActivated(ControlActivationEvent_ event) {
+        /*
+        I don't know what this one does exactly and the documentation Quorum side is vague. UIA doesn't
+        have an implementation for it, so it may not do anything. I'm leaving it blank for now.
+         */
+    }
+
+    public void  TextChanged(TextChangeEvent_ event) {
+        /*
+        In the UIA implementation, we call up for this control, which I don't think will work here without a callback.
+        For now, I've hooked it up to say it's dirty. This is impractical because it will trigger every character press
+        an entire flush of the text. We can also trigger partial updates here, but getting the state to match exactly
+        could be error prone. Food for thought.
+         */
+        Control_ control = event.GetControl();
+        SetItemToDirty(control);
+    }
 
     public void  WindowFocusChanged(WindowFocusEvent_ event) {}
 
-    public void  Notify(Item_ item, String value) {}
+    public void  Notify(Item_ item, String value) {
+        /*
+        This is kind of similar to an ARIA live region.
+         */
+    }
 
-    public void  Notify(Item_ item, String value, int notificationType) {}
+    public void  Notify(Item_ item, String value, int notificationType) {
+        /*
+        This is kind of similar to an ARIA live region.
+         */
+    }
 
-    public void  Shutdown() {}
+    public void  Shutdown() {
+        /*
+        I don't know what you are supposed to do to shut down access kit, but this is where it should happen.
+         */
+    }
 }
