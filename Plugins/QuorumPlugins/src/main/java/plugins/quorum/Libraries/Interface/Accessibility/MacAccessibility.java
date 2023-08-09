@@ -23,6 +23,7 @@ import quorum.Libraries.Interface.Events.TreeChangeEvent_;
 import quorum.Libraries.Interface.Events.TreeTableChangeEvent_;
 import quorum.Libraries.Interface.Events.WindowFocusEvent_;
 import quorum.Libraries.Interface.Item_;
+import quorum.Libraries.Interface.Selections.Selection_;
 import quorum.Libraries.Interface.Selections.TextBoxSelection_;
 import quorum.Libraries.Interface.Selections.TextFieldSelection_;
 
@@ -89,11 +90,11 @@ public class MacAccessibility {
     }
 
     public void  NameChanged(Item_ item) {
-//        SetItemToDirty(item);
+        SetItemToDirty(item);
     }
 
     public void  DescriptionChanged(Item_ item) {
-//        SetItemToDirty(item);
+        SetItemToDirty(item);
     }
 
     public void  BoundsChanged(Item_ item) {
@@ -128,9 +129,6 @@ public class MacAccessibility {
     }
 
     public void  SelectionChanged(SelectionEvent_ event) {
-        /*
-        Not sure what we do with this one yet, but I suspect it is relevant for radio groups and trees.
-         */
     }
 
     public void TextSelectionChanged(TextBoxSelection_ selection)
@@ -148,7 +146,19 @@ public class MacAccessibility {
         /*
         Not sure what we do in access kit here, but this is when the selection has changed, for example to a tree item.
         I don't think this is directly a focus call, it's a selection call, so this may be different at the access kit level.
+
+        This particular accessibility manager always fires this, regardless of what kind of object it is.
+        It may not be enough, but I think even updating it "could" be enough, depending on how selection is implemented.
          */
+
+        //The following is actually mimicing the focus, which is wrong. However, it gets us basic screen reader support
+        //We need to polish everything, but it's a start.
+        NodeId id = ItemKit.GetNodeID(item);
+        ItemKit kit = items.get(id);
+        if(kit != null) {
+            focus = id;
+            isFocusDirty = true;
+        }
         return false;
     }
 
