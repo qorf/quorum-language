@@ -18,13 +18,16 @@ public class ItemKit {
     private int indexInParent = -1;
     private ArrayList<ItemKit> children = new ArrayList<ItemKit>();
 
+    public ItemKit() {
+        SetRole(Role.UNKNOWN);
+    }
     /*
         Needs to be replaced for general items.
      */
     public Node Build() {
         NodeBuilder builder = new NodeBuilder(GetRole());
         Item_ item = GetItem();
-        if(item != null) {
+        if (item != null) {
             Rect rect = GetBoundingRectangle();
             builder.setBounds(rect);
             builder.setName(item.GetName() + ", " + item.GetDescription());

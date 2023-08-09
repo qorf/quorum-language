@@ -7,14 +7,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import dev.accesskit.*;
+import dev.accesskit.Tree;
 import org.lwjgl.glfw.GLFWNativeCocoa;
 import plugins.quorum.Libraries.Game.DesktopDisplay;
 import plugins.quorum.Libraries.Interface.Accessibility.accesskit.*;
 import plugins.quorum.Libraries.Interface.AccessibilityManager;
-import quorum.Libraries.Interface.Controls.Button_;
-import quorum.Libraries.Interface.Controls.Control_;
-import quorum.Libraries.Interface.Controls.TextField_;
-import quorum.Libraries.Interface.Controls.ToggleButton_;
+import quorum.Libraries.Interface.Controls.*;
 import quorum.Libraries.Interface.Events.ControlActivationEvent_;
 import quorum.Libraries.Interface.Events.FocusEvent_;
 import quorum.Libraries.Interface.Events.MenuChangeEvent_;
@@ -90,11 +88,11 @@ public class MacAccessibility {
     }
 
     public void  NameChanged(Item_ item) {
-        SetItemToDirty(item);
+//        SetItemToDirty(item);
     }
 
     public void  DescriptionChanged(Item_ item) {
-        SetItemToDirty(item);
+//        SetItemToDirty(item);
     }
 
     public void  BoundsChanged(Item_ item) {
@@ -136,12 +134,12 @@ public class MacAccessibility {
 
     public void TextSelectionChanged(TextBoxSelection_ selection)
     {
-        SetItemToDirty(selection.GetTextBox());
+//        SetItemToDirty(selection.GetTextBox());
     }
 
     public void TextSelectionChanged(TextFieldSelection_ selection)
     {
-        SetItemToDirty(selection.GetTextField());
+//        SetItemToDirty(selection.GetTextField());
     }
 
     public boolean Select(Item_ item)
@@ -360,7 +358,7 @@ public class MacAccessibility {
     }
 
     public void  TreeTableChanged(TreeTableChangeEvent_ event) {
-        SetItemToDirty(event.GetTreeTable());
+//        SetItemToDirty(event.GetTreeTable());
     }
 
     public void  ControlActivated(ControlActivationEvent_ event) {
@@ -378,7 +376,7 @@ public class MacAccessibility {
         could be error prone. Food for thought.
          */
         Control_ control = event.GetControl();
-        SetItemToDirty(control);
+//        SetItemToDirty(control);
     }
 
     public void  WindowFocusChanged(WindowFocusEvent_ event) {}
