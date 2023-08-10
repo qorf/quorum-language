@@ -4,6 +4,8 @@ import dev.accesskit.Node;
 import dev.accesskit.NodeBuilder;
 import dev.accesskit.Rect;
 import dev.accesskit.Role;
+import quorum.Libraries.Containers.Number32BitArray;
+import quorum.Libraries.Containers.Number32BitArray_;
 import quorum.Libraries.Interface.Controls.TextBox_;
 import quorum.Libraries.Interface.Controls.TextField_;
 import quorum.Libraries.Interface.Item_;
@@ -28,5 +30,14 @@ public class TextFieldKit extends ItemKit{
             return builder.build();
         }
         return null;
+    }
+    public float[] GetCharacterWidths(TextField_ field) {
+        Number32BitArray array = (Number32BitArray) field.GetCharacterWidths();
+        return array.plugin_.floats;
+    }
+
+    public float[] GetCharacterXPositions(TextField_ field) {
+        Number32BitArray array = (Number32BitArray) field.GetCharacterXPositions();
+        return array.plugin_.floats;
     }
 }

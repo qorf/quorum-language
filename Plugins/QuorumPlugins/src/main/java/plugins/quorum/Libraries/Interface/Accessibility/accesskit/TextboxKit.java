@@ -1,8 +1,10 @@
 package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 
 import dev.accesskit.*;
+import quorum.Libraries.Containers.Number32BitArray;
 import quorum.Libraries.Interface.Controls.RadioButton_;
 import quorum.Libraries.Interface.Controls.TextBox_;
+import quorum.Libraries.Interface.Controls.TextField_;
 import quorum.Libraries.Interface.Item_;
 
 public class TextboxKit extends ItemKit{
@@ -25,5 +27,15 @@ public class TextboxKit extends ItemKit{
             return builder.build();
         }
         return null;
+    }
+
+    public float[] GetCharacterWidths(TextBox_ box, int line) {
+        Number32BitArray array = (Number32BitArray) box.GetCharacterWidths(line);
+        return array.plugin_.floats;
+    }
+
+    public float[] GetCharacterXPositions(TextBox_ box, int line) {
+        Number32BitArray array = (Number32BitArray) box.GetCharacterXPositions(line);
+        return array.plugin_.floats;
     }
 }
