@@ -60,12 +60,12 @@ public class TextFieldKit extends ItemKit{
         }
         return null;
     }
-    public float[] GetCharacterWidths(TextField_ field) {
+    static float[] GetCharacterWidths(TextField_ field) {
         Number32BitArray array = (Number32BitArray) field.GetCharacterWidths();
         return array.plugin_.floats;
     }
 
-    public float[] GetCharacterXPositions(TextField_ field) {
+    static float[] GetCharacterXPositions(TextField_ field) {
         Number32BitArray array = (Number32BitArray) field.GetCharacterXPositions();
         return array.plugin_.floats;
     }

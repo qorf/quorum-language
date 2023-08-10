@@ -58,6 +58,8 @@ public class TextFieldLineKit extends ItemKit{
             }
             builder.setCharacterLengths(charLen);
             builder.setWordLengths(wordLen);
+            builder.setCharacterPositions(TextFieldKit.GetCharacterPositions(field));
+            builder.setCharacterWidths(TextFieldKit.GetCharacterWidths(field));
             return builder.build();
         }
         return null;
