@@ -420,6 +420,11 @@ public class MacAccessibility {
     public void  TextChanged(TextChangeEvent_ event) {
         Control_ control = event.GetControl();
         SetItemToDirty(control);
+        ItemKit kit = items.get(ItemKit.GetNodeID(control));
+        if (kit != null && kit instanceof TextFieldKit) {
+            TextFieldKit fieldKit = (TextFieldKit)kit;
+            dirtyNodes.add(fieldKit.GetLineNodeID());
+        }
     }
 
     public void  WindowFocusChanged(WindowFocusEvent_ event) {}
