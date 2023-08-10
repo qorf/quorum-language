@@ -151,12 +151,12 @@ public class MacAccessibility {
 
     public void TextSelectionChanged(TextBoxSelection_ selection)
     {
-//        SetItemToDirty(selection.GetTextBox());
+        SetItemToDirty(selection.GetTextBox());
     }
 
     public void TextSelectionChanged(TextFieldSelection_ selection)
     {
-//        SetItemToDirty(selection.GetTextField());
+        SetItemToDirty(selection.GetTextField());
     }
 
     public boolean Select(Item_ item)
@@ -345,10 +345,22 @@ public class MacAccessibility {
             dirtyNodes.add(id);
             parentKit.AddChild(itemKit);
             dirtyNodes.add(parentKit.GetNodeID());
+            AddDescendants(itemKit);
             return true;
         }
 
         return false;
+    }
+
+    private void AddDescendants(ItemKit parent) {
+        for (ItemKit child : parent.GetChildren()) {
+            NodeId id = child.GetNodeID();
+            if (!items.containsKey(id)) {
+                items.put(id, child);
+                dirtyNodes.add(id);
+                AddDescendants(child);
+            }
+        }
     }
 
     public boolean NativeRemove(Item_ item)
@@ -367,6 +379,15 @@ public class MacAccessibility {
             }
         }
         return false;
+    }
+
+    private void RemoveDescendants(ItemKit parent) {
+        for (ItemKit child : parent.GetChildren()) {
+            NodeId id = child.GetNodeID();
+            items.remove(id);
+            dirtyNodes.remove(id);
+            RemoveDescendants(child);
+        }
     }
 
     public void  MenuChanged(MenuChangeEvent_ event) {
@@ -396,14 +417,8 @@ public class MacAccessibility {
     }
 
     public void  TextChanged(TextChangeEvent_ event) {
-        /*
-        In the UIA implementation, we call up for this control, which I don't think will work here without a callback.
-        For now, I've hooked it up to say it's dirty. This is impractical because it will trigger every character press
-        an entire flush of the text. We can also trigger partial updates here, but getting the state to match exactly
-        could be error prone. Food for thought.
-         */
         Control_ control = event.GetControl();
-//        SetItemToDirty(control);
+        SetItemToDirty(control);
     }
 
     public void  WindowFocusChanged(WindowFocusEvent_ event) {}
