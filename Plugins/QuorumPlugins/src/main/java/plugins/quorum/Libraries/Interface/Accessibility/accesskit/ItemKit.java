@@ -32,10 +32,14 @@ public class ItemKit {
             builder.setBounds(rect);
             builder.setName(item.GetName() + ", " + item.GetDescription());
         }
+        BuildChildren(builder);
+        return builder.build();
+    }
+
+    protected final void BuildChildren(NodeBuilder builder) {
         for (ItemKit child : children) {
             builder.addChild(child.GetNodeID());
         }
-        return builder.build();
     }
 
     public NodeId GetNodeID() {
