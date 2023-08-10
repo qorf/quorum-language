@@ -251,7 +251,7 @@ public class MacAccessibility {
             ToolbarKit kit = new ToolbarKit();
             itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__TAB_()) {
-            ToggleButtonKit kit = new ToggleButtonKit();
+            TabKit kit = new TabKit();
             itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__TAB_PANE_()) {
             TabPaneKit kit = new TabPaneKit();
