@@ -53,7 +53,7 @@ public class TextFieldLineKit extends ItemKit{
                 charLen[i] = characterLengths.get(i).byteValue();
             }
 
-            for(int i = 0; i < characterLengths.size(); i++) {
+            for(int i = 0; i < wordLengths.size(); i++) {
                 wordLen[i] = wordLengths.get(i).byteValue();
             }
             builder.setCharacterLengths(charLen);
