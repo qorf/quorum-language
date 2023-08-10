@@ -376,6 +376,7 @@ public class MacAccessibility {
                 }
                 dirtyNodes.remove(kit.GetNodeID());
                 kit.RemoveFromParent();
+                RemoveDescendants(kit);
             }
         }
         return false;
