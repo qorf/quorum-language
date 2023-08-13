@@ -118,6 +118,9 @@ function plugins_quorum_Libraries_Game_WebInput_()
 
         plugins_quorum_Libraries_Game_WebInput_.IsMouseInCanvas = function(event)
         {
+            if (plugins_quorum_Libraries_Game_GameStateManager_.display == null)
+                return false;
+
             var canvas = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas();
             return event.target === canvas;
         };
