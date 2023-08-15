@@ -768,6 +768,8 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, value, deletedText, originalIndex)
 
+        EmptySelectionEvent(true)
+
         NotifyTextChangeListeners(changeEvent)
     end
 
