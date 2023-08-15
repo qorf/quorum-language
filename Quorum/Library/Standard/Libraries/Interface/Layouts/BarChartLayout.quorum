@@ -86,6 +86,13 @@ class BarChartLayout is SharedBarChartLayout
                 tickHeight = chart:GetHorizontalPanel():GetTickHeight()
                 tickWidth = chart:GetHorizontalPanel():GetTickWidth()
             end
+
+            if width < 0 or width:IsNotANumber()
+                width = 0
+            end
+            if height < 0 or height:IsNotANumber()
+                height = 0
+            end
             
             integer numberOfGroups = barGroups:GetSize()
             if separateByFactor
@@ -93,7 +100,7 @@ class BarChartLayout is SharedBarChartLayout
             elseif separateBySeries
                 stacked = false // Can't stack bars if they are all one color
             end
-            groupWidth = width/numberOfGroups
+            groupWidth = width / numberOfGroups
 
             number currentXPosition = 0 // Must be a number since rounding can seriously affect it
             integer currentYPosition = cast(integer, ((0-rangeMin)/(rangeMax-rangeMin)) * height) // Find the 0 position on axis
@@ -256,6 +263,7 @@ class BarChartLayout is SharedBarChartLayout
                         if chart:ShowAnnotations() and currentGroup:GetMaxBar():GetAnnotation() not= undefined
                             groupHeight = groupHeight + cast(integer, currentGroup:GetMaxBar():GetAnnotation():GetHeight()) + barAnnotionPadding
                         end
+
                         currentGroup:LoadRectangle(cast(integer, groupWidth), groupHeight, transparent)
                         currentGroup:SetPosition(groupX, groupY)
                     end

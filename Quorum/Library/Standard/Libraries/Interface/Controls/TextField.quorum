@@ -805,6 +805,8 @@ repeat while value not= undefined and i < value:GetSize()
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, value, deletedText, originalIndex)
 
+        EmptySelectionEvent(true)
+
         NotifyTextChangeListeners(changeEvent)
     end
 
