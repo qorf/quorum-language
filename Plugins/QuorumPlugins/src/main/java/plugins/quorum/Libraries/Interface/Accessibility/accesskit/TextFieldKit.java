@@ -44,14 +44,20 @@ public class TextFieldKit extends ItemKit{
                 TextField_ field = (TextField_) item;
                 builder.setValue(field.GetText());
                 TextFieldSelection_ selection = field.GetSelection();
+                int start = selection.GetStartIndex();
+                int end = selection.GetEndIndex();
+                if(selection.IsEmpty()) {
+                    start = field.GetCaretPosition();
+                    end = field.GetCaretPosition();
+                }
                 NodeId lineID = GetLineNodeID();
                 TextPosition anchor, focus;
                 if (selection.IsEmpty() || selection.IsCaretAtEnd()) {
-                    anchor = new TextPosition(lineID, selection.GetStartIndex());
-                    focus = new TextPosition(lineID, selection.GetEndIndex());
+                    anchor = new TextPosition(lineID, start);
+                    focus = new TextPosition(lineID, end);
                 } else {
-                    anchor = new TextPosition(lineID, selection.GetEndIndex());
-                    focus = new TextPosition(lineID, selection.GetStartIndex());
+                    anchor = new TextPosition(lineID, end);
+                    focus = new TextPosition(lineID, start);
                 }
                 builder.setTextSelection(new TextSelection(anchor, focus));
             }
@@ -60,12 +66,12 @@ public class TextFieldKit extends ItemKit{
         }
         return null;
     }
-    static float[] GetCharacterWidths(TextField_ field) {
+    public static float[] GetCharacterWidths(TextField_ field) {
         Number32BitArray array = (Number32BitArray) field.GetCharacterWidths();
         return array.plugin_.floats;
     }
 
-    static float[] GetCharacterXPositions(TextField_ field) {
+    public static float[] GetCharacterXPositions(TextField_ field) {
         Number32BitArray array = (Number32BitArray) field.GetCharacterXPositions();
         return array.plugin_.floats;
     }

@@ -442,8 +442,6 @@ public class MacAccessibility {
     }
 
     public void  Shutdown() {
-        /*
-        I don't know what you are supposed to do to shut down access kit, but this is where it should happen.
-         */
+        adapter.close();
     }
 }
