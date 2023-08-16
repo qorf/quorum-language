@@ -117,9 +117,9 @@ public class MacAccessibility {
                     TreeUpdate update = new TreeUpdate();
                     for (NodeId id : dirtyNodes) {
                         ItemKit kit = items.get(id);
-                        if(id == focus) {
-                            System.out.println("Found in dirty: " + focus);
-                        }
+//                        if(id == focus) {
+//                            System.out.println("Found in dirty: " + focus);
+//                        }
                         update.add(id, kit.Build());
                         for (NodeId child : kit.GetDirtyInternalChildren()) {
                             update.add(child, kit.BuildInternalChild(child));
@@ -423,7 +423,6 @@ public class MacAccessibility {
             int index = event.GetIndex();
             TextBox_ box = (TextBox_) control;
             int line = box.GetLineIndexOfCharacter(index); //the line number of the index.
-            System.out.println("Textbox values changed at index: " + index + " and line: " + line);
             final int ADDED = event.Get_Libraries_Interface_Events_TextChangeEvent__ADDED_();
             final int DELETED = event.Get_Libraries_Interface_Events_TextChangeEvent__DELETED_();
             final int MODIFIED = event.Get_Libraries_Interface_Events_TextChangeEvent__MODIFIED_();
