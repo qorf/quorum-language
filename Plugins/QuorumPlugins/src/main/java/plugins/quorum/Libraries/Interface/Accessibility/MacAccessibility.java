@@ -43,6 +43,7 @@ public class MacAccessibility {
     private boolean isFocusDirty = false;
 
     public MacAccessibility() {
+        items.put(root.GetNodeID(), root);
         try
         {
             java.io.File file = new java.io.File(AccessibilityManager.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
@@ -55,7 +56,6 @@ public class MacAccessibility {
             adapter = MacosSubclassingAdapter.forWindow(handle, new TreeUpdateSupplier() {
                 @Override
                 public TreeUpdate get() {
-                    items.put(root.GetNodeID(), root);
                     return BuildFullTree();
                 }
             });
