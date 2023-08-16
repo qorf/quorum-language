@@ -25,7 +25,7 @@ abstract class TextKitBase extends ItemKit {
                 i += 2;
             } else {
                 int codePoint = s.codePointAt(i);
-                byte byteCount = UTF8ByteCount(codePoint);
+                byteCount = UTF8ByteCount(codePoint);
                 i += Character.charCount(codePoint);
             }
             characterLengths.add(byteCount);

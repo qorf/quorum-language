@@ -102,7 +102,7 @@ public class TextboxKit extends TextKitBase {
         Item_ item = GetItem();
         if(item != null && item instanceof TextBox_) {
             TextBox_ box = (TextBox_) item;
-            MultipleLineText_ value = box.GetMutipleLineText();
+            MultipleLineText_ value = box.GetMultipleLineText();
             MultipleLineText_ line = value.GetLine(lineIndex);
             String s = line.GetText();
             if ((lineIndex + 1) == value.GetLineCount()) {
