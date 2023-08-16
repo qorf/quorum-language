@@ -42,7 +42,6 @@ public class TextFieldKit extends ItemKit{
             builder.setName(item.GetName());
             if(item instanceof TextField_) { //technically not compiler guaranteed. You can set the code to anything.
                 TextField_ field = (TextField_) item;
-                builder.setValue(field.GetText());
                 TextFieldSelection_ selection = field.GetSelection();
                 int start = selection.GetStartIndex();
                 int end = selection.GetEndIndex();
@@ -59,6 +58,7 @@ public class TextFieldKit extends ItemKit{
                     anchor = new TextPosition(lineID, end);
                     focus = new TextPosition(lineID, start);
                 }
+                builder.setTextSelection(new TextSelection(anchor, focus));
                 builder.setTextSelection(new TextSelection(anchor, focus));
             }
             BuildChildren(builder);
