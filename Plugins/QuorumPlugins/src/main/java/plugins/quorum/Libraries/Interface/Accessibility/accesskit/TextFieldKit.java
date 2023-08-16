@@ -18,7 +18,7 @@ public class TextFieldKit extends ItemKit{
     }
 
     private NodeId GetLineID() {
-        return new NodeId(GetItem().GetHashCode() << 32);
+        return new NodeId(0, GetItem().GetHashCode());
     }
 
     public Node Build() {
@@ -46,7 +46,6 @@ public class TextFieldKit extends ItemKit{
                     anchor = new TextPosition(lineID, end);
                     focus = new TextPosition(lineID, start);
                 }
-                builder.setTextSelection(new TextSelection(anchor, focus));
                 builder.setTextSelection(new TextSelection(anchor, focus));
             }
             BuildChildren(builder);
