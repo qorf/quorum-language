@@ -409,9 +409,62 @@ public class MacAccessibility {
         Control_ control = event.GetControl();
         SetItemToDirty(control);
         ItemKit kit = items.get(ItemKit.GetNodeID(control));
-        if (kit != null && kit instanceof TextFieldKit) {
+        if(kit == null) {
+            return;
+        }
+        if (kit instanceof TextFieldKit) {
             TextFieldKit fieldKit = (TextFieldKit)kit;
             fieldKit.SetTextDirty();
+        } else if(kit instanceof TextboxKit && control instanceof TextBox_) {
+
+            int type = event.GetEventType();
+            int index = event.GetIndex();
+            TextBox_ box = (TextBox_) control;
+            int line = box.GetLineIndexOfCharacter(index); //the line number of the index.
+            System.out.println("Textbox values changed at index: " + index + " and line: " + line);
+            final int ADDED = event.Get_Libraries_Interface_Events_TextChangeEvent__ADDED_();
+            final int DELETED = event.Get_Libraries_Interface_Events_TextChangeEvent__DELETED_();
+            final int MODIFIED = event.Get_Libraries_Interface_Events_TextChangeEvent__MODIFIED_();
+            if(type == ADDED) { //text added
+                String input = event.GetAddedText();
+                boolean isMultiLine = IsMultiline(input);
+                if(!isMultiLine) { //just update the line
+
+                } else { //invalidate the line and any line after it.
+
+                }
+            } else  if(type == DELETED) {
+                String input = event.GetDeletedText();
+                boolean isMultiLine = IsMultiline(input);
+                if(!isMultiLine) { //just update the line
+
+                } else { //invalidate the line and any line after it.
+
+                }
+            /*
+            If the text is modified, it means that the content at the cursor was deleted and this is
+            get deleted text. The content it was replaced with it get added text. If either one is multi-line
+            we will need to refresh the lines after it.
+             */
+            } else if (type == MODIFIED) {
+                String textDeletedAtCaret = event.GetDeletedText();
+                String textReplacedAtCaret = event.GetAddedText();
+                boolean isMultiLine = IsMultiline(textDeletedAtCaret) || IsMultiline(textReplacedAtCaret);
+                if(!isMultiLine) { //just update the line
+
+                } else { //invalidate the line and any line after it.
+
+                }
+            }
+
+        }
+    }
+
+    public boolean IsMultiline(String input) {
+        if(input == null) {
+            return false;
+        } else {
+            return input.contains("\n") || input.contains("\r\n") || input.contains("\r");
         }
     }
 
