@@ -416,7 +416,7 @@ public class MacAccessibility {
             TextFieldKit fieldKit = (TextFieldKit)kit;
             fieldKit.SetTextDirty();
         } else if(kit instanceof TextboxKit && control instanceof TextBox_) {
-            TextBoxKit boxKit = (TextBoxKit)kit;
+            TextboxKit boxKit = (TextboxKit)kit;
             // TODO: smart dirty tracking using the logic below
             boxKit.SetTextDirty();
             int type = event.GetEventType();
