@@ -2,6 +2,7 @@ package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 
 import dev.accesskit.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import plugins.quorum.Libraries.Game.GameStateManager;
 import quorum.Libraries.Game.DesktopDisplay_;
 import quorum.Libraries.Game.Shapes.Rectangle_;
@@ -36,7 +37,10 @@ public class ItemKit {
         return builder.build();
     }
 
-    protected final void BuildChildren(NodeBuilder builder) {
+    protected void BuildChildren(NodeBuilder builder) {
+        for (NodeId child : GetInternalChildren()) {
+            builder.addChild(child);
+        }
         for (ItemKit child : children) {
             builder.addChild(child.GetNodeID());
         }
@@ -168,5 +172,19 @@ public class ItemKit {
         }
 
         return rect;
+    }
+
+    public Iterable<NodeId> GetInternalChildren() {
+        return Collections.emptySet();
+    }
+
+    public Iterable<NodeId> GetDirtyInternalChildren() {
+        return Collections.emptySet();
+    }
+
+    public void ClearDirtyInternalChildren() {}
+
+    public Node BuildInternalChild(NodeId id) {
+        throw new IllegalStateException("not implemented in this class");
     }
 }

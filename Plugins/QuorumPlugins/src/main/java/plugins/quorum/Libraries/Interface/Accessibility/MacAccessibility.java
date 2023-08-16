@@ -71,6 +71,9 @@ public class MacAccessibility {
         for (ItemKit child : itemKit.GetChildren()) {
             Traverse(child, update);
         }
+        for (NodeId child : itemKit.GetInternalChildren()) {
+            update.add(child, itemKit.BuildInternalChild(child));
+        }
     }
 
     private TreeUpdate BuildFullTree() {
@@ -118,11 +121,18 @@ public class MacAccessibility {
                             System.out.println("Found in dirty: " + focus);
                         }
                         update.add(id, kit.Build());
+                        for (NodeId child : kit.GetDirtyInternalChildren()) {
+                            update.add(child, kit.BuildInternalChild(child));
+                        }
                     }
                     SetTreeUpdateFocus(update);
                     return update;
                 }
             });
+            for (NodeId id : dirtyNodes) {
+                ItemKit kit = items.get(id);
+                kit.ClearDirtyInternalChildren();
+            }
             dirtyNodes.clear();
 
         }
@@ -345,22 +355,10 @@ public class MacAccessibility {
             dirtyNodes.add(id);
             parentKit.AddChild(itemKit);
             dirtyNodes.add(parentKit.GetNodeID());
-            AddDescendants(itemKit);
             return true;
         }
 
         return false;
-    }
-
-    private void AddDescendants(ItemKit parent) {
-        for (ItemKit child : parent.GetChildren()) {
-            NodeId id = child.GetNodeID();
-            if (!items.containsKey(id)) {
-                items.put(id, child);
-                dirtyNodes.add(id);
-                AddDescendants(child);
-            }
-        }
     }
 
     public boolean NativeRemove(Item_ item)
@@ -376,19 +374,9 @@ public class MacAccessibility {
                 }
                 dirtyNodes.remove(kit.GetNodeID());
                 kit.RemoveFromParent();
-                RemoveDescendants(kit);
             }
         }
         return false;
-    }
-
-    private void RemoveDescendants(ItemKit parent) {
-        for (ItemKit child : parent.GetChildren()) {
-            NodeId id = child.GetNodeID();
-            items.remove(id);
-            dirtyNodes.remove(id);
-            RemoveDescendants(child);
-        }
     }
 
     public void  MenuChanged(MenuChangeEvent_ event) {
@@ -423,7 +411,7 @@ public class MacAccessibility {
         ItemKit kit = items.get(ItemKit.GetNodeID(control));
         if (kit != null && kit instanceof TextFieldKit) {
             TextFieldKit fieldKit = (TextFieldKit)kit;
-            dirtyNodes.add(fieldKit.GetLineNodeID());
+            fieldKit.SetTextDirty();
         }
     }
 
