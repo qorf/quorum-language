@@ -111,7 +111,7 @@ public class TextboxKit extends TextKitBase {
 
     @Override
     public void ClearDirtyInternalChildren() {
-        idrtyLinesStart = -1;
+        dirtyLinesStart = -1;
         dirtyLinesEnd = -1;
     }
 
