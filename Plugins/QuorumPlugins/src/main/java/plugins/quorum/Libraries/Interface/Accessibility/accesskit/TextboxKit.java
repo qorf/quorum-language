@@ -9,8 +9,8 @@ import quorum.Libraries.Interface.Selections.TextBoxSelection_;
 import quorum.Libraries.Interface.Item_;
 
 public class TextboxKit extends TextKitBase {
-    // TODO: smart dirty line tracking
-    private boolean textDirty = true;
+    private int dirtyLinesStart = 0;
+    private int dirtyLinesEnd = -1;
 
     public TextboxKit() {
         SetRole(Role.TEXT_FIELD);
@@ -62,9 +62,20 @@ public class TextboxKit extends TextKitBase {
         return null;
     }
 
-    public void SetTextDirty() {
-        // TODO: smart dirty line tracking
-        textDirty = true;
+    public void MarkLineDirty(int index) {
+        if (dirtyLinesStart == -1 || (dirtyLinesEnd != -1 && (index + 1) > dirtyLinesEnd)) {
+            dirtyLinesEnd = index + 1;
+        }
+        if (dirtyLinesStart == -1 || index < dirtyLinesStart) {
+            dirtyLinesStart = index;
+        }
+    }
+
+    public void MarkLinesDirty(int start) {
+        if (dirtyLinesStart == -1 || start < dirtyLinesStart) {
+            dirtyLinesStart = start;
+        }
+        dirtyLinesEnd = -1;
     }
 
     @Override
@@ -81,17 +92,27 @@ public class TextboxKit extends TextKitBase {
 
     @Override
     public Iterable<NodeId> GetDirtyInternalChildren() {
-        // TODO: smart dirty line tracking
-        if (!textDirty) {
+        if (dirtyLinesStart == -1) {
             return Collections.emptySet();
         }
-        return GetInternalChildren();
+        int start = dirtyLinesStart;
+        int end = dirtyLinesEnd;
+        if (end == -1) {
+            TextBox_ box = (TextBox_)GetItem();
+            MultipleLineText_ value = box.GetMultipleLineText();
+            end = value.GetLineCount();
+        }
+        ArrayList<NodeId> result = new ArrayList<NodeId>();
+        for (int i = start; i < end; i++) {
+            result.add(GetLineID(i));
+        }
+        return result;
     }
 
     @Override
     public void ClearDirtyInternalChildren() {
-        // TODO: smart dirty line tracking
-        textDirty = false;
+        idrtyLinesStart = -1;
+        dirtyLinesEnd = -1;
     }
 
     @Override

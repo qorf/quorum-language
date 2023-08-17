@@ -417,8 +417,6 @@ public class MacAccessibility {
             fieldKit.SetTextDirty();
         } else if(kit instanceof TextboxKit && control instanceof TextBox_) {
             TextboxKit boxKit = (TextboxKit)kit;
-            // TODO: smart dirty tracking using the logic below
-            boxKit.SetTextDirty();
             int type = event.GetEventType();
             int index = event.GetIndex();
             TextBox_ box = (TextBox_) control;
@@ -430,17 +428,17 @@ public class MacAccessibility {
                 String input = event.GetAddedText();
                 boolean isMultiLine = IsMultiline(input);
                 if(!isMultiLine) { //just update the line
-
+                    boxKit.MarkLineDirty(line);
                 } else { //invalidate the line and any line after it.
-
+                    boxKit.MarkLinesDirty(line);
                 }
             } else  if(type == DELETED) {
                 String input = event.GetDeletedText();
                 boolean isMultiLine = IsMultiline(input);
                 if(!isMultiLine) { //just update the line
-
+                    boxKit.MarkLineDirty(line);
                 } else { //invalidate the line and any line after it.
-
+                    boxKit.MarkLinesDirty(line);
                 }
             /*
             If the text is modified, it means that the content at the cursor was deleted and this is
@@ -452,9 +450,9 @@ public class MacAccessibility {
                 String textReplacedAtCaret = event.GetAddedText();
                 boolean isMultiLine = IsMultiline(textDeletedAtCaret) || IsMultiline(textReplacedAtCaret);
                 if(!isMultiLine) { //just update the line
-
+                    boxKit.MarkLineDirty(line);
                 } else { //invalidate the line and any line after it.
-
+                    boxKit.MarkLinesDirty(line);
                 }
             }
 
