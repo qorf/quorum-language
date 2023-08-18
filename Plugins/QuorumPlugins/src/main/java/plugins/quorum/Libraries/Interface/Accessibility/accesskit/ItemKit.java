@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import plugins.quorum.Libraries.Game.GameStateManager;
 import quorum.Libraries.Game.DesktopDisplay_;
+import quorum.Libraries.Game.Layer3D_;
 import quorum.Libraries.Game.Shapes.Rectangle_;
 import quorum.Libraries.Interface.Controls.Button_;
 import quorum.Libraries.Interface.Item2D_;
@@ -151,20 +152,18 @@ public class ItemKit {
             // center of a 3D object in the screen. To calculate this correctly,
             // check how we calculate mouse input detection for 3D objects.
 
-            Rectangle_ rectangle = ((Item3D_) item).GetScreenBounds();
-//            rect = new Rect(
-//                    windowX + rectangle.GetX(),
-//                    windowY + (windowHeight - (rectangle.GetY() + rectangle.GetHeight())),
-//                    rectangle.GetWidth(),
-//                    rectangle.GetHeight()
-//            );
+            Item3D_ item3D = ((Item3D_) item);
+            Rectangle_ rectangle = item3D.GetScreenBounds();
 
-            rect = new Rect(
-                    rectangle.GetX(),
-                    windowHeight - (rectangle.GetY() - rectangle.GetHeight()),
-                    rectangle.GetWidth() + rectangle.GetX(),
-                    windowHeight - rectangle.GetY()
-                    );
+            Layer3D_ layer3D = item3D.GetLayer();
+            int viewX = layer3D.GetViewportX();
+            int viewY = layer3D.GetViewportY();
+
+            double x1 = viewX + rectangle.GetX();
+            double x2 = viewX + rectangle.GetWidth() + rectangle.GetX();
+            double y1 = windowHeight - rectangle.GetY() - viewY - rectangle.GetHeight();
+            double y2 = windowHeight - rectangle.GetY() - viewY;
+            rect = new Rect( x1, y1, x2, y2);
         }
         else
         {
