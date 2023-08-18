@@ -2212,9 +2212,16 @@ action GetBlockNotchPercentageHeight returns number
     end
 
     private action NavigateToBlock(Block block)
-        SelectBlockRange(block, block, true)
-        GoToBlock(block)
-        block:Focus()
+Block toNavigate = block
+        if not toNavigate:IsNavigable()
+            toNavigate = toNavigate:GetNextNavigableBlock()
+        end
+        if toNavigate = undefined
+            return now
+        end
+        SelectBlockRange(toNavigate, toNavigate, true)
+        GoToBlock(toNavigate)
+        toNavigate:Focus()
     end
     
 
