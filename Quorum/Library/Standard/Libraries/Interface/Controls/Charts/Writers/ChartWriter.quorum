@@ -1642,6 +1642,12 @@ class ChartWriter
                 svgElementSeriesIcon:SetPosition(currentSeriesIcon:GetGlobalX(), TranslatePositionY(currentSeriesIcon) - currentSeriesIcon:GetHeight())
                 svgElementSeriesIcon:SetFill(currentSeriesIcon:GetColor())
 
+                if currentSeriesIcon:GetBorderThickness() > 0
+                    svgElementSeriesIcon:SetStroke(cast(Color, currentSeriesIcon:GetBorderColor()))
+                    svgElementSeriesIcon:SetStrokeOpacity(cast(Color, currentSeriesIcon:GetBorderColor()))
+                    svgElementSeriesIcon:SetStrokeWidth(currentSeriesIcon:GetBorderThickness())
+                end
+
                 if HasAccessibility()
                     svgElementSeriesIcon:SetTabIndex(-1)
                     svgElementSeriesIcon:SetID(canvas:GetID() + "_" + currentSeriesIcon:GetHashCode())
