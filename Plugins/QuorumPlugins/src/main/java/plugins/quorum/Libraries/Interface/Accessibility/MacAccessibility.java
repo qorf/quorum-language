@@ -179,7 +179,7 @@ public class MacAccessibility {
         It may not be enough, but I think even updating it "could" be enough, depending on how selection is implemented.
          */
 
-        //The following is actually mimicing the focus, which is wrong. However, it gets us basic screen reader support
+        //The following is actually mimicking the focus, which is wrong. However, it gets us basic screen reader support
         //We need to polish everything, but it's a start.
         ChangeFocusNextFrame(item);
 
@@ -208,13 +208,6 @@ public class MacAccessibility {
         Item_ item = event.GetNewFocus();
         if(item != null) {
             ChangeFocusNextFrame(item);
-//            NodeId id = ItemKit.GetNodeID(item);
-//            ItemKit kit = items.get(id);
-//            if(kit != null) {
-//                focus = id;
-//                isFocusDirty = true;
-//                System.out.println("Focus: " + item.GetName());
-//            }
         }
     }
 
