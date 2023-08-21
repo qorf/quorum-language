@@ -2200,7 +2200,7 @@ action GetBlockNotchPercentageHeight returns number
             repeat while i > index
                 Block child = firstChild:GetChild(i)
                 if IsActionOrConstructor(child)
-                    child:Focus()
+                    NavigateToBlock(child)
                     return now
                 end //this is the one
                 i = i - 1
