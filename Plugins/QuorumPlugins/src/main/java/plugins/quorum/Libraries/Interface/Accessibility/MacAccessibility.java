@@ -1,6 +1,7 @@
 package plugins.quorum.Libraries.Interface.Accessibility;
 
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.logging.Level;
@@ -38,12 +39,24 @@ public class MacAccessibility {
     private final RootItemKit root = new RootItemKit();
     private final HashMap<NodeId, ItemKit> items = new HashMap<NodeId, ItemKit>();
 
+    private final ArrayList<DummyKit> dummies = new ArrayList<DummyKit>();
+    private int currentDummy = -1;
     private NodeId focus = root.GetNodeID();
     private final HashSet<NodeId> dirtyNodes = new HashSet<NodeId>();
     private boolean isFocusDirty = false;
 
     public MacAccessibility() {
         items.put(root.GetNodeID(), root);
+        DummyKit dummy1 = new DummyKit();
+        dummy1.SetDummyNodeID(2);
+        DummyKit dummy2 = new DummyKit();
+        dummy2.SetDummyNodeID(3);
+        dummies.add(dummy1);
+        dummies.add(dummy2);
+        items.put(dummy1.GetNodeID(), dummy1);
+        items.put(dummy2.GetNodeID(), dummy2);
+        root.AddChild(dummy1);
+        root.AddChild(dummy2);
         try
         {
             java.io.File file = new java.io.File(AccessibilityManager.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
@@ -117,9 +130,6 @@ public class MacAccessibility {
                     TreeUpdate update = new TreeUpdate();
                     for (NodeId id : dirtyNodes) {
                         ItemKit kit = items.get(id);
-//                        if(id == focus) {
-//                            System.out.println("Found in dirty: " + focus);
-//                        }
                         update.add(id, kit.Build());
                         for (NodeId child : kit.GetDirtyInternalChildren()) {
                             update.add(child, kit.BuildInternalChild(child));
@@ -462,16 +472,31 @@ public class MacAccessibility {
 
     public void  WindowFocusChanged(WindowFocusEvent_ event) {}
 
+    private void NextDummy() {
+        currentDummy++;
+        if(currentDummy >= dummies.size() || currentDummy < 0) {
+            currentDummy = 0;
+        }
+    }
     public void  Notify(Item_ item, String value) {
-        /*
-        This is kind of similar to an ARIA live region.
-         */
+        NextDummy();
+        if(dummies == null || dummies.isEmpty() || currentDummy >= dummies.size()) {
+            return;
+        }
+        DummyKit kit = dummies.get(currentDummy);
+        if(kit == null) {
+            return;
+        }
+        kit.SetName(value);
+        kit.SetItem(item);
+
+        focus = kit.GetNodeID();
+        dirtyNodes.add(focus);
+        isFocusDirty = true;
     }
 
     public void  Notify(Item_ item, String value, int notificationType) {
-        /*
-        This is kind of similar to an ARIA live region.
-         */
+        Notify(item, value);
     }
 
     public void  Shutdown() {
