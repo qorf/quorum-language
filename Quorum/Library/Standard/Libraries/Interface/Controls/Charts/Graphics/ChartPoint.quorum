@@ -9,6 +9,7 @@ use Libraries.Game.Graphics.Shaders.ShaderProgram
 use Libraries.Game.Graphics.Shaders.ControlShaderProgram
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Color
+use Libraries.Game.GameStateManager
 
 class ChartPoint is ChartDrawable
     number percentX = 0
@@ -88,7 +89,8 @@ class ChartPoint is ChartDrawable
     action LoadGraphics(LayoutProperties properties)
         // Render this Drawable with the Control Shader.
         if GetShaderProgram() = undefined
-            ShaderManager manager
+            GameStateManager gameState
+            ShaderManager manager = gameState:GetShaderManager()
             ShaderProgram program = undefined
             if manager:HasShaderProgram("Control Shader Program")
                 program = manager:GetShaderProgram("Control Shader Program")

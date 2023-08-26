@@ -77,7 +77,6 @@ class Painter2D
     private Number32BitArray vertices
 
     GameStateManager manager
-    ShaderManager shaderManager
     OpenGLConstants constants
 
     /*
@@ -384,8 +383,8 @@ class Painter2D
     end
 
     private action GetDefaultShaders returns ShaderProgram
-        ShaderManager manager
-        return manager:GetDefaultShaderProgram2D()
+        ShaderManager shaderManager = manager:GetShaderManager()
+        return shaderManager:GetDefaultShaderProgram2D()
     end
 
     /*

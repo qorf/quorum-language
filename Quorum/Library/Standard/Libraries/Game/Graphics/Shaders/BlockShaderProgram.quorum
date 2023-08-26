@@ -1,4 +1,5 @@
 package Libraries.Game.Graphics.Shaders
+use Libraries.Game.GameStateManager
 
 class BlockShaderProgram is ShaderProgram
 
@@ -8,18 +9,19 @@ class BlockShaderProgram is ShaderProgram
 
     on create
         SetName(DEFAULT_NAME)
-        ShaderManager manager
+        GameStateManager manager
+        ShaderManager shaderManager = manager:GetShaderManager()
         
-        if manager:HasShader(VERTEX_NAME)
-            Shader vertex = manager:GetShader(VERTEX_NAME)
+        if shaderManager:HasShader(VERTEX_NAME)
+            Shader vertex = shaderManager:GetShader(VERTEX_NAME)
             Add(vertex)
         else
             BlockVertexShader vertex
             Add(vertex)
         end
 
-        if manager:HasShader(FRAGMENT_NAME)
-            Shader fragment = manager:GetShader(FRAGMENT_NAME)
+        if shaderManager:HasShader(FRAGMENT_NAME)
+            Shader fragment = shaderManager:GetShader(FRAGMENT_NAME)
             Add(fragment)
         else
             BlockFragmentShader fragment

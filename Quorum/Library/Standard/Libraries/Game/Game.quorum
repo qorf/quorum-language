@@ -144,6 +144,8 @@ use Libraries.Interface.Events.ScreenshotListener
 use Libraries.Containers.Support.SortableContainer
 use Libraries.Interface.Events.ScreenshotEvent
 use Libraries.Game.Graphics.PixelMap
+use Libraries.Game.Graphics.SharedTextureManager
+use Libraries.Game.Graphics.Shaders.ShaderManager
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -180,6 +182,9 @@ class Game
     Accessibility accessibility = undefined
     EditManager editManager
     InterfaceOptions interfaceOptions = undefined
+
+    SharedTextureManager sharedTextureManager
+    ShaderManager shaderManager
 
     public boolean exitRequested = false
 
@@ -4756,4 +4761,13 @@ class Game
 
         pendingScreenshots:Add(container)
     end
+
+    action GetSharedTextureManager returns SharedTextureManager
+        return sharedTextureManager
+    end
+
+    action GetShaderManager returns ShaderManager
+        return shaderManager
+    end
+
 end
