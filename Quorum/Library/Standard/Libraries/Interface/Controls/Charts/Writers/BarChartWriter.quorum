@@ -136,6 +136,10 @@ class BarChartWriter is ChartWriter
         end
         chartContent:Add(chartContentBoundingBox)
 
+        if chart:IsShowingLinearRegression()
+            AddRegressionLines(canvas, chart)
+        end
+
         if not chart:IsSeparated()
             
             i = 0

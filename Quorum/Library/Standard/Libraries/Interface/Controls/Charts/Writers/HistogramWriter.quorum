@@ -146,6 +146,10 @@ class HistogramWriter is ChartWriter
 
         chartContent:Add(chartContentBoundingBox)
 
+        if chart:IsShowingLinearRegression()
+            AddRegressionLines(canvas, chart)
+        end
+
         if not chart:IsSeparated()
             
             i = 0
