@@ -218,6 +218,9 @@ class ScatterPlotWriter is ChartWriter
                             point:SetStroke(cast(Color, currentPoint:GetBorderColor()))
                             point:SetStrokeOpacity(cast(Color, currentPoint:GetBorderColor()))
                             point:SetStrokeWidth(currentPoint:GetBorderThickness())
+
+                            point:SetTitle(currentSeries:GetName() + ": " + currentPoint:GetName())
+
                             if HasAccessibility()
                                 point:SetID(pointSVG:GetID() + "_point")
                                 point:SetStyleClass("quorum-chart-circle")
@@ -397,6 +400,7 @@ class ScatterPlotWriter is ChartWriter
                         point:SetStroke(cast(Color, currentPoint:GetBorderColor()))
                         point:SetStrokeOpacity(cast(Color, currentPoint:GetBorderColor()))
                         point:SetStrokeWidth(currentPoint:GetBorderThickness())
+                        point:SetTitle(currentPoint:GetSeries():GetName() + ": " + currentPoint:GetName())
                         if HasAccessibility()
                             point:SetID(pointSVG:GetID() + "_point")
                             point:SetStyleClass("quorum-chart-circle")

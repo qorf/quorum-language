@@ -216,13 +216,14 @@ class LineChartWriter is ChartWriter
                             radius = firstPoint:GetHeight()/2
                 
                             Line segment
-                            segment:SetFirstPoint(firstPoint:GetGlobalX()+radius, TranslatePositionY(firstPoint))
-                            segment:SetSecondPoint(secondPoint:GetGlobalX()+radius, TranslatePositionY(secondPoint))
+                            segment:SetFirstPoint(firstPoint:GetGlobalX() + radius, TranslatePositionY(firstPoint) - radius)
+                            segment:SetSecondPoint(secondPoint:GetGlobalX() + radius, TranslatePositionY(secondPoint) - radius)
                             segment:SetFill(currentSegment:GetColor())
                             segment:SetFillOpacity(currentSegment:GetColor())
                             segment:SetStroke(currentSegment:GetColor())
                             segment:SetStrokeOpacity(currentSegment:GetColor())
                             segment:SetStrokeWidth(currentSegment:GetHeight())
+                            segment:SetTitle(currentSeries:GetName())
                             if HasAccessibility()
                                 segment:SetID(seriesSVG:GetID() + "_segment"+j)
                                 segment:SetStyleClass("quorum-chart-linesegment")
@@ -257,12 +258,13 @@ class LineChartWriter is ChartWriter
                       if currentLine:GetPointsFlag()
                             Circle point
                             point:SetRadius(radius)
-                            point:SetPosition(currentPoint:GetGlobalX()+radius, TranslatePositionY(currentPoint)) 
+                            point:SetPosition(currentPoint:GetGlobalX() + radius, TranslatePositionY(currentPoint) - radius) 
                             point:SetFill(currentPoint:GetColor())
                             point:SetFillOpacity(currentPoint:GetColor())
                             point:SetStroke(cast(Color, currentPoint:GetBorderColor()))
                             point:SetStrokeOpacity(cast(Color, currentPoint:GetBorderColor()))
                             point:SetStrokeWidth(currentPoint:GetBorderThickness())
+                            point:SetTitle(currentSeries:GetName() + ": " + currentPoint:GetName())
                             if HasAccessibility()
                                 point:SetID(pointSVG:GetID() + "_point")
                                 point:SetStyleClass("quorum-chart-circle")
@@ -280,7 +282,7 @@ class LineChartWriter is ChartWriter
                                 Label labelSVG
                                 labelSVG:SetText(label:GetText())
                                 labelSVG:SetTextAnchor("left")
-                                labelSVG:SetPosition(label:GetGlobalX(), TranslatePositionY(label))
+                                labelSVG:SetPosition(label:GetGlobalX(), TranslatePositionY(label) - radius)
                                 labelSVG:SetFontSize(label:GetFontSize() + "px")
                                 labelSVG:SetFontFamily("Arial")
                                 labelSVG:SetFill(cast(Color, label:GetFontColor()))
@@ -476,12 +478,13 @@ class LineChartWriter is ChartWriter
                                     if currentLine:GetPointsFlag()
                                         Circle point
                                         point:SetRadius(radius)
-                                        point:SetPosition(currentPoint:GetGlobalX()+radius, TranslatePositionY(currentPoint)) 
+                                        point:SetPosition(currentPoint:GetGlobalX() + radius, TranslatePositionY(currentPoint) - radius) 
                                         point:SetFill(currentPoint:GetColor())
                                         point:SetFillOpacity(currentPoint:GetColor())
                                         point:SetStroke(cast(Color, currentPoint:GetBorderColor()))
                                         point:SetStrokeOpacity(cast(Color, currentPoint:GetBorderColor()))
                                         point:SetStrokeWidth(currentPoint:GetBorderThickness())
+                                        point:SetTitle(currentLine:GetSeries():GetName() + ": " + currentPoint:GetName())
                                         if HasAccessibility()
                                             point:SetID(pointSVG:GetID() + "_point")
                                             point:SetStyleClass("quorum-chart-circle")
@@ -503,13 +506,14 @@ class LineChartWriter is ChartWriter
                                         radius = firstPoint:GetHeight()/2
                             
                                         Line segment
-                                        segment:SetFirstPoint(firstPoint:GetGlobalX()+radius, TranslatePositionY(firstPoint))
-                                        segment:SetSecondPoint(secondPoint:GetGlobalX()+radius, TranslatePositionY(secondPoint))
+                                        segment:SetFirstPoint(firstPoint:GetGlobalX() + radius, TranslatePositionY(firstPoint) - radius)
+                                        segment:SetSecondPoint(secondPoint:GetGlobalX() + radius, TranslatePositionY(secondPoint) - radius)
                                         segment:SetFill(currentSegment:GetColor())
                                         segment:SetFillOpacity(currentSegment:GetColor())
                                         segment:SetStroke(currentSegment:GetColor())
                                         segment:SetStrokeOpacity(currentSegment:GetColor())
                                         segment:SetStrokeWidth(currentSegment:GetHeight())
+                                        segment:SetTitle(currentLine:GetSeries():GetName())
                                         if HasAccessibility()
                                             segment:SetID(subChartContent:GetID() + "_segment"+j)
                                             segment:SetStyleClass("quorum-chart-linesegment")
