@@ -1,8 +1,11 @@
 /* global plugins_quorum_Libraries_Game_GameStateManager_ */
 
-function plugins_quorum_Libraries_Game_Game_() {
+function plugins_quorum_Libraries_Game_Game_(quorumGame) {
+    // When a Game is created, it becomes the active Game during its initialization.
+    plugins_quorum_Libraries_Game_WebApplication_.activeGame = quorumGame;
+
     this.GetSecondsBetweenFrames = function() {
-        plugins_quorum_Libraries_Game_GameStateManager_.display.GetSecondsBetweenFrames();
+        plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().display.GetSecondsBetweenFrames();
     };
     this.SelectApplicationTypeNative = function() {
         return 4;
@@ -12,7 +15,6 @@ function plugins_quorum_Libraries_Game_Game_() {
 // Code for the plugin-only ShaderProgram class.
 function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fragmentShader) 
 {
-    
     if (!plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.initialized_plugins_quorum_Libraries_Game_Graphics_ShaderProgram_)
     {
         plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.initialized_plugins_quorum_Libraries_Game_Graphics_ShaderProgram_ = true;
@@ -35,10 +37,15 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     {
         return;
     }
-    
+
+    this.GetNativeGraphics = function()
+    {
+        return plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics;
+    }
+
     this.CompileShaders = function(vertexShader, fragmentShader) 
     {
-        var gl = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics.gl;
+        var gl = this.GetNativeGraphics().gl;
         
         this.vertexShaderHandle = this.LoadShader(gl.VERTEX_SHADER, vertexShader);
         this.fragmentShaderHandle = this.LoadShader(gl.FRAGMENT_SHADER, fragmentShader);
@@ -61,7 +68,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.LoadShader = function(type, source)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         
         var shader = graphics.glCreateShader(type);
         if (shader === undefined || shader === null)
@@ -86,7 +93,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.LinkProgram = function()
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         program = graphics.glCreateProgram();
         if (program === 0)
             return -1;
@@ -112,7 +119,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     {
         if (this.isCompiled)
         {
-            var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+            var graphics = this.GetNativeGraphics();
             var infoLogLength = graphics.glGetProgramiv(program, graphics.gl.INFO_LOG_LENGTH);
             if (infoLogLength > 1)
             {
@@ -133,7 +140,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.FetchAttributeLocation = function(name)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         var location = attributes[name] || -2;
         
         if (location === -2)
@@ -150,7 +157,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
         if (pedantic === undefined)
             pedantic = plugins_quorum_Libraries_Game_Graphics_ShaderProgram_.pedantic;
         
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         var location = uniforms[name] || -2;
         
         if (location === -2)
@@ -170,7 +177,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.SetUniform1iFromName = function(name, value)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         var location = this.FetchUniformLocation(name);
         graphics.glUniform1i(location, value);
@@ -178,14 +185,14 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.SetUniform1iAtLocation = function(location, value)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         graphics.glUniform1i(location, value);
     };
     
     this.SetUniform2iFromName = function(name, value1, value2)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         var location = this.FetchUniformLocation(name);
         graphics.glUniform2i(location, value1, value2);
@@ -193,14 +200,14 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.SetUniform2iAtLocation = function(location, value1, value2)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         graphics.glUniform2i(location, value1, value2);
     };
     
     this.SetUniform3iFromName = function(name, value1, value2, value3)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         var location = this.FetchUniformLocation(name);
         graphics.glUniform3i(location, value1, value2, value3);
@@ -208,14 +215,14 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.SetUniform3iAtLocation = function(location, value1, value2, value3)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         graphics.glUniform3i(location, value1, value2, value3);
     };
     
     this.SetUniform4iFromName = function(name, value1, value2, value3, value4)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         var location = this.FetchUniformLocation(name);
         graphics.glUniform4i(location, value1, value2, value3, value4);
@@ -223,14 +230,14 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.SetUniform4iAtLocation = function(location, value1, value2, value3, value4)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         graphics.glUniform4i(location, value1, value2, value3, value4);
     };
     
     this.SetUniform1fFromName = function(name, value)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         var location = this.FetchUniformLocation(name);
         graphics.glUniform1f(location, value);
@@ -238,14 +245,14 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.SetUniform1fAtLocation = function(location, value)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         graphics.glUniform1f(location, value);
     };
     
     this.SetUniform2fFromName = function(name, value1, value2)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         var location = this.FetchUniformLocation(name);
         graphics.glUniform2f(location, value1, value2);
@@ -253,14 +260,14 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.SetUniform2fAtLocation = function(location, value1, value2)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         graphics.glUniform2f(location, value1, value2);
     };
     
     this.SetUniform3fFromName = function(name, value1, value2, value3)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         var location = this.FetchUniformLocation(name);
         graphics.glUniform3f(location, value1, value2, value3);
@@ -268,14 +275,14 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.SetUniform3fAtLocation = function(location, value1, value2, value3)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         graphics.glUniform3f(location, value1, value2, value3);
     };
     
     this.SetUniform4fFromName = function(name, value1, value2, value3, value4)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         var location = this.FetchUniformLocation(name);
         graphics.glUniform4f(location, value1, value2, value3, value4);
@@ -283,14 +290,14 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.SetUniform4fAtLocation = function(location, value1, value2, value3, value4)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         graphics.glUniform4f(location, value1, value2, value3, value4);
     };
     
     this.SetUniform3fvFromName = function(name, value)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         var location = this.FetchUniformLocation(name);
         graphics.glUniform3fv(location, value);
@@ -298,14 +305,14 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.SetUniform3fvAtLocation = function(location, value)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         graphics.glUniform3fv(location, value);
     };
     
     this.SetUniformVector1FromName = function(name, value)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         var location = FetchUniformLocation(name);
         graphics.glUniform1fv(location, value);
@@ -313,14 +320,14 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.SetUniformVector1AtLocation = function(location, value)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         graphics.glUniform1fv(location, value);
     };
     
     this.SetUniformVector4FromName = function(name, value)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         var location = FetchUniformLocation(name);
         graphics.glUniform4fv(location, value);
@@ -328,7 +335,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.SetUniformVector4AtLocation = function(location, value)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         graphics.glUniform4fv(location, value);
     };
@@ -345,7 +352,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
             transpose = false;
         }
         
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         var value = this.ConvertMatrix4ToArray(matrix);
         graphics.glUniformMatrix4fv(location, transpose, value);
@@ -363,7 +370,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
             transpose = false;
         }
         
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         var value = this.ConvertMatrix3ToArray(matrix);
         graphics.glUniformMatrix3fv(location, transpose, value);
@@ -376,7 +383,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
             transpose = false;
         }
         
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         graphics.glUniformMatrix4fv(location, transpose, array);
     };
@@ -388,7 +395,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
             transpose = false;
         }
         
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         graphics.glUniformMatrix3fv(location, transpose, array);
     };
@@ -430,7 +437,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.SetVertexAttributeFromName = function(name, size, type, normalize, stride, offset)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         var location = FetchAttributeLocation(name);
         if (location === -1)
@@ -440,27 +447,27 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.SetVertexAttributeAtLocation = function(location, size, type, normalize, stride, offset)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         graphics.glVertexAttribPointer(location, size, type, normalize, stride, offset);
     };
     
     this.Begin = function()
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         graphics.glUseProgram(program);
     };
     
     this.End = function()
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         graphics.glUseProgram(null);
     };
     
     this.Dispose = function()
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         graphics.glUseProgram(null);
         graphics.glDeleteShader(this.vertexShaderHandle);
         graphics.glDeleteShader(this.fragmentShaderHandle);
@@ -469,7 +476,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.DisableVertexAttributeFromName = function(name)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         var location = this.FetchAttributeLocation(name);
         if (location === -1)
@@ -479,14 +486,14 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.DisableVertexAttributeAtLocation = function(location)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         graphics.glDisableVertexAttribArray(location);
     };
     
     this.EnableVertexAttributeFromName = function(name)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         var location = this.FetchAttributeLocation(name);
         if (location === -1)
@@ -496,7 +503,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.EnableVertexAttributeAtLocation = function(location)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         this.CheckManaged();
         graphics.glEnableVertexAttribArray(location);
     };
@@ -512,14 +519,14 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.SetAttribute = function(name, value1, value2, value3, value4)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         var location = FetchAttributeLocation(name);
         graphics.glVertexAttrib4f(location, value1, value2, value3, value4);
     };
     
     this.FetchAttributes = function()
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         var attributeCount = graphics.glGetProgramiv(program, graphics.gl.ACTIVE_ATTRIBUTES);
         var info;
         var location;
@@ -539,7 +546,7 @@ function plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(vertexShader, fra
     
     this.FetchUniforms = function()
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         var uniformCount = graphics.glGetProgramiv(program, graphics.gl.ACTIVE_UNIFORMS);
         var info;
         var location;
@@ -710,7 +717,7 @@ function plugins_quorum_Libraries_Game_Graphics_TextureBinder_()
     
     this.End = function()
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         graphics.glActiveTexture(graphics.gl.TEXTURE0);
     };
     
@@ -739,7 +746,7 @@ function plugins_quorum_Libraries_Game_Graphics_TextureBinder_()
                 texture.plugin_.Bind(result);
             else
             {
-                var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+                var graphics = this.GetNativeGraphics();
                 graphics.glActiveTexture(graphics.gl.TEXTURE0 + result);
             }
         }
@@ -751,7 +758,7 @@ function plugins_quorum_Libraries_Game_Graphics_TextureBinder_()
     
     this.GetMaxTextureUnits = function()
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         return graphics.glGetIntegerv(graphics.gl.MAX_TEXTURE_IMAGE_UNITS);
     };
     
@@ -819,7 +826,7 @@ function plugins_quorum_Libraries_Game_Graphics_RenderContext_()
     
     this.Begin = function()
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         
         graphics.glDisable(graphics.gl.DEPTH_TEST);
         depthFunc = 0;
@@ -836,7 +843,7 @@ function plugins_quorum_Libraries_Game_Graphics_RenderContext_()
     
     this.End = function()
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         
         if (depthFunc !== 0)
             graphics.glDisable(graphics.gl.DEPTH_TEST);
@@ -854,7 +861,7 @@ function plugins_quorum_Libraries_Game_Graphics_RenderContext_()
     {
         if (depthMask !== mask)
         {
-            var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+            var graphics = this.GetNativeGraphics();
             graphics.glDepthMask(mask);
             depthMask = mask;
         }
@@ -867,7 +874,7 @@ function plugins_quorum_Libraries_Game_Graphics_RenderContext_()
         if (depthFar === undefined)
             depthFar = 0;
         
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         
         var wasEnabled = depthFunc !== 0;
         var enabled = depthFunction !== 0;
@@ -897,7 +904,7 @@ function plugins_quorum_Libraries_Game_Graphics_RenderContext_()
     
     this.SetBlending = function(enabled, sFactor, dFactor)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         
         if (enabled !== blending)
         {
@@ -918,7 +925,7 @@ function plugins_quorum_Libraries_Game_Graphics_RenderContext_()
     
     this.SetCullFace = function(face)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = this.GetNativeGraphics();
         
         if (face !== cullFace)
         {
@@ -2373,8 +2380,8 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
             matrix.row2column3 = -matrix.row2column3;
         };
         
-        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.defaultCullFace = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics.gl.BACK;
-        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.defaultDepthFunc = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics.gl.LEQUAL;
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.defaultCullFace = this.GetNativeGraphics().gl.BACK;
+        plugins_quorum_Libraries_Game_Graphics_DefaultShader_.defaultDepthFunc = this.GetNativeGraphics().gl.LEQUAL;
     }
     
     this.GetDefaultVertexShader = function()
@@ -2702,7 +2709,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         
         if (this.Has(u_time))
         {
-            time += plugins_quorum_Libraries_Game_GameStateManager_.display.GetSecondsBetweenFrames();
+            time += plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().display.GetSecondsBetweenFrames();
             this.Set1f(u_time, time);
         }
     };
@@ -2726,7 +2733,7 @@ function plugins_quorum_Libraries_Game_Graphics_DefaultShader_(constructorRender
         
         if (!cAttributes.HasAttribute$quorum_integer(plugins_quorum_Libraries_Game_Graphics_DefaultShader_.blendingAttribute.GetBlendedValue()))
         {
-            var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+            var graphics = this.GetNativeGraphics();
             this.context.SetBlending(false, graphics.gl.SRC_ALPHA, graphics.gl.ONE_MINUS_SRC_ALPHA);
         }
         this.BindMaterial(cAttributes);
@@ -3090,7 +3097,7 @@ function plugins_quorum_Libraries_Game_Graphics_Shaders_SkyboxShader_()
             -1.0, -1.0,  1.0,
              1.0, -1.0,  1.0]);
     
-    var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+    var graphics = this.GetNativeGraphics();
     var bufferHandle = graphics.glGenBuffer();
     
     graphics.glBindBuffer(graphics.gl.ARRAY_BUFFER, bufferHandle);

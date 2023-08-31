@@ -6,7 +6,7 @@ function plugins_quorum_Libraries_Game_Graphics_Texture_(quorumTexture)
     
     var listeners = [];
     
-    var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+    var graphics = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics;
     
     /*
     The color that should be used to render this texture by the Painter2D when

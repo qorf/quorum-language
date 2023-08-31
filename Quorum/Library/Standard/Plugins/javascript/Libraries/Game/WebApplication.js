@@ -13,7 +13,12 @@ function plugins_quorum_Libraries_Game_WebApplication_()
     var loopCall = null;
  
     var manager = new quorum_Libraries_Game_GameStateManager_();
-    
+
+    this.SetCurrentlyActiveGame = function(targetGame)
+    {
+        plugins_quorum_Libraries_Game_WebApplication_.activeGame = targetGame;
+    }
+
     this.SetGame$quorum_Libraries_Game_Game = function(g)
     {
         game = g;
@@ -66,6 +71,8 @@ function plugins_quorum_Libraries_Game_WebApplication_()
     
     this.MainLoop = function(timeStamp)
     {
+        this.SetCurrentlyActiveGame(game);
+
         if (game.Get_Libraries_Game_Game__exitRequested_())
         {
             var exitRequested = game.OnExit();
@@ -117,9 +124,10 @@ function plugins_quorum_Libraries_Game_WebApplication_()
 
                 // The GameStateManager needs to reinitialized when another application is ran
                 // NOTE other static initializers might need to be reset but these at least ensure that the FontManager is reloaded every time
-                if (plugins_quorum_Libraries_Game_GameStateManager_.initialized_plugins_quorum_Libraries_Game_GameStateManager_) {
-                    delete plugins_quorum_Libraries_Game_GameStateManager_.initialized_plugins_quorum_Libraries_Game_GameStateManager_;
-                }
+                // NOTE: Due to changes in how GameStateManager works (managing each Game separately) the manager plugin should no longer be reinitialized.
+//                if (plugins_quorum_Libraries_Game_GameStateManager_.initialized_plugins_quorum_Libraries_Game_GameStateManager_) {
+//                    delete plugins_quorum_Libraries_Game_GameStateManager_.initialized_plugins_quorum_Libraries_Game_GameStateManager_;
+//                }
                 if (plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_.initialized_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_) {
                     delete plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_.initialized_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_;
                 }

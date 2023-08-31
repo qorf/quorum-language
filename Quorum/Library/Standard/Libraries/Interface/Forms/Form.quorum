@@ -47,6 +47,8 @@ class Form is Game, FormPrimitiveContainer
     InterfaceOptions options = undefined
     text media = undefined
 
+    FormDelayedAssetLoader delayedLoader
+
     on create
         DesktopConfiguration desktop = GetDesktopConfiguration()
         desktop:targetFramesPerSecond = 10
@@ -129,7 +131,6 @@ class Form is Game, FormPrimitiveContainer
         Add(mainPage)
         manager:SetInterfaceOptions(options)
 
-        FormDelayedAssetLoader delayedLoader
         delayedLoader:LoadAssets()
 
         if not currentPage:HasDefaultFocusOrdering()
@@ -191,4 +192,9 @@ class Form is Game, FormPrimitiveContainer
     action SetMediaLocation(text media)
         me:media = media
     end
+
+    action GetDelayedAssetLoader returns FormDelayedAssetLoader
+        return delayedLoader
+    end
+
 end

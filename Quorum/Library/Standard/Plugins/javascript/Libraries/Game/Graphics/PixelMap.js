@@ -1,7 +1,7 @@
 function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap) 
 {
     
-    var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+    var graphics = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics;
     
     if (!plugins_quorum_Libraries_Game_Graphics_PixelMap_.initialized_plugins_quorum_Libraries_Game_Graphics_PixelMap_)
     {
@@ -1195,7 +1195,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
 
 	this.Screenshot$quorum_integer$quorum_integer$quorum_integer$quorum_integer = function(x, y, width, height)
 	{
-	    var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+	    var graphics = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics;
 
 	    // We multiply by 4 because we need 4 bytes per pixel, since we'll be using RGBA8888 format.
 	    var readPixels = new Uint8Array(width * height * 4);

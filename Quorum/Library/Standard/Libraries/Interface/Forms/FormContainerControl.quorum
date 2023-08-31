@@ -35,8 +35,6 @@ class FormContainerControl is Control
     integer titleAlignment = constants:DEFAULT_ALIGN
     integer contentAlignment = constants:DEFAULT_ALIGN
 
-    FormDelayedAssetLoader delayedLoader
-
     action SetTitle(text title)
         if title = ""
             if titleLabel not= undefined
@@ -170,6 +168,7 @@ class FormContainerControl is Control
             file:SetPath(fileName)
         end
 
+        FormDelayedAssetLoader delayedLoader = GetDelayedAssetLoader()
         if delayedLoader:IsGameAvailable()
             Drawable drawable
             if file not= undefined
@@ -410,6 +409,7 @@ class FormContainerControl is Control
             file:SetPath(fileName)
         end
 
+        FormDelayedAssetLoader delayedLoader = GetDelayedAssetLoader()
         if delayedLoader:IsGameAvailable()
             if file not= undefined
                 icon:Load(file)
@@ -729,5 +729,9 @@ class FormContainerControl is Control
     
     action SetForm(Form form)
         me:form = form
+    end
+
+    action GetDelayedAssetLoader returns FormDelayedAssetLoader
+        return form:GetDelayedAssetLoader()
     end
 end

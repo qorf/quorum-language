@@ -214,8 +214,10 @@ shared class GameStateManager
     action GetSharedTextureManager returns SharedTextureManager
         Game game = GetGame()
         if game not= undefined
+            output "Returning game's manager"
             return game:GetSharedTextureManager()
         else
+            output "NO GAME"
             return undefined
         end
     end

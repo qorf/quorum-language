@@ -29,7 +29,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
         plugins_quorum_Libraries_Game_WebInput_.IsFocused = function()
         {
             let accessibilityRoot;
-            let game = plugins_quorum_Libraries_Game_GameStateManager_.game;
+            let game = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGame();
             if (game) {
                 let accessibility = game.GetAccessibility();
                 if (accessibility) {
@@ -53,7 +53,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
                 return;
             }
 
-            let game = plugins_quorum_Libraries_Game_GameStateManager_.game;
+            let game = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGame();
             let accessibility = game.GetAccessibility();
             accessibility.plugin_.InternalTakeFocus();
         };
@@ -65,7 +65,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
                 return;
             }
 
-            let game = plugins_quorum_Libraries_Game_GameStateManager_.game;
+            let game = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGame();
             let accessibility = game.GetAccessibility();
             accessibility.plugin_.InternalReleaseFocus();
         };
@@ -118,10 +118,10 @@ function plugins_quorum_Libraries_Game_WebInput_()
 
         plugins_quorum_Libraries_Game_WebInput_.IsMouseInCanvas = function(event)
         {
-            if (plugins_quorum_Libraries_Game_GameStateManager_.display == null)
+            if (plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().display == null)
                 return false;
 
-            var canvas = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas();
+            var canvas = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().display.plugin_.GetCanvas();
             return event.target === canvas;
         };
         
@@ -1036,7 +1036,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
         {
             var quorumEvent = new quorum_Libraries_Interface_Events_MouseEvent_();
             
-            var canvas = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas();
+            var canvas = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().display.plugin_.GetCanvas();
             var rect = canvas.getBoundingClientRect();
             
             var x = event.clientX - rect.left;
@@ -1146,7 +1146,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
         
         plugins_quorum_Libraries_Game_WebInput_.disableContextMenu = function()
         {
-            return plugins_quorum_Libraries_Game_GameStateManager_.application.plugin_.GetConfiguration().Get_Libraries_Game_WebConfiguration__disableContextMenu_();
+            return plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().application.plugin_.GetConfiguration().Get_Libraries_Game_WebConfiguration__disableContextMenu_();
         };
     
         plugins_quorum_Libraries_Game_WebInput_.initialized_plugins_quorum_Libraries_Game_WebInput_ = true;
@@ -1158,7 +1158,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
     this.CheckForEvents$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array = function(mouseEvents, keyEvents, textEvents, resizeEvents)
     {
         // We manually construct the resize events here.
-        var display = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas();
+        var display = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().display.plugin_.GetCanvas();
         if (lastWidth !== display.clientWidth || lastHeight !== display.clientHeight)
         {
             lastWidth = display.clientWidth;

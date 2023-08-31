@@ -30,9 +30,9 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     };
 
     this.Setup = function() {
-        let container = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetContainer();
-        let canvas = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas();
-        let config = plugins_quorum_Libraries_Game_GameStateManager_.application.plugin_.GetConfiguration();
+        let container = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().display.plugin_.GetContainer();
+        let canvas = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().display.plugin_.GetCanvas();
+        let config = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().application.plugin_.GetConfiguration();
 
         let title = config.Get_Libraries_Game_WebConfiguration__title_();
         if (title == null) {
