@@ -20,9 +20,9 @@ public class CheckboxKit extends ItemKit{
                 Checkbox_ box = (Checkbox_) item;
                 boolean state = box.GetToggleState();
                 if(state) {
-                    builder.setCheckedState(CheckedState.TRUE);
+                    builder.setChecked(Checked.TRUE);
                 } else {
-                    builder.setCheckedState(CheckedState.FALSE);
+                    builder.setChecked(Checked.FALSE);
                 }
             }
             return builder.build();

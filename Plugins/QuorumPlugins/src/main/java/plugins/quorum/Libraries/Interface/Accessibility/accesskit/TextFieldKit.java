@@ -11,11 +11,12 @@ public class TextFieldKit extends TextKitBase {
     private boolean textDirty = true;
 
     public TextFieldKit() {
-        SetRole(Role.TEXT_FIELD);
+        SetRole(Role.TEXT_INPUT);
     }
 
     private NodeId GetLineID() {
-        return new NodeId(0, GetItem().GetHashCode());
+        long id = (long)(GetItem().GetHashCode()) << 32;
+        return new NodeId(id);
     }
 
     public Node Build() {

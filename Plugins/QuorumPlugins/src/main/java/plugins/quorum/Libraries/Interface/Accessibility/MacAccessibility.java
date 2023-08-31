@@ -35,7 +35,6 @@ import quorum.Libraries.Interface.Selections.TextFieldSelection_;
 public class MacAccessibility {
     public java.lang.Object me_ = null;
     private MacosSubclassingAdapter adapter;
-    private boolean isWindowFocused = true;
     private final RootItemKit root = new RootItemKit();
     private final HashMap<NodeId, ItemKit> items = new HashMap<NodeId, ItemKit>();
 
@@ -90,10 +89,9 @@ public class MacAccessibility {
     }
 
     private TreeUpdate BuildFullTree() {
-        TreeUpdate update = new TreeUpdate();
+        TreeUpdate update = TreeUpdate.withFocus(items.containsKey(focus) ? focus : root.GetNodeID());
         Traverse(root, update);
         update.setTree(new Tree(root.GetNodeID()));
-        SetTreeUpdateFocus(update);
         return update;
     }
 
@@ -124,10 +122,14 @@ public class MacAccessibility {
 
     public void  NativeUpdate() {
         if (!dirtyNodes.isEmpty() || isFocusDirty) {
+            if (!items.containsKey(focus)) {
+                // Try again on the next frame.
+                return;
+            }
             adapter.updateIfActive(new TreeUpdateSupplier() {
                 @Override
                 public TreeUpdate get() {
-                    TreeUpdate update = new TreeUpdate();
+                    TreeUpdate update = TreeUpdate.withFocus(focus);
                     for (NodeId id : dirtyNodes) {
                         ItemKit kit = items.get(id);
                         update.add(id, kit.Build());
@@ -135,7 +137,6 @@ public class MacAccessibility {
                             update.add(child, kit.BuildInternalChild(child));
                         }
                     }
-                    SetTreeUpdateFocus(update);
                     return update;
                 }
             });
@@ -144,20 +145,6 @@ public class MacAccessibility {
                 kit.ClearDirtyInternalChildren();
             }
             dirtyNodes.clear();
-
-        }
-    }
-
-    private void SetTreeUpdateFocus(TreeUpdate update) {
-        if (isWindowFocused) {
-            ItemKit kit = items.get(focus);
-            if(kit != null) {
-                update.setFocus(focus);
-            } else {
-                isFocusDirty = true ; //catch it on the next frame.
-            }
-        } else {
-            update.clearFocus();
             isFocusDirty = false;
         }
     }
@@ -200,6 +187,10 @@ public class MacAccessibility {
         NodeId id = ItemKit.GetNodeID(item);
         ItemKit kit = items.get(id);
         if(kit != null) {
+            // TODO: the following should really be done when handling the
+            // appropriate GLFW event that indicates when the window itself
+            // gains or loses focus.
+            adapter.updateViewFocusState(true);
             focus = id;
             isFocusDirty = true;
         }
@@ -319,7 +310,6 @@ public class MacAccessibility {
     }
     public boolean NativeAdd(Item_ item)
     {
-        isWindowFocused = true;
         //first has this item already been added
         ItemKit existingKit = items.get(ItemKit.GetNodeID(item));
         if(existingKit != null) {

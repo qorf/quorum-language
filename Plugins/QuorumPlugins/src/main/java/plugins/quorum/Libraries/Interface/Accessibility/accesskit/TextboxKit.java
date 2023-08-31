@@ -13,11 +13,13 @@ public class TextboxKit extends TextKitBase {
     private int dirtyLinesEnd = -1;
 
     public TextboxKit() {
-        SetRole(Role.TEXT_FIELD);
+        SetRole(Role.MULTILINE_TEXT_INPUT);
     }
 
     private NodeId GetLineID(int lineIndex) {
-        return new NodeId(lineIndex, GetItem().GetHashCode());
+        long id = (long)(GetItem().GetHashCode()) << 32;
+        id |= (long)lineIndex;
+        return new NodeId(id);
     }
 
     public Node Build() {
@@ -27,7 +29,6 @@ public class TextboxKit extends TextKitBase {
             NodeBuilder builder = new NodeBuilder(GetRole());
             builder.setBounds(rect);
             builder.setName(item.GetName());
-            builder.setMultiline();
             if(item instanceof TextBox_) { //technically not compiler guaranteed. You can set the code to anything.
                 TextBox_ box = (TextBox_) item;
                 TextBoxSelection_ selection = box.GetSelection();
