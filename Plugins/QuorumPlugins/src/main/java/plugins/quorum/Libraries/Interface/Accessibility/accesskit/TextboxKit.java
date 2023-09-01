@@ -118,10 +118,10 @@ public class TextboxKit extends TextKitBase {
 
     @Override
     public Node BuildInternalChild(NodeId id) {
-        if (id.high != (long)(GetItem().GetHashCode())) {
+        if ((int)(id.value >>> 32) != GetItem().GetHashCode()) {
             throw new IllegalArgumentException("unexpected child ID");
         }
-        int lineIndex = (int)(id.low);
+        int lineIndex = (int)(id.value & 0xffffffff);
         Item_ item = GetItem();
         if(item != null && item instanceof TextBox_) {
             TextBox_ box = (TextBox_) item;
