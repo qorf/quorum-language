@@ -16,7 +16,7 @@ import quorum.Libraries.Interface.Item_;
 
 public class LabelKit extends ItemKit{
     public LabelKit() {
-        SetRole(Role.LABEL_TEXT);
+        SetRole(Role.STATIC_TEXT);
     }
 
     public Node Build() {

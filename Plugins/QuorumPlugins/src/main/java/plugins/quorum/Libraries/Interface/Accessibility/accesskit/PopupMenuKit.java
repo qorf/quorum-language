@@ -4,6 +4,6 @@ import dev.accesskit.Role;
 
 public class PopupMenuKit extends ItemKit{
     public PopupMenuKit() {
-        SetRole(Role.POPUP_BUTTON);
+        SetRole(Role.MENU_LIST_POPUP);
     }
 }
