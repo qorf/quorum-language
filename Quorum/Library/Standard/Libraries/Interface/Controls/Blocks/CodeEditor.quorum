@@ -2423,6 +2423,24 @@ action GetBlockNotchPercentageHeight returns number
         return renderer:GetBlockAtLine(index)
     end
     
+    action GetEditRegionAtTextIndex(integer index) returns EditRegion
+        integer line = GetLineIndex(index)
+        Block block = renderer:GetNavigableBlockAtTextLine(line)
+        Array<Item2D> children = block:GetChildren()
+        integer i = 0
+        repeat while i < children:GetSize()
+            Item2D item = children:Get(i)
+            if item is EditRegion
+                EditRegion region = cast(EditRegion, item)
+                if index >= block:GetStartIndex() + region:GetStartIndex() and index <= block:GetStartIndex() + region:GetEndIndex()
+                    return region
+                end
+            end
+            i = i + 1
+        end
+        return undefined
+    end
+    
     action SelectBlockRange(Block block, integer endIndex)
         if endIndex < 0
             endIndex = 0

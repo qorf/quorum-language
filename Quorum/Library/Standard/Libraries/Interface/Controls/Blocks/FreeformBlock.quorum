@@ -665,6 +665,12 @@ class FreeformBlock is SingleLineBlock
             ClassStatementsContext statement = parser:ClassStatement()
 
             if statement not= undefined
+                if parser:HasNext()
+                    BlockErrorShaderView view
+                    view:Initialize()
+                    SetView2D(view)
+                    return now
+                end
                 blockListener:EnterClassStatements(statement)
             end
             if blockListener:GetBlock() = undefined
@@ -674,16 +680,34 @@ class FreeformBlock is SingleLineBlock
         elseif isPackageStatement
             PackageContext context = parser:Package()
             if context not= undefined
+                if parser:HasNext()
+                    BlockErrorShaderView view
+                    view:Initialize()
+                    SetView2D(view)
+                    return now
+                end
                 blockListener:EnterPackageRule(context)
             end
         elseif isUseStatement
             UseContext context = parser:Use()
             if context not= undefined
+                if parser:HasNext()
+                    BlockErrorShaderView view
+                    view:Initialize()
+                    SetView2D(view)
+                    return now
+                end
                 blockListener:EnterUse(context)
             end
         elseif isClassStatement
             FullClassDeclarationContext context = parser:FullClass()
             if context not= undefined
+                if parser:HasNext()
+                    BlockErrorShaderView view
+                    view:Initialize()
+                    SetView2D(view)
+                    return now
+                end
                 context:Traverse(blockListener)
             end
         else
@@ -692,6 +716,12 @@ class FreeformBlock is SingleLineBlock
             StatementContext statement = parser:Statement()
 
             if statement not= undefined
+                if parser:HasNext()
+                    BlockErrorShaderView view
+                    view:Initialize()
+                    SetView2D(view)
+                    return now
+                end
                 blockListener:EnterStatement(statement)
             end
             if blockListener:GetBlock() = undefined

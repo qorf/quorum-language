@@ -356,7 +356,7 @@ class QuorumParser
         return false
     end
 
-    private action HasNext returns boolean
+    action HasNext returns boolean
         if tokenIterator:HasNext()
             //having one isn't required, but if there is one, see if we've found an error so far
             if compilerErrorManager not= undefined and compilerErrorManager:IsCompilationErrorFree()
@@ -955,15 +955,16 @@ class QuorumParser
             end
             return context
         end
-
+        Token firstActionToken = undefined
         if IsAccessModifier(next) //if it's an access modifier, record it and advance the token
             accessToken = next
-            next = tokenIterator:Next()
             
             AccessModifierContext m
             m:SetFirstToken(next)
+            firstActionToken = next
             m:SetLastToken(next)
             SetLocation(m)
+next = tokenIterator:Next()
             accessModifierContext = m
             if accessToken:category = constants:PUBLIC
                 accessModifierContext:isPublic = true
@@ -971,18 +972,27 @@ class QuorumParser
                 accessModifierContext:isPrivate = true
             end
         end
-
+        
         if next:category = constants:BLUEPRINT
             categoryToken = next
+            if firstActionToken = undefined
+                firstActionToken = next
+            end
             next = tokenIterator:Next()
         elseif next:category = constants:NATIVE
             categoryToken = next
+            if firstActionToken = undefined
+                firstActionToken = next
+            end
             next = tokenIterator:Next()
         end
 
         ActionContext context = ActionShared()
         if context = undefined //this was an error, processed by the action
             return undefined
+        end
+        if firstActionToken not= undefined
+            context:SetFirstToken(firstActionToken)
         end
         context:access = accessModifierContext
         if accessModifierContext not= undefined
