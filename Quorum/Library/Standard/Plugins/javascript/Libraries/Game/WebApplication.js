@@ -71,7 +71,9 @@ function plugins_quorum_Libraries_Game_WebApplication_()
     
     this.MainLoop = function(timeStamp)
     {
-        this.SetCurrentlyActiveGame(game);
+        // Note that because of how this is called via Javascript, we can't use "this.SetCurrentlyActiveGame()" because
+        // the meaning of "this" will be different once this is called later by the requested animation frame call.
+        plugins_quorum_Libraries_Game_WebApplication_.activeGame = game;
 
         if (game.Get_Libraries_Game_Game__exitRequested_())
         {

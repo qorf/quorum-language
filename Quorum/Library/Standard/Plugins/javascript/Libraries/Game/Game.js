@@ -3045,6 +3045,11 @@ function plugins_quorum_Libraries_Game_Graphics_Shaders_SkyboxShader_()
     
         plugins_quorum_Libraries_Game_Graphics_Shaders_SkyboxShader_.initialized_plugins_quorum_Libraries_Game_Graphics_SkyboxShader_ = true;
     }
+
+    this.GetNativeGraphics = function()
+    {
+        return plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics;
+    }
     
     var program = new plugins_quorum_Libraries_Game_Graphics_ShaderProgram_(plugins_quorum_Libraries_Game_Graphics_Shaders_SkyboxShader_.vertexShader, plugins_quorum_Libraries_Game_Graphics_Shaders_SkyboxShader_.fragmentShader);
     var positionIndex = program.FetchAttributeLocation("position");

@@ -101,7 +101,7 @@ function plugins_quorum_Libraries_Game_GameStateManager_()
         };
     }
 
-    this.RegisterGame(newGame)
+    this.RegisterGame = function(newGame)
     {
         plugins_quorum_Libraries_Game_GameStateManager_.RegisterGame(newGame);
     };
