@@ -175,6 +175,7 @@ class StandardInput is GameInput
         boolean draggedThisFrame = false
 
         repeat mouseEvents:GetSize() times
+            output "MouseEvent! " + manager:GetGame():GetWebConfiguration():containerID
             mouseEvent = mouseEvents:RemoveFromFront()
 
             set:SetMouseInput(mouseEvent:mouseButton)
