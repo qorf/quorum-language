@@ -140,6 +140,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
         CodeEditorPopupMenu popup
         popup:SetCodeEditor(me)
         SetPopupMenu(popup)
+SetAccessibilityCode(parent:Item:PANE)
     end
     
     action SelectAll
@@ -2291,7 +2292,7 @@ action GetBlockNotchPercentageHeight returns number
             repeat while i > index
                 Block child = firstChild:GetChild(i)
                 if IsActionOrConstructor(child)
-                    child:Focus()
+                    NavigateToBlock(child)
                     return now
                 end //this is the one
                 i = i - 1
@@ -2303,9 +2304,16 @@ action GetBlockNotchPercentageHeight returns number
     end
 
     private action NavigateToBlock(Block block)
-        SelectBlockRange(block, block, true)
-        GoToBlock(block)
-        block:Focus()
+Block toNavigate = block
+        if not toNavigate:IsNavigable()
+            toNavigate = toNavigate:GetNextNavigableBlock()
+        end
+        if toNavigate = undefined
+            return now
+        end
+        SelectBlockRange(toNavigate, toNavigate, true)
+        GoToBlock(toNavigate)
+        toNavigate:Focus()
     end
     
 
@@ -2594,5 +2602,9 @@ a value of 2 indicates that the scoped bars take up 8 characters of space horizo
 */
     action GetScopeBarWidth returns number
         return scopeBarWidth
+    end
+    
+action IsAccessibleParent returns boolean
+        return true
     end
 end

@@ -40,6 +40,8 @@ class TreeTableCell is Control
     Behavior activationBehavior = undefined
 
     on create
+label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
+        
         FlowLayout layout
         layout:SetIgnoreHidden(false)
         layout:SetSingleLine(true)
