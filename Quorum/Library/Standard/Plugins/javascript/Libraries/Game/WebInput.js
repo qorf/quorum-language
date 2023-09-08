@@ -127,6 +127,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
         
         plugins_quorum_Libraries_Game_WebInput_.MouseDown = function(event)
         {
+            console.log("MOUSE DOWN");
             /*
              * Testing for mouse click using the dimensions of the rectangle
              * allows the first click on the window (i.e. the one that gives the
@@ -135,6 +136,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
              */
             if (plugins_quorum_Libraries_Game_WebInput_.IsMouseInCanvas(event))
             {
+                console.log("MouseInCanvas!");
                 console.log(`mousedown ${event.clientX} ${event.clientY} ${event.target.tagName} ${event.target.id}`);
                 event.stopPropagation();
                 event.preventDefault();

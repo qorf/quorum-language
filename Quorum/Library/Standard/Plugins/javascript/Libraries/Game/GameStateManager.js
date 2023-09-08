@@ -40,21 +40,6 @@ function plugins_quorum_Libraries_Game_GameStateManager_()
         const gameMap = new Map();
         plugins_quorum_Libraries_Game_GameStateManager_.registeredGames = gameMap;
 
-//        plugins_quorum_Libraries_Game_GameStateManager_.operatingSystem = "Web Browser";
-//        plugins_quorum_Libraries_Game_GameStateManager_.fontManager = new quorum_Libraries_Game_Graphics_Fonts_FontManager_();
-//        plugins_quorum_Libraries_Game_GameStateManager_.mainThreadID = "1";
-//
-//        // Ensure all other values begin as undefined.
-//        // Helps mitigate issues related to re-initialization, e.g. a game is stopped and restarted.
-//        plugins_quorum_Libraries_Game_GameStateManager_.game = undefined;
-//        plugins_quorum_Libraries_Game_GameStateManager_.focus = undefined;
-//        plugins_quorum_Libraries_Game_GameStateManager_.application = undefined;
-//        plugins_quorum_Libraries_Game_GameStateManager_.display = undefined;
-//        plugins_quorum_Libraries_Game_GameStateManager_.graphics = undefined;
-//        plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics = undefined;
-//        plugins_quorum_Libraries_Game_GameStateManager_.input = undefined;
-//        plugins_quorum_Libraries_Game_GameStateManager_.nativePath = undefined;
-
         // Register the global functions that manage the active game.
         plugins_quorum_Libraries_Game_GameStateManager_.RegisterGame = function(newGame)
         {
