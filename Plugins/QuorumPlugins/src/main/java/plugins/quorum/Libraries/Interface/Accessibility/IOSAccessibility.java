@@ -5,10 +5,9 @@ import org.robovm.apple.uikit.*;
 import plugins.quorum.Libraries.Game.IOSApplication;
 import plugins.quorum.Libraries.Interface.Accessibility.IOS.ButtonIOS;
 import plugins.quorum.Libraries.Interface.Accessibility.IOS.CheckboxIOS;
-import quorum.Libraries.Interface.Controls.Button_;
-import quorum.Libraries.Interface.Controls.Checkbox_;
-import quorum.Libraries.Interface.Controls.TextField_;
-import quorum.Libraries.Interface.Controls.ToggleButton_;
+import plugins.quorum.Libraries.Interface.Accessibility.IOS.ToggleButtonIOS;
+import plugins.quorum.Libraries.Interface.Accessibility.IOS.RadioButtonIOS;
+import quorum.Libraries.Interface.Controls.*;
 import quorum.Libraries.Interface.Events.*;
 import quorum.Libraries.Interface.Item_;
 import quorum.Libraries.Interface.Selections.TextBoxSelection_;
@@ -41,7 +40,7 @@ public class IOSAccessibility {
 
     public void  FocusChanged(FocusEvent_ event) throws Exception {
         Item_ item = event.GetNewFocus();
-        System.out.println("Focus Changed to " + item.GetName());
+        System.out.println("NEwFocus Changed to " + item.GetName());
         UIAccessibilityElement element = (UIAccessibilityElement) mapAccessibilityElements.get(item);
         UIAccessibilityGlobals.postNotification(UIAccessibilityNotification.LayoutChangedNotification, element);
 
@@ -80,15 +79,23 @@ public class IOSAccessibility {
             checkbox.Initialize((Checkbox_) item);
             element = checkbox;
         } else if (code == item.Get_Libraries_Interface_Item__RADIO_BUTTON_()) {
+            System.out.println("Added a Radio Button");
             element.setAccessibilityTraits(UIAccessibilityTraits.AllowsDirectInteraction);
             element.setAccessibilityTraits(UIAccessibilityTraits.Button);
+            RadioButtonIOS radioButton = new RadioButtonIOS(IOSApplication.accessibilityContainer);
+            radioButton.Initialize((RadioButton_) item);
+            element = radioButton;
         } else if (code == item.Get_Libraries_Interface_Item__BUTTON_()) {
             ButtonIOS button = new ButtonIOS(IOSApplication.accessibilityContainer);
             button.Initialize((Button_)item);
             element = button;
         } else if (code == item.Get_Libraries_Interface_Item__TOGGLE_BUTTON_()) {
+            System.out.println("Added a Toggle Button");
             element.setAccessibilityTraits(UIAccessibilityTraits.AllowsDirectInteraction);
             element.setAccessibilityTraits(UIAccessibilityTraits.Button);
+            ToggleButtonIOS toggleButton = new ToggleButtonIOS(IOSApplication.accessibilityContainer);
+            toggleButton.Initialize((ToggleButton_) item);
+            element = toggleButton;
         } else if (code == item.Get_Libraries_Interface_Item__LABEL_()) {
             return false;
         }
