@@ -90,12 +90,6 @@ public class IOSAccessibility {
             checkbox.Initialize((Checkbox_) item);
             element = checkbox;
         } else if (code == item.Get_Libraries_Interface_Item__RADIO_BUTTON_()) {
-<<<<<<< HEAD
-            System.out.println("Added a Radio Button");
-            element.setAccessibilityTraits(UIAccessibilityTraits.AllowsDirectInteraction);
-=======
->>>>>>> d441c989a7ac7ee3f61119ea067cc7e7c5577212
-            element.setAccessibilityTraits(UIAccessibilityTraits.Button);
             RadioButtonIOS radioButton = new RadioButtonIOS(IOSApplication.accessibilityContainer);
             radioButton.Initialize((RadioButton_) item);
             element = radioButton;
@@ -104,9 +98,6 @@ public class IOSAccessibility {
             button.Initialize((Button_)item);
             element = button;
         } else if (code == item.Get_Libraries_Interface_Item__TOGGLE_BUTTON_()) {
-            System.out.println("Added a Toggle Button");
-            element.setAccessibilityTraits(UIAccessibilityTraits.AllowsDirectInteraction);
-            element.setAccessibilityTraits(UIAccessibilityTraits.Button);
 <<<<<<< HEAD
             ToggleButtonIOS toggleButton = new ToggleButtonIOS(IOSApplication.accessibilityContainer);
             toggleButton.Initialize((ToggleButton_) item);
