@@ -3,6 +3,8 @@ package Libraries.Compute.MatrixTransform
 use Libraries.Compute.Matrix
 use Libraries.Containers.Array
 use Libraries.Compute.Math
+use Libraries.Compute.BitwiseOperations
+use Libraries.Compute.Vector
 
 /*
     A Hessenberg decomposition is a matrix decomposition of a matrix A into 
@@ -36,14 +38,14 @@ use Libraries.Compute.Math
 
 class HessenbergDecomposition
     Math math
-    /* Maximum allowed iterations for convergence of the transformation. */
-    constant integer maxIterations = 100
-
     /* This matrix represents the original matrix */
     Matrix original = undefined
 
     /* This matrix represents the house holder matrix */
-    Matrix holder = undefined
+    private Matrix holder = undefined
+
+    /* Temporary storage vector */
+    private Vector ort = undefined
 
     /* This matrix represents the hessenberg matrix (H) */
     Matrix hessenberg = undefined
@@ -54,7 +56,14 @@ class HessenbergDecomposition
     /* This matrix represents the orthogonal matrix transposed (PT). */
     Matrix orthogonalTransposed = undefined
 
-    Array<number> ort
+    private number precisionEpsilon = 0
+
+    on create
+//        BitwiseOperations ops
+//        integer p = ops:ShiftLeft(1023-53, 52)
+//        precisionEpsilon = 1.0*math:RaiseToPower(10, -p)
+        precisionEpsilon = 2.0e-52
+    end
 
     action Calculate(Matrix matrix)
         if not matrix:IsSquare()
@@ -65,10 +74,14 @@ class HessenbergDecomposition
         hessenberg = undefined
         orthogonal = undefined
         orthogonalTransposed = undefined
-        ort:Empty()
+        ort = undefined
 
         integer size = holder:GetColumns()
-        ort:SetSize(size)
+        if ort = undefined
+            Vector v
+            v:SetSize(size)
+            ort = v
+        end
 
         integer m = 1
         repeat while m < size - 1
@@ -79,7 +92,7 @@ class HessenbergDecomposition
                 i = i + 1
             end
 
-            if scale not= 0
+            if not Equals(scale, 0)
                 // Compute Householder transformation.
                 number h = 0
                 i = size - 1
@@ -140,14 +153,17 @@ class HessenbergDecomposition
             end
             m = m + 1
         end
-        CalculateHessenbergMatrix()
+    end
+
+    private action Equals(number a, number b) returns boolean
+        return math:AbsoluteValue(b-a) <= precisionEpsilon
     end
 
     action GetOriginalMatrix returns Matrix
         return original
     end
 
-    private action CalculateHessenbergMatrix
+    action GetHessenbergMatrix returns Matrix
         if hessenberg = undefined and holder not= undefined
             integer size = holder:GetColumns()
             Matrix matrix
@@ -167,9 +183,6 @@ class HessenbergDecomposition
             end
             hessenberg = matrix
         end
-    end
-
-    action GetHessenbergMatrix returns Matrix
         return hessenberg
     end
 
@@ -210,6 +223,7 @@ class HessenbergDecomposition
                             i = i + 1
                         end
 
+                        // Double division avoids possible underflow
                         g = (g / ort:Get(m)) / holder:Get(m, m-1)
 
                         i = m

@@ -29,6 +29,7 @@ use Libraries.Interface.Accessibility
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Undo.TextFieldEditManager
 use Libraries.Interface.Undo.TextFieldEditState
+use Libraries.Containers.Number32BitArray
 
 class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
@@ -175,6 +176,42 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
     */
     action IsPassword returns boolean
         return passwordField
+    end
+    /*This returns the widths of characters from the left 
+hand side of the screen. */
+    action GetCharacterWidths returns Number32BitArray
+        Number32BitArray array
+        Font font = GetFont()
+        text value = GetText()
+        array:SetSize(value:GetSize())
+        i = 0
+        repeat while value not= undefined and i < value:GetSize()
+            Glyph glyph = font:GetGlyph(value)
+            number advance = glyph:horizontalAdvance
+            array:Set(i, advance)
+            i = i + 1
+        end
+        return array
+end
+    
+    /*This returns the x positions of characters from the left 
+hand side of the screen. */
+    action GetCharacterXPositions returns Number32BitArray
+        
+Number32BitArray array
+        Font font = GetFont()
+        text value = GetText()
+        array:SetSize(value:GetSize())
+        i = 0
+        number sum = 0.0
+repeat while value not= undefined and i < value:GetSize()
+            Glyph glyph = font:GetGlyph(value)
+            number advance = glyph:horizontalAdvance
+            array:Set(i, sum)
+            sum = sum + advance
+            i = i + 1
+        end
+        return array
     end
 
     /*
@@ -767,6 +804,8 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, value, deletedText, originalIndex)
+
+        EmptySelectionEvent(true)
 
         NotifyTextChangeListeners(changeEvent)
     end

@@ -146,6 +146,10 @@ class HistogramWriter is ChartWriter
 
         chartContent:Add(chartContentBoundingBox)
 
+        if chart:IsShowingLinearRegression()
+            AddRegressionLines(canvas, chart)
+        end
+
         if not chart:IsSeparated()
             
             i = 0
@@ -273,6 +277,14 @@ class HistogramWriter is ChartWriter
                     bar:SetStroke(cast(Color, currentBar:GetBorderColor()))
                     bar:SetStrokeOpacity(cast(Color, currentBar:GetBorderColor()))
                     bar:SetStrokeWidth(currentBar:GetBorderThickness())
+                    
+                    number value = currentBar:GetValue()
+                    if value = cast(integer, value)
+                        bar:SetTitle(currentBar:GetSeries():GetName() + ": " + cast(integer, currentBar:GetValue()))
+                    else
+                        bar:SetTitle(currentBar:GetSeries():GetName() + ": " + currentBar:GetValue())
+                    end
+
                     if HasAccessibility()
                         bar:SetStyleClass("quorum-chart-rect")
                         bar:SetID(barSVG:GetID() + "_bar")
@@ -434,6 +446,14 @@ class HistogramWriter is ChartWriter
                         bar:SetStroke(cast(Color, currentBar:GetBorderColor()))
                         bar:SetStrokeOpacity(cast(Color, currentBar:GetBorderColor()))
                         bar:SetStrokeWidth(currentBar:GetBorderThickness())
+
+                        number value = currentBar:GetValue()
+                        if value = cast(integer, value)
+                            bar:SetTitle(currentBar:GetSeries():GetName() + ": " + cast(integer, currentBar:GetValue()))
+                        else
+                            bar:SetTitle(currentBar:GetSeries():GetName() + ": " + currentBar:GetValue())
+                        end
+
                         if HasAccessibility()
                             bar:SetStyleClass("quorum-chart-rect")
                             bar:SetID(barSVG:GetID() + "_bar")

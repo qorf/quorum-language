@@ -20,6 +20,13 @@ use Libraries.Interface.Selections.TextBoxSelection
 use Libraries.Interface.Selections.TextFieldSelection
 
 class MacAccessibility is Accessibility
+    action Update
+        parent:Accessibility:Update()
+        NativeUpdate()
+    end
+
+    system action NativeUpdate
+
     system action NameChanged(Item item)
 
     system action DescriptionChanged(Item item)

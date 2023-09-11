@@ -364,6 +364,7 @@ class Legend is ChartItem
         repeat while i < seriesList:GetSize()
             Series series = seriesList:Get(i)
             series:SetColor(options:GetColorFromPalette(i))
+            series:SetBorderColor(options:GetBorderColorFromPalette(i))
             integer j = 0
             repeat while j < series:GetSize()
                 series:GetItemAt(j):SetColor(series:GetColor())

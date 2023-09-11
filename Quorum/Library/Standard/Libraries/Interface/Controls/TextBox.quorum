@@ -34,6 +34,7 @@ use Libraries.Game.Game
 use Libraries.Game.Shapes.Rectangle
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Game.Graphics.SharedTextureManager
+use Libraries.Containers.Number32BitArray
 
 class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
 
@@ -194,6 +195,45 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         HideCaret()
     end
 
+    
+/*This returns the widths of characters from the left 
+hand side of the screen for a particular line. */
+    action GetCharacterWidths(integer line) returns Number32BitArray
+        Number32BitArray array
+        Font font = GetFont()
+        MultipleLineText lineValue = textValue:GetLine(line)
+        text value = lineValue:GetText()
+        array:SetSize(value:GetSize())
+        i = 0
+        repeat while value not= undefined and i < value:GetSize()
+            Glyph glyph = font:GetGlyph(value)
+            number advance = glyph:horizontalAdvance
+            array:Set(i, advance)
+            i = i + 1
+        end
+        return array
+end
+    
+/*This returns the x positions of characters from the left 
+hand side of the screen. */
+    action GetCharacterXPositions(integer line) returns Number32BitArray
+Number32BitArray array
+        Font font = GetFont()
+MultipleLineText lineValue = textValue:GetLine(line)
+        text value = lineValue:GetText()
+        array:SetSize(value:GetSize())
+        i = 0
+        number sum = 0.0
+repeat while value not= undefined and i < value:GetSize()
+            Glyph glyph = font:GetGlyph(value)
+            number advance = glyph:horizontalAdvance
+            array:Set(i, sum)
+            sum = sum + advance
+            i = i + 1
+        end
+        return array
+    end
+    
     action SetInterfaceOptionsKey(text key)
         parent:Control:SetInterfaceOptionsKey(key)
         background:SetInterfaceOptionsKey(key)

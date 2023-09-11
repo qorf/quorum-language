@@ -1,19 +1,19 @@
 package plugins.quorum.Libraries.Interface.Accessibility;
 
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import dev.accesskit.Role;
-import dev.accesskit.TreeUpdate;
+import dev.accesskit.*;
+import dev.accesskit.Tree;
+import org.lwjgl.glfw.GLFWNativeCocoa;
 import plugins.quorum.Libraries.Game.DesktopDisplay;
-import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Interface.Accessibility.accesskit.*;
 import plugins.quorum.Libraries.Interface.AccessibilityManager;
-import quorum.Libraries.Interface.Controls.Button_;
-import quorum.Libraries.Interface.Controls.TextField_;
-import quorum.Libraries.Interface.Controls.ToggleButton_;
+import quorum.Libraries.Interface.Controls.*;
 import quorum.Libraries.Interface.Events.ControlActivationEvent_;
 import quorum.Libraries.Interface.Events.FocusEvent_;
 import quorum.Libraries.Interface.Events.MenuChangeEvent_;
@@ -24,6 +24,7 @@ import quorum.Libraries.Interface.Events.TreeChangeEvent_;
 import quorum.Libraries.Interface.Events.TreeTableChangeEvent_;
 import quorum.Libraries.Interface.Events.WindowFocusEvent_;
 import quorum.Libraries.Interface.Item_;
+import quorum.Libraries.Interface.Selections.Selection_;
 import quorum.Libraries.Interface.Selections.TextBoxSelection_;
 import quorum.Libraries.Interface.Selections.TextFieldSelection_;
 
@@ -33,14 +34,43 @@ import quorum.Libraries.Interface.Selections.TextFieldSelection_;
  */
 public class MacAccessibility {
     public java.lang.Object me_ = null;
+    private MacosSubclassingAdapter adapter;
+    private final RootItemKit root = new RootItemKit();
+    private final HashMap<NodeId, ItemKit> items = new HashMap<NodeId, ItemKit>();
 
-    static {
+    private final ArrayList<DummyKit> dummies = new ArrayList<DummyKit>();
+    private int currentDummy = -1;
+    private NodeId focus = root.GetNodeID();
+    private final HashSet<NodeId> dirtyNodes = new HashSet<NodeId>();
+    private boolean isFocusDirty = false;
+
+    public MacAccessibility() {
+        items.put(root.GetNodeID(), root);
+        DummyKit dummy1 = new DummyKit();
+        dummy1.SetDummyNodeID(2);
+        DummyKit dummy2 = new DummyKit();
+        dummy2.SetDummyNodeID(3);
+        dummies.add(dummy1);
+        dummies.add(dummy2);
+        items.put(dummy1.GetNodeID(), dummy1);
+        items.put(dummy2.GetNodeID(), dummy2);
+        root.AddChild(dummy1);
+        root.AddChild(dummy2);
         try
         {
             java.io.File file = new java.io.File(AccessibilityManager.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
             String runLocation = file.getParentFile().getAbsolutePath();
             String nativeFile = runLocation + "/jni/libaccesskit_jni.dylib";
             System.load(nativeFile);
+
+            long handle = GLFWNativeCocoa.glfwGetCocoaWindow(DesktopDisplay.window);
+
+            adapter = MacosSubclassingAdapter.forWindow(handle, new TreeUpdateSupplier() {
+                @Override
+                public TreeUpdate get() {
+                    return BuildFullTree();
+                }
+            });
         }
         catch (URISyntaxException ex)
         {
@@ -48,68 +78,145 @@ public class MacAccessibility {
         }
     }
 
-    HashMap<Integer, ItemKit> items = new HashMap<Integer, ItemKit>();
-
-    private static native void InitializeAccessibilityNative(long GLFW_WindowHandle, String windowName);
-
-    public void  NameChanged(Item_ item) {}
-
-    public void  DescriptionChanged(Item_ item) {}
-
-    public void  BoundsChanged(Item_ item) {
-
-
-    }
-
-    public void  TextFieldUpdatePassword(TextField_ field) {}
-
-    public void  Update() {}
-
-    public void  ProgressBarValueChanged(ProgressBarValueChangedEvent_ progress) {}
-
-    public void  SelectionChanged(SelectionEvent_ event) {}
-
-    public void TextSelectionChanged(TextBoxSelection_ selection)
-    {
-
-    }
-
-    public void TextSelectionChanged(TextFieldSelection_ selection)
-    {
-
-    }
-
-    public boolean Select(Item_ item)
-    {
-        return false;
-    }
-
-    public void  ButtonActivated(Button_ button) {
-        if(button == null) {
-            return;
+    private static void Traverse(ItemKit itemKit, TreeUpdate update) {
+        update.add(itemKit.GetNodeID(), itemKit.Build());
+        for (ItemKit child : itemKit.GetChildren()) {
+            Traverse(child, update);
         }
-        items.get(button.GetHashCode());
+        for (NodeId child : itemKit.GetInternalChildren()) {
+            update.add(child, itemKit.BuildInternalChild(child));
+        }
     }
 
-    public void  ToggleButtonToggled(ToggleButton_ button) {}
+    private TreeUpdate BuildFullTree() {
+        TreeUpdate update = TreeUpdate.withFocus(items.containsKey(focus) ? focus : root.GetNodeID());
+        Traverse(root, update);
+        update.setTree(new Tree(root.GetNodeID()));
+        return update;
+    }
 
-    public void  FocusChanged(FocusEvent_ event) {
-        Item_ item = event.GetNewFocus();
+    private void SetItemToDirty(Item_ item) {
         if(item != null) {
-            ItemKit kit = items.get((item.GetHashCode()));
-            if(kit != null) { //somehow send this to access kit.
-
+            ItemKit kit = items.get(ItemKit.GetNodeID(item));
+            if(kit != null) {
+                dirtyNodes.add(kit.GetNodeID());
             }
         }
     }
 
-    public boolean NativeAdd(Item_ item)
+    public void  NameChanged(Item_ item) {
+        SetItemToDirty(item);
+    }
+
+    public void  DescriptionChanged(Item_ item) {
+        SetItemToDirty(item);
+    }
+
+    public void  BoundsChanged(Item_ item) {
+        SetItemToDirty(item);
+    }
+
+    public void  TextFieldUpdatePassword(TextField_ item) {
+        SetItemToDirty(item);
+    }
+
+    public void  NativeUpdate() {
+        if (!dirtyNodes.isEmpty() || isFocusDirty) {
+            if (!items.containsKey(focus)) {
+                // Try again on the next frame.
+                return;
+            }
+            adapter.updateIfActive(new TreeUpdateSupplier() {
+                @Override
+                public TreeUpdate get() {
+                    TreeUpdate update = TreeUpdate.withFocus(focus);
+                    for (NodeId id : dirtyNodes) {
+                        ItemKit kit = items.get(id);
+                        update.add(id, kit.Build());
+                        for (NodeId child : kit.GetDirtyInternalChildren()) {
+                            update.add(child, kit.BuildInternalChild(child));
+                        }
+                    }
+                    return update;
+                }
+            });
+            for (NodeId id : dirtyNodes) {
+                ItemKit kit = items.get(id);
+                kit.ClearDirtyInternalChildren();
+            }
+            dirtyNodes.clear();
+            isFocusDirty = false;
+        }
+    }
+
+    public void  ProgressBarValueChanged(ProgressBarValueChangedEvent_ item) {
+        SetItemToDirty(item.GetProgressBar());
+    }
+
+    public void  SelectionChanged(SelectionEvent_ event) {
+    }
+
+    public void TextSelectionChanged(TextBoxSelection_ selection)
     {
+        SetItemToDirty(selection.GetTextBox());
+    }
+
+    public void TextSelectionChanged(TextFieldSelection_ selection)
+    {
+        SetItemToDirty(selection.GetTextField());
+    }
+
+    public boolean Select(Item_ item)
+    {
+        /*
+        Not sure what we do in access kit here, but this is when the selection has changed, for example to a tree item.
+        I don't think this is directly a focus call, it's a selection call, so this may be different at the access kit level.
+
+        This particular accessibility manager always fires this, regardless of what kind of object it is.
+        It may not be enough, but I think even updating it "could" be enough, depending on how selection is implemented.
+         */
+
+        //The following is actually mimicking the focus, which is wrong. However, it gets us basic screen reader support
+        //We need to polish everything, but it's a start.
+        ChangeFocusNextFrame(item);
+
+        return false;
+    }
+
+    private void ChangeFocusNextFrame(Item_ item) {
+        NodeId id = ItemKit.GetNodeID(item);
+        ItemKit kit = items.get(id);
+        if(kit != null) {
+            // TODO: the following should really be done when handling the
+            // appropriate GLFW event that indicates when the window itself
+            // gains or loses focus.
+            adapter.updateViewFocusState(true);
+            focus = id;
+            isFocusDirty = true;
+        }
+    }
+    public void  ButtonActivated(Button_ button) {
+        if(button == null) {
+            return;
+        }
+    }
+
+    public void  ToggleButtonToggled(ToggleButton_ button) {
+        SetItemToDirty(button);
+    }
+
+    public void  FocusChanged(FocusEvent_ event) {
+        Item_ item = event.GetNewFocus();
+        if(item != null) {
+            ChangeFocusNextFrame(item);
+        }
+    }
+
+    private ItemKit GetKitFromCode(Item_ item) {
         int code = item.GetAccessibilityCode();
-        Role role = null;
         ItemKit itemKit = null;
         if (code == item.Get_Libraries_Interface_Item__NOT_ACCESSIBLE_() || !item.IsShowing()) {
-            return false;
+            return null;
         } else if (code == item.Get_Libraries_Interface_Item__ITEM_()) {
             itemKit = new ItemKit();
         } else if (code == item.Get_Libraries_Interface_Item__CUSTOM_()) {
@@ -148,7 +255,7 @@ public class MacAccessibility {
             ToolbarKit kit = new ToolbarKit();
             itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__TAB_()) {
-            ToggleButtonKit kit = new ToggleButtonKit();
+            TabKit kit = new TabKit();
             itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__TAB_PANE_()) {
             TabPaneKit kit = new TabPaneKit();
@@ -181,7 +288,7 @@ public class MacAccessibility {
             ProgressBarKit kit = new ProgressBarKit();
             itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__TREE_TABLE_CELL_()) {
-            TreeTableKit kit = new TreeTableKit();
+            TreeTableCellKit kit = new TreeTableCellKit();
             itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__GROUP_()) {
             GroupKit kit = new GroupKit();
@@ -199,14 +306,50 @@ public class MacAccessibility {
             LabelKit kit = new LabelKit();
             itemKit = kit;
         }
+        return itemKit;
+    }
+    public boolean NativeAdd(Item_ item)
+    {
+        //first has this item already been added
+        ItemKit existingKit = items.get(ItemKit.GetNodeID(item));
+        if(existingKit != null) {
+            return true;
+        }
+
+        //second, if it's been added, accesskit seems to require parent hierarchies, at least in this design
+        //be ordered parent to child. That might be dangerous quorum side, because that's definitely a contract
+        //someone could violate, but we'll give it a try for the end of the hackathon.
+        //as such, try the parent next
+        Item_ parent = item.GetAccessibleParent();
+        ItemKit parentKit;
+        if (parent != null) {
+            parentKit = items.get(ItemKit.GetNodeID(parent));
+
+            if(parentKit == null) { //the parent isn't actually a node, it needs to be added to the hierarchy
+                boolean addedParent = NativeAdd(parent); //if false, the contract is violated. Throw an exception
+                parentKit = items.get(ItemKit.GetNodeID(parent)); //it was added, so it must be in there.
+                //if the parent kit is still null, just add it to the root
+                if(parentKit == null) {
+                    parentKit = root;
+                }
+            }
+        } else {
+            parentKit = root;
+        }
+
+        int code = item.GetAccessibilityCode();
+        Role role = null;
+        ItemKit itemKit = GetKitFromCode(item);
 
         if(itemKit != null) {
             itemKit.SetItem(item);
-            items.put(item.GetHashCode(), itemKit);
+            NodeId id = itemKit.GetNodeID();
+            items.put(id, itemKit);
+            dirtyNodes.add(id);
+            parentKit.AddChild(itemKit);
+            dirtyNodes.add(parentKit.GetNodeID());
+            return true;
         }
-        //no idea what this does, but something I presume
-        //itemKit is the new thing to be added to the system
-        TreeUpdate tree = new TreeUpdate();
 
         return false;
     }
@@ -214,29 +357,139 @@ public class MacAccessibility {
     public boolean NativeRemove(Item_ item)
     {
         if(item != null) {
-            ItemKit kit = items.get((item.GetHashCode()));
-            if(kit != null) { //somehow remove this from the system
-
+            NodeId id = ItemKit.GetNodeID(item);
+            ItemKit kit = items.remove(id);
+            if(kit != null) {
+                ItemKit parent = kit.GetParent();
+                NodeId parentID = parent.GetNodeID();
+                if (items.containsKey(parentID)) {
+                    dirtyNodes.add(parentID);
+                }
+                dirtyNodes.remove(kit.GetNodeID());
+                kit.RemoveFromParent();
             }
         }
         return false;
     }
 
-    public void  MenuChanged(MenuChangeEvent_ event) {}
+    public void  MenuChanged(MenuChangeEvent_ event) {
+        /*
 
-    public void  TreeChanged(TreeChangeEvent_ event) {}
+        Mac menus are weird. How does this impact Access Kit?
+         */
+    }
 
-    public void  TreeTableChanged(TreeTableChangeEvent_ event) {}
+    public void  TreeChanged(TreeChangeEvent_ event) {
+        /*
+        There's no trees yet, but this is the structure of the tree. I'm guessing we just refresh it.
+        This may be too heavyweight.
+         */
+        SetItemToDirty(event.GetTree());
+    }
 
-    public void  ControlActivated(ControlActivationEvent_ event) {}
+    public void  TreeTableChanged(TreeTableChangeEvent_ event) {
+//        SetItemToDirty(event.GetTreeTable());
+    }
 
-    public void  TextChanged(TextChangeEvent_ event) {}
+    public void  ControlActivated(ControlActivationEvent_ event) {
+        /*
+        I don't know what this one does exactly and the documentation Quorum side is vague. UIA doesn't
+        have an implementation for it, so it may not do anything. I'm leaving it blank for now.
+         */
+    }
+
+    public void  TextChanged(TextChangeEvent_ event) {
+        Control_ control = event.GetControl();
+        SetItemToDirty(control);
+        ItemKit kit = items.get(ItemKit.GetNodeID(control));
+        if(kit == null) {
+            return;
+        }
+        if (kit instanceof TextFieldKit) {
+            TextFieldKit fieldKit = (TextFieldKit)kit;
+            fieldKit.SetTextDirty();
+        } else if(kit instanceof TextboxKit && control instanceof TextBox_) {
+            TextboxKit boxKit = (TextboxKit)kit;
+            int type = event.GetEventType();
+            int index = event.GetIndex();
+            TextBox_ box = (TextBox_) control;
+            int line = box.GetLineIndexOfCharacter(index); //the line number of the index.
+            final int ADDED = event.Get_Libraries_Interface_Events_TextChangeEvent__ADDED_();
+            final int DELETED = event.Get_Libraries_Interface_Events_TextChangeEvent__DELETED_();
+            final int MODIFIED = event.Get_Libraries_Interface_Events_TextChangeEvent__MODIFIED_();
+            if(type == ADDED) { //text added
+                String input = event.GetAddedText();
+                boolean isMultiLine = IsMultiline(input);
+                if(!isMultiLine) { //just update the line
+                    boxKit.MarkLineDirty(line);
+                } else { //invalidate the line and any line after it.
+                    boxKit.MarkLinesDirty(line);
+                }
+            } else  if(type == DELETED) {
+                String input = event.GetDeletedText();
+                boolean isMultiLine = IsMultiline(input);
+                if(!isMultiLine) { //just update the line
+                    boxKit.MarkLineDirty(line);
+                } else { //invalidate the line and any line after it.
+                    boxKit.MarkLinesDirty(line);
+                }
+            /*
+            If the text is modified, it means that the content at the cursor was deleted and this is
+            get deleted text. The content it was replaced with it get added text. If either one is multi-line
+            we will need to refresh the lines after it.
+             */
+            } else if (type == MODIFIED) {
+                String textDeletedAtCaret = event.GetDeletedText();
+                String textReplacedAtCaret = event.GetAddedText();
+                boolean isMultiLine = IsMultiline(textDeletedAtCaret) || IsMultiline(textReplacedAtCaret);
+                if(!isMultiLine) { //just update the line
+                    boxKit.MarkLineDirty(line);
+                } else { //invalidate the line and any line after it.
+                    boxKit.MarkLinesDirty(line);
+                }
+            }
+
+        }
+    }
+
+    public boolean IsMultiline(String input) {
+        if(input == null) {
+            return false;
+        } else {
+            return input.contains("\n") || input.contains("\r\n") || input.contains("\r");
+        }
+    }
 
     public void  WindowFocusChanged(WindowFocusEvent_ event) {}
 
-    public void  Notify(Item_ item, String value) {}
+    private void NextDummy() {
+        currentDummy++;
+        if(currentDummy >= dummies.size() || currentDummy < 0) {
+            currentDummy = 0;
+        }
+    }
+    public void  Notify(Item_ item, String value) {
+        NextDummy();
+        if(dummies == null || dummies.isEmpty() || currentDummy >= dummies.size()) {
+            return;
+        }
+        DummyKit kit = dummies.get(currentDummy);
+        if(kit == null) {
+            return;
+        }
+        kit.SetName(value);
+        kit.SetItem(item);
 
-    public void  Notify(Item_ item, String value, int notificationType) {}
+        focus = kit.GetNodeID();
+        dirtyNodes.add(focus);
+        isFocusDirty = true;
+    }
 
-    public void  Shutdown() {}
+    public void  Notify(Item_ item, String value, int notificationType) {
+        Notify(item, value);
+    }
+
+    public void  Shutdown() {
+        adapter.close();
+    }
 }

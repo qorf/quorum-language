@@ -246,6 +246,10 @@ class PieChart is Chart
         ShowAnnotations(show)
     end
 
+    action IsShowingValueAnnotations returns boolean
+        return showValueAnnotation
+    end
+
     action ShowPercentAnnotations(boolean show)
         if show
             showValueAnnotation = false
@@ -254,9 +258,17 @@ class PieChart is Chart
         ShowAnnotations(show)
     end
 
+    action IsShowingPercentAnnotations returns boolean
+        return showPercentAnnotation
+    end
+
     action ShowNameAnnotations(boolean show)
         showNameAnnotation = show
         ShowAnnotations(show)
+    end
+
+    action IsShowingNameAnnotations returns boolean
+        return showNameAnnotation
     end
 
     action SetAnnotationFontSize(integer fontSize)

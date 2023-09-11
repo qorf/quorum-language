@@ -2413,11 +2413,21 @@ controlShiftHomeSet:AddModifier(controlHomeSet:CONTROL)
         
         gameInput:AddInputTable(table)
 
+        
+InputSet blockControlZ
+            blockControlZ:SetKeyboardInput(keys:Z)
+            blockControlZ:AddModifier(blockControlZ:CONTROL)
 
+InputSet blockCommandZ
+            blockCommandZ:SetKeyboardInput(keys:Z)
+            blockCommandZ:AddModifier(blockCommandZ:META)
+        
         InputTable editFieldTable = gameInput:GetInputTable("TextField"):Copy()
         editFieldTable:SetIdentifier("EditField")
         editFieldTable:RemoveKey(downSet)
         editFieldTable:RemoveKey(upSet)
+        editFieldTable:RemoveKey(blockControlZ)
+editFieldTable:RemoveKey(blockCommandZ)
         editFieldTable:Add(downSet, downBehavior)
         editFieldTable:Add(upSet, upBehavior)
         gameInput:AddInputTable(editFieldTable)
@@ -2430,6 +2440,8 @@ controlShiftHomeSet:AddModifier(controlHomeSet:CONTROL)
         editBoxTable:RemoveKey(enterSet)
         editBoxTable:RemoveKey(numpadEnterSet)
         editBoxTable:RemoveKey(mouseScrollSet)
+editBoxTable:RemoveKey(blockControlZ)
+editBoxTable:RemoveKey(blockCommandZ)
         editBoxTable:Add(downSet, downBehavior)
         editBoxTable:Add(upSet, upBehavior)
         gameInput:AddInputTable(editBoxTable)

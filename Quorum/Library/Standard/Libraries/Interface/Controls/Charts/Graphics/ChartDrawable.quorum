@@ -139,7 +139,7 @@ class ChartDrawable is ChartItem, Drawable
     end
 
     // Try to get the chart this is attached to via the parent hierarchy.
-    private action GetParentChart returns Chart
+    action GetParentChart returns Chart
         Item2D parentItem = me
         repeat until parentItem is Chart or parentItem = undefined
             parentItem = parentItem:GetParent()

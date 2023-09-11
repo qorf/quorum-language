@@ -666,6 +666,16 @@ class BoxPlot is Chart
                 minOutlierValue = group:GetMinOutlierValue()
             end
         end
+
+        check
+            // Attempt to simplify the group's name if it's viable as an integer.
+            number value = cast(number, group:GetName())
+            text name = "" + cast(integer, value)
+            group:SetName(name)        
+        detect e
+            // If we can't simplify the name, that's totally valid. Ignore it and more on.
+        end
+
         plotGroups:Add(group)
         if group:GetSize() > 1
             HasGroups(true)
