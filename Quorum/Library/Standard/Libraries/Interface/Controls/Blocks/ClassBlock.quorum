@@ -13,6 +13,7 @@ class ClassBlock is MultipleLineBlock
 
     BlockLabel classLabel = undefined
     EditField nameField = undefined
+    BlockLabel sharedLabel = undefined
     NoClassDeclarationContext noClass = undefined
     FullClassDeclarationContext fullClass = undefined
 
@@ -49,7 +50,17 @@ class ClassBlock is MultipleLineBlock
 
         CodeEditor editor = GetEditor()
         number spacing = editor:GetDefaultGlyphWidth()
-
+if fullClass not= undefined
+            if fullClass:staticClass
+                BlockLabel static
+                me:sharedLabel = static
+sharedLabel:SetFont(GetEditor():GetFont())
+        sharedLabel:SetFontSize(GetEditor():GetFontSize())
+        sharedLabel:SetText("shared")
+        sharedLabel:SetRightPadding(spacing)
+        part:Add(sharedLabel)
+            end
+        end
         BlockLabel classLabel
         me:classLabel = classLabel
         classLabel:SetFont(GetEditor():GetFont())

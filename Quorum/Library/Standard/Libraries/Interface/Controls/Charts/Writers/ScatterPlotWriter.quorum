@@ -140,6 +140,10 @@ class ScatterPlotWriter is ChartWriter
         end
         chartContent:Add(chartContentBoundingBox)
 
+        if chart:IsShowingLinearRegression()
+            AddRegressionLines(canvas, chart)
+        end
+
         if not chart:IsSeparated()
             i = 0
             repeat while i < chart:GetSeriesList():GetSize()
@@ -166,12 +170,18 @@ class ScatterPlotWriter is ChartWriter
                     if HasAccessibility()
                         RegressionLine line = currentSeries:GetRegressionLine()
                         if line not= undefined and chart:IsShowingLinearRegression()
+                            text x1 = NumberToText(line:GetX1())
+                            text y1 = NumberToText(line:GetY1())
+                            text x2 = NumberToText(line:GetX2())
+                            text y2 = NumberToText(line:GetY2())
+                            text pointsText = "(" + x1 + " " + y1 + ") to (" + x2 + " " + y2 + ")"
+
                             if line:GetSlope() > 0
-                                seriesSVG:SetAriaLabel(currentSeries:GetName() + currentSeries:GetDescription() + line:GetDescription() + ", Has Regression Line, Slope Rising" + ", Regression Equation: " + line:GetEquationLabel():GetText())
+                                seriesSVG:SetAriaLabel(currentSeries:GetName() + currentSeries:GetDescription() + line:GetDescription() + ", Has Regression Line, Slope Rising from " + pointsText + ", Regression Equation: " + line:GetEquationLabel():GetText())
                             elseif line:GetSlope() < 0
-                                seriesSVG:SetAriaLabel(currentSeries:GetName() + currentSeries:GetDescription() + line:GetDescription() + ", Has Regression Line, Slope Falling" + ", Regression Equation: " + line:GetEquationLabel():GetText())
+                                seriesSVG:SetAriaLabel(currentSeries:GetName() + currentSeries:GetDescription() + line:GetDescription() + ", Has Regression Line, Slope Falling from " + pointsText + ", Regression Equation: " + line:GetEquationLabel():GetText())
                             else
-                                seriesSVG:SetAriaLabel(currentSeries:GetName() + currentSeries:GetDescription() + line:GetDescription() + ", Has Regression Line, Slope Flat" + ", Regression Equation: " + line:GetEquationLabel():GetText())
+                                seriesSVG:SetAriaLabel(currentSeries:GetName() + currentSeries:GetDescription() + line:GetDescription() + ", Has Regression Line, Slope Flat from " + pointsText + ", Regression Equation: " + line:GetEquationLabel():GetText())
                             end
                             seriesFocus = seriesFocus + "gainFocus('" + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_regression" + "'); "
                             seriesBlur = seriesBlur + "loseFocus('" + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_regression" + "'); "
@@ -218,6 +228,9 @@ class ScatterPlotWriter is ChartWriter
                             point:SetStroke(cast(Color, currentPoint:GetBorderColor()))
                             point:SetStrokeOpacity(cast(Color, currentPoint:GetBorderColor()))
                             point:SetStrokeWidth(currentPoint:GetBorderThickness())
+
+                            point:SetTitle(currentSeries:GetName() + ": " + currentPoint:GetName())
+
                             if HasAccessibility()
                                 point:SetID(pointSVG:GetID() + "_point")
                                 point:SetStyleClass("quorum-chart-circle")
@@ -397,6 +410,7 @@ class ScatterPlotWriter is ChartWriter
                         point:SetStroke(cast(Color, currentPoint:GetBorderColor()))
                         point:SetStrokeOpacity(cast(Color, currentPoint:GetBorderColor()))
                         point:SetStrokeWidth(currentPoint:GetBorderThickness())
+                        point:SetTitle(currentPoint:GetSeries():GetName() + ": " + currentPoint:GetName())
                         if HasAccessibility()
                             point:SetID(pointSVG:GetID() + "_point")
                             point:SetStyleClass("quorum-chart-circle")
@@ -704,5 +718,14 @@ class ScatterPlotWriter is ChartWriter
 
         script:AddText(scriptText)
         canvas:Add(script)
+    end
+
+    private action NumberToText(number value) returns text
+        if value = cast(integer, value)
+            return "" + cast(integer, value)
+        else
+            Math math
+            return "" + math:Round(value, 2)
+        end
     end
 end

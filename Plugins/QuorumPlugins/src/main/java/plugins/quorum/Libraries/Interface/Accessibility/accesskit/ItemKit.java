@@ -1,8 +1,11 @@
 package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 
-import dev.accesskit.Role;
+import dev.accesskit.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import plugins.quorum.Libraries.Game.GameStateManager;
 import quorum.Libraries.Game.DesktopDisplay_;
+import quorum.Libraries.Game.Layer3D_;
 import quorum.Libraries.Game.Shapes.Rectangle_;
 import quorum.Libraries.Interface.Controls.Button_;
 import quorum.Libraries.Interface.Item2D_;
@@ -13,6 +16,44 @@ import quorum.Libraries.Language.Object_;
 public class ItemKit {
     private Role role = null;
     private Item_ item = null;
+    private ItemKit parent = null;
+    private int indexInParent = -1;
+    private ArrayList<ItemKit> children = new ArrayList<ItemKit>();
+
+    public ItemKit() {
+        SetRole(Role.UNKNOWN);
+    }
+    /*
+        Needs to be replaced for general items.
+     */
+    public Node Build() {
+        NodeBuilder builder = new NodeBuilder(GetRole());
+        Item_ item = GetItem();
+        if (item != null) {
+            Rect rect = GetBoundingRectangle();
+            builder.setBounds(rect);
+            builder.setName(item.GetName() + ", " + item.GetDescription());
+        }
+        BuildChildren(builder);
+        return builder.build();
+    }
+
+    protected void BuildChildren(NodeBuilder builder) {
+        for (NodeId child : GetInternalChildren()) {
+            builder.addChild(child);
+        }
+        for (ItemKit child : children) {
+            builder.addChild(child.GetNodeID());
+        }
+    }
+
+    public NodeId GetNodeID() {
+        return GetNodeID(item);
+    }
+
+    public static NodeId GetNodeID(Item_ item) {
+        return new NodeId(item.GetHashCode());
+    }
 
     public Item_ GetItem() {
         return item;
@@ -30,19 +71,48 @@ public class ItemKit {
         this.role = role;
     }
 
-    public double[] GetBoundingRectangle()
+    public final ItemKit GetParent() {
+        return parent;
+    }
+
+    public final int GetIndexInParent() {
+        return indexInParent;
+    }
+
+    public final Iterable<ItemKit> GetChildren() {
+        return children;
+    }
+
+    public final void AddChild(ItemKit child) {
+        int index = children.size();
+        children.add(child);
+        child.parent = this;
+        child.indexInParent = index;
+    }
+
+    public void RemoveFromParent() {
+        if (parent.children.get(indexInParent) != this) {
+            throw new RuntimeException("corrupt parent/child structure");
+        }
+        parent.children.remove(indexInParent);
+        for (int i = indexInParent; i < parent.children.size(); i++) {
+            parent.children.get(i).indexInParent = i;
+        }
+        parent = null;
+    }
+
+    public Rect GetBoundingRectangle()
     {
         // The order of values in the bounding box is left, top, width, height.
+        Rect rect;
         double[] bounds = new double[4];
 
         DesktopDisplay_ display = (DesktopDisplay_) GameStateManager.display;
 
         if (display == null)
         {
-            for (int i = 0; i < bounds.length; i++)
-                bounds[i] = 0;
-
-            return bounds;
+            rect = new Rect(0,0,0,0);
+            return rect;
         }
 
         double windowX = display.GetDisplayX();
@@ -60,16 +130,21 @@ public class ItemKit {
             double itemX = ((Item2D_)item).GetScreenX();
             double itemY = (((Item2D_) item).GetScreenY());
 
-            if (itemX == Double.NaN)
+            if (itemX == Double.NaN) {
                 itemX = 0;
+            }
 
-            if (itemY == Double.NaN)
+            if (itemY == Double.NaN) {
                 itemY = 0;
+            }
 
-            bounds[0] = windowX + itemX;
-            bounds[1] = windowY + (windowHeight - (itemY + ((Item2D_) item).GetHeight()));
-            bounds[2] = ((Item2D_) item).GetWidth();
-            bounds[3] = ((Item2D_) item).GetHeight();
+            //bounding boxes require a slightly different approach than UIA.
+            rect = new Rect(
+                    itemX,
+                    windowHeight - itemY - ((Item2D_) item).GetHeight(),
+                    ((Item2D_) item).GetWidth() + itemX,
+                    windowHeight - itemY
+            );
         }
         else if (item instanceof Item3D_)
         {
@@ -77,20 +152,38 @@ public class ItemKit {
             // center of a 3D object in the screen. To calculate this correctly,
             // check how we calculate mouse input detection for 3D objects.
 
-            Rectangle_ rectangle = ((Item3D_) item).GetScreenBounds();
+            Item3D_ item3D = ((Item3D_) item);
+            Rectangle_ rectangle = item3D.GetScreenBounds();
 
-            bounds[0] = windowX + rectangle.GetX();
-            bounds[1] = windowY + (windowHeight - (rectangle.GetY() + rectangle.GetHeight()));
-            bounds[2] = rectangle.GetWidth();
-            bounds[3] = rectangle.GetHeight();
+            Layer3D_ layer3D = item3D.GetLayer();
+            int viewX = layer3D.GetViewportX();
+            int viewY = layer3D.GetViewportY();
+
+            double x1 = viewX + rectangle.GetX();
+            double x2 = viewX + rectangle.GetWidth() + rectangle.GetX();
+            double y1 = windowHeight - rectangle.GetY() - viewY - rectangle.GetHeight();
+            double y2 = windowHeight - rectangle.GetY() - viewY;
+            rect = new Rect( x1, y1, x2, y2);
         }
         else
         {
-            // If we don't know what it is, we set the values to 0 to provide a safe default.
-            for (int i = 0; i < bounds.length; i++)
-                bounds[i] = 0;
+            rect = new Rect(0,0,0,0);
         }
 
-        return bounds;
+        return rect;
+    }
+
+    public Iterable<NodeId> GetInternalChildren() {
+        return Collections.emptySet();
+    }
+
+    public Iterable<NodeId> GetDirtyInternalChildren() {
+        return Collections.emptySet();
+    }
+
+    public void ClearDirtyInternalChildren() {}
+
+    public Node BuildInternalChild(NodeId id) {
+        throw new IllegalStateException("not implemented in this class");
     }
 }

@@ -35,6 +35,7 @@ class CompareVariancesSummary
         if result not= undefined
             text summary = ""
             text lf = summary:GetLineFeed()
+            text tab = "    "
             integer digits = format:GetSignificantDigits()
 
             text factors = result:GetFactorList()
@@ -49,26 +50,30 @@ class CompareVariancesSummary
             if factors not= "None"
                 summary = summary + lf + "Factor: " + columns + " by " + factors
             end
-    
+
             if result:IsRepeated()
-                text source = result:GetSources():Get(0)
-                text statName = "W"
-                text approxStat = result:GetTestStatisticsTable():GetValue(source+statName):GetKeyIterator():Next()
-                number statW = result:GetTestStatisticsTable():GetValue(source):GetValue(statName)
-                number stat = result:GetTestStatisticsTable():GetValue(source+statName):GetValue(approxStat)
-                number df = result:GetDegreesOfFreedomTable():GetValue(source):GetValue(statName)
-                number pval = result:GetProbabilityValuesTable():GetValue(source):GetValue(statName)
-                number gg = result:GetInformation():GetValue(source):GetValue("gg")
-                number hf = result:GetInformation():GetValue(source):GetValue("hf")
-                number lb = result:GetInformation():GetValue(source):GetValue("lb")
-    
-                summary = summary + lf + "Statistic (W): " +  math:Round(statW, digits)
-                summary = summary + lf + "Statistic (Approximate χ2): " + math:Round(stat, digits)
-                summary = summary + lf + "Degrees Of Freedom: " + math:Round(df, digits)
-                summary = summary + lf + "Probability: " + math:Round(pval, digits)
-                summary = summary + lf + "Greenhouse-Geisser Correction (ε): " + math:Round(gg, digits)
-                summary = summary + lf + "Huynh-Feldt Correction (ε): " + math:Round(hf, digits)
-                summary = summary + lf + "Lower-Bound Correction (ε): " + math:Round(lb, digits)
+                Array<text> sources = result:GetSources()
+                i = 0
+                repeat while i < sources:GetSize()
+                    text source = result:GetSources():Get(i)
+                    summary = summary + lf + "Source: " + source
+                    number w = result:GetInformation():GetValue(source):GetValue("W")
+                    number x2 = result:GetInformation():GetValue(source):GetValue("X2")
+                    number df = result:GetInformation():GetValue(source):GetValue("df")
+                    number p = result:GetInformation():GetValue(source):GetValue("p")
+                    number gg = result:GetInformation():GetValue(source):GetValue("gg")
+                    number hf = result:GetInformation():GetValue(source):GetValue("hf")
+                    number lb = result:GetInformation():GetValue(source):GetValue("lb")
+        
+                    summary = summary + lf + tab + "Statistic (W): " +  math:Round(w, digits)
+                    summary = summary + lf + tab + "Statistic (Approximate χ2): " + math:Round(x2, digits)
+                    summary = summary + lf + tab + "Degrees Of Freedom: " + math:Round(df, digits)
+                    summary = summary + lf + tab + "Probability: " + math:Round(p, digits)
+                    summary = summary + lf + tab + "Greenhouse-Geisser Correction (ε): " + math:Round(gg, digits)
+                    summary = summary + lf + tab + "Huynh-Feldt Correction (ε): " + math:Round(hf, digits)
+                    summary = summary + lf + tab + "Lower-Bound Correction (ε): " + math:Round(lb, digits)
+                    i = i + 1
+                end
             else
                 if multivariate
                     text source = result:GetSources():Get(0)
@@ -114,15 +119,15 @@ class CompareVariancesSummary
             text columns = result:GetColumnList()
             text dependence = ""
             if result:IsRepeated()
-                dependence = "dependent"
+                dependence = " dependent measurements. "
             else
-                dependence = "independent"
+                dependence = " independent samples. "
             end
     
             if factors = "None"
-                summary = summary + "A " + result:GetFormalTestName() + " was conducted across " + numberOfSamples + " " + dependence + " samples. "
+                summary = summary + "A " + result:GetFormalTestName() + " was conducted across " + numberOfSamples + dependence
             else
-                summary = summary + "A " + result:GetFormalTestName() + " was conducted on " + factors + " across " + numberOfSamples + " " + dependence + " samples. "
+                summary = summary + "A " + result:GetFormalTestName() + " was conducted on " + factors + " across " + numberOfSamples + dependence
             end
     
             if multivariate
@@ -151,7 +156,11 @@ class CompareVariancesSummary
                 end
             end
    
-            summary = summary + ", " + GetFormalNumericalResult() + "."
+            if result:GetSources():GetSize() > 1
+                summary = summary + ": " + lf + GetFormalNumericalResult()
+            else
+                summary = summary + ", " + GetFormalNumericalResult() + "."
+            end
 
             return summary
         end
@@ -161,21 +170,27 @@ class CompareVariancesSummary
     action GetFormalNumericalResult returns text
         if result not= undefined
             text summary = ""
+            text lf = summary:GetLineFeed()
             if result:IsRepeated()
-                text source = result:GetSources():Get(0)
-                text statName = "W"
-                text approxStat = result:GetTestStatisticsTable():GetValue(source+statName):GetKeyIterator():Next()
-                number stat = result:GetTestStatisticsTable():GetValue(source+statName):GetValue(approxStat)
-                number df = result:GetDegreesOfFreedomTable():GetValue(source):GetValue(statName)
-                number pval = result:GetProbabilityValuesTable():GetValue(source):GetValue(statName)
-
-                summary = summary + "Mauchly's W = " + format:FormatTestStatistic(result:GetTestStatisticsTable():GetValue(source):GetValue("W"))
-                summary = summary + ", "+approxStat+"("+format:FormatDegreesOfFreedom(df)+") = "+format:FormatTestStatistic(stat)
-                if pval < format:PRECISION_LIMIT
-                    summary = summary + ", p < " + format:FormatProbabilityValue(pval)
-                else
-                    summary = summary + ", p = " + format:FormatProbabilityValue(pval)
+                Array<text> sources = result:GetSources()
+                text list = ""
+                i = 0
+                repeat while i < sources:GetSize()
+                    text source = sources:Get(i)
+                    text equation = GetFormalNumericalResultSeveral(source)
+                    if equation not= ""
+                        if list not= ""
+                            list = list + lf
+                        end
+                        if sources:GetSize() = 1
+                            list = equation
+                        else
+                            list = list + source + ": "+ equation
+                        end
+                    end
+                    i = i + 1
                 end
+                return list
             else
                 if multivariate
                     if result:UseFApproximation()
@@ -227,6 +242,26 @@ class CompareVariancesSummary
             return summary
         end
         alert("There is no CompareVariancesResult defined to summarize. Try using SetResult()")
+    end
+
+    private action GetFormalNumericalResultSeveral(text source) returns text
+        text summary = ""
+        HashTable<text, number> info = result:GetInformation():GetValue(source)
+        if result:IsRepeated() and info:HasKey("p")
+            number w = info:GetValue("W")
+            number x2 = info:GetValue("X2")
+            number df = info:GetValue("df")
+            number pval = info:GetValue("p")
+    
+            summary = summary + "Mauchly's W = " + format:FormatTestStatistic(w)
+            summary = summary + ", χ2("+format:FormatDegreesOfFreedom(df)+") = "+format:FormatTestStatistic(x2)
+            if pval < format:PRECISION_LIMIT
+                summary = summary + ", p < " + format:FormatProbabilityValue(pval)
+            else
+                summary = summary + ", p = " + format:FormatProbabilityValue(pval)
+            end
+        end
+        return summary
     end
 
     action GetSummaryDataFrame returns DataFrame
@@ -350,48 +385,46 @@ class CompareVariancesSummary
         number nan = 0
         integer digits = format:GetSignificantDigits()
 
-        text source = result:GetSources():Get(0)
-        text statName = "W"
-        text approxStat = result:GetTestStatisticsTable():GetValue(source+statName):GetKeyIterator():Next()
-        number statW = result:GetTestStatisticsTable():GetValue(source):GetValue(statName)
-        number stat = result:GetTestStatisticsTable():GetValue(source+statName):GetValue(approxStat)
-        number dW = result:GetDegreesOfFreedomTable():GetValue(source):GetValue(statName)
-        number pval = result:GetProbabilityValuesTable():GetValue(source):GetValue(statName)
-        number ggCorrection = result:GetInformation():GetValue(source):GetValue("gg")
-        number hfCorrection = result:GetInformation():GetValue(source):GetValue("hf")
-        number lbCorrection = result:GetInformation():GetValue(source):GetValue("lb")
-
         TextColumn name
-        name:SetHeader("Mauchly Test Of Sphericity")
-        name:Add(source)
-
+        name:SetHeader(result:GetFormalTestName())
         NumberColumn w
         w:SetHeader("Statistic (W)")
-        w:Add(math:Round(statW, digits))
-
         NumberColumn df
         df:SetHeader("Degrees Of Freedom")
-        df:Add(math:Round(dW, digits))
-
         NumberColumn x2
-        x2:SetHeader("Approximate χ2")
-        x2:Add(math:Round(stat, digits))
-
+        x2:SetHeader("Approximate (χ2)")
         NumberColumn p
         p:SetHeader("Probability (P)")
-        p:Add(math:Round(pval, digits))
-
         NumberColumn gg
         gg:SetHeader("Greenhouse-Geisser (ε)")
-        gg:Add(math:Round(ggCorrection, digits))
-
         NumberColumn hf
         hf:SetHeader("Huynh-Feldt (ε)")
-        hf:Add(math:Round(hfCorrection, digits))
-
         NumberColumn lb
         lb:SetHeader("Lower-Bound (ε)")
-        lb:Add(math:Round(lbCorrection, digits))
+
+        Array<text> sources = result:GetSources()
+        i = 0
+        repeat while i < sources:GetSize()
+            text source = result:GetSources():Get(i)
+
+            number wValue = result:GetInformation():GetValue(source):GetValue("W")
+            number x2Value = result:GetInformation():GetValue(source):GetValue("X2")
+            number dfValue = result:GetInformation():GetValue(source):GetValue("df")
+            number pValue = result:GetInformation():GetValue(source):GetValue("p")
+            number ggValue = result:GetInformation():GetValue(source):GetValue("gg")
+            number hfValue = result:GetInformation():GetValue(source):GetValue("hf")
+            number lbValue = result:GetInformation():GetValue(source):GetValue("lb")
+
+            name:Add(source)
+            w:Add(math:Round(wValue, digits))
+            x2:Add(math:Round(x2Value, digits))
+            df:Add(math:Round(dfValue, digits))
+            p:Add(math:Round(pValue, digits))
+            gg:Add(math:Round(ggValue, digits))
+            hf:Add(math:Round(hfValue, digits))
+            lb:Add(math:Round(lbValue, digits))
+            i = i + 1
+        end
 
         DataFrame table
         table:AddColumn(name)

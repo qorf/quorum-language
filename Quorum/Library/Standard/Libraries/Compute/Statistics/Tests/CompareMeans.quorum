@@ -147,7 +147,7 @@ class CompareMeans is StatisticalTest
     private integer numberOfFactors = 0             // Number of factors selected
     private integer numberOfColumns = 0             // Number of columns selected
     private integer totalObservations = 0           // Total observations (total sample size)
-    private CompareMeansDesign design               // Object to hold and process various selections and data formats
+    private ExperimentalDesign design               // Object to hold and process various selections and data formats
 
     // USER CONTROLS
     boolean ranked = false                          // The sample observations are to be ranked
@@ -168,6 +168,7 @@ class CompareMeans is StatisticalTest
     number userMedian = 0
 
     private DataFrame designFrame = undefined
+    private Matrix designMatrix = undefined
 
     // The results of this test
     Array <CompareMeansResult> results
@@ -183,7 +184,9 @@ class CompareMeans is StatisticalTest
         columnHeaders:Empty()
 
         design:RepeatedMeasures(repeated)
-        design:Transform(frame)
+        if design:GetDesignFrame() = undefined
+            design:Transform(frame)
+        end 
         designFrame = design:GetDesignFrame()
         repeated = design:RepeatedMeasures() // This will override the boolean if a within factor is or isn't specified.
 
@@ -299,6 +302,8 @@ class CompareMeans is StatisticalTest
         else
             designFrame = copy
         end
+
+        needToProcessData = false
     end
 
     private action RunTest(DataFrame frame)
@@ -340,10 +345,10 @@ class CompareMeans is StatisticalTest
                 if factorial
                     if repeated
                         // Extension of Freidman Test
-                        alert("A nonparametric factorial univariate repeated measures CompareMeans test is not supported yet.")
+                        alert("A nonparametric factorial repeated measures CompareMeans test is not supported yet.")
                     else
                         // Multi-Way (Factorial) Scheirer–Ray–Hare Test
-                        alert("A nonparametric factorial multivariate CompareMeans test is not supported yet. Formal Test Name: Scheirer–Ray–Hare Test")
+                        alert("A nonparametric factorial CompareMeans test is not supported yet. Formal Test Name: Scheirer–Ray–Hare Test")
                     end
                 else
                     if repeated
@@ -805,47 +810,65 @@ class CompareMeans is StatisticalTest
                 // run between-subjects and within-subjects factors (without id)
                 // update error terms ss and df by subtracting factors and interactions 
                 // compute statistics
+                DataFrame newFrame = designFrame:Copy()
     
                 // Within Subjects ANOVA
-                CompareMeans within
-                DataFrame newFrame = designFrame:Copy()
+                ExperimentalDesign wDesign
                 if design:GetSubjectIdentifier() not= "" // Add Subject Factor
-                    within:AddSubjectIdentifier(design:GetSubjectIdentifier())
+                    wDesign:AddSubjectIdentifier(design:GetSubjectIdentifier())
                 end
                 i = 0 // Add Within Factors
                 repeat while i < design:GetWithinSubjectsFactors():GetSize()
-                    within:AddWithinSubjectsFactor(design:GetWithinSubjectsFactors():Get(i))
+                    wDesign:AddWithinSubjectsFactor(design:GetWithinSubjectsFactors():Get(i))
                     i = i + 1
                 end
                 i = 0 // Add Dependent Variables
                 repeat while i < design:GetDependentVariables():GetSize()
-                    within:AddDependentVariable(design:GetDependentVariables():Get(i))
+                    wDesign:AddDependentVariable(design:GetDependentVariables():Get(i))
                     i = i + 1
                 end
+                CompareMeans within
+                within:SetExperimentalDesign(wDesign)
                 within:Calculate(newFrame)
                 CompareMeansResult withinResult = within:GetResult()
-    
-    
+
+                // Mauchly's Test
+                CompareVariancesResult vResult
+                if testVarianceAssumption
+                    // Mauchly's test of sphericity
+                    ExperimentalDesign mDesign = wDesign:Copy()
+                    i = 0 // Add Between Factors For Correct Design Matrix Creation
+                    repeat while i < design:GetBetweenSubjectsFactors():GetSize()
+                        mDesign:AddBetweenSubjectsFactor(design:GetBetweenSubjectsFactors():Get(i))
+                        i = i + 1
+                    end
+                    CompareVariances mauchly
+                    mauchly:SetExperimentalDesign(mDesign)
+                    mauchly:Calculate(newFrame)
+                    vResult = mauchly:GetResult()
+                end
+
                 // Between Subjects ANOVA
-                CompareMeans between
+                ExperimentalDesign bDesign
                 i = 0 // Add Between Factors
                 repeat while i < design:GetBetweenSubjectsFactors():GetSize()
-                    between:AddBetweenSubjectsFactor(design:GetBetweenSubjectsFactors():Get(i))
+                    bDesign:AddBetweenSubjectsFactor(design:GetBetweenSubjectsFactors():Get(i))
                     i = i + 1
                 end
-                i = 0 // Add Within Factors
+                i = 0 // Add Within Factors as Between Factors
                 repeat while i < design:GetWithinSubjectsFactors():GetSize()
-                    between:AddBetweenSubjectsFactor(design:GetWithinSubjectsFactors():Get(i))
+                    bDesign:AddBetweenSubjectsFactor(design:GetWithinSubjectsFactors():Get(i))
                     i = i + 1
                 end
                 i = 0 // Add Dependent Variables
                 repeat while i < design:GetDependentVariables():GetSize()
-                    between:AddDependentVariable(design:GetDependentVariables():Get(i))
+                    bDesign:AddDependentVariable(design:GetDependentVariables():Get(i))
                     i = i + 1
                 end
+                CompareMeans between
+                between:SetExperimentalDesign(bDesign)
                 between:Calculate(newFrame)
                 CompareMeansResult betweenResult = between:GetResult()
-    
     
                 HashTable<text, number> ssFactors   // univariate
                 HashTable<text, Matrix> sscpFactors // multivariate
@@ -976,6 +999,27 @@ class CompareMeans is StatisticalTest
                         result:SetInformation(source, "partial-omega-squared", partial_omega_squared)
                         result:SetInformation(source, "generalized-omega-squared", generalized_omega_squared)
 
+                        // Add sphericity correction info
+                        if vResult:GetInformation():HasKey(source) and vResult:GetInformation():GetValue(source):HasKey("p")
+                            number pval = vResult:GetInformation():GetValue(source):GetValue("p")
+                            result:SetInformation(source,"sphericity p", pval)
+        
+                            number dfn = result:GetInformation():GetValue(source):GetValue("df")
+                            number dfd = result:GetInformation():GetValue(source):GetValue("error df")
+        
+                            number ggcorrection = vResult:GetInformation():GetValue(source):GetValue("gg")
+                            fDistribution:Setup(ggcorrection*dfn, ggcorrection*dfd)
+                            number ggp = 1.0 - fDistribution:CumulativeDistribution(result:GetInformation():GetValue(source):GetValue("F"))
+                            result:SetInformation(source,"gg", ggcorrection)
+                            result:SetInformation(source,"gg p", ggp)
+        
+                            number hfcorrection = vResult:GetInformation():GetValue(source):GetValue("hf")
+                            fDistribution:Setup(hfcorrection*dfn, hfcorrection*dfd)
+                            number hfp = 1.0 - fDistribution:CumulativeDistribution(result:GetInformation():GetValue(source):GetValue("F"))
+                            result:SetInformation(source,"hf", hfcorrection)
+                            result:SetInformation(source,"hf p", hfp)
+                        end
+
                         if factorial
                             result:SetEffectSize(source, "partial-eta-squared", partial_eta_squared)
                         else
@@ -1030,6 +1074,28 @@ class CompareMeans is StatisticalTest
                             result:SetInformation(source, "omega-squared", omega_squared)
                             result:SetInformation(source, "partial-omega-squared", partial_omega_squared)
                             result:SetInformation(source, "generalized-omega-squared", generalized_omega_squared)
+
+                            // Add sphericity correction info where appropriate
+                            text errorSource = factorToError:GetValue(source)
+                            if vResult:GetInformation():HasKey(errorSource) and vResult:GetInformation():GetValue(errorSource):HasKey("p")
+                                number pval = vResult:GetInformation():GetValue(errorSource):GetValue("p")
+                                result:SetInformation(source,"sphericity p", pval)
+            
+                                number dfn = result:GetInformation():GetValue(source):GetValue("df")
+                                number dfd = result:GetInformation():GetValue(source):GetValue("error df")
+            
+                                number ggcorrection = vResult:GetInformation():GetValue(errorSource):GetValue("gg")
+                                fDistribution:Setup(ggcorrection*dfn, ggcorrection*dfd)
+                                number ggp = 1.0 - fDistribution:CumulativeDistribution(result:GetInformation():GetValue(source):GetValue("F"))
+                                result:SetInformation(source,"gg", ggcorrection)
+                                result:SetInformation(source,"gg p", ggp)
+            
+                                number hfcorrection = vResult:GetInformation():GetValue(errorSource):GetValue("hf")
+                                fDistribution:Setup(hfcorrection*dfn, hfcorrection*dfd)
+                                number hfp = 1.0 - fDistribution:CumulativeDistribution(result:GetInformation():GetValue(source):GetValue("F"))
+                                result:SetInformation(source,"hf", hfcorrection)
+                                result:SetInformation(source,"hf p", hfp)
+                            end
     
                             if factorial
                                 result:SetEffectSize(source, "partial-eta-squared", partial_eta_squared)
@@ -1041,7 +1107,7 @@ class CompareMeans is StatisticalTest
                     i = i + 1
                 end
                 result:SetFormalTestName("Mixed-Design Analysis of Variance")
-                result:Repeated(repeated)
+                result:Repeated(true)
                 result:EqualVariances(true)
                 result:NormalDistribution(true)
                 result:SetSignificanceLevel(GetSignificanceLevel())
@@ -1049,6 +1115,7 @@ class CompareMeans is StatisticalTest
                 result:SetFactors(factorHeaders)
                 result:SetColumns(columnHeaders)
                 result:SetSources(sources)
+                result:SetVarianceResult(vResult)
                 results:Add(result)
             end
         else
@@ -1215,7 +1282,7 @@ class CompareMeans is StatisticalTest
             end
             results:Add(result)
         else
-            Matrix designMatrix = GetInitialMatrix()
+            designMatrix = GetInitialMatrix()
             Matrix responseMatrix
     
             if numberOfFactors > 0
@@ -1701,33 +1768,62 @@ class CompareMeans is StatisticalTest
                 compare:CompareDistributionToNormal(result:GetGroupsFrame())
                 result:SetDistributionResults(compare:GetResults())
             end
-            if testVarianceAssumption or significant
+            if testVarianceAssumption or repeated
                 if repeated 
-                    if testVarianceAssumption and factorial
-                        alert("A factorial repeated measures CompareVariances test is not supported yet.")
-                    end
                     if testVarianceAssumption and multivariate
                         alert("A multivariate repeated measures CompareVariances test is not supported yet.")
                     end
-                    if not multivariate and not factorial
+                    if not multivariate
                         // Check for sphericity using a Mauchly's CompareVariances test 
                         // This test is only necessary if the rm anova is significant with standard f
-                        CompareVariances compare
-                        compare:SetSignificanceLevel(GetSignificanceLevel())
-                        compare:SetStatisticalFormatting(GetStatisticalFormatting())
-                        compare:RepeatedMeasures(true)
-                        compare:Calculate(designFrame)
-                        result:SetVarianceResult(compare:GetResult())
-                        if compare:GetResult():GetCorrectionName() not= ""
-                            text factor = design:GetWithinSubjectsFactors():Get(0)
-                            number dfn = dfFactors:GetValue(factor)
-                            number dfd = dfFactors:GetValue(design:GetSubjectIdentifier()+":"+factor)
-                            number correction = compare:GetResult():GetCorrection()
-                            number newDFn = correction*dfn
-                            number newDFd = correction*dfd
-                            fDistribution:Setup(newDFn, newDFd)
-                            number p = 1.0 - fDistribution:CumulativeDistribution(result:GetInformation():GetValue(factor):GetValue("F"))
-                            result:SetInformation(factor,"corrected p", p)
+                        ExperimentalDesign withinDesign
+                        withinDesign:AddSubjectIdentifier(design:GetSubjectIdentifier())
+                        Array<text> within = design:GetWithinSubjectsFactors()
+                        i = 0
+                        repeat while i < within:GetSize()
+                            withinDesign:AddWithinSubjectsFactor(within:Get(i))
+                            i = i + 1
+                        end 
+                        Array<text> dv = design:GetDependentVariables()
+                        i = 0
+                        repeat while i < dv:GetSize()
+                            withinDesign:AddDependentVariable(dv:Get(i))
+                            i = i + 1
+                        end
+                        withinDesign:Transform(designFrame)
+
+                        CompareVariances mauchly
+                        mauchly:RepeatedMeasures(true)
+                        mauchly:SetSignificanceLevel(GetSignificanceLevel())
+                        mauchly:SetStatisticalFormatting(GetStatisticalFormatting())
+                        mauchly:SetExperimentalDesign(withinDesign)
+                        mauchly:Calculate(frame)
+                        CompareVariancesResult mauchlyResult = mauchly:GetResult()
+                        result:SetVarianceResult(mauchlyResult)
+
+                        i = 0
+                        repeat while i < sources:GetSize()
+                            text source = sources:Get(i)
+                            if mauchlyResult:GetInformation():HasKey(source) and mauchlyResult:GetInformation():GetValue(source):HasKey("p")
+                                number p = mauchlyResult:GetInformation():GetValue(source):GetValue("p")
+                                result:SetInformation(source,"sphericity p", p)
+    
+                                number dfn = result:GetInformation():GetValue(source):GetValue("df")
+                                number dfd = result:GetInformation():GetValue(source):GetValue("error df")
+    
+                                number ggcorrection = mauchlyResult:GetInformation():GetValue(source):GetValue("gg")
+                                fDistribution:Setup(ggcorrection*dfn, ggcorrection*dfd)
+                                number ggp = 1.0 - fDistribution:CumulativeDistribution(result:GetInformation():GetValue(source):GetValue("F"))
+                                result:SetInformation(source,"gg", ggcorrection)
+                                result:SetInformation(source,"gg p", ggp)
+    
+                                number hfcorrection = mauchlyResult:GetInformation():GetValue(source):GetValue("hf")
+                                fDistribution:Setup(hfcorrection*dfn, hfcorrection*dfd)
+                                number hfp = 1.0 - fDistribution:CumulativeDistribution(result:GetInformation():GetValue(source):GetValue("F"))
+                                result:SetInformation(source,"hf", hfcorrection)
+                                result:SetInformation(source,"hf p", hfp)
+                            end
+                            i = i + 1
                         end
                     end
                 elseif testVarianceAssumption
@@ -1759,7 +1855,7 @@ class CompareMeans is StatisticalTest
                 if userRequestedPairwise and factorial
                     alert("Post hoc testing for factorial designs is not supported yet")
                 end
-                if not multivariate and not factorial
+                if not multivariate and not factorial and groups:GetSize() > 2
                     // Pairwise tests are only necessary if the anova is significant
                     CompareMeansPairwise compare
                     compare:SetSignificanceLevel(GetSignificanceLevel())
@@ -2595,6 +2691,15 @@ class CompareMeans is StatisticalTest
         needToProcessData = true // Reset processing flag in case user changes selections
     end
 
+    action SetExperimentalDesign(ExperimentalDesign design)
+        me:design = design:Copy() // make a copy of the design so it can be used in other tests.
+    end
+
+    // This is the class that holds all design selections and design frame.
+    action GetDesign returns ExperimentalDesign
+        return design
+    end
+
     // For long or wide data.
     action AddSubjectIdentifier(text header)
         design:AddSubjectIdentifier(header)
@@ -3364,9 +3469,10 @@ class CompareMeans is StatisticalTest
         Matrix factors2 = factorsAssociatedWithColumn:GetValue(secondIndex)  
 
         if factors1 not= undefined and factors2 not= undefined  
-            factorsAssociatedWithColumn:Set(newIndex, factors1:AddElements(factors2))
+            Matrix newFactor = factors1:AddElements(factors2)
+            factorsAssociatedWithColumn:Set(newIndex, newFactor)
 
-            text factorHeader = GetTextFromEncoding(factors1)+":"+GetTextFromEncoding(factors2)
+            text factorHeader = GetTextFromEncoding(newFactor)
             if not columnsAssociatedWithFactor:HasKey(factorHeader)
                 Array<integer> arr
                 arr:Add(newIndex)
