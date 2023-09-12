@@ -504,15 +504,20 @@ class HistogramWriter is ChartWriter
                 i = i + 1
             end
         end
-        if chart:HasTrendLine()
-            Path svgPath
-            svgPath:SetCanvasSize(GetChartWidth(), GetChartHeight())
-            svgPath:SetPath(chart:GetTrendLine())
-            if HasAccessibility()
-                svgPath:SetAriaHidden("true")
-                svgPath:SetTabIndex(-1)
+        if chart:IsShowingTrendLine()
+            Array<Series> seriesList = chart:GetSeriesList()
+            s = 0
+            repeat while s < seriesList:GetSize()
+                Path svgPath
+                svgPath:SetCanvasSize(GetChartWidth(), GetChartHeight())
+                svgPath:SetPath(seriesList:Get(s):GetTrendLine())
+                if HasAccessibility()
+                    svgPath:SetAriaHidden("true")
+                    svgPath:SetTabIndex(-1)
+                end
+                canvas:Add(svgPath)
+                s = s + 1
             end
-            canvas:Add(svgPath)
         end
         if HasAccessibility()
             script:AddText(scriptText)  
@@ -521,7 +526,7 @@ class HistogramWriter is ChartWriter
     end
 
     private action AddTrendLine(ScalableVectorGraphics canvas, Histogram chart)
-        if chart:HasTrendLine() = false
+        if chart:IsShowingTrendLine() = false
             return now
         end
     end
