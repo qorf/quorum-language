@@ -22,6 +22,11 @@ public class TextFieldIOS extends ItemIOS implements UIKeyInput, UITextInputTrai
     }
 
     @Override
+    public boolean isFirstResponder() {
+        return true;
+    }
+
+    @Override
     public boolean canBecomeFirstResponder() {
         return true;
     }
