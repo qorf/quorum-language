@@ -5,7 +5,7 @@ import quorum.Libraries.Interface.Controls.Button_;
 import quorum.Libraries.Interface.Item_;
 
 
-public class ButtonIOS extends ItemIOS{
+public class ButtonIOS extends ItemIOS {
     @Override
     public boolean isAccessibilityElement() {
         return true;

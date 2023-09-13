@@ -3,19 +3,16 @@ package plugins.quorum.Libraries.Interface.Accessibility;
 import org.robovm.apple.coregraphics.CGRect;
 import org.robovm.apple.uikit.*;
 import plugins.quorum.Libraries.Game.IOSApplication;
-<<<<<<< HEAD
 import plugins.quorum.Libraries.Interface.Accessibility.IOS.ButtonIOS;
 import plugins.quorum.Libraries.Interface.Accessibility.IOS.CheckboxIOS;
 import plugins.quorum.Libraries.Interface.Accessibility.IOS.ToggleButtonIOS;
 import plugins.quorum.Libraries.Interface.Accessibility.IOS.RadioButtonIOS;
 import quorum.Libraries.Interface.Controls.*;
-=======
 import plugins.quorum.Libraries.Interface.Accessibility.IOS.*;
 import quorum.Libraries.Interface.Controls.Button_;
 import quorum.Libraries.Interface.Controls.Checkbox_;
 import quorum.Libraries.Interface.Controls.TextField_;
 import quorum.Libraries.Interface.Controls.ToggleButton_;
->>>>>>> d441c989a7ac7ee3f61119ea067cc7e7c5577212
 import quorum.Libraries.Interface.Events.*;
 import quorum.Libraries.Interface.Item_;
 import quorum.Libraries.Interface.Selections.TextBoxSelection_;
@@ -98,11 +95,9 @@ public class IOSAccessibility {
             button.Initialize((Button_)item);
             element = button;
         } else if (code == item.Get_Libraries_Interface_Item__TOGGLE_BUTTON_()) {
-<<<<<<< HEAD
             ToggleButtonIOS toggleButton = new ToggleButtonIOS(IOSApplication.accessibilityContainer);
             toggleButton.Initialize((ToggleButton_) item);
             element = toggleButton;
-=======
         } else if (code == item.Get_Libraries_Interface_Item__TEXTBOX_()){
             ItemIOS itemIOS = new ItemIOS(IOSApplication.accessibilityContainer);
             itemIOS.Initialize(item);
@@ -195,7 +190,6 @@ public class IOSAccessibility {
             ItemIOS itemIOS = new ItemIOS(IOSApplication.accessibilityContainer);
             itemIOS.Initialize(item);
             element = itemIOS;
->>>>>>> d441c989a7ac7ee3f61119ea067cc7e7c5577212
         } else if (code == item.Get_Libraries_Interface_Item__LABEL_()) {
             ItemIOS itemIOS = new ItemIOS(IOSApplication.accessibilityContainer);
             itemIOS.Initialize(item);
