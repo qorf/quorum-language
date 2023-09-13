@@ -56,6 +56,9 @@ public class ItemIOS extends UIAccessibilityElement implements UIAccessibilityAc
     Item_ item;
     boolean focused = false;
 
+    public Item_ GetItem() {
+        return this.item;
+    }
     public void SetItem(Item_ item)
     {
         this.item = item;
@@ -180,16 +183,28 @@ public class ItemIOS extends UIAccessibilityElement implements UIAccessibilityAc
         return false;
     }
 
+    /*
+        This function tells the item that it has the focus. By default, this does nothing. Subclasses may need
+        to trigger iOS specific things when this happens.
+     */
+    public void Focus() {
+        System.out.println("Focus set to " + item.GetName());
+    }
+
+    public void FocusLost() {
+        System.out.println("Lost focus from " + item.GetName());
+    }
+
     @Override
     public void didBecomeFocused() {
-        System.out.println(item.GetName() + " gained focus");
+        System.out.println(item.GetName() + " gained focus through IOS");
         item.Focus();
         focused = true;
     }
 
     @Override
     public void didLoseFocus() {
-        System.out.println(item.GetName() + " lost focus");
+        System.out.println(item.GetName() + " lost focus from IOS");
         focused = false;
     }
 

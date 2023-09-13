@@ -22,7 +22,9 @@ import java.util.HashMap;
 
 public class IOSAccessibility {
     public Object me_ = null;
-    public HashMap mapAccessibilityElements = new HashMap<UIAccessibilityElement, Item_>();
+    public HashMap mapAccessibilityElements = new HashMap<Integer, ItemIOS>();
+
+    private ItemIOS focus = null;
 
     public void  NameChanged(Item_ item) {}
 
@@ -45,10 +47,15 @@ public class IOSAccessibility {
 
     public void  FocusChanged(FocusEvent_ event) throws Exception {
         Item_ item = event.GetNewFocus();
-        System.out.println("NEwFocus Changed to " + item.GetName());
-        UIAccessibilityElement element = (UIAccessibilityElement) mapAccessibilityElements.get(item);
-        UIAccessibilityGlobals.postNotification(UIAccessibilityNotification.LayoutChangedNotification, element);
-
+        ItemIOS element = (ItemIOS) mapAccessibilityElements.get(item.GetHashCode());
+        if(element != null) {
+            if(focus != null) { //tell the old focus it lost the focus
+                focus.FocusLost();
+            }
+            focus = element;
+            focus.Focus();
+            UIAccessibilityGlobals.postNotification(UIAccessibilityNotification.LayoutChangedNotification, element);
+        }
     }
 
     public boolean NativeAdd(Item_ item) {
@@ -62,14 +69,14 @@ public class IOSAccessibility {
             return false;
         }
 
-        UIAccessibilityElement element = new UIAccessibilityElement(IOSApplication.accessibilityContainer);
+        ItemIOS element = null;// = new UIAccessibilityElement(IOSApplication.accessibilityContainer);
 
         //Get the accessibility code and do custom controls.
         //Many of the traits and properties here are incorrect, but the structure is there which can get us started
         int code = item.GetAccessibilityCode();
-        if(code != -1) {
-            System.out.println("Name: " + item.GetName() + " Code: " + code);
-        }
+//        if(code != -1) {
+//            System.out.println("Name: " + item.GetName() + " Code: " + code);
+//        }
 
         // Most items only being turned into the basic ItemIOS as a placeholder
         if (code == item.Get_Libraries_Interface_Item__NOT_ACCESSIBLE_() || !item.IsShowing()) {
@@ -213,9 +220,9 @@ public class IOSAccessibility {
         }
 
         // for debugging
-        for (UIAccessibilityTraits trait : element.getAccessibilityTraits()) {
-            System.out.println(trait.toString());
-        }
+//        for (UIAccessibilityTraits trait : element.getAccessibilityTraits()) {
+//            System.out.println(trait.toString());
+//        }
 
         //accessibilityElement.setAccessibilityValue(item.GetDescription());
         element.setAccessibilityIdentifier("" + item.GetHashCode());
@@ -228,9 +235,9 @@ public class IOSAccessibility {
         // Inform iOS that the accessibility elements have changed
         UIAccessibilityGlobals.postNotification(UIAccessibilityNotification.ScreenChangedNotification, element);
 
-        if(debug){
-            System.out.println("The bounds are" + IOSApplication.accessibilityContainer.getFrame().getX() + " " + IOSApplication.accessibilityContainer.getFrame().getY() + " " + IOSApplication.accessibilityContainer.getFrame().getWidth() + " " + IOSApplication.accessibilityContainer.getFrame().getHeight());
-        }
+//        if(debug){
+//            System.out.println("The bounds are" + IOSApplication.accessibilityContainer.getFrame().getX() + " " + IOSApplication.accessibilityContainer.getFrame().getY() + " " + IOSApplication.accessibilityContainer.getFrame().getWidth() + " " + IOSApplication.accessibilityContainer.getFrame().getHeight());
+//        }
         return true;
     }
 
