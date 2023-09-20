@@ -175,7 +175,6 @@ class StandardInput is GameInput
         boolean draggedThisFrame = false
 
         repeat mouseEvents:GetSize() times
-            output "MouseEvent! " + manager:GetGame():GetWebConfiguration():containerID
             mouseEvent = mouseEvents:RemoveFromFront()
 
             set:SetMouseInput(mouseEvent:mouseButton)
@@ -374,6 +373,7 @@ class StandardInput is GameInput
                     end
 
                     boolean tableProcessResult = table:ProcessInput(finishSet, lastTargetEvent)
+
                     if useAnySet
                         tableProcessResult = table:ProcessInput(finishAnySet, lastTargetEvent)
                     end

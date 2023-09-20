@@ -61,8 +61,8 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         root.style.position = "absolute";
         root.style.left = 0;
         root.style.bottom = 0;
-        root.style.width = "100%";
-        root.style.height = "100%";
+        root.style.width = "1px";
+        root.style.height = "1px";
         // Ensure that bugs in the positioning of shadow elements
         // don't affect the visible layout.
         root.style.overflow = "hidden";
@@ -91,8 +91,8 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         focusButton.style.position = "absolute";
         focusButton.style.left = 0;
         focusButton.style.bottom = 0;
-        focusButton.style.width = "100%";
-        focusButton.style.height = "100%";
+        focusButton.style.width = "1px";
+        focusButton.style.height = "1px";
 
         // The rationales for the following styles are the same as for the root.
         focusButton.style.filter = "opacity(0%)";

@@ -1,22 +1,10 @@
 function plugins_quorum_Libraries_Game_GameStateManager_() 
 {
-    /* The following are names of the effective static variables used here:
-    plugins_quorum_Libraries_Game_GameStateManager_.application
-    plugins_quorum_Libraries_Game_GameStateManager_.display
-    plugins_quorum_Libraries_Game_GameStateManager_.graphics
-    plugins_quorum_Libraries_Game_GameStateManager_.input
-    plugins_quorum_Libraries_Game_GameStateManager_.nativePath
-    plugins_quorum_Libraries_Game_GameStateManager_.operatingSystem    
-    plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics
-    plugins_quorum_Libraries_Game_GameStateManager_.fontManager
-    plugins_quorum_Libraries_Game_GameStateManager_.mainThreadID
-    */
-
     /*
     The currently running games are used as keys for the "registeredGames" Map object stored directly into the plugin definition,
     i.e., plugins_quorum_Libraries_Game_GameStateManager_.registeredGames.
 
-    The stored values in the "registeredGames" map are Objects with the following attached values:
+    The stored values in the "registeredGames" map are Objects (or "gameInfo") with the following attached values:
     * game (The game that acts as a key to this value in the map)
     * focus (The Item that is considered focused in the Quorum logic -- this isn't the same as the document's focus)
     * application (The WebApplication Quorum class associated with the game)
@@ -27,10 +15,17 @@ function plugins_quorum_Libraries_Game_GameStateManager_()
     * nativePath (The path to where native libraries are located, stored as a string. The Web platform doesn't use this like other platforms do, so expect the empty string here.)
     * fontManager (The FontManager Quorum class associated with the game)
 
+    The gameInfo also accepts external information associated with specific plugins. For example, the WebInput plugin
+    associates game-specific input info with the game by attaching it to the gameInfo. Such associated info is always
+    accessed via an intermediate object named after the plugin associated with it. For example, the array of currently
+    pressed keys associated with this game is contributed by the WebInput plugin and can be seen below.
+
+    // Example of externally-contributed plugin-associated game info
+    gameInfo.plugins_quorum_Libraries_game_WebInput_.pressedKeys
+
 
     The game which is currently executing code is the "active game" stored in the WebApplication plugin, i.e.,
     plugins_quorum_Libraries_Game_WebApplication_.activeGame.
-
     */
 
     if (!plugins_quorum_Libraries_Game_GameStateManager_.initialized_plugins_quorum_Libraries_Game_GameStateManager_)
