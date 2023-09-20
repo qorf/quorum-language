@@ -15,8 +15,21 @@ use Libraries.Interface.Controls.ToggleButton
 use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
 use Libraries.Interface.Accessibility
+use Libraries.Game.GameStateManager
+use Libraries.Interface.Selections.TextBoxSelection
+use Libraries.Interface.Selections.TextFieldSelection
 
 class IOSAccessibility is Accessibility
+    system action TextSelectionChanged(TextBoxSelection selection)
+
+    system action TextSelectionChanged(TextFieldSelection selection)
+
+    system action Select(Item item) returns boolean
+
+    system action NativeAdd(Item item) returns boolean
+
+    system action NativeRemove(Item item) returns boolean
+
     system action NameChanged(Item item)
 
     system action DescriptionChanged(Item item)
@@ -25,21 +38,13 @@ class IOSAccessibility is Accessibility
 
     system action TextFieldUpdatePassword(TextField field)
 
-    system action Update
-
     system action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
-
-    system action SelectionChanged(SelectionEvent event)
 
     system action ButtonActivated(Button button)
 
     system action ToggleButtonToggled(ToggleButton button)
 
     system action FocusChanged(FocusEvent event)
-
-    system action Add(Item item) 
-
-    system action Remove(Item item)
 
     system action MenuChanged(MenuChangeEvent event)
 

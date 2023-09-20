@@ -117,6 +117,7 @@ class ExpressionsTester
 // FAIL TESTS
         path = failPath
         BadActionName()
+        BadAndTest()
         BadClassName()
         BadVariableName()
         BadErrorMessage()
@@ -1428,6 +1429,15 @@ class ExpressionsTester
         Array<File> files
         File main
         main:SetPath(path + "BadActionName.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action BadAndTest
+        Array<File> files
+        File main
+        main:SetPath(path + "BadAndTest.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)

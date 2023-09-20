@@ -74,7 +74,10 @@ class CompareDistributions is StatisticalTest
         if GetColumnSize() < 1
             alert("Must include at least one column.")
         end
-        
+        if GetFactorSize() > 0 and GetColumnSize() > 1
+            alert("A test multivariate normality is not supported yet. Formal Test Name: Henze-Zirkler (HZ) test, Mardia’s Test or Multivariate Shapiro-Wilk Test")
+            // Look here perhaps: https://www.researchgate.net/publication/232916899_A_Generalization_of_Shapiro-Wilk's_Test_for_Multivariate_Normality
+        end
         CompareDistributionToNormal(frame)    
     end
 

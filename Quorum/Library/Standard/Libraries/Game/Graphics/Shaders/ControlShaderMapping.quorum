@@ -25,6 +25,7 @@ use Libraries.Game.Graphics.VertexAttribute
 use Libraries.Containers.Array
 use Libraries.Game.NumberUtilities
 use Libraries.Game.Graphics.VertexAttributes
+use Libraries.Game.WebApplication
 
 class ControlShaderMapping is BatchingShaderMapping2D
 
@@ -167,10 +168,10 @@ class ControlShaderMapping is BatchingShaderMapping2D
                 halfSize = height / 2.0
             end
 
-            bottomLeftRounding = bottomLeftRounding + properties:GetBottomLeftPixelRounding() / halfSize
-            bottomRightRounding = bottomRightRounding + properties:GetBottomRightPixelRounding() / halfSize
-            topLeftRounding = topLeftRounding + properties:GetTopLeftPixelRounding() / halfSize
-            topRightRounding = topRightRounding + properties:GetTopRightPixelRounding() / halfSize
+            bottomLeftRounding = bottomLeftRounding + properties:GetBottomLeftPixelRounding() * properties:GetInterfaceScale() / halfSize
+            bottomRightRounding = bottomRightRounding + properties:GetBottomRightPixelRounding() * properties:GetInterfaceScale() / halfSize
+            topLeftRounding = topLeftRounding + properties:GetTopLeftPixelRounding() * properties:GetInterfaceScale() / halfSize
+            topRightRounding = topRightRounding + properties:GetTopRightPixelRounding() * properties:GetInterfaceScale() / halfSize
 
             // Clamp the values between 0 and 1.
             if bottomLeftRounding > 1.0
@@ -255,10 +256,10 @@ class ControlShaderMapping is BatchingShaderMapping2D
                 halfSize = height / 2.0
             end
 
-            bottomLeftRounding = bottomLeftRounding + control:GetBottomLeftPixelRounding() / halfSize
-            bottomRightRounding = bottomRightRounding + control:GetBottomRightPixelRounding() / halfSize
-            topLeftRounding = topLeftRounding + control:GetTopLeftPixelRounding() / halfSize
-            topRightRounding = topRightRounding + control:GetTopRightPixelRounding() / halfSize
+            bottomLeftRounding = bottomLeftRounding + control:GetBottomLeftPixelRounding() * control:GetInterfaceScale() / halfSize
+            bottomRightRounding = bottomRightRounding + control:GetBottomRightPixelRounding() * control:GetInterfaceScale() / halfSize
+            topLeftRounding = topLeftRounding + control:GetTopLeftPixelRounding() * control:GetInterfaceScale() / halfSize
+            topRightRounding = topRightRounding + control:GetTopRightPixelRounding() * control:GetInterfaceScale() / halfSize
 
             // Clamp the values between 0 and 1.
             if bottomLeftRounding > 1.0
@@ -357,6 +358,16 @@ class ControlShaderMapping is BatchingShaderMapping2D
             end
         else
             shape:SetDataForAllVertices(borderColorAttribute:offset / 4, 0)
+        end
+
+        if manager:GetApplication() is WebApplication
+            // On some web browsers (such as Firefox) having all four values at 1.0 causes abberant rendering, because the packed value will become a malformed NaN value.
+            if bottomRightRounding = 1.0 and topRightRounding = 1.0 and bottomLeftRounding = 1.0 and topLeftRounding = 1.0
+                bottomRightRounding = 0.995
+                topLeftRounding = 0.995
+                bottomLeftRounding = 0.995
+                topRightRounding = 0.995
+            end
         end
 
         shape:SetDataForAllVertices(roundingAttribute:offset / 4, utility:PackNormalizedVector4(bottomRightRounding, topRightRounding, bottomLeftRounding, topLeftRounding))

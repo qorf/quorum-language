@@ -22,6 +22,7 @@ use Libraries.Interface.Controls.List
 use Libraries.Interface.Controls.Checkbox
 use Libraries.Interface.Controls.RadioButton
 use Libraries.Sound.Audio
+use Libraries.System.File
 
 /*
     Form is a helper class that allows us to create forms for a user interface without 
@@ -44,6 +45,7 @@ class Form is Game, FormPrimitiveContainer
     Page mainPage = undefined
     constant text DEFAULT_PAGE_NAME = "Main"
     InterfaceOptions options = undefined
+    text media = undefined
 
     on create
         DesktopConfiguration desktop = GetDesktopConfiguration()
@@ -52,6 +54,7 @@ class Form is Game, FormPrimitiveContainer
         web:framesPerSecondLimit = 10
         
         StackedRowPage page
+        page:SetForm(me)
         page:SetName(DEFAULT_PAGE_NAME)
         pages:Add(DEFAULT_PAGE_NAME, page)
         currentPage = page
@@ -77,11 +80,13 @@ class Form is Game, FormPrimitiveContainer
     action AddPage(text name) returns Page
         StackedRowPage page
         page:SetName(name)
+        page:SetForm(me)
         pages:Add(name, page)
         return page
     end
 
     action AddPage(Page page)
+        page:SetForm(me)
         pages:Add(page:GetName(), page)
     end
 
@@ -100,6 +105,11 @@ class Form is Game, FormPrimitiveContainer
         Page page = pages:GetValue(name)
         Add(page)
         currentPage = page
+        GameStateManager manager
+        Item2D item = page:GetFirstFocusableItem()
+        if item not= undefined
+            manager:SetFocus(item)
+        end
     end
 
     action CreateGame
@@ -159,7 +169,26 @@ class Form is Game, FormPrimitiveContainer
 
     action PlaySound(text name)
         Audio audio
-        audio:Load(name)
+        File file = undefined
+        if GetMediaLocation() not= undefined
+            File file2
+            file = file2
+            file:SetWorkingDirectory(GetMediaLocation())
+            file:SetPath(name)
+        end
+        if file not= undefined
+            audio:Load(file)
+        else
+            audio:Load(name)
+        end
         audio:Play()
+    end
+    
+    action GetMediaLocation returns text
+        return media
+    end
+    
+    action SetMediaLocation(text media)
+        me:media = media
     end
 end

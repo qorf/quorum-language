@@ -75,8 +75,13 @@ class ResidualSquare is ChartDrawable
         else
             regression = point:GetSeries():GetRegressionLine()
         end
-
-        return y - regression:CalculateDependentValue(x)
+        
+        // Compensate if the chart has been flipped.
+        if point:GetParentChart():GetVerticalFlag()
+            return x - regression:CalculateDependentValue(y)
+        else
+            return y - regression:CalculateDependentValue(x)
+        end
     end
 
     action GetBorderColor returns ColorGroup

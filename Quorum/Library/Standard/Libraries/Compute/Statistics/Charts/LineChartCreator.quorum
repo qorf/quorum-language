@@ -174,7 +174,7 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         repeat while i < columns
             DataFrameColumn column = frame:GetColumn(GetColumn(i))
             if not column:IsNumberColumn() 
-                alert("LineChartCreator does not support non-numerical columns.")
+                alert("LineChartCreator does not support nonnumerical columns.")
                 return undefined
             end
 
@@ -237,6 +237,8 @@ class LineChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
                         if dateForText:HasKey(groupKeyArray:Get(i)) and xdateMin not= undefined
                             number x = dateForText:GetValue(groupKeyArray:Get(i)):GetDayDifference(xdateMin)
                             point:SetValueX(x)
+                            //this should be the actual date label
+                            point:SetXNameOverride(groupKeyArray:Get(i))
                         end
                         j = j + 1
                     end

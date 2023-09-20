@@ -29,6 +29,7 @@ use Libraries.Interface.Controls.Charts.TwoVariableChart
 use Libraries.Interface.Controls.Charts.Graphics.RegressionLinePointMarker
 use Libraries.Interface.Controls.Charts.ChartOptions
 use Libraries.Interface.Controls.Charts.ScatterPlot
+use Libraries.Interface.Views.ControlShaderView
 
 class ChartLayout is Layout
     integer minimumLabelOffset = 35
@@ -761,8 +762,18 @@ class ChartLayout is Layout
                     if currentLabel:GetDefaultLayoutProperties():NeedsRendering()
                         currentLabel:LoadGraphics(currentLabel:GetDefaultLayoutProperties())
                     end
+
                     currentIcon = series:GetEntryIcon()
-                    currentIcon:LoadFilledRectangle(iconSize, iconSize, currentIcon:GetColor())
+                    if currentIcon:GetView2D() = undefined
+                        ControlShaderView view
+                        view:Initialize()
+                        currentIcon:SetView2D(view)
+                    end
+    
+                    currentIcon:SetBackgroundColor(series:GetColor())
+                    currentIcon:SetBorderColor(series:GetBorderColor())
+                    currentIcon:SetBorderThickness(cast(integer, chart:GetLegendIconBorderThickness() * currentIcon:GetInterfaceScale()))
+                    currentIcon:SetSize(iconSize, iconSize)
     
                     iconX = padding
                     iconY = iconY - iconSize - padding

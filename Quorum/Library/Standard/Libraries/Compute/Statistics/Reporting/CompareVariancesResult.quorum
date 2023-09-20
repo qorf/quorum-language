@@ -8,11 +8,34 @@ use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Math
 
 /*
-    This class represents data that comes back from a CompareVariances calculation (levene's or mauchly's test).
+    This class represents data that comes back from a CompareVariances calculation.
 
     Attribute: Author Hannah Williams
 */
 class CompareVariancesResult is CompareMeansResult
+    private boolean useFApproximation = false        
+    private boolean useX2Approximation = true
+
+    // Used in multivariate tests
+    action UseFApproximation returns boolean
+        return useFApproximation
+    end
+
+    action UseFApproximation(boolean useFApproximation)
+        me:useFApproximation = useFApproximation
+        me:useX2Approximation = not useFApproximation
+    end
+
+    // Used in multivariate tests
+    action UseX2Approximation returns boolean
+        return useX2Approximation
+    end
+
+    action UseX2Approximation(boolean useX2Approximation)
+        me:useX2Approximation = useX2Approximation
+        me:useFApproximation = not useX2Approximation
+    end
+
     action GetLowerBoundCorrection returns number
         if GetSources():GetSize() > 0
             if GetInformation():GetValue(GetSources():Get(0)):HasKey("lb")
@@ -69,6 +92,31 @@ class CompareVariancesResult is CompareMeansResult
             end
         else
             return "" // Needs to return correction degrees of freedom for levene's test?
+        end
+    end
+
+    action IsSignificant returns boolean
+        Array<text> sources = GetSources()
+        if sources:GetSize() > 0
+            // There may be more than one p-value
+            i = 0
+            repeat while i < sources:GetSize()
+                text source = sources:Get(i)
+                if GetProbabilityValuesTable():HasKey(source)
+                    Array<number> pvals = GetProbabilityValuesTable():GetValue(source):CopyToValueArray()
+                    j = 0 
+                    repeat while j < pvals:GetSize()
+                        if pvals:Get(j) <= GetSignificanceLevel()
+                            return true
+                        end
+                        j = j + 1
+                    end
+                end
+                i = i + 1
+            end
+            return false
+        else
+            return parent:StatisticalTestResult:IsSignificant()
         end
     end
 

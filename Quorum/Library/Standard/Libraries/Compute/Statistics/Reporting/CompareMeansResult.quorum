@@ -15,6 +15,24 @@ use Libraries.Compute.Matrix
     a CompareMeans calculation.
 
     Attribute: Author Hannah Stabler
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.CompareMeans
+    use Libraries.Compute.Statistics.Tests.CompareMeansResult
+
+    DataFrame frame
+    frame:Load("data.csv")
+    frame:AddSelectedColumns(0)
+    frame:AddSelectedColumns(1)
+    frame:AddSelectedColumns(2)
+
+    CompareMeans compare = frame:CompareMeans()
+    CompareMeansResult result = compare:GetResult()
+    result:GetFormat():SetSignificantDigits(5)
+    result:UsePartialEtaSquared(true)
+    output result:GetSummary()
 */
 class CompareMeansResult is StatisticalTestResult
     Math math
@@ -47,9 +65,24 @@ class CompareMeansResult is StatisticalTestResult
     boolean equalVariances = false
     boolean normalDistribution = false
 
-    Array<text> factors
-    Array<text> columns
-    Array<text> sources
+    // Select which multivariate test statistic (if applicable)
+    boolean useWilks = true                     // For use in multivariate parametric tests (default)
+    boolean usePillai = false                   // For use in multivariate parametric tests (conservative: if assumptions are violated)
+    boolean useHotelling = false                // For use in multivariate parametric tests (liberal: DVs are NOT strongly correlated)
+    boolean useRoysLargestRoot = false          // ** NOT YET IMPLEMENTED ** For use in multivariate parametric tests (liberal: DVs are strongly correlated)
+
+    // Select which effect size (if applicable)
+    boolean cohensD = true                      // For use in 1 and 2-sample parametric tests
+    boolean useEtaSquared = false               // For use in 2 and N-sample parametric tests
+    boolean useOmegaSquared = false             // For use in 2 and N-sample parametric tests
+    boolean usePartialEtaSquared = false        // For use in N-sample parametric tests
+    boolean usePartialOmegaSquared = false      // For use in N-sample parametric tests
+    boolean useGeneralizedEtaSquared = false    // For use in N-sample parametric tests
+    boolean useGeneralizedOmegaSquared = false  // For use in N-sample parametric tests
+
+    Array<text> factors     // List of factor headers from original frame
+    Array<text> columns     // List of column headers from original frame
+    Array<text> sources     // List of factors/effects from test
                               
     action GetFactors returns Array<text>
         return factors
@@ -420,13 +453,15 @@ class CompareMeansResult is StatisticalTestResult
             i = 0
             repeat while i < sources:GetSize()
                 text source = sources:Get(i)
-                Array<number> pvals = probabilityValues:GetValue(source):CopyToValueArray()
-                j = 0 
-                repeat while j < pvals:GetSize()
-                    if pvals:Get(j) <= GetSignificanceLevel()
-                        return true
+                if probabilityValues:HasKey(source)
+                    Array<number> pvals = probabilityValues:GetValue(source):CopyToValueArray()
+                    j = 0 
+                    repeat while j < pvals:GetSize()
+                        if pvals:Get(j) <= GetSignificanceLevel()
+                            return true
+                        end
+                        j = j + 1
                     end
-                    j = j + 1
                 end
                 i = i + 1
             end
@@ -479,6 +514,45 @@ class CompareMeansResult is StatisticalTestResult
         me:pairwise = pairwise
     end
 
+    // Used in multivariate tests
+    action UseWilksStatistic returns boolean
+        return useWilks
+    end
+
+    action UseWilksStatistic(boolean useWilks)
+        me:useWilks = useWilks
+        if useWilks
+            me:usePillai = false
+            me:useHotelling = false
+        end
+    end
+
+    // Used in multivariate tests
+    action UsePillaiStatistic returns boolean
+        return usePillai
+    end
+
+    action UsePillaiStatistic(boolean usePillai)
+        me:usePillai = usePillai
+        if usePillai
+            me:useWilks = false
+            me:useHotelling = false
+        end
+    end
+
+    // Used in multivariate tests
+    action UseHotellingStatistic returns boolean
+        return useHotelling
+    end
+
+    action UseHotellingStatistic(boolean useHotelling)
+        me:useHotelling = useHotelling
+        if useHotelling
+            me:useWilks = false
+            me:usePillai = false
+        end
+    end
+
 
     /* Returns the summary of a CompareMeansPairwise test in CompareMeans (if conducted) */
     action GetPairwiseSummary returns text
@@ -510,6 +584,9 @@ class CompareMeansResult is StatisticalTestResult
     action GetAssumptionTestSummary returns text
         text summary = ""
         text lf = summary:GetLineFeed()
+        text tab = "    "
+        integer digits = GetFormat():GetSignificantDigits()
+
         if GetDistributionResults() not= undefined
             integer i = 0
             repeat while i < GetDistributionResults():GetSize()
@@ -519,7 +596,7 @@ class CompareMeansResult is StatisticalTestResult
                 end
                 if dResult:GetGroups():GetSize() = 1
                     text group = dResult:GetGroups():Get(0):GetHeader()
-                    summary = summary + lf + " " + group + ": p = " + dResult:GetProbabilityValue()
+                    summary = summary + lf + tab + group + ": p = " + math:Round(dResult:GetProbabilityValue(), digits)
                     if dResult:IsSignificant()
                         summary = summary + " ** significant **"
                     end
@@ -530,9 +607,39 @@ class CompareMeansResult is StatisticalTestResult
         if GetVarianceResult() not= undefined
             CompareVariancesResult vResult = GetVarianceResult()
             summary = summary + lf + vResult:GetFormalTestName()
-            summary = summary + lf + " p = " + vResult:GetProbabilityValue()
-            if vResult:IsSignificant()
-                summary = summary + " ** significant **"
+            if repeated // (Mauchly's Sphericity Test)
+                Array<text> sources = vResult:GetSources()
+                i = 0
+                repeat while i < sources:GetSize()
+                    if vResult:GetInformation():GetValue(sources:Get(i)):HasKey("p")
+                        number p = vResult:GetInformation():GetValue(sources:Get(i)):GetValue("p")
+                        summary = summary + lf + tab + sources:Get(i) + ": p = " + math:Round(p, digits)
+                        if p <= GetSignificanceLevel()
+                            summary = summary + " ** significant **"
+                        end
+                    end
+                    i = i + 1
+                end
+            else
+                if vResult:GetGroupsTable():GetSize() > 0 // (Box's M Test)
+                    number p = 0
+                    if vResult:UseFApproximation()
+                        text statSource = vResult:GetSources():Get(0)+"F"
+                        p = vResult:GetProbabilityValuesTable():GetValue(statSource):GetValue(statSource)
+                    elseif vResult:UseX2Approximation()
+                        text statSource = vResult:GetSources():Get(0)+"χ2"
+                        p = vResult:GetProbabilityValuesTable():GetValue(statSource):GetValue(statSource)
+                    end
+                    summary = summary + lf + tab + vResult:GetSources():Get(0) + ": p = " + math:Round(p, digits)
+                    if p <= 0.001 // Box's M Test should be tested against a small alpha, See: https://www.statisticshowto.com/boxs-m-test/
+                        summary = summary + " ** significant **"
+                    end
+                else // (Levene's Homogeneity Test)
+                    summary = summary + lf + tab + vResult:GetSources():Get(0) + ": p = " + math:Round(vResult:GetProbabilityValue(), digits)
+                    if vResult:IsSignificant()
+                        summary = summary + " ** significant **"
+                    end
+                end
             end
         end
         return summary

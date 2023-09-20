@@ -146,6 +146,9 @@ class MenuItem is Control
         shortcutLabel:SetText("")
         arrow:SetName("Arrow")
         arrow:Hide()
+        
+shortcutLabel:SetAccessibilityCode(shortcutLabel:parent:Item:NOT_ACCESSIBLE)
+label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
 
         Add(icon)
         Add(label)

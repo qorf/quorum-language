@@ -23,6 +23,8 @@ class Cell is Control
     Behavior activationBehavior = undefined
 
     on create
+        label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
+        
         ManualLayout layout
         layout:SetIgnoreInterfaceScale(true)
         SetLayout(layout)

@@ -1048,6 +1048,15 @@ class TwoVariableChart is Chart
                 pointY = GetVerticalPanel():GetTextLabels():Get(cast(integer, point:GetValueY()))
             end
         end
+            
+        if point:GetXNameOverride() not= undefined
+            pointX = point:GetXNameOverride()
+        end
+
+        if point:GetYNameOverride() not= undefined
+            pointY = point:GetYNameOverride()
+        end
+        
         point:SetName("(" + pointX + ", " + pointY + ")")
         point:SetDescription(" " + point:GetSeries():GetName() + " point.")
     end
@@ -1456,9 +1465,7 @@ class TwoVariableChart is Chart
                 end
                 firstPoint:SetAnnotation(pointLabel)
             end
-            if showFactorAnnotation and firstPoint:GetSeries() not= undefined
-                firstPoint:SetName(firstPoint:GetSeries():GetName() + ", " + firstPoint:GetName())
-            elseif showLetterCodeAnnotation 
+            if showLetterCodeAnnotation 
                 firstPoint:SetName(firstPoint:GetLetterCode() + ", " + firstPoint:GetName())
             end
         
@@ -1489,6 +1496,10 @@ class TwoVariableChart is Chart
                 firstPoint:SetDescription(firstPoint:GetDescription() + ".")
             else
                 firstPoint:SetDescription(firstPoint:GetDescription() + " in " + firstPoint:GetSeries():GetName() + ".")
+            end
+
+            if showFactorAnnotation and firstPoint:GetSeries() not= undefined
+                firstPoint:SetDescription(" " + firstPoint:GetSeries():GetName() + firstPoint:GetDescription())
             end
 
             AddChartItemInstructions(firstPoint, firstPoint:GetDescription())
@@ -1526,9 +1537,7 @@ class TwoVariableChart is Chart
                     end
                     point:SetAnnotation(pointLabel)
                 end
-                if showFactorAnnotation and point:GetSeries() not= undefined
-                    point:SetName(point:GetSeries():GetName() + ", " + point:GetName())
-                elseif showLetterCodeAnnotation 
+                if showLetterCodeAnnotation 
                     point:SetName(point:GetLetterCode() + ", " + point:GetName())
                 end
         
@@ -1559,6 +1568,10 @@ class TwoVariableChart is Chart
                     point:SetDescription(point:GetDescription() + ".")
                 else
                     point:SetDescription(point:GetDescription() + " in " + point:GetSeries():GetName() + ".")
+                end
+
+                if showFactorAnnotation and point:GetSeries() not= undefined
+                    point:SetDescription(" " + point:GetSeries():GetName() + point:GetDescription())
                 end
 
                 pointItem:SetEscapeItem(parentItem)
@@ -1624,25 +1637,28 @@ class TwoVariableChart is Chart
         integer i = 0
         repeat while i < points:GetSize()
             ChartPoint point = sortLRPoints:Get(i)
-            point:SetDescription(" " + (i+1) + " of " + points:GetSize() + " points")
-            if GetSeriesList():GetSize() > 1
-                point:SetDescription(point:GetDescription() + " in " + point:GetSeries():GetName())
+            if (point:ShowAnnotation() or ShowAnnotations()) and showFactorAnnotation and point:GetAnnotation() not= undefined
+                point:SetDescription(" " + point:GetAnnotation():GetText() + ",")
+            else
+                point:SetDescription("")
             end
 
             // Add the residual to the beginning of the description if this is a scatter plot.
             if me is ScatterPlot
                 RegressionLine regression = point:GetSeries():GetRegressionLine()
-                if regression not= undefined
+                if regression not= undefined and IsShowingLinearRegression()
                     number residual = point:GetValueY() - regression:CalculateDependentValue(point:GetValueX())
                     if residual = cast(integer, residual)
-                        point:SetDescription(" Residual is " + cast(integer, residual) + point:GetDescription() + ",")
+                        point:SetDescription(point:GetDescription() + " Residual is " + cast(integer, residual) + ",")
                     else
                         Math math
                         residual = math:Round(residual, 2)
-                        point:SetDescription(" Residual is " + residual + point:GetDescription() + ",")
+                        point:SetDescription(point:GetDescription() + " Residual is " + residual + ",")
                     end
                 end
             end
+
+            point:SetDescription(point:GetDescription() + " " + (i+1) + " of " + points:GetSize() + " points in " + point:GetSeries():GetName())
 
             if i = 0
                 AddChartItemInstructions(point, point:GetDescription())

@@ -15,8 +15,13 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
         SetPercentageHeight(1.0)
     end
 
+    action IsAccessibleParent returns boolean
+        return false
+    end
+
     action AddGrouping(text name) returns Grouping
         Grouping grouping
+        grouping:SetForm(GetForm())
         grouping:SetName(name)
 
         Add(grouping)

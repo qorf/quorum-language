@@ -235,11 +235,11 @@ class ScrollableControl is Control
 
         verticalViewRatio = height / totalHeight
         horizontalViewRatio = width / totalWidth
+
         boolean verticalVisible = (verticalViewRatio < 1.0 and verticalMode = VISIBLE_IF_NEEDED) or verticalMode = ALWAYS_VISIBLE
         boolean horizontalVisible = (horizontalViewRatio < 1.0 and horizontalMode = VISIBLE_IF_NEEDED) or horizontalMode = ALWAYS_VISIBLE
         number barHeight = height
         number barWidth = width
-
         /*
         If both bars are visible, we need to offset the total size of the bars so they can't overlap
         in the bottom right corner. Otherwise, if only one is visible, they're allowed to use the whole
@@ -292,6 +292,51 @@ class ScrollableControl is Control
 
         // The RefreshPaneView action will call the parent resize, so layouts will be applied then.
         RefreshPaneView(GetScrollPercentageX(), GetScrollPercentageY())
+
+        /*
+        It's possible that refreshing the pane view can result in a change to total content width/height due to scroll region resizing.
+        If that happens, the view ratios change, which means that the scroll bars won't be the correct size. If that happens, we need to
+        recalculate the ratios and selectively resize just the scroll bars to correct them to the right size.
+        */
+        if GetTotalContentHeight() not= totalHeight
+            verticalViewRatio = height / GetTotalContentHeight()
+            if verticalViewRatio > 1.0
+                verticalViewRatio = 1.0
+            end
+
+            if verticalVisible = false
+                // In this case, we didn't know ahead of time that we needed to display the vertical bar, but now we have to.
+                // Unfortunately we just need to layout again now that we have more info.
+                if (verticalViewRatio < 1.0 and verticalMode = VISIBLE_IF_NEEDED) or verticalMode = ALWAYS_VISIBLE
+                    Resize()
+                    return now
+                end
+            else
+                verticalControl:SetPercentageHeight(verticalViewRatio)
+            end
+
+            verticalBar:Resize()
+        end
+
+        if GetTotalContentWidth() not= totalWidth
+            horizontalViewRatio = width / GetTotalContentWidth()
+            if horizontalViewRatio > 1.0
+                horizontalViewRatio = 1.0
+            end
+
+            if horizontalVisible = false
+                // In this case, we didn't know ahead of time that we needed to display the horizontal bar, but now we have to.
+                // Unfortunately we just need to layout again now that we have more info.
+                if (horizontalViewRatio < 1.0 and horizontalMode = VISIBLE_IF_NEEDED) or horizontalMode = ALWAYS_VISIBLE
+                    Resize()
+                    return now
+                end
+            else
+                horizontalControl:SetPercentageWidth(horizontalViewRatio)
+            end
+
+            horizontalBar:Resize()
+        end
     end
 
     // Update the position of the scroll bars, then refresh the scroll region.
@@ -314,10 +359,9 @@ class ScrollableControl is Control
         scrollPercentageX = percentX
         scrollPercentageY = percentY
 
-        RefreshScrollableRegion()
-
         parent:Control:Resize()
 
+        RefreshScrollableRegion()
         RefreshGutterRegion()
     end
 

@@ -153,7 +153,7 @@ class RegressionLine is ChartDrawable, LinePath
         number yMax = GetMappedTop() - verticalMapPadding
 
         // Starting position for line
-        if not IsHorizontalOrientation()
+        if not IsHorizontalOrientation() and (series is MovableRegressionSeries = false)
             number yVal = yMin
             number xVal = CalculateDependentValue(yVal)
             if (xVal < xMin)
@@ -178,7 +178,7 @@ class RegressionLine is ChartDrawable, LinePath
         end
 
         // Ending position for line
-        if not IsHorizontalOrientation()
+        if not IsHorizontalOrientation() and (series is MovableRegressionSeries = false)
             number yVal = yMax
             number xVal = CalculateDependentValue(yVal)
             if (xVal > xMax)
@@ -203,6 +203,31 @@ class RegressionLine is ChartDrawable, LinePath
             end
             SetPoint2(xVal, yVal)
         end
+
+//        // Starting position for line
+//        number xVal = xMin
+//        number yVal = CalculateDependentValue(xVal)
+//        if (yVal < yMin)
+//            xVal = CalculateIndependentValue(yMin)
+//            yVal = CalculateDependentValue(xVal)
+//        elseif yVal > yMax
+//            xVal = CalculateIndependentValue(yMax)
+//            yVal = CalculateDependentValue(xVal)
+//        end
+//        SetPoint1(xVal, yVal)
+//
+//        // Ending position for line
+//        xVal = xMax
+//        yVal = CalculateDependentValue(xVal)
+//        if (yVal > yMax)
+//            xVal = CalculateIndependentValue(yMax)
+//            yVal = CalculateDependentValue(xVal)
+//        end
+//        if (yVal < yMin)
+//            xVal = CalculateIndependentValue(yMin)
+//            yVal = CalculateDependentValue(xVal)
+//        end
+//        SetPoint2(xVal, yVal)
 
         UpdateMarkerPositions()
         UpdateMarkerDescriptions()
@@ -733,6 +758,14 @@ class RegressionLine is ChartDrawable, LinePath
         Remove(startMarker)
         Add(extraMarker)
         
+        if extraMarker:GetLeftItem() not= undefined
+            extraMarker:GetLeftItem():SetRightItem(extraMarker)
+        end
+
+        if extraMarker:GetRightItem() not= undefined
+            extraMarker:GetRightItem():SetLeftItem(extraMarker)
+        end
+
         extraMarker:SetContainer(GetContainer())
         extraMarker:LoadGraphics(extraMarker:GetDefaultLayoutProperties())
 

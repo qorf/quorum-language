@@ -10,6 +10,7 @@ use Libraries.Interface.Controls.ToggleButton
 class Grouping is FormContainerControl, ButtonGroup
 
     on create
+        SetVerticalLayoutMode(parent:Control:FIT_CONTENTS)
         SetInterfaceOptionsKey("Grouping")
     end
 

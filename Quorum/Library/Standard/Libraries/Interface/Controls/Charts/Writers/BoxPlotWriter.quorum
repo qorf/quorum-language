@@ -79,7 +79,7 @@ class BoxPlotWriter is ChartWriter
         boxPlot = cast(BoxPlot, chart)
 
         if HasAccessibility()
-            canvas:SetRole("graphics-document document")
+            canvas:SetRole("application")
             GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
@@ -125,13 +125,21 @@ class BoxPlotWriter is ChartWriter
             chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox") 
             chartContentBoundingBox:SetAriaHidden("true")
             chartContentBoundingBox:SetTabIndex(-1)
-            chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
+            if chart:IsShowingTitle()
+                chartContent:SetAriaLabel(chart:GetTitle() + " " + chart:GetDescription())
+            else
+                chartContent:SetAriaLabel(chart:GetName() + " " + chart:GetDescription())
+            end
             chartContent:SetAriaHidden("false")
             chartContentBoundingBox:SetTabIndex(-1)
             //chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
             //chartContent:SetOnBlur("loseFocus('" + chartContentBoundingBox:GetID() + "'); ")
         end
         chartContent:Add(chartContentBoundingBox)
+
+        if chart:IsShowingLinearRegression()
+            AddRegressionLines(canvas, chart)
+        end
 
         text description = GetChartArea():GetAriaLabel() + "."
 
@@ -218,6 +226,11 @@ class BoxPlotWriter is ChartWriter
                 integer j = 0
                 repeat while j < group:GetSize()
                     Plot plot = group:Get(j)
+
+                    text groupName = group:GetName()
+                    if groupName = ", "
+                        groupName = ""
+                    end
 
                     Group plotSVG
                     plotSVG:SetFill(plot:GetColor())
@@ -341,8 +354,12 @@ class BoxPlotWriter is ChartWriter
                                 itemSVG:SetStyleClass("quorum-chart-plotitem quorum-chart-plotitem-list") 
                                 itemSVG:SetTabIndex(-1)
                                 itemSVG:SetRole("graphics-symbol")  
-                                itemSVG:SetAriaLabel(currentItem:GetName() + currentItem:GetDescription())
-                                itemSVG:SetAriaHidden("false")
+                                if k not= 2 and k not= 4 and k not= 5 and k not= 9 // skip elements not in nav
+                                    itemSVG:SetAriaLabel(currentItem:GetName() + currentItem:GetDescription())
+                                    itemSVG:SetAriaHidden("false")
+                                else
+                                    itemSVG:SetAriaHidden("true")
+                                end
                             end
                             if k not= 2 and k not= 4 and k not= 5 and k not= 9 // skip elements not in nav
                                 plotSVG:Add(itemSVG)
@@ -363,6 +380,9 @@ class BoxPlotWriter is ChartWriter
                                 outlier:SetStroke(cast(Color, currentItem:GetBorderColor()))
                                 outlier:SetStrokeOpacity(cast(Color, currentItem:GetBorderColor()))
                                 outlier:SetStrokeWidth(currentItem:GetBorderThickness())
+
+                                outlier:SetTitle(plot:GetSeries():GetName() + ", " + groupName + currentItem:GetName() + ":" + currentItem:GetDescription())
+
                                 if HasAccessibility()
                                     outlier:SetStyleClass("quorum-chart-circle")
                                     outlier:SetID(itemSVG:GetID() + "_item")
@@ -381,6 +401,22 @@ class BoxPlotWriter is ChartWriter
                                 plotLine:SetStroke(cast(Color, currentItem:GetBorderColor()))
                                 plotLine:SetStrokeOpacity(cast(Color, currentItem:GetBorderColor()))
                                 plotLine:SetStrokeWidth(currentItem:GetBorderThickness())
+
+                                // Identify what this is based on index and give it appropriate title info.
+                                // Case k = 1: Minimum Line. We can't just use the description here because it includes extra navigation info we don't want.
+                                // We can use the plot's info to get the minimum. It's hardcoded (for some reason) to be at index 3.
+                                if k = 1
+                                    number value = plot:GetInfoAt(3)
+                                    if value = cast(integer, value)
+                                        plotLine:SetTitle(plot:GetSeries():GetName() + ", " + groupName + currentItem:GetName() + ": " + cast(integer, value))
+                                    else
+                                        plotLine:SetTitle(plot:GetSeries():GetName() + ", " + groupName + currentItem:GetName() + ": " + value)
+                                    end
+                                elseif k not= 2 and k not= 4 and k not= 5 and k not= 9 // skip elements not in nav
+                                    plotLine:SetTitle(plot:GetSeries():GetName() + ", " + groupName + currentItem:GetName() + ":" + currentItem:GetDescription())
+                                end
+
+
                                 if HasAccessibility() 
                                     plotLine:SetStyleClass("quorum-chart-rect")
                                     plotLine:SetID(itemSVG:GetID() + "_item")
@@ -538,6 +574,14 @@ class BoxPlotWriter is ChartWriter
                     repeat while j < chart:GetSubChartAreas():Get(i):GetChartAreaItems():GetSize()
                         Plot plot = cast(Plot, chart:GetSubChartAreas():Get(i):GetChartAreaItems():Get(j))
     
+                        text groupName = ""
+                        if plot:GetGroup() not= undefined
+                            plot:GetGroup():GetName()
+                        end
+                        if groupName = ", "
+                            groupName = ""
+                        end
+
                         Group plotSVG
                         plotSVG:SetFill(plot:GetColor())
                         plotSVG:SetFillOpacity(plot:GetColor())
@@ -681,6 +725,9 @@ class BoxPlotWriter is ChartWriter
                                     outlier:SetStroke(cast(Color, currentItem:GetBorderColor()))
                                     outlier:SetStrokeOpacity(cast(Color, currentItem:GetBorderColor()))
                                     outlier:SetStrokeWidth(currentItem:GetBorderThickness())
+
+                                    outlier:SetTitle(plot:GetSeries():GetName() + ", " + groupName + currentItem:GetName() + ":" + currentItem:GetDescription())
+
                                     if HasAccessibility()
                                         outlier:SetStyleClass("quorum-chart-circle")
                                         outlier:SetID(itemSVG:GetID() + "_item")
@@ -699,6 +746,21 @@ class BoxPlotWriter is ChartWriter
                                     plotLine:SetStroke(cast(Color, currentItem:GetBorderColor()))
                                     plotLine:SetStrokeOpacity(cast(Color, currentItem:GetBorderColor()))
                                     plotLine:SetStrokeWidth(currentItem:GetBorderThickness())
+
+                                    // Identify what this is based on index and give it appropriate title info.
+                                    // Case k = 1: Minimum Line. We can't just use the description here because it includes extra navigation info we don't want.
+                                    // We can use the plot's info to get the minimum. It's hardcoded (for some reason) to be at index 3.
+                                    if k = 1
+                                        number value = plot:GetInfoAt(3)
+                                        if value = cast(integer, value)
+                                            plotLine:SetTitle(plot:GetSeries():GetName() + ", " + groupName + currentItem:GetName() + ": " + cast(integer, value))
+                                        else
+                                            plotLine:SetTitle(plot:GetSeries():GetName() + ", " + groupName + currentItem:GetName() + ": " + value)
+                                        end
+                                    elseif k not= 2 and k not= 4 and k not= 5 and k not= 9 // skip elements not in nav
+                                        plotLine:SetTitle(plot:GetSeries():GetName() + ", " + groupName + currentItem:GetName() + ":" + currentItem:GetDescription())
+                                    end
+
                                     if HasAccessibility() 
                                         plotLine:SetStyleClass("quorum-chart-rect")
                                         plotLine:SetID(itemSVG:GetID() + "_item")

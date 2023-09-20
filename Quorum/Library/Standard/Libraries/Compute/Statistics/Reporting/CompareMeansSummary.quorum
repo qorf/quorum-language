@@ -12,6 +12,7 @@ class CompareMeansSummary
     CompareMeansResult result = undefined
     StatisticsFormatting format = undefined
     integer numberOfSamples = 0
+    boolean nSampleOverride = false // If N-sample test was used on only 2 samples
     boolean multivariate = false
     boolean fatcorial = false
     Math math
@@ -28,6 +29,16 @@ class CompareMeansSummary
             if result:GetFactors():GetSize() > 1 
                 factorial = true
             end
+            if numberOfSamples = 2 and result:GetSources():GetSize() > 0
+                // Check if an n-sample test was run on 2 samples only.
+                if not result:IsRanked()
+                    // Parametric: We can easily check this by seeing if a sum of squares was saved which would indicate an anova was used
+                    nSampleOverride = result:GetInformation():GetValue(result:GetSources():Get(0)):HasKey("ss")
+                else
+                    // Nonparametric: See if an N-sample test was conducted on 2 samples.
+                    nSampleOverride = (result:GetFormalTestName() = "Friedman Test" or result:GetFormalTestName() = "Kruskal-Wallis Test")
+                end
+            end
         end
     end
 
@@ -36,7 +47,7 @@ class CompareMeansSummary
             if numberOfSamples = 1
                 return GetSummaryOne()
 
-            elseif numberOfSamples = 2 and not multivariate
+            elseif numberOfSamples = 2 and not multivariate and not nSampleOverride
                 return GetSummaryTwo()
 
             else //numberOfSamples >= 2
@@ -51,7 +62,7 @@ class CompareMeansSummary
             if numberOfSamples = 1
                 return GetFormalSummaryOne()
     
-            elseif numberOfSamples = 2 and not multivariate
+            elseif numberOfSamples = 2 and not multivariate and not nSampleOverride
                 return GetFormalSummaryTwo()
     
             else //numberOfSamples >= 2
@@ -66,7 +77,7 @@ class CompareMeansSummary
             if numberOfSamples = 1
                 return GetFormalNumericalResultOne()
     
-            elseif numberOfSamples = 2 and not multivariate
+            elseif numberOfSamples = 2 and not multivariate and not nSampleOverride
                 return GetFormalNumericalResultTwo()
     
             else //numberOfSamples >= 2
@@ -94,7 +105,7 @@ class CompareMeansSummary
         if result not= undefined
             if numberOfSamples = 1
                 return GetSummaryDataFrameOne()
-            elseif numberOfSamples = 2 and not multivariate
+            elseif numberOfSamples = 2 and not multivariate and not nSampleOverride
                 return GetSummaryDataFrameTwo()
             else //numberOfSamples >= 2
                 return GetSummaryDataFrameSeveral()
@@ -240,17 +251,26 @@ class CompareMeansSummary
                 text source = result:GetSources():Get(i)
                 if result:GetTestStatisticsTable():HasKey(source)
                     summary = summary + lf + "Source: " + source
-                    text statName = result:GetTestStatisticsTable():GetValue(source):GetKeyIterator():Next()
+                    text statName = ""
+                    if result:UseWilksStatistic()
+                        statName = "Wilks Lambda"
+                    elseif result:UsePillaiStatistic()
+                        statName = "Pillai Trace"
+                    elseif result:UseHotellingStatistic()
+                        statName = "Hotelling Trace"
+                    end
                     text statSource = source+statName
                     text effName = result:GetEffectSizesTable():GetValue(statSource):GetKeyIterator():Next()
                     number stat = result:GetTestStatisticsTable():GetValue(source):GetValue(statName)
                     number f = result:GetTestStatisticsTable():GetValue(statSource):GetValue("F")
                     number eff = result:GetEffectSizesTable():GetValue(statSource):GetValue(effName)
                     number df = result:GetDegreesOfFreedomTable():GetValue(source):GetValue(source)
+                    number errordf = result:GetInformation():GetValue(source):GetValue("error df")
                     number dfn = result:GetDegreesOfFreedomTable():GetValue(statSource):GetValue("numerator")
                     number dfd = result:GetDegreesOfFreedomTable():GetValue(statSource):GetValue("denominator")
                     number pval = result:GetProbabilityValuesTable():GetValue(statSource):GetValue(statSource)
                     summary = summary + lf + tab + "Degrees Of Freedom: " + math:Round(df, digits)
+                    summary = summary + lf + tab + "Error Degrees Of Freedom: " + math:Round(errordf, digits)
                     summary = summary + lf + tab + "Statistic ("+statName+"): " + math:Round(stat, digits)
                     summary = summary + lf + tab + "Statistic (Approximate F): " + math:Round(f, digits)
                     summary = summary + lf + tab + "Degrees Of Freedom Numerator: " + math:Round(dfn, digits)
@@ -271,7 +291,39 @@ class CompareMeansSummary
                     text effName = result:GetEffectSizesTable():GetValue(source):GetKeyIterator():Next()
                     number stat = result:GetTestStatisticsTable():GetValue(source):GetValue(statName)
                     number eff = result:GetEffectSizesTable():GetValue(source):GetValue(effName)
-                    if result:HasEqualVariances() or result:IsRanked()
+                    if result:IsRepeated() and not result:IsRanked()
+                        HashTable<text, number> info = result:GetInformation():GetValue(source)
+                        number pval = info:GetValue("p")
+                        number ss = info:GetValue("ss")
+                        number df = info:GetValue("df")
+                        number errorss = info:GetValue("error ss")
+                        number errordf = info:GetValue("error df")
+                        summary = summary + lf + tab + "Sum Of Squares: " + math:Round(ss, digits)
+                        summary = summary + lf + tab + "Error Sum Of Squares: " + math:Round(errorss, digits)
+                        summary = summary + lf + tab + "Degrees Of Freedom: " + math:Round(df, digits)
+                        summary = summary + lf + tab + "Error Degrees Of Freedom: " + math:Round(errordf, digits)
+                        summary = summary + lf + tab + "Statistic ("+statName+"): " + math:Round(stat, digits)
+                        summary = summary + lf + tab + "Probability: " + math:Round(pval, digits)
+                        summary = summary + lf + tab + "Effect Size (" + effName + "): " + math:Round(eff, digits)  
+
+                        if result:GetVarianceResult() not= undefined and info:HasKey("sphericity p")
+                            number mauchlys_p = info:GetValue("sphericity p")
+                            summary = summary + lf + tab + result:GetVarianceResult():GetFormalTestName() + " Probability: " + math:Round(mauchlys_p, digits)
+
+                            text ggcorrectionName = "Greenhouse-Geisser Correction"
+                            number gg = info:GetValue("gg")
+                            number ggp = info:GetValue("gg p")
+                            summary = summary + lf + tab + ggcorrectionName + " (ε): " + math:Round(gg, digits)
+                            summary = summary + lf + tab + "Greenhouse-Geisser Corrected Probability: " + math:Round(ggp, digits)
+
+                            text hfcorrectionName = "Huynh-Feldt Correction"
+                            number hf = info:GetValue("hf")
+                            number hfp = info:GetValue("hf p")
+                            summary = summary + lf + tab + hfcorrectionName + " (ε): " + math:Round(hf, digits)
+                            summary = summary + lf + tab + "Huynh-Feldt Corrected Probability: " + math:Round(hfp, digits)
+                        end                 
+
+                    elseif result:HasEqualVariances() or result:IsRanked()
                         number df = result:GetDegreesOfFreedomTable():GetValue(source):GetValue(statName)
                         number pval = result:GetProbabilityValuesTable():GetValue(source):GetValue(statName)
                         if not result:IsRanked() 
@@ -486,19 +538,100 @@ class CompareMeansSummary
         end
 
         if result:IsRepeated()
-            if result:GetVarianceResult() not= undefined and result:GetVarianceResult():GetCorrection() not= 1
-                summary = summary  + lf + result:GetVarianceResult():GetFormalTestName() + " indicated that the assumption of sphericity had been violated, " 
-                + result:GetVarianceResult():GetFormalNumericalResult() + ", therefore the degrees of freedom were corrected using Greenhouse-Geisser estimates of sphericity "
-                + "(ε ="+format:FormatWithoutLeadingZero(result:GetVarianceResult():GetCorrection(), 2)+"). "
+            if result:GetVarianceResult() not= undefined
+                summary = summary + lf + result:GetVarianceResult():GetFormalTestName() 
+                summary = summary + " indicated that the assumption of sphericity had been violated for at least one effect:" 
+
+                // Corrected Formal Numerical Result
+                text list = ""
+                boolean significant = false
+                Array<text> sources = result:GetSources()
+                i = 0
+                repeat while i < sources:GetSize()
+                    text source = sources:Get(i)
+                    HashTable<text, number> info = result:GetInformation():GetValue(source)
+                    if info:HasKey("p")
+                        number pval = info:GetValue("p")
+                        text equation = ""
+                        // If significant: show corrected results
+                        if pval <= result:GetSignificanceLevel()
+                            if info:GetValue("sphericity p") <= result:GetSignificanceLevel()
+                                text statName = result:GetTestStatisticsTable():GetValue(source):GetKeyIterator():Next()
+                                number stat = result:GetTestStatisticsTable():GetValue(source):GetValue(statName)
+                                number correction = info:GetValue("gg")
+                                number dfb = info:GetValue("df")*correction
+                                number dfw = info:GetValue("error df")*correction
+                                number adjp = info:GetValue("gg p")
+        
+                                text effName = result:GetEffectSizesTable():GetValue(source):GetKeyIterator():Next()
+                                number eff = result:GetEffectSizesTable():GetValue(source):GetValue(effName)
+            
+                                if sources:GetSize() = 1
+                                    equation = equation + source
+                                end
+                                equation = GetFormalNumericalResultSeveral(source)
+                                equation = equation + lf + source +" corrected: "+statName+"("+format:FormatDegreesOfFreedom(dfb)+", "
+                                equation = equation + format:FormatDegreesOfFreedom(dfw)+") = "+format:FormatTestStatistic(stat)
+                                if adjp < format:PRECISION_LIMIT
+                                    equation = equation + ", p < " + format:FormatProbabilityValue(adjp)
+                                else
+                                    equation = equation + ", p = " + format:FormatProbabilityValue(adjp)
+                                end
+                                equation = equation + ", (ε = "+format:FormatWithoutLeadingZero(correction, 2)+")"
+                                equation = equation + ", "+effName+" = " + format:FormatWithoutLeadingZero(eff,3)
+    
+                                if adjp <= result:GetSignificanceLevel()
+                                    significant = true
+                                end
+                            else
+                                significant = true
+                                equation = GetFormalNumericalResultSeveral(source)
+                            end
+                        else
+                            equation = GetFormalNumericalResultSeveral(source)
+                        end
+    
+                        if equation not= ""
+                            if list not= ""
+                                list = list + lf
+                            end
+                            if sources:GetSize() = 1
+                                list = equation
+                            else
+                                list = list + source + ": "+ equation
+                            end
+                        end
+                    end
+                    i = i + 1
+                end
+
+                if sources:GetSize() > 1
+                    summary = summary + ": " + lf + list
+                else
+                    summary = summary + ", " + list + "."
+                end
+
+                summary = summary  + lf + "The degrees of freedom were corrected using the Greenhouse-Geisser procedure. "
+                if significant
+                    summary = summary + lf + "The corrected result indicated that there was a statistically significant difference between the samples."
+                else
+                    summary = summary + lf + "The corrected result indicated that there was not a statistically significant difference between the samples."
+                end
+
+                return summary
             end
         end
-
         if result:IsSignificant()
             summary = summary + lf + "The result indicated that there was a statistically significant difference between the samples"
         else
             summary = summary + lf + "The result indicated that there was not a statistically significant difference between the samples"
         end
-        summary = summary + ", " + GetFormalNumericalResult() + "."
+
+        if result:GetSources():GetSize() > 1
+            summary = summary + ": " + lf + GetFormalNumericalResult()
+        else
+            summary = summary + ", " + GetFormalNumericalResult() + "."
+        end
 
         return summary
     end
@@ -692,7 +825,14 @@ class CompareMeansSummary
                     end
                     summary = summary + ", "+effName+" = " + format:FormatWithoutLeadingZero(eff,3)
                 elseif multivariate // MANOVA
-                    text statName = result:GetTestStatisticsTable():GetValue(source):GetKeyIterator():Next()
+                    text statName = ""
+                    if result:UseWilksStatistic()
+                        statName = "Wilks Lambda"
+                    elseif result:UsePillaiStatistic()
+                        statName = "Pillai Trace"
+                    elseif result:UseHotellingStatistic()
+                        statName = "Hotelling Trace"
+                    end
                     text statSource = source+statName
                     text effName = result:GetEffectSizesTable():GetValue(statSource):GetKeyIterator():Next()
                     number stat = result:GetTestStatisticsTable():GetValue(source):GetValue(statName)
@@ -703,24 +843,24 @@ class CompareMeansSummary
                     number dfd = result:GetDegreesOfFreedomTable():GetValue(statSource):GetValue("denominator")
                     number pval = result:GetProbabilityValuesTable():GetValue(statSource):GetValue(statSource)
             
-                    summary = summary + "F("+format:FormatDegreesOfFreedom(dfn)+", "+format:FormatDegreesOfFreedom(dfd)+") = "+format:FormatTestStatistic(f)
+                    summary = summary + statName + " = "+format:FormatWithoutLeadingZero(stat,2)
+                    summary = summary + ", F("+format:FormatDegreesOfFreedom(dfn)+", "+format:FormatDegreesOfFreedom(dfd)+") = "+format:FormatTestStatistic(f)
                     if pval < format:PRECISION_LIMIT
                         summary = summary + ", p < " + format:FormatProbabilityValue(pval)
                     else
                         summary = summary + ", p = " + format:FormatProbabilityValue(pval)
                     end
-                    summary = summary + ", "+statName+" = " + format:FormatTestStatistic(stat)
                     summary = summary + ", "+effName+" = " + format:FormatWithoutLeadingZero(eff,3)
                 else // ANOVA
                     text statName = result:GetTestStatisticsTable():GetValue(source):GetKeyIterator():Next()
                     text effName = result:GetEffectSizesTable():GetValue(source):GetKeyIterator():Next()
                     number stat = result:GetTestStatisticsTable():GetValue(source):GetValue(statName)
-                    number dfb = result:GetDegreesOfFreedomTable():GetValue(source):GetValue(statName)
-                    number dfw = result:GetDegreesOfFreedomTable():GetValue("Residual Error"):GetValue("Residual Error")
+                    number dfn = result:GetInformation():GetValue(source):GetValue("df")
+                    number dfd = result:GetInformation():GetValue(source):GetValue("error df")
                     number pval = result:GetProbabilityValuesTable():GetValue(source):GetValue(statName)
                     number eff = result:GetEffectSizesTable():GetValue(source):GetValue(effName)
             
-                    summary = summary + statName+"("+format:FormatDegreesOfFreedom(dfb)+", "+format:FormatDegreesOfFreedom(dfw)+") = "+format:FormatTestStatistic(stat)
+                    summary = summary + statName+"("+format:FormatDegreesOfFreedom(dfn)+", "+format:FormatDegreesOfFreedom(dfd)+") = "+format:FormatTestStatistic(stat)
                     if pval < format:PRECISION_LIMIT
                         summary = summary + ", p < " + format:FormatProbabilityValue(pval)
                     else
@@ -881,8 +1021,12 @@ class CompareMeansSummary
         equationCol:SetHeader("APA Report")
         NumberColumn ssCol
         ssCol:SetHeader("Sum Of Squares")
+        NumberColumn sseCol
+        sseCol:SetHeader("Sum Of Squares Error")
         NumberColumn dfCol
         dfCol:SetHeader("Degrees Of Freedom")
+        NumberColumn dfeCol
+        dfeCol:SetHeader("Degrees Of Freedom Error")
         NumberColumn dfnCol
         dfnCol:SetHeader("Numerator Degrees Of Freedom")
         NumberColumn dfdCol
@@ -894,6 +1038,14 @@ class CompareMeansSummary
             text source = result:GetSources():Get(i)
 
             if result:IsRanked()
+                if i = 0
+                    resultFrame:AddColumn(testCol)
+                    resultFrame:AddColumn(dfCol)
+                    resultFrame:AddColumn(statisticCol)
+                    resultFrame:AddColumn(pCol)
+                    resultFrame:AddColumn(effectCol)
+                    resultFrame:AddColumn(equationCol)  
+                end
                 testCol:Add(source)
                 equationCol:Add(GetFormalNumericalResultSeveral(source))
                 if result:GetTestStatisticsTable():HasKey(source)
@@ -903,20 +1055,22 @@ class CompareMeansSummary
                     dfCol:Add(math:Round(result:GetDegreesOfFreedomTable():GetValue(source):GetValue(statName), digits))
                     pCol:Add(math:Round(result:GetProbabilityValuesTable():GetValue(source):GetValue(statName), digits))
                     effectCol:Add(math:Round(result:GetEffectSizesTable():GetValue(source):GetValue(effectName), digits))
-                    if i = 0
+                    if statisticCol:GetHeader() = "" or effectCol:GetHeader() = ""
                         statisticCol:SetHeader("Statistic ("+statName+")")
                         effectCol:SetHeader("Effect Size ("+effectName+")")   
-    
+                    end
+                end
+            else
+                if not result:HasEqualVariances() and not result:IsRepeated()
+                    if i = 0
                         resultFrame:AddColumn(testCol)
-                        resultFrame:AddColumn(dfCol)
+                        resultFrame:AddColumn(dfnCol)
+                        resultFrame:AddColumn(dfdCol)
                         resultFrame:AddColumn(statisticCol)
                         resultFrame:AddColumn(pCol)
                         resultFrame:AddColumn(effectCol)
                         resultFrame:AddColumn(equationCol)  
                     end
-                end
-            else
-                if not result:HasEqualVariances()
                     if result:GetTestStatisticsTable():HasKey(source)
                         testCol:Add(source)
                         equationCol:Add(GetFormalNumericalResultSeveral(source))
@@ -928,79 +1082,101 @@ class CompareMeansSummary
                         pCol:Add(math:Round(result:GetProbabilityValuesTable():GetValue(source):GetValue(source), digits))
                         effectCol:Add(math:Round(result:GetEffectSizesTable():GetValue(source):GetValue(effectName), digits))
     
-                        if i = 0
+                        if statisticCol:GetHeader() = "" or effectCol:GetHeader() = ""
                             statisticCol:SetHeader("Statistic ("+statName+")")
                             effectCol:SetHeader("Effect Size ("+effectName+")")  
-        
-                            resultFrame:AddColumn(testCol)
-                            resultFrame:AddColumn(dfnCol)
-                            resultFrame:AddColumn(dfdCol)
-                            resultFrame:AddColumn(statisticCol)
-                            resultFrame:AddColumn(pCol)
-                            resultFrame:AddColumn(effectCol)
-                            resultFrame:AddColumn(equationCol)  
                         end
                     end
                 elseif multivariate
+                    if i = 0        
+                        resultFrame:AddColumn(testCol)
+                        resultFrame:AddColumn(dfCol)
+                        if result:IsRepeated()
+                            resultFrame:AddColumn(dfeCol)
+                        end
+                        resultFrame:AddColumn(statisticCol)
+                        resultFrame:AddColumn(dfnCol)
+                        resultFrame:AddColumn(dfdCol)
+                        resultFrame:AddColumn(statistic2Col)
+                        resultFrame:AddColumn(pCol)
+                        resultFrame:AddColumn(effectCol)
+                        resultFrame:AddColumn(equationCol)  
+                    end
                     if result:GetTestStatisticsTable():HasKey(source)
                         testCol:Add(source)
                         equationCol:Add(GetFormalNumericalResultSeveral(source))
-                        text statName = result:GetTestStatisticsTable():GetValue(source):GetKeyIterator():Next()
+                        text statName = ""
+                        if result:UseWilksStatistic()
+                            statName = "Wilks Lambda"
+                        elseif result:UseHotellingStatistic()
+                            statName = "Hotelling Trace"
+                        else
+                            statName = "Pillai Trace"
+                        end
                         text statSource = source+statName
                         text effectName = result:GetEffectSizesTable():GetValue(statSource):GetKeyIterator():Next()
-                        statisticCol:Add(math:Round(result:GetTestStatisticsTable():GetValue(source):GetValue(statSource), digits))
-                        dfCol:Add(math:Round(result:GetDegreesOfFreedomTable():GetValue(source):GetValue(source), digits))
+                        statisticCol:Add(math:Round(result:GetTestStatisticsTable():GetValue(source):GetValue(statName), digits))
+                        statistic2Col:Add(math:Round(result:GetTestStatisticsTable():GetValue(statSource):GetValue("F"), digits))
+                        dfCol:Add(math:Round(result:GetInformation():GetValue(source):GetValue("df"), digits))
+                        dfeCol:Add(math:Round(result:GetInformation():GetValue(source):GetValue("error df"), digits))
                         dfnCol:Add(math:Round(result:GetDegreesOfFreedomTable():GetValue(statSource):GetValue("numerator"), digits))
                         dfdCol:Add(math:Round(result:GetDegreesOfFreedomTable():GetValue(statSource):GetValue("denominator"), digits))
                         pCol:Add(math:Round(result:GetProbabilityValuesTable():GetValue(statSource):GetValue(statSource), digits))
                         effectCol:Add(math:Round(result:GetEffectSizesTable():GetValue(statSource):GetValue(effectName), digits))
-                        if i = 0
+                        if statisticCol:GetHeader() = "" or effectCol:GetHeader() = ""
                             statisticCol:SetHeader("Statistic ("+statName+")")
                             statistic2Col:SetHeader("Statistic (F)") 
                             effectCol:SetHeader("Effect Size ("+effectName+")")  
-        
-                            resultFrame:AddColumn(testCol)
-                            resultFrame:AddColumn(dfCol)
-                            resultFrame:AddColumn(statisticCol)
-                            resultFrame:AddColumn(dfnCol)
-                            resultFrame:AddColumn(dfdCol)
-                            resultFrame:AddColumn(statistic2Col)
-                            resultFrame:AddColumn(pCol)
-                            resultFrame:AddColumn(effectCol)
-                            resultFrame:AddColumn(equationCol)  
                         end
                     end
                 else
-                    if result:GetTestStatisticsTable():HasKey(source)
-                        testCol:Add(source)
-                        equationCol:Add(GetFormalNumericalResultSeveral(source))
+                    if i = 0
+                        resultFrame:AddColumn(testCol)
+                        resultFrame:AddColumn(dfCol)
+                        if result:IsRepeated()
+                            resultFrame:AddColumn(dfeCol)
+                        end
+                        resultFrame:AddColumn(ssCol)
+                        if result:IsRepeated()
+                            resultFrame:AddColumn(sseCol)
+                        end
+                        resultFrame:AddColumn(statisticCol)
+                        resultFrame:AddColumn(pCol)
+                        resultFrame:AddColumn(effectCol)
+                        resultFrame:AddColumn(equationCol) 
+                    end
+                    testCol:Add(source)
+                    equationCol:Add(GetFormalNumericalResultSeveral(source))
+                    if result:GetInformation():GetValue(source):HasKey("F")
                         text statName = result:GetTestStatisticsTable():GetValue(source):GetKeyIterator():Next()
                         text effectName = result:GetEffectSizesTable():GetValue(source):GetKeyIterator():Next()
                         statisticCol:Add(math:Round(result:GetTestStatisticsTable():GetValue(source):GetValue(statName), digits))
                         ssCol:Add(math:Round(result:GetInformation():GetValue(source):GetValue("ss"), digits))
-                        dfCol:Add(math:Round(result:GetDegreesOfFreedomTable():GetValue(source):GetValue(statName), digits))
+                        sseCol:Add(math:Round(result:GetInformation():GetValue(source):GetValue("error ss"), digits))
+                        dfCol:Add(math:Round(result:GetInformation():GetValue(source):GetValue("df"), digits))
+                        dfeCol:Add(math:Round(result:GetInformation():GetValue(source):GetValue("error df"), digits))
                         pCol:Add(math:Round(result:GetProbabilityValuesTable():GetValue(source):GetValue(statName), digits))
                         effectCol:Add(math:Round(result:GetEffectSizesTable():GetValue(source):GetValue(effectName), digits))
-                        if i = 0
+                        if statisticCol:GetHeader() = "" or effectCol:GetHeader() = ""
                             statisticCol:SetHeader("Statistic ("+statName+")")
-                            effectCol:SetHeader("Effect Size ("+effectName+")") 
-
-                            resultFrame:AddColumn(testCol)
-                            resultFrame:AddColumn(ssCol)
-                            resultFrame:AddColumn(dfCol)
-                            resultFrame:AddColumn(statisticCol)
-                            resultFrame:AddColumn(pCol)
-                            resultFrame:AddColumn(effectCol)
-                            resultFrame:AddColumn(equationCol)  
+                            effectCol:SetHeader("Effect Size ("+effectName+")")
                         end
                     else
-                        testCol:Add(source)
-                        dfCol:Add(math:Round(result:GetDegreesOfFreedomTable():GetValue(source):GetValue(source), digits))
-                        ssCol:Add(math:Round(result:GetInformation():GetValue(source):GetValue("ss"), digits))
+                        if source = "Residual Error"
+                            ssCol:Add(math:Round(result:GetInformation():GetValue(source):GetValue("ss"), digits))
+                            dfCol:Add(math:Round(result:GetInformation():GetValue(source):GetValue("df"), digits))
+                        else
+                            statisticCol:Add(undefined)
+                            ssCol:Add(undefined)
+                            sseCol:Add(math:Round(result:GetInformation():GetValue(source):GetValue("ss"), digits))
+                            dfCol:Add(math:Round(1.0, digits))
+                            dfeCol:Add(math:Round(result:GetInformation():GetValue(source):GetValue("df"), digits))
+                            pCol:Add(undefined)
+                            effectCol:Add(undefined)
+                        end
                     end
                 end
             end
-
             i = i + 1
         end
         return resultFrame

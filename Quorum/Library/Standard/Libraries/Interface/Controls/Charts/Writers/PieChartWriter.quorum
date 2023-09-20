@@ -76,11 +76,10 @@ class PieChartWriter is ChartWriter
     action AddChartArea(ScalableVectorGraphics canvas, Chart chart)
         parent:ChartWriter:AddChartArea(canvas,chart)
         
-        PieChart pieChart
-        pieChart = cast(PieChart, chart)
+        PieChart pieChart = cast(PieChart, chart)
 
         if HasAccessibility()
-            canvas:SetRole("graphics-document document")
+            canvas:SetRole("application")
             GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
@@ -89,8 +88,7 @@ class PieChartWriter is ChartWriter
         This action adds the content of the PieChart
     */
     private action AddChartContent(ScalableVectorGraphics canvas, Chart chart)
-        PieChart pieChart
-        pieChart = cast(PieChart, chart)
+        PieChart pieChart = cast(PieChart, chart)
         AddSlices(canvas, pieChart)
     end
 
@@ -127,7 +125,11 @@ class PieChartWriter is ChartWriter
             chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox")
             chartContentBoundingBox:SetTabIndex(-1)  
             chartContentBoundingBox:SetAriaHidden("true")
-            chartContent:SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
+            if chart:IsShowingTitle()
+                chartContent:SetAriaLabel(chart:GetTitle() + " " + chart:GetDescription())
+            else
+                chartContent:SetAriaLabel(chart:GetName() + " " + chart:GetDescription())
+            end
             chartContent:SetAriaHidden("false")
             //chartContent:SetOnFocus("gainFocus('" + chartContentBoundingBox:GetID() + "'); ")
             //chartContent:SetOnBlur("loseFocus('" + chartContentBoundingBox:GetID() + "'); ")
@@ -210,7 +212,18 @@ class PieChartWriter is ChartWriter
                     slice:SetStroke(cast(Color, pieBox:Get(i):GetBorderColor()))
                     slice:SetStrokeOpacity(cast(Color, pieBox:Get(i):GetBorderColor()))
                     slice:SetStrokeWidth(pieBox:Get(i):GetBorderThickness())
-                    
+
+                    if chart:IsShowingValueAnnotations()
+                        number value = pieBox:Get(i):GetValue()
+                        if cast(integer, value) = value
+                            slice:SetTitle(pieBox:Get(i):GetName() + ": " + cast(integer, pieBox:Get(i):GetValue()) + " (" + pieBox:Get(i):GetPercentageText() + "%)")                    
+                        else
+                            slice:SetTitle(pieBox:Get(i):GetName() + ": " + pieBox:Get(i):GetValue() + " (" + pieBox:Get(i):GetPercentageText() + "%)")                    
+                        end
+                    else
+                        slice:SetTitle(pieBox:Get(i):GetName() + ": " + pieBox:Get(i):GetPercentageText() + "%")
+                    end
+
                     text sliceFocus = ""
                     text sliceBlur = ""
 
@@ -386,6 +399,17 @@ class PieChartWriter is ChartWriter
                         slice:SetStroke(cast(Color, pieBox:Get(i):GetBorderColor()))
                         slice:SetStrokeOpacity(cast(Color, pieBox:Get(i):GetBorderColor()))
                         slice:SetStrokeWidth(pieBox:Get(i):GetBorderThickness())
+
+                        if chart:IsShowingValueAnnotations()
+                            number value = pieBox:Get(i):GetValue()
+                            if cast(integer, value) = value
+                                slice:SetTitle(pieBox:Get(i):GetName() + ": " + cast(integer, pieBox:Get(i):GetValue()) + " (" + pieBox:Get(i):GetPercentageText() + "%)")                    
+                            else
+                                slice:SetTitle(pieBox:Get(i):GetName() + ": " + pieBox:Get(i):GetValue() + " (" + pieBox:Get(i):GetPercentageText() + "%)")                    
+                            end
+                        else
+                            slice:SetTitle(pieBox:Get(i):GetName() + ": " + pieBox:Get(i):GetPercentageText() + "%")
+                        end
 
                         text sliceFocus = ""
                         text sliceBlur = ""

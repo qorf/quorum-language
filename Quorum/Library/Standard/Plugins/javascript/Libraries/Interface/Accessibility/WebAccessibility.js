@@ -10,6 +10,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     let root = null;
     let focusButton = null;
     let blurDelayedCall = null;
+    let removedFocusedElement = false;
 
     const addBlurListener = function(element) {
         element.addEventListener("blur", () => {
@@ -118,6 +119,9 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         } else {
             element = root;
         }
+        if (!element)
+            return;
+
         root.hidden = false;
         element.focus();
         focusButton.hidden = true;
@@ -166,30 +170,45 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
             }
         }
     };
-    
-//    system action NameChanged(Item item)
 
+    //The label needs the description as well, because not all browsers support this tag
     this.NameChanged$quorum_Libraries_Interface_Item = function(item) {
         var id = item.GetHashCode();
         if( elementList[id] != null ) {
             var element = document.getElementById(id);
-            element.setAttribute("aria-label", item.GetName() + item.GetDescription());
+            if (item.GetAccessibilityCode() == 29) { //labels
+                var itemName = item.GetText()
+                var itemDescription =item.GetDescription();
+                var result = itemName;
+                if(itemName != null && itemDescription != null && itemName.localeCompare(itemDescription) != 0) {
+                    result = result + ", " + item.GetDescription()
+                }
+                element.setAttribute("aria-label", result);
+            } else {
+                element.setAttribute("aria-label", item.GetName() + ", " + item.GetDescription());
+            }
         }
-        //console.log("Name Changed");
     };
 
-//    system action DescriptionChanged(Item item)
-
+    //descriptions are not supported on all browsers, so shove everything into the label
+    //https://a11ysupport.io/tech/aria/aria-description_attribute
     this.DescriptionChanged$quorum_Libraries_Interface_Item = function(item) {
         var id = item.GetHashCode();
         if( elementList[id] != null ) {
             var element = document.getElementById(id);
-            element.setAttribute("aria-label", item.GetName() + item.GetDescription());
+            if (item.GetAccessibilityCode() == 29) { //labels
+                var itemName = item.GetText()
+                var itemDescription =item.GetDescription();
+                var result = itemName;
+                if(itemName != null && itemDescription != null && itemName.localeCompare(itemDescription) != 0) {
+                    result = result + ", " + item.GetDescription()
+                }
+                element.setAttribute("aria-label", result);
+            } else {
+                element.setAttribute("aria-label", item.GetName() + ", " + item.GetDescription());
+            }
         }
-        //console.log("Description Changed");
     };
-    
-//    system action BoundsChanged(Item item)
 
     this.BoundsChanged$quorum_Libraries_Interface_Item = function(item) {
         var id = item.GetHashCode();
@@ -197,11 +216,8 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
             var element = document.getElementById(id);
             setBounds(element, item);
         }
-        //console.log("Bounds Changed");
     };
     
-//    system action TextFieldUpdatePassword(TextField field)
-
     this.TextFieldUpdatePassword$quorum_Libraries_Interface_Controls_TextField = function(field) {
         //console.log("Text field updated Changed");
     };
@@ -301,6 +317,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             //console.log("Tried to focus nothing");
             return;
         }
+
         // if not accessible focus the parent
         // if no accessible parent then ignore event
         if (item.GetAccessibilityCode() == -1) {
@@ -317,7 +334,8 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             return;
         }
         currentFocus = item;
-        if (plugins_quorum_Libraries_Game_WebInput_.IsFocused()) {
+        if (plugins_quorum_Libraries_Game_WebInput_.IsFocused() || removedFocusedElement) {
+            removedFocusedElement = false;
             let element = document.getElementById(id);
             element.focus();
         }
@@ -327,16 +345,17 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
     this.NativeAdd$quorum_Libraries_Interface_Item = function(item) {
         //dont add to DOM if not accessible
         if (item.GetAccessibilityCode() == -1) {
-            return;
+            return false;
         }
 
        //replace this code with item appropriate material
         var id = item.GetHashCode();
         //dont want to add something to the DOM twice
         if( elementList[id] != null ) {
-            return;
+            return false;
         }
         var itemName = item.GetName();
+        var itemDescription = item.GetDescription();
         elementList[id] = item;      //adds the item to the elementList array using the item's HashCode value as an index
         elementType = "DIV";
         //default role
@@ -629,13 +648,22 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                     itemName = "Radio Group"
                 break;
             case 26:
-                role="document graphics-document";
+                role="application";
                 break;
             case 27:
                 role="graphics-object group";
                 break;
             case 28:
                 role="graphics-symbol img";
+                break;
+            case 29: //label
+                if (item.IsFocusable() ) {
+                    role = "img";
+                    itemName = item.GetText();
+                    if(itemName != null && itemDescription != null && itemName.localeCompare(itemDescription)==0) {
+                        itemDescription = null;
+                    }
+                }
                 break;
             default:
                 // do nothing?
@@ -657,10 +685,14 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         if (roleDescription != null) {
             para.setAttribute("aria-roledescription", roleDescription);
         }
+        
         if (itemName != null) {
-            para.setAttribute("aria-label", itemName + item.GetDescription());
+            var result = itemName;
+            if(itemDescription != null) {
+                result = result + ", " + itemDescription;
+            }
+            para.setAttribute("aria-label", result);
         }
-        // para.setAttribute("aria-label", para.getAttribute("aria-label") + " " + item.GetDescription())
 
         if (item.IsFocusable()) {
             para.setAttribute("tabindex", "-1");
@@ -707,20 +739,27 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         // Set the element's bounds after we've added it, so setBounds can assume
         // the element's parent is already set.
         setBounds(para, item);
+        return true;
 };
 //    system action NativeRemove(Item item)
     this.NativeRemove$quorum_Libraries_Interface_Item = function(item) {
         let id = item.GetHashCode();
         //cant remove what's not there
         if( elementList[id] == null ) {
-            return;
+            return false;
         }
         let element = document.getElementById(id);
         if (element != null) { //if the parent was removed then this would come up null
+            if (element === document.activeElement)
+            {
+                removedFocusedElement = true;
+            }
+
             element.remove();
         }
         //console.log(elementList[id], " has been removed.");
         elementList[id] = null;
+        return true;
     };
     
 //    system action MenuChanged(MenuChangeEvent event)

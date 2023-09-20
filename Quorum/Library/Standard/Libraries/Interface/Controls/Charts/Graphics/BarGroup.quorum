@@ -34,6 +34,9 @@ class BarGroup is GroupPanel
     number minBarValue = 0
     Bar maxBar = undefined
 
+    // The name of the group this represents. Separate from the default name, which can be reported to accessibility.
+    text groupName = ""
+
     action AddBar(Bar bar)
         AddItem(bar)
         RecalculateGroupValues()
@@ -129,4 +132,13 @@ class BarGroup is GroupPanel
             i = i + 1
         end
     end
+
+    action GetGroupName returns text
+        return groupName
+    end
+
+    action SetGroupName(text groupName)
+        me:groupName = groupName
+    end
+
 end

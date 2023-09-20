@@ -11,6 +11,7 @@ use Libraries.Interface.Events.TextChangeEvent
 use Libraries.Interface.Controls.Blocks.Block
 use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
 use Libraries.Containers.MultipleLineText
+use Libraries.Interface.Selections.TextBoxSelection
 
 class EditBox is TextBox, EditRegion
 
@@ -20,7 +21,6 @@ class EditBox is TextBox, EditRegion
     boolean initialized = false
 
     on create
-        SetCornerRounding(0.5, 0.5, 0.5, 0.5)
         SetInputGroup("EditBox")
         SetPositionOnBaseLine(false)
 
@@ -92,7 +92,7 @@ class EditBox is TextBox, EditRegion
             length = minimumLength
         end
 
-        SetSize(length, height)
+        SetSize(cast(integer, length + 0.5), cast(integer, height + 0.5))
     end
 
     action GetLineCount returns integer
@@ -107,11 +107,15 @@ class EditBox is TextBox, EditRegion
 
     action LostFocus(FocusEvent event)
         parent:TextBox:LostFocus(event)
-        parent:Control:LostFocus(event)
+        parent:BlockItem:LostFocus(event)
     end
 
     action ShowCaret
         parent:TextBox:ShowCaret()
+    end
+
+    action HideCaret
+        parent:TextBox:HideCaret()
     end
 
     private action FitCharacterOnScreen(integer character)
@@ -178,4 +182,11 @@ class EditBox is TextBox, EditRegion
         parent:TextBox:NotifyTextChangeListeners(event)
     end
 
+    action GetSelectedText returns text
+        TextBoxSelection selection = GetSelection()
+        if selection:IsEmpty()
+            return ""
+        end
+        return GetText(selection:GetStartIndex(), selection:GetEndIndex())
+    end
 end

@@ -164,6 +164,16 @@ class BlockShaderMapping is BatchingShaderMapping2D
             bottomRightRounding = properties:GetBottomRightRounding()
             topRightRounding = properties:GetTopRightRounding()
             topLeftRounding = properties:GetTopLeftRounding()
+            
+number halfSize = width / 2.0
+            if height / 2.0 < halfSize
+                halfSize = height / 2.0
+            end
+
+            bottomLeftRounding = bottomLeftRounding + properties:GetBottomLeftPixelRounding() * properties:GetInterfaceScale() / halfSize
+            bottomRightRounding = bottomRightRounding + properties:GetBottomRightPixelRounding() * properties:GetInterfaceScale() / halfSize
+            topLeftRounding = topLeftRounding + properties:GetTopLeftPixelRounding() * properties:GetInterfaceScale() / halfSize
+            topRightRounding = topRightRounding + properties:GetTopRightPixelRounding() * properties:GetInterfaceScale() / halfSize
 
             if properties:GetBorderColor() not= undefined
                 borderColor = properties:GetBorderColor():GetBottomLeft()
@@ -210,6 +220,15 @@ class BlockShaderMapping is BatchingShaderMapping2D
                 bottomRightRounding = control:GetBottomRightRounding()
                 topRightRounding = control:GetTopRightRounding()
                 topLeftRounding = control:GetTopLeftRounding()
+                
+number halfSize = width / 2.0
+            if height / 2.0 < halfSize
+                halfSize = height / 2.0
+            end
+            bottomLeftRounding = bottomLeftRounding + control:GetBottomLeftPixelRounding() * control:GetInterfaceScale() / halfSize
+            bottomRightRounding = bottomRightRounding + control:GetBottomRightPixelRounding() * control:GetInterfaceScale() / halfSize
+            topLeftRounding = topLeftRounding + control:GetTopLeftPixelRounding() * control:GetInterfaceScale() / halfSize
+            topRightRounding = topRightRounding + control:GetTopRightPixelRounding() * control:GetInterfaceScale() / halfSize
 
                 /*
                 Determine what color the control should be, based on how the user is interacting with it.
@@ -294,12 +313,27 @@ class BlockShaderMapping is BatchingShaderMapping2D
             Block block = cast(Block, blockView:GetItem())
             CodeEditor editor = block:GetEditor()
 
-            topWidth = editor:GetBlockNotchTopWidth()
-            bottomWidth = editor:GetBlockNotchBottomWidth()
-            notchHeight = editor:GetBlockNotchHeight()
+            topWidth = editor:GetBlockNotchTopWidth() * block:GetInterfaceScale()
+            bottomWidth = editor:GetBlockNotchBottomWidth() * block:GetInterfaceScale()
+            notchHeight = editor:GetBlockNotchPixelHeight()
 
             topX = block:GetTopNotchPosition() + (topWidth / 2.0)
             bottomX = block:GetBottomNotchPosition() + (topWidth / 2.0)
+
+            if block:HasImportantHints()
+                ColorGroup hintColor = editor:GetColorProperty("HintBorderColor")
+                if hintColor not= undefined
+                    borderColor = hintColor
+                end
+
+                if editor:GetDefaultLayoutProperties():HasNumberProperty("HintBorderThickness")
+                    number thickness = editor:GetNumberProperty("HintBorderThickness")
+                    leftBorder = thickness
+                    rightBorder = thickness
+                    topBorder = thickness
+                    bottomBorder = thickness
+                end
+            end
         end
         /*
         Counter-intuitively, we actually divide by the height, not the width, to get the proportional

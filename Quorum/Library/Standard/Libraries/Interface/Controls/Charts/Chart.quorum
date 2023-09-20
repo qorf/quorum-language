@@ -181,6 +181,11 @@ class Chart is ChartItem
     // How thick the borders of points should be, in pixels.
     // Only used if the chart renders points. Otherwise, this does nothing.
     number pointBorderThickness = 1
+
+    // How thick the borders around icons in the Legend should be, in pixels.
+    // Only used if the chart has a Legend. Otherwise, this does nothing.
+    number legendIconBorderThickness = 1
+
     // Used to indicate that a chart should include a movable regression line.
     // Must be set before displaying the chart.
     boolean showMovableRegressionLine = false
@@ -2890,6 +2895,41 @@ class Chart is ChartItem
         me:pointBorderThickness = pointBorderThickness
     end
 
+    /*
+    This action returns the thickness of the borders drawn around the icons in the Legend, measured in pixels.
+    If this chart doesn't have a legend, this value isn't used. By default, this value is 1.
+    */
+    action GetLegendIconBorderThickness returns number
+        return legendIconBorderThickness
+    end
+
+    /*
+    This action sets the thickness of the borders drawn around the icons in the Legend, measured in pixels.
+    If this chart doesn't have a legend, this value isn't used. By default, this value is 1.
+
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+use Libraries.Interface.Controls.Charts.BarChart
+use Libraries.Interface.Controls.Charts.Chart
+
+        DataFrame frame
+        frame:Load("ChartTestData.csv")
+        frame:AddSelectedColumns("Column1")
+        frame:AddSelectedColumns("Column2")
+        frame:AddSelectedColumns("Column3")
+        frame:AddSelectedFactors("Factor1")
+        
+        BarChart chart = frame:BarChart()
+        chart:SetTitle("BarChart Test")
+        chart:SetSubtitle("Three Columns - One Factor")
+        chart:SetLegendIconBorderThickness(3)
+        chart:ShowAnnotations(true)
+
+        chart:Display()
+    */
+    action SetLegendIconBorderThickness(number thickness)
+        legendIconBorderThickness = thickness
+    end
     
     /*
         This action sets a flag to know if all of the accessibility

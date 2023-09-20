@@ -8,7 +8,7 @@ class BlockOptions is InterfaceOptions
     BlockOptionConstants constants
 
     constant number DEFAULT_BORDER_THICKNESS = 1
-    constant number DEFAULT_CORNER_ROUNDING = 0.2
+    constant number DEFAULT_CORNER_ROUNDING = 4
 
     on create
         SetStartingOptions()
@@ -21,10 +21,10 @@ class BlockOptions is InterfaceOptions
 
     action SetDefaultBlockOptions(text key)
         SetBorderThickness(key, DEFAULT_BORDER_THICKNESS)
-        SetTopLeftRounding(key, DEFAULT_CORNER_ROUNDING)
-        SetTopRightRounding(key, DEFAULT_CORNER_ROUNDING)
-        SetBottomLeftRounding(key, DEFAULT_CORNER_ROUNDING)
-        SetBottomRightRounding(key, DEFAULT_CORNER_ROUNDING)
+        SetTopLeftPixelRounding(key, DEFAULT_CORNER_ROUNDING)
+        SetTopRightPixelRounding(key, DEFAULT_CORNER_ROUNDING)
+        SetBottomLeftPixelRounding(key, DEFAULT_CORNER_ROUNDING)
+        SetBottomRightPixelRounding(key, DEFAULT_CORNER_ROUNDING)
     end
 
     /*
@@ -313,6 +313,122 @@ class BlockOptions is InterfaceOptions
 
     action HasStaticFontOutlineThickness(text controlType) returns boolean
         return GetStaticFontOutlineThickness(controlType):IsNotANumber() = false
+    end
+
+    action SetPrimaryErrorColor(ColorGroup value)
+        SetColorProperty(constants:PRIMARY_ERROR_COLOR, value)
+    end
+
+    action GetPrimaryErrorColor returns ColorGroup
+        return GetColorProperty(constants:PRIMARY_ERROR_COLOR)
+    end
+
+    action SetPrimaryErrorColor(text controlType, ColorGroup value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetColorProperty(constants:PRIMARY_ERROR_COLOR, value)
+    end
+
+    action GetPrimaryErrorColor(text controlType) returns ColorGroup
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetColorProperty(constants:PRIMARY_ERROR_COLOR)
+        end
+    end
+
+    action SetSecondaryErrorColor(ColorGroup value)
+        SetColorProperty(constants:SECONDARY_ERROR_COLOR, value)
+    end
+
+    action GetSecondaryErrorColor returns ColorGroup
+        return GetColorProperty(constants:SECONDARY_ERROR_COLOR)
+    end
+
+    action SetSecondaryErrorColor(text controlType, ColorGroup value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetColorProperty(constants:SECONDARY_ERROR_COLOR, value)
+    end
+
+    action GetSecondaryErrorColor(text controlType) returns ColorGroup
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetColorProperty(constants:SECONDARY_ERROR_COLOR)
+        end
+    end
+
+    action SetHintBorderColor(ColorGroup value)
+        SetColorProperty(constants:HINT_BORDER_COLOR, value)
+    end
+
+    action GetHintBorderColor returns ColorGroup
+        return GetColorProperty(constants:HINT_BORDER_COLOR)
+    end
+
+    action SetHintBorderColor(text controlType, ColorGroup value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetColorProperty(constants:HINT_BORDER_COLOR, value)
+    end
+
+    action GetHintBorderColor(text controlType) returns ColorGroup
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetColorProperty(constants:HINT_BORDER_COLOR)
+        end
+    end
+
+    action SetHintBorderThickness(number value)
+        SetNumberProperty(constants:HINT_BORDER_THICKNESS, value)
+    end
+
+    action GetHintBorderThickness returns number
+        return GetNumberProperty(constants:HINT_BORDER_THICKNESS)
+    end
+
+    action HasHintBorderThickness returns boolean
+        return GetNumberProperty(constants:HINT_BORDER_THICKNESS):IsNotANumber() = false
+    end
+
+    action SetHintBorderThickness(text controlType, number value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetNumberProperty(constants:HINT_BORDER_THICKNESS, value)
+    end
+
+    action GetHintBorderThickness(text controlType) returns number
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return parent:InterfaceOptions:NOT_A_NUMBER
+        else
+            return palette:GetNumberProperty(constants:HINT_BORDER_THICKNESS)
+        end
+    end
+
+    action HasHintBorderThickness(text controlType) returns boolean
+        return GetHintBorderThickness(controlType):IsNotANumber() = false
     end
 
 end

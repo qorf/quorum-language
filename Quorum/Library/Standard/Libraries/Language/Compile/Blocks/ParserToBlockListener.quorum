@@ -67,6 +67,7 @@ class ParserToBlockListener is QuorumSourceListener
     end
     action ExitCheckStatement(CheckContext context)
         CheckBlock checkBlock = cast(CheckBlock, currentBlock:GetParentBlock())
+        FillPreviousCommentBlocks(context:GetLastToken(), context:GetLastToken())
         checkBlock:AddEndLine()
         checkBlock:Setup()
         currentBlock = checkBlock:GetParentBlock()
@@ -284,6 +285,7 @@ class ParserToBlockListener is QuorumSourceListener
     action EnterIs(IsContext context) end
     action ExitIs(IsContext context) end
 
+    integer elseifCounter = 0
     action EnterIfStatement(IfContext context)
         IfBlock block
         FillPreviousCommentBlocks(context:GetFirstToken(), context:GetLastToken())
@@ -297,11 +299,13 @@ class ParserToBlockListener is QuorumSourceListener
         currentBlock = startLine
 
         scopeDepth = scopeDepth + 1
+        elseifCounter = 0
     end
 
     action ExitIfStatement(IfContext context)
         // The current block must be one of the parts of an if block. Get the if block from the part.
         IfBlock ifBlock = cast(IfBlock, currentBlock:GetParentBlock())
+        FillPreviousCommentBlocks(context:GetLastToken(), context:GetLastToken())
         
         // Add the last line of the if block.
         ifBlock:AddEndLine()
@@ -312,12 +316,15 @@ class ParserToBlockListener is QuorumSourceListener
         // Go back to the parent of the if block.
         currentBlock = ifBlock:GetParentBlock()
         scopeDepth = scopeDepth - 1
+
+        elseifCounter = 0
     end
 
     action EnterElseIfStatement(IfContext context)
         // The current block must be one of the parts of an if block. Get the if block from the part.
         IfBlock ifBlock = cast(IfBlock, currentBlock:GetParentBlock())
-
+        FillPreviousCommentBlocks(context:elseIfTokens:Get(ifBlock:GetChildCount() - 1), context:GetLastToken())
+        elseifCounter = elseifCounter + 1
         MultipleLineBlockPart newPart = ifBlock:AddElseifLine(ifBlock:GetChildCount() - 1)
 
         currentBlock = newPart
@@ -329,6 +336,7 @@ class ParserToBlockListener is QuorumSourceListener
     action EnterElseStatement(IfContext context) 
         // The current block must be one of the parts of an if block. Get the if block from the part.
         IfBlock ifBlock = cast(IfBlock, currentBlock:GetParentBlock())
+        FillPreviousCommentBlocks(context:elseToken, context:GetLastToken())
 
         MultipleLineBlockPart newPart = ifBlock:AddElseLine()
 
@@ -366,6 +374,7 @@ class ParserToBlockListener is QuorumSourceListener
 
     action ExitLoopStatement(LoopContext context)
         RepeatBlock repeatBlock = cast(RepeatBlock, currentBlock:GetParentBlock())
+        FillPreviousCommentBlocks(context:GetLastToken(), context:GetLastToken())
 
         repeatBlock:AddEndLine()
         repeatBlock:Setup()
@@ -385,6 +394,7 @@ class ParserToBlockListener is QuorumSourceListener
 
     action EnterDetectStatement(DetectStatementContext context)
         CheckBlock checkBlock = cast(CheckBlock, currentBlock:GetParentBlock())
+        FillPreviousCommentBlocks(context:GetFirstToken(), context:GetLastToken())
 
         MultipleLineBlockPart newPart = checkBlock:AddDetectLine(context)
 
@@ -394,6 +404,7 @@ class ParserToBlockListener is QuorumSourceListener
 
     action EnterAlwaysStatement(AlwaysStatementContext context)
         CheckBlock checkBlock = cast(CheckBlock, currentBlock:GetParentBlock())
+        FillPreviousCommentBlocks(context:GetFirstToken(), context:GetLastToken())
 
         MultipleLineBlockPart newPart = checkBlock:AddAlwaysLine(context)
 

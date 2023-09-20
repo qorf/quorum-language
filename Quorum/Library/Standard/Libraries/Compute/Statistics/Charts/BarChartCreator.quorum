@@ -306,7 +306,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
         repeat while i < columns
             DataFrameColumn column = frame:GetColumn(GetColumn(i))
             if not column:IsNumberColumn()
-                alert("BarChartCreator does not support non-numerical columns used with factors.")
+                alert("BarChartCreator does not support nonnumerical columns used with factors.")
                 return undefined
             end
             if(not seriesFactor:HasKey(column:GetHeader()))
@@ -418,7 +418,7 @@ class BarChartCreator is DataFrameChartCreator, ColumnInput, FactorInput
     private action CreateChart(DataFrameColumn factor1, DataFrameColumn factor2, DataFrameColumn column) returns BarChart
         BarChart chart
         if not column:IsNumberColumn()
-            alert("BarChartCreator does not support non-numerical columns used with factors.")
+            alert("BarChartCreator does not support nonnumerical columns used with factors.")
             return undefined
         end
         

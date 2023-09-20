@@ -88,7 +88,9 @@ public class AccessibilityManager
         GROUP,
         CHART,
         CHART_ITEM,
-        CHART_SECTION
+        CHART_SECTION,
+
+        LABEL
     }
             
     enum MenuChanges {
@@ -148,6 +150,7 @@ public class AccessibilityManager
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__CHART_(), AccessibilityCodes.CHART);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__CHART_ITEM_(), AccessibilityCodes.CHART_ITEM);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__CHART_SECTION_(), AccessibilityCodes.CHART_SECTION);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__LABEL_(), AccessibilityCodes.LABEL);
 
         MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__OPENED_(), MenuChanges.EXPANDED);
         MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__CLOSED_(), MenuChanges.COLLAPSED);
@@ -296,7 +299,10 @@ public class AccessibilityManager
                 // Not implemented yet. Create as Item for now.
                 nativePointer = CreateItemNative(parentLong, item.GetName(), item.GetDescription(), item);
                 break;
-                
+            case LABEL:
+                // Not implemented yet. Create as Item for now.
+                nativePointer = CreateItemNative(parentLong, item.GetName(), item.GetDescription(), item);
+                break;
             // For now, consider TOGGLE_BUTTON and CHECKBOX to be identical cases.
             case TOGGLE_BUTTON:
             case CHECKBOX:

@@ -110,6 +110,16 @@ class BreakpointManager
         return iterator
     end
 
+    action GetBreakpoint(text path, integer line) returns Breakpoint
+        HashTable<integer, Breakpoint> points = breakpoints:GetValue(path)
+        if points = undefined
+            return undefined
+        end
+
+        //undefined if it doesn't exist
+        Breakpoint point = points:GetValue(line)
+        return point
+    end
 
     action FireEvent(BreakpointEvent event)
         i = 0

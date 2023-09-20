@@ -47,11 +47,11 @@ class FactorialCompareSeveralMeansTest is Test
         Check(result:GetProbabilityValuesTable():GetValue("factor1"):GetValueIterator():Next(), 0.030318709340584338)
         Check(result:GetProbabilityValuesTable():GetValue("factor2"):GetValueIterator():Next(), 0.5593506135895727)
         Check(result:GetProbabilityValuesTable():GetValue("factor1:factor2"):GetValueIterator():Next(), 0.00394920632242135)
-        Check(result:GetEffectSizesTable():GetValue("factor1"):GetValue("partial-eta-squared"), 0.6418882257189367)
-        Check(result:GetEffectSizesTable():GetValue("factor2"):GetValue("partial-eta-squared"), 0.07247540654486934)
-        Check(result:GetEffectSizesTable():GetValue("factor1:factor2"):GetValue("partial-eta-squared"), 0.835820895522388)
-        Check(result:GetEffectSizesTable():GetValue("factor1"):GetValue("partial-omega-squared"), 0.7879404519652995)
-        Check(result:GetEffectSizesTable():GetValue("factor2"):GetValue("partial-omega-squared"), -0.39731827805222925)
-        Check(result:GetEffectSizesTable():GetValue("factor1:factor2"):GetValue("partial-omega-squared"), 0.91943359375)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("partial-eta-squared"), 0.6418882257189362)
+        Check(result:GetInformation():GetValue("factor2"):GetValue("partial-eta-squared"), 0.07247540654487167)
+        Check(result:GetInformation():GetValue("factor1:factor2"):GetValue("partial-eta-squared"), 0.835820895522388)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("partial-omega-squared"), 0.46940598481464907)
+        Check(result:GetInformation():GetValue("factor2"):GetValue("partial-omega-squared"), -0.07261705146394859)
+        Check(result:GetInformation():GetValue("factor1:factor2"):GetValue("partial-omega-squared"), 0.7309782608695651)
     end
 end

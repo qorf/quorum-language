@@ -2,14 +2,16 @@ package Libraries.Interface.Controls.Blocks
 
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.SingleLineBlockView
+use Libraries.Language.Compile.CompilerError
+use Libraries.Language.Compile.Hints.Hint
+use Libraries.Interface.Selections.CodeEditorSelectionuse Libraries.Containers.Array
+
 
 class SingleLineBlock is Block
 
     action LoadGraphics(LayoutProperties properties)
         if GetView2D() = undefined
-            SingleLineBlockView view
-            view:Initialize()
-            SetView2D(view)
+            UpdateHintsAndErrorsVisuals()
         end
 
         parent:Control:LoadGraphics(properties)
@@ -52,6 +54,99 @@ class SingleLineBlock is Block
         alert("I could not get a child node from the block " + GetName() + " because single line blocks cannot have children blocks.")
     end
 
+    /*
+        The broad design philophy here is to make it feel like a text editor, but to have tree-like mechanisms
+        as clues when traversing. Broadly, if we land only on a scoped item, it will give you the level
+        count and the number of children at the same level. You can then use hotkeys to traverse those points.
+        The level is only given if IsEnteringScope is true, which means the top of an if statement or
+        other scoped construct.
+    */
+    action GetDescription returns text
+        text result = ""
+        if GetEditor() not= undefined and GetEditor():GetSelection() not= undefined
+            CodeEditor editor = GetEditor()
+            CodeEditorSelection selection = editor:GetSelection()
+            if selection:IsMultipleSelection()
+                Array<Block> blocks = editor:GetSelectedBlocks()
+                //Just in case of some whacky case
+                if blocks not= undefined
+                    Block start = blocks:GetFromFront()
+                    Block last = blocks:GetFromEnd()
+                    integer startLine = start:GetStartLine() + 1
+                    integer lastLine = last:GetEndLine() + 1
+                    result = ", Selected range from blocks at line " + startLine + " to " + lastLine + "."
+                    i = 0 
+                    integer errors = 0
+                    integer hints = 0
+                    repeat while i < blocks:GetSize()
+                        Block block = blocks:Get(i)
+                        errors = errors + block:GetErrorsSize()
+                        hints = hints + block:GetHintsSize()
+                        i = i + 1
+                    end
+                    if errors = 0 and hints = 0
+                        result = result + " No errors or hints in range."
+                    else
+                        result = result + " " + errors + " errors and " + hints + " hints in range."
+                    end
+                    return result
+                end
+            end
+        end
+            
+        integer scope = GetScopeDepth()
+        integer kids = GetChildCount()
+        //only for scoped items, otherwise it tends to feel subjectively annoying in a screen reader.
+        if scope > 1 and IsEnteringScope()
+            result = ", level " + (scope - 1)
+        end
+        
+        if kids = 1
+            result = result + ", " + GetChildCount() + " block"
+        elseif kids > 1
+            result = result + ", " + GetChildCount() + " blocks"
+        elseif kids = 0 and IsEnteringScope()
+            result = result + ", 0 blocks"
+        end
+
+        //if it's an end, try to determine what it's an end too
+        if IsExitingScope()
+            Block mom = GetParentBlock()
+            if mom not= undefined
+                text name = mom:GetName()
+                result = result + " to " + name
+                if scope > 1 //inside the action only
+                    result = result + ", level " + (scope - 1)
+                end
+            end
+        end
+        
+        boolean hints = IsHintsEmpty()
+        boolean errors = IsErrorsEmpty()
+
+        //if there's an error, put it in the description
+        if not errors
+            CompilerError error = GetFirstError()
+            if error not= undefined
+                if not hints //there's a hint and an error
+                    result = ", ERROR. " + error:GetErrorMessage()
+                else
+                    result = ", ERROR + HINT. " + error:GetErrorMessage()
+                end
+            end
+        end
+
+        if not hints
+            result = result + ", HINT. "
+            Hint hint = GetFirstHint()
+            if hint not= undefined
+                result = result + hint:GetDisplayName()
+            end
+            result = result + " Press alt + enter to use the hint or the context menu to get a list"
+        end
+        return result
+    end
+
     action GetName returns text
         CodeEditor editor = GetEditor()
         if GetStartIndex() >= 0 and GetEndIndex() >= 0 and editor not= undefined
@@ -62,5 +157,10 @@ class SingleLineBlock is Block
             end
         end
         return parent:Item:GetName()
+    end
+    
+    // An override of the implementation in Control. Used to make sure the block still shows selection colors during multiple selection.
+    action IsRenderingSelection returns boolean
+        return IsSelected()
     end
 end

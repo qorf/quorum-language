@@ -115,7 +115,11 @@ class BinaryOpcode is QuorumOpcode
         RuntimeConvert(rightOpcode, right)
         
         JavaBytecodeOpcodes opcodes
-        //for now assume they are integers and go for it
+        /*
+            One significant limitation of this system is it does not appear to properly
+            manage implicit casts. This should be fixed in a new version and this comment
+            changed.
+        */
         if current = op:PLUS
             if opcodes:GetDoubleAdd() = opcode
                 result:numberValue = left:numberValue + right:numberValue

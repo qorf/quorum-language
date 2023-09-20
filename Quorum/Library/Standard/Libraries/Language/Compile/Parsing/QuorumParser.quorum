@@ -356,7 +356,7 @@ class QuorumParser
         return false
     end
 
-    private action HasNext returns boolean
+    action HasNext returns boolean
         if tokenIterator:HasNext()
             //having one isn't required, but if there is one, see if we've found an error so far
             if compilerErrorManager not= undefined and compilerErrorManager:IsCompilationErrorFree()
@@ -823,16 +823,20 @@ class QuorumParser
         context:type = type
         if next:category = constants:INTEGER_KEYWORD
             type:SetToInteger()
-            context:SetLastToken(tokenIterator:Next())
+            context:SetLastToken(next)
+            tokenIterator:Next()
         elseif next:category = constants:NUMBER_KEYWORD
             type:SetToNumber()
-            context:SetLastToken(tokenIterator:Next())
+            context:SetLastToken(next)
+            tokenIterator:Next()
         elseif next:category = constants:TEXT
             type:SetToText()
-            context:SetLastToken(tokenIterator:Next())
+            context:SetLastToken(next)
+            tokenIterator:Next()
         elseif next:category = constants:BOOLEAN_KEYWORD
             type:SetToBoolean()
-            context:SetLastToken(tokenIterator:Next())
+            context:SetLastToken(next)
+            tokenIterator:Next()
         else //it isn't one of these, so it has to be a qualified name
             QualifiedNameContext nameContext = QualifiedName() //cannot be undefined
             if nameContext = undefined //this is an error
@@ -951,15 +955,16 @@ class QuorumParser
             end
             return context
         end
-
+        Token firstActionToken = undefined
         if IsAccessModifier(next) //if it's an access modifier, record it and advance the token
             accessToken = next
-            next = tokenIterator:Next()
             
             AccessModifierContext m
             m:SetFirstToken(next)
+            firstActionToken = next
             m:SetLastToken(next)
             SetLocation(m)
+next = tokenIterator:Next()
             accessModifierContext = m
             if accessToken:category = constants:PUBLIC
                 accessModifierContext:isPublic = true
@@ -967,18 +972,27 @@ class QuorumParser
                 accessModifierContext:isPrivate = true
             end
         end
-
+        
         if next:category = constants:BLUEPRINT
             categoryToken = next
+            if firstActionToken = undefined
+                firstActionToken = next
+            end
             next = tokenIterator:Next()
         elseif next:category = constants:NATIVE
             categoryToken = next
+            if firstActionToken = undefined
+                firstActionToken = next
+            end
             next = tokenIterator:Next()
         end
 
         ActionContext context = ActionShared()
         if context = undefined //this was an error, processed by the action
             return undefined
+        end
+        if firstActionToken not= undefined
+            context:SetFirstToken(firstActionToken)
         end
         context:access = accessModifierContext
         if accessModifierContext not= undefined
@@ -1563,6 +1577,12 @@ class QuorumParser
         call:traverseAsInitialParent = true //say it's a parent call.
         calls:Add(call)
         context:calls = calls
+        if not IsValid()
+            ActionCallContext last = calls:Get(calls:GetSize() - 1)
+            context:SetLastToken(last:GetLastToken())
+            SetLocation(context)
+            return context
+        end
         next = tokenIterator:GetCurrent()
         //if it's a colon, keep processing actions.
         repeat while next:category = constants:COLON 
@@ -2066,6 +2086,7 @@ class QuorumParser
         if next:category = constants:ELSE
             Location elseLoc
             SetLocationToToken(elseLoc, next)
+            context:elseToken = next
             context:elseLocation = elseLoc
             next = tokenIterator:Next()
             BlockContext block = Block()
@@ -3117,7 +3138,11 @@ class QuorumParser
 
             context:left = left
             ParseContext right = And()
-            context:right = right
+            if right not= undefined
+                context:right = right
+            else
+                return undefined
+            end
 
             context2:SetFirstToken(left:GetFirstToken())
             if right not= undefined
@@ -3153,7 +3178,11 @@ class QuorumParser
             context:isAnd = true
             context:left = left
             ParseContext right = Equals()
-            context:right = right
+            if right not= undefined
+                context:right = right
+            else
+                return undefined
+            end
 
             context2:SetFirstToken(left:GetFirstToken())
             if right not= undefined
@@ -3198,6 +3227,8 @@ class QuorumParser
             ParseContext right = Inherits()
             if right not= undefined
                 context:SetLastToken(right:GetLastToken())
+            else
+                return undefined
             end
             SetLocation(context)
             context:right = right
@@ -3436,7 +3467,8 @@ class QuorumParser
                 if not tokenIterator:IsValid() return undefined end
                 next = tokenIterator:GetCurrent()
                 if next not= undefined and next:category = constants:RIGHT_PAREN
-                    context:SetLastToken(tokenIterator:Next())
+                    context:SetLastToken(next)
+                    tokenIterator:Next()
                     SetLocation(context)
                     return context
                 else //this is an error. There needs to be a paren at the end of the expression
@@ -3600,9 +3632,10 @@ class QuorumParser
     */
     action Parenthesis returns ParenthesisContext
         ParenthesisContext context
-        Token current = tokenIterator:Next()
+        Token current = tokenIterator:GetCurrent()
         context:SetFirstToken(current)
-        
+        tokenIterator:Next()
+
         ParseContext expression = Expression()
         if expression = undefined //the expression will handle the error
             return undefined
