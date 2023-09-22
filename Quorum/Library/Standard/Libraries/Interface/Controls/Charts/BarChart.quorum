@@ -81,7 +81,6 @@ class BarChart is SharedBarChartParent
             SetDescription(", Bar chart with " + grouptext + bartext + ".")
         end
         AddChartAreaInstructions(GetDescription())
-        SetDescription(GetChartArea():GetDescription())
         return GetDescription()
     end
     

@@ -88,7 +88,6 @@ class ScatterPlot is TwoVariableChart
             SetDescription(", Scatter plot with " + points + " " + pointText + ".")
         end
         AddChartAreaInstructions(GetDescription())
-        SetDescription(GetChartArea():GetDescription())
         return GetDescription()
     end
 
@@ -185,6 +184,7 @@ class ScatterPlot is TwoVariableChart
             end
         end
         me:GetChartArea():SetDescription(description)
+        me:SetDescription(description)
     end
 
     /*

@@ -787,7 +787,6 @@ class BoxPlot is Chart
             SetDescription(", Box Plot with " + grouptext + plottext + ".")
         end
         AddChartAreaInstructions(GetDescription())
-        SetDescription(GetChartArea():GetDescription())
         return GetDescription()
     end
 
@@ -817,13 +816,13 @@ class BoxPlot is Chart
     
         // If any of these are not showing the tree will skip them in the navigation
         if IsShowingXAxis()
-            GetHorizontalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
+            GetHorizontalPanel():GenerateInfoTree(me, summary, yAxis, xAxis)
         end        
         if IsShowingYAxis()
-            GetVerticalPanel():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
+            GetVerticalPanel():GenerateInfoTree(me, summary, yAxis, xAxis)
         end
         if IsShowingLegend()
-            GetLegend():GenerateInfoTree(me, summary, chartArea, yAxis, xAxis)
+            GetLegend():GenerateInfoTree(me, summary, yAxis, xAxis)
         end
         
         if IsSeparated()
