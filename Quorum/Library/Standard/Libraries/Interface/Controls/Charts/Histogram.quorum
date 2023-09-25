@@ -118,7 +118,6 @@ class Histogram is SharedBarChartParent
             SetDescription(", Histogram with " + grouptext + bartext + ".")
         end
         AddChartAreaInstructions(GetDescription())
-        SetDescription(GetChartArea():GetDescription())
         return GetDescription()
     end
 

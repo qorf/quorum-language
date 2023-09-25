@@ -88,7 +88,6 @@ class ScatterPlot is TwoVariableChart
             SetDescription(", Scatter plot with " + points + " " + pointText + ".")
         end
         AddChartAreaInstructions(GetDescription())
-        SetDescription(GetChartArea():GetDescription())
         return GetDescription()
     end
 
@@ -167,7 +166,11 @@ class ScatterPlot is TwoVariableChart
         
         if not IsSeparated()
             //Not Separated
+            if GetLegend():GetSeriesList():GetSize() = 1
+                description = description + " To navigate the chart, " + GetEnterInstruction() + " to move into the list of " + GetChartItemsText() + " or " + GetGeneralInstruction() + " to navigate the chart information."
+            else
                 description = description + " To navigate the chart, " + GetEnterInstruction() + " to move into the list of " + GetGroupsText() + " or " + GetGeneralInstruction() + " to navigate the chart information."
+            end
         else
             //Separated, each Series is also separated by the Factor levels
             if IsSeparatedBySeries() and IsSeparatedByFactor()  
@@ -181,6 +184,7 @@ class ScatterPlot is TwoVariableChart
             end
         end
         me:GetChartArea():SetDescription(description)
+        me:SetDescription(description)
     end
 
     /*
@@ -214,7 +218,7 @@ class ScatterPlot is TwoVariableChart
             description = description + " To navigate the list of " + GetGroupsText() + ", " + GetGeneralInstruction() + " to move between " + GetGroupsText() + " in list order," 
             description = description + " " + GetEnterInstruction() + " to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", " + GetExitInstruction() + " to return to the chart information."
         else
-            description = description + " To navigate the " + GetGroupText() + ", " 
+            description = description + " To navigate the list of " + GetGroupText() + ", " 
             description = description + " " + GetEnterInstruction() + " to move into the list of " + GetChartItemsText() + " for that " + GetGroupText() + ", " + GetExitInstruction() + " to return to the chart information."
         end
         

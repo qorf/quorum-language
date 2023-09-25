@@ -73,7 +73,7 @@ class Legend is ChartItem
         Generates the tree of ChartItems that define how the chart will be 
         navigated and what extra information might be sent to the screen reader.
     */
-    action GenerateInfoTree(Chart chart, ChartItem summary, ChartItem chartArea, ChartItem yAxis, ChartItem xAxis)
+    action GenerateInfoTree(Chart chart, ChartItem summary, ChartItem yAxis, ChartItem xAxis)
         SetDisplayName(GetName())
         
         // If we have any Series objects from movable regression lines, gather those up so we can iterate over them too.
@@ -111,16 +111,18 @@ class Legend is ChartItem
         me:SetDescription(description)
 
         SetContainer(chart)
-
-        if chart:IsShowingYAxis()
-            yAxis:SetRightItem(me)
-            SetLeftItem(yAxis)
-        elseif chart:IsShowingXAxis()
-            xAxis:SetRightItem(me)
-            SetLeftItem(xAxis)
-        else
-            summary:SetRightItem(me)
-            SetLeftItem(summary)
+        
+        if chart:IsShowingLegend()
+            if chart:IsShowingYAxis()
+                yAxis:SetRightItem(me)
+                SetLeftItem(yAxis)
+            elseif chart:IsShowingXAxis()
+                xAxis:SetRightItem(me)
+                SetLeftItem(xAxis)
+            else
+                summary:SetRightItem(me)
+                SetLeftItem(summary)
+            end
         end
 
         // Legend Entries

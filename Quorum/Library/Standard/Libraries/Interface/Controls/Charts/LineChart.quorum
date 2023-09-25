@@ -82,7 +82,6 @@ class LineChart is TwoVariableChart
             SetDescription(", Line Chart with " + lines + " " + lineText + ".")
         end
         AddChartAreaInstructions(GetDescription())
-        SetDescription(GetChartArea():GetDescription())
         return GetDescription()
     end
 
@@ -160,6 +159,7 @@ class LineChart is TwoVariableChart
             end
         end
         me:GetChartArea():SetDescription(description)
+        me:SetDescription(description)
     end
 
     /*

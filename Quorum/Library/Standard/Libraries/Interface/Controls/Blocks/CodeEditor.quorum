@@ -1280,11 +1280,14 @@ SetAccessibilityCode(parent:Item:PANE)
             targetIndex = rawCode:CharacterIndexFromLineIndex(currentLine + 1) - rawCode:GetLineSeparator():GetSize()
         end
         boolean sharesLine = false
-        text postText = rawCode:GetText(selection:GetBlock():GetEndIndex(), targetIndex)
-        if postText:Trim() not= ""
+        if selection:GetBlock() not= undefined
+            text postText = rawCode:GetText(selection:GetBlock():GetEndIndex(), targetIndex)
+if postText:Trim() not= ""
             sharesLine = true
             targetIndex = selection:GetBlock():GetEndIndex()
         end
+        end
+        
         // Get the parent that the new block will be attached to.
         Block parentBlock = undefined
         integer scopeDepth = 0
