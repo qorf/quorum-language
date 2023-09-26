@@ -15,6 +15,9 @@ public class AndroidVibrationStrategy implements VibrationStrategy {
     private static final String TAG = "VibrationManager";
 
     public Activity getActivity() {
+		if (activity == null) {
+			setActivity(plugins.quorum.Libraries.Game.AndroidApplication.GetActivity());
+		}
         return activity;
     }
 
