@@ -23,6 +23,7 @@ shared class ChartOptions
     private boolean needToMakePalettes = true
     integer tickDigits = 1
 
+    // Color Palettes
     public constant integer DEFAULT = 0
     public constant integer CALM = 1
     public constant integer EXCITING = 2
@@ -35,8 +36,24 @@ shared class ChartOptions
     public constant integer COLORBLIND = 9 
     public constant integer COLORGORICAL = 10
 
+    // Patterns
+    public constant integer VERTICAL_LINES = 1
+    public constant integer HORIZONTAL_LINES = 2
+    public constant integer DIAGONAL_DOWN_LINES = 3
+    public constant integer DIAGONAL_UP_LINES = 4
+    public constant integer PLAIN_CROSSHATCH = 5      
+    public constant integer DIAGONAL_CROSSHATCH = 6
+    public constant integer SOLID_CIRCLES = 7
+    public constant integer HOLLOW_CIRCLES = 8
+    public constant integer PINPOINT_DASHES = 9
+    public constant integer SOLID_TRIANGLES = 10
+    public constant integer HOLLOW_TRIANGLES = 11
+    public constant integer SOLID_BOXES = 12
+    public constant integer HOLLOW_BOXES = 13
+
     HashTable <integer, Array<Color>> palettes
     Array<Color> colorPalette = undefined
+    Array<integer> patternPalette = undefined
 
     on create
         palettes:Add(DEFAULT, DefaultPalette())
@@ -46,14 +63,22 @@ shared class ChartOptions
             selectionColor = color:Blue()
         end
 
-        // Default colors will be filled with the TRUSTWORTHY color palette
+        // Default colors will be filled with the COLORGORICAL color palette
         if colorPalette = undefined
             colorPalette = palettes:GetValue(DEFAULT)
+        end
+
+        if patternPalette = undefined
+            patternPalette = DefaultPatternPalette()
         end
     end
 
     action SetPalette(Array<Color> colorPalette)
         me:colorPalette = colorPalette
+    end
+
+    action SetPatternPalette(Array<integer> patternPalette)
+        me:patternPalette = patternPalette
     end
 
     action SetPalette(integer choice)
@@ -105,6 +130,20 @@ shared class ChartOptions
         end
     end
 
+    /*
+        Returns a single integer corresponding to a texture from the palette at a given index.
+        If the index reaches beyond the palette size it will wrap around and repeat textures.
+    */
+    action GetPatternFromPalette(integer index) returns integer
+        if index > patternPalette:GetSize()-1
+            integer laps = index/patternPalette:GetSize()
+            integer temp = patternPalette:Get(index mod patternPalette:GetSize())
+            return temp
+        else
+            return patternPalette:Get(index)
+        end
+    end  
+
     private action BuildPalettes()
         palettes:Add(CALM, CalmPalette())
         palettes:Add(EXCITING, ExcitingPalette())
@@ -120,6 +159,20 @@ shared class ChartOptions
 
     private action DefaultPalette() returns Array <Color>
         return ColorgoricalPalette()
+    end
+
+    private action DefaultPatternPalette() returns Array <integer>
+        Array <integer> palette
+        palette:Add(DIAGONAL_CROSSHATCH)
+        palette:Add(VERTICAL_LINES)
+        palette:Add(HOLLOW_CIRCLES)
+        palette:Add(DIAGONAL_DOWN_LINES)
+        palette:Add(HOLLOW_TRIANGLES)
+        palette:Add(HORIZONTAL_LINES)
+        palette:Add(HOLLOW_BOXES)
+        palette:Add(DIAGONAL_UP_LINES)
+        palette:Add(PLAIN_CROSSHATCH)
+        return palette
     end
 
     /*

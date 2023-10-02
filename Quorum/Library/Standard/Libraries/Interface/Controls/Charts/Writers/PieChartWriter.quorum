@@ -169,45 +169,54 @@ class PieChartWriter is ChartWriter
                     chartContent:Add(sliceSVG)
 
                     Wedge slice // this is an SVG wedge not chart graphics wedge
+                    Wedge slicePattern
                     //Set outer radius
                     number radius = pieBox:Get(i):GetOuterRadius()
                     number innerRadius = pieBox:Get(i):GetInnerRadius()
                     slice:SetOuterRadius(radius)
+                    slicePattern:SetOuterRadius(radius)
     
                     //Start point of outer arc
                     x = centerX + radius * math:Cosine(math:DegreesToRadians(currentTheta))
                     y = centerY + radius * math:Sine(math:DegreesToRadians(currentTheta))
                     slice:SetStart(x, y)
+                    slicePattern:SetStart(x, y)
     
                     //End point of outer arc
                     number percent = pieBox:Get(i):GetEndPercentage() - pieBox:Get(i):GetStartPercentage()
                     slice:SetPercent(percent)
+                    slicePattern:SetPercent(percent)
                     currentTheta = currentTheta + percent * 360
                     x = centerX + radius * math:Cosine(math:DegreesToRadians(currentTheta))
                     y = centerY + radius * math:Sine(math:DegreesToRadians(currentTheta))
                     slice:SetEnd(x, y)
+                    slicePattern:SetEnd(x, y)
         
                     // This will account for the offset if the pie chart has a donut hole.
                     if innerRadius > 0
                         slice:SetInnerRadius(innerRadius)  
-        
+                        slicePattern:SetInnerRadius(innerRadius)
+
                         //End point of inner arc
                         if i = 0
                             prevX = centerX
                             prevY = centerY - innerRadius
                         end
                         slice:SetInnerEnd(prevX, prevY)
+                        slicePattern:SetInnerEnd(prevX, prevY)
                         
                         //Start point of inner arc
                         newX = centerX + innerRadius * math:Cosine(math:DegreesToRadians(currentTheta))
                         newY = centerY + innerRadius * math:Sine(math:DegreesToRadians(currentTheta))
                         slice:SetCenter(newX, newY)
+                        slicePattern:SetCenter(newX, newY)
         
                         prevX = newX
                         prevY = newY
                     else
                         // Center point if inner radius is not used.
                         slice:SetCenter(centerX, centerY)
+                        slicePattern:SetCenter(centerX, centerY)
                     end
                     slice:SetFill(pieBox:Get(i):GetColor())
                     slice:SetFillOpacity(pieBox:Get(i):GetColor())
@@ -217,6 +226,12 @@ class PieChartWriter is ChartWriter
                     
                     text sliceFocus = ""
                     text sliceBlur = ""
+
+                    if pieBox:Get(i):HasPattern()
+                        text patternID = "pattern"+pieBox:Get(i):GetPattern() 
+                        slicePattern:SetFill("url(#"+patternID+")")  
+                        canvas:Add(slicePattern)                 
+                    end
 
                     if HasAccessibility()
                         slice:SetID(sliceSVG:GetID() + "_slice")
@@ -345,45 +360,54 @@ class PieChartWriter is ChartWriter
                         subChartContent:Add(sliceSVG)
 
                         Wedge slice // this is an SVG wedge not chart graphics wedge
+                        Wedge slicePattern
                         //Set outer radius
                         number radius = pieBox:Get(i):GetOuterRadius()
                         number innerRadius = pieBox:Get(i):GetInnerRadius()
                         slice:SetOuterRadius(radius)
+                        slicePattern:SetOuterRadius(radius)
     
                         //Start point of outer arc
                         x = centerX + radius * math:Cosine(math:DegreesToRadians(currentTheta))
                         y = centerY + radius * math:Sine(math:DegreesToRadians(currentTheta))
                         slice:SetStart(x, y)
+                        slicePattern:SetStart(x, y)
     
                         //End point of outer arc
                         number percent = pieBox:Get(i):GetEndPercentage() - pieBox:Get(i):GetStartPercentage()
                         slice:SetPercent(percent)
+                        slicePattern:SetPercent(percent)
                         currentTheta = currentTheta + percent * 360
                         x = centerX + radius * math:Cosine(math:DegreesToRadians(currentTheta))
                         y = centerY + radius * math:Sine(math:DegreesToRadians(currentTheta))
                         slice:SetEnd(x, y)
+                        slicePattern:SetEnd(x, y)
         
                         // This will account for the offset if the pie chart has a donut hole.
                         if innerRadius > 0
-                            slice:SetInnerRadius(innerRadius)  
-            
+                            slice:SetInnerRadius(innerRadius)
+                            slicePattern:SetInnerRadius(innerRadius)
+
                             //End point of inner arc
                             if i = 0
                                 prevX = centerX
                                 prevY = centerY - innerRadius
                             end
                             slice:SetInnerEnd(prevX, prevY)
+                            slicePattern:SetInnerEnd(prevX, prevY)
                             
                             //Start point of inner arc
                             newX = centerX + innerRadius * math:Cosine(math:DegreesToRadians(currentTheta))
                             newY = centerY + innerRadius * math:Sine(math:DegreesToRadians(currentTheta))
                             slice:SetCenter(newX, newY)
+                            slicePattern:SetCenter(newX, newY)
             
                             prevX = newX
                             prevY = newY
                         else
                             // Center point if inner radius is not used.
                             slice:SetCenter(centerX, centerY)
+                            slicePattern:SetCenter(centerX, centerY)
                         end
                         slice:SetFill(pieBox:Get(i):GetColor())
                         slice:SetFillOpacity(pieBox:Get(i):GetColor())
@@ -393,6 +417,12 @@ class PieChartWriter is ChartWriter
 
                         text sliceFocus = ""
                         text sliceBlur = ""
+
+                        if pieBox:Get(i):HasPattern()
+                            text patternID = "pattern"+pieBox:Get(i):GetPattern() 
+                            slicePattern:SetFill("url(#"+patternID+")")  
+                            canvas:Add(slicePattern)                 
+                        end
 
                         if HasAccessibility()
                             slice:SetID(sliceSVG:GetID() + "_slice")

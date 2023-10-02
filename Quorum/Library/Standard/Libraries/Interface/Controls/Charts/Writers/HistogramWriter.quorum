@@ -282,6 +282,16 @@ class HistogramWriter is ChartWriter
                         //barBlur = barBlur + "loseFocus('" + bar:GetID() + "'); "
                     end
                     barSVG:Add(bar)
+
+                    if currentBar:HasPattern()
+                        Rectangle barPattern
+                        barPattern:SetWidth(currentBar:GetWidth())
+                        barPattern:SetHeight(currentBar:GetHeight())
+                        barPattern:SetPosition(currentBar:GetGlobalX(), TranslatePositionY(currentBar) - currentBar:GetHeight()) 
+                        text patternID = "pattern"+currentBar:GetPattern() 
+                        barPattern:SetFill("url(#"+patternID+")")  
+                        canvas:Add(barPattern)                 
+                    end
     
                     if currentBar:ShowAnnotation() or chart:ShowAnnotations()
                         ChartLabel label = currentBar:GetAnnotation()
@@ -443,6 +453,16 @@ class HistogramWriter is ChartWriter
                             //barBlur = barBlur + "loseFocus('" + bar:GetID() + "'); "
                         end
                         barSVG:Add(bar)
+
+                        if currentBar:HasPattern()
+                            Rectangle barPattern
+                            barPattern:SetWidth(currentBar:GetWidth())
+                            barPattern:SetHeight(currentBar:GetHeight())
+                            barPattern:SetPosition(currentBar:GetGlobalX(), TranslatePositionY(currentBar) - currentBar:GetHeight()) 
+                            text patternID = "pattern"+currentBar:GetPattern() 
+                            barPattern:SetFill("url(#"+patternID+")")  
+                            canvas:Add(barPattern)                 
+                        end
 
                         if currentBar:ShowAnnotation() or chart:ShowAnnotations()
                             ChartLabel label = currentBar:GetAnnotation()

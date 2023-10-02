@@ -22,6 +22,7 @@ use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
 use Libraries.Web.Page.WebPage
 use Libraries.Web.Page.MetaData
 use Libraries.Compute.Vector2
+use Libraries.Data.Formats.ScalableVectorGraphics.Pattern
 
 class ChartWriter
     private number axisPointX = 105
@@ -202,6 +203,9 @@ class ChartWriter
         if chart:IsShowingLegend()
             chartInformation:Add(legendPanel)
         end
+        if chart:IsShowingTexturePatterns()
+            AddPatternDefinitions(chartCanvas, chart)
+        end
 
         //Generate a list tree to give navigation structure
         if HasAccessibility()
@@ -299,6 +303,9 @@ class ChartWriter
         end
         if chart:IsShowingLegend()
             chartInformation:Add(legendPanel)
+        end
+        if chart:IsShowingTexturePatterns()
+            AddPatternDefinitions(chartCanvas, chart)
         end
 
         //Generate a list tree to give navigation structure
@@ -996,6 +1003,20 @@ class ChartWriter
     blueprint action AddChartContent(ScalableVectorGraphics canvas, Chart chart)
 
     /*
+        This action adds the patterns to be used as textures to chart elements
+    */
+    action AddPatternDefinitions(ScalableVectorGraphics canvas, Chart chart)
+        Pattern patternSVG
+        patternSVG:SetCanvasSize(canvas:GetWidth(), canvas:GetHeight())
+        i = 0
+        repeat while i < chart:GetSeriesList():GetSize()
+            patternSVG:AddPattern(chart:GetSeriesList():Get(i):GetPattern())
+            i = i + 1
+        end
+        canvas:Add(patternSVG)
+    end
+
+    /*
         This action adds the labels on the x axis
     */
     action AddXLabels(ScalableVectorGraphics canvas, Chart chart)
@@ -1641,6 +1662,16 @@ class ChartWriter
                 svgElementSeriesIcon:SetHeight(currentSeriesIcon:GetHeight())
                 svgElementSeriesIcon:SetPosition(currentSeriesIcon:GetGlobalX(), TranslatePositionY(currentSeriesIcon) - currentSeriesIcon:GetHeight())
                 svgElementSeriesIcon:SetFill(currentSeriesIcon:GetColor())
+
+                if seriesList:Get(i):HasPattern()
+                    Rectangle seriesPattern
+                    seriesPattern:SetWidth(currentSeriesIcon:GetWidth())
+                    seriesPattern:SetHeight(currentSeriesIcon:GetHeight())
+                    seriesPattern:SetPosition(currentSeriesIcon:GetGlobalX(), TranslatePositionY(currentSeriesIcon) - currentSeriesIcon:GetHeight()) 
+                    text patternID = "pattern"+seriesList:Get(i):GetPattern() 
+                    seriesPattern:SetFill("url(#"+patternID+")")    
+                    canvas:Add(seriesPattern)      
+                end
 
                 if HasAccessibility()
                     svgElementSeriesIcon:SetTabIndex(-1)

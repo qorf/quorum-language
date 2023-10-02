@@ -27,6 +27,7 @@ class ChartDrawable is ChartItem, Drawable
     Series series = undefined
     GroupPanel group = undefined
     Color customColor = undefined
+    integer pattern = 0
 
     //annotation handling for drawables display default is top
     ChartLabel annotation = undefined
@@ -64,6 +65,21 @@ class ChartDrawable is ChartItem, Drawable
 
     action GetSelectionBracket returns Array<Drawable> 
         return selectionBracket
+    end
+
+    action HasPattern returns boolean
+        if pattern not= 0
+            return true
+        end
+        return false
+    end
+
+    action SetPattern(integer pattern)
+        me:pattern = pattern
+    end
+
+    action GetPattern returns integer
+        return pattern
     end
 
     /*

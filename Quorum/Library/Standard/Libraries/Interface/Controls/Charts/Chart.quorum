@@ -78,6 +78,7 @@ class Chart is ChartItem
     private Color previousColor = undefined
     private number previousZ = 0
     private boolean hasAccessibility = true
+    private boolean showPatterns = false
 
     // Chart Orientation
     private boolean horizontalOrientation = false
@@ -345,6 +346,11 @@ class Chart is ChartItem
         end
 
         legend:ApplySeriesColor()
+
+        if IsShowingTexturePatterns()
+            legend:ApplySeriesPattern()
+        end
+
         legend:LoadLegend(me, properties)
         if IsShowingLegend()
             legendPanelWidthPercent = 0.10
@@ -595,6 +601,17 @@ class Chart is ChartItem
 
     action AddGroupPanel(GroupPanel group)
         groupPanels:Add(group)
+    end
+
+    /*
+    Attribute: True if all items in chart are filled with a texture pattern by series.
+    */
+    action IsShowingTexturePatterns returns boolean
+        return showPatterns
+    end
+
+    action ShowTexturePatterns(boolean show)
+        showPatterns = show
     end
 
     /*
