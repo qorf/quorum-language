@@ -1217,7 +1217,7 @@ class CompareMeans is StatisticalTest
                 result:SetInformation(groupText, "Mean", group:GetMean()) 
                 result:SetInformation(groupText, "Size", size)
                 if size < 2
-                    alert("Samples must have 2 or more observations. Not enough data for a comparison to be calculated.")
+                    alert("Samples must have 2 or more observations. Group "+groupText+" has only "+size+" observation. Not enough data for a comparison to be calculated.")
                 end
                 i = i + 1
             end
@@ -1343,7 +1343,7 @@ class CompareMeans is StatisticalTest
                     text groupText = groupsArray:Get(i)
                     DataFrameColumn column = groups:GetValue(groupText):GetColumn(0)
                     if column:GetSize() < 2 and not repeated
-                        alert("Samples must have 2 or more observations. Not enough data for a comparison to be calculated.")
+                        alert("Samples must have 2 or more observations. Group "+groupText+" has only "+column:GetSize()+" observation. Not enough data for a comparison to be calculated.")
                     end
                     column:SetHeader(groupText)
                     groupFrame:AddColumn(column)
@@ -2405,7 +2405,7 @@ class CompareMeans is StatisticalTest
                     end
                 end
                 if sampleSize < 2
-                    alert("Samples must have 2 or more observations. Not enough data for a comparison to be calculated.")
+                    alert("Samples must have 2 or more observations. Group "+groupText+" has only "+sampleSize+" observation. Not enough data for a comparison to be calculated.")
                 end
 
                 j = 0
@@ -2587,7 +2587,7 @@ class CompareMeans is StatisticalTest
 
                 sampleSize = sampleSize + column:GetSize()
                 if column:GetSize() < 2
-                    alert("Samples must have 2 or more observations. Not enough data for test to be calculated.")
+                    alert("Samples must have 2 or more observations. Group "+groupText+" has only "+column:GetSize()+" observation. Not enough data for a comparison to be calculated.")
                 end
 
                 j = 0
@@ -2652,7 +2652,8 @@ class CompareMeans is StatisticalTest
             number p = 1.0 - x2distribution:CumulativeDistribution(h)
     
             // Calculate effect size
-            number epsilon_sqr = h - (n + 1) / (n * n - 1)
+            number eta_sqr = (h - k + 1) / (n - k)
+            number epsilon_sqr = h * (n + 1) / (n * n - 1)
 
 
             // Save the result
