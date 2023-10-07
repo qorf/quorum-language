@@ -44,7 +44,7 @@ class Main
         Iterator<text> iter = words:GetIterator()
         repeat while iter:HasNext()
             text word = iter:Next()
-            integer count = wordcount:GetValue(word)
+//            integer count = wordcount:GetValue(word)
 //            if wordcount:GetValue(word) not= undefined
                 // add word to hashtable
                 wordcount:Add(word, 1)
@@ -71,3 +71,5 @@ class Main
 
     end
 end
+
+/* EOF Main.quorum */
