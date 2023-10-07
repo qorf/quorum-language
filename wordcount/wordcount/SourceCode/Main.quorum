@@ -1,0 +1,73 @@
+/* This program counts the words on a file, and outputs the number of occurences of each word */
+
+use Libraries.System.File
+use Libraries.System.FileReader
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+use Libraries.Language.Types.Text
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Containers.HashTable
+use Libraries.Containers.Support.HashTableIterator
+use Libraries.Containers.Support.HashTableKeyIterator
+use Libraries.Containers.Support.HashTableValueIterator
+
+class Main
+    action Main
+        // define and open file
+        File inFile
+        FileReader reader
+        inFile:SetPath("input0.txt")
+        reader:OpenForRead(inFile)
+
+        // check for valid file, prompt for filename in case of failure
+        repeat while not inFile:Exists()
+            output("Error opening file.")
+            text filename = input("Enter filename: ")
+            inFile:SetPath(filename)
+            reader:OpenForRead(inFile)
+        end
+
+        // initialize hash table
+        HashTable<text, integer> wordcount
+        wordcount:Add("nullval", 1)
+        // initialize array for input
+        Array<text> words
+
+        // read contents of file
+        Text filecontents
+        filecontents:SetValue(inFile:Read())
+        // split contents of file via whitespace, each word in its own index
+        words = filecontents:Split(" ")
+
+
+        // process contents of array
+        Iterator<text> iter = words:GetIterator()
+        repeat while iter:HasNext()
+            text word = iter:Next()
+            integer count = wordcount:GetValue(word)
+//            if wordcount:GetValue(word) not= undefined
+                // add word to hashtable
+                wordcount:Add(word, 1)
+//            end
+        end
+
+//        // output contents of array
+//        Iterator<text> it = words:GetIterator()
+//        repeat while it:HasNext()
+//            output(it:Next())
+//        end
+//
+        // output contents of hash table
+        Iterator<text> keyiterator = wordcount:GetKeyIterator()
+        repeat while keyiterator:HasNext()
+            text outputword = keyiterator:Next()
+            integer outputcount = wordcount:GetValue(outputword)
+            output("Word: " + outputword + "  Count: " + outputcount)
+        end
+        
+
+        // close file
+        inFile:Close()
+
+    end
+end
