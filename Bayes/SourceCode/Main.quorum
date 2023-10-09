@@ -1,0 +1,45 @@
+class BayesianMultinomialClassifier
+    Object probabilities
+    Object likelihoods
+    Decimal evidence
+
+    // Initialize class properties
+    probabilities: Object
+    likelihoods: Object
+    evidence: Decimal
+
+    // Constructor to initialize properties
+    action Initialize(Object initialProbabilities, Object initialLikelihoods, Decimal initialEvidence)
+        probabilities = initialProbabilities
+        likelihoods = initialLikelihoods
+        evidence = initialEvidence
+    end
+
+    // Function to calculate posterior probability
+    action calculatePosterior(prior: Decimal, likelihood: Decimal, evidence: Decimal) returns Decimal
+        Decimal posterior = prior * likelihood / evidence
+        return posterior
+    end
+
+    // Function to calculate and display posterior probabilities
+    function calculateAndDisplayPosterior()
+        Object posteriors
+        posteriors: Object = New Dictionary<String, Decimal>()
+
+        for key, value in probabilities
+            Decimal posterior = calculatePosterior(value, likelihoods(key), evidence)
+            posteriors(key) = posterior
+            output("P(" + key + " | data) = " + posterior)
+        end
+    end
+
+    // Getter method for probabilities
+    function getProbabilities() returns Object
+        return probabilities
+    end
+
+    // Getter method for likelihoods
+    function getLikelihoods() returns Object
+        return likelihoods
+    end
+end

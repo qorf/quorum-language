@@ -1,0 +1,23 @@
+// Create an instance of the BayesianMultinomialClassifier class
+Object probabilities
+probabilities: Object = New Dictionary<String, Decimal>()
+probabilities:Dictionary<String, Decimal>:Add("Class1", 0.3)
+probabilities:Dictionary<String, Decimal>:Add("Class2", 0.5)
+probabilities:Dictionary<String, Decimal>:Add("Class3", 0.2)
+
+Object likelihoods
+likelihoods: Object = New Dictionary<String, Decimal>()
+likelihoods:Dictionary<String, Decimal>:Add("Class1", 0.2)
+likelihoods:Dictionary<String, Decimal>:Add("Class2", 0.6)
+likelihoods:Dictionary<String, Decimal>:Add("Class3", 0.4)
+
+Decimal evidence = 100
+
+BayesianMultinomialClassifier classifier = New BayesianMultinomialClassifier(probabilities, likelihoods, evidence)
+
+// Access probabilities and likelihoods using getter methods
+Object retrievedProbabilities = classifier.getProbabilities()
+Object retrievedLikelihoods = classifier.getLikelihoods()
+
+// Use the retrieved values as needed
+// For example, you can iterate through them or perform other operations
