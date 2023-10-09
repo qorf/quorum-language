@@ -203,7 +203,7 @@ class ChartWriter
         if chart:IsShowingLegend()
             chartInformation:Add(legendPanel)
         end
-        if chart:IsShowingTexturePatterns()
+        if chart:IsShowingPatterns()
             AddPatternDefinitions(chartCanvas, chart)
         end
 
@@ -304,7 +304,7 @@ class ChartWriter
         if chart:IsShowingLegend()
             chartInformation:Add(legendPanel)
         end
-        if chart:IsShowingTexturePatterns()
+        if chart:IsShowingPatterns()
             AddPatternDefinitions(chartCanvas, chart)
         end
 
@@ -1003,7 +1003,7 @@ class ChartWriter
     blueprint action AddChartContent(ScalableVectorGraphics canvas, Chart chart)
 
     /*
-        This action adds the patterns to be used as textures to chart elements
+        This action adds the patterns to be used on chart elements
     */
     action AddPatternDefinitions(ScalableVectorGraphics canvas, Chart chart)
         Pattern patternSVG

@@ -347,7 +347,7 @@ class Chart is ChartItem
 
         legend:ApplySeriesColor()
 
-        if IsShowingTexturePatterns()
+        if IsShowingPatterns()
             legend:ApplySeriesPattern()
         end
 
@@ -604,13 +604,13 @@ class Chart is ChartItem
     end
 
     /*
-    Attribute: True if all items in chart are filled with a texture pattern by series.
+    Attribute: True if all items in chart are filled with a pattern by series.
     */
-    action IsShowingTexturePatterns returns boolean
+    action IsShowingPatterns returns boolean
         return showPatterns
     end
 
-    action ShowTexturePatterns(boolean show)
+    action ShowPatterns(boolean show)
         showPatterns = show
     end
 
