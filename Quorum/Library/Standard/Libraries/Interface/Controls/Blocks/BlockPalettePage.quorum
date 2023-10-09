@@ -1,0 +1,47 @@
+package Libraries.Interface.Controls.Blocks
+
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Behaviors.Blocks.BlockPaletteInsertBehavior
+use Libraries.Interface.Pages.StackedRowPage
+
+
+class BlockPalettePage is StackedRowPage
+
+    CodeEditor editor = undefined
+    BlockPalette palette
+
+    action AddBlockPaletteItem(text name) returns Button
+        BlockPaletteItem button
+        button:SetPalette(palette)
+
+        BlockPaletteInsertBehavior behave
+        behave:SetEditor(editor)
+
+        button:SetName(name)
+        button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
+        button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
+        button:SetToDefaultFontSize()
+        button:SetBehavior(behave)
+
+        Add(button)
+        return button
+    end
+
+    action SetEditor(CodeEditor editor)
+        me:editor = editor
+    end
+
+    action GetEditor returns CodeEditor
+        return editor
+    end
+
+    action SetPalette(BlockPalette blockPalette)
+        me:palette = blockPalette
+    end
+
+    action GetPalette returns BlockPalette
+        return palette
+    end
+
+end

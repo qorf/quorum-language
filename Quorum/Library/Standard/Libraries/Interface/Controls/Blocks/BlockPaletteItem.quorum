@@ -1,0 +1,49 @@
+package Libraries.Interface.Controls.Blocks
+
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Behaviors.Blocks.BlockPaletteInsertBehavior
+use Libraries.Game.InputTable
+use Libraries.Game.InputSet
+use Libraries.Interface.Behaviors.Blocks.BlockPaletteItemStartDragBehavior
+use Libraries.Interface.Behaviors.Blocks.BlockPaletteItemContinueDragBehavior
+use Libraries.Interface.Behaviors.Blocks.BlockPaletteItemDropBehavior
+
+
+class BlockPaletteItem is Button
+
+    BlockPalette palette = undefined
+
+    on create
+        SetInputGroup("BlockPaletteItem")
+        InputTable paletteItemContentTable = CopyAndActivateInputTable("BlockPaletteItem")
+
+        InputSet dragBeginSet
+        dragBeginSet:SetDragItemInput()
+        dragBeginSet:SetInputTrigger(dragBeginSet:BEGIN)
+
+        InputSet dragContinueSet
+        dragContinueSet:SetDragItemInput()
+        dragContinueSet:SetInputTrigger(dragContinueSet:CONTINUE)
+
+        InputSet dragEndSet
+        dragEndSet:SetDragItemInput()
+        dragEndSet:SetInputTrigger(dragEndSet:FINISH)
+
+        BlockPaletteItemStartDragBehavior paletteItemStartDragBehavior
+        BlockPaletteItemContinueDragBehavior paletteItemContinueDragBehavior
+        BlockPaletteItemDropBehavior paletteItemDropBehavior
+
+        paletteItemContentTable:Add(dragBeginSet, paletteItemStartDragBehavior)
+        paletteItemContentTable:Add(dragContinueSet, paletteItemContinueDragBehavior)
+        paletteItemContentTable:Add(dragEndSet, paletteItemDropBehavior)
+    end
+
+    action SetPalette(BlockPalette palette)
+        me:palette = palette
+    end
+
+    action GetPalette returns BlockPalette
+        return palette
+    end
+
+end

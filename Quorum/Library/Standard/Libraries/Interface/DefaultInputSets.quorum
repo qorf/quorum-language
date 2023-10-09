@@ -2445,6 +2445,16 @@ editBoxTable:RemoveKey(blockCommandZ)
         editBoxTable:Add(downSet, downBehavior)
         editBoxTable:Add(upSet, upBehavior)
         gameInput:AddInputTable(editBoxTable)
+
+
+        // palette item
+        InputTable blockPaletteItemTable = gameInput:GetInputTable("Button"):Copy()
+        blockPaletteItemTable:SetIdentifier("BlockPaletteItem")
+
+
+
+        gameInput:AddInputTable(blockPaletteItemTable)
+
     end
 
     action SetupScrollBarControlInput(GameInput gameInput)

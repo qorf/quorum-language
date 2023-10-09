@@ -1,0 +1,45 @@
+package Libraries.Interface.Behaviors.Blocks
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.DragAndDropEvent
+use Libraries.Interface.Item2D
+use Libraries.Interface.Item
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Controls.Blocks.BlockPaletteItem
+
+/*
+    This behavior is used during a drag and drop event in the Scene Editor to keep 
+    the drag going if the user is still dragging. This behavior just keeps the 
+    drawable that is being dragged on the screen and moves it to the correct 
+    position on screen.
+*/
+class BlockPaletteItemContinueDragBehavior is Behavior
+
+    action Run(BehaviorEvent event)
+        DragAndDropEvent dragEvent = event:GetDragAndDropEvent()
+
+        Item2D item = undefined
+        if dragEvent:GetSource() is Item2D
+            item = cast(Item2D, dragEvent:GetSource())
+            repeat until item = undefined or item is BlockPaletteItem
+                item = item:GetParent()
+            end
+        end
+
+        if item = undefined
+            return now
+        end
+        
+        BlockPaletteItem paletteItem = cast(BlockPaletteItem, item)
+        Item draggedItem = paletteItem:GetPalette():GetDraggedItem()
+
+        if draggedItem is Drawable
+            Drawable drawable = cast(Drawable, draggedItem)
+            drawable:Move(dragEvent:GetMovementX(), dragEvent:GetMovementY())
+        else
+            // TO-DO
+        end
+    end
+
+end
