@@ -81,6 +81,10 @@ shared class ChartOptions
         me:patternPalette = patternPalette
     end
 
+    action GetPatternPalette returns Array<integer>
+        return patternPalette
+    end
+
     action SetPalette(integer choice)
         if needToMakePalettes
             BuildPalettes()

@@ -1008,11 +1008,13 @@ class ChartWriter
     action AddPatternDefinitions(ScalableVectorGraphics canvas, Chart chart)
         Pattern patternSVG
         patternSVG:SetCanvasSize(canvas:GetWidth(), canvas:GetHeight())
+        Array<integer> palette
         i = 0
         repeat while i < chart:GetSeriesList():GetSize()
-            patternSVG:AddPattern(chart:GetSeriesList():Get(i):GetPattern())
+            palette:Add(chart:GetSeriesList():Get(i):GetPattern())
             i = i + 1
         end
+        patternSVG:SetPatternPalette(palette)
         canvas:Add(patternSVG)
     end
 

@@ -10,6 +10,7 @@ use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Controls.Charts.ChartItem
 use Libraries.Containers.Array
+use Libraries.Interface.Controls.Charts.ChartOptions
 
 
 /*
@@ -80,6 +81,104 @@ class ChartDrawable is ChartItem, Drawable
 
     action GetPattern returns integer
         return pattern
+    end
+
+    action GetPatternName returns text
+        ChartOptions options
+        if pattern = options:VERTICAL_LINES
+            return "vertical lines"
+        elseif pattern = options:HORIZONTAL_LINES
+            return "horizontal lines"
+        elseif pattern = options:DIAGONAL_DOWN_LINES
+            return "diagonal down lines"
+        elseif pattern = options:DIAGONAL_UP_LINES
+            return "diagonal up lines"
+        elseif pattern = options:PLAIN_CROSSHATCH      
+            return "plain crosshatch"
+        elseif pattern = options:DIAGONAL_CROSSHATCH
+            return "diagonal crosshatch"
+        elseif pattern = options:SOLID_CIRCLES
+            return "solid circles"
+        elseif pattern = options:HOLLOW_CIRCLES 
+            return "hollow circles"
+        elseif pattern = options:PINPOINT_DASHES  
+            return "pinpoint dashes"
+        elseif pattern = options:SOLID_TRIANGLES
+            return "solid triangles"
+        elseif pattern = options:HOLLOW_TRIANGLES    
+            return "hollow triangles"
+        elseif pattern = options:SOLID_BOXES
+            return "solid boxes"
+        elseif pattern = options:HOLLOW_BOXES   
+            return "hollow boxes"
+        else
+            return ""
+        end
+    end
+
+    action SetPatternToVerticalLines()
+        ChartOptions options
+        me:pattern = options:VERTICAL_LINES
+    end
+
+    action SetPatternToHorizontalLines()
+        ChartOptions options
+        me:pattern = options:HORIZONTAL_LINES
+    end
+
+    action SetPatternToDiagonalUpLines()
+        ChartOptions options
+        me:pattern = options:DIAGONAL_UP_LINES
+    end
+
+    action SetPatternToDiagonalDownLines()
+        ChartOptions options
+        me:pattern = options:DIAGONAL_DOWN_LINES
+    end
+
+    action SetPatternToDiagonalCrosshatch()
+        ChartOptions options
+        me:pattern = options:DIAGONAL_CROSSHATCH
+    end
+
+    action SetPatternToPlainCrosshatch()
+        ChartOptions options
+        me:pattern = options:PLAIN_CROSSHATCH
+    end
+
+    action SetPatternToSolidCircles()
+        ChartOptions options
+        me:pattern = options:SOLID_CIRCLES
+    end
+
+    action SetPatternToHollowCircles()
+        ChartOptions options
+        me:pattern = options:HOLLOW_CIRCLES
+    end
+
+    action SetPatternToSolidBoxes()
+        ChartOptions options
+        me:pattern = options:SOLID_BOXES
+    end
+
+    action SetPatternToHollowBoxes()
+        ChartOptions options
+        me:pattern = options:HOLLOW_BOXES
+    end
+
+    action SetPatternToSolidTriangles()
+        ChartOptions options
+        me:pattern = options:SOLID_TRIANGLES
+    end
+
+    action SetPatternToHollowTriangles()
+        ChartOptions options
+        me:pattern = options:HOLLOW_TRIANGLES
+    end
+
+    action SetPatternToPinpointDashes()
+        ChartOptions options
+        me:pattern = options:PINPOINT_DASHES
     end
 
     /*
