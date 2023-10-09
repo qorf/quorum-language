@@ -39,6 +39,9 @@ class CodeEditorRenderer is Control
     number cursorTimer = 0
     boolean cursorActive = false
     
+    // Blocks that are used to indicate placeholders where blocks can be dropped into.
+    Array<Block> placeholderBlocks
+    
     on create
         SetCustomDrawing(true)
         SetChildrenProcessingMouseEvents(true)
@@ -324,6 +327,7 @@ class CodeEditorRenderer is Control
 
         integer lineIndex = block:GetNavigationIndex() + navigationSize - 1
         block:SetPosition(editor:GetScopeIndentationWidth() * block:GetScopeDepth() - editor:GetScrollPercentageX() * editor:GetTotalContentWidth(), editor:GetLineY(lineIndex))
+        output block:GetName() + ": Set block Y to " + block:GetY() + " via GetLineY(" + lineIndex + ") = " + editor:GetLineY(lineIndex)
     end
 
     action RefreshNavigationIndices
@@ -557,5 +561,99 @@ class CodeEditorRenderer is Control
                 cursorTimer = cursorBlinkTime
             end
         end
+    end
+    
+    action InsertPlaceholdersAtNavigationIndex(integer navigationIndex, Array<Block> placeholders)
+        if placeholders:IsEmpty()
+            return now
+        end
+        
+        Block firstPlaceholder = placeholders:GetFromFront()
+        Block parentBlock = undefined
+        
+        integer addIndex = 0
+        integer currentNavigationIndex = 0
+        
+        if navigationIndex <= 0
+
+            parentBlock = rootBlock
+        else
+            Block targetBlock = GetNavigableBlockAtLine(navigationIndex - 1)
+            output "TARGET BLOCK AT " + (navigationIndex - 1) + " IS " + (targetBlock not= undefined)
+            currentNavigationIndex = targetBlock:GetNavigationIndex() + targetBlock:GetNavigationSize()
+            
+if targetBlock:IsValidNextBlock(firstPlaceholder) = false
+            // Do something here to indicate invalid state
+            output "Invalid value in AppendPlaceholdersToBlock"
+        end
+            
+            if targetBlock is MultipleLineBlockPart
+                parentBlock = targetBlock
+            else
+                parentBlock = targetBlock:GetParentBlock()
+                addIndex = targetBlock:GetParentIndex() + 1
+            end
+        end
+        
+integer i = 0
+            
+            Block currentBlock = undefined
+            repeat while i < placeholders:GetSize()
+                currentBlock = placeholders:Get(i)
+            output "REPEAT B: currentBlock = " + currentBlock:GetName()
+                parentBlock:Add(addIndex + i, currentBlock)
+                currentBlock:SetNavigationIndex(currentNavigationIndex)
+            
+            // During movements, we're already using the placeholderBlocks as our input.
+            if placeholders not= placeholderBlocks
+placeholderBlocks:Add(currentBlock)
+            end
+                
+                currentNavigationIndex = currentNavigationIndex + currentBlock:GetNavigationSize()
+                i = i + 1
+            end
+            
+            currentBlock = currentBlock:GetNextNavigableBlock()
+            repeat until currentBlock = undefined
+            output "REPEAT C: currentBlock = " + currentBlock:GetName()
+                currentBlock:SetNavigationIndex(currentNavigationIndex)
+currentNavigationIndex = currentNavigationIndex + currentBlock:GetNavigationSize()
+                currentBlock = currentBlock:GetNextNavigableBlock()
+            end
+            
+            RefreshBlockView()
+        
+    end
+    
+    action MovePlaceholdersToNavigationIndex(integer index)
+        output "A"
+        InternalRemovePlaceholders()
+        output "B"
+        InsertPlaceholdersAtNavigationIndex(index, placeholderBlocks)
+        output "C"
+    end
+    
+    action RemovePlaceholders
+        InternalRemovePlaceholders()
+        
+placeholderBlocks:Empty()
+        
+            RefreshBlockView()
+    end
+    
+    private action InternalRemovePlaceholders
+integer i = 0
+        repeat while i < placeholderBlocks:GetSize()
+Block block = placeholderBlocks:Get(i)
+            Block parentBlock = block:GetParentBlock()
+            parentBlock:Remove(block)
+            i = i + 1
+        end
+        
+RefreshNavigationIndices()
+    end
+    
+    action HasPlaceholders returns boolean
+        return placeholderBlocks:IsEmpty() = false
     end
 end

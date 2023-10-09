@@ -1,0 +1,84 @@
+package Libraries.Interface.Behaviors.Blocks
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.DragAndDropEvent
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.Blocks.CodeEditor
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Blocks.Block
+
+class CodeEditorAcceptDraggedBlockBehavior is Behavior
+    
+    // The behavior that triggers when dragging begins.
+    // This behavior contains info we need, so we store a reference here.
+    // The reference is set when the behaviors are made in DefaultInputSets.
+    BlockDragBehavior sourceDragBehavior = undefined
+    
+    integer lastCandidateLine = -2
+    
+    action Run(BehaviorEvent event)
+        DragAndDropEvent dropEvent = event:GetDragAndDropEvent()
+        Item received = dropEvent:GetDestination()
+        
+        Item source = dropEvent:GetSource()
+        
+        if received is CodeEditor
+            CodeEditor editor = cast(CodeEditor, received)
+            number y = dropEvent:GetY() - editor:GetGlobalY()
+            integer line = editor:GetNavigationIndexAtY(y)
+            
+Array<Block> sourceBlocks = sourceDragBehavior:GetSourceBlocks()
+            
+            if dropEvent:eventType = dropEvent:DRAGGING_CONTINUED
+                if line not= lastCandidateLine
+                    
+output "DRAGGING_CONTINUED, line is " + editor:GetNavigationIndexAtY(y)
+                    
+                    if editor:HasPlaceholders()
+                        editor:MovePlaceholdersToNavigationIndex(line)
+                    else
+                        Array<Block> placeholders
+                        integer i = 0
+                        repeat while i < sourceBlocks:GetSize()
+                            placeholders:Add(sourceBlocks:Get(i):CopyToPlaceholder())
+                            i = i + 1
+                        end
+                        editor:InsertPlaceholdersAtNavigationIndex(line, placeholders)
+                    end
+                    
+                    lastCandidateLine = line
+                end
+            elseif dropEvent:eventType = dropEvent:DRAGGED_ONTO_DESTINATION
+                output "DRAGGED_ONTO"
+                lastCandidateLine = line
+            elseif dropEvent:eventType = dropEvent:DROPPED
+                if sourceBlocks:IsEmpty() = false
+                    output "Line is " + editor:GetNavigationIndexAtY(y)
+                    Block firstBlock = sourceBlocks:GetFromFront()
+                    output "First values (pre): " + firstBlock:GetStartIndex() + ", " + firstBlock:GetEndIndex() + " -- " + firstBlock:GetNavigationIndex()
+                    Block lastBlock = sourceBlocks:GetFromEnd()
+                    text toInsert = editor:GetCode():GetText(firstBlock:GetStartIndex(), lastBlock:GetEndIndex())
+                    //editor:InsertTextAfterLine(line - 1, toInsert)
+                    
+                    output "First block valid? " + (firstBlock:IsInEditorTree())
+                    output "First values (post): " + firstBlock:GetStartIndex() + ", " + firstBlock:GetEndIndex() + " -- " + firstBlock:GetNavigationIndex()
+                    lastCandidateLine = -2
+                    
+                    editor:RemovePlaceholders()
+                end
+            else
+                output "Type = " + dropEvent:eventType
+            end
+        end
+    end
+    
+    action SetSourceDragBehavior(BlockDragBehavior behavior)
+        sourceDragBehavior = behavior
+    end
+    
+    action GetSourceDragBehavior returns BlockDragBehavior
+        return sourceDragBehavior
+    end
+    
+end

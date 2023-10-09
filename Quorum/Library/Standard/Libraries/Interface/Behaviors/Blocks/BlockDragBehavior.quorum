@@ -1,0 +1,126 @@
+package Libraries.Interface.Behaviors.Blocks
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.DragAndDropEvent
+use Libraries.Interface.Item2D
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Interface.Controls.Blocks.CodeEditor
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.Control
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Game.Layer2D
+
+class BlockDragBehavior is Behavior
+    
+    Item2D dragAnchor
+    
+    // The original blocks that were selected for dragging.
+    Array<Block> sourceBlocks
+    
+    on create
+        dragAnchor:SetZ(-3)
+        dragAnchor:SetName("Block Drag Anchor")
+    end
+    
+    action Run(BehaviorEvent event)
+        DragAndDropEvent dragEvent = event:GetDragAndDropEvent()
+        if dragEvent:eventType = dragEvent:DRAGGING_BEGAN
+            
+            Item targetItem = event:GetItem()
+            CodeEditor editor = undefined
+            if targetItem is CodeEditor
+                editor = cast(CodeEditor, targetItem)
+            elseif targetItem is Block
+                Block block = cast(Block, targetItem)
+                editor = block:GetEditor()
+            elseif targetItem is Item2D
+                Item2D target = cast(Item2D, targetItem)
+                repeat until (target = undefined) or (target is CodeEditor)
+                    target = target:GetParent()
+                end
+            end
+            
+            
+if IsDraggingBlocks()
+                UnloadDraggedBlocks()
+            end
+            
+            if editor not= undefined
+                sourceBlocks = editor:GetSelectedBlocks()
+LoadDraggedBlocks(sourceBlocks, dragEvent:GetStartX(), dragEvent:GetStartY())
+            end
+            
+        elseif dragEvent:eventType = dragEvent:DRAGGING_CONTINUED
+            if IsDraggingBlocks()
+                dragAnchor:SetPosition(dragEvent:GetX(), dragEvent:GetY())
+            end
+        elseif dragEvent:eventType = dragEvent:DROPPED
+            if IsDraggingBlocks()
+                UnloadDraggedBlocks()
+            end
+        end
+        
+    end
+    
+    action IsDraggingBlocks returns boolean
+        return sourceBlocks not= undefined
+    end
+    
+    // Generate the visual representation of the dragged blocks and add them to the Game.
+    action LoadDraggedBlocks(Array<Block> blocks, integer startX, integer startY)
+        if blocks = undefined or blocks:IsEmpty()
+            return now
+        end
+        
+        integer i = 0
+        number targetX = 0
+        number targetY = 0
+        Layer2D targetLayer = blocks:Get(i):GetLayer()
+        dragAnchor:SetPosition(startX, startY)
+        
+        repeat while i < blocks:GetSize()
+            Block block = blocks:Get(i)
+            output block:GetName()
+            
+            Control dummyBlock
+            dummyBlock:SetBackgroundColor(block:GetBackgroundColor())
+            dummyBlock:SetBorderColor(block:GetBorderColor())
+            dummyBlock:SetBorderThickness(block:GetBorderThickness())
+            dummyBlock:SetSize(block:GetWidth(), block:GetHeight())
+            dummyBlock:SetPosition(targetX, targetY)
+            
+            // Temporary debugging view.
+            ControlShaderView view
+            view:Initialize()
+            dummyBlock:SetView2D(view)
+            
+            dragAnchor:Add(dummyBlock)
+            
+            targetY = targetY - dummyBlock:GetHeight()
+            i = i + 1
+        end
+        
+        sourceBlocks = blocks
+        targetLayer:Add(dragAnchor)
+    end
+    
+    // Remove the visual representation of the dragged blocks from the Game.
+    action UnloadDraggedBlocks
+        if IsDraggingBlocks()
+dragAnchor:Empty()
+            
+            Layer2D layer = dragAnchor:GetLayer()
+            if layer not= undefined
+layer:Remove(dragAnchor)
+            end
+        end
+    end
+    
+    action GetSourceBlocks returns Array<Block>
+        return sourceBlocks
+    end
+
+end

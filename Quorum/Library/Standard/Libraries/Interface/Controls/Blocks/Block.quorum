@@ -68,6 +68,16 @@ class Block is Control
 
     // Used to identify when the rendering needs to be refreshed due to Hints changing.
     boolean renderingImportantHints = false
+    
+    /* 
+Used to indicate if this is a placeholder. Placeholders don't represent "real" text in the code,
+but instead are used to indicate "potential" code, e.g. where blocks that are being dragged might
+be dropped. Placeholder blocks have special rules around their text values and how they're rendered.
+*/
+    boolean isPlaceholder = false
+    // If this is a placeholder, it doesn't represent text in the real code, so it needs to store it separately here.
+    text placeholderText = ""
+    
 
     on create
         SetName("Block")
@@ -673,14 +683,34 @@ class Block is Control
     end
 
     action Setup
-        SetupElements()
+        if IsPlaceholder()
+            SetupPlaceholderElements(placeholderText)
+        else
+SetupElements()
         SetDefaultTabOrder()
 
         // Set the default name to reflect the first line of the block.
         UpdateName(0)
+        end
+        
     end
 
     private blueprint action SetupElements
+    
+    private action SetupPlaceholderElements(text code)
+        // TO-DO: This should become a blueprint. This implementation is only for during testing.
+        
+CodeEditor editor = GetEditor()
+        number spacing = editor:GetDefaultGlyphWidth()
+        SetLeftPadding(spacing * 0.5)
+        SetRightPadding(spacing * 0.5)
+        
+BlockLabel label
+        label:SetFont(GetEditor():GetFont())
+        label:SetFontSize(GetEditor():GetFontSize())
+        label:SetText(code)
+        Add(label)
+    end
 
     blueprint action UpdateName(integer selectedLine)
 
@@ -1082,5 +1112,29 @@ action DrawContents(Painter2D painter)
     
 action IsAccessibleParent returns boolean
         return true
+    end
+    
+    // This action returns true if the given Block is valid to be placed immediately after this block, or false otherwise.
+    action IsValidNextBlock(Block nextBlock) returns boolean
+        return false
+    end
+    
+    action IsPlaceholder returns boolean
+        return isPlaceholder
+    end
+    
+    action SetAsPlaceholder(text code)
+        isPlaceholder = true
+        placeholderText = code
+    end
+    
+    // Makes a copy of this block as a placeholder. Used for operatings like dragging blocks to show previews.
+    action CopyToPlaceholder returns Block
+        // Testing implementation. This almost certainly needs to be implemented on a per-block-type basis.
+        ActionCallBlock placeholder
+        placeholder:SetAsPlaceholder(GetText())
+        placeholder:SetEditor(GetEditor())
+        placeholder:Setup()
+        return placeholder
     end
 end

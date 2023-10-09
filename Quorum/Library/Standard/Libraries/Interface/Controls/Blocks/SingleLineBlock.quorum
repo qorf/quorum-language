@@ -4,10 +4,15 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.SingleLineBlockView
 use Libraries.Language.Compile.CompilerError
 use Libraries.Language.Compile.Hints.Hint
-use Libraries.Interface.Selections.CodeEditorSelectionuse Libraries.Containers.Array
+use Libraries.Interface.Selections.CodeEditorSelection
+use Libraries.Containers.Array
 
 
 class SingleLineBlock is Block
+    
+    on create
+        SetInputGroup("Block")
+    end
 
     action LoadGraphics(LayoutProperties properties)
         if GetView2D() = undefined
@@ -162,5 +167,12 @@ class SingleLineBlock is Block
     // An override of the implementation in Control. Used to make sure the block still shows selection colors during multiple selection.
     action IsRenderingSelection returns boolean
         return IsSelected()
+    end
+    
+    
+// This action returns true if the given Block is valid to be placed immediately after this block, or false otherwise.
+    action IsValidNextBlock(Block nextBlock) returns boolean
+        // For now, always return true.
+        return true
     end
 end

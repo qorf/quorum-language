@@ -140,7 +140,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
         CodeEditorPopupMenu popup
         popup:SetCodeEditor(me)
         SetPopupMenu(popup)
-SetAccessibilityCode(parent:Item:PANE)
+        SetAccessibilityCode(parent:Item:PANE)
     end
     
     action SelectAll
@@ -765,6 +765,24 @@ SetAccessibilityCode(parent:Item:PANE)
         end
         
         return (renderer:GetHeight() + cachedLinePositions:Get(line)) + (GetScrollPercentageY() * GetTotalContentHeight())
+    end
+    
+    /*This action returns the navigation index of a line located at the given pixel y-coordinate.
+The y-coordinate should be relative to the position of the CodeEditor.*/
+    action GetNavigationIndexAtY(number pixelY) returns integer
+integer i = 0
+        integer size = GetLineCount()
+        number threshold = pixelY
+        repeat while i < size
+            number y = GetLineY(i)
+            if y < threshold
+                return i
+            end
+
+            i = i + 1
+        end
+
+        return i
     end
 
     action GetFirstVisibleLine returns integer
@@ -1474,13 +1492,21 @@ if postText:Trim() not= ""
         renderer:RefreshBlockView()
     end
 
+
     action InsertTextAfterLine(text value)
-        integer currentLine = selection:GetLine()
-        integer targetIndex = 0
-        value = SanitizeNewLines(value)
-        if selection:GetBlock() not= undefined
+        integer line = selection:GetLine()
+        
+if selection:GetBlock() not= undefined
             currentLine = selection:GetBlock():GetEndLine()
         end
+        
+        InsertTextAfterLine(selection:GetLine(), value)
+    end
+    
+    action InsertTextAfterLine(integer line, text value)
+        integer currentLine = line
+        integer targetIndex = 0
+        value = SanitizeNewLines(value)
 
         if currentLine >= rawCode:GetLineCount() - 1
             targetIndex = rawCode:GetSize()
@@ -2609,5 +2635,25 @@ a value of 2 indicates that the scoped bars take up 8 characters of space horizo
     
 action IsAccessibleParent returns boolean
         return true
+    end
+    
+    action InsertPlaceholdersAtNavigationIndex(integer index, Array<Block> placeholders)
+        renderer:InsertPlaceholdersAtNavigationIndex(index, placeholders)
+    end
+    
+    action MovePlaceholdersToNavigationIndex(integer index)
+renderer:MovePlaceholdersToNavigationIndex(index)
+    end
+    
+    action HasPlaceholders returns boolean
+        return renderer:HasPlaceholders()
+    end
+    
+    action ConvertPlaceholdersToBlocks
+        alert("NYI")
+    end
+    
+    action RemovePlaceholders
+        renderer:RemovePlaceholders()
     end
 end
