@@ -31,24 +31,25 @@ class Main
         HashTable<text, integer> wordcount
         wordcount:Add("nullval", 1)
         // initialize array for input
-        Array<text> words
+        
 
         // read contents of file
-        Text filecontents
-        filecontents:SetValue(inFile:Read())
+//        Text filecontents
+//        filecontents:SetValue(inFile:Read())
+        text fileContents = inFile:Read()
         // split contents of file via whitespace, each word in its own index
-        words = filecontents:Split(" ")
+        Array<text> words = fileContents:Split(" ")
 
 
         // process contents of array
         Iterator<text> iter = words:GetIterator()
         repeat while iter:HasNext()
             text word = iter:Next()
-//            integer count = wordcount:GetValue(word)
-//            if wordcount:GetValue(word) not= undefined
+            integer count = wordcount:GetValue(word)
+            if count = 0
                 // add word to hashtable
-                wordcount:Add(word, 1)
-//            end
+                wordcount:Add(word, count)
+            end
         end
 
 //        // output contents of array
