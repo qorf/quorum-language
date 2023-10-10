@@ -1752,33 +1752,35 @@ class ClassOpcode is QuorumOpcode
         end
 
         Iterator<Action> it = clazz:GetParentActions()
+        text tempParentActions = ""
         repeat while it:HasNext()
             Action act = it:Next()
+            text thisParentAction = ""
             Class parentOfMethod = act:GetParentClass()
-            convertedSource = convertedSource + "this." + act:ConvertActionToJavaScriptName()
+            thisParentAction = thisParentAction + "this." + act:ConvertActionToJavaScriptName()
                 + " = function("
 
             Iterator<Variable> params = act:GetParameterIterator()
             repeat while params:HasNext()
                 Variable param = params:Next()
-                convertedSource = convertedSource + param:GetJavaScriptName()
+                thisParentAction = thisParentAction + param:GetJavaScriptName()
                 if params:HasNext()
-                    convertedSource = convertedSource + ", "
+                    thisParentAction = thisParentAction + ", "
                 end
             end
 
             if not parentOfMethod:IsObject()
-                convertedSource = convertedSource + ") {" + EOL
+                thisParentAction = thisParentAction + ") {" + EOL
                     + "     return this." + parentOfMethod:ConvertStaticKeyToParentFieldName() + "." 
             else 
                 //call one of the global functions
-                convertedSource = convertedSource  + ") {" + EOL
+                thisParentAction = thisParentAction  + ") {" + EOL
                 if act:GetName() = "Equals"
-                    convertedSource = convertedSource  + "return global_Object_Equals(this.prototype, "
+                    thisParentAction = thisParentAction  + "return global_Object_Equals(this.prototype, "
                 elseif act:GetName() = "GetHashCode"
-                    convertedSource = convertedSource  + "return global_Object_GetHashCode(this.prototype, "
+                    thisParentAction = thisParentAction  + "return global_Object_GetHashCode(this.prototype, "
                 elseif act:GetName() = "Compare"
-                    convertedSource = convertedSource  + "return global_Object_Compare(this.prototype, "
+                    thisParentAction = thisParentAction  + "return global_Object_Compare(this.prototype, "
                 end
             end
 
@@ -1799,9 +1801,14 @@ class ClassOpcode is QuorumOpcode
             end
 
             paramListText = paramListText + ");"
-            convertedSource = convertedSource + paramListText
-                + EOL 
+            thisParentAction = thisParentAction + paramListText
+                  + EOL 
                 + "}" + EOL
+            tempParentActions = tempParentActions + thisParentAction
+        end
+
+        if not tempParentActions:IsEmpty()
+            convertedSource = convertedSource + tempParentActions
         end
 
         Iterator<ActionOpcode> actionIterator = actions:GetIterator()
@@ -1832,6 +1839,7 @@ class ClassOpcode is QuorumOpcode
 
         //write the actions for parent fields
         if not clazz:IsError() //errors are special, don't write these
+            text tempGetterSetter = ""
             Iterator<Class> parentClasses = clazz:GetParentClasses()
             repeat while parentClasses:HasNext()
                 Class p = parentClasses:Next()
@@ -1844,17 +1852,24 @@ class ClassOpcode is QuorumOpcode
                         text getter = p:ConvertToActionNameFromField(variable, true)
                         text setter = p:ConvertToActionNameFromField(variable, false)
     
+                        text thisTempGetterSetter = ""
                         //the getter
-                        convertedSource = convertedSource + "this." + getter + " = function() {" + EOL
-                        convertedSource = convertedSource + "   return this." + p:ConvertStaticKeyToParentFieldName() + "." + getter + "();" + EOL
-                        convertedSource = convertedSource + "};" + EOL
+                        thisTempGetterSetter = "this." + getter + " = function() {" + EOL
+                             + "   return this." + p:ConvertStaticKeyToParentFieldName() + "." + getter + "();" + EOL
+                             + "};" + EOL
     
                         //the setter
-                        convertedSource = convertedSource + "this." + setter + " = function(value) {" + EOL
-                        convertedSource = convertedSource + "   this." + p:ConvertStaticKeyToParentFieldName() + "." + setter + "(value);" + EOL
-                        convertedSource = convertedSource + "};" + EOL
+                        thisTempGetterSetter = thisTempGetterSetter + "this." + setter + " = function(value) {" + EOL
+                             + "   this." + p:ConvertStaticKeyToParentFieldName() + "." + setter + "(value);" + EOL
+                             + "};" + EOL
+
+                        tempGetterSetter = tempGetterSetter + thisTempGetterSetter
                     end
                 end
+            end
+
+            if not tempGetterSetter:IsEmpty()
+                convertedSource = convertedSource + tempGetterSetter
             end
         end
 
