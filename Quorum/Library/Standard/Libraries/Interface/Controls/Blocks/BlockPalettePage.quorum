@@ -8,7 +8,6 @@ use Libraries.Interface.Pages.StackedRowPage
 
 class BlockPalettePage is StackedRowPage
 
-    CodeEditor editor = undefined
     BlockPalette palette
 
     action AddBlockPaletteItem(text name) returns Button
@@ -16,7 +15,6 @@ class BlockPalettePage is StackedRowPage
         button:SetPalette(palette)
 
         BlockPaletteInsertBehavior behave
-        behave:SetEditor(editor)
 
         button:SetName(name)
         button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
@@ -28,12 +26,9 @@ class BlockPalettePage is StackedRowPage
         return button
     end
 
-    action SetEditor(CodeEditor editor)
-        me:editor = editor
-    end
 
     action GetEditor returns CodeEditor
-        return editor
+        return palette:GetEditor()
     end
 
     action SetPalette(BlockPalette blockPalette)

@@ -1,0 +1,104 @@
+package Libraries.Interface.Controls.Blocks
+
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Behaviors.Blocks.BlockPaletteInsertBehavior
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Events.SelectionListener
+use Libraries.Interface.Selections.Selection
+use Libraries.Interface.Selections.CodeEditorSelection
+use Libraries.Containers.Iterator
+use Libraries.Language.Compile.CodeCompletionItem
+use Libraries.Language.Compile.CodeCompletionResult
+use Libraries.Containers.Array
+
+class BlockSuggestionPage is BlockPalettePage, SelectionListener
+
+    
+Array<BlockPaletteItem> primitives
+    Array<BlockPaletteItem> other
+    Array<BlockPaletteItem> packages
+    Array<BlockPaletteItem> classes
+    Array<BlockPaletteItem> locals
+    Array<BlockPaletteItem> fields
+    Array<BlockPaletteItem> parentFields
+    Array<BlockPaletteItem> actions
+    Array<BlockPaletteItem> emptyMenu
+    
+action SelectionChanged(SelectionEvent event)
+        GetFormChildren():Empty()
+        Selection selection = event:GetSelection()
+        if selection not= undefined
+            CodeEditorSelection blockSelection = cast(CodeEditorSelection, selection)
+            Block block = blockSelection:GetBlock()
+            if block not= undefined
+                output block:GetName()
+                SetTitle(block:GetName())
+            end
+        end
+    end
+    
+    action SetCodeCompletionResult(CodeCompletionResult result)
+        
+//the system is telling us we're between parses. Just ignore this request
+        if result = undefined
+            return now
+        elseif not result:IsValidCodeCompletion()
+            return now
+        else //seems like a valid request
+        end
+        
+        Iterator<CodeCompletionItem> iterator = result:GetIterator()
+        //Empty()
+        resultSize = 0
+        if not iterator:HasNext()
+            return now
+        end
+
+        
+
+        repeat while iterator:HasNext()
+            CodeCompletionItem code = iterator:Next()
+            if (code:displayText:StartsWith(result:filter)) or (((not code:displayText:IsEmpty()) and result:filter:IsEmpty()))
+                resultSize = resultSize + 1
+                //item:SetShortcut(code:rightDisplayText)
+                AddLabel(code:documentationText)
+BlockPaletteItem item = cast(BlockPaletteItem, AddBlockPaletteItem(code:displayText))
+
+
+                if code:GetType() = code:LOCAL_VARIABLE
+                    locals:Add(item)
+                elseif code:GetType() = code:PARAMETER
+                    locals:Add(item)
+                elseif code:GetType() = code:PRIVATE_FIELD_VARIABLE
+                    fields:Add(item)
+                elseif code:GetType() = code:PUBLIC_FIELD_VARIABLE
+                    fields:Add(item)
+                elseif code:GetType() = code:PRIVATE_ACTION
+                    actions:Add(item)
+                elseif code:GetType() = code:PUBLIC_ACTION
+                    actions:Add(item)
+                elseif code:GetType() = code:PRIVATE_SYSTEM_ACTION
+                    actions:Add(item)
+                elseif code:GetType() = code:PUBLIC_SYSTEM_ACTION
+                    actions:Add(item)
+                elseif code:GetType() = code:PUBLIC_BLUEPRINT_ACTION
+                    actions:Add(item)
+                elseif code:GetType() = code:CLASS
+                    classes:Add(item)
+                elseif code:GetType() = code:PRIMITIVE
+                    primitives:Add(item)
+                elseif code:GetType() = code:CONTROL_STRUCTURE
+                    primitives:Add(item)
+                elseif code:GetType() = code:PACKAGE
+                    packages:Add(item)
+                elseif code:GetType() = code:PARENT_FIELD_PRIVATE
+                    parentFields:Add(item)
+                elseif code:GetType() = code:PARENT_FIELD_PUBLIC
+                    parentFields:Add(item)
+                end
+
+            end
+        end
+    end
+end

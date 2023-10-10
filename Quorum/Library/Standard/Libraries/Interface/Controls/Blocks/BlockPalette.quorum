@@ -13,6 +13,8 @@ use Libraries.Interface.Behaviors.Blocks.BlockPaletteInsertBehavior
 use Libraries.Game.GameStateManager
 use Libraries.Game.Layer2D
 use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Events.SelectionListener
+use Libraries.Language.Compile.CodeCompletionResult
 
 
 class BlockPalette is TabPane
@@ -21,7 +23,9 @@ class BlockPalette is TabPane
     Tab basicTab
     Tab controlTab
     Tab actionTab
-    BlockPaletteInsertBehavior behave
+    Tab suggestionTab
+    
+    SelectionListener suggestPage
 
     // Resources used to handle the visual component of dragging-and-dropping palette items.
     GameStateManager manager
@@ -35,7 +39,6 @@ class BlockPalette is TabPane
         properties:SetVerticalLayoutMode(properties:STANDARD)
 //        properties:SetPercentageHeight(0.7)
         
-        behave:SetEditor(editor)
 
         basicTab:SetName("Basic")
         basicTab:DisplayCloseButton(false)
@@ -48,14 +51,25 @@ class BlockPalette is TabPane
         actionTab:SetName("Action")
         actionTab:DisplayCloseButton(false)
         actionTab:SetRelatedItem(MakeActionPage())
+        
+        suggestionTab:SetName("Suggestions")
+        suggestionTab:DisplayCloseButton(false)
+        suggestionTab:SetRelatedItem(MakeSuggestionPage())
 
         Add(basicTab)
         Add(controlTab)
         Add(actionTab)
+        Add(suggestionTab)
     end
 
     action SetEditor(CodeEditor editor)
+        if me:editor not= undefined
+            me:editor:RemoveSelectionListener(suggestPage)
+        end
         me:editor = editor
+        if editor not= undefined
+            editor:AddSelectionListener(suggestPage)
+        end
     end
 
     action GetEditor returns CodeEditor
@@ -73,11 +87,14 @@ class BlockPalette is TabPane
     action GetActionTab returns Tab
         return basicTab
     end
+    
+    action GetSuggestionTab returns Tab
+        return suggestionTab
+    end
 
     action MakeBasicPage returns Page
         BlockPalettePage page
         page:SetPalette(me)
-        page:SetEditor(editor)
         text dq = ""
         dq = dq:GetDoubleQuote()
         page:AddBlockPaletteItem("Blank")
@@ -96,7 +113,6 @@ class BlockPalette is TabPane
     action MakeControlPage returns Page
         BlockPalettePage page
         page:SetPalette(me)
-        page:SetEditor(editor)
         text dq = ""
         dq = dq:GetDoubleQuote()
         page:AddBlockPaletteItem("if")
@@ -113,7 +129,6 @@ class BlockPalette is TabPane
     action MakeActionPage returns Page
         BlockPalettePage page
         page:SetPalette(me)
-        page:SetEditor(editor)
         text dq = ""
         dq = dq:GetDoubleQuote()
         page:AddBlockPaletteItem("action myAction")
@@ -125,7 +140,21 @@ class BlockPalette is TabPane
         
         return page
     end
+    
+    action MakeSuggestionPage returns Page
+        BlockSuggestionPage page
+me:suggestPage = page
+        if GetEditor() not= undefined
+GetEditor():AddSelectionListener(page)
+        end
+        return page
+    end
 
+    action SetNewCodeCompletion(CodeCompletionResult result)
+        BlockSuggestionPage page = cast(BlockSuggestionPage, suggestionTab:GetRelatedItem())
+        page:SetCodeCompletionResult(result)
+    end
+    
     /*
         This action is used when dragging an item from the palette into an editor. When an item
         is dragged a new layer is created so the item can be visible anywhere in the game and above
