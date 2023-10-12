@@ -15,7 +15,7 @@ import quorum.Libraries.Interface.Item_;
 import java.util.HashSet;
 import java.util.Set;
 
-public class ItemIOS extends UIAccessibilityElement implements UIAccessibilityAction, UIAccessibilityFocus{
+public class ItemIOS extends UIAccessibilityElement implements UIAccessibilityAction, UIAccessibilityFocus {
     @Override
     public boolean isAccessibilityElement() {
         return true;
@@ -188,7 +188,7 @@ public class ItemIOS extends UIAccessibilityElement implements UIAccessibilityAc
         to trigger iOS specific things when this happens.
      */
     public void Focus() {
-        System.out.println("Focus set to " + item.GetName());
+        System.out.println("Focus from ItemIOS to " + item.GetName());
     }
 
     public void FocusLost() {

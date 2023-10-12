@@ -222,6 +222,10 @@ public class IOSApplication
 
         this.uiWindow.getRootViewController().getView().addSubview(accessibilityContainer);
 
+        //hidden text field for the keyboard
+        UITextField field = input.getKeyboardTextField();
+        this.uiWindow.getRootViewController().getView().addSubview(field);
+
         System.out.println("IOSApplication: DidFinishLaunching: this.uiWindow.makeKeyAndVisible() called.32323");
         return true;
     }

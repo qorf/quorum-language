@@ -150,7 +150,7 @@ public class IOSAccessibility {
             itemIOS.Initialize(item);
             element = itemIOS;
         } else if (code == item.Get_Libraries_Interface_Item__TEXT_FIELD_()){
-            ItemIOS itemIOS = new ItemIOS(IOSApplication.accessibilityContainer);
+            ItemIOS itemIOS = new TextFieldIOS(IOSApplication.accessibilityContainer);
             itemIOS.Initialize(item);
             element = itemIOS;
         } else if (code == item.Get_Libraries_Interface_Item__LIST_()){

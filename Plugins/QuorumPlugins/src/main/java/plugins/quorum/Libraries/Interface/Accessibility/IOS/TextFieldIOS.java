@@ -3,6 +3,8 @@ package plugins.quorum.Libraries.Interface.Accessibility.IOS;
 import org.robovm.apple.foundation.NSArray;
 import org.robovm.apple.foundation.NSRange;
 import org.robovm.apple.uikit.*;
+import plugins.quorum.Libraries.Game.GameStateManager;
+import plugins.quorum.Libraries.Game.IOSInput;
 import quorum.Libraries.Interface.Controls.Button_;
 import quorum.Libraries.Interface.Controls.TextField_;
 
@@ -36,14 +38,21 @@ public class TextFieldIOS extends ItemIOS implements UIKeyInput, UITextInputTrai
         return true;
     }
 
+    public TextField_ GetTextField() {
+        TextField_ field = (TextField_) GetItem();
+        return field;
+    }
+    @Override
     public void Focus() {
-        System.out.println("Focus set to " + item.GetName());
-        becomeFirstResponder();
+        IOSInput input = ((quorum.Libraries.Game.IOSInput) GameStateManager.input).plugin_;
+        input.setFocusedTextField(this);
+        input.setOnscreenKeyboardVisible(true);
     }
 
     public void FocusLost() {
-        System.out.println("Lost focus from " + item.GetName());
-        resignFirstResponder();
+        IOSInput input = ((quorum.Libraries.Game.IOSInput) GameStateManager.input).plugin_;
+        input.setFocusedTextField(null);
+        input.setOnscreenKeyboardVisible(false);
     }
 
     @Override
