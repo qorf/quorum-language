@@ -317,11 +317,19 @@ public class IOSInput
                     return false;
                 }
 
-                char[] chars = new char[string.length()];
-                string.getChars(0, string.length(), chars, 0);
-                for (int i = 0; i < chars.length; i++) {
-                    field.Insert(chars[i] + "");
+                //the user clicked delete, I "think"
+                if(string == null || string.isEmpty()) {
+                    field.DeleteBackward();
+                } else {
+                    char[] chars = new char[string.length()];
+                    string.getChars(0, string.length(), chars, 0);
+                    for (int i = 0; i < chars.length; i++) {
+                        //System.out.println("'" + chars[i] + "'");
+                        field.Insert(chars[i] + "");
+                    }
                 }
+
+
 
                 focusedTextField.setAccessibilityValue(field.GetText());
                 return true;
@@ -337,14 +345,23 @@ public class IOSInput
                     return true;
             }
 
-            @Override
-            public boolean shouldReturn (UITextField textField) {
-                System.out.println("Triggered should return");
-                    if (keyboardCloseOnReturn) setOnscreenKeyboardVisible(false);
+        public boolean shouldClear(UITextField textField) {
+            System.out.println("Should clear");
+            return true;
+        }
+
+        public void textFieldDidChangeSelection(UITextField textField) {
+            System.out.println("textFieldDidChangeSelection");
+        }
+
+        @Override
+        public boolean shouldReturn (UITextField textField) {
+            System.out.println("Triggered should return");
+                if (keyboardCloseOnReturn) setOnscreenKeyboardVisible(false);
 //                    app.input.inputProcessor.keyDown(Keys.ENTER);
 //                    app.input.inputProcessor.keyTyped((char)13);
 //                    Gdx.graphics.requestRendering();
-                    return false;
+                return false;
             }
     };
 
