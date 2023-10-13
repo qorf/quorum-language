@@ -25,6 +25,7 @@ import org.robovm.rt.bro.annotation.Pointer;
 import plugins.quorum.Libraries.Game.libGDX.Array;
 import plugins.quorum.Libraries.Game.libGDX.Pool;
 
+import plugins.quorum.Libraries.Interface.Accessibility.IOS.TextAdjust;
 import plugins.quorum.Libraries.Interface.Accessibility.IOS.TextFieldIOS;
 import quorum.Libraries.Game.IOSConfiguration_;
 import quorum.Libraries.Game.IOSConfiguration;
@@ -45,12 +46,12 @@ public class IOSInput
     
     static final int MAX_TOUCHES = 20;
 
-    public TextFieldIOS getFocusedTextField() {
-        return focusedTextField;
+    public TextAdjust getFocusedTextAdjust() {
+        return focusedTextAdjust;
     }
 
-    public void setFocusedTextField(TextFieldIOS focusedTextField) {
-        this.focusedTextField = focusedTextField;
+    public void setFocusedTextAdjust(TextAdjust focusedTextField) {
+        this.focusedTextAdjust = focusedTextField;
     }
 
     private static class NSObjectWrapper<T extends NSObject> 
@@ -301,37 +302,29 @@ public class IOSInput
             }
     }
 
-    private TextFieldIOS focusedTextField = null;
+    private TextAdjust focusedTextAdjust = null;
 
 
     private UITextField textfield = null;
     private final UITextFieldDelegate textDelegate = new UITextFieldDelegateAdapter() {
             @Override
             public boolean shouldChangeCharacters (UITextField textField, NSRange range, String string) {
-                if(focusedTextField == null) {
-                    return false;
-                }
-
-                TextField_ field = focusedTextField.GetTextField();
-                if(field == null) {
+                if(focusedTextAdjust == null) {
                     return false;
                 }
 
                 //the user clicked delete, I "think"
                 if(string == null || string.isEmpty()) {
-                    field.DeleteBackward();
+                    focusedTextAdjust.DeleteBackward();
                 } else {
                     char[] chars = new char[string.length()];
                     string.getChars(0, string.length(), chars, 0);
                     for (int i = 0; i < chars.length; i++) {
-                        //System.out.println("'" + chars[i] + "'");
-                        field.Insert(chars[i] + "");
+                        focusedTextAdjust.Insert(chars[i] + "");
                     }
                 }
 
-
-
-                focusedTextField.setAccessibilityValue(field.GetText());
+                focusedTextAdjust.setAccessibilityValue(focusedTextAdjust.GetText());
                 return true;
             }
 
@@ -351,7 +344,7 @@ public class IOSInput
         }
 
         public void textFieldDidChangeSelection(UITextField textField) {
-            System.out.println("textFieldDidChangeSelection");
+            UITextRange range = textField.getSelectedTextRange();
         }
 
         @Override

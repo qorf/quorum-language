@@ -8,7 +8,7 @@ import plugins.quorum.Libraries.Game.IOSInput;
 import quorum.Libraries.Interface.Controls.Button_;
 import quorum.Libraries.Interface.Controls.TextField_;
 
-public class TextFieldIOS extends ItemIOS implements UIKeyInput, UITextInputTraits {
+public class TextFieldIOS extends TextAdjust implements UIKeyInput, UITextInputTraits {
     public boolean isAccessibilityElement() {
         return true;
     }
@@ -42,16 +42,16 @@ public class TextFieldIOS extends ItemIOS implements UIKeyInput, UITextInputTrai
         TextField_ field = (TextField_) GetItem();
         return field;
     }
-    @Override
+
     public void Focus() {
         IOSInput input = ((quorum.Libraries.Game.IOSInput) GameStateManager.input).plugin_;
-        input.setFocusedTextField(this);
+        input.setFocusedTextAdjust(this);
         input.setOnscreenKeyboardVisible(true);
     }
 
     public void FocusLost() {
         IOSInput input = ((quorum.Libraries.Game.IOSInput) GameStateManager.input).plugin_;
-        input.setFocusedTextField(null);
+        input.setFocusedTextAdjust(null);
         input.setOnscreenKeyboardVisible(false);
     }
 
@@ -67,7 +67,7 @@ public class TextFieldIOS extends ItemIOS implements UIKeyInput, UITextInputTrai
 
     @Override
     public void deleteBackward() {
-        System.out.println("Delete backwards");
+
     }
 
     @Override
@@ -198,5 +198,19 @@ public class TextFieldIOS extends ItemIOS implements UIKeyInput, UITextInputTrai
     @Override
     public void setPasswordRules(UITextInputPasswordRules v) {
 
+    }
+
+    @Override
+    public void Insert(String string) {
+        GetTextField().Insert(string);
+    }
+
+    @Override
+    public void DeleteBackward() {
+        GetTextField().DeleteBackward();
+    }
+
+    public String GetText() {
+        return GetTextField().GetText();
     }
 }

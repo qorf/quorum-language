@@ -106,7 +106,7 @@ public class IOSAccessibility {
             toggleButton.Initialize((ToggleButton_) item);
             element = toggleButton;
         } else if (code == item.Get_Libraries_Interface_Item__TEXTBOX_()){
-            ItemIOS itemIOS = new ItemIOS(IOSApplication.accessibilityContainer);
+            ItemIOS itemIOS = new TextBoxIOS(IOSApplication.accessibilityContainer);
             itemIOS.Initialize(item);
             element = itemIOS;
         } else if (code == item.Get_Libraries_Interface_Item__MENU_BAR_()){

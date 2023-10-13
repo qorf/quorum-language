@@ -22,7 +22,6 @@ public class CheckboxIOS extends ItemIOS {
     }
 
     public void Initialize(Checkbox_ checkbox) {
-        System.out.println("it entered Initialize");
         setCheckbox(checkbox);
         UIAccessibilityTraits traits = UIAccessibilityTraits.None;
         this.setAccessibilityTraits(traits);
@@ -31,19 +30,16 @@ public class CheckboxIOS extends ItemIOS {
 
     @Override
     public boolean activate() {
-        System.out.println("it entered activate");
         boolean isToggled = checkbox.GetToggleState();
         if (isToggled == true) {
             checkbox.Activate();
             checkbox.SetToggleState(false);
             checkbox.ClickedMouse();
-            System.out.println("accessibility double tap ON");
             return false;
         } else {
             checkbox.Activate();
             checkbox.SetToggleState(true);;
             checkbox.ClickedMouse();
-            System.out.println("accessibility double tap OFF");
             return true;
         }
     }
