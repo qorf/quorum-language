@@ -1,6 +1,0 @@
-FROM openjdk:11
-COPY ./Run ./Quorum
-COPY ./Run/Default.jar ./Quorum/Quorum.jar
-RUN rm ./Quorum/Default.jar
-COPY /Library /Quorum/Library
-WORKDIR /Quorum
