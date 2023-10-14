@@ -1,0 +1,72 @@
+use Libraries.System.File
+use Libraries.System.FileReader
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+use Libraries.Language.Types.Text
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Containers.HashTable
+use Libraries.Containers.Support.HashTableIterator
+use Libraries.Containers.Support.HashTableKeyIterator
+use Libraries.Containers.Support.HashTableValueIterator
+use Libraries.Language.Errors.Error
+use Libraries.Language.Errors.FileNotFoundError
+use Libraries.Language.Errors.UndefinedObjectError
+
+class WordFrequency
+    private text FileName = ""
+    private HashTable<text, integer> WordCountMap
+
+    public action SetFilePath(text fileName)
+        FileName = fileName
+    end
+
+    public action GetFrequencyMap returns HashTable<text, integer>
+        return WordCountMap
+    end
+
+    public action Calculate returns boolean
+        File inFile
+        FileReader reader
+        inFile:SetPath(FileName)
+
+        check        
+            reader:OpenForRead(inFile)
+        detect e is FileNotFoundError
+            output e:GetErrorMessage()
+            return false
+        end
+
+        text fileContents = ""
+        repeat while not reader:IsAtEndOfFile()
+            fileContents = fileContents + reader:ReadLine() + " "
+        end
+        
+        Array<text> wordArr = fileContents:Split(" ")
+        Iterator<text> wordItr = wordArr:GetIterator()
+
+        repeat while wordItr:HasNext()
+            text word = wordItr:Next()
+            check
+                integer count = WordCountMap:GetValue(word)
+                count = count + 1
+                WordCountMap:Set(word, count)
+            detect e is UndefinedObjectError
+                WordCountMap:Set(word, 1)
+            end
+        end
+
+        inFile:Close()
+
+        return true
+    end
+
+    public action PrintFrequencies
+        Iterator<text> wordMapItr = WordCountMap:GetKeyIterator()
+        repeat while wordMapItr:HasNext()
+            text word = wordMapItr:Next()
+            integer count = WordCountMap:GetValue(word)
+            output(word + ": " + count)
+        end
+    end
+    
+end

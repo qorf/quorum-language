@@ -1,74 +1,12 @@
-// TODO - Solve Following
-// 1) Fix Naming Scheme
-//      Instead of "Main" possibly make it something more intuitive
-//      One idea could be "WordFrequency"
-// 2) Finalize Input / Output Expectancies
-//      Decide on a strict input type for the class
-//          Developer using this class only needs to set the expected filename possibly,
-//          then we handle the rest
-//      Decide on a strict input type for the class
-//          Because this will be used in development environments we can pass the data back
-//          either as some kind of data frame object or even the original hashmap.   
-       
-
-use Libraries.System.File
-use Libraries.System.FileReader
-use Libraries.Containers.Array
-use Libraries.Containers.Iterator
-use Libraries.Language.Types.Text
-use Libraries.Compute.Statistics.DataFrame
 use Libraries.Containers.HashTable
-use Libraries.Containers.Support.HashTableIterator
-use Libraries.Containers.Support.HashTableKeyIterator
-use Libraries.Containers.Support.HashTableValueIterator
-use Libraries.Language.Errors.Error
-use Libraries.Language.Errors.FileNotFoundError
-use Libraries.Language.Errors.UndefinedObjectError
+use Libraries.Containers.Iterator
 
-class Main
-    action Main
-        File inFile
-        FileReader reader
-        inFile:SetPath("input0.txt")
-
-        check        
-            reader:OpenForRead(inFile)
-        detect e is FileNotFoundError
-            output e:GetErrorMessage()
-            return now
-        end
-        
-        
-        text fileContents = ""
-        repeat while not reader:IsAtEndOfFile()
-            fileContents = fileContents + reader:ReadLine() + " "
-        end
-
-        Array<text> wordArr = fileContents:Split(" ")
-
-        HashTable<text, integer> wordCountMap
-
-        Iterator<text> wordItr = wordArr:GetIterator()
-
-        repeat while wordItr:HasNext()
-            text word = wordItr:Next()
-            check
-                integer count = wordCountMap:GetValue(word)
-                count = count + 1
-                wordCountMap:Set(word, count)
-            detect e is UndefinedObjectError
-                wordCountMap:Set(word, 1)
-            end
-        end
-
-        Iterator<text> wordMapItr = wordCountMap:GetKeyIterator()
-        repeat while wordMapItr:HasNext()
-            text word = wordMapItr:Next()
-            integer count = wordCountMap:GetValue(word)
-            output("Word: " + word + "  Count: " + count)
-        end
-
-        inFile:Close()
-
-    end
+WordFrequency a
+a:SetFilePath("input0.txt")
+a:Calculate()
+a:PrintFrequencies()
+HashTable<text, integer> freq = a:GetFrequencyMap()
+Iterator<text> itr = freq:GetKeyIterator()
+repeat while itr:HasNext()
+    output itr:Next()
 end
