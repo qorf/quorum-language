@@ -1,4 +1,15 @@
-/* This program counts the words on a file, and outputs the number of occurences of each word */
+// TODO - Solve Following
+// 1) Fix Naming Scheme
+//      Instead of "Main" possibly make it something more intuitive
+//      One idea could be "WordFrequency"
+// 2) Finalize Input / Output Expectancies
+//      Decide on a strict input type for the class
+//          Developer using this class only needs to set the expected filename possibly,
+//          then we handle the rest
+//      Decide on a strict input type for the class
+//          Because this will be used in development environments we can pass the data back
+//          either as some kind of data frame object or even the original hashmap.   
+       
 
 use Libraries.System.File
 use Libraries.System.FileReader
@@ -10,67 +21,54 @@ use Libraries.Containers.HashTable
 use Libraries.Containers.Support.HashTableIterator
 use Libraries.Containers.Support.HashTableKeyIterator
 use Libraries.Containers.Support.HashTableValueIterator
+use Libraries.Language.Errors.Error
+use Libraries.Language.Errors.FileNotFoundError
+use Libraries.Language.Errors.UndefinedObjectError
 
 class Main
     action Main
-        // define and open file
         File inFile
         FileReader reader
         inFile:SetPath("input0.txt")
-        reader:OpenForRead(inFile)
 
-        // check for valid file, prompt for filename in case of failure
-        repeat while not inFile:Exists()
-            output("Error opening file.")
-            text filename = input("Enter filename: ")
-            inFile:SetPath(filename)
+        check        
             reader:OpenForRead(inFile)
+        detect e is FileNotFoundError
+            output e:GetErrorMessage()
+            return now
+        end
+        
+        
+        text fileContents = ""
+        repeat while not reader:IsAtEndOfFile()
+            fileContents = fileContents + reader:ReadLine() + " "
         end
 
-        // initialize hash table
-        HashTable<text, integer> wordcount
-        wordcount:Add("nullval", 1)
-        // initialize array for input
-        
+        Array<text> wordArr = fileContents:Split(" ")
 
-        // read contents of file
-//        Text filecontents
-//        filecontents:SetValue(inFile:Read())
-        text fileContents = inFile:Read()
-        // split contents of file via whitespace, each word in its own index
-        Array<text> words = fileContents:Split(" ")
+        HashTable<text, integer> wordCountMap
 
+        Iterator<text> wordItr = wordArr:GetIterator()
 
-        // process contents of array
-        Iterator<text> iter = words:GetIterator()
-        repeat while iter:HasNext()
-            text word = iter:Next()
-            integer count = wordcount:GetValue(word)
-            if count = 0
-                // add word to hashtable
-                wordcount:Add(word, count)
+        repeat while wordItr:HasNext()
+            text word = wordItr:Next()
+            check
+                integer count = wordCountMap:GetValue(word)
+                count = count + 1
+                wordCountMap:Set(word, count)
+            detect e is UndefinedObjectError
+                wordCountMap:Set(word, 1)
             end
         end
 
-//        // output contents of array
-//        Iterator<text> it = words:GetIterator()
-//        repeat while it:HasNext()
-//            output(it:Next())
-//        end
-//
-        // output contents of hash table
-        Iterator<text> keyiterator = wordcount:GetKeyIterator()
-        repeat while keyiterator:HasNext()
-            text outputword = keyiterator:Next()
-            integer outputcount = wordcount:GetValue(outputword)
-            output("Word: " + outputword + "  Count: " + outputcount)
+        Iterator<text> wordMapItr = wordCountMap:GetKeyIterator()
+        repeat while wordMapItr:HasNext()
+            text word = wordMapItr:Next()
+            integer count = wordCountMap:GetValue(word)
+            output("Word: " + word + "  Count: " + count)
         end
-        
 
-        // close file
         inFile:Close()
 
     end
 end
-
-/* EOF Main.quorum */
