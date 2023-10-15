@@ -75,6 +75,8 @@ LoadDraggedBlocks(sourceBlocks, dragEvent:GetStartX(), dragEvent:GetStartY())
             return now
         end
         
+        CodeEditor editor = blocks:GetFromFront():GetEditor()
+        
         integer i = 0
         number targetX = 0
         number targetY = 0
@@ -105,6 +107,11 @@ LoadDraggedBlocks(sourceBlocks, dragEvent:GetStartX(), dragEvent:GetStartY())
         
         sourceBlocks = blocks
         targetLayer:Add(dragAnchor)
+        
+if editor not= undefined
+            editor:SetMovingBlocks(sourceBlocks)
+        end
+        
     end
     
     // Remove the visual representation of the dragged blocks from the Game.

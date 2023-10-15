@@ -847,6 +847,15 @@ integer i = 0
     action RequestViewRefresh
         shouldRefreshView = true
     end
+    
+    /*
+This action indicates that the editor should recalculate the height
+and positioning of the lines. This is called automatically by the system
+and usually shouldn't be called directly by users.
+*/
+    action RequestHeightRefresh
+        shouldCalculateHeight = true
+    end
 
     action Update(number seconds)
         if shouldRefreshView
@@ -2650,10 +2659,16 @@ renderer:MovePlaceholdersToNavigationIndex(index)
     end
     
     action ConvertPlaceholdersToBlocks
-        alert("NYI")
+        renderer:ConvertPlaceholdersToBlocks()
     end
     
     action RemovePlaceholders
         renderer:RemovePlaceholders()
     end
+    
+    
+action SetMovingBlocks(Array<Block> blocks)
+        output "SetMovingBlocks"
+        renderer:SetMovingBlocks(blocks)
+end
 end

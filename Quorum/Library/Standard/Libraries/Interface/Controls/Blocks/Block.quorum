@@ -78,6 +78,9 @@ be dropped. Placeholder blocks have special rules around their text values and h
     // If this is a placeholder, it doesn't represent text in the real code, so it needs to store it separately here.
     text placeholderText = ""
     
+    // Indicates that this Block is currently being moved with the mouse or keyboard.
+    boolean isMoving = false
+    
 
     on create
         SetName("Block")
@@ -1114,9 +1117,27 @@ action IsAccessibleParent returns boolean
         return true
     end
     
-    // This action returns true if the given Block is valid to be placed immediately after this block, or false otherwise.
-    action IsValidNextBlock(Block nextBlock) returns boolean
-        return false
+    // Indicates if this block is currently moving (e.g. being dragged with the mouse)
+    action SetMoving(boolean moving)
+        isMoving = moving
+        // TO-DO: Update the visuals of the moving block
+    end
+    
+    action IsMoving returns boolean
+        return isMoving
+    end
+    
+    // This action indicates if the given placeholder blocks can be placed under this block.
+    // For example, if this is a block that's currently moving, it won't accept any placeholders.
+    action CanAcceptPlaceholders(Array<Block> blocks) returns boolean
+        return isPlaceholder = false
+    end
+    
+    /*This action returns false if the given placeholder would be an error in the code if it is placed under this block,
+or true otherwise. This doesn't indicate whether or not the placeholder is allowed to be placed there or not -- for
+that information, use CanAcceptPlaceholders().*/
+    action IsPlaceholderValid(Block block) returns boolean
+        return true
     end
     
     action IsPlaceholder returns boolean
@@ -1134,6 +1155,7 @@ action IsAccessibleParent returns boolean
         ActionCallBlock placeholder
         placeholder:SetAsPlaceholder(GetText())
         placeholder:SetEditor(GetEditor())
+        placeholder:SetScopeDepth(GetScopeDepth())
         placeholder:Setup()
         return placeholder
     end

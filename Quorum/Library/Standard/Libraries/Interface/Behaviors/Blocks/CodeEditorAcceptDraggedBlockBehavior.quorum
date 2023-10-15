@@ -27,13 +27,14 @@ class CodeEditorAcceptDraggedBlockBehavior is Behavior
             CodeEditor editor = cast(CodeEditor, received)
             number y = dropEvent:GetY() - editor:GetGlobalY()
             integer line = editor:GetNavigationIndexAtY(y)
+            if line >= editor:GetLineCount()
+                line = editor:GetLineCount() - 1
+            end
             
 Array<Block> sourceBlocks = sourceDragBehavior:GetSourceBlocks()
             
             if dropEvent:eventType = dropEvent:DRAGGING_CONTINUED
                 if line not= lastCandidateLine
-                    
-output "DRAGGING_CONTINUED, line is " + editor:GetNavigationIndexAtY(y)
                     
                     if editor:HasPlaceholders()
                         editor:MovePlaceholdersToNavigationIndex(line)
@@ -50,25 +51,20 @@ output "DRAGGING_CONTINUED, line is " + editor:GetNavigationIndexAtY(y)
                     lastCandidateLine = line
                 end
             elseif dropEvent:eventType = dropEvent:DRAGGED_ONTO_DESTINATION
-                output "DRAGGED_ONTO"
                 lastCandidateLine = line
             elseif dropEvent:eventType = dropEvent:DROPPED
                 if sourceBlocks:IsEmpty() = false
-                    output "Line is " + editor:GetNavigationIndexAtY(y)
                     Block firstBlock = sourceBlocks:GetFromFront()
-                    output "First values (pre): " + firstBlock:GetStartIndex() + ", " + firstBlock:GetEndIndex() + " -- " + firstBlock:GetNavigationIndex()
                     Block lastBlock = sourceBlocks:GetFromEnd()
                     text toInsert = editor:GetCode():GetText(firstBlock:GetStartIndex(), lastBlock:GetEndIndex())
-                    //editor:InsertTextAfterLine(line - 1, toInsert)
                     
-                    output "First block valid? " + (firstBlock:IsInEditorTree())
-                    output "First values (post): " + firstBlock:GetStartIndex() + ", " + firstBlock:GetEndIndex() + " -- " + firstBlock:GetNavigationIndex()
                     lastCandidateLine = -2
                     
-                    editor:RemovePlaceholders()
+                    output "Has placeholders? " + editor:HasPlaceholders()
+                    if editor:HasPlaceholders()
+                        editor:ConvertPlaceholdersToBlocks()
+                    end
                 end
-            else
-                output "Type = " + dropEvent:eventType
             end
         end
     end

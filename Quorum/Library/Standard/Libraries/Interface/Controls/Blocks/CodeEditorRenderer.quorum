@@ -42,6 +42,14 @@ class CodeEditorRenderer is Control
     // Blocks that are used to indicate placeholders where blocks can be dropped into.
     Array<Block> placeholderBlocks
     
+    // Blocks that are currently slated to be potentially moved or deleted.
+    Array<Block> movingBlocks
+    
+    // Start/end global text indices for the starting position of text that's being moved.
+    integer movingStartIndex = -1
+    integer movingEndIndex = -1
+    
+    
     on create
         SetCustomDrawing(true)
         SetChildrenProcessingMouseEvents(true)
@@ -327,7 +335,6 @@ class CodeEditorRenderer is Control
 
         integer lineIndex = block:GetNavigationIndex() + navigationSize - 1
         block:SetPosition(editor:GetScopeIndentationWidth() * block:GetScopeDepth() - editor:GetScrollPercentageX() * editor:GetTotalContentWidth(), editor:GetLineY(lineIndex))
-        output block:GetName() + ": Set block Y to " + block:GetY() + " via GetLineY(" + lineIndex + ") = " + editor:GetLineY(lineIndex)
     end
 
     action RefreshNavigationIndices
@@ -570,39 +577,44 @@ class CodeEditorRenderer is Control
         
         Block firstPlaceholder = placeholders:GetFromFront()
         Block parentBlock = undefined
+        Block followingBlock = undefined
         
         integer addIndex = 0
         integer currentNavigationIndex = 0
         
         if navigationIndex <= 0
-
             parentBlock = rootBlock
+            followingBlock = GetNavigableBlockAtLine(0)
         else
             Block targetBlock = GetNavigableBlockAtLine(navigationIndex - 1)
-            output "TARGET BLOCK AT " + (navigationIndex - 1) + " IS " + (targetBlock not= undefined)
             currentNavigationIndex = targetBlock:GetNavigationIndex() + targetBlock:GetNavigationSize()
-            
-if targetBlock:IsValidNextBlock(firstPlaceholder) = false
-            // Do something here to indicate invalid state
-            output "Invalid value in AppendPlaceholdersToBlock"
-        end
             
             if targetBlock is MultipleLineBlockPart
                 parentBlock = targetBlock
+                followingBlock = parentBlock:GetNextNavigableBlock()
             else
                 parentBlock = targetBlock:GetParentBlock()
+                followingBlock = targetBlock:GetNextNavigableBlock()
                 addIndex = targetBlock:GetParentIndex() + 1
             end
         end
         
 integer i = 0
+        integer placeholderIndex = 0
+        if followingBlock not= undefined
+            placeholderIndex = followingBlock:GetStartIndex()
+        else
+            placeholderIndex = GetEditor():GetCode():GetSize()
+        end
             
             Block currentBlock = undefined
             repeat while i < placeholders:GetSize()
                 currentBlock = placeholders:Get(i)
-            output "REPEAT B: currentBlock = " + currentBlock:GetName()
                 parentBlock:Add(addIndex + i, currentBlock)
                 currentBlock:SetNavigationIndex(currentNavigationIndex)
+            currentBlock:SetLocalStartIndex(placeholderIndex - parentBlock:GetStartIndex())
+            currentBlock:SetLocalEndIndex(currentBlock:GetLocalStartIndex())
+            output "Current block index: " + currentBlock:GetLocalStartIndex()
             
             // During movements, we're already using the placeholderBlocks as our input.
             if placeholders not= placeholderBlocks
@@ -615,22 +627,19 @@ placeholderBlocks:Add(currentBlock)
             
             currentBlock = currentBlock:GetNextNavigableBlock()
             repeat until currentBlock = undefined
-            output "REPEAT C: currentBlock = " + currentBlock:GetName()
                 currentBlock:SetNavigationIndex(currentNavigationIndex)
 currentNavigationIndex = currentNavigationIndex + currentBlock:GetNavigationSize()
                 currentBlock = currentBlock:GetNextNavigableBlock()
             end
-            
+        
+        GetEditor():RequestHeightRefresh()
             RefreshBlockView()
         
     end
     
     action MovePlaceholdersToNavigationIndex(integer index)
-        output "A"
         InternalRemovePlaceholders()
-        output "B"
         InsertPlaceholdersAtNavigationIndex(index, placeholderBlocks)
-        output "C"
     end
     
     action RemovePlaceholders
@@ -656,4 +665,64 @@ RefreshNavigationIndices()
     action HasPlaceholders returns boolean
         return placeholderBlocks:IsEmpty() = false
     end
+    
+    action SetMovingBlocks(Array<Block> blocks)
+        if not movingBlocks:IsEmpty()
+            movingBlocks:Empty()
+        end
+        
+        if blocks:IsEmpty()
+            return now
+        end
+        
+        integer i = 0
+        repeat while i < blocks:GetSize()
+            Block block = blocks:Get(i)
+            movingBlocks:Add(block)
+            
+            // Temporary testing visuals: Hard-set blocks to purple if they're being moved
+            Libraries.Game.Graphics.Color color
+            block:SetBackgroundColor(color:Purple())
+            
+            i = i + 1
+        end
+        
+        MultipleLineText code = GetEditor():GetCode()
+        text newLine = code:GetLineSeparator()
+        
+        movingStartIndex = movingBlocks:GetFromFront():GetStartIndex()
+        movingEndIndex = movingBlocks:GetFromEnd():GetEndIndex()
+        
+        // Capture leading spaces
+        repeat while movingStartIndex > 0 and code:GetText(movingStartIndex - 1, movingStartIndex) = " "
+            movingStartIndex = movingStartIndex - 1
+        end
+        
+        // Capture trailing new line
+        if (movingEndIndex + newLine:GetSize() < code:GetSize()) and (code:GetText(movingEndIndex, movingEndIndex + newLine:GetSize()) = newLine)
+            movingEndIndex = movingEndIndex + newLine:GetSize()
+        end
+        
+    end
+    
+action ConvertPlaceholdersToBlocks
+        CodeEditor editor = GetEditor()
+        integer destination = placeholderBlocks:GetFromFront():GetStartIndex()
+        text lineFeed = "
+"
+        
+        text toMove = editor:GetCodeBetween(movingStartIndex, movingEndIndex)
+        MultipleLineText code = editor:GetCode()
+        if movingStartIndex < destination
+            code = code:Insert(destination, toMove)
+            code = code:Delete(movingStartIndex, movingEndIndex)
+        else
+code = code:Delete(movingStartIndex, movingEndIndex)
+code = code:Insert(destination, toMove)
+        end
+        
+placeholderBlocks:Empty()
+        editor:SetCode(code)
+    end
+    
 end
