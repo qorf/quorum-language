@@ -222,7 +222,11 @@ class Chart is ChartItem
         
         // Set default size if necessary
         if GetWidth() <= 0 or GetHeight() <= 0
+            //This was added in Quorum-12 to ensure it doesn't trigger layout during load graphics.
+boolean isResizing = parent:Item2D:isResizing
+parent:Item2D:isResizing = true
             SetSize(1000,1000)
+            parent:Item2D:isResizing = isResizing
         end
 
         // Load background of display window
