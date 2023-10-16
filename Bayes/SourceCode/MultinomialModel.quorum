@@ -24,7 +24,9 @@ class BayesianModel
     action getEvidence() returns Decimal
         return evidence
     end
-
+    action getValues() returns Dataframe
+        return values
+    end
     // Setter methods for updating the model parameters
     action setProbabilities(Object newProbabilities)
         probabilities = newProbabilities
@@ -37,14 +39,20 @@ class BayesianModel
     action setEvidence(Decimal newEvidence)
         evidence = newEvidence
     end
+    action setValues(Dataframe inputValues)
 
+    end
     // Function to load values from a CSV file
     action loadModelFromCSV(String filePath)
-        // Implement code to read values from the CSV file and update the model parameters   
+        Dataframe inputValues 
+        inputValues:Load(filePath)
+        setValues(inputValues)
+        
     end
 
     // Function to export the model parameters to a CSV file
     action saveModelToCSV(String filePath)
-        // Implement code to write the model parameters to a CSV file
+        Dataframe currentValues = getValues()
+        currentValues:Save(filepath)
     end
 end
