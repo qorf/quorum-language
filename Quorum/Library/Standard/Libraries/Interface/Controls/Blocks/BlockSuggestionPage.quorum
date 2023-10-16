@@ -15,7 +15,7 @@ use Libraries.Containers.Array
 class BlockSuggestionPage is BlockPalettePage, SelectionListener
 
     
-Array<BlockPaletteItem> primitives
+    Array<BlockPaletteItem> primitives
     Array<BlockPaletteItem> other
     Array<BlockPaletteItem> packages
     Array<BlockPaletteItem> classes
@@ -25,22 +25,31 @@ Array<BlockPaletteItem> primitives
     Array<BlockPaletteItem> actions
     Array<BlockPaletteItem> emptyMenu
     
-action SelectionChanged(SelectionEvent event)
-        GetFormChildren():Empty()
-        Selection selection = event:GetSelection()
-        if selection not= undefined
-            CodeEditorSelection blockSelection = cast(CodeEditorSelection, selection)
-            Block block = blockSelection:GetBlock()
-            if block not= undefined
-                output block:GetName()
-                SetTitle(block:GetName())
-            end
-        end
+    action SelectionChanged(SelectionEvent event)
+//        GetFormChildren():Empty()
+//        Selection selection = event:GetSelection()
+//        if selection not= undefined
+//            CodeEditorSelection blockSelection = cast(CodeEditorSelection, selection)
+//            Block block = blockSelection:GetBlock()
+//            if block not= undefined
+//                output block:GetName()
+//                SetTitle(block:GetName())
+//            end
+//        end
     end
     
+    action SetFromList(Array<text> list)
+        GetFormChildren():Empty()
+        integer i = 0
+        repeat while i < list:GetSize()
+            AddBlockPaletteItem(list:Get(i))
+            i = i + 1
+        end
+    end
+
     action SetCodeCompletionResult(CodeCompletionResult result)
         
-//the system is telling us we're between parses. Just ignore this request
+        //the system is telling us we're between parses. Just ignore this request
         if result = undefined
             return now
         elseif not result:IsValidCodeCompletion()
@@ -63,7 +72,8 @@ action SelectionChanged(SelectionEvent event)
                 resultSize = resultSize + 1
                 //item:SetShortcut(code:rightDisplayText)
                 AddLabel(code:documentationText)
-BlockPaletteItem item = cast(BlockPaletteItem, AddBlockPaletteItem(code:displayText))
+                
+                BlockPaletteItem item = cast(BlockPaletteItem, AddBlockPaletteItem(code:displayText))
 
 
                 if code:GetType() = code:LOCAL_VARIABLE

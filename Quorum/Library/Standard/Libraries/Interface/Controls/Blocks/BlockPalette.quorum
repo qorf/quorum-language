@@ -15,6 +15,8 @@ use Libraries.Game.Layer2D
 use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Events.SelectionListener
 use Libraries.Language.Compile.CodeCompletionResult
+use Libraries.Language.Compile.CodeCompletionRequest
+use Libraries.Containers.Array
 
 
 class BlockPalette is TabPane
@@ -143,9 +145,9 @@ class BlockPalette is TabPane
     
     action MakeSuggestionPage returns Page
         BlockSuggestionPage page
-me:suggestPage = page
+        me:suggestPage = page
         if GetEditor() not= undefined
-GetEditor():AddSelectionListener(page)
+            GetEditor():AddSelectionListener(page)
         end
         return page
     end
@@ -154,7 +156,17 @@ GetEditor():AddSelectionListener(page)
         BlockSuggestionPage page = cast(BlockSuggestionPage, suggestionTab:GetRelatedItem())
         page:SetCodeCompletionResult(result)
     end
+
+    action SetNewCodeCompletion(Array<text> list)
+        BlockSuggestionPage page = cast(BlockSuggestionPage, suggestionTab:GetRelatedItem())
+        page:SetFromList(list)
+    end
     
+    action UpdateSuggestion(text className, CodeCompletionRequest request)
+        BlockSuggestionHandler handler
+        handler:Request(className, request, me)
+    end
+
     /*
         This action is used when dragging an item from the palette into an editor. When an item
         is dragged a new layer is created so the item can be visible anywhere in the game and above

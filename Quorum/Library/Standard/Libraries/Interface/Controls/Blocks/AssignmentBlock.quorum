@@ -45,6 +45,12 @@ class AssignmentBlock is SingleLineBlock
         SetName("Assignment Block")
     end
 
+    action GetClassName returns text
+        if typeField not= undefined
+            return typeField:GetText()
+        end
+        return ""
+    end
     private action SetupElements
         number spacing = GetEditor():GetDefaultGlyphWidth()
         SetLeftPadding(spacing * 0.5)
