@@ -1,0 +1,40 @@
+use Libraries.Compute.Statistics.DataFrame
+
+class BayesianModel
+    Dictionary<String, Decimal> probabilities
+    Dictionary<String, Dictionary<String, Decimal>> likelihoods
+    Decimal evidence
+    
+
+    action Initialize(Dictionary<String, Decimal> initialProbabilities, Dictionary<String, Dictionary<String, Decimal>> initialLikelihoods, Decimal initialEvidence)
+        probabilities = initialProbabilities
+        likelihoods = initialLikelihoods
+        evidence = initialEvidence
+    end
+
+    // Getter methods for accessing the model parameters
+    function getProbabilities() returns Dictionary<String, Decimal>
+        return probabilities
+    end
+
+    function getLikelihoods() returns Dictionary<String, Dictionary<String, Decimal>>
+        return likelihoods
+    end
+
+    function getEvidence() returns Decimal
+        return evidence
+    end
+    // Setter methods for updating the model parameters
+    action setProbabilities(Dictionary<String, Decimal> newProbabilities)
+        probabilities = newProbabilities
+    end
+
+
+    action setLikelihoods(Dictionary<String, Dictionary<String, Decimal>> newLikelihoods)
+        likelihoods = newLikelihoods
+    end
+
+    action setEvidence(Decimal newEvidence)
+        evidence = newEvidence
+    end
+end
