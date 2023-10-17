@@ -1,45 +1,62 @@
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+
 class BayesianMultinomialClassifier
-    Object probabilities
-    Object likelihoods
-    Decimal evidence
+    BayesianModel model
 
-    // Initialize class properties
-    probabilities: Object
-    likelihoods: Object
-    evidence: Decimal
-
-    // Constructor to initialize properties
-    action Initialize(Object initialProbabilities, Object initialLikelihoods, Decimal initialEvidence)
-        probabilities = initialProbabilities
-        likelihoods = initialLikelihoods
-        evidence = initialEvidence
+    action Initialize(BayesianModel initialModel)
+        model = initialModel
     end
 
-    // Function to calculate posterior probability
-    action calculatePosterior(prior: Decimal, likelihood: Decimal, evidence: Decimal) returns Decimal
-        Decimal posterior = prior * likelihood / evidence
-        return posterior
-    end
+    // Function to classify a document based on word counts
+    action classifyDocument(HashTable<text, Integer> wordCounts) returns text
+        // Get the model parameters
+        HashTable<text, Decimal> probabilities = model:getProbabilities()
+        HashTable<text, Dictionary<text, Decimal>> likelihoods = model:getLikelihoods()
+        Decimal evidence = model:getEvidence()
 
-    // Function to calculate and display posterior probabilities
-    function calculateAndDisplayPosterior()
-        Object posteriors
-        posteriors: Object = New Dictionary<String, Decimal>()
+        HashTable<text, Decimal> posteriors 
+        Iterator<text> probabilitiesItr = probabilities:GetKeyIterator()
 
-        for key, value in probabilities
-            Decimal posterior = calculatePosterior(value, likelihoods(key), evidence)
-            posteriors(key) = posterior
-            output("P(" + key + " | data) = " + posterior)
+        // Calculate posterior probabilities for each class
+        repeat while probabilitiesItr:HasNext()
+            text classLabel = probabilitiesItr:GetCurrent()
+            Decimal posterior = probabilities:GetValue(classLabel)
+            Iterator<text> wordCountsItr = wordCounts:GetKeyIterator()
+            repeat while wordCountsItr:HasNext()
+                text word = wordCountsItr:GetCurrent()
+                if likelihoods:GetValue(classLabel):HasKey(word)
+                    Decimal likelihood = likelihoods:GetValue(classLabel):GetValue(word)
+                    int count = wordCounts:Get(word)  // Get the count of the word in the document
+                    posterior = posterior * Math:Pow(likelihood, count)
+                end
+                wordCountsItr:Next()    
+            end
+            posteriors:Add(classLabel, posterior / evidence)
         end
+
+        // Find the class with the highest posterior probability
+        text predictedClass = FindClassWithMaxPosterior(posteriors)
+
+        return predictedClass
     end
 
-    // Getter method for probabilities
-    function getProbabilities() returns Object
-        return probabilities
-    end
+    // Helper function to find the class with the highest posterior probability
+    action FindClassWithMaxPosterior(HashTable<text, Decimal> posteriors) returns text
+        text maxClass = ""
+        Decimal maxPosterior = -1
 
-    // Getter method for likelihoods
-    function getLikelihoods() returns Object
-        return likelihoods
+        Iterator<text> posteriorsItr = posteriors:GetKeyIterator()
+
+        repeat while posteriorsItr:HasNext()
+            text classLabel = posteriorsItr:Next()
+            Decimal posterior = posteriors:Get(classLabel)
+            if posterior > maxPosterior
+                maxPosterior = posterior
+                maxClass = classLabel
+            end
+        end
+
+        return maxClass
     end
 end

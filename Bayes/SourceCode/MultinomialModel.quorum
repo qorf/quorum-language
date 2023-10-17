@@ -1,23 +1,23 @@
 use Libraries.Compute.Statistics.DataFrame
 
 class BayesianModel
-    Dictionary<String, Decimal> probabilities
-    Dictionary<String, Dictionary<String, Decimal>> likelihoods
+    HashTable<text, Decimal> probabilities
+    HashTable<text, HashTable<String, Decimal>> likelihoods
     Decimal evidence
     
 
-    action Initialize(Dictionary<String, Decimal> initialProbabilities, Dictionary<String, Dictionary<String, Decimal>> initialLikelihoods, Decimal initialEvidence)
+    action Initialize(HashTable<text, Decimal> initialProbabilities, HashTable<text, HashTable<text, Decimal>> initialLikelihoods, Decimal initialEvidence)
         probabilities = initialProbabilities
         likelihoods = initialLikelihoods
         evidence = initialEvidence
     end
 
     // Getter methods for accessing the model parameters
-    function getProbabilities() returns Dictionary<String, Decimal>
+    function getProbabilities() returns HashTable<String, Decimal>
         return probabilities
     end
 
-    function getLikelihoods() returns Dictionary<String, Dictionary<String, Decimal>>
+    function getLikelihoods() returns HashTable<String, HashTable<String, Decimal>>
         return likelihoods
     end
 
@@ -25,12 +25,12 @@ class BayesianModel
         return evidence
     end
     // Setter methods for updating the model parameters
-    action setProbabilities(Dictionary<String, Decimal> newProbabilities)
+    action setProbabilities(HashTable<text, Decimal> newProbabilities)
         probabilities = newProbabilities
     end
 
 
-    action setLikelihoods(Dictionary<String, Dictionary<String, Decimal>> newLikelihoods)
+    action setLikelihoods(HashTable<text, HashTable<String, Decimal>> newLikelihoods)
         likelihoods = newLikelihoods
     end
 
