@@ -1,40 +1,41 @@
 use Libraries.Compute.Statistics.DataFrame
+use Libraries.Containers.HashTable
 
 class BayesianModel
-    HashTable<text, Decimal> probabilities
-    HashTable<text, HashTable<String, Decimal>> likelihoods
-    Decimal evidence
+    HashTable<text, number> probabilities
+    HashTable<text, HashTable<text, number>> likelihoods
+    number evidence = 0.0
     
 
-    action Initialize(HashTable<text, Decimal> initialProbabilities, HashTable<text, HashTable<text, Decimal>> initialLikelihoods, Decimal initialEvidence)
+    action Initialize(HashTable<text, number> initialProbabilities, HashTable<text, HashTable<text, number>> initialLikelihoods, number initialEvidence)
         probabilities = initialProbabilities
         likelihoods = initialLikelihoods
         evidence = initialEvidence
     end
 
     // Getter methods for accessing the model parameters
-    function getProbabilities() returns HashTable<String, Decimal>
+    action getProbabilities() returns HashTable<text, number>
         return probabilities
     end
 
-    function getLikelihoods() returns HashTable<String, HashTable<String, Decimal>>
+    action getLikelihoods() returns HashTable<text, HashTable<text, number>>
         return likelihoods
     end
 
-    function getEvidence() returns Decimal
+    action getEvidence() returns number
         return evidence
     end
     // Setter methods for updating the model parameters
-    action setProbabilities(HashTable<text, Decimal> newProbabilities)
+    action setProbabilities(HashTable<text, number> newProbabilities)
         probabilities = newProbabilities
     end
 
 
-    action setLikelihoods(HashTable<text, HashTable<String, Decimal>> newLikelihoods)
+    action setLikelihoods(HashTable<text, HashTable<text, number>> newLikelihoods)
         likelihoods = newLikelihoods
     end
 
-    action setEvidence(Decimal newEvidence)
+    action setEvidence(number newEvidence)
         evidence = newEvidence
     end
 end

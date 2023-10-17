@@ -1,34 +1,36 @@
 use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
+use Libraries.Compute.Math
 
 class BayesianMultinomialClassifier
     BayesianModel model
-
+      
     action Initialize(BayesianModel initialModel)
         model = initialModel
     end
 
     // Function to classify a document based on word counts
-    action classifyDocument(HashTable<text, Integer> wordCounts) returns text
+    action classifyDocument(HashTable<text, integer> wordCounts) returns text
         // Get the model parameters
-        HashTable<text, Decimal> probabilities = model:getProbabilities()
-        HashTable<text, Dictionary<text, Decimal>> likelihoods = model:getLikelihoods()
-        Decimal evidence = model:getEvidence()
+        Math Math
+        HashTable<text, number> probabilities = model:getProbabilities()
+        HashTable<text, HashTable<text, number>> likelihoods = model:getLikelihoods()
+        number evidence = model:getEvidence()
 
-        HashTable<text, Decimal> posteriors 
+        HashTable<text, number> posteriors 
         Iterator<text> probabilitiesItr = probabilities:GetKeyIterator()
 
         // Calculate posterior probabilities for each class
         repeat while probabilitiesItr:HasNext()
             text classLabel = probabilitiesItr:GetCurrent()
-            Decimal posterior = probabilities:GetValue(classLabel)
+            number posterior = probabilities:GetValue(classLabel)
             Iterator<text> wordCountsItr = wordCounts:GetKeyIterator()
             repeat while wordCountsItr:HasNext()
                 text word = wordCountsItr:GetCurrent()
                 if likelihoods:GetValue(classLabel):HasKey(word)
-                    Decimal likelihood = likelihoods:GetValue(classLabel):GetValue(word)
-                    int count = wordCounts:Get(word)  // Get the count of the word in the document
-                    posterior = posterior * Math:Pow(likelihood, count)
+                    number likelihood = likelihoods:GetValue(classLabel):GetValue(word)
+                    integer count = wordCounts:GetValue(word)  // Get the count of the word in the document
+                    posterior = posterior * Math:RaiseToPower(likelihood, count)
                 end
                 wordCountsItr:Next()    
             end
@@ -42,15 +44,15 @@ class BayesianMultinomialClassifier
     end
 
     // Helper function to find the class with the highest posterior probability
-    action FindClassWithMaxPosterior(HashTable<text, Decimal> posteriors) returns text
+    action FindClassWithMaxPosterior(HashTable<text, number> posteriors) returns text
         text maxClass = ""
-        Decimal maxPosterior = -1
+        number maxPosterior = -1
 
         Iterator<text> posteriorsItr = posteriors:GetKeyIterator()
 
         repeat while posteriorsItr:HasNext()
             text classLabel = posteriorsItr:Next()
-            Decimal posterior = posteriors:Get(classLabel)
+            number posterior = posteriors:GetValue(classLabel)
             if posterior > maxPosterior
                 maxPosterior = posterior
                 maxClass = classLabel
