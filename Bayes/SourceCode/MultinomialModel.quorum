@@ -1,58 +1,40 @@
 use Libraries.Compute.Statistics.DataFrame
 
 class BayesianModel
-    Object probabilities
-    Object likelihoods
+    Dictionary<String, Decimal> probabilities
+    Dictionary<String, Dictionary<String, Decimal>> likelihoods
     Decimal evidence
-    Dataframe values
+    
 
-    action Initialize(Object initialProbabilities, Object initialLikelihoods, Decimal initialEvidence)
+    action Initialize(Dictionary<String, Decimal> initialProbabilities, Dictionary<String, Dictionary<String, Decimal>> initialLikelihoods, Decimal initialEvidence)
         probabilities = initialProbabilities
         likelihoods = initialLikelihoods
         evidence = initialEvidence
     end
 
     // Getter methods for accessing the model parameters
-    action getProbabilities() returns Object
+    function getProbabilities() returns Dictionary<String, Decimal>
         return probabilities
     end
 
-    action getLikelihoods() returns Object
+    function getLikelihoods() returns Dictionary<String, Dictionary<String, Decimal>>
         return likelihoods
     end
 
-    action getEvidence() returns Decimal
+    function getEvidence() returns Decimal
         return evidence
     end
-    action getValues() returns Dataframe
-        return values
-    end
     // Setter methods for updating the model parameters
-    action setProbabilities(Object newProbabilities)
+    action setProbabilities(Dictionary<String, Decimal> newProbabilities)
         probabilities = newProbabilities
     end
 
-    action setLikelihoods(Object newLikelihoods)
+
+    action setLikelihoods(Dictionary<String, Dictionary<String, Decimal>> newLikelihoods)
         likelihoods = newLikelihoods
     end
 
     action setEvidence(Decimal newEvidence)
         evidence = newEvidence
-    end
-    action setValues(Dataframe inputValues)
-
-    end
-    // Function to load values from a CSV file
-    action loadModelFromCSV(String filePath)
-        Dataframe inputValues 
-        inputValues:Load(filePath)
-        setValues(inputValues)
-        
-    end
-
-    // Function to export the model parameters to a CSV file
-    action saveModelToCSV(String filePath)
-        Dataframe currentValues = getValues()
-        currentValues:Save(filepath)
     end
 end
