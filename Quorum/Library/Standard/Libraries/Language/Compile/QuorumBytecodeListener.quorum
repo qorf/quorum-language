@@ -2530,11 +2530,6 @@ class QuorumBytecodeListener is QuorumSourceListener
                         if not field:IsDefined() or (field:IsField() and field:IsFirstAssignment() and not isInAction and field:GetType():GetStaticKey() = currentClass:GetStaticKey())
                             CompilerError error
                             error:SetCode(codes:QUORUM_BYTECODE_LISTENER_NO_INITIAL_DEFINITION_AGAIN)
-//                            output "Here 3"
-//                            output field:GetName()
-//                            output field:IsField()
-//                            output field:IsFirstAssignment()
-//                            output isInAction
                             error:SetLocation(context:GetLocation())
                             error:SetErrorMessage("Found the variable " + name + ", but it must be defined first.")
                             CompilerErrorType errorType
