@@ -19,6 +19,7 @@ use Libraries.System.ProcessEvent
 use Libraries.System.ProcessListener
 use Libraries.System.SystemHelper
 use Libraries.System.Properties
+use Libraries.Language.Support.TextBuilder
 
 class Library is ProcessListener
     File location = undefined
@@ -379,7 +380,8 @@ class Library is ProcessListener
         generator:Open(runJar)
 
         JavaScriptObjectNotation notation
-        text tempJS = ""
+        TextBuilder builder
+        builder:SetMaxSize(51910886 * 2)
         Iterator<ClassOpcode> codes = opcodes:GetValueIterator()
         repeat while codes:HasNext()
             ClassOpcode code = codes:Next()
@@ -400,13 +402,13 @@ class Library is ProcessListener
             text keyPath = key:Replace(".", "/") + ".quorum"
             notation:Add(code:GetStaticKey(), keyPath)
             if outputJavaScript
-                tempJS = tempJS + WriteJavaScriptOpcode(code)
+                builder:Append(WriteJavaScriptOpcode(code))
             end
         end
 
         text libraryText = notation:ToText()
         libraryLoadFile:Write(libraryText)
-        javascriptOutput = javascriptPlugins + tempJS
+        javascriptOutput = javascriptPlugins + builder:ToText()
         //if runJavaScript:Exists()
             runJavaScript:Write(javascriptOutput)
         //end
