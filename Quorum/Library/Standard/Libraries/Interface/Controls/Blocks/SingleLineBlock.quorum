@@ -153,6 +153,10 @@ class SingleLineBlock is Block
     end
 
     action GetName returns text
+        if IsPlaceholder()
+            return GetPlaceholderText()
+        end
+        
         CodeEditor editor = GetEditor()
         if GetStartIndex() >= 0 and GetEndIndex() >= 0 and editor not= undefined
             check

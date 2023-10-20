@@ -36,8 +36,14 @@ Array<Block> sourceBlocks = sourceDragBehavior:GetSourceBlocks()
             if dropEvent:eventType = dropEvent:DRAGGING_CONTINUED
                 if line not= lastCandidateLine
                     
-                    if editor:HasPlaceholders()
-                        editor:MovePlaceholdersToNavigationIndex(line)
+                    if editor:CanAcceptPlaceholdersAtNavigationIndex(line) = false
+                        if editor:HasPlaceholders()
+                            editor:RemovePlaceholders()
+                        else
+                            // Do nothing, there's no placeholders there to adjust.
+                        end
+                    elseif editor:HasPlaceholders()
+editor:MovePlaceholdersToNavigationIndex(line)
                     else
                         Array<Block> placeholders
                         integer i = 0
@@ -60,7 +66,6 @@ Array<Block> sourceBlocks = sourceDragBehavior:GetSourceBlocks()
                     
                     lastCandidateLine = -2
                     
-                    output "Has placeholders? " + editor:HasPlaceholders()
                     if editor:HasPlaceholders()
                         editor:ConvertPlaceholdersToBlocks()
                     end

@@ -1129,8 +1129,8 @@ action IsAccessibleParent returns boolean
     
     // This action indicates if the given placeholder blocks can be placed under this block.
     // For example, if this is a block that's currently moving, it won't accept any placeholders.
-    action CanAcceptPlaceholders(Array<Block> blocks) returns boolean
-        return isPlaceholder = false
+    action CanAcceptPlaceholders returns boolean
+        return isMoving = false
     end
     
     /*This action returns false if the given placeholder would be an error in the code if it is placed under this block,
@@ -1147,6 +1147,10 @@ that information, use CanAcceptPlaceholders().*/
     action SetAsPlaceholder(text code)
         isPlaceholder = true
         placeholderText = code
+    end
+    
+    action GetPlaceholderText returns text
+        return placeholderText
     end
     
     // Makes a copy of this block as a placeholder. Used for operatings like dragging blocks to show previews.

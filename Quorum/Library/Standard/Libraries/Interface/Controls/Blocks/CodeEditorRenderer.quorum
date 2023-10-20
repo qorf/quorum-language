@@ -570,6 +570,34 @@ class CodeEditorRenderer is Control
         end
     end
     
+    action CanAcceptPlaceholdersAtNavigationIndex(integer navigationIndex) returns boolean
+        if navigationIndex = 0
+            return true
+        end
+        
+        Block target = undefined
+        check
+            target = GetNavigableBlockAtLine(navigationIndex - 1)
+        detect error
+            return false
+        end
+        
+        repeat while target not= undefined and target:IsPlaceholder()
+            target = target:GetNextNavigableBlock()
+        end
+        
+        if target = undefined
+            return false
+        end
+        
+        Block next = target:GetNextNavigableBlock()
+        if next not= undefined and next:IsMoving()
+            return false
+        end
+        
+        return target:CanAcceptPlaceholders()
+    end
+    
     action InsertPlaceholdersAtNavigationIndex(integer navigationIndex, Array<Block> placeholders)
         if placeholders:IsEmpty()
             return now
@@ -614,7 +642,6 @@ integer i = 0
                 currentBlock:SetNavigationIndex(currentNavigationIndex)
             currentBlock:SetLocalStartIndex(placeholderIndex - parentBlock:GetStartIndex())
             currentBlock:SetLocalEndIndex(currentBlock:GetLocalStartIndex())
-            output "Current block index: " + currentBlock:GetLocalStartIndex()
             
             // During movements, we're already using the placeholderBlocks as our input.
             if placeholders not= placeholderBlocks
@@ -684,6 +711,8 @@ RefreshNavigationIndices()
             Libraries.Game.Graphics.Color color
             block:SetBackgroundColor(color:Purple())
             
+            block:SetMoving(true)
+            
             i = i + 1
         end
         
@@ -708,8 +737,6 @@ RefreshNavigationIndices()
 action ConvertPlaceholdersToBlocks
         CodeEditor editor = GetEditor()
         integer destination = placeholderBlocks:GetFromFront():GetStartIndex()
-        text lineFeed = "
-"
         
         text toMove = editor:GetCodeBetween(movingStartIndex, movingEndIndex)
         MultipleLineText code = editor:GetCode()
@@ -722,6 +749,14 @@ code = code:Insert(destination, toMove)
         end
         
 placeholderBlocks:Empty()
+        
+        integer i = 0
+        repeat while i < movingBlocks:GetSize()
+            movingBlocks:Get(i):SetMoving(false)
+            i = i + 1
+        end
+        movingBlocks:Empty()
+        
         editor:SetCode(code)
     end
     

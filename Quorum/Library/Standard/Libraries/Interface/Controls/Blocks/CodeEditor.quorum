@@ -2666,9 +2666,11 @@ renderer:MovePlaceholdersToNavigationIndex(index)
         renderer:RemovePlaceholders()
     end
     
-    
 action SetMovingBlocks(Array<Block> blocks)
-        output "SetMovingBlocks"
         renderer:SetMovingBlocks(blocks)
+end
+
+action CanAcceptPlaceholdersAtNavigationIndex(integer navigationIndex) returns boolean
+        return renderer:CanAcceptPlaceholdersAtNavigationIndex(navigationIndex)
 end
 end

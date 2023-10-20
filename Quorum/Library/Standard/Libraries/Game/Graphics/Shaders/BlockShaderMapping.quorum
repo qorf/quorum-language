@@ -27,12 +27,14 @@ use Libraries.Game.NumberUtilities
 use Libraries.Interface.Controls.Blocks.Block
 use Libraries.Interface.Views.SingleLineBlockView
 use Libraries.Interface.Controls.Blocks.CodeEditor
+use Libraries.Interface.Options.BlockOptionConstants
 
 class BlockShaderMapping is BatchingShaderMapping2D
 
     ShaderProgram program = undefined
     GameStateManager manager
     NumberUtilities utility
+    BlockOptionConstants constants
 
     constant integer BATCH_SIZE = 200
 
@@ -268,6 +270,14 @@ number halfSize = width / 2.0
 
                     if borderColor = undefined
                         borderColor = control:GetFocusBorderColor()
+                    end
+                end
+                
+                if control is Block
+                    Block block = cast(Block, control)
+                    ColorGroup movingColor = block:GetColorProperty(constants:MOVING_BACKGROUND_COLOR)
+                    if block:IsMoving() and movingColor not= undefined
+                        backgroundColor = movingColor
                     end
                 end
 

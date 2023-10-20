@@ -12,6 +12,7 @@ use Libraries.Interface.Controls.Control
 use Libraries.Game.Graphics.Color
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Game.Layer2D
+use Libraries.Interface.Controls.Blocks.EditRegion
 
 class BlockDragBehavior is Behavior
     
@@ -28,7 +29,6 @@ class BlockDragBehavior is Behavior
     action Run(BehaviorEvent event)
         DragAndDropEvent dragEvent = event:GetDragAndDropEvent()
         if dragEvent:eventType = dragEvent:DRAGGING_BEGAN
-            
             Item targetItem = event:GetItem()
             CodeEditor editor = undefined
             if targetItem is CodeEditor
@@ -38,8 +38,15 @@ class BlockDragBehavior is Behavior
                 editor = block:GetEditor()
             elseif targetItem is Item2D
                 Item2D target = cast(Item2D, targetItem)
-                repeat until (target = undefined) or (target is CodeEditor)
+                repeat until (target = undefined) or (target is CodeEditor) or (target is EditRegion)
                     target = target:GetParent()
+                end
+                
+                // Note that the target might be undefined or it might be an EditRegion.
+                // EditRegion wants to do its own thing on click/drag, so we ignore it in that case.
+                if target is CodeEditor
+editor = cast(CodeEditor, target)
+                    
                 end
             end
             
@@ -85,7 +92,6 @@ LoadDraggedBlocks(sourceBlocks, dragEvent:GetStartX(), dragEvent:GetStartY())
         
         repeat while i < blocks:GetSize()
             Block block = blocks:Get(i)
-            output block:GetName()
             
             Control dummyBlock
             dummyBlock:SetBackgroundColor(block:GetBackgroundColor())
