@@ -1,0 +1,48 @@
+package Libraries.Language.Support
+
+/*The TextBuilder class allows text to be built up into a buffer. It can be used 
+to optimized a set of especially operations for appending text more quickly 
+than through repeated concatenation. To use it, you can first create a TextBuilder. Then, optionally, set the max size of the buffer you would like. From there, you can append text values to the buffer and return the value with ToText.
+
+Attribute: Author Andreas Stefik
+Attribute: Example
+
+use Libraries.Language.Support.TextBuilder
+use Libraries.System.File
+
+//read some very large file into a buffer
+File file
+file:SetPath("Test.js")
+text value = file:Read()
+output "Size of file: " + value:GetSize()
+TextBuilder builder
+builder:SetMaxSize(51910886 * 2)
+builder:Append(value)
+output builder:GetMaxSize()
+output builder:GetSize()*/
+class TextBuilder
+    /*Add text to the buffer.
+
+Attribute: Parameter value the text to add at the end of the buffer
+*/
+    
+    system action Append(text value)
+    /*This action obtains the maximum size of the buffer. This buffer size matches or exceeds the amount of text currently in the buffer.
+
+Attribute: Returns the size of the buffer.
+*/
+    system action GetMaxSize returns integer
+    /*This action sets the maximum size of the buffer. This buffer size matches or exceeds the amount of text currently in the buffer.
+
+Attribute: Parameter size the size of the buffer.
+*/
+    system action SetMaxSize(integer size)
+    /*This action gets the amount of text currently in the buffer.
+
+Attribute: Returns the amount of text in the buffer.*/
+    system action GetSize returns integer
+    /*This action returns a text value from the buffer.
+
+Attribute: Returns the text*/
+    system action ToText returns text
+end

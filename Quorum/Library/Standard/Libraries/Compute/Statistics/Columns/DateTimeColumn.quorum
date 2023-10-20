@@ -42,7 +42,6 @@ class DateTimeColumn is DataFrameColumn
         detect e
             rows:Add(undefined) //add a missing value
             parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
-            alert(value + " failed to parse")
         end
     end
 

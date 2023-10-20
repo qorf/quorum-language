@@ -23,13 +23,12 @@ number dotProduct = firstVector:DotProduct(secondVector)
 output "The dot product is: " + dotProduct
 */
 class Vector2
-
     Math math
 
     number x = 0
     number y = 0
-    constant number radiansToDegrees = 180 / math:pi
-    constant number degreesToRadians = math:pi / 180
+    constant number radiansToDegrees = 180.0 / math:pi
+    constant number degreesToRadians = math:pi / 180.0
 
     /*
     This action returns the current x component of the vector.
