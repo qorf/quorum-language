@@ -13,7 +13,19 @@ function plugins_quorum_Libraries_Game_WebInput_()
         plugins_quorum_Libraries_Game_WebInput_.mouseInfo.y = 0;
         plugins_quorum_Libraries_Game_WebInput_.mouseInfo.buttons = 0;
         plugins_quorum_Libraries_Game_WebInput_.mouseInfo.wheel = 0;
-        
+
+        // If we previously defined the listener functions, remove the old ones before we do any more initialization.
+        if (plugins_quorum_Libraries_Game_WebInput_.KeyDown !== undefined)
+        {
+            document.removeEventListener('keydown', plugins_quorum_Libraries_Game_WebInput_.KeyDown);
+            document.removeEventListener('keyup', plugins_quorum_Libraries_Game_WebInput_.KeyUp);
+            document.removeEventListener('mousedown', plugins_quorum_Libraries_Game_WebInput_.MouseDown);
+            document.removeEventListener('mouseup', plugins_quorum_Libraries_Game_WebInput_.MouseUp);
+            document.removeEventListener('mousemove', plugins_quorum_Libraries_Game_WebInput_.MouseMove);
+            document.removeEventListener('contextmenu', plugins_quorum_Libraries_Game_WebInput_.ContextMenu);
+            document.removeEventListener('wheel', plugins_quorum_Libraries_Game_WebInput_.MouseScroll);
+        }
+
         plugins_quorum_Libraries_Game_WebInput_.IsFocused = function()
         {
             let accessibilityRoot;
@@ -106,6 +118,9 @@ function plugins_quorum_Libraries_Game_WebInput_()
 
         plugins_quorum_Libraries_Game_WebInput_.IsMouseInCanvas = function(event)
         {
+            if (plugins_quorum_Libraries_Game_GameStateManager_.display == null)
+                return false;
+
             var canvas = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas();
             return event.target === canvas;
         };
@@ -163,14 +178,11 @@ function plugins_quorum_Libraries_Game_WebInput_()
         
         plugins_quorum_Libraries_Game_WebInput_.MouseScroll = function(event)
         {
-            if (plugins_quorum_Libraries_Game_WebInput_.IsMouseInCanvas(event))
+            if (plugins_quorum_Libraries_Game_WebInput_.IsFocused() && plugins_quorum_Libraries_Game_WebInput_.IsMouseInCanvas(event))
             {
                 event.stopPropagation();
                 event.preventDefault();
-            }
 
-            if (plugins_quorum_Libraries_Game_WebInput_.IsFocused())
-            {
                 var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, 5);
                 plugins_quorum_Libraries_Game_WebInput_.mouseEvents.push(quorumEvent);
             }
@@ -193,8 +205,15 @@ function plugins_quorum_Libraries_Game_WebInput_()
         document.addEventListener('mousedown', plugins_quorum_Libraries_Game_WebInput_.MouseDown, false);
         document.addEventListener('mouseup', plugins_quorum_Libraries_Game_WebInput_.MouseUp, false);
         document.addEventListener('mousemove', plugins_quorum_Libraries_Game_WebInput_.MouseMove, false);
-        document.addEventListener('wheel', plugins_quorum_Libraries_Game_WebInput_.MouseScroll, false);
         document.addEventListener('contextmenu', plugins_quorum_Libraries_Game_WebInput_.ContextMenu, false);
+
+        /*
+        NOTE: The wheel listener requires the "passive: false" parameter, or else it can't prevent event propagation.
+        This is because Chrome automatically treats document-level mousewheel listeners as "passive" (and therefore
+        unable to stop the events) for performance reasons. This technically means a minor performance penalty, but
+        if we don't do this, the whole web page will scroll at the same time as our application.
+        */
+        document.addEventListener('wheel', plugins_quorum_Libraries_Game_WebInput_.MouseScroll, {passive: false});
     
         plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumKeyEvent = function(event, pressed)
         {

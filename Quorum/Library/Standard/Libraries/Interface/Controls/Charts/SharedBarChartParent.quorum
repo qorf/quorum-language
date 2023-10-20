@@ -110,6 +110,7 @@ class SharedBarChartParent is Chart
             text groupname = barGroups:Get(i):GetName()
             if HasGroups() and not IsSeparatedBySeries()
                 BarGroup barGroupIcon = barGroups:Get(i)
+                barGroupIcon:SetGroupName(groupname)
                 barGroupIcon:SetName(groupname + " group, ")
                 barGroupIcon:SetDescription((i+1) + " of " + barGroups:GetSize() + " groups, has " + barGroups:Get(i):GetSize() + " bars.")
                 if i = 0

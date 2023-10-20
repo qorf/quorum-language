@@ -8,6 +8,8 @@ import quorum.Libraries.Interface.Controls.TextField_;
 import quorum.Libraries.Interface.Controls.ToggleButton_;
 import quorum.Libraries.Interface.Events.*;
 import quorum.Libraries.Interface.Item_;
+import quorum.Libraries.Interface.Selections.TextBoxSelection_;
+import quorum.Libraries.Interface.Selections.TextFieldSelection_;
 
 import java.util.List;
 
@@ -46,7 +48,7 @@ public class IOSAccessibility {
 
     }
 
-    public void  Add(Item_ item) throws Exception {
+    public boolean NativeAdd(Item_ item) throws Exception {
         UIViewController controller = IOSDisplay.theViewController;
         UIView view = controller.getView();
 
@@ -59,12 +61,18 @@ public class IOSAccessibility {
             subview.setAccessibilityIdentifier(item.GetName());
             System.out.println(item.GetName());
             view.addSubview(subview);
+
+            return true;
         } else if(code == item.Get_Libraries_Interface_Item__TEXT_FIELD_()) {
             HiddenTextField subview = new HiddenTextField();
             subview.setAccessibilityIdentifier(item.GetName());
             System.out.println(item.GetName());
             view.addSubview(subview);
+
+            return true;
         }
+
+        return false;
     }
 
     private class HiddenView extends UIView {
@@ -97,7 +105,23 @@ public class IOSAccessibility {
         }
     }
 
-    public void  Remove(Item_ item) {
+    public boolean NativeRemove(Item_ item) {
+        return false;
+    }
+
+    public void TextSelectionChanged(TextBoxSelection_ selection)
+    {
+
+    }
+
+    public void TextSelectionChanged(TextFieldSelection_ selection)
+    {
+
+    }
+
+    public boolean Select(Item_ item)
+    {
+        return false;
     }
 
     public void  MenuChanged(MenuChangeEvent_ event) {}

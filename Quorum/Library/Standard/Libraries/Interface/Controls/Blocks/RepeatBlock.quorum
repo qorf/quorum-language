@@ -11,7 +11,7 @@ use Libraries.Containers.Array
 
 class RepeatBlock is MultipleLineBlock
     BlockLabel repeatLabel = undefined
-    EditField expressionField = undefined
+    EditBox expressionField = undefined
     BlockLabel loopLabel = undefined
 
     LoopContext loopContext = undefined
@@ -70,13 +70,15 @@ class RepeatBlock is MultipleLineBlock
             part:Add(loopLabel)
         end
 
-        EditField expressionField
+        EditBox expressionField
         me:expressionField = expressionField
         part:Add(expressionField)
 
         Location expressionLoc = loopContext:expression:GetLocation()
         expressionField:Setup("Expression", expressionLoc:GetIndex() - GetStartIndex(), expressionLoc:GetIndexEnd() + 1 - GetStartIndex())
         expressionField:SetRightPadding(spacing * 0.5)
+        
+        integer localEndLine = expressionLoc:GetLineNumberEnd() - loopContext:GetLocation():GetLineNumber()
 
         integer localEnd = expressionLoc:GetIndexEnd() - GetStartIndex() + 1
         if loopContext:isTimes
@@ -90,9 +92,11 @@ class RepeatBlock is MultipleLineBlock
             part:Add(loopLabel)
 
             localEnd = loopContext:timesToken:endIndex - GetStartIndex() + 1
+            localEndLine = loopContext:timesToken:endLine - loopContext:GetLocation():GetLineNumber()
         end
 
         part:SetLocalEndIndex(localEnd)
+        part:SetLocalEndLine(localEndLine)
 
         return part
     end

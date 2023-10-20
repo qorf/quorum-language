@@ -29,10 +29,12 @@ use Libraries.Language.Compile.Context.UseContext
 use Libraries.Language.Compile.Context.DetectStatementContext
 use Libraries.Language.Compile.Context.ActionContext
 use Libraries.Language.Compile.Context.FullClassDeclarationContext
+use Libraries.Interface.Undo.BlockEditManager
 
 class FreeformBlock is SingleLineBlock
     FreeformBlockListener blockListener
     EditBox editRegion = undefined
+    boolean addedCode = false
 
     on create
         BlockOptionConstants constants
@@ -141,6 +143,31 @@ class FreeformBlock is SingleLineBlock
         return false
     end
 
+    private action StartUndo()
+        if addedCode
+            return now
+        end
+        addedCode = true
+        CodeEditor editor
+        BlockEditManager editManager = editor:GetBlockEditManager()
+        editManager:SetSpecialAction(true)
+    end
+
+    private action EndUndo()
+        if addedCode
+            CodeEditor editor
+            BlockEditManager editManager = editor:GetBlockEditManager()
+            editManager:SetSpecialAction(false)
+        end
+    end
+
+    private action SetErrorVisual()
+        EndUndo()
+        BlockErrorShaderView view
+        view:Initialize()
+        SetView2D(view)
+    end
+
     /*
     This action attempts to parse the content of the FreeformBlock and convert it into a suitable block.
     If a suitable block is found, it will replace this FreeformBlock in the editor.
@@ -170,9 +197,7 @@ class FreeformBlock is SingleLineBlock
         // If there's an error, set the block to reflect it, then bail.
         if not errorManager:IsCompilationErrorFree()
             // TO-DO: Set error state visuals
-            BlockErrorShaderView view
-            view:Initialize()
-            SetView2D(view)
+            SetErrorVisual()
             return now
         end
         TokenIterator<Token> tokenIterator
@@ -195,42 +220,50 @@ class FreeformBlock is SingleLineBlock
         if isEmpty and not failState
             text trimmedText = code:Trim()
             if trimmedText:StartsWith("/*") and not trimmedText:EndsWith("*/")
+                StartUndo()
                 editRegion:SetCaretPosition(editRegion:GetSize())
                 editRegion:Insert("*/")
                 code = editRegion:GetText()
             end
         end
         if current:category = constants:OUTPUT and not tokenIterator:HasNext()
+            StartUndo()
             editRegion:SetCaretPosition(editRegion:GetSize())
             editRegion:SetText("output " + dq + dq)
             code = editRegion:GetText()
     //  input
         elseif current:category = constants:INPUT and not tokenIterator:HasNext()
+            StartUndo()
             editRegion:SetCaretPosition(editRegion:GetSize())
             editRegion:SetText("text myInput = input()")
             code = editRegion:GetText()
     //  integer
         elseif current:category = constants:INTEGER_KEYWORD and not tokenIterator:HasNext()
+            StartUndo()
             editRegion:SetCaretPosition(editRegion:GetSize())
             editRegion:SetText("integer " + "myInteger" + " = 0")
             code = editRegion:GetText()
     //  number
         elseif current:category = constants:NUMBER_KEYWORD and not tokenIterator:HasNext()
+            StartUndo()
             editRegion:SetCaretPosition(editRegion:GetSize())
             editRegion:SetText("number " + "myNumber" + " = 0.0")
             code = editRegion:GetText()
     //  boolean
         elseif current:category = constants:BOOLEAN_KEYWORD and not tokenIterator:HasNext()
+            StartUndo()
             editRegion:SetCaretPosition(editRegion:GetSize())
             editRegion:SetText("boolean " + "myBoolean" + " = false")
             code = editRegion:GetText()
     //  text
         elseif current:category = constants:TEXT and not tokenIterator:HasNext()
+            StartUndo()
             editRegion:SetCaretPosition(editRegion:GetSize())
             editRegion:SetText("text " + "myText" + " = "+dq+dq)
             code = editRegion:GetText()
     //  say
         elseif current:category = constants:SAY and not tokenIterator:HasNext()
+            StartUndo()
             editRegion:SetCaretPosition(editRegion:GetSize())
             editRegion:SetText("say " + dq + dq)
             code = editRegion:GetText()
@@ -243,6 +276,7 @@ class FreeformBlock is SingleLineBlock
             end
             if parentBlock not= undefined
                 ActionBlock parentAction = cast(ActionBlock, parentBlock)
+                StartUndo()
                 if parentAction:HasReturn()
                     editRegion:SetText("return undefined")
                 else
@@ -254,6 +288,7 @@ class FreeformBlock is SingleLineBlock
     // if (condition)
         elseif current:category = constants:IF
             if not tokenIterator:HasNext()
+                StartUndo()
                 editRegion:SetCaretPosition(editRegion:GetSize())
                 text value = "if true"
                 code = value
@@ -276,6 +311,7 @@ class FreeformBlock is SingleLineBlock
                         current = tokenIterator:Next()
                     end
                     if current:category not= constants:END
+                        StartUndo()
                         text value = "if " + expression
                         code = value
                         text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
@@ -288,9 +324,7 @@ class FreeformBlock is SingleLineBlock
                         editRegion:SetText(code)
                     end
                 else
-                    BlockErrorShaderView view
-                    view:Initialize()
-                    SetView2D(view)
+                    SetErrorVisual()
                     return now
                 end
             end
@@ -303,6 +337,7 @@ class FreeformBlock is SingleLineBlock
             if grandparent not= undefined and grandparent is IfBlock
                 IfBlock ifParent = cast(IfBlock, grandparent)
                 if not tokenIterator:HasNext()
+                    StartUndo()
                     editRegion:SetCaretPosition(editRegion:GetSize())
                     editRegion:SetText("elseif false")
                     expression = "false"
@@ -311,44 +346,35 @@ class FreeformBlock is SingleLineBlock
                     expression = code:GetSubtext(current:startIndex)
                     ParseContext elseifExpression = ParseExpression(expression)
                     if elseifExpression = undefined
-                        BlockErrorShaderView view
-                        view:Initialize()
-                        SetView2D(view)
+                        SetErrorVisual()
                         return now
                     end
                 end
                 
                 if ifParent:AddElseifLineFromFreeform(me, expression) = undefined
-                    BlockErrorShaderView view
-                    view:Initialize()
-                    SetView2D(view)
+                    SetErrorVisual()
                 end
                 return now
             else
                 // TO-DO: Set error state visuals
-                BlockErrorShaderView view
-                view:Initialize()
-                SetView2D(view)
+                SetErrorVisual()
                 return now
             end
     //  else
         elseif current:category = constants:ELSE and not tokenIterator:HasNext() and not failState
+            StartUndo()
             editRegion:SetCaretPosition(editRegion:GetSize())
             editRegion:SetText("else")
             Block grandparent = GetParentBlock():GetParentBlock()
             if grandparent not= undefined and grandparent is IfBlock
                 IfBlock ifParent = cast(IfBlock, grandparent)
                 if ifParent:AddElseLineFromFreeform(me) = undefined
-                    BlockErrorShaderView view
-                    view:Initialize()
-                    SetView2D(view)
+                    SetErrorVisual()
                 end
                 return now
             else
                 // TO-DO: Set error state visuals
-                BlockErrorShaderView view
-                view:Initialize()
-                SetView2D(view)
+                SetErrorVisual()
                 return now
             end
     //  repeat - by default it's times
@@ -359,6 +385,7 @@ class FreeformBlock is SingleLineBlock
         elseif current:category = constants:REPEAT
             text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
             if not tokenIterator:HasNext()
+                StartUndo()
                 editRegion:SetCaretPosition(editRegion:GetSize())
                 text value = "repeat 1 times"
                 code = value
@@ -377,6 +404,7 @@ class FreeformBlock is SingleLineBlock
                 if current:category = constants:WHILE
                     whileType = true
                     if not tokenIterator:HasNext()
+                        StartUndo()
                         editRegion:SetCaretPosition(editRegion:GetSize())
                         text value = "repeat while false"
                         code = value
@@ -393,6 +421,7 @@ class FreeformBlock is SingleLineBlock
                 elseif current:category = constants:UNTIL
                     untilType = false
                     if not tokenIterator:HasNext()
+                        StartUndo() 
                         editRegion:SetCaretPosition(editRegion:GetSize())
                         text value = "repeat until true"
                         code = value
@@ -427,6 +456,7 @@ class FreeformBlock is SingleLineBlock
                                 else
                                     code = "repeat " + expression + " times"
                                 end
+                            StartUndo()
                             end
                             editRegion:SetText(code)
                             if failState and AllTokensOnSingleLine()
@@ -437,21 +467,21 @@ class FreeformBlock is SingleLineBlock
                             editRegion:SetText(code)
                         end
                     else
-                        BlockErrorShaderView view
-                        view:Initialize()
-                        SetView2D(view)
+                        SetErrorVisual()
                         return now
                     end
                 end
             end
     //  check
         elseif current:category = constants:CHECK and not failState
+            StartUndo()
             editRegion:SetCaretPosition(editRegion:GetSize())
             text value ="check" + newLine + editor:GetIndentationText(GetScopeDepth()) + "detect error" + newLine +  editor:GetIndentationText(GetScopeDepth()) + "end"
             editRegion:SetText(value)
             code = editRegion:GetText()
     //  detect
         elseif current:category = constants:DETECT and not failState
+            StartUndo()
             Block grandparent = GetParentBlock():GetParentBlock()
             if grandparent not= undefined and grandparent is CheckBlock
                 if not tokenIterator:HasNext()
@@ -472,38 +502,29 @@ class FreeformBlock is SingleLineBlock
                         return now
                     end
                 end
-                BlockErrorShaderView view
-                view:Initialize()
-                SetView2D(view)
+                SetErrorVisual()
                 return now
             else
-                BlockErrorShaderView view
-                view:Initialize()
-                SetView2D(view)
+                SetErrorVisual()
                 return now
             end
     //  always
         elseif current:category = constants:ALWAYS and not failState
+            StartUndo()
             Block grandparent = GetParentBlock():GetParentBlock()
             if grandparent not= undefined and grandparent is CheckBlock
                 if tokenIterator:HasNext()
-                    BlockErrorShaderView view
-                    view:Initialize()
-                    SetView2D(view)
+                    SetErrorVisual()
                     return now
                 end
                 editRegion:SetText("always")
                 CheckBlock parentCheck = cast(CheckBlock, grandparent)
                 if parentCheck:AddAlwaysLineFromFreeform(me) = undefined
-                    BlockErrorShaderView view
-                    view:Initialize()
-                    SetView2D(view)
+                    SetErrorVisual()
                 end
                 return now
             else
-                BlockErrorShaderView view
-                view:Initialize()
-                SetView2D(view)
+                SetErrorVisual()
                 return now
             end
     //  action
@@ -517,15 +538,14 @@ class FreeformBlock is SingleLineBlock
                 parser:SetLexer(actionLexer)
                 context = parser:ActionShared()
                 if context = undefined
-                    BlockErrorShaderView view
-                    view:Initialize()
-                    SetView2D(view)
+                    SetErrorVisual()
                     return now
                 end
                 repeat until not tokenIterator:HasNext()
                     current = tokenIterator:Next()
                 end
                 if current:category not= constants:END
+                    StartUndo()
                     code = editRegion:GetText()
                     text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
                     if failState and AllTokensOnSingleLine()
@@ -536,6 +556,7 @@ class FreeformBlock is SingleLineBlock
                     editRegion:SetText(code)
                 end
             else
+                StartUndo()
                 code = "action MyAction"
                 text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
                 editRegion:SetText(code)
@@ -548,15 +569,18 @@ class FreeformBlock is SingleLineBlock
             end
     //  blueprint
         elseif current:category = constants:BLUEPRINT and not tokenIterator:HasNext()
+            StartUndo()
             code = "blueprint action MyBlueprint"
             editRegion:SetText(code)
     //  system
         elseif current:category = constants:NATIVE and not tokenIterator:HasNext()
+            StartUndo()
             code = "system action NativeAction"
             editRegion:SetText(code)
     //  class
         elseif current:category = constants:CLASS
             if not tokenIterator:HasNext()
+                StartUndo()
                 code = "class MyClass"
                 text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
                 editRegion:SetText(code)
@@ -571,6 +595,7 @@ class FreeformBlock is SingleLineBlock
                     current = tokenIterator:Next()
                 end
                 if current:category not= constants:END
+                    StartUndo()
                     code = editRegion:GetText()
                     text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
                     if failState and AllTokensOnSingleLine()
@@ -585,6 +610,7 @@ class FreeformBlock is SingleLineBlock
     //  shared
         elseif current:category = constants:STATIC and not failState
             if not tokenIterator:HasNext()
+                StartUndo()
                 code = "shared class MySharedClass"
                 text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
                 editRegion:SetText(code)
@@ -600,6 +626,7 @@ class FreeformBlock is SingleLineBlock
         elseif current:category = constants:ON
             boolean hasCreate = false
             if not tokenIterator:HasNext()
+                StartUndo()
                 editRegion:SetCaretPosition(editRegion:GetSize())
                 text value = "on create"
                 code = value
@@ -610,6 +637,7 @@ class FreeformBlock is SingleLineBlock
             end
 
             if not tokenIterator:HasNext() and hasCreate
+                StartUndo()
                 text value = "on create"
                 text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
                 editRegion:SetText(value)
@@ -642,9 +670,7 @@ class FreeformBlock is SingleLineBlock
         // If there's an error, set the block to reflect it, then bail.
         if not manager:IsCompilationErrorFree()
             // TO-DO: Set error state visuals
-            BlockErrorShaderView view
-            view:Initialize()
-            SetView2D(view)
+            SetErrorVisual()
             return now
         end
 
@@ -665,6 +691,10 @@ class FreeformBlock is SingleLineBlock
             ClassStatementsContext statement = parser:ClassStatement()
 
             if statement not= undefined
+                if parser:HasNext()
+                    SetErrorVisual()
+                    return now
+                end
                 blockListener:EnterClassStatements(statement)
             end
             if blockListener:GetBlock() = undefined
@@ -674,16 +704,28 @@ class FreeformBlock is SingleLineBlock
         elseif isPackageStatement
             PackageContext context = parser:Package()
             if context not= undefined
+                if parser:HasNext()
+                    SetErrorVisual()
+                    return now
+                end
                 blockListener:EnterPackageRule(context)
             end
         elseif isUseStatement
             UseContext context = parser:Use()
             if context not= undefined
+                if parser:HasNext()
+                    SetErrorVisual()
+                    return now
+                end
                 blockListener:EnterUse(context)
             end
         elseif isClassStatement
             FullClassDeclarationContext context = parser:FullClass()
             if context not= undefined
+                if parser:HasNext()
+                    SetErrorVisual()
+                    return now
+                end
                 context:Traverse(blockListener)
             end
         else
@@ -692,6 +734,10 @@ class FreeformBlock is SingleLineBlock
             StatementContext statement = parser:Statement()
 
             if statement not= undefined
+                if parser:HasNext()
+                    SetErrorVisual()
+                    return now
+                end
                 blockListener:EnterStatement(statement)
             end
             if blockListener:GetBlock() = undefined
@@ -703,12 +749,10 @@ class FreeformBlock is SingleLineBlock
         // Once again, if there's an error, set the block to reflect it, then bail.
         if not manager:IsCompilationErrorFree() and not (blockListener:GetBlock() is CommentBlock and isEmpty)
             // TO-DO: Set error state visuals
-            BlockErrorShaderView view
-            view:Initialize()
-            SetView2D(view)
+            SetErrorVisual()
             return now
         end
-
+        EndUndo()
         // Once we've parsed, the listener will give us a block (if there's a valid option). It's stored here.
         Block result = blockListener:GetBlock()
 

@@ -69,7 +69,14 @@ class LightBlockOptions is LightModeOptions, BlockOptions
             color:SetColor(color:GetRed() * 0.7, color:GetGreen() * 0.7, color:GetBlue() * 0.7, color:GetAlpha())
             SetBorderColor(key, color)
 
-            SetSelectionColor(key, selectionColor)
+            Color newSelectionColor
+            newSelectionColor:CopyColor(background:GetBottomLeft())
+            newSelectionColor:SetColor(
+                newSelectionColor:GetRed() * 1.10, 
+                newSelectionColor:GetGreen() * 1.10, 
+                newSelectionColor:GetBlue() * 1.10, 
+                newSelectionColor:GetAlpha())
+            SetSelectionColor(key, newSelectionColor)
 
             Color editColor
             editColor:CopyColor(color)

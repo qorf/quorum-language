@@ -345,14 +345,14 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
     this.NativeAdd$quorum_Libraries_Interface_Item = function(item) {
         //dont add to DOM if not accessible
         if (item.GetAccessibilityCode() == -1) {
-            return;
+            return false;
         }
 
        //replace this code with item appropriate material
         var id = item.GetHashCode();
         //dont want to add something to the DOM twice
         if( elementList[id] != null ) {
-            return;
+            return false;
         }
         var itemName = item.GetName();
         var itemDescription = item.GetDescription();
@@ -739,13 +739,14 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         // Set the element's bounds after we've added it, so setBounds can assume
         // the element's parent is already set.
         setBounds(para, item);
+        return true;
 };
 //    system action NativeRemove(Item item)
     this.NativeRemove$quorum_Libraries_Interface_Item = function(item) {
         let id = item.GetHashCode();
         //cant remove what's not there
         if( elementList[id] == null ) {
-            return;
+            return false;
         }
         let element = document.getElementById(id);
         if (element != null) { //if the parent was removed then this would come up null
@@ -758,6 +759,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         }
         //console.log(elementList[id], " has been removed.");
         elementList[id] = null;
+        return true;
     };
     
 //    system action MenuChanged(MenuChangeEvent event)

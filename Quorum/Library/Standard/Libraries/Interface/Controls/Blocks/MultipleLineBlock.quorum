@@ -74,9 +74,11 @@ class MultipleLineBlock is Block
     private action RemoveChildBlock(integer index) returns Block
         MultipleLineBlockPart part = blockParts:RemoveAt(index)
         part:SetParentBlock(undefined)
-
-        repeat until blockConnectors:GetSize() <= blockParts:GetSize() - 1
+        
+        if blockConnectors:GetSize() > 0
+repeat until blockConnectors:GetSize() <= blockParts:GetSize() - 1
             blockConnectors:RemoveFromEnd()
+        end
         end
 
         parent:Control:Remove(part)

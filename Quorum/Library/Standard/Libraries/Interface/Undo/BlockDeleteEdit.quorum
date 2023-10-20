@@ -5,6 +5,9 @@ use Libraries.Interface.Controls.Blocks.Block
 use Libraries.Containers.MultipleLineText
 use Libraries.Interface.Events.TextChangeEvent
 use Libraries.Containers.Array
+use Libraries.Interface.Controls.Blocks.EditRegion
+use Libraries.Interface.Controls.Blocks.EditBox
+use Libraries.Interface.Controls.Blocks.EditField
 
 
 class BlockDeleteEdit is Edit
@@ -37,6 +40,20 @@ class BlockDeleteEdit is Edit
     end
 
     action Undo
+        EditRegion region = editor:GetEditRegionAtTextIndex(characterIndex)
+        if region not= undefined
+            integer globalIndex = region:GetBlock():GetStartIndex() + region:GetStartIndex()
+            if region is EditBox
+                EditBox box = cast(EditBox, region)
+                box:SetCaretPosition(characterIndex - globalIndex)
+                box:Insert(characterIndex - globalIndex, value)
+            elseif region is EditField
+                EditField box = cast(EditField, region)
+                box:SetCaretPosition(characterIndex - globalIndex)
+                box:Insert(characterIndex - globalIndex, value)
+            end
+            return now
+        end
         TextChangeEvent event
         event:Initialize(editor, value,"", characterIndex)
         editor:OnTextChange(event, 0)
@@ -45,6 +62,21 @@ class BlockDeleteEdit is Edit
     end
 
     action Redo
+        EditRegion region = editor:GetEditRegionAtTextIndex(characterIndex)
+        EditRegion region2 = editor:GetEditRegionAtTextIndex(characterIndex + value:GetSize())
+        if region not= undefined and region2 not=undefined and region = region2
+            integer globalIndex = region:GetBlock():GetStartIndex() + region:GetStartIndex()
+            if region is EditBox
+                EditBox box = cast(EditBox, region)
+                box:SetCaretPosition(characterIndex - globalIndex + value:GetSize())
+                box:Delete(characterIndex - globalIndex, characterIndex - globalIndex + value:GetSize())
+            elseif region is EditField
+                EditField box = cast(EditField, region)
+box:SetCaretPosition(characterIndex - globalIndex + value:GetSize())
+box:Delete(characterIndex - globalIndex, characterIndex - globalIndex + value:GetSize())
+            end
+            return now
+        end
         TextChangeEvent event
         event:Initialize(editor, "",value, characterIndex)
         editor:OnTextChange(event, 0)

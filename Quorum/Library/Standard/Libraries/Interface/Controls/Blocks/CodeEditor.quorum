@@ -59,7 +59,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
     MultipleLineText rawCode
     CodeEditorSelection selection
 
-    number percentageLineHeightPadding = 1
+    number percentageLineHeightPadding = 1.0
 
     CodeEditorRenderer renderer
     ParserToBlockListener blockListener = undefined
@@ -76,7 +76,11 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
     number blockNotchTopWidth = 50
     number blockNotchBottomWidth = 25
-    number blockNotchHeight = 10
+    number blockNotchHeight = 0.3
+    
+    // Scope width is measured as multiples of "default indentation", where default indentation is the width of 4 characters in the font.
+    // In other words, scoped areas are four characters wide times the scopeBarWidth.
+    number scopeBarWidth = 1.0
 
     boolean shouldCalculateWidth = true
     boolean shouldCalculateHeight = true
@@ -136,6 +140,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
         CodeEditorPopupMenu popup
         popup:SetCodeEditor(me)
         SetPopupMenu(popup)
+SetAccessibilityCode(parent:Item:PANE)
     end
     
     action SelectAll
@@ -813,8 +818,8 @@ class CodeEditor is ScrollableLineControl, GutterListener
     end
 
     action GetScopeIndentationWidth returns number
-        // Currently, assume that indentation is equal to 4 characters worth (e.g., a tab producing 4 spaces)
-        return GetDefaultGlyphWidth() * 4
+        // Calculate the indentation width as a multiple of the default glyph width for this font.
+        return GetDefaultGlyphWidth() * 4 * scopeBarWidth
     end
 
     /*
@@ -1007,7 +1012,15 @@ class CodeEditor is ScrollableLineControl, GutterListener
                 if block not= undefined and block:GetNextNavigableBlock() not= undefined
                     SelectBlockAtLine(GetFirstVisibleLine())
                 end
+            elseif selection:GetBlockItem() not= undefined
+                SelectBlockOrItem(selection:GetBlockItem())
+            elseif selection:GetBlock() not= undefined
+                SelectBlockOrItem(selection:GetBlockItem())
             end
+        end
+        
+        if ContainsFocus()
+            UpdateSelectionCursor()
         end
     end
 
@@ -1189,12 +1202,21 @@ class CodeEditor is ScrollableLineControl, GutterListener
         block.
     */
     action SelectDebuggerLine(integer line)
-        SelectBlockAtLine(line)
-        lineGutter:SetDebuggerLine(line)
+        Block block = SelectBlockAtTextLine(line)
+        if block not= undefined
+            lineGutter:SetDebuggerLine(block:GetNavigationIndex())
+        end
     end
 
     action ClearDebuggerLine
         lineGutter:SetDebuggerLine(-1)
+    end
+
+    action SelectBlockAtTextLine(integer line) returns Block
+        Block block = renderer:GetNavigableBlockAtTextLine(line)
+
+        SelectBlockOrItem(block)
+        return block
     end
 
     action SelectBlockAtLine(integer line)
@@ -1257,7 +1279,15 @@ class CodeEditor is ScrollableLineControl, GutterListener
             // Get the start of the next line, then go back one to reach the end of the current line.
             targetIndex = rawCode:CharacterIndexFromLineIndex(currentLine + 1) - rawCode:GetLineSeparator():GetSize()
         end
-
+        boolean sharesLine = false
+        if selection:GetBlock() not= undefined
+            text postText = rawCode:GetText(selection:GetBlock():GetEndIndex(), targetIndex)
+if postText:Trim() not= ""
+            sharesLine = true
+            targetIndex = selection:GetBlock():GetEndIndex()
+        end
+        end
+        
         // Get the parent that the new block will be attached to.
         Block parentBlock = undefined
         integer scopeDepth = 0
@@ -1293,14 +1323,22 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
         text newLine = "
 " + GetIndentationText(scopeDepth)
+        if sharesLine
+            newLine = "
+
+" + GetIndentationText(scopeDepth)
+        end
 
         /*
         Call OffsetIndices on the parent. This will update the necessary indices in the hierarchy so their
         text and line indices are correct.
         */
         newLine = SanitizeNewLines(newLine)
-        parentBlock:OffsetIndices(targetIndex, newLine:GetSize(), 1)
-
+        if not sharesLine
+            parentBlock:OffsetIndices(targetIndex, newLine:GetSize(), 1)
+        else
+            parentBlock:OffsetIndices(targetIndex, newLine:GetSize(), 2)
+        end
 
         // Process a text change event. This will automatically update the MultipleLineText.
         TextChangeEvent event
@@ -1550,20 +1588,44 @@ class CodeEditor is ScrollableLineControl, GutterListener
         end
 
         // grab the text that's being deleted
+
+        // shift the indices if there is code on the start and end not contained in the block
         integer startIndex = block:GetStartIndex()
         integer targetIndex = rawCode:CharacterIndexFromLineIndex(rawCode:LineIndexFromCharacterIndex(startIndex))
         if targetIndex < 0
             targetIndex = 0
         end
-
+        boolean sharesLine = false
+        text pretext = ""
+        if startIndex not= targetIndex
+            pretext = rawCode:GetText(targetIndex, startIndex)
+            if pretext:Trim() not= ""
+                sharesLine = true
+                targetIndex = startIndex
+            end
+        end
         integer endIndex = block:GetEndIndex()
         integer lines = block:GetEndLine() - block:GetStartLine() + 1
         // Make sure we grab the new line separator
-        endIndex = endIndex + rawCode:GetLineSeparator():GetSize()
-
-        if endIndex > rawCode:GetSize()
-            endIndex = rawCode:GetSize()
+        if not( sharesLine and lines = 1)
+            integer nextLineIndex = rawCode:CharacterIndexFromLineIndex(block:GetEndLine() + 1)
+            if nextLineIndex < endIndex
+                nextLineIndex = rawCode:GetSize()
+            end
+            text postText = rawCode:GetText(endIndex, nextLineIndex)
+            if postText:Trim() = ""
+                endIndex = nextLineIndex
+            else
+                if sharesLine = false
+                    targetIndex = startIndex
+                end
+            end
+    
+            if endIndex > rawCode:GetSize()
+                endIndex = rawCode:GetSize()
+            end
         end
+
 
         integer textSize = endIndex - targetIndex
         deletedText = rawCode:GetText(targetIndex, endIndex)
@@ -1717,6 +1779,16 @@ class CodeEditor is ScrollableLineControl, GutterListener
             targetIndex = 0
         end
 
+        boolean sharesLine = false
+        text pretext = ""
+        if startIndex not= targetIndex
+            pretext = rawCode:GetText(targetIndex, startIndex)
+            if pretext:Trim() not= ""
+                sharesLine = true
+                targetIndex = startIndex
+            end
+        end
+
         integer endIndex = block:GetEndIndex()
         integer lines = block:GetEndLine() - block:GetStartLine() + 1
         if block:GetChildCount() > 0
@@ -1726,10 +1798,24 @@ class CodeEditor is ScrollableLineControl, GutterListener
         end
 
         // Make sure we grab the new line separator
-        endIndex = endIndex + rawCode:GetLineSeparator():GetSize()
-
-        if endIndex > rawCode:GetSize()
-            endIndex = rawCode:GetSize()
+        if not( sharesLine and lines = 1)
+            integer nextLineIndex = rawCode:CharacterIndexFromLineIndex(block:GetEndLine() + 1)
+            if nextLineIndex < endIndex
+                nextLineIndex = rawCode:GetSize()
+            end
+            text postText = rawCode:GetText(endIndex, nextLineIndex)
+            if postText:Trim() = ""
+                endIndex = nextLineIndex
+            else
+                if sharesLine = false
+                    sharesLine = true
+                    targetIndex = startIndex
+                end
+            end
+    
+            if endIndex > rawCode:GetSize()
+                endIndex = rawCode:GetSize()
+            end
         end
 
         integer textSize = endIndex - targetIndex
@@ -1743,6 +1829,9 @@ class CodeEditor is ScrollableLineControl, GutterListener
         existing blocks shouldn't try to incorporate index changes that fall exactly
         on their start/end boundaries.
         */
+        if lines = 1 and sharesLine
+            lines = 0
+        end
         parentBlock:OffsetIndices(targetIndex, -textSize, -lines)
 
         // Process a text change event. This will automatically update the MultipleLineText.
@@ -1771,13 +1860,38 @@ class CodeEditor is ScrollableLineControl, GutterListener
         if targetIndex < 0
             targetIndex = 0
         end
+        boolean sharesLine = false
+        text pretext = ""
+        if startIndex not= targetIndex
+            pretext = rawCode:GetText(targetIndex, startIndex)
+            if pretext:Trim() not= ""
+                sharesLine = true
+                targetIndex = startIndex
+            end
+        end
 
         // Make sure we grab the new line separator
-        integer endIndex = block:GetEndIndex() + rawCode:GetLineSeparator():GetSize()
+        integer endIndex = block:GetEndIndex()
         integer lines = block:GetEndLine() - block:GetStartLine() + 1
 
-        if endIndex > rawCode:GetSize()
-            endIndex = rawCode:GetSize()
+        if not( sharesLine and lines = 1)
+            integer nextLineIndex = rawCode:CharacterIndexFromLineIndex(block:GetEndLine() + 1)
+            if nextLineIndex < endIndex
+                nextLineIndex = rawCode:GetSize()
+            end
+            text postText = rawCode:GetText(endIndex, nextLineIndex)
+            if postText:Trim() = ""
+                endIndex = nextLineIndex
+            else
+                if sharesLine = false
+                    sharesLine = true
+                    targetIndex = startIndex
+                end
+            end
+    
+            if endIndex > rawCode:GetSize()
+                endIndex = rawCode:GetSize()
+            end
         end
 
         integer textSize = endIndex - targetIndex
@@ -1791,6 +1905,9 @@ class CodeEditor is ScrollableLineControl, GutterListener
         existing blocks shouldn't try to incorporate index changes that fall exactly
         on their start/end boundaries.
         */
+        if lines = 1 and sharesLine
+            lines = 0
+        end
         parentBlock:OffsetIndices(targetIndex, -textSize, -lines)
 
         // Process a text change event. This will automatically update the MultipleLineText.
@@ -1973,11 +2090,15 @@ class CodeEditor is ScrollableLineControl, GutterListener
         me:blockNotchBottomWidth = blockNotchBottomWidth
     end
 
-    action GetBlockNotchHeight returns number
-        return blockNotchHeight
+    action GetBlockNotchPixelHeight returns number
+        return blockNotchHeight * (GetDefaultUnpaddedLineHeight() * percentageLineHeightPadding)
     end
 
-    action SetBlockNotchHeight(number blockNotchHeight)
+action GetBlockNotchPercentageHeight returns number
+        return blockNotchHeight
+    end
+    
+    action SetBlockNotchPercentageHeight(number blockNotchHeight)
         me:blockNotchHeight = blockNotchHeight
     end
 
@@ -2174,7 +2295,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
             repeat while i > index
                 Block child = firstChild:GetChild(i)
                 if IsActionOrConstructor(child)
-                    child:Focus()
+                    NavigateToBlock(child)
                     return now
                 end //this is the one
                 i = i - 1
@@ -2186,9 +2307,16 @@ class CodeEditor is ScrollableLineControl, GutterListener
     end
 
     private action NavigateToBlock(Block block)
-        SelectBlockRange(block, block, true)
-        GoToBlock(block)
-        block:Focus()
+Block toNavigate = block
+        if not toNavigate:IsNavigable()
+            toNavigate = toNavigate:GetNextNavigableBlock()
+        end
+        if toNavigate = undefined
+            return now
+        end
+        SelectBlockRange(toNavigate, toNavigate, true)
+        GoToBlock(toNavigate)
+        toNavigate:Focus()
     end
     
 
@@ -2398,6 +2526,24 @@ class CodeEditor is ScrollableLineControl, GutterListener
         return renderer:GetBlockAtLine(index)
     end
     
+    action GetEditRegionAtTextIndex(integer index) returns EditRegion
+        integer line = GetLineIndex(index)
+        Block block = renderer:GetNavigableBlockAtTextLine(line)
+        Array<Item2D> children = block:GetChildren()
+        integer i = 0
+        repeat while i < children:GetSize()
+            Item2D item = children:Get(i)
+            if item is EditRegion
+                EditRegion region = cast(EditRegion, item)
+                if index >= block:GetStartIndex() + region:GetStartIndex() and index <= block:GetStartIndex() + region:GetEndIndex()
+                    return region
+                end
+            end
+            i = i + 1
+        end
+        return undefined
+    end
+    
     action SelectBlockRange(Block block, integer endIndex)
         if endIndex < 0
             endIndex = 0
@@ -2441,5 +2587,27 @@ Block lastBlock = GetLastBlock()
         end
         
         return current
+    end
+    
+    /*
+This action sets the width of the scope bars, as a multiple of "default indentation widths".
+A single default indentation is four characters wide in the editor's font. For example, passing
+a value of 2 would make the scoped bars take up 8 characters of space horizontally.
+*/
+    action SetScopeBarWidth(number width)
+        scopeBarWidth = width
+    end
+    
+/*
+This action returns the width of the scope bars, as a multiple of "default indentation widths".
+A single default indentation is four characters wide in the editor's font. For example,
+a value of 2 indicates that the scoped bars take up 8 characters of space horizontally.
+*/
+    action GetScopeBarWidth returns number
+        return scopeBarWidth
+    end
+    
+action IsAccessibleParent returns boolean
+        return true
     end
 end

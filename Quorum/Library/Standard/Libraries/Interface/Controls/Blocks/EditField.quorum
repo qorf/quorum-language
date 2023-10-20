@@ -91,7 +91,7 @@ class EditField is TextField, EditRegion
 
     action LostFocus(FocusEvent event)
         parent:TextField:LostFocus(event)
-        parent:Control:LostFocus(event)
+        parent:BlockItem:LostFocus(event)
     end
 
     private action FitCharacterOnScreen(integer character)

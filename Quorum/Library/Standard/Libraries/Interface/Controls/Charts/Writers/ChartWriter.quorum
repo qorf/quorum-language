@@ -23,6 +23,7 @@ use Libraries.Web.Page.WebPage
 use Libraries.Web.Page.MetaData
 use Libraries.Compute.Vector2
 use Libraries.Data.Formats.ScalableVectorGraphics.Pattern
+use Libraries.Compute.Math
 
 class ChartWriter
     private number axisPointX = 105
@@ -187,8 +188,8 @@ class ChartWriter
             AddLegend(chartCanvas, chart)
         end
         if chart:IsShowingLinearRegression()
-            AddRegressionLines(chartCanvas, chart)
-        end        
+//            AddRegressionLines(chartCanvas, chart)
+        end
 
         chartCanvas:Add(chartInformation)
 
@@ -288,7 +289,7 @@ class ChartWriter
             AddChartSubtitle(chartCanvas, chart)
         end
         if chart:IsShowingLinearRegression()
-            AddRegressionLines(chartCanvas, chart)
+//            AddRegressionLines(chartCanvas, chart)
         end        
 
         chartCanvas:Add(chartInformation)
@@ -1672,7 +1673,13 @@ class ChartWriter
                     seriesPattern:SetPosition(currentSeriesIcon:GetGlobalX(), TranslatePositionY(currentSeriesIcon) - currentSeriesIcon:GetHeight()) 
                     text patternID = "pattern"+seriesList:Get(i):GetPattern() 
                     seriesPattern:SetFill("url(#"+patternID+")")    
-                    canvas:Add(seriesPattern)      
+                    canvas:Add(seriesPattern)  
+                end    
+
+                if currentSeriesIcon:GetBorderThickness() > 0
+                    svgElementSeriesIcon:SetStroke(cast(Color, currentSeriesIcon:GetBorderColor()))
+                    svgElementSeriesIcon:SetStrokeOpacity(cast(Color, currentSeriesIcon:GetBorderColor()))
+                    svgElementSeriesIcon:SetStrokeWidth(currentSeriesIcon:GetBorderThickness())
                 end
 
                 if HasAccessibility()
@@ -1812,6 +1819,12 @@ class ChartWriter
         repeat while i < chart:GetSeriesList():GetSize()
             RegressionLine line = chart:GetSeriesList():Get(i):GetRegressionLine()
             if line not= undefined
+                text x1 = NumberToText(line:GetX1())
+                text y1 = NumberToText(line:GetY1())
+                text x2 = NumberToText(line:GetX2())
+                text y2 = NumberToText(line:GetY2())
+                text pointsText = "(" + x1 + ", " + y1 + ") to (" + x2 + ", " + y2 + ")"
+
                 Line svgElementRegLine
                 Vector2 startPoint = line:GetPixelStartPosition()
                 Vector2 endPoint = line:GetPixelEndPosition()
@@ -1822,6 +1835,10 @@ class ChartWriter
 
                 svgElementRegLine:SetStrokeOpacity(line:GetColor())
                 svgElementRegLine:SetStrokeWidth(line:GetLineThickness())
+
+                text seriesName = chart:GetSeriesList():Get(i):GetName()
+                svgElementRegLine:SetTitle(seriesName + ", regression line from " + pointsText + ". Regression Equation: " + line:GetEquationLabel():GetText())
+                output "Set title to " + svgElementRegLine:GetTitle()
 
                 if HasAccessibility()
                     svgElementRegLine:SetTabIndex(-1)
@@ -1851,6 +1868,15 @@ class ChartWriter
         uuid = "" + datetime:GetMonth() + datetime:GetDayOfMonth() + datetime:GetYear() + datetime:GetHour() + datetime:GetMinute() + datetime:GetSecond() + randomizedInteger
 
         return uuid
+    end
+
+    private action NumberToText(number value) returns text
+        if value = cast(integer, value)
+            return "" + cast(integer, value)
+        else
+            Math math
+            return "" + math:Round(value, 2)
+        end
     end
 
 end

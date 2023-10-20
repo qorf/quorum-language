@@ -55,6 +55,9 @@ shared class ChartOptions
     Array<Color> colorPalette = undefined
     Array<integer> patternPalette = undefined
 
+    // Currently, we return a uniform Black color for all borders across all palettes.
+    Color borderColor = color:Black()
+
     on create
         palettes:Add(DEFAULT, DefaultPalette())
 
@@ -147,6 +150,16 @@ shared class ChartOptions
             return patternPalette:Get(index)
         end
     end  
+
+    /*
+        This action returns a border color to complement the
+        palette color at the given index. Currently, this always
+        returns Black, but this can be adjusted in the future to
+        allow palettes to provide fine-tuned border color information.
+    */
+    action GetBorderColorFromPalette(integer index) returns Color
+        return borderColor
+    end
 
     private action BuildPalettes()
         palettes:Add(CALM, CalmPalette())

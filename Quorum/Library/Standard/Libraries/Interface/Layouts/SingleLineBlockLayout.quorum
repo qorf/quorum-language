@@ -23,9 +23,9 @@ class SingleLineBlockLayout is Layout
             return now
         end
 
-        number height = editor:GetLineHeight(block:GetStartLine())
-        integer i = block:GetStartLine() + 1
-        repeat while i <= block:GetEndLine()
+        number height = editor:GetLineHeight(block:GetNavigationIndex())
+        integer i = block:GetNavigationIndex() + 1
+        repeat while i <= block:GetNavigationEndIndex()
             height = height + editor:GetLineHeight(i)
             i = i + 1
         end
@@ -67,7 +67,7 @@ class SingleLineBlockLayout is Layout
         if x < minimumWidth
             x = minimumWidth
         end
-
+        
         block:SetSize(x + block:GetRightPadding(), height)
 
         /*
