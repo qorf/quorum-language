@@ -2524,8 +2524,10 @@ class QuorumBytecodeListener is QuorumSourceListener
                             return now
                         end
 
-                        if not field:IsDefined()
-                            or (field:IsField() and field:IsFirstAssignment() and not isInAction)
+                        //check to see if the field is defined. If not, it's an error. 
+                        //Then check to see if it's the first assignment, use before defined, but only trigger this if it's in the same class
+                        //If it's in another class, it will load before it's used anyway, so no check is needed.
+                        if not field:IsDefined() or (field:IsField() and field:IsFirstAssignment() and not isInAction and field:GetType():GetStaticKey() = currentClass:GetStaticKey())
                             CompilerError error
                             error:SetCode(codes:QUORUM_BYTECODE_LISTENER_NO_INITIAL_DEFINITION_AGAIN)
                             error:SetLocation(context:GetLocation())
