@@ -5,36 +5,44 @@ class BayesianModel
     HashTable<text, number> probabilities
     HashTable<text, HashTable<text, number>> likelihoods
     number evidence = 0.0
-    
 
+    // Constructor to initialize the Bayesian model with probabilities, likelihoods, and evidence
     action Initialize(HashTable<text, number> initialProbabilities, HashTable<text, HashTable<text, number>> initialLikelihoods, number initialEvidence)
-        probabilities = initialProbabilities
-        likelihoods = initialLikelihoods
-        evidence = initialEvidence
+        probabilities = initialProbabilities  // Set the initial class probabilities
+        likelihoods = initialLikelihoods  // Set the initial word likelihoods for each class
+        evidence = initialEvidence  // Set the initial evidence value
     end
 
     // Getter methods for accessing the model parameters
+
+    // Get the class probabilities
     action getProbabilities() returns HashTable<text, number>
         return probabilities
     end
 
+    // Get the word likelihoods for each class
     action getLikelihoods() returns HashTable<text, HashTable<text, number>>
         return likelihoods
     end
 
+    // Get the evidence value
     action getEvidence() returns number
         return evidence
     end
+
     // Setter methods for updating the model parameters
+
+    // Set new class probabilities
     action setProbabilities(HashTable<text, number> newProbabilities)
         probabilities = newProbabilities
     end
 
-
+    // Set new word likelihoods for each class
     action setLikelihoods(HashTable<text, HashTable<text, number>> newLikelihoods)
         likelihoods = newLikelihoods
     end
 
+    // Set a new evidence value
     action setEvidence(number newEvidence)
         evidence = newEvidence
     end
