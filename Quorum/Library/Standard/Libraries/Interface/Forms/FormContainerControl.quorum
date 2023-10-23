@@ -127,6 +127,7 @@ class FormContainerControl is Control
     action AddButton(text name) returns Button
         Button button
         button:SetName(name)
+        button:SetAutomaticFontSizing(true)
         button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
         button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
         button:SetToDefaultFontSize()
