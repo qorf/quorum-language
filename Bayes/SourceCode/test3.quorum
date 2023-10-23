@@ -3,6 +3,7 @@ use Libraries.Containers.HashTable
 
 /* Max Posterior test */
 
+// TestFindClassWithMaxPosterior inherits Test class
 class TestFindClassWithMaxPosterior is Test
     action Start
         // Create a BayesianMultinomialClassifier and a BayesianModel
@@ -19,8 +20,11 @@ class TestFindClassWithMaxPosterior is Test
         // get result from max posterior function
         text result = classifier:FindClassWithMaxPosterior(posteriors)
 
-        // check result  TODO not accepting text, text parameters
-        Check(result, "Class3")
+        // check and output result via text parameters
+        output ("checking results of Max Posterior ...")
+        output ("CHECK result == Class3")
+        output Check(result, "Class3")
+        
     end
 end
 
