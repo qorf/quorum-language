@@ -1,0 +1,38 @@
+use Libraries.Testing.Test
+use Libraries.Containers.HashTable
+
+/* Max Posterior test */
+
+class TestFindClassWithMaxPosterior is Test
+    action Start
+        // Create a BayesianMultinomialClassifier and a BayesianModel
+        BayesianMultinomialClassifier classifier
+        BayesianModel model
+        classifier:Initialize(model)
+
+        // create hash table of posteriors for testing
+        HashTable<text, number> posteriors
+        posteriors:Add("Class1", 0.2)
+        posteriors:Add("Class2", 0.3)
+        posteriors:Add("Class3", 0.5)
+
+        // get result from max posterior function
+        text result = classifier:FindClassWithMaxPosterior(posteriors)
+
+        // check result  TODO not accepting text, text parameters
+        Check(result, "Class3")
+    end
+end
+
+//class Main
+//    action Main
+//        TestFindClassWithMaxPosterior test
+//        Tester tester
+//
+//        // Add the test to the tester
+//        tester:Add(test)
+//
+//        // Run the tests
+//        tester:Test()
+//    end
+//end
