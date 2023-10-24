@@ -1,4 +1,5 @@
 use Libraries.Testing.Test
+use Libraries.Testing.Tester
 use Libraries.Containers.HashTable
 
 /* Bayesian Model test */
@@ -10,9 +11,9 @@ class TestBayesianModel is Test
         BayesianModel model
 
         HashTable<text, number> probabilities 
-        probabilities:Add("Class1", 0.3)
-        probabilities:Add("Class2", 0.5)
-        probabilities:Add("Class3", 0.2)
+        probabilities:Add("Class1", 0.2)
+        probabilities:Add("Class2", 0.3)
+        probabilities:Add("Class3", 0.5)
         
         HashTable<text, HashTable<text, number>> likelihoods
         HashTable<text, number> likelihoods1
@@ -25,10 +26,12 @@ class TestBayesianModel is Test
         // initialize contents of the Bayesian model
         model:Initialize(probabilities, likelihoods, evidence)
 
-        // TODO, checking entirety of hash table...
+        // ============================== Check getter methods ============================== //
+
         // check that the getter methods return the correct values
         output ("Checking getter methods ...")
         boolean result = false
+
         // check getProbabilities
         output ("CHECK getProbabilities()")
         result = Check(model:getProbabilities():Equals(probabilities), true)
@@ -56,37 +59,83 @@ class TestBayesianModel is Test
             output ("FAIL")
         end
 
-//        // Update the model parameters and check that the setter methods work correctly
-//        probabilities:Remove("Class3")
-//        probabilities:Add("Class4", 0.4)
-//        model:setProbabilities(probabilities)
-//        
-//        HashTable<text, number> likelihoods2
-//        likelihoods2:Add("word3", 0.3)
-//        likelihoods2:Add("word4", 0.4)
-//        likelihoods:Add("Class2", likelihoods2)
-//        
-//        model:setLikelihoods(likelihoods)
-//        
-//        evidence = 0.7
-//        model:setEvidence(evidence)
-//
-//        CheckEqual(model:getProbabilities(), probabilities)
-//        CheckEqual(model:getLikelihoods(), likelihoods)
-//        CheckEqual(model:getEvidence(), evidence)
-    end
+        // =================================================================================== //
 
+        // update model parameters, check that the setter methods work correctly
+        probabilities:RemoveKey("Class3")
+        probabilities:Add("Class4", 0.4)
+        model:setProbabilities(probabilities)
+        
+        HashTable<text, number> likelihoods2
+        likelihoods2:Add("word3", 0.3)
+        likelihoods2:Add("word4", 0.4)
+        likelihoods:Add("Class2", likelihoods2)
+        
+        model:setLikelihoods(likelihoods)
+        
+        evidence = 0.7
+        model:setEvidence(evidence)
+
+        // ============================== CHECK setter methods =============================== //
+
+        result = false
+        output ("CHECK new values")
+
+        output ("Check new probabilities")
+        result = Check(model:getProbabilities():Equals(probabilities), true)
+        if result
+            output ("SUCCESS")
+        else 
+            output ("FAIL")
+        end
+
+        output ("Check new likelihoods")
+        result = Check(model:getLikelihoods():Equals(likelihoods), true)
+        if result
+            output ("SUCCESS")
+        else 
+            output ("FAIL")
+        end
+
+        output ("Check new Evidence")
+        result = Check(model:getEvidence(), evidence)
+        if result
+            output ("SUCCESS")
+        else 
+            output ("FAIL")
+        end
+
+        // =================================================================================== //
+    end
+end
+
+// TODO put this into a separate file with all tests
+//
+//class Main
 //    action Main
 //        TestBayesianModel test
 //        Tester tester
 //
-//        // Add the test to the tester
-//        tester:Add(test)
+//        // run the test
+//        tester:Run(test)
 //
-//        // Run the tests
-//        tester:Test()
+//        // check results
+//        if tester:GetFailingSize() > 0
+//            output "Some tests failed."
+//            Iterator<Libraries.Testing.Test> failedTests = tester:GetFailedTestsIterator()
+//            repeat while failedTests:HasNext()
+//                Libraries.Testing.Test failedTest = failedTests:Next()
+//                output "Test failed: " + failedTest:GetName()
+//            end
+//        else
+//            output "All tests passed."
+//        end
 //    end
-end
+//end
+//
+
+
+
 
 //BayesianModel model = New BayesianModel(initialProbabilities, initialLikelihoods, initialEvidence)
 
