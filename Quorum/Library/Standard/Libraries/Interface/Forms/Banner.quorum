@@ -5,6 +5,32 @@ use Libraries.Game.Graphics.Label
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Interface.Events.FocusEvent
 
+/*
+
+    This class represents a banner which is a grouping of a title and subtitle. 
+    It provides a generic banner template that can be added to a page easily.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Forms.Banner
+
+    class Main
+        action Main
+            // create the app
+            Form form
+            Page homePage = form:GetMainPage() 
+            
+            Banner banner
+            banner:Initialize("Hello World", "Today is a great day!")
+            homePage:Add(banner)
+
+            form:Display()
+        end
+    end
+*/
 class Banner is Grouping
 
     Label label = undefined
@@ -16,30 +42,164 @@ class Banner is Grouping
         
         SetInterfaceOptionsKey("Banner")
     end
+    /*
+        This action sets up and fills in the banners title.
 
+        Attribute: Parameter title The text title in the banner grouping.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Banner
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+                
+                Banner banner
+                banner:Initialize("Hello World")
+
+                homePage:Add(banner)
+                output banner:GetTitle()
+
+                form:Display()
+            end
+        end
+    */
     action Initialize(text title)
         Initialize(title, "")
     end
+    /*
+        This action sets up and fills in the banners title and subtitle.
 
+        Attribute: Parameter title The text title in the banner grouping.
+        Attribute: Parameter label The text label (subtitle) in the banner grouping.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Banner
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+                
+                Banner banner
+                banner:Initialize("Hello World", "Today is a great day!")
+
+                homePage:Add(banner)
+                output banner:GetTitle()
+
+                form:Display()
+            end
+        end
+    */
     action Initialize(text title, text label)
         SetTitle(title)
         if label not= ""
             me:label = AddLabel(title + " Label", label)
         end
     end
+    /*
+        This action sets the subtitle of the banner grouping.
 
+        Attribute: Parameter value The text subtitle to set in the banner grouping.
 
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Banner
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+                
+                Banner banner
+                banner:Initialize("Hello World")
+                banner:SetSubtitle("Today is a great day!")
+
+                homePage:Add(banner)
+                output banner:GetSubtitle()
+
+                form:Display()
+            end
+        end
+    */
     action SetSubtitle(text value)
         Label label = GetLabel()
-        if label not= undefined label:SetText(value) end
+        if label not= undefined 
+            label:SetText(value) 
+        else
+            me:label = AddLabel(GetTitle() + " Label", value)
+        end
     end
+    /*
+        This action gets the subtitle of the banner grouping and returns undefined it the subtitle is not found.
 
+        Attribute: Returns The text subtitle on the banner grouping.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Banner
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+                
+                Banner banner
+                banner:Initialize("Hello World")
+                banner:SetSubtitle("Today is a great day!")
+
+                homePage:Add(banner)
+                output banner:GetSubtitle()
+
+                form:Display()
+            end
+        end
+    */
     action GetSubtitle returns text
         Label label = GetTitleLabel()
-        if label not= undefined return label:GetText() end
+        if label not= undefined 
+            return label:GetText() 
+        end
         return undefined
     end
+    /*
+        This action gets the subtitle label object on the banner grouping.
 
+        Attribute: Returns The Label object subtitle on the banner grouping.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Banner
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+                
+                Banner banner
+                banner:Initialize("Hello World")
+                banner:SetSubtitle("Today is a great day!")
+
+                homePage:Add(banner)
+                output banner:GetLabel():GetText()
+
+                form:Display()
+            end
+        end
+    */
     action GetLabel returns Label
         return label
     end
