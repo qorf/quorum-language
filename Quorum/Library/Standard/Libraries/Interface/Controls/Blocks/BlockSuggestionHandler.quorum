@@ -19,7 +19,7 @@ class BlockSuggestionHandler
         CompilerResult compilerResult = request:result
         CompilerResult lastCompiledResult = request:lastCompiledResult
         text source = request:source
-
+        BlockSuggestionResult result
 
         SymbolTable last = undefined
         SymbolTable compiled = undefined
@@ -48,9 +48,12 @@ class BlockSuggestionHandler
         if (clazz = undefined or table = undefined) // or not IsLegalCall(request, request:clazzCurrentParse, split)
             return now
         end
-
-        Array<text> actions = AddActions(request)
-        palette:SetNewCodeCompletion(actions)
+        
+        Array<Action> actions = AddActions(request)
+        result:actions = actions
+        result:clazz = request:clazz
+        
+        palette:SetSuggestionResult(result)
     end
 
     private action GetBestChoiceClass(CompilerResult last, CompilerResult compiled, text file, text className) returns Class
@@ -62,7 +65,7 @@ class BlockSuggestionHandler
             end
             if clazzes not= undefined and clazzes:HasNext()
                 clazz = clazzes:Next()
-                output "class found by name"
+                return clazz
             else
                 clazz = compiled:symbolTable:GetClassInFile(file)
                 if clazz not= undefined
@@ -79,6 +82,7 @@ class BlockSuggestionHandler
             end
             if clazzes not= undefined and clazzes:HasNext()
                 clazz = clazzes:Next()
+                return clazz
             else
                 clazz = compiled:symbolTable:GetClassInFile(file)
                 if clazz not= undefined
@@ -102,7 +106,7 @@ class BlockSuggestionHandler
         return undefined
     end
 
-    private action AddActions(CodeCompletionRequest request) returns Array<text>
+    private action AddActions(CodeCompletionRequest request) returns Array<Action>
         Class clazzToProcess = request:clazz
         if request:variableClass not= undefined
             clazzToProcess = request:variableClass
@@ -119,7 +123,7 @@ class BlockSuggestionHandler
         //if this is the current class, load all methods, public or private
         //if this is a variable, load only its public methods.
         Iterator<Action> actions = clazzToProcess:GetVirtualTable()
-        Array<text> actionsToReturn
+        Array<Action> actionsToReturn
         repeat while actions:HasNext()
             Action act = actions:Next()
 //            text filter = result:filter
@@ -136,19 +140,19 @@ class BlockSuggestionHandler
                 text value = act:GetName()
                 if value not= "GetValue" and value not= "SetValue"
                     if request:isRequestInClass
-                        actionsToReturn:Add(value)
+                        actionsToReturn:Add(act)
                     else
                         if not act:IsPrivate()
-                            actionsToReturn:Add(value)
+                            actionsToReturn:Add(act)
                         end
                     end
                 end
             else
                 if request:isRequestInClass
-                    actionsToReturn:Add(act:GetName())
+                    actionsToReturn:Add(act)
                 else
                     if not act:IsPrivate()
-                        actionsToReturn:Add(act:GetName())
+                        actionsToReturn:Add(act)
                     end
                 end
             end

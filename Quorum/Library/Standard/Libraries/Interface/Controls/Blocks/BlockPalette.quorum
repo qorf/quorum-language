@@ -161,6 +161,11 @@ class BlockPalette is TabPane
         BlockSuggestionPage page = cast(BlockSuggestionPage, suggestionTab:GetRelatedItem())
         page:SetFromList(list)
     end
+
+    action SetSuggestionResult(BlockSuggestionResult result)
+        BlockSuggestionPage page = cast(BlockSuggestionPage, suggestionTab:GetRelatedItem())
+        page:SetFromResult(result)
+    end
     
     action UpdateSuggestion(text className, CodeCompletionRequest request)
         BlockSuggestionHandler handler

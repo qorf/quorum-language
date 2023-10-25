@@ -11,20 +11,19 @@ use Libraries.Containers.Iterator
 use Libraries.Language.Compile.CodeCompletionItem
 use Libraries.Language.Compile.CodeCompletionResult
 use Libraries.Containers.Array
+use Libraries.Language.Compile.Symbol.Class
+use Libraries.Language.Compile.Symbol.Action
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Events.TextChangeListener
+use Libraries.Interface.Events.TextChangeEvent
 
-class BlockSuggestionPage is BlockPalettePage, SelectionListener
+class BlockSuggestionPage is BlockPalettePage, SelectionListener, TextChangeListener
 
-    
-    Array<BlockPaletteItem> primitives
-    Array<BlockPaletteItem> other
-    Array<BlockPaletteItem> packages
-    Array<BlockPaletteItem> classes
-    Array<BlockPaletteItem> locals
-    Array<BlockPaletteItem> fields
-    Array<BlockPaletteItem> parentFields
-    Array<BlockPaletteItem> actions
-    Array<BlockPaletteItem> emptyMenu
-    
+    TextField filterField = undefined
+    Array<Button> suggestedActionItems
+    Array<Action> suggestedActions
+    text variableName = ""
+
     action SelectionChanged(SelectionEvent event)
 //        GetFormChildren():Empty()
 //        Selection selection = event:GetSelection()
@@ -45,6 +44,68 @@ class BlockSuggestionPage is BlockPalettePage, SelectionListener
             AddBlockPaletteItem(list:Get(i))
             i = i + 1
         end
+    end
+
+    action SetFromResult(BlockSuggestionResult result)
+        GetFormChildren():Empty()
+        Class clazz = result:clazz
+        Array<Action> actions = result:actions
+        actions:Sort()
+        suggestedActions = actions
+        text variableName = result:variableName
+        me:variableName = variableName
+        SetTitle(clazz:GetDisplayName())
+        AddFilterTextField()
+
+        integer i = 0
+        repeat while i < actions:GetSize()
+            if variableName = ""
+                suggestedActionItems:Add(AddBlockPaletteItem(actions:Get(i):GetName()))
+            else
+                suggestedActionItems:Add(AddBlockPaletteItem(variableName+":"+actions:Get(i):GetName()))
+            end
+            i = i + 1
+        end
+    end
+
+    action AddFilterTextField
+        if filterField not= undefined
+            filterField:RemoveTextChangeListener(me)
+        end
+        filterField = AddTextField("Filter")
+        filterField:AddTextChangeListener(me)
+    end
+
+    action TextChanged(TextChangeEvent event)
+        text filter = filterField:GetText()
+        if filter not= ""
+            filter = filter:ToLowerCase()
+            ClearSuggestions()
+            integer i = 0
+            repeat while i < suggestedActions:GetSize()
+                Action act = suggestedActions:Get(i)
+                text actionName = act:GetName()
+                actionName = actionName:ToLowerCase()
+                if actionName:StartsWith(filter)
+                    if variableName = ""
+                        suggestedActionItems:Add(AddBlockPaletteItem(suggestedActions:Get(i):GetName()))
+                    else
+                        suggestedActionItems:Add(AddBlockPaletteItem(variableName+":"+suggestedActions:Get(i):GetName()))
+                    end
+                end
+                i = i + 1
+            end
+        end
+    end
+
+    action ClearSuggestions
+        integer i = 0
+        repeat while i < suggestedActionItems:GetSize()
+            Button button = suggestedActionItems:Get(i)
+            button:GetParent():Remove(button)
+            i = i + 1
+        end
+        suggestedActionItems:Empty()
     end
 
     action SetCodeCompletionResult(CodeCompletionResult result)
@@ -74,39 +135,6 @@ class BlockSuggestionPage is BlockPalettePage, SelectionListener
                 AddLabel(code:documentationText)
                 
                 BlockPaletteItem item = cast(BlockPaletteItem, AddBlockPaletteItem(code:displayText))
-
-
-                if code:GetType() = code:LOCAL_VARIABLE
-                    locals:Add(item)
-                elseif code:GetType() = code:PARAMETER
-                    locals:Add(item)
-                elseif code:GetType() = code:PRIVATE_FIELD_VARIABLE
-                    fields:Add(item)
-                elseif code:GetType() = code:PUBLIC_FIELD_VARIABLE
-                    fields:Add(item)
-                elseif code:GetType() = code:PRIVATE_ACTION
-                    actions:Add(item)
-                elseif code:GetType() = code:PUBLIC_ACTION
-                    actions:Add(item)
-                elseif code:GetType() = code:PRIVATE_SYSTEM_ACTION
-                    actions:Add(item)
-                elseif code:GetType() = code:PUBLIC_SYSTEM_ACTION
-                    actions:Add(item)
-                elseif code:GetType() = code:PUBLIC_BLUEPRINT_ACTION
-                    actions:Add(item)
-                elseif code:GetType() = code:CLASS
-                    classes:Add(item)
-                elseif code:GetType() = code:PRIMITIVE
-                    primitives:Add(item)
-                elseif code:GetType() = code:CONTROL_STRUCTURE
-                    primitives:Add(item)
-                elseif code:GetType() = code:PACKAGE
-                    packages:Add(item)
-                elseif code:GetType() = code:PARENT_FIELD_PRIVATE
-                    parentFields:Add(item)
-                elseif code:GetType() = code:PARENT_FIELD_PUBLIC
-                    parentFields:Add(item)
-                end
 
             end
         end
