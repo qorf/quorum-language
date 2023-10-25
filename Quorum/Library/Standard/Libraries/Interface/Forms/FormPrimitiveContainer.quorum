@@ -19,7 +19,7 @@ use Libraries.Containers.HashTable
     The idea is that this allows primitive values to be shared across an application without
     manually sharing it everywhere.
 
-    Attribute: Author Andreas Stefik, William Allee
+    Attribute: Author Andreas Stefik
 
 */
 class FormPrimitiveContainer
@@ -39,10 +39,11 @@ class FormPrimitiveContainer
         stores any primitive text variables needed on the form.
     */
     HashTable<text, Text> texts
-    /*
-        This action gets a primitive integer variable stored on the form by using it's name to retrieve its value.
 
-        Attribute: Parameter name of the variable. The key, to obtain the integer variable value.        
+    /*
+        This action gets a primitive integer variable stored on the form by using its name to retrieve its value.
+
+        Attribute: Parameter name The name of the variable. The key, used to obtain the integer variable value.        
         Attribute: Returns integer value of the variable.
 
 
@@ -76,14 +77,11 @@ class FormPrimitiveContainer
     /*
         This action sets a primitive integer variable and stores it on the form.
 
-        Attribute: Parameter name of the variable. The key, to obtain the integer variable value. 
+        Attribute: Parameter name The name of the variable. The key, to obtain the integer variable value. 
         Attribute: Parameter value of the variable, of type integer.   
 
 
         Attribute: Example
-        use Libraries.Interface.Forms.Form
-        use Libraries.Interface.Forms.Page
-
         use Libraries.Interface.Forms.Form
         use Libraries.Interface.Forms.Page
 
