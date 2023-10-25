@@ -121,8 +121,15 @@ class Documentation is Location
     end
 
     action ParseDocumentation(text docs)
+if docs = undefined
+            return now
+        end
         text value = docs:Trim()
-        if value:GetSize() >= 4 //make sure there is enough space in the text, otherwise it's in the wrong format
+        
+        if value:StartsWith("//") and value:GetSize() >= 2
+value = value:GetSubtext(2, value:GetSize())
+            value = value:Trim()
+        elseif value:StartsWith("/*") and value:GetSize() >= 4 //make sure there is enough space in the text, otherwise it's in the wrong format
             value = value:GetSubtext(2, value:GetSize() - 2)
             value = value:Trim()
         else
