@@ -40,7 +40,15 @@ class Button is Control, TextureLoadListener
     // Whether this button has been depressed, e.g. by a mouse click.
     boolean depressed = false
 
+    // If this is true, the Button will automatically attempt to fit its font within the button.
     boolean automaticFontSizing = true
+    
+    /*By default, automatic font sizing is disabled if the font size is manually set.
+However, if the automatic font sizing has been explicitly set to true, we don't
+want to override that (especially in something like a Layout), so we track if
+the auto-font sizing has been explicitly set here.*/
+    boolean explicitAutoFontSizing = false
+    
 
     on create
         ButtonLayout layout
@@ -424,7 +432,9 @@ class Button is Control, TextureLoadListener
 
     action SetFontSize(integer size)
         parent:Control:SetFontSize(size)
-        SetAutomaticFontSizing(false)
+        if explicitAutoFontSizing = false
+automaticFontSizing = false
+        end
     end
 
     /*
@@ -442,6 +452,7 @@ class Button is Control, TextureLoadListener
     */
     action SetAutomaticFontSizing(boolean automaticFontSizing)
         me:automaticFontSizing = automaticFontSizing
+explicitAutoFontSizing = automaticFontSizing
     end
 
 end
