@@ -706,11 +706,6 @@ RefreshNavigationIndices()
         repeat while i < blocks:GetSize()
             Block block = blocks:Get(i)
             movingBlocks:Add(block)
-            
-            // Temporary testing visuals: Hard-set blocks to purple if they're being moved
-            Libraries.Game.Graphics.Color color
-            block:SetBackgroundColor(color:Purple())
-            
             block:SetMoving(true)
             
             i = i + 1

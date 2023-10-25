@@ -278,6 +278,11 @@ number halfSize = width / 2.0
                     ColorGroup movingColor = block:GetColorProperty(constants:MOVING_BACKGROUND_COLOR)
                     if block:IsMoving() and movingColor not= undefined
                         backgroundColor = movingColor
+                    else
+                        ColorGroup placeholderColor = block:GetColorProperty(constants:PLACEHOLDER_BACKGROUND_COLOR)
+                        if block:IsPlaceholder() and block:IsInEditorTree() and placeholderColor not= undefined
+                            backgroundColor = placeholderColor
+                        end
                     end
                 end
 

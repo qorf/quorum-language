@@ -87,13 +87,12 @@ class LightBlockOptions is LightModeOptions, BlockOptions
             SetEditBackgroundColor(key, backColor)
             
             Color newMovingColor
-            newMovingColor:CopyColor(background:GetBottomLeft())
-newMovingColor:SetColor(
-                newMovingColor:GetRed() * 0.5, 
-                newMovingColor:GetGreen() * 0.5, 
-                newMovingColor:GetBlue() * 0.5, 
-                newMovingColor:GetAlpha())
+newMovingColor:SetColor(0.75, 0.75, 0.75, 1)
             SetMovingBackgroundColor(key, newMovingColor)
+            
+            Color newPlaceholderColor
+            newPlaceholderColor:SetColor(0.6, 1, 0.65, 1)
+            SetPlaceholderBackgroundColor(key, newPlaceholderColor)
         end
     end
 

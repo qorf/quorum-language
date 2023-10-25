@@ -87,6 +87,15 @@ class DarkBlockOptions is DarkModeOptions, BlockOptions
             Color editColor
             editColor:CopyColor(color)
             SetEditBorderColor(key, editColor)
+            
+Color newMovingColor
+newMovingColor:SetColor(0.75, 0.75, 0.75, 1)
+            SetMovingBackgroundColor(key, newMovingColor)
+            
+            Color newPlaceholderColor
+            newPlaceholderColor:SetColor(0.4, 0.8, 0.45, 1)
+            SetPlaceholderBackgroundColor(key, newPlaceholderColor)
+            
         end
     end
 end

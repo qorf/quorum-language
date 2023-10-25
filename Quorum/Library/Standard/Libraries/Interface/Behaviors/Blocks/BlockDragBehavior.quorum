@@ -13,6 +13,7 @@ use Libraries.Game.Graphics.Color
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Game.Layer2D
 use Libraries.Interface.Controls.Blocks.EditRegion
+use Libraries.Interface.Views.SingleLineBlockView
 
 class BlockDragBehavior is Behavior
     
@@ -45,19 +46,19 @@ class BlockDragBehavior is Behavior
                 // Note that the target might be undefined or it might be an EditRegion.
                 // EditRegion wants to do its own thing on click/drag, so we ignore it in that case.
                 if target is CodeEditor
-editor = cast(CodeEditor, target)
+                    editor = cast(CodeEditor, target)
                     
                 end
             end
             
             
-if IsDraggingBlocks()
+            if IsDraggingBlocks()
                 UnloadDraggedBlocks()
             end
             
             if editor not= undefined
                 sourceBlocks = editor:GetSelectedBlocks()
-LoadDraggedBlocks(sourceBlocks, dragEvent:GetStartX(), dragEvent:GetStartY())
+                LoadDraggedBlocks(sourceBlocks, dragEvent:GetStartX(), dragEvent:GetStartY())
             end
             
         elseif dragEvent:eventType = dragEvent:DRAGGING_CONTINUED
@@ -93,17 +94,25 @@ LoadDraggedBlocks(sourceBlocks, dragEvent:GetStartX(), dragEvent:GetStartY())
         repeat while i < blocks:GetSize()
             Block block = blocks:Get(i)
             
-            Control dummyBlock
-            dummyBlock:SetBackgroundColor(block:GetBackgroundColor())
-            dummyBlock:SetBorderColor(block:GetBorderColor())
-            dummyBlock:SetBorderThickness(block:GetBorderThickness())
+            Block dummyBlock = block:CopyToPlaceholder()
+//            Control dummyBlock
+//            dummyBlock:SetBackgroundColor(block:GetBackgroundColor())
+//            dummyBlock:SetBorderColor(block:GetBorderColor())
+//            dummyBlock:SetBorderThickness(block:GetBorderThickness())
+//            dummyBlock:SetSize(block:GetWidth(), block:GetHeight())
+//            dummyBlock:SetPosition(targetX, targetY)
+//            
+//            // Temporary debugging view.
+//            ControlShaderView view
+//            view:Initialize()
+//            dummyBlock:SetView2D(view)
+            
             dummyBlock:SetSize(block:GetWidth(), block:GetHeight())
             dummyBlock:SetPosition(targetX, targetY)
             
-            // Temporary debugging view.
-            ControlShaderView view
-            view:Initialize()
-            dummyBlock:SetView2D(view)
+SingleLineBlockView view
+                view:Initialize()
+                dummyBlock:SetView2D(view)
             
             dragAnchor:Add(dummyBlock)
             
