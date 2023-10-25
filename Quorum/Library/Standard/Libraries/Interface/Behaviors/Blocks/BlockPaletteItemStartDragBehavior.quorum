@@ -1,0 +1,57 @@
+package Libraries.Interface.Behaviors.Blocks
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.DragAndDropEvent
+use Libraries.Interface.Item2D
+use Libraries.Game.Graphics.Drawable
+use Libraries.Compute.Vector3
+use Libraries.Game.Layer2D
+use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
+use Libraries.Interface.Controls.Scenes.Blueprints.DrawableBlueprint
+use Libraries.Interface.Controls.Scenes.Items.Previews.ItemPreview2D
+use Libraries.Interface.Controls.Scenes.ScenePaletteItem
+use Libraries.Interface.Controls.Scenes.ScenePalette
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Controls.Blocks.BlockPaletteItem
+use Libraries.Interface.Controls.Blocks.BlockPalette
+
+/*
+    This behavior starts a drag and drop event from a ScenePaletteItem which allows the 
+    user to drag an item from the palette into the scene editor. This behavior is typically 
+    started from a mouse click that is held and a drawable is created in place of the click 
+    and can then be moved. The movement and drop of the whole drag and drop event is 
+    handled by the PaletteItemContinueDragBehavior and the PaletteItemDropBehavior.
+*/
+class BlockPaletteItemStartDragBehavior is Behavior
+
+    action Run(BehaviorEvent event)
+        output "drag start"
+        DragAndDropEvent dragEvent = event:GetDragAndDropEvent()
+
+        Item2D item = undefined
+        if dragEvent:GetSource() is Item2D
+            item = cast(Item2D, dragEvent:GetSource())
+            repeat until item = undefined or item is BlockPaletteItem
+                item = item:GetParent()
+            end
+        end
+
+        if item = undefined
+            return now
+        end
+        
+        BlockPaletteItem paletteItem = cast(BlockPaletteItem, item)
+        BlockPalette palette = paletteItem:GetPalette()
+//        ItemBlueprint schematic = paletteItem:GetItemBlueprint()
+        Drawable drawable 
+        drawable:LoadFilledCircle(25)
+
+        Layer2D layer = item:GetLayer()
+        Vector3 worldCoordinates = layer:GetCamera():ScreenToWorldCoordinates(dragEvent:GetX() - layer:GetViewportX(), dragEvent:GetY() - layer:GetViewportY())
+
+        drawable:SetPosition(worldCoordinates:GetX() - drawable:GetWidth() / 2, worldCoordinates:GetY() - drawable:GetHeight() / 2)
+        palette:SetDraggedItem(drawable)
+
+    end
+
+end

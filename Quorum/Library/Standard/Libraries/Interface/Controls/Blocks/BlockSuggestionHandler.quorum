@@ -1,0 +1,163 @@
+package Libraries.Interface.Controls.Blocks
+use Libraries.Language.Compile.CompilerResult
+use Libraries.Language.Compile.Symbol.SymbolTable
+use Libraries.Language.Compile.Symbol.Class
+use Libraries.Language.Compile.CodeCompletionRequest
+use Libraries.Language.Compile.Parsing.QuorumLexer
+use Libraries.Language.Compile.Parsing.TokenIterator
+use Libraries.Containers.Iterator
+use Libraries.Language.Compile.Symbol.Action
+use Libraries.Containers.Array
+
+
+class BlockSuggestionHandler
+    BlockPalette palette = undefined
+
+
+    action Request(text className, CodeCompletionRequest request, BlockPalette palette)
+        me:palette = palette
+        CompilerResult compilerResult = request:result
+        CompilerResult lastCompiledResult = request:lastCompiledResult
+        text source = request:source
+        BlockSuggestionResult result
+
+        SymbolTable last = undefined
+        SymbolTable compiled = undefined
+        if compilerResult not= undefined
+            last = compilerResult:symbolTable
+        end
+
+        if lastCompiledResult not= undefined
+            compiled = lastCompiledResult:symbolTable
+        end
+
+        if last not= undefined 
+            Class lastClazz = last:GetClassInFile(request:fileKey)
+            if lastClazz not= undefined
+                request:clazzCurrentParse = lastClazz
+            end
+        end
+
+        Class clazz = GetBestChoiceClass(request:result, lastCompiledResult, request:fileKey, className)
+        SymbolTable table = GetBestChoiceSymbolTable(request:result, lastCompiledResult)
+
+        //true or true  or true and false
+        request:clazz = clazz
+        request:table = table
+
+        if (clazz = undefined or table = undefined) // or not IsLegalCall(request, request:clazzCurrentParse, split)
+            return now
+        end
+        
+        Array<Action> actions = AddActions(request)
+        result:actions = actions
+        result:clazz = request:clazz
+        
+        palette:SetSuggestionResult(result)
+    end
+
+    private action GetBestChoiceClass(CompilerResult last, CompilerResult compiled, text file, text className) returns Class
+        if compiled not= undefined and compiled:symbolTable not= undefined
+            Class clazz = undefined
+            Iterator<Class> clazzes = undefined
+            if className not= "" 
+                clazzes = compiled:symbolTable:GetClassByName(className)
+            end
+            if clazzes not= undefined and clazzes:HasNext()
+                clazz = clazzes:Next()
+                return clazz
+            else
+                clazz = compiled:symbolTable:GetClassInFile(file)
+                if clazz not= undefined
+                    return clazz
+                end
+            end
+        end
+
+        if last not= undefined and last:symbolTable not= undefined
+            Class clazz = undefined
+            Iterator<Class> clazzes  = undefined
+            if className not= "" 
+                clazzes = compiled:symbolTable:GetClassByName(className)
+            end
+            if clazzes not= undefined and clazzes:HasNext()
+                clazz = clazzes:Next()
+                return clazz
+            else
+                clazz = compiled:symbolTable:GetClassInFile(file)
+                if clazz not= undefined
+                    return clazz
+                end
+            end
+        end
+
+        return undefined
+    end
+
+    private action GetBestChoiceSymbolTable(CompilerResult last, CompilerResult compiled) returns SymbolTable
+        if compiled not= undefined and compiled:symbolTable not= undefined
+            return compiled:symbolTable
+        end
+
+        if last not= undefined and last:symbolTable not= undefined
+            return last:symbolTable
+        end
+
+        return undefined
+    end
+
+    private action AddActions(CodeCompletionRequest request) returns Array<Action>
+        Class clazzToProcess = request:clazz
+        if request:variableClass not= undefined
+            clazzToProcess = request:variableClass
+            if clazzToProcess not= undefined and request:clazz not= undefined
+               and clazzToProcess:GetStaticKey() not= request:clazz:GetStaticKey()
+                request:isRequestInClass = false
+            end
+        end
+
+        if clazzToProcess = undefined
+            return undefined
+        end
+
+        //if this is the current class, load all methods, public or private
+        //if this is a variable, load only its public methods.
+        Iterator<Action> actions = clazzToProcess:GetVirtualTable()
+        Array<Action> actionsToReturn
+        repeat while actions:HasNext()
+            Action act = actions:Next()
+//            text filter = result:filter
+//            integer size = filter:GetSize()
+//            item:dotOffset = request:caretLocation - size// + additionalDotOffset
+
+            //is this action in the base class or the v-table?
+            if request:clazz:HasAction(act:GetStaticKey())
+//                item:isBaseClassAction = true
+            end
+
+            boolean isPrimitive = request:isPrimitiveConversion
+            if isPrimitive
+                text value = act:GetName()
+                if value not= "GetValue" and value not= "SetValue"
+                    if request:isRequestInClass
+                        actionsToReturn:Add(act)
+                    else
+                        if not act:IsPrivate()
+                            actionsToReturn:Add(act)
+                        end
+                    end
+                end
+            else
+                if request:isRequestInClass
+                    actionsToReturn:Add(act)
+                else
+                    if not act:IsPrivate()
+                        actionsToReturn:Add(act)
+                    end
+                end
+            end
+        end
+        return actionsToReturn
+    end
+
+end

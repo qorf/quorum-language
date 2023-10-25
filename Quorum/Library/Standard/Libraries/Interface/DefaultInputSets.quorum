@@ -2451,8 +2451,8 @@ editFieldTable:RemoveKey(blockCommandZ)
         editBoxTable:RemoveKey(enterSet)
         editBoxTable:RemoveKey(numpadEnterSet)
         editBoxTable:RemoveKey(mouseScrollSet)
-editBoxTable:RemoveKey(blockControlZ)
-editBoxTable:RemoveKey(blockCommandZ)
+        editBoxTable:RemoveKey(blockControlZ)
+        editBoxTable:RemoveKey(blockCommandZ)
         editBoxTable:Add(downSet, downBehavior)
         editBoxTable:Add(upSet, upBehavior)
         gameInput:AddInputTable(editBoxTable)
@@ -2476,7 +2476,7 @@ editBoxTable:RemoveKey(blockCommandZ)
         gameInput:AddInputTable(blockTable)
         
         // Make sure the CodeEditor's drag receiving behavior has a needed reference to the starting drag behavior.
-draggedIntoBehavior:SetSourceDragBehavior(dragBehavior)
+        draggedIntoBehavior:SetSourceDragBehavior(dragBehavior)
     end
 
     action SetupScrollBarControlInput(GameInput gameInput)

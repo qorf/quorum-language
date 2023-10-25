@@ -1,0 +1,142 @@
+package Libraries.Interface.Controls.Blocks
+
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Behaviors.Blocks.BlockPaletteInsertBehavior
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Events.SelectionListener
+use Libraries.Interface.Selections.Selection
+use Libraries.Interface.Selections.CodeEditorSelection
+use Libraries.Containers.Iterator
+use Libraries.Language.Compile.CodeCompletionItem
+use Libraries.Language.Compile.CodeCompletionResult
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Symbol.Class
+use Libraries.Language.Compile.Symbol.Action
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Events.TextChangeListener
+use Libraries.Interface.Events.TextChangeEvent
+
+class BlockSuggestionPage is BlockPalettePage, SelectionListener, TextChangeListener
+
+    TextField filterField = undefined
+    Array<Button> suggestedActionItems
+    Array<Action> suggestedActions
+    text variableName = ""
+
+    action SelectionChanged(SelectionEvent event)
+//        GetFormChildren():Empty()
+//        Selection selection = event:GetSelection()
+//        if selection not= undefined
+//            CodeEditorSelection blockSelection = cast(CodeEditorSelection, selection)
+//            Block block = blockSelection:GetBlock()
+//            if block not= undefined
+//                output block:GetName()
+//                SetTitle(block:GetName())
+//            end
+//        end
+    end
+    
+    action SetFromList(Array<text> list)
+        GetFormChildren():Empty()
+        integer i = 0
+        repeat while i < list:GetSize()
+            AddBlockPaletteItem(list:Get(i))
+            i = i + 1
+        end
+    end
+
+    action SetFromResult(BlockSuggestionResult result)
+        GetFormChildren():Empty()
+        Class clazz = result:clazz
+        Array<Action> actions = result:actions
+        actions:Sort()
+        suggestedActions = actions
+        text variableName = result:variableName
+        me:variableName = variableName
+        SetTitle(clazz:GetDisplayName())
+        AddFilterTextField()
+
+        integer i = 0
+        repeat while i < actions:GetSize()
+            if variableName = ""
+                suggestedActionItems:Add(AddBlockPaletteItem(actions:Get(i):GetName()))
+            else
+                suggestedActionItems:Add(AddBlockPaletteItem(variableName+":"+actions:Get(i):GetName()))
+            end
+            i = i + 1
+        end
+    end
+
+    action AddFilterTextField
+        if filterField not= undefined
+            filterField:RemoveTextChangeListener(me)
+        end
+        filterField = AddTextField("Filter")
+        filterField:AddTextChangeListener(me)
+    end
+
+    action TextChanged(TextChangeEvent event)
+        text filter = filterField:GetText()
+        if filter not= ""
+            filter = filter:ToLowerCase()
+            ClearSuggestions()
+            integer i = 0
+            repeat while i < suggestedActions:GetSize()
+                Action act = suggestedActions:Get(i)
+                text actionName = act:GetName()
+                actionName = actionName:ToLowerCase()
+                if actionName:StartsWith(filter)
+                    if variableName = ""
+                        suggestedActionItems:Add(AddBlockPaletteItem(suggestedActions:Get(i):GetName()))
+                    else
+                        suggestedActionItems:Add(AddBlockPaletteItem(variableName+":"+suggestedActions:Get(i):GetName()))
+                    end
+                end
+                i = i + 1
+            end
+        end
+    end
+
+    action ClearSuggestions
+        integer i = 0
+        repeat while i < suggestedActionItems:GetSize()
+            Button button = suggestedActionItems:Get(i)
+            button:GetParent():Remove(button)
+            i = i + 1
+        end
+        suggestedActionItems:Empty()
+    end
+
+    action SetCodeCompletionResult(CodeCompletionResult result)
+        
+        //the system is telling us we're between parses. Just ignore this request
+        if result = undefined
+            return now
+        elseif not result:IsValidCodeCompletion()
+            return now
+        else //seems like a valid request
+        end
+        
+        Iterator<CodeCompletionItem> iterator = result:GetIterator()
+        //Empty()
+        resultSize = 0
+        if not iterator:HasNext()
+            return now
+        end
+
+        
+
+        repeat while iterator:HasNext()
+            CodeCompletionItem code = iterator:Next()
+            if (code:displayText:StartsWith(result:filter)) or (((not code:displayText:IsEmpty()) and result:filter:IsEmpty()))
+                resultSize = resultSize + 1
+                //item:SetShortcut(code:rightDisplayText)
+                AddLabel(code:documentationText)
+                
+                BlockPaletteItem item = cast(BlockPaletteItem, AddBlockPaletteItem(code:displayText))
+
+            end
+        end
+    end
+end
