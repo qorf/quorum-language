@@ -139,23 +139,23 @@ packageIndex = CreatePackageIndex(table)
     action CreatePackageIndex(SymbolTable symbolTable) returns Section
         Section section
         
-Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
+        Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
         repeat while packages:HasNext()
             text key = packages:Next()
             //put in the heading for the pag
             Heading packageHeading
             packageHeading:SetScale(3)
-packageHeading:AddText(key)
-UnorderedList packageList
+            packageHeading:AddText(key)
+            UnorderedList packageList
             section:Add(packageHeading)
             section:Add(packageList)
-//now put in all of the classes in this package
+            //now put in all of the classes in this package
             Array<Class> classes = symbolTable:GetClassesSortedInPackage(key)
             i = 0
             repeat while i < classes:GetSize()
                 Class clazz = classes:Get(i)
                 
-Link classLink = GetWebLinkForClassFromIndex(clazz, true)
+                Link classLink = GetWebLinkForClassFromIndex(clazz, true)
                 ListItem item
                 item:Add(classLink)
                 packageList:Add(item)
@@ -378,7 +378,7 @@ bodyDiv:Add(packageIndex)
     private action GetWebLinkForClassFromIndex(Class from, boolean boldLink) returns Link
         Link link
         text key = from:GetStaticKey()
-        text linkText = ""
+        text linkText = "/"
         Array<text> fromSplit = key:Split("\.")
         if fromSplit not= undefined
             i = 0
