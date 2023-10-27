@@ -32,12 +32,15 @@ use Libraries.Language.Compile.Symbol.Class
 use Libraries.Language.Compile.Symbol.Documentation
 use Libraries.Language.Compile.Library
 use Libraries.Language.Compile.Compiler
+use Libraries.Web.Page.Section
+use Libraries.Web.Page.Heading
 
 class DocumentationGenerator 
     File runFolder = undefined
     constant text DOCUMENTATION_FOLDER = "Documents/"
     boolean isBuildingStandardLibrary = false
     boolean isBuildingSourceFiles = true
+    Section packageIndex = undefined
 
     action GetRunFolder returns File
         return runFolder
@@ -98,6 +101,8 @@ class DocumentationGenerator
 
         Iterator<ClassOpcode> opcodes = library:GetOpcodes()
         SymbolTable table = library:GetSymbolTable()
+        
+packageIndex = CreatePackageIndex(table)
         repeat while opcodes:HasNext()
             ClassOpcode opcode = opcodes:Next()
             Class clazz = opcode:GetClass()
@@ -129,6 +134,58 @@ class DocumentationGenerator
         WriteIndexPage(library:GetSymbolTable())
     end
 
+    action CreatePackageIndex(SymbolTable symbolTable) returns Section
+        Section section
+        
+Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
+        repeat while packages:HasNext()
+            text key = packages:Next()
+            //put in the heading for the pag
+            Heading packageHeading
+            packageHeading:SetScale(3)
+packageHeading:AddText(key)
+UnorderedList packageList
+            section:Add(packageHeading)
+            section:Add(packageList)
+//now put in all of the classes in this package
+            Array<Class> classes = symbolTable:GetClassesSortedInPackage(key)
+            i = 0
+            repeat while i < classes:GetSize()
+                Class clazz = classes:Get(i)
+                
+Link classLink = GetWebLinkForClassFromIndex(clazz, true)
+                ListItem item
+                item:Add(classLink)
+                packageList:Add(item)
+                i = i + 1
+            end
+        end
+        return section
+    end
+    
+    action GetSearchSection returns Section
+        Section section
+
+        Form form
+        Input searchInput
+        searchInput:SetName("Search Query")
+
+        searchInput:SetType("text")
+
+        Input searchButton
+
+        searchButton:SetName("Search Button")
+
+        searchButton:SetType("submit")
+        form:Add(searchInput)
+
+        form:Add(searchButton)
+
+        section:Add(form)
+
+        return section
+    end
+    
     action WriteIndexPage(SymbolTable symbolTable)
         WebPage page
         AddDefaultHeaders(page)
@@ -169,51 +226,9 @@ sound, digital signal processing, mobile applications). The purpose of this
 index page is to help users find information about specific packages or 
 classes. Thus, this page is structured as a reference and is not intended as a 
 tutorial.")
-
-        Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
-        repeat while packages:HasNext()
-            text key = packages:Next()
-            if not key:IsEmpty() //ignore the default package
-                WebTable table
-                table:SetBorder(true)
-
-                TableRow headerRow
-                TableHeaderCell packageNameHeaderCell
-                packageNameHeaderCell:AddText(key)
-                headerRow:Add(packageNameHeaderCell)
-                table:Add(headerRow)
-
-                Array<Class> classes = symbolTable:GetClassesSortedInPackage(key)
-                integer i2 = 0
-                repeat classes:GetSize() times
-                    Class clazz = classes:Get(i2)
-                    TableRow row
-
-                    TableData data
-                    data:Add(GetWebLinkForClassFromIndex(clazz, true))
-                    row:Add(data)
-
-                    Documentation doc = clazz:GetDocumentation()
-                    if doc not= undefined
-                        constant integer DOC_SIZE = 120
-                        text description = doc:GetDescription()
-                        if description = undefined
-                            description = ""
-                        end
-                        if description:GetSize() > DOC_SIZE
-                            description = description:GetSubtext(0, DOC_SIZE) + " ..."
-                        end
-                        data:AddText(": " + description)
-                    end
-                    table:Add(row)
-                    i2 = i2 + 1
-                end
-                bodyDiv:Add(table)
-                LineBreak break
-                bodyDiv:Add(break)
-            end
-        end
-
+        Section searchSection = GetSearchSection()
+        bodyDiv:Add(searchSection)
+bodyDiv:Add(packageIndex)
         mainRegion:Add(bodyDiv)
         page:Add(mainRegion)
         page:Add(GetFooter())
