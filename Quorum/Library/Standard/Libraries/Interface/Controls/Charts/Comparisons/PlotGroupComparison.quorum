@@ -3,11 +3,21 @@ package Libraries.Interface.Controls.Charts
 use Libraries.Containers.Support.Comparison
 use Libraries.Interface.Controls.Charts.Graphics.PlotGroup
 
+/*
+    This class provides a way to compare two PlotGroup objects. The returned values from 
+    its sole action is an integer with the value of -1 (the left item is smaller), 
+    0 (the items are equal) or 1 (the left item is larger). It can be used to 
+    override the standard comparison in Object for sorting plot groups by bar size. 
+    
+    Atrribute: Author Hannah Williams
+*/
 class PlotGroupComparison is Comparison
     boolean ascending = false
 
-    // This currently sorts single-plot plot groups in descending bar size order.
-    // Whenever sort is used with this, be sure to update axis labels.
+    /*  
+        This currently sorts single-plot plot groups in descending bar size order.
+        Whenever sort is used with this, be sure to update axis labels.
+    */
     action Compare(Object left, Object right) returns integer
         PlotGroup group1 = cast(PlotGroup, left)
         PlotGroup group2 = cast(PlotGroup, right)
@@ -33,7 +43,9 @@ class PlotGroupComparison is Comparison
             end
         end
     end
-
+    /*  
+        This sets the comparison so plot groups are sorted in ascending (true) or descending (false) order.
+    */
     action SetAscending(boolean ascending)
         me:ascending = ascending
     end

@@ -2,10 +2,22 @@ package Libraries.Interface.Controls.Charts
 
 use Libraries.Containers.Support.Comparison
 
+/*
+    This class provides a way to compare two chart points objects. The returned values from 
+    its sole action is an integer with the value of -1 (the left item is smaller), 
+    0 (the items are equal) or 1 (the left item is larger). It can be used to 
+    override the standard comparison in Object for sorting chart points, sorting by axis and descending. 
+    
+    Atrribute: Author Hannah Williams, Tim Kluthe
+*/
 class ChartPointComparison is Comparison
     boolean ascending = false
     boolean sortByX = true
 
+    /* 
+        This sorts the chart points. By default the points are sorted by X axis
+        in descending order.
+    */
     action Compare(Object left, Object right) returns integer
         ChartPoint point1 = undefined
         ChartPoint point2 = undefined
@@ -82,15 +94,21 @@ class ChartPointComparison is Comparison
             end
         end
     end
-
+    /*  
+        This sets the comparison so chart points are sorted in ascending (true) or descending (false) order.
+    */
     action SetAscending(boolean ascending)
         me:ascending = ascending
     end
-
+    /*  
+        This sets the comparison so chart points are sorted by x values.
+    */
     action SetSortByX(boolean sortByX)
         me:sortByX = sortByX
     end
-
+    /*  
+        This sets the comparison so chart points are sorted by y values.
+    */
     action SetSortByY(boolean sortByY)
         if sortByY
             me:sortByX = false
