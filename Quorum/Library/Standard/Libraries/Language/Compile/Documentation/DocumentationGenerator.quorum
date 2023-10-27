@@ -34,6 +34,8 @@ use Libraries.Language.Compile.Library
 use Libraries.Language.Compile.Compiler
 use Libraries.Web.Page.Section
 use Libraries.Web.Page.Heading
+use Libraries.Web.Page.Paragraph
+use Libraries.Web.Page.Image
 
 class DocumentationGenerator 
     File runFolder = undefined
@@ -52,7 +54,7 @@ class DocumentationGenerator
 
     action Write(Library library, HashTable<text, ClassOpcode> opcodeHash, boolean includeStandardLibrary)
         NavigationBar navigation
-        navigation:Setup()
+        //navigation:Setup()
         Footer footer = GetFooter()
 
         Iterator<ClassOpcode> opcodes = opcodeHash:GetValueIterator()
@@ -96,7 +98,7 @@ class DocumentationGenerator
 
     action Write(Library library)
         NavigationBar navigation
-        navigation:Setup()
+        //navigation:Setup()
         Footer footer = GetFooter()
 
         Iterator<ClassOpcode> opcodes = library:GetOpcodes()
@@ -169,18 +171,12 @@ Link classLink = GetWebLinkForClassFromIndex(clazz, true)
         Form form
         Input searchInput
         searchInput:SetName("Search Query")
-
         searchInput:SetType("text")
-
         Input searchButton
-
         searchButton:SetName("Search Button")
-
         searchButton:SetType("submit")
         form:Add(searchInput)
-
         form:Add(searchButton)
-
         section:Add(form)
 
         return section
@@ -206,10 +202,13 @@ Link classLink = GetWebLinkForClassFromIndex(clazz, true)
         page:SetWebPageTitle("Standard Library Index - " + compiler:GetVersion())
         MainContent mainRegion
         mainRegion:AddAttribute("role","main")
-
+        
+        text phrase = "Introducing the " + compiler:GetVersion() + " Standard Library"
         Header headDiv
-        headDiv:SetClassAttribute("pageHeader outermostContainer")
-        headDiv:AddHeading(compiler:GetVersion() + " Standard Library", 1)
+        Section introHeaderSection = CreateHeaderSection(phrase)
+        headDiv:Add(introHeaderSection)
+        //headDiv:SetClassAttribute("pageHeader outermostContainer")
+        //headDiv:AddHeading(compiler:GetVersion() + " Standard Library", 1)
         page:Add(headDiv)
 
         Division bodyDiv
@@ -237,6 +236,43 @@ bodyDiv:Add(packageIndex)
         documentationFile:SetWorkingDirectory(runFolder:GetAbsolutePath())
         documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + "libraries.html")
         documentationFile:Write(page:Generate())
+    end
+
+    action CreateHeaderSection(text header) returns Section
+        Section blueSection
+        blueSection:AddClassAttribute("bg-neutral-white flex flex-row items-center justify-center py-10 w-full")
+    
+        // Quorum Icon and Text section
+        Division leftText
+        leftText:AddClassAttribute("flex flex-col") // Updated to flex-col and added gap and margin-right
+    
+        Heading quorumHeader
+        quorumHeader:SetScale(1)
+        quorumHeader:AddText(header)
+        quorumHeader:AddClassAttribute("text-2xl text-center font-bold font-sans")
+        leftText:Add(quorumHeader)
+    
+        Paragraph p
+        p:AddText("Build complex applications, master data, and make programs accessible for everyone.")
+        p:AddClassAttribute("w-72 font-light")
+        leftText:Add(p)
+    
+        blueSection:Add(leftText)
+    
+        // Bunny Image
+        Division bunnyImageHolder
+        bunnyImageHolder:AddClassAttribute("w-1/4 max-w-[200px]")
+    
+        Image bunny
+        bunny:SetAddress("/media/userInterface/quorumAssets/learnHeader.png")
+        bunny:AddClassAttribute("w-full")
+        bunny:SetAlternate("Two cartoon rabbits wearing glasses. The rabbit on the left is holding a game controller, while the rabbit on the right is holding up a paper with a pie chart on it.")
+
+        bunnyImageHolder:Add(bunny)
+        
+        blueSection:Add(bunnyImageHolder)
+    
+        return blueSection
     end
 
     action AddDefaultHeaders(WebPage page)
@@ -270,6 +306,7 @@ bodyDiv:Add(packageIndex)
         //add style sheet tags
         page:AddStylesheet("/style/style.css")
         page:AddStylesheet("/style/google.css")
+        page:AddStylesheet("/style/output.css")
         page:AddIcon("/media/favicon.ico")
 
         //Add Responsive Stylesheets
@@ -303,8 +340,8 @@ bodyDiv:Add(packageIndex)
         footer:AddText("The Quorum Programming Language")
         footer:SetIdentifier("footer")
         SmallText small
-        small:AddText("Copyright &copy; 2014-2018. Art and Design by 
-            Andreas Stefik, Melissa Stefik, and Evan Pierzina")
+        small:AddText("Copyright &copy; 2014-2023. Art and Design by 
+            Andreas Stefik, Melissa Stefik, Evan Pierzina, Kristine Monsada, and Brandon Fidler.")
         footer:Add(small)
         return footer
     end

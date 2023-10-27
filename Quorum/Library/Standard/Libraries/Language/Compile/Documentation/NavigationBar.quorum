@@ -18,6 +18,8 @@ use Libraries.Web.Page.Span
 use Libraries.Web.Page.Bold
 use Libraries.Web.Page.Script
 use Libraries.Web.Page.Paragraph
+use Libraries.Web.Page.Header
+use Libraries.System.File
 
 class NavigationBar is NavigationDivision
     constant text extension = ".html"
@@ -27,85 +29,341 @@ class NavigationBar is NavigationDivision
     end
 
     action Setup
-        UnorderedList list
-        me:SetClassAttribute("headerNavBar outermostContainer")
-
-        //
-        Division skipDivision
-        skipDivision:SetClassAttribute("skiptocontent")
-
-        Link skipLink
-        skipLink:AddText("skip to main content")
-        skipLink:SetAddress("#main")
+        Division div1
+        div1:SetIdentifier("navbar")
+        div1:AddClassAttribute("bg-neutral-grey-95 text-neutral-white items-center justify-between w-full flex flex-col sm:static sm:text-sm sm:flex-row")
+        Add(div1)
+        Division div2
+        div2:SetIdentifier("inner-navbar")
+        div2:AddClassAttribute("flex items-center w-full justify-between min-h-[100px] h-full py-3 sm:py-5 sm:block sm:min-h-fit")
+        div1:Add(div2)
         
-        skipDivision:Add(skipLink)
-        Add(skipDivision)
+        Link quorumHomeLink
+        quorumHomeLink:SetAddress("/")
+        quorumHomeLink:SetClassAttribute("flex flex-row gap-3")
+        Image quorumIcon
+        quorumIcon:SetAlternate("Quorum Icon")
+        quorumIcon:SetAddress("/media/userInterface/SVG/Quorum Logo.svg")
+        quorumIcon:SetWidth("30")
+        quorumIcon:SetHeight("30")
+        Span quorumTitle
+        quorumTitle:SetTitle("Quroum")
+        quorumTitle:AddText("Quorum")
+        quorumTitle:SetIdentifier("quorum-nav-title")
+        quorumTitle:SetClassAttribute("text-neutral-white font-bold text-lg")
+        quorumHomeLink:Add(quorumIcon)
+        quorumHomeLink:Add(quorumTitle)
+        div2:Add(quorumHomeLink)
 
-        Link logoLink
-        logoLink:SetIdentifier("homePageLink")
-        logoLink:AddImage("/media/QuorumLogoWhite.png", "Home")
-        logoLink:SetAddress("https://quorumlanguage.com/")
-        logoLink:AddText("Quorum")
+        text hamburger = "<svg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
+<g clip-path='url(#clip0_739_1636)'>
+<path d='M4 18H20C20.55 18 21 17.55 21 17C21 16.45 20.55 16 20 16H4C3.45 16 3 16.45 3 17C3 17.55 3.45 18 4 18ZM4 13H20C20.55 13 21 12.55 21 12C21 11.45 20.55 11 20 11H4C3.45 11 3 11.45 3 12C3 12.55 3.45 13 4 13ZM3 7C3 7.55 3.45 8 4 8H20C20.55 8 21 7.55 21 7C21 6.45 20.55 6 20 6H4C3.45 6 3 6.45 3 7Z' fill='#F6F6F7'/>
+</g>
+<defs>
+<clipPath id='clip0_739_1636'>
+<rect width='24' height='24' fill='white'/>
+</clipPath>
+</defs>
+</svg>
+"
+        text carrot = "<svg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
+<g clip-path='url(#clip0_735_6972)'>
+<path d='M8.6998 17.2998C8.51647 17.1165 8.4248 16.8831 8.4248 16.5998C8.4248 16.3165 8.51647 16.0831 8.6998 15.8998L12.5998 11.9998L8.6998 8.0998C8.51647 7.91647 8.4248 7.68314 8.4248 7.3998C8.4248 7.11647 8.51647 6.88314 8.6998 6.6998C8.88314 6.51647 9.11647 6.4248 9.3998 6.4248C9.68314 6.4248 9.91647 6.51647 10.0998 6.6998L14.6998 11.2998C14.7998 11.3998 14.8708 11.5081 14.9128 11.6248C14.9541 11.7415 14.9748 11.8665 14.9748 11.9998C14.9748 12.1331 14.9541 12.2581 14.9128 12.3748C14.8708 12.4915 14.7998 12.5998 14.6998 12.6998L10.0998 17.2998C9.91647 17.4831 9.68314 17.5748 9.3998 17.5748C9.11647 17.5748 8.88314 17.4831 8.6998 17.2998Z' fill='#F6F6F7'/>
+</g>
+<defs>
+<clipPath id='clip0_735_6972'>
+<rect width='24' height='24' fill='white'/>
+</clipPath>
+</defs>
+</svg>"
 
-        ListItem item
-        item:Add(logoLink)
-        list:Add(item)
+        Division div3
+        div3:SetIdentifier("mobile-nav-container")
+        div3:SetClassAttribute("flex flex-row items-center gap-x-5 sm:hidden")
+        div3:SetStyle("column-gap: 20px;")
+        Button menuButton
+        menuButton:SetIdentifier("menu-button")
+        menuButton:SetTitle("open menu")
+        menuButton:AddText(hamburger)
+        div3:Add(menuButton)
+        
+        div2:Add(div3)
 
+        Division div_menuList
+        div_menuList:SetIdentifier("menu-list")
+        div_menuList:SetClassAttribute("flex-1 flex justify-center w-full bg-neutral-grey-65 hidden items-start sm:pb-0 sm:mt-0 sm:block sm:items-center sm:w-full sm:bg-neutral-grey-95 sm:block sm:justify-end")
+        UnorderedList ul
+        ul:SetIdentifier("navigation-items")
+        ul:AddClassAttribute("text-gray-700 w-4/5 justify-center items-center sm:flex sm:space-x-6 sm:space-y-0 sm:text-gray-600 sm:font-medium sm:w-full")
+        
+        Link learnLink
+        ListItem li1
+        learnLink:SetAddress("/learn" + extension)
+        learnLink:AddText("Learn")
+        learnLink:SetIdentifier("learnNavLink")
+        learnLink:AddClassAttribute("w-full py-3 block sm:w-fit") 
+        li1:Add(learnLink)
+        
+        Span rightArrow
+        rightArrow:AddText(carrot)  // or use an SVG/icon of your choice
+        rightArrow:AddClassAttribute("hidden mr-3 group-hover:inline-block sm:group-hover:hidden")  // hide by default and show on group hover
+        li1:Add(rightArrow)  // Add the arrow to the list item
+        
+        li1:AddClassAttribute("h-full group flex items-center flex-row rounded-2xl pl-3 duration-150 hover:bg-neutral-grey-40 sm:w-fit sm:hover:bg-neutral-grey-95 relative")  // Make sure the li has a 'relative' class for positioning if using an SVG or icon
+        ul:Add(li1)
+        
+        Link refLink
+        ListItem li2
+        refLink:SetAddress("/reference" + extension)
+        refLink:AddText("Reference")
+        refLink:SetIdentifier("refNavLink")
+        refLink:AddClassAttribute("w-full py-3 block sm:w-fit group") 
+        li2:Add(refLink)
+        
+        Span rightArrow2
+        rightArrow2:AddText(carrot)
+        rightArrow2:AddClassAttribute("hidden mr-3 group-hover:inline-block sm:group-hover:hidden")
+        li2:Add(rightArrow2)  // Add the arrow to the list item
+        
+        li2:AddClassAttribute("h-full group flex items-center flex-row rounded-2xl pl-3 duration-150 hover:bg-neutral-grey-40 sm:w-fit sm:hover:bg-neutral-grey-95 relative")
+        ul:Add(li2)
+        
+        Link libLink
+        ListItem li3
+        libLink:SetAddress("/libraries" + extension)
+        libLink:AddText("Libraries")
+        libLink:SetIdentifier("libNavLink")
+        libLink:AddClassAttribute("w-full py-3 block sm:w-fit group")
+        li3:Add(libLink)
+        
+        Span rightArrow3
+        rightArrow3:AddText(carrot)
+        rightArrow3:AddClassAttribute("hidden mr-3 group-hover:inline-block sm:group-hover:hidden")
+        li3:Add(rightArrow3)  // Add the arrow to the list item
+        
+        li3:AddClassAttribute("h-full group flex items-center flex-row rounded-2xl pl-3 duration-150 hover:bg-neutral-grey-40 sm:w-fit sm:hover:bg-neutral-grey-95 relative")
+        ul:Add(li3)
+        
+        Link helpLink
+        ListItem li4
+        helpLink:SetAddress("/help" + extension)
+        helpLink:AddText("Help")
+        helpLink:SetIdentifier("helpNavLink")
+        helpLink:AddClassAttribute("w-full py-3 block sm:w-fit group")  
+        li4:Add(helpLink)
+        
+        Span rightArrow4
+        rightArrow4:AddText(carrot)
+        rightArrow4:AddClassAttribute("hidden mr-3 group-hover:inline-block sm:group-hover:hidden")
+        li4:Add(rightArrow4)  // Add the arrow to the list item
+        
+        li4:AddClassAttribute("h-full group flex items-center flex-row rounded-2xl pl-3 duration-150 hover:bg-neutral-grey-40 sm:w-fit sm:hover:bg-neutral-grey-95 relative")
+        ul:Add(li4)
 
-        list:AddListItemLink("Learn", "/learn" + extension)
-        list:AddListItemLink("Hour of Code", "/selection" + extension)
-        list:AddListItemLink("Reference", "/reference" + extension)
-        list:AddListItemLink("Libraries", "/libraries" + extension)
-        list:AddListItemLink("Download", "/download" + extension)
-        list:AddListItemLink("Bugs", "https://quorum.atlassian.net")
-
-        ListItem profileButton
-        Link profileLink
-        profileLink:SetIdentifier("profileButton")
-        profileLink:SetAddress("/profile.php")
-        profileLink:AddText("My Projects")
-        profileButton:Add(profileLink)
-        list:Add(profileButton)
-
-        // <li onclick="document.getElementById('id01').style.display='block'">Login</li>
-        ListItem loginButton
+        ListItem li5
         Link link
-        link:SetIdentifier("loginButton")
+        link:SetIdentifier("loginNavLink")
         link:SetAddress("#")
         link:AddText("Login")
-        link:AddAttribute("onclick", "loginButtonPressed()")
-        loginButton:Add(link)
-        list:Add(loginButton)
+        link:AddClassAttribute("w-full py-3 block sm:w-fit group")  
+        li5:Add(link)
+        
+        Span rightArrow5
+        rightArrow5:AddText(carrot)
+        rightArrow5:AddClassAttribute("hidden mr-3 group-hover:inline-block sm:group-hover:hidden")
+        li5:Add(rightArrow5)  // Add the arrow to the list item
+        
+        li5:AddClassAttribute("h-full group flex items-center flex-row rounded-2xl pl-3 duration-150 hover:bg-neutral-grey-40 sm:w-fit sm:hover:bg-neutral-grey-95 relative")
+        ul:Add(li5)
 
-        Add(list)
+ // Search ListItem and its children
+        ListItem li6
+        li6:AddClassAttribute("w-full h-full duration-150 sm:w-fit")
+        li6:SetIdentifier("searchListItem")
+        Division searchContainer
+        searchContainer:SetIdentifier("search-container")
+        searchContainer:AddClassAttribute("relative flex items-center my-4 bg-neutral-grey-65 rounded-2xl w-64 hidden") // Add order-[2]
 
+        Span searchIcon
+        text searchIconText = "<svg width='18' height='18' viewBox='0 0 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'>
+<path d='M15.9 17.3L10.3 11.7C9.8 12.1 9.225 12.4167 8.575 12.65C7.925 12.8833 7.23333 13 6.5 13C4.68333 13 3.146 12.371 1.888 11.113C0.629333 9.85433 0 8.31667 0 6.5C0 4.68333 0.629333 3.14567 1.888 1.887C3.146 0.629 4.68333 0 6.5 0C8.31667 0 9.85433 0.629 11.113 1.887C12.371 3.14567 13 4.68333 13 6.5C13 7.23333 12.8833 7.925 12.65 8.575C12.4167 9.225 12.1 9.8 11.7 10.3L17.325 15.925C17.5083 16.1083 17.6 16.3333 17.6 16.6C17.6 16.8667 17.5 17.1 17.3 17.3C17.1167 17.4833 16.8833 17.575 16.6 17.575C16.3167 17.575 16.0833 17.4833 15.9 17.3ZM6.5 11C7.75 11 8.81267 10.5627 9.688 9.688C10.5627 8.81267 11 7.75 11 6.5C11 5.25 10.5627 4.18733 9.688 3.312C8.81267 2.43733 7.75 2 6.5 2C5.25 2 4.18733 2.43733 3.312 3.312C2.43733 4.18733 2 5.25 2 6.5C2 7.75 2.43733 8.81267 3.312 9.688C4.18733 10.5627 5.25 11 6.5 11Z' fill='#F6F6F7'/>
+</svg>"
+
+        searchIcon:AddText(searchIconText)
+        searchIcon:AddClassAttribute("absolute inset-y-0 left-0 pl-3 flex items-center")
+        
         Form form
-        form:SetFormAction("/search.php")
+        form:SetFormAction("/Search.quorum")
         form:AddAttribute("role", "search")
-        form:SetIdentifier("searchForm")
         form:SetPost(true)
 
         Input searchInput
-        searchInput:SetTitle("Search Input")
-        searchInput:SetIdentifier("searchFormInput")
-        searchInput:SetPlaceHolder("How do I create an array?")
         searchInput:SetType("text")
+        searchInput:SetIdentifier("nav-search")
+        searchInput:AddClassAttribute("rounded-2xl py-2 pl-10 pr-10 w-full bg-neutral-grey-65 text-neutral-white focus:ring-0 focus:border-transparent")
+        searchInput:SetPlaceHolder("Try `Hotkeys`")
         searchInput:SetName("search-query")
+        
         form:Add(searchInput)
 
-        Input searchButton
-        searchButton:SetIdentifier("searchFormButton")
-        searchButton:SetDefaultValue("Search")
-        searchButton:SetType("submit")
-        searchButton:SetTitle("Submit Button")
-        form:Add(searchButton)
-        Add(form)
+        Button closeButton
+        closeButton:SetIdentifier("close-button")
+        closeButton:AddClassAttribute("absolute inset-y-0 right-0 pr-3 flex items-center")
+        closeButton:SetTitle("Close")
+        closeButton:AddText("X")
+        searchContainer:Add(searchIcon)
+        searchContainer:Add(form)
+        searchContainer:Add(closeButton)
+        li6:Add(searchContainer)
+        
+        // Search Button
+        Button searchButton
+        searchButton:SetIdentifier("search-button")
+        searchButton:AddClassAttribute("w-fit h-full block")
+        searchButton:AddText(searchIconText)
+        searchButton:AddAttribute("aria-label", "Open Search Form")
+        li6:Add(searchButton)
 
+        ul:Add(li6)
 
+        Link downloadLink
+        ListItem li7
+        li7:SetIdentifier("")
+        downloadLink:SetAddress("/download" + extension)
+        downloadLink:AddText("Download")
+        downloadLink:SetIdentifier("downloadNavLink")
+        downloadLink:AddClassAttribute("h-full py-3 block w-full group")  // Add 'group' here
+        li7:Add(downloadLink)
+        
+        Span rightArrow7
+        rightArrow7:AddText(carrot)
+        rightArrow7:AddClassAttribute("hidden mr-3 group-hover:inline-block sm:group-hover:hidden")
+        li7:Add(rightArrow7)  // Add the arrow to the list item
+        
+        li7:AddClassAttribute("h-full group flex items-center flex-row block rounded-2xl pl-3 hover:bg-neutral-grey-40 sm:px-4 sm:duration-150 sm:text-center sm:rounded-3xl sm:block sm:font-medium sm:text-sm sm:text-neutral-black sm:bg-quorum-blue-100 sm:inline relative")  // Added 'relative' for positioning
+        ul:Add(li7)
+
+        div_menuList:Add(ul)        
+        div1:Add(div_menuList)
+        
+        Script script
+        script:SetCode("
+            document.addEventListener(`DOMContentLoaded`, function() {
+                  const menuButton = document.getElementById(`menu-button`);
+                  const menuList = document.getElementById(`menu-list`);
+                  const navbar = document.getElementById(`navbar`);
+                  const searchButton = document.getElementById(`search-button`);
+                  const searchContainer = document.getElementById(`search-container`);
+                  const closeButton = document.getElementById(`close-button`);
+                  const searchInput = document.getElementById(`nav-search`);
+                  const innerNavbar = document.getElementById(`inner-navbar`)
+                  
+                  const learnLink = document.getElementById(`learnNavLink`);
+                  const refLink = document.getElementById(`refNavLink`);
+                  const libLink = document.getElementById(`libNavLink`);
+                  const helpLink = document.getElementById(`helpNavLink`);
+                  const searchListItem = document.getElementById(`searchListItem`)
+                  const loginListItem = document.getElementById(`loginNavLink`)
+                  const downloadLink = document.getElementById(`downloadNavLink`);
+  
+                  const mobileContainer = document.getElementById(`mobile-nav-container`)
+                  const quorumTitle = document.getElementById(`quorum-nav-title`)
+
+                  let state = false;
+                  let isSearchVisible = false;
+           
+                  // Function to toggle menu
+                   const toggleMenu = () => {
+                      state = !state;
+                      state ? navbar.classList.add(`z-10`) : navbar.classList.remove(`z-10`);
+                      menuList.classList.toggle(`hidden`);
+                    };
+
+                    const toggleSearch = () => {
+                        const smallScreenQuery = window.matchMedia('(max-width: 639px)');
+                        if (searchContainer.classList.contains(`hidden`)) {
+                            searchButton.classList.add(`hidden`);
+                            searchContainer.classList.remove(`hidden`);
+                            searchInput.focus()
+                            learnLink.classList.add(`hidden`)
+                            refLink.classList.add(`hidden`)
+                            libLink.classList.add(`hidden`)
+                            helpLink.classList.add(`hidden`)
+                            loginListItem.classList.add(`hidden`)
+                            
+                            if (smallScreenQuery.matches) {
+                                quorumTitle.classList.add(`hidden`)
+                                menuButton.classList.add(`hidden`)
+                                downloadLink.classList.add(`hidden`)
+                            }
+                        } else {
+                            searchButton.classList.remove(`hidden`);
+                            searchContainer.classList.add(`hidden`);
+                            learnLink.classList.remove(`hidden`)
+                            refLink.classList.remove(`hidden`)
+                            libLink.classList.remove(`hidden`)
+                            helpLink.classList.remove(`hidden`)
+                            loginListItem.classList.remove(`hidden`)
+                            downloadLink.classList.remove(`hidden`)
+                            if (smallScreenQuery.matches) {
+                                quorumTitle.classList.remove(`hidden`)
+                                menuButton.classList.remove(`hidden`)
+                                downloadLink.classList.remove(`hidden`)
+                            }
+                        }
+                    }; 
+                
+            
+                  // Add Event Listener for Menu Button
+                  searchButton.addEventListener(`click`, toggleSearch);
+                  closeButton.addEventListener(`click`, (e) =>{
+                    e.preventDefault()    
+                    toggleSearch()
+                  });
+                  menuButton.addEventListener(`click`, toggleMenu);
+
+                      // Function to toggle visibility based on screen size
+                    const updateVisibility = () => {
+                        const smallScreenQuery = window.matchMedia('(max-width: 639px)');
+                        if (smallScreenQuery.matches) {
+                            mobileContainer.insertBefore(searchContainer, menuButton)
+                            mobileContainer.insertBefore(searchButton, menuButton)
+                            // Smaller than 640px
+                            learnLink.classList.remove('hidden');
+                            refLink.classList.remove('hidden');
+                            libLink.classList.remove('hidden');
+                            helpLink.classList.remove('hidden');
+                            loginListItem.classList.remove(`hidden`)
+                            downloadLink.classList.remove(`hidden`)
+                        } else{
+                            searchListItem.appendChild(searchContainer)
+                            searchListItem.appendChild(searchButton)
+                        }   
+                    };
+                
+                let placeholders = [`Try \`Button\``, `Try \`Behavior\``, `Try \`Hotkeys\``];
+                let currentIndex = 0;
+                
+                function cyclePlaceholder() {
+                    let searchInput = document.getElementById(`nav-search`);
+                    if (searchInput) {
+                        searchInput.placeholder = placeholders[currentIndex];
+                        currentIndex = (currentIndex + 1) % placeholders.length;
+                    }
+                }
+
+                    setInterval(cyclePlaceholder, 3000);  // Change every 3 seconds
+    
+                  // Execute once at the start
+                    updateVisibility();
+                
+                    // Execute whenever the window is resized
+                    window.addEventListener('resize', updateVisibility);
+                });
+            ")
+        div1:Add(script)
         AddLoginForm()
-        //AddSignupButtons()
     end
-
 
     private action AddLoginForm
         Division loginDiv

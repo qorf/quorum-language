@@ -248,8 +248,10 @@ class ClassOpcode is QuorumOpcode
         mainRegion:AddAttribute("role","main")
 
         Header headDiv
-        headDiv:SetClassAttribute("pageHeader outermostContainer")
-        headDiv:AddHeading(clazz:GetStaticKey(), 1)
+        Section introHeaderSection = generator:CreateHeaderSection(clazz:GetStaticKey())
+        headDiv:Add(introHeaderSection)
+//        headDiv:SetClassAttribute("pageHeader outermostContainer")
+//        headDiv:AddHeading(clazz:GetStaticKey(), 1)
         page:Add(headDiv)
 
         Division bodyDiv
