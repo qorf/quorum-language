@@ -35,6 +35,7 @@ use Libraries.Web.Page.WebPageHeader
 use Libraries.Web.Page.HeaderLink
 use Libraries.Language.Compile.Documentation.DocumentationGenerator
 use Libraries.Language.Support.TextBuilder
+use Libraries.Web.Page.Section
 
 class ClassOpcode is QuorumOpcode
     QualifiedName packageValue = undefined
@@ -222,16 +223,7 @@ class ClassOpcode is QuorumOpcode
 
         generator:AddDefaultHeaders(page)
         
-        //add language headers
-//        page:AddAttribute("xml:lang", "en")
-//        page:SetLanguage("en")
-//
-//        //add the meta-data character set
-//        MetaData charset
-//        charset:SetCharacterSet("UTF-8")
-//        page:AddMetaData(charset)
 
-        //auto-generate some sensible keywords
         MetaData keywords
         text keywordText = "programming for beginners, computer programming,
         Quorum programming language"
@@ -245,24 +237,6 @@ class ClassOpcode is QuorumOpcode
         keywords:AddAttribute("content", keywordText)
         page:AddMetaData(keywords)
 
-//        MetaData viewport
-//        viewport:SetContent("width=device-width, initial-scale=1")
-//        viewport:SetName("viewport")
-//        page:AddMetaData(viewport)
-//
-//        page:AddScript("/script/jquery-1.8.3.min.js")
-//        page:AddScript("/script/script.js")
-//        
-//        //add style sheet tags
-//        page:AddStylesheet("/style/style.css")
-//        page:AddStylesheet("/style/google.css")
-//        page:AddIcon("/media/favicon.ico")
-//
-//        //Add Responsive Stylesheets
-//        WebPageHeader webHeader = page:GetWebPageHeader()
-//        webHeader:Add(GetMediaStyleSheet("/style/style-small.css", "(max-width: 500px)"))
-//        webHeader:Add(GetMediaStyleSheet("/style/style-medium.css", "(min-width: 501px) and (max-width: 1000px)"))
-//        webHeader:Add(GetMediaStyleSheet("/style/style-large.css", "(min-width: 1001px)"))
 
         MetaData metaDataDescription
         metaDataDescription:SetContent("Read documentation for the Quorum programming language's " + clazz:GetStaticKey() + " class.")
@@ -270,7 +244,6 @@ class ClassOpcode is QuorumOpcode
         page:AddMetaData(metaDataDescription)
 
         page:SetWebPageTitle(clazz:GetStaticKey() + " - Quorum Programming Language")
-        //page:Add(navigation)
         MainContent mainRegion
         mainRegion:AddAttribute("role","main")
 
@@ -494,11 +467,42 @@ class ClassOpcode is QuorumOpcode
                 
             end
         end
+        Section packageIndex = generator:GetPackageIndex()
+        mainRegion:Add(packageIndex)
+        Section rightHandSection = GetRightHandSideWebSection(array)
+        mainRegion:Add(rightHandSection)
         mainRegion:Add(bodyDiv)
         page:Add(mainRegion)
         page:Add(footer)
 
         return page
+    end
+    
+    private action GetRightHandSideWebSection(Array<Action> actions) returns Section
+    Section section
+        Heading heading
+        heading:SetScale(2)
+        section:AddText("On this page")
+        section:Add(heading)
+        
+        Link variablesLink
+        variablesLink:AddText("Variables Table")
+        section:Add(variablesLink)
+        
+        UnorderedList list
+        i = 0
+        repeat while i < actions:GetSize()
+            Action act = actions:Get(i)
+            ListItem item
+            Link actLink
+            text displayName = act:GetDisplayName()
+            actLink:AddText(displayName)
+            item:Add(actLink)
+            list:Add(item)
+            i = i + 1
+        end
+        section:Add(list)
+    return section
     end
 
     private action GetMediaStyleSheet(text name, text media) returns HeaderLink
