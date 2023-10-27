@@ -1120,7 +1120,6 @@ action IsAccessibleParent returns boolean
     // Indicates if this block is currently moving (e.g. being dragged with the mouse)
     action SetMoving(boolean moving)
         isMoving = moving
-        // TO-DO: Update the visuals of the moving block
     end
     
     action IsMoving returns boolean
@@ -1155,6 +1154,20 @@ that information, use CanAcceptPlaceholders().*/
     
     // Makes a copy of this block as a placeholder. Used for operatings like dragging blocks to show previews.
     action CopyToPlaceholder returns Block
+        integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion region = cast(EditRegion, child)
+                output i + ": region -- " + region:GetText()
+            elseif child is BlockLabel
+                BlockLabel label = cast(BlockLabel, child)
+                output i + ": label -- " + label:GetText()
+            end
+            i = i + 1
+        end
+        
         // Testing implementation. This almost certainly needs to be implemented on a per-block-type basis.
         ActionCallBlock placeholder
         placeholder:SetAsPlaceholder(GetText())
@@ -1163,4 +1176,6 @@ that information, use CanAcceptPlaceholders().*/
         placeholder:Setup()
         return placeholder
     end
+    
+    
 end

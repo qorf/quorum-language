@@ -161,4 +161,8 @@ class EditField is TextField, EditRegion
         end
         return GetText(selection:GetStartIndex(), selection:GetEndIndex())
     end
+    
+    action GetText returns text
+        return parent:TextField:GetText()
+    end
 end

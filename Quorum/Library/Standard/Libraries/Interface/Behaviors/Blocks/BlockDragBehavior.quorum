@@ -22,6 +22,9 @@ class BlockDragBehavior is Behavior
     // The original blocks that were selected for dragging.
     Array<Block> sourceBlocks
     
+    // The source the Block was dragged from. Used to cancel the drag if dragged off onto an invalid target.
+    Item2D dragSource = undefined
+    
     on create
         dragAnchor:SetZ(-3)
         dragAnchor:SetName("Block Drag Anchor")
@@ -34,9 +37,19 @@ class BlockDragBehavior is Behavior
             CodeEditor editor = undefined
             if targetItem is CodeEditor
                 editor = cast(CodeEditor, targetItem)
+                dragSource = editor
             elseif targetItem is Block
                 Block block = cast(Block, targetItem)
                 editor = block:GetEditor()
+                
+                // Check to see if this Block is actually on an Editor, or if the Editor has been associated from elsewhere.
+                Item2D parentItem = block
+                repeat until parentItem = undefined or parentItem is CodeEditor
+                    parentItem = parentItem:GetParent()
+                end
+                
+                dragSource = parentItem
+                
             elseif targetItem is Item2D
                 Item2D target = cast(Item2D, targetItem)
                 repeat until (target = undefined) or (target is CodeEditor) or (target is EditRegion)
@@ -47,7 +60,7 @@ class BlockDragBehavior is Behavior
                 // EditRegion wants to do its own thing on click/drag, so we ignore it in that case.
                 if target is CodeEditor
                     editor = cast(CodeEditor, target)
-                    
+                    dragSource = editor
                 end
             end
             
@@ -69,6 +82,13 @@ class BlockDragBehavior is Behavior
             if IsDraggingBlocks()
                 UnloadDraggedBlocks()
             end
+            
+            if dragSource is CodeEditor and (cast(Item, dragSource) not= dragEvent:GetDestination())
+                CodeEditor editor = cast(CodeEditor, dragSource)
+                editor:RemovePlaceholders()
+                editor:SetMovingBlocks(undefined)
+            end
+            dragSource = undefined
         end
         
     end
@@ -95,17 +115,6 @@ class BlockDragBehavior is Behavior
             Block block = blocks:Get(i)
             
             Block dummyBlock = block:CopyToPlaceholder()
-//            Control dummyBlock
-//            dummyBlock:SetBackgroundColor(block:GetBackgroundColor())
-//            dummyBlock:SetBorderColor(block:GetBorderColor())
-//            dummyBlock:SetBorderThickness(block:GetBorderThickness())
-//            dummyBlock:SetSize(block:GetWidth(), block:GetHeight())
-//            dummyBlock:SetPosition(targetX, targetY)
-//            
-//            // Temporary debugging view.
-//            ControlShaderView view
-//            view:Initialize()
-//            dummyBlock:SetView2D(view)
             
             dummyBlock:SetSize(block:GetWidth(), block:GetHeight())
             dummyBlock:SetPosition(targetX, targetY)

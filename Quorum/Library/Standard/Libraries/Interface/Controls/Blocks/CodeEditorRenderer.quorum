@@ -695,10 +695,14 @@ RefreshNavigationIndices()
     
     action SetMovingBlocks(Array<Block> blocks)
         if not movingBlocks:IsEmpty()
-            movingBlocks:Empty()
+            repeat while movingBlocks:IsEmpty() = false
+                Block block = movingBlocks:RemoveFromEnd()
+                block:SetMoving(false)
+            end
+            
         end
         
-        if blocks:IsEmpty()
+        if blocks = undefined or blocks:IsEmpty()
             return now
         end
         

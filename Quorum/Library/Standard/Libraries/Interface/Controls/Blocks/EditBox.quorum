@@ -189,4 +189,8 @@ class EditBox is TextBox, EditRegion
         end
         return GetText(selection:GetStartIndex(), selection:GetEndIndex())
     end
+    
+    action GetText returns text
+        return parent:TextBox:GetText()
+    end
 end
