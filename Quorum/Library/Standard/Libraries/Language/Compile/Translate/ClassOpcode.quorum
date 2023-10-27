@@ -308,6 +308,7 @@ class ClassOpcode is QuorumOpcode
         if not variableArray:IsEmpty()
             bodyDiv:AddHeading("Variable Summary Table", 3)
             WebTable table
+            table:SetIdentifier("VariableSummaryTable")
             table:SetBorder(true)
 
             //write the header
@@ -345,45 +346,45 @@ class ClassOpcode is QuorumOpcode
             end
         end
 
-        it = array:GetIterator()
-        if it:HasNext()
-            bodyDiv:AddHeading("Actions Summary Table", 3)
-            WebTable table
-            table:SetBorder(true)
-
-            //write the header
-            TableRow headerRow
-            TableHeaderCell variables
-            TableHeaderCell description
-            variables:AddText("Actions")
-            description:AddText("Description")
-            headerRow:Add(variables)
-            headerRow:Add(description)
-            table:Add(headerRow)
-
-            repeat while it:HasNext()
-                TableRow actionRow
-                Action act = it:Next()
-                text display = act:GetDisplayNameNoReturnAsWeb()
-                TableData data
-                Link actionLink
-                actionLink:SetAddress("#" + act:GetStaticKey())
-                StrongText strong
-                strong:AddText(display)
-                actionLink:Add(strong)
-                data:Add(actionLink)
-                actionRow:Add(data)
-
-                Documentation doc2 = act:GetDocumentation()
-                TableData dataDocumentation
-                if doc2 not= undefined
-                    dataDocumentation:AddText(doc2:GetShortDescription())
-                end
-                actionRow:Add(dataDocumentation)
-                table:Add(actionRow)
-            end
-            bodyDiv:Add(table)
-        end
+//        it = array:GetIterator()
+//        if it:HasNext()
+//            bodyDiv:AddHeading("Actions Summary Table", 3)
+//            WebTable table
+//            table:SetBorder(true)
+//
+//            //write the header
+//            TableRow headerRow
+//            TableHeaderCell variables
+//            TableHeaderCell description
+//            variables:AddText("Actions")
+//            description:AddText("Description")
+//            headerRow:Add(variables)
+//            headerRow:Add(description)
+//            table:Add(headerRow)
+//
+//            repeat while it:HasNext()
+//                TableRow actionRow
+//                Action act = it:Next()
+//                text display = act:GetDisplayNameNoReturnAsWeb()
+//                TableData data
+//                Link actionLink
+//                actionLink:SetAddress("#" + act:GetStaticKey())
+//                StrongText strong
+//                strong:AddText(display)
+//                actionLink:Add(strong)
+//                data:Add(actionLink)
+//                actionRow:Add(data)
+//
+//                Documentation doc2 = act:GetDocumentation()
+//                TableData dataDocumentation
+//                if doc2 not= undefined
+//                    dataDocumentation:AddText(doc2:GetShortDescription())
+//                end
+//                actionRow:Add(dataDocumentation)
+//                table:Add(actionRow)
+//            end
+//            bodyDiv:Add(table)
+//        end
 
         it = array:GetIterator()
         if it:HasNext()
@@ -479,7 +480,7 @@ class ClassOpcode is QuorumOpcode
     end
     
     private action GetRightHandSideWebSection(Array<Action> actions) returns Section
-    Section section
+        Section section
         Heading heading
         heading:SetScale(2)
         section:AddText("On this page")
@@ -487,6 +488,7 @@ class ClassOpcode is QuorumOpcode
         
         Link variablesLink
         variablesLink:AddText("Variables Table")
+        variablesLink:SetAddress("#VariableSummaryTable")
         section:Add(variablesLink)
         
         UnorderedList list
@@ -495,6 +497,7 @@ class ClassOpcode is QuorumOpcode
             Action act = actions:Get(i)
             ListItem item
             Link actLink
+            actLink:SetAddress("#" + act:GetStaticKey())
             text displayName = act:GetDisplayName()
             actLink:AddText(displayName)
             item:Add(actLink)

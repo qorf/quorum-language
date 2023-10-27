@@ -104,7 +104,7 @@ class DocumentationGenerator
         Iterator<ClassOpcode> opcodes = library:GetOpcodes()
         SymbolTable table = library:GetSymbolTable()
         
-packageIndex = CreatePackageIndex(table)
+        packageIndex = CreatePackageIndex(table)
         repeat while opcodes:HasNext()
             ClassOpcode opcode = opcodes:Next()
             Class clazz = opcode:GetClass()
@@ -155,7 +155,7 @@ packageIndex = CreatePackageIndex(table)
             repeat while i < classes:GetSize()
                 Class clazz = classes:Get(i)
                 
-                Link classLink = GetWebLinkForClassFromIndex(clazz, true)
+                Link classLink = GetWebLinkForClassFromIndex(clazz, false)
                 ListItem item
                 item:Add(classLink)
                 packageList:Add(item)
@@ -227,7 +227,7 @@ classes. Thus, this page is structured as a reference and is not intended as a
 tutorial.")
         Section searchSection = GetSearchSection()
         bodyDiv:Add(searchSection)
-bodyDiv:Add(packageIndex)
+        bodyDiv:Add(packageIndex)
         mainRegion:Add(bodyDiv)
         page:Add(mainRegion)
         page:Add(GetFooter())
