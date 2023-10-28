@@ -138,17 +138,22 @@ class DocumentationGenerator
 
     action CreatePackageIndex(SymbolTable symbolTable) returns Section
         Section section
-        
+        section:SetClassAttribute("flex flex-col max-w-8 gap-y-2")
         Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
         repeat while packages:HasNext()
             text key = packages:Next()
-            //put in the heading for the pag
+
+            Division listDivision
+            listDivision:SetClassAttribute("w-full")
+
+            //put in the heading for the page
             Heading packageHeading
+            packageHeading:SetClassAttribute("break-all")
             packageHeading:SetScale(3)
             packageHeading:AddText(key)
             UnorderedList packageList
-            section:Add(packageHeading)
-            section:Add(packageList)
+            listDivision:Add(packageHeading)
+            listDivision:Add(packageList)
             //now put in all of the classes in this package
             Array<Class> classes = symbolTable:GetClassesSortedInPackage(key)
             i = 0
@@ -161,6 +166,8 @@ class DocumentationGenerator
                 packageList:Add(item)
                 i = i + 1
             end
+
+            section:Add(listDivision)
         end
         return section
     end
@@ -212,7 +219,7 @@ class DocumentationGenerator
         page:Add(headDiv)
 
         Division bodyDiv
-        bodyDiv:SetClassAttribute("bodyContainer")
+        bodyDiv:SetClassAttribute("w-full")
         bodyDiv:AddHeading("Quorum's Built-in Packages and Classes", 2)
         bodyDiv:AddParagraph("This page shows the full list of classes Quorum 
 supports in the current version of the standard library. These classes are 

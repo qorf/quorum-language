@@ -246,6 +246,7 @@ class ClassOpcode is QuorumOpcode
         page:SetWebPageTitle(clazz:GetStaticKey() + " - Quorum Programming Language")
         MainContent mainRegion
         mainRegion:AddAttribute("role","main")
+        mainRegion:SetClassAttribute("flex flex-row w-full justify-center box-border mx-12 md:mx-24 lg:mx-48")
 
         Header headDiv
         Section introHeaderSection = generator:CreateHeaderSection(clazz:GetStaticKey())
@@ -253,7 +254,7 @@ class ClassOpcode is QuorumOpcode
         page:Add(headDiv)
 
         Division bodyDiv
-        bodyDiv:SetClassAttribute("bodyContainer")
+        bodyDiv:SetClassAttribute("w-full")
         bodyDiv:AddHeading(clazz:GetStaticKey() + " Documentation", 2)
 
         Documentation doc = clazz:GetDocumentation()
@@ -470,9 +471,9 @@ class ClassOpcode is QuorumOpcode
         end
         Section packageIndex = generator:GetPackageIndex()
         mainRegion:Add(packageIndex)
+        mainRegion:Add(bodyDiv)
         Section rightHandSection = GetRightHandSideWebSection(array)
         mainRegion:Add(rightHandSection)
-        mainRegion:Add(bodyDiv)
         page:Add(mainRegion)
         page:Add(footer)
 
@@ -481,6 +482,7 @@ class ClassOpcode is QuorumOpcode
     
     private action GetRightHandSideWebSection(Array<Action> actions) returns Section
         Section section
+        section:SetClassAttribute("w-12 flex flex-col max-w-8")
         Heading heading
         heading:SetScale(2)
         section:AddText("On this page")
