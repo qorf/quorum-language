@@ -36,6 +36,8 @@ use Libraries.Web.Page.HeaderLink
 use Libraries.Language.Compile.Documentation.DocumentationGenerator
 use Libraries.Language.Support.TextBuilder
 use Libraries.Web.Page.Section
+use Libraries.Web.Page.PreformattedText
+use Libraries.Web.Page.CodeBlock
 
 class ClassOpcode is QuorumOpcode
     QualifiedName packageValue = undefined
@@ -309,11 +311,13 @@ class ClassOpcode is QuorumOpcode
         if not variableArray:IsEmpty()
             bodyDiv:AddHeading("Variable Summary Table", 3)
             WebTable table
+            table:SetClassAttribute("rounded")
             table:SetIdentifier("VariableSummaryTable")
             table:SetBorder(true)
 
             //write the header
             TableRow headerRow
+            headerRow:SetClassAttribute("bg-black")
             TableHeaderCell variables
             TableHeaderCell description
             variables:AddText("Variables")
@@ -394,22 +398,24 @@ class ClassOpcode is QuorumOpcode
 
         repeat while it:HasNext()
             Action act = it:Next()
+            Section section
+            section:SetClassAttribute("rounded-sm")
+            bodyDiv:Add(section)
             text display = act:GetDisplayNameNoReturnAsWeb()
-            Heading header = bodyDiv:AddHeading(act:GetDisplayNameNoReturnAsWeb(), 3)
+            Heading header = section:AddHeading(act:GetDisplayNameNoReturnAsWeb(), 3)
             header:AddAttribute("id", act:GetStaticKey())
-            header:AddClassAttribute("actionHeader")
+            header:SetClassAttribute("bg-black text-white")
             Documentation doc2 = act:GetDocumentation()
             if doc2 not= undefined
-                Division division = doc2:GetHeaderDivision()
-                bodyDiv:Add(division)
-            end          
+                section:AddParagraph(doc2:GetDescription())
+            end    
 
             Iterator<Variable> params = act:GetParameterIterator()
             if params:HasNext()
-                bodyDiv:AddHeading("Parameters", 4)
+                section:AddHeading("Parameters", 4)
                 UnorderedList unordered
                 if params:HasNext()
-                    bodyDiv:Add(unordered)
+                    section:Add(unordered)
                 end
                 repeat while params:HasNext()
                     Variable param = params:Next()
@@ -445,7 +451,7 @@ class ClassOpcode is QuorumOpcode
             Type returnType = act:GetReturnType()
             if not returnType:IsVoid()
                 text r = returnType:GetStaticKeyWithMappedGenerics()
-                bodyDiv:AddHeading("Return", 4)
+                section:AddHeading("Return", 4)
                 text documentationForParameter = undefined
                 if doc2 not= undefined
                     documentationForParameter = ": " + doc2:GetReturns()
@@ -465,8 +471,32 @@ class ClassOpcode is QuorumOpcode
                         returnParagraph:AddText(documentationForParameter)
                     end
                 end
-                bodyDiv:Add(returnParagraph)
-                
+                section:Add(returnParagraph)
+            end
+
+            //now check if there's an example and place it in
+            if doc2 not= undefined
+                text example = doc2:GetExample()
+                if example not= undefined and not example:IsEmpty()
+                    Division exampleDivision
+                    example = example:Replace("<", "&lt;")
+                    example:Replace(">", "&gt;")
+                    Paragraph exampleParagraph
+                    StrongText strong
+                    strong:AddText("Example")
+                    exampleParagraph:Add(strong)
+                    exampleDivision:Add(exampleParagraph)
+        
+                    PreformattedText t
+                    t:SetClassAttribute("line-numbers rounded-2xl")
+                    CodeBlock block
+                    block:SetClassAttribute("language-quorum")
+                    block:AddText(example)
+                    t:Add(block)
+        
+                    exampleDivision:Add(t)
+                    section:Add(exampleDivision)
+                end
             end
         end
         Section packageIndex = generator:GetPackageIndex()

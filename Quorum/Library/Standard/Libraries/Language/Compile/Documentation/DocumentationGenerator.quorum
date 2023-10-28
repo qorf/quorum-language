@@ -138,7 +138,7 @@ class DocumentationGenerator
 
     action CreatePackageIndex(SymbolTable symbolTable) returns Section
         Section section
-        section:SetClassAttribute("flex flex-col max-w-8 gap-y-2")
+        section:SetClassAttribute("flex flex-col w-1/6 gap-y-2")
         Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
         repeat while packages:HasNext()
             text key = packages:Next()
@@ -148,7 +148,7 @@ class DocumentationGenerator
 
             //put in the heading for the page
             Heading packageHeading
-            packageHeading:SetClassAttribute("break-all")
+            packageHeading:SetClassAttribute("font-bold break-all")
             packageHeading:SetScale(3)
             packageHeading:AddText(key)
             UnorderedList packageList
@@ -214,8 +214,6 @@ class DocumentationGenerator
         Header headDiv
         Section introHeaderSection = CreateHeaderSection(phrase)
         headDiv:Add(introHeaderSection)
-        //headDiv:SetClassAttribute("pageHeader outermostContainer")
-        //headDiv:AddHeading(compiler:GetVersion() + " Standard Library", 1)
         page:Add(headDiv)
 
         Division bodyDiv
@@ -247,7 +245,7 @@ tutorial.")
 
     action CreateHeaderSection(text header) returns Section
         Section blueSection
-        blueSection:AddClassAttribute("bg-neutral-white flex flex-row items-center justify-center py-10 w-full")
+        blueSection:AddClassAttribute("bg-quorum-blue-25 flex flex-row items-center justify-center py-10 w-full")
     
         // Quorum Icon and Text section
         Division leftText
@@ -273,10 +271,10 @@ tutorial.")
         Image bunny
         bunny:SetAddress("/media/userInterface/quorumAssets/learnHeader.png")
         bunny:AddClassAttribute("w-full")
-        bunny:SetAlternate("Two cartoon rabbits wearing glasses. The rabbit on the left is holding a game controller, while the rabbit on the right is holding up a paper with a pie chart on it.")
-
+        bunny:SetAlternate("Two cartoon rabbits wearing glasses. 
+        The rabbit on the left, Quincy, is holding a game controller, while the rabbit on the right, Quinn, is holding 
+        up a paper with a pie chart on it.")
         bunnyImageHolder:Add(bunny)
-        
         blueSection:Add(bunnyImageHolder)
     
         return blueSection
