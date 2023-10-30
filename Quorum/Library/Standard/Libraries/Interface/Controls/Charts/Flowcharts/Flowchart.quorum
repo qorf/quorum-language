@@ -15,6 +15,37 @@ use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Charts.FlowchartWriter
 
+/*
+    The Flowchart class is a chart type that contains nodes and arrows that are traversable. 
+    The Flowchart is used to represent hierarchical data with nodes and connections between
+    nodes. SVGs generated, have an image of a flow chart and a hidden flowchart structure
+    that can be traversed by a screen reader.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Game.Graphics.Drawable
+    use Libraries.Interface.Controls.Charts.Flowcharts.FlowchartHiddenNode
+    use Libraries.Interface.Controls.Charts.Flowcharts.Flowchart
+    
+    Flowchart chart
+
+    chart:SetName("RockNotRockTreeFlowchart2")
+    chart:SetPercentageX(0.0)
+    chart:SetPercentageY(0.0)
+    chart:SetFontSize(15)
+
+    // Add basic hidden text nodes for the chart
+    FlowchartHiddenNode node1
+    node1:Show()
+    node1:SetName("Start of the Rock Not Rock Tree Diagram")
+    node1:SetPercentageWidth(0.10)
+    node1:SetPercentageHeight(0.20)
+    node1:SetPercentageX(0.05)
+    node1:SetPercentageY(0.45)
+    chart:Add(node1)
+    chart:Display()
+*/
 class Flowchart is Chart
 
     ColorGroup nodeBackgroundColor = undefined
@@ -52,7 +83,12 @@ class Flowchart is Chart
         ManualLayout layout
         return layout
     end
-
+    /*
+        LoadGraphics
+        This action is used to load the graphical components of the Control. This is
+        handled automatically by the Game engine as needed, and most users shouldn't
+        need to use this action directly.
+    */
     action LoadGraphics(LayoutProperties properties)
         if GetView2D() = undefined
             TextureRegion icon = GetIcon()
@@ -68,6 +104,13 @@ class Flowchart is Chart
         end
     end
 
+    /*
+        This action allows the backgound of the generated flowchart svg to be set
+        to an image of a flow chart. The flowchart acts an an overlay to allow the background
+        image to be traversable.
+        
+        Attribute: Parameter background The Drawable object that is displayed. 
+    */
     action SetBackground(Drawable background)
         if background = undefined
             SetIcon(undefined)
@@ -92,13 +135,25 @@ class Flowchart is Chart
             GetDefaultLayoutProperties():SetRenderingFlag(true)
         end
     end
-
+    /*
+        This action allows the backgound of the generated flowchart svg to be set
+        to an image of a flow chart. The flowchart acts an an overlay to allow the background
+        image to be traversable.
+        
+        Attribute: Parameter filePaath The text path to the image that is displayed as a background. 
+    */
     action SetBackground(text filePath)
         Drawable drawable
         drawable:Load(filePath)
         SetBackground(drawable)
     end
-
+    /*
+        This action allows the backgound of the generated flowchart svg to be set
+        to an image of a flow chart. The flowchart acts an an overlay to allow the background
+        image to be traversable.
+        
+        Attribute: Parameter file The file image that is displayed as a background. 
+    */
     action SetBackground(File file)
         Drawable drawable
         drawable:Load(file)
@@ -145,58 +200,110 @@ class Flowchart is Chart
         file:SetPath(path)
         Save(file)
     end
+    /*
+        This action gets the node background color.
 
+        Attribute: Returns the ColorGroup color for a flowcharts nodes.
+    */
     action GetNodeBackgroundColor returns ColorGroup
         return nodeBackgroundColor
     end
+    /*
+        This action sets the node background color for the flowchart.
 
+        Attribute: Parameter nodeBackgroundColor the color to set the nodes to on the flowchart.
+    */
     action SetNodeBackgroundColor(ColorGroup nodeBackgroundColor)
         me:nodeBackgroundColor = nodeBackgroundColor
     end
+    /*
+        This action gets the node border color.
 
+        Attribute: Returns the ColorGroup color for a flowcharts nodes.
+    */
     action GetNodeBorderColor returns ColorGroup
         return nodeBorderColor
     end
+    /*
+        This action sets the node border color for the flowchart.
 
+        Attribute: Parameter nodeBorderColor the color to set the node borders to on the flowchart.
+    */
     action SetNodeBorderColor(ColorGroup nodeBorderColor)
         me:nodeBorderColor = nodeBorderColor
     end
+    /*
+        This action gets the node border thickness of the flowchart nodes.
 
+        Attribute: Returns the number representing the thickness of the border line of flowchart nodes.
+    */
     action GetNodeBorderThickness returns number
         return nodeBorderThickness
     end
+    /*
+        This action sets the node border thickness for the flowchart.
 
+        Attribute: Parameter nodeBorderThickness the thickness to set the node borders to on the flowchart.
+    */
     action SetNodeBorderThickness(number nodeBorderThickness)
         me:nodeBorderThickness = nodeBorderThickness
     end
+    /*
+        This action gets the node rounding value of the flowchart node corners.
 
+        Attribute: Returns the number representing corner rounding values on flowchart nodes.
+    */
     action GetNodeCornerRounding returns number
         return nodeCornerRounding
     end
+    /*
+        This action sets the node corner rounding value for the flowchart nodes.
 
+        Attribute: Parameter nodeCornerRounding the corner rounding to set the nodes on the flowchart.
+    */
     action SetNodeCornerRounding(number nodeCornerRounding)
         me:nodeCornerRounding = nodeCornerRounding
     end
+    /*
+        This action gets the thickness of the arrow line on the flowchart arrows.
 
+        Attribute: Returns the number representing arrow line thickness on the flowcharts arrows.
+    */
     action GetArrowLineThickness returns number
         return arrowLineThickness
     end
+    /*
+        This action sets the arrow line thickness value for the flowchart arrows.
 
+        Attribute: Parameter arrowLineThickness the arrow line thickness on the flowchart.
+    */
     action SetArrowLineThickness(number arrowLineThickness)
         me:arrowLineThickness = arrowLineThickness
     end
+    /*
+        This action gets the thickness of the arrow heads on the flowchart arrow heads.
 
+        Attribute: Returns the number representing arrow head thickness for a flowcharts arrows.
+    */
     action GetArrowHeadThickness returns number
         return arrowHeadThickness
     end
+    /*
+        This action sets the arrow head thickness value for the flowchart arrows.
 
+        Attribute: Parameter arrowHeadThickness the arrow head thickness on the flowchart.
+    */
     action SetArrowHeadThickness(number arrowHeadThickness)
         me:arrowHeadThickness = arrowHeadThickness
     end
 
     action Share(File file)
     end
+    /*
+        This action gets the starting node on the flowchart. This identifies the starting point accessibility.
 
+        Attribute: Returns the FlowchartNode representing the starting node.
+    */
     action GetStartNode returns FlowchartNode
         // If a start node has been set, begin there. Otherwise, get the first node added.
         if startNode not= undefined
@@ -214,11 +321,21 @@ class Flowchart is Chart
 
         return undefined
     end
+    /*
+        This action sets the starting node on the flowchart. This identifies the starting point for accessibility.
 
+        Attribute: Parameter arrowHeadThickness the arrow head thickness on the flowchart.
+    */
     action SetStartNode(FlowchartNode node)
         startNode = node
     end
+    /*
+        This action updates the node selection given the old node and connection arrow. This updates
+        the focus to a newly selected node.
 
+        Attribute: Parameter oldNode the old selected node.
+        Attribute: Parameter oldArrow the old arrow connecting the old and new node.
+    */
     action OnSelectionChange(FlowchartNode oldNode, FlowchartArrow oldArrow)
         FlowchartNode node = selection:GetNode()
         FlowchartArrow arrow = selection:GetArrow()
@@ -247,15 +364,21 @@ class Flowchart is Chart
 
     private action GenerateInfoTree()
     end
-
+    /*
+        This action selects a specified flowchart node.
+    */
     action Select(FlowchartNode node)
         selection:Set(node, undefined)
     end
-
+    /*
+        This action selects a specified flowchart node and arrow.
+    */
     action Select(FlowchartNode node, FlowchartArrow arrow)
         selection:Set(node, arrow)
     end
-
+    /*
+        This action updates a selected node as the node to the left.
+    */
     action NavigateLeft
         if selection:IsEmpty()
             Select(GetStartNode())
@@ -309,7 +432,9 @@ class Flowchart is Chart
             end
         end
     end
-
+    /*
+        This action updates a selected node as the node to the right.
+    */
     action NavigateRight
         if selection:IsEmpty()
             Select(GetStartNode())
@@ -362,7 +487,9 @@ class Flowchart is Chart
             end
         end
     end
-
+    /*
+        This action updates a selected node as the node below.
+    */
     action NavigateDown
         if selection:IsEmpty()
             Select(GetStartNode())
@@ -382,7 +509,9 @@ class Flowchart is Chart
             end
         end
     end
-
+    /*
+        This action updates a selected node as the node above.
+    */
     action NavigateUp
         if selection:IsEmpty()
             Select(GetStartNode())
@@ -442,27 +571,54 @@ class Flowchart is Chart
     action SetArrowHeadColor(ColorGroup arrowHeadColor)
         me:arrowHeadColor = arrowHeadColor
     end
-
+    /*
+    This action returns the default color of the selected node in this Flowchart.
+    If this value is undefined, the color will be retrieved from the
+    InterfaceOptions instead.
+    */
     action GetNodeSelectionColor returns ColorGroup
         return nodeSelectionColor
     end
-
+    /*
+    This action sets the default color of selected node in this Flowchart.
+    If this value is undefined, the color will be retrieved from the
+    InterfaceOptions instead.
+    Individual nodes can override this value.
+    */
     action SetNodeSelectionColor(ColorGroup nodeSelectionColor)
         me:nodeSelectionColor = nodeSelectionColor
     end
-
+    /*
+    This action returns the default color of the selected nodes border in this Flowchart.
+    If this value is undefined, the color will be retrieved from the
+    InterfaceOptions instead.
+    */
     action GetNodeSelectionBorderColor returns ColorGroup
         return nodeSelectionBorderColor
     end
-
+    /*
+    This action sets the default color of the selected nodes border in this Flowchart.
+    If this value is undefined, the color will be retrieved from the
+    InterfaceOptions instead.
+    Individual nodes can override this value.
+    */
     action SetNodeSelectionBorderColor(ColorGroup nodeSelectionBorderColor)
         me:nodeSelectionBorderColor = nodeSelectionBorderColor
     end
-
+    /*
+    This action returns the default color of selected arrows in this Flowchart.
+    If this value is undefined, the color will be retrieved from the
+    InterfaceOptions instead.
+    */
     action GetArrowSelectionColor returns ColorGroup
         return arrowSelectionColor
     end
-
+    /*
+    This action sets the default color of the selected arrow in this Flowchart.
+    If this value is undefined, the color will be retrieved from the
+    InterfaceOptions instead.
+    Individual arrow can override this value.
+    */
     action SetArrowSelectionColor(ColorGroup arrowSelectionColor)
         me:arrowSelectionColor = arrowSelectionColor
     end

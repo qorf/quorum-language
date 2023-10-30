@@ -8,6 +8,17 @@ use Libraries.Interface.Controls.Button
 use Libraries.Interface.Controls.Icon
 use Libraries.Game.Graphics.Drawable
 
+/*
+    This class is used internally by Forms and its related classes to store requests
+    to load graphical assets. Because it isn't possible to load graphical resources
+    before the game has started, attempts to load images in a Form must be stored
+    and resolved later.
+    
+    This class is for internal use, and most users will never need to interact with it directly.
+    
+    Attribute: Author William Allee
+
+*/
 shared class FormDelayedAssetLoader
 
     Array<FormAssetLoadRequest> pendingRequests

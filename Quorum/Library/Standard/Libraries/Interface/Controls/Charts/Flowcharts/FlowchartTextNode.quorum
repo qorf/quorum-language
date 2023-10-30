@@ -4,7 +4,35 @@ use Libraries.Game.Graphics.Label
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.ControlShaderView
+/*
+    This flowchart node represents a visible flowchart node. This node can display 
+    text within the node with all the default capabilities of a flowchart node.
 
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Game.Graphics.Drawable
+    use Libraries.Interface.Controls.Charts.Flowcharts.Flowchart
+    use Libraries.Interface.Controls.Charts.Flowcharts.FlowchartTextNode
+    
+    Flowchart chart
+
+    chart:SetName("RockNotRockTreeFlowchart2")
+    chart:SetPercentageX(0.0)
+    chart:SetPercentageY(0.0)
+    chart:SetFontSize(15)
+
+    // Add basic visable text nodes for the chart
+    FlowchartTextNode node1
+    node1:Show()
+    node1:SetName("Start of the Rock Not Rock Tree Diagram")
+    node1:SetPercentageWidth(0.10)
+    node1:SetPercentageHeight(0.20)
+    node1:SetPercentageX(0.05)
+    node1:SetPercentageY(0.45)
+    chart:Add(node1)
+    chart:Display()
+*/
 class FlowchartTextNode is FlowchartNode
 
     Label label
@@ -34,7 +62,11 @@ class FlowchartTextNode is FlowchartNode
     action ConvertToScalableVectorGraphics returns text
         return ""
     end
-
+    /*
+        This action Sets the name (identifier) for the text node.
+        
+        Attribute: Parameter name the identifier for this flowchart text node.
+    */
     action SetName(text name)
         label:SetText(name)
         parent:Control:SetName(name)
