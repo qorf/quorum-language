@@ -621,11 +621,30 @@ class Chart is ChartItem
 
     /*
     Attribute: True if all annotations for chart drawables are showing.
+    Attribute: Returns True if all annotations for chart drawables are showing.
     */
     action ShowAnnotations returns boolean
         return showAnnotations
     end
 
+    /*
+        This action sets whether to show annotations for chart dawables.
+
+        Attribute: Parameter show The value to set the showAnnotations flag to.
+
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.BarChart
+        
+        DataFrame frame
+        frame:Load("Dogs.csv")
+        
+        frame:AddSelectedFactors("Maximum Life Span")
+        
+        BarChart chart = frame:BarChart()
+        chart:ShowAnnotations(true)
+        chart:Display(1500,750)
+    */
     action ShowAnnotations(boolean show)
         showAnnotations = show
     end

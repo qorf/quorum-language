@@ -7,6 +7,9 @@ use Libraries.Interface.Controls.Button
 use Libraries.Game.Graphics.Label
 use Libraries.Interface.Controls.Icon
 use Libraries.Game.Graphics.TextureRegion
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Glyph
+
 
 /*
 This class is used to layout the internal components of a button. This is only used internally
@@ -115,6 +118,27 @@ class ButtonLayout is Layout
                 container:SetHeight(totalHeight)
             end
         else
+            
+number iconWidth = 0
+            number iconHeight = 0
+            number iconLeftMargin = 0
+
+            if icon not= undefined
+                // For simplicity, presume the Icon is always the height of the container minus the label margins, for now, and use its aspect ratio for width.
+                iconHeight = containerHeight - label:GetTopMargin() - label:GetBottomMargin()
+                iconWidth = iconHeight * icon:GetPercentageWidth()
+                iconLeftMargin = icon:GetLeftMargin()
+            end
+
+            number labelLeftMargin = label:GetLeftMargin()
+            number labelRightMargin = label:GetRightMargin()
+
+            if setContainerWidth = false
+                label:SetMaximumWidth(container:GetWidth() - iconWidth - iconLeftMargin - labelLeftMargin - labelRightMargin)
+            else
+                label:SetMaximumWidth(0)
+            end
+            
             if button:IsAutomaticFontSizing() and setContainerWidth = false and setContainerHeight = false
                 // How much of the width or height we want to attempt to fill with the auto-sized font
                 constant number candidatePercentage = 0.9
@@ -145,11 +169,29 @@ class ButtonLayout is Layout
                     candidateWidth = candidateWidth - (startHeight * heightRatio * icon:GetPercentageWidth()) - icon:GetLeftMargin()
                 end
 
-                number startWidth = label:GetWidth()
+                number startWidth = CalculateTextLength(label:GetFont(), label:GetText())
                 number widthRatio = candidateWidth / startWidth
-
+                
                 if widthRatio < heightRatio
-                    candidateFontSize = cast(integer, candidateFontSize * widthRatio)
+                    // If the size needed to make the font fit horizontally is less than half the size to fit vertically,
+                    // It's time to consider wrapping the text.
+                    text labelText = label:GetText()
+                    if widthRatio < heightRatio / 2.0 and labelText:Contains(" ")
+                        integer startSize = cast(integer, candidateFontSize * heightRatio)
+number divisor = 1.5
+                        integer currentSize = cast(integer, startSize / divisor)
+                        label:SetFontSize(currentSize)
+                        
+                        repeat while currentSize > minimumFontSize and label:GetHeight() > candidateHeight
+                            divisor = divisor + 0.5
+                            currentSize = cast(integer, startSize / divisor)
+                            label:SetFontSize(currentSize)
+                        end
+                        
+                        candidateFontSize = currentSize
+                    else
+candidateFontSize = cast(integer, candidateFontSize * widthRatio)
+                    end
                 else
                     candidateFontSize = cast(integer, candidateFontSize * heightRatio)
                 end
@@ -161,28 +203,22 @@ class ButtonLayout is Layout
                 end
 
                 label:SetFontSize(candidateFontSize)
+                
+                // If there's a single word that's too long to fit, try to compensate.
+                number longestWord = CalculateLongestWordLength(label:GetFont(), label:GetText())
+                if label:GetMaximumWidth() > 0 and longestWord > label:GetMaximumWidth()
+                    candidateFontSize = cast(integer, candidateFontSize * (label:GetMaximumWidth() / longestWord))
+                    if candidateFontSize < minimumFontSize
+                        candidateFontSize = minimumFontSize
+                    end
+                    
+                    if label:GetFontSize() not= candidateFontSize
+                        label:SetFontSize(candidateFontSize)
+                    end
+                end
             end
 
-            number iconWidth = 0
-            number iconHeight = 0
-            number iconLeftMargin = 0
-
-            if icon not= undefined
-                // For simplicity, presume the Icon is always the height of 1 line of text, for now, and use its aspect ratio for width.
-                iconHeight = label:GetLineHeight()
-                iconWidth = iconHeight * icon:GetPercentageWidth()
-                iconLeftMargin = icon:GetLeftMargin()
-            end
-
-            number labelLeftMargin = label:GetLeftMargin()
-            number labelRightMargin = label:GetRightMargin()
-
-            if setContainerWidth = false
-                label:SetMaximumWidth(container:GetWidth() - iconWidth - iconLeftMargin - labelLeftMargin - labelRightMargin)
-            else
-                label:SetMaximumWidth(0)
-            end
-
+            
             if label:GetDefaultLayoutProperties():NeedsRendering()
                 label:LoadGraphics(label:GetDefaultLayoutProperties())
             end
@@ -267,5 +303,44 @@ class ButtonLayout is Layout
             label:SetPosition(labelX, labelY)
         end
     end
+    
+    private action CalculateTextLength(Font font, text value) returns number
+        number result = 0
+        integer i = 0
+        repeat while i < value:GetSize()
+            Glyph glyph = font:GetGlyph(value:GetCharacter(i))
+            result = result + glyph:horizontalAdvance
+            i = i + 1
+        end
+        
+        return result
+    end
+    
+    private action CalculateLongestWordLength(Font font, text value) returns number
+number currentWord = 0
+        number longestWord = 0
+        integer i = 0
+        repeat while i < value:GetSize()
+            text character = value:GetCharacter(i)
+            if character = " "
+                if currentWord > longestWord
+                    longestWord = currentWord
+                end
+                currentWord = 0
+            else
+Glyph glyph = font:GetGlyph(value:GetCharacter(i))
+            currentWord = currentWord + glyph:horizontalAdvance
+            end
+            
+            i = i + 1
+        end
+        
+        if currentWord > longestWord
+            longestWord = currentWord
+        end
+        
+        return longestWord
+    end
+    
 
 end

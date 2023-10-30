@@ -3,9 +3,19 @@ package Libraries.Interface.Controls.Charts
 use Libraries.Containers.Support.Comparison
 use Libraries.Interface.Controls.Charts.Graphics.PieSlice
 
+/*
+    This class provides a way to compare two pie chart slice objects. The returned values from 
+    its sole action is an integer with the value of -1 (the left item is smaller), 
+    0 (the items are equal) or 1 (the left item is larger). It can be used to 
+    override the standard comparison in Object for sorting PieSlices. 
+    
+    Atrribute: Author Tim Kluthe
+*/
 class PieSliceComparison is Comparison
     boolean ascending = false
-
+    /* 
+        This sorts the pie slices. By default the slices are sorted in descending order.
+    */
     action Compare(Object left, Object right) returns integer
         PieSlice slice1 = cast(PieSlice, left)
         PieSlice slice2 = cast(PieSlice, right)
@@ -28,7 +38,9 @@ class PieSliceComparison is Comparison
             end
         end
     end
-
+    /*  
+        This sets the comparison so pie slices are sorted in ascending (true) or descending (false) order.
+    */
     action SetAscending(boolean ascending)
         me:ascending = ascending
     end
