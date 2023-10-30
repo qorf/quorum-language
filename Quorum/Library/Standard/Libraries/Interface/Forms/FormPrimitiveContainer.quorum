@@ -11,12 +11,59 @@ use Libraries.Interface.Controls.List
 use Libraries.Containers.Iterator
 use Libraries.Containers.HashTable
 
+/*
+
+    This class represents a general form primitive container. This class 
+    provides a generic structure for primitive variables to be shared
+    across any container. That might include individual pages or on a form application itself.
+    The idea is that this allows primitive values to be shared across an application without
+    manually sharing it everywhere.
+
+    Attribute: Author Andreas Stefik, William Allee
+
+*/
 class FormPrimitiveContainer
+    /*
+        stores any primitive integer variables needed on the form.
+    */
     HashTable<text, Integer> integers
+    /*
+        stores any primitive number variables needed on the form.
+    */
     HashTable<text, Number> numbers
+    /*
+        stores any primitive boolean variables needed on the form.
+    */
     HashTable<text, Boolean> booleans
+    /*
+        stores any primitive text variables needed on the form.
+    */
     HashTable<text, Text> texts
 
+    /*
+        This action gets a primitive integer variable stored on the form by using its name to retrieve its value.
+
+        Attribute: Parameter name The name of the variable. The key, used to obtain the integer variable value.        
+        Attribute: Returns integer value of the variable.
+
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+
+        class Main
+            action Main
+                Form form
+                Page page = form:GetMainPage()
+
+                page:SetTitle("The Title")
+                page:SetInteger("i", 1)
+                output page:GetInteger("i")
+
+                form:Display()
+            end
+        end
+    */
     action GetInteger(text name) returns integer 
         Integer value = integers:GetValue(name)
         if value = undefined
@@ -27,11 +74,57 @@ class FormPrimitiveContainer
             return value:GetValue()
         end
     end
+    /*
+        This action sets a primitive integer variable and stores it on the form.
 
+        Attribute: Parameter name The name of the variable. The key, to obtain the integer variable value. 
+        Attribute: Parameter value of the variable, of type integer.   
+
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+
+        class Main
+            action Main
+                Form form
+                Page page = form:GetMainPage()
+
+                page:SetTitle("The Title")
+                page:SetInteger("i", 1)
+                output page:GetInteger("i")
+
+                form:Display()
+            end
+        end
+    */
     action SetInteger(text name, integer value) 
         integers:Add(name, value)
     end
+    /*
+        This action gets a primitive number variable stored on the form by using it's name to retrieve its value.
 
+        Attribute: Parameter name of the variable. The key, to obtain the number variable value.        
+        Attribute: Returns number value of the variable.
+
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+
+        class Main
+            action Main
+                Form form
+                Page page = form:GetMainPage()
+
+                page:SetTitle("The Title")
+                page:SetNumber("i", 1.5)
+                output page:GetNumber("i")
+
+                form:Display()
+            end
+        end
+    */
     action GetNumber(text name) returns number 
         Number value = numbers:GetValue(name)
         if value = undefined
@@ -42,11 +135,60 @@ class FormPrimitiveContainer
             return value:GetValue()
         end
     end
+    /*
+        This action sets a primitive number variable and stores it on the form.
 
+        Attribute: Parameter name of the variable. The key, to obtain the number variable value. 
+        Attribute: Parameter value of the variable, of type number.   
+
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+
+        class Main
+            action Main
+                Form form
+                Page page = form:GetMainPage()
+
+                page:SetTitle("The Title")
+                page:SetNumber("i", 1.5)
+                output page:GetNumber("i")
+
+                form:Display()
+            end
+        end
+    */
     action SetNumber(text name, number value) 
         numbers:Add(name, value)
     end
+    /*
+        This action gets a primitive boolean variable stored on the form by using it's name to retrieve its value.
 
+        Attribute: Parameter name of the variable. The key, to obtain the boolean variable value.        
+        Attribute: Returns boolean value of the variable.
+
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+
+        class Main
+            action Main
+                Form form
+                Page page = form:GetMainPage()
+
+                page:SetTitle("The Title")
+                page:SetBoolean("i", true)
+                output page:GetBoolean("i")
+
+                form:Display()
+            end
+        end
+    */
     action GetBoolean(text name) returns boolean 
         Boolean value = booleans:GetValue(name)
         if value = undefined
@@ -57,9 +199,60 @@ class FormPrimitiveContainer
             return value:GetValue()
         end
     end
+    /*
+        This action sets a primitive boolean variable and stores it on the form.
+
+        Attribute: Parameter name of the variable. The key, to obtain the boolean variable value. 
+        Attribute: Parameter value of the variable, of type boolean.   
+
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+
+        class Main
+            action Main
+                Form form
+                Page page = form:GetMainPage()
+
+                page:SetTitle("The Title")
+                page:SetBoolean("i", true)
+                output page:GetBoolean("i")
+
+                form:Display()
+            end
+        end
+    */
     action SetBoolean(text name, boolean value) 
         booleans:Add(name, value)
     end
+    /*
+        This action gets a primitive text variable stored on the form by using it's name to retrieve its value.
+
+        Attribute: Parameter name of the variable. The key, to obtain the text variable value.        
+        Attribute: Returns text value of the variable.
+
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+
+        class Main
+            action Main
+                Form form
+                Page page = form:GetMainPage()
+
+                page:SetTitle("The Title")
+                page:SetText("i", "Hello, how are you?")
+                output page:GetText("i")
+
+                form:Display()
+            end
+        end
+    */
     action GetText(text name) returns text 
         Text value = texts:GetValue(name)
         if value = undefined
@@ -70,6 +263,33 @@ class FormPrimitiveContainer
             return value:GetValue()
         end
     end
+    /*
+        This action sets a primitive text variable and stores it on the form.
+
+        Attribute: Parameter name of the variable. The key, to obtain the integer variable value. 
+        Attribute: Parameter value of the variable, of type text.   
+
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+
+        class Main
+            action Main
+                Form form
+                Page page = form:GetMainPage()
+
+                page:SetTitle("The Title")
+                page:SetText("i", "Hello ")
+                output page:GetText("i") + page:GetTitle()
+
+                form:Display()
+            end
+        end
+    */
     action SetText(text name, text value) 
         texts:Add(name, value)
     end

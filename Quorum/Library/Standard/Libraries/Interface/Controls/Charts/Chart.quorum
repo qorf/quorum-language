@@ -34,12 +34,12 @@ use Libraries.System.Properties
     information to the user and also present themselves as accessible controls to the operating 
     system. This includes a selection, called ChartSelection, that can be queried for information 
     that is relevant to particular kinds of charts. For example, a bar chart might have labels, 
-    axes, and bars. Each of these can be navigated up and down to go between parents, with the 
+    axis, and bars. Each of these can be navigated up and down to go between parents, with the 
     top-most level being a summary and any ChartItems underneath being representations of the 
     underlying structure of the chart. 
 
     To put this in perspective, consider that a bar chart might allow one to navigate to a 
-    level of a chart that contains the axes, bars, and labels. On the bars, if one presses the 
+    level of a chart that contains the axis, bars, and labels. On the bars, if one presses the 
     down arrow, this now allows the user to navigate between the bars for information and this 
     changes the default selection, which informs the operating system of the change. The broad 
     purpose of this architecture is that it allows the chart to have an overall structure that 
@@ -50,10 +50,11 @@ use Libraries.System.Properties
 
     Attribute: Example
 
-    use Libraries.Interface.Controls.Charts
     use Libraries.Game.Game
+    use Libraries.Interface.Controls.Charts.Chart
+    use Libraries.Interface.Controls.Charts.BarChart
 
-    class Main is Games
+    class Main is Game
         action Main
             StartGame()
         end
@@ -213,6 +214,12 @@ class Chart is ChartItem
     blueprint action GenerateSummary returns text
     private blueprint action GenerateInfoTree
 
+    /*
+        LoadGraphics
+        This action is used to load the graphical components of the Control. This is
+        handled automatically by the Game engine as needed, and most users shouldn't
+        need to use this action directly.
+    */
     action LoadGraphics(LayoutProperties properties)
         DisposeDrawables()
         parent:Control:LoadGraphics(properties)   
@@ -610,20 +617,42 @@ class Chart is ChartItem
     end
 
     /*
-    Attribute: True if all annotations for chart drawables are showing.
+    Attribute: Returns True if all annotations for chart drawables are showing.
     */
     action ShowAnnotations returns boolean
         return showAnnotations
     end
 
+    /*
+        This action sets whether to show annotations for chart dawables.
+
+        Attribute: Parameter show The value to set the showAnnotations flag to.
+
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.BarChart
+        
+        DataFrame frame
+        frame:Load("Dogs.csv")
+        
+        frame:AddSelectedFactors("Maximum Life Span")
+        
+        BarChart chart = frame:BarChart()
+        chart:ShowAnnotations(true)
+        chart:Display(1500,750)
+    */
     action ShowAnnotations(boolean show)
         showAnnotations = show
     end
-
+    /*
+        This action gets the chart area width percent of the whole chart width.
+    */
     action GetChartAreaWidthPercent returns number
         return horizontalPanelWidthPercent
     end
-
+    /*
+        This action gets the chart area height percent of the whole chart height.
+    */
     action GetChartAreaHeightPercent returns number
         return verticalPanelHeightPercent
     end
@@ -635,7 +664,9 @@ class Chart is ChartItem
     private action SetChartAreaHeightPercent(number value)
         me:verticalPanelHeightPercent = value
     end
-
+    /*
+        This action gets the horizontal panel height percent of the whole chart height.
+    */
     action GetHorizontalPanelHeightPercent returns number
         return horizontalPanelHeightPercent
     end
@@ -643,7 +674,9 @@ class Chart is ChartItem
     private action SetHorizontalPanelHeightPercent (number value)
         horizontalPanelHeightPercent = value
     end
-
+    /*
+        This action gets the horizontal panel width percent of the whole chart width.
+    */
     action GetHorizontalPanelWidthPercent returns number
         return horizontalPanelWidthPercent
     end
@@ -651,7 +684,9 @@ class Chart is ChartItem
     private action SetHorizontalPanelWidthtPercent (number value)
         horizontalPanelWidthPercent = value
     end
-
+    /*
+        This action gets the vertical panel height percent of the whole chart height.
+    */
     action GetVerticalPanelHeightPercent returns number
         return verticalPanelHeightPercent
     end
@@ -659,7 +694,9 @@ class Chart is ChartItem
     private action SetVerticalPanelHeightPercent (number num)
         verticalPanelHeightPercent = num
     end
-
+    /*
+        This action gets the vertical panel width percent of the whole chart width.
+    */
     action GetVerticalPanelWidthPercent returns number
         return verticalPanelWidthPercent
     end
@@ -667,92 +704,562 @@ class Chart is ChartItem
     private action SetVerticalPanelWidthtPercent (number num)
         verticalPanelWidthPercent = num
     end
+    /*
+        This action shows or hides the ticks on the Y axis.
+        
+        Atrribute: Parameter show when true and hide when false.
 
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.Charts.Chart
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Compute.Statistics.DataFrame
+    
+        class Main is Game
+            action Main
+                StartGame()
+            end
+    
+            action CreateGame
+                DataFrame frame
+        
+                frame:Load("/Data/Cats.csv")
+                frame:AddSelectedFactors("Maximum Life Span")
+            
+                BarChart chart = frame:BarChart()
+                chart:SetTitle("Cat Lifespan")
+    
+                chart:ShowYTicks(true)
+    
+                chart:ShowLegend(false)
+                chart:SetSize(800, 600)
+                Add(chart)
+            end
+        end
+    */
     action ShowYTicks(boolean show)
         verticalPanel:ShowTicks(show)
     end
+    /*
+        This action shows or hides the ticks on the X axis.
+        
+        Atrribute: Parameter show when true and hide when false.
 
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.Charts.Chart
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Compute.Statistics.DataFrame
+    
+        class Main is Game
+            action Main
+                StartGame()
+            end
+    
+            action CreateGame
+                DataFrame frame
+        
+                frame:Load("/Data/Cats.csv")
+                frame:AddSelectedFactors("Maximum Life Span")
+            
+                BarChart chart = frame:BarChart()
+                chart:SetTitle("Cat Lifespan")
+    
+                chart:ShowXTicks(true)
+    
+                chart:ShowLegend(false)
+                chart:SetSize(800, 600)
+                Add(chart)
+            end
+        end
+    */
     action ShowXTicks(boolean show)
         horizontalPanel:ShowTicks(show)
     end    
+    /*
+        This action shows the ticks on the X and Y axis.
 
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.Charts.Chart
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Compute.Statistics.DataFrame
+    
+        class Main is Game
+            action Main
+                StartGame()
+            end
+    
+            action CreateGame
+                DataFrame frame
+        
+                frame:Load("/Data/Cats.csv")
+                frame:AddSelectedFactors("Maximum Life Span")
+            
+                BarChart chart = frame:BarChart()
+                chart:SetTitle("Cat Lifespan")
+    
+                chart:ShowAllTicks()
+    
+                chart:ShowLegend(false)
+                chart:SetSize(800, 600)
+                Add(chart)
+            end
+        end
+    */
     action ShowAllTicks
         verticalPanel:ShowTicks(true)
         horizontalPanel:ShowTicks(true)
     end
+    /*
+        This action hides the ticks on the X and Y axis.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.Charts.Chart
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Compute.Statistics.DataFrame
+    
+        class Main is Game
+            action Main
+                StartGame()
+            end
+    
+            action CreateGame
+                DataFrame frame
+        
+                frame:Load("/Data/Cats.csv")
+                frame:AddSelectedFactors("Maximum Life Span")
+            
+                BarChart chart = frame:BarChart()
+                chart:SetTitle("Cat Lifespan")
+    
+                chart:HideAllTicks()
+    
+                chart:ShowLegend(false)
+                chart:SetSize(800, 600)
+                Add(chart)
+            end
+        end
+    */
     action HideAllTicks
         verticalPanel:ShowTicks(false)
         horizontalPanel:ShowTicks(false)
     end
+    /*
+        This action set the number of ticks on the X axis.
+        
+        Atrribute: Parameter ticks the number of tick on the x axis.
 
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.Charts.Chart
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Compute.Statistics.DataFrame
+    
+        class Main is Game
+            action Main
+                StartGame()
+            end
+    
+            action CreateGame
+                DataFrame frame
+        
+                frame:Load("/Data/Cats.csv")
+                frame:AddSelectedFactors("Maximum Life Span")
+            
+                BarChart chart = frame:BarChart()
+                chart:SetTitle("Cat Lifespan")
+    
+                chart:FlipOrientation()
+                chart:SetXTickCount(8)
+    
+                chart:ShowLegend(false)
+                chart:SetSize(800, 600)
+                Add(chart)
+            end
+        end
+    */
     action SetXTickCount(integer ticks)
         horizontalPanel:SetTickCount(ticks)
         horizontalPanel:OverrideDefaultTickCount(true)
     end
+    /*
+        This action set the number between ticks on the X axis.
+        
+        Atrribute: Parameter set the number between ticks on the x axis.
 
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.Charts.Chart
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Compute.Statistics.DataFrame
+    
+        class Main is Game
+            action Main
+                StartGame()
+            end
+    
+            action CreateGame
+                DataFrame frame
+        
+                frame:Load("/Data/Cats.csv")
+                frame:AddSelectedFactors("Maximum Life Span")
+            
+                BarChart chart = frame:BarChart()
+                chart:SetTitle("Cat Lifespan")
+    
+                chart:FlipOrientation()
+                chart:SetXTickInterval(10.5)
+    
+                chart:ShowLegend(false)
+                chart:SetSize(800, 600)
+                Add(chart)
+            end
+        end
+    */
     action SetXTickInterval(number set)
         horizontalPanel:SetTickInterval(set)
         horizontalPanel:SetNumberFormat("number")
         horizontalPanel:OverrideDefaultInterval(true)
     end
+    /*
+        This action set the integer distance between ticks on the X axis.
+        
+        Atrribute: Parameter set the integer value between x axis ticks.
 
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.Charts.Chart
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Compute.Statistics.DataFrame
+    
+        class Main is Game
+            action Main
+                StartGame()
+            end
+    
+            action CreateGame
+                DataFrame frame
+        
+                frame:Load("/Data/Cats.csv")
+                frame:AddSelectedFactors("Maximum Life Span")
+            
+                BarChart chart = frame:BarChart()
+                chart:SetTitle("Cat Lifespan")
+    
+                chart:FlipOrientation()
+                chart:SetXTickInterval(10)
+    
+                chart:ShowLegend(false)
+                chart:SetSize(800, 600)
+                Add(chart)
+            end
+        end
+    */
     action SetXTickInterval(integer set)
         horizontalPanel:SetTickInterval(cast(number, set))
         horizontalPanel:OverrideDefaultInterval(true)
     end
+    /*
+        This action set the number of ticks on the y axis.
+        
+        Atrribute: Parameter ticks the number of tick on the y axis.
 
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.Charts.Chart
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Compute.Statistics.DataFrame
+    
+        class Main is Game
+            action Main
+                StartGame()
+            end
+    
+            action CreateGame
+                DataFrame frame
+        
+                frame:Load("/Data/Cats.csv")
+                frame:AddSelectedFactors("Maximum Life Span")
+            
+                BarChart chart = frame:BarChart()
+                chart:SetTitle("Cat Lifespan")
+
+                chart:SetYTickCount(8)
+    
+                chart:ShowLegend(false)
+                chart:SetSize(800, 600)
+                Add(chart)
+            end
+        end
+    */
     action SetYTickCount(integer ticks)
         verticalPanel:SetTickCount(ticks)
         verticalPanel:OverrideDefaultTickCount(true)
     end
+    /*
+        This action set the number between ticks on the Y axis.
+        
+        Atrribute: Parameter set the number between ticks on the y axis.
 
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.Charts.Chart
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Compute.Statistics.DataFrame
+    
+        class Main is Game
+            action Main
+                StartGame()
+            end
+    
+            action CreateGame
+                DataFrame frame
+        
+                frame:Load("/Data/Cats.csv")
+                frame:AddSelectedFactors("Maximum Life Span")
+            
+                BarChart chart = frame:BarChart()
+                chart:SetTitle("Cat Lifespan")
+    
+                chart:SetYTickInterval(10.5)
+    
+                chart:ShowLegend(false)
+                chart:SetSize(800, 600)
+                Add(chart)
+            end
+        end
+    */
     action SetYTickInterval(number set)
         verticalPanel:SetTickInterval(set)
         verticalPanel:SetNumberFormat("number")
         verticalPanel:OverrideDefaultInterval(true)
     end
+    /*
+        This action set the integer distance between ticks on the Y axis.
+        
+        Atrribute: Parameter set the integer value between y axis ticks.
 
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.Charts.Chart
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Compute.Statistics.DataFrame
+    
+        class Main is Game
+            action Main
+                StartGame()
+            end
+    
+            action CreateGame
+                DataFrame frame
+        
+                frame:Load("/Data/Cats.csv")
+                frame:AddSelectedFactors("Maximum Life Span")
+            
+                BarChart chart = frame:BarChart()
+                chart:SetTitle("Cat Lifespan")
+    
+                chart:SetYTickInterval(10)
+    
+                chart:ShowLegend(false)
+                chart:SetSize(800, 600)
+                Add(chart)
+            end
+        end
+    */
     action SetYTickInterval(integer set)
         verticalPanel:SetTickInterval(cast(number, set))
         verticalPanel:OverrideDefaultInterval(true)
     end
-
+    /*
+        This action gets the number of the minimum value on the X axis.
+        
+        Atrribute: Returns the number value of the minumum on the x axis.
+    */
     action GetXAxisMinimum returns number
         return horizontalPanel:GetMinimum()
     end
+    /*
+        This action sets the X axis minimum value.
+        
+        Atrribute: Parameter min the number for the x axis minumum.
 
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.Charts.Chart
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Compute.Statistics.DataFrame
+    
+        class Main is Game
+            action Main
+                StartGame()
+            end
+    
+            action CreateGame
+                DataFrame frame
+        
+                frame:Load("/Data/Cats.csv")
+                frame:AddSelectedFactors("Maximum Life Span")
+            
+                BarChart chart = frame:BarChart()
+                chart:SetTitle("Cat Lifespan")
+    
+                chart:FlipOrientation()
+                chart:SetXAxisMinimum(0.0)
+    
+                chart:ShowLegend(false)
+                chart:SetSize(800, 600)
+                Add(chart)
+            end
+        end
+    */
     action SetXAxisMinimum(number min)
         horizontalPanel:SetMinimum(min)
         horizontalPanel:OverrideDefaultMin(true)
     end
-
+    /*
+        This action gets the number of the maximum value on the X axis.
+        
+        Atrribute: Returns the number value of the maximum on the x axis.
+    */
     action GetXAxisMaximum returns number
         return horizontalPanel:GetMaximum()
     end
+    /*
+        This action sets the X axis maximum value.
+        
+        Atrribute: Parameter max the number for the x axis maximum.
 
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.Charts.Chart
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Compute.Statistics.DataFrame
+    
+        class Main is Game
+            action Main
+                StartGame()
+            end
+    
+            action CreateGame
+                DataFrame frame
+        
+                frame:Load("/Data/Cats.csv")
+                frame:AddSelectedFactors("Maximum Life Span")
+            
+                BarChart chart = frame:BarChart()
+                chart:SetTitle("Cat Lifespan")
+    
+                chart:FlipOrientation()
+                chart:SetXAxisMaximum(20.5)
+    
+                chart:ShowLegend(false)
+                chart:SetSize(800, 600)
+                Add(chart)
+            end
+        end
+    */
     action SetXAxisMaximum(number max)
         horizontalPanel:SetMaximum(max)
         horizontalPanel:OverrideDefaultMax(true)
     end
-
+    /*
+        This action gets the number of the minimum value on the Y axis.
+        
+        Atrribute: Returns the number value of the minimum on the y axis.
+    */
     action GetYAxisMinimum returns number
         return verticalPanel:GetMinimum()
     end
+    /*
+        This action sets the Y axis minimum value.
+        
+        Atrribute: Parameter min the number for the y axis minimum.
 
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.Charts.Chart
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Compute.Statistics.DataFrame
+    
+        class Main is Game
+            action Main
+                StartGame()
+            end
+    
+            action CreateGame
+                DataFrame frame
+        
+                frame:Load("/Data/Cats.csv")
+                frame:AddSelectedFactors("Maximum Life Span")
+            
+                BarChart chart = frame:BarChart()
+                chart:SetTitle("Cat Lifespan")
+
+                chart:SetYAxisMinimum(0.0)
+    
+                chart:ShowLegend(false)
+                chart:SetSize(800, 600)
+                Add(chart)
+            end
+        end
+    */
     action SetYAxisMinimum(number min)
         verticalPanel:SetMinimum(min)
         verticalPanel:OverrideDefaultMin(true)
     end
-
+    /*
+        This action gets the number of the maximum value on the Y axis.
+        
+        Atrribute: Returns the number value of the maximum on the y axis.
+    */
     action GetYAxisMaximum returns number
         return verticalPanel:GetMaximum()
     end
+    /*
+        This action sets the Y axis maximum value.
+        
+        Atrribute: Parameter max the number for the y axis maximum.
 
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.Charts.Chart
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Compute.Statistics.DataFrame
+    
+        class Main is Game
+            action Main
+                StartGame()
+            end
+    
+            action CreateGame
+                DataFrame frame
+        
+                frame:Load("/Data/Cats.csv")
+                frame:AddSelectedFactors("Maximum Life Span")
+            
+                BarChart chart = frame:BarChart()
+                chart:SetTitle("Cat Lifespan")
+
+                chart:SetYAxisMaximum(0.0)
+    
+                chart:ShowLegend(false)
+                chart:SetSize(800, 600)
+                Add(chart)
+            end
+        end
+    */
     action SetYAxisMaximum(number max)
         verticalPanel:SetMaximum(max)
         verticalPanel:OverrideDefaultMax(true)
     end
-
+    /*
+        This action sets the X axis value format, "number" or "integer".
+        
+        Atrribute: Parameter format the text values "number" or "integer are valid.
+    */
     action SetXAxisNumberFormat(text format)
         text newFormat = format:ToLowerCase()
         if newFormat = "integer" or newFormat = "number"
@@ -760,7 +1267,11 @@ class Chart is ChartItem
             horizontalPanel:OverrideDefaultNumberFormat(true)
         end
     end
-
+    /*
+        This action sets the Y axis value format, "number" or "integer".
+        
+        Atrribute: Parameter format the text values "number" or "integer are valid.
+    */
     action SetYAxisNumberFormat(text format)
         text newFormat = format:ToLowerCase()
         if newFormat = "integer" or newFormat = "number"
@@ -768,19 +1279,92 @@ class Chart is ChartItem
             verticalPanel:OverrideDefaultNumberFormat(true)
         end
     end
+    /*
+        This action sets whether the Y axis uses percent values or not.
 
+        Attribute: Parameter bool is true if the values are percents and false if not.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.Charts.Chart
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Compute.Statistics.DataFrame
+    
+        class Main is Game
+            action Main
+                StartGame()
+            end
+    
+            action CreateGame
+                DataFrame frame
+        
+                frame:Load("/Data/Cats.csv")
+                frame:AddSelectedFactors("Maximum Life Span")
+            
+                BarChart chart = frame:BarChart()
+                chart:SetTitle("Cat Lifespan")
+    
+                chart:SetYAxisUsePercent(true)
+    
+                chart:ShowLegend(false)
+                chart:SetSize(800, 600)
+                Add(chart)
+            end
+        end
+    */
     action SetYAxisUsePercent(boolean bool)
         verticalPanel:UsePercent(bool)
     end
-
+    /*
+        This action gets whether the y axis values are using percent format.
+        
+        Atrribute: Returns true if the y axis is in percent.
+    */
     action GetYAxisUsePercent returns boolean
         return verticalPanel:UsePercent()
     end
+    /*
+        This action sets whether the X axis uses percent values or not.
 
+        Attribute: Parameter bool is true if the values are percents and false if not.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.Charts.Chart
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Compute.Statistics.DataFrame
+    
+        class Main is Game
+            action Main
+                StartGame()
+            end
+    
+            action CreateGame
+                DataFrame frame
+        
+                frame:Load("/Data/Cats.csv")
+                frame:AddSelectedFactors("Maximum Life Span")
+            
+                BarChart chart = frame:BarChart()
+                chart:SetTitle("Cat Lifespan")
+    
+                chart:FlipOrientation()
+                chart:SetXAxisUsePercent(true)
+    
+                chart:ShowLegend(false)
+                chart:SetSize(800, 600)
+                Add(chart)
+            end
+        end
+    */
     action SetXAxisUsePercent(boolean bool)
         horizontalPanel:UsePercent(bool)
     end
-
+    /*
+        This action gets whether the X axis uses percent values or not.
+        
+        Atrribute: Returns the boolean value of percent being used on the x axis.
+    */
     action GetXAxisUsePercent returns boolean
         return horizontalPanel:UsePercent()
     end
@@ -797,7 +1381,12 @@ class Chart is ChartItem
             alert("Percent can be between 0 and 1")
         end
     end
-
+    /*
+        This action sets the X axis padded offset percent. This allows for adjustments
+        to the offset of the X axis of the chart.
+        
+        Atrribute: Parameter percent a number between 0 and 1.
+    */
     action SetXAxisPaddedOffsetPercent(number percent)
         if percent >= 0  and percent <= 1
             horizontalPanel:SetPaddingOffsetPercent(percent)
@@ -808,16 +1397,18 @@ class Chart is ChartItem
     end
 
     /*
-    These actions are used to get and set the orientation. The default will
-    be set on creation of each chart but can be changed afterwards manually
-    or the user can call FlipOrientation().
+    OrientationCapable is used to toggle orientation settings for different chart types.
 
-    Attribute: Orientation controls
+    Attribute: Parameter orientationCapable a boolean setting a charts ability to use orientation.
     */
     private action OrientationCapable(boolean orientationCapable)
         me:orientationCapable = orientationCapable
     end
-
+    /*
+    SetDefaultOrientationToHorizontal is used to set the orientation. The default will
+    be set on creation of each chart but can be changed afterwards manually
+    or the user can call FlipOrientation().
+    */
     private action SetDefaultOrientationToHorizontal
         verticalOrientation = false
         horizontalOrientation = true
@@ -827,7 +1418,9 @@ class Chart is ChartItem
         verticalOrientation = true
         horizontalOrientation = false
     end
-
+    /*
+        SetOrientationToHorizontal sets the orientation to horizontal. 
+    */
     action SetOrientationToHorizontal
         if orientationCapable
             if not orientationChanged and not horizontalOrientation
@@ -838,7 +1431,9 @@ class Chart is ChartItem
             end
         end
     end
-
+    /*
+        SetOrientationToVertical sets the orientation to vertical. 
+    */
     action SetOrientationToVertical
         if orientationCapable
             if not orientationChanged and not verticalOrientation
@@ -851,18 +1446,19 @@ class Chart is ChartItem
     end
 
     /*
-        If not already changed, this action will flip the axes at the current state.
-        For example:
-            chart:SetXAxisTitle("My X title")
-            chart:SetYAxisTitle("My Y title")
-            chart:FlipOrientation() // Flipping after setting titles
-        Would result in the y-axis having the title "My X title" and the x-axis having the title "My Y title"
+        If not already changed, this action will flip the axis at the current state.
 
-        Alternatively:
-            chart:FlipOrientation() // Flipping before setting titles
-            chart:SetXAxisTitle("My X title")
-            chart:SetYAxisTitle("My Y title")
-        Would result in the y-axis having the title "My Y title" and the x-axis having the title "My X title"
+        Attribute: Example
+        //Would result in the y-axis having the title "My X title" and the x-axis having the title "My Y title"
+        chart:SetXAxisTitle("My X title")
+        chart:SetYAxisTitle("My Y title")
+        chart:FlipOrientation() // Flipping after setting titles
+            
+        //Would result in the y-axis having the title "My Y title" and the x-axis having the title "My X title"
+        chart:FlipOrientation() // Flipping before setting titles
+        chart:SetXAxisTitle("My X title")
+        chart:SetYAxisTitle("My Y title")
+        
     */
     action FlipOrientation()
         if orientationCapable
@@ -879,26 +1475,37 @@ class Chart is ChartItem
             end
         end
     end
-
+    /*
+        This action returns the value of a flag for tracking whether the orientation has changed. 
+    */
     action OrientationChanged returns boolean
         return orientationChanged
     end
-
+    /*
+        This action returns whether the chart is in the horizontal position. 
+    */
     action GetHorizontalFlag returns boolean
         return horizontalOrientation
     end
-
+    /*
+        This action returns whether the chart is in the vertical position. 
+    */
     action GetVerticalFlag returns boolean
         return verticalOrientation
     end
-
-
     /*
         Returns an array of the factor/group names 
+
+        Attribute: Returns Array<text> an array of factors/groups in the chart.
     */
     action GetFactorList returns Array<text>
         return factorList
     end
+    /*
+        This action sets the list of factor or group names.
+
+        Attribute: Parameter factorList an array of factor/group names in the chart.
+    */
     action SetFactorList(Array <text> factorList)
         me:factorList = factorList
     end
@@ -911,11 +1518,22 @@ class Chart is ChartItem
     action SeparateByFactor(boolean flag)
         defaultSeparateByFactor = flag
     end
-
+    /*
+        SeparateByFactor will attempt to create faceted sub chart area panels. Each 
+        factor/group (independent variable) will get it's own panel. Each sub area 
+        will contain all elements associated with that factor and requests a single column.
+    */
     action SeparateByFactor()
         SeparateByFactor(1)
     end
+    /*
+        SeparateByFactor will attempt to create faceted sub chart area panels. Each 
+        factor/group (independent variable) will get it's own panel. Each sub area 
+        will contain all elements associated with that factor and requests some number
+        of columns.
 
+        Attribute: Parameter requestedColumns the number of requested columns to arrange each chart.
+    */
     action SeparateByFactor(integer requestedColumns)
         if separationCapable and requestedColumns > 0 and GetFactorList() not= undefined
             integer numberOfFacets = GetFactorList():GetSize()
@@ -941,7 +1559,9 @@ class Chart is ChartItem
             overrideDefaultSeparation = true
         end
     end
-
+    /*
+        This action returns true if the chart is separated by factor.
+    */
     action IsSeparatedByFactor returns boolean
         return separateByFactor
     end
@@ -951,18 +1571,30 @@ class Chart is ChartItem
     end
 
     /*
-        SeparateBySeries will attempt to create faceted sub chart area panels 
-        Each series entry in the legend will get it's own chart area.
-        Each sub area will contain all elements associated with that series
+        SeparateBySeries will attempt to create faceted sub-chart area panels. Each 
+        series entry in the legend will get its own chart area. Each sub-area will 
+        contain all elements associated with that series.
     */
     action SeparateBySeries(boolean flag)
         defaultSeparateBySeries = flag
     end
-
+    /*
+        SeparateBySeries will attempt to create faceted sub-chart area panels. Each 
+        series entry in the legend will get its own chart area. Each sub-area will 
+        contain all elements associated with that series. This creates a single column
+        of sub-chart area panels.
+    */
     action SeparateBySeries
         SeparateBySeries(1)
     end
+    /*
+        SeparateBySeries will attempt to create faceted sub-chart area panels. Each 
+        series entry in the legend will get its own chart area. Each sub-area will 
+        contain all elements associated with that series. This creates a specified 
+        number of columns of sub-chart area panels.
 
+        Attribute: Parameter requestedColumns the number of columns requested to display the sub-charts.
+    */
     action SeparateBySeries(integer requestedColumns)
         if separationCapable and requestedColumns > 0
             integer numberOfFacets = GetSeriesList():GetSize()
@@ -988,7 +1620,9 @@ class Chart is ChartItem
             overrideDefaultSeparation = true
         end
     end
-
+    /*
+        This action returns true if the chart is separated by series.
+    */
     action IsSeparatedBySeries returns boolean
         return separateBySeries
     end
@@ -1044,6 +1678,9 @@ class Chart is ChartItem
 //        defaultSeparateByColumn = flag
 //    end
 
+    /*
+        This action returns true if the chart is separated by factor or series.
+    */
     action IsSeparated returns boolean
         return (separateBySeries or separateByFactor)
     end
@@ -1064,60 +1701,100 @@ class Chart is ChartItem
     action OverrideXLabelsWithText(Array<text> labels)
         horizontalPanel:SetTextLabels(labels)
     end
-
-    action OverrideYLabelsWithText(Array<text> labels)
-        verticalPanel:SetTextLabels(labels)
-    end
-
-    action GetYLabels returns Array<ChartLabel>
-        return verticalPanel:GetLabels()
-    end
-
-    action SetYLabels(Array<ChartLabel> newLabels)
-        verticalPanel:SetLabels(newLabels)
-    end
-
-    action ShowYLabels(boolean show)
-        verticalPanel:ShowLabels(show)
-    end  
-
-    action GetXLabels returns Array<ChartLabel>
-        return horizontalPanel:GetLabels()
-    end
-
-    action SetXLabels(Array<ChartLabel> newLabels)
-        horizontalPanel:SetLabels(newLabels)
-    end
-
-    action ShowXLabels(boolean show)
-        horizontalPanel:ShowLabels(show)
-    end  
-
-    action RotateXLabels(integer degrees) // "360 -" because it rotates opposite of how you'd imagine.
-        xLabelsRotation = 360 - degrees
-        SetRotationOverride(true)
-    end
-
-    action GetXLabelsRotation() returns integer
-        return xLabelsRotation
-    end
-
-    action GetRotationOverride() returns boolean
-        return overrideXLabelsRotation
-    end
-
-    action SetRotationOverride(boolean flag)
-        overrideXLabelsRotation = flag
-    end
-
     /*
     This action is used by the layout to position the graphical components of 
     the Chart. Layout is handled automatically so users don't need to use this
     action directly.
     */
+    action OverrideYLabelsWithText(Array<text> labels)
+        verticalPanel:SetTextLabels(labels)
+    end
+    /*
+    This action is used to get the list of Y-axis labels from the Y-axis component.
+    
+    Attribute: Returns the array<ChartLabel> containing all of the labels on the Y-axis.
+    */
+    action GetYLabels returns Array<ChartLabel>
+        return verticalPanel:GetLabels()
+    end
+    /*
+    This action is used to Set the list of Y-axis labels on the Y-axis component.
+    
+    Attribute: Parameter newLabels containing all of the labels to be displayed on the Y-axis.
+    */
+    action SetYLabels(Array<ChartLabel> newLabels)
+        verticalPanel:SetLabels(newLabels)
+    end
+    /*
+    This action is used to toggle the visibility of the Y-axis labels.
+    
+    Attribute: Parameter show true will display the y-axis labels.
+    */
+    action ShowYLabels(boolean show)
+        verticalPanel:ShowLabels(show)
+    end  
+    /*
+    This action is used to get the X-axis labels.
+    
+    Attribute: Returns the array of ChartLabel's displayed on the X-axis.
+    */
+    action GetXLabels returns Array<ChartLabel>
+        return horizontalPanel:GetLabels()
+    end
+    /*
+    This action is used to Set the list of X-axis labels on the X-axis component.
+    
+    Attribute: Parameter newLabels containing all of the labels to be displayed on the X-axis.
+    */
+    action SetXLabels(Array<ChartLabel> newLabels)
+        horizontalPanel:SetLabels(newLabels)
+    end
+    /*
+    This action is used to toggle the visibility of the X-axis labels.
+    
+    Attribute: Parameter show true will display the X-axis labels.
+    */
+    action ShowXLabels(boolean show)
+        horizontalPanel:ShowLabels(show)
+    end  
+    /*
+    This action is used to rotate the X-axis labels by a number of degrees.
+    
+    Attribute: Parameter degrees between 0 and 360.
+    */
+    action RotateXLabels(integer degrees) // "360 -" because it rotates opposite of how you'd imagine.
+        xLabelsRotation = 360 - degrees
+        SetRotationOverride(true)
+    end
+    /*
+    This action is used to get the number of degrees the X-axis labels are rotated.
+    
+    Attribute: Returns the degrees the labels are rotated.
+    */
+    action GetXLabelsRotation() returns integer
+        return xLabelsRotation
+    end
+    /*
+    This action is used to check whether the x-axis label rotation has been overridden.
+    
+    Attribute: Returns true if the x-axis labels are rotated.
+    */
+    action GetRotationOverride() returns boolean
+        return overrideXLabelsRotation
+    end
+    /*
+    This action is used to set when the x-axis label rotation has been overridden.
+    
+    Attribute: Parameter flag true if the x-axis labels are rotated.
+    */
+    action SetRotationOverride(boolean flag)
+        overrideXLabelsRotation = flag
+    end
 
     /* 
-        Label for the chart title
+    This action returns the Label for the chart title.
+
+    Attribute: Returns the chart title label
     */
     action GetTitleLabel returns ChartLabel
         return title
@@ -1128,41 +1805,48 @@ class Chart is ChartItem
     end
 
     /*
-        Sets the title of the chart
+        This action sets the title of the chart.
     */
     action SetTitle(text name)
         SetName(name)
         titleText = name
     end
     /*
-        Attribute: Returns the title of the chart
+    This action gets the title of the chart
+
+    Attribute: Returns the title of the chart
     */
     action GetTitle returns text
         return titleText
     end
     /*
-        When true the chart title will be visible
+        When true the chart title will be visible.
+
+        Attribute: Parameter show when true the title is visible.
     */
     action ShowTitle(boolean show)
         showTitle = show
     end
     /*
+        This action checks if the title is visible.
+
         Attribute: Returns true if the chart title is showing
     */
     action IsShowingTitle() returns boolean
         return showTitle
     end
     /*
+        Gets the title area height percent. This is handled automatically 
+        so users don't need to use this action directly.
+
         Attribute: Returns percent of screen height alloted for the title
-        This is handled automatically so users don't need to use this
-        action directly.
     */
     action GetTitleAreaHeightPercent returns number
         return titleAreaHeightPercent
     end
     
     /* 
-        Label for the chart subtitle
+        This action gets the Label object for the chart subtitle.
     */
     action GetSubtitleLabel returns ChartLabel
         return subtitle
@@ -1173,7 +1857,7 @@ class Chart is ChartItem
     end
 
     /*
-        Sets the title of the chart
+        This action sets the subtitle of the chart.
     */
     action SetSubtitle(text name)
         subtitleText = name
@@ -1182,48 +1866,62 @@ class Chart is ChartItem
         end
     end
     /*
-        Attribute: Returns the title of the chart
+        This action get the current subtitle for the chart.
+
+        Attribute: Returns the subtitle of the chart
     */
     action GetSubtitle returns text
         return subtitleText
     end
     /*
-        When true the chart title will be visible
+        This action sets the visibility of the subtitle. When true the chart 
+        subtitle will be visible.
+        
+        Attribute: Parameter show true makes the subtitle visible.
     */
     action ShowSubtitle(boolean show)
         showSubtitle = show
     end
     /*
-        Attribute: Returns true if the chart title is showing
+        This action checks if the subtitle is visible.
+
+        Attribute: Returns true if the chart subtitle is showing
     */
     action IsShowingSubtitle() returns boolean
         return showSubtitle
     end
     /*
-        Attribute: Returns percent of screen height alloted for the title
-        This is handled automatically so users don't need to use this
-        action directly.
+    This action gets the subtitle area height in percent (between 0 and 1). This is handled 
+    automatically so users don't need to use this action directly.
+    
+    Attribute: Returns percent of screen height alloted for the title
     */
     action GetSubtitleAreaHeightPercent returns number
         return subtitleAreaHeightPercent
     end
 
     /*
-        Set the title for the X-Axis of the Chart.
+        This action sets the title for the X-Axis of the Chart.
+
+        Attribute: Parameter name the x-axis title.
     */
     action SetXAxisTitle(text name)
         horizontalPanel:SetTitleText(name)
     end
 
     /*
-        Returns the title for the X-Axis of the Chart.
+        This action gets the title for the X-Axis of the Chart.
+
+        Attribute: Returns the x-axis title.
     */
     action GetXAxisTitle returns text
         return horizontalPanel:GetTitleText()
     end
 
     /*
-        Set the title for the Y-Axis of the Chart
+        This action sets the title for the Y-Axis of the Chart.
+
+        Attribute: Parameter name the y-axis title.
     */
     action SetYAxisTitle(text name)
         verticalPanel:SetTitleText(name)
@@ -1231,31 +1929,50 @@ class Chart is ChartItem
 
     /*
         Returns the title for the Y-Axis of the Chart.
+
+        Attribute: Returns the y-axis title.
     */
     action GetYAxisTitle returns text
         return verticalPanel:GetTitleText()
     end
 
     /*
-        These action states to turn on the axes. 
-        Attribute: True if the axes should be shown.
+        This action sets the x-axis to visible (true) or hidden (false). 
+
+        Attribute: Parameter show True if the axis should be shown.
     */
     action ShowXAxis(boolean show)
         showXAxis = show
     end
+    /*
+        This action checks if the x-axis to visible (true) or hidden (false). 
 
+        Attribute: Returns True if the x-axis is shown.
+    */
     action IsShowingXAxis() returns boolean
         return showXAxis
     end
+    /*
+        This action sets the y-axis to visible (true) or hidden (false). 
 
+        Attribute: Parameter show True if the axis should be shown.
+    */
     action ShowYAxis(boolean show)
         showYAxis = show
     end
+    /*
+        This action checks if the Y-axis to visible (true) or hidden (false). 
 
+        Attribute: Returns True if the Y-axis is shown.
+    */
     action IsShowingYAxis() returns boolean
         return showYAxis
     end
+    /*
+        This action checks if the linear regression line is visible on the chart. 
 
+        Attribute: Returns True if the linear regression line is shown.
+    */
     action IsShowingLinearRegression returns boolean
         return showLinearRegression
     end
@@ -1516,27 +2233,44 @@ class Chart is ChartItem
     end
 
     /*
-        Set and get the line density.
+        This action sets the regression line density.
+        
+        Attribute: Parameter density the line density represented by an integer value.
     */
     action SetRegressionLineDensity(integer density)
         regLineDensity = density
     end
-
+    /*
+        This action gets the regression line density represented by an integer value.
+        
+        Attribute: Returns the density value of the regression line. 
+    */
     action GetRegressionLineDensity() returns integer
         return regLineDensity
     end
 
     /*
-        Set and get the regression line color.
+        This action sets the regression line color.
+        
+        Attribute: Parameter color the line color.
     */
     action SetRegressionLineColor(Color color)
         regLineColor = color
     end
-
+    /*
+        This action gets the regression line color.
+        
+        Attribute: Returns the color value of the regression line. 
+    */
     action GetRegressionLineColor() returns Color
         return regLineColor
     end
-
+    /*
+        This action either shows or hides group brackets in the vertical 
+        or horizontal panels.
+        
+        Attribute: Parameter flag true will show group brackets. 
+    */
     action ShowGroupBrackets(boolean flag)
         verticalPanel:ShowGroupBrackets(flag)
         horizontalPanel:ShowGroupBrackets(flag)
@@ -1551,117 +2285,182 @@ class Chart is ChartItem
         me:hasGroups = hasGroups
     end
 
+    /*
+        This action returns true if the chart has groups.
+    */
     action HasGroups returns boolean
         return hasGroups
     end
 
     /*
-        GRIDLINE CONTROLS
-        These actions are used to customize which gridlines are visible
-        Major gridlines are drawn to match the number and location of axis ticks.
-        Minor gridlines default to 5 intervals between major gridlines.
-        The minor gridline interval count can be manually changed.
+        This action sets the number of minor Y-axis gridlines. Note, that major 
+        gridlines are drawn to match the number and location of axis ticks. Minor gridlines 
+        default to 5 intervals between major gridlines. The minor gridline interval count 
+        can be manually changed.
+        
         No option to customize density or color at this time.
 
-        Attribute: True if the gridlines should be shown.
+        Attribute: Parameter count amount of minor gridlines on the Y-axis.
     */
     action SetMinorYGridlineCount(integer count)
         verticalPanel:SetMinorGridlineCount(count)
     end
+    /*
+        This action sets the number of minor X-axis gridlines. Note, that major 
+        gridlines are drawn to match the number and location of axis ticks. Minor gridlines 
+        default to 5 intervals between major gridlines. The minor gridline interval count 
+        can be manually changed.
+        
+        No option to customize density or color at this time.
 
+        Attribute: Parameter count amount of minor gridlines on the X-axis.
+    */
     action SetMinorXGridlineCount(integer count)
         horizontalPanel:SetMinorGridlineCount(count)
     end
-
+    /*
+        This action shows all major and minor grid lines on the x-axis and y-axis.
+    */
     action ShowAllGridLines()
         showMajorYGridLines = true
         showMajorXGridLines = true
         showMinorYGridLines = true
         showMinorXGridLines = true
     end
+    /*
+        This action hides all major and minor grid lines on the x-axis and y-axis.
+    */
     action HideAllGridLines()
         showMajorYGridLines = false
         showMajorXGridLines = false
         showMinorYGridLines = false
         showMinorXGridLines = false
     end
-
+    /*
+        This action shows all major and minor grid lines on the x-axis.
+    */
     action ShowAllXGridLines()
         showMajorXGridLines = true
         showMinorXGridLines = true
     end
+    /*
+        This action hides all major and minor grid lines on the x-axis.
+    */
     action HideAllXGridLines()
         showMajorXGridLines = false
         showMinorXGridLines = false
     end
-
+    /*
+        This action shows all major and minor grid lines on the y-axis.
+    */
     action ShowAllYGridLines()
         showMajorYGridLines = true
         showMinorYGridLines = true
     end
+    /*
+        This action hides all major and minor grid lines on the y-axis.
+    */
     action HideAllYGridLines()
         showMajorYGridLines = false
         showMinorYGridLines = false
     end
-
+    /*
+        This action shows all major grid lines on the x-axis and y-axis.
+    */
     action ShowMajorGridLines()
         showMajorYGridLines = true
         showMajorXGridLines = true
     end
+    /*
+        This action hides all major grid lines on the x-axis and y-axis.
+    */
     action HideMajorGridLines()
         showMajorYGridLines = false
         showMajorXGridLines = false
     end
-
+    /*
+        This action shows all minor grid lines on the x-axis and y-axis.
+    */
     action ShowMinorGridLines()
         showMinorYGridLines = true
         showMinorXGridLines = true
     end
+    /*
+        This action hides all minor grid lines on the x-axis and y-axis.
+    */
     action HideMinorGridLines()
         showMinorYGridLines = false
         showMinorXGridLines = false
     end
-
+    /*
+        This action shows all minor grid lines on the y-axis.
+    */
     action ShowMinorYGridLines()
         showMinorYGridLines = true
     end
+    /*
+        This action hides all minor grid lines on the y-axis.
+    */
     action HideMinorYGridLines()
         showMinorYGridLines = false
     end
-
+    /*
+        This action shows all minor grid lines on the x-axis.
+    */
     action ShowMinorXGridLines()
         showMinorXGridLines = true
     end
+    /*
+        This action hides all minor grid lines on the x-axis.
+    */
     action HideMinorXGridLines()
         showMinorXGridLines = false
     end
-
+    /*
+        This action shows all major grid lines on the y-axis.
+    */
     action ShowMajorYGridLines()
         showMajorYGridLines = true
     end
+    /*
+        This action hides all major grid lines on the y-axis.
+    */
     action HideMajorYGridLines()
         showMajorYGridLines = false
     end
-
+    /*
+        This action shows all major grid lines on the x-axis.
+    */
     action ShowMajorXGridLines()
         showMajorXGridLines = true
     end
+    /*
+        This action hides all major grid lines on the x-axis.
+    */
     action HideMajorXGridLines()
         showMajorXGridLines = false
     end
-
+    /*
+        This action checks if the major grid lines on the x-axis are shown.
+    */
     action IsShowingMajorXGridLines returns boolean
         return showMajorXGridLines
     end
-
+    /*
+        This action checks if the major grid lines on the y-axis are shown.
+    */
     action IsShowingMajorYGridLines returns boolean
         return showMajorYGridLines
     end
-
+    /*
+        This action checks if the minor grid lines on the x-axis are shown.
+    */
     action IsShowingMinorXGridLines returns boolean
         return showMinorXGridLines
     end
-
+    /*
+        This action checks if the minor grid lines on the y-axis are shown.
+    */
     action IsShowingMinorYGridLines returns boolean
         return showMinorYGridLines
     end
@@ -1675,20 +2474,20 @@ class Chart is ChartItem
     end
     /*
         This action returns the current legend, if one exists
-        Attribute: Returns true if the legend is shown.
+        Attribute: Returns the Legend on the chart.
     */
     action GetLegend returns Legend
         return legend
     end
     /*
-        This action states to turn on the legend. 
-        Attribute: Parameter true if the legend should be shown.
+        This action sets the legend to visible. 
+        Attribute: Parameter show true if the legend should be shown.
     */
     action ShowLegend(boolean show)
         showLegend = show
     end
     /*
-        This action states to turn on the legend. 
+        This action checks if the legend is shown. 
         Attribute: Returns true if the legend is shown.
     */
     action IsShowingLegend returns boolean
@@ -1697,6 +2496,8 @@ class Chart is ChartItem
 
     /*
         Set the title for the legend of the Chart
+        
+        Attribute: Parameter name the title of the legend.
     */
     action SetLegendTitle(text name)
         legend:SetTitleText(name)
@@ -1746,58 +2547,87 @@ class Chart is ChartItem
     end
 
     /*
-        Returns an array of all the series sets 
+        This action get the list of Series from the chart.
+        
+        Attribute: Returns the array<Series>. 
     */
     action GetSeriesList returns Array<Series>
         return legend:GetSeriesList()
     end
-
+    /*
+        This action sets the list of Series.
+        
+        Attribute: Parameter series the array<Series>. 
+    */
     action SetSeriesList(Array <Series> series)
         legend:SetSeriesList(series)
     end
-
+    /*
+        This action adds to the list of Series.
+        
+        Attribute: Parameter series the Series object to add to the list of Series. 
+    */
     action AddSeries(Series series)
         legend:GetSeriesList():Add(series)
     end
-
+    /*
+        This action sets the color palette to a collection of calm colors. 
+    */
     action SetColorPaletteToCalm()
         options:SetPalette(options:CALM)
     end 
-
+    /*
+        This action sets the color palette to a collection of exciting colors. 
+    */
     action SetColorPaletteToExciting()
         options:SetPalette(options:EXCITING)
     end 
-
+    /*
+        This action sets the color palette to a collection of positive colors. 
+    */
     action SetColorPaletteToPositive()
         options:SetPalette(options:POSITIVE)
     end 
-
+    /*
+        This action sets color palette to a collection of negative colors. 
+    */
     action SetColorPaletteToNegative()
         options:SetPalette(options:NEGATIVE)
     end 
-
+    /*
+        This action sets the color palette to a collection of serious colors. 
+    */
     action SetColorPaletteToSerious()
         options:SetPalette(options:SERIOUS)
     end 
-
+    /*
+        This action sets the color palette to a collection of playful colors. 
+    */
     action SetColorPaletteToPlayful()
         options:SetPalette(options:PLAYFUL)
     end 
-
+    /*
+        This action sets the color palette to a collection of trustworthy colors. 
+    */
     action SetColorPaletteToTrustworthy()
         options:SetPalette(options:TRUSTWORTHY)
     end 
-
+    /*
+        This action sets the color palette to a collection of disturbing colors. 
+    */
     action SetColorPaletteToDisturbing()
         options:SetPalette(options:DISTURBING)
     end 
-
+    /*
+        This action sets the color palette to a collection of colorgorical colors. 
+    */
     action SetColorPaletteToColorgorical()
         options:SetPalette(options:COLORGORICAL)
     end 
 
     /*
-        Created by Stefan van der Walt (https://github.com/stefanv) and Nathaniel Smith (https://github.com/njsmith)
+        This action sets the color palette to a collection of cool scaled colors. Created 
+        by Stefan van der Walt (https://github.com/stefanv) and Nathaniel Smith (https://github.com/njsmith)
         https://cran.r-project.org/web/packages/viridis/vignettes/intro-to-viridis.html
     */
     action SetColorPaletteToCoolScale() //Viridis
@@ -1809,7 +2639,9 @@ class Chart is ChartItem
         colorC:SetColor(52.0/255, 0/255, 67.0/255, 1)
         options:SetPalette(colorA, colorB, colorC, legend:GetSeriesList():GetSize())
     end 
-
+    /*
+        This action sets the color palette to a collection of warm scaled colors.
+    */
     action SetColorPaletteToWarmScale() //Inferno
         Color colorA
         colorA:SetColor(253.0/255, 255/255, 147.0/255, 1)
@@ -1819,7 +2651,9 @@ class Chart is ChartItem
         colorC:SetColor(0/255, 0/255, 4.0/255 ,1)
         options:SetPalette(colorA, colorB, colorC, legend:GetSeriesList():GetSize())
     end 
-
+    /*
+        This action sets the color palette to a collection of magma colors.
+    */
     action SetColorPaletteToMagma() //Think of a name for this?
         Color colorA
         colorA:SetColor(252.0/255, 251.0/255, 173.0/255, 1)
@@ -1830,10 +2664,19 @@ class Chart is ChartItem
         options:SetPalette(colorA, colorB, colorC, legend:GetSeriesList():GetSize())
     end 
 
+    /*
+        This action sets a custom color palette.
+
+        Attribute: Parameter palette a list of colors.
+    */
     action SetColorPalette(Array <Color> palette)
         options:SetPalette(palette)
     end
+    /*
+        This action sets a custom color palette with one color.
 
+        Attribute: Parameter color a colors.
+    */
     action SetColorPalette(Color color)
         Color darkColor
         darkColor:SetColor(0,0,0,1)
@@ -1843,15 +2686,28 @@ class Chart is ChartItem
         lightColor:LinearInterpolation(color, 0.15) // Not quite white
         options:SetPalette(darkColor, color, lightColor, legend:GetSeriesList():GetSize())
     end
+    /*
+        This action sets a custom color palette with two colors.
 
+        Attribute: Parameter colorA a color.
+        Attribute: Parameter colorB a color.
+    */
     action SetColorPalette(Color colorA, Color colorB)
         options:SetPalette(colorA, colorB, legend:GetSeriesList():GetSize())
     end
+    /*
+        This action sets a custom color palette with three colors.
 
+        Attribute: Parameter colorA a color.
+        Attribute: Parameter colorB a color.
+        Attribute: Parameter colorC a color.
+    */
     action SetColorPalette(Color colorA, Color colorB, Color colorC)
         options:SetPalette(colorA, colorB, colorC, legend:GetSeriesList():GetSize())
     end
-
+    /*
+        This action sets the color palette to a collection of grey colors.
+    */
     action SetCurrentPaletteToGrayScale()
         options:SetPaletteToGrayScale()
     end
@@ -1863,7 +2719,9 @@ class Chart is ChartItem
         highlightColor = color
         options:SetSelectionColor(color)
     end
-
+    /*
+        This action resizes the chart.
+    */
     action Resize
         if GetBackground() not= undefined
             GetBackground():SetSize(GetWidth(), GetHeight())
@@ -2012,7 +2870,9 @@ class Chart is ChartItem
         chartArea:SetSize(GetWidth()*horizontalPanelWidthPercent, GetHeight()*verticalPanelHeightPercent)
         parent:Control:Resize()
     end
-
+    /*
+        This action adjusts for the x-axis.
+    */
     action AdjustForXAxis()
         if IsShowingXAxis()
             horizontalPanel:SetSize(GetWidth()*horizontalPanelWidthPercent, GetHeight()*horizontalPanelHeightPercent)
@@ -2087,7 +2947,9 @@ class Chart is ChartItem
         verticalPanelHeightPercent = 1-horizontalPanelHeightPercent-(titleAreaHeightPercent+subtitleAreaHeightPercent)
         legendPanelHeightPercent = verticalPanelHeightPercent
     end
-
+    /*
+        This action adjusts for the y-axis.
+    */
     action AdjustForYAxis()
         if IsShowingYAxis()
             verticalPanel:SetSize(GetWidth()*verticalPanelWidthPercent, GetHeight()*verticalPanelHeightPercent)
@@ -2149,7 +3011,9 @@ class Chart is ChartItem
         end
         verticalPanel:SetSize(GetWidth()*verticalPanelWidthPercent, GetHeight()*verticalPanelHeightPercent)
     end
-
+    /*
+        This action adjusts the chart for the legend.
+    */
     action AdjustForLegend()
         legend:SetContainer(me)
         if IsShowingLegend()
@@ -2288,49 +3152,85 @@ class Chart is ChartItem
         end    
         legend:SetSize(GetWidth()*legendPanelWidthPercent, GetHeight()*legendPanelHeightPercent)    
     end
+    /*
+        This action sets the overall font size.
 
+        Attribute: Parameter size of the overall font.
+    */
     action SetFontSize(integer size)
         allFontSizeOverride = true
         titleFontSizeOverride = true
         subtitleFontSizeOverride = true
         parent:Control:SetFontSize(size)
     end
+    /*
+        This action sets the title font size.
 
+        Attribute: Parameter size of the title font.
+    */
     action SetTitleFontSize(integer size)
         titleFontSizeOverride = true
         titlefontsize = size
     end
+    /*
+        This action sets the subtitle font size.
 
+        Attribute: Parameter size of the subtitle font.
+    */
     action SetSubtitleFontSize(integer size)
         subtitleFontSizeOverride = true
         subtitlefontsize = size
     end
+    /*
+        This action sets the x-axis title font size.
 
+        Attribute: Parameter size of the x-axis title font.
+    */
     action SetXTitleFontSize(integer size)
         xTitleFontSizeOverride = true
         horizontalPanel:SetTitleFontSize(size)
     end
+    /*
+        This action sets the x-axis label font size.
 
+        Attribute: Parameter size of the x-axis label font.
+    */
     action SetXLabelFontSize(integer size)
         xLabelFontSizeOverride = true
         horizontalPanel:SetLabelFontSize(size)
     end
+    /*
+        This action sets the y-axis title font size.
 
+        Attribute: Parameter size of the y-axis title font.
+    */
     action SetYTitleFontSize(integer size)
         yTitleFontSizeOverride = true
         verticalPanel:SetTitleFontSize(size)
     end
+    /*
+        This action sets the y-axis label font size.
 
+        Attribute: Parameter size of the y-axis label font.
+    */
     action SetYLabelFontSize(integer size)
         yLabelFontSizeOverride = true
         verticalPanel:SetLabelFontSize(size)
     end
+    /*
+        This action sets the legend title font size.
 
+        Attribute: Parameter size of the legend title font.
+    */
     action SetLegendTitleFontSize(integer size)
         legendTitleFontSizeOverride = true
         legend:SetTitleFontSize(size)
     end
+    /*
+        This action sets the legend label font size.
 
+        Attribute: Parameter size of the legend label font.
+    */
     action SetLegendLabelFontSize(integer size)
         legendLabelFontSizeOverride = true
         legend:SetLabelFontSize(size)
@@ -2708,11 +3608,19 @@ class Chart is ChartItem
             selection:Set(cast(ChartItem, previous))
         end
     end
+    /*
+        This action get the current chart object.
 
+        Attribute: Returns the chart object.
+    */
     action GetContainer returns Chart
         return me
     end
+    /*
+        This action sets the current chart object.
 
+        Attribute: Parameter container the chart object.
+    */
     action SetContainer(Chart container)
         if container not= me
             alert("I cannot contain a chart inside of another chart.")
@@ -2751,11 +3659,19 @@ class Chart is ChartItem
             treeNeedsUpdate = false
         end
     end
+    /*
+        This action gets the Drawable in the background of the chart.
 
+        Attribute: Returns the chart background Drawable.
+    */
     action GetBackground returns Drawable
         return background
     end
+    /*
+        This action sets the Drawable in the background of the chart.
 
+        Attribute: Parameter background the chart background.
+    */
     action SetBackground(Drawable background)
         me:background = background
     end
@@ -2905,13 +3821,13 @@ class Chart is ChartItem
     end
 
     /*
-    This action sets the thickness of the borders drawn around the icons in the Legend, measured in pixels.
-    If this chart doesn't have a legend, this value isn't used. By default, this value is 1.
-
-    Attribute: Example
-    use Libraries.Compute.Statistics.DataFrame
-use Libraries.Interface.Controls.Charts.BarChart
-use Libraries.Interface.Controls.Charts.Chart
+        This action sets the thickness of the borders drawn around the icons in the Legend, measured in pixels.
+        If this chart doesn't have a legend, this value isn't used. By default, this value is 1.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Controls.Charts.BarChart
+        use Libraries.Interface.Controls.Charts.Chart
 
         DataFrame frame
         frame:Load("ChartTestData.csv")
@@ -2943,7 +3859,11 @@ use Libraries.Interface.Controls.Charts.Chart
     action SetAccessibilityFlag(boolean hasAccessibility)
         me:hasAccessibility = hasAccessibility
     end
+    /*
+        This action checks if the chart has accessibility information included.
 
+        Attribute: Returns true if the accessibility information include in the chart.
+    */
     action HasAccessibility() returns boolean
         return hasAccessibility
     end
@@ -3028,79 +3948,155 @@ use Libraries.Interface.Controls.Charts.Chart
         
         groupPanel:SetDescription(description)
     end
+    /*
+        This action gets text for a group.
 
+        Attribute: Returns the group text.
+    */
     action GetGroupText returns text
         return groupText
     end
+    /*
+        This action gets text for groups.
 
+        Attribute: Returns the groups text.
+    */
     action GetGroupsText returns text
         return groupsText
     end
+    /*
+        This action gets text for a series.
 
+        Attribute: Returns the series text.
+    */
     action GetSeriesText returns text
         return seriesText
     end
+    /*
+        This action gets text for a chart item.
 
+        Attribute: Returns the chart item text.
+    */
     action GetChartItemText returns text
         return chartItemText
     end
+    /*
+        This action gets text for a chart items.
 
+        Attribute: Returns the chart items text.
+    */
     action GetChartItemsText returns text
         return chartItemsText
     end
+    /*
+        This action sets the file path for a script.
 
+        Attribute: Parameter scriptFilepath the file path.
+    */
     action SetScriptFilepath(text scriptFilepath)
         me:scriptFilepath = scriptFilepath
     end
+    /*
+        This action gets the script file path.
 
+        Attribute: Returns the script file path.
+    */
     action GetScriptFilepath returns text
         return me:scriptFilepath
     end
+    /*
+        This action sets the file path for a style.
 
+        Attribute: Parameter styleFilepath the file path.
+    */
     action SetStyleFilepath(text styleFilepath)
         me:styleFilepath = styleFilepath
     end
+    /*
+        This action gets the style file path.
 
+        Attribute: Returns the style file path.
+    */
     action GetStyleFilepath returns text
         return me:styleFilepath
     end
+    /*
+    This action gets the instruction text for a list order description.
 
+    Attribute: Returns The description for list order.
+    */
     action GetListOrderInstruction returns text
         return listOrderInstruction
     end
+    /*
+    This action sets the instruction text for a list order description.
 
+    Attribute: Parameter listOrderInstruction The description for list order.
+    */
     action SetListOrderInstruction(text listOrderInstruction)
         me:listOrderInstruction = listOrderInstruction
     end
+    /*
+    This action gets the instruction text for a value order  description.
 
+    Attribute: Returns The description for value order.
+    */
     action GetValueOrderInstruction returns text
         return valueOrderInstruction
     end
+    /*
+    This action sets the instruction text for a value order description.
 
+    Attribute: Parameter valueOrderInstruction The description for value order.
+    */
     action SetValueOrderInstruction(text valueOrderInstruction)
         me:valueOrderInstruction = valueOrderInstruction
     end
+    /*
+    This action gets the instruction text for an enter description.
 
+    Attribute: Returns The description for enter.
+    */
     action GetEnterInstruction returns text
         return enterInstruction
     end
+    /*
+    This action sets the instruction text for an enter description.
 
+    Attribute: Parameter enterInstruction The description for enter.
+    */
     action SetEnterInstruction(text enterInstruction)
         me:enterInstruction = enterInstruction
     end
+    /*
+    This action gets the instruction text for an exit description.
 
+    Attribute: Returns The description for exit.
+    */
     action GetExitInstruction returns text
         return exitInstruction
     end
+    /*
+    This action sets the instruction text for an exit description.
 
+    Attribute: Parameter exitInstruction The description for exit.
+    */
     action SetExitInstruction(text exitInstruction)
         me:exitInstruction = exitInstruction
     end
+    /*
+    This action gets the instruction text for a general chart description.
 
+    Attribute: Returns The description for a general chart.
+    */
     action GetGeneralInstruction returns text
         return generalInstruction
     end
+    /*
+    This action sets the instruction text for a general description.
 
+    Attribute: Parameter exitInstruction The description for a general chart.
+    */
     action SetGeneralInstruction(text generalInstruction)
         me:generalInstruction = generalInstruction
     end

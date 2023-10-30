@@ -11,6 +11,49 @@ use Libraries.Game.Graphics.TextureFilter
 use Libraries.Compute.Math
 use Libraries.Game.Graphics.ColorGroup
 
+/*
+    The Flowchart class is a chart type that contains nodes and arrows that are traversable. 
+    The Flowchart is used to represent hierarchical data with nodes and connections between
+    nodes. SVGs generated, have an image of a flow chart and a hidden flowchart structure
+    that can be traversed by a screen reader.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Game.Graphics.Drawable
+    use Libraries.Interface.Controls.Charts.Flowcharts.FlowchartHiddenNode
+    use Libraries.Interface.Controls.Charts.Flowcharts.Flowchart
+    
+    Flowchart chart
+
+    chart:SetName("RockNotRockTreeFlowchart2")
+    chart:SetPercentageX(0.0)
+    chart:SetPercentageY(0.0)
+    chart:SetFontSize(15)
+
+    // Add basic hidden text nodes for the chart
+    FlowchartHiddenNode node1
+    node1:Show()
+    node1:SetName("Start of the Rock Not Rock Tree Diagram")
+    node1:SetPercentageWidth(0.10)
+    node1:SetPercentageHeight(0.20)
+    node1:SetPercentageX(0.05)
+    node1:SetPercentageY(0.45)
+    chart:Add(node1)
+
+    FlowchartHiddenNode node2
+    node2:SetName("3/4 Not Rock: Level 1")
+    node2:SetPercentageWidth(0.10)
+    node2:SetPercentageHeight(0.2)
+    node2:SetPercentageX(0.25)
+    node2:SetPercentageY(0.65)
+    chart:Add(node2)
+
+    //Arrow: connect nodes
+    node1:AddChildNode(node2)
+
+    chart:Display()
+*/
 class FlowchartArrow is Control
 
     LinePath lines
@@ -58,7 +101,14 @@ class FlowchartArrow is Control
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
     end
+    /*
+        This action sets the arrows orgin node and destination node. In other words,
+        the arrow line originates at the origin node and the arrow head points to the
+        destination node.
 
+        Attribute: Parameter origin The origin node. 
+        Attribute: Parameter destination The destination node.
+    */
     action SetNodes(FlowchartNode origin, FlowchartNode destination)
         me:origin = origin
         me:destination = destination
@@ -100,7 +150,11 @@ class FlowchartArrow is Control
 
         parent:Control:LoadGraphics(properties)
     end
+    /*
+        This action gets the arrows background color for the arrow.
 
+        Attribute: Returns the color of the arrow. 
+    */
     action GetBackgroundColor returns ColorGroup
         if HasColorPropertyOverride("backgroundColor")
             return parent:Control:GetBackgroundColor()
@@ -113,7 +167,11 @@ class FlowchartArrow is Control
 
         return parent:Control:GetBackgroundColor()
     end
+    /*
+        This action gets the arrow heads color.
 
+        Attribute: Returns the color of the arrow head. 
+    */
     action GetIconColor returns ColorGroup
         if HasColorPropertyOverride("iconColor")
             return parent:Control:GetIconColor()
@@ -126,7 +184,11 @@ class FlowchartArrow is Control
 
         return parent:Control:GetIconColor()
     end
+    /*
+        This action gets the arrows selection color.
 
+        Attribute: Returns the color of the arrow when selected. 
+    */
     action GetSelectionColor returns ColorGroup
         if HasColorPropertyOverride("selectionColor")
             return parent:Control:GetSelectionColor()
@@ -139,21 +201,27 @@ class FlowchartArrow is Control
 
         return parent:Control:GetSelectionColor()
     end
-
+    /*
+        This action updates the arrow when it gains selection status.
+    */
     action GainedSelection
         lines:SetBackgroundColor(GetSelectionColor())
         arrowHead:SetColor(GetSelectionColor())
 
         parent:Control:GainedSelection()
     end
-
+    /*
+        This action updates the arrow when it loses selection status.
+    */
     action LostSelection
         lines:SetBackgroundColor(GetBackgroundColor())
         arrowHead:SetColor(GetIconColor())
 
         parent:Control:LostSelection()
     end
-
+    /*
+        This action recalculates and resizes the arrow.
+    */
     action Resize
         // Escape immediately from a recursive Resize call.
         if parent:Item2D:isResizing = true
@@ -364,7 +432,11 @@ class FlowchartArrow is Control
         // The offset of 135 degrees is to compensate for the base angle of the triangle we've loaded.
         arrowHead:SetRotation(-priorPoint:Angle() + 135)
     end
-
+    /*
+        This action gets the Flowchart the arrow is from.
+        
+        Attribute: Returns the Flowchart the arrow is on.
+    */
     action GetFlowchart returns Flowchart
         Item2D result = GetParent()
         repeat until result is Flowchart or result = undefined
@@ -372,49 +444,89 @@ class FlowchartArrow is Control
         end
         return cast(Flowchart, result)
     end
-
+    /*
+        This action gets the arrows origin node.
+        
+        Attribute: Returns the node the arrow starts from.
+    */
     action GetOrigin returns FlowchartNode
         return origin
     end
-
+    /*
+        This action sets the origin node for the arrow.
+        
+        Attribute: Parameter origin the flowchart node the arrow starts on.
+    */
     action SetOrigin(FlowchartNode origin)
         me:origin = origin
         RecalculateArrow()
     end
-
+    /*
+        This action gets the arrows destination node.
+        
+        Attribute: Returns the node the arrow points to.
+    */
     action GetDestination returns FlowchartNode
         return destination
     end
-
+    /*
+        This action sets the destination node for the arrow.
+        
+        Attribute: Parameter destination the flowchart node the arrow points to.
+    */
     action SetDestination(FlowchartNode destination)
         me:destination = destination
         RecalculateArrow()
     end
-
+    /*
+        This action gets the array of x and y coordinates of the arrow.
+        
+        Attribute: Returns an array of vectors.
+    */
     action GetWaypoints returns Array<Vector2>
         return waypoints
     end
-
+    /*
+        This action sets the destination node for the arrow.
+        
+        Attribute: Parameter destination the flowchart node the arrow points to.
+    */
     action AddWaypoint(number x, number y)
         Vector2 vector
         vector:Set(x, y)
         waypoints:Add(vector)
         RecalculateArrow()
     end
-
+    /*
+        This action gets the x and y coordinates the arrow passes through.
+        
+        Attribute: Parameter index the location in the vector to retrieve the waypoint.
+        Attribute: Returns a vector, x and y coordinate.
+    */
     action GetWaypoint(integer index) returns Vector2
         return waypoints:Get(index)
     end
-
+    /*
+        This action removes a specified x and y coordinate from the waypoints array.
+        
+        Attribute: Parameter index the location of th coordinate to remove.
+        Attribute: Returns the x and y coordinate vector
+    */
     action RemoveWaypoint(integer index) returns Vector2
         return waypoints:RemoveAt(index)
     end
-
+    /*
+        This action removes all points (x and y coordinates) from the arrows waypoints.
+    */
     action EmptyWaypoints
         waypoints:Empty()
         RecalculateArrow()
     end
-
+    /*
+        This action get the Line path of the arrow.
+        
+        Attribute: Returns the calculated LinePath of the arrow.
+    */
     action GetLines returns LinePath
         return lines
     end

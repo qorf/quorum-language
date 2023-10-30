@@ -1549,11 +1549,15 @@ class Control is Item2D
     action GetForegroundSelectionColor returns ColorGroup
         return defaultProperties:GetForegroundSelectionColor()
     end
-
+    /*
+    This action sets the font color of the font contained in the Control.
+    */
     action SetFontColor(ColorGroup value)
         defaultProperties:SetFontColor(value)
     end
-
+    /*
+    This action gets the current the font color of the font contained in the Control.
+    */
     action GetFontColor returns ColorGroup
         return defaultProperties:GetFontColor()
     end
