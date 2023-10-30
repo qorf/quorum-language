@@ -4,6 +4,13 @@ use Libraries.Interface.Controls.Control
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Containers.Array
 
+/*
+    The FlowchartNode class is a blueprint class laying out the functionality of
+    a node within a flowchart. Flowchart nodes are controls and maintain an array
+    of arrows pointing in to the node and arrows pointing out of the node.
+
+    Attribute: Author William Allee
+*/
 class FlowchartNode is Control
 
     Array<FlowchartArrow> inArrows
@@ -15,7 +22,14 @@ class FlowchartNode is Control
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:ITEM)
     end
+   /*
+        This action adds a flowchart node as the current (parent node)
+        flowchart node's child node. This subsequently creates a flowchart 
+        arrow originating from the current not and pointing to the child node. 
 
+        Attribute: Parameter node a child node to add as a child to the parent node. 
+        Attribute: Returns the flowchart arrow connecting the child and parent node.
+    */  
     action AddChildNode(FlowchartNode node) returns FlowchartArrow
         FlowchartArrow arrow
         arrow:SetNodes(me, node)
@@ -30,19 +44,35 @@ class FlowchartNode is Control
 
         return arrow
     end
-
+    /*
+        This action gets the array of arrows pointing away (out) from this node.
+        
+        Attribute: Returns the array of FlowchartArrow objects point out from this node.
+    */
     action GetOutArrows returns Array<FlowchartArrow>
         return outArrows
     end
-
+    /*
+        This action gets the array of arrows pointing into this node.
+        
+        Attribute: Returns the array of FlowchartArrow objects point into this node.
+    */
     action GetInArrows returns Array<FlowchartArrow>
         return inArrows
     end
-
+    /*
+        This action adds an arrow pointing in to the inArrow array for arrows pointing into this node.
+        
+        Attribute: Parameter arrow the Flowchart arrow object that points into this node.
+    */
     action AddInArrow(FlowchartArrow arrow)
         inArrows:Add(arrow)
     end
+    /*
+        This action gets the background color of the flowchart node.
 
+        Attribute: Returns the color of the node. 
+    */
     action GetBackgroundColor returns ColorGroup
         if HasColorPropertyOverride("backgroundColor")
             return parent:Control:GetBackgroundColor()
@@ -55,7 +85,11 @@ class FlowchartNode is Control
 
         return parent:Control:GetBackgroundColor()
     end
+    /*
+        This action gets the border color for the flowchart node.
 
+        Attribute: Returns the color of the node border. 
+    */
     action GetBorderColor returns ColorGroup
         if HasColorPropertyOverride("borderColor")
             return parent:Control:GetBorderColor()
@@ -68,7 +102,11 @@ class FlowchartNode is Control
 
         return parent:Control:GetBorderColor()
     end
+    /*
+        This action gets the selection color for the flowchart node.
 
+        Attribute: Returns the color of the selected node. 
+    */
     action GetSelectionColor returns ColorGroup
         if HasColorPropertyOverride("selectionColor")
             return parent:Control:GetSelectionColor()
@@ -81,7 +119,11 @@ class FlowchartNode is Control
 
         return parent:Control:GetSelectionColor()
     end
+    /*
+        This action gets the selection color for the flowchart node border.
 
+        Attribute: Returns the color of the selected node border. 
+    */
     action GetSelectionBorderColor returns ColorGroup
         if HasColorPropertyOverride("selectionBorderColor")
             return parent:Control:GetSelectionBorderColor()
@@ -94,7 +136,11 @@ class FlowchartNode is Control
 
         return parent:Control:GetSelectionBorderColor()
     end
+    /*
+        This action gets the border thickness for the flowchart node.
 
+        Attribute: Returns the number representing the border thickness of a node. 
+    */
     action GetBorderThickness returns number
         if HasNumberPropertyOverride("borderThickness")
             return parent:Control:GetBorderThickness()
@@ -107,7 +153,11 @@ class FlowchartNode is Control
 
         return parent:Control:GetBorderThickness()
     end
+    /*
+        This action gets the bottom left rounding value for the flowchart node.
 
+        Attribute: Returns the number representing the bottom left rounding of a node corner. 
+    */
     action GetBottomLeftRounding returns number
         if HasNumberPropertyOverride("bottomLeftRounding")
             return parent:Control:GetBottomLeftRounding()
@@ -120,7 +170,11 @@ class FlowchartNode is Control
 
         return parent:Control:GetBottomLeftRounding()
     end
+    /*
+        This action gets the bottom right rounding value for the flowchart node.
 
+        Attribute: Returns the number representing the bottom right rounding of a node corner. 
+    */
     action GetBottomRightRounding returns number
         if HasNumberPropertyOverride("bottomRightRounding")
             return parent:Control:GetBottomRightRounding()
@@ -133,7 +187,11 @@ class FlowchartNode is Control
 
         return parent:Control:GetBottomRightRounding()
     end
+    /*
+        This action gets the top left rounding value for the flowchart node.
 
+        Attribute: Returns the number representing the top left rounding of a node corner. 
+    */
     action GetTopLeftRounding returns number
         if HasNumberPropertyOverride("topLeftRounding")
             return parent:Control:GetTopLeftRounding()
@@ -146,7 +204,11 @@ class FlowchartNode is Control
 
         return parent:Control:GetTopLeftRounding()
     end
+    /*
+        This action gets the top right rounding value for the flowchart node.
 
+        Attribute: Returns the number representing the top right rounding of a node corner. 
+    */
     action GetTopRightRounding returns number
         if HasNumberPropertyOverride("topRightRounding")
             return parent:Control:GetTopRightRounding()
@@ -161,7 +223,11 @@ class FlowchartNode is Control
     end
 
     blueprint action ConvertToScalableVectorGraphics returns text
+    /*
+        This action gets the flowchart nodes' parent, the flowchart object.
 
+        Attribute: Returns the Flowchart object this node exists within. 
+    */
     action GetFlowchart returns Flowchart
         Item2D result = GetParent()
         repeat until result is Flowchart or result = undefined

@@ -5,16 +5,85 @@ use Libraries.Game.Game
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 
+/*
+    This class represents a generic way for an item in the form interface
+    to conduct a behavior. By design, it can run itself, with a Run action, 
+    can take action over time using its Update action, can cleanup any items when
+    it is finished using Dispose, and can determine when it is completed with its 
+    IsFinished action. Behavior itself does not do anything itself, but is heavily 
+    subclassed for specific kinds of actions. 
+    
+    The classes that use Behaviors of one kind or another the most are the user 
+    interface controls, like Button, TextBox, or others, and the InputTable class. 
+    Together, these classes provide a way to efficiently route user input throughout 
+    the system.
+
+    Attribute: Author Andreas Stefik, William Allee
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Forms.FormBehavior
+    use Libraries.Interface.Events.BehaviorEvent
+    use Libraries.Interface.Item2D
+    use Libraries.Interface.Controls.Button
+
+    class Main is FormBehavior
+        action Main
+            // create the app
+            Form form
+            Page homePage = form:GetMainPage() 
+            Page pageTwo = form:AddPage("PageTwo")
+            Page pageThree = form:AddPage("PageThree")
+    
+            homePage:SetTitle("Home Page")
+            Button button = homePage:AddButton("Next Page")
+            button:SetBehavior(me)
+    
+            pageTwo:SetTitle("Page Two")
+            Button buttonTwo = pageTwo:AddButton("Next Page")
+            buttonTwo:SetBehavior(me)
+    
+            pageThree:SetTitle("Page Three")
+            Button buttonThree = pageThree:AddButton("Next Page")
+            buttonThree:SetBehavior(me)
+    
+            form:Display()
+        end
+    
+        action Run(BehaviorEvent event)
+            Form form = GetForm()
+            Page page = GetPage()
+            
+            if (page:GetName() = "Main")
+                form:SetPage("PageTwo")
+            elseif (page:GetName() = "PageTwo")
+                form:SetPage("PageThree")
+            else
+                form:SetPage("Main")
+            end
+        end
+    end
+*/
 
 class FormBehavior is Behavior
 
+    /*
+       This action gets the form from the game state manager.
+
+       Attribute: reutrns the form the behavior came from.
+    */
     action GetForm returns Form
         GameStateManager manager
         Game game = manager:GetGame()
         Form form = cast(Form, game)
         return form
     end
+    /*
+       This action gets the page from the form.
 
+       Attribute: reutrns the page the behavior event orriginated from.
+    */
     action GetPage returns Page
         Form form = GetForm()
         if form not= undefined
@@ -23,7 +92,11 @@ class FormBehavior is Behavior
 
         return undefined
     end
+    /*
+       This action ends the game loop.
 
+       Attribute: reutrns true.
+    */
     action IsFinished returns boolean
         return true
     end

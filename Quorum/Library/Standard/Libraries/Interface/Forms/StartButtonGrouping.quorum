@@ -4,6 +4,30 @@ use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Label
 use Libraries.Interface.Controls.Button
 
+/*
+
+    This class represents a one template for a grouping of elements on a page.
+    This template displayes a title, subtitle, and button in a grouping.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Forms.StartButtonGrouping
+
+    class Main
+        action Main
+            // create the app
+            Form form
+            Page homePage = form:GetMainPage() 
+
+            StartButtonGrouping group = homePage:AddStartButtonGrouping("Home Page", "Welcome to the grouping template", "Press Me")
+
+            form:Display()
+        end
+    end
+*/
 class StartButtonGrouping is Grouping
 
     Label label = undefined
@@ -17,7 +41,31 @@ class StartButtonGrouping is Grouping
         
         SetInterfaceOptionsKey("StartButtonGrouping")
     end
+    /*
+        This action sets up and fills in the start button grouping template.
 
+        Attribute: Parameter title The text title in the grouping and the identifier for the grouping.
+        Attribute: Parameter label The text label (subtitle) in the grouping.
+        Attribute: Parameter buttonName The text on the button in the grouping.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.StartButtonGrouping
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                StartButtonGrouping group 
+                group:Initialize("Home Page", "Welcome to the grouping template", "Press Me")
+
+                form:Display()
+            end
+        end
+    */
     action Initialize(text title, text label, text buttonName)
         SetTitle(title)
         me:label = AddLabel(title + " Label", label)
@@ -31,11 +79,59 @@ class StartButtonGrouping is Grouping
         spacer:SetToTinyFont()
         Add(spacer)
     end
+    /*
+        This action gets the subtitle from the start button grouping.
 
+        Attribute: Returns The label object that was found on the start button grouping.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.StartButtonGrouping
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                StartButtonGrouping group 
+                group:Initialize("Home Page", "Welcome to the grouping template", "Press Me")
+
+                output group:GetLabel():GetText()
+
+                form:Display()
+            end
+        end
+    */
     action GetLabel returns Label
         return label
     end
+    /*
+        This action gets the button from the start button grouping.
 
+        Attribute: Returns The button object that was found on the start button grouping.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.StartButtonGrouping
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                StartButtonGrouping group 
+                group:Initialize("Home Page", "Welcome to the grouping template", "Press Me")
+
+                output group:GetButton():GetLabelText()
+
+                form:Display()
+            end
+        end
+    */
     action GetButton returns Button
         return button
     end

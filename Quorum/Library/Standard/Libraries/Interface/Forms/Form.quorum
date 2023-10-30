@@ -28,6 +28,8 @@ use Libraries.System.File
     Form is a helper class that allows us to create forms for a user interface without 
     the full complexity of the game class. 
 
+    Attribute: Author William Allee, Andreas Stefik
+
     Attribute: Example
 
     use Libraries.Interface.Form
@@ -62,21 +64,76 @@ class Form is Game, FormPrimitiveContainer
         LightModeOptions options
         me:options = options
     end
-
+    /*
+       This action switches the game state to light mode. 
+    */
     action SetToLightMode
         GameStateManager manager
         LightModeOptions light
         me:options = light
         manager:SetInterfaceOptions(options)
     end
-
+    /*
+       This action switches the game state to dark mode. 
+    */
     action SetToDarkMode
         GameStateManager manager
         DarkModeOptions dark
         me:options = dark
         manager:SetInterfaceOptions(options)
     end
+    /*
+        This action adds a stacked row page to the form. Multiple pages can be stored on the form
+        and only one set page is diplayed on the form. 
+        
+        Attribute: Parameter name The text identifier for a page object.
+        Attribute: Returns The Page that was added to the form.
 
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.FormBehavior
+        use Libraries.Interface.Events.BehaviorEvent
+        use Libraries.Interface.Item2D
+        use Libraries.Interface.Controls.Button
+    
+        class Main is FormBehavior
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+                Page pageTwo = form:AddPage("PageTwo")
+                Page pageThree = form:AddPage("PageThree")
+        
+                homePage:SetTitle("Home Page")
+                Button button = homePage:AddButton("Next Page")
+                button:SetBehavior(me)
+        
+                pageTwo:SetTitle("Page Two")
+                Button buttonTwo = pageTwo:AddButton("Next Page")
+                buttonTwo:SetBehavior(me)
+        
+                pageThree:SetTitle("Page Three")
+                Button buttonThree = pageThree:AddButton("Next Page")
+                buttonThree:SetBehavior(me)
+        
+                form:Display()
+            end
+        
+            action Run(BehaviorEvent event)
+                Form form = GetForm()
+                Page page = GetPage()
+                
+                if (page:GetName() = "Main")
+                    form:SetPage("PageTwo")
+                elseif (page:GetName() = "PageTwo")
+                    form:SetPage("PageThree")
+                else
+                    form:SetPage("Main")
+                end
+            end
+        end
+    */
     action AddPage(text name) returns Page
         StackedRowPage page
         page:SetName(name)
@@ -84,21 +141,163 @@ class Form is Game, FormPrimitiveContainer
         pages:Add(name, page)
         return page
     end
+    /*
+        This action adds a page object to the form. Multiple pages can be stored on the form
+        and only one set page is diplayed on the form. 
+        
+        Attribute: Parameter name The text identifier for a page object.
+        Attribute: Returns The Page that was added to the form.
 
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.FormBehavior
+        use Libraries.Interface.Events.BehaviorEvent
+        use Libraries.Interface.Item2D
+        use Libraries.Interface.Controls.Button
+        use Libraries.Interface.Pages.StackedRowPage
+    
+        class Main is FormBehavior
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+                StackedRowPage pageTwo
+                pageTwo:SetName("PageTwo")
+                form:AddPage(pageTwo)
+                StackedRowPage pageThree 
+                pageThree:SetName("PageThree")
+                form:AddPage(pageThree)
+        
+                homePage:SetTitle("Home Page")
+                Button button = homePage:AddButton("Next Page")
+                button:SetBehavior(me)
+        
+                pageTwo:SetTitle("Page Two")
+                Button buttonTwo = pageTwo:AddButton("Next Page")
+                buttonTwo:SetBehavior(me)
+        
+                pageThree:SetTitle("Page Three")
+                Button buttonThree = pageThree:AddButton("Next Page")
+                buttonThree:SetBehavior(me)
+        
+                form:Display()
+            end
+        
+            action Run(BehaviorEvent event)
+                Form form = GetForm()
+                Page page = GetPage()
+                
+                if (page:GetName() = "Main")
+                    form:SetPage("PageTwo")
+                elseif (page:GetName() = "PageTwo")
+                    form:SetPage("PageThree")
+                else
+                    form:SetPage("Main")
+                end
+            end
+        end
+    */
     action AddPage(Page page)
         page:SetForm(me)
         pages:Add(page:GetName(), page)
     end
+    /*
+        This action removes a specified page from the form.  
+        
+        Attribute: Parameter name The text identifier for a page object.
+        Attribute: Returns The Page that was removed from the form.
 
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+    
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+                Page pageTwo = form:AddPage("PageTwo")
+
+                form:RemovePage("Main")
+
+                form:Display()
+            end
+        end
+    */
     action RemovePage(text name) returns Page
         return pages:RemoveKey(name)
     end
+    /*
+        This action gets a specified page from the form.  
+        
+        Attribute: Parameter name The text identifier for a page object.
+        Attribute: Returns The Page that was found in the form.
 
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+    
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+                Page pageTwo = form:AddPage("PageTwo")
+
+                homePage = form:GetPage("Main")
+
+                form:Display()
+            end
+        end
+    */
     action GetPage(text name) returns Page
         Page page = pages:GetValue(name)
         return page
     end
+    /*
+        This action sets the current page to be dislayed on the form.
+        
+        Attribute: Parameter name The text identifier for a page object.
 
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.FormBehavior
+        use Libraries.Interface.Events.BehaviorEvent
+        use Libraries.Interface.Item2D
+        use Libraries.Interface.Controls.Button
+    
+        class Main is FormBehavior
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+                Page pageTwo = form:AddPage("PageTwo")
+        
+                homePage:SetTitle("Home Page")
+                Button button = homePage:AddButton("Next Page")
+                button:SetBehavior(me)
+        
+                pageTwo:SetTitle("Page Two")
+                Button buttonTwo = pageTwo:AddButton("Next Page")
+                buttonTwo:SetBehavior(me)
+        
+                form:Display()
+            end
+        
+            action Run(BehaviorEvent event)
+                Form form = GetForm()
+                Page page = GetPage()
+                
+                if (page:GetName() = "Main")
+                    form:SetPage("PageTwo")
+                else
+                    form:SetPage("Main")
+                end
+            end
+        end
+    */
     action SetPage(text name)
         Remove(currentPage)
 
@@ -158,15 +357,28 @@ class Form is Game, FormPrimitiveContainer
         SetScreenSize(width,height)
         StartGame()
     end
-
+    /*  
+        This action returns the main page. Every Form contains one main page as the default
+        page to be displayed.
+        
+        Attribute: Returns the main and default page.
+    */
     action GetMainPage returns Page
         return mainPage
     end
-
+    /*  
+        This action returns the currently diplayed page. 
+        
+        Attribute: Returns the current page displayed on the form.
+    */
     action GetCurrentPage returns Page
         return currentPage
     end
-
+     /*  
+        This action plays a specified sound file, given a media location and sound file name. 
+        
+        Attribute: Parameter name the path to the sound file and the file name.
+    */
     action PlaySound(text name)
         Audio audio
         File file = undefined
@@ -183,11 +395,53 @@ class Form is Game, FormPrimitiveContainer
         end
         audio:Play()
     end
-    
+     /*  
+        This action gets the set media location from the form. This is a 
+        convenience action that accesses the media path that all the 
+        media used in the form can be found. 
+        
+        Attribute: Returns the path to the media location.
+    */   
     action GetMediaLocation returns text
         return media
     end
-    
+
+    /*  
+        This action sets the media location for all media elements on the form. This is a 
+        convenience action that specifies the location or folder where all the forms media
+        can be found. 
+        
+        Attribute: Parameter media the path to the media location.
+
+        Attribute: Example
+        use Libraries.Interface.Events.BehaviorEvent
+        use Libraries.Interface.Forms.FormBehavior
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.Button
+        
+        class Main is FormBehavior
+            action Main
+                // create the app
+                Form form
+                form:SetMediaLocation("Images")
+                
+                Page homePage = form:GetMainPage() 
+                Button button = homePage:AddButton("my button", "Blue Jay.png")
+                
+                button:SetBehavior(me)
+                
+                form:Display()
+            end
+        
+            action Run(BehaviorEvent event)
+                Form form = GetForm()
+                Page page = GetPage()
+                
+                page:ChangeButtonIcon("my button", "adoptUs.png")
+            end
+        end
+    */    
     action SetMediaLocation(text media)
         me:media = media
     end
