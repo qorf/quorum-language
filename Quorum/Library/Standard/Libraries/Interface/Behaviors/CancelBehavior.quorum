@@ -2,15 +2,14 @@ package Libraries.Interface.Behaviors
 
 use Libraries.Interface.Item
 use Libraries.Interface.Events.BehaviorEvent
-
+/*
+This class represents a behavior. It wipes out all behaviors on the Item. 
+If you need to cancel only some behaviors, while allowing others to persist, use an alternative.
+*/
 class CancelBehavior is Behavior
     action Run(BehaviorEvent event)
         Item item = event:GetItem()
 
-        /*
-        This wipes out all behaviors on the Item. If you need to cancel only
-        some behaviors, while allowing others to persist, use an alternative.
-        */
         if item not= undefined
             item:CancelBehaviors()
         end

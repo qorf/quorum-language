@@ -16,10 +16,12 @@ shared class DatabaseTypeConstants
 
         return false
     end
-    //TINYINT
+    /*
+        TINYINT
+    */
     public constant integer INTEGER8 = -6
     
-    //SMALLINT
+    /* SMALLINT */
     public constant integer INTEGER16 = 5
     
     public constant integer INTEGER = 4
@@ -51,7 +53,7 @@ shared class DatabaseTypeConstants
         return false
     end
     
-    //BIGINT
+    /* BIGINT */
     public constant integer INTEGER64 = -5
     
     /*
@@ -63,10 +65,10 @@ shared class DatabaseTypeConstants
     */
     private constant integer NUMBER64_WRONG = 6
     
-    //REAL
+    /* REAL */
     public constant integer NUMBER32 = 7
     
-    //DOUBLE
+    /* DOUBLE */
     public constant integer NUMBER64 = 8
 
     public constant integer NUMBER = NUMBER64
@@ -82,19 +84,19 @@ shared class DatabaseTypeConstants
 
         return false
     end
-    //NUMERIC: Must have number of digits (precision) and scale (digits after the decimal point)
+    /* NUMERIC: Must have number of digits (precision) and scale (digits after the decimal point) */
     public constant integer NUMBER_EXACT_PRECISION = 2
     
-    //DECIMAL: Must have at least the number of digits (precision) and scale (digits after the decimal point)
+    /* DECIMAL: Must have at least the number of digits (precision) and scale (digits after the decimal point) */
     public constant integer NUMBER_EXTRA_PRECISION = 3
     
-    //CHAR: A text value of a fixed length, up to 254 in most implementations
+    /* CHAR: A text value of a fixed length, up to 254 in most implementations */
     public constant integer TEXT_FIXED_SIZE = 1
 
-    //VARCHAR
+    /* VARCHAR */
     public constant integer TEXT = 12
     
-    //LONGVARCHAR
+    /* LONGVARCHAR */
     private constant integer TEXT_LONG = -1
 
     /* This returns true if the type maps to the Quorum Text type. */
@@ -128,16 +130,16 @@ shared class DatabaseTypeConstants
 
         return false
     end
-    //BINARY
+    /* BINARY */
     public constant integer BYTE_FIXED_SIZE = -2
     
-    //VARBINARY
+    /* VARBINARY */
     public constant integer BYTE = -3
     
-    //LONGVARBINARY
+    /* LONGVARBINARY */
     private constant integer BYTE_LONG = -4
     
-    //NULL
+    /* NULL */
     public constant integer UNDEFINED = 0
 
     /*

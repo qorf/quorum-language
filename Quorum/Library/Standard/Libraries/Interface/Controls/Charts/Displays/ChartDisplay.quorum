@@ -16,18 +16,29 @@ class ChartDisplay is Game
     boolean exitOnStart = false
     integer frame = 0
 
+    Chart chart = undefined
+
     on create
         DesktopConfiguration desktop = GetDesktopConfiguration()
         desktop:targetFramesPerSecond = 10
         WebConfiguration web = GetWebConfiguration()
         web:framesPerSecondLimit = 10
     end
+    /*
+        This action gets the chart within this chart display game object. 
 
-    Chart chart = undefined
+        Attribute: Returns the chart in the display. 
+    */
     action GetChart returns Chart
         return chart
     end
+    /*
+        This action sets the chart to be displayed within the chart display game. 
 
+        Attribute: Parameter location The index or location the value will be stored at.
+
+        Attribute: Returns the chart in the display. 
+    */
     action SetChart(Chart chart)
         me:chart = chart
     end

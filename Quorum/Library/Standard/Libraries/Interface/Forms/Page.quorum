@@ -8,6 +8,62 @@ use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Controls.ScrollableControl
 use Libraries.Interface.Controls.ScrollPane
 
+/*
+
+    This class represents a page on a Form application and is a form container control. 
+    This class provides a generic page for positioning and displaying elements. There 
+    are always one or more pages on a form, but only one page can be displayed on the form at
+    on time.
+
+    Attribute: Author William Allee, Andreas Stefik
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Forms.FormBehavior
+    use Libraries.Interface.Events.BehaviorEvent
+    use Libraries.Interface.Item2D
+    use Libraries.Interface.Controls.Button
+
+
+    class Main is FormBehavior
+        action Main
+            // create the app
+            Form form
+            Page homePage = form:GetMainPage() 
+            Page pageTwo = form:AddPage("PageTwo")
+            Page pageThree = form:AddPage("PageThree")
+
+            homePage:SetTitle("Home Page")
+            Button button = homePage:AddButton("Next Page")
+            button:SetBehavior(me)
+
+            pageTwo:SetTitle("Page Two")
+            Button buttonTwo = pageTwo:AddButton("Next Page")
+            buttonTwo:SetBehavior(me)
+
+            pageThree:SetTitle("Page Three")
+            Button buttonThree = pageThree:AddButton("Next Page")
+            buttonThree:SetBehavior(me)
+
+            form:Display()
+        end
+
+        action Run(BehaviorEvent event)
+            Form form = GetForm()
+            Page page = GetPage()
+            
+            if (page:GetName() = "Main")
+                form:SetPage("PageTwo")
+            elseif (page:GetName() = "PageTwo")
+                form:SetPage("PageThree")
+            else
+                form:SetPage("Main")
+            end
+        end
+    end
+
+*/
 class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
 
     on create
@@ -18,7 +74,32 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
     action IsAccessibleParent returns boolean
         return false
     end
+    /*
+        This action adds a grouping of elements (e.g., buttons, labels) to the Page.
 
+        Attribute: Parameter name The text represents the identifier of the grouping.
+        Attribute: Returns The grouping object that was added to the page.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Grouping
+        use Libraries.Interface.Controls.ToggleButton
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                Grouping toggleGroup = homePage:AddGrouping("switch")
+                toggleGroup:AddToggleButton("On")
+                ToggleButton off = toggleGroup:AddToggleButton("Off")
+                
+                form:Display()
+            end
+        end
+    */
     action AddGrouping(text name) returns Grouping
         Grouping grouping
         grouping:SetForm(GetForm())
@@ -27,7 +108,48 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
         Add(grouping)
         return grouping
     end
+    /*
+        This action removes a grouping of elements from the Page and returns the Grouping object that was removed.
 
+        Attribute: Parameter name The text represents the identifier of the grouping.
+        Attribute: Returns The grouping object that was removed from the page.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Grouping
+        use Libraries.Interface.Controls.ToggleButton
+        use Libraries.Interface.Forms.FormBehavior
+        use Libraries.Interface.Events.BehaviorEvent
+        use Libraries.Interface.Controls.Button
+
+        class Main is FormBehavior
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                Grouping toggleGroup = homePage:AddGrouping("switch")
+                toggleGroup:AddToggleButton("On")
+                ToggleButton off = toggleGroup:AddToggleButton("Off")
+
+                Button button = homePage:AddButton("Remove Group")
+                button:SetBehavior(me)
+                
+                form:Display()
+            end
+
+            action Run(BehaviorEvent event)
+                Form form = GetForm()
+                Page page = GetPage()
+
+                if(page:GetGrouping("switch") not= undefined)
+                    page:RemoveGrouping("switch")
+                end
+                
+            end
+        end
+    */
     action RemoveGrouping(text name) returns Grouping
         Grouping item = GetGrouping(name)
         if item not= undefined
@@ -36,7 +158,37 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
         end
         alert("I couldn't find a Grouping named " + name + ". Are you looking for the right item?")
     end
+    /*
+        This action gets a grouping of elements from the Page and returns the Grouping object 
+        if it is found. The action returns undefined if the grouping is not found.
 
+        Attribute: Parameter name The text represents the identifier of the grouping.
+        Attribute: Returns The grouping object that was found on the page.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Grouping
+        use Libraries.Interface.Controls.ToggleButton
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                Grouping toggleGroup = homePage:AddGrouping("switch")
+                toggleGroup:AddToggleButton("On")
+                ToggleButton off = toggleGroup:AddToggleButton("Off")
+
+                if(homePage:GetGrouping("switch") not= undefined)
+                    homePage:RemoveGrouping("switch")
+                end
+
+                form:Display()
+            end
+        end
+    */
     action GetGrouping(text name) returns Grouping
         Array<Item2D> children = GetFormChildren()
         i = 0
@@ -50,7 +202,33 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
 
         return undefined
     end
+    /*
+        This action adds a grouping template called the StartButtonGrouping to the 
+        Page. This grouping contains a title, label, and button with text specified by
+        the action parameters.
 
+        Attribute: Parameter title The text title in the grouping and the identifier for the grouping.
+        Attribute: Parameter label The text label in the grouping.
+        Attribute: Parameter buttonName The text on the button in the grouping.
+        Attribute: Returns The StartButtonGrouping object that was added to the page.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.StartButtonGrouping
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                StartButtonGrouping group = homePage:AddStartButtonGrouping("Home Page", "Welcome to the grouping template", "Press Me")
+
+                form:Display()
+            end
+        end
+    */
     action AddStartButtonGrouping(text title, text label, text buttonName) returns StartButtonGrouping
         StartButtonGrouping grouping
         grouping:SetName(title)
@@ -59,7 +237,32 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
         Add(grouping)
         return grouping
     end
+    /*
+        This action removes the template, start button grouping from the Page and returns 
+        the Grouping object that was removed.
 
+        Attribute: Parameter name The text represents the identifier of the grouping.
+        Attribute: Returns The StartButtonGrouping object that was removed from the page.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.StartButtonGrouping
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                StartButtonGrouping group = homePage:AddStartButtonGrouping("Home Page", "Welcome to the grouping template", "Press Me")
+                
+                homePage:RemoveStartButtonGrouping(group:GetName())
+
+                form:Display()
+            end
+        end
+    */
     action RemoveStartButtonGrouping(text name) returns StartButtonGrouping
         StartButtonGrouping item = GetStartButtonGrouping(name)
         if item not= undefined
@@ -68,7 +271,33 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
         end
         alert("I couldn't find a StartButtonGrouping named " + name + ". Are you looking for the right item?")
     end
+    /*
+        This action gets a start button grouping of elements from the Page and returns the Grouping object 
+        if it is found. The action returns undefined if the grouping is not found.
 
+        Attribute: Parameter name The text represents the identifier of the grouping (matches the title).
+        Attribute: Returns The grouping object that was found on the page.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.StartButtonGrouping
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                homePage:AddStartButtonGrouping("Home Page", "Welcome to the grouping template", "Press Me")
+                
+                StartButtonGrouping group = homePage:GetStartButtonGrouping("Home Page")
+                output group:GetColumns()
+
+                form:Display()
+            end
+        end
+    */
     action GetStartButtonGrouping(text name) returns StartButtonGrouping
         Array<Item2D> children = GetFormChildren()
         i = 0
@@ -82,7 +311,29 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
 
         return undefined
     end
+    /*
+        This action adds a banner with the specified title to the Page.
 
+        Attribute: Parameter title The text title on the banner and the identifier for the banner.
+        Attribute: Returns The banner object that was added to the page.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Banner
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                Banner value = homePage:AddBanner("Hello World")
+
+                form:Display()
+            end
+        end
+    */
     action AddBanner(text title) returns Banner
         Banner grouping
         grouping:SetName(title)
@@ -91,7 +342,30 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
         Add(grouping)
         return grouping
     end
+    /*
+        This action adds a banner with a title and subtitle to the page.
 
+        Attribute: Parameter title The text title on the banner and the identifier for the banner.
+        Attribute: Parameter label The text label on the banner.
+        Attribute: Returns The banner object that was added to the page.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Banner
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                Banner value = homePage:AddBanner("Hello World", "What a great day it is!")
+
+                form:Display()
+            end
+        end
+    */
     action AddBanner(text title, text label) returns Banner
         Banner grouping
         grouping:SetName(title)
@@ -100,7 +374,31 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
         Add(grouping)
         return grouping
     end
+    /*
+        This action adds a banner with a specified identifier to the page. The title, and subtitle are displayed.
 
+        Attribute: Parameter name The text identified for the banner.
+        Attribute: Parameter title The text title on the banner.
+        Attribute: Parameter label The text subtitle on the banner.
+        Attribute: Returns The banner object that was added to the page.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Banner
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                Banner value = homePage:AddBanner("myBanner", "Hello World", "What a great day it is!")
+
+                form:Display()
+            end
+        end
+    */
     action AddBanner(text name, text title, text label) returns Banner
         Banner grouping
         grouping:SetName(name)
@@ -109,7 +407,31 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
         Add(grouping)
         return grouping
     end
+    /*
+        This action removes the banner from the Page and returns the banner object that was removed.
 
+        Attribute: Parameter name The text represents the identifier of the banner.
+        Attribute: Returns The banner object that was removed from the page.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Banner
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                Banner value = homePage:AddBanner("myBanner", "Hello World", "What a great day it is!")
+
+                homePage:RemoveBanner("myBanner")
+
+                form:Display()
+            end
+        end
+    */
     action RemoveBanner(text name) returns Banner
         Banner item = GetBanner(name)
         if item not= undefined
@@ -118,7 +440,33 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
         end
         alert("I couldn't find a Banner named " + name + ". Are you looking for the right item?")
     end
+    /*
+        This action gets a banner from the Page and returns the banner object 
+        if it is found. The action returns undefined if the banner is not found.
 
+        Attribute: Parameter name The text represents the identifier of the banner.
+        Attribute: Returns The banner object that was found on the page.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Banner
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                homePage:AddBanner("Hello World", "What a great day it is!")
+
+                Banner value = homePage:GetBanner("Hello World")
+                output value:GetName()
+
+                form:Display()
+            end
+        end
+    */
     action GetBanner(text name) returns Banner
         Array<Item2D> children = GetFormChildren()
         i = 0
