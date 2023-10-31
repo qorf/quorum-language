@@ -42,6 +42,29 @@ class EditField is TextField, EditRegion
 
         initialized = true
     end
+    
+    action SetupAsPlaceholder(text name, text code)
+Block block = GetBlock()
+        if block = undefined
+            text dq = ""
+            dq = dq:GetDoubleQuote()
+            alert("I cannot set up the EditRegion named " + dq + name + dq + " because this region hasn't been added to a block yet. Add this to a block before calling Setup.")
+        end
+
+        parent:EditRegion:placeholder = true
+        SetName(name)
+
+        // Change the input group so it stops acting like a text field -- we only want it to visually reflect one
+        SetInputGroup("")
+        
+        SetFont(GetEditor():GetFont())
+        SetFontSize(GetEditor():GetFontSize())
+        SetText(code)
+UpdateLength()
+
+        initialized = true
+    end
+    
 
     action UpdateLength
         number glyphWidth = 10
@@ -52,8 +75,12 @@ class EditField is TextField, EditRegion
             height = editor:GetUnpaddedLineHeight(GetBlock():GetStartLine())
         end
 
-        integer startIndex = GetStartIndex()
-        integer endIndex = GetEndIndex()
+        integer characterCount = 0
+        if IsPlaceholder() = false
+            characterCount = GetEndIndex() - GetStartIndex()
+        else
+            characterCount = GetText():GetSize()
+        end
 
         number minimumLength = 0
         number length = 0
@@ -63,10 +90,10 @@ class EditField is TextField, EditRegion
             minimumLength = block:GetMinimumWidth() - GetX() - block:GetRightPadding()
         end
 
-        if endIndex - startIndex <= 1
+        if characterCount <= 1
             length = glyphWidth + GetLeftCharacterPadding() * 2
         else
-            length = (endIndex - startIndex) * glyphWidth + GetLeftCharacterPadding() * 2
+            length = characterCount * glyphWidth + GetLeftCharacterPadding() * 2
         end
 
         if length < minimumLength

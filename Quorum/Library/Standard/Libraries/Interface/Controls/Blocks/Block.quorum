@@ -77,6 +77,8 @@ be dropped. Placeholder blocks have special rules around their text values and h
     boolean isPlaceholder = false
     // If this is a placeholder, it doesn't represent text in the real code, so it needs to store it separately here.
     text placeholderText = ""
+    // This represents the controls used for a placeholder. Undefined by default.
+    Array<Item2D> placeholderControls
     
     // Indicates that this Block is currently being moved with the mouse or keyboard.
     boolean isMoving = false
@@ -708,11 +710,32 @@ CodeEditor editor = GetEditor()
         SetLeftPadding(spacing * 0.5)
         SetRightPadding(spacing * 0.5)
         
+        if placeholderControls not= undefined
+            integer i = 0
+            repeat while i < placeholderControls:GetSize()
+                Item2D child = placeholderControls:Get(i)
+                if child is EditRegion
+                    EditRegion region = cast(EditRegion, child)
+                    region:SetFont(GetEditor():GetFont())
+                    region:SetFontSize(GetEditor():GetFontSize())
+Add(region)
+                    
+                    region:SetupAsPlaceholder(region:GetName(), region:GetText())
+                elseif child is BlockLabel
+                    BlockLabel label = cast(BlockLabel, child)
+label:SetFont(GetEditor():GetFont())
+        label:SetFontSize(GetEditor():GetFontSize())
+                    Add(label)
+                end
+                i = i + 1
+            end
+        else
 BlockLabel label
         label:SetFont(GetEditor():GetFont())
         label:SetFontSize(GetEditor():GetFontSize())
         label:SetText(code)
         Add(label)
+        end
     end
 
     blueprint action UpdateName(integer selectedLine)
@@ -1143,9 +1166,65 @@ that information, use CanAcceptPlaceholders().*/
         return isPlaceholder
     end
     
+    /*This action sets the block as a placeholder. It will visually appear as a block with a single label containing
+the provided code. For more specific visuals, use SetAsPlaceholder(text, Array<Item2D>).*/
     action SetAsPlaceholder(text code)
+        SetAsPlaceholder(code, undefined)
+    end
+    
+    /*This action sets the block as a placeholder. The actual appearance will be dictated by the given controls.
+This action will make a COPY of each of the provided elements. It does not store the original elements or
+maintain a shallow copy of the given array.
+
+Because the given controls supply the visuals, the code will not be used visually, but must still correctly
+match the code the block represents, because it will be used if the placeholder is converted to a real block.*/
+    action SetAsPlaceholder(text code, Array<Item2D> controls)
         isPlaceholder = true
         placeholderText = code
+        
+        if controls not= undefined
+CodeEditor editor = GetEditor()
+        number spacing = editor:GetDefaultGlyphWidth()
+        SetLeftPadding(spacing * 0.5)
+        SetRightPadding(spacing * 0.5)
+            
+Array<Item2D> newArray
+        placeholderControls = newArray
+        integer i = 0
+        repeat while i < controls:GetSize()
+Item2D child = controls:Get(i)
+            if child is EditField
+                EditField field = cast(EditField, child)
+                EditField newField
+                newField:SetName(field:GetName())
+                    newField:SetText(field:GetText())
+                    newField:SetLeftPadding(field:GetLeftPadding())
+                    newField:SetRightPadding(field:GetRightPadding())
+
+                placeholderControls:Add(newField)
+            elseif child is EditBox
+                EditBox box = cast(EditBox, child)
+                EditBox newBox
+newBox:SetName(box:GetName())
+                    newBox:SetText(box:GetText())
+newBox:SetLeftPadding(box:GetLeftPadding())
+                    newBox:SetRightPadding(box:GetRightPadding())
+                
+                placeholderControls:Add(newBox)
+            elseif child is BlockLabel
+                BlockLabel label = cast(BlockLabel, child)
+                BlockLabel newLabel
+                newLabel:SetText(label:GetText())
+newLabel:SetLeftPadding(label:GetLeftPadding())
+                    newLabel:SetRightPadding(label:GetRightPadding())
+                    
+                placeholderControls:Add(newLabel)
+            end
+            
+            i = i + 1
+        end
+        end
+        
     end
     
     action GetPlaceholderText returns text
@@ -1156,22 +1235,12 @@ that information, use CanAcceptPlaceholders().*/
     action CopyToPlaceholder returns Block
         integer i = 0
         Array<Item2D> children = GetChildren()
-        repeat while i < children:GetSize()
-            Item2D child = children:Get(i)
-            if child is EditRegion
-                EditRegion region = cast(EditRegion, child)
-                output i + ": region -- " + region:GetText()
-            elseif child is BlockLabel
-                BlockLabel label = cast(BlockLabel, child)
-                output i + ": label -- " + label:GetText()
-            end
-            i = i + 1
-        end
         
-        // Testing implementation. This almost certainly needs to be implemented on a per-block-type basis.
+        //The actual type of block is irrelevant, as the placeholder calls will supersede anything it would do. 
         ActionCallBlock placeholder
-        placeholder:SetAsPlaceholder(GetText())
-        placeholder:SetEditor(GetEditor())
+        placeholder:SetInterfaceOptionsKey(GetInterfaceOptionsKey())
+placeholder:SetEditor(GetEditor())
+        placeholder:SetAsPlaceholder(GetText(), children)
         placeholder:SetScopeDepth(GetScopeDepth())
         placeholder:Setup()
         return placeholder
