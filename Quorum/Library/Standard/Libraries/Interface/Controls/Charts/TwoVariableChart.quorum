@@ -539,7 +539,9 @@ class TwoVariableChart is Chart
         end
         lines:Add(newLine)
     end
-
+    /*
+        Used to create a new ChartPoint object for the chart and add it to the chart point array.
+    */
     action AddPoint(ChartPoint point)
         if points:GetSize() = 0
             maxPointHeightValue = point:GetValueY()
@@ -1401,7 +1403,14 @@ class TwoVariableChart is Chart
             SubdivideQuadrant(chartArea, bottomLeftItem, bottomLeftRegion, bottomLeft, currentLevel + 1)
         end
     end
-
+    /*
+        This action adds points to the two variable chart. These point have
+        descriptions, a chartItem, and list of points.
+        
+        Atrribute: Parameter summary the chart point summary.
+        Atrribute: Parameter parentItem the chart point parent.
+        Atrribute: Parameter points the chart point, Array<ChartPoint>.
+    */
     action AddPoints(ChartItem summary, ChartItem parentItem, Array<ChartPoint> points)
         if points:IsEmpty() = false
             // Add LEFT/RIGHT navigation
@@ -1651,7 +1660,10 @@ class TwoVariableChart is Chart
             i = i + 1
         end
     end
-
+    /*
+    Updates the description of all of the line segments in the array of line segments. The array should
+    contain all points inside of a single series.
+    */
     action CalculateLineSegmentPhrase(ChartPoint point1, ChartPoint point2, integer iteration) returns text
         number rise = point2:GetValueY() - point1:GetValueY()
         number run = point2:GetValueX() - point1:GetValueX()
@@ -1695,11 +1707,13 @@ class TwoVariableChart is Chart
     action GetMaximumSubdivisions returns integer
         return maxSubdivisions
     end
-
-    /* 
-        Max and min point values will track the highest and lowest points and limit the axis controls to not pass that value.
-    */ 
-
+ 
+    /*
+        This action sets the X axis maximum value. Max and min point values will track the highest 
+        and lowest points and limit the axis controls to not pass that value.
+        
+        Atrribute: Parameter max the number for the x axis maximum.
+    */
     action SetXAxisMaximum(number max)
         number pointMax = maxPointWidthValue
         if GetVerticalFlag()
@@ -1711,7 +1725,12 @@ class TwoVariableChart is Chart
             output "X-axis maximum cannot be below highest point value: " + pointMax
         end
     end
-
+    /*
+        This action sets the X axis minimum value. Max and min point values will track the highest 
+        and lowest points and limit the axis controls to not pass that value.
+        
+        Atrribute: Parameter min the number for the x axis minimum.
+    */
     action SetXAxisMinimum(number min)
         number pointMin = minPointWidthValue
         if GetVerticalFlag()
@@ -1723,7 +1742,12 @@ class TwoVariableChart is Chart
             output "X-axis minimum cannot be above lowest point value: " + pointMin
         end
     end
-
+    /*
+        This action sets the Y axis maximum value. Max and min point values will track the highest 
+        and lowest points and limit the axis controls to not pass that value.
+        
+        Atrribute: Parameter max the number for the Y axis maximum.
+    */
     action SetYAxisMaximum(number max)
         number pointMax = maxPointHeightValue
         if GetVerticalFlag()
@@ -1735,7 +1759,12 @@ class TwoVariableChart is Chart
             output "Y-axis maximum cannot be below highest point value: " + pointMax
         end
     end
-
+    /*
+        This action sets the X axis minimum value. Max and min point values will track the highest 
+        and lowest points and limit the axis controls to not pass that value.
+        
+        Atrribute: Parameter min the number for the x axis minimum.
+    */
     action SetYAxisMinimum(number min)
         number pointMin = minPointHeightValue
         if GetVerticalFlag()

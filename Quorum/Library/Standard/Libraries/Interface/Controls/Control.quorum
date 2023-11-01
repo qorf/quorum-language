@@ -200,7 +200,9 @@ class Control is Item2D
 
         RequestVerticesUpdate()
     end
-
+    /*
+        This action is used when a control gains the selection.
+    */
     action GainedSelection
         renderSelected = true
         if GetView2D() is ControlView
@@ -210,7 +212,9 @@ class Control is Item2D
 
         RequestVerticesUpdate()
     end
-
+    /*
+        This action is used when a control loses the selection.
+    */
     action LostSelection
         renderSelected = false
         if GetView2D() is ControlView
