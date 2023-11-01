@@ -209,6 +209,7 @@ class DocumentationGenerator
         page:SetWebPageTitle("Standard Library Index - " + compiler:GetVersion())
         MainContent mainRegion
         mainRegion:AddAttribute("role","main")
+mainRegion:SetClassAttribute("flex flex-row w-full justify-center box-border mx-12 md:mx-24 lg:mx-48")
         
         text phrase = "Introducing the " + compiler:GetVersion() + " Standard Library"
         Header headDiv
@@ -232,7 +233,7 @@ classes. Thus, this page is structured as a reference and is not intended as a
 tutorial.")
         Section searchSection = GetSearchSection()
         bodyDiv:Add(searchSection)
-        bodyDiv:Add(packageIndex)
+        mainRegion:Add(packageIndex)
         mainRegion:Add(bodyDiv)
         page:Add(mainRegion)
         page:Add(GetFooter())
@@ -309,16 +310,16 @@ tutorial.")
         page:AddScript("/script/prism-quorum.js")
         
         //add style sheet tags
-        page:AddStylesheet("/style/style.css")
+        //page:AddStylesheet("/style/style.css")
         page:AddStylesheet("/style/google.css")
         page:AddStylesheet("/style/output.css")
         page:AddIcon("/media/favicon.ico")
 
         //Add Responsive Stylesheets
         WebPageHeader webHeader = page:GetWebPageHeader()
-        webHeader:Add(GetMediaStyleSheet("/style/style-small.css", "(max-width: 500px)"))
-        webHeader:Add(GetMediaStyleSheet("/style/style-medium.css", "(min-width: 501px) and (max-width: 1000px)"))
-        webHeader:Add(GetMediaStyleSheet("/style/style-large.css", "(min-width: 1001px)"))
+        //webHeader:Add(GetMediaStyleSheet("/style/style-small.css", "(max-width: 500px)"))
+        //webHeader:Add(GetMediaStyleSheet("/style/style-medium.css", "(min-width: 501px) and (max-width: 1000px)"))
+        //webHeader:Add(GetMediaStyleSheet("/style/style-large.css", "(min-width: 1001px)"))
 
         //Add the navigation bar
         NavigationBar navigation
