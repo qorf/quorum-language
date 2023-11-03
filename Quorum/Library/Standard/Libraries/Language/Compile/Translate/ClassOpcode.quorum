@@ -248,7 +248,7 @@ class ClassOpcode is QuorumOpcode
         page:SetWebPageTitle(clazz:GetStaticKey() + " - Quorum Programming Language")
         MainContent mainRegion
         mainRegion:AddAttribute("role","main")
-        mainRegion:SetClassAttribute("flex flex-row w-full justify-center box-border mx-12 md:mx-24 lg:mx-48")
+        mainRegion:SetClassAttribute("flex flex-row w-full box-border mx-1 md:mx-2 lg:mx-4 md:gap-x-2")
 
         Header headDiv
         Section introHeaderSection = generator:CreateHeaderSection(clazz:GetStaticKey())
@@ -256,36 +256,41 @@ class ClassOpcode is QuorumOpcode
         page:Add(headDiv)
 
         Division bodyDiv
-        bodyDiv:SetClassAttribute("w-full")
-        bodyDiv:AddHeading(clazz:GetStaticKey() + " Documentation", 2)
-
+        bodyDiv:SetClassAttribute("w-4/6 pr-16 space-y-2")
+        Heading titleHeader = bodyDiv:AddHeading(clazz:GetStaticKey() + " Documentation", 2)
+titleHeader:SetClassAttribute("font-bold text-3xl")
+        
         Documentation doc = clazz:GetDocumentation()
+        Division headerDivision = undefined
         if doc not= undefined
             //add that in.
-            Division value = doc:GetHeaderDivision()
-            bodyDiv:Add(value)
+            headerDivision = doc:GetHeaderDivision()
+            headerDivision:SetClassAttribute("space-y-1")
+            bodyDiv:Add(headerDivision)
         end
         
         Iterator<Class> parents = clazz:GetParentClasses()
         if parents:HasNext()
             Paragraph inherits
-            Emphasize emph
-            emph:AddText("Inherits from: ")
-            inherits:Add(emph)
+            inherits:AddText("Inherits from: ")
             //inherits
             repeat while parents:HasNext()
                 Class p = parents:Next()
                 Link parentLink = GetParentWebLink(clazz, p)
+                parentLink:SetClassAttribute("hover:underline text-quorum-blue-100")
                 inherits:Add(parentLink)
                 if parents:HasNext()
                     inherits:AddText(", ")
                 end
             end
-            bodyDiv:Add(inherits)
+            if headerDivision not= undefined
+headerDivision:Add(inherits)
+            else
+bodyDiv:Add(inherits)
+            end
         end
 
         //sort the various actions and variables for a summary table
-        bodyDiv:AddHeading("Summary", 2)
         Iterator<Action> it = clazz:GetVirtualTable()
         Array<Action> array
         repeat while it:HasNext()
@@ -307,19 +312,24 @@ class ClassOpcode is QuorumOpcode
         variableArray:Sort()
         vars = variableArray:GetIterator()
 
-        
+        Division variableDivision
+
+        variableDivision:SetClassAttribute("space-y-1")
         if not variableArray:IsEmpty()
-            bodyDiv:AddHeading("Variable Summary Table", 3)
+            Heading variableSummaryHeader = variableDivision:AddHeading("Variable Summary Table", 3)
+variableSummaryHeader:SetClassAttribute("font-bold text-2xl")
             WebTable table
-            table:SetClassAttribute("rounded")
+            table:SetClassAttribute("overflow-hidden rounded-md table-auto w-full border-collapse bg-neutral-grey-25")
             table:SetIdentifier("VariableSummaryTable")
             table:SetBorder(true)
 
             //write the header
             TableRow headerRow
-            headerRow:SetClassAttribute("bg-black")
+            headerRow:SetClassAttribute("text-neutral-white bg-neutral-black text-left font-bold")
             TableHeaderCell variables
+            variables:SetClassAttribute("px-3")
             TableHeaderCell description
+description:SetClassAttribute("px-3")
             variables:AddText("Variables")
             description:AddText("Description")
             headerRow:Add(variables)
@@ -332,13 +342,19 @@ class ClassOpcode is QuorumOpcode
                 Type t = var:GetType()
                 text typeDisplay = t:GetDisplayName()
                 TableData data
-                StrongText strong
-                strong:AddText(typeDisplay + " " + var:GetName())
-                data:Add(strong)
+                data:AddText(typeDisplay + " " + var:GetName())
                 variableRow:Add(data)
 
                 Documentation doc2 = var:GetDocumentation()
                 TableData dataDocumentation
+                if vars:HasNext()
+data:SetClassAttribute("font-bold border-y border-slate-400 px-3 py-2")
+dataDocumentation:SetClassAttribute("border-y border-slate-400 px-3 py-2")
+                else
+                    //No border if on the last line
+data:SetClassAttribute("font-bold px-3 py-2")
+dataDocumentation:SetClassAttribute("px-3 py-2")
+                end
                 if doc2 not= undefined
                     dataDocumentation:AddText(doc2:GetDescription())
                 end
@@ -347,75 +363,48 @@ class ClassOpcode is QuorumOpcode
             end
 
             if not variableArray:IsEmpty()
-                bodyDiv:Add(table)
+                variableDivision:Add(table)
+                bodyDiv:Add(variableDivision)
             end
         end
 
-//        it = array:GetIterator()
-//        if it:HasNext()
-//            bodyDiv:AddHeading("Actions Summary Table", 3)
-//            WebTable table
-//            table:SetBorder(true)
-//
-//            //write the header
-//            TableRow headerRow
-//            TableHeaderCell variables
-//            TableHeaderCell description
-//            variables:AddText("Actions")
-//            description:AddText("Description")
-//            headerRow:Add(variables)
-//            headerRow:Add(description)
-//            table:Add(headerRow)
-//
-//            repeat while it:HasNext()
-//                TableRow actionRow
-//                Action act = it:Next()
-//                text display = act:GetDisplayNameNoReturnAsWeb()
-//                TableData data
-//                Link actionLink
-//                actionLink:SetAddress("#" + act:GetStaticKey())
-//                StrongText strong
-//                strong:AddText(display)
-//                actionLink:Add(strong)
-//                data:Add(actionLink)
-//                actionRow:Add(data)
-//
-//                Documentation doc2 = act:GetDocumentation()
-//                TableData dataDocumentation
-//                if doc2 not= undefined
-//                    dataDocumentation:AddText(doc2:GetShortDescription())
-//                end
-//                actionRow:Add(dataDocumentation)
-//                table:Add(actionRow)
-//            end
-//            bodyDiv:Add(table)
-//        end
 
+
+        Division actionDivision
+        actionDivision:SetClassAttribute("space-y-6")
         it = array:GetIterator()
         if it:HasNext()
-            bodyDiv:AddHeading("Actions Documentation", 2)
+            Heading actionHeader = actionDivision:AddHeading("Actions Documentation", 2)
+            actionHeader:SetClassAttribute("font-bold text-2xl")
+            bodyDiv:Add(actionDivision)
         end
 
         repeat while it:HasNext()
             Action act = it:Next()
             Section section
-            section:SetClassAttribute("rounded-sm")
-            bodyDiv:Add(section)
+            section:SetClassAttribute("space-y-6")
+            actionDivision:Add(section)
+            Division actionTop
+            actionTop:SetClassAttribute("overflow-hidden rounded-md bg-neutral-grey-25")
+            section:Add(actionTop)
             text display = act:GetDisplayNameNoReturnAsWeb()
-            Heading header = section:AddHeading(act:GetDisplayNameNoReturnAsWeb(), 3)
+            Heading header = actionTop:AddHeading(act:GetDisplayNameNoReturnAsWeb(), 3)
             header:AddAttribute("id", act:GetStaticKey())
-            header:SetClassAttribute("bg-black text-white")
+            header:SetClassAttribute("font-bold bg-neutral-black px-3 text-left text-neutral-white py-2")
             Documentation doc2 = act:GetDocumentation()
             if doc2 not= undefined
-                section:AddParagraph(doc2:GetDescription())
+                Paragraph par = actionTop:AddParagraph(doc2:GetDescription())
+                par:SetClassAttribute("px-3")
             end    
 
             Iterator<Variable> params = act:GetParameterIterator()
             if params:HasNext()
-                section:AddHeading("Parameters", 4)
+                Heading paramHeading = actionTop:AddHeading("Parameters", 4)
+                paramHeading:SetClassAttribute("font-bold px-3")
                 UnorderedList unordered
+                unordered:SetClassAttribute("px-6 list-disc list-inside")
                 if params:HasNext()
-                    section:Add(unordered)
+                    actionTop:Add(unordered)
                 end
                 repeat while params:HasNext()
                     Variable param = params:Next()
@@ -451,12 +440,14 @@ class ClassOpcode is QuorumOpcode
             Type returnType = act:GetReturnType()
             if not returnType:IsVoid()
                 text r = returnType:GetStaticKeyWithMappedGenerics()
-                section:AddHeading("Return", 4)
+                Heading returnHeading = actionTop:AddHeading("Return", 4)
+                returnHeading:SetClassAttribute("font-bold px-3")
                 text documentationForParameter = undefined
                 if doc2 not= undefined
                     documentationForParameter = ": " + doc2:GetReturns()
                 end
                 Paragraph returnParagraph
+                returnParagraph:SetClassAttribute("px-6")
                 SymbolTable symbolTable = GetSymbolTable()
                 if not returnType:IsPrimitive()
                     Class referenceClass = symbolTable:GetClass(returnType:GetStaticKey())
@@ -471,7 +462,7 @@ class ClassOpcode is QuorumOpcode
                         returnParagraph:AddText(documentationForParameter)
                     end
                 end
-                section:Add(returnParagraph)
+                actionTop:Add(returnParagraph)
             end
 
             //now check if there's an example and place it in
@@ -488,7 +479,7 @@ class ClassOpcode is QuorumOpcode
                     exampleDivision:Add(exampleParagraph)
         
                     PreformattedText t
-                    t:SetClassAttribute("line-numbers rounded-2xl")
+                    t:SetClassAttribute("line-numbers rounded-md bg-neutral-grey-25 py-2")
                     CodeBlock block
                     block:SetClassAttribute("language-quorum")
                     block:AddText(example)

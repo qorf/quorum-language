@@ -53,7 +53,6 @@ class Documentation is Location
         paragraph:AddText(GetDescription())
 
         division:Add(paragraph)
-        //result = result + "<p align=" + dq + "justify" + dq + ">" + GetDescription() + "</p>" 
         text example = GetExample()
         
         if example not= undefined and not example:IsEmpty()
@@ -66,7 +65,7 @@ class Documentation is Location
             division:Add(exampleParagraph)
 
             PreformattedText t
-            t:SetClassAttribute("line-numbers rounded-2xl")
+            t:SetClassAttribute("line-numbers rounded-md bg-neutral-grey-25 py-2")
             CodeBlock block
             block:SetClassAttribute("language-quorum")
             block:AddText(example)

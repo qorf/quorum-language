@@ -209,7 +209,7 @@ class DocumentationGenerator
         page:SetWebPageTitle("Standard Library Index - " + compiler:GetVersion())
         MainContent mainRegion
         mainRegion:AddAttribute("role","main")
-mainRegion:SetClassAttribute("flex flex-row w-full justify-center box-border mx-12 md:mx-24 lg:mx-48")
+mainRegion:SetClassAttribute("flex flex-row w-full box-border mx-1 md:mx-2 lg:mx-4 md:gap-x-2")
         
         text phrase = "Introducing the " + compiler:GetVersion() + " Standard Library"
         Header headDiv
@@ -218,7 +218,7 @@ mainRegion:SetClassAttribute("flex flex-row w-full justify-center box-border mx-
         page:Add(headDiv)
 
         Division bodyDiv
-        bodyDiv:SetClassAttribute("w-full")
+        bodyDiv:SetClassAttribute("w-4/6")
         bodyDiv:AddHeading("Quorum's Built-in Packages and Classes", 2)
         bodyDiv:AddParagraph("This page shows the full list of classes Quorum 
 supports in the current version of the standard library. These classes are 
@@ -255,7 +255,7 @@ tutorial.")
         Heading quorumHeader
         quorumHeader:SetScale(1)
         quorumHeader:AddText(header)
-        quorumHeader:AddClassAttribute("text-2xl text-center font-bold font-sans")
+        quorumHeader:AddClassAttribute("text-2xl w-72 font-bold font-sans")
         leftText:Add(quorumHeader)
     
         Paragraph p
