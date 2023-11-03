@@ -167,7 +167,7 @@ class CompareMeansSummary
         text columns = result:GetColumnList()
         text statisticName = result:GetTestStatisticName()
         integer group1Size = cast(integer, result:GetInformation():GetValue(group1Name):GetValue("size"))
-        integer group2Size = cast(integer, result:GetInformation():GetValue(group1Name):GetValue("size"))
+        integer group2Size = cast(integer, result:GetInformation():GetValue(group2Name):GetValue("size"))
         number statistic = result:GetTestStatistic()
         number pvalue = result:GetProbabilityValue()
 
@@ -1146,7 +1146,6 @@ class CompareMeansSummary
                         resultFrame:AddColumn(equationCol) 
                     end
                     testCol:Add(source)
-                    equationCol:Add(GetFormalNumericalResultSeveral(source))
                     if result:GetInformation():GetValue(source):HasKey("F")
                         text statName = result:GetTestStatisticsTable():GetValue(source):GetKeyIterator():Next()
                         text effectName = result:GetEffectSizesTable():GetValue(source):GetKeyIterator():Next()
@@ -1161,6 +1160,7 @@ class CompareMeansSummary
                             statisticCol:SetHeader("Statistic ("+statName+")")
                             effectCol:SetHeader("Effect Size ("+effectName+")")
                         end
+                        equationCol:Add(GetFormalNumericalResultSeveral(source))
                     else
                         if source = "Residual Error"
                             ssCol:Add(math:Round(result:GetInformation():GetValue(source):GetValue("ss"), digits))
@@ -1173,6 +1173,7 @@ class CompareMeansSummary
                             dfeCol:Add(math:Round(result:GetInformation():GetValue(source):GetValue("df"), digits))
                             pCol:Add(undefined)
                             effectCol:Add(undefined)
+                            equationCol:Add(undefined)
                         end
                     end
                 end
