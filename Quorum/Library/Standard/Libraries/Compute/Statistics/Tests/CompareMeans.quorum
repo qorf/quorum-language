@@ -60,18 +60,36 @@ use Libraries.Compute.Statistics.Reporting.CompareMeansSummary
         Difference between several groups on more than one dependent variable with one or more independent variables
         For more information: https://en.wikipedia.org/wiki/Multivariate_analysis_of_variance 
 
-        CompareSeveralRelatedMeans is a Repeated Measures Univariate and Multivariate Analysis Of Variance (RM ANOVA, RM MANOVA)
-        Difference between several groups on one or more dependent variables when there are repeated measures
+        CompareSeveralRelatedMeans is a Repeated Measures Univariate Analysis Of Variance (RM ANOVA, Mixed ANOVA)
+        Difference between several groups on one dependent variable when there are repeated measures
         For more information: https://en.wikipedia.org/wiki/Repeated_measures_design
-
-        CompareSeveralRelatedMeans is a Mixed Design Analysis Of Variance (Mixed ANOVA)
-        Difference between several groups on one or more dependent variable when there are repeated measures
         For more information: https://en.wikipedia.org/wiki/Mixed-design_analysis_of_variance
 
-        _____________ is a (One-Way) Analysis Of Covariance (ANCOVA)
+        ** Mixed MANOVA is NOT IMPLEMENTED YET **
+        CompareSeveralRelatedMeans is a Repeated Measures Multivariate Analysis Of Variance (RM MANOVA, Mixed MANOVA)
+        Difference between several groups on more than one dependent variable when there are repeated measures
+        For more information: https://en.wikipedia.org/wiki/Repeated_measures_design
+        For more information: https://en.wikipedia.org/wiki/Mixed-design_analysis_of_variance       
+
+        ** NOT IMPLEMENTED YET **
+        _____________ is a Univariate Analysis Of Covariance (ANCOVA)
         Difference between several groups while controlling for nuisance variables
         For more information: https://en.wikipedia.org/wiki/Analysis_of_covariance
-     
+
+        ** NOT IMPLEMENTED YET **
+        _____________ is a Multivariate Analysis Of Covariance (MANCOVA)
+        Difference between several groups while controlling for nuisance variables
+        For more information: https://en.wikipedia.org/wiki/Multivariate_analysis_of_covariance
+
+        ** NOT IMPLEMENTED YET **
+        _____________ is a Repeated Measures Univariate Analysis Of Covariance (RM ANCOVA, Mixed ANCOVA)
+        Difference between several groups while controlling for nuisance variables when there are repeated measures
+        For more information: https://en.wikipedia.org/wiki/Analysis_of_covariance
+
+        ** NOT IMPLEMENTED YET **
+        _____________ is a Repeated Measures Multivariate Analysis Of Covariance (RM MANCOVA, Mixed MANCOVA)
+        Difference between several groups while controlling for nuisance variables when there are repeated measures
+        For more information: https://en.wikipedia.org/wiki/Multivariate_analysis_of_covariance
 
     Non-Parametric:
         CompareRankedMeanTo is a Wilcoxon Signed-Ranks Test
@@ -94,6 +112,7 @@ use Libraries.Compute.Statistics.Reporting.CompareMeansSummary
         Difference between three or more rank ordered groups without assumptions about the distribution
         For more information: https://en.wikipedia.org/wiki/Kruskal%E2%80%93Wallis_one-way_analysis_of_variance
 
+        ** NOT IMPLEMENTED YET **
         _____________ is a Factorial (Multi-Way) Scheirer–Ray–Hare Test
         Difference between several rank ordered groups on multiple independent variables without assumptions about the distribution
         For more information: https://en.wikipedia.org/wiki/Scheirer%E2%80%93Ray%E2%80%93Hare_test
@@ -182,9 +201,9 @@ class CompareMeans is StatisticalTest
         groups:Empty()
         factorHeaders:Empty()
         columnHeaders:Empty()
-
-        design:RepeatedMeasures(repeated)
+        
         if design:GetDesignFrame() = undefined
+            design:RepeatedMeasures(repeated)
             design:Transform(frame)
         end 
         designFrame = design:GetDesignFrame()
@@ -1115,6 +1134,7 @@ class CompareMeans is StatisticalTest
                 result:SetFactors(factorHeaders)
                 result:SetColumns(columnHeaders)
                 result:SetSources(sources)
+                result:SetGroupsFrame(betweenResult:GetGroupsFrame())
                 result:SetVarianceResult(vResult)
                 results:Add(result)
             end
