@@ -263,20 +263,18 @@ tutorial.")
         p:AddClassAttribute("w-72 font-light")
         leftText:Add(p)
     
-        blueSection:Add(leftText)
-    
         // Bunny Image
         Division bunnyImageHolder
         bunnyImageHolder:AddClassAttribute("w-1/4 max-w-[200px]")
     
         Image bunny
-        bunny:SetAddress("/media/userInterface/quorumAssets/learnHeader.png")
+        bunny:SetAddress("/media/userInterface/quorumAssets/LIBRARY.png")
         bunny:AddClassAttribute("w-full")
-        bunny:SetAlternate("Two cartoon rabbits wearing glasses. 
-        The rabbit on the left, Quincy, is holding a game controller, while the rabbit on the right, Quinn, is holding 
-        up a paper with a pie chart on it.")
+        bunny:SetAlternate("A cartoon rabbit named Quincy wearing glasses. 
+        Quincy is reading a book containing documentation for the standard library. We reluctantly admit it is a boring book.")
         bunnyImageHolder:Add(bunny)
         blueSection:Add(bunnyImageHolder)
+blueSection:Add(leftText)
     
         return blueSection
     end

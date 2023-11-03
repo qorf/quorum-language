@@ -258,7 +258,7 @@ class ClassOpcode is QuorumOpcode
         Division bodyDiv
         bodyDiv:SetClassAttribute("w-4/6 pr-16 space-y-2")
         Heading titleHeader = bodyDiv:AddHeading(clazz:GetStaticKey() + " Documentation", 2)
-titleHeader:SetClassAttribute("font-bold text-3xl")
+titleHeader:SetClassAttribute("font-bold text-3xl pt-6")
         
         Documentation doc = clazz:GetDocumentation()
         Division headerDivision = undefined
@@ -403,7 +403,7 @@ actionTop:Add(actionMiddle)
                 Heading paramHeading = actionMiddle:AddHeading("Parameters", 4)
                 paramHeading:SetClassAttribute("font-bold px-3")
                 UnorderedList unordered
-                unordered:SetClassAttribute("px-6 list-disc list-inside")
+                unordered:SetClassAttribute("px-12 list-disc list-inside")
                 if params:HasNext()
                     actionMiddle:Add(unordered)
                 end
@@ -448,7 +448,7 @@ actionTop:Add(actionMiddle)
                     documentationForParameter = ": " + doc2:GetReturns()
                 end
                 Paragraph returnParagraph
-                returnParagraph:SetClassAttribute("px-6")
+                returnParagraph:SetClassAttribute("px-12")
                 SymbolTable symbolTable = GetSymbolTable()
                 if not returnType:IsPrimitive()
                     Class referenceClass = symbolTable:GetClass(returnType:GetStaticKey())
@@ -480,7 +480,7 @@ actionTop:Add(actionMiddle)
                     exampleDivision:Add(exampleParagraph)
         
                     PreformattedText t
-                    t:SetClassAttribute("line-numbers rounded-md bg-neutral-grey-15 py-4")
+                    t:SetClassAttribute("line-numbers rounded-md bg-neutral-grey-10 py-4")
                     CodeBlock block
                     block:SetClassAttribute("language-quorum")
                     block:AddText(example)
