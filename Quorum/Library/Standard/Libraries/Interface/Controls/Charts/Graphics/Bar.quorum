@@ -10,6 +10,9 @@ use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.Shaders.ShaderProgram
 use Libraries.Game.Graphics.Shaders.ControlShaderProgram
 use Libraries.Interface.Controls.Charts.SharedBarChartParent
+use Libraries.Interface.Controls.Charts.ChartOptions
+use Libraries.Game.Graphics.Shaders.LinePatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.CrosshatchPatternControlShaderProgram
 
 /*
 The Bar class is a ChartDrawable that stores information for each 
@@ -67,13 +70,47 @@ class Bar is ChartDrawable
         if GetShaderProgram() = undefined
             ShaderManager manager
             ShaderProgram program = undefined
-            if manager:HasShaderProgram("Control Shader Program")
-                program = manager:GetShaderProgram("Control Shader Program")
+            
+            if HasPattern()
+                integer pattern = GetPattern()
+                ChartOptions options
+                
+                if pattern = options:VERTICAL_LINES or pattern = options:HORIZONTAL_LINES or pattern = options:DIAGONAL_DOWN_LINES or pattern = options:DIAGONAL_UP_LINES
+                    if manager:HasShaderProgram("Line Pattern Control Shader Program")
+                        program = manager:GetShaderProgram("Line Pattern Control Shader Program")
+                    else
+                        LinePatternControlShaderProgram patternShader
+                        patternShader:Compile()
+                        program = patternShader
+                    end
+                elseif pattern = options:PLAIN_CROSSHATCH or pattern = options:DIAGONAL_CROSSHATCH
+                    if manager:HasShaderProgram("Crosshatch Pattern Control Shader Program")
+                        program = manager:GetShaderProgram("Crosshatch Pattern Control Shader Program")
+                    else
+                        CrosshatchPatternControlShaderProgram patternShader
+                        patternShader:Compile()
+                        program = patternShader
+                    end
+                else
+                    // Default case: basic control shader, without pattern
+                    if manager:HasShaderProgram("Control Shader Program")
+                        program = manager:GetShaderProgram("Control Shader Program")
+                    else
+                        ControlShaderProgram controlShader
+                        controlShader:Compile()
+                        program = controlShader
+                    end
+                end
             else
-                ControlShaderProgram controlShader
-                controlShader:Compile()
-                program = controlShader
+                if manager:HasShaderProgram("Control Shader Program")
+                    program = manager:GetShaderProgram("Control Shader Program")
+                else
+                    ControlShaderProgram controlShader
+                    controlShader:Compile()
+                    program = controlShader
+                end
             end
+            
             SetShaderProgram(program)
         end
 
