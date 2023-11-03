@@ -319,7 +319,7 @@ bodyDiv:Add(inherits)
             Heading variableSummaryHeader = variableDivision:AddHeading("Variable Summary Table", 3)
 variableSummaryHeader:SetClassAttribute("font-bold text-2xl")
             WebTable table
-            table:SetClassAttribute("overflow-hidden rounded-md table-auto w-full border-collapse bg-neutral-grey-25")
+            table:SetClassAttribute("overflow-hidden rounded-md table-auto w-full border-collapse bg-neutral-grey-15")
             table:SetIdentifier("VariableSummaryTable")
             table:SetBorder(true)
 
@@ -368,8 +368,6 @@ dataDocumentation:SetClassAttribute("px-3 py-2")
             end
         end
 
-
-
         Division actionDivision
         actionDivision:SetClassAttribute("space-y-6")
         it = array:GetIterator()
@@ -385,26 +383,29 @@ dataDocumentation:SetClassAttribute("px-3 py-2")
             section:SetClassAttribute("space-y-6")
             actionDivision:Add(section)
             Division actionTop
-            actionTop:SetClassAttribute("overflow-hidden rounded-md bg-neutral-grey-25")
+            actionTop:SetClassAttribute("overflow-hidden rounded-md bg-neutral-grey-15")
             section:Add(actionTop)
+            Division actionMiddle
+            actionMiddle:SetClassAttribute("py-4")
             text display = act:GetDisplayNameNoReturnAsWeb()
             Heading header = actionTop:AddHeading(act:GetDisplayNameNoReturnAsWeb(), 3)
+actionTop:Add(actionMiddle)
             header:AddAttribute("id", act:GetStaticKey())
             header:SetClassAttribute("font-bold bg-neutral-black px-3 text-left text-neutral-white py-2")
             Documentation doc2 = act:GetDocumentation()
             if doc2 not= undefined
-                Paragraph par = actionTop:AddParagraph(doc2:GetDescription())
+                Paragraph par = actionMiddle:AddParagraph(doc2:GetDescription())
                 par:SetClassAttribute("px-3")
             end    
 
             Iterator<Variable> params = act:GetParameterIterator()
             if params:HasNext()
-                Heading paramHeading = actionTop:AddHeading("Parameters", 4)
+                Heading paramHeading = actionMiddle:AddHeading("Parameters", 4)
                 paramHeading:SetClassAttribute("font-bold px-3")
                 UnorderedList unordered
                 unordered:SetClassAttribute("px-6 list-disc list-inside")
                 if params:HasNext()
-                    actionTop:Add(unordered)
+                    actionMiddle:Add(unordered)
                 end
                 repeat while params:HasNext()
                     Variable param = params:Next()
@@ -440,7 +441,7 @@ dataDocumentation:SetClassAttribute("px-3 py-2")
             Type returnType = act:GetReturnType()
             if not returnType:IsVoid()
                 text r = returnType:GetStaticKeyWithMappedGenerics()
-                Heading returnHeading = actionTop:AddHeading("Return", 4)
+                Heading returnHeading = actionMiddle:AddHeading("Return", 4)
                 returnHeading:SetClassAttribute("font-bold px-3")
                 text documentationForParameter = undefined
                 if doc2 not= undefined
@@ -462,7 +463,7 @@ dataDocumentation:SetClassAttribute("px-3 py-2")
                         returnParagraph:AddText(documentationForParameter)
                     end
                 end
-                actionTop:Add(returnParagraph)
+                actionMiddle:Add(returnParagraph)
             end
 
             //now check if there's an example and place it in
@@ -479,7 +480,7 @@ dataDocumentation:SetClassAttribute("px-3 py-2")
                     exampleDivision:Add(exampleParagraph)
         
                     PreformattedText t
-                    t:SetClassAttribute("line-numbers rounded-md bg-neutral-grey-25 py-2")
+                    t:SetClassAttribute("line-numbers rounded-md bg-neutral-grey-15 py-4")
                     CodeBlock block
                     block:SetClassAttribute("language-quorum")
                     block:AddText(example)
