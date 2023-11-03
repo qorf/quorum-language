@@ -75,7 +75,7 @@ class SingleLineBlockLayout is Layout
         Our aim is to ensure that if the last Item in the block is an EditRegion, it fills any extra space
         present due to the minimum width.
         */
-        if items:GetFromEnd() is EditRegion
+        if items:GetSize() > 0 and items:GetFromEnd() is EditRegion
             EditRegion region = cast(EditRegion, items:GetFromEnd())
             number fillWidth = block:GetMinimumWidth() - region:GetX() - block:GetRightPadding()
             if region:GetWidth() < fillWidth

@@ -49,12 +49,20 @@ class BlockSuggestionPage is BlockPalettePage, SelectionListener, TextChangeList
     action SetFromResult(BlockSuggestionResult result)
         GetFormChildren():Empty()
         Class clazz = result:clazz
+        if clazz = undefined
+            return now
+        end
         Array<Action> actions = result:actions
-        actions:Sort()
+        if actions not= undefined
+            actions:Sort()
+        end
         suggestedActions = actions
         text variableName = result:variableName
         me:variableName = variableName
         SetTitle(clazz:GetDisplayName())
+        if actions = undefined
+            return now
+        end
         AddFilterTextField()
 
         integer i = 0
@@ -77,6 +85,9 @@ class BlockSuggestionPage is BlockPalettePage, SelectionListener, TextChangeList
     end
 
     action TextChanged(TextChangeEvent event)
+        if filterField = undefined or suggestedActions = undefined
+            return now
+        end
         text filter = filterField:GetText()
         if filter not= ""
             filter = filter:ToLowerCase()

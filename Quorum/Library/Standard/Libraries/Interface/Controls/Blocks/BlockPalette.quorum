@@ -145,6 +145,7 @@ class BlockPalette is TabPane
     
     action MakeSuggestionPage returns Page
         BlockSuggestionPage page
+        page:SetPalette(me)
         me:suggestPage = page
         if GetEditor() not= undefined
             GetEditor():AddSelectionListener(page)
@@ -167,9 +168,9 @@ class BlockPalette is TabPane
         page:SetFromResult(result)
     end
     
-    action UpdateSuggestion(text className, CodeCompletionRequest request)
+    action UpdateSuggestion(Block block, CodeCompletionRequest request)
         BlockSuggestionHandler handler
-        handler:Request(className, request, me)
+        handler:Request(block, request, me)
     end
 
     /*

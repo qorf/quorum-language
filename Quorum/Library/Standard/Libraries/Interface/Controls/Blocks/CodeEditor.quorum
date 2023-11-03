@@ -2658,8 +2658,8 @@ renderer:MovePlaceholdersToNavigationIndex(index)
         return renderer:HasPlaceholders()
     end
     
-    action ConvertPlaceholdersToBlocks
-        renderer:ConvertPlaceholdersToBlocks()
+    action ConvertPlaceholdersToBlocks(text toInsert)
+        renderer:ConvertPlaceholdersToBlocks(toInsert)
     end
     
     action RemovePlaceholders

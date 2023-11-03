@@ -7,6 +7,8 @@ use Libraries.Interface.Item
 use Libraries.Interface.Controls.Blocks.CodeEditor
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Interface.Controls.Blocks.BlockPalette
+use Libraries.Interface.Controls.Blocks.BlockPaletteItem
 
 class CodeEditorAcceptDraggedBlockBehavior is Behavior
     
@@ -48,7 +50,13 @@ editor:MovePlaceholdersToNavigationIndex(line)
                         Array<Block> placeholders
                         integer i = 0
                         repeat while i < sourceBlocks:GetSize()
-                            placeholders:Add(sourceBlocks:Get(i):CopyToPlaceholder())
+                            if sourceBlocks:Get(i):IsPlaceholder()
+                                placeholders:Add(sourceBlocks:Get(i))
+                            else
+placeholders:Add(sourceBlocks:Get(i):CopyToPlaceholder())
+                                
+                                
+                            end
                             i = i + 1
                         end
                         editor:InsertPlaceholdersAtNavigationIndex(line, placeholders)
@@ -62,12 +70,20 @@ editor:MovePlaceholdersToNavigationIndex(line)
                 if sourceBlocks:IsEmpty() = false
                     Block firstBlock = sourceBlocks:GetFromFront()
                     Block lastBlock = sourceBlocks:GetFromEnd()
-                    text toInsert = editor:GetCode():GetText(firstBlock:GetStartIndex(), lastBlock:GetEndIndex())
-                    
+                    text toInsert = ""
+                    if source is BlockPaletteItem
+                        integer i = 0
+                        repeat while i < sourceBlocks:GetSize()
+                            toInsert = sourceBlocks:Get(i):GetPlaceholderText() + " "
+                            i = i + 1
+                        end
+                    else
+                        toInsert = editor:GetCode():GetText(firstBlock:GetStartIndex(), lastBlock:GetEndIndex())
+                    end
                     lastCandidateLine = -2
                     
                     if editor:HasPlaceholders()
-                        editor:ConvertPlaceholdersToBlocks()
+                        editor:ConvertPlaceholdersToBlocks(toInsert)
                     end
                 end
             end

@@ -733,20 +733,23 @@ RefreshNavigationIndices()
         
     end
     
-action ConvertPlaceholdersToBlocks
+action ConvertPlaceholdersToBlocks(text toInsert)
         CodeEditor editor = GetEditor()
         integer destination = placeholderBlocks:GetFromFront():GetStartIndex()
-        
-        text toMove = editor:GetCodeBetween(movingStartIndex, movingEndIndex)
+
         MultipleLineText code = editor:GetCode()
-        if movingStartIndex < destination
-            code = code:Insert(destination, toMove)
-            code = code:Delete(movingStartIndex, movingEndIndex)
+        if not movingBlocks:IsEmpty()
+            text toMove = editor:GetCodeBetween(movingStartIndex, movingEndIndex)
+            if movingStartIndex < destination
+                code = code:Insert(destination, toMove)
+                code = code:Delete(movingStartIndex, movingEndIndex)
+            else
+                code = code:Delete(movingStartIndex, movingEndIndex)
+                code = code:Insert(destination, toMove)
+            end
         else
-code = code:Delete(movingStartIndex, movingEndIndex)
-code = code:Insert(destination, toMove)
+            code = code:Insert(destination, toInsert)
         end
-        
 placeholderBlocks:Empty()
         
         integer i = 0

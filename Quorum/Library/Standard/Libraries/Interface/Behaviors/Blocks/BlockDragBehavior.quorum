@@ -14,6 +14,8 @@ use Libraries.Interface.Views.ControlShaderView
 use Libraries.Game.Layer2D
 use Libraries.Interface.Controls.Blocks.EditRegion
 use Libraries.Interface.Views.SingleLineBlockView
+use Libraries.Interface.Controls.Blocks.BlockPaletteItem
+use Libraries.Interface.Controls.Blocks.BlockPalette
 
 class BlockDragBehavior is Behavior
     
@@ -50,9 +52,14 @@ class BlockDragBehavior is Behavior
                 
                 dragSource = parentItem
                 
+            elseif targetItem is BlockPaletteItem
+                BlockPaletteItem paletteItem = cast(BlockPaletteItem, targetItem)
+                editor = paletteItem:GetPalette():GetEditor()
+                dragSource = paletteItem:GetPalette()
+                sourceBlocks = paletteItem:GetBlocks()
             elseif targetItem is Item2D
                 Item2D target = cast(Item2D, targetItem)
-                repeat until (target = undefined) or (target is CodeEditor) or (target is EditRegion)
+                repeat until (target = undefined) or (target is CodeEditor) or (target is BlockPalette) or (target is EditRegion)
                     target = target:GetParent()
                 end
                 
@@ -61,6 +68,10 @@ class BlockDragBehavior is Behavior
                 if target is CodeEditor
                     editor = cast(CodeEditor, target)
                     dragSource = editor
+                elseif target is BlockPalette
+                    BlockPalette palette = cast(BlockPalette, target)
+                    editor = palette:GetEditor()
+                    dragSource = palette
                 end
             end
             
@@ -70,7 +81,9 @@ class BlockDragBehavior is Behavior
             end
             
             if editor not= undefined
-                sourceBlocks = editor:GetSelectedBlocks()
+                if dragSource is CodeEditor
+                    sourceBlocks = editor:GetSelectedBlocks()
+                end
                 LoadDraggedBlocks(sourceBlocks, dragEvent:GetStartX(), dragEvent:GetStartY())
             end
             
@@ -109,19 +122,36 @@ class BlockDragBehavior is Behavior
         number targetX = 0
         number targetY = 0
         Layer2D targetLayer = blocks:Get(i):GetLayer()
+        if targetLayer = undefined
+            targetLayer = editor:GetLayer()
+        end
         dragAnchor:SetPosition(startX, startY)
         
         repeat while i < blocks:GetSize()
             Block block = blocks:Get(i)
             
-            Block dummyBlock = block:CopyToPlaceholder()
+            Block dummyBlock = block
+            if not block:IsPlaceholder()
+                dummyBlock = block:CopyToPlaceholder()
+            end
+//            Control dummyBlock
+//            dummyBlock:SetBackgroundColor(block:GetBackgroundColor())
+//            dummyBlock:SetBorderColor(block:GetBorderColor())
+//            dummyBlock:SetBorderThickness(block:GetBorderThickness())
+//            dummyBlock:SetSize(block:GetWidth(), block:GetHeight())
+//            dummyBlock:SetPosition(targetX, targetY)
+//            
+//            // Temporary debugging view.
+//            ControlShaderView view
+//            view:Initialize()
+//            dummyBlock:SetView2D(view)
             
             dummyBlock:SetSize(block:GetWidth(), block:GetHeight())
             dummyBlock:SetPosition(targetX, targetY)
             
-SingleLineBlockView view
-                view:Initialize()
-                dummyBlock:SetView2D(view)
+            SingleLineBlockView view
+            view:Initialize()
+            dummyBlock:SetView2D(view)
             
             dragAnchor:Add(dummyBlock)
             
@@ -132,7 +162,7 @@ SingleLineBlockView view
         sourceBlocks = blocks
         targetLayer:Add(dragAnchor)
         
-if editor not= undefined
+        if editor not= undefined and dragSource is CodeEditor
             editor:SetMovingBlocks(sourceBlocks)
         end
         
@@ -152,6 +182,10 @@ layer:Remove(dragAnchor)
     
     action GetSourceBlocks returns Array<Block>
         return sourceBlocks
+    end
+
+    action GetDragSource returns Item2D
+        return dragSource
     end
 
 end

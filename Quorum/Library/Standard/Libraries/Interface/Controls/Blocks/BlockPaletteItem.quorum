@@ -7,6 +7,7 @@ use Libraries.Game.InputSet
 use Libraries.Interface.Behaviors.Blocks.BlockPaletteItemStartDragBehavior
 use Libraries.Interface.Behaviors.Blocks.BlockPaletteItemContinueDragBehavior
 use Libraries.Interface.Behaviors.Blocks.BlockPaletteItemDropBehavior
+use Libraries.Containers.Array
 
 
 class BlockPaletteItem is Button
@@ -14,8 +15,8 @@ class BlockPaletteItem is Button
     BlockPalette palette = undefined
 
     on create
-        SetInputGroup("BlockPaletteItem")
-        InputTable paletteItemContentTable = CopyAndActivateInputTable("BlockPaletteItem")
+        SetInputGroup("Block")
+        InputTable paletteItemContentTable = CopyAndActivateInputTable("Block")
 
         InputSet dragBeginSet
         dragBeginSet:SetDragItemInput()
@@ -33,9 +34,9 @@ class BlockPaletteItem is Button
         BlockPaletteItemContinueDragBehavior paletteItemContinueDragBehavior
         BlockPaletteItemDropBehavior paletteItemDropBehavior
 
-        paletteItemContentTable:Add(dragBeginSet, paletteItemStartDragBehavior)
-        paletteItemContentTable:Add(dragContinueSet, paletteItemContinueDragBehavior)
-        paletteItemContentTable:Add(dragEndSet, paletteItemDropBehavior)
+        //paletteItemContentTable:Add(dragBeginSet, paletteItemStartDragBehavior)
+        //paletteItemContentTable:Add(dragContinueSet, paletteItemContinueDragBehavior)
+        //paletteItemContentTable:Add(dragEndSet, paletteItemDropBehavior)
     end
 
     action SetPalette(BlockPalette palette)
@@ -46,4 +47,24 @@ class BlockPaletteItem is Button
         return palette
     end
 
+    action GetEditor returns CodeEditor
+        if palette not= undefined
+            return palette:GetEditor()
+        end
+        return undefined
+    end
+
+
+    action GetBlocks returns Array<Block>
+        Array<Block> blocks
+        
+        ActionCallBlock placeholder
+        placeholder:SetAsPlaceholder(GetName())
+        placeholder:SetEditor(GetEditor())
+        placeholder:SetScopeDepth(1)
+        placeholder:Setup()
+
+        blocks:Add(placeholder)
+        return blocks
+    end
 end

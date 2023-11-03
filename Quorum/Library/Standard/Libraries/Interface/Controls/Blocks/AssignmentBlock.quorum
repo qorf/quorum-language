@@ -54,7 +54,7 @@ class AssignmentBlock is SingleLineBlock
 
     action GetVariableName returns text
         if nameField not= undefined
-            return typeField:GetText()
+            return nameField:GetText()
         end
         return ""
     end

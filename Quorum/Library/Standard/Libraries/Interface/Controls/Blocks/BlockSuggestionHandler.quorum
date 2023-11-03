@@ -8,18 +8,27 @@ use Libraries.Language.Compile.Parsing.TokenIterator
 use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Symbol.Action
 use Libraries.Containers.Array
+use Libraries.Language.Compile.Parsing.ActionIndexSort
+use Libraries.Containers.Stack
+use Libraries.Language.Compile.Parsing.Token
+use Libraries.Language.Compile.Parsing.QuorumLexerConstants
 
 
 class BlockSuggestionHandler
     BlockPalette palette = undefined
 
 
-    action Request(text className, CodeCompletionRequest request, BlockPalette palette)
+    QuorumLexerConstants constants
+ActionIndexSort actionSorter
+    
+    action Request(Block block, CodeCompletionRequest request, BlockPalette palette)
         me:palette = palette
         CompilerResult compilerResult = request:result
         CompilerResult lastCompiledResult = request:lastCompiledResult
         text source = request:source
         BlockSuggestionResult result
+        text className = ""
+        text variableName = ""
 
         SymbolTable last = undefined
         SymbolTable compiled = undefined
@@ -37,31 +46,41 @@ class BlockSuggestionHandler
                 request:clazzCurrentParse = lastClazz
             end
         end
+        if block is AssignmentBlock
+            AssignmentBlock assign = cast(AssignmentBlock, block)
+            className = assign:GetClassName()
+            variableName = assign:GetVariableName()
+        end
 
-        Class clazz = GetBestChoiceClass(request:result, lastCompiledResult, request:fileKey, className)
+        Class clazz = GetBestChoiceClass(request:result, lastCompiledResult, request:fileKey, className, variableName)
         SymbolTable table = GetBestChoiceSymbolTable(request:result, lastCompiledResult)
+
+        
+QuorumLexer luthor
+        luthor:Read(source)
+        TokenIterator<Libraries.Language.Compile.Parsing.Token> tokenIterator = luthor:GetIterator()
 
         //true or true  or true and false
         request:clazz = clazz
         request:table = table
-
-        if (clazz = undefined or table = undefined) // or not IsLegalCall(request, request:clazzCurrentParse, split)
-            return now
-        end
+        CalculateScope(request:caretLocation, tokenIterator, request)
         
         Array<Action> actions = AddActions(request)
         result:actions = actions
         result:clazz = request:clazz
+        result:variableName = variableName
         
         palette:SetSuggestionResult(result)
     end
 
-    private action GetBestChoiceClass(CompilerResult last, CompilerResult compiled, text file, text className) returns Class
+    private action GetBestChoiceClass(CompilerResult last, CompilerResult compiled, text file, text className, text variableName) returns Class
         if compiled not= undefined and compiled:symbolTable not= undefined
             Class clazz = undefined
             Iterator<Class> clazzes = undefined
             if className not= "" 
                 clazzes = compiled:symbolTable:GetClassByName(className)
+            elseif variableName not= ""
+                
             end
             if clazzes not= undefined and clazzes:HasNext()
                 clazz = clazzes:Next()
@@ -160,4 +179,161 @@ class BlockSuggestionHandler
         return actionsToReturn
     end
 
+    
+private action GetSortedBlocks(Action act) returns Array<Libraries.Language.Compile.Symbol.Block>
+        Array<Libraries.Language.Compile.Symbol.Block> blocks
+        Libraries.Language.Compile.Symbol.Block block = act:GetBlock()
+        
+
+        if block not= undefined
+            blocks:Add(block)
+
+            Iterator<Libraries.Language.Compile.Symbol.Block> actionBlocks = block:GetBlocks()
+            repeat while actionBlocks:HasNext()
+                block = actionBlocks:Next()
+                blocks:Add(block)
+                FillFromBlock(blocks, block)
+            end
+        end
+        return blocks
+    end
+    
+private action GetSortedActions(Class clazz) returns Array<Action> 
+        Iterator<Action> iterator = clazz:GetActions()
+
+        Array<Action> actions
+        repeat while iterator:HasNext()
+            actions:Add(iterator:Next())
+        end
+
+        
+        actions:Sort(actionSorter)
+        return actions
+    end
+    
+    
+private action FillFromBlock(Array<Libraries.Language.Compile.Symbol.Block> blocks, Libraries.Language.Compile.Symbol.Block block)
+        Iterator<Libraries.Language.Compile.Symbol.Block> iterator = block:GetBlocks()
+        repeat while iterator:HasNext()
+            Libraries.Language.Compile.Symbol.Block next = iterator:Next()
+            blocks:Add(next)
+            FillFromBlock(blocks, next)
+        end
+    end
+    
+    
+private action IsInToken(integer index, Libraries.Language.Compile.Parsing.Token token) returns boolean
+        if index >= token:startIndex// and index < token:endIndex
+            return true
+        end
+
+        return false
+    end
+    
+private action CalculateScope(integer index, TokenIterator<Token> iterator, CodeCompletionRequest request)
+        if request = undefined or request:clazz = undefined or iterator = undefined or index < 0
+            return now
+        end
+
+        Class clazz = request:clazz
+        integer actionIndex = -1
+        integer blockIndex = 0
+        integer candidateBlock = -1
+        Stack<Libraries.Language.Compile.Symbol.Block> blockStack
+        Array<Action> actions = GetSortedActions(clazz)
+        Array<Libraries.Language.Compile.Symbol.Block> blocks = undefined
+        if clazz not= undefined and clazz:IsImplicitClass()
+            Action main = actions:Get(0) //must be one
+            blocks = GetSortedBlocks(main)
+            request:block = main:GetBlock()
+            blockStack:Push(request:block)
+        end
+
+        boolean inClass = false
+        boolean inAction = false
+        repeat while iterator:HasNext() 
+            Token token = iterator:Next()
+            if token:category = constants:CLASS
+                request:clazz = clazz
+                inClass = true
+            elseif token:category = constants:ACTION
+                actionIndex = actionIndex + 1
+                if IsInToken(index, token) and actionIndex < actions:GetSize() and actionIndex >= 0
+                    request:method = actions:Get(actionIndex)
+                    request:block = request:method:GetBlock()
+                    blockStack:Push(request:block)
+                    blocks = GetSortedBlocks(request:method)
+                    blockIndex = 0
+                end
+            elseif token:category = constants:IF
+                blockIndex = blockIndex + 1
+                if IsInToken(index, token) and blockIndex < blocks:GetSize() and blockIndex >= 0
+                    request:block = blocks:Get(blockIndex)
+                    blockStack:Push(request:block)
+                end
+            elseif token:category = constants:ELSE_IF
+                blockIndex = blockIndex + 1
+                if IsInToken(index, token) and blockIndex < blocks:GetSize() and blockIndex >= 0
+                    request:block = blocks:Get(blockIndex)
+                    blockStack:Push(request:block)
+                end
+            elseif token:category = constants:ELSE
+                blockIndex = blockIndex + 1
+                if IsInToken(index, token) and blockIndex < blocks:GetSize() and blockIndex >= 0
+                    request:block = blocks:Get(blockIndex)
+                    blockStack:Push(request:block)
+                end
+            elseif token:category = constants:REPEAT
+                blockIndex = blockIndex + 1
+                if index > token:startIndex and blockIndex < blocks:GetSize() and blockIndex >= 0
+                    request:block = blocks:Get(blockIndex)
+                    blockStack:Push(request:block)
+                end
+            elseif token:category = constants:CHECK
+                blockIndex = blockIndex + 1
+                if IsInToken(index, token) and blockIndex < blocks:GetSize() and blockIndex > 0
+                    request:block = blocks:Get(blockIndex)
+                    blockStack:Push(request:block)
+                end
+            elseif token:category = constants:DETECT
+                blockIndex = blockIndex + 1
+                if IsInToken(index, token) and blockIndex < blocks:GetSize() and blockIndex > 0
+                    request:block = blocks:Get(blockIndex)
+                    blockStack:Push(request:block)
+                end
+            elseif token:category = constants:ALWAYS
+                blockIndex = blockIndex + 1
+                if IsInToken(index, token) and blockIndex < blocks:GetSize() and blockIndex >= 0
+                    request:block = blocks:Get(blockIndex)
+                    blockStack:Push(request:block)
+                end
+            elseif token:category = constants:END  
+                //it's constrained. If we are in a block and it's before the end, we have a winner
+                //if it's not, then just decrement the values, as this isn't the right candidate
+                if index <= token:endIndex
+                    return now
+                else //if there's a block left, pop it off
+                    if not blockStack:IsEmpty()
+                        request:block = blockStack:Pop()
+                    else
+                        request:block = undefined
+                        request:method = undefined
+                    end
+
+                    if actionIndex >= actions:GetSize() - 1
+                        inClass = false
+                    end
+                end
+            end
+        end
+
+        //This is an implicit class, so get the implicit Main and use it as a block
+        if not inClass
+            Action act = clazz:GetAction("Main")
+            if act not= undefined
+                request:method = act
+                request:block = act:GetBlock()
+            end
+        end
+    end
 end
