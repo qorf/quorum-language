@@ -138,7 +138,7 @@ class DocumentationGenerator
 
     action CreatePackageIndex(SymbolTable symbolTable) returns Section
         Section section
-        section:SetClassAttribute("flex flex-col w-1/6 gap-y-2 pt-6")
+        section:SetClassAttribute("flex flex-col w-1/6 gap-y-2 pt-6 h-[calc(100vh-150px)] overflow-y-auto")
         Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
         repeat while packages:HasNext()
             text key = packages:Next()

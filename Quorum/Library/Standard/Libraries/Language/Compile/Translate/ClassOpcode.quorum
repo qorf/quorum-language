@@ -316,7 +316,7 @@ bodyDiv:Add(inherits)
 
         variableDivision:SetClassAttribute("space-y-1")
         if not variableArray:IsEmpty()
-            Heading variableSummaryHeader = variableDivision:AddHeading("Variable Summary Table", 3)
+            Heading variableSummaryHeader = variableDivision:AddHeading("Variables Table", 3)
 variableSummaryHeader:SetClassAttribute("font-bold text-2xl")
             WebTable table
             table:SetClassAttribute("overflow-hidden rounded-md table-auto w-full border-collapse bg-neutral-grey-15")
@@ -373,6 +373,7 @@ dataDocumentation:SetClassAttribute("px-3 py-2")
         it = array:GetIterator()
         if it:HasNext()
             Heading actionHeader = actionDivision:AddHeading("Actions Documentation", 2)
+            actionHeader:SetIdentifier("ActionDocumentation")
             actionHeader:SetClassAttribute("font-bold text-2xl")
             bodyDiv:Add(actionDivision)
         end
@@ -504,25 +505,36 @@ actionTop:Add(actionMiddle)
     
     private action GetRightHandSideWebSection(Array<Action> actions) returns Section
         Section section
-        section:SetClassAttribute("w-12 flex flex-col max-w-8")
+        section:SetClassAttribute("flex flex-col w-1/6 gap-y-2 pt-6")
         Heading heading
         heading:SetScale(2)
-        section:AddText("On this page")
+        heading:AddText("On this page")
+        heading:SetClassAttribute("font-bold text-xl")
         section:Add(heading)
         
         Link variablesLink
         variablesLink:AddText("Variables Table")
         variablesLink:SetAddress("#VariableSummaryTable")
+variablesLink:SetClassAttribute("hover:underline text-lg")
         section:Add(variablesLink)
         
+        
+Link actionsLink
+        actionsLink:AddText("Action Documentation")
+        actionsLink:SetAddress("#ActionDocumentation")
+actionsLink:SetClassAttribute("hover:underline text-lg")
+        section:Add(actionsLink)
+        
         UnorderedList list
+        list:SetClassAttribute("space-y-1 justify-end")
         i = 0
         repeat while i < actions:GetSize()
             Action act = actions:Get(i)
             ListItem item
             Link actLink
+actLink:SetClassAttribute("hover:underline")
             actLink:SetAddress("#" + act:GetStaticKey())
-            text displayName = act:GetDisplayName()
+            text displayName = act:GetDisplayNameNoReturn()
             actLink:AddText(displayName)
             item:Add(actLink)
             list:Add(item)
