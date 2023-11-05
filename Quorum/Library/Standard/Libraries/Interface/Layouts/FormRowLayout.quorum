@@ -223,7 +223,7 @@ class FormRowLayout is Layout
                             // As a special case, if the grouping contains only 1 item per row, allow controls to set themselves to use a percentage of the width, if they request it.
                             if numberOfRowItems = 1 and control:GetPercentageWidth() > 0 and control:GetHorizontalLayoutMode() not= control:MAINTAIN_ASPECT_RATIO
                                 
-if control is Label
+                                if control is Label
                                     Label label = cast(Label, control)
                                     label:SetMaximumWidth(cast(integer, elementWidth * control:GetPercentageWidth()))
                                 end
@@ -298,10 +298,10 @@ if control is Label
                             control:LoadGraphics(control:GetDefaultLayoutProperties())
                         end
                         
-if control is Label
-                                    Label label = cast(Label, control)
-                                    label:SetMaximumWidth(rowWidth)
-                                end
+                        if control is Label
+                            Label label = cast(Label, control)
+                            label:SetMaximumWidth(rowWidth)
+                        end
     
                         // The label's width and height are known quantities. There's nothing to set, so just fetch them now.
                         number width = control:GetWidth()
