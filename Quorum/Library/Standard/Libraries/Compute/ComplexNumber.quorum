@@ -18,12 +18,12 @@ package Libraries.Compute
     use Libraries.Compute.ComplexNumber
 
     class Main
-        action main
-            number realpart = 3
-            number imaginarypart = 9
+        action Main
+            number realPart = 3
+            number imaginaryPart = 9
 
             ComplexNumber complex
-            complex:SetValue(realPart, imaginarypart)
+            complex:SetValue(realPart, imaginaryPart)
             complex = complex:RaiseToPower(2)
             output complex:ToText()
         end
@@ -31,16 +31,16 @@ package Libraries.Compute
 */
 
 class ComplexNumber
-    /** The square root of -1. */
-    /** A complex number representing "0.0 + 1.0i" */
+    /* The square root of -1. */
+    /* A complex number representing "0.0 + 1.0i" */
     ComplexNumber I = undefined
-    /** A complex number representing "NaN + NaNi" */
+    /* A complex number representing "NaN + NaNi" */
     ComplexNumber NAN = undefined
-    /** A complex number representing "+INF + INFi" */
+    /* A complex number representing "+INF + INFi" */
     ComplexNumber INF = undefined
-    /** A complex number representing "1.0 + 0.0i" */
+    /* A complex number representing "1.0 + 0.0i" */
     ComplexNumber ONE = undefined
-    /** A complex number representing "0.0 + 0.0i" */
+    /* A complex number representing "0.0 + 0.0i" */
     ComplexNumber ZERO = undefined
 
     /* The imaginary part */
@@ -55,21 +55,50 @@ class ComplexNumber
 
     Math math
 
-    /**
-     * Create a complex number given the real and imaginary parts.
-     *
-     * @param real Real part.
-     * @param imaginary Imaginary part.
+    /*
+      Create a complex number given the real part.
+     
+      Attribute: Parameter real Real part.
+
+      Attribute: Example
+        use Libraries.Compute.ComplexNumber
+
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart)
+                complex = complex:RaiseToPower(2)
+                output complex:ToText()
+            end
+        end
     */
     action SetValue(number real)
         me:SetValue(real, 0.0)
     end
 
-    /**
-     * Create a complex number given the real and imaginary parts.
-     *
-     * @param real Real part.
-     * @param imaginary Imaginary part.
+    /*
+        Create a complex number given the real and imaginary parts.
+         
+        Attribute: Parameter real Real part.
+        Attribute: Parameter imaginary Imaginary part.
+
+        Attribute: Example
+    
+        use Libraries.Compute.ComplexNumber
+    
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+                output complex:ToText()
+            end
+        end
     */
     action SetValue(number real, number imaginary)
         me:real = real
@@ -79,13 +108,28 @@ class ComplexNumber
         isInfinite = not isNotANumber and (real:IsInfinite() or imaginary:IsInfinite())
     end
 
-    /**
-     * Return the absolute value of this complex number.
-     * Returns {@code NaN} if either real or imaginary part is {@code NaN}
-     * and {@code Double.POSITIVE_INFINITY} if neither part is {@code NaN},
-     * but at least one part is infinite.
-     *
-     * @return the absolute value.
+    /*
+        Return the absolute value of this complex number.
+        Returns NaN if either real or imaginary part is NaN
+        and Double.POSITIVE_INFINITY if neither part is NaN,
+        but at least one part is infinite.
+         
+        Attribute: Returns the absolute value.
+
+        Attribute: Example
+
+        use Libraries.Compute.ComplexNumber
+    
+        class Main
+            action Main
+                number realPart = -3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+                output complex:AbsoluteValue()
+            end
+        end
      */
     action AbsoluteValue() returns number
         if isNotANumber
@@ -109,21 +153,37 @@ class ComplexNumber
         end
     end
 
-    /**
-     * Returns a {@code Complex} whose value is
-     * {@code (this + addend)}.
-     * Uses the definitional formula
-     * <p>
-     *   {@code (a + bi) + (c + di) = (a+c) + (b+d)i}
-     * </p>
-     * If either {@code this} or {@code addend} has a {@code NaN} value in
-     * either part, {@link #NaN} is returned; otherwise {@code Infinite}
-     * and {@code NaN} values are returned in the parts of the result
-     * according to the rules for {@link java.lang.Double} arithmetic.
-     *
-     * @param  addend Value to be added to this {@code Complex}.
-     * @return {@code this + addend}.
-     * @throws NullArgumentException if {@code addend} is {@code null}.
+    /*
+      Returns a Complex Number.
+      Uses the definitional formula (a + bi) + (c + di) = (a+c) + (b+d)i
+     
+      If either the complex number or the addend has an not a number value in
+      either part, not a number is returned; otherwise Infinite
+      and not a number values are returned in the parts of the result
+      according to the rules for java.lang.Double arithmetic.
+      throws an exception if the addend is undefined.
+     
+      Attribute: Parameter addend Value to be added to this Complex.
+      Attribute: Returns this + addend.
+      
+      Attribute: Example
+      
+        use Libraries.Compute.ComplexNumber
+    
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                ComplexNumber complex2
+                complex2:SetValue(imaginaryPart, realPart)
+                ComplexNumber value = complex:Add(complex2)
+                output value:ToText()
+            end
+        end
      */
     action Add(ComplexNumber value) returns ComplexNumber
         if value = undefined
@@ -138,13 +198,28 @@ class ComplexNumber
         return complex
     end
 
-    /**
-     * Returns a {@code Complex} whose value is {@code (this + addend)},
-     * with {@code addend} interpreted as a real number.
-     *
-     * @param addend Value to be added to this {@code Complex}.
-     * @return {@code this + addend}.
-     * @see #add(Complex)
+    /*
+      Returns a Complex Number whose value is this + addend,
+      with addend interpreted as a real number.
+     
+      Attribute: Parameter addend Value to be added to this Complex Number.
+      Attribute: Returns this + addend.
+
+      Attribute: Example
+        use Libraries.Compute.ComplexNumber
+    
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                ComplexNumber value = complex:Add(2)
+                output value:ToText()
+            end
+        end
     */
     action Add(number value) returns ComplexNumber
         if isNotANumber or value:IsNotANumber()
@@ -156,19 +231,35 @@ class ComplexNumber
         return complex
     end
 
-     /**
-     * Returns the conjugate of this complex number.
-     * The conjugate of {@code a + bi} is {@code a - bi}.
-     * <p>
-     * {@link #NaN} is returned if either the real or imaginary
-     * part of this Complex number equals {@code Double.NaN}.
-     * </p><p>
-     * If the imaginary part is infinite, and the real part is not
-     * {@code NaN}, the returned value has infinite imaginary part
-     * of the opposite sign, e.g. the conjugate of
-     * {@code 1 + POSITIVE_INFINITY i} is {@code 1 - NEGATIVE_INFINITY i}.
-     * </p>
-     * @return the conjugate of this Complex object.
+     /*
+      Returns the conjugate of this complex number.
+      The conjugate of a + bi is a - bi.
+      
+      #NaN is returned if either the real or imaginary
+      part of this Complex number equals Double.NaN.
+      
+      If the imaginary part is infinite, and the real part is not
+      NaN, the returned value has infinite imaginary part
+      of the opposite sign, e.g. the conjugate of
+      1 + POSITIVE_INFINITY i is 1 - NEGATIVE_INFINITY i.
+
+      Attribute: Returns the conjugate of this Complex object.
+
+        Attribute: Example
+        use Libraries.Compute.ComplexNumber
+
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                ComplexNumber value = complex:Conjugate()
+                output value:ToText()
+            end
+        end
      */
     action Conjugate() returns ComplexNumber
         if isNotANumber
@@ -180,47 +271,52 @@ class ComplexNumber
         return complex
     end
 
-    /**
-     * Returns a {@code Complex} whose value is
-     * {@code (this / divisor)}.
-     * Implements the definitional formula
-     * <pre>
-     *  <code>
-     *    a + bi          ac + bd + (bc - ad)i
-     *    ----------- = -------------------------
-     *    c + di         c<sup>2</sup> + d<sup>2</sup>
-     *  </code>
-     * </pre>
-     * but uses
-     * <a href="http://doi.acm.org/10.1145/1039813.1039814">
-     * prescaling of operands</a> to limit the effects of overflows and
-     * underflows in the computation.
-     * <p>
-     * {@code Infinite} and {@code NaN} values are handled according to the
-     * following rules, applied in the order presented:
-     * <ul>
-     *  <li>If either {@code this} or {@code divisor} has a {@code NaN} value
-     *   in either part, {@link #NaN} is returned.
-     *  </li>
-     *  <li>If {@code divisor} equals {@link #ZERO}, {@link #NaN} is returned.
-     *  </li>
-     *  <li>If {@code this} and {@code divisor} are both infinite,
-     *   {@link #NaN} is returned.
-     *  </li>
-     *  <li>If {@code this} is finite (i.e., has no {@code Infinite} or
-     *   {@code NaN} parts) and {@code divisor} is infinite (one or both parts
-     *   infinite), {@link #ZERO} is returned.
-     *  </li>
-     *  <li>If {@code this} is infinite and {@code divisor} is finite,
-     *   {@code NaN} values are returned in the parts of the result if the
-     *   {@link java.lang.Double} rules applied to the definitional formula
-     *   force {@code NaN} results.
-     *  </li>
-     * </ul>
-     *
-     * @param divisor Value by which this {@code Complex} is to be divided.
-     * @return {@code this / divisor}.
-     * @throws NullArgumentException if {@code divisor} is {@code null}.
+    /*
+      Returns a Complex whose value is (me / divisor).
+      Implements the definitional formula
+
+         (a + bi)/(c + di) = (ac + bd + (bc - ad)i)/(c^2 + d^2)
+
+      but uses "http://doi.acm.org/10.1145/1039813.1039814"
+      prescaling of operands to limit the effects of overflows and
+      underflows in the computation. Infinite and NaN values are handled according to the
+      following rules, applied in the order presented:
+
+       If either me or divisor has a NaN valuein either part, #NaN is returned.
+       
+       If divisor equals #ZERO, #NaN is returned.
+       
+       If this and divisor are both infinite, #NaN is returned.
+       
+       If this is finite (i.e., has no Infinite or NaN parts) and divisor is infinite (one or both parts
+        infinite), #ZERO is returned.
+       
+       If me is infinite and divisor is finite, Na values are returned in the parts of the result if the
+        Double rules applied to the definitional formula force NaN results.
+       
+      Throws NullArgumentException if divisor is undefined.
+     
+      Attribute: Parameter divisor Value by which this Complex is to be divided.
+      Attribute: Returns me / divisor.
+
+        Attribute: Example
+        use Libraries.Compute.ComplexNumber
+    
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                ComplexNumber complex2
+                complex2:SetValue(3, 3)
+                ComplexNumber value = complex:Divide(complex2)
+                output value:ToText()
+            end
+        end
+      
      */
     action Divide(ComplexNumber divisor) returns ComplexNumber
         if divisor = undefined
@@ -256,13 +352,29 @@ class ComplexNumber
         end
     end
 
-    /**
-     * Returns a {@code Complex} whose value is {@code (this / divisor)},
-     * with {@code divisor} interpreted as a real number.
-     *
-     * @param  divisor Value by which this {@code Complex} is to be divided.
-     * @return {@code this / divisor}.
-     * @see #divide(Complex)
+    /*
+      Returns a Complex whose value is me / divisor),
+      with divisor interpreted as a real number.
+     
+      Attribute: Parameter divisor Value by which this Complex is to be divided.
+      Attribute: Returns me / divisor.
+        
+      Attribute: Example
+        use Libraries.Compute.ComplexNumber
+    
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                ComplexNumber value = complex:Divide(3)
+                output value:ToText()
+            end
+        end
+        
      */
     action Divide(number divisor) returns ComplexNumber
         if isNotANumber or divisor:IsNotANumber()
@@ -312,29 +424,41 @@ class ComplexNumber
         end
     end
 
-    /**
-     * Test for equality with another object.
-     * If both the real and imaginary parts of two complex numbers
-     * are exactly the same, and neither is {@code Double.NaN}, the two
-     * Complex objects are considered to be equal.
-     * The behavior is the same as for JDK's {@link Double#equals(Object)
-     * Double}:
-     * <ul>
-     *  <li>All {@code NaN} values are considered to be equal,
-     *   i.e, if either (or both) real and imaginary parts of the complex
-     *   number are equal to {@code Double.NaN}, the complex number is equal
-     *   to {@code NaN}.
-     *  </li>
-     *  <li>
-     *   Instances constructed with different representations of zero (i.e.
-     *   either "0" or "-0") are <em>not</em> considered to be equal.
-     *  </li>
-     * </ul>
-     *
-     * @param other Object to test for equality with this instance.
-     * @return {@code true} if the objects are equal, {@code false} if object
-     * is {@code null}, not an instance of {@code Complex}, or not equal to
-     * this instance.
+    /*
+      Test for equality with another object.
+      If both the real and imaginary parts of two complex numbers
+      are exactly the same, and neither is Double.NaN, the two
+      Complex objects are considered to be equal.
+      The behavior is the same as for JDK's Double#equals(Object)
+      Double:
+      
+        All NaN values are considered to be equal,
+        i.e, if either (or both) real and imaginary parts of the complex
+        number are equal to Double.NaN, the complex number is equal
+        to NaN.
+
+        Instances constructed with different representations of zero (i.e.
+        either "0" or "-0") are not considered to be equal.
+
+     
+      Attribute: Parameter other Object to test for equality with this instance.
+      Attribute: Returns true if the objects are equal, false if object is undefined, not an instance of Complex, or not equal to this instance.
+        Attribut: Example
+        use Libraries.Compute.ComplexNumber
+
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                ComplexNumber complex2
+                complex2:SetValue(3, 17)
+                output complex:Equals(complex2)
+            end
+        end
      */
     action Equals(ComplexNumber other) returns boolean
         if other:IsNotANumber()
@@ -345,27 +469,41 @@ class ComplexNumber
         return false
     end
 
-    /**
-     * Returns a {@code Complex} whose value is {@code this * factor}.
-     * Implements preliminary checks for {@code NaN} and infinity followed by
-     * the definitional formula:
-     * <p>
-     *   {@code (a + bi)(c + di) = (ac - bd) + (ad + bc)i}
-     * </p>
-     * Returns {@link #NaN} if either {@code this} or {@code factor} has one or
-     * more {@code NaN} parts.
-     * <p>
-     * Returns {@link #INF} if neither {@code this} nor {@code factor} has one
-     * or more {@code NaN} parts and if either {@code this} or {@code factor}
-     * has one or more infinite parts (same result is returned regardless of
-     * the sign of the components).
-     * </p><p>
-     * Returns finite values in components of the result per the definitional
-     * formula in all remaining cases.</p>
-     *
-     * @param  factor value to be multiplied by this {@code Complex}.
-     * @return {@code this * factor}.
-     * @throws NullArgumentException if {@code factor} is {@code null}.
+    /*
+      Returns a {@code Complex} whose value is me * factor.
+      Implements preliminary checks for NaN and infinity followed by
+      the definitional formula:
+       (a + bi)(c + di) = (ac - bd) + (ad + bc)i
+      Returns #NaN if either me or factor has one or
+      more NaN parts.
+
+      Returns #INF if neither me nor factor has one
+      or more NaN parts and if either me or factor
+      has one or more infinite parts (same result is returned regardless of
+      the sign of the components).
+      
+      Returns finite values in components of the result per the definitional
+      formula in all remaining cases.Throws NullArgumentException if factor is undefined.
+     
+      Attribute: Parameter  multiplier factor value to be multiplied by this Complex.
+      Attribute: Returns me * factor. 
+
+        Attribute: Example
+        use Libraries.Compute.ComplexNumber
+
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                ComplexNumber complex2
+                complex2:SetValue(1, 1)
+                output complex:Multiply(complex2):ToText()
+            end
+        end
      */
     action Multiply(ComplexNumber multiplier) returns ComplexNumber
         if multiplier = undefined
@@ -383,14 +521,28 @@ class ComplexNumber
         return complex
     end
 
-    /**
-     * Returns a {@code Complex} whose value is {@code this * factor}, with {@code factor}
-     * interpreted as a real number.
-     *
-     * @param  factor value to be multiplied by this {@code Complex}.
-     * @return {@code this * factor}.
-     * @see #multiply(Complex)
-     */
+    /*
+      Returns a Complex whose value is me * factor, with factor
+      interpreted as a real number.
+     
+      Attribute: Parameter multiplier factor value to be multiplied by this Complex.
+      Attribute: Returns me * factor.
+
+        Attribute: Example
+        use Libraries.Compute.ComplexNumber
+
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                output complex:Multiply(2):ToText()
+            end
+        end
+    */
     action Multiply(number multiplier) returns ComplexNumber
         if isNotANumber or multiplier:IsNotANumber()
             return GetNotANumberValue()
@@ -404,12 +556,27 @@ class ComplexNumber
         return complex
     end
 
-    /**
-     * Returns a {@code Complex} whose value is {@code (-this)}.
-     * Returns {@code NaN} if either real or imaginary
-     * part of this Complex number is {@code Double.NaN}.
-     *
-     * @return {@code -this}.
+    /*
+      Returns a Complex whose value is (-me).
+      Returns NaN if either real or imaginary
+      part of this Complex number is Double.NaN.
+     
+      Attribute: Returns -me.
+
+        Attribute: Example
+        use Libraries.Compute.ComplexNumber
+
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                output complex:Negate():ToText()
+            end
+        end
      */
     action Negate() returns ComplexNumber
         if isNotANumber
@@ -420,22 +587,35 @@ class ComplexNumber
         return complex
     end
 
-    /**
-     * Returns a {@code Complex} whose value is
-     * {@code (this - subtrahend)}.
-     * Uses the definitional formula
-     * <p>
-     *  {@code (a + bi) - (c + di) = (a-c) + (b-d)i}
-     * </p>
-     * If either {@code this} or {@code subtrahend} has a {@code NaN]} value in either part,
-     * {@link #NaN} is returned; otherwise infinite and {@code NaN} values are
-     * returned in the parts of the result according to the rules for
-     * {@link java.lang.Double} arithmetic.
-     *
-     * @param  subtrahend value to be subtracted from this {@code Complex}.
-     * @return {@code this - subtrahend}.
-     * @throws NullArgumentException if {@code subtrahend} is {@code null}.
-     */
+    /*
+      Returns a Complex whose value is (me - subtrahend).
+      Uses the definitional formula
+       (a + bi) - (c + di) = (a-c) + (b-d)i
+      If either me or subtrahend has a NaN value in either part,
+      #NaN is returned; otherwise infinite and NaN values are
+      returned in the parts of the result according to the rules for
+      java.lang.Double arithmetic. Throws NullArgumentException if subtrahend is undefined.
+     
+      Attribute: Parameter value subtrahend value to be subtracted from this Complex.
+      Attribute: Returns me - subtrahend.
+      
+        Attribute: Example
+        use Libraries.Compute.ComplexNumber
+
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                ComplexNumber complex2
+                complex2:SetValue(1, 1)
+                output complex:Subtract(complex2):ToText()
+            end
+        end
+    */
     action Subtract(ComplexNumber value) returns ComplexNumber
         if value = undefined
             alert("Cannot subtract undefined complex numbers")
@@ -449,14 +629,28 @@ class ComplexNumber
         return complex
     end
 
-    /**
-     * Returns a {@code Complex} whose value is
-     * {@code (this - subtrahend)}.
-     *
-     * @param  subtrahend value to be subtracted from this {@code Complex}.
-     * @return {@code this - subtrahend}.
-     * @see #subtract(Complex)
-     */
+    /*
+      Returns a Complex whose value is (me - subtrahend).
+     
+      Attribute: Parameter value subtrahend value to be subtracted from this Complex.
+      Attribute: Returns me - subtrahend.
+
+        Attribute: Example
+        use Libraries.Compute.ComplexNumber
+    
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                output complex:Subtract(1):ToText()
+            end
+        end
+
+    */
     action Subtract(number value) returns ComplexNumber
         if isNotANumber or value:IsNotANumber()
             return GetNotANumberValue()
@@ -466,63 +660,67 @@ class ComplexNumber
         return complex
     end
 
-    /**
-     * Compute the
-     * <a href="http://mathworld.wolfram.com/SquareRoot.html" TARGET="_top">
-     * square root</a> of <code>1 - this<sup>2</sup></code> for this complex
-     * number.
-     * Computes the result directly as
-     * {@code sqrt(ONE.subtract(z.multiply(z)))}.
-     * <p>
-     * Returns {@link Complex#NaN} if either real or imaginary part of the
-     * input argument is {@code NaN}.
-     * </p>
-     * Infinite values in real or imaginary parts of the input may result in
-     * infinite or NaN values returned in parts of the result.
-     *
-     * @return the square root of <code>1 - this<sup>2</sup></code>.
-     * @since 1.2
-     */
+    /*
+      Compute the "http://mathworld.wolfram.com/SquareRoot.html"
+      square root of 1 - this^2 for this complex
+      number.
+      Computes the result directly as sqrt(ONE:Subtract(z:Multiply(z))).
+
+      Returns Complex#NaN if either real or imaginary part of the
+      input argument is NaN.
+
+      Infinite values in real or imaginary parts of the input may result in
+      infinite or NaN values returned in parts of the result.
+     
+      Attribute: Returns the square root of 1 - me^2.
+    */
     private action SquareRoot1Z() returns ComplexNumber
         ComplexNumber complex
         complex:SetValue(1.0, 0.0)
         return complex:Subtract(me:Multiply(me)):SquareRoot()
     end
 
-    /**
-     * Compute the
-     * <a href="http://mathworld.wolfram.com/SquareRoot.html" TARGET="_top">
-     * square root</a> of this complex number.
-     * Implements the following algorithm to compute {@code sqrt(a + bi)}:
-     * <ol><li>Let {@code t = sqrt((|a| + |a + bi|) / 2)}</li>
-     * <li><pre>if {@code  a &#8805; 0} return {@code t + (b/2t)i}
-     *  else return {@code |b|/2t + sign(b)t i }</pre></li>
-     * </ol>
-     * where <ul>
-     * <li>{@code |a| = }{@link FastMath#abs}(a)</li>
-     * <li>{@code |a + bi| = }{@link Complex#abs}(a + bi)</li>
-     * <li>{@code sign(b) =  }{@link FastMath#copySign(double,double) copySign(1d, b)}
-     * </ul>
-     * <p>
-     * Returns {@link Complex#NaN} if either real or imaginary part of the
-     * input argument is {@code NaN}.
-     * </p>
-     * Infinite values in real or imaginary parts of the input may result in
-     * infinite or NaN values returned in parts of the result.
-     * <pre>
-     *  Examples:
-     *  <code>
-     *   sqrt(1 &plusmn; INFINITY i) = INFINITY + NaN i
-     *   sqrt(INFINITY + i) = INFINITY + 0i
-     *   sqrt(-INFINITY + i) = 0 + INFINITY i
-     *   sqrt(INFINITY &plusmn; INFINITY i) = INFINITY + NaN i
-     *   sqrt(-INFINITY &plusmn; INFINITY i) = NaN &plusmn; INFINITY i
-     *  </code>
-     * </pre>
-     *
-     * @return the square root of {@code this}.
-     * @since 1.2
-     */
+    /*
+      Compute the "http://mathworld.wolfram.com/SquareRoot.html"
+      square root of this complex number. Implements the following algorithm to compute sqrt(a + bi):
+      Let t = sqrt((|a| + |a + bi|) / 2)
+      if  a &#8805; 0 return  t + (b/2t)i
+       else return |b|/2t + sign(b)t i 
+      where 
+      |a| = FastMath#abs(a)
+      |a + bi| = Complex#abs(a + bi)
+      sign(b) = FastMath#copySign(double,double) copySign(1d, b)
+
+      Returns Complex#NaN if either real or imaginary part of the
+      input argument is NaN.
+
+      Infinite values in real or imaginary parts of the input may result in
+      infinite or NaN values returned in parts of the result.
+      
+       Examples:
+        sqrt(1 &plusmn; INFINITY i) = INFINITY + NaN i
+        sqrt(INFINITY + i) = INFINITY + 0i
+        sqrt(-INFINITY + i) = 0 + INFINITY i
+        sqrt(INFINITY &plusmn; INFINITY i) = INFINITY + NaN i
+        sqrt(-INFINITY &plusmn; INFINITY i) = NaN &plusmn; INFINITY i
+     
+      Attribute: Returns the square root of me.
+
+        Attribute: Example
+        use Libraries.Compute.ComplexNumber
+    
+        class Main
+            action Main
+                number realPart = 4
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                output complex:SquareRoot():ToText()
+            end
+        end
+    */
     action SquareRoot() returns ComplexNumber
         if isNotANumber
             return GetNotANumberValue()
@@ -548,41 +746,48 @@ class ComplexNumber
         end
     end
 
-    /**
-     * Compute the
-     * <a href="http://mathworld.wolfram.com/NaturalLogarithm.html" TARGET="_top">
-     * natural logarithm</a> of this complex number.
-     * Implements the formula:
-     * <pre>
-     *  <code>
-     *   log(a + bi) = ln(|a + bi|) + arg(a + bi)i
-     *  </code>
-     * </pre>
-     * where ln on the right hand side is {@link FastMath#log},
-     * {@code |a + bi|} is the modulus, {@link Complex#abs},  and
-     * {@code arg(a + bi) = }{@link FastMath#atan2}(b, a).
-     * <p>
-     * Returns {@link Complex#NaN} if either real or imaginary part of the
-     * input argument is {@code NaN}.
-     * </p>
-     * Infinite (or critical) values in real or imaginary parts of the input may
-     * result in infinite or NaN values returned in parts of the result.
-     * <pre>
-     *  Examples:
-     *  <code>
-     *   log(1 &plusmn; INFINITY i) = INFINITY &plusmn; (&pi;/2)i
-     *   log(INFINITY + i) = INFINITY + 0i
-     *   log(-INFINITY + i) = INFINITY + &pi;i
-     *   log(INFINITY &plusmn; INFINITY i) = INFINITY &plusmn; (&pi;/4)i
-     *   log(-INFINITY &plusmn; INFINITY i) = INFINITY &plusmn; (3&pi;/4)i
-     *   log(0 + 0i) = -INFINITY + 0i
-     *  </code>
-     * </pre>
-     *
-     * @return the value <code>ln &nbsp; this</code>, the natural logarithm
-     * of {@code this}.
-     * @since 1.2
-     */
+    /*
+      Compute the "http://mathworld.wolfram.com/NaturalLogarithm.html"
+      natural logarithm of this complex number.
+      Implements the formula:
+
+        log(a + bi) = ln(|a + bi|) + arg(a + bi)i
+
+      where ln on the right hand side isFastMath#log,
+      |a + bi|} is the modulus, Complex#abs,  and
+      arg(a + bi) = FastMath#atan2(b, a).
+
+      Returns {@link Complex#NaN} if either real or imaginary part of the
+      input argument is NaN.
+      Infinite (or critical) values in real or imaginary parts of the input may
+      result in infinite or NaN values returned in parts of the result.
+
+       Examples:
+        log(1 &plusmn; INFINITY i) = INFINITY &plusmn; (&pi;/2)i
+        log(INFINITY + i) = INFINITY + 0i
+        log(-INFINITY + i) = INFINITY + &pi;i
+        log(INFINITY &plusmn; INFINITY i) = INFINITY &plusmn; (&pi;/4)i
+        log(-INFINITY &plusmn; INFINITY i) = INFINITY &plusmn; (3&pi;/4)i
+        log(0 + 0i) = -INFINITY + 0i
+
+     
+      Attribute: Returns the value <code>ln &nbsp; this</code>, the natural logarithm of me.
+
+        Attribute: Example
+        use Libraries.Compute.ComplexNumber
+    
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                output complex:NaturalLogarithm():ToText()
+            end
+        end
+    */
     action NaturalLogarithm() returns ComplexNumber
         if isNotANumber
             return GetNotANumberValue()
@@ -594,19 +799,32 @@ class ComplexNumber
     end
 
 
-    /**
-     * Compute the
-     * <a href="http://mathworld.wolfram.com/InverseCosine.html" TARGET="_top">
-     * inverse cosine</a> of this complex number.
-     * Implements the formula:
-     * <p>
-     *  {@code acos(z) = -i (log(z + i (sqrt(1 - z<sup>2</sup>))))}
-     * </p>
-     * Returns {@link Complex#NaN} if either real or imaginary part of the
-     * input argument is {@code NaN} or infinite.
-     *
-     * @return the inverse cosine of this complex number.
-     * @since 1.2
+    /*
+      Compute the "http://mathworld.wolfram.com/InverseCosine.html"
+      inverse cosine of this complex number.
+      Implements the formula:
+
+       acos(z) = -i (log(z + i (sqrt(1 - z^2))))
+
+      Returns Complex#NaN if either real or imaginary part of the
+      input argument is NaN or infinite.
+     
+      Attribute: Returns the inverse cosine of this complex number.
+
+        Attribute: Example
+        use Libraries.Compute.ComplexNumber
+
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                output complex:InverseCosine():ToText()
+            end
+        end
      */
     action InverseCosine() returns ComplexNumber
         if isNotANumber
@@ -616,20 +834,33 @@ class ComplexNumber
         return me:Add(me:SquareRoot1Z():Multiply(GetImaginaryOneValue())):NaturalLogarithm():Multiply(GetImaginaryOneValue():Negate())
     end
 
-    /**
-     * Compute the
-     * <a href="http://mathworld.wolfram.com/InverseSine.html" TARGET="_top">
-     * inverse sine</a> of this complex number.
-     * Implements the formula:
-     * <p>
-     *  {@code asin(z) = -i (log(sqrt(1 - z<sup>2</sup>) + iz))}
-     * </p><p>
-     * Returns {@link Complex#NaN} if either real or imaginary part of the
-     * input argument is {@code NaN} or infinite.</p>
-     *
-     * @return the inverse sine of this complex number.
-     * @since 1.2
-     */
+    /*
+      Compute the "http://mathworld.wolfram.com/InverseSine.html"
+      inverse sine of this complex number.
+      Implements the formula:
+      
+       asin(z) = -i (log(sqrt(1 - z^2) + iz))
+      
+      Returns Complex#NaN if either real or imaginary part of the
+      input argument is NaN or infinite.
+     
+      Attribute: Returns the inverse sine of this complex number.
+
+        Attribute: Example
+        use Libraries.Compute.ComplexNumber
+    
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                output complex:InverseSine():ToText()
+            end
+        end
+    */
     action InverseSine() returns ComplexNumber
         if isNotANumber
             return GetNotANumberValue()
@@ -638,20 +869,33 @@ class ComplexNumber
         return me:SquareRoot1Z():Add(me:Multiply(GetImaginaryOneValue())):NaturalLogarithm():Multiply(GetImaginaryOneValue():Negate())
     end
 
-    /**
-     * Compute the
-     * <a href="http://mathworld.wolfram.com/InverseTangent.html" TARGET="_top">
-     * inverse tangent</a> of this complex number.
-     * Implements the formula:
-     * <p>
-     * {@code atan(z) = (i/2) log((i + z)/(i - z))}
-     * </p><p>
-     * Returns {@link Complex#NaN} if either real or imaginary part of the
-     * input argument is {@code NaN} or infinite.</p>
-     *
-     * @return the inverse tangent of this complex number
-     * @since 1.2
-     */
+    /*
+      Compute the "http://mathworld.wolfram.com/InverseTangent.html"
+      inverse tangent of this complex number.
+      Implements the formula:
+      
+      atan(z) = (i/2) log((i + z)/(i - z))
+      
+      Returns Complex#NaN if either real or imaginary part of the
+      input argument is NaN or infinite.
+     
+      Attribute: Returns the inverse tangent of this complex number
+      
+        Attribute: Example
+        use Libraries.Compute.ComplexNumber
+    
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                output complex:InverseTangent():ToText()
+            end
+        end
+    */
     action InverseTangent() returns ComplexNumber
         if isNotANumber
             return GetNotANumberValue()
@@ -662,35 +906,46 @@ class ComplexNumber
         return me:Add(GetImaginaryOneValue()):Divide(GetImaginaryOneValue():Subtract(me)):NaturalLogarithm():Multiply(GetImaginaryOneValue():Divide(complex))
     end
 
-    /**
-     * Compute the
-     * <a href="http://mathworld.wolfram.com/Cosine.html" TARGET="_top">
-     * cosine</a> of this complex number.
-     * Implements the formula:
-     * <p>
-     *  {@code cos(a + bi) = cos(a)cosh(b) - sin(a)sinh(b)i}
-     * </p><p>
-     * where the (real) functions on the right-hand side are
-     * {@link FastMath#sin}, {@link FastMath#cos},
-     * {@link FastMath#cosh} and {@link FastMath#sinh}.
-     * </p><p>
-     * Returns {@link Complex#NaN} if either real or imaginary part of the
-     * input argument is {@code NaN}.
-     * </p><p>
-     * Infinite values in real or imaginary parts of the input may result in
-     * infinite or NaN values returned in parts of the result.</p>
-     * <pre>
-     *  Examples:
-     *  <code>
-     *   cos(1 &plusmn; INFINITY i) = 1 \u2213 INFINITY i
-     *   cos(&plusmn;INFINITY + i) = NaN + NaN i
-     *   cos(&plusmn;INFINITY &plusmn; INFINITY i) = NaN + NaN i
-     *  </code>
-     * </pre>
-     *
-     * @return the cosine of this complex number.
-     * @since 1.2
-     */
+    /*
+      Compute the "http://mathworld.wolfram.com/Cosine.html"
+      cosine of this complex number.
+      Implements the formula:
+      
+       cos(a + bi) = cos(a)cosh(b) - sin(a)sinh(b)i
+     
+      where the (real) functions on the right-hand side are
+      FastMath#sin, FastMath#cos, FastMath#cosh and FastMath#sinh.
+      
+      Returns Complex#NaN if either real or imaginary part of the
+      input argument is NaN.
+      
+      Infinite values in real or imaginary parts of the input may result in
+      infinite or NaN values returned in parts of the result.
+      
+       Examples:
+
+        cos(1 &plusmn; INFINITY i) = 1 \u2213 INFINITY i
+        cos(&plusmn;INFINITY + i) = NaN + NaN i
+        cos(&plusmn;INFINITY &plusmn; INFINITY i) = NaN + NaN i
+       
+     
+      Attribute: Returns the cosine of this complex number.
+
+        Attribute: Example
+        use Libraries.Compute.ComplexNumber
+    
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                output complex:Cosine():ToText()
+            end
+        end
+    */
     action Cosine() returns ComplexNumber
         if isNotANumber
             return GetNotANumberValue()
@@ -701,37 +956,46 @@ class ComplexNumber
         return complex
     end
 
-    /**
-     * Compute the
-     * <a href="http://mathworld.wolfram.com/HyperbolicCosine.html" TARGET="_top">
-     * hyperbolic cosine</a> of this complex number.
-     * Implements the formula:
-     * <pre>
-     *  <code>
-     *   cosh(a + bi) = cosh(a)cos(b) + sinh(a)sin(b)i
-     *  </code>
-     * </pre>
-     * where the (real) functions on the right-hand side are
-     * {@link FastMath#sin}, {@link FastMath#cos},
-     * {@link FastMath#cosh} and {@link FastMath#sinh}.
-     * <p>
-     * Returns {@link Complex#NaN} if either real or imaginary part of the
-     * input argument is {@code NaN}.
-     * </p>
-     * Infinite values in real or imaginary parts of the input may result in
-     * infinite or NaN values returned in parts of the result.
-     * <pre>
-     *  Examples:
-     *  <code>
-     *   cosh(1 &plusmn; INFINITY i) = NaN + NaN i
-     *   cosh(&plusmn;INFINITY + i) = INFINITY &plusmn; INFINITY i
-     *   cosh(&plusmn;INFINITY &plusmn; INFINITY i) = NaN + NaN i
-     *  </code>
-     * </pre>
-     *
-     * @return the hyperbolic cosine of this complex number.
-     * @since 1.2
-     */
+    /*
+      Compute the "http://mathworld.wolfram.com/HyperbolicCosine.html"
+      hyperbolic cosine of this complex number.
+      Implements the formula:
+      
+        cosh(a + bi) = cosh(a)cos(b) + sinh(a)sin(b)i
+      
+      where the (real) functions on the right-hand side are
+      FastMath#sin, FastMath#cos, FastMath#cosh, and FastMath#sinh.
+      
+      Returns Complex#NaN if either real or imaginary part of the
+      input argument is NaN.
+      
+      Infinite values in real or imaginary parts of the input may result in
+      infinite or NaN values returned in parts of the result.
+      
+      Examples:
+       
+        cosh(1 &plusmn; INFINITY i) = NaN + NaN i
+        cosh(&plusmn;INFINITY + i) = INFINITY &plusmn; INFINITY i
+        cosh(&plusmn;INFINITY &plusmn; INFINITY i) = NaN + NaN i
+       
+     
+      Attribute: Returns the hyperbolic cosine of this complex number.
+
+        Attribute: Example
+        use Libraries.Compute.ComplexNumber
+    
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                output complex:HyperbolicCosine():ToText()
+            end
+        end
+    */
     action HyperbolicCosine() returns ComplexNumber
         if isNotANumber
             return GetNotANumberValue()
@@ -742,38 +1006,46 @@ class ComplexNumber
         return complex
     end
 
-    /**
-     * Compute the
-     * <a href="http://mathworld.wolfram.com/Sine.html" TARGET="_top">
-     * sine</a>
-     * of this complex number.
-     * Implements the formula:
-     * <pre>
-     *  <code>
-     *   sin(a + bi) = sin(a)cosh(b) - cos(a)sinh(b)i
-     *  </code>
-     * </pre>
-     * where the (real) functions on the right-hand side are
-     * {@link FastMath#sin}, {@link FastMath#cos},
-     * {@link FastMath#cosh} and {@link FastMath#sinh}.
-     * <p>
-     * Returns {@link Complex#NaN} if either real or imaginary part of the
-     * input argument is {@code NaN}.
-     * </p><p>
-     * Infinite values in real or imaginary parts of the input may result in
-     * infinite or {@code NaN} values returned in parts of the result.
-     * <pre>
-     *  Examples:
-     *  <code>
-     *   sin(1 &plusmn; INFINITY i) = 1 &plusmn; INFINITY i
-     *   sin(&plusmn;INFINITY + i) = NaN + NaN i
-     *   sin(&plusmn;INFINITY &plusmn; INFINITY i) = NaN + NaN i
-     *  </code>
-     * </pre>
-     *
-     * @return the sine of this complex number.
-     * @since 1.2
-     */
+    /*
+      Compute the "http://mathworld.wolfram.com/Sine.html"
+      sine of this complex number.
+      Implements the formula:
+      
+        sin(a + bi) = sin(a)cosh(b) - cos(a)sinh(b)i
+      
+      where the (real) functions on the right-hand side are
+      FastMath#sin, FastMath#cos, FastMath#cosh and FastMath#sinh.
+      
+      Returns Complex#NaN if either real or imaginary part of the
+      input argument is NaN.
+      
+      Infinite values in real or imaginary parts of the input may result in
+      infinite or NaN values returned in parts of the result.
+      
+       Examples:
+      
+        sin(1 &plusmn; INFINITY i) = 1 &plusmn; INFINITY i
+        sin(&plusmn;INFINITY + i) = NaN + NaN i
+        sin(&plusmn;INFINITY &plusmn; INFINITY i) = NaN + NaN i
+       
+     
+      Attribute: Returns the sine of this complex number.
+
+        Attribute: Example
+        use Libraries.Compute.ComplexNumber
+    
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                output complex:Sine():ToText()
+            end
+        end
+    */
     action Sine() returns ComplexNumber
         if isNotANumber
             return GetNotANumberValue()
@@ -784,36 +1056,46 @@ class ComplexNumber
         return complex
     end
 
-    /**
-     * Compute the
-     * <a href="http://mathworld.wolfram.com/HyperbolicSine.html" TARGET="_top">
-     * hyperbolic sine</a> of this complex number.
-     * Implements the formula:
-     * <pre>
-     *  <code>
-     *   sinh(a + bi) = sinh(a)cos(b)) + cosh(a)sin(b)i
-     *  </code>
-     * </pre>
-     * where the (real) functions on the right-hand side are
-     * {@link FastMath#sin}, {@link FastMath#cos},
-     * {@link FastMath#cosh} and {@link FastMath#sinh}.
-     * <p>
-     * Returns {@link Complex#NaN} if either real or imaginary part of the
-     * input argument is {@code NaN}.
-     * </p><p>
-     * Infinite values in real or imaginary parts of the input may result in
-     * infinite or NaN values returned in parts of the result.
-     * <pre>
-     *  Examples:
-     *  <code>
-     *   sinh(1 &plusmn; INFINITY i) = NaN + NaN i
-     *   sinh(&plusmn;INFINITY + i) = &plusmn; INFINITY + INFINITY i
-     *   sinh(&plusmn;INFINITY &plusmn; INFINITY i) = NaN + NaN i
-     *  </code>
-     * </pre>
-     *
-     * @return the hyperbolic sine of {@code this}.
-     * @since 1.2
+    /*
+      Compute the "http://mathworld.wolfram.com/HyperbolicSine.html"
+      hyperbolic sine of this complex number.
+      Implements the formula:
+     
+        sinh(a + bi) = sinh(a)cos(b)) + cosh(a)sin(b)i
+     
+      where the (real) functions on the right-hand side are
+      FastMath#sin, FastMath#cos,
+      FastMath#cosh and FastMath#sinh.
+     
+      Returns Complex#NaN if either real or imaginary part of the
+      input argument is NaN.
+     
+      Infinite values in real or imaginary parts of the input may result in
+      infinite or NaN values returned in parts of the result.
+     
+       Examples:
+     
+        sinh(1 &plusmn; INFINITY i) = NaN + NaN i
+        sinh(&plusmn;INFINITY + i) = &plusmn; INFINITY + INFINITY i
+        sinh(&plusmn;INFINITY &plusmn; INFINITY i) = NaN + NaN i
+     
+     
+      Attribute: Returns the hyperbolic sine of this.
+
+        Attribute: Example
+        use Libraries.Compute.ComplexNumber
+    
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                output complex:HyperbolicSine():ToText()
+            end
+        end
      */
     action HyperbolicSine() returns ComplexNumber
         if isNotANumber
@@ -825,37 +1107,47 @@ class ComplexNumber
         return complex
     end
 
-    /**
-     * Compute the
-     * <a href="http://mathworld.wolfram.com/Tangent.html" TARGET="_top">
-     * tangent</a> of this complex number.
-     * Implements the formula:
-     * <pre>
-     *  <code>
-     *   tan(a + bi) = sin(2a)/(cos(2a)+cosh(2b)) + [sinh(2b)/(cos(2a)+cosh(2b))]i
-     *  </code>
-     * </pre>
-     * where the (real) functions on the right-hand side are
-     * {@link FastMath#sin}, {@link FastMath#cos}, {@link FastMath#cosh} and
-     * {@link FastMath#sinh}.
-     * <p>
-     * Returns {@link Complex#NaN} if either real or imaginary part of the
-     * input argument is {@code NaN}.
-     * </p>
-     * Infinite (or critical) values in real or imaginary parts of the input may
-     * result in infinite or NaN values returned in parts of the result.
-     * <pre>
-     *  Examples:
-     *  <code>
-     *   tan(a &plusmn; INFINITY i) = 0 &plusmn; i
-     *   tan(&plusmn;INFINITY + bi) = NaN + NaN i
-     *   tan(&plusmn;INFINITY &plusmn; INFINITY i) = NaN + NaN i
-     *   tan(&plusmn;&pi;/2 + 0 i) = &plusmn;INFINITY + NaN i
-     *  </code>
-     * </pre>
-     *
-     * @return the tangent of {@code this}.
-     * @since 1.2
+    /*
+      Compute the "http://mathworld.wolfram.com/Tangent.html"
+      tangent of this complex number.
+      Implements the formula:
+     
+        tan(a + bi) = sin(2a)/(cos(2a)+cosh(2b)) + [sinh(2b)/(cos(2a)+cosh(2b))]i
+     
+      where the (real) functions on the right-hand side are
+      FastMath#sin, FastMath#cos, FastMath#cosh and
+      FastMath#sinh.
+      
+      Returns Complex#NaN if either real or imaginary part of the
+      input argument is NaN.
+     
+      Infinite (or critical) values in real or imaginary parts of the input may
+      result in infinite or NaN values returned in parts of the result.
+      
+       Examples:
+    
+        tan(a &plusmn; INFINITY i) = 0 &plusmn; i
+        tan(&plusmn;INFINITY + bi) = NaN + NaN i
+        tan(&plusmn;INFINITY &plusmn; INFINITY i) = NaN + NaN i
+        tan(&plusmn;&pi;/2 + 0 i) = &plusmn;INFINITY + NaN i
+
+     
+      Attribute: Returns the tangent of me.
+
+        Attribute: Example
+        use Libraries.Compute.ComplexNumber
+    
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                output complex:Tangent():ToText()
+            end
+        end
      */
     action Tangent() returns ComplexNumber
         if isNotANumber or real:IsInfinite()
@@ -879,37 +1171,45 @@ class ComplexNumber
         return complex
     end
 
-    /**
-     * Compute the
-     * <a href="http://mathworld.wolfram.com/HyperbolicTangent.html" TARGET="_top">
-     * hyperbolic tangent</a> of this complex number.
-     * Implements the formula:
-     * <pre>
-     *  <code>
-     *   tan(a + bi) = sinh(2a)/(cosh(2a)+cos(2b)) + [sin(2b)/(cosh(2a)+cos(2b))]i
-     *  </code>
-     * </pre>
-     * where the (real) functions on the right-hand side are
-     * {@link FastMath#sin}, {@link FastMath#cos}, {@link FastMath#cosh} and
-     * {@link FastMath#sinh}.
-     * <p>
-     * Returns {@link Complex#NaN} if either real or imaginary part of the
-     * input argument is {@code NaN}.
-     * </p>
-     * Infinite values in real or imaginary parts of the input may result in
-     * infinite or NaN values returned in parts of the result.
-     * <pre>
-     *  Examples:
-     *  <code>
-     *   tanh(a &plusmn; INFINITY i) = NaN + NaN i
-     *   tanh(&plusmn;INFINITY + bi) = &plusmn;1 + 0 i
-     *   tanh(&plusmn;INFINITY &plusmn; INFINITY i) = NaN + NaN i
-     *   tanh(0 + (&pi;/2)i) = NaN + INFINITY i
-     *  </code>
-     * </pre>
-     *
-     * @return the hyperbolic tangent of {@code this}.
-     * @since 1.2
+    /*
+      Compute the "http://mathworld.wolfram.com/HyperbolicTangent.html"
+      hyperbolic tangent of this complex number.
+      Implements the formula:
+      
+        tan(a + bi) = sinh(2a)/(cosh(2a)+cos(2b)) + [sin(2b)/(cosh(2a)+cos(2b))]i
+       
+      where the (real) functions on the right-hand side are
+      FastMath#sin, FastMath#cos, FastMath#cosh and FastMath#sinh.
+          
+      Returns Complex#NaN if either real or imaginary part of the
+      input argument is NaN.
+      
+      Infinite values in real or imaginary parts of the input may result in
+      infinite or NaN values returned in parts of the result.
+      
+       Examples:
+       
+        tanh(a &plusmn; INFINITY i) = NaN + NaN i
+        tanh(&plusmn;INFINITY + bi) = &plusmn;1 + 0 i
+        tanh(&plusmn;INFINITY &plusmn; INFINITY i) = NaN + NaN i
+        tanh(0 + (&pi;/2)i) = NaN + INFINITY i
+     
+       Attribute: Returns the hyperbolic tangent of me.
+
+        Attribute: Example
+        use Libraries.Compute.ComplexNumber
+    
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                output complex:HyperbolicTangent():ToText()
+            end
+        end
      */
     action HyperbolicTangent() returns ComplexNumber
         if isNotANumber or imaginary:IsInfinite()
@@ -933,37 +1233,34 @@ class ComplexNumber
         return complex
     end
 
-    /**
-     * Compute the
-     * <a href="http://mathworld.wolfram.com/ExponentialFunction.html" TARGET="_top">
-     * exponential function</a> of this complex number.
-     * Implements the formula:
-     * <pre>
-     *  <code>
-     *   exp(a + bi) = exp(a)cos(b) + exp(a)sin(b)i
-     *  </code>
-     * </pre>
-     * where the (real) functions on the right-hand side are
-     * {@link FastMath#exp}, {@link FastMath#cos}, and
-     * {@link FastMath#sin}.
-     * <p>
-     * Returns {@link Complex#NaN} if either real or imaginary part of the
-     * input argument is {@code NaN}.
-     * </p>
-     * Infinite values in real or imaginary parts of the input may result in
-     * infinite or NaN values returned in parts of the result.
-     * <pre>
-     *  Examples:
-     *  <code>
-     *   exp(1 &plusmn; INFINITY i) = NaN + NaN i
-     *   exp(INFINITY + i) = INFINITY + INFINITY i
-     *   exp(-INFINITY + i) = 0 + 0i
-     *   exp(&plusmn;INFINITY &plusmn; INFINITY i) = NaN + NaN i
-     *  </code>
-     * </pre>
-     *
-     * @return <code><i>e</i><sup>this</sup></code>.
-     * @since 1.2
+    /*
+        Compute the exponential function of this complex number.
+        Implements the formula:
+        exp(a + bi) = exp(a)cos(b) + exp(a)sin(b)i
+        
+        Returns Complex Not a Number if either real or imaginary part of the
+        input argument is Not a Number.
+        
+        Infinite values in real or imaginary parts of the input may result in
+        infinite or NaN values returned in parts of the result.
+
+        Attribute: Returns e^me.
+
+        Attribute: Example
+ 
+        use Libraries.Compute.ComplexNumber
+    
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                output complex:NaturalExponent():ToText()
+            end
+        end  
      */
     action NaturalExponent() returns ComplexNumber
         if isNotANumber
@@ -976,25 +1273,37 @@ class ComplexNumber
         return complex
     end
 
-    /**
-     * Returns of value of this complex number raised to the power of {@code x}.
-     * Implements the formula:
-     * <pre>
-     *  <code>
-     *   y<sup>x</sup> = exp(x&middot;log(y))
-     *  </code>
-     * </pre>
-     * where {@code exp} and {@code log} are {@link #exp} and
-     * {@link #log}, respectively.
-     * <p>
-     * Returns {@link Complex#NaN} if either real or imaginary part of the
-     * input argument is {@code NaN} or infinite, or if {@code y}
-     * equals {@link Complex#ZERO}.</p>
-     *
-     * @param  x exponent to which this {@code Complex} is to be raised.
-     * @return <code> this<sup>x</sup></code>.
-     * @throws NullArgumentException if x is {@code null}.
-     * @since 1.2
+    /*
+        Returns of value of this complex number raised to the power of x.
+        Implements the formula:
+        
+        y^x = exp(x*log(y))
+        
+        where exp and log are NaturalExplonent and NaturalLogorithm, respectively.
+        
+        Returns Complex Not a number if either real or imaginary part of the
+        input argument is not a number or infinite, or if y
+        equals Complex#ZERO.
+
+        Attribute: Parameter  x exponent to which this ComplexNumber is to be raised.
+        Attribute: Returns me^x.
+
+        Attribute: Example
+        use Libraries.Compute.ComplexNumber
+    
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                ComplexNumber complex2
+                complex2:SetValue(2,2)
+                output complex:RaiseToPower(complex2):ToText()
+            end
+        end
      */
     action RaiseToPower(ComplexNumber x) returns ComplexNumber
         if x = undefined
@@ -1003,13 +1312,27 @@ class ComplexNumber
         return me:NaturalLogarithm():Multiply(x):NaturalExponent()
     end
 
-    /**
-     * Returns of value of this complex number raised to the power of {@code x}.
-     *
-     * @param  x exponent to which this {@code Complex} is to be raised.
-     * @return <code>this<sup>x</sup></code>.
-     * @see #pow(Complex)
-     */
+    /*
+      Returns of value of this complex number raised to the power of x.
+     
+      Attribute: Parameter  x exponent to which this Complex Number is to be raised.
+      Attribute: Returns me^x.
+
+        Attribute: Example
+        use Libraries.Compute.ComplexNumber
+    
+        class Main
+            action Main
+                number realPart = 3
+                number imaginaryPart = 9
+    
+                ComplexNumber complex
+                complex:SetValue(realPart, imaginaryPart)
+    
+                output complex:RaiseToPower(2):ToText()
+            end
+        end
+    */
     action RaiseToPower(number x) returns ComplexNumber
         return me:NaturalLogarithm():Multiply(x):NaturalExponent()
     end
@@ -1073,5 +1396,16 @@ class ComplexNumber
             ZERO = c
         end
         return ZERO
+    end
+
+    /*
+        Outputs the complex number string.
+        
+        Attribute: Returns the complex number sentence.
+    */
+    action ToText returns text
+        text result = ""
+        result = GetReal() + " + " + GetImaginary() + "i"
+        return result
     end
 end

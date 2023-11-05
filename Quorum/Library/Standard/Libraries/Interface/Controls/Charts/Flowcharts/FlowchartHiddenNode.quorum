@@ -6,6 +6,38 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Game.Graphics.Color
 
+/*
+    The FlowchartHiddenNode class is a flowchart node class. This class is intended
+    to offer hidden flowchart nodes overlaying a premade image of a flow chart. The
+    hidden flowchart nodes and arrows provide structure to the image for accessiblity
+    purposes.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Game.Graphics.Drawable
+    use Libraries.Interface.Controls.Charts.Flowcharts.FlowchartHiddenNode
+    use Libraries.Interface.Controls.Charts.Flowcharts.Flowchart
+    
+    Flowchart chart
+
+    chart:SetName("RockNotRockTreeFlowchart2")
+    chart:SetPercentageX(0.0)
+    chart:SetPercentageY(0.0)
+    chart:SetFontSize(15)
+
+    // Add basic hidden text nodes for the chart
+    FlowchartHiddenNode node1
+    node1:Show()
+    node1:SetName("Start of the Rock Not Rock Tree Diagram")
+    node1:SetPercentageWidth(0.10)
+    node1:SetPercentageHeight(0.20)
+    node1:SetPercentageX(0.05)
+    node1:SetPercentageY(0.45)
+    chart:Add(node1)
+
+    chart:Display()
+*/
 class FlowchartHiddenNode is FlowchartNode
 
     on create
@@ -26,7 +58,49 @@ class FlowchartHiddenNode is FlowchartNode
         SetBorderColor(transparency)
         SetSelectionColor(transparency)
     end
+    /*
+        This action adds a flowchart node as the current hidden 
+        flowchart node's child node. This subsequently creates a flowchart 
+        arrow originating from the current not and pointing to the child node. 
 
+        Attribute: Parameter node a child node to add as a child to the parent node. 
+        Attribute: Returns the flowchart arrow connecting the child and parent node.
+
+        Attribute: Example
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Interface.Controls.Charts.Flowcharts.FlowchartHiddenNode
+        use Libraries.Interface.Controls.Charts.Flowcharts.Flowchart
+        
+        Flowchart chart
+    
+        chart:SetName("RockNotRockTreeFlowchart2")
+        chart:SetPercentageX(0.0)
+        chart:SetPercentageY(0.0)
+        chart:SetFontSize(15)
+    
+        // Add basic hidden text nodes for the chart
+        FlowchartHiddenNode node1
+        node1:Show()
+        node1:SetName("Start of the Rock Not Rock Tree Diagram")
+        node1:SetPercentageWidth(0.10)
+        node1:SetPercentageHeight(0.20)
+        node1:SetPercentageX(0.05)
+        node1:SetPercentageY(0.45)
+        chart:Add(node1)
+    
+        FlowchartHiddenNode node2
+        node2:SetName("3/4 Not Rock: Level 1")
+        node2:SetPercentageWidth(0.10)
+        node2:SetPercentageHeight(0.2)
+        node2:SetPercentageX(0.25)
+        node2:SetPercentageY(0.65)
+        chart:Add(node2)
+    
+        //Arrow: connect nodes
+        node1:AddChildNode(node2)
+    
+        chart:Display()
+        */  
     action AddChildNode(FlowchartNode node) returns FlowchartArrow
         FlowchartArrow arrow = parent:FlowchartNode:AddChildNode(node)
 
