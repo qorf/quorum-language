@@ -330,7 +330,11 @@ class HorizontalAxisPanel is ChartItem
 
         parent:Control:LoadGraphics(properties)
     end
+    /* 
+        This action gets the selection border color.
 
+        Attribute: Returns the selection border color.
+    */
     action GetSelectionBorderColor returns ColorGroup
         if HasColorPropertyOverride("selectionBorderColor")
             return parent:Control:GetSelectionBorderColor()
@@ -908,53 +912,78 @@ class HorizontalAxisPanel is ChartItem
 
 
     /*
-        These actions control the title on the axis.
+        This action get the font size of the title on the axis panel. These actions control the title on the axis.
     
-        Attribute: Label for horizontal panel.
+        Attribute: Returns font size for horizontal panel.
     */
 
     action GetTitleFontSize returns integer
         return titleFontSize
     end
-
+    /*
+        Set the title font size on the axis panel.
+    
+        Attribute: Parameter size font size for horizontal panel.
+    */
     action SetTitleFontSize(integer size)
         titleFontSize = size
     end
-
+    /*
+        Set the title label on the axis panel.
+    
+        Attribute: Parameter title the title label for horizontal panel.
+    */
     action SetTitleLabel(ChartLabel title)
         me:title = title
     end
-
+    /*
+        Set the title text on the axis panel.
+    
+        Attribute: Parameter name the title for horizontal panel.
+    */
     action SetTitleText(text name)
         titleText = name
     end    
-
+    /*
+        Get the title label on the axis panel.
+    
+        Attribute: Returns the title label for horizontal panel.
+    */
     action GetTitleLabel() returns ChartLabel
         return title
     end
-
+    /*
+        Get the title text on the axis panel.
+    
+        Attribute: Returns the title for horizontal panel.
+    */
     action GetTitleText() returns text
         return titleText
     end
 
     /*
-        These actions get and set the tick width.
+        get the tick width.
     */
     action GetTickWidth returns integer
         return tickWidth
     end
-
+    /*
+        Set the tick width.
+    */
     action SetTickWidth(integer tickWidth)
         me:tickWidth = tickWidth
     end
 
     /*
-        These actions get and set the tick height.
+        This action gets the tick height.
     */
     action GetTickHeight returns integer
         return tickHeight
     end
 
+    /*
+        This action sets the tick height.
+    */
     action SetTickHeight(integer tickHeight)
         me:tickHeight = tickHeight
     end
@@ -970,22 +999,46 @@ class HorizontalAxisPanel is ChartItem
         return minorlinecount
     end
 
+    /*
+        Set the minor grid line count. This action is used by the layout to position the graphical components of 
+        the Chart. Layout is handled automatically so users don't need to use this
+        action directly.
+    
+        Attribute: Parameter count the number of minor gridlines.
+    */
     action SetMinorGridlineCount(integer count)
         minorlinecount = count
     end
-
+    /*
+        Set the minor grid lines. This action is used by the layout to position the graphical components of 
+        the Chart. Layout is handled automatically so users don't need to use this
+        action directly.
+    
+        Attribute: Parameter minorlines the array of minor gridlines.
+    */
     action SetMinorGridlines(Array<Drawable> minorlines)
         me:minorlines = minorlines
     end
 
+    /*
+        This action gets the minor grid lines as an array of gridlines.
+    */
     action GetMinorGridlines returns Array<Drawable>
         return minorlines
     end
-
+    /*
+        Set the major grid lines. This action is used by the layout to position the graphical components of 
+        the Chart. Layout is handled automatically so users don't need to use this
+        action directly.
+    
+        Attribute: Parameter majorlines the array of major gridlines.
+    */
     action SetMajorGridlines(Array<Drawable> majorlines)
         me:majorlines = majorlines
     end
-
+    /*
+        This action gets the major grid lines as an array of gridlines.
+    */
     action GetMajorGridlines returns Array<Drawable>
         return majorlines
     end
@@ -1137,8 +1190,8 @@ class HorizontalAxisPanel is ChartItem
     end
 
     /*
-        These actions control whether decimal numbers or integers are shown
-        along the x-axis (if the axis is numerical not text)
+        This action sets the number format. These actions control whether decimal 
+        numbers or integers are shown along the x-axis (if the axis is numerical not text)
         All values are stored in number format but can be 
         read or used as integer format if UseInteger() returns true.
     
@@ -1156,7 +1209,14 @@ class HorizontalAxisPanel is ChartItem
             end
         end
     end
-
+    /*
+        This action get the number format and controls whether decimal numbers 
+        or integers are shown along the x-axis (if the axis is numerical not text)
+        All values are stored in number format but can be 
+        read or used as integer format if UseInteger() returns true.
+    
+        Attribute: Returns Text that is either "integer" or "number"
+    */
     action GetNumberFormat() returns text
         return numberformat
     end
@@ -1270,19 +1330,35 @@ class HorizontalAxisPanel is ChartItem
             me:showGroupBrackets = show
         end
     end
-
+    /*
+        This action gets whether ticks are shown or hidden on the horizontal axis.
+        
+        Atrribute: Returns when true and hide when false.
+    */
     action ShowTicks returns boolean
         return showTicks
     end
-
+    /*
+        This action sets whether ticks are shown or hidden on the horizontal axis.
+        
+        Atrribute: Parameter show when true and hide when false.
+    */
     action ShowTicks(boolean show)
         showTicks = show
     end
-
+    /*
+        This action gets whether labels are shown or hidden on the horizontal axis.
+        
+        Atrribute: Returns true when visible and false when hidden.
+    */
     action ShowLabels returns boolean
         return showLabels
     end
-
+    /*
+        This action sets whether labels are shown or hidden on the horizontal axis.
+        
+        Atrribute: Parameter show true when visible and false when hidden.
+    */
     action ShowLabels(boolean show)
         showLabels = show
     end
@@ -1327,30 +1403,40 @@ class HorizontalAxisPanel is ChartItem
     end
 
     /*
-        These actions control the white space (padding/offset) on either side of the axis.
+        This action control the white space (padding/offset) on either side of the axis.
     */
     action BlockPaddingOffset(boolean flag)
         blockPaddingOffset = flag
     end
-
+    /*
+        This action control the white space (padding/offset) on either side of the axis.
+    */
     action SetPaddingOffsetPercent(number paddingOffset)
         if paddingOffset >= 0
             me:paddingOffsetPercent = paddingOffset
         end
     end
-
+    /*
+        This action control the white space (padding/offset) on either side of the axis.
+    */
     action GetPaddingOffsetPercent returns number
         return paddingOffsetPercent
     end
-
+    /*
+        This action control the white space (padding/offset) on either side of the axis.
+    */
     action OverrideDefaultPaddingOffset(boolean override)
         overrideDefaultPaddingOffsetPercent = override
     end
-
+    /*
+        This action control the white space (padding/offset) on either side of the axis.
+    */
     action OverrideDefaultPaddingOffset returns boolean
         return overrideDefaultPaddingOffsetPercent
     end
-
+    /*
+        This action control the white space (padding/offset) on either side of the axis.
+    */
     action SetTickDigits(integer digits)
         options:SetTickDigits(digits)
     end

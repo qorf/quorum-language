@@ -20,20 +20,16 @@ use Libraries.System.Properties
     Attribute: Author Andreas Stefik, Hannah Williams
 
     Attribute: Example
-
+    use Libraries.Compute.Statistics.DataFrame
     use Libraries.Interface.Controls.Charts.ScatterPlot
-    use Libraries.Game.Game
-
-    class Main is Game
-        action Main
-            StartGame()
-        end
-
-        action CreateGame
-            ScatterPlot chart
-            Add(chart)
-        end
-    end
+    
+    DataFrame frame
+    frame:Load("Data/Cats.csv")
+    frame:AddSelectedColumn(2)
+    frame:AddSelectedColumn(4)
+    ScatterPlot chart = frame:ScatterPlot()
+    chart:SetTitle("My Awesome Title")
+    chart:Display()
 */
 class ScatterPlot is TwoVariableChart
     // Terminology for navigation instructions
@@ -92,6 +88,10 @@ class ScatterPlot is TwoVariableChart
         return GetDescription()
     end
 
+    /*
+        Add a point to the chart
+        Attribute: Parameter point the CharPoint to add to the chart.
+    */
     action Add(ChartPoint point)
         parent:TwoVariableChart:AddPoint(point)
     end
@@ -253,19 +253,27 @@ class ScatterPlot is TwoVariableChart
         end
         chartItem:SetDescription(description)
     end
-
+    /*
+        This action gets the group text.
+    */
     action GetGroupText returns text
         return groupText
     end
-
+    /*
+        This action gets the groups text.
+    */
     action GetGroupsText returns text
         return groupsText
     end
-
+    /*
+        This action gets the chart item text.
+    */
     action GetChartItemText returns text
         return chartItemText
     end
-
+    /*
+        This action gets the chart items text.
+    */
     action GetChartItemsText returns text
         return chartItemsText
     end

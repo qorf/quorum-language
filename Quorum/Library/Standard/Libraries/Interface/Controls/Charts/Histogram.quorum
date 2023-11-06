@@ -121,7 +121,9 @@ class Histogram is SharedBarChartParent
         SetDescription(GetChartArea():GetDescription())
         return GetDescription()
     end
-
+    /*
+        This action calculates the bins for each of the histogram bars.
+    */
     action MakeBins()
         integer numberOfColumns = columns:GetSize()
         if numberOfColumns < 1
@@ -423,63 +425,107 @@ class Histogram is SharedBarChartParent
 
         end
     end
+    /* 
+        Sets the x axis maximum for the histogram. Max and min value will track the highest 
+        and lowest values and limit the axis controls to not pass that value.
 
+        Attribute: Parameter max the value of the x axis maximum.
+    */ 
     action SetXAxisMaximum(number max)
         parent:SharedBarChartParent:SetXAxisMaximum(max)
         if GetVerticalFlag()
             MakeBins()
         end
     end
+    /* 
+        Sets the x axis minimum for the histogram. Max and min value will track the highest 
+        and lowest values and limit the axis controls to not pass that value.
 
+        Attribute: Parameter min the value of the x axis minimum.
+    */
     action SetXAxisMinimum(number min)
         parent:SharedBarChartParent:SetXAxisMinimum(min)
         if GetVerticalFlag()
             MakeBins()
         end
     end
+    /* 
+        Sets the y axis maximum for the histogram. Max and min value will track the highest 
+        and lowest values and limit the axis controls to not pass that value.
 
+        Attribute: Parameter max the value of the y axis maximum.
+    */
     action SetYAxisMaximum(number max)
         parent:SharedBarChartParent:SetYAxisMaximum(max)
         if GetHorizontalFlag()
             MakeBins()
         end
     end
+    /* 
+        Sets the y axis minimum for the histogram. Max and min value will track the highest 
+        and lowest values and limit the axis controls to not pass that value.
 
+        Attribute: Parameter min the value of the y axis minimum.
+    */
     action SetYAxisMinimum(number min)
         parent:SharedBarChartParent:SetYAxisMinimum(min)
         if GetHorizontalFlag()
             MakeBins()
         end
     end
+    /* 
+        Sets the X tick interval for the histogram. The x axis ticks inverval is the distance
+        between all the tick on the x axis.
 
+        Attribute: Parameter set the number for the distance between the ticks.
+    */
     action SetXTickInterval(number set)
         parent:Chart:SetXTickInterval(set)
         if GetVerticalFlag()
             SetBinWidth(set)
         end
     end
+    /* 
+        Sets the X tick interval for the histogram. The x axis ticks inverval is the distance
+        between all the tick on the x axis.
 
+        Attribute: Parameter set the integer for the distance between the ticks.
+    */
     action SetXTickInterval(integer set)
         parent:Chart:SetXTickInterval(set)
         if GetVerticalFlag()
             SetBinWidth(set)
         end
     end
+    /* 
+        Sets the Y tick interval for the histogram. The Y axis ticks inverval is the distance
+        between all the tick on the Y axis.
 
+        Attribute: Parameter set the number for the distance between the ticks.
+    */
     action SetYTickInterval(number set)
         parent:Chart:SetYTickInterval(set)
         if GetHorizontalFlag()
             SetBinWidth(set)
         end
     end
+    /* 
+        Sets the Y tick interval for the histogram. The Y axis ticks inverval is the distance
+        between all the tick on the Y axis.
 
+        Attribute: Parameter set the number for the distance between the ticks.
+    */
     action SetYTickInterval(integer set)
         parent:Chart:SetYTickInterval(set)
         if GetHorizontalFlag()
             SetBinWidth(set)
         end
     end
+    /* 
+        Sets the integer bin width for the histogram.
 
+        Attribute: Parameter width the integer for the distance between the ticks.
+    */
     action SetBinWidth(integer width) 
         if width > 0 and binWidth not= width
             binWidth = cast(number, width)
@@ -487,7 +533,11 @@ class Histogram is SharedBarChartParent
             MakeBins()
         end
     end
+    /* 
+        Sets the number bin width for the histogram.
 
+        Attribute: Parameter width the number for the distance between the ticks.
+    */
     action SetBinWidth(number width) 
         if width > 0 and binWidth not= width
             binWidth = width
@@ -496,7 +546,12 @@ class Histogram is SharedBarChartParent
             MakeBins()
         end
     end
+    /* 
+        Sets the X tick count for the histogram. The X axis ticks inverval is the 
+        number of ticks on the X axis.
 
+        Attribute: Parameter set the integer for the number of ticks.
+    */
     action SetXTickCount(integer count)
         parent:Chart:SetXTickCount(count)
         if GetVerticalFlag()
@@ -505,7 +560,12 @@ class Histogram is SharedBarChartParent
             MakeBins()
         end
     end
+    /* 
+        Sets the Y tick count for the histogram. The Y axis ticks inverval is the 
+        number of ticks on the Y axis.
 
+        Attribute: Parameter count the integer for the number of ticks.
+    */
     action SetYTickCount(integer count)
         parent:Chart:SetYTickCount(count)
         if GetHorizontalFlag()
@@ -514,7 +574,11 @@ class Histogram is SharedBarChartParent
             MakeBins()
         end
     end
+    /* 
+        Sets the number of bins for the histogram.
 
+        Attribute: Parameter count the integer for the number of bins.
+    */
     action SetBinCount(integer count)
         binCountOverride = true
         binCount = count
@@ -529,28 +593,52 @@ class Histogram is SharedBarChartParent
     action SetDecimalScale(boolean decimalScale)
         me:decimalScale = decimalScale
     end
-    
+    /* 
+        Sets the frquency axis of the histogram to be represented as percent.
+
+        Attribute: Parameter frequencyIsPercent if true frequency is represented as percent.
+    */
     action SetFrequencyAsPercent(boolean frequencyIsPercent)
         me:frequencyIsPercent = frequencyIsPercent
         MakeBins()
     end
+    /* 
+        This action gets the columns from the DataFrame.
 
+        Attribute: Returns the Array<DataFrameColumn> from the data frame columns.
+    */
     action GetColumns() returns Array<DataFrameColumn>
         return columns
     end
+    /* 
+        This action sets the data minimum value.
 
+        Attribute: Parameter dataMin the number for minimum data value.
+    */
     action SetDataMinimum(number dataMin)
         me:dataMin = dataMin
     end
+    /* 
+        This action gets the data minimum value.
 
+        Attribute: Returns the number for minimum data value.
+    */
     action GetDataMinimum returns number
         return dataMin
     end
+    /* 
+        This action sets the data maximum value.
 
+        Attribute: Parameter dataMax the number for maximum data value.
+    */
     action SetDataMaximum(number dataMax)
         me:dataMax = dataMax
     end
+    /* 
+        This action gets the data maximum value.
 
+        Attribute: Returns the number for maximum data value.
+    */
     action GetDataMaximum returns number
         return dataMax
     end
