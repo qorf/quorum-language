@@ -770,6 +770,9 @@ class TwoVariableChart is Chart
                         end
                         i = i + 1
                     end
+                    previousArea:SetDescription(previousArea:GetDescription() + " End of list order.")
+                    previousArea:SetRightItem(firstArea)
+                    firstArea:SetLeftItem(previousArea)
                 end
             else
                 // Add LEFT/RIGHT/ENTER/ESCAPE navigation
@@ -797,6 +800,9 @@ class TwoVariableChart is Chart
                     previousChartLineItem = chartLineItem
                     i = i + 1
                 end
+                previousChartLineItem:SetDescription(previousChartLineItem:GetDescription() + " End of list order.")
+                previousChartLineItem:SetRightItem(firstChartLineItem)
+                firstChartLineItem:SetLeftItem(previousChartLineItem)
             end
         end
 
@@ -855,6 +861,9 @@ class TwoVariableChart is Chart
                         end
                         i = i + 1
                     end
+                    previousArea:SetDescription(previousArea:GetDescription() + " End of list order.")
+                    previousArea:SetRightItem(firstArea)
+                    firstArea:SetLeftItem(previousArea)
                 end
 
                 // TO-DO: Handle movable regression lines for this case.
@@ -894,6 +903,9 @@ class TwoVariableChart is Chart
                         AddPoints(summary, series, nextSeriesPoints)
                         i = i + 1
                     end
+                    previousSeries:SetDescription(previousSeries:GetDescription() + " End of list order.")
+                    previousSeries:SetRightItem(firstSeries)
+                    firstSeries:SetLeftItem(previousSeries)
 
                     // If we have any Series objects from movable regression lines, gather those up so we can iterate over them too.
                     Array<Series> movableSeries
@@ -934,6 +946,9 @@ class TwoVariableChart is Chart
                             
                             i = i + 1
                         end
+                        previousSeries:SetDescription(previousSeries:GetDescription() + " End of list order.")
+                        previousSeries:SetRightItem(firstMovableSeries)
+                        firstMovableSeries:SetLeftItem(previousSeries)
                     end
                 end
             end
@@ -1585,6 +1600,9 @@ class TwoVariableChart is Chart
                 previousPointItem = pointItem
                 i = i + 1
             end
+            previousPointItem:SetDescription(previousPointItem:GetDescription() + " End of X value order.")
+            previousPointItem:SetRightItem(firstPointItem)
+            firstPointItem:SetLeftItem(previousPointItem)
 
             // Add UP/DOWN navigation
             comparison:SetAscending(true)
@@ -1613,6 +1631,7 @@ class TwoVariableChart is Chart
                 previousPointItem = pointItem
                 i = i + 1
             end
+            previousPointItem:SetDescription(firstPointItem:GetDescription() + " End of Y value order.")
 
         end
     end

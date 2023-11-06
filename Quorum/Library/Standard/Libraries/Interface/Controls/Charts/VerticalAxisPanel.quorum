@@ -185,12 +185,16 @@ class VerticalAxisPanel is ChartItem
             yAxis:SetLeftItem(xAxis)
         else
             summary:SetRightItem(yAxis)
+            summary:SetLeftItem(yAxis)
             yAxis:SetLeftItem(summary)
+            yAxis:SetRightItem(summary)
         end
 
         if chart:IsShowingLegend()
             yAxis:SetRightItem(chart:GetLegend())   
-            chart:GetLegend():SetLeftItem(yAxis)   
+            chart:GetLegend():SetLeftItem(yAxis)
+            chart:GetLegend():SetRightItem(summary)   
+            summary:SetLeftItem(chart:GetLegend())   
         end 
         
         if not chart:IsSeparated()

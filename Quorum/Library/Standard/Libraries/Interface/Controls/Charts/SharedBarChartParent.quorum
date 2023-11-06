@@ -594,13 +594,17 @@ class SharedBarChartParent is Chart
                         previousBar = bar
                         j = j + 1
                     end
+                    previousBar:SetDescription(previousBar:GetDescription() + " End of list order.")
+                    previousBar:SetRightItem(firstBar)
+                    firstBar:SetLeftItem(previousBar)
 
                     // Iterate through the bars again, this time in ascending value order.
                     Array<ChartItem> sortedBars = chartAreaItems:CopyToArray()
                     BarComparison barCompare
                     barCompare:SetAscending(true)
                     sortedBars:Sort(barCompare)
-                    previousBar = sortedBars:Get(0)
+                    firstBar = sortedBars:Get(0)
+                    previousBar = firstBar
 
                     j = 1
                     repeat while j < sortedBars:GetSize()
@@ -610,6 +614,7 @@ class SharedBarChartParent is Chart
                         previousBar = bar                 
                         j = j + 1
                     end
+                    previousBar:SetDescription(previousBar:GetDescription() + " End of value order.")
                 end
 
                 integer i = 1
@@ -648,6 +653,9 @@ class SharedBarChartParent is Chart
                                 previousBar = bar
                                 j = j + 1
                             end
+                            previousBar:SetDescription(previousBar:GetDescription() + " End of list order.")
+                            previousBar:SetRightItem(firstBar)
+                            firstBar:SetLeftItem(previousBar)
 
                             // Iterate through the bars again, this time in ascending value order.
                             Array<ChartItem> sortedBars = subAreaItems:CopyToArray()
@@ -664,10 +672,14 @@ class SharedBarChartParent is Chart
                                 previousBar = bar                 
                                 j = j + 1
                             end
+                            previousBar:SetDescription(previousBar:GetDescription() + " End of value order.")
                         end
                     end
                     i = i + 1
                 end
+                previousArea:SetDescription(previousArea:GetDescription() + " End of list order.")
+                previousArea:SetRightItem(firstArea)
+                firstArea:SetLeftItem(previousArea)
             end
         else
             if HasGroups()
@@ -698,6 +710,9 @@ class SharedBarChartParent is Chart
                             previousBar = bar
                             j = j + 1
                         end
+                        previousBar:SetDescription(previousBar:GetDescription() + " End of list order.")
+                        previousBar:SetRightItem(firstBar)
+                        firstBar:SetLeftItem(previousBar)
 
                         // Iterate through the bars again, this time in ascending value order.
                         Array<Bar> sortedBars = barGroups:Get(0):GetBars():CopyToArray()
@@ -714,6 +729,7 @@ class SharedBarChartParent is Chart
                             previousBar = bar                 
                             j = j + 1
                         end
+                        previousBar:SetDescription(previousBar:GetDescription() + " End of value order.")
                     end
 
                     integer i = 1
@@ -745,6 +761,9 @@ class SharedBarChartParent is Chart
                                 previousBar = bar                 
                                 j = j + 1
                             end
+                            previousBar:SetDescription(previousBar:GetDescription() + " End of list order.")
+                            previousBar:SetRightItem(firstBar)
+                            firstBar:SetLeftItem(previousBar)
 
                             // Iterate through the bars again, this time in ascending value order.
                             Array<Bar> sortedBars = barGroups:Get(i):GetBars():CopyToArray()
@@ -761,10 +780,13 @@ class SharedBarChartParent is Chart
                                 previousBar = bar                 
                                 j = j + 1
                             end
+                            previousBar:SetDescription(previousBar:GetDescription() + " End of value order.")
                         end
-                        
                         i = i + 1
                     end
+                    previousGroup:SetDescription(previousGroup:GetDescription() + " End of list order.")
+                    previousGroup:SetRightItem(firstGroup)
+                    firstGroup:SetLeftItem(previousGroup)
                 end        
             else
                 if barGroups:GetSize() > 0
@@ -786,6 +808,9 @@ class SharedBarChartParent is Chart
                             previousBar = bar
                             i = i + 1
                         end
+                        previousBar:SetDescription(previousBar:GetDescription() + " End of list order.")
+                        previousBar:SetRightItem(firstBar)
+                        firstBar:SetLeftItem(previousBar)
 
                         // Iterate through the bars again, this time in ascending value order.
                         Array<BarGroup> sortedBars = barGroups:CopyToArray()
@@ -801,8 +826,8 @@ class SharedBarChartParent is Chart
                             previousBar = bar                 
                             i = i + 1
                         end
+                        previousBar:SetDescription(previousBar:GetDescription() + " End of value order.")
                     end
-                    
                 end
             end
         end

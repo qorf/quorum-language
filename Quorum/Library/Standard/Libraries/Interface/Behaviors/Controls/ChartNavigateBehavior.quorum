@@ -55,9 +55,9 @@ class ChartNavigateBehavior is Behavior
                     elseif gesture:GetDirection() = gesture:RIGHT //2 finger Swipe Right with talkback
                         direction = X_AXIS_NEXT
                     elseif gesture:GetDirection() = gesture:UP //2 finger Swipe Up with talkback
-                        direction = ENTER
-                    elseif gesture:GetDirection() = gesture:DOWN //2 finger Swipe Down with talkback
                         direction = SHIFT_ENTER
+                    elseif gesture:GetDirection() = gesture:DOWN //2 finger Swipe Down with talkback
+                        direction = ENTER
                     end
                 else 
                     return now
