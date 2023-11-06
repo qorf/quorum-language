@@ -237,7 +237,12 @@ class PieChart is Chart
     private action CheckIfInteger(number value) returns boolean
         return (cast(integer, value) = value)
     end
-
+    /*
+        Sets the value annotation visibility. If true the annotation
+        displaying the slice value is displayed.
+ 
+        Attribute: Parameter show true if the slice value is displayed.
+    */
     action ShowValueAnnotations(boolean show)
         if show
             showPercentAnnotation = false
@@ -245,11 +250,21 @@ class PieChart is Chart
         showValueAnnotation = show
         ShowAnnotations(show)
     end
-
+    /*
+        Gets the value annotation visibility. If true the annotation
+        displaying the slice value as a value is displayed.
+ 
+        Attribute: Parameter show true if the slice name is displayed.
+    */
     action IsShowingValueAnnotations returns boolean
         return showValueAnnotation
     end
-
+    /*
+        Sets the percent annotation visibility. If true the annotation
+        displaying the slice value as a percent is displayed.
+ 
+        Attribute: Parameter show true if the slice name is displayed.
+    */
     action ShowPercentAnnotations(boolean show)
         if show
             showValueAnnotation = false
@@ -257,24 +272,45 @@ class PieChart is Chart
         showPercentAnnotation = show
         ShowAnnotations(show)
     end
-
+    /*
+        Gets the percent annotation visibility. If true the annotation
+        displaying the slice value as a percent is displayed.
+ 
+        Attribute: Returns true if the slice value as a percent is displayed.
+    */
     action IsShowingPercentAnnotations returns boolean
         return showPercentAnnotation
     end
-
+    /*
+        Sets the name annotation visibility. If true the annotation
+        displaying the slice name is displayed.
+ 
+        Attribute: Parameter show true if the slice name is displayed.
+    */
     action ShowNameAnnotations(boolean show)
         showNameAnnotation = show
         ShowAnnotations(show)
     end
-
+    /*
+        Gets the name annotation visibility. If true the annotation
+        displaying the slice name is displayed.
+ 
+        Attribute: Returns true if the slice name is displayed.
+    */
     action IsShowingNameAnnotations returns boolean
         return showNameAnnotation
     end
-
+    /*
+        Sets the annotation font size for each slice label.
+        Attribute: Parameter fontSize the font size of the annotation.
+    */
     action SetAnnotationFontSize(integer fontSize)
         annotationFontSize = fontSize
     end
-
+    /*
+        Gets the annotation font size for each slice label.
+        Attribute: Returns the font size of the annotation.
+    */
     action GetAnnotationFontSize() returns integer
         return annotationFontSize
     end
@@ -344,11 +380,19 @@ class PieChart is Chart
             parent:Chart:OnSelectionChange(item)        
         end
     end
+    /*
+        This action adds a pie box to the current chart.
 
+        Attribute: Parameter box the PieBox object to add to the chart.
+    */
     action AddPieBox(PieBox box)
         pieBoxes:Add(box)
     end
+    /*
+        This action gets an array of PieBox objects that are on the chart.
 
+        Attribute: Returns the array of PieBox objects.
+    */
     action GetPieBoxes returns Array<PieBox>
         return pieBoxes
     end
@@ -635,7 +679,7 @@ class PieChart is Chart
     end
 
     /*
-    Supplemental actions to Chart class's SeparateByFactor and SeparateBySeries.
+    Supplemental actions to Chart class's SeparateByFactor.
     This ensures the separate pie charts are created and filled in properly.
     */
     action SeparateByFactor(integer requestColumns)
@@ -647,7 +691,10 @@ class PieChart is Chart
         end
     end
 
-
+    /*
+    Supplemental actions to Chart class's SeparateBySeries.
+    This ensures the separate pie charts are created and filled in properly.
+    */
     action SeparateBySeries(integer requestColumns)
         if GetColumnList() not= undefined
             if GetColumnList():GetSize() > 1 // We won't separate by series if there is only one.
@@ -669,11 +716,20 @@ class PieChart is Chart
     private action GetColumnList returns Array<text>
         return GetHorizontalPanel():GetTextLabels()
     end
+    /* 
+        This action returns the current percentage value of the donut hole pie chart.
 
+        Attribute: Returns the donut hole percentage number.
+    */
     action GetDonutHolePercent returns number
         return donutHolePercent
     end
+    /* 
+        This action sets teh donut hole percentage for the pie chart. This creates
+        an empty circle in the center of the chart.
 
+        Attribute: Parameter donutHolePercent the donut hole percent number between 0 and 1.
+    */
     action SetDonutHolePercent(number donutHolePercent)
         if donutHolePercent >= 0 and donutHolePercent < 1
             me:donutHolePercent = donutHolePercent
@@ -894,7 +950,9 @@ class PieChart is Chart
         ChartSelection selection = GetSelection()
         selection:Set(summary)
     end
-
+    /* 
+        This action sorts the pie slices in the pie chart in descending size order.
+    */
     action Sort
         PieSliceComparison comparison
         comparison:SetAscending(false)
@@ -963,19 +1021,27 @@ class PieChart is Chart
             alert("Share currently only supports Hypertext Markup Language (HTML), please use a .html file extension.")
         end
     end
-
+    /*
+        This action gets the group text.
+    */
     action GetGroupText returns text
         return groupText
     end
-
+    /*
+        This action gets the groups text.
+    */
     action GetGroupsText returns text
         return groupsText
     end
-    
+     /*
+        This action gets the chart item text.
+    */   
     action GetChartItemText returns text
         return chartItemText
     end
-
+    /*
+        This action gets the chart items text.
+    */
     action GetChartItemsText returns text
         return chartItemsText
     end
