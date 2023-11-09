@@ -7,6 +7,9 @@ use Libraries.Containers.Array
 use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.Columns.TextColumn
 use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Web.Page.all
+use Libraries.System.File
+//use Libraries.Interface.Controls.Charts.ScatterPlotWriter
 
 class CompareMeansSummary
     CompareMeansResult result = undefined
@@ -112,6 +115,54 @@ class CompareMeansSummary
             end
         end
         alert("There is no CompareMeansResult defined to summarize. Try using SetResult()")
+    end
+
+    // JUST FOR ONE SAMPLE RN
+    action GetReport(File file)
+        WebPage page
+        //ScatterPlotWriter chartWriter
+        Division divide
+        Division responsiveWrapper
+
+
+        //add language headers
+        page:AddAttribute("xml:lang", "en")
+        page:SetLanguage("en")
+
+        //add the meta-data character set
+        MetaData charset
+        charset:SetCharacterSet("UTF-8")
+        page:AddMetaData(charset)
+
+        MetaData viewport
+        viewport:SetContent("width=device-width, initial-scale=1")
+        viewport:SetName("viewport")
+        page:AddMetaData(viewport)
+
+        page:AddIcon("http://quorumlanguage.com/media/favicon.ico")
+        page:AddScript("http://quorumlanguage.com/script/quorumCharts.js")
+        page:AddStylesheet("http://quorumlanguage.com/style/quorumCharts.css")
+        page:SetWebPageTitle("Quorum Statistical Report: " + "Correlation" ) // !!!! ADD THE TEST NAME
+
+        // for summary
+        divide:SetStyle("font-family: sans-serif")
+        divide:AddHeading("Correlation Report", 2)
+        divide:AddHeading("Summary: GetSummary()", 3)
+        divide:AddParagraph(GetSummary())
+        divide:AddHeading("Formal Summary: GetFormalSummary()", 3)
+        divide:AddParagraph(GetFormalSummary())
+
+        // for table
+        divide:AddHeading("Table Summary", 3)
+        WebTable table
+        table:SetBorder(true)
+        table:Add(GetSummaryDataFrame())
+        divide:Add(table)
+
+        page:Add(divide)
+        page:Add(responsiveWrapper)
+
+        file:Write(page:Generate())      
     end
 
     private action GetSummaryOne() returns text
@@ -1180,5 +1231,5 @@ class CompareMeansSummary
             i = i + 1
         end
         return resultFrame
-    end
+    end           
 end

@@ -9,6 +9,7 @@ use Libraries.Containers.HashTable
 use Libraries.Compute.Math
 use Libraries.Containers.Iterator
 use Libraries.Compute.Matrix
+use Libraries.System.File
 
 /*
     This class represents a test result that comes back from 
@@ -677,6 +678,13 @@ class CompareMeansResult is StatisticalTestResult
         CompareMeansSummary summary
         summary:SetResult(me)
         return summary:GetFormalNumericalResult()
+    end
+    
+    // FOR REPORT TESTING
+    action GetReportResult(File file)
+        CompareMeansSummary summary
+        summary:SetResult(me)
+        summary:GetReport(file)
     end
 
     /*
