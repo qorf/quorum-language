@@ -505,7 +505,7 @@ actionTop:Add(actionMiddle)
     
     private action GetRightHandSideWebSection(Array<Action> actions) returns Section
         Section section
-        section:SetClassAttribute("flex flex-col w-1/6 gap-y-2 pt-6")
+        section:SetClassAttribute("hidden md:flex flex-col w-1/6 gap-y-2 pt-6")
         Heading heading
         heading:SetScale(2)
         heading:AddText("On this page")

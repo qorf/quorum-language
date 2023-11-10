@@ -368,10 +368,10 @@ class NavigationBar is NavigationDivision
     private action AddLoginForm
         Division loginDiv
 
-        loginDiv:SetClassAttribute("modal")
         loginDiv:SetIdentifier("loginModal")
         loginDiv:AddAttribute("role", "dialog")
         loginDiv:AddAttribute("aria-labelledby", "loginTitleDiv")
+loginDiv:AddClassAttribute("hidden")
 
         Division modalDialog
         modalDialog:SetClassAttribute("modal-dialog modal-content animate")
