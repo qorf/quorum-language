@@ -25,6 +25,7 @@ use Libraries.Compute.Matrix
 use Libraries.Compute.Statistics.Reporting.CompareMeansResult
 use Libraries.Compute.Statistics.Reporting.CompareMeansSummary
 use Libraries.System.File
+use Libraries.Interface.Controls.Charts.all
 
 
 /*
@@ -3208,13 +3209,13 @@ class CompareMeans is StatisticalTest
         return summary
     end
 
-    action GetReport(File file) 
+    action GetReport(File file, BoxPlot chart) 
         CompareMeansResult result       
         i = 0
         repeat while i < GetResults():GetSize()
             result = GetResults():Get(i)
             
-            result:GetReportResult(file)
+            result:GetReportResult(file, chart)
             
             i = i + 1
         end

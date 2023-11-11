@@ -10,6 +10,7 @@ use Libraries.Compute.Math
 use Libraries.Containers.Iterator
 use Libraries.Compute.Matrix
 use Libraries.System.File
+use Libraries.Interface.Controls.Charts.all
 
 /*
     This class represents a test result that comes back from 
@@ -681,10 +682,10 @@ class CompareMeansResult is StatisticalTestResult
     end
     
     // FOR REPORT TESTING
-    action GetReportResult(File file)
+    action GetReportResult(File file, BoxPlot chart)
         CompareMeansSummary summary
         summary:SetResult(me)
-        summary:GetReport(file)
+        summary:GetReport(file, chart)
     end
 
     /*
