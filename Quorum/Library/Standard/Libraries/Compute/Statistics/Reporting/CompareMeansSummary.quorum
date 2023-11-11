@@ -9,7 +9,7 @@ use Libraries.Compute.Statistics.Columns.TextColumn
 use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Web.Page.all
 use Libraries.System.File
-//use Libraries.Interface.Controls.Charts.ScatterPlotWriter
+use Libraries.Interface.Controls.Charts.all
 
 class CompareMeansSummary
     CompareMeansResult result = undefined
@@ -118,6 +118,10 @@ class CompareMeansSummary
     end
 
     // JUST FOR ONE SAMPLE RN
+//    action GetChart(Chart chart)
+//    
+//    
+//    end
     action GetReport(File file)
         WebPage page
         //ScatterPlotWriter chartWriter
@@ -154,11 +158,72 @@ class CompareMeansSummary
 
         // for table
         divide:AddHeading("Table Summary", 3)
-        WebTable table
-        table:SetBorder(true)
-        table:Add(GetSummaryDataFrame())
-        divide:Add(table)
+        WebTable table1
+        WebTable table2
+        table1:SetBorder(true)
+        table2:SetBorder(true)
+     
 
+        DataFrame resultFrame1
+        DataFrame resultFrame2
+        integer digits = format:GetSignificantDigits()
+
+        TextColumn testCol
+        testCol:SetHeader("Technical Name")
+        TextColumn comparisonCol
+        comparisonCol:SetHeader("Comparison")
+        NumberColumn statisticCol
+        statisticCol:SetHeader("Statistic ("+result:GetTestStatisticName()+")")
+        NumberColumn pCol
+        pCol:SetHeader("Probability Value")
+        NumberColumn effectCol
+        effectCol:SetHeader("Effect Size ("+result:GetEffectSizeName()+")")
+        TextColumn equationCol
+        equationCol:SetHeader("APA Report")
+
+        text groupName = result:GetGroupsFrame():GetColumn(0):GetHeader()
+        text statName = result:GetTestStatisticName()
+        testCol:Add(result:GetFormalTestName())
+        comparisonCol:Add(groupName)
+        statisticCol:Add(math:Round(result:GetTestStatistic(), digits))
+        pCol:Add(math:Round(result:GetProbabilityValue(), digits))
+        effectCol:Add(math:Round(result:GetEffectSize(), digits)) 
+        equationCol:Add(GetFormalNumericalResult())   
+
+        TextColumn sampleCol
+        sampleCol:SetHeader("Sample")
+        sampleCol:Add(groupName)
+        NumberColumn sizeCol
+        sizeCol:SetHeader("Size")
+        sizeCol:Add(result:GetTestStatistic())
+        NumberColumn meanCol
+        meanCol:SetHeader("Mean")
+        meanCol:Add(math:Round(result:GetInformation():GetValue(groupName):GetValue("mean"), digits))
+        NumberColumn sdCol
+        sdCol:SetHeader("Standard Deviation")
+        sdCol:Add(math:Round(math:SquareRoot(result:GetInformation():GetValue(groupName):GetValue("variance")),digits))
+        NumberColumn dfCol
+        dfCol:SetHeader("Degrees Of Freedom")
+        dfCol:Add(math:Round(result:GetDegreesOfFreedom(), digits))
+
+        resultFrame1:AddColumn(testCol)
+        resultFrame1:AddColumn(comparisonCol)        
+        resultFrame1:AddColumn(dfCol)
+        resultFrame1:AddColumn(statisticCol)
+        resultFrame1:AddColumn(pCol)
+        resultFrame1:AddColumn(effectCol)  
+        resultFrame1:AddColumn(equationCol)          
+        
+        resultFrame2:AddColumn(sampleCol)
+        resultFrame2:AddColumn(sizeCol)
+        resultFrame2:AddColumn(meanCol)
+        resultFrame2:AddColumn(sdCol)
+       
+        table1:Add(resultFrame1)
+        table2:Add(resultFrame2)
+        divide:Add(table1)
+        divide:Add(table2)
+        
         page:Add(divide)
         page:Add(responsiveWrapper)
 
