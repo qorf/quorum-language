@@ -9,6 +9,7 @@ use Libraries.Web.Page.PreformattedText
 use Libraries.Web.Page.CodeBlock
 use Libraries.Web.Page.Division
 use Libraries.Web.Page.StrongText
+use Libraries.Language.Support.TextBuilder
 
 class Documentation is Location
     public constant text AUTHOR = "Author"
@@ -173,12 +174,76 @@ value = value:GetSubtext(2, value:GetSize())
                 theReturn = val:Trim()
             elseif attribute:StartsWith(EXAMPLE)
                 text val = attribute:GetSubtext(EXAMPLE:GetSize(), attribute:GetSize())
-
-                example = val:Trim()
+                example = FormatExample(val)
             end
             i = i + 1
         end
-
-        integer a = 5
+    end
+    
+private action FormatExample(text example) returns text
+        if example = undefined or example:IsEmpty()
+            return ""
+        end
+        Array<text> array = example:SplitIntoLines()
+        if array:IsEmpty()
+            return ""
+        end
+text funny = CalculateFirstWhitespace(array)
+        
+        TextBuilder builder
+        boolean topMost = true
+        i = 0
+        repeat while i < array:GetSize()
+            text value = array:Get(i)
+            if value not= undefined and not value:IsEmpty()
+                topMost = false
+            end
+            if value not= undefined and value:StartsWith(funny)
+                value = value:GetSubtext(funny:GetSize())
+builder:Append(value)
+            else
+                builder:Append(value)
+            end
+            if not topMost
+builder:Append("
+")
+            end
+            i = i + 1
+        end
+        return builder:ToText()
+    end
+    
+private action CalculateFirstWhitespace(Array<text> lines) returns text
+        text first = undefined
+        text funny = ""
+        //find first line with spaces
+        i = 0
+        repeat while i < lines:GetSize()
+            text line = lines:Get(i)
+            if line not= undefined and not line:IsEmpty() and line:GetCharacter(0) = " "
+                first = line
+                i = lines:GetSize()
+            end
+            i = i + 1
+        end
+        //there wasn't a line where this was relevant, so just return empty text
+        if first = undefined
+            return ""
+        end
+//calculate spaces
+        i = 0
+        repeat while first not= undefined and i < first:GetSize()
+            
+text char = first:GetCharacter(i)
+if char = " "
+                funny = funny + " "
+            elseif char = first:GetCarriageReturn() or char = first:GetLineFeed()
+                //ignore these
+            else
+                i = first:GetSize()
+            end
+            i = i + 1
+        end
+    return funny
     end
 end
