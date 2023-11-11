@@ -256,7 +256,7 @@ class ClassOpcode is QuorumOpcode
         page:Add(headDiv)
 
         Division bodyDiv
-        bodyDiv:SetClassAttribute("w-4/6 pr-16 space-y-2")
+        bodyDiv:SetClassAttribute("w-full pr-4 pl-4 md:w-5/6 lg:w-4/6 md:pl-8 md:pr-8 md:pl-12 md:pr-12 space-y-2")
         Heading titleHeader = bodyDiv:AddHeading(clazz:GetStaticKey() + " Documentation", 2)
 titleHeader:SetClassAttribute("font-bold text-3xl pt-6")
         
@@ -434,6 +434,8 @@ actionTop:Add(actionMiddle)
                     else
                         if documentationForParameter not= undefined
                             unordered:AddListItem(paramName + documentationForParameter)
+                        else
+unordered:AddListItem(paramName)
                         end
                     end
                 end
@@ -505,7 +507,7 @@ actionTop:Add(actionMiddle)
     
     private action GetRightHandSideWebSection(Array<Action> actions) returns Section
         Section section
-        section:SetClassAttribute("hidden md:flex flex-col w-1/6 gap-y-2 pt-6")
+        section:SetClassAttribute("hidden lg:flex flex-col w-1/6 gap-y-2 pt-6 sticky top-0 h-screen overflow-auto")
         Heading heading
         heading:SetScale(2)
         heading:AddText("On this page")
@@ -526,13 +528,13 @@ actionsLink:SetClassAttribute("hover:underline text-lg")
         section:Add(actionsLink)
         
         UnorderedList list
-        list:SetClassAttribute("space-y-1 justify-end")
+        list:SetClassAttribute("space-y-2")
         i = 0
         repeat while i < actions:GetSize()
             Action act = actions:Get(i)
             ListItem item
             Link actLink
-actLink:SetClassAttribute("hover:underline")
+actLink:SetClassAttribute("hover:underline text-sm")
             actLink:SetAddress("#" + act:GetStaticKey())
             text displayName = act:GetDisplayNameNoReturn()
             actLink:AddText(displayName)

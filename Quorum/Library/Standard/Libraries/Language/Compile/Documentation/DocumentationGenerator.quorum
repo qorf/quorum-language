@@ -138,7 +138,7 @@ class DocumentationGenerator
 
     action CreatePackageIndex(SymbolTable symbolTable) returns Section
         Section section
-        section:SetClassAttribute("flex flex-col w-1/6 gap-y-2 pt-6 h-[calc(100vh-150px)] overflow-y-auto")
+        section:SetClassAttribute("hidden md:min-w-1/8 md:flex flex-col w-1/6 gap-y-2 pt-6 sticky top-0 h-screen overflow-auto")
         Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
         repeat while packages:HasNext()
             text key = packages:Next()
@@ -148,9 +148,9 @@ class DocumentationGenerator
 
             //put in the heading for the page
             Heading packageHeading
-            packageHeading:SetClassAttribute("font-bold break-all")
+            packageHeading:SetClassAttribute("font-bold break-words")
             packageHeading:SetScale(3)
-            packageHeading:AddText(key:ToUpperCase())
+            packageHeading:AddText(key)
             
             UnorderedList packageList
             listDivision:Add(packageHeading)
@@ -163,7 +163,7 @@ class DocumentationGenerator
                 
                 Link classLink = GetWebLinkForClassFromIndex(clazz, false)
                 ListItem item
-                item:SetClassAttribute("break-all")
+                //item:SetClassAttribute("break-all")
                 item:Add(classLink)
                 packageList:Add(item)
                 i = i + 1
