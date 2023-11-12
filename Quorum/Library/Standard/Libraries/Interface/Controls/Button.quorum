@@ -29,6 +29,30 @@ use Libraries.Interface.Events.TextureLoadListener
 use Libraries.Interface.Events.TextureLoadEvent
 use Libraries.Interface.Layouts.ButtonLayout
 
+/*
+    The Button class is a control object and UI element it is added to the Game 
+    class. The Button is used to represent a general button with a standard 
+    look and function across game applications.
+
+    Attribute: Author Andreas Stefik, William Allee
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.Button
+    use Libraries.Interface.Forms.FormBehavior
+    
+    class Main 
+        action Main 
+            Form form
+            Page page = form:GetMainPage()
+            
+            Button button = page:AddButton("myButton")
+            
+            form:Display()
+        end
+    end
+*/
 class Button is Control, TextureLoadListener
 
     Behavior activationBehavior = undefined

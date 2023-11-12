@@ -416,6 +416,11 @@ class Grouping is FormContainerControl, ButtonGroup
         me:columns = columns
     end
 
+    /*
+        Get the Item2D elements from the grouping.
+
+        Attribute: Parameter Array<Item2D> the form children.
+    */
     action GetFormChildren returns Array<Item2D>
         return GetChildren()
     end

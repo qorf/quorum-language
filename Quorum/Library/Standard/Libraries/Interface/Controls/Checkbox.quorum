@@ -15,13 +15,39 @@ use Libraries.Interface.Views.CheckboxView
 use Libraries.Interface.Events.FocusEvent
 use Libraries.Game.Graphics.ColorGroup
 
+/*
+    The Checkbox class is a ToggleButton object that inherits from Button and like other
+    UI elements it is added to the Game class. The Checkbox is used to represent
+    an individual or collection of toggle buttons. This button has a selected and
+    unselected state.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.Checkbox
+    use Libraries.Interface.Forms.FormBehavior
+    
+    class Main 
+        action Main 
+            Form form
+            Page page = form:GetMainPage()
+            
+            Checkbox button = page:AddCheckbox("checkbox")
+            button:SetToggleState(true)
+            
+            form:Display()
+        end
+    end
+*/
 class Checkbox is ToggleButton
 
     Icon buttonIcon
     Label label
 
     on create
-label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
+        label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         
         // The layout should already be present, courtesy of our inheritance of Button.
 
@@ -51,7 +77,11 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
 
         SetAccessibilityCode(parent:Item:CHECKBOX)
     end
-
+    /*
+        This action toggles between the checkbox being checked and unchecked.
+        
+        Attribute: Parameter toggleState when true the check box is checked.
+    */
     action SetToggleState(boolean toggleState)
         /*
         This overwrites the ToggleButton implementation of SetToggleState.
