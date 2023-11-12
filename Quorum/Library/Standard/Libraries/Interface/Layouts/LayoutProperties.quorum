@@ -892,6 +892,9 @@ class LayoutProperties
         end
 
         InterfaceOptions default = manager:GetInterfaceOptions()
+        if default = undefined
+            return undefined
+        end
         InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetFontColor() not= undefined
             return controlPalette:GetFontColor()
@@ -1214,6 +1217,9 @@ class LayoutProperties
         end
 
         InterfaceOptions default = manager:GetInterfaceOptions()
+        if default = undefined
+            return undefined
+        end
         InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetSelectionFontColor() not= undefined
             return controlPalette:GetSelectionFontColor()
