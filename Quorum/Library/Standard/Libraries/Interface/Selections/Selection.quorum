@@ -4,6 +4,7 @@ use Libraries.Interface.Item
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Events.SelectionEvent
 use Libraries.Game.GameStateManager
+use Libraries.Game.GameInput
 
 /*
 A selection represents what would be interacted with if the parent is used. The 
@@ -96,6 +97,10 @@ class Selection
             control:NotifySelectionListeners(event)
         end
 
-        manager:GetInput():NotifySelectionListeners(event)
+        GameInput in = manager:GetInput()
+        if in not= undefined
+            
+in:NotifySelectionListeners(event)
+        end
     end
 end

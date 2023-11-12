@@ -38,16 +38,22 @@ class Bar is ChartDrawable
     BitwiseOperations bits
 
     /*
-    This action returns the actual value associated with this slice.
-    The parent Chart axis has a total value to which this value will be compared
-    to get a percent for the appropriate size.
-
-    Attribute: Returns a number value
+        This action returns the actual value associated with this bar.
+        The parent Chart axis has a total value to which this value will be compared
+        to get a percent for the appropriate size.
+    
+        Attribute: Returns a number value
     */
     action GetValue returns number
         return value
     end
-
+    /*
+        This action sets the actual value associated with this bar.
+        The parent Chart axis has a total value to which this value will be compared
+        to get a percent for the appropriate size.
+    
+        Attribute: Parameter value a number value associated with the bar.
+    */
     action SetValue(number value)
         me:value = value
         if GetBarGroup() not= undefined
@@ -56,7 +62,7 @@ class Bar is ChartDrawable
     end
 
     /*
-    Link to the parent BarGroup
+        Link to the parent BarGroup.
     */
     action GetBarGroup returns BarGroup
         return cast(BarGroup, GetGroup())
@@ -79,7 +85,11 @@ class Bar is ChartDrawable
 
         parent:Control:LoadGraphics(properties)
     end
-
+    /*
+        This action gets the border color for the bar.
+    
+        Attribute: Returns a color of the bar border.
+    */
     action GetBorderColor returns ColorGroup
         if HasColorPropertyOverride("borderColor")
             return parent:Control:GetBorderColor()
@@ -92,7 +102,11 @@ class Bar is ChartDrawable
 
         return parent:Control:GetBorderColor()
     end
-
+    /*
+        This action gets the border color for the selected bar.
+    
+        Attribute: Returns a color of the selected bar border.
+    */
     action GetSelectionBorderColor returns ColorGroup
         if HasColorPropertyOverride("selectionBorderColor")
             return parent:Control:GetBorderColor()
@@ -105,7 +119,11 @@ class Bar is ChartDrawable
 
         return parent:Control:GetBorderColor()
     end
-
+    /*
+        This action gets the background color for the bar.
+    
+        Attribute: Returns a color of the bar background.
+    */
     action GetBackgroundColor returns ColorGroup
         return parent:Drawable:GetColorGroup()
     end
@@ -113,7 +131,11 @@ class Bar is ChartDrawable
     action GetSelectionColor returns ColorGroup
         return GetBackgroundColor()
     end
-
+    /*
+        This action gets the border thickness for the bar from the parent bar chart.
+    
+        Attribute: Returns a border thickness number of the selected bar border.
+    */
     action GetBorderThickness returns number
         if HasNumberPropertyOverride("borderThickness")
             return parent:Control:GetBorderThickness()
@@ -127,7 +149,15 @@ class Bar is ChartDrawable
 
         return parent:Control:GetBorderThickness()
     end
-
+    /*
+        This action gets the border style for the bar. This action returns a code 
+        representing which sides of the bars have borders, using the style constants from 
+        LayoutProperties (LEFT, RIGHT, TOP, BOTTOM, ALL, and NONE). By default, vertical 
+        bar charts have bar borders on all sides except the bottom, and horizontal bar charts 
+        have bar borders on all sides except the left.
+    
+        Attribute: Returns an integer representing the border style.
+    */
     action GetBorderStyle returns integer
         Chart chart = GetParentChart()
         if chart is SharedBarChartParent
@@ -138,24 +168,41 @@ class Bar is ChartDrawable
         return parent:Control:GetBorderStyle()
     end
 
+    /*
+        This action returns true if the left border is present on the bar.
+    
+        Attribute: Returns true when the bar has a left border.
+    */
     action HasLeftBorder returns boolean
         LayoutProperties properties = GetDefaultLayoutProperties()
         integer style = GetBorderStyle()
         return bits:And(style, properties:LEFT) not= 0
     end
-
+    /*
+        This action returns true if the top border is present on the bar.
+    
+        Attribute: Returns true when the bar has a top border.
+    */
     action HasTopBorder returns boolean
         LayoutProperties properties = GetDefaultLayoutProperties()
         integer style = GetBorderStyle()
         return bits:And(style, properties:TOP) not= 0
     end
-
+    /*
+        This action returns true if the right border is present on the bar.
+    
+        Attribute: Returns true when the bar has a right border.
+    */
     action HasRightBorder returns boolean
         LayoutProperties properties = GetDefaultLayoutProperties()
         integer style = GetBorderStyle()
         return bits:And(style, properties:RIGHT) not= 0
     end
-
+    /*
+        This action returns true if the bottom border is present on the bar.
+    
+        Attribute: Returns true when the bar has a bottom border.
+    */
     action HasBottomBorder returns boolean
         LayoutProperties properties = GetDefaultLayoutProperties()
         integer style = GetBorderStyle()

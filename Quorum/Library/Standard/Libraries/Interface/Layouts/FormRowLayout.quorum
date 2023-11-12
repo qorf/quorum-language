@@ -9,6 +9,7 @@ use Libraries.Interface.Forms.Banner
 use Libraries.Game.Graphics.Font
 use Libraries.Interface.Controls.ScrollPaneRendererAnchor
 use Libraries.Interface.Forms.FormConstants
+use Libraries.Game.Graphics.Label
 
 class FormRowLayout is Layout
 
@@ -221,6 +222,12 @@ class FormRowLayout is Layout
 
                             // As a special case, if the grouping contains only 1 item per row, allow controls to set themselves to use a percentage of the width, if they request it.
                             if numberOfRowItems = 1 and control:GetPercentageWidth() > 0 and control:GetHorizontalLayoutMode() not= control:MAINTAIN_ASPECT_RATIO
+                                
+                                if control is Label
+                                    Label label = cast(Label, control)
+                                    label:SetMaximumWidth(cast(integer, elementWidth * control:GetPercentageWidth()))
+                                end
+                                
                                 control:SetSize(cast(integer, elementWidth * control:GetPercentageWidth()), cast(integer, height))
 
                             // If the control is trying to maintain an aspect ratio, do our best to respect that.
@@ -233,6 +240,11 @@ class FormRowLayout is Layout
                                     control:SetSize(cast(integer, elementWidth), cast(integer, elementWidth / control:GetPercentageWidth()))
                                 end
                             else
+                                if control is Label
+                                    Label label = cast(Label, control)
+                                    label:SetMaximumWidth(cast(integer, elementWidth))
+                                end
+                                
                                 control:SetSize(cast(integer, elementWidth), cast(integer, height))
                             end
 
@@ -285,6 +297,11 @@ class FormRowLayout is Layout
                         if control:GetDefaultLayoutProperties():NeedsRendering()
                             control:LoadGraphics(control:GetDefaultLayoutProperties())
                         end
+                        
+                        if control is Label
+                            Label label = cast(Label, control)
+                            label:SetMaximumWidth(rowWidth)
+                        end
     
                         // The label's width and height are known quantities. There's nothing to set, so just fetch them now.
                         number width = control:GetWidth()
@@ -315,12 +332,20 @@ class FormRowLayout is Layout
         
                         groupTitleHeightOffset = rowTopY
                         number y = rowTopY - height - bannerPadding
+                        
+                        number labelMultiLineOffset = 0
+                        if control is Label
+                            Label label = cast(Label, control)
+                            if label:GetLineCount() > 1
+                                labelMultiLineOffset = label:GetLineHeight() * (label:GetLineCount() - 1)
+                            end
+                        end
         
                         // If the title is the only item in the grouping, there won't be a row beneath it, so it doesn't need to be pushed further up.
                         if groupItems:GetSize() = 1
-                            control:SetPosition(x, defaultRowVerticalPadding + bannerPadding)
+                            control:SetPosition(x, defaultRowVerticalPadding + bannerPadding + labelMultiLineOffset)
                         else
-                            control:SetPosition(x, totalRowHeights + defaultRowVerticalPadding + bannerPadding)
+                            control:SetPosition(x, totalRowHeights + defaultRowVerticalPadding + bannerPadding + labelMultiLineOffset)
                         end
         
                         rowTopY = y - defaultRowVerticalPadding
@@ -442,6 +467,11 @@ class FormRowLayout is Layout
                         height = width * control:GetPercentageHeight()
                     end
 
+                    if control is Label
+                        Label label = cast(Label, control)
+                        label:SetMaximumWidth(width)
+                    end
+                    
                     control:SetSize(width, height)
 
                     // Set the height to match the Control's actual height.
