@@ -180,15 +180,28 @@ shared class ChartOptions
 
     private action DefaultPatternPalette() returns Array <integer>
         Array <integer> palette
-        palette:Add(DIAGONAL_CROSSHATCH)
+//        palette:Add(DIAGONAL_CROSSHATCH)
+//        palette:Add(VERTICAL_LINES)
+//        palette:Add(HOLLOW_CIRCLES)
+//        palette:Add(DIAGONAL_DOWN_LINES)
+//        palette:Add(HOLLOW_TRIANGLES)
+//        palette:Add(HORIZONTAL_LINES)
+//        palette:Add(HOLLOW_BOXES)
+//        palette:Add(DIAGONAL_UP_LINES)
+//        palette:Add(PLAIN_CROSSHATCH)
         palette:Add(VERTICAL_LINES)
-        palette:Add(HOLLOW_CIRCLES)
-        palette:Add(DIAGONAL_DOWN_LINES)
-        palette:Add(HOLLOW_TRIANGLES)
         palette:Add(HORIZONTAL_LINES)
-        palette:Add(HOLLOW_BOXES)
+        palette:Add(DIAGONAL_DOWN_LINES)
         palette:Add(DIAGONAL_UP_LINES)
         palette:Add(PLAIN_CROSSHATCH)
+        palette:Add(DIAGONAL_CROSSHATCH)
+        palette:Add(SOLID_CIRCLES)
+        palette:Add(HOLLOW_CIRCLES)
+        palette:Add(PINPOINT_DASHES)
+        palette:Add(SOLID_TRIANGLES)
+        palette:Add(HOLLOW_TRIANGLES)
+        palette:Add(SOLID_BOXES)
+        palette:Add(HOLLOW_BOXES)
         return palette
     end
 

@@ -1,0 +1,23 @@
+package Libraries.Game.Graphics.Shaders
+
+class HollowCirclePatternControlFragmentShader is ControlFragmentShader, HollowCirclePatternFragmentShaderPart
+
+    constant text SHADER_NAME = "Hollow Circle Pattern Control Fragment Shader"
+
+    on create
+        SetName(SHADER_NAME)
+    end
+
+    private action GetExtraFunctions returns text
+        return parent:HollowCirclePatternFragmentShaderPart:GetExtraFunctions()
+    end
+
+    private action GetExtraInputs returns text
+        return parent:HollowCirclePatternFragmentShaderPart:GetExtraInputs()
+    end
+
+    private action GetAppendedCode returns text
+        return parent:HollowCirclePatternFragmentShaderPart:GetAppendedCode()
+    end
+
+end

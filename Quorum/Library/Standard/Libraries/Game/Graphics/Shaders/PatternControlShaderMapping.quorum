@@ -250,7 +250,7 @@ class PatternControlShaderMapping is BatchingShaderMapping2D
                         rotation = 0
                     elseif patternType = chartOptions:HORIZONTAL_LINES
                         rotation = 90
-                    elseif patternType = chartOptions:DIAGONAL_DOWN_LINES or patternType = chartOptions:DIAGONAL_CROSSHATCH
+                    elseif patternType = chartOptions:DIAGONAL_DOWN_LINES or patternType = chartOptions:DIAGONAL_CROSSHATCH or patternType = chartOptions:PINPOINT_DASHES
                         rotation = 45
                     elseif patternType = chartOptions:DIAGONAL_UP_LINES
                         rotation = 135
