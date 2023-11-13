@@ -147,11 +147,11 @@ class CompareMeansSummary
         page:AddIcon("http://quorumlanguage.com/media/favicon.ico")
         page:AddScript("http://quorumlanguage.com/script/quorumCharts.js")
         page:AddStylesheet("http://quorumlanguage.com/style/quorumCharts.css")
-        page:SetWebPageTitle("Quorum Statistical Report: " + "Correlation" ) // !!!! ADD THE TEST NAME
+        page:SetWebPageTitle("Quorum Statistical Report: " + result:GetFormalTestName())
 
         // for summary
         divide:SetStyle("font-family: sans-serif")
-        divide:AddHeading("Correlation Report", 2)
+        divide:AddHeading(result:GetFormalTestName() + " Report", 2)
         divide:AddHeading("Summary: GetSummary()", 3)
         divide:AddParagraph(GetSummary())
         divide:AddHeading("Formal Summary: GetFormalSummary()", 3)
@@ -188,7 +188,34 @@ class CompareMeansSummary
         statisticCol:Add(math:Round(result:GetTestStatistic(), digits))
         pCol:Add(math:Round(result:GetProbabilityValue(), digits))
         effectCol:Add(math:Round(result:GetEffectSize(), digits)) 
-        equationCol:Add(GetFormalNumericalResult())   
+        equationCol:Add(GetFormalNumericalResult())           
+
+        resultFrame1:AddColumn(testCol)
+        resultFrame1:AddColumn(comparisonCol)        
+        //resultFrame1:AddColumn(dfCol)
+        resultFrame1:AddColumn(statisticCol)
+        resultFrame1:AddColumn(pCol)
+        resultFrame1:AddColumn(effectCol)  
+        resultFrame1:AddColumn(equationCol)          
+        
+        table1:Add(resultFrame1)
+        table2:Add(GetDescriptiveStatisticsDataFrame())
+        divide:Add(table1)
+        divide:Add(table2)
+        
+        page:Add(divide)
+        responsiveWrapper:AddText(GetChart(chart))
+        page:Add(responsiveWrapper)
+
+        file:Write(page:Generate())      
+    end
+
+    action GetDescriptiveStatisticsDataFrame() returns DataFrame
+        DataFrame resultFrame
+        
+        text groupName = result:GetGroupsFrame():GetColumn(0):GetHeader()
+        text statName = result:GetTestStatisticName()
+        integer digits = format:GetSignificantDigits()
 
         TextColumn sampleCol
         sampleCol:SetHeader("Sample")
@@ -206,29 +233,12 @@ class CompareMeansSummary
         dfCol:SetHeader("Degrees Of Freedom")
         dfCol:Add(math:Round(result:GetDegreesOfFreedom(), digits))
 
-        resultFrame1:AddColumn(testCol)
-        resultFrame1:AddColumn(comparisonCol)        
-        resultFrame1:AddColumn(dfCol)
-        resultFrame1:AddColumn(statisticCol)
-        resultFrame1:AddColumn(pCol)
-        resultFrame1:AddColumn(effectCol)  
-        resultFrame1:AddColumn(equationCol)          
-        
-        resultFrame2:AddColumn(sampleCol)
-        resultFrame2:AddColumn(sizeCol)
-        resultFrame2:AddColumn(meanCol)
-        resultFrame2:AddColumn(sdCol)
-       
-        table1:Add(resultFrame1)
-        table2:Add(resultFrame2)
-        divide:Add(table1)
-        divide:Add(table2)
-        
-        page:Add(divide)
-        responsiveWrapper:AddText(GetChart(chart))
-        page:Add(responsiveWrapper)
+        resultFrame:AddColumn(sampleCol)
+        resultFrame:AddColumn(sizeCol)
+        resultFrame:AddColumn(meanCol)
+        resultFrame:AddColumn(sdCol)
 
-        file:Write(page:Generate())      
+        return resultFrame
     end
 
     private action GetSummaryOne() returns text
