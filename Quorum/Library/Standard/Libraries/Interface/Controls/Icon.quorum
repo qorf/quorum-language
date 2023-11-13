@@ -2,7 +2,13 @@ package Libraries.Interface.Controls
 
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Texture
+/*
+    The Icon class is a drawable Control object that inherits from Control and Drawable
+    as an elements it is added to the Game class. The Icon represents a texture image
 
+    Attribute: Author William Allee
+
+*/
 class Icon is Control, Drawable
 
     action Load(Texture region, integer sourceX, integer sourceY, integer sourceWidth, integer sourceHeight)
