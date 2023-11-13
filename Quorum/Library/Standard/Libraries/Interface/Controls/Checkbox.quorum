@@ -81,6 +81,25 @@ class Checkbox is ToggleButton
         This action toggles between the checkbox being checked and unchecked.
         
         Attribute: Parameter toggleState when true the check box is checked.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.Checkbox
+        
+        class Main 
+            action Main 
+                Form form
+                Page page = form:GetMainPage()
+    
+                page:AddCheckbox("on")
+                Checkbox value = page:AddCheckbox("off")
+    
+                value:SetToggleState(true)
+                
+                form:Display()
+            end
+        end
     */
     action SetToggleState(boolean toggleState)
         /*
