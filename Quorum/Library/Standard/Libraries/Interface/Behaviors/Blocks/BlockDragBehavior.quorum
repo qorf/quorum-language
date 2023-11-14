@@ -123,7 +123,7 @@ class BlockDragBehavior is Behavior
         number targetY = 0
         Layer2D targetLayer = blocks:Get(i):GetLayer()
         if targetLayer = undefined
-            targetLayer = editor:GetLayer()
+            targetLayer = dragSource:GetLayer()
         end
         dragAnchor:SetPosition(startX, startY)
         

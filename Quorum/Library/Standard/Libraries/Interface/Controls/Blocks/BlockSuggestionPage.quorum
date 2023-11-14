@@ -16,6 +16,8 @@ use Libraries.Language.Compile.Symbol.Action
 use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Events.TextChangeListener
 use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Language.Compile.Symbol.Documentation
+use Libraries.Language.Compile.Symbol.Variable
 
 class BlockSuggestionPage is BlockPalettePage, SelectionListener, TextChangeListener
 
@@ -59,7 +61,15 @@ class BlockSuggestionPage is BlockPalettePage, SelectionListener, TextChangeList
         suggestedActions = actions
         text variableName = result:variableName
         me:variableName = variableName
-        SetTitle(clazz:GetDisplayName())
+        
+        SetTitle(clazz:GetName())
+        Documentation clazzDocs = undefined
+        clazzDocs = clazz:GetDocumentation()
+        if clazzDocs = undefined
+            AddLabel("No documentation available")
+        else
+            AddLabel(clazz:GetDocumentation():GetShortDescription())
+        end
         if actions = undefined
             return now
         end
@@ -67,10 +77,9 @@ class BlockSuggestionPage is BlockPalettePage, SelectionListener, TextChangeList
 
         integer i = 0
         repeat while i < actions:GetSize()
-            if variableName = ""
-                suggestedActionItems:Add(AddBlockPaletteItem(actions:Get(i):GetName()))
-            else
-                suggestedActionItems:Add(AddBlockPaletteItem(variableName+":"+actions:Get(i):GetName()))
+            text call = MakeFullActionCall(actions:Get(i), variableName)
+if call not= ""
+suggestedActionItems:Add(AddBlockPaletteItem(call))
             end
             i = i + 1
         end
@@ -98,10 +107,9 @@ class BlockSuggestionPage is BlockPalettePage, SelectionListener, TextChangeList
                 text actionName = act:GetName()
                 actionName = actionName:ToLowerCase()
                 if actionName:StartsWith(filter)
-                    if variableName = ""
-                        suggestedActionItems:Add(AddBlockPaletteItem(suggestedActions:Get(i):GetName()))
-                    else
-                        suggestedActionItems:Add(AddBlockPaletteItem(variableName+":"+suggestedActions:Get(i):GetName()))
+                    text call = MakeFullActionCall(act, variableName)
+                    if call not= ""
+suggestedActionItems:Add(AddBlockPaletteItem(call))
                     end
                 end
                 i = i + 1
@@ -119,6 +127,31 @@ class BlockSuggestionPage is BlockPalettePage, SelectionListener, TextChangeList
         suggestedActionItems:Empty()
     end
 
+    action MakeFullActionCall(Action act, text variableName) returns text
+        if act = undefined
+            return ""
+        end
+        text call = ""
+        if variableName:Trim() not= ""
+            call = variableName:Trim() + ":"
+        end
+        call = call + act:GetName() + "("
+        Iterator<Variable> params = act:GetParameterIterator()
+        if params not= undefined
+            repeat while params:HasNext()
+                Variable param = params:Next()
+                call = call + param:GetType():GetName() + " "
+                call = call + param:GetName()
+                if params:HasNext()
+                    call = call + ", "
+                end
+            end
+        end
+        call = call + ")"
+        return call
+        
+    end
+    
     action SetCodeCompletionResult(CodeCompletionResult result)
         
         //the system is telling us we're between parses. Just ignore this request

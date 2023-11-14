@@ -71,15 +71,8 @@ placeholders:Add(sourceBlocks:Get(i):CopyToPlaceholder())
                     Block firstBlock = sourceBlocks:GetFromFront()
                     Block lastBlock = sourceBlocks:GetFromEnd()
                     text toInsert = ""
-                    if source is BlockPaletteItem
-                        integer i = 0
-                        repeat while i < sourceBlocks:GetSize()
-                            toInsert = sourceBlocks:Get(i):GetPlaceholderText() + " "
-                            i = i + 1
-                        end
-                    else
-                        toInsert = editor:GetCode():GetText(firstBlock:GetStartIndex(), lastBlock:GetEndIndex())
-                    end
+
+                        toInsert = firstBlock:GetEditor():GetCode():GetText(firstBlock:GetStartIndex(), lastBlock:GetEndIndex())+toInsert:GetLineFeed()
                     lastCandidateLine = -2
                     
                     if editor:HasPlaceholders()

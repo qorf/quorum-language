@@ -8,35 +8,20 @@ use Libraries.Interface.Behaviors.Blocks.BlockPaletteItemStartDragBehavior
 use Libraries.Interface.Behaviors.Blocks.BlockPaletteItemContinueDragBehavior
 use Libraries.Interface.Behaviors.Blocks.BlockPaletteItemDropBehavior
 use Libraries.Containers.Array
+use Libraries.Language.Compile.CompilerErrorManager
+use Libraries.Language.Compile.Parsing.QuorumLexer
+use Libraries.Language.Compile.Parsing.QuorumParser
+use Libraries.Language.Compile.Context.StartContext
+use Libraries.Language.Compile.Blocks.ParserToBlockListener
 
 
 class BlockPaletteItem is Button
 
     BlockPalette palette = undefined
+    Array<Block> blocksToDrag = undefined
 
     on create
         SetInputGroup("Block")
-        InputTable paletteItemContentTable = CopyAndActivateInputTable("Block")
-
-        InputSet dragBeginSet
-        dragBeginSet:SetDragItemInput()
-        dragBeginSet:SetInputTrigger(dragBeginSet:BEGIN)
-
-        InputSet dragContinueSet
-        dragContinueSet:SetDragItemInput()
-        dragContinueSet:SetInputTrigger(dragContinueSet:CONTINUE)
-
-        InputSet dragEndSet
-        dragEndSet:SetDragItemInput()
-        dragEndSet:SetInputTrigger(dragEndSet:FINISH)
-
-        BlockPaletteItemStartDragBehavior paletteItemStartDragBehavior
-        BlockPaletteItemContinueDragBehavior paletteItemContinueDragBehavior
-        BlockPaletteItemDropBehavior paletteItemDropBehavior
-
-        //paletteItemContentTable:Add(dragBeginSet, paletteItemStartDragBehavior)
-        //paletteItemContentTable:Add(dragContinueSet, paletteItemContinueDragBehavior)
-        //paletteItemContentTable:Add(dragEndSet, paletteItemDropBehavior)
     end
 
     action SetPalette(BlockPalette palette)
@@ -55,16 +40,81 @@ class BlockPaletteItem is Button
     end
 
 
+    action SetBlocks(Array<Block> blocks)
+        blocksToDrag = blocks
+    end
+    
     action GetBlocks returns Array<Block>
+        if blocksToDrag not= undefined
+            return blocksToDrag
+        end
         Array<Block> blocks
         
         ActionCallBlock placeholder
-        placeholder:SetAsPlaceholder(GetName())
-        placeholder:SetEditor(GetEditor())
-        placeholder:SetScopeDepth(1)
+        EditBox box
+        box:SetText(GetName())
+        Array<Item2D> children
+        children:Add(box)
+placeholder:SetEditor(GetEditor())
+placeholder:SetScopeDepth(1)
+        placeholder:SetAsPlaceholder(GetName(), children)
         placeholder:Setup()
 
         blocks:Add(placeholder)
+        return blocks
+    end
+    
+    action ParseToBlocks(text code) returns Array<Block>
+        
+CodeEditor fakeEditor = undefined
+        ParserToBlockListener listener
+        CodeEditor editor2
+        fakeEditor = editor2
+        fakeEditor:SetBlockListener(listener)
+        
+
+        integer size = 15
+        fakeEditor:SetPercentageWidth(1)
+        fakeEditor:SetPercentageHeight(1)
+        fakeEditor:SetFontSize(size)
+        fakeEditor:SetBlockNotchTopWidth(40)
+        fakeEditor:SetBlockNotchBottomWidth(20)
+        fakeEditor:SetCode(code)
+        if GetEditor() = undefined
+            return undefined
+        end
+        Array<Block> blocks
+CompilerErrorManager manager
+        QuorumLexer lexer
+        lexer:SetCompilerErrorManager(manager)
+        lexer:Read(code)
+        
+        if not manager:IsCompilationErrorFree()
+//            text value = manager:GetCompilerErrorsAsText()
+//            output "WARNING: Couldn't generate start context due to the following error:
+//" + value
+            return undefined
+        end
+        QuorumParser parser
+        parser:SetCompilerErrorManager(manager)
+        parser:SetLexer(lexer)
+        StartContext start = parser:Start()
+        if not manager:IsCompilationErrorFree()
+//            text value = manager:GetCompilerErrorsAsText()
+//            output "WARNING: Couldn't generate start context due to the following error:
+//" + value
+            return undefined
+        end
+        ParserToBlockListener blockListener
+        blockListener:SetQuorumLexer(lexer)
+        blockListener:SetStartContext(start)
+        blockListener:SetCodeEditor(fakeEditor)
+        RootBlock root = blockListener:Update(0,100)
+        Block block = root:GetNextNavigableBlock()
+        repeat while block not= undefined
+            blocks:Add(block)
+            block = block:GetNextNavigableBlock()
+        end
         return blocks
     end
 end

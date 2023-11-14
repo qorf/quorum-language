@@ -21,6 +21,7 @@ class BlockPalettePage is StackedRowPage
         button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
         button:SetToDefaultFontSize()
         button:SetBehavior(behave)
+        button:SetBlocks(button:ParseToBlocks(name))
 
         Add(button)
         return button

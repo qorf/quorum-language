@@ -12,6 +12,8 @@ use Libraries.Language.Compile.Parsing.ActionIndexSort
 use Libraries.Containers.Stack
 use Libraries.Language.Compile.Parsing.Token
 use Libraries.Language.Compile.Parsing.QuorumLexerConstants
+use Libraries.Language.Compile.Symbol.Variable
+use Libraries.Language.Compile.Symbol.Type
 
 
 class BlockSuggestionHandler
@@ -63,8 +65,11 @@ QuorumLexer luthor
         //true or true  or true and false
         request:clazz = clazz
         request:table = table
-        CalculateScope(request:caretLocation, tokenIterator, request)
-        
+        CalculateScope(block:GetStartIndex(), tokenIterator, request)
+if className = "" and variableName not= ""
+
+            CheckVariable(request, clazz, variableName)
+        end
         Array<Action> actions = AddActions(request)
         result:actions = actions
         result:clazz = request:clazz
@@ -127,6 +132,7 @@ QuorumLexer luthor
 
     private action AddActions(CodeCompletionRequest request) returns Array<Action>
         Class clazzToProcess = request:clazz
+
         if request:variableClass not= undefined
             clazzToProcess = request:variableClass
             if clazzToProcess not= undefined and request:clazz not= undefined
@@ -228,6 +234,50 @@ private action IsInToken(integer index, Libraries.Language.Compile.Parsing.Token
         end
 
         return false
+    end
+    
+
+    
+
+private action CheckVariable(CodeCompletionRequest request, Class clazz, text name)
+        text left = name
+        if left = undefined
+            return now //should never return undefined unless the request is invalid
+        end
+        request:left = left
+
+        if request:block not= undefined
+            Variable variable = request:block:GetVariable(left)
+            request:variable = variable
+
+            if variable not= undefined
+                Type type = variable:GetType()
+                SymbolTable table = request:table
+
+                if type not= undefined and not type:IsPrimitive()
+                    text key = type:GetStaticKey()
+                    Class varClass = table:GetClass(key)
+                    request:variableClass = varClass
+                    //in this case, the class isn't in the cache, but it might be in the 
+                    //standard library if this table knows what library it is using
+                    if request:variableClass = undefined
+                        //we did not get lucky. Let's see if this class has been resolved
+                        Class potential = clazz:GuessBestUsage(table, key)
+                        if potential not= undefined
+                            request:variableClass = potential
+                            return now
+                        end
+                    end
+                else 
+                    if type not= undefined
+                        text key = type:ConvertToNonPrimitiveStaticKey()
+                        Class varClass = table:GetClass(key)
+                        request:variableClass = varClass
+                        request:isPrimitiveConversion = true
+                    end
+                end
+            end
+        end
     end
     
 private action CalculateScope(integer index, TokenIterator<Token> iterator, CodeCompletionRequest request)
