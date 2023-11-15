@@ -102,13 +102,13 @@ if className = "" and variableName not= ""
             Class clazz = undefined
             Iterator<Class> clazzes  = undefined
             if className not= "" 
-                clazzes = compiled:symbolTable:GetClassByName(className)
+                clazzes = last:symbolTable:GetClassByName(className)
             end
             if clazzes not= undefined and clazzes:HasNext()
                 clazz = clazzes:Next()
                 return clazz
             else
-                clazz = compiled:symbolTable:GetClassInFile(file)
+                clazz = last:symbolTable:GetClassInFile(file)
                 if clazz not= undefined
                     return clazz
                 end
