@@ -43,6 +43,7 @@ class DocumentationGenerator
     boolean isBuildingStandardLibrary = false
     boolean isBuildingSourceFiles = true
     Section packageIndex = undefined
+    Section mobilePackageIndex = undefined
 
     action GetRunFolder returns File
         return runFolder
@@ -105,6 +106,9 @@ class DocumentationGenerator
         SymbolTable table = library:GetSymbolTable()
         
         packageIndex = CreatePackageIndex(table)
+        mobilePackageIndex = CreateMobilePackageIndex(table)
+        UnorderedList navigationList = navigation:GetList()
+        navigationList:AddNestedTag(mobilePackageIndex)
         repeat while opcodes:HasNext()
             ClassOpcode opcode = opcodes:Next()
             Class clazz = opcode:GetClass()
@@ -134,6 +138,52 @@ class DocumentationGenerator
         end
 
         WriteIndexPage(library:GetSymbolTable())
+    end
+
+    action CreateMobilePackageIndex(SymbolTable symbolTable) returns Section
+        Section section
+        section:SetClassAttribute("md:hidden")
+        Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
+        repeat while packages:HasNext()
+            text key = packages:Next()
+
+            Division listDivision
+
+            //put in the heading for the page
+            Heading packageHeading
+            packageHeading:SetClassAttribute("font-bold h-full py-3 block w-full group")
+            packageHeading:SetScale(3)
+            packageHeading:AddText(key)
+            //Add a little line
+            Division lineDivision
+
+            lineDivision:SetClassAttribute("flex items-center justify-center my-4 mx-2")
+            Division theLine
+            theLine:SetClassAttribute("w-full border-t border-neutral-grey-25")
+            lineDivision:Add(theLine)
+            listDivision:Add(lineDivision)
+            //UnorderedList packageList
+            //packageList:SetClassAttribute("text-gray-700 w-4/5 justify-center items-center sm:flex sm:space-x-6 sm:space-y-0 sm:text-gray-600 sm:font-medium sm:w-full")
+            listDivision:Add(packageHeading)
+            //listDivision:Add(packageList)
+            //now put in all of the classes in this package
+            Array<Class> classes = symbolTable:GetClassesSortedInPackage(key)
+            i = 0
+            repeat while i < classes:GetSize()
+                Class clazz = classes:Get(i)
+                
+                Link classLink = GetWebLinkForClassFromIndex(clazz, false)
+                classLink:SetClassAttribute("h-full py-3 block w-full group")
+                ListItem item
+                item:SetClassAttribute("h-full group flex items-center flex-row block rounded-2xl pl-3 hover:bg-neutral-grey-40 sm:px-4 sm:duration-150 sm:text-center sm:rounded-3xl sm:block sm:font-medium sm:text-sm sm:text-neutral-black sm:bg-quorum-blue-100 sm:inline relative")
+                item:Add(classLink)
+                listDivision:AddNestedTag(item)
+                i = i + 1
+            end
+
+            section:Add(listDivision)
+        end
+        return section
     end
 
     action CreatePackageIndex(SymbolTable symbolTable) returns Section
@@ -323,6 +373,9 @@ blueSection:Add(leftText)
 
         //Add the navigation bar
         NavigationBar navigation
+        Section index = GetMobilePackageIndex()
+        UnorderedList list = navigation:GetList()
+        list:AddNestedTag(index)
         page:Add(navigation)
     end
 
@@ -411,6 +464,10 @@ blueSection:Add(leftText)
 
     action GetPackageIndex returns Section
         return packageIndex
+    end
+
+    action GetMobilePackageIndex returns Section
+        return mobilePackageIndex
     end
 
 end

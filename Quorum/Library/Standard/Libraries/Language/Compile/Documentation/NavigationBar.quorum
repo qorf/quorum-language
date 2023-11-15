@@ -20,10 +20,12 @@ use Libraries.Web.Page.Script
 use Libraries.Web.Page.Paragraph
 use Libraries.Web.Page.Header
 use Libraries.System.File
+use Libraries.Language.Compile.Symbol.SymbolTable
 
 class NavigationBar is NavigationDivision
     constant text extension = ".html"
     LineBreak break
+    UnorderedList listBurger = undefined
     on create
         Setup()
     end
@@ -93,6 +95,7 @@ class NavigationBar is NavigationDivision
         div_menuList:SetIdentifier("menu-list")
         div_menuList:SetClassAttribute("flex-1 flex justify-center w-full bg-neutral-grey-65 hidden items-start sm:pb-0 sm:mt-0 sm:block sm:items-center sm:w-full sm:bg-neutral-grey-95 sm:block sm:justify-end")
         UnorderedList ul
+listBurger = ul
         ul:SetIdentifier("navigation-items")
         ul:AddClassAttribute("text-gray-700 w-4/5 justify-center items-center sm:flex sm:space-x-6 sm:space-y-0 sm:text-gray-600 sm:font-medium sm:w-full")
         
@@ -363,6 +366,10 @@ class NavigationBar is NavigationDivision
             ")
         div1:Add(script)
         AddLoginForm()
+    end
+
+    action AddMobilePackages(SymbolTable table)
+        
     end
 
     private action AddLoginForm
@@ -717,4 +724,9 @@ loginDiv:AddClassAttribute("hidden")
         signUpModalContainer:Add(signUpModal)
         Add(signUpModalContainer)
     end
+    
+    action GetList returns UnorderedList
+        return listBurger
+    end
+
 end
