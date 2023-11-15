@@ -140,9 +140,11 @@ class DocumentationGenerator
         WriteIndexPage(library:GetSymbolTable())
     end
 
+    /*This action presumes that a navigation bar will place all the list items inside of a larger
+unordered list. */
     action CreateMobilePackageIndex(SymbolTable symbolTable) returns Section
         Section section
-        section:SetClassAttribute("md:hidden")
+        section:SetClassAttribute("sm:hidden")
         Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
         repeat while packages:HasNext()
             text key = packages:Next()
@@ -162,10 +164,7 @@ class DocumentationGenerator
             theLine:SetClassAttribute("w-full border-t border-neutral-grey-25")
             lineDivision:Add(theLine)
             listDivision:Add(lineDivision)
-            //UnorderedList packageList
-            //packageList:SetClassAttribute("text-gray-700 w-4/5 justify-center items-center sm:flex sm:space-x-6 sm:space-y-0 sm:text-gray-600 sm:font-medium sm:w-full")
             listDivision:Add(packageHeading)
-            //listDivision:Add(packageList)
             //now put in all of the classes in this package
             Array<Class> classes = symbolTable:GetClassesSortedInPackage(key)
             i = 0
@@ -270,8 +269,9 @@ mainRegion:SetClassAttribute("flex flex-row w-full box-border mx-1 md:mx-2 lg:mx
         page:Add(headDiv)
 
         Division bodyDiv
-        bodyDiv:SetClassAttribute("w-4/6")
-        bodyDiv:AddHeading("Quorum's Built-in Packages and Classes", 2)
+        bodyDiv:SetClassAttribute("w-full pr-4 pl-4 md:w-5/6 lg:w-4/6 md:pl-8 md:pr-8 md:pl-12 md:pr-12 space-y-2")
+        Heading heading = bodyDiv:AddHeading("Quorum's Built-in Packages and Classes", 2)
+        heading:SetClassAttribute("font-bold text-3xl pt-6")
         bodyDiv:AddParagraph("This page shows the full list of classes Quorum 
 supports in the current version of the standard library. These classes are 
 placed into packages organized by their subject area. For example, math related 
@@ -283,8 +283,8 @@ sound, digital signal processing, mobile applications). The purpose of this
 index page is to help users find information about specific packages or 
 classes. Thus, this page is structured as a reference and is not intended as a 
 tutorial.")
-        Section searchSection = GetSearchSection()
-        bodyDiv:Add(searchSection)
+        //Section searchSection = GetSearchSection()
+        //bodyDiv:Add(searchSection)
         mainRegion:Add(packageIndex)
         mainRegion:Add(bodyDiv)
         page:Add(mainRegion)
