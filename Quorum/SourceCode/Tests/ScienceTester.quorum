@@ -29,9 +29,9 @@ use Science.Tests.FilterTest
 use Science.Tests.BetaDistributionTest
 use Science.Tests.CompareCountsGoodnessOfFitTest
 use Science.Tests.CompareCountsIndependenceTest
-use Science.Tests.BonferroniProcedureTest
-use Science.Tests.TukeyProcedureTest
-use Science.Tests.GamesHowellProcedureTest
+use Science.Tests.CompareMeansPairwiseUnfittedStrictCorrectionTest
+use Science.Tests.CompareMeansPairwiseFittedStrictCorrectionTest
+use Science.Tests.CompareMeansPairwiseFittedLenientCorrectionTest
 use Science.Tests.CompareIndependentVariancesTest
 use Science.Tests.CompareDependentVariancesTest
 use Science.Tests.CompareDistributionToNormalTest
@@ -148,13 +148,13 @@ class ScienceTester
     end
 
     action TestCompareMeansPairwise
-        BonferroniProcedureTest test1
+        CompareMeansPairwiseUnfittedStrictCorrectionTest test1
         tester:Run(test1)
 
-        TukeyProcedureTest test2
+        CompareMeansPairwiseFittedStrictCorrectionTest test2
         tester:Run(test2)
 
-        GamesHowellProcedureTest test3
+        CompareMeansPairwiseFittedLenientCorrectionTest test3
         tester:Run(test3)
     end
 

@@ -2673,6 +2673,38 @@ class DataFrame
     end
 
     /*
+        This action uses the selection to conduct a comparison between groups. 
+        The CompareMeansPairwise object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+        This action runs a test based on the selections made in the design.
+
+        Attribute: Parameter design This is the design of the model holding all the factors and variables.
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareMeansPairwise
+
+        ExperimentalDesign design
+        design:AddSubjectIdentifier("id")
+        design:AddWithinSubjectsFactor("Time")
+        design:AddBetweenSubjectsFactor("Group")
+        design:AddDependentVariable("Value")
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        CompareMeansPairwise compare = frame:CompareMeansPairwise(design)
+        output compare:GetPairwiseSummary()
+    */
+    action CompareMeansPairwise(ExperimentalDesign design) returns CompareMeansPairwise
+        CompareMeansPairwise compare
+        compare:SetExperimentalDesign(design)
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
         This action uses the selection to conduct a comparison between groups when 
         they are not assumed to be normally distributed. 
         The CompareMeansPairwise object returned gives information back in several formats, 
@@ -2810,6 +2842,39 @@ class DataFrame
     end
 
     /*
+        This action uses the selection to conduct a lenient comparison between groups. 
+        The CompareMeansPairwise object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+        This action runs a test based on the selections made in the design.
+
+        Attribute: Parameter design This is the design of the model holding all the factors and variables.
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareMeansPairwise
+
+        ExperimentalDesign design
+        design:AddSubjectIdentifier("id")
+        design:AddWithinSubjectsFactor("Time")
+        design:AddBetweenSubjectsFactor("Group")
+        design:AddDependentVariable("Value")
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        CompareMeansPairwise compare = frame:CompareMeansPairwiseUsingLenientCorrection(design)
+        output compare:GetPairwiseSummary()
+    */
+    action CompareMeansPairwiseUsingLenientCorrection(ExperimentalDesign design) returns CompareMeansPairwise
+        CompareMeansPairwise compare
+        compare:SetExperimentalDesign(design)
+        compare:UseLenientCorrection(true)
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
         This action uses the selection to conduct a liberal comparison between groups. 
         The CompareMeansPairwise object returned gives information back in several formats, 
         including text formatted in the American Psychological Association (APA) style.
@@ -2837,6 +2902,73 @@ class DataFrame
         CompareMeansPairwise compare
         selection:CopyTo(cast(FactorInput, compare))
         selection:CopyTo(cast(ColumnInput, compare))
+        compare:UseStrictCorrection(true)
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
+        This action uses the selection to conduct a strict comparison between groups. 
+        The CompareMeansPairwise object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+        This action runs a test based on the selections made in the design.
+
+        Attribute: Parameter design This is the design of the model holding all the factors and variables.
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareMeansPairwise
+
+        ExperimentalDesign design
+        design:AddSubjectIdentifier("id")
+        design:AddWithinSubjectsFactor("Time")
+        design:AddBetweenSubjectsFactor("Group")
+        design:AddDependentVariable("Value")
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        CompareMeansPairwise compare = frame:CompareMeansPairwiseUsingStrictCorrection(design)
+        output compare:GetPairwiseSummary()
+    */
+    action CompareMeansPairwiseUsingStrictCorrection(ExperimentalDesign design) returns CompareMeansPairwise
+        CompareMeansPairwise compare
+        compare:SetExperimentalDesign(design)
+        compare:UseStrictCorrection(true)
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
+        This action uses the selection to conduct a strict comparison between groups using the unfitted approach. 
+        The CompareMeansPairwise object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+        This action runs a test based on the selections made in the design.
+
+        Attribute: Parameter design This is the design of the model holding all the factors and variables.
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareMeansPairwise
+
+        ExperimentalDesign design
+        design:AddSubjectIdentifier("id")
+        design:AddWithinSubjectsFactor("Time")
+        design:AddBetweenSubjectsFactor("Group")
+        design:AddDependentVariable("Value")
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        CompareMeansPairwise compare = frame:CompareMeansPairwiseUsingUnfittedAproach(design)
+        output compare:GetPairwiseSummary()
+    */
+    action CompareMeansPairwiseUsingUnfittedAproach(ExperimentalDesign design) returns CompareMeansPairwise
+        CompareMeansPairwise compare
+        compare:SetExperimentalDesign(design)
+        compare:UseUnfittedApproach(true)
         compare:UseStrictCorrection(true)
         compare:Calculate(me)
         return compare

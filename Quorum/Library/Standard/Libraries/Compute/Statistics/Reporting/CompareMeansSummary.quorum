@@ -166,8 +166,7 @@ class CompareMeansSummary
         text factors = result:GetFactorList()
         text columns = result:GetColumnList()
         text statisticName = result:GetTestStatisticName()
-        integer group1Size = cast(integer, result:GetInformation():GetValue(group1Name):GetValue("size"))
-        integer group2Size = cast(integer, result:GetInformation():GetValue(group2Name):GetValue("size"))
+
         number statistic = result:GetTestStatistic()
         number pvalue = result:GetProbabilityValue()
 
@@ -183,31 +182,39 @@ class CompareMeansSummary
         end
         summary = summary + lf + "Samples: " + group1Name + " and " + group2Name
         if result:IsRanked()
-            number group1Median = result:GetInformation():GetValue(group1Name):GetValue("median")
-            number group2Median = result:GetInformation():GetValue(group2Name):GetValue("median")
-            summary = summary + lf + "Median of " + group1Name + ": " + math:Round(group1Median, digits)
-            summary = summary + lf + "Median of " + group2Name + ": " + math:Round(group2Median, digits)
-            summary = summary + lf + "Size of " + group1Name + ": " + group1Size
-            summary = summary + lf + "Size of " + group2Name + ": " + group2Size
-            if result:IsRepeated()
-                number differenceMean = result:GetInformation():GetValue("difference"):GetValue("median")
-                number proposedMean = result:GetInformation():GetValue("proposed"):GetValue("median")
-                summary = summary + lf + "Paired Difference Median: " + math:Round(differenceMean, digits)
-                summary = summary + lf + "Proposed Median: " + math:Round(proposedMean, digits)
+            if result:GetInformation():HasKey(group1Name)
+                number group1Median = result:GetInformation():GetValue(group1Name):GetValue("median")
+                number group2Median = result:GetInformation():GetValue(group2Name):GetValue("median")
+                integer group1Size = cast(integer, result:GetInformation():GetValue(group1Name):GetValue("size"))
+                integer group2Size = cast(integer, result:GetInformation():GetValue(group2Name):GetValue("size"))
+                summary = summary + lf + "Median of " + group1Name + ": " + math:Round(group1Median, digits)
+                summary = summary + lf + "Median of " + group2Name + ": " + math:Round(group2Median, digits)
+                summary = summary + lf + "Size of " + group1Name + ": " + group1Size
+                summary = summary + lf + "Size of " + group2Name + ": " + group2Size
+                if result:IsRepeated()
+                    number differenceMean = result:GetInformation():GetValue("difference"):GetValue("median")
+                    number proposedMean = result:GetInformation():GetValue("proposed"):GetValue("median")
+                    summary = summary + lf + "Paired Difference Median: " + math:Round(differenceMean, digits)
+                    summary = summary + lf + "Proposed Median: " + math:Round(proposedMean, digits)
+                end
             end
             summary = summary + lf + "Statistic ("+statisticName+"): " + math:Round(statistic, digits)
         else
-            number group1Mean = result:GetInformation():GetValue(group1Name):GetValue("mean")
-            number group2Mean = result:GetInformation():GetValue(group2Name):GetValue("mean")
-            summary = summary + lf + "Mean of " + group1Name + ": " + math:Round(group1Mean, digits)
-            summary = summary + lf + "Mean of " + group2Name + ": " + math:Round(group2Mean, digits)
-            summary = summary + lf + "Size of " + group1Name + ": " + group1Size
-            summary = summary + lf + "Size of " + group2Name + ": " + group2Size
-            if result:IsRepeated()
-                number differenceMean = result:GetInformation():GetValue("difference"):GetValue("mean")
-                number proposedMean = result:GetInformation():GetValue("proposed"):GetValue("mean")
-                summary = summary + lf + "Paired Difference Mean: " + math:Round(differenceMean, digits)
-                summary = summary + lf + "Proposed Mean: " + math:Round(proposedMean, digits)
+            if result:GetInformation():HasKey(group1Name)
+                number group1Mean = result:GetInformation():GetValue(group1Name):GetValue("mean")
+                number group2Mean = result:GetInformation():GetValue(group2Name):GetValue("mean")
+                integer group1Size = cast(integer, result:GetInformation():GetValue(group1Name):GetValue("size"))
+                integer group2Size = cast(integer, result:GetInformation():GetValue(group2Name):GetValue("size"))
+                summary = summary + lf + "Mean of " + group1Name + ": " + math:Round(group1Mean, digits)
+                summary = summary + lf + "Mean of " + group2Name + ": " + math:Round(group2Mean, digits)
+                summary = summary + lf + "Size of " + group1Name + ": " + group1Size
+                summary = summary + lf + "Size of " + group2Name + ": " + group2Size
+                if result:IsRepeated()
+                    number differenceMean = result:GetInformation():GetValue("difference"):GetValue("mean")
+                    number proposedMean = result:GetInformation():GetValue("proposed"):GetValue("mean")
+                    summary = summary + lf + "Paired Difference Mean: " + math:Round(differenceMean, digits)
+                    summary = summary + lf + "Proposed Mean: " + math:Round(proposedMean, digits)
+                end
             end
             number degreesOfFreedom = result:GetDegreesOfFreedom()
             summary = summary + lf + "Statistic ("+statisticName+"): " + math:Round(statistic, digits)
@@ -429,84 +436,92 @@ class CompareMeansSummary
 
         if result:IsRanked()
             if result:IsRepeated()
-                text groupName = "The difference between "+ group1Name + " and "+ group2Name
-                number groupMedian = math:Round(result:GetInformation():GetValue("difference"):GetValue("median"), digits)
-                number proposedMedian = math:Round(result:GetInformation():GetValue("proposed"):GetValue("median"), digits)
-                if result:IsSignificant()
-                    summary = summary + "The difference was indicated to be statistically significant."
-                    if groupMedian > proposedMedian
-                        summary = summary + lf + groupName + " had a higher overall median (Mdn = " + groupMedian + ") compared to "
-                            + " (Mdn = " + proposedMedian +")"
-                    elseif groupMedian < proposedMedian
-                        summary = summary + lf + groupName + " had a lower overall median (Mdn = " + groupMedian + ") compared to "
-                            + " (Mdn = " + proposedMedian +")"
+                if result:GetInformation():HasKey("difference")
+                    text groupName = "The difference between "+ group1Name + " and "+ group2Name
+                    number groupMedian = math:Round(result:GetInformation():GetValue("difference"):GetValue("median"), digits)
+                    number proposedMedian = math:Round(result:GetInformation():GetValue("proposed"):GetValue("median"), digits)
+                    if result:IsSignificant()
+                        summary = summary + "The difference was indicated to be statistically significant."
+                        if groupMedian > proposedMedian
+                            summary = summary + lf + groupName + " had a higher overall median (Mdn = " + groupMedian + ") compared to "
+                                + " (Mdn = " + proposedMedian +")"
+                        elseif groupMedian < proposedMedian
+                            summary = summary + lf + groupName + " had a lower overall median (Mdn = " + groupMedian + ") compared to "
+                                + " (Mdn = " + proposedMedian +")"
+                        else
+                            summary = summary + lf + groupName + " had an equal median (Mdn = " + groupMedian + ") compared to "
+                                + " (Mdn = " + proposedMedian +")"             
+                        end
                     else
-                        summary = summary + lf + groupName + " had an equal median (Mdn = " + groupMedian + ") compared to "
-                            + " (Mdn = " + proposedMedian +")"             
+                        summary = summary + lf + groupName + " (Mdn = " + groupMedian + ") is not significantly different from (Mdn = " + proposedMedian +")"
                     end
-                else
-                    summary = summary + lf + groupName + " (Mdn = " + groupMedian + ") is not significantly different from (Mdn = " + proposedMedian +")"
                 end
             else
-                number group1Median = math:Round(result:GetInformation():GetValue(group1Name):GetValue("median"), digits)
-                number group2Median = math:Round(result:GetInformation():GetValue(group2Name):GetValue("median"), digits)
-                if result:IsSignificant()
-                    summary = summary + lf + "The difference was indicated to be statistically significant."
-                    if group1Median > group2Median
-                        summary = summary + lf + group1Name + " had a higher overall median (Mdn = " + group1Median + ") compared to "
-                            + group2Name + " (Mdn = " + group2Median +")"
-                    elseif group1Median < group2Median
-                        summary = summary + lf + group1Name + " had a lower overall median (Mdn = " + group1Median + ") compared to "
-                            + group2Name + " (Mdn = " + group2Median +")"
+                if result:GetInformation():HasKey(group1Name)
+                    number group1Median = math:Round(result:GetInformation():GetValue(group1Name):GetValue("median"), digits)
+                    number group2Median = math:Round(result:GetInformation():GetValue(group2Name):GetValue("median"), digits)
+                    if result:IsSignificant()
+                        summary = summary + lf + "The difference was indicated to be statistically significant."
+                        if group1Median > group2Median
+                            summary = summary + lf + group1Name + " had a higher overall median (Mdn = " + group1Median + ") compared to "
+                                + group2Name + " (Mdn = " + group2Median +")"
+                        elseif group1Median < group2Median
+                            summary = summary + lf + group1Name + " had a lower overall median (Mdn = " + group1Median + ") compared to "
+                                + group2Name + " (Mdn = " + group2Median +")"
+                        else
+                            summary = summary + lf + group1Name + " had an equal median (Mdn = " + group1Median + ") compared to "
+                                + group2Name + " (Mdn = " + group2Median +")"             
+                        end
                     else
-                        summary = summary + lf + group1Name + " had an equal median (Mdn = " + group1Median + ") compared to "
-                            + group2Name + " (Mdn = " + group2Median +")"             
+                        summary = summary + lf + " " + group1Name + " (Mdn = " + group1Median + ") is not significantly different from " + group2Name +" (Mdn = " + group2Median +")"
                     end
-                else
-                    summary = summary + lf + " " + group1Name + " (Mdn = " + group1Median + ") is not significantly different from " + group2Name +" (Mdn = " + group2Median +")"
                 end
             end
         else
             if result:IsRepeated()
-                text groupName = "The difference between "+ group1Name + " and "+ group2Name
-                number groupMean = math:Round(result:GetInformation():GetValue("difference"):GetValue("mean"), digits)
-                number groupSD = math:Round(math:SquareRoot(result:GetInformation():GetValue("difference"):GetValue("variance")), digits)
-                number proposedMean = math:Round(result:GetInformation():GetValue("proposed"):GetValue("mean"), digits)
-                if result:IsSignificant()
-                    summary = summary + " The difference was indicated to be statistically significant."
-                    if groupMean > proposedMean
-                        summary = summary + lf + groupName + " had a higher overall mean (M = " + groupMean + ", SD = " + groupSD + ") compared to "
-                            + " (M = " + proposedMean +")"
-                    elseif groupMean < proposedMean
-                        summary = summary + lf + groupName + " had a lower overall mean (M = " + groupMean + ", SD = " + groupSD + ") compared to "
-                            + " (M = " + proposedMean +")"
+                if result:GetInformation():HasKey("difference")
+                    text groupName = "The difference between "+ group1Name + " and "+ group2Name
+                    number groupMean = math:Round(result:GetInformation():GetValue("difference"):GetValue("mean"), digits)
+                    number groupSD = math:Round(math:SquareRoot(result:GetInformation():GetValue("difference"):GetValue("variance")), digits)
+                    number proposedMean = math:Round(result:GetInformation():GetValue("proposed"):GetValue("mean"), digits)
+                    if result:IsSignificant()
+                        summary = summary + " The difference was indicated to be statistically significant."
+                        if groupMean > proposedMean
+                            summary = summary + lf + groupName + " had a higher overall mean (M = " + groupMean + ", SD = " + groupSD + ") compared to "
+                                + " (M = " + proposedMean +")"
+                        elseif groupMean < proposedMean
+                            summary = summary + lf + groupName + " had a lower overall mean (M = " + groupMean + ", SD = " + groupSD + ") compared to "
+                                + " (M = " + proposedMean +")"
+                        else
+                            summary = summary + lf + groupName + " had an equal mean (M = " + groupMean + ", SD = " + groupSD + ") compared to "
+                                + " (M = " + proposedMean +")"             
+                        end
                     else
-                        summary = summary + lf + groupName + " had an equal mean (M = " + groupMean + ", SD = " + groupSD + ") compared to "
-                            + " (M = " + proposedMean +")"             
+                        summary = summary + lf + " " + groupName + " (M = " + groupMean + ", SD = " + groupSD + ") is not significantly different from (M = " + proposedMean +")."
                     end
-                else
-                    summary = summary + lf + " " + groupName + " (M = " + groupMean + ", SD = " + groupSD + ") is not significantly different from (M = " + proposedMean +")."
                 end
             else
-                number group1Mean = math:Round(result:GetInformation():GetValue(group1Name):GetValue("mean"), digits)
-                number group2Mean = math:Round(result:GetInformation():GetValue(group2Name):GetValue("mean"), digits)
-                number group1SD = math:Round(math:SquareRoot(result:GetInformation():GetValue(group1Name):GetValue("variance")), digits)
-                number group2SD = math:Round(math:SquareRoot(result:GetInformation():GetValue(group2Name):GetValue("variance")), digits)
-                if result:IsSignificant()
-                    summary = summary + " The difference was indicated to be statistically significant."
-                    if group1Mean > group2Mean
-                        summary = summary + lf + group1Name + " had a higher overall mean (M = " + group1Mean + ", SD = " + group1SD + ") compared to "
-                            + group2Name + " (M = " + group2Mean + ", SD = " + group2SD + ")"
-                    elseif group1Mean < group2Mean
-                        summary = summary + lf + group1Name + " had a lower overall mean (M = " + group1Mean + ", SD = " + group1SD + ") compared to "
-                            + group2Name + " (M = " + group2Mean + ", SD = " + group2SD + ")"
+                if result:GetInformation():HasKey(group1Name)
+                    number group1Mean = math:Round(result:GetInformation():GetValue(group1Name):GetValue("mean"), digits)
+                    number group2Mean = math:Round(result:GetInformation():GetValue(group2Name):GetValue("mean"), digits)
+                    number group1SD = math:Round(math:SquareRoot(result:GetInformation():GetValue(group1Name):GetValue("variance")), digits)
+                    number group2SD = math:Round(math:SquareRoot(result:GetInformation():GetValue(group2Name):GetValue("variance")), digits)
+                    if result:IsSignificant()
+                        summary = summary + " The difference was indicated to be statistically significant."
+                        if group1Mean > group2Mean
+                            summary = summary + lf + group1Name + " had a higher overall mean (M = " + group1Mean + ", SD = " + group1SD + ") compared to "
+                                + group2Name + " (M = " + group2Mean + ", SD = " + group2SD + ")"
+                        elseif group1Mean < group2Mean
+                            summary = summary + lf + group1Name + " had a lower overall mean (M = " + group1Mean + ", SD = " + group1SD + ") compared to "
+                                + group2Name + " (M = " + group2Mean + ", SD = " + group2SD + ")"
+                        else
+                            summary = summary + lf + group1Name + " had an equal mean (M = " + group1Mean + ", SD = " + group1SD + ") compared to "
+                                + group2Name + " (M = " + group2Mean + ", SD = " + group2SD + ")"           
+                        end
                     else
-                        summary = summary + lf + group1Name + " had an equal mean (M = " + group1Mean + ", SD = " + group1SD + ") compared to "
-                            + group2Name + " (M = " + group2Mean + ", SD = " + group2SD + ")"           
+                        summary = summary + lf + group1Name + " (M = " + group1Mean + ", SD = " + group1SD + ") is not significantly different from " 
+                                                + group2Name + " (M = " + group2Mean + ", SD = " + group2SD + ")"
                     end
-                else
-                    summary = summary + lf + group1Name + " (M = " + group1Mean + ", SD = " + group1SD + ") is not significantly different from " 
-                                            + group2Name + " (M = " + group2Mean + ", SD = " + group2SD + ")"
                 end
             end
         end

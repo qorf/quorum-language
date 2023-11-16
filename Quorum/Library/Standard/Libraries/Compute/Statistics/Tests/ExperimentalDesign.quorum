@@ -8,6 +8,8 @@ use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Containers.Iterator
 use Libraries.Compute.Matrix
+use Libraries.Compute.Statistics.Transforms.ConvertColumnsToRanksTransform
+use Libraries.Compute.Statistics.Transforms.TransformWider
 
 /*
 The ExperimentalDesign class is a helper class for several statistical tests including
@@ -82,6 +84,9 @@ class ExperimentalDesign
     // Original and formatted DataFrames
     private DataFrame originalFrame = undefined
     private DataFrame designFrame = undefined 
+    private DataFrame rankedFrame = undefined
+    private DataFrame groupsFrame = undefined
+    private HashTable <text, DataFrame> groupsTable = undefined
 
     // Holds the various selections for the design
     private text subjectIdentifierHeader = ""                   // Unique Identifier For Each Subject 
@@ -681,6 +686,63 @@ class ExperimentalDesign
     action Multivariate(boolean multivariate)
         me:multivariate = multivariate
     end  
+
+    /*
+    This action returns a wide format dataframe with each group/sample/measure as it's own column  
+
+    Attribute: Returns The dataframe as wide format with columns holding each sample
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddWithinSubjectsFactor("Time", "Time1,Time2,Time3,Time4")
+    design:Transform(frame)
+
+    output design:GetGroupsFrame():ToText()
+    */
+    action GetGroupsFrame returns DataFrame
+        if groupsFrame = undefined
+            ConstructGroupsFrame()
+        end
+        return groupsFrame
+    end
+
+    /*
+    This action returns the long format design dataframe but with ranked dependent variables. 
+    If the design has only between-subjects factors the dependent variables will
+    be ranked as a whole. If the design contains only within-subjects factors 
+    the dependent variable will be ranked for each subject id. If the design 
+    contains both between and within subject factors (i.e. mixed design), this action 
+    will alert the user with an error message explaining that it cannot rank the data properly.
+
+    Attribute: Returns The dataframe as long format with ranked data, ideal for nonparametric statistical tests.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddWithinSubjectsFactor("Time", "Time1,Time2,Time3,Time4")
+    design:Transform(frame)
+
+    output design:GetRankedFrame():ToText()
+    */
+    action GetRankedFrame returns DataFrame
+        if rankedFrame = undefined
+            ConstructRankedFrame()
+        end
+        return rankedFrame
+    end
 
     /*
     This action returns the long format design dataframe.
@@ -1791,5 +1853,163 @@ class ExperimentalDesign
             j = j + 1
         end
         return factorText
+    end
+
+    private action ConstructRankedFrame 
+        if designFrame not= undefined
+            if betweenSubjectsFactorHeaders:GetSize() > 0 and withinSubjectsFactorHeaders:GetSize() > 0
+                alert("Ranking the data for a mixed design is not available. Try to transform the data using a different approach like logarithm or square root.")
+            elseif betweenSubjectsFactorHeaders:GetSize() > 0
+                ConvertColumnsToRanksTransform rankTransform
+                // Get the dependent variables into their own frame (long format)
+                DataFrame dvs
+                i = 0 
+                repeat while i < dependentVariableHeaders:GetSize()
+                    dvs:AddColumn(designFrame:GetColumn(dependentVariableHeaders:Get(i)):Copy())
+                    rankTransform:AddColumn(i)
+                    i = i + 1
+                end
+                // Rank each of the dvs independently
+                DataFrame rankeddvs = rankTransform:Transform(dvs)
+                
+                // Add subject id and factors to the ranked frame
+                DataFrame ranked
+                if subjectIdentifierHeader not= "" and designFrame:HasColumn(subjectIdentifierHeader)
+                    ranked:AddColumn(designFrame:GetColumn(subjectIdentifierHeader):Copy())      
+                end     
+                i = 0 
+                repeat while i < betweenSubjectsFactorHeaders:GetSize()
+                    ranked:AddColumn(designFrame:GetColumn(betweenSubjectsFactorHeaders:Get(i)):Copy())
+                    ranked:AddSelectedFactors(betweenSubjectsFactorHeaders:Get(i))
+                    i = i + 1
+                end
+                // Add ranked dvs to the ranked frame
+                i = 0 
+                repeat while i < rankeddvs:GetSize()
+                    ranked:AddColumn(rankeddvs:GetColumn(i))
+                    ranked:AddSelectedColumns(rankeddvs:GetColumn(i):GetHeader())
+                    i = i + 1
+                end                
+                rankedFrame = ranked
+            elseif withinSubjectsFactorHeaders:GetSize() > 0
+                if dependentVariableHeaders:GetSize() > 1
+                    alert("Ranking is not currently available for multiple dependent variables with a within-subjects factor.")
+                end
+                ConvertColumnsToRanksTransform rankTransform
+
+                // Get each subject into their own column
+                DataFrame copy = designFrame:Copy()
+                copy:EmptySelectedFactors()
+                copy:EmptySelectedColumns()
+                if subjectIdentifierHeader not= ""
+                    copy:AddSelectedFactors(subjectIdentifierHeader)      
+                end
+                i = 0 
+                repeat while i < dependentVariableHeaders:GetSize()
+                    copy:AddSelectedColumns(dependentVariableHeaders:Get(i))
+                    i = i + 1
+                end   
+
+                TransformWider widen
+                DataFrame subjectsFrame = widen:Transform(copy)    
+                i = 0 
+                repeat while i < subjectsFrame:GetSize()
+                    boolean isAFactor = false
+                    j = 0
+                    repeat while j < withinSubjectsFactorHeaders:GetSize()
+                        if subjectsFrame:GetColumn(i):GetHeader() = withinSubjectsFactorHeaders:Get(j)
+                            isAFactor = true
+                        end
+                        j = j + 1
+                    end
+                    if not isAFactor
+                        rankTransform:AddColumn(i)
+                    end
+                    i = i + 1
+                end   
+
+                // Rank each of the subjects independently
+                DataFrame rankedsubjects = rankTransform:Transform(subjectsFrame)
+
+                // Reconstruct design frame using ranked data
+                i = 0 
+                repeat while i < rankedsubjects:GetSize()
+                    rankedsubjects:AddSelectedColumn(i)
+                    i = i + 1
+                end  
+                j = 0
+                repeat while j < withinSubjectsFactorHeaders:GetSize()
+                    rankedsubjects:AddColumn(subjectsFrame:GetColumn(withinSubjectsFactorHeaders:Get(j)):Copy())
+                    j = j + 1
+                end        
+
+                TransformLonger lengthen
+                lengthen:SetNamesHeader(subjectIdentifierHeader)
+                lengthen:SetValuesHeader(dependentVariableHeaders:Get(0))
+                DataFrame ranked = lengthen:Transform(rankedsubjects)
+
+                j = 0
+                repeat while j < withinSubjectsFactorHeaders:GetSize()
+                    ranked:AddSelectedFactors(withinSubjectsFactorHeaders:Get(j))
+                    j = j + 1
+                end  
+                ranked:AddSelectedColumns(dependentVariableHeaders:Get(0))
+                rankedFrame = ranked             
+            end            
+        end
+    end
+
+    private action ConstructGroupsFrame()
+        if designFrame not= undefined
+            if dependentVariableHeaders:GetSize() > 1
+                alert("Use GetGroupsTable() for multivariate designs.")
+            end
+            // Remove subject id for a moment
+            boolean addBack = false
+            if designFrame:HasColumn(subjectIdentifierHeader)
+                addBack = true
+                designFrame:RemoveSelectedFactors(subjectIdentifierHeader)
+            end
+            groupsFrame = designFrame:CreateNewDataFrameFromFactoredColumns()
+            if addBack
+                designFrame:AddSelectedFactors(subjectIdentifierHeader)
+            end
+        end
+    end
+
+    private action ConstructGroupsTable()
+        if designFrame not= undefined
+            if dependentVariableHeaders:GetSize() = 1
+                alert("Use GetGroupsFrame() for univariate designs.")
+            end
+            HashTable <text, DataFrame> table
+    
+            // Remove subject id for a moment
+            boolean addBack = false
+            if designFrame:HasColumn(subjectIdentifierHeader)
+                addBack = true
+                designFrame:RemoveSelectedFactors(subjectIdentifierHeader)
+            end
+            
+            i = 0
+            repeat while i < dependentVariableHeaders:GetSize()
+                designFrame:EmptySelectedColumns()
+                designFrame:AddSelectedColumns(dependentVariableHeaders:Get(i))
+                table:Add(dependentVariableHeaders:Get(i), designFrame:CreateNewDataFrameFromFactoredColumns())
+                i = i + 1
+            end
+
+            // reselect id factor
+            if addBack
+                designFrame:AddSelectedFactors(subjectIdentifierHeader)
+            end
+
+            // reselect all columns
+            i = 0
+            repeat while i < dependentVariableHeaders:GetSize()
+                designFrame:AddSelectedColumns(dependentVariableHeaders:Get(i))
+                i = i + 1
+            end
+        end
     end
 end
