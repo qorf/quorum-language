@@ -79,6 +79,7 @@ class Chart is ChartItem
     private Color previousColor = undefined
     private number previousZ = 0
     private boolean hasAccessibility = true
+    private boolean showPatterns = false
 
     // Chart Orientation
     private boolean horizontalOrientation = false
@@ -357,6 +358,11 @@ class Chart is ChartItem
         end
 
         legend:ApplySeriesColor()
+
+        if IsShowingPatterns()
+            legend:ApplySeriesPattern()
+        end
+
         legend:LoadLegend(me, properties)
         if IsShowingLegend()
             legendPanelWidthPercent = 0.10
@@ -610,6 +616,18 @@ class Chart is ChartItem
     end
 
     /*
+    Attribute: True if all items in chart are filled with a pattern by series.
+    */
+    action IsShowingPatterns returns boolean
+        return showPatterns
+    end
+
+    action ShowPatterns(boolean show)
+        showPatterns = show
+    end
+
+    /*
+    Attribute: True if all annotations for chart drawables are showing.
     Attribute: Returns True if all annotations for chart drawables are showing.
     */
     action ShowAnnotations returns boolean

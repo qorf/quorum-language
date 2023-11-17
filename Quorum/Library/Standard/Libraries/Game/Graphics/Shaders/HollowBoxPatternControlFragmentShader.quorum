@@ -1,0 +1,23 @@
+package Libraries.Game.Graphics.Shaders
+
+class HollowBoxPatternControlFragmentShader is ControlFragmentShader, HollowBoxPatternFragmentShaderPart
+
+    constant text SHADER_NAME = "Hollow Box Pattern Control Fragment Shader"
+
+    on create
+        SetName(SHADER_NAME)
+    end
+
+    private action GetExtraFunctions returns text
+        return parent:HollowBoxPatternFragmentShaderPart:GetExtraFunctions()
+    end
+
+    private action GetExtraInputs returns text
+        return parent:HollowBoxPatternFragmentShaderPart:GetExtraInputs()
+    end
+
+    private action GetAppendedCode returns text
+        return parent:HollowBoxPatternFragmentShaderPart:GetAppendedCode()
+    end
+
+end

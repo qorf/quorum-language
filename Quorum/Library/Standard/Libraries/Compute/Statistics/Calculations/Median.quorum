@@ -38,6 +38,10 @@ class Median is DataFrameColumnCalculation
             Vector v = column:ConvertToVector()
             v:Sort()
             size = v:GetSize()
+            if size = 1 or size = 2
+                median = v:Get(0)
+                return now
+            end
             if size mod 2 = 1
                 median = v:Get(size / 2)
             else

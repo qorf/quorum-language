@@ -8,10 +8,10 @@ class WedgeFragmentShader is Shader
         SetType(parent:Shader:FRAGMENT_SHADER)
         SetName("Wedge Fragment Shader")      
 
-        SetCode(GetOpenGLVersion() +
+        SetCode(GetOpenGLVersion() + "
+" + GetPreprocessorDefinitions() +
 "
-" +
-"#ifdef GL_ES
+#ifdef GL_ES
     #define LOWP lowp
     precision mediump float;
 #else
@@ -24,10 +24,15 @@ in float v_outerRadius;
 in float v_minAngle;
 in float v_maxAngle;
 in vec2 v_originPoint;
+in float v_aspectRatio;
 uniform sampler2D u_texture;
-layout (location = 0) out vec4 outputColor;
+layout (location = 0) out vec4 resultColor;
 
 float PI = 3.1415926538;
+
+" + GetExtraInputs() + "
+
+" + GetExtraFunctions() + "
 
 void main()
 {
@@ -41,10 +46,28 @@ void main()
     angle = angle / (2.0 * PI);
 
     if (angle < v_minAngle || angle > v_maxAngle || length < v_innerRadius || length > v_outerRadius)
-        outputColor = vec4(0.0);
+        resultColor = vec4(0.0);
     else
-        outputColor = v_color * texture(u_texture, v_texCoords);
+        resultColor = v_color * texture(u_texture, v_texCoords);
+
+    " + GetAppendedCode() + "
 }")
+    end
+
+    private action GetPreprocessorDefinitions returns text
+        return ""
+    end
+
+    private action GetExtraInputs returns text
+        return ""
+    end
+
+    private action GetExtraFunctions returns text
+        return ""
+    end
+
+    private action GetAppendedCode returns text
+        return ""
     end
 
 end

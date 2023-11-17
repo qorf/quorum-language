@@ -374,6 +374,21 @@ class Legend is ChartItem
         end
     end
 
+    action ApplySeriesPattern()
+        ChartOptions options
+        i = 0
+        repeat while i < seriesList:GetSize()
+            Series series = seriesList:Get(i)
+            series:SetPattern(options:GetPatternFromPalette(i))
+            integer j = 0
+            repeat while j < series:GetSize()
+                series:GetItemAt(j):SetPattern(series:GetPattern())
+                j = j + 1
+            end
+            i = i + 1
+        end
+    end
+
     action DisposeDrawables()
         if title not= undefined
             title:Dispose()

@@ -8,40 +8,67 @@ use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Statistics.DataFrameColumn
 use Libraries.Containers.Iterator
 use Libraries.Compute.Matrix
+use Libraries.Compute.Statistics.Transforms.ConvertColumnsToRanksTransform
+use Libraries.Compute.Statistics.Transforms.TransformWider
 
 /*
-    ExperimentalDesign is a helper class for several statistical tests including
-    CompareMeans, CompareVariances and CompareDistributions.
-    This class will take and hold various factor and column selections and transform the dataset into 
-    a necessary format for each test calculation.
-    Additionally this class can construct a design matrix and a contrast matrix based on selected factors.
-    These matrices are used in several calculations throughout the statistical tests.
-    The factors used for the contrast matrix will include only the within-subjects factors chosen.
+The ExperimentalDesign class is a helper class for several statistical tests including
+CompareMeans, CompareMeansPairwise, CompareVariances and CompareDistributions.
+This class will take and hold various dependent, independent and control factor or 
+variable selections and transform the dataset into the necessary format for a given test.
 
-    For more information:
-    Types of designs:       https://vault.hanover.edu/~altermattw/courses/220/readings/BetweenWithinMixed.pdf
-    Experimental Design:    https://en.wikipedia.org/wiki/Design_of_experiments
-    Design Matrix:          https://en.wikipedia.org/wiki/Design_matrix
-    Contrast Matrix:        https://en.wikipedia.org/wiki/Contrast_(statistics)
+Attribute: Author Hannah Stabler
 
-    Attribute: Author Hannah Stabler
+Attribute: Example
 
-    Attribute: Example
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+use Libraries.Compute.Statistics.Tests.CompareMeans
 
-    use Libraries.Compute.Statistics.DataFrame
-    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+DataFrame frame
+frame:LoadFromCommaSeparatedValue("ParticipantID,Time1,Time2,Time3,Group
+1,3,-4,4,a
+2,4,-9,9,a
+3,4,-18,18,a
+4,7,-19,19,a
+5,8,-16,16,a
+6,17,-2,2,b
+7,2,1,12,b
+8,4,2,13,b
+9,6,3,15,b")
+
+// An example of a mixed model ANOVA
+ExperimentalDesign design
+
+// An example of a between-subjects factor
+design:AddBetweenSubjectsFactor("Group")
     
-    DataFrame frame
-    frame:Load("Data.csv")
-    
-    // An example of a mixed design 
-    ExperimentalDesign design
-    design:AddBetweenSubjectsFactor("factor1")                      // example of a between-subjects factor
-    design:AddWithinSubjectsFactor("factor2", "Time1,Time2,Time3")  // example of a within-subjects factor in wide format (repeated measures)
-    design:AddSubjectIdentifier("participant")                      // subject id is not needed for within-subjects wide format, but it won't hurt 
+// An example of a within-subjects factor (repeated measures) in wide format.
+// We can name our within-subjects factor "Time", and assign it levels from our frame.                     
+design:AddWithinSubjectsFactor("Time", "Time1,Time2,Time3")
+     
+// A subject id is not needed for wide format data, but it won't hurt
+design:AddSubjectIdentifier("ParticipantID")           
 
-    design:Transform(frame)                                         // this will check that selections above are valid and create the design dataframe
-    output design:GetDesignFrame():ToText()
+// This will use the design to run the appropriate CompareMeans test. 
+CompareMeans anova = frame:CompareMeans(design)
+output anova:GetSummary()
+output anova:GetDesign():GetDesignFrame():ToText() 
+*/
+
+/*
+Additionally, this class can construct a design matrix, a control matrix, and a contrast matrix based on selected factors.
+These matrices are used in several calculations throughout the statistical tests.
+The factors used for the design matrix will include only the between-subjects factors chosen.
+The factors used for the control matrix will include only the control factors/variables chosen.
+The factors used for the contrast matrix will include only the within-subjects factors chosen.
+
+For more information:
+Types of designs:       https://vault.hanover.edu/~altermattw/courses/220/readings/BetweenWithinMixed.pdf
+Experimental Design:    https://en.wikipedia.org/wiki/Design_of_experiments
+Design Matrix:          https://en.wikipedia.org/wiki/Design_matrix
+Control Matrix:         https://en.wikipedia.org/wiki/Control_variable
+Contrast Matrix:        https://en.wikipedia.org/wiki/Contrast_(statistics)
 */
 class ExperimentalDesign
     boolean transformed = false
@@ -51,49 +78,119 @@ class ExperimentalDesign
     // Design information
     integer numberOfSubjects = 0            // How many total subjects are there?
     integer numberOfObservations = 0        // How many total observations are there?
-    integer numberOfMeasurements = 0        // How many repeated measures are there?
+    integer numberOfMeasurements = 1        // How many repeated measures are there?
     integer numberOfIndependentGroups = 1   // How many independent groups are there?
 
+    // Original and formatted DataFrames
     private DataFrame originalFrame = undefined
     private DataFrame designFrame = undefined 
+    private DataFrame rankedFrame = undefined
+    private DataFrame groupsFrame = undefined
+    private HashTable <text, DataFrame> groupsTable = undefined
 
     // Holds the various selections for the design
-    private text subjectIdentifierHeader = ""  
-    private Array<text> dependentVariableHeaders
-    private Array<text> betweenSubjectsFactorHeaders
-    private Array<text> withinSubjectsFactorHeaders
+    private text subjectIdentifierHeader = ""                   // Unique Identifier For Each Subject 
+    private Array<text> dependentVariableHeaders                // Continuous Dependent Variables
+    private Array<text> betweenSubjectsControlVariableHeaders   // Continuous Control Variables     ** NOT IMPLEMENTED YET **
+    private Array<text> betweenSubjectsControlFactorHeaders     // Categorical Control Variables    ** NOT IMPLEMENTED YET **
+    private Array<text> withinSubjectsControlVariableHeaders    // Continuous Control Variables     ** NOT IMPLEMENTED YET **
+    private Array<text> withinSubjectsControlFactorHeaders      // Categorical Control Variables    ** NOT IMPLEMENTED YET **
+    private Array<text> betweenSubjectsFactorHeaders            // Categorical Independent Variables 
+    private Array<text> withinSubjectsFactorHeaders             // Categorical Independent Variables 
     private HashTable<text, text> dependentVariableHeadersWide
     private HashTable<text, text> betweenSubjectsFactorHeadersWide
     private HashTable<text, text> withinSubjectsFactorHeadersWide
 
     // Design matrix 
     private Matrix designMatrix = undefined
-    private HashTable<integer, text> factorIndex                // Index of the factor encoding used for matrix creation
-    private Array<DataFrameColumn> factorLevels                 // Holds the levels for each factor (sorted)
-    private HashTable<text, Array<integer>> columnsAssociatedWithFactor // Used to create design matrix
-    private HashTable<integer, Matrix> factorsAssociatedWithColumn      // Binary activation encoded, used in design matrix
+    private HashTable<integer, text> factorIndex                        // Index of the factor encoding used for matrix creation
+    private Array<DataFrameColumn> factorLevels                         // Holds the levels for each factor (sorted)
+    private HashTable<text, Array<integer>> columnsAssociatedWithFactor         // Used to create design matrix
+    private HashTable<integer, Matrix> factorsAssociatedWithColumn              // Binary activation encoded, used in design matrix
+
+    // Control (Covariate) matrix ** NOT IMPLEMENTED YET **
+    private Matrix controlMatrix = undefined
+    private HashTable<integer, text> controlFactorIndex                // Index of the factor encoding used for matrix creation
+    private Array<DataFrameColumn> controlFactorLevels                 // Holds the levels for each factor (sorted)
+    private HashTable<text, Array<integer>> controlColumnsAssociatedWithFactor // Used to create design matrix
+    private HashTable<integer, Matrix> controlFactorsAssociatedWithColumn      // Binary activation encoded, used in design matrix
 
     // Contrast matrix 
     private Matrix contrastMatrix = undefined
-    private HashTable<integer, text> contrastFactorIndex        // Index of the factor encoding used for contrast matrix creation
-    private Array<DataFrameColumn> contrastFactorLevels         // Holds the levels for each within-subjects factor (sorted)
+    private HashTable<integer, text> contrastFactorIndex                // Index of the factor encoding used for contrast matrix creation
+    private Array<DataFrameColumn> contrastFactorLevels                 // Holds the levels for each within-subjects factor (sorted)
     private HashTable<text, Array<integer>> contrastColumnsAssociatedWithFactor // Used to create contrast matrix
     private HashTable<integer, Matrix> contrastFactorsAssociatedWithColumn      // Binary activation encoded, used in contrast matrix
 
+    /*
+    This action transforms the given frame to the proper format based on chosen factors/variables. 
 
+    Attribute: Parameter frame The frame to be used to transform data. 
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddBetweenSubjectsFactor("Group")
+    design:AddDependentVariable("Response")
+    design:Transform(frame)
+  
+    output design:GetDesignFrame():ToText()
+    */
     action Transform(DataFrame frame)
         SetDataFrame(frame)
         designMatrix = undefined
+        controlMatrix = undefined
         contrastMatrix = undefined
+        factorIndex:Empty()
+        factorLevels:Empty()
+        columnsAssociatedWithFactor:Empty()
+        factorsAssociatedWithColumn:Empty()
+        controlFactorIndex:Empty()
+        controlFactorLevels:Empty()
+        controlColumnsAssociatedWithFactor:Empty()
+        controlFactorsAssociatedWithColumn:Empty()
+        contrastFactorIndex:Empty()
+        contrastFactorLevels:Empty()
+        contrastColumnsAssociatedWithFactor:Empty()
+        contrastFactorsAssociatedWithColumn:Empty() 
         if not transformed
             designFrame = VerifySelectionAndLengthenFrame(frame)
             transformed = true
         end
     end
 
+    /*
+    This action removes all information from the design. 
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddBetweenSubjectsFactor("Group")
+    design:AddDependentVariable("Response")
+    design:Empty()
+    */
     action Empty
+        transformed = false
+        repeatedMeasures = false
+        multivariate = false
+        numberOfSubjects = 0            
+        numberOfObservations = 0        
+        numberOfMeasurements = 0        
+        numberOfIndependentGroups = 0       
         originalFrame = undefined
+        designFrame = undefined
         designMatrix = undefined
+        controlMatrix = undefined
         contrastMatrix = undefined
         subjectIdentifierHeader = ""  
         dependentVariableHeaders:Empty()
@@ -102,8 +199,42 @@ class ExperimentalDesign
         dependentVariableHeadersWide:Empty()
         betweenSubjectsFactorHeadersWide:Empty()
         withinSubjectsFactorHeadersWide:Empty()
+        betweenSubjectsControlVariableHeaders:Empty()    
+        betweenSubjectsControlFactorHeaders:Empty()     
+        withinSubjectsControlVariableHeaders:Empty()     
+        withinSubjectsControlFactorHeaders:Empty()  
+        factorIndex:Empty()
+        factorLevels:Empty()
+        columnsAssociatedWithFactor:Empty()
+        factorsAssociatedWithColumn:Empty()
+        controlFactorIndex:Empty()
+        controlFactorLevels:Empty()
+        controlColumnsAssociatedWithFactor:Empty()
+        controlFactorsAssociatedWithColumn:Empty()
+        contrastFactorIndex:Empty()
+        contrastFactorLevels:Empty()
+        contrastColumnsAssociatedWithFactor:Empty()
+        contrastFactorsAssociatedWithColumn:Empty()    
     end
 
+    /*
+    This action copies the design, this is used in several statistical tests.  
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddBetweenSubjectsFactor("Group")
+    design:AddDependentVariable("Response")
+    
+    ExperimentalDesign copy = design:Copy()
+    copy:Transform(frame)
+    output copy:GetDesignFrame():ToText()
+    */
     action Copy returns ExperimentalDesign
         ExperimentalDesign copy
         copy:RepeatedMeasures(repeatedMeasures)
@@ -155,56 +286,292 @@ class ExperimentalDesign
         return copy
     end
 
-    /* Returns the subject identifier header */
+    /*
+    This action returns the subject identifier header. 
+
+    Attribute: Returns The header associated with the subject identifier.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddBetweenSubjectsFactor("Group")
+    design:AddDependentVariable("Response")
+    design:Transform(frame)
+
+    output design:GetSubjectIdentifier()
+    */
     action GetSubjectIdentifier returns text
         return subjectIdentifierHeader
     end
 
-    /* Returns an array of all the between-subjects factor headers */
+    /*
+    This action returns an array of all the between-subjects factor headers. 
+
+    Attribute: Returns The array holding the between-subjects factor headers.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddBetweenSubjectsFactor("Group")
+    design:AddDependentVariable("Response")
+    design:Transform(frame)
+
+    Array<text> headers = design:GetBetweenSubjectsFactors()
+    */
     action GetBetweenSubjectsFactors returns Array<text>
         return betweenSubjectsFactorHeaders
     end
 
+    /*
+    This action returns the number of between-subjects factors in this design.
+
+    Attribute: Returns The number of between-subjects factors in this design.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddBetweenSubjectsFactor("Group")
+    design:AddDependentVariable("Response")
+    design:Transform(frame)
+
+    output design:GetNumberOfBetweenSubjectsFactors()
+    */
     action GetNumberOfBetweenSubjectsFactors returns integer
         return betweenSubjectsFactorHeaders:GetSize()
     end
 
+    /*
+    This action returns true if this design uses between-subjects factors.
+
+    Attribute: Returns Boolean indicating use of between-subjects factors.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddBetweenSubjectsFactor("Group")
+    design:AddDependentVariable("Response")
+    design:Transform(frame)
+
+    output design:HasBetweenSubjectsFactors()
+    */
     action HasBetweenSubjectsFactors returns boolean
         return betweenSubjectsFactorHeaders:GetSize() > 0
     end
 
-    /* Returns an array of all the within-subjects factor headers */
+    /*
+    This action returns an array of all the within-subjects factor headers. 
+
+    Attribute: Returns The array holding the within-subjects factor headers.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddWithinSubjectsFactor("Time")
+    design:AddDependentVariable("Response")
+    design:Transform(frame)
+
+    Array<text> headers = design:GetWithinSubjectsFactors()
+    */
     action GetWithinSubjectsFactors returns Array<text>
         return withinSubjectsFactorHeaders
     end
 
+    /*
+    This action returns the number of within-subjects factors in this design.
+
+    Attribute: Returns The number of within-subjects factors in this design.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddWithinSubjectsFactor("Time")
+    design:AddDependentVariable("Response")
+    design:Transform(frame)
+
+    output design:GetNumberOfWithinSubjectsFactors()
+    */
     action GetNumberOfWithinSubjectsFactors returns integer
         return withinSubjectsFactorHeaders:GetSize()
     end
 
+    /*
+    This action returns true if this design uses within-subjects factors.
+
+    Attribute: Returns Boolean indicating use of within-subjects factors.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddWithinSubjectsFactor("Time")
+    design:AddDependentVariable("Response")
+    design:Transform(frame)
+
+    output design:HasWithinSubjectsFactors()
+    */
     action HasWithinSubjectsFactors returns boolean
         return withinSubjectsFactorHeaders:GetSize() > 0
     end 
 
-    /* Returns an array of all the dependent variable headers */
+    /*
+    This action returns an array of all the dependent variable headers.
+
+    Attribute: Returns The array holding the dependent variable headers.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddBetweenSubjectsFactor("Group")
+    design:AddDependentVariable("Response1")
+    design:AddDependentVariable("Response2")
+    design:Transform(frame)
+
+    Array<text> headers = design:GetDependentVariables()
+    */
     action GetDependentVariables returns Array<text>
         return dependentVariableHeaders
     end
+
+    /*
+    This action returns the number of dependent variables in this design.
+
+    Attribute: Returns The number of dependent variables in this design.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddBetweenSubjectsFactor("Group")
+    design:AddDependentVariable("Response1")
+    design:AddDependentVariable("Response2")
+    design:Transform(frame)
+
+    output design:GetNumberOfDependentVariables()
+    */
     action GetNumberOfDependentVariables returns integer
         return dependentVariableHeaders:GetSize()
     end
 
-    /* Returns the number of individual subjects */
+    /*
+    This action returns the number of individual subjects in this design.
+
+    Attribute: Returns The number of individual subjects in this design.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddBetweenSubjectsFactor("Group")
+    design:AddDependentVariable("Response")
+    design:Transform(frame)
+
+    output design:GetNumberOfSubjects()
+    */
     action GetNumberOfSubjects returns integer
         return numberOfSubjects
     end
 
-    /* Returns the number of total observations */
+    /*
+    This action returns the number of total observations in this design.
+
+    Attribute: Returns The number of total observations in this design.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddBetweenSubjectsFactor("Group")
+    design:AddDependentVariable("Response")
+    design:Transform(frame)
+
+    output design:GetNumberOfObservations()
+    */
     action GetNumberOfObservations returns integer
         return numberOfObservations
     end
 
-    /* Returns the number of repeated measurements */
+    /*
+    This action returns the number of repeated measurements in this design.
+
+    Attribute: Returns The number of repeated measurements in this design.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddBetweenSubjectsFactor("Group")
+    design:AddDependentVariable("Response")
+    design:Transform(frame)
+
+    output design:GetNumberOfMeasurements()
+    */
     action GetNumberOfMeasurements returns integer
         if contrastMatrix = undefined 
             contrastMatrix = CreateContrastMatrix()
@@ -212,7 +579,26 @@ class ExperimentalDesign
         return numberOfMeasurements
     end
 
-    /* Returns the number of independent groups */
+    /*
+    This action returns the number of independent groups in this design.
+
+    Attribute: Returns The number of independent groups in this design.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddBetweenSubjectsFactor("Group")
+    design:AddDependentVariable("Response")
+    design:Transform(frame)
+
+    output design:GetNumberOfIndependentGroups()
+    */
     action GetNumberOfIndependentGroups returns integer
         if designMatrix = undefined
             designMatrix = CreateDesignMatrix()
@@ -220,32 +606,210 @@ class ExperimentalDesign
         return numberOfIndependentGroups
     end
 
-    /* Returns true if a within-subjects factor is used */
+    /*
+    This action returns true if this design uses repeated measures.
+
+    Attribute: Returns The boolean indicating if this design uses repeated measures.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddBetweenSubjectsFactor("Group")
+    design:AddDependentVariable("Response")
+    design:Transform(frame)
+
+    output design:RepeatedMeasures()
+    */
     action RepeatedMeasures returns boolean
         return repeatedMeasures
     end
 
-    /* Flag to use repeated measures when no factor is selected in frame (useful in wide format) */
+    /*
+    This action forces repeated measures when no factor is selected or specified in frame. 
+    This is useful with wide format when conducting a one-way repeated measures anova (CompareMeans).
+    By default, this action will lengthen the selected columns or dependent variables into an implicit 
+    within-subjects factor and name the factor "Measures" and the dependent variable will be named "Values".
+    If any factors are specified, whatever boolean is set here will be overwritten by the specified design.
+
+    Attribute: Parameter repeated The boolean indicating if this design uses repeated measures if there is no factor specified.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddDependentVariable("Time1")
+    design:AddDependentVariable("Time2")
+    design:AddDependentVariable("Time3")
+    design:RepeatedMeasures(true)
+    design:Transform(frame)
+
+    output design:RepeatedMeasures()
+    */
     action RepeatedMeasures(boolean repeated)
         repeatedMeasures = repeated
     end   
 
-    /* Flag to assume individual dependent variables (i.e. not same variable repeated) when no factor is selected in frame (useful in wide format) */
+    /*
+    This action forces multivariate design when no factor is selected or specified in frame. 
+    This ensures that the design will not recognize individual dependent variables as repeated measures when using wide format.
+
+    Attribute: Parameter multivariate The boolean indicating if this design uses multiple dependent variables if there is no factor specified.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddDependentVariable("Variable1")
+    design:AddDependentVariable("Variable2")
+    design:AddDependentVariable("Variable3")
+    design:Multivariate(true)
+    design:Transform(frame)
+
+    output design:GetDesignFrame():ToText()
+    */
     action Multivariate(boolean multivariate)
         me:multivariate = multivariate
     end  
 
-    /* Returns the long format design dataframe */
+    /*
+    This action returns a wide format dataframe with each group/sample/measure as it's own column  
+
+    Attribute: Returns The dataframe as wide format with columns holding each sample
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddWithinSubjectsFactor("Time", "Time1,Time2,Time3,Time4")
+    design:Transform(frame)
+
+    output design:GetGroupsFrame():ToText()
+    */
+    action GetGroupsFrame returns DataFrame
+        if groupsFrame = undefined
+            ConstructGroupsFrame()
+        end
+        return groupsFrame
+    end
+
+    /*
+    This action returns the long format design dataframe but with ranked dependent variables. 
+    If the design has only between-subjects factors the dependent variables will
+    be ranked as a whole. If the design contains only within-subjects factors 
+    the dependent variable will be ranked for each subject id. If the design 
+    contains both between and within subject factors (i.e. mixed design), this action 
+    will alert the user with an error message explaining that it cannot rank the data properly.
+
+    Attribute: Returns The dataframe as long format with ranked data, ideal for nonparametric statistical tests.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddWithinSubjectsFactor("Time", "Time1,Time2,Time3,Time4")
+    design:Transform(frame)
+
+    output design:GetRankedFrame():ToText()
+    */
+    action GetRankedFrame returns DataFrame
+        if rankedFrame = undefined
+            ConstructRankedFrame()
+        end
+        return rankedFrame
+    end
+
+    /*
+    This action returns the long format design dataframe.
+
+    Attribute: Returns The dataframe as long format, ideal for statistical tests.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddWithinSubjectsFactor("Time", "Time1,Time2,Time3,Time4")
+    design:Transform(frame)
+
+    output design:GetDesignFrame():ToText()
+    */
     action GetDesignFrame returns DataFrame
         return designFrame
     end
 
-    /* Returns the original format dataframe */
+    /*
+    This action returns the original untransformed dataframe.
+
+    Attribute: Returns The original untransformed dataframe used in this design.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddWithinSubjectsFactor("Time", "Time1,Time2,Time3,Time4")
+    design:Transform(frame)
+
+    output design:GetOriginalFrame():ToText()
+    */
     action GetOriginalFrame returns DataFrame
         return originalFrame
     end
 
-    /* Returns an array of sources used for the design matrix (main effects and interactions) */
+    /*
+    This action returns an array of sources (main effects and interaction effects) used for the design matrix.
+
+    Attribute: Returns The array of the sources used to generate the design matrix.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddBetweenSubjectsFactor("Group")
+    design:AddDependentVariable("Response")
+    design:Transform(frame)
+
+    Array<text> sources = design:GetDesignSources()
+    */
     action GetDesignSources returns Array<text>
         if designMatrix = undefined
             designMatrix = CreateDesignMatrix()
@@ -253,7 +817,28 @@ class ExperimentalDesign
         return columnsAssociatedWithFactor:CopyToKeyArray()
     end
 
-    /* Returns the design matrix for all sources (main effects and interactions) */
+    /*
+    This action returns the design matrix generated from the between-subjects factors.
+    These factors are treated as categorical, thus this matrix will be generated from dummy-codes
+    for each main effect and interaction effect.
+
+    Attribute: Returns The dummy-coded design matrix for the between-subjects factors.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddBetweenSubjectsFactor("Group")
+    design:AddDependentVariable("Response")
+    design:Transform(frame)
+
+    output design:GetDesignMatrix():ToText()
+    */
     action GetDesignMatrix returns Matrix
         if designMatrix = undefined
             designMatrix = CreateDesignMatrix()
@@ -261,6 +846,26 @@ class ExperimentalDesign
         return designMatrix
     end
 
+    /*
+    This action returns an array of sources used for the contrast matrix.
+
+    Attribute: Returns The array of the sources used to generate the contrast matrix.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddBetweenSubjectsFactor("Group")
+    design:AddWithinSubjectsFactor("Time", "Time1,Time2,Time3") 
+    design:Transform(frame)
+
+    Array<text> sources = design:GetContrastSources()
+    */
     /* Returns an array of sources used for the contrast matrix (main effects and interactions) */
     action GetContrastSources returns Array<text>
         if contrastMatrix = undefined 
@@ -269,7 +874,30 @@ class ExperimentalDesign
         return contrastColumnsAssociatedWithFactor:CopyToKeyArray()
     end
 
-    /* Returns the contrast matrix for a given source (main effect or interaction) */
+    /*
+    This action returns the contrast matrix generated from a specific within-subjects factor.
+    These factors are treated as categorical, thus this matrix will be generated from dummy-codes.
+    This action has no need to be directly accessed, it is here for the CompareMeans tests to use when necessary.
+
+    Attribute: Parameter source The name of the within-subjects effect for the desired contrast matrix.
+
+    Attribute: Returns The dummy-coded contrast matrix for the given within-subjects factors.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddBetweenSubjectsFactor("Group")
+    design:AddWithinSubjectsFactor("Time", "Time1,Time2,Time3") 
+    design:Transform(frame)
+
+    output design:GetContrastMatrix("Time"):ToText()
+    */
     action GetContrastMatrix(text source) returns Matrix
         if contrastMatrix = undefined
             contrastMatrix = CreateContrastMatrix()
@@ -288,37 +916,137 @@ class ExperimentalDesign
             alert("No contrast matrix for source "+source)
         end
         return undefined
-    end
+    end   
 
-    // Set the original dataframe: Use Transform()
-    private action SetDataFrame(DataFrame frame)
-        if originalFrame not= frame
-            transformed = false
-        end
-        originalFrame = frame
-    end    
+    /*
+    This action adds the subject identifier to this design.
+    This action can be used with long data or wide data.
+    When using repeated measures with long data, the subject identifier is REQUIRED, 
+    this is because the design needs to know which responses belong to which subject
+    and when repeated measures are used in long format then the subject ids are 
+    repeated in the column and thus not unique for each row.
+    Although not always required, it would be good practice to specify the subject identifier anyway.
+    
+    Attribute: Parameter header The name of the subject identifier.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
 
-    // For long or wide data.
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddWithinSubjectsFactor("Time")
+    design:AddDependentVariable("Response")
+    design:Transform(frame)
+
+    output design:GetDesignFrame():ToText()
+    */
     action AddSubjectIdentifier(text header)
         subjectIdentifierHeader = header
     end
 
-    // For long or wide data.
+    /*
+    This action adds a new between-subjects factor to this design.
+    This action can be used with long data or wide data when using repeated measures.
+
+    Attribute: Parameter header The name of the between-subjects factor.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddBetweenSubjectsFactor("Group")
+    design:AddDependentVariable("Response")
+    design:Transform(frame)
+
+    output design:GetDesignFrame():ToText()
+    */
     action AddBetweenSubjectsFactor(text header)
         betweenSubjectsFactorHeaders:Add(header)
     end
 
-    // For long data.
+    /*
+    This action adds a new within-subjects factor to this design.
+    This action should be used with long data only.
+
+    Attribute: Parameter header The name of the within-subjects factor.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddWithinSubjectsFactor("Time")
+    design:AddDependentVariable("Response")
+    design:Transform(frame)
+
+    output design:GetDesignFrame():ToText()
+    */
     action AddWithinSubjectsFactor(text header)
         withinSubjectsFactorHeaders:Add(header)
     end
 
-    // For long data.
+    /*
+    This action adds a new dependent variable to this design.
+    This action should be used with long data only.
+
+    Attribute: Parameter header The name of the dependent variable.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddBetweenSubjectsFactor("Group")
+    design:AddDependentVariable("Response")
+    design:Transform(frame)
+
+    output design:GetDesignFrame():ToText()
+    */
     action AddDependentVariable(text header)
         dependentVariableHeaders:Add(header)
     end
 
-    // For wide data in between design.
+    /*
+    This action adds a new between-subjects factor to this design.
+    This action is used for wide data for a between-subjects design, 
+    meaning that each level or group of the between subjects factor 
+    is in its own column in the original DataFrame.
+
+    Attribute: Parameter factorHeader The chosen name for the generated factor.
+
+    Attribute: Parameter variableHeader The chosen name for the generated dependent variable.
+
+    Attribute: Parameter columnHeaders The list of headers for the columns used as each level in the generated factor.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddBetweenSubjectsFactor("Group", "Response", "Group1,Group2,Group3,Group4")
+    design:Transform(frame)
+
+    output design:GetDesignFrame():ToText()
+    */
     action AddBetweenSubjectsFactor(text factorHeader, text variableHeader, text columnHeaders)
         if not betweenSubjectsFactorHeadersWide:HasKey(factorHeader)
             betweenSubjectsFactorHeadersWide:Add(factorHeader, columnHeaders)
@@ -332,7 +1060,29 @@ class ExperimentalDesign
         end
     end
 
-    // For wide data in between design.
+    /*
+    This action adds a new between-subjects factor to this design.
+    This action is used for wide data for a between-subjects design, 
+    meaning that each level or group of the between subjects factor 
+    is in its own column in the original DataFrame.
+
+    Attribute: Parameter factorHeader The chosen name for the generated factor.
+
+    Attribute: Parameter columnHeaders The list of headers for the columns used as each level in the generated factor.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddBetweenSubjectsFactor("Group", "Group1,Group2,Group3,Group4")
+    design:Transform(frame)
+
+    output design:GetDesignFrame():ToText()
+    */
     action AddBetweenSubjectsFactor(text factorHeader, text columnHeaders)
         if not betweenSubjectsFactorHeadersWide:HasKey(factorHeader)
             betweenSubjectsFactorHeadersWide:Add(factorHeader, columnHeaders)
@@ -342,7 +1092,31 @@ class ExperimentalDesign
         end
     end
 
-    // For wide data in within design or mixed design.
+    /*
+    This action adds a new within-subjects factor to this design.
+    This action is used for wide data for a within-subjects design or a mixed-model design, 
+    meaning that each level or measurement of the within-subjects factor 
+    is in its own column in the original DataFrame.
+
+    Attribute: Parameter factorHeader The chosen name for the generated factor.
+
+    Attribute: Parameter variableHeader The chosen name for the generated dependent variable.
+
+    Attribute: Parameter columnHeaders The list of headers for the columns used as each level in the generated factor.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddWithinSubjectsFactor("Time", "Response", "Before,During,After")
+    design:Transform(frame)
+
+    output design:GetDesignFrame():ToText()
+    */
     action AddWithinSubjectsFactor(text factorHeader, text variableHeader, text columnHeaders)
         if not withinSubjectsFactorHeadersWide:HasKey(factorHeader)
             withinSubjectsFactorHeadersWide:Add(factorHeader, columnHeaders)
@@ -356,7 +1130,29 @@ class ExperimentalDesign
         end
     end
 
-    // For wide data in within design or mixed design.
+    /*
+    This action adds a new within-subjects factor to this design.
+    This action is used for wide data for a within-subjects design or a mixed-model design, 
+    meaning that each level or measurement of the within-subjects factor 
+    is in its own column in the original DataFrame.
+
+    Attribute: Parameter factorHeader The chosen name for the generated factor.
+
+    Attribute: Parameter columnHeaders The list of headers for the columns used as each level in the generated factor.
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddWithinSubjectsFactor("Time", "Before,During,After")
+    design:Transform(frame)
+
+    output design:GetDesignFrame():ToText()
+    */
     action AddWithinSubjectsFactor(text factorHeader, text columnHeaders)
         if not withinSubjectsFactorHeadersWide:HasKey(factorHeader)
             withinSubjectsFactorHeadersWide:Add(factorHeader, columnHeaders)
@@ -376,6 +1172,15 @@ class ExperimentalDesign
             alert("A dependent variable factor called "+variableHeader+" has already been specified.")
         end
     end
+
+
+    // Set the original dataframe: Use Transform()
+    private action SetDataFrame(DataFrame frame)
+        if originalFrame not= frame
+            transformed = false
+        end
+        originalFrame = frame
+    end 
 
     private action VerifySelectionAndLengthenFrame(DataFrame frame) returns DataFrame
         boolean variablesLong = not dependentVariableHeaders:IsEmpty()
@@ -1048,5 +1853,163 @@ class ExperimentalDesign
             j = j + 1
         end
         return factorText
+    end
+
+    private action ConstructRankedFrame 
+        if designFrame not= undefined
+            if betweenSubjectsFactorHeaders:GetSize() > 0 and withinSubjectsFactorHeaders:GetSize() > 0
+                alert("Ranking the data for a mixed design is not available. Try to transform the data using a different approach like logarithm or square root.")
+            elseif betweenSubjectsFactorHeaders:GetSize() > 0
+                ConvertColumnsToRanksTransform rankTransform
+                // Get the dependent variables into their own frame (long format)
+                DataFrame dvs
+                i = 0 
+                repeat while i < dependentVariableHeaders:GetSize()
+                    dvs:AddColumn(designFrame:GetColumn(dependentVariableHeaders:Get(i)):Copy())
+                    rankTransform:AddColumn(i)
+                    i = i + 1
+                end
+                // Rank each of the dvs independently
+                DataFrame rankeddvs = rankTransform:Transform(dvs)
+                
+                // Add subject id and factors to the ranked frame
+                DataFrame ranked
+                if subjectIdentifierHeader not= "" and designFrame:HasColumn(subjectIdentifierHeader)
+                    ranked:AddColumn(designFrame:GetColumn(subjectIdentifierHeader):Copy())      
+                end     
+                i = 0 
+                repeat while i < betweenSubjectsFactorHeaders:GetSize()
+                    ranked:AddColumn(designFrame:GetColumn(betweenSubjectsFactorHeaders:Get(i)):Copy())
+                    ranked:AddSelectedFactors(betweenSubjectsFactorHeaders:Get(i))
+                    i = i + 1
+                end
+                // Add ranked dvs to the ranked frame
+                i = 0 
+                repeat while i < rankeddvs:GetSize()
+                    ranked:AddColumn(rankeddvs:GetColumn(i))
+                    ranked:AddSelectedColumns(rankeddvs:GetColumn(i):GetHeader())
+                    i = i + 1
+                end                
+                rankedFrame = ranked
+            elseif withinSubjectsFactorHeaders:GetSize() > 0
+                if dependentVariableHeaders:GetSize() > 1
+                    alert("Ranking is not currently available for multiple dependent variables with a within-subjects factor.")
+                end
+                ConvertColumnsToRanksTransform rankTransform
+
+                // Get each subject into their own column
+                DataFrame copy = designFrame:Copy()
+                copy:EmptySelectedFactors()
+                copy:EmptySelectedColumns()
+                if subjectIdentifierHeader not= ""
+                    copy:AddSelectedFactors(subjectIdentifierHeader)      
+                end
+                i = 0 
+                repeat while i < dependentVariableHeaders:GetSize()
+                    copy:AddSelectedColumns(dependentVariableHeaders:Get(i))
+                    i = i + 1
+                end   
+
+                TransformWider widen
+                DataFrame subjectsFrame = widen:Transform(copy)    
+                i = 0 
+                repeat while i < subjectsFrame:GetSize()
+                    boolean isAFactor = false
+                    j = 0
+                    repeat while j < withinSubjectsFactorHeaders:GetSize()
+                        if subjectsFrame:GetColumn(i):GetHeader() = withinSubjectsFactorHeaders:Get(j)
+                            isAFactor = true
+                        end
+                        j = j + 1
+                    end
+                    if not isAFactor
+                        rankTransform:AddColumn(i)
+                    end
+                    i = i + 1
+                end   
+
+                // Rank each of the subjects independently
+                DataFrame rankedsubjects = rankTransform:Transform(subjectsFrame)
+
+                // Reconstruct design frame using ranked data
+                i = 0 
+                repeat while i < rankedsubjects:GetSize()
+                    rankedsubjects:AddSelectedColumn(i)
+                    i = i + 1
+                end  
+                j = 0
+                repeat while j < withinSubjectsFactorHeaders:GetSize()
+                    rankedsubjects:AddColumn(subjectsFrame:GetColumn(withinSubjectsFactorHeaders:Get(j)):Copy())
+                    j = j + 1
+                end        
+
+                TransformLonger lengthen
+                lengthen:SetNamesHeader(subjectIdentifierHeader)
+                lengthen:SetValuesHeader(dependentVariableHeaders:Get(0))
+                DataFrame ranked = lengthen:Transform(rankedsubjects)
+
+                j = 0
+                repeat while j < withinSubjectsFactorHeaders:GetSize()
+                    ranked:AddSelectedFactors(withinSubjectsFactorHeaders:Get(j))
+                    j = j + 1
+                end  
+                ranked:AddSelectedColumns(dependentVariableHeaders:Get(0))
+                rankedFrame = ranked             
+            end            
+        end
+    end
+
+    private action ConstructGroupsFrame()
+        if designFrame not= undefined
+            if dependentVariableHeaders:GetSize() > 1
+                alert("Use GetGroupsTable() for multivariate designs.")
+            end
+            // Remove subject id for a moment
+            boolean addBack = false
+            if designFrame:HasColumn(subjectIdentifierHeader)
+                addBack = true
+                designFrame:RemoveSelectedFactors(subjectIdentifierHeader)
+            end
+            groupsFrame = designFrame:CreateNewDataFrameFromFactoredColumns()
+            if addBack
+                designFrame:AddSelectedFactors(subjectIdentifierHeader)
+            end
+        end
+    end
+
+    private action ConstructGroupsTable()
+        if designFrame not= undefined
+            if dependentVariableHeaders:GetSize() = 1
+                alert("Use GetGroupsFrame() for univariate designs.")
+            end
+            HashTable <text, DataFrame> table
+    
+            // Remove subject id for a moment
+            boolean addBack = false
+            if designFrame:HasColumn(subjectIdentifierHeader)
+                addBack = true
+                designFrame:RemoveSelectedFactors(subjectIdentifierHeader)
+            end
+            
+            i = 0
+            repeat while i < dependentVariableHeaders:GetSize()
+                designFrame:EmptySelectedColumns()
+                designFrame:AddSelectedColumns(dependentVariableHeaders:Get(i))
+                table:Add(dependentVariableHeaders:Get(i), designFrame:CreateNewDataFrameFromFactoredColumns())
+                i = i + 1
+            end
+
+            // reselect id factor
+            if addBack
+                designFrame:AddSelectedFactors(subjectIdentifierHeader)
+            end
+
+            // reselect all columns
+            i = 0
+            repeat while i < dependentVariableHeaders:GetSize()
+                designFrame:AddSelectedColumns(dependentVariableHeaders:Get(i))
+                i = i + 1
+            end
+        end
     end
 end

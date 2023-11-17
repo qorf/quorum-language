@@ -1,0 +1,40 @@
+package Libraries.Game.Graphics.Shaders
+
+/*
+The HollowCirclePatternFragmentShaderPart isn't a full fragment shader, but rather
+a post-processing "addendum" to be used alongside another, full shader,
+such as the ControlFragmentShader.
+*/
+class HollowCirclePatternFragmentShaderPart
+
+    private action GetExtraInputs returns text
+        return 
+"in float v_patternDistance;
+in float v_patternRotation;
+in float v_patternThickness;
+in vec4 v_patternColor;"
+    end
+
+    private action GetAppendedCode returns text
+        return "resultColor = postProcess(resultColor);"
+    end
+
+    private action GetExtraFunctions returns text
+        return "vec4 postProcess(vec4 startColor)
+{
+    vec2 point = v_texCoords.xy;
+    point.y = point.y / v_aspectRatio;
+    point.x = mod(point.x, v_patternDistance);
+    point.y = mod(point.y, v_patternDistance);
+
+    float distance = distance(point, vec2(v_patternDistance / 2.0, v_patternDistance / 2.0));
+    distance = abs(distance - v_patternDistance / 4.0);
+
+    vec4 result = mix(v_patternColor, startColor, smoothstep(0.0, v_patternThickness / 2.0, distance));
+    result.a = startColor.a;
+
+    return result;
+}"
+    end
+
+end

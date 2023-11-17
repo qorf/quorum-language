@@ -1,0 +1,23 @@
+package Libraries.Game.Graphics.Shaders
+
+class CrosshatchPatternControlFragmentShader is ControlFragmentShader, CrosshatchPatternFragmentShaderPart
+
+    constant text SHADER_NAME = "Crosshatch Pattern Control Fragment Shader"
+
+    on create
+        SetName(SHADER_NAME)
+    end
+
+    private action GetExtraFunctions returns text
+        return parent:CrosshatchPatternFragmentShaderPart:GetExtraFunctions()
+    end
+
+    private action GetExtraInputs returns text
+        return parent:CrosshatchPatternFragmentShaderPart:GetExtraInputs()
+    end
+
+    private action GetAppendedCode returns text
+        return parent:CrosshatchPatternFragmentShaderPart:GetAppendedCode()
+    end
+
+end

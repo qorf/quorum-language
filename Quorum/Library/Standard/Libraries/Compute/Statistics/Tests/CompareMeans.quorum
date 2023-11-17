@@ -26,6 +26,7 @@ use Libraries.Compute.Statistics.Reporting.CompareMeansResult
 use Libraries.Compute.Statistics.Reporting.CompareMeansSummary
 use Libraries.System.File
 use Libraries.Interface.Controls.Charts.all
+use Libraries.Compute.Statistics.Transforms.TransformWider
 
 
 /*
@@ -62,18 +63,36 @@ use Libraries.Interface.Controls.Charts.all
         Difference between several groups on more than one dependent variable with one or more independent variables
         For more information: https://en.wikipedia.org/wiki/Multivariate_analysis_of_variance 
 
-        CompareSeveralRelatedMeans is a Repeated Measures Univariate and Multivariate Analysis Of Variance (RM ANOVA, RM MANOVA)
-        Difference between several groups on one or more dependent variables when there are repeated measures
+        CompareSeveralRelatedMeans is a Repeated Measures Univariate Analysis Of Variance (RM ANOVA, Mixed ANOVA)
+        Difference between several groups on one dependent variable when there are repeated measures
         For more information: https://en.wikipedia.org/wiki/Repeated_measures_design
-
-        CompareSeveralRelatedMeans is a Mixed Design Analysis Of Variance (Mixed ANOVA)
-        Difference between several groups on one or more dependent variable when there are repeated measures
         For more information: https://en.wikipedia.org/wiki/Mixed-design_analysis_of_variance
 
-        _____________ is a (One-Way) Analysis Of Covariance (ANCOVA)
+        ** Mixed MANOVA is NOT IMPLEMENTED YET **
+        CompareSeveralRelatedMeans is a Repeated Measures Multivariate Analysis Of Variance (RM MANOVA, Mixed MANOVA)
+        Difference between several groups on more than one dependent variable when there are repeated measures
+        For more information: https://en.wikipedia.org/wiki/Repeated_measures_design
+        For more information: https://en.wikipedia.org/wiki/Mixed-design_analysis_of_variance       
+
+        ** NOT IMPLEMENTED YET **
+        _____________ is a Univariate Analysis Of Covariance (ANCOVA)
         Difference between several groups while controlling for nuisance variables
         For more information: https://en.wikipedia.org/wiki/Analysis_of_covariance
-     
+
+        ** NOT IMPLEMENTED YET **
+        _____________ is a Multivariate Analysis Of Covariance (MANCOVA)
+        Difference between several groups while controlling for nuisance variables
+        For more information: https://en.wikipedia.org/wiki/Multivariate_analysis_of_covariance
+
+        ** NOT IMPLEMENTED YET **
+        _____________ is a Repeated Measures Univariate Analysis Of Covariance (RM ANCOVA, Mixed ANCOVA)
+        Difference between several groups while controlling for nuisance variables when there are repeated measures
+        For more information: https://en.wikipedia.org/wiki/Analysis_of_covariance
+
+        ** NOT IMPLEMENTED YET **
+        _____________ is a Repeated Measures Multivariate Analysis Of Covariance (RM MANCOVA, Mixed MANCOVA)
+        Difference between several groups while controlling for nuisance variables when there are repeated measures
+        For more information: https://en.wikipedia.org/wiki/Multivariate_analysis_of_covariance
 
     Non-Parametric:
         CompareRankedMeanTo is a Wilcoxon Signed-Ranks Test
@@ -96,6 +115,7 @@ use Libraries.Interface.Controls.Charts.all
         Difference between three or more rank ordered groups without assumptions about the distribution
         For more information: https://en.wikipedia.org/wiki/Kruskal%E2%80%93Wallis_one-way_analysis_of_variance
 
+        ** NOT IMPLEMENTED YET **
         _____________ is a Factorial (Multi-Way) Scheirer–Ray–Hare Test
         Difference between several rank ordered groups on multiple independent variables without assumptions about the distribution
         For more information: https://en.wikipedia.org/wiki/Scheirer%E2%80%93Ray%E2%80%93Hare_test
@@ -163,8 +183,10 @@ class CompareMeans is StatisticalTest
     // PAIRWISE USER CONTROLS
     boolean correctFamilyWiseError = true           // Family-wise correction is applied in N-sample pairwise tests 
     boolean correctContinuityError = true           // For now, this is always true since we use normal approximation in ranked tests
-    boolean useStrictCorrection = true              // Procedure to be applied in N-sample pairwise tests 
-    boolean useLenientCorrection = false            // Procedure to be applied in N-sample pairwise tests
+    boolean useStrictCorrection = false             // Procedure to be applied in N-sample pairwise tests (corrects for p-value using Bonferroni correction)
+    boolean useLenientCorrection = true             // Procedure to be applied in N-sample pairwise tests (corrects for p-value inherently)
+    boolean useFittedApproach = true                // Conducts comparisons using the several-sample test results and estimated marginal means
+    boolean useUnfittedApproach = true              // Conducts comparisons using individual pariwise two-sample tests
 
     number userMean = 0
     number userMedian = 0
@@ -184,20 +206,16 @@ class CompareMeans is StatisticalTest
         groups:Empty()
         factorHeaders:Empty()
         columnHeaders:Empty()
-
-        design:RepeatedMeasures(repeated)
+        
         if design:GetDesignFrame() = undefined
+            design:RepeatedMeasures(repeated)
             design:Transform(frame)
         end 
         designFrame = design:GetDesignFrame()
         repeated = design:RepeatedMeasures() // This will override the boolean if a within factor is or isn't specified.
 
-        numberOfFactors = designFrame:GetSelectedFactorSize()
-        numberOfColumns = designFrame:GetSelectedColumnSize()
-
-        if ranked and repeated
-            numberOfFactors = designFrame:GetSelectedFactorSize() - 1
-        end
+        numberOfFactors = design:GetBetweenSubjectsFactors():GetSize() + design:GetWithinSubjectsFactors():GetSize()
+        numberOfColumns = design:GetDependentVariables():GetSize()
 
         if numberOfFactors > 0 and numberOfColumns > 1
             multivariate = true
@@ -223,17 +241,15 @@ class CompareMeans is StatisticalTest
         i = 0
         repeat while i < designFrame:GetSelectedFactorSize()
             DataFrameColumn factor = cleanedFrame:GetColumn(designFrame:GetSelection():GetFactor(i))
-            if factor:GetHeader() = design:GetSubjectIdentifier() // Skip id factor for friedman's test
-                if not (ranked and repeated)
-                    copy:AddColumn(factor)
-                    copy:AddSelectedFactor(index)
-        
-                    DataFrameColumn levels = factor:Copy(true,true)
-                    factorIndex:Add(i, factor:GetHeader())
-                    factorLevels:Add(levels)
-                    factorHeaders:Add(factor:GetHeader())
-                    index = index + 1
-                end
+            if factor:GetHeader() = design:GetSubjectIdentifier()
+                copy:AddColumn(factor)
+                copy:AddSelectedFactor(index)
+    
+                DataFrameColumn levels = factor:Copy(true,true)
+                factorIndex:Add(i, factor:GetHeader())
+                factorLevels:Add(levels)
+                factorHeaders:Add(factor:GetHeader())
+                index = index + 1
             else
                 copy:AddColumn(factor)
                 copy:AddSelectedFactor(index)
@@ -277,7 +293,7 @@ class CompareMeans is StatisticalTest
 
 
         // Collect data for each possible group (ignoring ID factor when repeated)
-        if repeated and not ranked
+        if repeated
             DataFrame removeID = copy:Copy()
             i = 0
             repeat while i < copy:GetSelectedFactorSize()
@@ -952,6 +968,8 @@ class CompareMeans is StatisticalTest
                     i = i + 1
                 end                              
 
+                boolean significantWithin = false
+                boolean significantBetween = false
                 number numberOfObservations = design:GetNumberOfObservations()
                 CompareMeansResult result
                 Array<text> sources
@@ -971,6 +989,9 @@ class CompareMeans is StatisticalTest
                         fDistribution:Setup(dfFactor, dfResiduals)
                         number f = meanSSFactor / meanSSResiduals
                         number p = 1.0 - fDistribution:CumulativeDistribution(f)
+                        if p <= GetSignificanceLevel()
+                            significantWithin = true
+                        end
                         
                         number factorVariation = (ssFactor - dfFactor * meanSSResiduals)
                         // ANOVA effect size equations see: http://coshima.davidrjfikis.com/EPRS8540/uploadf07/olejnik_PsychMeth2003.pdf
@@ -1047,6 +1068,9 @@ class CompareMeans is StatisticalTest
                             fDistribution:Setup(dfFactor, dfResiduals)
                             number f = meanSSFactor / meanSSResiduals
                             number p = 1.0 - fDistribution:CumulativeDistribution(f)
+                            if p <= GetSignificanceLevel()
+                                significantBetween = true
+                            end
                         
                             number factorVariation = (ssFactor - dfFactor * meanSSResiduals)
                             // ANOVA effect size equations see: http://coshima.davidrjfikis.com/EPRS8540/uploadf07/olejnik_PsychMeth2003.pdf
@@ -1117,7 +1141,19 @@ class CompareMeans is StatisticalTest
                 result:SetFactors(factorHeaders)
                 result:SetColumns(columnHeaders)
                 result:SetSources(sources)
+                result:SetGroupsFrame(betweenResult:GetGroupsFrame())
                 result:SetVarianceResult(vResult)
+                if userRequestedPairwise or significantBetween or significantWithin
+                    // Pairwise tests are only necessary if the anova is significant
+                    CompareMeansPairwise compare
+                    compare:SetSignificanceLevel(GetSignificanceLevel())
+                    compare:SetStatisticalFormatting(GetStatisticalFormatting())
+                    compare:UseLenientCorrection(useLenientCorrection)
+                    compare:UseStrictCorrection(useStrictCorrection)
+                    compare:SetExperimentalDesign(design)
+                    compare:Calculate(result)
+                    result:SetPairwiseResults(compare:GetResults())
+                end
                 results:Add(result)
             end
         else
@@ -1219,7 +1255,7 @@ class CompareMeans is StatisticalTest
                 result:SetInformation(groupText, "Mean", group:GetMean()) 
                 result:SetInformation(groupText, "Size", size)
                 if size < 2
-                    alert("Samples must have 2 or more observations. Not enough data for a comparison to be calculated.")
+                    alert("Samples must have 2 or more observations. Group "+groupText+" has only "+size+" observation. Not enough data for a comparison to be calculated.")
                 end
                 i = i + 1
             end
@@ -1247,7 +1283,7 @@ class CompareMeans is StatisticalTest
             number numerator = sumOfWeightedSquares / (groups:GetSize() - 1.0)
             number denominator = 1.0 + (2.0 * (groups:GetSize() - 2.0) * (lambda / 3.0))
 
-            number f = numerator / denominator        
+            number f = numerator / denominator
             fDistribution:Setup(numeratorDegreesOfFreedom, denominatorDegreesOfFreedom)
             number p = 1.0 - fDistribution:CumulativeDistribution(f)
             number omega_squared = (numeratorDegreesOfFreedom * (f - 1.0)) / (numeratorDegreesOfFreedom * (f - 1.0) + groupSizes:GetTotal())
@@ -1256,7 +1292,7 @@ class CompareMeans is StatisticalTest
             text source = ""
             source = "Between Groups"
             if numberOfFactors = 1
-                source = "Between "+factorHeaders:Get(0)
+                source = factorHeaders:Get(0)
             end
             sources:Add(source)
             result:SetTestStatistic(source, "Welch's F", f)
@@ -1272,13 +1308,20 @@ class CompareMeans is StatisticalTest
             result:SetFactors(factorHeaders)
             result:SetColumns(columnHeaders)
             result:SetSources(sources)
+            result:SetInformation(source, "F", f)
+            result:SetInformation(source, "p", p)
+            result:SetInformation(source, "df", numeratorDegreesOfFreedom)
+            result:SetInformation(source, "error df", denominatorDegreesOfFreedom)
+            result:SetInformation(source, "omega-squared", omega_squared)
             
             if userRequestedPairwise or p <= GetSignificanceLevel()
                 // Pairwise tests are only necessary if the anova is significant
                 CompareMeansPairwise compare
                 compare:SetSignificanceLevel(GetSignificanceLevel())
                 compare:SetStatisticalFormatting(GetStatisticalFormatting())
-                compare:UseLenientCorrection(true)
+                compare:UseLenientCorrection(useLenientCorrection)
+                compare:UseStrictCorrection(useStrictCorrection)
+                compare:SetExperimentalDesign(design)
                 compare:Calculate(result)
                 result:SetPairwiseResults(compare:GetResults())
             end
@@ -1287,12 +1330,12 @@ class CompareMeans is StatisticalTest
             designMatrix = GetInitialMatrix()
             Matrix responseMatrix
     
-            if numberOfFactors > 0
+            if designFrame:GetSelectedFactorSize() > 0 
                 integer current = AddFactorsToDesignMatrix(designFrame, designMatrix)
                 integer start = 1
                 integer next = start + 1
                 integer stop = current - 1
-                if numberOfFactors > 1
+                if designFrame:GetSelectedFactorSize() > 1
                     AddInteractionsToDesignMatrix(designFrame, designMatrix, start, next, stop, current)
                 end
     
@@ -1345,7 +1388,7 @@ class CompareMeans is StatisticalTest
                     text groupText = groupsArray:Get(i)
                     DataFrameColumn column = groups:GetValue(groupText):GetColumn(0)
                     if column:GetSize() < 2 and not repeated
-                        alert("Samples must have 2 or more observations. Not enough data for a comparison to be calculated.")
+                        alert("Samples must have 2 or more observations. Group "+groupText+" has only "+column:GetSize()+" observation. Not enough data for a comparison to be calculated.")
                     end
                     column:SetHeader(groupText)
                     groupFrame:AddColumn(column)
@@ -1668,9 +1711,9 @@ class CompareMeans is StatisticalTest
                             generalized_omega_squared = factorVariation / (d * factorVariation + measuredVariation + numberOfObservations * meanSSResiduals)
                         end
                         
-                        text source = "Between Groups"
+                        text source = "Groups"
                         if repeated 
-                            source = "Between Measures"
+                            source = "Measures"
                         end
                         if numberOfFactors > 0
                             source = factor
@@ -1770,7 +1813,7 @@ class CompareMeans is StatisticalTest
                 compare:CompareDistributionToNormal(result:GetGroupsFrame())
                 result:SetDistributionResults(compare:GetResults())
             end
-            if testVarianceAssumption or repeated
+            if testVarianceAssumption or (repeated and significant)
                 if repeated 
                     if testVarianceAssumption and multivariate
                         alert("A multivariate repeated measures CompareVariances test is not supported yet.")
@@ -1852,17 +1895,16 @@ class CompareMeans is StatisticalTest
             end
             if userRequestedPairwise or significant
                 if userRequestedPairwise and multivariate
-                    alert("Post hoc testing for multivariate designs is not supported yet")
+                    alert("Pairwise post hoc testing for multivariate designs is not supported yet")
                 end
-                if userRequestedPairwise and factorial
-                    alert("Post hoc testing for factorial designs is not supported yet")
-                end
-                if not multivariate and not factorial and groups:GetSize() > 2
+                if not multivariate
                     // Pairwise tests are only necessary if the anova is significant
                     CompareMeansPairwise compare
                     compare:SetSignificanceLevel(GetSignificanceLevel())
                     compare:SetStatisticalFormatting(GetStatisticalFormatting())
-                    compare:UseLenientCorrection(true)
+                    compare:UseLenientCorrection(useLenientCorrection)
+                    compare:UseStrictCorrection(useStrictCorrection)
+                    compare:SetExperimentalDesign(design)
                     compare:Calculate(result)
                     result:SetPairwiseResults(compare:GetResults())
                 end
@@ -2183,148 +2225,98 @@ class CompareMeans is StatisticalTest
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
-        if groups:GetSize() < 2
-            alert("CompareTwoRankedMeans must have at least two samples.")
-        end
         if multivariate
             alert("A non-parametric multivariate two-sample CompareMeans test is not supported yet.")
         else
-            Array<text> groupsArray = groups:CopyToKeyArray()
-            integer i = 0
-            repeat while i < groupsArray:GetSize()
-                integer j = i + 1
-                repeat while j < groupsArray:GetSize()
-                    text group1Text = groupsArray:Get(i)
-                    text group2Text = groupsArray:Get(j)
-                    text combo = group1Text+"_"+group2Text
-
-                    DataFrameColumn left = groups:GetValue(group1Text):GetColumn(0)
-                    left:SetHeader(group1Text)
-                    DataFrameColumn right = groups:GetValue(group2Text):GetColumn(0)
-                    right:SetHeader(group2Text)
-
-                    if left:GetSize() < 2 or right:GetSize() < 2
-                        alert("Samples must have 2 or more observations. Not enough data for a comparison to be calculated.")
-                    end
-
-                    DataFrame groupFrame
-                    groupFrame:AddColumn(left)
-                    groupFrame:AddColumn(right)
-
-                    // Calculate the test statistics
-                    Summarize summarizeL
-                    left:Calculate(summarizeL)
-                    number median1 = summarizeL:GetMedian()
-
-                    Summarize summarizeR
-                    right:Calculate(summarizeR)
-                    number median2 = summarizeR:GetMedian()
-
-                    // Sort the data for both groups/samples into ascending order in one combined set.
-                    TextColumn group
-                    group:SetHeader("group")
-                    NumberColumn data
-                    data:SetHeader("data")
-
-                    k = 0
-                    repeat while k < left:GetSize()
-                        group:Add(left:GetHeader())
-                        data:Add(left:GetAsNumber(k))
-                        k = k + 1
-                    end
-
-                    k = 0
-                    repeat while k < right:GetSize()
-                        group:Add(right:GetHeader())
-                        data:Add(right:GetAsNumber(k))
-                        k = k + 1
-                    end
-
-                    DataFrame sorted
-                    sorted:AddColumn(group)
-                    sorted:AddColumn(data)
-                    sorted:Sort("data")
-    
-                    // Assign ranks to the sorted data points. Give tied values the average rank.
-                    ConvertColumnsToRanksTransform transform
-                    transform:AddColumn(1)
-                    DataFrame ranked = sorted:Transform(transform)
-                    ranked:AddColumn(0, sorted:GetColumn(0))
-            
-                    // Add up the different ranks for each group/sample.
-                    HashTable<text, number> sums
-                    DataFrameColumn samples = ranked:GetColumn(0)
-                    DataFrameColumn ranks = ranked:GetColumn(1)
-                    k = 0
-                    repeat while k < ranks:GetSize()
-                        if not sums:HasKey(samples:GetAsText(k))
-                            sums:Add(samples:GetAsText(k), ranks:GetAsNumber(k))
-                        else
-                            sums:Set(samples:GetAsText(k), sums:GetValue(samples:GetAsText(k)) + ranks:GetAsNumber(k))
-                        end
-                        k = k + 1
-                    end
-
-                    // Calculate the max sum statistic, the larger of the two sums
-                    number n1 = left:GetSize()
-                    number n2 = right:GetSize()
-                    number sum1 = sums:GetValue(group1Text)
-                    number sum2 = sums:GetValue(group2Text)
-                    number maxSum = sum1
-                    number n = n1   // The size of the larger sum sample
-                    if sum2 > sum1
-                        maxSum = sum2
-                        n = n2
-                    end
-
-                    // Calculate the W statistic, the smaller of the two u values
-                    number u1 = sum1 - (n1 * (n1 + 1) / 2.0)
-                    number u2 = sum2 - (n2 * (n2 + 1) / 2.0)
-                    number U = math:MinimumOf(u1, u2)
-                    
-                    // Calculate normal approximation and corrections
-                    // See: https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test#Normal_approximation_and_tie_correction
-                    number N = n1 + n2
-                    number meanSum = n * (N + 1) / 2.0 // The mean of the larger sum sample
-                    number varSum = n1 * n2 * (N + 1) / 12.0
-                    number tieCorrectionSum = CalculateTieCorrectionSum(ranks)
-                    if tieCorrectionSum not= 0
-                        varSum = (n1 * n2 / 12.0) * ((N + 1) - (tieCorrectionSum / (N * (N - 1)))) // The tie correction
-                    end
-                    number sdSum = math:SquareRoot(varSum)
-                    number correction = 0
-                    if correctContinuityError
-                        correction = 0.5 // The continuity correction
-                    end
-                    number z = (maxSum - meanSum - correction) / sdSum
-        
-                    // Calculate two-tailed probability value from normal distribution
-                    number p = 2.0 * (1.0 - zdistribution:CumulativeDistribution(z))
-            
-                    // Calculate effect size
-                    number r = z / math:SquareRoot(N) 
-    
-                    // Save the result
-                    CompareMeansResult result
-                    result:Ranked(true)
-                    result:SetSignificanceLevel(GetSignificanceLevel())
-                    result:SetFormat(GetStatisticalFormatting())
-                    result:SetTestStatistic(combo, "U", U)
-                    result:SetEffectSize(combo, "Rosenthal's r", r)
-                    result:SetProbabilityValue(combo, "U", p)
-                    result:SetInformation(group1Text,"median", median1)
-                    result:SetInformation(group1Text,"size", n1)
-                    result:SetInformation(group2Text,"median", median2)
-                    result:SetInformation(group2Text,"size", n2)
-                    result:SetFormalTestName("Mann-Whitney U Test")
-                    result:SetGroupsFrame(groupFrame)
-                    result:SetFactors(factorHeaders)
-                    result:SetColumns(columnHeaders)
-                    results:Add(result)
-                    j = j + 1
-                end
-                i = i + 1
+            DataFrame groupFrame = design:GetGroupsFrame()
+            if groupFrame:GetSize() < 2
+                alert("CompareTwoRankedMeans must have two samples.")
+            elseif groupFrame:GetSize() > 2
+                alert("CompareTwoRankedMeans must have two samples. Use CompareMeansPairwise or CompareSeveralRankedMeans.")
             end
+
+            DataFrameColumn left = groupFrame:GetColumn(0)
+            DataFrameColumn right = groupFrame:GetColumn(1)
+            text group1Text = left:GetHeader()
+            text group2Text = right:GetHeader()
+            text combo = group1Text+"_"+group2Text
+
+            if left:GetSize() < 2 
+                alert("Samples must have 2 or more observations. "+group1Text+" only has "+left:GetSize()+". Not enough data for a comparison to be calculated.")
+            end
+            if right:GetSize() < 2
+                alert("Samples must have 2 or more observations. "+group2Text+" only has "+right:GetSize()+". Not enough data for a comparison to be calculated.")
+            end
+
+            // Rank the data all a whole and get groups
+            DataFrame rankedLong = design:GetRankedFrame()
+            DataFrame rankedGroupsFrame = rankedLong:CreateNewDataFrameFromFactoredColumns()
+            rankedGroupsFrame:SelectAllColumns()
+            groupFrame:SelectAllColumns()
+            Array<Summarize> groupSummaries = groupFrame:SummarizeSelectedColumns()
+            Array<Summarize> rankSummaries = rankedGroupsFrame:SummarizeSelectedColumns()
+
+
+            number n1 = left:GetSize()
+            number n2 = right:GetSize()
+            number sum1 = rankSummaries:Get(0):GetSum()
+            number sum2 = rankSummaries:Get(1):GetSum()
+
+            // Calculate the W statistic, the smaller of the two u values
+            number u1 = n1 * n2 + (n1 * (n1 + 1) / 2.0) - sum1
+            number u2 = n1 * n2 + (n2 * (n2 + 1) / 2.0) - sum2
+            number U = math:MinimumOf(u1, u2)
+            
+            // Calculate normal approximation and corrections
+            // See: https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test#Normal_approximation_and_tie_correction
+            number N = n1 + n2
+            number meanSum = n1 * n2 / 2.0 // The expected mean
+            number varSum = n1 * n2 * (N + 1) / 12.0
+            number tieCorrectionSum = CalculateTieCorrectionSum(rankedLong:GetColumn(design:GetDependentVariables():Get(0)))
+            if tieCorrectionSum not= 0
+                varSum = (n1 * n2 / 12.0) * ((N + 1) - (tieCorrectionSum / (N * (N - 1)))) // The tie correction
+            end
+            number sdSum = math:SquareRoot(varSum)
+            number correction = 0
+            if correctContinuityError
+                if U < meanSum
+                    correction = 0.5
+                else
+                    correction = -0.5 // The continuity correction
+                end
+            end                    
+            number z = (U - meanSum + correction) / sdSum
+
+            // Calculate two-tailed probability value from normal distribution
+            number p = 0
+            if correction = 0.5
+                p = 2.0 * zdistribution:CumulativeDistribution(z)
+            elseif correction = -0.5
+                p = 2.0 * (1.0 - zdistribution:CumulativeDistribution(z))
+            else
+                p = 2.0 * (1.0 - zdistribution:CumulativeDistribution(z))
+            end
+    
+            // Calculate effect size
+            number r = z / math:SquareRoot(N) 
+    
+            // Save the result
+            CompareMeansResult result
+            result:Ranked(true)
+            result:SetSignificanceLevel(GetSignificanceLevel())
+            result:SetFormat(GetStatisticalFormatting())
+            result:SetTestStatistic(combo, "U", U)
+            result:SetEffectSize(combo, "Rosenthal's r", r)
+            result:SetProbabilityValue(combo, "U", p)
+            result:SetInformation(group1Text,"median", groupSummaries:Get(0):GetMedian())
+            result:SetInformation(group1Text,"size", n1)
+            result:SetInformation(group2Text,"median", groupSummaries:Get(1):GetMedian())
+            result:SetInformation(group2Text,"size", n2)
+            result:SetFormalTestName("Mann-Whitney U Test")
+            result:SetGroupsFrame(groupFrame)
+            result:SetFactors(factorHeaders)
+            result:SetColumns(columnHeaders)
+            results:Add(result)
         end
         needToProcessData = true // Reset processing flag in case user changes selections
     end
@@ -2382,23 +2374,12 @@ class CompareMeans is StatisticalTest
         elseif factorial
             alert("A non-parametric factorial n-sample repeated measures CompareMeans test is not supported yet.")
         else
-            // Assign ranks, give tied values the average rank.
-            ConvertColumnsToRanksTransform transform
-
-            // Make rotated dataframe
-            DataFrame rotated
-
-            DataFrame groupFrame
+            // Check sample sizes should be equal
+            DataFrame groupFrame = design:GetGroupsFrame()
             integer sampleSize = 0
-
-            Array<text> groupsArray = groups:CopyToKeyArray()
             integer i = 0
-            repeat while i < groupsArray:GetSize()
-                text groupText = groupsArray:Get(i)
-                DataFrameColumn column = groups:GetValue(groupText):GetColumn(0)
-                column:SetHeader(groupText)
-                groupFrame:AddColumn(column)
-
+            repeat while i < groupFrame:GetSize()
+                DataFrameColumn column = groupFrame:GetColumn(i)
                 if i = 0
                     sampleSize = column:GetSize()
                 else
@@ -2407,27 +2388,31 @@ class CompareMeans is StatisticalTest
                     end
                 end
                 if sampleSize < 2
-                    alert("Samples must have 2 or more observations. Not enough data for a comparison to be calculated.")
-                end
-
-                j = 0
-                repeat while j < column:GetSize()
-                    if i = 0
-                        NumberColumn jCol
-                        jCol:SetHeader(""+j)
-                        jCol:Add(column:GetAsNumber(j))
-                        rotated:AddColumn(jCol) // Add new column to rotated frame
-                        transform:AddColumn(j)  // Add new column to ranking tranform
-                    else
-                        rotated:GetColumn(j):Add(cast(text, column:GetAsNumber(j)))
-                    end
-                    j = j + 1   
-                end        
+                    alert("Samples must have 2 or more observations. Group "+column:GetHeader()+" has only "+column:GetSize()+" observations. Not enough data for a comparison to be calculated.")
+                end       
                 i = i + 1
             end
 
             // Rank the data for each subject (each column in rotated frame)
-            DataFrame ranked = rotated:Transform(transform)
+            DataFrame rankedLong = design:GetRankedFrame()
+            rankedLong:EmptySelectedFactors()
+            rankedLong:AddSelectedFactors(design:GetSubjectIdentifier())  
+
+            TransformWider widen
+            DataFrame ranked = widen:Transform(rankedLong)
+            ranked:SelectAllColumns()    
+            i = 0 
+            repeat while i < ranked:GetSize()
+                j = 0
+                repeat while j < design:GetWithinSubjectsFactors():GetSize()
+                    if ranked:GetColumn(i):GetHeader() = design:GetWithinSubjectsFactors():Get(j)
+                        ranked:RemoveSelectedColumns(design:GetWithinSubjectsFactors():Get(j))
+                    end
+                    j = j + 1
+                end
+                i = i + 1
+            end
+            ranked = ranked:CopySelectedColumns()   
            
             // Number of subjects
             integer n = ranked:GetColumns():GetSize()
@@ -2444,12 +2429,13 @@ class CompareMeans is StatisticalTest
                 DataFrameColumn column = ranked:GetColumn(i)
                 j = 0
                 repeat while j < column:GetSize()
+                    number rank = column:GetAsNumber(j)
                     if i = 0
-                        rankSums:Add(column:GetAsNumber(j))
+                        rankSums:Add(rank)
                     else
-                        rankSums:Set(j, rankSums:Get(j) + column:GetAsNumber(j))
+                        rankSums:Set(j, rankSums:Get(j) + rank)
                     end
-                    sumOfRanksSquared = sumOfRanksSquared + column:GetAsNumber(j) * column:GetAsNumber(j)
+                    sumOfRanksSquared = sumOfRanksSquared + rank * rank
                     j = j + 1
                 end
         
@@ -2458,22 +2444,26 @@ class CompareMeans is StatisticalTest
                 i = i + 1
             end
     
+            // See T2 on page 12: https://www.osti.gov/servlets/purl/6057803
             // Calculate Q Statistic:
-            number sumOfRankSumsSquared = 0
             number sumOfRankCalcsSquared = 0 
             number subtract = (n * (k + 1)) / 2.0
             i = 0
             repeat while i < k
                 number value = rankSums:Get(i)
                 sumOfRankCalcsSquared = sumOfRankCalcsSquared + (value - subtract) * (value - subtract)
-                sumOfRankSumsSquared = sumOfRankSumsSquared + value * value
                 i = i + 1
             end  
+            // There are other ways to do this, but this keeps the tie sum available for post hoc tests.
             number q = (12.0 / (n * k * (k + 1))) * sumOfRankCalcsSquared
+            text ties = ""
             if tieCorrectionSum not= 0
                 number d = 1 - (tieCorrectionSum / (n * k * (k * k - 1))) // The tie correction
                 q = q / d
+                ties = " with tie correction"
             end
+            // See S2 on page 12: https://www.osti.gov/servlets/purl/6057803
+            number variance = (1.0 / (k - 1.0)) * (sumOfRanksSquared - (n * k * (k + 1.0) * (k + 1.0) / 4.0)) // Used in post hoc calculation for Conovers test
         
             // Calculate probability value from chi-squared distribution
             number df = k-1
@@ -2488,13 +2478,14 @@ class CompareMeans is StatisticalTest
             CompareMeansResult result
             result:Ranked(true)
             result:Repeated(true)
+            result:EqualVariances(AssumeEqualVariances())
             result:SetSignificanceLevel(GetSignificanceLevel())
             result:SetFormat(GetStatisticalFormatting())
             Array<text> sources            
-            // Between Measures
-            text source = "Between Measures"
+            // Measures
+            text source = "Measures"
             if numberOfFactors = 1
-                source = "Between "+factorHeaders:Get(0)
+                source = design:GetWithinSubjectsFactors():Get(0)
             end
             sources:Add(source)
             result:SetTestStatistic(source, "Friedman χ2", q)
@@ -2502,7 +2493,13 @@ class CompareMeans is StatisticalTest
             result:SetEffectSize(source, "Kendall's W", kendalls_w)
             result:SetProbabilityValue(source, "Friedman χ2", p)
             result:SetInformation(source,"size", sampleSize)
-            result:SetFormalTestName("Friedman Test")
+            result:SetInformation(source,"tie correction sum",tieCorrectionSum)
+            result:SetInformation(source,"variance", variance)
+            result:SetInformation(source,"df", df)
+            result:SetInformation(source,"p",p)
+            result:SetInformation(source,"x2", q)
+            result:SetInformation(source,"kendalls w", kendalls_w) 
+            result:SetFormalTestName("Friedman Test"+ties)
             result:SetGroupsFrame(groupFrame)
             result:SetFactors(factorHeaders)
             result:SetColumns(columnHeaders)
@@ -2512,7 +2509,9 @@ class CompareMeans is StatisticalTest
                 CompareMeansPairwise compare
                 compare:SetSignificanceLevel(GetSignificanceLevel())
                 compare:SetStatisticalFormatting(GetStatisticalFormatting())
-                compare:UseStrictCorrection(true)
+                compare:UseLenientCorrection(useLenientCorrection)
+                compare:UseStrictCorrection(useStrictCorrection)
+                compare:SetExperimentalDesign(design)
                 compare:Calculate(result)
                 result:SetPairwiseResults(compare:GetResults())
             end
@@ -2567,85 +2566,61 @@ class CompareMeans is StatisticalTest
         if groups:GetSize() < 2
             alert("CompareSeveralRankedMeans must have at least two samples.")
         end
+        if factorial
+            alert("A non-parametric factorial several-sample CompareMeans test is not supported yet.")
+        end
         if multivariate
-            alert("A non-parametric multivariate n-sample repeated measures CompareMeans test is not supported yet.")
+            alert("A non-parametric multivariate several-sample CompareMeans test is not supported yet.")
         else
-            DataFrame groupFrame
+            // Check sample sizes should be at least 2
+            DataFrame groupFrame = design:GetGroupsFrame()
             integer sampleSize = 0
-
-            // Sort the data for all groups/samples into ascending order in one combined set.
-            TextColumn group
-            group:SetHeader("group")
-            NumberColumn data
-            data:SetHeader("data")
-
-            Array<text> groupsArray = groups:CopyToKeyArray()
             integer i = 0
-            repeat while i < groupsArray:GetSize()
-                text groupText = groupsArray:Get(i)
-                DataFrameColumn column = groups:GetValue(groupText):GetColumn(0)
-                column:SetHeader(groupText)
-                groupFrame:AddColumn(column)
-
-                sampleSize = sampleSize + column:GetSize()
+            repeat while i < groupFrame:GetSize()
+                DataFrameColumn column = groupFrame:GetColumn(i)
                 if column:GetSize() < 2
-                    alert("Samples must have 2 or more observations. Not enough data for test to be calculated.")
-                end
-
-                j = 0
-                repeat while j < column:GetSize()
-                    group:Add(column:GetHeader())
-                    data:Add(column:GetAsNumber(j))
-                    j = j + 1
-                end
+                    alert("Samples must have 2 or more observations. Group "+column:GetHeader()+" has only "+column:GetSize()+" observations. Not enough data for a comparison to be calculated.")
+                end       
                 i = i + 1
             end
 
-            DataFrame sorted
-            sorted:AddColumn(group)
-            sorted:AddColumn(data)
-            sorted:Sort("data")
-    
-            // Assign ranks to the sorted data points. Give tied values the average rank.
-            ConvertColumnsToRanksTransform transform
-            transform:AddColumn(1)
-            DataFrame ranked = sorted:Transform(transform)
-            ranked:AddColumn(0, sorted:GetColumn(0))
-    
-            // Add up the different ranks for each group/sample.
-            HashTable<text, number> sums
-            DataFrameColumn samples = ranked:GetColumn(0)
-            DataFrameColumn ranks = ranked:GetColumn(1)
+            // Rank the data all a whole and get groups
+            DataFrame rankedLong = design:GetRankedFrame()
+            DataFrame rankedGroupsFrame = rankedLong:CreateNewDataFrameFromFactoredColumns()
+            rankedGroupsFrame:SelectAllColumns()
+            Array<Summarize> groupSummaries = rankedGroupsFrame:SummarizeSelectedColumns()
+
+            number sumOfRanksSquared = 0
             i = 0
-            repeat while i < ranks:GetSize()
-                if not sums:HasKey(samples:GetAsText(i))
-                    sums:Add(samples:GetAsText(i), ranks:GetAsNumber(i))
-                else
-                    sums:Set(samples:GetAsText(i), sums:GetValue(samples:GetAsText(i)) + ranks:GetAsNumber(i))
-                end
+            repeat while i < groupSummaries:GetSize()
+                sumOfRanksSquared = sumOfRanksSquared + groupSummaries:Get(i):GetSumOfSquares()
                 i = i + 1
-            end
+            end         
 
+            // See page 10: https://www.osti.gov/servlets/purl/6057803
             // Calculate the H statistic:
-            number n = samples:GetSize() // Overall size (all sample sizes)
-            integer k = groups:GetSize()  // Number of samples
-            number sumOfRanks = 0
-            i = 0
-            repeat while i < k
-                number tj = sums:GetValue(groupsArray:Get(i)) // Sum of ranks in the jth sample
-                number nj = groups:GetValue(groupsArray:Get(i)):GetColumn(0):GetSize() // Size of the jth sample
+            number n = design:GetNumberOfObservations() // Overall size (all sample sizes)
+            integer k = groupFrame:GetSize()            // Number of samples
+            number sumOfRanksSquaredMean = 0
+            j = 0
+            repeat while j < k
+                number tj = groupSummaries:Get(j):GetSum()                                                  // Sum of ranks in the jth sample
+                number nj = groupFrame:GetColumn(j):GetSize() - groupFrame:GetColumn(j):GetUndefinedSize()  // Size of the jth sample
     
-                sumOfRanks = sumOfRanks + (tj * tj / nj)
-                i = i + 1
+                sumOfRanksSquaredMean = sumOfRanksSquaredMean + (tj * tj / nj)
+                j = j + 1
             end
-            number h = (12.0 / (n * (n + 1))) * sumOfRanks - (3 * (n + 1)) 
+            number h = (12.0 / (n * (n + 1))) * sumOfRanksSquaredMean - (3 * (n + 1)) 
+            number variance = (1.0 / (n - 1.0)) * (sumOfRanksSquared - (n * (n + 1.0) * (n + 1.0) / 4.0)) // Used in post hoc calculation for Conovers test
     
-            // Correct for ties in ranking.
+            // Correct for ties in ranking. There are other ways to do this but this keeps the tie sum available for post hoc tests.
             // See: https://www.dataanalytics.org.uk/adjustment-for-tied-ranks-in-the-kruskal-wallis-test/
-            number tieCorrectionSum = CalculateTieCorrectionSum(ranks)
+            text ties = ""
+            number tieCorrectionSum = CalculateTieCorrectionSum(rankedLong:GetColumn(design:GetDependentVariables():Get(0)))
             if tieCorrectionSum not= 0
                 number d = 1 - (tieCorrectionSum / ((n - 1) * n * (n + 1))) // The tie correction
                 h = h / d
+                ties = " with tie correction"
             end
 
             // Calculate probability value from chi-squared distribution
@@ -2654,19 +2629,21 @@ class CompareMeans is StatisticalTest
             number p = 1.0 - x2distribution:CumulativeDistribution(h)
     
             // Calculate effect size
-            number epsilon_sqr = h - (n + 1) / (n * n - 1)
+            number eta_sqr = (h - k + 1) / (n - k)
+            number epsilon_sqr = h * (n + 1) / (n * n - 1)
 
 
             // Save the result
             CompareMeansResult result
             result:Ranked(true)
+            result:EqualVariances(AssumeEqualVariances())
             result:SetSignificanceLevel(GetSignificanceLevel())
             result:SetFormat(GetStatisticalFormatting())
             Array<text> sources            
             // Between Measures
-            text source = "Between Groups"
+            text source = "Groups"
             if numberOfFactors = 1
-                source = "Between "+factorHeaders:Get(0)
+                source = design:GetBetweenSubjectsFactors():Get(0)
             end
             sources:Add(source)
             result:SetTestStatistic(source, "H", h)
@@ -2674,7 +2651,14 @@ class CompareMeans is StatisticalTest
             result:SetEffectSize(source, "epsilon-squared", epsilon_sqr)
             result:SetProbabilityValue(source, "H", p)
             result:SetInformation(source,"size", sampleSize)
-            result:SetFormalTestName("Kruskal-Wallis Test")
+            result:SetInformation(source,"tie correction sum",tieCorrectionSum)
+            result:SetInformation(source,"variance",variance)
+            result:SetInformation(source,"epsilon-squared", epsilon_sqr)
+            result:SetInformation(source,"eta-squared", eta_sqr)
+            result:SetInformation(source,"p", p)
+            result:SetInformation(source,"H", h)
+            result:SetInformation(source,"df", df)
+            result:SetFormalTestName("Kruskal-Wallis Test"+ties)
             result:SetGroupsFrame(groupFrame)
             result:SetFactors(factorHeaders)
             result:SetColumns(columnHeaders)
@@ -2684,7 +2668,9 @@ class CompareMeans is StatisticalTest
                 CompareMeansPairwise compare
                 compare:SetSignificanceLevel(GetSignificanceLevel())
                 compare:SetStatisticalFormatting(GetStatisticalFormatting())
-                compare:UseStrictCorrection(true)
+                compare:UseLenientCorrection(useLenientCorrection)
+                compare:UseStrictCorrection(useStrictCorrection)
+                compare:SetExperimentalDesign(design)
                 compare:Calculate(result)
                 result:SetPairwiseResults(compare:GetResults())
             end
@@ -2795,7 +2781,7 @@ class CompareMeans is StatisticalTest
 
     /* Used in 2-sample and N-sample tests */
     action AssumeEqualVariances returns boolean
-        return assumeEqualVariances
+        return assumeEqualVariances or defaultVarianceAssumption
     end
 
     /* Used in 1-sample, 2-sample, and N-sample tests */
@@ -2809,7 +2795,7 @@ class CompareMeans is StatisticalTest
 
     /* Used in 1-sample, 2-sample, and N-sample tests */
     action AssumeNormalDistribution returns boolean
-        return assumeNormalDistribution
+        return assumeNormalDistribution or defaultDistributionAssumption
     end
 
     /* Used in N-sample tests */
@@ -2874,6 +2860,28 @@ class CompareMeans is StatisticalTest
     /* Returns true for lenient multiple comparison as correction for N-sample pairwise tests */
     action UsingLenientCorrection returns boolean
         return useLenientCorrection
+    end
+
+    /* Returns true for multiple comparisons to use the model as a reference for N-sample pairwise tests */
+    action UsingFittedApproach returns boolean
+        return useFittedApproach
+    end
+
+    /* Choose fitted (unplanned) approach pairwise comparisons for N-sample pairwise tests */
+    action UseFittedApproach(boolean useFittedApproach)
+        me:useFittedApproach = useFittedApproach
+        me:useUnfittedApproach = not useFittedApproach
+    end
+
+    /* Returns true for multiple comparisons to use individual tests for N-sample pairwise tests */
+    action UsingUnfittedApproach returns boolean
+        return useUnfittedApproach
+    end
+
+    /* Choose unfitted (planned) approach pairwise comparisons for N-sample pairwise tests */
+    action UseUnfittedApproach(boolean useUnfittedApproach)
+        me:useUnfittedApproach = useUnfittedApproach
+        me:useFittedApproach = not useUnfittedApproach
     end
 
     /*
@@ -3333,7 +3341,7 @@ class CompareMeans is StatisticalTest
     end
 
     private action AddFactorsToDesignMatrix(DataFrame frame, Matrix designMatrix) returns integer 
-        if numberOfFactors = 1
+        if designFrame:GetSelectedFactorSize() = 1
             factorsAssociatedWithColumn:Add(0, GetInitialEncoding(factorLevels:GetSize()))
             j = 0 
             repeat while j < factorLevels:Get(0):GetSize() - 1

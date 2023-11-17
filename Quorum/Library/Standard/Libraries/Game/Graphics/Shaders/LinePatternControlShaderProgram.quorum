@@ -1,0 +1,33 @@
+package Libraries.Game.Graphics.Shaders
+
+class LinePatternControlShaderProgram is ShaderProgram
+
+    public constant text DEFAULT_NAME = "Line Pattern Control Shader Program"
+    constant text VERTEX_NAME = "Pattern Control Vertex Shader"
+    constant text FRAGMENT_NAME = "Line Pattern Control Fragment Shader"
+
+    on create
+        SetName(DEFAULT_NAME)
+        ShaderManager manager
+        
+        if manager:HasShader(VERTEX_NAME)
+            Shader vertex = manager:GetShader(VERTEX_NAME)
+            Add(vertex)
+        else
+            PatternControlVertexShader vertex
+            Add(vertex)
+        end
+
+        if manager:HasShader(FRAGMENT_NAME)
+            Shader fragment = manager:GetShader(FRAGMENT_NAME)
+            Add(fragment)
+        else
+            LinePatternControlFragmentShader fragment
+            Add(fragment)
+        end
+
+        PatternControlShaderMapping mapping
+        SetShaderMapping(mapping)
+    end
+
+end

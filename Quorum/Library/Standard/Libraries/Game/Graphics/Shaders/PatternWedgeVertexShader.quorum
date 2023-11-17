@@ -1,0 +1,34 @@
+package Libraries.Game.Graphics.Shaders
+
+class PatternWedgeVertexShader is WedgeVertexShader
+
+    constant text SHADER_NAME = "Pattern Wedge Vertex Shader"
+
+    on create
+        SetName(SHADER_NAME)
+    end
+
+    private action GetExtraInputs returns text
+        return 
+"in float a_aspectRatio;
+in float a_patternDistance;
+in float a_patternRotation;
+in float a_patternThickness;
+in vec4 a_patternColor;
+out float v_aspectRatio;
+out float v_patternDistance;
+out float v_patternRotation;
+out float v_patternThickness;
+out vec4 v_patternColor;"
+    end
+
+    private action GetAppendedCode returns text
+        return 
+"v_aspectRatio = a_aspectRatio;
+v_patternDistance = a_patternDistance;
+v_patternRotation = a_patternRotation;
+v_patternThickness = a_patternThickness;
+v_patternColor = a_patternColor;"
+    end
+
+end
