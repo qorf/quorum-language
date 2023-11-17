@@ -19,6 +19,7 @@ use Libraries.Game.Graphics.Shaders.HollowBoxPatternControlShaderProgram
 use Libraries.Game.Graphics.Shaders.SolidBoxPatternControlShaderProgram
 use Libraries.Game.Graphics.Shaders.DashedLinePatternControlShaderProgram
 use Libraries.Game.Graphics.Shaders.HollowTrianglePatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.SolidTrianglePatternControlShaderProgram
 
 /*
 The Bar class is a ChartDrawable that stores information for each 
@@ -142,6 +143,14 @@ class Bar is ChartDrawable
                         program = manager:GetShaderProgram("Hollow Triangle Pattern Control Shader Program")
                     else
                         HollowTrianglePatternControlShaderProgram patternShader
+                        patternShader:Compile()
+                        program = patternShader
+                    end
+                elseif pattern = options:SOLID_TRIANGLES
+                    if manager:HasShaderProgram("Solid Triangle Pattern Control Shader Program")
+                        program = manager:GetShaderProgram("Solid Triangle Pattern Control Shader Program")
+                    else
+                        SolidTrianglePatternControlShaderProgram patternShader
                         patternShader:Compile()
                         program = patternShader
                     end

@@ -29,6 +29,7 @@ use Libraries.Game.WebApplication
 use Libraries.Compute.Math
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 use Libraries.Interface.Controls.Charts.ChartOptions
+use Libraries.Interface.Views.PatternControlShaderView
 
 class PatternControlShaderMapping is BatchingShaderMapping2D
 
@@ -142,6 +143,11 @@ class PatternControlShaderMapping is BatchingShaderMapping2D
         // The degree of rotation needed for this particular pattern. Determined by the pattern constant.
         number rotation = 0
 
+        // The interface scaling on the Control, or 1 if no scaling is available.
+        number interfaceScale = 1
+
+        ChartOptions chartOptions
+
         /*
         We want to get the control or layout properties used to define the element. We'll check these places, in order of priority:
         1. The drawable's shader data
@@ -151,7 +157,8 @@ class PatternControlShaderMapping is BatchingShaderMapping2D
         if drawable:GetShaderData() is LayoutProperties
             LayoutProperties properties = cast(LayoutProperties, drawable:GetShaderData())
             
-            borderThickness = (1.0 / height) * (properties:GetBorderThickness() * properties:GetInterfaceScale())
+            interfaceScale = properties:GetInterfaceScale()
+            borderThickness = (1.0 / height) * (properties:GetBorderThickness() * interfaceScale)
 
             if borderThickness > 0
                 if properties:HasLeftBorder()
@@ -185,10 +192,10 @@ class PatternControlShaderMapping is BatchingShaderMapping2D
                 halfSize = height / 2.0
             end
 
-            bottomLeftRounding = bottomLeftRounding + properties:GetBottomLeftPixelRounding() * properties:GetInterfaceScale() / halfSize
-            bottomRightRounding = bottomRightRounding + properties:GetBottomRightPixelRounding() * properties:GetInterfaceScale() / halfSize
-            topLeftRounding = topLeftRounding + properties:GetTopLeftPixelRounding() * properties:GetInterfaceScale() / halfSize
-            topRightRounding = topRightRounding + properties:GetTopRightPixelRounding() * properties:GetInterfaceScale() / halfSize
+            bottomLeftRounding = bottomLeftRounding + properties:GetBottomLeftPixelRounding() * interfaceScale / halfSize
+            bottomRightRounding = bottomRightRounding + properties:GetBottomRightPixelRounding() * interfaceScale / halfSize
+            topLeftRounding = topLeftRounding + properties:GetTopLeftPixelRounding() * interfaceScale / halfSize
+            topRightRounding = topRightRounding + properties:GetTopRightPixelRounding() * interfaceScale / halfSize
 
             // Clamp the values between 0 and 1.
             if bottomLeftRounding > 1.0
@@ -236,15 +243,30 @@ class PatternControlShaderMapping is BatchingShaderMapping2D
                     ToggleView toggle = cast(ToggleView, view)
                     selected = toggle:GetToggleState()
                 end
+
+                if view is PatternControlShaderView
+                    PatternControlShaderView patternView = cast(PatternControlShaderView, view)
+                    integer patternType = patternView:GetPatternType()
+
+                    if patternType = chartOptions:VERTICAL_LINES or patternType = chartOptions:PLAIN_CROSSHATCH
+                        rotation = 0
+                    elseif patternType = chartOptions:HORIZONTAL_LINES
+                        rotation = 90
+                    elseif patternType = chartOptions:DIAGONAL_DOWN_LINES or patternType = chartOptions:DIAGONAL_CROSSHATCH or patternType = chartOptions:PINPOINT_DASHES
+                        rotation = 45
+                    elseif patternType = chartOptions:DIAGONAL_UP_LINES
+                        rotation = 135
+                    end
+                end
             end
 
             if control not= undefined
+                interfaceScale = control:GetInterfaceScale()
 
                 // If we're working with a chart drawable, figure out what kind of pattern it's using to determine the needed rotation value.
                 if control is ChartDrawable
                     ChartDrawable element = cast(ChartDrawable, control)
                     integer patternType = element:GetPattern()
-                    ChartOptions chartOptions
 
                     if patternType = chartOptions:VERTICAL_LINES or patternType = chartOptions:PLAIN_CROSSHATCH
                         rotation = 0
@@ -257,7 +279,7 @@ class PatternControlShaderMapping is BatchingShaderMapping2D
                     end
                 end
 
-                borderThickness = (1.0 / height) * (control:GetBorderThickness() * control:GetInterfaceScale())
+                borderThickness = (1.0 / height) * (control:GetBorderThickness() * interfaceScale)
 
                 if borderThickness > 0
                     if control:HasLeftBorder()
@@ -291,10 +313,10 @@ class PatternControlShaderMapping is BatchingShaderMapping2D
                     halfSize = height / 2.0
                 end
     
-                bottomLeftRounding = bottomLeftRounding + control:GetBottomLeftPixelRounding() * control:GetInterfaceScale() / halfSize
-                bottomRightRounding = bottomRightRounding + control:GetBottomRightPixelRounding() * control:GetInterfaceScale() / halfSize
-                topLeftRounding = topLeftRounding + control:GetTopLeftPixelRounding() * control:GetInterfaceScale() / halfSize
-                topRightRounding = topRightRounding + control:GetTopRightPixelRounding() * control:GetInterfaceScale() / halfSize
+                bottomLeftRounding = bottomLeftRounding + control:GetBottomLeftPixelRounding() * interfaceScale / halfSize
+                bottomRightRounding = bottomRightRounding + control:GetBottomRightPixelRounding() * interfaceScale / halfSize
+                topLeftRounding = topLeftRounding + control:GetTopLeftPixelRounding() * interfaceScale / halfSize
+                topRightRounding = topRightRounding + control:GetTopRightPixelRounding() * interfaceScale / halfSize
     
                 // Clamp the values between 0 and 1.
                 if bottomLeftRounding > 1.0
@@ -414,10 +436,15 @@ class PatternControlShaderMapping is BatchingShaderMapping2D
         shape:SetDataForAllVertices(antiAliasAttribute:offset / 4, 1.0 / height)
 
         Math math
-        shape:SetDataForAllVertices(patternDistanceAttribute:offset / 4, 0.1)
+        // Currently we use index 0 for the pattern indices. These values aren't conveniently exposed from the drawables and currently are irrelevant.
+        number patternDistance = math:Round(chartOptions:GetPatternDistanceFromPalette(0) * interfaceScale)
+        number patternThickness = math:Round(chartOptions:GetPatternThicknessFromPalette(0) * interfaceScale)
+        Color patternColor = chartOptions:GetPatternColorFromPalette(0)
+
+        shape:SetDataForAllVertices(patternDistanceAttribute:offset / 4, patternDistance / width)
         shape:SetDataForAllVertices(patternRotationAttribute:offset / 4, math:DegreesToRadians(rotation))
-        shape:SetDataForAllVertices(patternThicknessAttribute:offset / 4, 2.0 / drawable:GetWidth())
-        shape:SetDataForAllVertices(patternColorAttribute:offset / 4, utility:PackNormalizedVector4(0.0, 0.0, 0.0, 1.0))
+        shape:SetDataForAllVertices(patternThicknessAttribute:offset / 4, patternThickness / width)
+        shape:SetDataForAllVertices(patternColorAttribute:offset / 4, utility:PackNormalizedVector4(patternColor:GetRed(), patternColor:GetGreen(), patternColor:GetBlue(), patternColor:GetAlpha()))
     end
 
     /*

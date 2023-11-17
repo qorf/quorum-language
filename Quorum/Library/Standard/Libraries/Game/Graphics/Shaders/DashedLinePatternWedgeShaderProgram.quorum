@@ -1,0 +1,33 @@
+package Libraries.Game.Graphics.Shaders
+
+class DashedLinePatternWedgeShaderProgram is ShaderProgram
+
+    public constant text DEFAULT_NAME = "Dashed Line Pattern Wedge Shader Program"
+    constant text VERTEX_NAME = "Pattern Wedge Vertex Shader"
+    constant text FRAGMENT_NAME = "Dashed Line Pattern Wedge Fragment Shader"
+
+    on create
+        SetName(DEFAULT_NAME)
+        ShaderManager manager
+        
+        if manager:HasShader(VERTEX_NAME)
+            Shader vertex = manager:GetShader(VERTEX_NAME)
+            Add(vertex)
+        else
+            PatternWedgeVertexShader vertex
+            Add(vertex)
+        end
+
+        if manager:HasShader(FRAGMENT_NAME)
+            Shader fragment = manager:GetShader(FRAGMENT_NAME)
+            Add(fragment)
+        else
+            DashedLinePatternWedgeFragmentShader fragment
+            Add(fragment)
+        end
+
+        PatternWedgeShaderMapping mapping
+        SetShaderMapping(mapping)
+    end
+
+end

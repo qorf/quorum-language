@@ -11,8 +11,9 @@ class WedgeVertexShader is Shader
         DefaultAttributeNames attributes
         SetCode(GetOpenGLVersion() +
 "
-" +
-"in vec4 " + attributes:POSITION + ";
+" + GetPreprocessorDefinitions() + "
+
+in vec4 " + attributes:POSITION + ";
 in vec4 " + attributes:COLOR + ";
 in vec2 " + attributes:TEXTURE_COORDINATES + "0;
 in float a_innerRadius;
@@ -29,6 +30,10 @@ out float v_minAngle;
 out float v_maxAngle;
 out vec2 v_originPoint;
 
+" + GetExtraInputs() + "
+
+" + GetExtraFunctions() + "
+
 void main()
 {
     v_color = " + attributes:COLOR + ";
@@ -39,9 +44,28 @@ void main()
     v_minAngle = a_minAngle;
     v_maxAngle = a_maxAngle;
     v_originPoint = a_originPoint;
+
+    " + GetAppendedCode() + "
+
     gl_Position =  u_projTrans * " + attributes:POSITION + ";
 }"
 )
+    end
+
+    private action GetPreprocessorDefinitions returns text
+        return ""
+    end
+
+    private action GetExtraInputs returns text
+        return ""
+    end
+
+    private action GetExtraFunctions returns text
+        return ""
+    end
+
+    private action GetAppendedCode returns text
+        return ""
     end
 
 end

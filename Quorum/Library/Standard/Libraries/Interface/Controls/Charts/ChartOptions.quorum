@@ -51,6 +51,15 @@ shared class ChartOptions
     public constant integer SOLID_BOXES = 12
     public constant integer HOLLOW_BOXES = 13
 
+    // The distance between the beginning of a pattern "tile" and the next "tile". Measured in pixels. Scales with interface scale.
+    constant number PATTERN_DISTANCE = 12
+
+    // The thickness of the edges of a pattern. Measured in pixels, and scales with interface scale.
+    constant number PATTERN_THICKNESS = 2
+
+    // Currently, we return a uniform Black color for all patterns.
+    constant Color PATTERN_COLOR = color:Black()
+
     HashTable <integer, Array<Color>> palettes
     Array<Color> colorPalette = undefined
     Array<integer> patternPalette = undefined
@@ -161,6 +170,38 @@ shared class ChartOptions
         return borderColor
     end
 
+    /*
+        This action returns a pattern color to complement the
+        palette color at the given index. Currently, this always
+        returns Black, but this can be adjusted in the future to
+        allow palettes to provide fine-tuned border color information.
+    */
+    action GetPatternColorFromPalette(integer index) returns Color
+        return PATTERN_COLOR
+    end
+
+    /*
+        This action returns the distance between the beginning of a pattern "tile"
+        and the beginning of the next "tile". Patterns are rendered as tiled squares
+        that are repeated across the surface of the chart element. This value is
+        measured in pixels, not including any scaling performed by interface scaling.
+        The default value is 12 pixels.
+
+        Attribute: Returns The number of pixels between each tile of any pattern.
+    */
+    action GetPatternDistanceFromPalette(integer index) returns number
+        return PATTERN_DISTANCE
+    end
+
+    /*
+        This action returns the thickness of the edges of each pattern, measured in
+        pixels. This doesn't include the scaling performed by interface scaling.
+        The default value is 2 pixels.
+    */
+    action GetPatternThicknessFromPalette(integer index) returns number
+        return PATTERN_THICKNESS
+    end
+
     private action BuildPalettes()
         palettes:Add(CALM, CalmPalette())
         palettes:Add(EXCITING, ExcitingPalette())
@@ -180,28 +221,15 @@ shared class ChartOptions
 
     private action DefaultPatternPalette() returns Array <integer>
         Array <integer> palette
-//        palette:Add(DIAGONAL_CROSSHATCH)
-//        palette:Add(VERTICAL_LINES)
-//        palette:Add(HOLLOW_CIRCLES)
-//        palette:Add(DIAGONAL_DOWN_LINES)
-//        palette:Add(HOLLOW_TRIANGLES)
-//        palette:Add(HORIZONTAL_LINES)
-//        palette:Add(HOLLOW_BOXES)
-//        palette:Add(DIAGONAL_UP_LINES)
-//        palette:Add(PLAIN_CROSSHATCH)
+        palette:Add(DIAGONAL_CROSSHATCH)
         palette:Add(VERTICAL_LINES)
-        palette:Add(HORIZONTAL_LINES)
+        palette:Add(HOLLOW_CIRCLES)
         palette:Add(DIAGONAL_DOWN_LINES)
+        palette:Add(HOLLOW_TRIANGLES)
+        palette:Add(HORIZONTAL_LINES)
+        palette:Add(HOLLOW_BOXES)
         palette:Add(DIAGONAL_UP_LINES)
         palette:Add(PLAIN_CROSSHATCH)
-        palette:Add(DIAGONAL_CROSSHATCH)
-        palette:Add(SOLID_CIRCLES)
-        palette:Add(HOLLOW_CIRCLES)
-        palette:Add(PINPOINT_DASHES)
-        palette:Add(SOLID_TRIANGLES)
-        palette:Add(HOLLOW_TRIANGLES)
-        palette:Add(SOLID_BOXES)
-        palette:Add(HOLLOW_BOXES)
         return palette
     end
 
@@ -838,4 +866,5 @@ shared class ChartOptions
     action SetTickDigits(integer tickDigits)
         me:tickDigits = tickDigits
     end
+
 end

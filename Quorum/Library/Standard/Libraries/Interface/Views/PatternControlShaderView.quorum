@@ -1,0 +1,184 @@
+package Libraries.Interface.Views
+
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.Graphics.Shaders.ControlShaderProgram
+use Libraries.Game.Graphics.Shaders.LinePatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.CrosshatchPatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.HollowCirclePatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.SolidCirclePatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.HollowBoxPatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.SolidBoxPatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.DashedLinePatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.HollowTrianglePatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.SolidTrianglePatternControlShaderProgram
+use Libraries.Interface.Controls.Charts.ChartOptions
+
+/*
+The PatternControlShaderView is used to render a pattern onto Controls. It takes one of the
+pattern type constants from ChartOptions and loads an appropriate ShaderProgram.
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Views.PatternControlShaderView
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Controls.Charts.ChartOptions
+
+class Main is Game
+
+    Color color
+
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        // Add a layout to position Controls.
+        FlowLayout layout
+        SetLayout(layout)
+
+        // Make a Control and give it some properties we can render with the view.
+        Control box
+        box:SetBackgroundColor(color:Orange())
+        box:SetBorderThickness(4)
+        box:SetPercentageWidth(0.5)
+        box:SetPercentageHeight(0.5)
+        Add(box)
+
+        // We'll need the ChartOptions to select the pattern type.
+        ChartOptions options
+
+        // Make a view, initialize it, and give it to the box.
+        PatternControlShaderView view
+        view:Initialize(options:DIAGONAL_DOWN_LINES)
+        box:SetView2D(view)
+    end
+end
+*/
+class PatternControlShaderView is DrawableView
+
+    integer patternType = -1
+
+    /*
+    The Initialize action prepares the view for use. It must be called before the view can be used,
+    or else nothing will be drawn while using the view.
+
+    The provided "patternType" value should be one of the pattern constants from the ChartOptions class.
+    This will indicate what type of pattern the view will display.
+    */
+    action Initialize(integer patternType)
+        me:patternType = patternType
+
+        Color color
+        color:SetColor(1, 1, 1, 1)
+        LoadFilledRectangle(2, 2, color)
+
+        ShaderManager manager
+        ShaderProgram program = GetShaderProgram(patternType)
+        SetShaderProgram(program)
+    end
+
+    private action GetShaderProgram(integer pattern) returns ShaderProgram
+
+        ShaderProgram program = undefined
+
+        ChartOptions options
+        ShaderManager manager
+
+        if pattern = options:VERTICAL_LINES or pattern = options:HORIZONTAL_LINES or pattern = options:DIAGONAL_DOWN_LINES or pattern = options:DIAGONAL_UP_LINES
+            if manager:HasShaderProgram("Line Pattern Control Shader Program")
+                program = manager:GetShaderProgram("Line Pattern Control Shader Program")
+            else
+                LinePatternControlShaderProgram patternShader
+                patternShader:Compile()
+                program = patternShader
+            end
+        elseif pattern = options:PLAIN_CROSSHATCH or pattern = options:DIAGONAL_CROSSHATCH
+            if manager:HasShaderProgram("Crosshatch Pattern Control Shader Program")
+                program = manager:GetShaderProgram("Crosshatch Pattern Control Shader Program")
+            else
+                CrosshatchPatternControlShaderProgram patternShader
+                patternShader:Compile()
+                program = patternShader
+            end
+        elseif pattern = options:HOLLOW_CIRCLES
+            if manager:HasShaderProgram("Hollow Circle Pattern Control Shader Program")
+                program = manager:GetShaderProgram("Hollow Circle Pattern Control Shader Program")
+            else
+                HollowCirclePatternControlShaderProgram patternShader
+                patternShader:Compile()
+                program = patternShader
+            end
+        elseif pattern = options:SOLID_CIRCLES
+            if manager:HasShaderProgram("Solid Circle Pattern Control Shader Program")
+                program = manager:GetShaderProgram("Solid Circle Pattern Control Shader Program")
+            else
+                SolidCirclePatternControlShaderProgram patternShader
+                patternShader:Compile()
+                program = patternShader
+            end
+        elseif pattern = options:HOLLOW_BOXES
+            if manager:HasShaderProgram("Hollow Box Pattern Control Shader Program")
+                program = manager:GetShaderProgram("Hollow Box Pattern Control Shader Program")
+            else
+                HollowBoxPatternControlShaderProgram patternShader
+                patternShader:Compile()
+                program = patternShader
+            end
+        elseif pattern = options:SOLID_BOXES
+            if manager:HasShaderProgram("Solid Box Pattern Control Shader Program")
+                program = manager:GetShaderProgram("Solid Box Pattern Control Shader Program")
+            else
+                SolidBoxPatternControlShaderProgram patternShader
+                patternShader:Compile()
+                program = patternShader
+            end
+        elseif pattern = options:PINPOINT_DASHES
+            if manager:HasShaderProgram("Dashed Line Pattern Control Shader Program")
+                program = manager:GetShaderProgram("Dashed Line Pattern Control Shader Program")
+            else
+                DashedLinePatternControlShaderProgram patternShader
+                patternShader:Compile()
+                program = patternShader
+            end
+        elseif pattern = options:HOLLOW_TRIANGLES
+            if manager:HasShaderProgram("Hollow Triangle Pattern Control Shader Program")
+                program = manager:GetShaderProgram("Hollow Triangle Pattern Control Shader Program")
+            else
+                HollowTrianglePatternControlShaderProgram patternShader
+                patternShader:Compile()
+                program = patternShader
+            end
+        elseif pattern = options:SOLID_TRIANGLES
+            if manager:HasShaderProgram("Solid Triangle Pattern Control Shader Program")
+                program = manager:GetShaderProgram("Solid Triangle Pattern Control Shader Program")
+            else
+                SolidTrianglePatternControlShaderProgram patternShader
+                patternShader:Compile()
+                program = patternShader
+            end
+        else
+            // Default case: basic control shader, without pattern
+            if manager:HasShaderProgram("Control Shader Program")
+                program = manager:GetShaderProgram("Control Shader Program")
+            else
+                ControlShaderProgram controlShader
+                controlShader:Compile()
+                program = controlShader
+            end
+        end
+    
+        return program
+    end
+
+    /*
+    This action returns an integer code representing the type of pattern drawn by this view.
+    The integer code corresponds to the pattern constants found in ChartOptions.
+    */
+    action GetPatternType returns integer
+        return patternType
+    end
+end

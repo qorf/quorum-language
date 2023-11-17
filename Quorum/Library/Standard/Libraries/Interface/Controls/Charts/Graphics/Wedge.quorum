@@ -11,6 +11,8 @@ use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 use Libraries.Game.Graphics.Shaders.WedgeVertexShader
 use Libraries.Interface.Events.TouchListener
 use Libraries.Interface.Events.TouchEvent
+use Libraries.Interface.Controls.Charts.ChartOptions
+use Libraries.Game.Graphics.Shaders.all
 
 /*
 The Wedge class is used to render wedges in a pie chart. Wedges have an outer radius that measures
@@ -82,25 +84,108 @@ class Wedge is ChartDrawable, TouchListener
 
     private action LoadDefaultShaderProgram returns ShaderProgram
         ShaderManager manager
-        if manager:HasShaderProgram(WEDGE_SHADER_PROGRAM_NAME)
-            ShaderProgram program = manager:GetShaderProgram(WEDGE_SHADER_PROGRAM_NAME)
+        if HasPattern()
+            ChartOptions options
+            integer pattern = GetPattern()
+            ShaderProgram program = undefined            
+
+            if pattern = options:VERTICAL_LINES or pattern = options:HORIZONTAL_LINES or pattern = options:DIAGONAL_DOWN_LINES or pattern = options:DIAGONAL_UP_LINES
+                if manager:HasShaderProgram("Line Pattern Wedge Shader Program")
+                    program = manager:GetShaderProgram("Line Pattern Wedge Shader Program")
+                else
+                    LinePatternWedgeShaderProgram patternShader
+                    patternShader:Compile()
+                    program = patternShader
+                end
+            elseif pattern = options:PLAIN_CROSSHATCH or pattern = options:DIAGONAL_CROSSHATCH
+                if manager:HasShaderProgram("Crosshatch Pattern Wedge Shader Program")
+                    program = manager:GetShaderProgram("Crosshatch Pattern Wedge Shader Program")
+                else
+                    CrosshatchPatternWedgeShaderProgram patternShader
+                    patternShader:Compile()
+                    program = patternShader
+                end
+            elseif pattern = options:HOLLOW_CIRCLES
+                if manager:HasShaderProgram("Hollow Circle Pattern Wedge Shader Program")
+                    program = manager:GetShaderProgram("Hollow Circle Pattern Wedge Shader Program")
+                else
+                    HollowCirclePatternWedgeShaderProgram patternShader
+                    patternShader:Compile()
+                    program = patternShader
+                end
+            elseif pattern = options:SOLID_CIRCLES
+                if manager:HasShaderProgram("Solid Circle Pattern Wedge Shader Program")
+                    program = manager:GetShaderProgram("Solid Circle Pattern Wedge Shader Program")
+                else
+                    SolidCirclePatternWedgeShaderProgram patternShader
+                    patternShader:Compile()
+                    program = patternShader
+                end
+            elseif pattern = options:HOLLOW_BOXES
+                if manager:HasShaderProgram("Hollow Box Pattern Wedge Shader Program")
+                    program = manager:GetShaderProgram("Hollow Box Pattern Wedge Shader Program")
+                else
+                    HollowBoxPatternWedgeShaderProgram patternShader
+                    patternShader:Compile()
+                    program = patternShader
+                end
+            elseif pattern = options:SOLID_BOXES
+                if manager:HasShaderProgram("Solid Box Pattern Wedge Shader Program")
+                    program = manager:GetShaderProgram("Solid Box Pattern Wedge Shader Program")
+                else
+                    SolidBoxPatternWedgeShaderProgram patternShader
+                    patternShader:Compile()
+                    program = patternShader
+                end
+            elseif pattern = options:PINPOINT_DASHES
+                if manager:HasShaderProgram("Dashed Line Pattern Wedge Shader Program")
+                    program = manager:GetShaderProgram("Dashed Line Pattern Wedge Shader Program")
+                else
+                    DashedLinePatternWedgeShaderProgram patternShader
+                    patternShader:Compile()
+                    program = patternShader
+                end
+            elseif pattern = options:HOLLOW_TRIANGLES
+                if manager:HasShaderProgram("Hollow Triangle Pattern Wedge Shader Program")
+                    program = manager:GetShaderProgram("Hollow Triangle Pattern Wedge Shader Program")
+                else
+                    HollowTrianglePatternWedgeShaderProgram patternShader
+                    patternShader:Compile()
+                    program = patternShader
+                end
+            elseif pattern = options:SOLID_TRIANGLES
+                if manager:HasShaderProgram("Solid Triangle Pattern Wedge Shader Program")
+                    program = manager:GetShaderProgram("Solid Triangle Pattern Wedge Shader Program")
+                else
+                    SolidTrianglePatternWedgeShaderProgram patternShader
+                    patternShader:Compile()
+                    program = patternShader
+                end
+            end
+
             SetShaderProgram(program)
             return program
         else
-            WedgeVertexShader vertex
-            WedgeFragmentShader fragment
-            ShaderProgram program
-            program:Add(vertex)
-            program:Add(fragment)
-            program:SetName(WEDGE_SHADER_PROGRAM_NAME)
-
-            WedgeShaderMapping mapping
-            program:SetShaderMapping(mapping)
-
-            program:Compile()
-
-            SetShaderProgram(program)
-            return program
+            if manager:HasShaderProgram(WEDGE_SHADER_PROGRAM_NAME)
+                ShaderProgram program = manager:GetShaderProgram(WEDGE_SHADER_PROGRAM_NAME)
+                SetShaderProgram(program)
+                return program
+            else
+                WedgeVertexShader vertex
+                WedgeFragmentShader fragment
+                ShaderProgram program
+                program:Add(vertex)
+                program:Add(fragment)
+                program:SetName(WEDGE_SHADER_PROGRAM_NAME)
+    
+                WedgeShaderMapping mapping
+                program:SetShaderMapping(mapping)
+    
+                program:Compile()
+    
+                SetShaderProgram(program)
+                return program
+            end
         end
     end
 

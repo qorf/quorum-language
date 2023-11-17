@@ -1,11 +1,11 @@
 package Libraries.Game.Graphics.Shaders
 
 /*
-The HollowTrianglePatternFragmentShaderPart isn't a full fragment shader, but rather
+The SolidTrianglePatternFragmentShaderPart isn't a full fragment shader, but rather
 a post-processing "addendum" to be used alongside another, full shader,
 such as the ControlFragmentShader.
 */
-class HollowTrianglePatternFragmentShaderPart
+class SolidTrianglePatternFragmentShaderPart
 
     private action GetExtraInputs returns text
         return 
@@ -27,20 +27,19 @@ in vec4 v_patternColor;"
     point.x = mod(point.x, v_patternDistance);
     point.y = mod(point.y, v_patternDistance);
 
+    float halfThickness = v_patternThickness / 2.0;
     float quarterPattern = v_patternDistance / 4.0;
-    if (point.x < quarterPattern || point.y < quarterPattern)
+    if (point.x < quarterPattern - halfThickness || point.x > 3.0 * quarterPattern + halfThickness)
     {
         return startColor;
     }
 
-    float xDistance = point.x - v_patternDistance / 2.0;
-    float yDistance = point.y - v_patternDistance / 2.0;
+    float yMax = 3.0 * quarterPattern;
+    float yMin = v_patternDistance - point.x;
+    float threshold = (yMax - yMin) / 2.0;
+    float distance = abs(point.y - yMin - threshold); 
 
-    float distance = abs(max(xDistance, yDistance) - quarterPattern);
-    
-    distance = min(distance, abs(point.x + point.y - v_patternDistance) / sqrt(2.0));
-
-    vec4 result = mix(v_patternColor, startColor, smoothstep(0.0, v_patternThickness / 2.0, distance));
+    vec4 result = mix(v_patternColor, startColor, smoothstep(threshold, threshold + halfThickness, distance));
     result.a = startColor.a;
 
     return result;
