@@ -128,12 +128,9 @@ class CompareMeansSummary
         chart:Display()
         return chart
     end
-
+    
     action GetReport(File file)
-        WebPage page
-        BoxPlotWriter chartWriter
-        Division divide
-        Division responsiveWrapper
+        WebPage page        
 
         //add language headers
         page:AddAttribute("xml:lang", "en")
@@ -154,6 +151,15 @@ class CompareMeansSummary
         page:AddStylesheet("http://quorumlanguage.com/style/quorumCharts.css")
         page:SetWebPageTitle("Quorum Statistical Report: " + result:GetFormalTestName())
 
+        page:Add(GetReportDiv())                          
+
+        file:Write(page:Generate()) 
+    end
+
+    action GetReportDiv() returns Division       
+        BoxPlotWriter chartWriter
+        Division divide
+       
         // for summary
         divide:SetStyle("font-family: sans-serif")
         divide:AddHeading(result:GetFormalTestName() + " Report", 2)
@@ -207,13 +213,9 @@ class CompareMeansSummary
         table2:Add(GetDescriptiveStatisticsDataFrame())
         divide:Add(table1)
         divide:Add(table2)
-        
-        page:Add(divide)       
-            
-        responsiveWrapper:AddText(chartWriter:WriteOutChart(GetChart()))
-        page:Add(responsiveWrapper)
 
-        file:Write(page:Generate())      
+        divide:AddText(chartWriter:WriteOutChart(GetChart()))       
+        return divide             
     end
 
     action GetDescriptiveStatisticsDataFrame() returns DataFrame

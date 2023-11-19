@@ -688,7 +688,7 @@ class CompareMeansResult is StatisticalTestResult
         summary:GetReport(file)
     end
 
-    action GetChart() returns BoxPlot
+    action GetChartResult() returns BoxPlot
         CompareMeansSummary summary
         summary:SetResult(me)
         return summary:GetChart()        
