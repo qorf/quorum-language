@@ -11,27 +11,22 @@ use Libraries.Language.Errors.FileNotFoundError
 use Libraries.Language.Errors.UndefinedObjectError
 
 class WordFrequency
-    private text FileName = ""
     private HashTable<text, integer> WordCountMap
-
-    public action SetFilePath(text fileName)
-        FileName = fileName
-    end
 
     public action GetFrequencyMap returns HashTable<text, integer>
         return WordCountMap
     end
 
-    public action Calculate returns boolean
+    public action Calculate(text fileName) returns HashTable<text, integer>
         File inFile
         FileReader reader
-        inFile:SetPath(FileName)
+        inFile:SetPath(fileName)
 
         check        
             reader:OpenForRead(inFile)
         detect e is FileNotFoundError
             output e:GetErrorMessage()
-            return false
+            return WordCountMap
         end
 
         text fileContents = ""
@@ -60,7 +55,7 @@ class WordFrequency
 
         inFile:Close()
 
-        return true
+        return WordCountMap
     end
 
     public action GetTotalWords returns integer
