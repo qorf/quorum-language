@@ -3217,17 +3217,25 @@ class CompareMeans is StatisticalTest
         return summary
     end
 
-    action GetReport(File file, BoxPlot chart) 
+    action GetReport(File file) 
         CompareMeansResult result       
         i = 0
         repeat while i < GetResults():GetSize()
             result = GetResults():Get(i)
             
-            result:GetReportResult(file, chart)
+            result:GetReportResult(file)
             
             i = i + 1
         end
                    
+    end
+
+    action GetChart() returns BoxPlot
+        CompareMeansResult result       
+       
+        result = GetResults():Get(0)
+            
+        return result:GetChart()
     end
 
     /* PRIVATE ACTIONS */

@@ -682,10 +682,16 @@ class CompareMeansResult is StatisticalTestResult
     end
     
     // FOR REPORT TESTING
-    action GetReportResult(File file, BoxPlot chart)
+    action GetReportResult(File file)
         CompareMeansSummary summary
         summary:SetResult(me)
-        summary:GetReport(file, chart)
+        summary:GetReport(file)
+    end
+
+    action GetChart() returns BoxPlot
+        CompareMeansSummary summary
+        summary:SetResult(me)
+        return summary:GetChart()        
     end
 
     /*

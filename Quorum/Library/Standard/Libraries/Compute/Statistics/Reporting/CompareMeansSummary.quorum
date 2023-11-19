@@ -1,5 +1,6 @@
 package Libraries.Compute.Statistics.Reporting
 
+
 use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
 use Libraries.Compute.Math
@@ -117,18 +118,22 @@ class CompareMeansSummary
         end
         alert("There is no CompareMeansResult defined to summarize. Try using SetResult()")
     end
-
-    // JUST FOR ONE SAMPLE RN
-    action GetChart(BoxPlot chart) returns text
-        BoxPlotWriter bpWriter
-        return bpWriter:WriteOutChart(chart)
+   
+    action GetChart() returns BoxPlot
+        DataFrame groups = result:GetGroupsFrame()       
+        groups:SelectAllColumns()
+        BoxPlot chart = groups:BoxPlot()
+        chart:SetTitle("BoxPlot")
+        // this must be there for the html to generate so it can be used in the report
+        chart:Display()
+        return chart
     end
-    action GetReport(File file, BoxPlot chart)
+
+    action GetReport(File file)
         WebPage page
-        //ScatterPlotWriter chartWriter
+        BoxPlotWriter chartWriter
         Division divide
         Division responsiveWrapper
-
 
         //add language headers
         page:AddAttribute("xml:lang", "en")
@@ -203,8 +208,9 @@ class CompareMeansSummary
         divide:Add(table1)
         divide:Add(table2)
         
-        page:Add(divide)
-        responsiveWrapper:AddText(GetChart(chart))
+        page:Add(divide)       
+            
+        responsiveWrapper:AddText(chartWriter:WriteOutChart(GetChart()))
         page:Add(responsiveWrapper)
 
         file:Write(page:Generate())      
