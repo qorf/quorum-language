@@ -118,7 +118,18 @@ class CompareMeansSummary
         end
         alert("There is no CompareMeansResult defined to summarize. Try using SetResult()")
     end
-   
+    
+    action GetDescriptiveStatisticsDataFrame() returns DataFrame
+        if result not= undefined
+            if numberOfSamples = 1
+                return GetDescriptiveStatisticsDataFrameOne()
+            elseif numberOfSamples = 2 and not multivariate and not nSampleOverride
+                return GetDescriptiveStatisticsDataFrameTwo()
+            end
+        end  
+        alert("There is no CompareMeansResult defined to summarize. Try using SetResult()") 
+    end
+
     action GetChart() returns BoxPlot
         DataFrame groups = result:GetGroupsFrame()       
         groups:SelectAllColumns()
@@ -175,41 +186,7 @@ class CompareMeansSummary
         table1:SetBorder(true)
         table2:SetBorder(true)     
 
-        DataFrame resultFrame1
-        DataFrame resultFrame2
-        integer digits = format:GetSignificantDigits()
-
-        TextColumn testCol
-        testCol:SetHeader("Technical Name")
-        TextColumn comparisonCol
-        comparisonCol:SetHeader("Comparison")
-        NumberColumn statisticCol
-        statisticCol:SetHeader("Statistic ("+result:GetTestStatisticName()+")")
-        NumberColumn pCol
-        pCol:SetHeader("Probability Value")
-        NumberColumn effectCol
-        effectCol:SetHeader("Effect Size ("+result:GetEffectSizeName()+")")
-        TextColumn equationCol
-        equationCol:SetHeader("APA Report")
-
-        text groupName = result:GetGroupsFrame():GetColumn(0):GetHeader()
-        text statName = result:GetTestStatisticName()
-        testCol:Add(result:GetFormalTestName())
-        comparisonCol:Add(groupName)
-        statisticCol:Add(math:Round(result:GetTestStatistic(), digits))
-        pCol:Add(math:Round(result:GetProbabilityValue(), digits))
-        effectCol:Add(math:Round(result:GetEffectSize(), digits)) 
-        equationCol:Add(GetFormalNumericalResult())           
-
-        resultFrame1:AddColumn(testCol)
-        resultFrame1:AddColumn(comparisonCol)        
-        //resultFrame1:AddColumn(dfCol)
-        resultFrame1:AddColumn(statisticCol)
-        resultFrame1:AddColumn(pCol)
-        resultFrame1:AddColumn(effectCol)  
-        resultFrame1:AddColumn(equationCol)          
-        
-        table1:Add(resultFrame1)
+        table1:Add(GetSummaryDataFrame())
         table2:Add(GetDescriptiveStatisticsDataFrame())
         divide:Add(table1)
         divide:Add(table2)
@@ -218,13 +195,12 @@ class CompareMeansSummary
         return divide             
     end
 
-    action GetDescriptiveStatisticsDataFrame() returns DataFrame
+    private action GetDescriptiveStatisticsDataFrameOne() returns DataFrame
         DataFrame resultFrame
         
         text groupName = result:GetGroupsFrame():GetColumn(0):GetHeader()
         text statName = result:GetTestStatisticName()
         integer digits = format:GetSignificantDigits()
-
         
         TextColumn sampleCol
         sampleCol:SetHeader("Sample")
@@ -234,15 +210,15 @@ class CompareMeansSummary
         sizeCol:Add(result:GetTestStatistic())
         NumberColumn sdCol
         sdCol:SetHeader("Standard Deviation")
-        sdCol:Add(math:Round(math:SquareRoot(result:GetInformation():GetValue(groupName):GetValue("variance")),digits))        
-        
+        sdCol:Add(math:Round(math:SquareRoot(result:GetInformation():GetValue(groupName):GetValue("variance")),digits))                
+
         resultFrame:AddColumn(sampleCol)
         resultFrame:AddColumn(sizeCol)
         if result:IsRanked() // Wilcoxon 
             NumberColumn medianCol
             medianCol:SetHeader("Median")
             medianCol:Add(math:Round(result:GetInformation():GetValue(groupName):GetValue("median"), digits))
-            resultFrame:AddColumn(medianCol)            
+            resultFrame:AddColumn(medianCol)                      
         else            
             NumberColumn meanCol
             meanCol:SetHeader("Mean")
@@ -254,6 +230,64 @@ class CompareMeansSummary
         end
         
         resultFrame:AddColumn(sdCol)               
+        return resultFrame
+    end
+
+    private action GetDescriptiveStatisticsDataFrameTwo() returns DataFrame
+        DataFrame resultFrame
+        
+        text group1Name = result:GetGroupsFrame():GetColumn(0):GetHeader()
+        text group2Name = result:GetGroupsFrame():GetColumn(1):GetHeader()
+        text statName = result:GetTestStatisticName()
+        integer digits = format:GetSignificantDigits()
+        
+        TextColumn sampleCol
+        sampleCol:SetHeader("Sample")
+        sampleCol:Add(group1Name)
+        sampleCol:Add(group2Name)
+        NumberColumn sizeCol
+        // IDK HOW TO GET THE SIZE 
+        sizeCol:SetHeader("Size")
+        sizeCol:Add(result:GetInformation():GetValue(group1Name):GetValue("size"))
+        sizeCol:Add(result:GetInformation():GetValue(group2Name):GetValue("size"))
+        NumberColumn sdCol
+        sdCol:SetHeader("Standard Deviation")
+        sdCol:Add(math:Round(math:SquareRoot(result:GetInformation():GetValue(group1Name):GetValue("variance")),digits))      
+        sdCol:Add(math:Round(math:SquareRoot(result:GetInformation():GetValue(group2Name):GetValue("variance")),digits))                          
+
+        resultFrame:AddColumn(sampleCol)
+        resultFrame:AddColumn(sizeCol)
+        resultFrame:AddColumn(sdCol)
+        if result:IsRanked()
+            NumberColumn medianCol
+            medianCol:SetHeader("Median")
+            medianCol:Add(result:GetInformation():GetValue(group1Name):GetValue("median"))            
+            medianCol:Add(result:GetInformation():GetValue(group2Name):GetValue("median"))
+           
+            resultFrame:AddColumn(medianCol)             
+        else
+            NumberColumn meanCol
+            meanCol:SetHeader("Mean")
+            meanCol:Add(result:GetInformation():GetValue(group1Name):GetValue("mean"))
+            meanCol:Add(result:GetInformation():GetValue(group2Name):GetValue("mean"))
+
+//            NumberColumn sd1Col
+//            sd1Col:SetHeader("Standard Deviation 1")
+//            sd1Col:Add(math:SquareRoot(result:GetInformation():GetValue(group1Name):GetValue("variance")))
+//
+//            NumberColumn sd2Col
+//            sd2Col:SetHeader("Standard Deviation 2")
+//            sd2Col:Add(math:SquareRoot(result:GetInformation():GetValue(group2Name):GetValue("variance")))
+
+            NumberColumn dfCol
+            dfCol:SetHeader("Degrees Of Freedom")            
+            dfCol:Add(result:GetDegreesOfFreedom())
+            dfCol:Add(result:GetDegreesOfFreedom())
+
+            resultFrame:AddColumn(meanCol)            
+            resultFrame:AddColumn(dfCol)
+        end
+               
         return resultFrame
     end
 
@@ -1036,7 +1070,9 @@ class CompareMeansSummary
         integer digits = format:GetSignificantDigits()
 
         TextColumn testCol
-        testCol:SetHeader(result:GetFormalTestName())
+        testCol:SetHeader("Technical Name")
+        TextColumn comparisonCol
+        comparisonCol:SetHeader("Comparison")
         NumberColumn statisticCol
         statisticCol:SetHeader("Statistic ("+result:GetTestStatisticName()+")")
         NumberColumn pCol
@@ -1044,47 +1080,24 @@ class CompareMeansSummary
         NumberColumn effectCol
         effectCol:SetHeader("Effect Size ("+result:GetEffectSizeName()+")")
         TextColumn equationCol
-        equationCol:SetHeader("APA Report")
+        equationCol:SetHeader("APA Report")         
 
         text groupName = result:GetGroupsFrame():GetColumn(0):GetHeader()
         text statName = result:GetTestStatisticName()
-        testCol:Add(groupName)
+        testCol:Add(result:GetFormalTestName())
+        comparisonCol:Add(groupName)
         statisticCol:Add(math:Round(result:GetTestStatistic(), digits))
         pCol:Add(math:Round(result:GetProbabilityValue(), digits))
         effectCol:Add(math:Round(result:GetEffectSize(), digits)) 
         equationCol:Add(GetFormalNumericalResult())    
 
-        if result:IsRanked()
-            NumberColumn medianCol
-            medianCol:SetHeader("Median")
-            medianCol:Add(math:Round(result:GetInformation():GetValue(groupName):GetValue("median"), digits))
-
-            resultFrame:AddColumn(testCol)
-            resultFrame:AddColumn(medianCol)
-            resultFrame:AddColumn(statisticCol)
-            resultFrame:AddColumn(pCol)
-            resultFrame:AddColumn(effectCol) 
-            resultFrame:AddColumn(equationCol)   
-        else
-            NumberColumn meanCol
-            meanCol:SetHeader("Mean")
-            meanCol:Add(math:Round(result:GetInformation():GetValue(groupName):GetValue("mean"), digits))
-            NumberColumn sdCol
-            sdCol:SetHeader("Standard Deviation")
-            sdCol:Add(math:Round(math:SquareRoot(result:GetInformation():GetValue(groupName):GetValue("variance")),digits))
-            NumberColumn dfCol
-            dfCol:SetHeader("Degrees Of Freedom")
-            dfCol:Add(math:Round(result:GetDegreesOfFreedom(), digits))
-
-            resultFrame:AddColumn(testCol)
-            resultFrame:AddColumn(meanCol)
-            resultFrame:AddColumn(sdCol)
-            resultFrame:AddColumn(dfCol)
-            resultFrame:AddColumn(statisticCol)
-            resultFrame:AddColumn(pCol)
-            resultFrame:AddColumn(effectCol)  
-            resultFrame:AddColumn(equationCol)  
-        end
+        resultFrame:AddColumn(testCol)
+        resultFrame:AddColumn(comparisonCol)  
+        resultFrame:AddColumn(statisticCol)
+        resultFrame:AddColumn(pCol)
+        resultFrame:AddColumn(effectCol)  
+        resultFrame:AddColumn(equationCol)  
+        
         return resultFrame
     end
 
@@ -1093,7 +1106,11 @@ class CompareMeansSummary
         integer digits = format:GetSignificantDigits()
 
         TextColumn testCol
-        testCol:SetHeader(result:GetFormalTestName())
+        testCol:SetHeader("Technical Name")
+        TextColumn comparisonCol1
+        comparisonCol1:SetHeader("Comparison 1")
+        TextColumn comparisonCol2
+        comparisonCol2:SetHeader("Comparison 2")
         NumberColumn statisticCol
         statisticCol:SetHeader("Statistic ("+result:GetTestStatisticName()+")")
         NumberColumn pCol
@@ -1101,66 +1118,28 @@ class CompareMeansSummary
         NumberColumn effectCol
         effectCol:SetHeader("Effect Size ("+result:GetEffectSizeName()+")")
         TextColumn equationCol
-        equationCol:SetHeader("APA Report")
+        equationCol:SetHeader("APA Report")   
 
         text group1Name = result:GetGroupsFrame():GetColumn(0):GetHeader()
         text group2Name = result:GetGroupsFrame():GetColumn(1):GetHeader()
         text statName = result:GetTestStatisticName()
 
-        testCol:Add(group1Name+"_"+group2Name)
+        testCol:Add(result:GetFormalTestName())
+        comparisonCol1:Add(group1Name)
+        comparisonCol2:Add(group2Name)
         statisticCol:Add(math:Round(result:GetTestStatistic(), digits))
         pCol:Add(math:Round(result:GetProbabilityValue(), digits))
         effectCol:Add(math:Round(result:GetEffectSize(), digits))     
         equationCol:Add(GetFormalNumericalResult())
 
-        if result:IsRanked()
-            NumberColumn median1Col
-            median1Col:SetHeader("Median 1")
-            median1Col:Add(result:GetInformation():GetValue(group1Name):GetValue("median"))
-
-            NumberColumn median2Col
-            median2Col:SetHeader("Median 2")
-            median2Col:Add(result:GetInformation():GetValue(group2Name):GetValue("median"))
-
-            resultFrame:AddColumn(testCol)
-            resultFrame:AddColumn(median1Col)
-            resultFrame:AddColumn(median2Col)
-            resultFrame:AddColumn(statisticCol)
-            resultFrame:AddColumn(pCol)
-            resultFrame:AddColumn(effectCol) 
-            resultFrame:AddColumn(equationCol)   
-        else
-            NumberColumn mean1Col
-            mean1Col:SetHeader("Mean 1")
-            mean1Col:Add(result:GetInformation():GetValue(group1Name):GetValue("mean"))
-
-            NumberColumn mean2Col
-            mean2Col:SetHeader("Mean 2")
-            mean2Col:Add(result:GetInformation():GetValue(group2Name):GetValue("mean"))
-
-            NumberColumn sd1Col
-            sd1Col:SetHeader("Standard Deviation 1")
-            sd1Col:Add(math:SquareRoot(result:GetInformation():GetValue(group1Name):GetValue("variance")))
-
-            NumberColumn sd2Col
-            sd2Col:SetHeader("Standard Deviation 2")
-            sd2Col:Add(math:SquareRoot(result:GetInformation():GetValue(group2Name):GetValue("variance")))
-
-            NumberColumn dfCol
-            dfCol:SetHeader("Degrees Of Freedom")
-            dfCol:Add(result:GetDegreesOfFreedom())
-
-            resultFrame:AddColumn(testCol)
-            resultFrame:AddColumn(mean1Col)
-            resultFrame:AddColumn(mean2Col)
-            resultFrame:AddColumn(sd1Col)
-            resultFrame:AddColumn(sd2Col)
-            resultFrame:AddColumn(dfCol)
-            resultFrame:AddColumn(statisticCol)
-            resultFrame:AddColumn(pCol)
-            resultFrame:AddColumn(effectCol)
-            resultFrame:AddColumn(equationCol)  
-        end
+        resultFrame:AddColumn(testCol)  
+        resultFrame:AddColumn(comparisonCol1)           
+        resultFrame:AddColumn(comparisonCol2)
+        resultFrame:AddColumn(statisticCol)
+        resultFrame:AddColumn(pCol)
+        resultFrame:AddColumn(effectCol)
+        resultFrame:AddColumn(equationCol)  
+        
         return resultFrame
     end
 
