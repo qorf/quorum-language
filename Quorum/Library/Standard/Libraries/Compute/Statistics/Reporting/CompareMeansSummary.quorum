@@ -250,14 +250,10 @@ class CompareMeansSummary
         sizeCol:SetHeader("Size")
         sizeCol:Add(result:GetInformation():GetValue(group1Name):GetValue("size"))
         sizeCol:Add(result:GetInformation():GetValue(group2Name):GetValue("size"))
-        NumberColumn sdCol
-        sdCol:SetHeader("Standard Deviation")
-        sdCol:Add(math:Round(math:SquareRoot(result:GetInformation():GetValue(group1Name):GetValue("variance")),digits))      
-        sdCol:Add(math:Round(math:SquareRoot(result:GetInformation():GetValue(group2Name):GetValue("variance")),digits))                          
-
+        
         resultFrame:AddColumn(sampleCol)
         resultFrame:AddColumn(sizeCol)
-        resultFrame:AddColumn(sdCol)
+        
         if result:IsRanked()
             NumberColumn medianCol
             medianCol:SetHeader("Median")
@@ -270,21 +266,19 @@ class CompareMeansSummary
             meanCol:SetHeader("Mean")
             meanCol:Add(result:GetInformation():GetValue(group1Name):GetValue("mean"))
             meanCol:Add(result:GetInformation():GetValue(group2Name):GetValue("mean"))
-
-//            NumberColumn sd1Col
-//            sd1Col:SetHeader("Standard Deviation 1")
-//            sd1Col:Add(math:SquareRoot(result:GetInformation():GetValue(group1Name):GetValue("variance")))
-//
-//            NumberColumn sd2Col
-//            sd2Col:SetHeader("Standard Deviation 2")
-//            sd2Col:Add(math:SquareRoot(result:GetInformation():GetValue(group2Name):GetValue("variance")))
-
+            
+            NumberColumn sdCol
+            sdCol:SetHeader("Standard Deviation")
+            sdCol:Add(math:Round(math:SquareRoot(result:GetInformation():GetValue(group1Name):GetValue("variance")),digits))      
+            sdCol:Add(math:Round(math:SquareRoot(result:GetInformation():GetValue(group2Name):GetValue("variance")),digits))                          
+    
             NumberColumn dfCol
             dfCol:SetHeader("Degrees Of Freedom")            
             dfCol:Add(result:GetDegreesOfFreedom())
             dfCol:Add(result:GetDegreesOfFreedom())
 
-            resultFrame:AddColumn(meanCol)            
+            resultFrame:AddColumn(meanCol)  
+            resultFrame:AddColumn(sdCol)          
             resultFrame:AddColumn(dfCol)
         end
                
