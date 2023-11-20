@@ -225,27 +225,35 @@ class CompareMeansSummary
         text statName = result:GetTestStatisticName()
         integer digits = format:GetSignificantDigits()
 
+        
         TextColumn sampleCol
         sampleCol:SetHeader("Sample")
         sampleCol:Add(groupName)
         NumberColumn sizeCol
         sizeCol:SetHeader("Size")
         sizeCol:Add(result:GetTestStatistic())
-        NumberColumn meanCol
-        meanCol:SetHeader("Mean")
-        meanCol:Add(math:Round(result:GetInformation():GetValue(groupName):GetValue("mean"), digits))
         NumberColumn sdCol
         sdCol:SetHeader("Standard Deviation")
-        sdCol:Add(math:Round(math:SquareRoot(result:GetInformation():GetValue(groupName):GetValue("variance")),digits))
-        NumberColumn dfCol
-        dfCol:SetHeader("Degrees Of Freedom")
-        dfCol:Add(math:Round(result:GetDegreesOfFreedom(), digits))
-
+        sdCol:Add(math:Round(math:SquareRoot(result:GetInformation():GetValue(groupName):GetValue("variance")),digits))        
+        
         resultFrame:AddColumn(sampleCol)
         resultFrame:AddColumn(sizeCol)
-        resultFrame:AddColumn(meanCol)
-        resultFrame:AddColumn(sdCol)
-
+        if result:IsRanked() // Wilcoxon 
+            NumberColumn medianCol
+            medianCol:SetHeader("Median")
+            medianCol:Add(math:Round(result:GetInformation():GetValue(groupName):GetValue("median"), digits))
+            resultFrame:AddColumn(medianCol)            
+        else            
+            NumberColumn meanCol
+            meanCol:SetHeader("Mean")
+            meanCol:Add(math:Round(result:GetInformation():GetValue(groupName):GetValue("mean"), digits))                                   
+            resultFrame:AddColumn(meanCol) 
+            NumberColumn dfCol
+            dfCol:SetHeader("Degrees Of Freedom")
+            dfCol:Add(math:Round(result:GetDegreesOfFreedom(), digits))            
+        end
+        
+        resultFrame:AddColumn(sdCol)               
         return resultFrame
     end
 
