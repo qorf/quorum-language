@@ -2,9 +2,9 @@ use Libraries.Compute.Statistics.DataFrame
 use Libraries.Containers.HashTable
 
 class BayesianModel
-    HashTable<text, number> probabilities
-    HashTable<text, HashTable<text, number>> likelihoods
-    number evidence = 0.0
+  private  HashTable<text, number> probabilities
+  private  HashTable<text, HashTable<text, number>> likelihoods
+  private  number evidence = 0.0
 
     // Constructor to initialize the Bayesian model with probabilities, likelihoods, and evidence
     action Initialize(HashTable<text, number> initialProbabilities, HashTable<text, HashTable<text, number>> initialLikelihoods, number initialEvidence)
