@@ -456,6 +456,7 @@ class CompareMeans is StatisticalTest
                 result:SetInformation("proposed","mean", userMean)
                 result:SetFormalTestName("One Sample t-test")
                 result:SetGroupsFrame(groupFrame)
+                result:SetExperimentalDesign(design)
                 result:SetFactors(factorHeaders)
                 result:SetColumns(columnHeaders)
                 if testDistributionAssumption
@@ -589,15 +590,19 @@ class CompareMeans is StatisticalTest
                     result:SetProbabilityValue(combo, statName, res:GetProbabilityValue())
                     result:SetInformation(group1Text,"mean", mean1)
                     result:SetInformation(group1Text,"variance", var1)
+                    result:SetInformation(group1Text,"sd", math:SquareRoot(var1))
                     result:SetInformation(group1Text,"size", size1)
                     result:SetInformation(group2Text,"mean", mean2)
                     result:SetInformation(group2Text,"variance", var2)
+                    result:SetInformation(group2Text,"sd", math:SquareRoot(var2))
                     result:SetInformation(group2Text,"size", size2)
                     result:SetInformation("difference","mean", diffMean)
                     result:SetInformation("difference","variance", diffVar)
+                    result:SetInformation("difference","sd", math:SquareRoot(diffVar))
                     result:SetInformation("proposed","mean", userMean)
                     result:SetFormalTestName("Paired t-test")
                     result:SetGroupsFrame(groupFrame)
+                    result:SetExperimentalDesign(design)
                     result:SetFactors(factorHeaders)
                     result:SetColumns(columnHeaders)
                     if testDistributionAssumption
@@ -737,12 +742,15 @@ class CompareMeans is StatisticalTest
                     result:SetProbabilityValue(combo, "t", p)
                     result:SetInformation(group1Text,"mean", mean1)
                     result:SetInformation(group1Text,"variance", var1)
+                    result:SetInformation(group1Text,"sd", math:SquareRoot(var1))
                     result:SetInformation(group1Text,"size", size1)
                     result:SetInformation(group2Text,"mean", mean2)
                     result:SetInformation(group2Text,"variance", var2)
+                    result:SetInformation(group2Text,"sd", math:SquareRoot(var2))
                     result:SetInformation(group2Text,"size", size2)
                     result:SetFormalTestName(testname)
                     result:SetGroupsFrame(groupFrame)
+                    result:SetExperimentalDesign(design)
                     result:SetFactors(factorHeaders)
                     result:SetColumns(columnHeaders)
                     if testDistributionAssumption   
@@ -1141,8 +1149,19 @@ class CompareMeans is StatisticalTest
                 result:SetFactors(factorHeaders)
                 result:SetColumns(columnHeaders)
                 result:SetSources(sources)
+                result:SetExperimentalDesign(design)
                 result:SetGroupsFrame(betweenResult:GetGroupsFrame())
                 result:SetVarianceResult(vResult)
+                if testDistributionAssumption
+                    // We need the residuals of the full design
+                    CompareMeans anova
+                    anova:SetExperimentalDesign(bDesign:Copy())
+                    anova:TestDistributionAssumption()
+                    anova:Calculate(newFrame)
+                    CompareMeansResult anovaResult = anova:GetResult()
+                    result:SetDistributionTest(anovaResult:GetDistributionTest())
+                    result:SetDistributionResults(anovaResult:GetDistributionResults())
+                end
                 if userRequestedPairwise or significantBetween or significantWithin
                     // Pairwise tests are only necessary if the anova is significant
                     CompareMeansPairwise compare
@@ -1153,6 +1172,7 @@ class CompareMeans is StatisticalTest
                     compare:SetExperimentalDesign(design)
                     compare:Calculate(result)
                     result:SetPairwiseResults(compare:GetResults())
+                    result:SetPairwiseTest(compare)
                 end
                 results:Add(result)
             end
@@ -1308,6 +1328,7 @@ class CompareMeans is StatisticalTest
             result:SetFactors(factorHeaders)
             result:SetColumns(columnHeaders)
             result:SetSources(sources)
+            result:SetExperimentalDesign(design)
             result:SetInformation(source, "F", f)
             result:SetInformation(source, "p", p)
             result:SetInformation(source, "df", numeratorDegreesOfFreedom)
@@ -1324,6 +1345,7 @@ class CompareMeans is StatisticalTest
                 compare:SetExperimentalDesign(design)
                 compare:Calculate(result)
                 result:SetPairwiseResults(compare:GetResults())
+                result:SetPairwiseTest(compare)
             end
             results:Add(result)
         else
@@ -1401,6 +1423,7 @@ class CompareMeans is StatisticalTest
             HashTable<text, Matrix> sscpFactors // multivariate
             HashTable<text, number> dfFactors 
 
+            Matrix residuals
             Matrix sscpResiduals
             number ssResiduals = 0
             number dfResiduals = 0
@@ -1414,6 +1437,7 @@ class CompareMeans is StatisticalTest
                     ssResiduals = ComputeSumOfSquares(designMatrix, responseMatrix)
                 end
             end
+            residuals = ComputeResiduals(designMatrix, responseMatrix)
 
             // Sum Of Squares For Each Factor And Interaction (This type II ss calc is not currently that efficient)
             i = 1 // Skip Intercept
@@ -1425,6 +1449,10 @@ class CompareMeans is StatisticalTest
                     if not ssFactors:HasKey(factor)
                         Matrix without = RemoveAssociated(factorEncoding, designMatrix)     // Columns of design matrix wihout any association at all to this factor/interaction
                         Matrix with = AddMatching(factorEncoding, designMatrix, without)    // Columns associated perfectly with this factor added back (no partial associations)              
+
+                        if factor = design:GetSubjectIdentifier()
+                            residuals = ComputeResiduals(without, responseMatrix)
+                        end
 
                         if multivariate
                             Matrix withoutSSCP = ComputeSumOfSquaresCrossProductMatrix(without, responseMatrix)
@@ -1771,6 +1799,7 @@ class CompareMeans is StatisticalTest
             result:SetFactors(factorHeaders)
             result:SetColumns(columnHeaders)
             result:SetSources(sources)
+            result:SetExperimentalDesign(design)
             if repeated
                 if multivariate
                     if factorial
@@ -1802,16 +1831,15 @@ class CompareMeans is StatisticalTest
             end
 
             if testDistributionAssumption
-                if multivariate
-                    alert("Testing for normal distribution on multiple dependent variables is not supported yet")
-                end
-                // Check normality using a Shapiro-Wilk's CompareDistributions Test
+                // Check normality of residuals using a Shapiro-Wilk's CompareDistributions Test
+                DataFrame residualsFrame = residuals:ConvertToDataFrame(design:GetDependentVariables())
                 CompareDistributions compare
                 compare:SetSignificanceLevel(GetSignificanceLevel())
                 compare:SetStatisticalFormatting(GetStatisticalFormatting())
-                result:GetGroupsFrame():SelectAllColumns()
-                compare:CompareDistributionToNormal(result:GetGroupsFrame())
+                residualsFrame:SelectAllColumns()
+                compare:CompareDistributionToNormal(residualsFrame)
                 result:SetDistributionResults(compare:GetResults())
+                result:SetDistributionTest(compare)
             end
             if testVarianceAssumption or (repeated and significant)
                 if repeated 
@@ -1845,6 +1873,7 @@ class CompareMeans is StatisticalTest
                         mauchly:Calculate(frame)
                         CompareVariancesResult mauchlyResult = mauchly:GetResult()
                         result:SetVarianceResult(mauchlyResult)
+                        result:SetVarianceTest(mauchly)
 
                         i = 0
                         repeat while i < sources:GetSize()
@@ -1879,6 +1908,7 @@ class CompareMeans is StatisticalTest
                         compare:SetStatisticalFormatting(GetStatisticalFormatting())
                         compare:Calculate(designFrame) // Keep the same selection as this test
                         result:SetVarianceResult(compare:GetResult())
+                        result:SetVarianceTest(compare)
                         if compare:GetResult():IsSignificant()
                             result:UsePillaiStatistic(true) // Use pillai default if Box's fails
                         end
@@ -1890,6 +1920,7 @@ class CompareMeans is StatisticalTest
                         result:GetGroupsFrame():SelectAllColumns()
                         compare:Calculate(result:GetGroupsFrame())
                         result:SetVarianceResult(compare:GetResult())
+                        result:SetVarianceTest(compare)
                     end
                 end
             end
@@ -1907,6 +1938,7 @@ class CompareMeans is StatisticalTest
                     compare:SetExperimentalDesign(design)
                     compare:Calculate(result)
                     result:SetPairwiseResults(compare:GetResults())
+                    result:SetPairwiseTest(compare)
                 end
             end
             results:Add(result)
@@ -2048,6 +2080,7 @@ class CompareMeans is StatisticalTest
                 result:SetInformation("proposed","median", userMedian)
                 result:SetFormalTestName("Wilcoxon Signed-Rank Test")
                 result:SetGroupsFrame(groupFrame)
+                result:SetExperimentalDesign(design)
                 result:SetFactors(factorHeaders)
                 result:SetColumns(columnHeaders)
                 results:Add(result)
@@ -2176,6 +2209,7 @@ class CompareMeans is StatisticalTest
                     result:SetInformation("proposed","median", userMedian)
                     result:SetFormalTestName("Paired Wilcoxon Signed-Rank Test")
                     result:SetGroupsFrame(groupFrame)
+                    result:SetExperimentalDesign(design)
                     result:SetFactors(factorHeaders)
                     result:SetColumns(columnHeaders)
                     results:Add(result)
@@ -2314,6 +2348,7 @@ class CompareMeans is StatisticalTest
             result:SetInformation(group2Text,"size", n2)
             result:SetFormalTestName("Mann-Whitney U Test")
             result:SetGroupsFrame(groupFrame)
+            result:SetExperimentalDesign(design)
             result:SetFactors(factorHeaders)
             result:SetColumns(columnHeaders)
             results:Add(result)
@@ -2504,6 +2539,7 @@ class CompareMeans is StatisticalTest
             result:SetFactors(factorHeaders)
             result:SetColumns(columnHeaders)
             result:SetSources(sources)
+            result:SetExperimentalDesign(design)
             if userRequestedPairwise or p <= GetSignificanceLevel()
                 // Pairwise tests are only necessary if the test is significant
                 CompareMeansPairwise compare
@@ -2514,6 +2550,7 @@ class CompareMeans is StatisticalTest
                 compare:SetExperimentalDesign(design)
                 compare:Calculate(result)
                 result:SetPairwiseResults(compare:GetResults())
+                result:SetPairwiseTest(compare)
             end
             results:Add(result)
         end
@@ -2580,7 +2617,8 @@ class CompareMeans is StatisticalTest
                 DataFrameColumn column = groupFrame:GetColumn(i)
                 if column:GetSize() < 2
                     alert("Samples must have 2 or more observations. Group "+column:GetHeader()+" has only "+column:GetSize()+" observations. Not enough data for a comparison to be calculated.")
-                end       
+                end 
+                sampleSize = sampleSize + column:GetSize()       
                 i = i + 1
             end
 
@@ -2663,6 +2701,7 @@ class CompareMeans is StatisticalTest
             result:SetFactors(factorHeaders)
             result:SetColumns(columnHeaders)
             result:SetSources(sources)
+            result:SetExperimentalDesign(design)
             if userRequestedPairwise or p <= GetSignificanceLevel()
                 // Pairwise tests are only necessary if the test is significant
                 CompareMeansPairwise compare
@@ -2673,6 +2712,7 @@ class CompareMeans is StatisticalTest
                 compare:SetExperimentalDesign(design)
                 compare:Calculate(result)
                 result:SetPairwiseResults(compare:GetResults())
+                result:SetPairwiseTest(compare)
             end
             results:Add(result)
         end
@@ -3555,6 +3595,15 @@ class CompareMeans is StatisticalTest
         return result:GetSumOfSquares()
     end
 
+    private action ComputeResiduals(Matrix x, Matrix y) returns Matrix
+        Matrix xT = x:Transpose()
+        Matrix xTx_inv = xT:Multiply(x):Inverse()  
+        Matrix b = xTx_inv:Multiply(xT):Multiply(y)       
+             
+        Matrix result = y:SubtractElements(x:Multiply(b))
+
+        return result
+    end
 
     private action ComputeSumOfSquaresCrossProductMatrix(Matrix x, Matrix y) returns Matrix
         Matrix xT = x:Transpose()

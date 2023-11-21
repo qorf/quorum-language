@@ -1,5 +1,6 @@
 package Libraries.Compute.Statistics.Reporting
 use Libraries.System.File
+use Libraries.Compute.Statistics.Tests.ExperimentalDesign
 
 /*
     This class represents data that comes back from a statistical test.
@@ -17,6 +18,15 @@ class StatisticalTestResult
     text formalTestName = ""
     number effectSize = 0
     text effectSizeName = ""
+    ExperimentalDesign design = undefined
+
+    action SetExperimentalDesign(ExperimentalDesign design)
+        me:design = design:Copy()
+    end
+
+    action GetExperimentalDesign returns ExperimentalDesign
+        return design
+    end
 
     /*
         Obtains the probability value (p in statistics) calculated by the test.
