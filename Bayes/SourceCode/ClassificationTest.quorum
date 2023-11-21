@@ -1,0 +1,56 @@
+use Libraries.Containers.HashTable
+// Training Phase
+
+HashTable<text,number> trainingProbabilities  
+trainingProbabilities:Add ("Positive", 0.3)
+trainingProbabilities:Add ( "Negative", 0.3)
+trainingProbabilities:Add ( "Neutral", 0.3 )
+
+HashTable<text,HashTable<text,number>> trainingLikelihoods 
+HashTable<text, number> PositiveFeatures
+PositiveFeatures:Add("happy",0.4) 
+PositiveFeatures:Add("good" ,0.8) 
+PositiveFeatures:Add("excellent",0.4)
+trainingLikelihoods:Add ( "Positive" , PositiveFeatures)
+HashTable<text, number> negativeFeatures
+negativeFeatures:Add( "bad", 0.8)
+negativeFeatures:Add("awful", 0.4)
+negativeFeatures:Add( "unhappy", 0.2)
+trainingLikelihoods:Add("Negative", negativeFeatures)
+HashTable<text, number> neutralFeatures
+neutralFeatures:Add("Neutral" , 0.8)
+neutralFeatures:Add("average" , 0.4)
+neutralFeatures:Add("ok" , 0.4)
+neutralFeatures:Add("fine" , 0.2)
+trainingLikelihoods:Add("Neutral", neutralFeatures)
+
+WordFrequency wf
+wf:SetFilePath("testNeutral.txt")
+wf:Calculate()
+HashTable<text,integer> wordCountNegative = wf:GetFrequencyMap()
+
+
+
+
+
+
+integer trainingEvidence = wf:GetTotalWords() // Total training documents
+
+BayesianModel model 
+model:Initialize(trainingProbabilities, trainingLikelihoods, trainingEvidence)
+
+BayesianMultinomialClassifier classifier
+classifier:Initialize(model)
+// Prediction Phase
+
+
+predictedClass = classifier:classifyDocument(wordCountNegative)
+output predictedClass
+
+
+
+
+
+
+
+
