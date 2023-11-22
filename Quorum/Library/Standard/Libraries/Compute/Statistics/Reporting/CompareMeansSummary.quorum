@@ -1242,8 +1242,8 @@ class CompareMeansSummary
                         number pval = info:GetValue("p")
                         text equation = ""
                         // If significant: show corrected results
-                        if pval <= result:GetSignificanceLevel() and info:HasKey("sphericity p")
-                            if info:GetValue("sphericity p") <= result:GetSignificanceLevel()
+                        if pval <= result:GetSignificanceLevel() 
+                            if info:HasKey("sphericity p") and info:GetValue("sphericity p") <= result:GetSignificanceLevel()
                                 text statName = result:GetTestStatisticsTable():GetValue(source):GetKeyIterator():Next()
                                 number stat = result:GetTestStatisticsTable():GetValue(source):GetValue(statName)
                                 number correction = info:GetValue("gg")
