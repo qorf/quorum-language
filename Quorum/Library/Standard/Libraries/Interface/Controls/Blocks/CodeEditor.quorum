@@ -2647,7 +2647,9 @@ action IsAccessibleParent returns boolean
     end
     
     action InsertPlaceholdersAtNavigationIndex(integer index, Array<Block> placeholders)
+        editManager:SetSpecialAction(true)
         renderer:InsertPlaceholdersAtNavigationIndex(index, placeholders)
+        editManager:SetSpecialAction(false)
     end
     
     action MovePlaceholdersToNavigationIndex(integer index)

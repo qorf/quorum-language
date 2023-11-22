@@ -53,7 +53,9 @@ ActionIndexSort actionSorter
             className = assign:GetClassName()
             variableName = assign:GetVariableName()
         end
-
+if className:Contains("<")
+            className = className:Split("<"):Get(0)
+        end
         Class clazz = GetBestChoiceClass(request:result, lastCompiledResult, request:fileKey, className, variableName)
         SymbolTable table = GetBestChoiceSymbolTable(request:result, lastCompiledResult)
 
@@ -80,40 +82,28 @@ if className = "" and variableName not= ""
 
     private action GetBestChoiceClass(CompilerResult last, CompilerResult compiled, text file, text className, text variableName) returns Class
         if compiled not= undefined and compiled:symbolTable not= undefined
-            Class clazz = undefined
-            Iterator<Class> clazzes = undefined
-            if className not= "" 
-                clazzes = compiled:symbolTable:GetClassByName(className)
-            elseif variableName not= ""
-                
+            Class classFile = compiled:symbolTable:GetClassInFile(file)
+            if classFile not= undefined and className not= ""
+Class resolvedClass = classFile:GetValidUseName(className)
+            if resolvedClass not= undefined
+                    return resolvedClass
             end
-            if clazzes not= undefined and clazzes:HasNext()
-                clazz = clazzes:Next()
-                return clazz
-            else
-                clazz = compiled:symbolTable:GetClassInFile(file)
-                if clazz not= undefined
-                    return clazz
-                end
+            elseif classFile not= undefined
+                return classFile
             end
-        end
+     end
 
         if last not= undefined and last:symbolTable not= undefined
-            Class clazz = undefined
-            Iterator<Class> clazzes  = undefined
-            if className not= "" 
-                clazzes = last:symbolTable:GetClassByName(className)
+Class classFile = last:symbolTable:GetClassInFile(file)
+            if classFile not= undefined and className not= ""
+Class resolvedClass = classFile:GetValidUseName(className)
+            if resolvedClass not= undefined
+                    return resolvedClass
             end
-            if clazzes not= undefined and clazzes:HasNext()
-                clazz = clazzes:Next()
-                return clazz
-            else
-                clazz = last:symbolTable:GetClassInFile(file)
-                if clazz not= undefined
-                    return clazz
-                end
+            elseif classFile not= undefined
+                return classFile
             end
-        end
+      end
 
         return undefined
     end
@@ -253,7 +243,6 @@ private action CheckVariable(CodeCompletionRequest request, Class clazz, text na
             if variable not= undefined
                 Type type = variable:GetType()
                 SymbolTable table = request:table
-
                 if type not= undefined and not type:IsPrimitive()
                     text key = type:GetStaticKey()
                     Class varClass = table:GetClass(key)
