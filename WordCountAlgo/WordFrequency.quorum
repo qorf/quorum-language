@@ -99,7 +99,26 @@ class WordFrequency
         inFile:Close()
         return WordCountMap
     end
-
+    public action CalculateFromArray(Array<text> TextToBeClassified) returns HashTable<text,integer>
+    Iterator<text> OuterItr = TextToBeClassified:GetIterator()
+        repeat while OuterItr:HasNext()
+            text section = OuterItr:Next()
+            Array<text> Words = section:Split(" ")
+            Iterator<text> WordItr = Words:GetIterator()
+                repeat while WordItr:HasNext()
+                    text word = WordItr:Next()
+                    check
+                        integer count = WordCountMap:GetValue(word)
+                        count = count + 1
+                        WordCountMap:Set(word, count)
+                    detect e is UndefinedObjectError
+                        WordCountMap:Set(word, 1)
+                    end                     
+            
+                end
+        end
+        return WordCountMap
+    end
     // Optional: Function to remove stopwords from WordCountMap
     public action RemoveStopWords
         Array<text> keys = WordCountMap:CopyToKeyArray()
