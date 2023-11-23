@@ -22,6 +22,7 @@ class BlockSuggestionHandler
 
     QuorumLexerConstants constants
 ActionIndexSort actionSorter
+Type primitiveCheck
     
     action Request(Block block, CodeCompletionRequest request, BlockPalette palette)
         me:palette = palette
@@ -59,7 +60,9 @@ if className:Contains("<")
         Class clazz = GetBestChoiceClass(request:result, lastCompiledResult, request:fileKey, className, variableName)
         SymbolTable table = GetBestChoiceSymbolTable(request:result, lastCompiledResult)
 
-        
+        if primitiveCheck:IsPrimitive()
+            request:isPrimitiveConversion = true
+        end
 QuorumLexer luthor
         luthor:Read(source)
         TokenIterator<Libraries.Language.Compile.Parsing.Token> tokenIterator = luthor:GetIterator()
@@ -81,31 +84,42 @@ if className = "" and variableName not= ""
     end
 
     private action GetBestChoiceClass(CompilerResult last, CompilerResult compiled, text file, text className, text variableName) returns Class
-        if compiled not= undefined and compiled:symbolTable not= undefined
-            Class classFile = compiled:symbolTable:GetClassInFile(file)
+        CompilerResult best = compiled
+        if best = undefined or best:symbolTable = undefined
+            if last = undefined or last:symbolTable = undefined    
+                return undefined
+            end
+            best = last
+        end
+            Class classFile = best:symbolTable:GetClassInFile(file)
             if classFile not= undefined and className not= ""
 Class resolvedClass = classFile:GetValidUseName(className)
             if resolvedClass not= undefined
                     return resolvedClass
             end
+                // if not found but it might be in the same package
+            text newKey = ""
+            if classFile:GetPackageKey() not= ""
+                newKey = classFile:GetPackageKey()+"."+className 
+            else
+                newKey = className
+            end
+                Class samePackageClass = best:symbolTable:GetClass(newKey)
+                if samePackageClass not= undefined
+                    return samePackageClass
+                end
+                // if still not found check if it's a primitive
+                primitiveCheck:SetToObject(className)
+                Class primitiveClass = best:symbolTable:GetClass(primitiveCheck:ConvertToNonPrimitiveStaticKey())
+                if primitiveClass not= undefined
+                    return primitiveClass
+                end
                 end
             if classFile not= undefined
                 return classFile
             end
-     end
 
-        if last not= undefined and last:symbolTable not= undefined
-Class classFile = last:symbolTable:GetClassInFile(file)
-            if classFile not= undefined and className not= ""
-Class resolvedClass = classFile:GetValidUseName(className)
-            if resolvedClass not= undefined
-                    return resolvedClass
-            end
-                end
-            if classFile not= undefined
-                return classFile
-            end
-      end
+        
 
         return undefined
     end
