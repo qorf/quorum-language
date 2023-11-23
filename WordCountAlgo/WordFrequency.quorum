@@ -12,12 +12,52 @@ use Libraries.Language.Errors.UndefinedObjectError
 
 class WordFrequency
     private HashTable<text, integer> WordCountMap
+    // TODO: Populate stop words to ignore, read in file 
+    //       read in text, for each word check if it's in StopWords, if not add to map
+    //       if WordCountMap finds word in StopWords (after processing all text), RemoveKey()
+    private HashTable<text, boolean> StopWords
+
+    // constructor to initialize the list of stopwords
+    on create
+        // open stopwords file for reading
+        File stopwordsfile
+        FileReader stopwordsreader
+        stopwordsfile:SetPath("clean_stopwords-en.txt")
+        stopwordsreader:OpenForRead(stopwordsfile)
+
+        // --- check for valid stopwords file, NOTE: This causes build to take too long
+//        check
+//            stopwordsreader:OpenForRead(stopwordsfile)
+//        detect e is FileNotFoundError
+//            output e:GetErrorMessage()
+//        end
+        // ---
+        
+        // read list of stopwords
+        repeat while not stopwordsreader:IsAtEndOfFile()
+            // read contents into array
+            text sw_contents = stopwordsreader:ReadLine()
+            Array<text> words = sw_contents:Split(" ")
+            
+            integer i = 0
+            // add contents of array into hashtable
+            repeat while i < words:GetSize()
+                StopWords:Add(words:Get(i), true)
+                i = i + 1
+            end
+        end
+
+        stopwordsfile:Close()
+    end
+    
 
     public action GetFrequencyMap returns HashTable<text, integer>
         return WordCountMap
     end
 
-    public action Calculate(text fileName) returns HashTable<text, integer>
+    // TODO: take in text parameter instead of file, return hashtable
+    //       replicate function without file input, only text (i.e. tweet, article)
+    public action Calculate_from_file(text fileName) returns HashTable<text, integer>
         File inFile
         FileReader reader
         inFile:SetPath(fileName)
@@ -44,19 +84,36 @@ class WordFrequency
 
         repeat while wordItr:HasNext()
             text word = wordItr:Next()
-            check
-                integer count = WordCountMap:GetValue(word)
-                count = count + 1
-                WordCountMap:Set(word, count)
-            detect e is UndefinedObjectError
-                WordCountMap:Set(word, 1)
+            // add words that are not stopwords
+            if not StopWords:HasKey(word)
+                check
+                    integer count = WordCountMap:GetValue(word)
+                    count = count + 1
+                    WordCountMap:Set(word, count)
+                detect e is UndefinedObjectError
+                    WordCountMap:Set(word, 1)
+                end
             end
         end
 
         inFile:Close()
-
         return WordCountMap
     end
+
+    // Optional: Function to remove stopwords from WordCountMap
+    public action RemoveStopWords
+        Array<text> keys = WordCountMap:CopyToKeyArray()
+        
+        integer i = 0
+        repeat while i < keys:GetSize()
+            text word = keys:Get(i)
+            if StopWords:HasKey(word)
+                WordCountMap:RemoveKey(word)
+            end
+            i = i + 1
+        end
+    end
+
 
     public action GetTotalWords returns integer
         Iterator<text> wordMapItr = WordCountMap:GetKeyIterator()
