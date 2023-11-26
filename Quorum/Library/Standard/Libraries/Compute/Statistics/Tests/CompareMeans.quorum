@@ -1358,7 +1358,7 @@ class CompareMeans is StatisticalTest
                 integer next = start + 1
                 integer stop = current - 1
                 if designFrame:GetSelectedFactorSize() > 1
-                    AddInteractionsToDesignMatrix(designFrame, designMatrix, start, next, stop, current)
+                    AddInteractionsToDesignMatrix(designMatrix, 0, start, next, stop, current)
                 end
     
                 DataFrame dependent
@@ -3390,7 +3390,6 @@ class CompareMeans is StatisticalTest
 
     private action AddFactorsToDesignMatrix(DataFrame frame, Matrix designMatrix) returns integer 
         if designFrame:GetSelectedFactorSize() = 1
-            factorsAssociatedWithColumn:Add(0, GetInitialEncoding(factorLevels:GetSize()))
             j = 0 
             repeat while j < factorLevels:Get(0):GetSize() - 1
                 text level = factorLevels:Get(0):GetAsText(j)
@@ -3417,7 +3416,6 @@ class CompareMeans is StatisticalTest
         else
             integer current = 1
             integer reset = current
-            factorsAssociatedWithColumn:Add(0, GetInitialEncoding(factorLevels:GetSize()))
             i = 0 
             repeat while i < factorLevels:GetSize()
                 j = 0 
@@ -3452,71 +3450,32 @@ class CompareMeans is StatisticalTest
         end
     end
 
-    private action AddInteractionsToDesignMatrix(DataFrame frame, Matrix designMatrix, integer start, integer next, integer stop, integer current)
-        if current = designMatrix:GetColumns() - 1 or next > current
-            // See if next is already associated with start
-            if AlreadyAssociated(next, start)
-                // Move next and try again
-                next = next + 1
-                AddInteractionsToDesignMatrix(frame, designMatrix, start, next, stop, current)
-            else
-                // Associate next and start to current
-                AssociateFactorsOfOldColumnToNewColumn(start, next, current)
-                designMatrix:SetColumn(current, designMatrix:GetColumn(start):MultiplyElements(designMatrix:GetColumn(next)))
-                return now
-            end
+    private action AddInteractionsToDesignMatrix(Matrix designMatrix, integer reset, integer start, integer next, integer stop, integer current)
+        if current > designMatrix:GetColumns() - 1
             return now
         end
 
-        if start = stop
-            // Move stop to end and keep going
-            stop = current - 1
-            AddInteractionsToDesignMatrix(frame, designMatrix, start, next, stop, current)
-
-        elseif next = stop
-            if AlreadyAssociated(next, start)
-                // Move next and try again
-                next = next + 1
-                AddInteractionsToDesignMatrix(frame, designMatrix, start, next, stop, current)
-            else
-                // Associate next and start to current
-                AssociateFactorsOfOldColumnToNewColumn(start, next, current)
-                designMatrix:SetColumn(current, designMatrix:GetColumn(start):MultiplyElements(designMatrix:GetColumn(next)))
-                current = current + 1
-    
-                // Move start, reset next and try again
-                start = start + 1
+        if not AlreadyAssociated(next, start)
+            AssociateFactorsOfOldColumnToNewColumn(start, next, current)
+            designMatrix:SetColumn(current, designMatrix:GetColumn(start):MultiplyElements(designMatrix:GetColumn(next)))
+            current = current + 1
+        end
+        if next = stop
+            start = start + 1
+            if start = stop
+                reset = stop
+                start = 1
+                stop = current - 1
+            end
+            if reset < start
                 next = start + 1
-    
-                // Keep going
-                AddInteractionsToDesignMatrix(frame, designMatrix, start, next, stop, current)
+            else
+                next = reset + 1
             end
         else
-            // See if next is at current
-            if next = current
-                // Move start, reset next and try again
-                start = start + 1
-                next = start + 1
-    
-                // Keep going
-                AddInteractionsToDesignMatrix(frame, designMatrix, start, next, stop, current)
-            
-            // See if next is already associated with start
-            elseif AlreadyAssociated(next, start)
-                // Move next and try again
-                next = next + 1
-                AddInteractionsToDesignMatrix(frame, designMatrix, start, next, stop, current)
-            else
-                // Associate next and start to current
-                AssociateFactorsOfOldColumnToNewColumn(start, next, current)
-                designMatrix:SetColumn(current, designMatrix:GetColumn(start):MultiplyElements(designMatrix:GetColumn(next)))
-
-                // Move next and current
-                next = next + 1
-                current = current + 1
-                AddInteractionsToDesignMatrix(frame, designMatrix, start, next, stop, current)
-            end
+            next = next + 1
         end
+        AddInteractionsToDesignMatrix(designMatrix, reset, start, next, stop, current)
     end
 
     private action AlreadyAssociated(integer nextAssociation, integer currAssociation) returns boolean

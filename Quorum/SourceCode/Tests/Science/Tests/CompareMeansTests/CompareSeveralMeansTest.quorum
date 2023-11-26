@@ -36,6 +36,11 @@ class CompareSeveralMeansTest is Test
         Check(result:GetInformation():GetValue("Groups"):GetValue("partial-omega-squared"), 0.6317337170743915)
         Check(result:GetInformation():GetValue("Groups"):GetValue("generalized-omega-squared"), 0.6317337170743915)
 
+        text summary = result:GetSummary()
+        text formalsummary = result:GetFormalSummary()
+        Check(true, summary not= "")
+        Check(true, formalsummary not= "")
+
         // Welch anova (unequal variances)
         CompareMeans compare2
         compare2:AssumeEqualVariances(false)
@@ -47,5 +52,10 @@ class CompareSeveralMeansTest is Test
         Check(result2:GetInformation():GetValue("Groups"):GetValue("error df"), 10.97965657839445)
         Check(result2:GetInformation():GetValue("Groups"):GetValue("p"), 0.0015482743926348297)
         Check(result2:GetInformation():GetValue("Groups"):GetValue("omega-squared"), 0.5398096575768787)
+
+        text summary2 = result2:GetSummary()
+        text formalsummary2 = result2:GetFormalSummary()
+        Check(true, summary2 not= "")
+        Check(true, formalsummary2 not= "")
     end
 end

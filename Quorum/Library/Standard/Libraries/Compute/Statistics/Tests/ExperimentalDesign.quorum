@@ -1561,11 +1561,12 @@ class ExperimentalDesign
         matrix:SetColumn(0, 1) // intercept
 
         integer current = AddFactorsToDesignMatrix(matrix)
+        integer reset = 0
         integer start = 1
         integer next = start + 1
         integer stop = current - 1
         if betweenSubjectsFactorHeaders:GetSize() > 1
-            AddInteractionsToMatrix(start, next, stop, current, matrix, false)
+            AddInteractionsToMatrix(0, start, next, stop, current, matrix, false)
         end
         return matrix
     end
@@ -1604,7 +1605,7 @@ class ExperimentalDesign
         integer next = start + 1
         integer stop = current - 1
         if withinSubjectsFactorHeaders:GetSize() > 1
-            AddInteractionsToMatrix(start, next, stop, current, matrix, true)
+            AddInteractionsToMatrix(0, start, next, stop, current, matrix, true)
         end  
         return matrix
     end
@@ -1696,71 +1697,32 @@ class ExperimentalDesign
         return current
     end
 
-    private action AddInteractionsToMatrix(integer start, integer next, integer stop, integer current, Matrix matrix, boolean iscontrast)
-        if current = matrix:GetColumns() - 1 or next > current
-            // See if next is already associated with start
-            if AlreadyAssociated(next, start, iscontrast)
-                // Move next and try again
-                next = next + 1
-                AddInteractionsToMatrix(start, next, stop, current, matrix, iscontrast)
-            else
-                // Associate next and start to current
-                AssociateFactorsOfOldColumnToNewColumn(start, next, current, iscontrast)
-                matrix:SetColumn(current, matrix:GetColumn(start):MultiplyElements(matrix:GetColumn(next)))
-                return now
-            end
+    private action AddInteractionsToMatrix(integer reset, integer start, integer next, integer stop, integer current, Matrix matrix, boolean iscontrast)
+        if current >= matrix:GetColumns()
             return now
         end
 
-        if start = stop
-            // Move stop to end and keep going
-            stop = current - 1
-            AddInteractionsToMatrix(start, next, stop, current, matrix, iscontrast)
-
-        elseif next = stop
-            if AlreadyAssociated(next, start, iscontrast)
-                // Move next and try again
-                next = next + 1
-                AddInteractionsToMatrix(start, next, stop, current, matrix, iscontrast)
-            else
-                // Associate next and start to current
-                AssociateFactorsOfOldColumnToNewColumn(start, next, current, iscontrast)
-                matrix:SetColumn(current, matrix:GetColumn(start):MultiplyElements(matrix:GetColumn(next)))
-                current = current + 1
-    
-                // Move start, reset next and try again
-                start = start + 1
+        if not AlreadyAssociated(next, start, iscontrast)
+            AssociateFactorsOfOldColumnToNewColumn(start, next, current, iscontrast)
+            matrix:SetColumn(current, matrix:GetColumn(start):MultiplyElements(matrix:GetColumn(next)))
+            current = current + 1
+        end
+        if next = stop
+            start = start + 1
+            if start = stop
+                reset = stop
+                start = 1
+                stop = current - 1
+            end
+            if reset < start
                 next = start + 1
-    
-                // Keep going
-                AddInteractionsToMatrix(start, next, stop, current, matrix, iscontrast)
+            else
+                next = reset + 1
             end
         else
-            // See if next is at current
-            if next = current
-                // Move start, reset next and try again
-                start = start + 1
-                next = start + 1
-    
-                // Keep going
-                AddInteractionsToMatrix(start, next, stop, current, matrix, iscontrast)
-            
-            // See if next is already associated with start
-            elseif AlreadyAssociated(next, start, iscontrast)
-                // Move next and try again
-                next = next + 1
-                AddInteractionsToMatrix(start, next, stop, current, matrix, iscontrast)
-            else
-                // Associate next and start to current
-                AssociateFactorsOfOldColumnToNewColumn(start, next, current, iscontrast)
-                matrix:SetColumn(current, matrix:GetColumn(start):MultiplyElements(matrix:GetColumn(next)))
-
-                // Move next and current
-                next = next + 1
-                current = current + 1
-                AddInteractionsToMatrix(start, next, stop, current, matrix, iscontrast)
-            end
+            next = next + 1
         end
+        AddInteractionsToMatrix(reset, start, next, stop, current, matrix, iscontrast)      
     end
 
     private action AlreadyAssociated(integer nextAssociation, integer currAssociation, boolean iscontrast) returns boolean

@@ -27,5 +27,10 @@ class CompareToRankedMeanTest is Test
         Check(result:GetTestStatistic(), 2.096569673443837)
         Check(result:GetProbabilityValue(), 0.03603168621823327)
         Check(result:GetEffectSize(), 0.855920985021826)
+
+        text summary = result:GetSummary()
+        text formalsummary = result:GetFormalSummary()
+        Check(true, summary not= "")
+        Check(true, formalsummary not= "")
     end
 end

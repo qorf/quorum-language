@@ -34,5 +34,10 @@ class CompareSeveralRelatedMeansTest is Test
         Check(result:GetInformation():GetValue("Measures"):GetValue("omega-squared"), 0.6298252896117127)               // matches https://www.jasonfinley.com/tools/OmegaSquaredQuickRef_JRF_3-31-13.pdf
         Check(result:GetInformation():GetValue("Measures"):GetValue("partial-omega-squared"), 0.6298252896117127)       // matches https://www.jasonfinley.com/tools/OmegaSquaredQuickRef_JRF_3-31-13.pdf
         Check(result:GetInformation():GetValue("Measures"):GetValue("generalized-omega-squared"), 0.6298252896117127)   // matches (Olejnik 2003)
+    
+        text summary = result:GetSummary()
+        text formalsummary = result:GetFormalSummary()
+        Check(true, summary not= "")
+        Check(true, formalsummary not= "")
     end
 end

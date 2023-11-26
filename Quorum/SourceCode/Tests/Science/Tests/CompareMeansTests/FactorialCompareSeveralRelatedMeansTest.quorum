@@ -51,9 +51,9 @@ class FactorialCompareSeveralRelatedMeansTest is Test
         frame:Calculate(compare)
 
         CompareMeansResult result = compare:GetResult()
-        Check(result:GetTestStatisticsTable("factor1"):GetValue("F"), 79.07116788321136)
-        Check(result:GetTestStatisticsTable("factor2"):GetValue("F"), 8.881578947368475)
-        Check(result:GetTestStatisticsTable("factor1:factor2"):GetValue("F"), 0.3603896103896099)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("F"), 79.07116788321154)
+        Check(result:GetInformation():GetValue("factor2"):GetValue("F"), 8.881578947368368)
+        Check(result:GetInformation():GetValue("factor1:factor2"):GetValue("F"), 0.36038961038961004)
         Check(result:GetInformation():GetValue("factor1"):GetValue("df"), 3.0)
         Check(result:GetInformation():GetValue("factor1"):GetValue("error df"), 6.0)
         Check(result:GetInformation():GetValue("factor2"):GetValue("df"), 1.0)
@@ -61,7 +61,7 @@ class FactorialCompareSeveralRelatedMeansTest is Test
         Check(result:GetInformation():GetValue("factor1:factor2"):GetValue("df"), 3.0)
         Check(result:GetInformation():GetValue("factor1:factor2"):GetValue("error df"), 6.0)
         Check(result:GetInformation():GetValue("factor1"):GetValue("p"), 3.253734622998827e-5)
-        Check(result:GetInformation():GetValue("factor2"):GetValue("p"), 0.09656038171132197)
+        Check(result:GetInformation():GetValue("factor2"):GetValue("p"), 0.09656001286996996)
         Check(result:GetInformation():GetValue("factor1:factor2"):GetValue("p"), 0.7842023459003473)
 
         Check(result:GetInformation():GetValue("factor1"):GetValue("partial-eta-squared"), 0.975330317149481)
@@ -71,14 +71,6 @@ class FactorialCompareSeveralRelatedMeansTest is Test
         Check(result:GetInformation():GetValue("factor1"):GetValue("generalized-eta-squared"), 0.7394999573342436)
         Check(result:GetInformation():GetValue("factor2"):GetValue("generalized-eta-squared"), 0.11712649661634564)
         Check(result:GetInformation():GetValue("factor1:factor2"):GetValue("generalized-eta-squared"), 0.1324808184143221)
-
-//        Check(result:GetInformation():GetValue("factor1"):GetValue("partial-omega-squared"), 3.253734622998827e-5)
-//        Check(result:GetInformation():GetValue("factor2"):GetValue("partial-omega-squared"), 0.09656038171132197)
-//        Check(result:GetInformation():GetValue("factor1:factor2"):GetValue("partial-omega-squared"), 0.7842023459003473)
-//
-//        Check(result:GetInformation():GetValue("factor1"):GetValue("generalized-omega-squared"), 3.253734622998827e-5)
-//        Check(result:GetInformation():GetValue("factor2"):GetValue("generalized-omega-squared"), 0.09656038171132197)
-//        Check(result:GetInformation():GetValue("factor1:factor2"):GetValue("generalized-omega-squared"), 0.7842023459003473)
 
         text summary = result:GetSummary()
         text formalsummary = result:GetFormalSummary()
