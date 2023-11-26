@@ -1,0 +1,688 @@
+package Libraries.Compute.MatrixTransform
+
+use Libraries.Compute.Matrix
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+use Libraries.Compute.Vector
+
+/*
+    
+    This class calculates a matrix into three matrices. It is a matrix decomposition/reduction of a matrix A into 
+    a unitary matrix U, a diagonal matrix D and a complex unitary matrix V such that:
+         A = U*D*V^(T)
+
+    This was adapted from the same model in Apache Commons, but was expanded 
+    upon to simplify the library and add a variety of helper actions that were missing.
+    More information about this class can be found on its documentation page SingularValueDecomposition:
+    https://commons.apache.org/proper/commons-math/javadocs/api-3.6.1/index.html
+
+    For more information: https://en.wikipedia.org/wiki/Singular_value_decomposition
+
+    Attribute: Author Hannah Stabler
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+    use Libraries.Compute.MatrixTransform.SingularValueDecomposition
+
+    class Main
+        action Main
+            Matrix matrix
+            matrix:Fill(3, 3, 5.0)
+            SingularValueDecomposition decomp
+            decomp:Calculate(matrix)
+            output decomp:GetDiagonalMatrix():ToText()
+        end
+    end
+*/
+
+class SingularValueDecomposition
+    Math math
+    constant number TINY = 2.0e-966
+    constant number EPSILON = 2.0e-52
+
+    /* This matrix represents the original matrix */
+    Matrix original = undefined
+
+    /* This matrix represents the diagonal matrix (D) */
+    Matrix diagonal = undefined
+
+    /* This matrix represents the orthogonal matrix (U). */
+    Matrix orthogonalU = undefined
+
+    /* This matrix represents the complex orthogonal matrix (V). */
+    Matrix orthogonalV = undefined
+
+    /* This matrix represents the orthogonal matrix transposed (VT). */
+    Matrix orthogonalUTransposed = undefined
+
+    /* This matrix represents the orthogonal matrix transposed (VT). */
+    Matrix orthogonalVTransposed = undefined
+
+    /* This matrix represents the singular values. */
+    Matrix singularValues = undefined
+
+    /* This matrix represents the psuedo inverse of the matrix. */
+    Matrix pseudoInverse = undefined
+
+    /* Safe minimum, such that 1 / precisionSafeMin does not overflow. In IEEE 754 arithmetic, this is also the smallest normalized number */
+    private number precisionSafeMin = 0
+
+    /* Tolerance value for small singular values, calculated once we have populated "singularValues". */
+    private number tolerance = 0
+    
+    /* max(row dimension, column dimension). */
+    private integer m = 0
+
+    /* min(row dimension, column dimension). */
+    private integer n = 0
+
+    on create
+//        integer p = ops:ShiftLeft(1023-1022, 52)
+//        precisionSafeMin = 1.0*math:RaiseToPower(10, -p)
+        precisionSafeMin = 1.0e-1022
+    end
+
+    action Calculate(Matrix matrix)
+        original = matrix
+        diagonal = undefined
+        orthogonalU = undefined
+        orthogonalUTransposed = undefined
+        orthogonalV = undefined
+        orthogonalVTransposed = undefined
+        singularValues = undefined
+        pseudoInverse = undefined
+
+        Matrix A
+
+        boolean isTransposed = false
+        // "m" is always the largest dimension.
+        if matrix:GetRows() < matrix:GetColumns()
+            isTransposed = true
+            A = matrix:Transpose()
+            m = matrix:GetColumns()
+            n = matrix:GetRows()
+        else
+            isTransposed = false
+            A = matrix:Copy()
+            m = matrix:GetRows()
+            n = matrix:GetColumns()
+        end
+
+        Matrix sv 
+        sv:Fill(n, 1, 0)
+        singularValues = sv
+
+        Matrix U
+        U:Fill(m, n, 0)
+
+        Matrix V
+        V:Fill(n, n, 0)
+
+        Matrix e 
+        e:Fill(n, 1, 0)
+
+        Matrix work 
+        work:Fill(m, 1, 0)
+
+        // Reduce A to bidiagonal form, storing the diagonal elements
+        // in s and the super-diagonal elements in e.
+        integer nct = cast(integer, math:MinimumOf(m - 1, n))
+        integer nrt = cast(integer, math:MaximumOf(0, n - 2))
+        integer max = cast(integer, math:MaximumOf(nct, nrt))
+        k = 0
+        repeat while k < max
+            if k < nct
+                // Compute the transformation for the k-th column and
+                // place the k-th diagonal in s[k].
+                // Compute 2-norm of k-th column without under/overflow.
+                singularValues:Set(k, 0, 0) 
+                i = k
+                repeat while i < m
+                    singularValues:Set(k,0, GetHypotenuse(singularValues:Get(k, 0), A:Get(i, k)))
+                    i = i + 1
+                end
+                if singularValues:Get(k, 0) not= 0
+                    if A:Get(k, k) < 0
+                        singularValues:Set(k, 0, -singularValues:Get(k, 0))
+                    end
+                    i = k
+                    repeat while i < m
+                        A:Set(i, k, A:Get(i, k) / singularValues:Get(k, 0))
+                        i = i + 1
+                    end
+                    A:Set(k, k, A:Get(k, k) + 1)
+                end
+                singularValues:Set(k, 0, -singularValues:Get(k, 0))
+            end
+            j = k + 1
+            repeat while j < n
+                if k < nct and singularValues:Get(k, 0) not= 0
+                    // Apply the transformation.
+                    number t = 0
+                    i = k
+                    repeat while i < m
+                        t = t + A:Get(i, k) * A:Get(i, j)
+                        i = i + 1
+                    end
+                    t = -t / A:Get(k, k)
+                    i = k
+                    repeat while i < m
+                        A:Set(i, j, A:Get(i, j) + t * A:Get(i, k))
+                        i = i + 1
+                    end
+                end
+                // Place the k-th row of A into e for the
+                // subsequent calculation of the row transformation.
+                e:Set(j,0, A:Get(k, j))                
+                j = j + 1
+            end
+            if k < nct
+                // Place the transformation in U for subsequent back
+                // multiplication.
+                i = k
+                repeat while i < m
+                    U:Set(i, k, A:Get(i, k))
+                    i = i + 1
+                end
+            end
+            if k < nrt
+                // Compute the k-th row transformation and place the
+                // k-th super-diagonal in e[k].
+                // Compute 2-norm without under/overflow.
+                e:Set(k, 0, 0)
+                i = k + 1
+                repeat while i < n
+                    e:Set(k, 0, GetHypotenuse(e:Get(k, 0), e:Get(i, 0)))
+                    i = i + 1
+                end
+                if e:Get(k, 0) not= 0
+                    if e:Get(k+1, 0) < 0
+                        e:Set(k, 0, -e:Get(k, 0))
+                    end
+                    i = k + 1
+                    repeat while i < n
+                        e:Set(i, 0, e:Get(i, 0) / e:Get(k, 0))
+                        i = i + 1
+                    end
+                    e:Set(k+1, 0, e:Get(k+1, 0) + 1)
+                end
+                e:Set(k, 0, -e:Get(k, 0))
+                if k + 1 < m and e:Get(k, 0) not= 0
+                    // Apply the transformation.
+                    i = k + 1
+                    repeat while i < m
+                        work:Set(i, 0, 0)
+                        i = i + 1
+                    end
+                    j = k + 1
+                    repeat while j < n
+                        i = k + 1
+                        repeat while i < m
+                            work:Set(i, 0, work:Get(i, 0) + e:Get(j, 0) * A:Get(i,j))
+                            i = i + 1
+                        end
+                        j = j + 1
+                    end
+                    j = k + 1
+                    repeat while j < n
+                        number t = -e:Get(j, 0) / e:Get(k+1, 0)
+                        i = k + 1
+                        repeat while i < m
+                            A:Set(i, j, A:Get(i, j) + t * work:Get(i, 0))
+                            i = i + 1
+                        end
+                        j = j + 1
+                    end
+                end
+                // Place the transformation in V for subsequent
+                // back multiplication.
+                i = k + 1
+                repeat while i < n
+                    V:Set(i, k, e:Get(i, 0))
+                    i = i + 1
+                end             
+            end
+            k = k + 1
+        end
+        // Set up the final bidiagonal matrix or order p.
+        integer p = n
+        if nct < n
+            singularValues:Set(nct, 0, A:Get(nct, nct))
+        end
+        if m < p
+            singularValues:Set(p-1, 0, 0)
+        end
+        if (nrt + 1) < p
+            e:Set(nrt, 0, A:Get(nrt,p-1))
+        end
+        e:Set(p-1, 0, 0)  
+
+        // Generate U.
+        j = nct
+        repeat while j < n
+            i = 0
+            repeat while i < m
+                U:Set(i, j, 0)
+                i = i + 1
+            end
+            U:Set(j, j, 1)
+            j = j + 1
+        end
+        k = nct - 1
+        repeat while k >= 0
+            if singularValues:Get(k, 0) not= 0
+                j = k + 1
+                repeat while j < n
+                    number t = 0
+                    i = k
+                    repeat while i < m
+                        t = t + U:Get(i, k) * U:Get(i, j)
+                        i = i + 1
+                    end
+                    t = -t / U:Get(k, k)  
+                    i = k
+                    repeat while i < m
+                        U:Set(i, j, U:Get(i, j) + t * U:Get(i, k))
+                        i = i + 1
+                    end
+                    j = j + 1
+                end
+                i = k
+                repeat while i < m
+                    U:Set(i, k, -U:Get(i, k))
+                    i = i + 1
+                end
+                U:Set(k, k, 1 + U:Get(k, k))
+                i = 0
+                repeat while i < k - 1
+                    U:Set(i, k, 0)
+                    i = i + 1
+                end
+            else
+                i = 0
+                repeat while i < m
+                    U:Set(i, k, 0)
+                    i = i + 1
+                end
+                U:Set(k, k, 1)
+            end
+            k = k - 1
+        end
+
+        // Generate V.
+        k = n - 1
+        repeat while k >= 0
+            if k < nrt and e:Get(k, 0) not= 0
+                j = k + 1
+                repeat while j < n
+                    number t = 0
+                    i = k + 1
+                    repeat while i < n
+                        t = t + V:Get(i, k) * V:Get(i, j)
+                        i = i + 1
+                    end
+                    t = -t / V:Get(k+1, k)
+                    i = k + 1
+                    repeat while i < n
+                        V:Set(i, j, V:Get(i, j) + t * V:Get(i, k))
+                        i = i + 1
+                    end
+                    j = j + 1
+                end
+            end
+            i = 0
+            repeat while i < n
+                V:Set(i, k, 0)
+                i = i + 1
+            end
+            V:Set(k, k, 1)
+            k = k - 1
+        end 
+
+        // Main iteration loop for the singular values.
+        integer pp = p - 1
+        repeat while p > 0
+            k = 0
+            kase = 0
+            // Here is where a test for too many iterations would go.
+            // This section of the program inspects for
+            // negligible elements in the s and e arrays.  On
+            // completion the variables kase and k are set as follows.
+            // kase = 1     if s(p) and e[k-1] are negligible and k<p
+            // kase = 2     if s(k) is negligible and k<p
+            // kase = 3     if e[k-1] is negligible, k<p, and
+            //              s(k), ..., s(p) are not negligible (qr step).
+            // kase = 4     if e(p-1) is negligible (convergence).
+            boolean break = false
+            k = p - 2
+            repeat while k >= 0 and not break
+                number threshold = TINY + EPSILON * (math:AbsoluteValue(singularValues:Get(k, 0)) + math:AbsoluteValue(singularValues:Get(k+1, 0)))
+
+                // the following condition is written this way in order
+                // to break out of the loop when NaN occurs, writing it
+                // as "if (FastMath.abs(e[k]) <= threshold)" would loop
+                // indefinitely in case of NaNs because comparison on NaNs
+                // always return false, regardless of what is checked
+                // see issue MATH-947
+                if not (math:AbsoluteValue(e:Get(k,0)) > threshold)
+                    e:Set(k, 0, 0)
+                    break = true
+                end
+
+                if not break
+                    k = k - 1
+                end
+            end
+
+            if k = p - 2
+                kase = 4
+            else 
+                break = false
+                ks = p - 1
+                repeat while ks >= k and not break
+                    if ks = k
+                        break = true
+                    end
+                    if not break
+                        number t = 0
+                        if ks not= p 
+                            t = math:AbsoluteValue(e:Get(ks, 0))
+                        end
+                        if ks not= k+1
+                            t = t + math:AbsoluteValue(e:Get(ks-1, 0))
+                        end
+
+                        if math:AbsoluteValue(singularValues:Get(ks,0)) <= (TINY + EPSILON * t)
+                            singularValues:Set(ks, 0, 0)
+                            break = true
+                        end
+                    end
+                    if not break
+                        ks = ks - 1
+                    end
+                end
+
+                if ks = k
+                    kase = 3
+                elseif ks = p - 1
+                    kase = 1
+                else
+                    kase = 2
+                    k = ks
+                end             
+            end
+            k = k + 1
+
+            // Perform the task indicated by kase.
+            if kase = 1
+                // Deflate negligible s(p).   
+                number f = e:Get(p-2,0)
+                e:Set(p-2,0, 0)
+                j = p-2
+                repeat while j >= k
+                    number t = GetHypotenuse(singularValues:Get(j, 0), f)
+                    number cs = singularValues:Get(j,0) / t
+                    number sn = f / t
+                    singularValues:Set(j,0, t)
+                    if j not= k
+                        f = -sn * e:Get(j-1,0)
+                        e:Set(j-1,0, cs * e:Get(j-1,0))
+                    end
+                    i = 0
+                    repeat while i < n
+                        t = cs * V:Get(i,j) + sn * V:Get(i,p-1)
+                        V:Set(i,p-1, -sn * V:Get(i,j) + cs * V:Get(i,p-1))
+                        V:Set(i, j, t)
+                        i = i + 1
+                    end
+                    j = j - 1
+                end
+            elseif kase = 2
+                // Split at negligible s(k).
+                number f = e:Get(k-1,0)
+                e:Set(k-1,0, 0)
+                j = k
+                repeat while j < p
+                    number t = GetHypotenuse(singularValues:Get(j, 0), f)
+                    number cs = singularValues:Get(j,0) / t
+                    number sn = f / t
+                    singularValues:Set(j,0, t)
+                    f = -sn * e:Get(j,0)
+                    e:Set(j, 0, cs * e:Get(j,0))
+                    i = 0
+                    repeat while i < m
+                        t = cs * U:Get(i,j) + sn * U:Get(i,k-1)
+                        U:Set(i,k-1, -sn * U:Get(i,j) + cs * U:Get(i,k-1))
+                        U:Set(i, j, t)
+                        i = i + 1
+                    end
+                    j = j + 1
+                end
+            elseif kase = 3
+                // Perform one qr step.
+                // Calculate the shift.
+                number maxPm1Pm2 = math:MaximumOf(math:AbsoluteValue(singularValues:Get(p-1,0)), math:AbsoluteValue(singularValues:Get(p-2,0)))
+                number scale = math:MaximumOf(maxPm1Pm2, math:AbsoluteValue(e:Get(p-2,0)))
+                scale = math:MaximumOf(scale, math:AbsoluteValue(singularValues:Get(k,0)))
+                scale = math:MaximumOf(scale, math:AbsoluteValue(e:Get(k,0)))
+                number sp = singularValues:Get(p-1,0) / scale
+                number spm1 = singularValues:Get(p-2,0) / scale
+                number epm1 = e:Get(p-2,0) / scale
+                number sk = singularValues:Get(k,0) / scale
+                number ek = e:Get(k,0) / scale
+                number b = ((spm1 + sp) * (spm1 - sp) + epm1 * epm1) / 2.0
+                number c = (sp * epm1) * (sp * epm1)
+                number shift = 0
+                if b not= 0 or c not= 0
+                    shift = math:SquareRoot(b*b + c)
+                    if b < 0
+                        shift = -shift
+                    end
+                    shift = c / (b + shift)
+                end
+                number f = (sk + sp) * (sk - sp) + shift
+                number g = sk * ek
+                // Chase zeros.
+                j = k
+                repeat while j < p-1
+                    number t = GetHypotenuse(f, g)
+                    number cs = f / t
+                    number sn = g / t
+                    if j not= k
+                        e:Set(j-1, 0, t)
+                    end
+                    f = cs * singularValues:Get(j,0) + sn * e:Get(j,0)
+                    e:Set(j,0, cs * e:Get(j,0) - sn * singularValues:Get(j,0))
+                    g = sn * singularValues:Get(j+1,0)
+                    singularValues:Set(j+1,0, cs * singularValues:Get(j+1,0))
+                    i = 0
+                    repeat while i < n
+                        t = cs * V:Get(i,j) + sn * V:Get(i,j+1)
+                        V:Set(i,j+1, -sn * V:Get(i,j) + cs * V:Get(i,j+1))
+                        V:Set(i, j, t)
+                        i = i + 1
+                    end
+                    t = GetHypotenuse(f, g)
+                    cs = f / t
+                    sn = g / t
+                    singularValues:Set(j,0, t)
+                    f = cs * e:Get(j,0) + sn * singularValues:Get(j+1,0)
+                    singularValues:Set(j+1,0, -sn * e:Get(j,0) + cs * singularValues:Get(j+1,0))
+                    g = sn * e:Get(j+1,0)
+                    e:Set(j+1,0, cs * e:Get(j+1,0))
+                    if j < m - 1
+                        i = 0
+                        repeat while i < m
+                            t = cs * U:Get(i,j) + sn * U:Get(i,j+1)
+                            U:Set(i,j+1, -sn * U:Get(i,j) + cs * U:Get(i,j+1))
+                            U:Set(i, j, t)
+                            i = i + 1
+                        end
+                    end
+                    j = j + 1
+                end
+                e:Set(p-2, 0, f)
+            else //default
+                // Convergence.
+                // Make the singular values positive.
+                if singularValues:Get(k,0) <= 0
+                    if singularValues:Get(k,0) < 0
+                        singularValues:Set(k,0, - singularValues:Get(k,0))
+                    else
+                        singularValues:Set(k,0, 0)
+                    end
+                    i = 0
+                    repeat while i <= pp
+                        V:Set(i,k, -V:Get(i,k))
+                        i = i + 1
+                    end
+                end
+                // Order the singular values.
+                break = false
+                repeat while k < pp and not break
+                    if singularValues:Get(k,0) >= singularValues:Get(k+1,0)
+                        break = true
+                    end
+                    if not break 
+                        number t = singularValues:Get(k,0)
+                        singularValues:Set(k,0,singularValues:Get(k+1,0))
+                        singularValues:Set(k+1,0, t)
+                        if k < n - 1
+                            i = 0
+                            repeat while i < n
+                                t = V:Get(i,k+1)
+                                V:Set(i,k+1, V:Get(i,k))
+                                V:Set(i,k, t)
+                                i = i + 1
+                            end
+                        end
+                        if k < m - 1
+                            i = 0
+                            repeat while i < m
+                                t = U:Get(i,k+1)
+                                U:Set(i,k+1, U:Get(i,k))
+                                U:Set(i,k, t)
+                                i = i + 1
+                            end
+                        end
+                        k = k + 1
+                    end
+                end
+                p = p - 1
+            end                   
+        end
+
+        // Set the small value tolerance used to calculate rank and pseudo-inverse
+        tolerance = math:MaximumOf(m * singularValues:Get(0,0) * EPSILON, math:SquareRoot(precisionSafeMin))
+
+        if not isTransposed
+            orthogonalU = U
+            orthogonalV = V
+        else
+            orthogonalU = V
+            orthogonalV = U
+        end
+    end
+
+    action GetOriginalMatrix returns Matrix
+        return original
+    end
+
+    action GetDiagonalMatrix returns Matrix
+        if diagonal = undefined and singularValues not= undefined
+            Matrix d
+            d:Fill(singularValues:GetRows(), singularValues:GetRows(), 0)
+            i = 0
+            repeat while i < singularValues:GetRows()
+                d:Set(i,i, singularValues:Get(i,0))
+                i = i + 1
+            end
+            diagonal = d
+        end
+        return diagonal
+    end
+
+    action GetFirstOrthogonalMatrix returns Matrix
+        return orthogonalU
+    end
+
+    action GetFirstOrthogonalTransposedMatrix returns Matrix
+        if orthogonalUTransposed = undefined and orthogonalU not= undefined
+            orthogonalUTransposed = orthogonalU:Transpose()
+        end
+        return orthogonalUTransposed
+    end
+
+    action GetSecondOrthogonalMatrix returns Matrix
+        return orthogonalV
+    end
+
+    action GetSecondOrthogonalTransposedMatrix returns Matrix
+        if orthogonalVTransposed = undefined and orthogonalV not= undefined
+            orthogonalVTransposed = orthogonalV:Transpose()
+        end
+        return orthogonalVTransposed
+    end
+
+    action GetRank returns integer
+        integer r = 0
+        i = 0
+        repeat while i < singularValues:GetRows()
+            if singularValues:Get(i, 0) > tolerance
+                r = r + 1
+            end
+            i = i + 1
+        end
+        return r
+    end
+
+    private action GetHypotenuse(number x, number y) returns number
+        if x:IsInfinite() or y:IsInfinite()
+            return x:GetPositiveInfinityValue()
+        end
+        if x:IsNotANumber() or y:IsNotANumber()
+            return x:GetNotANumberValue()
+        end
+
+        number abs1 = math:AbsoluteValue(x)
+        number abs2 = math:AbsoluteValue(y)
+
+        number retVal = 0.0
+        if (abs1 > abs2)
+            number h = abs2 / abs1
+            retVal = abs1 * math:SquareRoot(1 + h*h)
+        elseif (abs2 > 0.0)
+            number h = abs1 / abs2
+            retVal = abs2 * math:SquareRoot(1 + h*h)
+        end
+        return retVal
+    end
+
+    action Solve(Matrix matrix) returns Matrix
+        return GetInverse():Multiply(matrix)
+    end
+
+    /* This action calls solve using the identity matrix as a parameter, with the size given by the transpose. */
+    action GetInverse returns Matrix
+        if pseudoInverse = undefined and singularValues not= undefined
+            Matrix suT = GetFirstOrthogonalTransposedMatrix():Copy()
+            i = 0
+            repeat while i < singularValues:GetRows()
+                number a = 0
+                if singularValues:Get(i,0) > tolerance
+                    a = 1.0 / singularValues:Get(i,0)
+                else
+                    a = 0
+                end
+                j = 0
+                repeat while j < suT:GetColumns()
+                    suT:Set(i,j, suT:Get(i,j) * a)
+                    j = j + 1
+                end
+                i = i + 1
+            end     
+            pseudoInverse = GetSecondOrthogonalMatrix():Multiply(suT)
+        end
+        return pseudoInverse
+    end
+end

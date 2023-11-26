@@ -28,5 +28,10 @@ class CompareTwoRelatedRankedMeansTest is Test
         Check(result:GetTestStatistic(), 1.7153800557404717)
         Check(result:GetProbabilityValue(), 0.08627556958252947)
         Check(result:GetEffectSize(), 0.7003009752518536)
+
+        text summary = result:GetSummary()
+        text formalsummary = result:GetFormalSummary()
+        Check(true, summary not= "")
+        Check(true, formalsummary not= "")
     end
 end

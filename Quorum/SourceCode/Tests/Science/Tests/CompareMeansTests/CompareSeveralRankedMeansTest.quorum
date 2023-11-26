@@ -28,5 +28,10 @@ class CompareSeveralRankedMeansTest is Test
         Check(result:GetDegreesOfFreedom(), 3.0)
         Check(result:GetProbabilityValue(), 0.0024438841517434584)
         Check(result:GetEffectSize(), 0.6247274313126909)
+
+        text summary = result:GetSummary()
+        text formalsummary = result:GetFormalSummary()
+        Check(true, summary not= "")
+        Check(true, formalsummary not= "")
     end
 end

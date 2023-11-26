@@ -28,5 +28,10 @@ class CompareToMeanTest is Test
         Check(result:GetInformation():GetValue(result:GetGroupsFrame():GetColumn(0):GetHeader()):GetValue("mean"), 6.0)
         Check(result:GetProbabilityValue(), 0.03901915828494069)
         Check(result:GetEffectSize(), 1.1338934190276817)
+
+        text summary = result:GetSummary()
+        text formalsummary = result:GetFormalSummary()
+        Check(true, summary not= "")
+        Check(true, formalsummary not= "")
     end
 end

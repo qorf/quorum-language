@@ -33,13 +33,33 @@ class MultivariateCompareSeveralMeansTest is Test
         frame:Calculate(compare)
         
         CompareMeansResult result = compare:GetResult()
-        text stat = "Wilks Lambda"
-        Check(result:GetDegreesOfFreedomTable():GetValue("factor1"):GetValue("factor1"), 1.0)
-        Check(result:GetTestStatisticsTable():GetValue("factor1"):GetValue(stat), 0.0467435942460233)
-        Check(result:GetTestStatisticsTable():GetValue("factor1"+stat):GetValueIterator():Next(), 20.39330567385872)
-        Check(result:GetDegreesOfFreedomTable():GetValue("factor1"+stat):GetValue("numerator"), 4.0)
-        Check(result:GetDegreesOfFreedomTable():GetValue("factor1"+stat):GetValue("denominator"), 4.0)
-        Check(result:GetProbabilityValuesTable():GetValue("factor1"+stat):GetValueIterator():Next(), 0.006350624704905217)
-        Check(result:GetEffectSizesTable():GetValue("factor1"+stat):GetValue("partial-eta-squared"), 0.9532564057539767)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("df"), 1.0)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("error df"), 7.0)
+
+        Check(result:GetInformation():GetValue("factor1"):GetValue("wilks"), 0.046743594246026525)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("wilks f"), 20.393305673857242)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("wilks dfn"), 4.0)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("wilks dfd"), 4.0)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("wilks p"), 0.006350624704906105)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("wilks pes"), 0.9532564057539735)
+
+        Check(result:GetInformation():GetValue("factor1"):GetValue("pillai"), 0.9532564057539743)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("pillai f"), 20.393305673857622)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("pillai dfn"), 4.0)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("pillai dfd"), 4.0)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("pillai p"), 0.006350624704905883)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("pillai pes"), 0.9532564057539743)
+
+        Check(result:GetInformation():GetValue("factor1"):GetValue("hotelling"), 20.393305673857228)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("hotelling f"), 20.393305673857228)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("hotelling dfn"), 4.0)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("hotelling dfd"), 4.0)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("hotelling p"), 0.006350624704906105)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("hotelling pes"), 0.9532564057539734)
+
+        text summary = result:GetSummary()
+        text formalsummary = result:GetFormalSummary()
+        Check(true, summary not= "")
+        Check(true, formalsummary not= "")
     end
 end
