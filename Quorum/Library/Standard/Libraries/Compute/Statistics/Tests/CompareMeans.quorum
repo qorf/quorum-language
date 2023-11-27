@@ -3456,9 +3456,22 @@ class CompareMeans is StatisticalTest
         end
 
         if not AlreadyAssociated(next, start)
-            AssociateFactorsOfOldColumnToNewColumn(start, next, current)
-            designMatrix:SetColumn(current, designMatrix:GetColumn(start):MultiplyElements(designMatrix:GetColumn(next)))
-            current = current + 1
+            // Check previous associations too
+            boolean previouslyAssociated = false
+            if start > 1 and reset >= start
+                i = start
+                repeat while i >= 1
+                    if AlreadyAssociated(next, i)
+                        previouslyAssociated = true
+                    end
+                    i = i - 1
+                end
+            end
+            if not previouslyAssociated
+                AssociateFactorsOfOldColumnToNewColumn(start, next, current)
+                designMatrix:SetColumn(current, designMatrix:GetColumn(start):MultiplyElements(designMatrix:GetColumn(next)))
+                current = current + 1
+            end
         end
         if next = stop
             start = start + 1
