@@ -41,21 +41,6 @@ class Matrix
     private DataFrame table
     Math math
 
-    private action CheckReference(integer row, integer column)
-        if column < 0
-            alert("The column index must be a positive number. It is currently " + column)
-        end
-        if row < 0
-            alert("The row index must be a positive number. It is currently " + row)
-        end
-        if  column >= GetColumns()
-            alert("I cannot reference column " + column + " the maximum column index is " + (GetColumns()-1) + ".")
-        end
-        if  row >= GetRows()
-            alert("I cannot reference row " + row + " the maximum row index is " + (GetRows()-1) + ".")
-        end
-    end
-
     private action CheckSameDimensions(Matrix matrix)
         if matrix:GetRows() not= GetRows()
             alert("Matrix dimensions must match. There are " + matrix:GetRows() + " rows in the value matrix compared to " + GetRows())
@@ -86,7 +71,6 @@ class Matrix
     end
     */
     action Get(integer row, integer column) returns number
-        CheckReference(row, column)
         DataFrameColumn col = table:GetColumn(column)
         return col:GetAsNumber(row)
     end
@@ -113,7 +97,6 @@ class Matrix
     end
     */
     action Set(integer row, integer column, number value)
-        CheckReference(row, column)
         DataFrameColumn col = table:GetColumn(column)
         col:SetAsNumber(row, value)
     end
