@@ -100,6 +100,7 @@ class ExperimentalDesign
     private HashTable<text, text> dependentVariableHeadersWide
     private HashTable<text, text> betweenSubjectsFactorHeadersWide
     private HashTable<text, text> withinSubjectsFactorHeadersWide
+    private HashTable<text, text> variableHeaderForWideFactor   // Holds what the DV should be named if created from wide format
 
     // Design matrix 
     private Matrix designMatrix = undefined
@@ -203,6 +204,7 @@ class ExperimentalDesign
         betweenSubjectsControlFactorHeaders:Empty()     
         withinSubjectsControlVariableHeaders:Empty()     
         withinSubjectsControlFactorHeaders:Empty()  
+        variableHeaderForWideFactor:Empty()
         factorIndex:Empty()
         factorLevels:Empty()
         columnsAssociatedWithFactor:Empty()
@@ -265,13 +267,21 @@ class ExperimentalDesign
             keys = betweenSubjectsFactorHeadersWide:CopyToKeyArray()
             i = 0
             repeat while i < keys:GetSize()
-                copy:AddBetweenSubjectsFactor(keys:Get(i), betweenSubjectsFactorHeadersWide:GetValue(keys:Get(i)))
+                if variableHeaderForWideFactor:HasKey(keys:Get(i))
+                    copy:AddBetweenSubjectsFactor(keys:Get(i), variableHeaderForWideFactor:GetValue(keys:Get(i)), betweenSubjectsFactorHeadersWide:GetValue(keys:Get(i)))
+                else
+                    copy:AddBetweenSubjectsFactor(keys:Get(i), betweenSubjectsFactorHeadersWide:GetValue(keys:Get(i)))
+                end
                 i = i + 1
             end
             keys = withinSubjectsFactorHeadersWide:CopyToKeyArray()
             i = 0
             repeat while i < keys:GetSize()
-                copy:AddWithinSubjectsFactor(keys:Get(i), withinSubjectsFactorHeadersWide:GetValue(keys:Get(i)))
+                if variableHeaderForWideFactor:HasKey(keys:Get(i))
+                    copy:AddWithinSubjectsFactor(keys:Get(i), variableHeaderForWideFactor:GetValue(keys:Get(i)), withinSubjectsFactorHeadersWide:GetValue(keys:Get(i)))
+                else
+                    copy:AddWithinSubjectsFactor(keys:Get(i), withinSubjectsFactorHeadersWide:GetValue(keys:Get(i)))
+                end
                 i = i + 1
             end
         else
@@ -1050,7 +1060,7 @@ class ExperimentalDesign
     action AddBetweenSubjectsFactor(text factorHeader, text variableHeader, text columnHeaders)
         if not betweenSubjectsFactorHeadersWide:HasKey(factorHeader)
             betweenSubjectsFactorHeadersWide:Add(factorHeader, columnHeaders)
-            dependentVariableHeadersWide:Add(variableHeader, columnHeaders)
+            variableHeaderForWideFactor:Add(factorHeader, variableHeader)
         else
             if not dependentVariableHeadersWide:HasKey(variableHeader)
                 dependentVariableHeadersWide:Add(variableHeader, columnHeaders)
@@ -1086,7 +1096,7 @@ class ExperimentalDesign
     action AddBetweenSubjectsFactor(text factorHeader, text columnHeaders)
         if not betweenSubjectsFactorHeadersWide:HasKey(factorHeader)
             betweenSubjectsFactorHeadersWide:Add(factorHeader, columnHeaders)
-            dependentVariableHeadersWide:Add(factorHeader+"_value", columnHeaders)
+            variableHeaderForWideFactor:Add(factorHeader, factorHeader+"_value")
         else
             alert("A between subjects factor called "+factorHeader+" has already been specified.")
         end
@@ -1120,7 +1130,7 @@ class ExperimentalDesign
     action AddWithinSubjectsFactor(text factorHeader, text variableHeader, text columnHeaders)
         if not withinSubjectsFactorHeadersWide:HasKey(factorHeader)
             withinSubjectsFactorHeadersWide:Add(factorHeader, columnHeaders)
-            dependentVariableHeadersWide:Add(variableHeader, columnHeaders)
+            variableHeaderForWideFactor:Add(factorHeader, variableHeader)
         else
             if not dependentVariableHeadersWide:HasKey(variableHeader)
                 dependentVariableHeadersWide:Add(variableHeader, columnHeaders)
@@ -1156,7 +1166,7 @@ class ExperimentalDesign
     action AddWithinSubjectsFactor(text factorHeader, text columnHeaders)
         if not withinSubjectsFactorHeadersWide:HasKey(factorHeader)
             withinSubjectsFactorHeadersWide:Add(factorHeader, columnHeaders)
-            dependentVariableHeadersWide:Add(factorHeader+"_value", columnHeaders)
+            variableHeaderForWideFactor:Add(factorHeader, factorHeader+"_values")
         else
             alert("A within subjects factor called "+factorHeader+" has already been specified.")
         end
@@ -1169,7 +1179,7 @@ class ExperimentalDesign
         if not dependentVariableHeadersWide:HasKey(variableHeader)
             dependentVariableHeadersWide:Add(variableHeader, columnHeaders)
         else
-            alert("A dependent variable factor called "+variableHeader+" has already been specified.")
+            alert("A dependent variable called "+variableHeader+" has already been specified.")
         end
     end
 
@@ -1222,8 +1232,12 @@ class ExperimentalDesign
             DataFrame factorFrame = tempFrame:Copy()
             factorFrame:AddSelectedColumns(betweenSubjectsFactorHeadersWide:GetValue(betweenFactor))
 
-            longFrame = factorFrame:Transform(lengthen)   
-            longFrame:GetColumn("Names"):SetHeader(betweenFactor)   
+            lengthen:SetNamesHeader(betweenFactor)
+            if variableHeaderForWideFactor:HasKey(betweenFactor)
+                lengthen:SetValuesHeader(variableHeaderForWideFactor:GetValue(betweenFactor))
+                dependentVariableHeaders:Add(variableHeaderForWideFactor:GetValue(betweenFactor))
+            end
+            longFrame = factorFrame:Transform(lengthen)    
             j = 0
             repeat while j < betweenSubjectsFactorHeaders:GetSize()
                 longFrame:AddSelectedFactors(betweenSubjectsFactorHeaders:Get(j))
@@ -1248,17 +1262,15 @@ class ExperimentalDesign
             betweenSubjectsFactorHeaders:Add(betweenFactor) 
 
             // Lengthen Dependent Variables
-            dependentVariableHeaders:Empty()
             Array<text> variables = dependentVariableHeadersWide:CopyToKeyArray()
             i = 0
             repeat while i < variables:GetSize()
                 factorFrame = tempFrame:Copy()
                 factorFrame:AddSelectedColumns(dependentVariableHeadersWide:GetValue(variables:Get(i)))
+                lengthen:SetValuesHeader(variables:Get(i))
 
                 DataFrame longFactorFrame = factorFrame:Transform(lengthen)   
-                longFactorFrame:GetColumn("Values"):SetHeader(variables:Get(i))  
-                longFrame:AddColumn(longFactorFrame:GetColumn(variables:Get(i)))
-                longFrame:AddSelectedColumns(variables:Get(i))      
+                longFrame:AddColumn(longFactorFrame:GetColumn(variables:Get(i)))     
                 dependentVariableHeaders:Add(variables:Get(i)) 
                 i = i + 1
             end
@@ -1297,8 +1309,12 @@ class ExperimentalDesign
             DataFrame factorFrame = tempFrame:Copy()
             factorFrame:AddSelectedColumns(withinSubjectsFactorHeadersWide:GetValue(withinFactor))
 
-            longFrame = factorFrame:Transform(lengthen)   
-            longFrame:GetColumn("Names"):SetHeader(withinFactor)   
+            lengthen:SetNamesHeader(withinFactor)
+            if variableHeaderForWideFactor:HasKey(withinFactor)
+                lengthen:SetValuesHeader(variableHeaderForWideFactor:GetValue(withinFactor))
+                dependentVariableHeaders:Add(variableHeaderForWideFactor:GetValue(withinFactor))
+            end
+            longFrame = factorFrame:Transform(lengthen)    
             longFrame:AddSelectedFactors(withinFactor) 
             longFrame:AddSelectedFactors(subjectIdentifierHeader)
             j = 0
@@ -1309,17 +1325,15 @@ class ExperimentalDesign
             withinSubjectsFactorHeaders:Add(withinFactor) 
 
             // Lengthen Dependent Variables
-            dependentVariableHeaders:Empty()
             Array<text> variables = dependentVariableHeadersWide:CopyToKeyArray()
             i = 0
             repeat while i < variables:GetSize()
                 factorFrame = tempFrame:Copy()
                 factorFrame:AddSelectedColumns(dependentVariableHeadersWide:GetValue(variables:Get(i)))
+                lengthen:SetValuesHeader(variables:Get(i))
 
                 DataFrame longFactorFrame = factorFrame:Transform(lengthen)   
-                longFactorFrame:GetColumn("Values"):SetHeader(variables:Get(i))  
-                longFrame:AddColumn(longFactorFrame:GetColumn(variables:Get(i)))
-                longFrame:AddSelectedColumns(variables:Get(i))      
+                longFrame:AddColumn(longFactorFrame:GetColumn(variables:Get(i)))     
                 dependentVariableHeaders:Add(variables:Get(i)) 
                 i = i + 1
             end
