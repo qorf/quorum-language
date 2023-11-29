@@ -44,5 +44,10 @@ class MultivariateCompareVariancesTest is Test
         Check(result:GetDegreesOfFreedomTable():GetValue(source+"F"):GetValue("denominator"), 733.4276527331162)
         Check(result:GetProbabilityValuesTable():GetValue(source+"F"):GetValue(source+"F"), 0.07508343379357563)
         Check(result:GetProbabilityValuesTable():GetValue(source+"χ2"):GetValue(source+"χ2"), 0.06524842705931633)
+
+        text summary = result:GetSummary()
+        text formalsummary = result:GetFormalSummary()
+        Check(true, summary not= "")
+        Check(true, formalsummary not= "")
     end
 end

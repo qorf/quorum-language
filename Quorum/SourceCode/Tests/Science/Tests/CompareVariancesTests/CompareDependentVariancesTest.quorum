@@ -35,5 +35,10 @@ class CompareDependentVariancesTest is Test
         Check(pval, 0.005074294006272859)
         Check(gg, 0.4723101080615549)
         Check(hf, 0.604842824109892)
+
+        text summary = result:GetSummary()
+        text formalsummary = result:GetFormalSummary()
+        Check(true, summary not= "")
+        Check(true, formalsummary not= "")
     end
 end

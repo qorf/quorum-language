@@ -30,6 +30,10 @@ class CompareIndependentVariancesTest is Test
         Check(result:GetDegreesOfFreedomTable():GetValue(result:GetSources():Get(0)):GetValue("denominator"), 20.0)
         Check(result:GetProbabilityValue(), 0.30972657586910013)
 
+        text summary = result:GetSummary()
+        text formalsummary = result:GetFormalSummary()
+        Check(true, summary not= "")
+        Check(true, formalsummary not= "")
 
         // Mean as center
         CompareVariances compare2
@@ -41,5 +45,10 @@ class CompareIndependentVariancesTest is Test
         Check(result2:GetDegreesOfFreedomTable():GetValue(result:GetSources():Get(0)):GetValue("numerator"), 3.0)
         Check(result2:GetDegreesOfFreedomTable():GetValue(result:GetSources():Get(0)):GetValue("denominator"), 20.0)
         Check(result2:GetProbabilityValue(), 0.2177022863231628)
+
+        text summary2 = result2:GetSummary()
+        text formalsummary2 = result2:GetFormalSummary()
+        Check(true, summary2 not= "")
+        Check(true, formalsummary2 not= "")
     end
 end

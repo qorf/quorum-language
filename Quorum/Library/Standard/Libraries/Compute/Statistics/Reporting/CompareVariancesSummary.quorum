@@ -57,21 +57,33 @@ class CompareVariancesSummary
                 repeat while i < sources:GetSize()
                     text source = result:GetSources():Get(i)
                     summary = summary + lf + "Source: " + source
-                    number w = result:GetInformation():GetValue(source):GetValue("W")
-                    number x2 = result:GetInformation():GetValue(source):GetValue("X2")
-                    number df = result:GetInformation():GetValue(source):GetValue("df")
-                    number p = result:GetInformation():GetValue(source):GetValue("p")
-                    number gg = result:GetInformation():GetValue(source):GetValue("gg")
-                    number hf = result:GetInformation():GetValue(source):GetValue("hf")
-                    number lb = result:GetInformation():GetValue(source):GetValue("lb")
-        
-                    summary = summary + lf + tab + "Statistic (W): " +  math:Round(w, digits)
-                    summary = summary + lf + tab + "Statistic (Approximate χ2): " + math:Round(x2, digits)
-                    summary = summary + lf + tab + "Degrees Of Freedom: " + math:Round(df, digits)
-                    summary = summary + lf + tab + "Probability: " + math:Round(p, digits)
-                    summary = summary + lf + tab + "Greenhouse-Geisser Correction (ε): " + math:Round(gg, digits)
-                    summary = summary + lf + tab + "Huynh-Feldt Correction (ε): " + math:Round(hf, digits)
-                    summary = summary + lf + tab + "Lower-Bound Correction (ε): " + math:Round(lb, digits)
+                    if result:GetInformation():GetValue(source):HasKey("W")
+                        number w = result:GetInformation():GetValue(source):GetValue("W")
+                        number x2 = result:GetInformation():GetValue(source):GetValue("X2")
+                        number df = result:GetInformation():GetValue(source):GetValue("df")
+                        number p = result:GetInformation():GetValue(source):GetValue("p")
+                        number gg = result:GetInformation():GetValue(source):GetValue("gg")
+                        number hf = result:GetInformation():GetValue(source):GetValue("hf")
+                        number lb = result:GetInformation():GetValue(source):GetValue("lb")
+            
+                        summary = summary + lf + tab + "Statistic (W): " +  math:Round(w, digits)
+                        summary = summary + lf + tab + "Statistic (Approximate χ2): " + math:Round(x2, digits)
+                        summary = summary + lf + tab + "Degrees Of Freedom: " + math:Round(df, digits)
+                        summary = summary + lf + tab + "Probability: " + math:Round(p, digits)
+                        summary = summary + lf + tab + "Greenhouse-Geisser Correction (ε): " + math:Round(gg, digits)
+                        summary = summary + lf + tab + "Huynh-Feldt Correction (ε): " + math:Round(hf, digits)
+                        summary = summary + lf + tab + "Lower-Bound Correction (ε): " + math:Round(lb, digits)
+                    elseif result:GetInformation():GetValue(source):HasKey("F")
+                        number f = result:GetInformation():GetValue(source):GetValue("F")
+                        number dfn = result:GetInformation():GetValue(source):GetValue("dfn")
+                        number dfd = result:GetInformation():GetValue(source):GetValue("dfd")
+                        number p = result:GetInformation():GetValue(source):GetValue("p")
+
+                        summary = summary + lf + tab + "Statistic (F): " + math:Round(f, digits)
+                        summary = summary + lf + tab + "Degrees Of Freedom Numerator: " + math:Round(dfn, digits)        
+                        summary = summary + lf + tab + "Degrees Of Freedom Denominator: " + math:Round(dfd, digits)
+                        summary = summary + lf + tab + "Probability: " + math:Round(p, digits)
+                    end
                     i = i + 1
                 end
             else

@@ -860,19 +860,18 @@ class CompareMeans is StatisticalTest
 
                 // Mauchly's Test
                 CompareVariancesResult vResult
-                if testVarianceAssumption
-                    // Mauchly's test of sphericity
-                    ExperimentalDesign mDesign = wDesign:Copy()
-                    i = 0 // Add Between Factors For Correct Design Matrix Creation
-                    repeat while i < design:GetBetweenSubjectsFactors():GetSize()
-                        mDesign:AddBetweenSubjectsFactor(design:GetBetweenSubjectsFactors():Get(i))
-                        i = i + 1
-                    end
-                    CompareVariances mauchly
-                    mauchly:SetExperimentalDesign(mDesign)
-                    mauchly:Calculate(newFrame)
-                    vResult = mauchly:GetResult()
+
+                // Mauchly's test of sphericity
+                ExperimentalDesign mDesign = wDesign:Copy()
+                i = 0 // Add Between Factors For Correct Design Matrix Creation
+                repeat while i < design:GetBetweenSubjectsFactors():GetSize()
+                    mDesign:AddBetweenSubjectsFactor(design:GetBetweenSubjectsFactors():Get(i))
+                    i = i + 1
                 end
+                CompareVariances mauchly
+                mauchly:SetExperimentalDesign(mDesign)
+                mauchly:Calculate(newFrame)
+                vResult = mauchly:GetResult()
 
                 // Between Subjects ANOVA
                 ExperimentalDesign bDesign
@@ -1151,7 +1150,10 @@ class CompareMeans is StatisticalTest
                 result:SetSources(sources)
                 result:SetExperimentalDesign(design)
                 result:SetGroupsFrame(betweenResult:GetGroupsFrame())
-                result:SetVarianceResult(vResult)
+                if testVarianceAssumption or significantWithin
+                    result:SetVarianceTest(mauchly)
+                    result:SetVarianceResult(vResult)
+                end
                 if testDistributionAssumption
                     // We need the residuals of the full design
                     CompareMeans anova
@@ -3255,6 +3257,12 @@ class CompareMeans is StatisticalTest
             i = i + 1
         end
         return summary
+    end
+
+    action SaveReport(text filepath) 
+        File file
+        file:SetPath(filepath)
+        GetReport(file)               
     end
 
     action GetReport(File file) 

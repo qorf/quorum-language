@@ -15,6 +15,10 @@ use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Compute.Statistics.Tests.CompareMeansPairwise
 use Libraries.Compute.Statistics.Tests.CompareDistributions
 use Libraries.Compute.Statistics.Tests.CompareVariances
+use Libraries.Compute.Statistics.Calculations.Summarize
+use Libraries.Compute.Statistics.Transforms.TransformWider
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Columns.IntegerColumn
 
 class CompareMeansSummary
     CompareMeansResult result = undefined
@@ -143,19 +147,84 @@ class CompareMeansSummary
                 return GetDescriptiveStatisticsDataFrameOne()
             elseif numberOfSamples = 2 and not multivariate and not nSampleOverride
                 return GetDescriptiveStatisticsDataFrameTwo()
+            else
+                return GetDescriptiveStatisticsDataFrameSeveral()
             end
         end  
         alert("There is no CompareMeansResult defined to summarize. Try using SetResult()") 
     end
 
     action GetChart() returns BoxPlot
-        DataFrame groups = result:GetGroupsFrame()       
-        groups:SelectAllColumns()
-        BoxPlot chart = groups:BoxPlot()
-        chart:SetTitle("BoxPlot")
-        // this must be there for the html to generate so it can be used in the report
-        chart:Display()
-        return chart
+        if result not= undefined
+            if numberOfSamples = 1 or (numberOfSamples = 2 and not multivariate and not nSampleOverride)
+                DataFrame groups = result:GetGroupsFrame()       
+                groups:SelectAllColumns()
+                BoxPlot chart = groups:BoxPlot()
+                chart:SetTitle("BoxPlot")
+                // this must be there for the html to generate so it can be used in the report
+                chart:Display(true)
+                return chart
+            else //numberOfSamples >= 2
+                if multivariate
+                    DataFrame frame = result:GetExperimentalDesign():GetDesignFrame()
+
+                    BoxPlot chart = frame:BoxPlot()
+                    chart:SetTitle("BoxPlot")
+                    chart:Display(true)
+                    return chart
+                else
+                    // If mixed, use within subjects factor(s) as x-axis and between subjects factor(s) as series
+                    if result:GetExperimentalDesign():HasBetweenSubjectsFactors() and result:GetExperimentalDesign():HasWithinSubjectsFactors()
+                        text bInteraction = ""
+                        text wInteraction = ""
+                        DataFrame merged = MergeFactorsAndSelect(true, true, bInteraction, wInteraction, true, true)
+
+                        BoxPlot chart = merged:BoxPlot()
+                        chart:SeparateBySeries(cast(integer, math:Round(math:SquareRoot(result:GetExperimentalDesign():GetNumberOfIndependentGroups()))))
+                        chart:ShowLegend(false)
+                        chart:SetTitle("BoxPlot")
+                        chart:Display(true)
+                        return chart
+                    else
+                        Array<text> between = result:GetExperimentalDesign():GetBetweenSubjectsFactors()
+                        Array<text> within = result:GetExperimentalDesign():GetWithinSubjectsFactors()
+                        Array<text> dvs = result:GetExperimentalDesign():GetDependentVariables()
+                        DataFrame frame = result:GetExperimentalDesign():GetDesignFrame():Copy()
+                        integer factors = between:GetSize() + within:GetSize()
+                        if factors > 2
+                            // If three or more factorial use first factor as x-axis and the rest as series
+                            
+                        else
+                            // If one or two factorial just use regular boxplot mechanics
+                            i = 0
+                            repeat while i < between:GetSize()
+                                frame:AddSelectedFactors(between:Get(i))
+                                i = i + 1
+                            end
+
+                            i = 0
+                            repeat while i < within:GetSize()
+                                frame:AddSelectedFactors(within:Get(i))
+                                i = i + 1
+                            end
+
+                            i = 0
+                            repeat while i < dvs:GetSize()
+                                frame:AddSelectedColumns(dvs:Get(i))
+                                i = i + 1
+                            end
+
+                            BoxPlot chart = frame:BoxPlot()
+                            chart:SetTitle("BoxPlot")
+                            // this must be there for the html to generate so it can be used in the report
+                            chart:Display(true)
+                            return chart
+                        end
+                    end
+                end
+            end
+        end
+        alert("There is no CompareMeansResult defined to summarize. Try using SetResult()")
     end
     
     action GetReport(File file)
@@ -192,10 +261,12 @@ class CompareMeansSummary
         // for summary
         divide:SetStyle("font-family: sans-serif")
         divide:AddHeading(result:GetFormalTestName() + " Report", 2)
-        divide:AddHeading("Summary: GetSummary()", 3)
-        divide:AddParagraph(GetSummary())
-        divide:AddHeading("Formal Summary: GetFormalSummary()", 3)
-        divide:AddParagraph(GetFormalSummary())
+//        divide:AddHeading("Summary: GetSummary()", 3)
+//        divide:AddParagraph(GetSummary())
+//        divide:AddHeading("Formal Summary: GetFormalSummary()", 3)
+//        divide:AddParagraph(GetFormalSummary())
+        divide:AddHeading("Summary: GetEasySummary()", 3)
+        divide:AddParagraph(GetEasySummary())
 
         // for table
         divide:AddHeading("Table Summary", 3)
@@ -205,8 +276,8 @@ class CompareMeansSummary
         table2:SetBorder(true)     
 
         table1:Add(GetSummaryDataFrame())
-        table2:Add(GetDescriptiveStatisticsDataFrame())
         divide:Add(table1)
+        table2:Add(GetDescriptiveStatisticsDataFrame())
         divide:Add(table2)
 
         divide:AddText(chartWriter:WriteOutChart(GetChart()))       
@@ -300,6 +371,232 @@ class CompareMeansSummary
             resultFrame:AddColumn(dfCol)
         end
                
+        return resultFrame
+    end
+
+    private action GetDescriptiveStatisticsDataFrameSeveral() returns DataFrame
+        DataFrame resultFrame
+        integer digits = format:GetSignificantDigits()
+
+        if multivariate
+            if result:GetExperimentalDesign():HasBetweenSubjectsFactors() and result:GetExperimentalDesign():HasWithinSubjectsFactors()
+                // Between or Within Only
+                // group name column
+                TextColumn sampleCol
+                sampleCol:SetHeader("Sample")
+                resultFrame:AddColumn(sampleCol)
+
+                TextColumn measureCol
+                measureCol:SetHeader("Measurement")
+                resultFrame:AddColumn(measureCol)
+
+                // group size column
+                IntegerColumn sizeCol
+                sizeCol:SetHeader("Size")
+                resultFrame:AddColumn(sizeCol)
+
+                // group mean column
+                NumberColumn meanCol
+                meanCol:SetHeader("Mean")
+                resultFrame:AddColumn(meanCol)
+                
+                // group sd column
+                NumberColumn sdCol
+                sdCol:SetHeader("Standard Deviation")
+                resultFrame:AddColumn(sdCol)
+
+                DataFrame groups = result:GetGroupsFrame()
+                groups:SelectAllColumns()
+                Array<Summarize> summaries = groups:SummarizeSelectedColumns()
+                i = 0
+                repeat while i < summaries:GetSize()
+                    text groupName = groups:GetColumn(i):GetHeader()
+                    Array<text> factors = groupName:Split(":")
+                    text between = ""
+                    text within = ""
+                    j = 0
+                    repeat while j < factors:GetSize()
+                        if j < result:GetExperimentalDesign():GetNumberOfBetweenSubjectsFactors()
+                            if between = ""
+                                between = factors:Get(j)
+                            else
+                                between = between + ":" + factors:Get(j)
+                            end
+                        else
+                            if within = ""
+                                within = factors:Get(j)
+                            else
+                                within = within + ":" + factors:Get(j)
+                            end
+                        end
+                        j = j + 1
+                    end
+
+                    sampleCol:Add(between)
+                    measureCol:Add(within)
+                    sizeCol:Add(cast(integer, summaries:Get(i):GetSize()))
+                    meanCol:Add(math:Round(summaries:Get(i):GetMean(), digits))
+                    sdCol:Add(math:Round(math:SquareRoot(summaries:Get(i):GetVariance()), digits))
+                    i = i + 1
+                end        
+                resultFrame:Sort("Sample,Measurement")             
+            else
+                // Between or Within Only
+                // group name column
+                TextColumn sampleCol
+                if result:GetExperimentalDesign():HasBetweenSubjectsFactors()
+                    sampleCol:SetHeader("Sample")
+                else
+                    sampleCol:SetHeader("Measurement")
+                end
+                resultFrame:AddColumn(sampleCol)
+
+                // group size column
+                IntegerColumn sizeCol
+                sizeCol:SetHeader("Size")
+                resultFrame:AddColumn(sizeCol)
+
+                HashTable<text, DataFrame> groups = result:GetGroupsTable()
+                Array<text> groupNames = groups:CopyToKeyArray()
+                groupNames:Sort()
+                i = 0
+                repeat while i < groupNames:GetSize()  
+                    text groupName = groupNames:Get(i)
+                    sampleCol:Add(groupName)
+
+                    DataFrame variables = groups:GetValue(groupName)
+                    variables:SelectAllColumns()
+                    Array<Summarize> summaries = variables:SummarizeSelectedColumns()
+                    j = 0
+                    repeat while j < summaries:GetSize()
+                        text variable = variables:GetColumn(j):GetHeader()
+                        if i = 0
+                            // group + var mean column
+                            NumberColumn meanCol
+                            meanCol:SetHeader("Mean ("+variable+")")
+                            resultFrame:AddColumn(meanCol)
+                            
+                            // group + var sd column
+                            NumberColumn sdCol
+                            sdCol:SetHeader("Standard Deviation ("+variable+")")
+                            resultFrame:AddColumn(sdCol)
+                        end
+                        if j = 0
+                            sizeCol:Add(cast(integer, summaries:Get(j):GetSize()))
+                        end
+                        resultFrame:GetColumn("Mean ("+variable+")"):Add(""+math:Round(summaries:Get(j):GetMean(), digits))
+                        resultFrame:GetColumn("Standard Deviation ("+variable+")"):Add(""+math:Round(math:SquareRoot(summaries:Get(j):GetVariance()), digits))
+                        j = j + 1
+                    end                   
+                    i = i + 1
+                end          
+            end
+        else
+            if result:GetExperimentalDesign():HasBetweenSubjectsFactors() and result:GetExperimentalDesign():HasWithinSubjectsFactors()
+                // Between or Within Only
+                // group name column
+                TextColumn sampleCol
+                sampleCol:SetHeader("Sample")
+                resultFrame:AddColumn(sampleCol)
+
+                TextColumn measureCol
+                measureCol:SetHeader("Measurement")
+                resultFrame:AddColumn(measureCol)
+
+                // group size column
+                IntegerColumn sizeCol
+                sizeCol:SetHeader("Size")
+                resultFrame:AddColumn(sizeCol)
+
+                // group mean column
+                NumberColumn meanCol
+                meanCol:SetHeader("Mean")
+                resultFrame:AddColumn(meanCol)
+                
+                // group sd column
+                NumberColumn sdCol
+                sdCol:SetHeader("Standard Deviation")
+                resultFrame:AddColumn(sdCol)
+
+                DataFrame groups = result:GetGroupsFrame()
+                groups:SelectAllColumns()
+                Array<Summarize> summaries = groups:SummarizeSelectedColumns()
+                i = 0
+                repeat while i < summaries:GetSize()
+                    text groupName = groups:GetColumn(i):GetHeader()
+                    Array<text> factors = groupName:Split(":")
+                    text between = ""
+                    text within = ""
+                    j = 0
+                    repeat while j < factors:GetSize()
+                        if j < result:GetExperimentalDesign():GetNumberOfBetweenSubjectsFactors()
+                            if between = ""
+                                between = factors:Get(j)
+                            else
+                                between = between + ":" + factors:Get(j)
+                            end
+                        else
+                            if within = ""
+                                within = factors:Get(j)
+                            else
+                                within = within + ":" + factors:Get(j)
+                            end
+                        end
+                        j = j + 1
+                    end
+
+                    sampleCol:Add(between)
+                    measureCol:Add(within)
+                    sizeCol:Add(cast(integer, summaries:Get(i):GetSize()))
+                    meanCol:Add(math:Round(summaries:Get(i):GetMean(), digits))
+                    sdCol:Add(math:Round(math:SquareRoot(summaries:Get(i):GetVariance()), digits))
+                    i = i + 1
+                end        
+                resultFrame:Sort("Sample,Measurement")             
+            else
+                // Between or Within Only
+                // group name column
+                TextColumn sampleCol
+                if result:GetExperimentalDesign():HasBetweenSubjectsFactors()
+                    sampleCol:SetHeader("Sample")
+                else
+                    sampleCol:SetHeader("Measurement")
+                end
+                resultFrame:AddColumn(sampleCol)
+
+                // group size column
+                IntegerColumn sizeCol
+                sizeCol:SetHeader("Size")
+                resultFrame:AddColumn(sizeCol)
+
+                // group mean column
+                NumberColumn meanCol
+                meanCol:SetHeader("Mean")
+                resultFrame:AddColumn(meanCol)
+                
+                // group sd column
+                NumberColumn sdCol
+                sdCol:SetHeader("Standard Deviation")
+                resultFrame:AddColumn(sdCol)
+
+                DataFrame groups = result:GetGroupsFrame()
+                groups:SelectAllColumns()
+                Array<Summarize> summaries = groups:SummarizeSelectedColumns()
+                i = 0
+                repeat while i < summaries:GetSize()
+                    sampleCol:Add(groups:GetColumn(i):GetHeader())
+                    sizeCol:Add(cast(integer, summaries:Get(i):GetSize()))
+                    meanCol:Add(math:Round(summaries:Get(i):GetMean(), digits))
+                    sdCol:Add(math:Round(math:SquareRoot(summaries:Get(i):GetVariance()), digits))
+                    i = i + 1
+                end
+                if result:GetExperimentalDesign():HasBetweenSubjectsFactors()
+                    resultFrame:Sort("Sample")
+                else
+                    resultFrame:Sort("Measurement")
+                end
+            end
+        end               
         return resultFrame
     end
 
@@ -435,9 +732,50 @@ class CompareMeansSummary
 
         Array<text> between = result:GetExperimentalDesign():GetBetweenSubjectsFactors()
         Array<text> within = result:GetExperimentalDesign():GetWithinSubjectsFactors()
-
         integer factors = between:GetSize() + within:GetSize()
-        text ivs = result:GetFactorList()
+        text ivs = ""
+        if factors = 1
+            if between:GetSize() = 1
+                ivs = between:Get(0)
+            else
+                ivs = within:Get(0)
+            end
+        elseif factors = 2
+            if between:GetSize() = 2
+                ivs = between:Get(0) + " and " + between:Get(1)
+            elseif within:GetSize() = 2
+                ivs = within:Get(0) + " and " + within:Get(1)
+            else
+                ivs = between:Get(0) + " and " + within:Get(0)
+            end
+        elseif factors > 2
+            index = 0
+            j = 0
+            repeat while j < between:GetSize() 
+                if index = factors - 1
+                    ivs = ivs + "and "+ between:Get(j)
+                elseif index = factors - 2
+                    ivs = ivs + between:Get(j)+" "
+                else
+                    ivs = ivs + between:Get(j)+", "
+                end
+                index = index + 1
+                j = j + 1
+            end
+            j = 0
+            repeat while j < within:GetSize() 
+                if index = factors - 1
+                    ivs = ivs + "and "+ within:Get(j)
+                elseif index = factors - 2
+                    ivs = ivs + within:Get(j)+" "
+                else
+                    ivs = ivs + within:Get(j)+", "
+                end
+                index = index + 1
+                j = j + 1
+            end
+        end
+        
     
         Array <text> variables = result:GetExperimentalDesign():GetDependentVariables()
         text dvs = ""
@@ -449,7 +787,7 @@ class CompareMeansSummary
             j = 0
             repeat while j < variables:GetSize() 
                 if j = variables:GetSize() - 1
-                    dvs = dvs + "and "+ variables:Get(j)+""
+                    dvs = dvs + "and "+ variables:Get(j)
                 elseif j = variables:GetSize() - 2
                     dvs = dvs + variables:Get(j)+" "
                 else
@@ -491,8 +829,11 @@ class CompareMeansSummary
             end
         end
 
+        text variancePrefix = " First"
         // Distribution Results
         if result:GetDistributionTest() not= undefined
+            variancePrefix = " Second"
+
             CompareDistributions normality = result:GetDistributionTest()
             Array<CompareDistributionsResult> dvResults = normality:GetResults()
             summary = summary + " First, the residuals were tested for normality"
@@ -504,59 +845,151 @@ class CompareMeansSummary
                 if pvalue <= result:GetSignificanceLevel()
                     text dvSummary = ""
                     if pvalue < format:PRECISION_LIMIT
-                        dvSummary = "(p < " + format:FormatProbabilityValue(pvalue)+")"
+                        dvSummary = " (p < " + format:FormatProbabilityValue(pvalue)+")"
                     else
-                        dvSummary = "(p = " + format:FormatProbabilityValue(pvalue)+")"
+                        dvSummary = " (p = " + format:FormatProbabilityValue(pvalue)+")"
                     end
                     significantDV:Add(variables:Get(i))
                     significantDVSummary:Add(dvSummary)
                 end
                 i = i + 1
             end
+            boolean showAllOthersAreNormal = true
             if significantDV:GetSize() = 1
-                summary = summary + ", the residuals for "+significantDV:Get(0)+" "+significantDVSummary:Get(0)+" did not appear to be normal."
+                summary = summary + ", the residuals for "+significantDV:Get(0)+significantDVSummary:Get(0)+" may not be normal."
             elseif significantDV:GetSize() = 2
-                summary = summary + " the residuals for "+significantDV:Get(0)+" "+significantDVSummary:Get(0)+" and "
-                +significantDV:Get(1)+" "+significantDVSummary:Get(1)+" did not appear to be normal."
+                summary = summary + " the residuals for "+significantDV:Get(0)+significantDVSummary:Get(0)+" and "
+                +significantDV:Get(1) + significantDVSummary:Get(1)+" may not be normal."
             elseif significantDV:GetSize() > 2
-                summary = summary + " and the residuals for"
-                j = 0
-                repeat while j < significantDV:GetSize() 
-                    if j = significantDV:GetSize() - 1
-                        summary = summary + "and "+ significantDV:Get(j)+" "+significantDVSummary:Get(j)+" "
-                    elseif j = significantDV:GetSize() - 2
-                        summary = summary + significantDV:Get(j)+" "+significantDVSummary:Get(j)+" "
-                    else
-                        summary = summary + significantDV:Get(j)+" "+significantDVSummary:Get(j)+", "
-                    end
-                    j = j + 1
+                showAllOthersAreNormal = false
+                if dvResults:GetSize() = 3
+                    summary = summary + " and the residuals for all three variables may not be normal."
+                else
+                    summary = summary + " and the residuals for three or more variables may not be normal."
                 end
-                summary = summary + " did not appear to be normal."
             else
                 summary = summary + " and all residuals appear to be normal."
             end
-            if significantDV:GetSize() > 0 and variables:GetSize() > significantDV:GetSize()
+            if significantDV:GetSize() > 0 and variables:GetSize() > significantDV:GetSize() and showAllOthersAreNormal
                 summary = summary + " All other residuals appear to be normal."
             end
         end
-
+        
         // Variance Results
         if result:GetVarianceTest() not= undefined
             CompareVariances variances = result:GetVarianceTest()
             if between:GetSize() > 0 and within:GetSize() > 0
-                boolean equality = false    // Levene's test
-                boolean sphericity = false  // Mauchly's test
+                CompareVariancesResult vResult = variances:GetResult()
+                Array<text> sources = vResult:GetSources()
+
+                boolean equality = true     // Levene's test    (1 source, the interaction of all between factors)
+                boolean sphericity = true   // Mauchly's test   (1+ sources based on within factors or interactions)
+                number equality_pvalue = 1
+                number sphericity_pvalue = 1
+
+                Array <text> significantBetween
+                Array <text> significantBetweenSummary
+                Array <text> significantWithin
+                Array <text> significantWithinSummary
+                i = 0
+                repeat while i < sources:GetSize()
+                    if vResult:GetInformation():HasKey(sources:Get(i)) and vResult:GetInformation():GetValue(sources:Get(i)):HasKey("p")
+                        if vResult:GetInformation():GetValue(sources:Get(i)):HasKey("F") 
+                            // Levene's test
+                            equality_pvalue = vResult:GetInformation():GetValue(sources:Get(i)):GetValue("p")
+                            if equality_pvalue <= result:GetSignificanceLevel()
+                                equality = false
+                                text bSummary = ""
+                                if equality_pvalue < format:PRECISION_LIMIT
+                                    bSummary = " (p < " + format:FormatProbabilityValue(equality_pvalue)+")"
+                                else
+                                    bSummary = " (p = " + format:FormatProbabilityValue(equality_pvalue)+")"
+                                end
+                                significantBetween:Add(sources:Get(i))
+                                significantBetweenSummary:Add(bSummary)
+                            end
+                        else
+                            // Mauchly's test
+                            sphericity_pvalue = vResult:GetInformation():GetValue(sources:Get(i)):GetValue("p")
+                            if sphericity_pvalue <= result:GetSignificanceLevel()
+                                sphericity = false
+                                text wSummary = ""
+                                if sphericity_pvalue < format:PRECISION_LIMIT
+                                    wSummary = " (p < " + format:FormatProbabilityValue(sphericity_pvalue)+")"
+                                else
+                                    wSummary = " (p = " + format:FormatProbabilityValue(sphericity_pvalue)+")"
+                                end
+                                significantWithin:Add(sources:Get(i))
+                                significantWithinSummary:Add(wSummary)
+                            end
+                        end
+                    end                    
+                    i = i + 1
+                end                
+                
                 integer betweenLevels = result:GetExperimentalDesign():GetNumberOfIndependentGroups()
                 integer withinLevels = result:GetExperimentalDesign():GetNumberOfMeasurements()
                 if equality and sphericity
-                    summary = summary  + " Second, the variances were tested and appear to be similar for the "+
+                    summary = summary + variancePrefix +", the variances were tested and appear to be similar between the "+
                     betweenLevels+" samples and across the "+withinLevels+" measurements."
                 elseif equality
-                    summary = summary  + " Second, the variances were tested and appear to be similar for the "+
-                    betweenLevels+" samples but not across the "+withinLevels+" measurements."
+                    summary = summary + variancePrefix +", the variances were tested and appear to be similar between the "+
+                    betweenLevels+" samples but may not be similar across the "+withinLevels+" measurements"
+                    if within:GetSize() > 1 
+                        if significantWithin:GetSize() = 1
+                            summary = summary + " under the effect " + significantWithin:Get(0) + significantWithinSummary:Get(0) + "."
+                        elseif significantWithin:GetSize() = 2
+                            summary = summary + " under the effects " + significantWithin:Get(0) + significantWithinSummary:Get(0)
+                            summary = summary + " and " + significantWithin:Get(1) + significantWithinSummary:Get(1) + "."
+                        else
+                            summary = summary + " under three or more effects."
+                        end
+                    else
+                        summary = summary + "."
+                    end
                 elseif sphericity
-                    summary = summary  + " Second, the variances were tested and appear to be similar across the "+
-                    withinLevels+" measurements but not for the "+betweenLevels+" samples."
+                    summary = summary + variancePrefix +", the variances were tested and appear to be similar across the "+
+                    withinLevels+" measurements but may not be similar between the "+betweenLevels+" samples"
+                    if between:GetSize() > 1 
+                        if significantBetween:GetSize() = 1
+                            summary = summary + " under the effect " + significantBetween:Get(0) + significantBetweenSummary:Get(0) + "."
+                        elseif significantBetween:GetSize() = 2
+                            summary = summary + " under the effects " + significantBetween:Get(0) + significantBetweenSummary:Get(0)
+                            summary = summary + " and " + significantBetween:Get(1) + significantBetweenSummary:Get(1) + "."
+                        else
+                            summary = summary + " under three or more effects."
+                        end
+                    else
+                        summary = summary + "."
+                    end
+                else
+                    summary = summary + variancePrefix +", the variances were tested and may not be similar between the "+betweenLevels+" samples"
+                    if between:GetSize() > 1 
+                        if significantBetween:GetSize() = 1
+                            summary = summary + " under the effect " + significantBetween:Get(0) + significantBetweenSummary:Get(0) + "."
+                        elseif significantBetween:GetSize() = 2
+                            summary = summary + " under the effects " + significantBetween:Get(0) + significantBetweenSummary:Get(0)
+                            summary = summary + " and " + significantBetween:Get(1) + significantBetweenSummary:Get(1) + "."
+                        else
+                            summary = summary + " under three or more effects, "
+                        end
+                    else
+                        summary = summary + ","
+                    end
+                    summary = summary + " and may not be similar across the "+withinLevels+" measurements"
+
+                    if within:GetSize() > 1 
+                        if significantWithin:GetSize() = 1
+                            summary = summary + " under the effect " + significantWithin:Get(0) + significantWithinSummary:Get(0) + "."
+                        elseif significantWithin:GetSize() = 2
+                            summary = summary + " under the effects " + significantWithin:Get(0) + significantWithinSummary:Get(0)
+                            summary = summary + " and " + significantWithin:Get(1) + significantWithinSummary:Get(1) + "."
+                        else
+                            summary = summary + " under three or more effects."
+                        end
+                    else
+                        summary = summary + "."
+                    end              
                 end
             elseif between:GetSize() > 0
                 integer betweenLevels = result:GetExperimentalDesign():GetNumberOfIndependentGroups()
@@ -575,14 +1008,14 @@ class CompareMeansSummary
                     pvalue = variances:GetProbabilityValue()
                 end 
                 if pvalue <= result:GetSignificanceLevel()
-                    summary = summary  + " Second, the variances were tested and do not appear to be similar for the "+betweenLevels+" samples"
+                    summary = summary + variancePrefix +", the variances were tested and may not be similar for the "+betweenLevels+" samples"
                     if pvalue < format:PRECISION_LIMIT
                         summary = summary + ", (p < " + format:FormatProbabilityValue(pvalue)+")."
                     else
                         summary = summary + ", (p = " + format:FormatProbabilityValue(pvalue)+")."
                     end
                 else
-                    summary = summary  + " Second, the variances were tested and appear to be similar for the "+betweenLevels+" samples."
+                    summary = summary + variancePrefix +", the variances were tested and appear to be similar for the "+betweenLevels+" samples."
                 end 
             elseif within:GetSize() > 0
                 integer withinLevels = result:GetExperimentalDesign():GetNumberOfMeasurements()
@@ -600,14 +1033,14 @@ class CompareMeansSummary
                     pvalue = variances:GetProbabilityValue()
                 end 
                 if pvalue <= result:GetSignificanceLevel()
-                    summary = summary  + " Second, the variances were tested and do not appear to be similar across the "+withinLevels+" measurements"
+                    summary = summary + variancePrefix +", the variances were tested and may not appear be similar across the "+withinLevels+" measurements"
                     if pvalue < format:PRECISION_LIMIT
                         summary = summary + ", (p < " + format:FormatProbabilityValue(pvalue)+")."
                     else
                         summary = summary + ", (p = " + format:FormatProbabilityValue(pvalue)+")."
                     end 
                 else
-                    summary = summary  + " Second, the variances were tested and appear to be similar across the "+withinLevels+" measurements."
+                    summary = summary + variancePrefix +", the variances were tested and appear to be similar across the "+withinLevels+" measurements."
                 end  
             end
         end
@@ -724,6 +1157,10 @@ class CompareMeansSummary
             end
         end
 
+        if significantEffects:GetSize() < result:GetSources():GetSize() and significantEffects:GetSize() > 0
+            summary = summary + " The samples may not be different under the other effects."
+        end
+
         // Univariate Post Hoc Results
         if significantEffects:GetSize() > 0  and result:GetPairwiseTest() not= undefined
             CompareMeansPairwise pairwise = result:GetPairwiseTest()
@@ -759,26 +1196,29 @@ class CompareMeansSummary
                     summary = summary + " show that after adjusting for familywise error"
                     summary = summary + " all samples under the effect "+significantEffects:Get(j)+" appear similar."
                 else
+                    boolean showAllOthersAreSimilar = true
                     if significantPairsSummary:GetSize() = 1
                         summary = summary + " show that " + significantPairsSummary:Get(0)+ "."
                     elseif significantPairsSummary:GetSize() = 2
                         summary = summary + " show that " + significantPairsSummary:Get(0)+ " and "+significantPairsSummary:Get(1)+"."
                     elseif significantPairsSummary:GetSize() > 2
-                        summary = summary + " show that "
-                        k = 0
-                        repeat while k < significantPairsSummary:GetSize() 
-                            if k = significantPairsSummary:GetSize() - 1
-                                summary = summary + "and "+ significantPairsSummary:Get(k)+"."
-                            elseif k = significantPairsSummary:GetSize() - 2
-                                summary = summary + significantPairsSummary:Get(k)+" "
-                            else
-                                summary = summary + significantPairsSummary:Get(k)+", "
-                            end
-                            k = k + 1
-                        end
+                        showAllOthersAreSimilar = false
+                        summary = summary + " show that three or more pairs likely differ under this effect."
+//                        summary = summary + " show that "
+//                        k = 0
+//                        repeat while k < significantPairsSummary:GetSize() 
+//                            if k = significantPairsSummary:GetSize() - 1
+//                                summary = summary + "and "+ significantPairsSummary:Get(k)+"."
+//                            elseif k = significantPairsSummary:GetSize() - 2
+//                                summary = summary + significantPairsSummary:Get(k)+" "
+//                            else
+//                                summary = summary + significantPairsSummary:Get(k)+", "
+//                            end
+//                            k = k + 1
+//                        end
                     end
-                    if pairs:GetSize() > significantPairsSummary:GetSize() 
-                        summary = summary + " However, all other samples under the effect "+significantEffects:Get(j)+" appear similar."  
+                    if pairs:GetSize() > significantPairsSummary:GetSize() and showAllOthersAreSimilar
+                        summary = summary + " However, all other pairs under the effect "+significantEffects:Get(j)+" appear similar."  
                     end  
                 end
                 j = j + 1
@@ -1813,6 +2253,112 @@ class CompareMeansSummary
             end
             i = i + 1
         end
+        resultFrame:Sort(result:GetFormalTestName())
         return resultFrame
-    end           
+    end  
+
+
+    /* Merges the factors into one column, useful for chart and descriptive stats summaries */
+    private action MergeFactorsAndSelect(boolean mergeBetween, boolean mergeWithin, text bInteraction, text wInteraction, boolean selectBetween, boolean selectWithin) returns DataFrame
+        Array<text> between = result:GetExperimentalDesign():GetBetweenSubjectsFactors()
+        Array<text> within = result:GetExperimentalDesign():GetWithinSubjectsFactors()
+        Array<text> dvs = result:GetExperimentalDesign():GetDependentVariables()
+        DataFrame frame = result:GetExperimentalDesign():GetDesignFrame():Copy()
+        text dq = ""
+        dq = dq:GetDoubleQuote()
+        text bOperation = ""
+        text wOperation = ""
+
+        if mergeWithin
+            if within:GetSize() = 1
+                wInteraction = within:Get(0)
+            else
+                i = 0
+                repeat while i < within:GetSize()
+                    if i = 0
+                        wInteraction = within:Get(i)
+                        wOperation = within:Get(i)
+                    else
+                        wInteraction = wInteraction + ":" + within:Get(i)
+                        wOperation = wOperation + " + " + dq + ":" + dq + " + " + within:Get(i)
+                    end
+                    i = i + 1
+                end
+            end
+            if wOperation not= ""
+                frame:AddColumn(wInteraction, wOperation)
+            end
+            frame:AddSelectedFactors(wInteraction)
+        else
+            i = 0
+            repeat while i < within:GetSize()
+                frame:AddSelectedFactors(within:Get(i))
+                i = i + 1
+            end
+        end
+
+        if mergeBetween
+            if between:GetSize() = 1
+                bInteraction = between:Get(0)
+            else
+                i = 0
+                repeat while i < between:GetSize()
+                    if i = 0
+                        bInteraction = between:Get(i)
+                        bOperation = between:Get(i)
+                    else
+                        bInteraction = bInteraction + ":"+ between:Get(i)
+                        bOperation = bOperation + " + " + dq + ":" + dq + " + " + between:Get(i)
+                    end
+                    i = i + 1
+                end
+            end
+            if bOperation not= ""
+                frame:AddColumn(bInteraction, bOperation)
+            end
+            frame:AddSelectedFactors(bInteraction)
+        else
+            i = 0
+            repeat while i < between:GetSize()
+                frame:AddSelectedFactors(between:Get(i))
+                i = i + 1
+            end
+        end
+
+        i = 0
+        repeat while i < dvs:GetSize()
+            frame:AddSelectedColumns(dvs:Get(i))
+            i = i + 1
+        end
+
+        // Drop other info (like subject id)
+        frame = frame:CopySelectedColumns()
+        // Reselect
+        if mergeWithin and selectWithin
+            frame:AddSelectedFactors(wInteraction)
+        elseif selectWithin
+            i = 0
+            repeat while i < within:GetSize()
+                frame:AddSelectedFactors(within:Get(i))
+                i = i + 1
+            end
+        end
+
+        if mergeBetween and selectBetween
+            frame:AddSelectedFactors(bInteraction)
+        elseif selectBetween
+            i = 0
+            repeat while i < between:GetSize()
+                frame:AddSelectedFactors(between:Get(i))
+                i = i + 1
+            end
+        end
+
+        i = 0
+        repeat while i < dvs:GetSize()
+            frame:AddSelectedColumns(dvs:Get(i))
+            i = i + 1
+        end
+        return frame
+    end         
 end

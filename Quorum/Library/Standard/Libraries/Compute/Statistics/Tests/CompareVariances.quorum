@@ -317,13 +317,23 @@ class CompareVariances is StatisticalTest
                 end
             end
             sources:Add(source)
-            result:SetTestStatistic(source, "F", aov:GetTestStatistic())
-            result:SetDegreesOfFreedom(source, "numerator", aov:GetDegreesOfFreedomTable():GetValue("Groups"):GetValueIterator():Next())
-            result:SetDegreesOfFreedom(source, "denominator", aov:GetDegreesOfFreedomTable():GetValue("Residual Error"):GetValue("Residual Error"))
-            result:SetProbabilityValue(source, source, aov:GetProbabilityValue())
+            text aovSource = "Groups"
+            number f = aov:GetInformation():GetValue("Groups"):GetValue("F")
+            number dfn = aov:GetInformation():GetValue("Groups"):GetValue("df")
+            number dfd = aov:GetInformation():GetValue("Groups"):GetValue("error df")
+            number p = aov:GetInformation():GetValue("Groups"):GetValue("p")
+            
+            result:SetTestStatistic(source, "F", f)
+            result:SetDegreesOfFreedom(source, "numerator", dfn)
+            result:SetDegreesOfFreedom(source, "denominator", dfd)
+            result:SetProbabilityValue(source, source, p)
             result:SetSignificanceLevel(GetSignificanceLevel())
             result:SetFormat(GetStatisticalFormatting())
             result:SetFormalTestName("Levene's Test for Homogeneity of Variances"+center)
+            result:SetInformation(source, "F", f)
+            result:SetInformation(source, "dfn", dfn)
+            result:SetInformation(source, "dfd", dfd)
+            result:SetInformation(source, "p", p)
             result:SetGroupsFrame(uncenteredGroupFrame)
             result:SetFactors(factorHeaders)
             result:SetColumns(columnHeaders)
@@ -659,6 +669,54 @@ class CompareVariances is StatisticalTest
         result:SetGroupsFrame(groupFrame:CopySelectedColumns()) // The only groupings that matter in mauchly's are the within-subjects groups
         result:SetFactors(factorHeaders)
         result:SetColumns(columnHeaders)
+        if between:GetSize() > 0 // For mixed design, do a levene's test on the each between subject effect and interaction
+            DataFrame copy = experimentalDesign:GetDesignFrame():Copy()
+            Array<text> dvs = experimentalDesign:GetDependentVariables()
+            Array<text> betweenSources = betweenDesign:GetDesignSources()
+            text formalNameAddition = ""
+            s = 0
+            repeat while s < betweenSources:GetSize()
+                text source = betweenSources:Get(s)
+                Array<text> betweenFactors = source:Split(":")
+
+                betweenDesign:Empty()
+                i = 0
+                repeat while i < betweenFactors:GetSize()
+                    betweenDesign:AddBetweenSubjectsFactor(betweenFactors:Get(i))
+                    i = i + 1
+                end
+                i = 0
+                repeat while i < dvs:GetSize()
+                    betweenDesign:AddDependentVariable(dvs:Get(i))
+                    i = i + 1
+                end
+                CompareVariances levene
+                levene:SetExperimentalDesign(betweenDesign)
+                levene:Calculate(copy)
+    
+                CompareVariancesResult betweenResult = levene:GetResult()
+                number f = betweenResult:GetInformation():GetValue(source):GetValue("F")
+                number dfn = betweenResult:GetInformation():GetValue(source):GetValue("dfn")
+                number dfd = betweenResult:GetInformation():GetValue(source):GetValue("dfd")
+                number p = betweenResult:GetInformation():GetValue(source):GetValue("p")
+    
+                result:SetTestStatistic(source, "F", f)
+                result:SetDegreesOfFreedom(source, "numerator", dfn)
+                result:SetDegreesOfFreedom(source, "denominator", dfd)
+                result:SetProbabilityValue(source, source, p)
+                result:SetInformation(source, "F", f)
+                result:SetInformation(source, "dfn", dfn)
+                result:SetInformation(source, "dfd", dfd)
+                result:SetInformation(source, "p", p)
+                sources:Add(source)
+
+                if s = 0
+                    formalNameAddition = betweenResult:GetFormalTestName()
+                end
+                s = s + 1
+            end
+            result:SetFormalTestName("Mauchly's Test of Sphericity and "+formalNameAddition)
+        end
         result:SetSources(sources)
         results:Add(result)
     end
