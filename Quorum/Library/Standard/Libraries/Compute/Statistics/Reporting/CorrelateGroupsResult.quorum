@@ -8,6 +8,14 @@ use Libraries.Compute.Math
 use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.Columns.TextColumn
 use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Interface.Controls.Charts.all
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Web.Page.all
+use Libraries.System.File
+use Libraries.Compute.Statistics.Calculations.Mean
+use Libraries.Compute.Statistics.Columns.TextColumn
+use Libraries.Compute.Statistics.Calculations.StandardDeviation
+use Libraries.Interface.Controls.Charts.ScatterPlot
 
 /*
     This class represents data that comes back from a CorrelateGroups
@@ -194,6 +202,51 @@ class CorrelateGroupsResult is StatisticalTestResult
         end
         return ""
     end
+    
+    action GetDescriptiveStatisticsDataFrame returns DataFrame
+        DataFrame resultFrame
+        
+        text group1Name = GetGroups():Get(0):GetHeader()
+        text group2Name = GetGroups():Get(1):GetHeader()
+        text statName = GetFormalTestName()
+        integer digits = GetFormat():GetSignificantDigits()
+        
+        TextColumn sampleCol
+        sampleCol:SetHeader("Sample")
+        sampleCol:Add(group1Name)
+        sampleCol:Add(group2Name)
+        NumberColumn sizeCol
+        // IDK HOW TO GET THE SIZE 
+        sizeCol:SetHeader("Size")
+        sizeCol:Add(GetGroups():GetSize())
+//        sizeCol:Add(GetGroups():GetValue(group1Name):GetValue("size"))
+//        sizeCol:Add(result:GetInformation():GetValue(group2Name):GetValue("size"))
+        
+        resultFrame:AddColumn(sampleCol)
+        resultFrame:AddColumn(sizeCol)
+
+        DataFrame groupFrame
+        groupFrame:AddColumn(GetGroups():Get(0))
+        groupFrame:AddColumn(GetGroups():Get(1))
+        groupFrame:SelectAllColumns()
+               
+        Array<Mean> means = groupFrame:MeanSelectedColumns()
+        NumberColumn meanCol
+        meanCol:SetHeader("Mean")
+        meanCol:Add(means:Get(0):GetMean())
+        meanCol:Add(means:Get(1):GetMean())      
+
+        Array<StandardDeviation> sds = groupFrame:StandardDeviationSelectedColumns()
+        NumberColumn sdCol
+        sdCol:SetHeader("Standard Deviation")
+        sdCol:Add(sds:Get(0):GetStandardDeviation())
+        sdCol:Add(sds:Get(1):GetStandardDeviation())
+          
+        resultFrame:AddColumn(meanCol)  
+        resultFrame:AddColumn(sdCol)                  
+               
+        return resultFrame
+    end
 
     action GetSummaryDataFrame returns DataFrame
         integer digits = GetFormat():GetSignificantDigits()
@@ -201,6 +254,7 @@ class CorrelateGroupsResult is StatisticalTestResult
         TextColumn name
         TextColumn c1
         TextColumn c2
+        TextColumn sig
         NumberColumn r
         NumberColumn t
         NumberColumn df
@@ -208,22 +262,24 @@ class CorrelateGroupsResult is StatisticalTestResult
         NumberColumn ef  
         TextColumn apa
 
-        name:SetHeader(GetFormalTestName()) 
+        name:SetHeader("Technical Name")
+        sig:SetHeader("Significance") 
         t:SetHeader("Statistic (T)")
-        c1:SetHeader("Group1")
-        c2:SetHeader("Group2")
+        c1:SetHeader("Comparison 1")
+        c2:SetHeader("Comparison 2")
         df:SetHeader("Degrees Of Freedom (DF)")
         p:SetHeader("Probability (P)")
         apa:SetHeader("APA report")   
         r:SetHeader("Correlation (R)")
 
+        name:Add(GetFormalTestName())
         if IsSignificant()
-            name:Add("Failed")
+            sig:Add("Failed")
         else
-            name:Add("Passed")
+            sig:Add("Passed")
         end
-        t:Add(math:Round(GetTestStatistic(), digits))
-        df:Add(math:Round(GetDegreesOfFreedom(), digits))
+        t:Add(math:Round(GetTestStatistic(), digits)) 
+        df:Add(math:Round(GetDegreesOfFreedom(), digits))       
         p:Add(math:Round(GetProbabilityValue(), digits))
         apa:Add(GetFormalNumericalResult())
         r:Add(GetCorrelation())
@@ -241,7 +297,7 @@ class CorrelateGroupsResult is StatisticalTestResult
         table:AddColumn(c1)
         table:AddColumn(c2)
         table:AddColumn(t)
-        table:AddColumn(df)
+        table:AddColumn(df)        
         table:AddColumn(p)
         table:AddColumn(r)
         if ef:GetSize() > 0
@@ -250,4 +306,74 @@ class CorrelateGroupsResult is StatisticalTestResult
         table:AddColumn(apa)
         return table
     end
+
+    action GetChart() returns ScatterPlot        
+        DataFrame frame
+        frame:AddColumn(GetGroups():Get(0))
+        frame:AddColumn(GetGroups():Get(1))    
+        frame:SelectAllColumns()    
+        ScatterPlot chart = frame:ScatterPlot()        
+        chart:SetTitle("Scatter Plot")     
+        // this must be there for the html to generate so it can be used in the report
+        chart:Display()
+        return chart
+    end
+
+    action GetReport(File file)
+        WebPage page        
+
+        //add language headers
+        page:AddAttribute("xml:lang", "en")
+        page:SetLanguage("en")
+
+        //add the meta-data character set
+        MetaData charset
+        charset:SetCharacterSet("UTF-8")
+        page:AddMetaData(charset)
+
+        MetaData viewport
+        viewport:SetContent("width=device-width, initial-scale=1")
+        viewport:SetName("viewport")
+        page:AddMetaData(viewport)
+
+        page:AddIcon("http://quorumlanguage.com/media/favicon.ico")
+        page:AddScript("http://quorumlanguage.com/script/quorumCharts.js")
+        page:AddStylesheet("http://quorumlanguage.com/style/quorumCharts.css")
+        page:SetWebPageTitle("Quorum Statistical Report: " + GetFormalTestName())
+
+        page:Add(GetReportDiv())                          
+
+        file:Write(page:Generate()) 
+    end
+
+    action GetReportDiv() returns Division       
+        ScatterPlotWriter chartWriter
+        Division divide
+       
+        // for summary
+        divide:SetStyle("font-family: sans-serif")
+        divide:AddHeading(GetFormalTestName() + " Report", 2)
+        divide:AddHeading("Summary: GetSummary()", 3)
+        divide:AddParagraph(GetSummary())
+//        divide:AddHeading("Formal Summary: GetFormalSummary()", 3)
+//        divide:AddParagraph(GetFormalSummary())
+//        divide:AddHeading("Summary: GetEasySummary()", 3)
+        //divide:AddParagraph(GetEasySummary())
+
+        // for table
+        divide:AddHeading("Table Summary", 3)
+        WebTable table1
+        WebTable table2
+        table1:SetBorder(true)
+        table2:SetBorder(true)     
+
+        table1:Add(GetSummaryDataFrame())
+        divide:Add(table1)
+        table2:Add(GetDescriptiveStatisticsDataFrame())
+        divide:Add(table2)
+
+        divide:AddText(chartWriter:WriteOutChart(GetChart()))       
+        return divide             
+    end
+
 end
