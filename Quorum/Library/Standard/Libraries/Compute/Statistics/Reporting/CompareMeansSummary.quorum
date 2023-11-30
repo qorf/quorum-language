@@ -952,12 +952,12 @@ class CompareMeansSummary
                     withinLevels+" measurements but may not be similar between the "+betweenLevels+" samples"
                     if between:GetSize() > 1 
                         if significantBetween:GetSize() = 1
-                            summary = summary + " under the effect " + significantBetween:Get(0) + significantBetweenSummary:Get(0) + "."
+                            summary = summary + " in the measurement " + significantBetween:Get(0) + significantBetweenSummary:Get(0) + "."
                         elseif significantBetween:GetSize() = 2
-                            summary = summary + " under the effects " + significantBetween:Get(0) + significantBetweenSummary:Get(0)
+                            summary = summary + " in the measurements " + significantBetween:Get(0) + significantBetweenSummary:Get(0)
                             summary = summary + " and " + significantBetween:Get(1) + significantBetweenSummary:Get(1) + "."
                         else
-                            summary = summary + " under three or more effects."
+                            summary = summary + " in three or more measurements."
                         end
                     else
                         summary = summary + "."
@@ -966,12 +966,12 @@ class CompareMeansSummary
                     summary = summary + variancePrefix +", the variances were tested and may not be similar between the "+betweenLevels+" samples"
                     if between:GetSize() > 1 
                         if significantBetween:GetSize() = 1
-                            summary = summary + " under the effect " + significantBetween:Get(0) + significantBetweenSummary:Get(0) + "."
+                            summary = summary + " in the measurement " + significantBetween:Get(0) + significantBetweenSummary:Get(0) + "."
                         elseif significantBetween:GetSize() = 2
-                            summary = summary + " under the effects " + significantBetween:Get(0) + significantBetweenSummary:Get(0)
+                            summary = summary + " in the measurements " + significantBetween:Get(0) + significantBetweenSummary:Get(0)
                             summary = summary + " and " + significantBetween:Get(1) + significantBetweenSummary:Get(1) + "."
                         else
-                            summary = summary + " under three or more effects, "
+                            summary = summary + " in three or more measurements, "
                         end
                     else
                         summary = summary + ","

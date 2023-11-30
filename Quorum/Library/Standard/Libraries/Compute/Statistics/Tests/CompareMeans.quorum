@@ -179,6 +179,8 @@ class CompareMeans is StatisticalTest
     boolean assumeNormalDistribution = false        // Calculations are to assume normal distribution 
     boolean testVarianceAssumption = false          // Requested to test variance assumptions 
     boolean testDistributionAssumption = false      // Requested to test distribution assumptions 
+    boolean skipVarianceAssumption = false          // Will skip variance testing regardless of significance
+    boolean skipPairwiseComparisons = false         // Will skip pairwise testing regardless of significance
 
     // PAIRWISE USER CONTROLS
     boolean correctFamilyWiseError = true           // Family-wise correction is applied in N-sample pairwise tests 
@@ -314,14 +316,13 @@ class CompareMeans is StatisticalTest
         // Check if samples are equal size
         balanced = CheckIfBalanced()
 
+        needToProcessData = false
         if needToSelectTest
             designFrame = copy
             RunTest(copy)
         else
             designFrame = copy
         end
-
-        needToProcessData = false
     end
 
     private action RunTest(DataFrame frame)
@@ -408,7 +409,7 @@ class CompareMeans is StatisticalTest
     action CompareToMean(DataFrame frame)
         repeated = false
         ranked = false
-        if needToProcessData or design = undefined
+        if needToProcessData or design = undefined or design:GetDesignFrame() = undefined
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
@@ -507,7 +508,7 @@ class CompareMeans is StatisticalTest
     action CompareTwoRelatedMeans(DataFrame frame)
         repeated = true
         ranked = false
-        if needToProcessData or design = undefined
+        if needToProcessData or design = undefined or design:GetDesignFrame() = undefined
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
@@ -658,7 +659,7 @@ class CompareMeans is StatisticalTest
     action CompareTwoMeans(DataFrame frame)
         repeated = false
         ranked = false
-        if needToProcessData or design = undefined
+        if needToProcessData or design = undefined or design:GetDesignFrame() = undefined
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
@@ -753,7 +754,7 @@ class CompareMeans is StatisticalTest
                     result:SetExperimentalDesign(design)
                     result:SetFactors(factorHeaders)
                     result:SetColumns(columnHeaders)
-                    if testDistributionAssumption   
+                    if testDistributionAssumption
                         // Check normality using a Shapiro-Wilk's CompareDistributions Test
                         CompareDistributions compare
                         compare:SetSignificanceLevel(GetSignificanceLevel())
@@ -761,7 +762,7 @@ class CompareMeans is StatisticalTest
                         compare:CompareDistributionToNormal(groupFrame)
                         result:SetDistributionResults(compare:GetResults())
                     end
-                    if testVarianceAssumption
+                    if testVarianceAssumption and not skipVarianceAssumption
                         // Check equality of variance using a Levene's CompareVariances test 
                         CompareVariances compare
                         compare:SetSignificanceLevel(GetSignificanceLevel())
@@ -819,9 +820,9 @@ class CompareMeans is StatisticalTest
     action CompareSeveralRelatedMeans(DataFrame frame)
         repeated = true
         ranked = false
-        if needToProcessData or design = undefined
+        if needToProcessData or design = undefined or design:GetDesignFrame() = undefined
             needToSelectTest = false  // This test has been selected (skip RunTest)
-            Calculate(frame)
+            me:Calculate(frame)
         end
         boolean betweenDesign = design:GetBetweenSubjectsFactors():GetSize() > 0
         boolean withinDesign = design:GetWithinSubjectsFactors():GetSize() > 0
@@ -855,6 +856,8 @@ class CompareMeans is StatisticalTest
                 end
                 CompareMeans within
                 within:SetExperimentalDesign(wDesign)
+                within:TestVarianceAssumption(false)
+                within:TestPairwise(false)
                 within:Calculate(newFrame)
                 CompareMeansResult withinResult = within:GetResult()
 
@@ -892,6 +895,11 @@ class CompareMeans is StatisticalTest
                 end
                 CompareMeans between
                 between:SetExperimentalDesign(bDesign)
+                between:TestVarianceAssumption(false)
+                between:TestPairwise(false)
+                if testDistributionAssumption
+                    between:TestDistributionAssumption()
+                end
                 between:Calculate(newFrame)
                 CompareMeansResult betweenResult = between:GetResult()
     
@@ -1150,21 +1158,25 @@ class CompareMeans is StatisticalTest
                 result:SetSources(sources)
                 result:SetExperimentalDesign(design)
                 result:SetGroupsFrame(betweenResult:GetGroupsFrame())
-                if testVarianceAssumption or significantWithin
+                if testVarianceAssumption or significantWithin and not skipVarianceAssumption
                     result:SetVarianceTest(mauchly)
                     result:SetVarianceResult(vResult)
                 end
                 if testDistributionAssumption
                     // We need the residuals of the full design
-                    CompareMeans anova
-                    anova:SetExperimentalDesign(bDesign:Copy())
-                    anova:TestDistributionAssumption()
-                    anova:Calculate(newFrame)
-                    CompareMeansResult anovaResult = anova:GetResult()
-                    result:SetDistributionTest(anovaResult:GetDistributionTest())
-                    result:SetDistributionResults(anovaResult:GetDistributionResults())
+//                    CompareMeans anova
+//                    anova:SetExperimentalDesign(bDesign:Copy())
+//                    anova:TestVarianceAssumption(false)
+//                    anova:TestPairwise(false)
+//                    anova:TestDistributionAssumption()
+//                    anova:Calculate(newFrame)
+//                    CompareMeansResult anovaResult = anova:GetResult()
+//                    result:SetDistributionTest(anovaResult:GetDistributionTest())
+//                    result:SetDistributionResults(anovaResult:GetDistributionResults())
+                    result:SetDistributionTest(betweenResult:GetDistributionTest())
+                    result:SetDistributionResults(betweenResult:GetDistributionResults())
                 end
-                if userRequestedPairwise or significantBetween or significantWithin
+                if userRequestedPairwise or significantBetween or significantWithin and not skipPairwiseComparisons
                     // Pairwise tests are only necessary if the anova is significant
                     CompareMeansPairwise compare
                     compare:SetSignificanceLevel(GetSignificanceLevel())
@@ -1226,7 +1238,7 @@ class CompareMeans is StatisticalTest
     */
     action CompareSeveralMeans(DataFrame frame)
         ranked = false
-        if needToProcessData or design = undefined
+        if needToProcessData or design = undefined or design:GetDesignFrame() = undefined
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
@@ -1337,7 +1349,7 @@ class CompareMeans is StatisticalTest
             result:SetInformation(source, "error df", denominatorDegreesOfFreedom)
             result:SetInformation(source, "omega-squared", omega_squared)
             
-            if userRequestedPairwise or p <= GetSignificanceLevel()
+            if userRequestedPairwise or p <= GetSignificanceLevel() and not skipPairwiseComparisons
                 // Pairwise tests are only necessary if the anova is significant
                 CompareMeansPairwise compare
                 compare:SetSignificanceLevel(GetSignificanceLevel())
@@ -1843,7 +1855,7 @@ class CompareMeans is StatisticalTest
                 result:SetDistributionResults(compare:GetResults())
                 result:SetDistributionTest(compare)
             end
-            if testVarianceAssumption or (repeated and significant)
+            if testVarianceAssumption or (repeated and significant) and not skipVarianceAssumption
                 if repeated 
                     if testVarianceAssumption and multivariate
                         alert("A multivariate repeated measures CompareVariances test is not supported yet.")
@@ -1926,7 +1938,7 @@ class CompareMeans is StatisticalTest
                     end
                 end
             end
-            if userRequestedPairwise or significant
+            if userRequestedPairwise or significant and not skipPairwiseComparisons
                 if userRequestedPairwise and multivariate
                     alert("Pairwise post hoc testing for multivariate designs is not supported yet")
                 end
@@ -1968,7 +1980,7 @@ class CompareMeans is StatisticalTest
     */
     action CompareToRankedMean(DataFrame frame)
         ranked = true
-        if needToProcessData or design = undefined
+        if needToProcessData or design = undefined or design:GetDesignFrame() = undefined
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
@@ -2128,7 +2140,7 @@ class CompareMeans is StatisticalTest
     action CompareTwoRelatedRankedMeans(DataFrame frame)
         ranked = true
         repeated = true
-        if needToProcessData or design = undefined
+        if needToProcessData or design = undefined or design:GetDesignFrame() = undefined
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
@@ -2257,7 +2269,7 @@ class CompareMeans is StatisticalTest
     */
     action CompareTwoRankedMeans(DataFrame frame)
         ranked = true
-        if needToProcessData or design = undefined
+        if needToProcessData or design = undefined or design:GetDesignFrame() = undefined
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
@@ -2399,7 +2411,7 @@ class CompareMeans is StatisticalTest
     action CompareSeveralRelatedRankedMeans(DataFrame frame)
         ranked = true
         repeated = true
-        if needToProcessData or design = undefined
+        if needToProcessData or design = undefined or design:GetDesignFrame() = undefined
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
@@ -2542,7 +2554,7 @@ class CompareMeans is StatisticalTest
             result:SetColumns(columnHeaders)
             result:SetSources(sources)
             result:SetExperimentalDesign(design)
-            if userRequestedPairwise or p <= GetSignificanceLevel()
+            if userRequestedPairwise or p <= GetSignificanceLevel() and not skipPairwiseComparisons
                 // Pairwise tests are only necessary if the test is significant
                 CompareMeansPairwise compare
                 compare:SetSignificanceLevel(GetSignificanceLevel())
@@ -2598,7 +2610,7 @@ class CompareMeans is StatisticalTest
     */
     action CompareSeveralRankedMeans(DataFrame frame)
         ranked = true
-        if needToProcessData or design = undefined
+        if needToProcessData or design = undefined or design:GetDesignFrame() = undefined
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
@@ -2704,7 +2716,7 @@ class CompareMeans is StatisticalTest
             result:SetColumns(columnHeaders)
             result:SetSources(sources)
             result:SetExperimentalDesign(design)
-            if userRequestedPairwise or p <= GetSignificanceLevel()
+            if userRequestedPairwise or p <= GetSignificanceLevel() and not skipPairwiseComparisons
                 // Pairwise tests are only necessary if the test is significant
                 CompareMeansPairwise compare
                 compare:SetSignificanceLevel(GetSignificanceLevel())
@@ -2845,9 +2857,26 @@ class CompareMeans is StatisticalTest
         userRequestedPairwise = true
     end
 
+    /* Used in N-sample tests */
+    action TestPairwise(boolean test)
+        userRequestedPairwise = test
+        if not test
+            skipPairwiseComparison = true
+        end
+    end
+
     /* Used in 2-sample and N-sample tests */
     action TestVarianceAssumption
         testVarianceAssumption = true
+        assumeEqualVariances = false
+    end
+
+    /* Used in 2-sample and N-sample tests */
+    action TestVarianceAssumption(boolean test)
+        testVarianceAssumption = test
+        if not test
+            skipVarianceAssumption = true
+        end
         assumeEqualVariances = false
     end
 

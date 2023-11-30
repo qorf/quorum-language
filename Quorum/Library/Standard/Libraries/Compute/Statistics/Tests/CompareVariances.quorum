@@ -203,6 +203,7 @@ class CompareVariances is StatisticalTest
             groups = GetGroups(copy)
         end
 
+        needToProcessData = false
         if repeatedMeasures
             if needToSelectTest
                 RunTest(copy)
@@ -215,8 +216,6 @@ class CompareVariances is StatisticalTest
                 designFrame = copy
             end
         end
-
-        needToProcessData = false
     end
 
     private action CopySelection(DataFrame frame)
@@ -229,6 +228,7 @@ class CompareVariances is StatisticalTest
     end
 
     private action RunTest(DataFrame frame)
+        needToProcessData = false
         if groups:GetSize() < 2
             alert("A CompareVariances calculation must include at least two samples.")
         end
@@ -297,7 +297,9 @@ class CompareVariances is StatisticalTest
             end
     
             // Conduct a one-way ANOVA on the centered groups
-            CompareMeans compare       
+            CompareMeans compare
+            compare:TestVarianceAssumption(false)  
+            compare:TestPairwise(false)       
             compare:CompareSeveralMeans(centeredGroupFrame)
             CompareMeansResult aov = compare:GetResult()
     
@@ -525,7 +527,8 @@ class CompareVariances is StatisticalTest
             i = i + 1
         end
 
-        Matrix responseMatrix = groupFrame:CopySelectedColumns():ConvertToMatrix()
+        DataFrame measuresFrame = groupFrame:CopySelectedColumns()
+        Matrix responseMatrix = measuresFrame:ConvertToMatrix()
 
         // Create residual SSCP Matrix
         // Create the design matrix using between-subjects factors (intercept only if no factors)
@@ -666,39 +669,42 @@ class CompareVariances is StatisticalTest
         result:SetFormat(GetStatisticalFormatting())
         result:Repeated(true)
         result:SetFormalTestName("Mauchly's Test of Sphericity")
-        result:SetGroupsFrame(groupFrame:CopySelectedColumns()) // The only groupings that matter in mauchly's are the within-subjects groups
+        result:SetGroupsFrame(measuresFrame) // The only groupings that matter in mauchly's are the within-subjects groups
         result:SetFactors(factorHeaders)
         result:SetColumns(columnHeaders)
-        if between:GetSize() > 0 // For mixed design, do a levene's test on the each between subject effect and interaction
-            DataFrame copy = experimentalDesign:GetDesignFrame():Copy()
-            Array<text> dvs = experimentalDesign:GetDependentVariables()
-            Array<text> betweenSources = betweenDesign:GetDesignSources()
-            text formalNameAddition = ""
-            s = 0
-            repeat while s < betweenSources:GetSize()
-                text source = betweenSources:Get(s)
-                Array<text> betweenFactors = source:Split(":")
+        if between:GetSize() > 0 // For mixed design, do a levene's test on the each level of the within subjects factor
+            betweenDesign:Empty()
+            text betweensource = ""
+            text formalNameAddition = ""            
+            i = 0
+            repeat while i < between:GetSize()
+                betweenDesign:AddBetweenSubjectsFactor(between:Get(i))
+                if i = 0
+                    betweensource = between:Get(i)
+                else
+                    betweensource = betweensource + ":" + between:Get(i)
+                end
+                i = i + 1
+            end  
+         
+            groupFrame:EmptySelectedColumns()
+            i = 0
+            repeat while i < measuresFrame:GetSize()
+                text measure = measuresFrame:GetColumn(i):GetHeader()
+                text source = betweensource + ":" + measure
 
-                betweenDesign:Empty()
-                i = 0
-                repeat while i < betweenFactors:GetSize()
-                    betweenDesign:AddBetweenSubjectsFactor(betweenFactors:Get(i))
-                    i = i + 1
-                end
-                i = 0
-                repeat while i < dvs:GetSize()
-                    betweenDesign:AddDependentVariable(dvs:Get(i))
-                    i = i + 1
-                end
+                ExperimentalDesign bDesign = betweenDesign:Copy()
+                bDesign:AddDependentVariable(measure)
+
                 CompareVariances levene
-                levene:SetExperimentalDesign(betweenDesign)
-                levene:Calculate(copy)
+                levene:SetExperimentalDesign(bDesign)
+                levene:Calculate(groupFrame)
     
                 CompareVariancesResult betweenResult = levene:GetResult()
-                number f = betweenResult:GetInformation():GetValue(source):GetValue("F")
-                number dfn = betweenResult:GetInformation():GetValue(source):GetValue("dfn")
-                number dfd = betweenResult:GetInformation():GetValue(source):GetValue("dfd")
-                number p = betweenResult:GetInformation():GetValue(source):GetValue("p")
+                number f = betweenResult:GetInformation():GetValue(betweensource):GetValue("F")
+                number dfn = betweenResult:GetInformation():GetValue(betweensource):GetValue("dfn")
+                number dfd = betweenResult:GetInformation():GetValue(betweensource):GetValue("dfd")
+                number p = betweenResult:GetInformation():GetValue(betweensource):GetValue("p")
     
                 result:SetTestStatistic(source, "F", f)
                 result:SetDegreesOfFreedom(source, "numerator", dfn)
@@ -710,11 +716,11 @@ class CompareVariances is StatisticalTest
                 result:SetInformation(source, "p", p)
                 sources:Add(source)
 
-                if s = 0
+                if i = 0
                     formalNameAddition = betweenResult:GetFormalTestName()
                 end
-                s = s + 1
-            end
+                i = i + 1
+            end            
             result:SetFormalTestName("Mauchly's Test of Sphericity and "+formalNameAddition)
         end
         result:SetSources(sources)
