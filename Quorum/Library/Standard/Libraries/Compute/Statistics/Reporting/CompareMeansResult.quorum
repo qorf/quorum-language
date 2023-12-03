@@ -729,13 +729,18 @@ class CompareMeansResult is StatisticalTestResult
         return summary:GetFormalNumericalResult()
     end
     
-    // FOR REPORT TESTING
+    /*
+        This creates an HTML page with the results as its contents.  
+    */
     action GetReportResult(File file)
         CompareMeansSummary summary
         summary:SetResult(me)
         summary:GetReport(file)
     end
 
+    /*
+        This action summarizes the result in chart form.
+    */
     action GetChartResult() returns BoxPlot
         CompareMeansSummary summary
         summary:SetResult(me)

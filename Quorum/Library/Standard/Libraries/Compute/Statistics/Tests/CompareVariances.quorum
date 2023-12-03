@@ -17,6 +17,8 @@ use Libraries.Compute.Statistics.Reporting.CompareMeansResult
 use Libraries.Containers.HashTable
 use Libraries.Compute.Statistics.Distributions.VarianceRatioDistribution
 use Libraries.Compute.Statistics.Transforms.TransformWider
+use Libraries.System.File
+use Libraries.Interface.Controls.Charts.all
 
 /*
     This class implements several tests:
@@ -949,7 +951,25 @@ class CompareVariances is StatisticalTest
         return summary
     end
 
+    action GetReport(File file) 
+//        CompareVariancesResult result       
+//        i = 0
+//        repeat while i < results:GetSize()
+//            result = results:Get(i)
+//            
+//            result:GetReportResult(file)
+//            
+//            i = i + 1
+//        end   
+        GetResult():GetReportResult(file)              
+    end
     
+    action GetChart() returns BoxPlot
+        CompareVariancesResult result                  
+        result = GetResults():Get(0)                
+        return result:GetChartResult()
+    end
+   
     private action ComputeSumOfSquaresCrossProductMatrix(Matrix x, Matrix y) returns Matrix
         Matrix xT = x:Transpose()
         Matrix xTx_inv = xT:Multiply(x):Inverse()       

@@ -7,6 +7,9 @@ use Libraries.Containers.Array
 use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.Columns.TextColumn
 use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.System.File
+use Libraries.Interface.Controls.Charts.all
+use Libraries.Web.Page.all
 
 class CompareVariancesSummary
     CompareVariancesResult result = undefined
@@ -449,5 +452,72 @@ class CompareVariancesSummary
         table:AddColumn(lb)
 
         return table
+    end
+
+    action GetChart() returns BoxPlot
+        DataFrame groups = result:GetGroupsFrame()       
+        groups:SelectAllColumns()
+        BoxPlot chart = groups:BoxPlot()
+        chart:SetTitle("BoxPlot")
+        // this must be there for the html to generate so it can be used in the report
+        chart:Display()
+        return chart
+    end
+
+    action GetReport(File file)
+        WebPage page        
+
+        //add language headers
+        page:AddAttribute("xml:lang", "en")
+        page:SetLanguage("en")
+
+        //add the meta-data character set
+        MetaData charset
+        charset:SetCharacterSet("UTF-8")
+        page:AddMetaData(charset)
+
+        MetaData viewport
+        viewport:SetContent("width=device-width, initial-scale=1")
+        viewport:SetName("viewport")
+        page:AddMetaData(viewport)
+
+        page:AddIcon("http://quorumlanguage.com/media/favicon.ico")
+        page:AddScript("http://quorumlanguage.com/script/quorumCharts.js")
+        page:AddStylesheet("http://quorumlanguage.com/style/quorumCharts.css")
+        page:SetWebPageTitle("Quorum Statistical Report: " + result:GetFormalTestName())
+
+        page:Add(GetReportDiv())                          
+
+        file:Write(page:Generate()) 
+    end
+
+   private action GetReportDiv() returns Division       
+        BoxPlotWriter chartWriter
+        Division divide
+       
+        // for summary
+        divide:SetStyle("font-family: sans-serif")
+        divide:AddHeading(result:GetFormalTestName() + " Report", 2)
+        divide:AddHeading("Summary: GetSummary()", 3)
+        divide:AddParagraph(GetSummary())
+        divide:AddHeading("Numerical Result: GetFormalNumericalResult()", 3)
+        divide:AddParagraph(GetFormalNumericalResult())
+        //divide:AddHeading("Summary: GetEasySummary()", 3)
+        //divide:AddParagraph(GetEasySummary())
+
+        // for table
+        divide:AddHeading("Table Summary", 3)
+        WebTable table1
+        WebTable table2
+        table1:SetBorder(true)
+        //table2:SetBorder(true)     
+
+        table1:Add(GetSummaryDataFrame())
+        divide:Add(table1)
+        //table2:Add(GetDescriptiveStatisticsDataFrame())
+        //divide:Add(table2)
+
+        divide:AddText(chartWriter:WriteOutChart(GetChart()))       
+        return divide             
     end
 end
