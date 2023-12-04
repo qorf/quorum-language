@@ -49,7 +49,7 @@ class ChartNavigateBehavior is Behavior
             elseif event:GetGestureEvent() not= undefined
                 GestureEvent gesture = event:GetGestureEvent()
 
-                if gesture:eventType = gesture:SWIPE
+                if gesture:eventType = gesture:SWIPE and gesture:maxFingerCount = 2
                     if gesture:GetDirection() = gesture:LEFT //2 finger Swipe Left with talkback
                         direction = X_AXIS_PREV
                     elseif gesture:GetDirection() = gesture:RIGHT //2 finger Swipe Right with talkback
