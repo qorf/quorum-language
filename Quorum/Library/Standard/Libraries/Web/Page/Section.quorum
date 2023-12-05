@@ -1962,4 +1962,35 @@ class Section is WebTag
     end
 
     //text - tbd
+
+    /*
+        This action adds a Paragraph with the specified text to a Division object.
+
+        Attribute: Parameter paragraphText specifies the content of the paragraph being added
+
+        Attribute: Returns the generated Paragraph object for any further manipulation
+
+        Attribute: Example
+
+        use Libraries.Web.Page.all
+        class Main
+            action Main
+                WebPage page
+                Division division
+
+                
+                division:AddParagraph("Bolded: ", "This is a cool paragraph with something bolded at the front!")
+                page:Add(division)
+
+                text value = page:Generate()
+                output value
+            end
+        end
+    */
+    action AddParagraphBoldFront(text bolded, text t) returns Paragraph
+        Paragraph p
+        p:AddText("<strong>" + bolded + "</strong>"+ t)
+        parent:WebTag:tags:Add(p)
+        return p
+    end
 end
