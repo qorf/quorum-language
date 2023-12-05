@@ -49,19 +49,35 @@ class ChartDrawable is ChartItem, Drawable
         color:SetAlpha(1)
         SetColor(color)
     end
+    /*
+        This action gets chart drawables selection arrow drawable object.
 
+        Attribute: Returns the charts slection arrow object.
+    */
     action GetSelectionArrow returns Drawable
         return selectionArrow
     end
+    /*
+        This action sets the selection arrow verticies (Array<number>) drawable object.
 
+        Attribute: Parameter vertices the arrow vertices.
+    */
     action SetSelectionArrowVertices(Array <number> vertices)
         me:vertices = vertices
     end
+    /*
+        This action gets the selection arrow verticies (Array<number>) drawable object.
 
+        Attribute: Returns the Array<number> of the selection arrow vertices.
+    */
     action GetSelectionArrowVertices returns Array<number>
         return vertices
     end
+    /*
+        This action gets the selection bracket (Array<Drawable>).
 
+        Attribute: Returns the Array<Dawable> of the selection bracket.
+    */
     action GetSelectionBracket returns Array<Drawable> 
         return selectionBracket
     end
@@ -89,15 +105,33 @@ class ChartDrawable is ChartItem, Drawable
     action SetAnnotation(ChartLabel annotation)
         me:annotation = annotation
     end
+    /*
+        This action gets the chart drawables annotation (ChartLabel). Annotation is a control 
+        label that can be shown appended to this drawable. It can show things like a name, 
+        value, equation or custom text.
 
+        Attribute: Returns the ChartLabel of ChartDrawable object.
+    */
     action GetAnnotation returns ChartLabel
         return annotation
     end
+    /*
+        This action sets the chart drawables annotation (ChartLabel) to visable (true) or hidden (false). 
+        Annotation is a control label that can be shown appended to this drawable. It can show things like a name, 
+        value, equation or custom text.
 
+        Attribute: Parameter show if true ChartLabel of ChartDrawable object is displayed.
+    */
     action ShowAnnotation(boolean show)
         showAnnotation = show
     end
+    /*
+        This action gets the chart drawables annotation (ChartLabel) visibility setting. 
+        Annotation is a control label that can be shown appended to this drawable. It can show things like a name, 
+        value, equation or custom text.
 
+        Attribute: Returns true if the ChartLabel of ChartDrawable object is displayed.
+    */
     action ShowAnnotation returns boolean
         return showAnnotation
     end
@@ -109,7 +143,12 @@ class ChartDrawable is ChartItem, Drawable
     action SetSeries(Series series)
         me:series = series
     end
+    /*
+        This action gets the chart drawables series. The series is the entry in the legend associated with this drawable.
+        Series is used to locate, name, and color the drawable unless manually colored.
 
+        Attribute: Returns Series from the ChartDrawable.
+    */
     action GetSeries returns Series
         return series
     end
@@ -122,7 +161,13 @@ class ChartDrawable is ChartItem, Drawable
     action SetGroup(GroupPanel group)
         me:group = group
     end
-
+    /*
+        Gets the group. The group is the label on the chart associated with this drawable.
+        In most cases the groups are created by unique factors. GroupPanel is used to position, 
+        locate, and name the drawable on the chart.
+    
+        Attribute: Returns the GroupPanel .
+    */
     action GetGroup returns GroupPanel
         return group
     end
@@ -139,7 +184,7 @@ class ChartDrawable is ChartItem, Drawable
     end
 
     // Try to get the chart this is attached to via the parent hierarchy.
-    private action GetParentChart returns Chart
+    action GetParentChart returns Chart
         Item2D parentItem = me
         repeat until parentItem is Chart or parentItem = undefined
             parentItem = parentItem:GetParent()
@@ -148,7 +193,10 @@ class ChartDrawable is ChartItem, Drawable
         return cast(Chart, parentItem)
     end
 
-
+    /*
+        This action is used when a Chart Drawable gains the selection. Selection
+        elements are then shown.
+    */
     action GainedSelection()
         if GetSelectionArrow() not= undefined          
             GetSelectionArrow():Show()
@@ -160,7 +208,10 @@ class ChartDrawable is ChartItem, Drawable
         end
         parent:ChartItem:GainedSelection()
     end
-
+    /*
+        This action is used when a Chart Drawable loses the selection. Selection
+        elements are then hidden.
+    */
     action LostSelection()
         if GetSelectionArrow() not= undefined          
             GetSelectionArrow():Hide()
@@ -173,58 +224,78 @@ class ChartDrawable is ChartItem, Drawable
         parent:ChartItem:LostSelection()
     end
 
-    /**
+    /*
         Set the location of the annotation to the top of the chart drawable.
-    **/
+    */
     action SetAnnotationLocationToTop()
         displayOnLeft = false
         displayOnRight = false
         displayOnTop = true
         displayOnBottom = false
     end
-
+    /*
+        Gets the location of the annotation. If the annotation is located on the top 
+        true is returned. If it is located somewhere else this action returns false.
+    
+        Attribute: Returns true when the annotation is located at the top.
+    */
     action IsAnnotationLocationTop() returns boolean
         return displayOnTop
     end
 
-    /**
+    /*
         Set the location of the annotation to the bottom of the chart drawable.
-    **/
+    */
     action SetAnnotationLocationToBottom()
         displayOnLeft = false
         displayOnRight = false
         displayOnTop = false
         displayOnBottom = true
     end
-
+    /*
+        Gets the location of the annotation. If the annotation is located on the bottom 
+        true is returned. If it is located somewhere else this action returns false.
+    
+        Attribute: Returns true when the annotation is located at the bottom.
+    */
     action IsAnnotationLocationBottom() returns boolean
         return displayOnBottom
     end
 
-    /**
+    /*
         Set the location of the annotation to the left of the chart drawable.
-    **/
+    */
     action SetAnnotationLocationToLeft()
         displayOnLeft = true
         displayOnRight = false
         displayOnTop = false
         displayOnBottom = false
     end
-
+    /*
+        Gets the location of the annotation. If the annotation is located on the left 
+        true is returned. If it is located somewhere else this action returns false.
+    
+        Attribute: Returns true when the annotation is located at the left.
+    */
     action IsAnnotationLocationLeft() returns boolean
         return displayOnLeft
     end
 
-    /**
+    /*
         Set the location of the annotation to the right of the chart drawable.
-    **/
+    */
     action SetAnnotationLocationToRight()
         displayOnLeft = false
         displayOnRight = true
         displayOnTop = false
         displayOnBottom = false
     end
+     /*
+        Gets the location of the annotation. If the annotation is located on the right 
+        true is returned. If it is located somewhere else this action returns false.
     
+        Attribute: Returns true when the annotation is located at the right.
+    */   
     action IsAnnotationLocationRight() returns boolean
         return displayOnRight
     end

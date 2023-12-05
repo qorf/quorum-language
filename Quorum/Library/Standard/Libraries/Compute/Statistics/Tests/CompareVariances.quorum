@@ -15,8 +15,8 @@ use Libraries.Containers.Array
 use Libraries.Compute.Vector
 use Libraries.Compute.Statistics.Reporting.CompareMeansResult
 use Libraries.Containers.HashTable
-use Libraries.Compute.Statistics.Transforms.TransformLonger
 use Libraries.Compute.Statistics.Distributions.VarianceRatioDistribution
+use Libraries.Compute.Statistics.Transforms.TransformWider
 
 /*
     This class implements several tests:
@@ -95,6 +95,8 @@ class CompareVariances is StatisticalTest
     /* This stores a hash of all of the results. */
     Array<CompareVariancesResult> results
 
+    ExperimentalDesign experimentalDesign = undefined
+    DataFrame designFrame = undefined
     Math math
 
     action Calculate(DataFrame frame) 
@@ -103,41 +105,68 @@ class CompareVariances is StatisticalTest
         factorHeaders:Empty()
         columnHeaders:Empty()
 
-        numberOfFactors = frame:GetSelectedFactorSize()
-        numberOfColumns = frame:GetSelectedColumnSize()
-
-        if numberOfFactors > 0 and numberOfColumns > 1
-            multivariate = true
+        if experimentalDesign = undefined 
+            ExperimentalDesign design
+            i = 0
+            repeat while i < frame:GetSelectedFactorSize()
+                if repeatedMeasures
+                    design:AddWithinSubjectsFactor(frame:GetColumn(frame:GetSelection():GetFactor(i)):GetHeader())
+                else
+                    design:AddBetweenSubjectsFactor(frame:GetColumn(frame:GetSelection():GetFactor(i)):GetHeader())
+                end
+                i = i + 1
+            end
+            design:RepeatedMeasures(repeatedMeasures)
+            if design:GetDesignFrame() = undefined
+                design:Transform(frame)
+            end 
+            experimentalDesign = design
         else
-            multivariate = false
+            experimentalDesign:RepeatedMeasures(repeatedMeasures)
+            if experimentalDesign:GetDesignFrame() = undefined
+                experimentalDesign:Transform(frame)
+            end 
         end
+        repeatedMeasures = experimentalDesign:RepeatedMeasures()
+        designFrame = experimentalDesign:GetDesignFrame()
 
-        if numberOfFactors > 1
-            factorial = true
-        else
-            factorial = false
-        end
+        numberOfFactors = designFrame:GetSelectedFactorSize()
+        numberOfColumns = designFrame:GetSelectedColumnSize()
+
+        multivariate = numberOfColumns > 1
+        factorial = numberOfFactors > 1
 
         // Copy the frame keeping only the selected factors/columns and reselect them
         // Anything else will be dropped for this computation.
-        DataFrame cleanedFrame = frame:Copy()
+        // No need to remove undefined values unless using a factor
+        DataFrame cleanedFrame = designFrame:Copy()
         if multivariate
-            cleanedFrame = frame:RemoveUndefinedRowsFromSelectedColumns()
+            cleanedFrame = designFrame:RemoveUndefinedRowsFromSelectedColumns()
         end
         DataFrame copy
         integer index = 0
         i = 0
-        repeat while i < numberOfFactors
-            DataFrameColumn factor = cleanedFrame:GetColumn(frame:GetSelection():GetFactor(i))
-            copy:AddColumn(factor)
-            copy:AddSelectedFactor(index)
-            factorHeaders:Add(factor:GetHeader())
-            index = index + 1
+        repeat while i < designFrame:GetSelectedFactorSize()
+            DataFrameColumn factor = cleanedFrame:GetColumn(designFrame:GetSelection():GetFactor(i))
+            if factor:GetHeader() = experimentalDesign:GetSubjectIdentifier() // Skip id factor 
+                if not repeatedMeasures
+                    copy:AddColumn(factor)
+                    copy:AddSelectedFactor(index)
+                    factorHeaders:Add(factor:GetHeader())
+                    index = index + 1
+                end
+            else
+                copy:AddColumn(factor)
+                copy:AddSelectedFactor(index)
+                factorHeaders:Add(factor:GetHeader())
+                index = index + 1
+            end
             i = i + 1
         end
+
         i = 0
-        repeat while i < numberOfColumns
-            DataFrameColumn column = cleanedFrame:GetColumn(frame:GetSelection():GetColumn(i))
+        repeat while i < designFrame:GetSelectedColumnSize()
+            DataFrameColumn column = cleanedFrame:GetColumn(designFrame:GetSelection():GetColumn(i))
             copy:AddColumn(column)
             copy:AddSelectedColumn(index)
             columnHeaders:Add(column:GetHeader())
@@ -145,16 +174,58 @@ class CompareVariances is StatisticalTest
             i = i + 1
         end
 
+        // Copy the selection to test for easier access 
+        CopySelection(copy)
+
+
         // Check the data for missing data or incorrect column types
         CheckDataIntegrity(copy)
 
-        groups = GetGroups(copy)
 
-        if needToSelectTest
-            RunTest(copy)
+        // Collect data for each possible group (ignoring ID factor when repeated)
+        if repeatedMeasures
+            DataFrame removeID = copy:Copy()
+            i = 0
+            repeat while i < copy:GetSelectedFactorSize()
+                removeID:AddSelectedFactor(copy:GetSelection():GetFactor(i))
+                i = i + 1
+            end  
+            i = 0
+            repeat while i < copy:GetSelectedColumnSize()
+                removeID:AddSelectedColumn(copy:GetSelection():GetColumn(i))
+                i = i + 1
+            end
+            if removeID:HasColumn(experimentalDesign:GetSubjectIdentifier())
+                removeID:RemoveSelectedFactors(experimentalDesign:GetSubjectIdentifier())
+            end
+            groups = GetGroups(removeID)
+        else
+            groups = GetGroups(copy)
+        end
+
+        if repeatedMeasures
+            if needToSelectTest
+                RunTest(copy)
+            end
+        else
+            if needToSelectTest
+                designFrame = copy
+                RunTest(copy)
+            else
+                designFrame = copy
+            end
         end
 
         needToProcessData = false
+    end
+
+    private action CopySelection(DataFrame frame)
+        if frame:GetSelection() not= undefined
+            frame:GetSelection():CopyTo(cast(ColumnInput, me))
+        end
+        if frame:GetSelection() not= undefined 
+            frame:GetSelection():CopyTo(cast(FactorInput, me))
+        end
     end
 
     private action RunTest(DataFrame frame)
@@ -163,7 +234,11 @@ class CompareVariances is StatisticalTest
         end
 
         if repeatedMeasures
-            CompareSeveralRelatedVariances(frame)    
+            if experimentalDesign:HasBetweenSubjectsFactors() // mixed needs both homogeneity and sphericity
+                CompareSeveralRelatedVariances(frame)
+            else
+                CompareSeveralRelatedVariances(frame) 
+            end   
         else
             CompareSeveralVariances(frame)  
         end
@@ -243,7 +318,7 @@ class CompareVariances is StatisticalTest
             end
             sources:Add(source)
             result:SetTestStatistic(source, "F", aov:GetTestStatistic())
-            result:SetDegreesOfFreedom(source, "numerator", aov:GetDegreesOfFreedomTable():GetValue("Between Groups"):GetValueIterator():Next())
+            result:SetDegreesOfFreedom(source, "numerator", aov:GetDegreesOfFreedomTable():GetValue("Groups"):GetValueIterator():Next())
             result:SetDegreesOfFreedom(source, "denominator", aov:GetDegreesOfFreedomTable():GetValue("Residual Error"):GetValue("Residual Error"))
             result:SetProbabilityValue(source, source, aov:GetProbabilityValue())
             result:SetSignificanceLevel(GetSignificanceLevel())
@@ -407,152 +482,193 @@ class CompareVariances is StatisticalTest
     
         DataFrame frame
         frame:Load("data.csv")
+        frame:AddSelectedColumn(0)
+        frame:AddSelectedFactor(1)
     
         CompareVariances compare = frame:CompareRelatedVariances()
         output compare:GetFormalSummary()
     */
     action CompareSeveralRelatedVariances(DataFrame frame)
         if needToProcessData
+            repeatedMeasures = true
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
-        if groups:GetSize() < 2
-            alert("CompareSeveralRelatedVariances must have at least two samples.")
-        end
         if multivariate
-            alert("A multivariate repeated measures CompareVariances test is not supported yet.")
-        elseif factorial
-            alert("A factorial repeated measures CompareVariances test is not supported yet.")
-        else
-            DataFrame groupFrame = GetGroupsFrame()
-            groupFrame:SelectAllColumns()
+            alert("A multivariate repeated measures CompareVariances test is not supported yet. Formal Test Name: Mauchly's Sphericity")
+        end
+
+        integer numberOfSubjects = experimentalDesign:GetNumberOfSubjects()
+
+        // Get groups for response matrix using only within-subjects factors
+        DataFrame groupFrame = GetWithinGroupsFrame()
+        groupFrame:SelectAllColumns()
+
+        // Remove id and between factors leaving only measurement groups selected for response matrix
+        if groupFrame:HasColumn(experimentalDesign:GetSubjectIdentifier())
+            groupFrame:RemoveSelectedColumns(experimentalDesign:GetSubjectIdentifier())
+        end
+        Array<text> between = experimentalDesign:GetBetweenSubjectsFactors()
+        i = 0
+        repeat while i < between:GetSize()
+            groupFrame:RemoveSelectedColumns(between:Get(i))
+            i = i + 1
+        end
+
+        Matrix responseMatrix = groupFrame:CopySelectedColumns():ConvertToMatrix()
+
+        // Create residual SSCP Matrix
+        // Create the design matrix using between-subjects factors (intercept only if no factors)
+        ExperimentalDesign betweenDesign
+        i = 0
+        repeat while i < between:GetSize()
+            betweenDesign:AddBetweenSubjectsFactor(between:Get(i))
+            i = i + 1
+        end
+        betweenDesign:Multivariate(true) // Use measurements as variables even if there are between-subjects factors
+        betweenDesign:Transform(groupFrame)
+        Matrix designMatrix = betweenDesign:GetDesignMatrix()
+        Matrix sscpResiduals = ComputeSumOfSquaresCrossProductMatrix(designMatrix, responseMatrix)
+        Matrix identity = sscpResiduals:Identity()
+
+        CompareVariancesResult result
+        Array<text> sources = experimentalDesign:GetContrastSources()
+        s = 0
+        repeat while s < sources:GetSize()
+            text source = sources:Get(s)
+            
+            Matrix transformationMatrix = experimentalDesign:GetContrastMatrix(source)
+
+            if transformationMatrix:GetColumns() > 1    
+                // Solve the matrices against the identity matrix AX = B
+                Matrix A = transformationMatrix:Transpose():Multiply(identity):Multiply(transformationMatrix)
+                Matrix B = transformationMatrix:Transpose():Multiply(sscpResiduals):Multiply(transformationMatrix)
+                Matrix X = A:Inverse():Multiply(B)
     
-            // Get covariance matrix from frame
-            // By default the sample covariance will be calculated.
-            Matrix sampleCovarMatrix = groupFrame:CovarianceMatrix()
+                // X is not a symmetric matrix
+                // Get eigenvalues of X matrix
+                EigenDecomposition eig
+                eig:Calculate(X)
     
-            // Since a sample covariance matrix was calculated, it must first be estimated 
-            // to a population matrix for the later calculations, achieved by double centering it.
-            Matrix populationCovarMatrix = sampleCovarMatrix:DoubleCenter()        
+                number productOfEvals = 1
+                number sumOfEvals = 0
+                number sumOfSquaredEvals = 0
+                Vector evals = eig:GetEigenvalues()
+                i = 0
+                repeat while i < evals:GetSize()
+                    eval = evals:Get(i)
+                    if eval > 1.0e-10 // Eigen values cannot be negative and ignore if basically 0
+                        productOfEvals = productOfEvals * eval
+                        sumOfEvals = sumOfEvals + eval
+                        sumOfSquaredEvals = sumOfSquaredEvals + eval * eval
+                    end
+                    i = i + 1 
+                end 
     
-            // Get eigenvalues of population covariance matrix
-            EigenDecomposition eig
-            eig:Symmetric(true) //Force it to be recognized as symmetric for eigen calculations
-            eig:Calculate(populationCovarMatrix)
+                // Degrees of freedom between subjects (different than n-1 for mixed designs)
+                number dfSubjects = numberOfSubjects - designMatrix:GetColumns()
         
-            number productOfEvals = 1
-            number sumOfEvals = 0
-            number sumOfSquaredEvals = 0
-            Vector evals = eig:GetEigenvalues()
-            i = 0
-            repeat while i < evals:GetSize()
-                eval = evals:Get(i)
-                if eval >= 0 // Eigen values cannot be negative
-                    productOfEvals = productOfEvals * eval
-                    sumOfEvals = sumOfEvals + eval
-                    sumOfSquaredEvals = sumOfSquaredEvals + eval * eval
-                end
-                i = i + 1 
+                // Degrees of freedom for effect or interaction
+                number dfFactor = X:GetRows()
+    
+                // Degrees Of Freedom
+                number df = 0.5 * dfFactor * (dfFactor + 1.0) - 1.0
+                
+                // See page 493: https://www.sussex.ac.uk/its/pdfs/SPSS_Statistics_Algorithms_22.pdf
+                // Test Statistics: Mauchly's W
+                number mauchlys_w = productOfEvals / math:RaiseToPower(sumOfEvals / dfFactor, dfFactor)
+                number rho = 1.0 - (2.0 * dfFactor * dfFactor + dfFactor + 2.0)/(6.0 * dfFactor * dfSubjects)
+                number approx_chi_w = -1.0 * rho * dfSubjects * math:NaturalLogarithm(mauchlys_w)
+                x2distribution:Setup(df)
+                number p1 = x2distribution:CumulativeDistribution(approx_chi_w)
+                x2distribution:Setup(df+4)
+                number p2 = x2distribution:CumulativeDistribution(approx_chi_w)
+                number w2 = ((dfFactor + 2.0) * (dfFactor - 1.0) * (dfFactor - 2.0) * (2.0 * dfFactor * dfFactor * dfFactor + 6 * dfFactor * dfFactor + 3 * dfFactor + 2))
+                w2 = w2 / (288 * dfFactor * dfFactor * dfSubjects * dfSubjects * rho * rho)
+                number p_w = 1.0 - p1 - w2 * (p2 - p1)
+    
+                // See: https://real-statistics.com/anova-repeated-measures/sphericity/additional-information-sphericity/    
+                // Test Statistics: JNS' V
+                number jns_v = sumOfEvals * sumOfEvals / sumOfSquaredEvals
+                number approx_chi_v = 0.5 * numberOfSubjects * dfFactor * dfFactor * (jns_v - 1.0/(dfFactor))
+                x2distribution:Setup(df)
+                number p_v = 1.0 - x2distribution:CumulativeDistribution(approx_chi_v)
+
+                // The equations can be found here:
+                // https://pingouin-stats.org/generated/pingouin.epsilon.html
+                // Page 493: https://www.sussex.ac.uk/its/pdfs/SPSS_Statistics_Algorithms_22.pdf
+        
+                // Lower-bound epsilon
+                number lbCorrectionEpsilon = 1.0/dfFactor
+    
+                // Greenhouse-Geisser epsilon
+                number ggCorrectionEpsilon = sumOfEvals * sumOfEvals / (sumOfSquaredEvals * dfFactor)
+    
+                // Huynh-Feldt epsilon
+                number hfCorrectionEpsilon = ((dfSubjects + 1) * dfFactor * ggCorrectionEpsilon - 2.0) / (dfFactor * (dfSubjects - dfFactor * ggCorrectionEpsilon))
+
+                // Mauchly's W Test Statistic (default)
+                result:SetTestStatistic(source, "W", mauchlys_w)
+                result:SetTestStatistic(source+"W", "χ2", approx_chi_w)
+                result:SetDegreesOfFreedom(source, "W", df)
+                result:SetProbabilityValue(source, "W", p_w)
+                result:SetInformation(source, "W", mauchlys_w)
+                result:SetInformation(source, "X2", approx_chi_w)
+                result:SetInformation(source, "df", df)
+                result:SetInformation(source, "p", p_w)
+                // JNS's V Test Statistic
+                result:SetInformation(source, "JNS V", jns_v)
+                result:SetInformation(source, "JNS V χ2", approx_chi_v)
+                result:SetInformation(source, "JNS V df", df)
+                result:SetInformation(source, "JNS V p", p_v)
+                result:SetInformation(source, "lb", lbCorrectionEpsilon)
+                result:SetInformation(source, "gg", ggCorrectionEpsilon)
+                result:SetInformation(source, "hf", hfCorrectionEpsilon)
+            else
+                // Mauchly's W Test Statistic (default)
+                result:SetTestStatistic(source, "W", 1)
+                result:SetTestStatistic(source+"W", "χ2", 0)
+                result:SetDegreesOfFreedom(source, "W", 0)
+                result:SetProbabilityValue(source, "W", 1)
+                result:SetInformation(source, "W", 1)
+                result:SetInformation(source, "X2", 0)
+                result:SetInformation(source, "df", 0)
+                result:SetInformation(source, "p", 1)
+                // JNS's V Test Statistic
+                result:SetInformation(source, "JNS V", 1)
+                result:SetInformation(source, "JNS V χ2", 0)
+                result:SetInformation(source, "JNS V df", 0)
+                result:SetInformation(source, "JNS V p", 1)
+                result:SetInformation(source, "lb", 1)
+                result:SetInformation(source, "gg", 1)
+                result:SetInformation(source, "hf", 1)
             end
 
-            // The equations can be found here:
-            // https://pingouin-stats.org/build/html/generated/pingouin.sphericity.html
-            // https://pingouin-stats.org/generated/pingouin.epsilon.html
-    
-            // Number of measurements
-            number k = groupFrame:GetColumns():GetSize()
-    
-            // Number of subjects
-            number n = groupFrame:GetColumn(0):GetSize()
-    
-            // Mauchly's W test statistic
-            number w = productOfEvals / math:RaiseToPower(sumOfEvals/(k-1), k-1)
-    
-            // Chi-Squared W Test Statistic
-            number f = (2 * (k-1) * (k-1) + k + 1) / (6 * (k-1) * (n-1))
-            number chi_w_squared = (f-1) * (n-1) * math:NaturalLogarithm(w)
-    
-            // JNS's V Test Statistic
-            number v = math:RaiseToPower(sumOfEvals, 2) / (sumOfSquaredEvals)
-    
-            // Chi-Squared V Test Statistic
-            number chi_v_squared = 0.5 * n * math:RaiseToPower(k-1, 2) * (v - 1.0/(k-1))
-    
-            // Degrees of Freedom
-            number df = 0.5 * k * (k-1) - 1
-    
-            // Lower-bound epsilon
-            number lbCorrectionEpsilon = 1.0/(k-1)
-    
-            // Greenhouse-Geisser epsilon
-            number covMean = populationCovarMatrix:GetMean()
-            number covSumOfSquares = 0
-            number covSumOfRowMeanSquares = 0
-            number covSumOfDiagonal = 0
-            i = 0
-            repeat while i < populationCovarMatrix:GetRows()
-                j = 0
-                repeat while j < populationCovarMatrix:GetColumns()
-                    number value = populationCovarMatrix:Get(i,j)
-                    covSumOfSquares = covSumOfSquares + value * value
-                    j = j + 1
-                end
-                covSumOfDiagonal = covSumOfDiagonal + populationCovarMatrix:Get(i,i)
-                number rowMean = populationCovarMatrix:GetRow(i):GetMean()
-                covSumOfSqauredRowMeans = covSumOfRowMeanSquares + rowMean * rowMean
-                i = i + 1
-            end
-            number covDiagonalMean = covSumOfDiagonal/k
-    
-            number top = k * k * (covDiagonalMean-covMean) * (covDiagonalMean-covMean)
-            number bottom = (k-1) * (covSumOfSquares - (2 * k * covSumOfRowMeanSquares + (k * k * covMean * covMean)))
-            number ggCorrectionEpsilon = top / bottom
-    
-            // Huynh-Feldt epsilon
-            number hfCorrectionEpsilon = (n * (k-1) * ggCorrectionEpsilon - 2) / ((k-1) * ((n-1) - ggCorrectionEpsilon * (k-1)))
-            
-            // Probability
-            x2distribution:Setup(df)
-            number pW = 1.0 - x2distribution:CumulativeDistribution(chi_w_squared)
-            number pV = 1.0 - x2distribution:CumulativeDistribution(chi_v_squared)
-    
-            Array<text> sources
-            text source = "Measures"
-            if numberOfFactors > 0
-                i = 0
-                repeat while i < numberOfFactors
-                    if i = 0
-                        source = factorHeaders:Get(i)
-                    else
-                        source = source + ":"+ factorHeaders:Get(i)
-                    end
-                    i = i + 1
-                end
-            end
-            sources:Add(source)
-            CompareVariancesResult result
-            result:SetSignificanceLevel(GetSignificanceLevel())
-            result:SetFormat(GetStatisticalFormatting())
-            result:Repeated(true)
-            result:SetTestStatistic(source, "W", w)
-            result:SetTestStatistic(source+"W", "χ2", chi_w_squared)
-            result:SetDegreesOfFreedom(source, "W", df)
-            result:SetProbabilityValue(source, "W", pW)
-            //// JNS's V Test Statistic??
-            //  result:SetTestStatistic(source, "V", w)
-            //  result:SetTestStatistic(source+"V", "χ2", chi_v_squared)
-            //  result:SetDegreesOfFreedom(source, "V", df)
-            //  result:SetProbabilityValue(source, "V", pV)
-            result:SetInformation(source, "lb", lbCorrectionEpsilon)
-            result:SetInformation(source, "gg", ggCorrectionEpsilon)
-            result:SetInformation(source, "hf", hfCorrectionEpsilon)
-            result:SetFormalTestName("Mauchly's Test of Sphericity")
-            result:SetGroupsFrame(groupFrame)
-            result:SetFactors(factorHeaders)
-            result:SetColumns(columnHeaders)
-            result:SetSources(sources)
-            results:Add(result)
+            // Additional Sources
+            // https://www.sussex.ac.uk/its/pdfs/SPSS_Statistics_Algorithms_22.pdf
+            // https://support.sas.com/rnd/app/stat/papers/mixedglm.pdf
+            // https://github.com/cran/ez/blob/1d7a35d30f31b1671e7f6548b15864ddfe61c5ef/R/ez-internal.R
+            // https://zief0002.github.io/matrix-algebra/statistical-application-sscp-variancecovariance-and-correlation-matrices.html#sscp-matrix
+            // https://www.originlab.com/doc/en/UserGuide/UserGuide/Algorithms_(Repeated_Measures_ANOVA).html
+            s = s + 1
         end
+        result:SetSignificanceLevel(GetSignificanceLevel())
+        result:SetFormat(GetStatisticalFormatting())
+        result:Repeated(true)
+        result:SetFormalTestName("Mauchly's Test of Sphericity")
+        result:SetGroupsFrame(groupFrame:CopySelectedColumns()) // The only groupings that matter in mauchly's are the within-subjects groups
+        result:SetFactors(factorHeaders)
+        result:SetColumns(columnHeaders)
+        result:SetSources(sources)
+        results:Add(result)
+    end
+
+    action SetExperimentalDesign(ExperimentalDesign design)
+        experimentalDesign = design:Copy() // make a copy of the design so it can be used in other tests.
+    end
+
+    action GetExperimentalDesign returns ExperimentalDesign
+        return experimentalDesign
     end
 
     /* Used in independent-sample tests */
@@ -769,8 +885,18 @@ class CompareVariances is StatisticalTest
         return summary
     end
 
+    
+    private action ComputeSumOfSquaresCrossProductMatrix(Matrix x, Matrix y) returns Matrix
+        Matrix xT = x:Transpose()
+        Matrix xTx_inv = xT:Multiply(x):Inverse()       
+        Matrix b = xTx_inv:Multiply(xT):Multiply(y)          
+        Matrix result = y:SubtractElements(x:Multiply(b))
 
-    // This is used for univariate designs, only checks for variance equality
+        Matrix centered = result:CenterByColumn()
+        return centered:Transpose():Multiply(centered)
+    end
+
+    // This is used for univariate designs with check for variance equality
     private action GetCenteredGroupsFrame(DataFrame groupFrame) returns DataFrame
         DataFrame centeredGroupFrame
 
@@ -824,12 +950,13 @@ class CompareVariances is StatisticalTest
 
         integer size = 0
         Array<text> groupsArray = groups:CopyToKeyArray()
+        groupsArray:Sort()
         integer i = 0
         repeat while i < groupsArray:GetSize()
             text groupText = groupsArray:Get(i)
             DataFrame group = groups:GetValue(groupText)
             DataFrameColumn column = group:GetColumn(0)
-            if repeatedMeasures
+            if repeatedMeasures and not experimentalDesign:HasBetweenSubjectsFactors()
                 if i = 0
                     size = column:GetSize()
                 else
@@ -842,6 +969,60 @@ class CompareVariances is StatisticalTest
             groupFrame:AddColumn(group:GetColumn(0):Copy())
             i = i + 1     
         end
+
+        return groupFrame
+    end
+
+    // This is only used for univariate designs
+    private action GetWithinGroupsFrame() returns DataFrame
+        DataFrame frame = designFrame:Copy()
+
+        DataFrame copy
+        // Copy and merge within-subjects selection
+        Array<text> within = experimentalDesign:GetWithinSubjectsFactors()
+        text source = ""
+        if within:GetSize() > 1
+            // Select everything
+            frame:SelectAllColumns()
+
+            // Unselect the within-subejcts main effects and merge them
+            text operation = ""
+            j = 0
+            repeat while j < within:GetSize()
+                if j = 0
+                    operation = operation + within:Get(j)
+                    source = source + within:Get(j)
+                else
+                    operation = operation + " + " + within:Get(j)
+                    source = source + ":" + within:Get(j)
+                end
+                frame:RemoveSelectedColumns(within:Get(j))
+                j = j + 1
+            end
+
+            // Add within-subejcts merged interaction column and select
+            frame:AddColumn(source,operation)
+            frame:AddSelectedColumns(source)
+
+            // Keep only currently selected columns
+            copy = frame:CopySelectedColumns()
+        elseif within:GetSize() = 1
+            source = within:Get(0)
+            copy = frame
+        end
+
+        Array<text> dv = experimentalDesign:GetDependentVariables()
+        i = 0
+        repeat while i < dv:GetSize()
+            copy:AddSelectedColumns(dv:Get(i))
+            i = i + 1
+        end
+        copy:AddSelectedFactors(source)
+
+        // Take the mean of any id+source repetitions
+        TransformWider widen
+        widen:ResolveConflictsWithMean()
+        DataFrame groupFrame = widen:Transform(copy)
 
         return groupFrame
     end

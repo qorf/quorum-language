@@ -22,7 +22,7 @@ class ActionBlock is MultipleLineBlock
 
     BlockLabel leftParen = undefined
     BlockLabel rightParen = undefined
-    EditField paramField = undefined
+    EditBox paramField = undefined
 
     BlockLabel returnsLabel = undefined
     EditField returnField = undefined
@@ -68,6 +68,8 @@ class ActionBlock is MultipleLineBlock
 
         CodeEditor editor = GetEditor()
         number spacing = editor:GetDefaultGlyphWidth()
+        
+        integer localEndLine = 0
 
         if actionContext:access not= undefined
             BlockLabel accessModifierLabel
@@ -117,6 +119,8 @@ class ActionBlock is MultipleLineBlock
         part:Add(nameField)
 
         nameField:Setup("Name", actionContext:actionNameLocation:GetIndex() - GetStartIndex(), actionContext:actionNameLocation:GetIndexEnd() + 1 - GetStartIndex())
+        
+        localEndLine = actionContext:actionNameLocation:GetLineNumberEnd() - actionContext:GetLocation():GetLineNumber()
 
         // Assume the block ends with the name. This will be replaced with a more appropriate value if needed in the if sections below.
         integer localEnd = nameField:GetEndIndex()
@@ -131,7 +135,7 @@ class ActionBlock is MultipleLineBlock
             leftParen:SetText("(")
             part:Add(leftParen)
 
-            EditField paramField
+            EditBox paramField
             me:paramField = paramField
             Location firstParam = paramList:Get(0):GetLocation()
             Location lastParam = paramList:Get(paramList:GetSize() - 1):GetLocation()
@@ -148,6 +152,8 @@ class ActionBlock is MultipleLineBlock
 
             // Place the end of the block one character after the last parameter (to account for the right parenthesis).
             localEnd = paramField:GetEndIndex() + 1
+            
+localEndLine = lastParam:GetLineNumberEnd() - actionContext:GetLocation():GetLineNumber()
         end
 
         if actionContext:returnLocation not= undefined
@@ -169,9 +175,13 @@ class ActionBlock is MultipleLineBlock
 
             // Place the end of the block at the end of the return.
             localEnd = returnField:GetEndIndex()
+            
+            
+localEndLine = returnLocation:GetLineNumberEnd() - actionContext:GetLocation():GetLineNumber()
         end
 
         part:SetLocalEndIndex(localEnd)
+        part:SetLocalEndLine(localEndLine)
 
         return part
     end

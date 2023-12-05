@@ -66,9 +66,10 @@ class SchurDecomposition
     Vector holder
 
     on create
-        BitwiseOperations ops
-        integer p = ops:ShiftLeft(1023-53, 52)
-        precisionEpsilon = 1.0*math:RaiseToPower(10, -p)
+//        BitwiseOperations ops
+//        integer p = ops:ShiftLeft(1023-53, 52)
+//        precisionEpsilon = 1.0*math:RaiseToPower(10, -p)
+        precisionEpsilon = 2.0e-52
     end
 
     action Calculate(Matrix matrix)
@@ -83,14 +84,15 @@ class SchurDecomposition
         HessenbergDecomposition decomp
         decomp:Calculate(matrix)
 
-        triangular = decomp:GetHessenbergMatrix():Copy()
-        orthogonal = decomp:GetOrthogonalMatrix():Copy()
+        triangular = decomp:GetHessenbergMatrix()
+        orthogonal = decomp:GetOrthogonalMatrix()
 
         integer size = triangular:GetColumns()
 
         // compute matrix norm
         number norm = GetNorm()
 
+        // Outer loop over eigenvalue index
         integer iteration = 0 
         integer iu = size - 1
         repeat while iu >= 0
@@ -118,9 +120,9 @@ class SchurDecomposition
                         z = p - z
                     end
 
-                    number xu = triangular:Get(iu, iu - 1)
-                    number s = math:AbsoluteValue(xu) + math:AbsoluteValue(z)
-                    p = xu / s
+                    number x = triangular:Get(iu, iu - 1)
+                    number s = math:AbsoluteValue(x) + math:AbsoluteValue(z)
+                    p = x / s
                     q = z / s
                     number r = math:SquareRoot(p * p + q * q)
                     p = p / r
@@ -198,7 +200,7 @@ class SchurDecomposition
             if s = 0
                 s = norm
             end
-            if math:AbsoluteValue(triangular:Get(i, i-1)) < s//precisionEpsilon * s
+            if math:AbsoluteValue(triangular:Get(i, i-1)) < precisionEpsilon * s
                 return i
             end
             i = i - 1 
@@ -257,9 +259,8 @@ class SchurDecomposition
     /* Initialize the householder vector for the QR step. */
     private action InitialQRStep(integer il, integer iu) returns integer
         // Look for two consecutive small sub-diagonal elements
-        boolean flag = true // early exit flag
         integer im = iu - 2
-        repeat while im >= il and flag
+        repeat while im >= il
             number z = triangular:Get(im, im)
             number r = x - z
             number s = y - z
@@ -269,21 +270,19 @@ class SchurDecomposition
             holder:Set(2, triangular:Get(im+2, im+1))
 
             if im = il
-                flag = false
+                return im
             end
 
-            if flag
-                number lhs = math:AbsoluteValue(triangular:Get(im, im-1)) * math:AbsoluteValue(holder:Get(1)) + math:AbsoluteValue(holder:Get(2))
-                number rhs = math:AbsoluteValue(holder:Get(0)) * (math:AbsoluteValue(triangular:Get(im-1, im-1)) + math:AbsoluteValue(z) + math:AbsoluteValue(triangular:Get(im+1, im+1)))
+            number lhs = math:AbsoluteValue(triangular:Get(im, im-1)) 
+            lhs = lhs * (math:AbsoluteValue(holder:Get(1)) + math:AbsoluteValue(holder:Get(2)))
+            number rhs = math:AbsoluteValue(holder:Get(0))
+            rhs = rhs * (math:AbsoluteValue(triangular:Get(im-1, im-1)) + math:AbsoluteValue(z) + math:AbsoluteValue(triangular:Get(im+1, im+1)))
 
-                if lhs < precisionEpsilon * rhs
-                    flag = false
-                end
+            if lhs < precisionEpsilon * rhs
+                return im
             end
 
-            if flag
-                im = im - 1
-            end
+            im = im - 1
         end
         return im
     end
@@ -297,6 +296,7 @@ class SchurDecomposition
         
         integer k = im
         repeat while k < iu
+            boolean skipIteration = false
             boolean notlast = k not= (iu - 1)
             if k not= im
                 p = triangular:Get(k, k-1)
@@ -310,69 +310,72 @@ class SchurDecomposition
 
                 if Equals(x, 0.0)
                     //continue
+                    skipIteration = true
                 else
                     p = p / x
                     q = q / x
                     r = r / x
                 end
             end
-            number s = math:SquareRoot(p * p + q * q + r * r)
-            if p < 0
-                s = -s
-            end
-
-            if s not= 0
-                if k not= im
-                    triangular:Set(k, k-1, -s * x)
-                elseif il not= im
-                    triangular:Set(k, k-1, -triangular:Get(k, k-1))
+            if not skipIteration
+                number s = math:SquareRoot(p * p + q * q + r * r)
+                if p < 0
+                    s = -s
                 end
-                p = p + s
-                x = p / s
-                y = q / s
-                number z = r / s
-                q = q / p
-                r = r / p
-
-                // Row modification
-                integer j = k
-                repeat while j < n
-                    p = triangular:Get(k, j) + q * triangular:Get(k+1, j)
-                    if notlast
-                        p = p + r * triangular:Get(k+2, j)
-                        triangular:Set(k+2, j, triangular:Get(k+2, j) - p * z)
+    
+                if s not= 0
+                    if k not= im
+                        triangular:Set(k, k-1, -s * x)
+                    elseif il not= im
+                        triangular:Set(k, k-1, -triangular:Get(k, k-1))
                     end
-                    triangular:Set(k, j, triangular:Get(k, j) - p * x)
-                    triangular:Set(k+1, j, triangular:Get(k+1, j) - p * y)
-                    j = j + 1
-                end 
-
-                // Column modification
-                integer min = cast(integer, math:MinimumOf(iu, k+3))
-                integer i = 0
-                repeat while i <= min
-                    p = x * triangular:Get(i, k) + y * triangular:Get(i, k+1)
-                    if notlast
-                        p = p + z * triangular:Get(i, k+2)
-                        triangular:Set(i, k+2, triangular:Get(i, k+2) - p * r)
-                    end
-                    triangular:Set(i, k, triangular:Get(i, k) - p)
-                    triangular:Set(i, k+1, triangular:Get(i, k+1) - p * q)
-                    i = i + 1
-                end        
-
-                // Accumulate transformations
-                i = 0
-                repeat while i < n - 1
-                    p = x * orthogonal:Get(i, k) + y * orthogonal:Get(i, k+1)
-                    if notlast
-                        p = p + z * orthogonal:Get(i, k+2)
-                        orthogonal:Set(i, k+2, triangular:Get(i, k+2) - p * r)
-                    end
-                    orthogonal:Set(i, k, orthogonal:Get(i, k) - p)
-                    orthogonal:Set(i, k+1, orthogonal:Get(i, k+1) - p * q)                      
-                    i = i + 1
-                end    
+                    p = p + s
+                    x = p / s
+                    y = q / s
+                    number z = r / s
+                    q = q / p
+                    r = r / p
+    
+                    // Row modification
+                    integer j = k
+                    repeat while j < n
+                        p = triangular:Get(k, j) + q * triangular:Get(k+1, j)
+                        if notlast
+                            p = p + r * triangular:Get(k+2, j)
+                            triangular:Set(k+2, j, triangular:Get(k+2, j) - p * z)
+                        end
+                        triangular:Set(k, j, triangular:Get(k, j) - p * x)
+                        triangular:Set(k+1, j, triangular:Get(k+1, j) - p * y)
+                        j = j + 1
+                    end 
+    
+                    // Column modification
+                    integer min = cast(integer, math:MinimumOf(iu, k+3))
+                    integer i = 0
+                    repeat while i <= min
+                        p = x * triangular:Get(i, k) + y * triangular:Get(i, k+1)
+                        if notlast
+                            p = p + z * triangular:Get(i, k+2)
+                            triangular:Set(i, k+2, triangular:Get(i, k+2) - p * r)
+                        end
+                        triangular:Set(i, k, triangular:Get(i, k) - p)
+                        triangular:Set(i, k+1, triangular:Get(i, k+1) - p * q)
+                        i = i + 1
+                    end        
+    
+                    // Accumulate transformations
+                    i = 0
+                    repeat while i < n
+                        p = x * orthogonal:Get(i, k) + y * orthogonal:Get(i, k+1)
+                        if notlast
+                            p = p + z * orthogonal:Get(i, k+2)
+                            orthogonal:Set(i, k+2, triangular:Get(i, k+2) - p * r)
+                        end
+                        orthogonal:Set(i, k, orthogonal:Get(i, k) - p)
+                        orthogonal:Set(i, k+1, orthogonal:Get(i, k+1) - p * q)                      
+                        i = i + 1
+                    end    
+                end
             end
             k = k + 1 
         end 

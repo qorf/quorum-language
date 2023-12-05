@@ -27,7 +27,37 @@ use Libraries.System.File
 use Libraries.Compute.Math
 use Libraries.Interface.Accessibility
 use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Undo.TextFieldEditManager
+use Libraries.Interface.Undo.TextFieldEditState
+use Libraries.Containers.Number32BitArray
+/*
+    The TextField class is a control object and UI element it is added to the Game 
+    class. The TextField is used to represent a general text area that contains a single
+    line of text.
 
+    Attribute: Author William Allee, Andreas Stefik, Gabe Contra
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.TextField
+    use Libraries.Game.Graphics.Color
+    
+    class Main 
+        action Main 
+            Form form
+            Page page = form:GetMainPage()
+
+            TextField field
+            Color color
+            field:SetName("myTxt")
+            field:SetBackgroundColor(color:Green())
+            page:Add(field)
+
+            form:Display()
+        end
+    end
+*/
 class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
     /*
@@ -89,7 +119,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
     number caretX = 0
 
     TextFieldSelection selection
-
+    TextFieldEditManager editManager
     /*
     The texture used for the selection higlight. Initialized as a 1x1 white texture.
     */
@@ -138,6 +168,9 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         selection:Initialize(me, "")
         SetAccessibilityCode(parent:Item:TEXT_FIELD)
 
+        AddTextChangeListener(editManager)
+        editManager:SetTextField(me)
+
         ManualLayout layout
         SetLayout(layout)
 
@@ -171,6 +204,46 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
     action IsPassword returns boolean
         return passwordField
     end
+    /*
+        This returns the widths of characters from the left 
+        hand side of the screen. 
+    */
+    action GetCharacterWidths returns Number32BitArray
+        Number32BitArray array
+        Font font = GetFont()
+        text value = GetText()
+        array:SetSize(value:GetSize())
+        i = 0
+        repeat while value not= undefined and i < value:GetSize()
+            Glyph glyph = font:GetGlyph(value)
+            number advance = glyph:horizontalAdvance
+            array:Set(i, advance)
+            i = i + 1
+        end
+        return array
+    end
+    
+    /*
+        This returns the x positions of characters from the left 
+        hand side of the screen. 
+    */
+    action GetCharacterXPositions returns Number32BitArray
+        
+        Number32BitArray array
+        Font font = GetFont()
+        text value = GetText()
+        array:SetSize(value:GetSize())
+        i = 0
+        number sum = 0.0
+        repeat while value not= undefined and i < value:GetSize()
+            Glyph glyph = font:GetGlyph(value)
+            number advance = glyph:horizontalAdvance
+            array:Set(i, sum)
+            sum = sum + advance
+            i = i + 1
+        end
+        return array
+    end
 
     /*
         This action returns whether or not this text field is a protected password.
@@ -188,11 +261,19 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
             access:TextChanged(changeEvent)
         end
     end
+    /*
+        This action returns the left padding for individual characters.
 
+        Attribute: Returns the integer representing the character left padding.
+    */
     action GetLeftCharacterPadding returns integer
         return leftCharacterPadding
     end
+    /*
+        This action sets the left padding for each character given an integer padding value.
 
+        Attribute: Parameter padding the left padding integer value.
+    */
     action SetLeftCharacterPadding(integer padding)
         leftCharacterPadding = padding
     end
@@ -412,6 +493,11 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         caretCharacter = index
     end
 
+    /*
+        This action sets the position of the flashing carat icon whithin the text field.
+
+        Attribute: Parameter index the location of the caret in the line of text.
+    */
     action SetCaretPosition(integer index)
         ShowCaret()
         SetCaretToIndex(index)
@@ -424,7 +510,13 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
         EmptySelectionEvent(false)
     end
+    /*
+        This action moves the caret left in the text field. Whether the user is selecting
+        should be tracked and passed to this action. This allows the selection to be updated
+        with the caret location.
 
+        Attribute: Parameter selecting true when text is currently selected in the text field.
+    */
     action MoveCaretLeft(boolean selecting)
         if not caretActive
             return now
@@ -457,7 +549,13 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
             EmptySelectionEvent(false)
         end
     end
+    /*
+        This action moves the caret right in the text field. Whether the user is selecting
+        should be tracked and passed to this action. This allows the selection to be updated
+        with the caret location.
 
+        Attribute: Parameter selecting true when text is currently selected in the text field.
+    */
     action MoveCaretRight(boolean selecting)
         if not caretActive
             return now
@@ -574,12 +672,16 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
             caretTimer = caretIdleTime
         end
     end
-
+    /*
+        This action hides the flashing caret within the text field.
+    */
     action HideCaret
         caret:Hide()
         caretActive = false
     end
-
+    /*
+        This action deletes the character behind the caret (left) or the selected text.
+    */
     action DeleteBackward
         if (not selection:IsEmpty())
             DeleteSelection()
@@ -618,7 +720,9 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         NotifyTextChangeListeners(changeEvent)
         EmptySelectionEvent(true)
     end
-
+    /*
+        This action deletes the character in front of the caret (right) or the selected text.
+    */
     action DeleteForward
         if (not selection:IsEmpty())
             DeleteSelection()
@@ -655,7 +759,9 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         NotifyTextChangeListeners(changeEvent)
         EmptySelectionEvent(true)
     end
-
+    /*
+        This action deletes the selected text.
+    */
     action DeleteSelection
         DeleteSelection(true)
     end
@@ -695,7 +801,13 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
         EmptySelectionEvent(true)
     end
+    /*
+        This action deletes the characters in the string of text from the given start
+        and end indexes.
 
+        Attribute: Parameter startIndex the first character location.
+        Attribute: Parameter endIndex the last character location.
+    */
     action Delete(integer startIndex, integer endIndex)
         if startIndex = endIndex
             return now
@@ -722,12 +834,23 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
         EmptySelectionEvent(true)
     end
+    /*
+        This action inserts the given text into the text fields text
+        at a given location in the text fields content.
 
+        Attribute: Parameter index the location.
+        Attribute: Parameter value the text to be inserted.
+    */
     action Insert(integer index, text value)
         SetCaretToIndex(index)
         Insert(value)
     end
+    /*
+        This action inserts the given text into the text fields text
+        at the caret location.
 
+        Attribute: Parameter value the text to be inserted.
+    */
     action Insert(text value)
         text deletedText = ""
         integer originalIndex = GetCaretPosition()
@@ -762,6 +885,8 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, value, deletedText, originalIndex)
+
+        EmptySelectionEvent(true)
 
         NotifyTextChangeListeners(changeEvent)
     end
@@ -1000,11 +1125,20 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
     action GetCaretGlobalY returns number
         return caret:GetGlobalY()
     end
+    /*
+        This action gets all the text in the text field.
 
+        Attribute: Returns the text to be inserted.
+    */
     action GetText returns text
         return textValue
     end
+    /*
+        This action gets the text from a specified index to another
+        specified end index in the text field.
 
+        Attribute: Returns the text to be inserted.
+    */
     action GetText(integer startIndex, integer endIndex) returns text
         return textValue:GetSubtext(startIndex, endIndex)
     end
@@ -1015,7 +1149,9 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
     action GetSize returns integer
         return textValue:GetSize()
     end
-
+    /*
+        This action returns true if the text field is empty.
+    */
     action Empty
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, "", GetText(), 0)
@@ -1033,7 +1169,11 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         NotifyTextChangeListeners(changeEvent)
         EmptySelectionEvent(true)
     end
+    /*
+        This action sets the text in the text field to a specified value.
 
+        Attribute: Parameter value the text to be placed in the text field.
+    */
     action SetText(text value)
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, value, GetText(), 0)
@@ -1051,7 +1191,11 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         NotifyTextChangeListeners(changeEvent)
         EmptySelectionEvent(true)
     end
+    /*
+        This action adds to the text in the text field a specified value at the end.
 
+        Attribute: Parameter value the text to be placed at the end of the text field.
+    */
     action AppendToText(text value)
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, value, "", textValue:GetSize())
@@ -1061,11 +1205,24 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         NotifyTextChangeListeners(changeEvent)
         EmptySelectionEvent(true)
     end
+    /*
+        This action selects the text in the text field from a specified index to
+        another specified end index.
 
+        Attribute: Parameter startIndex the first character index in the selection.
+        Attribute: Parameter endIndex the last character index in the selection.  
+    */
     action Select(integer startIndex, integer endIndex)
         Select(startIndex, endIndex, true)
     end
+    /*
+        This action selects the text in the text field from a specified index to
+        another specified end index.
 
+        Attribute: Parameter startIndex the first character index in the selection.
+        Attribute: Parameter endIndex the last character index in the selection.  
+        Attribute: Parameter caretAtEnd true if the caret should be displayed at the end of the text. 
+    */
     action Select(integer startIndex, integer endIndex, boolean caretAtEnd)
         if startIndex < 0
             startIndex = 0
@@ -1078,7 +1235,11 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         selection:Set(startIndex, endIndex, caretAtEnd, false)
         UpdateVisualSelection()
     end
+    /*
+        This action gets the selection from the text field.
 
+        Attribute: Returns the TextFieldSelection object.
+    */
     action GetSelection returns TextFieldSelection
         return selection
     end
@@ -1103,6 +1264,31 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         end
         GameStateManager manager
         manager:GetInput():NotifyTextChangeListeners(event)
+    end
+
+    action GetCurrentEditState returns TextFieldEditState
+        TextFieldEditState state
+        state:Set(GetText(), GetCaretPosition(), GetSelection())
+        return state
+    end
+
+    action SetFromEditState(TextFieldEditState state)
+        textValue = state:GetText()
+        SetCaretToIndex(state:GetCaretPosition())
+
+        Resize()
+
+        FitCharacterOnScreen(caretCharacter)
+        GetLineDrawables()
+        caretX = PositionCaret()
+        ResetCaretBlinkTimer()
+
+        Select(state:GetStartIndex(), state:GetEndIndex(), state:IsCaretAtEnd())
+        
+    end
+
+    action GetTextFieldEditManager returns TextFieldEditManager
+        return editManager
     end
 
     action GetTokenStartIndex returns integer
@@ -1530,7 +1716,10 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
     action SetPreviousCaretPosition(integer previous)
         previousCaretPosition = previous
     end
-
+    /*
+    This action gets the TextFieldSavePreviousCaretPositionBehavior position for use by the 
+    TextFieldSelectToMouseClickBehavior.
+    */
     action GetPreviousCaretPosition returns integer
         return previousCaretPosition
     end

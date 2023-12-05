@@ -16,12 +16,42 @@ use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Layouts.ButtonLayout
 use Libraries.Interface.Layouts.Layout
 
+
+/*
+    The RadioButton class is a ToggleButton object that inherits from Button and like other
+    UI elements it is added to the Game class. The radio button is used to represent
+    an individual or collection of toggle buttons. This button has a selected and
+    unselected state.
+
+    Attribute: Author William Allee, Andreas Stefik
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Forms.FormBehavior
+    use Libraries.Interface.Forms.Grouping
+    
+    class Main 
+        action Main 
+            Form form
+            Page page = form:GetMainPage()
+            
+            Grouping value = page:AddGrouping("radio group")
+            value:AddRadioButton("on")
+            value:AddRadioButton("off")
+            
+            form:Display()
+        end
+    end
+*/
 class RadioButton is ToggleButton
 
     Icon buttonIcon
     Label label
 
     on create
+        label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
+        
         // The layout should already be present, courtesy of our inheritance of Button.
         SetFocusable(false)
 
@@ -58,7 +88,33 @@ class RadioButton is ToggleButton
         parent:Control:SetInterfaceOptionsKey(key)
         buttonIcon:SetInterfaceOptionsKey(key)
     end
+    /*
+        Sets whether the toggle button is toggled on (checked/selected) or not.
 
+        Attribute: Parameter toggleState if true toggle on.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.FormBehavior
+        use Libraries.Interface.Forms.Grouping
+        use Libraries.Interface.Controls.RadioButton
+        
+        class Main 
+            action Main 
+                Form form
+                Page page = form:GetMainPage()
+                
+                Grouping value = page:AddGrouping("radio group")
+                RadioButton btn1 = value:AddRadioButton("on")
+                RadioButton btn2 = value:AddRadioButton("off")
+    
+                btn2:SetToggleState(true)
+                
+                form:Display()
+            end
+        end
+    */
     action SetToggleState(boolean toggleState)
         /*
         This overwrites the ToggleButton implementation of SetToggleState.
@@ -82,9 +138,9 @@ class RadioButton is ToggleButton
         end
 
         if toggleState
-            label:SetColor(GetSelectionFontColor())
+label:SetColor(GetSelectionFontColor())
         else
-            label:SetColor(GetFontColor())
+label:SetColor(GetFontColor())
         end
 
         Behavior behavior = GetActivationBehavior()
@@ -107,19 +163,25 @@ class RadioButton is ToggleButton
             accessibility:ToggleButtonToggled(me)
         end
     end
-
+    /*
+        This action is fired if the item received the focus.
+    */
     action GainedFocus(FocusEvent event)
         SetToggleState(true)
         parent:Control:GainedFocus(event)
     end
-
+    /*
+        This action gets the next focus item in the button group
+    */
     action GetNextFocus returns Item
         if GetButtonGroup() not= undefined
             return GetButtonGroup():GetNextFocus()
         end
         return parent:Item:GetNextFocus()
     end
-
+    /*
+        This action gets the previous focus item in the button group
+    */
     action GetPreviousFocus returns Item
         if GetButtonGroup() not= undefined
             return GetButtonGroup():GetPreviousFocus()

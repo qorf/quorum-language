@@ -125,7 +125,11 @@ class BoxPlot is Chart
 
         LoadChartAreaItems()
     end
-
+    /*
+        This action is used to load the graphical components of the chart area. This is
+        handled automatically by the Game engine as needed, and most users shouldn't
+        need to use this action directly.
+    */
     action LoadChartAreaItems()   
         ChartAreaPanel chartArea
         // Adding drawables for each boxplot to the chart
@@ -623,6 +627,36 @@ class BoxPlot is Chart
 
     /*
         Flag used to hide all the outliers.
+
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Charts.BoxPlotCreator
+        use Libraries.Interface.Controls.Charts.BoxPlot
+        use Libraries.Game.Game
+        
+        class Main is Game
+            action Main
+                StartGame()
+            end
+        
+            action CreateGame
+                DataFrame frame
+                frame:Load("Data/Cats.csv")
+                BoxPlotCreator creator
+                creator:AddColumn(2)
+                creator:AddFactor(7)
+            
+                BoxPlot chart = cast(BoxPlot,frame:CreateChart(creator))
+                chart:SetSize(900, 400)
+                chart:SetPercentageWidth(1)
+                chart:SetPercentageHeight(1)
+                chart:HideOutliers()
+                chart:SetTitle("Sample Title")
+                chart:SetXAxisTitle("X-axis Variable")
+                chart:SetYAxisTitle("Y-axis Variable")
+                Add(chart)
+            end
+        end
     */
     action HideOutliers()
         showOutliers = false
@@ -631,20 +665,54 @@ class BoxPlot is Chart
     /*
         Enables outliers in the chart. Outliers are visible by default, but can
         be disabled via the HideOutliers action.
+
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Charts.BoxPlotCreator
+        use Libraries.Interface.Controls.Charts.BoxPlot
+        use Libraries.Game.Game
+        
+        class Main is Game
+            action Main
+                StartGame()
+            end
+        
+            action CreateGame
+                DataFrame frame
+                frame:Load("Data/Cats.csv")
+                BoxPlotCreator creator
+                creator:AddColumn(2)
+                creator:AddFactor(7)
+            
+                BoxPlot chart = cast(BoxPlot,frame:CreateChart(creator))
+                chart:SetSize(900, 400)
+                chart:SetPercentageWidth(1)
+                chart:SetPercentageHeight(1)
+                chart:ShowOutliers()
+                chart:SetTitle("Sample Title")
+                chart:SetXAxisTitle("X-axis Variable")
+                chart:SetYAxisTitle("Y-axis Variable")
+                Add(chart)
+            end
+        end
     */
     action ShowOutliers
         showOutliers = true
     end
 
     /*
-        Returns the value of the showOutlier flag.
+        This action gets the value of the showOutlier flag.
+
+        Attribute: Returns true if outliers are shown.
     */
     action GetOutliersFlag() returns boolean
         return showOutliers
     end
 
     /*
-        Appends a plotgroup.
+        Appends a plotgroup to the boxplot plot groups container.
+        
+        Attribute: Parameter group the PlotGroup to add to the Box Plot plot groups.
     */
     action AddPlotGroup(PlotGroup group)
         if plotGroups:GetSize() = 0
@@ -666,6 +734,16 @@ class BoxPlot is Chart
                 minOutlierValue = group:GetMinOutlierValue()
             end
         end
+
+        check
+            // Attempt to simplify the group's name if it's viable as an integer.
+            number value = cast(number, group:GetName())
+            text name = "" + cast(integer, value)
+            group:SetName(name)        
+        detect e
+            // If we can't simplify the name, that's totally valid. Ignore it and more on.
+        end
+
         plotGroups:Add(group)
         if group:GetSize() > 1
             HasGroups(true)
@@ -674,21 +752,26 @@ class BoxPlot is Chart
     end
    
     /*
-        Returns an array of all the plot groups
+        This action gets an array of all the plot groups.
+        Attribute: Returns Array<PlotGroups> a container of all the box plots, plot groups.
     */
     action GetPlotGroups returns Array<PlotGroup>
         return plotGroups
     end
 
     /*
-        Returns the number of boxes currently added to the Box Plot
+        This action gets the number of boxes currently added to the Box Plot.
+        Attribute: Returns an integer of the number of boxes in the box plot.
     */
     action GetNumberOfPlots returns integer
         return numberOfPlots
     end
 
     /* 
-        Max and min value will track the highest and lowest values and limit the axis controls to not pass that value.
+        Sets the x axis maximum for the box plot. Max and min value will track the highest 
+        and lowest values and limit the axis controls to not pass that value.
+
+        Attribute: Parameter max the value of the x axis maximum.
     */ 
     action SetXAxisMaximum(number max)
         if GetVerticalFlag()
@@ -705,7 +788,12 @@ class BoxPlot is Chart
             end
         end
     end
+    /* 
+        Sets the x axis minimum for the box plot. Max and min value will track the highest 
+        and lowest values and limit the axis controls to not pass that value.
 
+        Attribute: Parameter min the value of the x axis minimum.
+    */
     action SetXAxisMinimum(number min)
         if GetVerticalFlag()
             parent:Chart:SetXAxisMinimum(min)
@@ -721,7 +809,12 @@ class BoxPlot is Chart
             end
         end
     end
+    /* 
+        Sets the y axis maximum for the box plot. Max and min value will track the highest 
+        and lowest values and limit the axis controls to not pass that value.
 
+        Attribute: Parameter max the value of the y axis maximum.
+    */
     action SetYAxisMaximum(number max)
         if GetHorizontalFlag()
             parent:Chart:SetYAxisMaximum(max)
@@ -737,7 +830,12 @@ class BoxPlot is Chart
             end
         end
     end
+    /* 
+        Sets the y axis minimum for the box plot. Max and min value will track the highest 
+        and lowest values and limit the axis controls to not pass that value.
 
+        Attribute: Parameter min the value of the y axis minimum.
+    */
     action SetYAxisMinimum(number min)
         if GetHorizontalFlag()
             parent:Chart:SetYAxisMinimum(min)
@@ -1094,7 +1192,12 @@ class BoxPlot is Chart
         showPlotAnnotation = show
         ShowAnnotations(show)
     end
-    
+    /* 
+        Sets the annotations chart label font to a specific size (integer value).
+
+        Attribute: Parameter size annotation font size override.
+        
+    */
     action SetAnnotationFontSize (integer size)
         annotationFontSizeOverride = true
         annotationFontSize = size

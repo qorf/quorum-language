@@ -28,7 +28,7 @@ import quorum.Libraries.System.File_;
 public class NetworkConnection {
 
     public java.lang.Object me_ = null;
-    private quorum.Libraries.Network.NetworkConnection connection = null; 
+    private quorum.Libraries.Network.NetworkConnection connection = null;
 
     public void Request() throws InputOutputError {
         connection = (quorum.Libraries.Network.NetworkConnection) me_;
@@ -47,12 +47,12 @@ public class NetworkConnection {
             Put(request);
         }
     }
-    
+
     private void Post(NetworkRequest_ request) throws InputOutputError {
         try {
             URL Url = new URL(request.GetWebAddress());
             HttpURLConnection conn;
-            
+
             URLConnection urlConnection = Url.openConnection();
             if (urlConnection instanceof HttpsURLConnection) {
                 HttpsURLConnection https = (HttpsURLConnection) urlConnection;
@@ -67,8 +67,8 @@ public class NetworkConnection {
             if (request.IsFixedLengthStreamingMode()) {
                 conn.setFixedLengthStreamingMode(body.getBytes().length);
             } else {
-            // Note: the HttpURLConnection object handles the mode. Removed for now, but kept here for future reference.
-            //     conn.setChunkedStreamingMode(connection.GetChunkLength());
+                // Note: the HttpURLConnection object handles the mode. Removed for now, but kept here for future reference.
+                //     conn.setChunkedStreamingMode(connection.GetChunkLength());
             }
             request.ResetHeaderIterator();
             while (request.HasNextHeader()) {
@@ -79,19 +79,19 @@ public class NetworkConnection {
             conn.setDoInput(request.GetDoInput());
             conn.setDoOutput(request.GetDoOutput());
             conn.connect();
-            
+
             try(DataOutputStream os = new DataOutputStream(conn.getOutputStream())) {
                 os.writeBytes(body);
                 os.flush();
                 os.close();
             }
-            
+
             if (request.GetDownloadFile() != null){
                 InputStream in = conn.getInputStream();
                 File_ quorumFile = request.GetDownloadFile();
                 File file = new File(quorumFile.GetAbsolutePath());
                 FileOutputStream out = new FileOutputStream(file);
- 
+
                 int contentLength = conn.getContentLength();
                 int totalSoFar = 0;
                 int bytesRead = -1;
@@ -129,14 +129,36 @@ public class NetworkConnection {
             throw e;
         }
     }
-    
+
     private void Get(NetworkRequest_ request) throws InputOutputError {
         // Note: Get Request does not send body. Parameters are attached to the URL.
+
+
         try {
-            String url = request.GetWebAddress() + "?" + request.GetParameters();
+            String webAddress = request.GetWebAddress();
+            String parameters = request.GetParameters();
+
+            StringBuilder finalUrl = new StringBuilder(webAddress);
+
+            // Check if webAddress already has parameters
+            if (webAddress.contains("?")) {
+
+                // If parameters are not empty, append them with an '&' because '?' already exists
+                if (!parameters.isEmpty()) {
+                    finalUrl.append("&").append(parameters);
+                }
+            } else {
+                // If parameters are not empty, append them with a '?' because '?' does not exist yet
+                if (!parameters.isEmpty()) {
+                    finalUrl.append("?").append(parameters);
+                }
+            }
+
+            String url = finalUrl.toString();
+
             URL Url = new URL(url);
             HttpURLConnection conn;
-            
+
             URLConnection urlConnection = Url.openConnection();
             if (urlConnection instanceof HttpsURLConnection) {
                 HttpsURLConnection https = (HttpsURLConnection) urlConnection;
@@ -155,7 +177,7 @@ public class NetworkConnection {
             }
             conn.setDoOutput(request.GetDoOutput());
             conn.connect();
-            
+
             if (request.GetDownloadFile() != null){
                 InputStream in = conn.getInputStream();
                 File file = new File(request.GetDownloadFile().GetAbsolutePath());
@@ -197,15 +219,15 @@ public class NetworkConnection {
             throw e;
         }
     }
-    
+
     private void Head(NetworkRequest_ request) {}
-    
+
     private void Patch(NetworkRequest_ request) {}
-    
+
     private void Delete(NetworkRequest_ request) {}
-    
+
     private void Put(NetworkRequest_ request) {}
-    
+
     private void SetDownloadProgress(int length, int read) {
         connection.SetDownloadProgress(length, read);
     }
@@ -243,5 +265,5 @@ public class NetworkConnection {
             throw e;
         }
     }
-    
+
 }

@@ -88,7 +88,7 @@ class HistogramWriter is ChartWriter
         histogram = cast(Histogram, chart)
 
         if HasAccessibility()
-            canvas:SetRole("graphics-document document")
+            canvas:SetRole("application")
             GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
@@ -136,7 +136,7 @@ class HistogramWriter is ChartWriter
             chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox")
             chartContentBoundingBox:SetTabIndex(-1)
             chartContentBoundingBox:SetAriaHidden("true")
-            if chart:GetTitle() not= ""
+            if chart:IsShowingTitle()
                 chartContent:SetAriaLabel(chart:GetTitle() + " " + chart:GetDescription())
             else
                 chartContent:SetAriaLabel(chart:GetName() + " " + chart:GetDescription())
@@ -145,6 +145,10 @@ class HistogramWriter is ChartWriter
         end
 
         chartContent:Add(chartContentBoundingBox)
+
+        if chart:IsShowingLinearRegression()
+            AddRegressionLines(canvas, chart)
+        end
 
         if not chart:IsSeparated()
             
@@ -273,6 +277,14 @@ class HistogramWriter is ChartWriter
                     bar:SetStroke(cast(Color, currentBar:GetBorderColor()))
                     bar:SetStrokeOpacity(cast(Color, currentBar:GetBorderColor()))
                     bar:SetStrokeWidth(currentBar:GetBorderThickness())
+                    
+                    number value = currentBar:GetValue()
+                    if value = cast(integer, value)
+                        bar:SetTitle(currentBar:GetSeries():GetName() + ": " + cast(integer, currentBar:GetValue()))
+                    else
+                        bar:SetTitle(currentBar:GetSeries():GetName() + ": " + currentBar:GetValue())
+                    end
+
                     if HasAccessibility()
                         bar:SetStyleClass("quorum-chart-rect")
                         bar:SetID(barSVG:GetID() + "_bar")
@@ -434,6 +446,14 @@ class HistogramWriter is ChartWriter
                         bar:SetStroke(cast(Color, currentBar:GetBorderColor()))
                         bar:SetStrokeOpacity(cast(Color, currentBar:GetBorderColor()))
                         bar:SetStrokeWidth(currentBar:GetBorderThickness())
+
+                        number value = currentBar:GetValue()
+                        if value = cast(integer, value)
+                            bar:SetTitle(currentBar:GetSeries():GetName() + ": " + cast(integer, currentBar:GetValue()))
+                        else
+                            bar:SetTitle(currentBar:GetSeries():GetName() + ": " + currentBar:GetValue())
+                        end
+
                         if HasAccessibility()
                             bar:SetStyleClass("quorum-chart-rect")
                             bar:SetID(barSVG:GetID() + "_bar")
@@ -504,15 +524,20 @@ class HistogramWriter is ChartWriter
                 i = i + 1
             end
         end
-        if chart:HasTrendLine()
-            Path svgPath
-            svgPath:SetCanvasSize(GetChartWidth(), GetChartHeight())
-            svgPath:SetPath(chart:GetTrendLine())
-            if HasAccessibility()
-                svgPath:SetAriaHidden("true")
-                svgPath:SetTabIndex(-1)
+        if chart:IsShowingTrendLine()
+            Array<Series> seriesList = chart:GetSeriesList()
+            s = 0
+            repeat while s < seriesList:GetSize()
+                Path svgPath
+                svgPath:SetCanvasSize(GetChartWidth(), GetChartHeight())
+                svgPath:SetPath(seriesList:Get(s):GetTrendLine())
+                if HasAccessibility()
+                    svgPath:SetAriaHidden("true")
+                    svgPath:SetTabIndex(-1)
+                end
+                canvas:Add(svgPath)
+                s = s + 1
             end
-            canvas:Add(svgPath)
         end
         if HasAccessibility()
             script:AddText(scriptText)  
@@ -521,7 +546,7 @@ class HistogramWriter is ChartWriter
     end
 
     private action AddTrendLine(ScalableVectorGraphics canvas, Histogram chart)
-        if chart:HasTrendLine() = false
+        if chart:IsShowingTrendLine() = false
             return now
         end
     end

@@ -72,6 +72,8 @@ class Label is Control
         defaultProperties:SetVerticalLayoutMode(defaultProperties:FIT_CONTENTS)
         SetName("Label")
         SetInterfaceOptionsKey("Label")
+        SetAccessibilityCode(parent:Item:LABEL)
+        SetAccessibilityRoleDescription("Label")
     end
 
 
@@ -298,6 +300,8 @@ class Label is Control
                     accessibility:DescriptionChanged(me)
                 end
             end
+
+            RequestLayout()
         end
     end
 

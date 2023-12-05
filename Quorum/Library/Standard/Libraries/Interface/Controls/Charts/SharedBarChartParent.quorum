@@ -49,6 +49,7 @@ class SharedBarChartParent is Chart
 
     Array<BarGroup> barGroups
     boolean isStacked = false
+    boolean showTrendLine = false
 
     Color barColor = undefined
 
@@ -109,6 +110,7 @@ class SharedBarChartParent is Chart
             text groupname = barGroups:Get(i):GetName()
             if HasGroups() and not IsSeparatedBySeries()
                 BarGroup barGroupIcon = barGroups:Get(i)
+                barGroupIcon:SetGroupName(groupname)
                 barGroupIcon:SetName(groupname + " group, ")
                 barGroupIcon:SetDescription((i+1) + " of " + barGroups:GetSize() + " groups, has " + barGroups:Get(i):GetSize() + " bars.")
                 if i = 0
@@ -197,9 +199,31 @@ class SharedBarChartParent is Chart
             i = i + 1
         end
 
-        // Add the trend line, if there is one.
-        if HasTrendLine()
-            GetChartArea():Add(trendLine)
+        if IsShowingTrendLine()
+            if IsSeparatedByFactor()
+                // we don't want to add the trend line if series' bars are not in the same chart area
+                showTrendLine = false
+            else
+                // Add the trend line to the correct chart area, if there is one.
+                ChartAreaPanel chartArea = GetChartArea()
+                integer s = 0  
+                repeat while s < GetSeriesList():GetSize()
+                    Series series = GetSeriesList():Get(s)
+                    if IsSeparatedBySeries()
+                        integer k = 0
+                        repeat while k < GetNumberOfChartAreas()
+                            if series:GetName() = GetSubChartAreas():Get(k):GetName()
+                                chartArea = GetSubChartAreas():Get(k)
+                                k = GetNumberOfChartAreas() // skip the rest once the right are is located
+                            end
+                            k = k + 1
+                        end
+                    end
+                    series:ShowTrendLine(true)
+                    chartArea:Add(series:GetTrendLine())
+                    s = s + 1
+                end
+            end
         end
     end
 
@@ -467,13 +491,6 @@ class SharedBarChartParent is Chart
     action GetBarGroups returns Array<BarGroup>
         return barGroups
     end
-
-//    /*
-//        Sets a flag that will stack bars inside each group if set to true.
-//    */
-//    action IsStacked(boolean flag)
-//        isStacked = flag
-//    end
 
     /*
         Sets a flag that will stack bars inside each group if set to true.
@@ -787,25 +804,42 @@ class SharedBarChartParent is Chart
     end
 
     /* 
-        Max bar value will track the largest bar and limit the axis controls to not drop below that value.
-        This will prevent the bar from being drawn over the edge of the chart area.
+        Sets the XAxis maximum value. Max bar value will track the largest bar and 
+        limit the axis controls to not drop below that value. This will prevent the 
+        bar from being drawn over the edge of the chart area.
 
-        Min bar value will track the smallest (negative) bar and limit the axis controls to not go above that value.
-        This will prevent the bar from being drawn over the edge of the chart area.
+        Attribute: Parameter max the number on the x axis to set the max value to.
     */ 
-
     action SetXAxisMaximum(number max)
         parent:Chart:SetXAxisMaximum(max)
     end
+    /* 
+        Sets the YAxis maximum value. Max bar value will track the largest bar and 
+        limit the axis controls to not drop below that value. This will prevent the 
+        bar from being drawn over the edge of the chart area.
 
+        Attribute: Parameter max the number on the y axis to set the max value to.
+    */ 
     action SetYAxisMaximum(number max)
         parent:Chart:SetYAxisMaximum(max)
     end
+    /*
+        Sets the XAxis minimum value. Min bar value will track the smallest 
+        (negative) bar and limit the axis controls to not go above that value.
+        This will prevent the bar from being drawn over the edge of the chart area.
 
+        Attribute: Parameter min the number on the x axis to set the minimum value to.
+    */
     action SetXAxisMinimum(number min)
         parent:Chart:SetXAxisMinimum(min)
     end
+    /*
+        Sets the YAxis minimum value. Min bar value will track the smallest 
+        (negative) bar and limit the axis controls to not go above that value.
+        This will prevent the bar from being drawn over the edge of the chart area.
 
+        Attribute: Parameter min the number on the y axis to set the minimum value to.
+    */
     action SetYAxisMinimum(number min)
         parent:Chart:SetYAxisMinimum(min)
     end
@@ -823,13 +857,19 @@ class SharedBarChartParent is Chart
     action SetBarBorderThickness(number barBorderThickness)
         me:barBorderThickness = barBorderThickness
     end
-    
+    /*
+        This action sets the chart orientation to horizontal, with the x 
+        axis or first column displayed on the horizontal axis.
+    */
     action SetOrientationToHorizontal
         LayoutProperties properties = GetDefaultLayoutProperties()
         barBorderStyle = properties:ALL - properties:LEFT
         parent:Chart:SetOrientationToHorizontal()
     end
-
+    /*
+        This action sets the chart orientation to vertical, with the y 
+        axis or first column displayed on the vertical axis.
+    */
     action SetOrientationToVertical
         LayoutProperties properties = GetDefaultLayoutProperties()
         barBorderStyle = properties:ALL - properties:BOTTOM
@@ -861,48 +901,29 @@ class SharedBarChartParent is Chart
     Attribute: Parameter show True to display the trend line, or false to hide it.
     */
     action ShowTrendLine(boolean show)
-        if show = (trendLine not= undefined)
-            return now
-        end
-
-        if show
-            LinePath path
-            trendLine = path
-            path:SetPercentageWidth(1.0)
-            path:SetPercentageHeight(1.0)
-        else
-            GetChartArea():Remove(trendLine)
-            trendLine = undefined
-        end
+        showTrendLine = show
     end
 
+    action IsShowingTrendLine returns boolean
+        return showTrendLine
+    end
     /*
-    This action returns whether or not this chart is currently showing a trend line.
-
-    Attribute: Returns True if this chart is displaying a trend line, or false if there is no trend line.
+        This action gets the chart item text.
     */
-    action HasTrendLine returns boolean
-        return trendLine not= undefined
-    end
-
-    /*
-    This action returns the trend line of this chart as a LinePath. If there is no trend line, this will return
-    undefined instead.
-
-    Attribute: Returns The trend line of this chart, or undefined if there is no trend line.
-    */
-    action GetTrendLine returns LinePath
-        return trendLine
-    end
-
     action GetChartItemText returns text
         return chartItemText
     end
-
+    /*
+        This action gets the chart items text.
+    */
     action GetChartItemsText returns text
         return chartItemsText
     end
+    /*
+        This action sets the annotation font size on the scatte plot points
 
+        Attribute: Parameter size the font size of point annotations.
+    */
     action SetAnnotationFontSize (integer size)
         annotationFontSizeOverride = true
         annotationFontSize = size

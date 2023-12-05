@@ -36,7 +36,7 @@ class LightModeOptions is InterfaceOptions
         SetShadowEdgeFade(3)
 
         // Button specific colors.
-        Color acceptBlue = color:CustomColor(66.0/MAX, 147.0/MAX, 203.0/MAX, 1)
+        Color acceptBlue = color:CustomColor(1.0/MAX, 115.0/MAX, 163.0/MAX, 1)
         Color greyBorder = color:CustomColor(110.0/MAX, 110.0/MAX, 110.0/MAX, 1)
         Color darkFont = color:CustomColor(32.0 / MAX, 32.0 / MAX, 32.0 / MAX, 1)
         Color lightFont = color:CustomColor(246.0 / MAX, 246.0 / MAX, 246.0 / MAX, 1)
@@ -116,7 +116,7 @@ class LightModeOptions is InterfaceOptions
         // RadioButton specific colors.
         SetRadioButtonBackgroundColor(color:CustomColor(211.0/255.0, 211.0/255.0, 211.0/255.0, 1))
         SetRadioButtonBorderColor(color:CustomColor(178.0/255.0, 178.0/255.0, 178.0/255.0, 1))
-        SetRadioButtonSelectionColor(color:CustomColor(59.0/255.0, 153/255.0, 252/255.0, 1))
+        SetRadioButtonSelectionColor(acceptBlue)
         SetRadioButtonSelectionBorderColor(color:CustomColor(151.0/255.0, 197/255.0, 245/255.0, 1))
         SetRadioButtonFontColor(color:Black())
         SetRadioButtonSelectionFontColor(color:Black())
@@ -181,6 +181,7 @@ class LightModeOptions is InterfaceOptions
         SetCodeEditorForegroundColor(sidePanel)
         SetCodeEditorAccentColor(color:CustomColor(121.0 / MAX, 121.0 / MAX, 121.0 / MAX, 1))
         SetCodeEditorIconColor(GetTextBoxFontColor())
+SetCodeEditorSelectionColor(color:Black())
 
         // TreeTableCell specific colors.
         SetTreeTableCellBackgroundColor(color:White())

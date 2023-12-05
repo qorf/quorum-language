@@ -7,15 +7,53 @@ use Libraries.Containers.Array
 use Libraries.Interface.Controls.ButtonGroup
 use Libraries.Interface.Controls.ToggleButton
 
+/*
+
+    This class represents a grouping of elements and is a form container control. 
+    This class provides a generic grouping for positioning and controlling 
+    page elements. These elements include elements that are optionally grouped 
+    (e.g., Buttons, Labels, Text Boxes) or required to be grouped (e.g., Toggle Buttons, Radio Buttons).
+
+    Attribute: Author Andreas Stefik, William Allee
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Forms.Grouping
+    class Main
+        action Main
+
+            Form form
+            Page homePage = form:GetMainPage() 
+
+            Grouping toggleGroup = homePage:AddGrouping("switch")
+            toggleGroup:AddToggleButton("On")
+            toggleGroup:AddToggleButton("Off")
+
+            toggleGroup:SelectNext()  
+            
+            form:Display()
+        end
+    end
+
+*/
 class Grouping is FormContainerControl, ButtonGroup
 
     on create
         SetVerticalLayoutMode(parent:Control:FIT_CONTENTS)
         SetInterfaceOptionsKey("Grouping")
     end
-
+    /*
+        An integer constant used to indicate the top position in the grouping.
+    */
     public constant integer TOP_POSITION = 0
+    /*
+        An integer constant used to indicate the bottom position in the grouping.
+    */
     public constant integer BOTTOM_POSITION = 1
+    /*
+        An integer constant used to indicate the center position in the grouping.
+    */
     public constant integer CENTER_POSITION = 2
 
     integer verticalPosition = TOP_POSITION
@@ -30,28 +68,168 @@ class Grouping is FormContainerControl, ButtonGroup
 
         parent:Control:LoadGraphics(properties)
     end
+    /*
+        This action positions the grouping at the vertical top of the form.
 
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Grouping
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                Grouping toggleGroup = homePage:AddGrouping("switch")
+                toggleGroup:AddToggleButton("On")
+                toggleGroup:AddToggleButton("Off")
+
+                toggleGroup:PositionFromTop() 
+                
+                form:Display()
+            end
+        end
+    */
     action PositionFromTop
         SetVerticalPosition(TOP_POSITION)
     end
+    /*
+        This action positions the grouping at the vertical center of the form.
 
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Grouping
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                Grouping toggleGroup = homePage:AddGrouping("switch")
+                toggleGroup:AddToggleButton("On")
+                toggleGroup:AddToggleButton("Off")
+
+                toggleGroup:PositionFromCenter() 
+                
+                form:Display()
+            end
+        end
+    */
     action PositionFromCenter
         SetVerticalPosition(CENTER_POSITION)
     end
+    /*
+        This action positions the grouping at the vertical bottom of the form.
 
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Grouping
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                Grouping toggleGroup = homePage:AddGrouping("switch")
+                toggleGroup:AddToggleButton("On")
+                toggleGroup:AddToggleButton("Off")
+
+                toggleGroup:PositionFromBottom() 
+                
+                form:Display()
+            end
+        end
+    */
     action PositionFromBottom
         SetVerticalPosition(BOTTOM_POSITION)
     end
+    /*
+        This action gets the vertical position of the grouping on the form.
 
+        Attribute: Returns The integer represents the vertical position of the Grouping. This 
+        value should be compared to the position constants (e.g., BOTTOM_POSITION, TOP_POSITION, CENTER_POSITION).
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Grouping
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                Grouping toggleGroup = homePage:AddGrouping("switch")
+                toggleGroup:AddToggleButton("On")
+                toggleGroup:AddToggleButton("Off")
+
+                output toggleGroup:GetVerticalPosition()
+                
+                form:Display()
+            end
+        end
+    */
     action GetVerticalPosition returns integer
         return verticalPosition
     end
+    /*
+        This action sets the vertical position of the grouping on the form.
 
+        Attribute: Parameter verticalPosition The integer represents the vertical position of the Grouping (e.g., BOTTOM_POSITION, TOP_POSITION, CENTER_POSITION).
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Grouping
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                Grouping toggleGroup = homePage:AddGrouping("switch")
+                toggleGroup:AddToggleButton("On")
+                toggleGroup:AddToggleButton("Off")
+
+                toggleGroup:SetVerticalPosition(toggleGroup:CENTER_POSITION)
+                
+                form:Display()
+            end
+        end
+    */
     action SetVerticalPosition(integer verticalPosition)
         me:verticalPosition = verticalPosition
         RequestLayout()
     end
+    /*
+        This action adds a toggle button to the grouping.
 
+        Attribute: Parameter name The text represents the identifier of the toggle button.
+        Attribute: Returns The toggle button object that was added to the grouping.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Grouping
+        use Libraries.Interface.Controls.ToggleButton
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                Grouping toggleGroup = homePage:AddGrouping("switch")
+                toggleGroup:AddToggleButton("On")
+                ToggleButton off = toggleGroup:AddToggleButton("Off")
+                
+                form:Display()
+            end
+        end
+    */
     action AddToggleButton(text name) returns ToggleButton
         ToggleButton button
         button:SetName(name)
@@ -62,9 +240,36 @@ class Grouping is FormContainerControl, ButtonGroup
         Add(button)
         return button
     end    
+    /*
+        This action removes the toggle button with the matching name (identifier) from the grouping.
 
+        Attribute: Parameter name The text represents the identifier of the toggle button.
+        Attribute: Returns The toggle button object that was removed from the grouping.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Grouping
+        use Libraries.Interface.Controls.ToggleButton
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                Grouping toggleGroup = homePage:AddGrouping("switch")
+                toggleGroup:AddToggleButton("On")
+                ToggleButton off = toggleGroup:AddToggleButton("Off")
+
+                toggleGroup:RemoveToggleButton(off:GetName())
+
+                form:Display()
+            end
+        end
+    */
     action RemoveToggleButton(text name) returns ToggleButton
-        ToggleButton button = GetRadioButton(name)
+        ToggleButton button = GetToggleButton(name)
         if button not= undefined
             Remove(button)
             RemoveFromGrouping(button)
@@ -72,7 +277,32 @@ class Grouping is FormContainerControl, ButtonGroup
         end
         alert("I couldn't find a ToggleButton named " + name + ". Are you looking for the right item?")
     end
+    /*
+        This action adds a radio button to the grouping.
 
+        Attribute: Parameter name The text represents the identifier of the radio button.
+        Attribute: Returns The radio button object that was added to the grouping.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Grouping
+        use Libraries.Interface.Controls.RadioButton
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                Grouping radioGroup = homePage:AddGrouping("switch")
+                radioGroup:AddRadioButton("On")
+                RadioButton off = radioGroup:AddRadioButton("Off")
+                
+                form:Display()
+            end
+        end
+    */
     action AddRadioButton(text name) returns RadioButton
         RadioButton button
         button:SetName(name)
@@ -83,7 +313,34 @@ class Grouping is FormContainerControl, ButtonGroup
         Add(button)
         return button
     end    
+    /*
+        This action removes the radio button with the matching name (identifier) from the grouping.
 
+        Attribute: Parameter name The text represents the identifier of the radio button.
+        Attribute: Returns The radio button object that was removed from the grouping.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Grouping
+        use Libraries.Interface.Controls.RadioButton
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                Grouping radioGroup = homePage:AddGrouping("switch")
+                radioGroup:AddRadioButton("On")
+                RadioButton off = radioGroup:AddRadioButton("Off")
+
+                radioGroup:RemoveRadioButton(off:GetName())
+                
+                form:Display()
+            end
+        end
+    */
     action RemoveRadioButton(text name) returns RadioButton
         RadioButton button = GetRadioButton(name)
         if button not= undefined
@@ -93,15 +350,77 @@ class Grouping is FormContainerControl, ButtonGroup
         end
         alert("I couldn't find a RadioButton named " + name + ". Are you looking for the right item?")
     end
-    
+    /*
+        This action gets the number of columns in the grouping. A grouping has a default of 0 columns.
+
+        Attribute: Returns The integer represents the number of columns in the grouping
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Grouping
+        use Libraries.Interface.Controls.RadioButton
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                Grouping radioGroup = homePage:AddGrouping("switch")
+                radioGroup:AddRadioButton("On")
+                RadioButton off = radioGroup:AddRadioButton("Off")
+
+                output radioGroup:GetColumns()
+                radioGroup:SetColumns(1)
+                output radioGroup:GetColumns()
+
+                form:Display()
+            end
+        end
+    */    
     action GetColumns returns integer
         return columns
     end
+    /*
+        This action sets the number of columns in the grouping. This allows each element in 
+        the grouping to be arranged into visual columns. A grouping has a default of 0 columns.
 
+        Attribute: columns The integer represents the number of columns to arrange the elements in the grouping into.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Grouping
+        use Libraries.Interface.Controls.RadioButton
+
+        class Main
+            action Main
+                // create the app
+                Form form
+                Page homePage = form:GetMainPage() 
+
+                Grouping radioGroup = homePage:AddGrouping("switch")
+                radioGroup:AddRadioButton("On")
+                RadioButton off = radioGroup:AddRadioButton("Off")
+
+                output radioGroup:GetColumns()
+                radioGroup:SetColumns(1)
+                output radioGroup:GetColumns()
+
+                form:Display()
+            end
+        end
+    */
     action SetColumns(integer columns)
         me:columns = columns
     end
 
+    /*
+        Get the Item2D elements from the grouping.
+
+        Attribute: Parameter Array<Item2D> the form children.
+    */
     action GetFormChildren returns Array<Item2D>
         return GetChildren()
     end

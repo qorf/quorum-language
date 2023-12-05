@@ -17,6 +17,7 @@ use Libraries.Containers.Iterator
 use Libraries.Containers.List
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Accessibility
+use Libraries.Game.Graphics.Painter2D
 
 class Block is Control
     integer scopeDepth = 0
@@ -634,20 +635,20 @@ class Block is Control
     action UseEnterScopeStyling
         topNotchPositionFactor = 1
         bottomNotchPositionFactor = 2
-        SetBottomLeftRounding(0)
+        SetBottomLeftPixelRounding(0)
     end
 
     action UseExitScopeStyling
         topNotchPositionFactor = 2
         bottomNotchPositionFactor = 1
-        SetTopLeftRounding(0)
+        SetTopLeftPixelRounding(0)
     end
 
     action UseEnterAndExitScopeStyling
         topNotchPositionFactor = 2
         bottomNotchPositionFactor = 2
-        SetTopLeftRounding(0)
-        SetBottomLeftRounding(0)
+        SetTopLeftPixelRounding(0)
+        SetBottomLeftPixelRounding(0)
     end
 
     action UseNeutralScopeStyling
@@ -981,7 +982,7 @@ class Block is Control
             if GetBottomNotchPosition() > minimumWidth
                 minimumWidth = GetBottomNotchPosition()
             end
-            minimumWidth = minimumWidth + editor:GetBlockNotchTopWidth() + GetRightPadding()
+            minimumWidth = minimumWidth + (editor:GetBlockNotchTopWidth() + GetRightPadding()) * GetInterfaceScale()
             return minimumWidth
         end
 
@@ -1054,5 +1055,32 @@ class Block is Control
         end
         
         return false
+    end
+    
+action Draw(Painter2D painter)
+        if not IsShowing()
+            return now
+        end
+
+        if parent:Item2D:visualView not= undefined
+            parent:Item2D:visualView:Draw(painter)
+        end
+    end
+    
+action DrawContents(Painter2D painter)
+        if not IsShowing()
+            return now
+        end
+
+        integer counter = 0
+        Array<Item2D> children = GetChildren()
+        repeat while counter < children:GetSize()
+            children:Get(counter):Draw(painter)
+            counter = counter + 1
+        end
+    end
+    
+action IsAccessibleParent returns boolean
+        return true
     end
 end

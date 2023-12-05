@@ -79,7 +79,7 @@ class BarChartWriter is ChartWriter
         barChart = cast(BarChart, chart)
 
         if HasAccessibility()
-            canvas:SetRole("graphics-document document")
+            canvas:SetRole("application")
             GetChartArea():SetAriaLabel(chart:GetChartArea():GetName() + " " + chart:GetChartArea():GetDescription())
         end
     end
@@ -127,7 +127,7 @@ class BarChartWriter is ChartWriter
             chartContentBoundingBox:SetAriaHidden("true")
             chartContentBoundingBox:SetTabIndex(-1)
             chartContentBoundingBox:SetStyleClass("quorum-chart-area")
-            if chart:GetTitle() not= ""
+            if chart:IsShowingTitle()
                 chartContent:SetAriaLabel(chart:GetTitle() + " " + chart:GetDescription())
             else
                 chartContent:SetAriaLabel(chart:GetName() + " " + chart:GetDescription())
@@ -135,6 +135,10 @@ class BarChartWriter is ChartWriter
             chartContent:SetAriaHidden("false")
         end
         chartContent:Add(chartContentBoundingBox)
+
+        if chart:IsShowingLinearRegression()
+            AddRegressionLines(canvas, chart)
+        end
 
         if not chart:IsSeparated()
             
@@ -263,6 +267,38 @@ class BarChartWriter is ChartWriter
                     bar:SetStroke(cast(Color, currentBar:GetBorderColor()))
                     bar:SetStrokeOpacity(cast(Color, currentBar:GetBorderColor()))
                     bar:SetStrokeWidth(currentBar:GetBorderThickness())
+
+
+                    text title = ""
+                    boolean emptyTitle = true
+                    if currentBar:GetSeries():GetName() not= ""
+                        title = title + currentBar:GetSeries():GetName()
+                        emptyTitle = false
+                    end
+
+                    if currentBar:GetBarGroup():GetGroupName() not= ""
+                        if not emptyTitle
+                            title = title + ", "
+                        end
+
+                        title = title + currentBar:GetBarGroup():GetGroupName() 
+                        emptyTitle = false
+                    end
+
+                    if not emptyTitle
+                        title = title + ": "
+                    end
+
+                    number value = currentBar:GetValue()
+                    if value = cast(integer, value)
+                        title = title + cast(integer, value)
+                    else
+                        title = title + value
+                    end
+
+                    bar:SetTitle(title)
+
+
                     if HasAccessibility()
                         bar:SetStyleClass("quorum-chart-rect")
                         bar:SetID(barSVG:GetID() + "_bar")
@@ -422,6 +458,38 @@ class BarChartWriter is ChartWriter
                         bar:SetStroke(cast(Color, currentBar:GetBorderColor()))
                         bar:SetStrokeOpacity(cast(Color, currentBar:GetBorderColor()))
                         bar:SetStrokeWidth(currentBar:GetBorderThickness())
+
+
+                        text title = ""
+                        boolean emptyTitle = true
+                        if currentBar:GetSeries():GetName() not= ""
+                            title = title + currentBar:GetSeries():GetName()
+                            emptyTitle = false
+                        end
+    
+                        if currentBar:GetBarGroup():GetGroupName() not= ""
+                            if not emptyTitle
+                                title = title + ", "
+                            end
+    
+                            title = title + currentBar:GetBarGroup():GetGroupName() 
+                            emptyTitle = false
+                        end
+    
+                        if not emptyTitle
+                            title = title + ": "
+                        end
+    
+                        number value = currentBar:GetValue()
+                        if value = cast(integer, value)
+                            title = title + cast(integer, value)
+                        else
+                            title = title + value
+                        end
+    
+                        bar:SetTitle(title)
+
+
                         if HasAccessibility()
                             bar:SetStyleClass("quorum-chart-rect")
                             bar:SetID(barSVG:GetID() + "_bar")

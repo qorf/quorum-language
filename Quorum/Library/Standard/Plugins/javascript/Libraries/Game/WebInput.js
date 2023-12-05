@@ -1,5 +1,8 @@
 function plugins_quorum_Libraries_Game_WebInput_()
 {
+    // Lazy-loaded value. Cached the first time HasTouchScreen() is called.
+    let supportsTouchScreen = undefined;
+
     if (!plugins_quorum_Libraries_Game_WebInput_.initialized_plugins_quorum_Libraries_Game_WebInput_)
     {
         plugins_quorum_Libraries_Game_WebInput_.mouseEvents = [];
@@ -13,7 +16,73 @@ function plugins_quorum_Libraries_Game_WebInput_()
         plugins_quorum_Libraries_Game_WebInput_.mouseInfo.y = 0;
         plugins_quorum_Libraries_Game_WebInput_.mouseInfo.buttons = 0;
         plugins_quorum_Libraries_Game_WebInput_.mouseInfo.wheel = 0;
-        
+
+        /*
+        This value indicates if we have failed to capture information via KeyDown on the last key event.
+        If so, this can result in missing events, especially text events we need for TextBox/TextField.
+        In this specific case, we rely on Input event handlers from the hidden text areas in shadow DOM.
+        Importantly, though, we don't want to double-input if we are correctly processing KeyDown inputs,
+        so we need to track this on a per-key basis.
+
+        This particular case occurs when using the default keyboard on Android devices. Except for a few
+        specific keys, like backspace,
+        */
+        plugins_quorum_Libraries_Game_WebInput_.lastKeyDownFailed = false;
+
+        // Returns true if the browser supports touch, false otherwise.
+        plugins_quorum_Libraries_Game_WebInput_.HasTouchScreen = function()
+        {
+            if (supportsTouchScreen !== undefined)
+                return supportsTouchScreen;
+
+            // Implementation taken with minor adaptations from the MDN documentation here: https://developer.mozilla.org/en-US/docs/Web/HTTP/Browser_detection_using_the_user_agent
+            let navigator = window.navigator;
+            let hasTouchScreen = false;
+            if ("maxTouchPoints" in navigator)
+            {
+                hasTouchScreen = navigator.maxTouchPoints > 0;
+            }
+            else if ("msMaxTouchPoints" in navigator)
+            {
+                hasTouchScreen = navigator.msMaxTouchPoints > 0;
+            }
+            else
+            {
+                const mQ = window.matchMedia?.("(pointer:coarse)");
+                if (mQ?.media === "(pointer:coarse)")
+                {
+                    hasTouchScreen = !!mQ.matches;
+                }
+                else if ("orientation" in window)
+                {
+                    hasTouchScreen = true; // deprecated, but good fallback
+                }
+                else
+                {
+                // Only as a last resort, fall back to user agent sniffing
+                const UA = navigator.userAgent;
+                hasTouchScreen =
+                  /\b(BlackBerry|webOS|iPhone|IEMobile)\b/i.test(UA) ||
+                  /\b(Android|Windows Phone|iPad|iPod)\b/i.test(UA);
+                }
+            }
+
+            supportsTouchScreen = hasTouchScreen;
+            return supportsTouchScreen;
+        };
+
+        // If we previously defined the listener functions, remove the old ones before we do any more initialization.
+        if (plugins_quorum_Libraries_Game_WebInput_.KeyDown !== undefined)
+        {
+            document.removeEventListener('keydown', plugins_quorum_Libraries_Game_WebInput_.KeyDown);
+            document.removeEventListener('keyup', plugins_quorum_Libraries_Game_WebInput_.KeyUp);
+            document.removeEventListener('mousedown', plugins_quorum_Libraries_Game_WebInput_.MouseDown);
+            document.removeEventListener('mouseup', plugins_quorum_Libraries_Game_WebInput_.MouseUp);
+            document.removeEventListener('mousemove', plugins_quorum_Libraries_Game_WebInput_.MouseMove);
+            document.removeEventListener('contextmenu', plugins_quorum_Libraries_Game_WebInput_.ContextMenu);
+            document.removeEventListener('wheel', plugins_quorum_Libraries_Game_WebInput_.MouseScroll);
+        }
+
         plugins_quorum_Libraries_Game_WebInput_.IsFocused = function()
         {
             let accessibilityRoot;
@@ -106,6 +175,9 @@ function plugins_quorum_Libraries_Game_WebInput_()
 
         plugins_quorum_Libraries_Game_WebInput_.IsMouseInCanvas = function(event)
         {
+            if (plugins_quorum_Libraries_Game_GameStateManager_.display == null)
+                return false;
+
             var canvas = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas();
             return event.target === canvas;
         };
@@ -120,7 +192,6 @@ function plugins_quorum_Libraries_Game_WebInput_()
              */
             if (plugins_quorum_Libraries_Game_WebInput_.IsMouseInCanvas(event))
             {
-                console.log(`mousedown ${event.clientX} ${event.clientY} ${event.target.tagName} ${event.target.id}`);
                 event.stopPropagation();
                 event.preventDefault();
                 plugins_quorum_Libraries_Game_WebInput_.TakeFocus();
@@ -139,7 +210,6 @@ function plugins_quorum_Libraries_Game_WebInput_()
 
             if (plugins_quorum_Libraries_Game_WebInput_.IsFocused())
             {
-                console.log(`mouseup ${event.clientX} ${event.clientY} ${event.target.tagName} ${event.target.id}`);
                 var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, 4);
                 plugins_quorum_Libraries_Game_WebInput_.mouseEvents.push(quorumEvent);
             }
@@ -163,14 +233,11 @@ function plugins_quorum_Libraries_Game_WebInput_()
         
         plugins_quorum_Libraries_Game_WebInput_.MouseScroll = function(event)
         {
-            if (plugins_quorum_Libraries_Game_WebInput_.IsMouseInCanvas(event))
+            if (plugins_quorum_Libraries_Game_WebInput_.IsFocused() && plugins_quorum_Libraries_Game_WebInput_.IsMouseInCanvas(event))
             {
                 event.stopPropagation();
                 event.preventDefault();
-            }
 
-            if (plugins_quorum_Libraries_Game_WebInput_.IsFocused())
-            {
                 var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, 5);
                 plugins_quorum_Libraries_Game_WebInput_.mouseEvents.push(quorumEvent);
             }
@@ -187,14 +254,85 @@ function plugins_quorum_Libraries_Game_WebInput_()
                 }
             }
         };
-        
-        document.addEventListener('keydown', plugins_quorum_Libraries_Game_WebInput_.KeyDown, false);
-        document.addEventListener('keyup', plugins_quorum_Libraries_Game_WebInput_.KeyUp, false);
+
+        plugins_quorum_Libraries_Game_WebInput_.InputText = function(event)
+        {
+            let eventTarget = event.target;
+
+            /*
+            When the text is directly modified in a shadow DOM text box or text field,
+            update the corresponding Quorum element to match.
+            */
+            if (eventTarget.quorumItem && eventTarget.quorumItem.SetText$quorum_text)
+            {
+                let quorumItem = eventTarget.quorumItem;
+                let selection = eventTarget.quorumItem.GetSelection();
+
+                let startIndex = eventTarget.selectionStart;
+                let endIndex = eventTarget.selectionEnd;
+
+                if (quorumItem.GetText() !== eventTarget.value)
+                {
+                    quorumItem.SetText$quorum_text(eventTarget.value);
+
+                    // Update the selection indices, if possible.
+                    if (selection && selection.Set$quorum_integer$quorum_integer$quorum_boolean$quorum_boolean)
+                    {
+                        selection.Set$quorum_integer$quorum_integer$quorum_boolean$quorum_boolean(startIndex, endIndex, true, false);
+                    }
+
+                    // Ensure the caret is in the right spot.
+                    if (quorumItem.SetCaretPosition$quorum_integer)
+                    {
+                        quorumItem.SetCaretPosition$quorum_integer(endIndex);
+                    }
+
+                    // Changing the Quorum text updates the position of the selection in shadow DOM. Make sure it's set back to correct values.
+                    eventTarget.selectionStart = startIndex;
+                    eventTarget.selectionEnd = endIndex;
+
+                    return;
+                }
+            }
+
+            /*
+            The last key down event may have failed if the keyboard didn't support it (probably because it's the Android
+            soft keyboard). If the last event failed and we couldn't set a text box / text field directly, see if the
+            input event has any useful information that we can manually send as a Quorum TextInputEvent.
+            */
+            if (plugins_quorum_Libraries_Game_WebInput_.lastKeyDownFailed === false || event.data == null || event.data === "")
+                return;
+
+            var quorumEvent = new quorum_Libraries_Interface_Events_TextInputEvent_();
+            quorumEvent.SetText$quorum_text(event.data);
+
+            quorumEvent.SetUnicodeValue$quorum_integer(event.data.charCodeAt(0));
+            plugins_quorum_Libraries_Game_WebInput_.textEvents.push(quorumEvent);
+        };
+
+        /*
+        Only add key up/down listeners if we don't have a touch screen.
+        A touch screen means an extremely high chance of a "soft" touchscreen keyboard, which may have poor
+        key up/down support and which may need special care for text input.
+        */
+        if (!plugins_quorum_Libraries_Game_WebInput_.HasTouchScreen())
+        {
+            document.addEventListener('keydown', plugins_quorum_Libraries_Game_WebInput_.KeyDown, false);
+            document.addEventListener('keyup', plugins_quorum_Libraries_Game_WebInput_.KeyUp, false);
+        }
+
         document.addEventListener('mousedown', plugins_quorum_Libraries_Game_WebInput_.MouseDown, false);
         document.addEventListener('mouseup', plugins_quorum_Libraries_Game_WebInput_.MouseUp, false);
         document.addEventListener('mousemove', plugins_quorum_Libraries_Game_WebInput_.MouseMove, false);
-        document.addEventListener('wheel', plugins_quorum_Libraries_Game_WebInput_.MouseScroll, false);
         document.addEventListener('contextmenu', plugins_quorum_Libraries_Game_WebInput_.ContextMenu, false);
+
+        /*
+        NOTE: The wheel listener requires the "passive: false" parameter, or else it can't prevent event propagation.
+        This is because Chrome automatically treats document-level mousewheel listeners as "passive" (and therefore
+        unable to stop the events) for performance reasons. This technically means a minor performance penalty, but
+        if we don't do this, the whole web page will scroll at the same time as our application.
+        */
+        document.addEventListener('wheel', plugins_quorum_Libraries_Game_WebInput_.MouseScroll, {passive: false});
     
         plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumKeyEvent = function(event, pressed)
         {
@@ -205,8 +343,11 @@ function plugins_quorum_Libraries_Game_WebInput_()
                 quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__eventType_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__RELEASED_KEY_());
             
             var createTextEvent = false;
-            
-            if (event.code !== undefined)
+
+            // Always starts as false. Will be set to true if we fall into a default "key unknown" case.
+            plugins_quorum_Libraries_Game_WebInput_.lastKeyDownFailed = false;
+
+            if (event.code !== undefined && event.code !== "")
             {
                 switch(event.code)
                 {
@@ -578,6 +719,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__F12_());
                         break;
                     default:
+                        plugins_quorum_Libraries_Game_WebInput_.lastKeyDownFailed = true;
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__UNKNOWN_());
                 }
                 
@@ -984,6 +1126,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
                         }
                         break;
                     default:
+                        plugins_quorum_Libraries_Game_WebInput_.lastKeyDownFailed = true;
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__UNKNOWN_());
                 }
                 
@@ -992,7 +1135,9 @@ function plugins_quorum_Libraries_Game_WebInput_()
             }
             
             if (createTextEvent && pressed)
+            {
                 plugins_quorum_Libraries_Game_WebInput_.CreateQuorumTextInputEvent(event);
+            }
             
             return quorumEvent;
         };
@@ -1008,9 +1153,9 @@ function plugins_quorum_Libraries_Game_WebInput_()
                 quorumEvent.SetText$quorum_text(event.key);
             else
                 return;
-            
+
             quorumEvent.SetUnicodeValue$quorum_integer(event.key.charCodeAt(0));
-            plugins_quorum_Libraries_Game_WebInput_.textEvents.push(quorumEvent);;
+            plugins_quorum_Libraries_Game_WebInput_.textEvents.push(quorumEvent);
         };
         
         plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent = function(event, code)

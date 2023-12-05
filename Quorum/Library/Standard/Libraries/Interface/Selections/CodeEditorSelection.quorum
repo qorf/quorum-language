@@ -17,15 +17,31 @@ class CodeEditorSelection is Selection
     Block selectedBlock = undefined
     BlockItem selectedItem = undefined
 
+    // Old values are stored so previous selections can be restored if intermediate steps would overwrite info we need.
+    integer previousSelectedLine = selectedLine
+    integer previousSelectionEndLine = selectionEndLine
+    Block previousSelectedBlock = selectedBlock
+    BlockItem previousSelectedItem = selectedItem
+    
     action Set(Block block, integer line, BlockItem item)
         Set(block, line, line, item)
     end
     
     action Set(Block block, integer line, integer secondLine, BlockItem item)
-        Block oldBlock = selectedBlock
-        BlockItem oldItem = selectedItem
-        integer oldLine = selectedLine
-        integer oldSecondLine = selectionEndLine
+        Array<Block> oldBlocks = undefined
+        if IsMultipleSelection()
+            oldBlocks = GetSelectedBlocks()
+        end
+        
+        previousSelectedBlock = selectedBlock
+        previousSelectedItem = selectedItem
+        previousSelectedLine = selectedLine
+        previousSelectionEndLine = selectionEndLine
+        
+        Block oldBlock = previousSelectedBlock
+        BlockItem oldItem = previousSelectedItem
+        integer oldLine = previousSelectedLine
+        integer oldSecondLine = previousSelectionEndLine
         
         selectedBlock = block
         selectedLine = line
@@ -39,6 +55,31 @@ class CodeEditorSelection is Selection
             UpdateSelection("Line " + line, oldBlock, oldItem, oldLine, oldSecondLine)
         else
             UpdateSelection("No selection",  oldBlock, oldItem, oldLine, oldSecondLine)
+        end
+        
+        Array<Block> newBlocks = undefined
+        if IsMultipleSelection()
+            newBlocks = GetSelectedBlocks()
+        end
+        
+        // Request vertices updates on blocks that have their multiple selection state change.
+        // Needed to have proper selection colors for multiple selections.
+        // TO-DO: Optimize this for cases where oldBlocks and newBlocks overlap, which is common.
+        if oldBlocks not= undefined
+            integer i = 0
+            repeat while i < oldBlocks:GetSize()
+            Block current = oldBlocks:Get(i)
+                current:RequestVerticesUpdate()
+                i = i + 1
+            end
+        end
+        if newBlocks not= undefined
+            integer i = 0
+            repeat while i < newBlocks:GetSize()
+            Block current = newBlocks:Get(i)
+                current:RequestVerticesUpdate()
+                i = i + 1
+            end
         end
     end
 
@@ -69,6 +110,26 @@ class CodeEditorSelection is Selection
 
     action GetBlockItem returns BlockItem
         return selectedItem
+    end
+
+    // Returns the selection line of the previous selection, before the most recent selection update.
+    action GetPreviousLine returns integer
+        return previousSelectedLine
+    end
+
+    // Returns the end line of the multiple selection range of the previous selection, before the most recent selection update.
+    action GetPreviousRangeEndLine returns integer
+        return previousSelectionEndLine
+    end
+
+    // Returns the Block of the previous selection, before the most recent selection update.
+    action GetPreviousBlock returns Block
+        return previousSelectedBlock
+    end
+
+    // Returns the BlockItem of the previous selection, before the most recent selection update.
+    action GetPreviousItem returns BlockItem
+        return previousSelectedItem
     end
 
     action IsEmpty returns boolean

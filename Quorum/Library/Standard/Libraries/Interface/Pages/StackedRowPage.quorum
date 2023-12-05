@@ -2,7 +2,56 @@ package Libraries.Interface.Pages
 
 use Libraries.Interface.Forms.Page
 use Libraries.Interface.Layouts.FormRowLayout
+/*
 
+    This class represents a page on a Form application with a default layout that stacks
+    each item on the page vertically and centered on the page. This class provides a generic 
+    page for positioning and displaying elements. The form uses the stacked row page as
+    the default page class when adding pages and setting up the main page.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Forms.FormBehavior
+    use Libraries.Interface.Events.BehaviorEvent
+    use Libraries.Interface.Controls.Button
+    use Libraries.Interface.Pages.StackedRowPage
+
+
+    class Main is FormBehavior
+        action Main
+            // create the app
+            Form form
+            Page homePage = form:GetMainPage() 
+            StackedRowPage pageTwo 
+            pageTwo:SetName("PageTwo")
+            form:AddPage(pageTwo)
+
+            homePage:SetTitle("Home Page")
+            Button button = homePage:AddButton("Next Page")
+            button:SetBehavior(me)
+
+            pageTwo:SetTitle("Page Two")
+            Button buttonTwo = pageTwo:AddButton("Next Page")
+            buttonTwo:SetBehavior(me)
+
+            form:Display()
+        end
+
+        action Run(BehaviorEvent event)
+            Form form = GetForm()
+            Page page = GetPage()
+            
+            if (page:GetName() = "Main")
+                form:SetPage("PageTwo")
+            else
+                form:SetPage("Main")
+            end
+        end
+    end
+*/
 class StackedRowPage is Page
 
     on create

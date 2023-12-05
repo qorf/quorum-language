@@ -34,11 +34,19 @@ class BarGroup is GroupPanel
     number minBarValue = 0
     Bar maxBar = undefined
 
+    // The name of the group this represents. Separate from the default name, which can be reported to accessibility.
+    text groupName = ""
+
     action AddBar(Bar bar)
         AddItem(bar)
         RecalculateGroupValues()
     end
-
+    /*
+        This action adds a bar to the bar group, given the name and value.
+    
+        Attribute: Parameter name the name (label) of the bar to be added.
+        Attribute: Parameter value the value of the bar to be added.
+    */
     action AddBar(text name, number value)
         Bar bar
         bar:SetName(name)
@@ -46,15 +54,27 @@ class BarGroup is GroupPanel
         AddItem(bar)
         RecalculateGroupValues()
     end
-
+    /*
+        This action gets the bar from the bar group given the index associated with the
+        bar in the container.
+    
+        Attribute: Parameter index the container location of the bar.
+        Attribute: Returns the bar from the bar group.
+    */
     action Get(integer index) returns Bar
         return cast(Bar, GetItemAt(index))
     end
+    /*
+        This action gets all the bars in the bar group and returns an array of bars.
 
+        Attribute: Returns the Array<Bar> containing all the bars in the group.
+    */
     action GetBars returns Array<Bar>
         return cast(Array<Bar>, GetGroupItems())
     end
-
+    /*
+        This action empties the bar group of all items.
+    */
     action EmptyItems()
         totalValueOfGroup = 0
         totalPositiveValue = 0 
@@ -72,23 +92,45 @@ class BarGroup is GroupPanel
     action GetValue returns number
         return totalValueOfGroup
     end
+    /*
+        This action gets negative bar value. It is used in determining height of 
+        negative value bar when stacked.
 
+        Attribute: Returns the number representing the negative bar when stacked.
+    */
     action GetNegativeValue returns number
         return totalNegativeValue
     end
+    /*
+        This action gets positive bar value. It is used in determining height of 
+        positive value bar when stacked.
 
+        Attribute: Returns the number representing the positive bar when stacked.
+    */
     action GetPositiveValue returns number
         return totalPositiveValue
     end
+    /*
+        This action gets maximum bar value.
 
+        Attribute: Returns the number representing the maximum bar value.
+    */
     action GetMaxBarValue returns number
         return maxBarValue
     end
+    /*
+        This action gets minimum bar value.
 
+        Attribute: Returns the number representing the minimum bar value.
+    */
     action GetMinBarValue returns number
         return minBarValue
     end
+    /*
+        This action gets maximum bar from the bar group.
 
+        Attribute: Returns the maximum bar object.
+    */
     action GetMaxBar returns Bar
         return maxBar
     end
@@ -129,4 +171,21 @@ class BarGroup is GroupPanel
             i = i + 1
         end
     end
+    /*
+        This action gets the bar groups name.
+
+        Attribute: Returns the text name of the bar group.
+    */
+    action GetGroupName returns text
+        return groupName
+    end
+    /*
+        This action sets the bar groups name.
+
+        Attribute: Parameter groupName the text name of the bar group.
+    */
+    action SetGroupName(text groupName)
+        me:groupName = groupName
+    end
+
 end

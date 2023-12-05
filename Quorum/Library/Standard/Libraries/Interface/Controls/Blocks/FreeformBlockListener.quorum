@@ -251,6 +251,9 @@ class FreeformBlockListener is QuorumSourceListener
                 i = i + 1
             end
         end
+        if context:returnsStatement not= undefined
+            OffsetLocation(context:returnsStatement:GetLocation())
+        end
         if context:returnLocation not= undefined 
             OffsetLocation(context:returnLocation)
         end

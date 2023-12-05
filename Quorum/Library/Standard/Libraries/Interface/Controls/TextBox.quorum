@@ -34,43 +34,69 @@ use Libraries.Game.Game
 use Libraries.Game.Shapes.Rectangle
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Game.Graphics.SharedTextureManager
+use Libraries.Containers.Number32BitArray
+/*
+    The TextBox class is a control object and UI element it is added to the Game 
+    class. The TextBox is used to represent a general text area that contains multiple
+    lines of text and scrollable line controls.
 
+    Attribute: Author William Allee, Andreas Stefik, Gabe Contra
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.TextBox
+    
+    class Main 
+        action Main 
+            Form form
+            Page page = form:GetMainPage()
+
+            page:AddCheckbox("on")
+            TextBox txtBox
+            txtBox:SetName("myTxt")
+            page:Add(txtBox)
+
+            form:Display()
+        end
+    end
+*/
 class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
 
     /*
-    All of the text contained in this object.
+        All of the text contained in this object.
     */
     MultipleLineText textValue
 
     /*
-    The font used for the text. For future iterations, this will be replaced by
-    an iterable structure, along with information indicating at what line and
-    character positions the font changes.
+        The font used for the text. For future iterations, this will be replaced by
+        an iterable structure, along with information indicating at what line and
+        character positions the font changes.
     */
     Font font = undefined
 
     /*
-    The first line that's visible at the current position of the scroll track. A
-    non-integer value indicates that the first line is partially off of the top
-    of the screen - for example, a value of 2.6 indicates that line 2 is the
-    first visible line, where 60% of the line's height is off the top of the 
-    pane.
+        The first line that's visible at the current position of the scroll track. A
+        non-integer value indicates that the first line is partially off of the top
+        of the screen - for example, a value of 2.6 indicates that line 2 is the
+        first visible line, where 60% of the line's height is off the top of the 
+        pane.
     */
     number firstLine = 0
 
     /*
-    The width of the scroll region, as calculated by the longest line of text.
-    A value of -1 indicates the width needs to be recalculated.
+        The width of the scroll region, as calculated by the longest line of text.
+        A value of -1 indicates the width needs to be recalculated.
     */
     number scrollRegionWidth = -1
 
     integer caretThickness = 1
 
     /*
-    Whether the caret is active or not. This does not necessarily mean the caret
-    is visible at any exact moment - the caret might be non-visible even while
-    active, for example if the caret has been idle and is blinking. This boolean
-    effectively ensures that the caret is usable, i.e., the text box has focus.
+        Whether the caret is active or not. This does not necessarily mean the caret
+        is visible at any exact moment - the caret might be non-visible even while
+        active, for example if the caret has been idle and is blinking. This boolean
+        effectively ensures that the caret is usable, i.e., the text box has focus.
     */
     boolean caretActive = false
 
@@ -81,7 +107,7 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
     number caretTimer = 0
 
     /*
-    The caret's position is known using three values:
+        The caret's position is known using three values:
         caretLine, which line the caret is on.
         caretCharacter, the character index of the caret on its particular line.
         caretX, the actual X position of the caret, which is used for vertical movement.
@@ -100,21 +126,21 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
     boolean moveFocusOnTab = true
 
     /*
-    Values used for when text is being selected by dragging the mouse.
+        Values used for when text is being selected by dragging the mouse.
     */
     boolean draggingInText = false
 
     /*
-    An array of listeners which are notified when the text in this TextBox
-    changes.
+        An array of listeners which are notified when the text in this TextBox
+        changes.
     */
     Array<TextChangeListener> textChangeListeners
 
     boolean resizingScrollBars = false
 
     /*
-    The IndentationStrategy is used while using the TAB and SHIFT-TAB commands to
-    increase or decrease indentation. The default strategy uses spaces.
+        The IndentationStrategy is used while using the TAB and SHIFT-TAB commands to
+        increase or decrease indentation. The default strategy uses spaces.
     */
     IndentationStrategy indentation
     TextBoxEditManager textEditManager
@@ -159,9 +185,9 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
     boolean initialized = false
 
     /*
-    Determines if the TextBox places its Drawables along the baseline or not. If
-    this value is false, then each Drawable will be adjusted upward by the 
-    maximum descent of the Font.
+        Determines if the TextBox places its Drawables along the baseline or not. If
+        this value is false, then each Drawable will be adjusted upward by the 
+        maximum descent of the Font.
     */
     boolean positionOnBaseLine = true
 
@@ -194,19 +220,73 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         HideCaret()
     end
 
+    
+    /*
+        This returns the widths of characters from the left 
+        hand side of the screen for a particular line. 
+    */
+    action GetCharacterWidths(integer line) returns Number32BitArray
+        Number32BitArray array
+        Font font = GetFont()
+        MultipleLineText lineValue = textValue:GetLine(line)
+        text value = lineValue:GetText()
+        array:SetSize(value:GetSize())
+        i = 0
+        repeat while value not= undefined and i < value:GetSize()
+            Glyph glyph = font:GetGlyph(value)
+            number advance = glyph:horizontalAdvance
+            array:Set(i, advance)
+            i = i + 1
+        end
+        return array
+    end
+    
+    /*
+        This returns the x positions of characters from the left 
+        hand side of the screen. 
+    */
+    action GetCharacterXPositions(integer line) returns Number32BitArray
+        Number32BitArray array
+        Font font = GetFont()
+        MultipleLineText lineValue = textValue:GetLine(line)
+        text value = lineValue:GetText()
+        array:SetSize(value:GetSize())
+        i = 0
+        number sum = 0.0
+        repeat while value not= undefined and i < value:GetSize()
+            Glyph glyph = font:GetGlyph(value)
+            number advance = glyph:horizontalAdvance
+            array:Set(i, sum)
+            sum = sum + advance
+            i = i + 1
+        end
+        return array
+    end
+    /*
+        This sets the interface option key for the text box. 
+    */
     action SetInterfaceOptionsKey(text key)
         parent:Control:SetInterfaceOptionsKey(key)
         background:SetInterfaceOptionsKey(key)
     end
-
+    /*
+        This action gets the Control object containing the entire
+        scrollable region in the text box. 
+    */
     action GetScrollableRegion returns Control
         return background
     end
-
+    /*
+        This action gets the Control object scroll as a fraction
+        1.0 / the number of lines in the text box. 
+    */
     action GetScrollIncrement returns number
         return 1.0 / GetLineCount()
     end
-
+    /*
+        This action refreshes the scrollable (visible) region
+        by reloading the visible elements. 
+    */
     private action RefreshScrollableRegion
         GetLineDrawables()
     end
@@ -3160,7 +3240,10 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
     action SetPreviousCaretPosition(integer previous)
         previousCaretPosition = previous
     end
-
+    /*
+    This action gets the TextFieldSavePreviousCaretPositionBehavior position for use by the 
+    TextFieldSelectToMouseClickBehavior.
+    */
     action GetPreviousCaretPosition returns integer
         return previousCaretPosition
     end
@@ -3222,7 +3305,12 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
         return glyphWidth
     end
+    /*
+        This action locks a region of the TextBox from being edited.
     
+        Attribute: lockStart first index of the text to be locked.
+        Attribute: lockEnd first index of the text to be locked.
+    */
     action LockEditableRegion(integer lockStart, integer lockEnd)
         selection:LockSelection(lockStart, lockEnd)
         integer start = selection:GetStartIndex()
@@ -3244,11 +3332,15 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
             Select(start, finish, selection:IsCaretAtEnd())
         end
     end
-
+    /*
+        This action unlocks a region of the TextBox from being locked from editing.
+    */
     action UnlockEditableRegion
         selection:UnlockSelection()
     end
-
+    /*
+        This action gets the first visible line in the text box.
+    */
     action GetFirstVisibleLine returns integer
         return cast(integer, firstLine)
     end

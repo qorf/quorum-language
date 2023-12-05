@@ -577,7 +577,10 @@ class ViolinPlot is Chart
             end
         end
     end
-
+    /*
+        Set the x axis minumum for the violin plot.
+        Attribute Parameter min the min value on the axis.
+    */
     action SetXAxisMinimum(number min)
         if GetVerticalFlag()
             parent:Chart:SetXAxisMinimum(min)
@@ -589,7 +592,10 @@ class ViolinPlot is Chart
             end
         end
     end
-
+    /*
+        Set the y axis maximum for the violin plot.
+        Attribute Parameter max the maximum value on the axis.
+    */
     action SetYAxisMaximum(number max)
         if GetHorizontalFlag()
             parent:Chart:SetYAxisMaximum(max)
@@ -601,7 +607,10 @@ class ViolinPlot is Chart
             end
         end
     end
-
+    /*
+        Set the y axis minumum for the violin plot.
+        Attribute Parameter min the min value on the axis
+    */
     action SetYAxisMinimum(number min)
         if GetHorizontalFlag()
             parent:Chart:SetYAxisMinimum(min)
@@ -934,19 +943,27 @@ class ViolinPlot is Chart
             alert("Share currently only supports Hypertext Markup Language (HTML), please use a .html file extension.")
         end
     end
-
+    /*
+        This action gets the group text.
+    */
     action GetGroupText returns text
         return groupText
     end
-
+    /*
+        This action gets the groups text.
+    */
     action GetGroupsText returns text
         return groupsText
     end
-
+    /*
+        This action gets the chart item text.
+    */
     action GetChartItemText returns text
         return chartItemText
     end
-
+    /*
+        This action gets the chart items text.
+    */
     action GetChartItemsText returns text
         return chartItemsText
     end

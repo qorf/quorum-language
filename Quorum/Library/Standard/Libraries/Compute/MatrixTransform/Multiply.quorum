@@ -107,12 +107,10 @@ class Multiply is MatrixTransform
         repeat matrix:GetRows() times
             col = 0
             repeat values:GetColumns() times
-                Array<number> r = matrix:GetRowArray(row)
-                Array<number> c = values:GetColumnArray(col)
                 number sum = 0.0
                 i = 0
-                repeat r:GetSize() times
-                    sum = sum + r:Get(i) * c:Get(i)
+                repeat matrix:GetColumns() times
+                    sum = sum + matrix:Get(row,i) * values:Get(i,col)
                     i = i + 1
                 end
                 newMatrix:Set(row, col, sum)

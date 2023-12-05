@@ -95,6 +95,31 @@ class CompareVariancesResult is CompareMeansResult
         end
     end
 
+    action IsSignificant returns boolean
+        Array<text> sources = GetSources()
+        if sources:GetSize() > 0
+            // There may be more than one p-value
+            i = 0
+            repeat while i < sources:GetSize()
+                text source = sources:Get(i)
+                if GetProbabilityValuesTable():HasKey(source)
+                    Array<number> pvals = GetProbabilityValuesTable():GetValue(source):CopyToValueArray()
+                    j = 0 
+                    repeat while j < pvals:GetSize()
+                        if pvals:Get(j) <= GetSignificanceLevel()
+                            return true
+                        end
+                        j = j + 1
+                    end
+                end
+                i = i + 1
+            end
+            return false
+        else
+            return parent:StatisticalTestResult:IsSignificant()
+        end
+    end
+
     /*
         This action summarizes the result and lists it informally.
     */

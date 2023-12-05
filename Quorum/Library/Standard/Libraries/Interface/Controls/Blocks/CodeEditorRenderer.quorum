@@ -62,7 +62,9 @@ class CodeEditorRenderer is Control
         CodeEditor editor = GetEditor()
         if cursor:GetView2D() = undefined and editor not= undefined
             cursor:SetBackgroundColor(editor:GetSelectionColor())
-
+            cursor:SetBorderColor(editor:GetSelectionBorderColor())
+            cursor:SetBorderThickness(editor:GetBorderThickness())
+            
             // TO-DO: Change this. Temporary debug values.
             cursor:SetSize(30, 5)
 
@@ -123,6 +125,18 @@ class CodeEditorRenderer is Control
                 currentMultiBlocks:Add(multiBlock)
             else
                 block:Draw(painter)
+            end
+            counter = counter + 1
+        end
+        
+        counter = 0
+        repeat while counter < drawnBlocks:GetSize()
+            Block block = drawnBlocks:Get(counter)
+            if block is MultipleLineBlock
+                MultipleLineBlock multiBlock = cast(MultipleLineBlock, block)
+                multiBlock:DrawContents(painter)
+            else
+                block:DrawContents(painter)
             end
             counter = counter + 1
         end
@@ -309,7 +323,6 @@ class CodeEditorRenderer is Control
         end
 
         integer lineIndex = block:GetNavigationIndex() + navigationSize - 1
-
         block:SetPosition(editor:GetScopeIndentationWidth() * block:GetScopeDepth() - editor:GetScrollPercentageX() * editor:GetTotalContentWidth(), editor:GetLineY(lineIndex))
     end
 
@@ -419,7 +432,7 @@ class CodeEditorRenderer is Control
     end
 
     // This action was formerly "GetBlockAtLine" before that action changed to be based on navigation index instead of lines of text
-    private action GetBlockAtTextLine(Block block, integer line) returns Block
+    action GetBlockAtTextLine(Block block, integer line) returns Block
         integer i = 0
         repeat while i < block:GetChildCount()
             Block candidate = block:GetChild(i)
@@ -431,6 +444,28 @@ class CodeEditorRenderer is Control
         end
 
         return block
+    end
+
+    action GetNavigableBlockAtTextLine(integer line) returns Block
+        Block candidate = undefined
+        Block current = rootBlock:GetNextNavigableBlock()
+        integer i = 0
+        repeat until current = undefined
+            integer endLine = current:GetEndLine()
+            
+            if current:GetStartLine() <= line
+                // The first block we find that ends on this line, return it.
+                if endLine = line
+                    return current
+                elseif endLine > line
+                    // This block contains the requested line. It's a candidate if we don't find a more exact match.
+                    candidate = current
+                end
+            end
+
+            current = current:GetNextNavigableBlock()
+        end
+        return candidate
     end
 
     action GetNavigableBlockAtLine(integer line) returns Block

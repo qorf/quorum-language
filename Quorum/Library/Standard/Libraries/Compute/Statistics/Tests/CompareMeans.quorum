@@ -46,11 +46,11 @@ use Libraries.Compute.Statistics.Reporting.CompareMeansSummary
         For more information: https://en.wikipedia.org/wiki/Welch%27s_t-test       
 
         CompareSeveralMeans is a Welch's (One-Way) Analysis Of Variance (ANOVA) 
-        Difference between several groups when groups have unequal variances
+        Difference between several groups on one dependent variable when groups have unequal variances with one independent variable
         For more information: https://en.wikipedia.org/wiki/One-way_analysis_of_variance
 
         CompareSeveralMeans is a Univariate Analysis Of Variance (ANOVA)
-        Difference between several groups when groups have equal variances with one or more independent variables
+        Difference between several groups on one dependent variable when groups have equal variances with one or more independent variables
         For more information: https://en.wikipedia.org/wiki/Analysis_of_variance
         For more information: https://en.wikipedia.org/wiki/One-way_analysis_of_variance
         For more information: https://en.wikipedia.org/wiki/Two-way_analysis_of_variance
@@ -60,9 +60,13 @@ use Libraries.Compute.Statistics.Reporting.CompareMeansSummary
         Difference between several groups on more than one dependent variable with one or more independent variables
         For more information: https://en.wikipedia.org/wiki/Multivariate_analysis_of_variance 
 
-        CompareSeveralRelatedMeans is a Repeated Measures (One-Way) Analysis Of Variance (ANOVA)
-        Difference between several groups when there are repeated measures
+        CompareSeveralRelatedMeans is a Repeated Measures Univariate and Multivariate Analysis Of Variance (RM ANOVA, RM MANOVA)
+        Difference between several groups on one or more dependent variables when there are repeated measures
         For more information: https://en.wikipedia.org/wiki/Repeated_measures_design
+
+        CompareSeveralRelatedMeans is a Mixed Design Analysis Of Variance (Mixed ANOVA)
+        Difference between several groups on one or more dependent variable when there are repeated measures
+        For more information: https://en.wikipedia.org/wiki/Mixed-design_analysis_of_variance
 
         _____________ is a (One-Way) Analysis Of Covariance (ANCOVA)
         Difference between several groups while controlling for nuisance variables
@@ -143,6 +147,7 @@ class CompareMeans is StatisticalTest
     private integer numberOfFactors = 0             // Number of factors selected
     private integer numberOfColumns = 0             // Number of columns selected
     private integer totalObservations = 0           // Total observations (total sample size)
+    private ExperimentalDesign design               // Object to hold and process various selections and data formats
 
     // USER CONTROLS
     boolean ranked = false                          // The sample observations are to be ranked
@@ -162,6 +167,9 @@ class CompareMeans is StatisticalTest
     number userMean = 0
     number userMedian = 0
 
+    private DataFrame designFrame = undefined
+    private Matrix designMatrix = undefined
+
     // The results of this test
     Array <CompareMeansResult> results
 
@@ -175,8 +183,19 @@ class CompareMeans is StatisticalTest
         factorHeaders:Empty()
         columnHeaders:Empty()
 
-        numberOfFactors = frame:GetSelectedFactorSize()
-        numberOfColumns = frame:GetSelectedColumnSize()
+        design:RepeatedMeasures(repeated)
+        if design:GetDesignFrame() = undefined
+            design:Transform(frame)
+        end 
+        designFrame = design:GetDesignFrame()
+        repeated = design:RepeatedMeasures() // This will override the boolean if a within factor is or isn't specified.
+
+        numberOfFactors = designFrame:GetSelectedFactorSize()
+        numberOfColumns = designFrame:GetSelectedColumnSize()
+
+        if ranked and repeated
+            numberOfFactors = designFrame:GetSelectedFactorSize() - 1
+        end
 
         if numberOfFactors > 0 and numberOfColumns > 1
             multivariate = true
@@ -193,29 +212,42 @@ class CompareMeans is StatisticalTest
         // Copy the frame keeping only the selected factors/columns and reselect them
         // Anything else will be dropped for this computation.
         // No need to remove undefined values unless using a factor
-        DataFrame cleanedFrame = frame:Copy()
+        DataFrame cleanedFrame = designFrame:Copy()
         if multivariate
-            cleanedFrame = frame:RemoveUndefinedRowsFromSelectedColumns()
+            cleanedFrame = designFrame:RemoveUndefinedRowsFromSelectedColumns()
         end
         DataFrame copy
         integer index = 0
         i = 0
-        repeat while i < numberOfFactors
-            DataFrameColumn factor = cleanedFrame:GetColumn(frame:GetSelection():GetFactor(i))
-            copy:AddColumn(factor)
-            copy:AddSelectedFactor(index)
-
-            DataFrameColumn levels = factor:Copy(true,true)
-            factorIndex:Add(i, factor:GetHeader())
-            factorLevels:Add(levels)
-            factorHeaders:Add(factor:GetHeader())
-            index = index + 1
+        repeat while i < designFrame:GetSelectedFactorSize()
+            DataFrameColumn factor = cleanedFrame:GetColumn(designFrame:GetSelection():GetFactor(i))
+            if factor:GetHeader() = design:GetSubjectIdentifier() // Skip id factor for friedman's test
+                if not (ranked and repeated)
+                    copy:AddColumn(factor)
+                    copy:AddSelectedFactor(index)
+        
+                    DataFrameColumn levels = factor:Copy(true,true)
+                    factorIndex:Add(i, factor:GetHeader())
+                    factorLevels:Add(levels)
+                    factorHeaders:Add(factor:GetHeader())
+                    index = index + 1
+                end
+            else
+                copy:AddColumn(factor)
+                copy:AddSelectedFactor(index)
+    
+                DataFrameColumn levels = factor:Copy(true,true)
+                factorIndex:Add(i, factor:GetHeader())
+                factorLevels:Add(levels)
+                factorHeaders:Add(factor:GetHeader())
+                index = index + 1
+            end
             i = i + 1
         end
 
         i = 0
-        repeat while i < numberOfColumns
-            DataFrameColumn column = cleanedFrame:GetColumn(frame:GetSelection():GetColumn(i))
+        repeat while i < designFrame:GetSelectedColumnSize()
+            DataFrameColumn column = cleanedFrame:GetColumn(designFrame:GetSelection():GetColumn(i))
             copy:AddColumn(column)
             copy:AddSelectedColumn(index)
             if i = 0
@@ -242,21 +274,40 @@ class CompareMeans is StatisticalTest
         CheckDataIntegrity(copy)
 
 
-        // Collect data for each possible group
-        groups = GetGroups(copy)
-
+        // Collect data for each possible group (ignoring ID factor when repeated)
+        if repeated and not ranked
+            DataFrame removeID = copy:Copy()
+            i = 0
+            repeat while i < copy:GetSelectedFactorSize()
+                removeID:AddSelectedFactor(copy:GetSelection():GetFactor(i))
+                i = i + 1
+            end  
+            i = 0
+            repeat while i < copy:GetSelectedColumnSize()
+                removeID:AddSelectedColumn(copy:GetSelection():GetColumn(i))
+                i = i + 1
+            end
+            removeID:RemoveSelectedFactors(design:GetSubjectIdentifier())
+            groups = GetGroups(removeID)
+        else
+            groups = GetGroups(copy)
+        end
 
         // Check if samples are equal size
         balanced = CheckIfBalanced()
 
         if needToSelectTest
+            designFrame = copy
             RunTest(copy)
+        else
+            designFrame = copy
         end
 
         needToProcessData = false
     end
 
     private action RunTest(DataFrame frame)
+        needToProcessData = false
         parametric = (assumeNormalDistribution or defaultDistributionAssumption) and not ranked
         integer numberOfSamples = groups:GetSize()
 
@@ -293,10 +344,11 @@ class CompareMeans is StatisticalTest
             else
                 if factorial
                     if repeated
-                        alert("A nonparametric factorial univariate repeated measures CompareMeans test is not supported yet.")
+                        // Extension of Freidman Test
+                        alert("A nonparametric factorial repeated measures CompareMeans test is not supported yet.")
                     else
                         // Multi-Way (Factorial) Scheirer–Ray–Hare Test
-                        alert("A nonparametric factorial multivariate CompareMeans test is not supported yet. Formal Test Name: Scheirer–Ray–Hare Test")
+                        alert("A nonparametric factorial CompareMeans test is not supported yet. Formal Test Name: Scheirer–Ray–Hare Test")
                     end
                 else
                     if repeated
@@ -338,7 +390,7 @@ class CompareMeans is StatisticalTest
     action CompareToMean(DataFrame frame)
         repeated = false
         ranked = false
-        if needToProcessData
+        if needToProcessData or design = undefined
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
@@ -436,7 +488,7 @@ class CompareMeans is StatisticalTest
     action CompareTwoRelatedMeans(DataFrame frame)
         repeated = true
         ranked = false
-        if needToProcessData
+        if needToProcessData or design = undefined
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
@@ -583,7 +635,7 @@ class CompareMeans is StatisticalTest
     action CompareTwoMeans(DataFrame frame)
         repeated = false
         ranked = false
-        if needToProcessData
+        if needToProcessData or design = undefined
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
@@ -741,221 +793,338 @@ class CompareMeans is StatisticalTest
     action CompareSeveralRelatedMeans(DataFrame frame)
         repeated = true
         ranked = false
-        if needToProcessData
+        if needToProcessData or design = undefined
             needToSelectTest = false  // This test has been selected (skip RunTest)
-            me:Calculate(frame)
+            Calculate(frame)
         end
-        if numberOfColumns = 1 and numberOfFactors = 0
-            alert("CompareSeveralRelatedMeans currently only accepts repeated measure designs in 
-                   wide format with each row being a single subject and each column a measurement/sample.")
-        end
+        boolean betweenDesign = design:GetBetweenSubjectsFactors():GetSize() > 0
+        boolean withinDesign = design:GetWithinSubjectsFactors():GetSize() > 0
+        boolean mixedDesign = betweenDesign and withinDesign
 
-        if groups:GetSize() < 2
-            alert("CompareSeveralRelatedMeans must have at least two samples.")
-        end
-
-        if multivariate
-            alert("A multivariate repeated measures CompareMeans test is not supported yet. Formal Test Name: Repeated Measures MANOVA")
-        else
-            if factorial
-                // Multi-Way (Factorial) Repeated Measures ANOVA
-                alert("A factorial univariate repeated measures CompareMeans test is not supported yet. Formal Test Name: Factorial Repeated Measures ANOVA")
+        if mixedDesign
+            if multivariate
+                alert("A multivariate mixed design CompareMeans test is not currently supported.")
             else
-                // One-Way Repeated Measures ANOVA        
-                number sumOfSquaresTotal = 0            // SS_total
-                number sumOfSquaresBetweenGroup = 0     // SS_between
-                number sumOfSquaresWithinGroup = 0      // SS_within
-                number sumOfSquaresBetweenSubjects = 0  // SS_subjects aka SS_model
-                number sumOfSquaresError = 0            // SS_error
+                // If it's mixed design:
+                // run within-subjects factors only (with id)
+                // run between-subjects and within-subjects factors (without id)
+                // update error terms ss and df by subtracting factors and interactions 
+                // compute statistics
+                DataFrame newFrame = designFrame:Copy()
     
-                number totalSize = 0
-                number totalSum = 0
-                number grandMean = 0
-                number allSumOfSquares = 0
-                Array<DataFrameColumn> groupColumns
-                Array<NumberColumn> rows    
+                // Within Subjects ANOVA
+                ExperimentalDesign wDesign
+                if design:GetSubjectIdentifier() not= "" // Add Subject Factor
+                    wDesign:AddSubjectIdentifier(design:GetSubjectIdentifier())
+                end
+                i = 0 // Add Within Factors
+                repeat while i < design:GetWithinSubjectsFactors():GetSize()
+                    wDesign:AddWithinSubjectsFactor(design:GetWithinSubjectsFactors():Get(i))
+                    i = i + 1
+                end
+                i = 0 // Add Dependent Variables
+                repeat while i < design:GetDependentVariables():GetSize()
+                    wDesign:AddDependentVariable(design:GetDependentVariables():Get(i))
+                    i = i + 1
+                end
+                CompareMeans within
+                within:SetExperimentalDesign(wDesign)
+                within:Calculate(newFrame)
+                CompareMeansResult withinResult = within:GetResult()
 
-                integer sampleSize = 0
+                // Mauchly's Test
+                CompareVariancesResult vResult
+                if testVarianceAssumption
+                    // Mauchly's test of sphericity
+                    ExperimentalDesign mDesign = wDesign:Copy()
+                    i = 0 // Add Between Factors For Correct Design Matrix Creation
+                    repeat while i < design:GetBetweenSubjectsFactors():GetSize()
+                        mDesign:AddBetweenSubjectsFactor(design:GetBetweenSubjectsFactors():Get(i))
+                        i = i + 1
+                    end
+                    CompareVariances mauchly
+                    mauchly:SetExperimentalDesign(mDesign)
+                    mauchly:Calculate(newFrame)
+                    vResult = mauchly:GetResult()
+                end
 
-                DataFrame groupFrame
-                // Calculate across columns (between groups)
-                Array<text> groupsArray = groups:CopyToKeyArray()
-                integer i = 0
-                repeat while i < groupsArray:GetSize()
-                    text groupText = groupsArray:Get(i)
-                    DataFrameColumn column = groups:GetValue(groupText):GetColumn(0)
-                    column:SetHeader(groupText)
-                    groupFrame:AddColumn(column)
-                    if i = 0
-                        sampleSize = column:GetSize()
-                    else
-                        if sampleSize not= column:GetSize()
-                            alert("Samples must be the same size for a repeated design.")
-                        end
-                    end
-                    if sampleSize < 2
-                        alert("Samples must have 2 or more observations. Not enough data for a comparison to be calculated.")
-                    end
+                // Between Subjects ANOVA
+                ExperimentalDesign bDesign
+                i = 0 // Add Between Factors
+                repeat while i < design:GetBetweenSubjectsFactors():GetSize()
+                    bDesign:AddBetweenSubjectsFactor(design:GetBetweenSubjectsFactors():Get(i))
+                    i = i + 1
+                end
+                i = 0 // Add Within Factors as Between Factors
+                repeat while i < design:GetWithinSubjectsFactors():GetSize()
+                    bDesign:AddBetweenSubjectsFactor(design:GetWithinSubjectsFactors():Get(i))
+                    i = i + 1
+                end
+                i = 0 // Add Dependent Variables
+                repeat while i < design:GetDependentVariables():GetSize()
+                    bDesign:AddDependentVariable(design:GetDependentVariables():Get(i))
+                    i = i + 1
+                end
+                CompareMeans between
+                between:SetExperimentalDesign(bDesign)
+                between:Calculate(newFrame)
+                CompareMeansResult betweenResult = between:GetResult()
     
-                    Summarize summarize
-                    column:Calculate(summarize)
-                    number ss = summarize:GetSumOfSquares() - (summarize:GetSum() * summarize:GetSum() / column:GetSize())
-                    sumOfSquaresWithinGroup = sumOfSquaresWithinGroup + ss
-                    totalSize = totalSize + column:GetSize()
-                    totalSum = totalSum + summarize:GetSum()
-                    allSumOfSquares = allSumOfSquares + summarize:GetSumOfSquares()
-        
-                    if i = 0 or rows:GetSize() not= column:GetSize()
-                        j = 0
-                        repeat while j < column:GetSize()
-                            NumberColumn col
-                            col:Add(column:GetAsNumber(j))
-                            rows:Add(col)
-                            j = j + 1
-                        end
-                    else
-                        j = 0
-                        repeat while j < column:GetSize()
-                            rows:Get(j):Add(column:GetAsNumber(j))
-                            j = j + 1
-                        end
+                HashTable<text, number> ssFactors   // univariate
+                HashTable<text, Matrix> sscpFactors // multivariate
+                HashTable<text, number> dfFactors 
+    
+                Matrix sscpResiduals
+                number ssResiduals = 0
+                number dfResiduals = 0
+
+                HashTable<text, number> ssErrors
+                HashTable<text, number> dfErrors
+                HashTable<text, text> factorToError // Links each factor to the error term to be used in statistic computation
+                
+                Array<text> withinSources = withinResult:GetSources()
+                Array<text> betweenSources = betweenResult:GetSources()
+
+                // Get initial error terms using within anova
+                i = 0 
+                repeat while i < withinSources:GetSize()
+                    text source = withinSources:Get(i)
+                    HashTable<text, number> info = withinResult:GetInformation():GetValue(source)
+                    if info:HasKey("error ss")
+                        ssErrors:Add(source, info:GetValue("error ss")+info:GetValue("ss"))
+                        dfErrors:Add(source, info:GetValue("error df")+info:GetValue("df"))            
+                    end
+                    if source = design:GetSubjectIdentifier()
+                        ssErrors:Add(source, info:GetValue("ss"))
+                        dfErrors:Add(source, info:GetValue("df")) 
                     end
                     i = i + 1
                 end
-                grandMean = totalSum / totalSize
-
-                // Calculate across rows (between subjects)
-                i = 0
-                repeat while i < rows:GetSize()
-                    Summarize summarize
-                    rows:Get(i):Calculate(summarize)
-                    number m = (summarize:GetMean() - grandMean)
-                    sumOfSquaresBetweenSubjects = sumOfSquaresBetweenSubjects + m * m
-                    i = i + 1
-                end
     
-                // Calculate degrees of freedom
-                number measures = GetColumnSize()
-                number subjects = totalSize/GetColumnSize()
-                number degreesFreedomTotal = (measures * subjects) - 1         // n * k - 1           
-                number degreesFreedomBetweenGroup = measures - 1               // n - 1 
-                number degreesFreedomWithinGroup = measures * (subjects - 1)   // n * (k - 1)
-                number degreesFreedomBetweenSubjects = subjects - 1            // k - 1
-                number degreesFreedomError = (measures - 1) * (subjects - 1)   // (n - 1) * (k - 1)
+                // Update error terms using between anova
+                i = 0 
+                repeat while i < betweenSources:GetSize()
+                    text source = betweenSources:Get(i)
+                    HashTable<text, number> info = betweenResult:GetInformation():GetValue(source)
+                    if info:HasKey("error ss")
+                        if not factorToError:HasKey(source)
+                            factorToError:Add(source, UpdateAndGetErrorTerm(ssErrors, dfErrors, source, info:GetValue("ss"),  info:GetValue("df"))) 
+                        end       
+                    end
+                    i = i + 1
+                end 
 
-                // Calculate sum of squares
-                sumOfSquaresTotal = allSumOfSquares - (totalSum * totalSum / totalSize)     // ssT = ssB + ssW
-                sumOfSquaresBetweenGroup = sumOfSquaresTotal - sumOfSquaresWithinGroup      
-                sumOfSquaresWithinGroup = sumOfSquaresWithinGroup                           // ssW = ssM + ssE                      
-                sumOfSquaresBetweenSubjects = measures * sumOfSquaresBetweenSubjects
-                sumOfSquaresError = sumOfSquaresWithinGroup - sumOfSquaresBetweenSubjects
-        
-                // Calculate mean sum of squares 
-                number meanSumOfSquaresBetweenGroup = sumOfSquaresBetweenGroup / degreesFreedomBetweenGroup
-                number meanSumOfSquaresWithinGroup = sumOfSquaresWithinGroup / degreesFreedomWithinGroup
-                number meanSumOfSquaresError = sumOfSquaresError / degreesFreedomError
-        
-                // Calculate the standard f statistic assuming sphericity
-                number fBetweenGroup = meanSumOfSquaresBetweenGroup / meanSumOfSquaresError        
-                fDistribution:Setup(degreesFreedomBetweenGroup, degreesFreedomError)
-                number pBetweenGroup = 1.0 - fDistribution:CumulativeDistribution(fBetweenGroup)
-                number etaBetweenGroup = sumOfSquaresBetweenGroup / (sumOfSquaresBetweenGroup + sumOfSquaresWithinGroup)
+                // Compute the total sum of squares and total variance (error)
+                Array<text> errors = ssErrors:CopyToKeyArray()
+                number ssSubjects = 0 
+                number dfSubjects = 0
+                number ssTotalError = betweenResult:GetInformation():GetValue("Residual Error"):GetValue("ss") 
+                number dfTotalError = betweenResult:GetInformation():GetValue("Residual Error"):GetValue("df")     
+                number ssTotal = ssTotalError 
+                number dfTotal = dfTotalError  
+                i = 0 
+                repeat while i < withinSources:GetSize()
+                    text source = withinSources:Get(i)
+                    HashTable<text, number> info = withinResult:GetInformation():GetValue(source)
+                    if info:HasKey("error ss") and not dfFactors:HasKey(source)
+                        ssTotal = ssTotal + info:GetValue("ss")
+                        dfTotal = dfTotal + info:GetValue("df")
+                    end
+                    i = i + 1
+                end    
 
-                Array<text> sources
-                text source = ""
-                // Save the result    
+                i = 0 
+                repeat while i < betweenSources:GetSize()
+                    text source = betweenSources:Get(i)
+                    if not withinResult:GetInformation():HasKey(source)
+                        HashTable<text, number> info = betweenResult:GetInformation():GetValue(source)
+                        if info:HasKey("error ss") and not dfFactors:HasKey(source) and factorToError:HasKey(source)
+                            if i = 0
+                                ssSubjects = ssErrors:GetValue(factorToError:GetValue(source))
+                                dfSubjects = dfErrors:GetValue(factorToError:GetValue(source))
+                            end
+                            ssTotal = ssTotal + info:GetValue("ss")
+                            dfTotal = dfTotal + info:GetValue("df")
+                        end
+                    end
+                    i = i + 1
+                end                              
+
+                number numberOfObservations = design:GetNumberOfObservations()
                 CompareMeansResult result
-                result:EqualVariances(true) 
-                result:NormalDistribution(true)
+                Array<text> sources
+                // Compute statistics and save results
+                i = 0 
+                repeat while i < withinSources:GetSize()
+                    text source = withinSources:Get(i)
+                    HashTable<text, number> info = withinResult:GetInformation():GetValue(source)
+                    if info:HasKey("error ss") and not dfFactors:HasKey(source)
+                        number ssFactor = info:GetValue("ss")
+                        number dfFactor = info:GetValue("df")
+                        ssResiduals = ssErrors:GetValue(source)
+                        dfResiduals = dfErrors:GetValue(source)   
+    
+                        number meanSSFactor = ssFactor / dfFactor
+                        number meanSSResiduals = ssResiduals / dfResiduals
+                        fDistribution:Setup(dfFactor, dfResiduals)
+                        number f = meanSSFactor / meanSSResiduals
+                        number p = 1.0 - fDistribution:CumulativeDistribution(f)
+                        
+                        number factorVariation = (ssFactor - dfFactor * meanSSResiduals)
+                        // ANOVA effect size equations see: http://coshima.davidrjfikis.com/EPRS8540/uploadf07/olejnik_PsychMeth2003.pdf
+                        number eta_squared = ssFactor / ssTotal
+                        number partial_eta_squared = ssFactor / (ssFactor + ssResiduals)
+                        number generalized_eta_squared = ssFactor / (ssFactor + ssTotalError)
+
+                        // See: https://www.jasonfinley.com/tools/OmegaSquaredQuickRef_JRF_3-31-13.pdf
+                        number omega_squared = factorVariation / (ssTotal + (ssSubjects / dfSubjects))
+                        number partial_omega_squared = factorVariation / (ssFactor + ssResiduals + ssSubjects + (ssSubjects / dfSubjects))
+                        number generalized_omega_squared = factorVariation / (factorVariation + numberOfObservations * (ssTotalError / dfTotalError))
+
+                        sources:Add(source)
+                        result:SetTestStatistic(source, "F", f)
+                        result:SetDegreesOfFreedom(source, "F", dfFactor)
+                        result:SetProbabilityValue(source, "F", p)
+                        result:SetInformation(source, "F", f)
+                        result:SetInformation(source, "p", p)
+                        result:SetInformation(source, "ss", ssFactor)
+                        result:SetInformation(source, "df", dfFactor)
+                        result:SetInformation(source, "meanss", meanSSFactor)
+                        result:SetInformation(source, "error ss", ssResiduals)
+                        result:SetInformation(source, "error df", dfResiduals)
+                        result:SetInformation(source, "eta-squared", eta_squared)
+                        result:SetInformation(source, "partial-eta-squared", partial_eta_squared)
+                        result:SetInformation(source, "generalized-eta-squared", generalized_eta_squared)
+                        result:SetInformation(source, "omega-squared", omega_squared)
+                        result:SetInformation(source, "partial-omega-squared", partial_omega_squared)
+                        result:SetInformation(source, "generalized-omega-squared", generalized_omega_squared)
+
+                        // Add sphericity correction info
+                        if vResult:GetInformation():HasKey(source) and vResult:GetInformation():GetValue(source):HasKey("p")
+                            number pval = vResult:GetInformation():GetValue(source):GetValue("p")
+                            result:SetInformation(source,"sphericity p", pval)
+        
+                            number dfn = result:GetInformation():GetValue(source):GetValue("df")
+                            number dfd = result:GetInformation():GetValue(source):GetValue("error df")
+        
+                            number ggcorrection = vResult:GetInformation():GetValue(source):GetValue("gg")
+                            fDistribution:Setup(ggcorrection*dfn, ggcorrection*dfd)
+                            number ggp = 1.0 - fDistribution:CumulativeDistribution(result:GetInformation():GetValue(source):GetValue("F"))
+                            result:SetInformation(source,"gg", ggcorrection)
+                            result:SetInformation(source,"gg p", ggp)
+        
+                            number hfcorrection = vResult:GetInformation():GetValue(source):GetValue("hf")
+                            fDistribution:Setup(hfcorrection*dfn, hfcorrection*dfd)
+                            number hfp = 1.0 - fDistribution:CumulativeDistribution(result:GetInformation():GetValue(source):GetValue("F"))
+                            result:SetInformation(source,"hf", hfcorrection)
+                            result:SetInformation(source,"hf p", hfp)
+                        end
+
+                        if factorial
+                            result:SetEffectSize(source, "partial-eta-squared", partial_eta_squared)
+                        else
+                            result:SetEffectSize(source, "eta-squared", eta_squared)
+                        end      
+                    end
+                    i = i + 1
+                end
+    
+                i = 0 
+                repeat while i < betweenSources:GetSize()
+                    text source = betweenSources:Get(i)
+                    if not withinResult:GetInformation():HasKey(source)
+                        HashTable<text, number> info = betweenResult:GetInformation():GetValue(source)
+                        if info:HasKey("error ss") and not dfFactors:HasKey(source) and factorToError:HasKey(source)
+                            number ssFactor = info:GetValue("ss")
+                            number dfFactor = info:GetValue("df")
+                            ssResiduals = ssErrors:GetValue(factorToError:GetValue(source))
+                            dfResiduals = dfErrors:GetValue(factorToError:GetValue(source)) 
+    
+                            number meanSSFactor = ssFactor / dfFactor
+                            number meanSSResiduals = ssResiduals / dfResiduals
+                            fDistribution:Setup(dfFactor, dfResiduals)
+                            number f = meanSSFactor / meanSSResiduals
+                            number p = 1.0 - fDistribution:CumulativeDistribution(f)
+                        
+                            number factorVariation = (ssFactor - dfFactor * meanSSResiduals)
+                            // ANOVA effect size equations see: http://coshima.davidrjfikis.com/EPRS8540/uploadf07/olejnik_PsychMeth2003.pdf
+                            number eta_squared = ssFactor / ssTotal
+                            number partial_eta_squared = ssFactor / (ssFactor + ssResiduals)
+                            number generalized_eta_squared = ssFactor / (ssFactor + ssTotalError)
+    
+                            // See: https://www.jasonfinley.com/tools/OmegaSquaredQuickRef_JRF_3-31-13.pdf
+                            number omega_squared = factorVariation / (ssTotal + (ssSubjects / dfSubjects))
+                            number partial_omega_squared = factorVariation / (ssFactor + ssSubjects + (ssSubjects / dfSubjects))
+                            number generalized_omega_squared = factorVariation / (factorVariation + numberOfObservations * (ssTotalError / dfTotalError))
+
+                            sources:Add(source)
+                            result:SetTestStatistic(source, "F", f)
+                            result:SetDegreesOfFreedom(source, "F", dfFactor)
+                            result:SetProbabilityValue(source, "F", p)
+                            result:SetInformation(source, "F", f)
+                            result:SetInformation(source, "p", p)
+                            result:SetInformation(source, "ss", ssFactor)
+                            result:SetInformation(source, "df", dfFactor)
+                            result:SetInformation(source, "meanss", meanSSFactor)
+                            result:SetInformation(source, "error ss", ssResiduals)
+                            result:SetInformation(source, "error df", dfResiduals)
+                            result:SetInformation(source, "eta-squared", eta_squared)
+                            result:SetInformation(source, "partial-eta-squared", partial_eta_squared)
+                            result:SetInformation(source, "generalized-eta-squared", generalized_eta_squared)
+                            result:SetInformation(source, "omega-squared", omega_squared)
+                            result:SetInformation(source, "partial-omega-squared", partial_omega_squared)
+                            result:SetInformation(source, "generalized-omega-squared", generalized_omega_squared)
+
+                            // Add sphericity correction info where appropriate
+                            text errorSource = factorToError:GetValue(source)
+                            if vResult:GetInformation():HasKey(errorSource) and vResult:GetInformation():GetValue(errorSource):HasKey("p")
+                                number pval = vResult:GetInformation():GetValue(errorSource):GetValue("p")
+                                result:SetInformation(source,"sphericity p", pval)
+            
+                                number dfn = result:GetInformation():GetValue(source):GetValue("df")
+                                number dfd = result:GetInformation():GetValue(source):GetValue("error df")
+            
+                                number ggcorrection = vResult:GetInformation():GetValue(errorSource):GetValue("gg")
+                                fDistribution:Setup(ggcorrection*dfn, ggcorrection*dfd)
+                                number ggp = 1.0 - fDistribution:CumulativeDistribution(result:GetInformation():GetValue(source):GetValue("F"))
+                                result:SetInformation(source,"gg", ggcorrection)
+                                result:SetInformation(source,"gg p", ggp)
+            
+                                number hfcorrection = vResult:GetInformation():GetValue(errorSource):GetValue("hf")
+                                fDistribution:Setup(hfcorrection*dfn, hfcorrection*dfd)
+                                number hfp = 1.0 - fDistribution:CumulativeDistribution(result:GetInformation():GetValue(source):GetValue("F"))
+                                result:SetInformation(source,"hf", hfcorrection)
+                                result:SetInformation(source,"hf p", hfp)
+                            end
+    
+                            if factorial
+                                result:SetEffectSize(source, "partial-eta-squared", partial_eta_squared)
+                            else
+                                result:SetEffectSize(source, "eta-squared", eta_squared)
+                            end               
+                        end
+                    end
+                    i = i + 1
+                end
+                result:SetFormalTestName("Mixed-Design Analysis of Variance")
                 result:Repeated(true)
+                result:EqualVariances(true)
+                result:NormalDistribution(true)
                 result:SetSignificanceLevel(GetSignificanceLevel())
                 result:SetFormat(GetStatisticalFormatting())
-                result:SetFormalTestName("Repeated Measures Analysis of Variance")
-                result:SetGroupsFrame(groupFrame)
                 result:SetFactors(factorHeaders)
                 result:SetColumns(columnHeaders)
-
-                // Between Measures
-                source = "Between Measures"
-                if numberOfFactors = 1
-                    source = "Between "+factorHeaders:Get(0)
-                end
-                sources:Add(source)
-                result:SetTestStatistic(source, "F", fBetweenGroup)
-                result:SetEffectSize(source, "eta-squared", etaBetweenGroup)
-                result:SetDegreesOfFreedom(source, "F", degreesFreedomBetweenGroup)
-                result:SetProbabilityValue(source, "F", pBetweenGroup)
-                result:SetInformation(source,"ss", sumOfSquaresBetweenGroup)
-                result:SetInformation(source,"meanss", meanSumOfSquaresBetweenGroup)
-    
-                if testDistributionAssumption   
-                    // Check normality using a Shapiro-Wilk's CompareDistributions Test
-                    CompareDistributions compare
-                    compare:SetSignificanceLevel(GetSignificanceLevel())
-                    compare:SetStatisticalFormatting(GetStatisticalFormatting())
-                    groupFrame:SelectAllColumns()
-                    compare:CompareDistributionToNormal(groupFrame)
-                    result:SetDistributionResults(compare:GetResults())
-                end
-                if testVarianceAssumption or pBetweenGroup <= GetSignificanceLevel()
-                    // Check for sphericity using a Mauchly's CompareVariances test 
-                    // This test is only necessary if the rm anova is significant with standard f
-                    CompareVariances compare
-                    compare:SetSignificanceLevel(GetSignificanceLevel())
-                    compare:SetStatisticalFormatting(GetStatisticalFormatting())
-                    groupFrame:SelectAllColumns()
-                    compare:RepeatedMeasures(true)
-                    compare:Calculate(groupFrame)
-                    result:SetVarianceResult(compare:GetResult())
-                    if compare:GetResult():GetCorrectionName() not= ""
-                        number correction = compare:GetResult():GetCorrection()
-                        number newDFn = correction*degreesFreedomBetweenGroup
-                        number newDFd = correction*degreesFreedomError
-                        fDistribution:Setup(newDFn, newDFd)
-                        number p = 1.0 - fDistribution:CumulativeDistribution(fBetweenGroup)
-                        result:SetInformation(source,"corrected p", p)
-                    end
-                end
-
-                // Within Measures
-                source = "Within Measures"
-                if numberOfFactors = 1
-                    source = "Within "+factorHeaders:Get(0)
-                end
-                sources:Add(source)
-                result:SetDegreesOfFreedom(source, source, degreesFreedomWithinGroup)
-                result:SetInformation(source,"ss", sumOfSquaresWithinGroup)
-                result:SetInformation(source,"meanss", meanSumOfSquaresWithinGroup)
-
-                // Between Subjects
-                source = "Between Subjects"
-                sources:Add(source)
-                result:SetDegreesOfFreedom(source, source, degreesFreedomBetweenSubjects)
-                result:SetInformation(source,"ss", sumOfSquaresBetweenSubjects)
-                result:SetInformation(source,"meanss", sumOfSquaresBetweenSubjects/degreesFreedomBetweenSubjects)
-
-                // Within Subjects
-                source = "Residual Error" 
-                sources:Add(source)
-                result:SetDegreesOfFreedom(source, source, degreesFreedomError)
-                result:SetInformation(source,"ss", sumOfSquaresError)
-                result:SetInformation(source,"meanss", meanSumOfSquaresError)
                 result:SetSources(sources)
-
-                if userRequestedPairwise or pBetweenGroup <= GetSignificanceLevel()
-                    // Pairwise tests are only necessary if the rm anova is significant
-                    CompareMeansPairwise compare
-                    compare:SetSignificanceLevel(GetSignificanceLevel())
-                    compare:SetStatisticalFormatting(GetStatisticalFormatting())
-                    compare:UseStrictCorrection(true)
-                    compare:Calculate(result)
-                    result:SetPairwiseResults(compare:GetResults())
-                end
+                result:SetVarianceResult(vResult)
                 results:Add(result)
             end
+        else
+            CompareSeveralMeans(frame)
         end
+
         needToProcessData = true // Reset processing flag in case user changes selections
     end
+
     /* 
         Analysis of variance (ANOVA) for 3 or more independent groups.
 
@@ -996,19 +1165,19 @@ class CompareMeans is StatisticalTest
         output compare:GetSummary()
     */
     action CompareSeveralMeans(DataFrame frame)
-        repeated = false
         ranked = false
-        if needToProcessData
+        if needToProcessData or design = undefined
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
+
         if groups:GetSize() < 2
             alert("CompareSeveralMeans must have at least two samples.")
         end
 
         boolean equalVariances = assumeEqualVariances or defaultVarianceAssumption
 
-        if not equalVariances
+        if not equalVariances and not repeated
             if factorial
                 alert("A factorial CompareMeans test with unequal variances is not supported yet.")
             end
@@ -1113,22 +1282,22 @@ class CompareMeans is StatisticalTest
             end
             results:Add(result)
         else
-            Matrix designMatrix = GetInitialMatrix()
+            designMatrix = GetInitialMatrix()
             Matrix responseMatrix
     
             if numberOfFactors > 0
-                integer current = AddFactorsToDesignMatrix(frame, designMatrix)
+                integer current = AddFactorsToDesignMatrix(designFrame, designMatrix)
                 integer start = 1
                 integer next = start + 1
                 integer stop = current - 1
                 if numberOfFactors > 1
-                    AddInteractionsToDesignMatrix(frame, designMatrix, start, next, stop, current)
+                    AddInteractionsToDesignMatrix(designFrame, designMatrix, start, next, stop, current)
                 end
     
                 DataFrame dependent
                 i = 0
                 repeat while i < numberOfColumns
-                    DataFrameColumn column = frame:GetColumn(frame:GetSelection():GetColumn(i))
+                    DataFrameColumn column = designFrame:GetColumn(designFrame:GetSelection():GetColumn(i))
                     dependent:AddColumn(column)
                     i = i + 1
                 end
@@ -1142,17 +1311,15 @@ class CompareMeans is StatisticalTest
                 integer rowIndex = 0
                 i = 0
                 repeat while i < numberOfColumns
-                    DataFrameColumn column = frame:GetColumn(frame:GetSelection():GetColumn(i))
+                    DataFrameColumn column = designFrame:GetColumn(designFrame:GetSelection():GetColumn(i))
                     j = 0
                     repeat while j < column:GetSize()
-                        if not column:IsUndefined(j)
-                            number value = column:GetAsNumber(j)  
-                            if i <  numberOfColumns - 1 // we need size-1 design matrix columns
-                                designMatrix:Set(rowIndex, i+1, 1)
-                            end
-                            responseMatrix:Set(rowIndex, 0, value)   
-                            rowIndex = rowIndex + 1   
-                        end        
+                        number value = column:GetAsNumber(j)  
+                        if i <  numberOfColumns - 1 // we need size-1 design matrix columns
+                            designMatrix:Set(rowIndex, i+1, 1)
+                        end
+                        responseMatrix:Set(rowIndex, 0, value)   
+                        rowIndex = rowIndex + 1           
                         j = j + 1
                     end
                     levels:Add(column:GetHeader())
@@ -1175,7 +1342,7 @@ class CompareMeans is StatisticalTest
                 repeat while i < groupsArray:GetSize()
                     text groupText = groupsArray:Get(i)
                     DataFrameColumn column = groups:GetValue(groupText):GetColumn(0)
-                    if column:GetSize() < 2
+                    if column:GetSize() < 2 and not repeated
                         alert("Samples must have 2 or more observations. Not enough data for a comparison to be calculated.")
                     end
                     column:SetHeader(groupText)
@@ -1185,58 +1352,56 @@ class CompareMeans is StatisticalTest
                 result:SetGroupsFrame(groupFrame)
             end
 
-            HashTable<text, number> partialEtaSquared
-            HashTable<text, number> etaSquared
-            HashTable<text, number> fStatistic
-            HashTable<text, number> pValue
-            HashTable<text, number> ssBetween   // univariate
-            HashTable<text, Matrix> sscpBetween // multivariate
-            HashTable<text, number> dfBetween
-            number ssWithin = 0
-            Matrix sscpWithin = undefined
-            number dfWithin = totalObservations - 1
-            number ssTotal = 0
-            Matrix sscpTotal = undefined
-            number dfTotal= totalObservations - 1
+            HashTable<text, number> ssFactors   // univariate
+            HashTable<text, Matrix> sscpFactors // multivariate
+            HashTable<text, number> dfFactors 
 
+            Matrix sscpResiduals
+            number ssResiduals = 0
+            number dfResiduals = 0
       
-            // Sum Of Squares Within Groups (Error)
-            if multivariate
-                sscpWithin = ComputeSumOfSquaresCrossProductMatrix(designMatrix, responseMatrix)
-            else
-                ssWithin = ComputeSumOfSquares(designMatrix, responseMatrix)
+            // Sum Of Squares Residuals
+            if not repeated
+                dfResiduals = totalObservations - 1 // Total degrees of freedom to start.
+                if multivariate
+                    sscpResiduals = ComputeSumOfSquaresCrossProductMatrix(designMatrix, responseMatrix)
+                else
+                    ssResiduals = ComputeSumOfSquares(designMatrix, responseMatrix)
+                end
             end
 
-            // Sum Of Squares Between Groups
-            i = 1 // skip intercept
-            repeat while i < factorsAssociatedWithColumn:GetSize()
+            // Sum Of Squares For Each Factor And Interaction (This type II ss calc is not currently that efficient)
+            i = 1 // Skip Intercept
+            repeat while i <= factorsAssociatedWithColumn:GetSize()
                 Matrix factorEncoding = factorsAssociatedWithColumn:GetValue(i)
             
                 if factorEncoding not= undefined
                     text factor = GetTextFromEncoding(factorEncoding)
-                    if not ssBetween:HasKey(factor)
-                        Matrix without = RemoveAssociated(factorEncoding, designMatrix)
-                        Matrix with = AddMatching(factorEncoding, designMatrix, without)
-                
+                    if not ssFactors:HasKey(factor)
+                        Matrix without = RemoveAssociated(factorEncoding, designMatrix)     // Columns of design matrix wihout any association at all to this factor/interaction
+                        Matrix with = AddMatching(factorEncoding, designMatrix, without)    // Columns associated perfectly with this factor added back (no partial associations)              
+
                         if multivariate
                             Matrix withoutSSCP = ComputeSumOfSquaresCrossProductMatrix(without, responseMatrix)
                             Matrix withSSCP = ComputeSumOfSquaresCrossProductMatrix(with, responseMatrix)
     
                             Matrix sscp = withoutSSCP:SubtractElements(withSSCP)
-                            sscpBetween:Add(factor, sscp)
+                            sscpFactors:Add(factor, sscp)
                         else
                             number withoutSS = ComputeSumOfSquares(without, responseMatrix)
                             number withSS = ComputeSumOfSquares(with, responseMatrix)
     
                             number ss = withoutSS - withSS
-                            ssBetween:Add(factor, ss)
+                            ssFactors:Add(factor, ss)
                         end
                     end
-
-                    if not dfBetween:HasKey(factor)
+    
+                    if not dfFactors:HasKey(factor)
                         number df = GetDegreesOfFreedomFromEncoding(factorEncoding)
-                        dfBetween:Add(factor, df)
-                        dfWithin = dfWithin - df
+                        dfFactors:Add(factor, df)
+                        if not repeated
+                            dfResiduals = dfResiduals - df
+                        end
                     end
                 end
                 i = i + 1
@@ -1244,16 +1409,65 @@ class CompareMeans is StatisticalTest
 
             boolean significant = false
             Array<text> sources
-            Array<text> dfBetweenArray = dfBetween:CopyToKeyArray()
-            number meanSSWithin = ssWithin / dfWithin
+            Array<text> dfFactorArray = dfFactors:CopyToKeyArray()
+            number ssSubjects = 0
+            number dfSubjects = 0
+            number ssTotal = 0  
+            number dfTotal = 0
+            number ssTotalError = 0  
+            number dfTotalError = 0  
+            if ssResiduals not= ssResiduals:GetNotANumberValue()    
+                ssTotal = ssResiduals 
+                dfTotal = dfResiduals
+                ssTotalError = ssResiduals 
+                dfTotalError = dfResiduals
+            end
+            number ssMeasured = 0
+            number measuredVariation = 0
+            if not multivariate
+                i = 0
+                repeat while i < dfFactorArray:GetSize()
+                    text factor = dfFactorArray:Get(i)
+                    number ssFactor = ssFactors:GetValue(factor)
+                    number dfFactor = dfFactors:GetValue(factor)
+                    if repeated
+                        text factorError = design:GetSubjectIdentifier()+":"+factor
+                        if dfFactors:HasKey(factorError)
+                            number ssError = ssFactors:GetValue(factorError)
+                            number dfError = dfFactors:GetValue(factorError)
+    
+                            ssMeasured = ssMeasured + ssError
+                            measuredVariation = measuredVariation + (ssFactor + dfFactor * (ssError / dfError))
+
+                            ssTotalError = ssTotalError + ssError
+                            dfTotalError = dfTotalError + dfError
+                        end
+                        if factor = design:GetSubjectIdentifier()
+                            ssSubjects = ssFactors:GetValue(factor)
+                            dfSubjects = dfFactors:GetValue(factor)
+
+                            ssTotalError = ssTotalError + ssSubjects
+                            dfTotalError = dfTotalError + dfSubjects
+                        end
+                    end
+                    ssTotal = ssTotal + ssFactors:GetValue(factor)
+                    dfTotal = dfTotal + dfFactors:GetValue(factor)
+                    i = i + 1
+                end
+            end
+
+            number numberOfObservations = design:GetNumberOfObservations()
             i = 0
-            repeat while i < dfBetweenArray:GetSize()
-                text factor = dfBetweenArray:Get(i)
+            repeat while i < dfFactorArray:GetSize()
+                text factor = dfFactorArray:Get(i)
                 if multivariate
-                    Matrix sscpFactor = sscpBetween:GetValue(factor)
-                    number dfFactor = dfBetween:GetValue(factor)
+                    Matrix sscpFactor = sscpFactors:GetValue(factor)
+                    number dfFactor = dfFactors:GetValue(factor)
 
                     text source = "Between Groups"
+                    if repeated 
+                        source = "Between Measures"
+                    end
                     if numberOfFactors > 0
                         source = factor
                     end
@@ -1261,112 +1475,250 @@ class CompareMeans is StatisticalTest
                     result:SetInformation(source, "sscp", sscpFactor)
                     result:SetDegreesOfFreedom(source, source, dfFactor)
 
-                    // Wilk’s Lambda Test
-                    number wilksLambda = sscpWithin:GetDeterminant() / sscpWithin:AddElements(sscpFactor):GetDeterminant()
-                    number numberOfGroups = designMatrix:GetColumns()   // number of independent samples
-                    number numberOfVariables = numberOfColumns          // number of dependent variables
-                    number df1 = numberOfVariables*dfFactor
-                    number df2 = (totalObservations - numberOfGroups - numberOfVariables + 1)*dfFactor
-                    number t = 1.0
-                    number numerator = (numberOfVariables * numberOfVariables * dfFactor * dfFactor - 4.0)
-                    number denominator = (numberOfVariables * numberOfVariables + dfFactor * dfFactor - 5.0)
-                    if numerator not= 0 and denominator not= 0
-                        t = math:SquareRoot(numerator / denominator)
+                    boolean skipFactor = false
+                    if repeated
+                        text factorError = design:GetSubjectIdentifier()+":"+factor
+                        if dfFactors:HasKey(factorError)
+                            sscpResiduals = sscpFactors:GetValue(factorError)
+                            dfResiduals = dfFactors:GetValue(factorError)
+                        else
+                            skipFactor = true
+                        end
                     end
-                    number f = ((1.0 - math:RaiseToPower(wilksLambda, 1.0/t)) / math:RaiseToPower(wilksLambda, 1.0/t)) * (df2 / df1)
-                    fDistribution:Setup(df1, df2)
-                    number pvalue = 1.0 - fDistribution:CumulativeDistribution(f)
-                    number part_eta = (df1 * f) / ((df1 * f) + df2)
-                    text statSource = source+"Wilks Lambda"
-                    result:SetTestStatistic(source, "Wilks Lambda", wilksLambda)
-                    result:SetTestStatistic(statSource, "F", f)
-                    result:SetDegreesOfFreedom(statSource, "numerator", df1)
-                    result:SetDegreesOfFreedom(statSource, "denominator", df2)
-                    result:SetProbabilityValue(statSource, statSource, pvalue)
-                    result:SetEffectSize(statSource, "partial-eta-squared", part_eta)
 
-                    // Hotelling-Lawley Trace Test
-                    number hotellingTrace = sscpFactor:Multiply(sscpWithin:Inverse()):GetTrace()
-                    number s = math:MinimumOf(numberOfVariables, dfFactor)
-                    number m = (math:AbsoluteValue(numberOfVariables - dfFactor) - 1.0) / 2.0
-                    number n = (dfWithin - numberOfVariables - 1.0) / 2.0
-                    df1 = s * math:MaximumOf(numberOfVariables,dfFactor)
-                    df2 = 2.0 * (s * n + 1.0) 
-                    f = (hotellingTrace / s) * (df2 / df1)
-                    fDistribution:Setup(df1, df2)
-                    pvalue = 1.0 - fDistribution:CumulativeDistribution(f)
-                    part_eta = (df1 * f) / ((df1 * f) + df2)
-                    statSource = source+"Hotelling Trace"
-                    result:SetTestStatistic(source, "Hotelling Trace", hotellingTrace)
-                    result:SetTestStatistic(statSource, "F", f)
-                    result:SetDegreesOfFreedom(statSource, "numerator", df1)
-                    result:SetDegreesOfFreedom(statSource, "denominator", df2)
-                    result:SetProbabilityValue(statSource, statSource, pvalue)
-                    result:SetEffectSize(statSource, "partial-eta-squared", part_eta)
+                    if not skipFactor // This will skip any error terms
+                        // See: https://ebook.upgrisba.ac.id/ebook/komputer-informasi-referensi-umum/6th-edition-using-multivariate-statistics-pearson/download  
+                      
+                        // Wilk’s Lambda Test
+                        number wilksLambda = sscpResiduals:GetDeterminant() / sscpResiduals:AddElements(sscpFactor):GetDeterminant()
+                        number numberOfVariables = numberOfColumns          // number of dependent variables
+                        number df1 = numberOfVariables*dfFactor
+                        number df2 = (dfResiduals - numberOfVariables + 1)*dfFactor
+                        number s = math:MinimumOf(numberOfVariables, dfFactor)
+                        number t = 1.0
+                        number numerator = (numberOfVariables * numberOfVariables * dfFactor * dfFactor - 4.0)
+                        number denominator = (numberOfVariables * numberOfVariables + dfFactor * dfFactor - 5.0)
+                        if numerator not= 0 and denominator not= 0
+                            t = math:SquareRoot(numerator / denominator)
+                        end
+                        number f = ((1.0 - math:RaiseToPower(wilksLambda, 1.0/t)) / math:RaiseToPower(wilksLambda, 1.0/t)) * (df2 / df1)
+                        fDistribution:Setup(df1, df2)
+                        number pvalue = 1.0 - fDistribution:CumulativeDistribution(f)
+                        text statSource = source+"Wilks Lambda"
+                        result:SetTestStatistic(source, "Wilks Lambda", wilksLambda)
+                        result:SetTestStatistic(statSource, "F", f)
+                        result:SetDegreesOfFreedom(statSource, "numerator", df1)
+                        result:SetDegreesOfFreedom(statSource, "denominator", df2)
+                        result:SetProbabilityValue(statSource, statSource, pvalue)
 
-                    // Pillai-Barlett Trace Test 
-                    number pillaiTrace = sscpFactor:Multiply(sscpFactor:AddElements(sscpWithin):Inverse()):GetTrace()
-                    df1 = s * (2.0 * m + s + 1.0)
-                    df2 = s * (2.0 * n + s + 1.0) 
-                    f = (pillaiTrace / (s - pillaiTrace)) * (df2 / df1)
-                    fDistribution:Setup(df1, df2)
-                    pvalue = 1.0 - fDistribution:CumulativeDistribution(f)
-                    part_eta = (df1 * f) / ((df1 * f) + df2)
-                    statSource = source+"Pillai Trace"
-                    result:SetTestStatistic(source, "Pillai Trace", pillaiTrace)
-                    result:SetTestStatistic(statSource, "F", f)
-                    result:SetDegreesOfFreedom(statSource, "numerator", df1)
-                    result:SetDegreesOfFreedom(statSource, "denominator", df2)
-                    result:SetProbabilityValue(statSource, statSource, pvalue)
-                    result:SetEffectSize(statSource, "partial-eta-squared", part_eta)
+                        // multivariate eta-squared estimate: http://friendly.github.io/heplots/reference/etasq.html
+                        // adjusted multivariate omega-squared estimate: https://core.ecu.edu/wuenschk/MV/MANOVA/MANOVA_Omega-Squared.docx
+                        number partial_eta_squared = 1.0 - math:RaiseToPower(wilksLambda, 1.0/ s)
+                        number partial_omega_squared = 1.0 - ((numberOfObservations - 1) / (numberOfObservations - math:MaximumOf(numberOfVariables, dfFactor) - 1)) * (1 - partial_eta_squared) 
 
-                    significant = pvalue <= GetSignificanceLevel()
+                        result:SetEffectSize(statSource, "partial-eta-squared", partial_eta_squared)
+                        result:SetInformation(source, "wilks", wilksLambda)
+                        result:SetInformation(source, "wilks f", f)
+                        result:SetInformation(source, "wilks dfn", df1)
+                        result:SetInformation(source, "wilks dfd", df2)
+                        result:SetInformation(source, "wilks p", pvalue)
+                        result:SetInformation(source, "wilks pes", partial_eta_squared)
+                        result:SetInformation(source, "wilks pos", partial_omega_squared)
+
+                        // Hotelling-Lawley Trace Test
+                        number hotellingTrace = sscpFactor:Multiply(sscpResiduals:Inverse()):GetTrace()
+                        number m = (math:AbsoluteValue(numberOfVariables - dfFactor) - 1.0) / 2.0
+                        number n = (dfResiduals - numberOfVariables - 1.0) / 2.0
+                        df1 = s * math:MaximumOf(numberOfVariables,dfFactor)
+                        df2 = 2.0 * (s * n + 1.0) 
+                        f = (hotellingTrace / s) * (df2 / df1)
+                        fDistribution:Setup(df1, df2)
+                        pvalue = 1.0 - fDistribution:CumulativeDistribution(f)
+                        statSource = source+"Hotelling Trace"
+                        result:SetTestStatistic(source, "Hotelling Trace", hotellingTrace)
+                        result:SetTestStatistic(statSource, "F", f)
+                        result:SetDegreesOfFreedom(statSource, "numerator", df1)
+                        result:SetDegreesOfFreedom(statSource, "denominator", df2)
+                        result:SetProbabilityValue(statSource, statSource, pvalue)
+
+                        // multivariate eta-squared estimate: http://friendly.github.io/heplots/reference/etasq.html
+                        // adjusted multivariate omega-squared estimate: https://core.ecu.edu/wuenschk/MV/MANOVA/MANOVA_Omega-Squared.docx
+                        partial_eta_squared = hotellingTrace / (hotellingTrace + s)
+                        partial_omega_squared = 1.0 - ((numberOfObservations - 1) / (numberOfObservations - math:MaximumOf(numberOfVariables, dfFactor) - 1)) * (1 - partial_eta_squared) 
+                        result:SetEffectSize(statSource, "partial-eta-squared", partial_eta_squared)
+                        result:SetInformation(source, "hotelling", hotellingTrace)
+                        result:SetInformation(source, "hotelling f", f)
+                        result:SetInformation(source, "hotelling dfn", df1)
+                        result:SetInformation(source, "hotelling dfd", df2)
+                        result:SetInformation(source, "hotelling p", pvalue)
+                        result:SetInformation(source, "hotelling pes", partial_eta_squared)
+                        result:SetInformation(source, "hotelling pos", partial_omega_squared)
+
+                        // Pillai-Barlett Trace Test 
+                        number pillaiTrace = sscpFactor:Multiply(sscpFactor:AddElements(sscpResiduals):Inverse()):GetTrace()
+                        df1 = s * (2.0 * m + s + 1.0)
+                        df2 = s * (2.0 * n + s + 1.0) 
+                        f = (pillaiTrace / (s - pillaiTrace)) * (df2 / df1)
+                        fDistribution:Setup(df1, df2)
+                        pvalue = 1.0 - fDistribution:CumulativeDistribution(f)
+                        statSource = source+"Pillai Trace"
+                        result:SetTestStatistic(source, "Pillai Trace", pillaiTrace)
+                        result:SetTestStatistic(statSource, "F", f)
+                        result:SetDegreesOfFreedom(statSource, "numerator", df1)
+                        result:SetDegreesOfFreedom(statSource, "denominator", df2)
+                        result:SetProbabilityValue(statSource, statSource, pvalue)
+
+                        // multivariate eta-squared estimate: http://friendly.github.io/heplots/reference/etasq.html
+                        // adjusted multivariate omega-squared estimate: https://core.ecu.edu/wuenschk/MV/MANOVA/MANOVA_Omega-Squared.docx
+                        partial_eta_squared = pillaiTrace / s
+                        partial_omega_squared = 1.0 - ((numberOfObservations - 1) / (numberOfObservations - math:MaximumOf(numberOfVariables, dfFactor) - 1)) * (1 - partial_eta_squared) 
+
+                        result:SetEffectSize(statSource, "partial-eta-squared", partial_eta_squared)
+                        result:SetInformation(source, "pillai", pillaiTrace)
+                        result:SetInformation(source, "pillai f", f)
+                        result:SetInformation(source, "pillai dfn", df1)
+                        result:SetInformation(source, "pillai dfd", df2)
+                        result:SetInformation(source, "pillai p", pvalue)
+                        result:SetInformation(source, "pillai pes", partial_eta_squared)
+                        result:SetInformation(source, "pillai pos", partial_omega_squared)
+
+                        result:SetInformation(source, "df", dfFactor)
+                        result:SetInformation(source, "error df", dfResiduals)
+
+                        significant = pvalue <= GetSignificanceLevel()
+                    end
                 else
-                    number ssFactor = ssBetween:GetValue(factor)
-                    number dfFactor = dfBetween:GetValue(factor)
-        
-                    number meanSSBetween = ssFactor / dfFactor
-                    fDistribution:Setup(dfFactor, dfWithin)
-                    number f = meanSSBetween / meanSSWithin
-                    number p = 1.0 - fDistribution:CumulativeDistribution(f)
-                    fStatistic:Add(factor, f)
-                    pValue:Add(factor, p)
-                    number part_eta = ssFactor / (ssFactor + ssWithin)
-                    number part_omega_squared = (ssFactor - dfFactor*meanSSWithin) / (ssFactor + (totalObservations - dfFactor*meanSSWithin))
-        
-                    text source = "Between Groups"
-                    if numberOfFactors > 0
-                        source = factor
+                    number ssFactor = ssFactors:GetValue(factor)
+                    number dfFactor = dfFactors:GetValue(factor)
+    
+                    boolean skipFactor = false
+                    if repeated
+                        text factorError = design:GetSubjectIdentifier()+":"+factor
+                        if dfFactors:HasKey(factorError)
+                            ssResiduals = ssFactors:GetValue(factorError)
+                            dfResiduals = dfFactors:GetValue(factorError)
+                        else
+                            skipFactor = true
+                        end
+                        if factor = design:GetSubjectIdentifier()
+                            text source = design:GetSubjectIdentifier()
+                            sources:Add(source)
+                            result:SetDegreesOfFreedom(source, source, dfFactor)
+                            result:SetInformation(source, "ss", ssFactor)
+                            result:SetInformation(source, "df", dfFactor)
+                            result:SetInformation(source, "meanss", ssFactor / dfFactor)
+                        end
                     end
-                    sources:Add(source)
-                    result:SetTestStatistic(source, "F", f)
-                    if factorial
-                        result:SetEffectSize(source, "partial-eta-squared", part_eta)
-                        //result:SetEffectSize(source, "partial-omega-squared", part_omega_squared)
-                    else
-                        result:SetEffectSize(source, "eta-squared", part_eta)
-                        //result:SetEffectSize(source, "partial-omega-squared", part_omega_squared)
-                    end
-                    result:SetDegreesOfFreedom(source, "F", dfFactor)
-                    result:SetProbabilityValue(source, "F", p)
-                    result:SetInformation(source, "ss", ssFactor)
-                    result:SetInformation(source, "meanss", meanSSBetween)
+        
+                    if not skipFactor // This will skip any error terms     
+                        number meanSSFactor = ssFactor / dfFactor
+                        number meanSSResiduals = ssResiduals / dfResiduals
+                        number factorVariation = (ssFactor - dfFactor * meanSSResiduals)
+                        fDistribution:Setup(dfFactor, dfResiduals)
+                        number f = meanSSFactor / meanSSResiduals
+                        number p = 1.0 - fDistribution:CumulativeDistribution(f)
+                        
+                        // The generalization calculations assume all factors to be manipulated by default
+                        HashTable<text, text> measuredFactors
+                        number d = 1
+                        if measuredFactors:HasKey(factor)
+                            d = 0
+                        end
 
-                    significant = p <= GetSignificanceLevel()
+                        number eta_squared = 0 
+                        number partial_eta_squared = 0
+                        number generalized_eta_squared = 0 
+                        number omega_squared = 0 
+                        number partial_omega_squared = 0
+                        number generalized_omega_squared = 0 
+                        if repeated
+                            if factor = design:GetSubjectIdentifier()
+                                d = 0
+                            end
+                            // See page 379: https://link.springer.com/article/10.3758/BF03192707
+                            eta_squared = ssFactor / ssTotal
+                            // See page 380: https://link.springer.com/article/10.3758/BF03192707
+                            partial_eta_squared = ssFactor / (ssFactor + ssResiduals)
+                            // See page 437 & 439: http://coshima.davidrjfikis.com/EPRS8540/uploadf07/olejnik_PsychMeth2003.pdf
+                            generalized_eta_squared = ssFactor / (d * ssFactor /* + measured is always zero in rm */ + ssTotalError)
+
+                            // See page 1: https://www.jasonfinley.com/tools/OmegaSquaredQuickRef_JRF_3-31-13.pdf
+                            omega_squared = factorVariation / (ssTotal + (ssSubjects / dfSubjects))
+                            // See: https://www.aggieerin.com/shiny-server/tests/omegaprmss.html
+                            // partial_omega_squared = factorVariation / (ssFactor + (numberOfObservations - dfFactor) * (ssResiduals / dfResiduals))
+                            // See page 1: https://www.jasonfinley.com/tools/OmegaSquaredQuickRef_JRF_3-31-13.pdf
+                            partial_omega_squared = factorVariation / (ssFactor + ssResiduals + ssSubjects + (ssSubjects / dfSubjects))
+                            // See page 441 & 443: http://coshima.davidrjfikis.com/EPRS8540/uploadf07/olejnik_PsychMeth2003.pdf
+                            generalized_omega_squared = factorVariation / (d * factorVariation /* + measured is always zero in rm */ + numberOfObservations * (ssTotalError / dfTotalError))
+                        else
+                            // See page 435: http://coshima.davidrjfikis.com/EPRS8540/uploadf07/olejnik_PsychMeth2003.pdf
+                            eta_squared = ssFactor / ssTotal
+                            // See page 435: http://coshima.davidrjfikis.com/EPRS8540/uploadf07/olejnik_PsychMeth2003.pdf
+                            partial_eta_squared = ssFactor / (ssFactor + ssResiduals)
+                            // See page 437: http://coshima.davidrjfikis.com/EPRS8540/uploadf07/olejnik_PsychMeth2003.pdf
+                            generalized_eta_squared = ssFactor / (d * ssFactor + ssMeasured + ssResiduals)
+
+                            // See page 1: https://www.jasonfinley.com/tools/OmegaSquaredQuickRef_JRF_3-31-13.pdf
+                            omega_squared = factorVariation / (ssTotal + meanSSResiduals)
+                            // See page 435: http://coshima.davidrjfikis.com/EPRS8540/uploadf07/olejnik_PsychMeth2003.pdf
+                            partial_omega_squared = factorVariation / (ssFactor + (numberOfObservations - dfFactor) * meanSSResiduals)
+                            // See page 441: http://coshima.davidrjfikis.com/EPRS8540/uploadf07/olejnik_PsychMeth2003.pdf
+                            generalized_omega_squared = factorVariation / (d * factorVariation + measuredVariation + numberOfObservations * meanSSResiduals)
+                        end
+                        
+                        text source = "Between Groups"
+                        if repeated 
+                            source = "Between Measures"
+                        end
+                        if numberOfFactors > 0
+                            source = factor
+                        end
+                        sources:Add(source)
+                        result:SetTestStatistic(source, "F", f)
+                        result:SetDegreesOfFreedom(source, "F", dfFactor)
+                        result:SetProbabilityValue(source, "F", p)
+                        result:SetInformation(source, "F", f)
+                        result:SetInformation(source, "p", p)
+                        result:SetInformation(source, "ss", ssFactor)
+                        result:SetInformation(source, "df", dfFactor)
+                        result:SetInformation(source, "meanss", meanSSFactor)
+                        result:SetInformation(source, "error ss", ssResiduals)
+                        result:SetInformation(source, "error df", dfResiduals)
+
+                        result:SetInformation(source, "eta-squared", eta_squared)
+                        result:SetInformation(source, "partial-eta-squared", partial_eta_squared)
+                        result:SetInformation(source, "generalized-eta-squared", generalized_eta_squared)
+                        result:SetInformation(source, "omega-squared", omega_squared)
+                        result:SetInformation(source, "partial-omega-squared", partial_omega_squared)
+                        result:SetInformation(source, "generalized-omega-squared", generalized_omega_squared)
+                        
+                        if factorial
+                            result:SetEffectSize(source, "partial-eta-squared", partial_eta_squared)
+                        else
+                            result:SetEffectSize(source, "eta-squared", eta_squared)
+                        end
+    
+                        significant = p <= GetSignificanceLevel()
+                    end
                 end
                 i = i + 1
             end
 
-            source = "Residual Error" 
-            sources:Add(source)
-            result:SetDegreesOfFreedom(source, source, dfWithin)
-            if multivariate
-                result:SetInformation(source,"ss", sscpWithin)
-            else
-                result:SetInformation(source,"ss", ssWithin)
-                result:SetInformation(source,"meanss", meanSSWithin)
+            if not repeated
+                source = "Residual Error" 
+                sources:Add(source)
+                result:SetDegreesOfFreedom(source, source, dfResiduals)
+                if multivariate
+                    result:SetInformation(source,"ss", sscpResiduals)
+                    result:SetInformation(source,"df", dfResiduals)
+                else
+                    result:SetInformation(source,"ss", ssResiduals)
+                    result:SetInformation(source,"df", dfResiduals)
+                    result:SetInformation(source,"meanss", ssResiduals / dfResiduals)
+                end               
             end
 
+            result:Repeated(repeated)
             result:EqualVariances(true)
             result:NormalDistribution(true)
             result:SetSignificanceLevel(GetSignificanceLevel())
@@ -1374,17 +1726,33 @@ class CompareMeans is StatisticalTest
             result:SetFactors(factorHeaders)
             result:SetColumns(columnHeaders)
             result:SetSources(sources)
-            if multivariate
-                if factorial
-                    result:SetFormalTestName("Multivariate Analysis of Variance")
+            if repeated
+                if multivariate
+                    if factorial
+                        result:SetFormalTestName("Multivariate Repeated Measures Analysis of Variance")
+                    else
+                        result:SetFormalTestName("One-Way Multivariate Repeated Measures Analysis of Variance")
+                    end
                 else
-                    result:SetFormalTestName("One-Way Multivariate Analysis of Variance")
+                    if factorial
+                        result:SetFormalTestName("Repeated Measures Analysis of Variance")
+                    else
+                        result:SetFormalTestName("One-Way Repeated Measures Analysis of Variance")
+                    end
                 end
             else
-                if factorial
-                    result:SetFormalTestName("Analysis of Variance")
+                if multivariate
+                    if factorial
+                        result:SetFormalTestName("Multivariate Analysis of Variance")
+                    else
+                        result:SetFormalTestName("One-Way Multivariate Analysis of Variance")
+                    end
                 else
-                    result:SetFormalTestName("One-Way Analysis of Variance")
+                    if factorial
+                        result:SetFormalTestName("Analysis of Variance")
+                    else
+                        result:SetFormalTestName("One-Way Analysis of Variance")
+                    end
                 end
             end
 
@@ -1400,25 +1768,84 @@ class CompareMeans is StatisticalTest
                 compare:CompareDistributionToNormal(result:GetGroupsFrame())
                 result:SetDistributionResults(compare:GetResults())
             end
-            if testVarianceAssumption
-                if multivariate
-                    // Check for homogeneity using a Box's CompareCovarianceMatrices test
-                    CompareVariances compare
-                    compare:SetSignificanceLevel(GetSignificanceLevel())
-                    compare:SetStatisticalFormatting(GetStatisticalFormatting())
-                    compare:Calculate(frame) // Keep the same selection as this test
-                    result:SetVarianceResult(compare:GetResult())
-                    if compare:GetResult():IsSignificant()
-                        result:UsePillaiStatistic(true)
+            if testVarianceAssumption or repeated
+                if repeated 
+                    if testVarianceAssumption and multivariate
+                        alert("A multivariate repeated measures CompareVariances test is not supported yet.")
                     end
-                else
-                    // Check for homogeneity using a Levene's CompareVariances test
-                    CompareVariances compare
-                    compare:SetSignificanceLevel(GetSignificanceLevel())
-                    compare:SetStatisticalFormatting(GetStatisticalFormatting())
-                    result:GetGroupsFrame():SelectAllColumns()
-                    compare:Calculate(result:GetGroupsFrame())
-                    result:SetVarianceResult(compare:GetResult())
+                    if not multivariate
+                        // Check for sphericity using a Mauchly's CompareVariances test 
+                        // This test is only necessary if the rm anova is significant with standard f
+                        ExperimentalDesign withinDesign
+                        withinDesign:AddSubjectIdentifier(design:GetSubjectIdentifier())
+                        Array<text> within = design:GetWithinSubjectsFactors()
+                        i = 0
+                        repeat while i < within:GetSize()
+                            withinDesign:AddWithinSubjectsFactor(within:Get(i))
+                            i = i + 1
+                        end 
+                        Array<text> dv = design:GetDependentVariables()
+                        i = 0
+                        repeat while i < dv:GetSize()
+                            withinDesign:AddDependentVariable(dv:Get(i))
+                            i = i + 1
+                        end
+                        withinDesign:Transform(designFrame)
+
+                        CompareVariances mauchly
+                        mauchly:RepeatedMeasures(true)
+                        mauchly:SetSignificanceLevel(GetSignificanceLevel())
+                        mauchly:SetStatisticalFormatting(GetStatisticalFormatting())
+                        mauchly:SetExperimentalDesign(withinDesign)
+                        mauchly:Calculate(frame)
+                        CompareVariancesResult mauchlyResult = mauchly:GetResult()
+                        result:SetVarianceResult(mauchlyResult)
+
+                        i = 0
+                        repeat while i < sources:GetSize()
+                            text source = sources:Get(i)
+                            if mauchlyResult:GetInformation():HasKey(source) and mauchlyResult:GetInformation():GetValue(source):HasKey("p")
+                                number p = mauchlyResult:GetInformation():GetValue(source):GetValue("p")
+                                result:SetInformation(source,"sphericity p", p)
+    
+                                number dfn = result:GetInformation():GetValue(source):GetValue("df")
+                                number dfd = result:GetInformation():GetValue(source):GetValue("error df")
+    
+                                number ggcorrection = mauchlyResult:GetInformation():GetValue(source):GetValue("gg")
+                                fDistribution:Setup(ggcorrection*dfn, ggcorrection*dfd)
+                                number ggp = 1.0 - fDistribution:CumulativeDistribution(result:GetInformation():GetValue(source):GetValue("F"))
+                                result:SetInformation(source,"gg", ggcorrection)
+                                result:SetInformation(source,"gg p", ggp)
+    
+                                number hfcorrection = mauchlyResult:GetInformation():GetValue(source):GetValue("hf")
+                                fDistribution:Setup(hfcorrection*dfn, hfcorrection*dfd)
+                                number hfp = 1.0 - fDistribution:CumulativeDistribution(result:GetInformation():GetValue(source):GetValue("F"))
+                                result:SetInformation(source,"hf", hfcorrection)
+                                result:SetInformation(source,"hf p", hfp)
+                            end
+                            i = i + 1
+                        end
+                    end
+                elseif testVarianceAssumption
+                    if multivariate
+                        // Check for homogeneity using a Box's CompareCovarianceMatrices test
+                        CompareVariances compare
+                        compare:SetSignificanceLevel(GetSignificanceLevel())
+                        compare:SetStatisticalFormatting(GetStatisticalFormatting())
+                        compare:Calculate(designFrame) // Keep the same selection as this test
+                        result:SetVarianceResult(compare:GetResult())
+                        if compare:GetResult():IsSignificant()
+                            result:UsePillaiStatistic(true) // Use pillai default if Box's fails
+                        end
+                    else
+                        // Check for homogeneity using a Levene's CompareVariances test
+                        CompareVariances compare
+                        compare:SetSignificanceLevel(GetSignificanceLevel())
+                        compare:SetStatisticalFormatting(GetStatisticalFormatting())
+                        result:GetGroupsFrame():SelectAllColumns()
+                        compare:Calculate(result:GetGroupsFrame())
+                        result:SetVarianceResult(compare:GetResult())
+                    end
                 end
             end
             if userRequestedPairwise or significant
@@ -1428,7 +1855,7 @@ class CompareMeans is StatisticalTest
                 if userRequestedPairwise and factorial
                     alert("Post hoc testing for factorial designs is not supported yet")
                 end
-                if not multivariate and not factorial
+                if not multivariate and not factorial and groups:GetSize() > 2
                     // Pairwise tests are only necessary if the anova is significant
                     CompareMeansPairwise compare
                     compare:SetSignificanceLevel(GetSignificanceLevel())
@@ -1463,7 +1890,7 @@ class CompareMeans is StatisticalTest
     */
     action CompareToRankedMean(DataFrame frame)
         ranked = true
-        if needToProcessData
+        if needToProcessData or design = undefined
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
@@ -1622,7 +2049,7 @@ class CompareMeans is StatisticalTest
     action CompareTwoRelatedRankedMeans(DataFrame frame)
         ranked = true
         repeated = true
-        if needToProcessData
+        if needToProcessData or design = undefined
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
@@ -1750,7 +2177,7 @@ class CompareMeans is StatisticalTest
     */
     action CompareTwoRankedMeans(DataFrame frame)
         ranked = true
-        if needToProcessData
+        if needToProcessData or design = undefined
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
@@ -1941,7 +2368,7 @@ class CompareMeans is StatisticalTest
     action CompareSeveralRelatedRankedMeans(DataFrame frame)
         ranked = true
         repeated = true
-        if needToProcessData
+        if needToProcessData or design = undefined
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
@@ -2004,7 +2431,7 @@ class CompareMeans is StatisticalTest
             integer n = ranked:GetColumns():GetSize()
     
             // Number of measurements (groups)
-            integer k = GetColumnSize()
+            integer k = groups:GetSize()
     
             number sumOfRanksSquared = 0
             number tieCorrectionSum = 0
@@ -2131,7 +2558,7 @@ class CompareMeans is StatisticalTest
     */
     action CompareSeveralRankedMeans(DataFrame frame)
         ranked = true
-        if needToProcessData
+        if needToProcessData or design = undefined
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
@@ -2199,12 +2626,12 @@ class CompareMeans is StatisticalTest
 
             // Calculate the H statistic:
             number n = samples:GetSize() // Overall size (all sample sizes)
-            integer k = GetColumnSize()  // Number of samples
+            integer k = groups:GetSize()  // Number of samples
             number sumOfRanks = 0
             i = 0
-            repeat while i < GetColumnSize()
-                number tj = sums:GetValue(frame:GetColumn(GetColumn(i)):GetHeader()) // Sum of ranks in the jth sample
-                number nj = frame:GetColumn(GetColumn(i)):GetSize() // Size of the jth sample
+            repeat while i < k
+                number tj = sums:GetValue(groupsArray:Get(i)) // Sum of ranks in the jth sample
+                number nj = groups:GetValue(groupsArray:Get(i)):GetColumn(0):GetSize() // Size of the jth sample
     
                 sumOfRanks = sumOfRanks + (tj * tj / nj)
                 i = i + 1
@@ -2262,6 +2689,55 @@ class CompareMeans is StatisticalTest
             results:Add(result)
         end
         needToProcessData = true // Reset processing flag in case user changes selections
+    end
+
+    action SetExperimentalDesign(ExperimentalDesign design)
+        me:design = design:Copy() // make a copy of the design so it can be used in other tests.
+    end
+
+    // This is the class that holds all design selections and design frame.
+    action GetDesign returns ExperimentalDesign
+        return design
+    end
+
+    // For long or wide data.
+    action AddSubjectIdentifier(text header)
+        design:AddSubjectIdentifier(header)
+    end
+
+    // For long or wide data.
+    action AddBetweenSubjectsFactor(text header)
+        design:AddBetweenSubjectsFactor(header)
+    end
+
+    // For long data.
+    action AddWithinSubjectsFactor(text header)
+        design:AddWithinSubjectsFactor(header)
+    end
+
+    // For long data.
+    action AddDependentVariable(text header)
+        design:AddDependentVariable(header)
+    end
+
+    // For wide data in between design.
+    action AddBetweenSubjectsFactor(text factorHeader, text variableHeader, text columnHeaders)
+        design:AddBetweenSubjectsFactor(factorHeader, variableHeader, columnHeaders)
+    end
+
+    // For wide data in between design.
+    action AddBetweenSubjectsFactor(text factorHeader, text columnHeaders)
+        design:AddBetweenSubjectsFactor(factorHeader, columnHeaders)
+    end
+
+    // For wide data in within design or mixed design.
+    action AddWithinSubjectsFactor(text factorHeader, text variableHeader, text columnHeaders)
+        design:AddWithinSubjectsFactor(factorHeader, variableHeader, columnHeaders)
+    end
+
+    // For wide data in within design or mixed design.
+    action AddWithinSubjectsFactor(text factorHeader, text columnHeaders)
+        design:AddWithinSubjectsFactor(factorHeader, columnHeaders)
     end
 
     /* Used in 1-sample and 2-sample (paired) tests */
@@ -2993,9 +3469,10 @@ class CompareMeans is StatisticalTest
         Matrix factors2 = factorsAssociatedWithColumn:GetValue(secondIndex)  
 
         if factors1 not= undefined and factors2 not= undefined  
-            factorsAssociatedWithColumn:Set(newIndex, factors1:AddElements(factors2))
+            Matrix newFactor = factors1:AddElements(factors2)
+            factorsAssociatedWithColumn:Set(newIndex, newFactor)
 
-            text factorHeader = GetTextFromEncoding(factors1)+":"+GetTextFromEncoding(factors2)
+            text factorHeader = GetTextFromEncoding(newFactor)
             if not columnsAssociatedWithFactor:HasKey(factorHeader)
                 Array<integer> arr
                 arr:Add(newIndex)
@@ -3039,9 +3516,10 @@ class CompareMeans is StatisticalTest
 
     private action ComputeSumOfSquares(Matrix x, Matrix y) returns number
         Matrix xT = x:Transpose()
-        Matrix xTx_inv = xT:Multiply(x):Inverse()    
-        Matrix inside = x:Multiply(xTx_inv):Multiply(xT):Multiply(y)             
-        Matrix result = y:SubtractElements(inside)
+        Matrix xTx_inv = xT:Multiply(x):Inverse()  
+        Matrix b = xTx_inv:Multiply(xT):Multiply(y)       
+             
+        Matrix result = y:SubtractElements(x:Multiply(b))
 
         return result:GetSumOfSquares()
     end
@@ -3049,9 +3527,9 @@ class CompareMeans is StatisticalTest
 
     private action ComputeSumOfSquaresCrossProductMatrix(Matrix x, Matrix y) returns Matrix
         Matrix xT = x:Transpose()
-        Matrix xTx_inv = xT:Multiply(x):Inverse()    
-        Matrix inside = x:Multiply(xTx_inv):Multiply(xT):Multiply(y)             
-        Matrix result = y:SubtractElements(inside)
+        Matrix xTx_inv = xT:Multiply(x):Inverse()       
+        Matrix b = xTx_inv:Multiply(xT):Multiply(y)          
+        Matrix result = y:SubtractElements(x:Multiply(b))
 
         Matrix centered = result:CenterByColumn()
         return centered:Transpose():Multiply(centered)
@@ -3116,6 +3594,37 @@ class CompareMeans is StatisticalTest
             i = i + 1
         end
         return newMatrix:GetSubMatrix(0, 0, designMatrix:GetRows(), colIndex)
+    end
+
+    /* This is used to update the correct residual ss and df values for mixed design anovas */
+    private action UpdateAndGetErrorTerm(HashTable<text, number> ssErrors, HashTable<text, number> dfErrors, text interactionFactor, number ssInteraction, number dfInteraction) returns text
+        Array<text> factors = interactionFactor:Split(":")
+        Array<text> withinFactors = design:GetWithinSubjectsFactors()
+        text errorFactor = ""
+        i = 0
+        repeat while i < factors:GetSize()
+            j = 0
+            repeat while j < withinFactors:GetSize()
+                if factors:Get(i) = withinFactors:Get(j)
+                    if errorFactor = ""
+                        errorFactor = factors:Get(i)
+                    else
+                        errorFactor = errorFactor+":"+factors:Get(i)
+                    end
+                end
+                j = j + 1
+            end
+            i = i + 1
+        end
+        if ssErrors:HasKey(errorFactor)
+            ssErrors:Set(errorFactor, ssErrors:GetValue(errorFactor) - ssInteraction)
+            dfErrors:Set(errorFactor, dfErrors:GetValue(errorFactor) - dfInteraction)
+            return errorFactor
+        else
+            ssErrors:Set(design:GetSubjectIdentifier(), ssErrors:GetValue(design:GetSubjectIdentifier()) - ssInteraction)
+            dfErrors:Set(design:GetSubjectIdentifier(), dfErrors:GetValue(design:GetSubjectIdentifier()) - dfInteraction)
+            return design:GetSubjectIdentifier()
+        end
     end
 
     /* Reporting helper actions */

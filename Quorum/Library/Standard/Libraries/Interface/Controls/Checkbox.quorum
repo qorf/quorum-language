@@ -15,12 +15,40 @@ use Libraries.Interface.Views.CheckboxView
 use Libraries.Interface.Events.FocusEvent
 use Libraries.Game.Graphics.ColorGroup
 
+/*
+    The Checkbox class is a ToggleButton object that inherits from Button and like other
+    UI elements it is added to the Game class. The Checkbox is used to represent
+    an individual or collection of toggle buttons. This button has a selected and
+    unselected state.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.Checkbox
+    use Libraries.Interface.Forms.FormBehavior
+    
+    class Main 
+        action Main 
+            Form form
+            Page page = form:GetMainPage()
+            
+            Checkbox button = page:AddCheckbox("checkbox")
+            button:SetToggleState(true)
+            
+            form:Display()
+        end
+    end
+*/
 class Checkbox is ToggleButton
 
     Icon buttonIcon
     Label label
 
     on create
+        label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
+        
         // The layout should already be present, courtesy of our inheritance of Button.
 
         LayoutProperties properties = GetDefaultLayoutProperties()
@@ -49,7 +77,30 @@ class Checkbox is ToggleButton
 
         SetAccessibilityCode(parent:Item:CHECKBOX)
     end
+    /*
+        This action toggles between the checkbox being checked and unchecked.
+        
+        Attribute: Parameter toggleState when true the check box is checked.
 
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.Checkbox
+        
+        class Main 
+            action Main 
+                Form form
+                Page page = form:GetMainPage()
+    
+                page:AddCheckbox("on")
+                Checkbox value = page:AddCheckbox("off")
+    
+                value:SetToggleState(true)
+                
+                form:Display()
+            end
+        end
+    */
     action SetToggleState(boolean toggleState)
         /*
         This overwrites the ToggleButton implementation of SetToggleState.
@@ -99,7 +150,9 @@ class Checkbox is ToggleButton
         //if we have the focus and we are toggled
         if GetToggleState()
             CheckboxView content = cast(CheckboxView, buttonIcon:GetView2D())
-            content:SetCheckColor(GetFocusColor())
+            if content not= undefined
+content:SetCheckColor(GetFocusColor())
+            end
         else
             buttonIcon:SetBorderColor(GetFocusBorderColor())
         end
@@ -161,7 +214,11 @@ class Checkbox is ToggleButton
 
         if buttonIcon:GetView2D() is CheckboxView
             CheckboxView content = cast(CheckboxView, buttonIcon:GetView2D())
-            content:SetCheckColor(buttonIcon:GetAccentColor())
+            if IsFocused()
+content:SetCheckColor(buttonIcon:GetFocusColor())
+            else
+content:SetCheckColor(buttonIcon:GetAccentColor())
+            end
         end
 
         ColorGroup focusBorderColor = properties:GetFocusBorderColor()

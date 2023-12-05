@@ -160,7 +160,9 @@ class Control is Item2D
         manager:GetGame():AddInputTable(inputTable)
         return inputTable
     end
-
+    /*
+        This action is used when a control is clicked by the mouse.
+    */
     action ClickedMouse
         renderMouseDown = true
         if GetView2D() is ControlView
@@ -170,7 +172,9 @@ class Control is Item2D
 
         RequestVerticesUpdate()
     end
-
+    /*
+        This action is used when a control is released by the mouse.
+    */
     action ReleasedMouse
         renderMouseDown = false
         if GetView2D() is ControlView
@@ -180,7 +184,9 @@ class Control is Item2D
 
         RequestVerticesUpdate()
     end
-
+    /*
+        This action is used when a control is moused over by the mouse.
+    */
     action BeginMouseOver
         renderMouseOver = true
         if GetView2D() is ControlView
@@ -190,7 +196,9 @@ class Control is Item2D
 
         RequestVerticesUpdate()
     end
-
+    /*
+        This action is used when a control is moused over and it ends.
+    */
     action EndMouseOver
         renderMouseOver = false
         if GetView2D() is ControlView
@@ -200,7 +208,9 @@ class Control is Item2D
 
         RequestVerticesUpdate()
     end
-
+    /*
+        This action is used when a control gains the selection.
+    */
     action GainedSelection
         renderSelected = true
         if GetView2D() is ControlView
@@ -210,7 +220,9 @@ class Control is Item2D
 
         RequestVerticesUpdate()
     end
-
+    /*
+        This action is used when a control loses the selection.
+    */
     action LostSelection
         renderSelected = false
         if GetView2D() is ControlView
@@ -244,28 +256,28 @@ class Control is Item2D
     end
 
     /*
-
+        Returns true if rendering the mouse over event.
     */
     action IsRenderingMouseOver returns boolean
         return renderMouseOver
     end
 
     /*
-
+        Returns true if rendering the mouse down event.
     */
     action IsRenderingMouseDown returns boolean
         return renderMouseDown
     end
 
     /*
-
+        Returns true if rendering the selection event.
     */
     action IsRenderingSelection returns boolean
         return renderSelected
     end
 
     /*
-
+        Returns true if rendering the focus event.
     */
     action IsRenderingFocus returns boolean
         return IsFocused()
@@ -348,12 +360,36 @@ class Control is Item2D
             c:RequestLayout()
         end
     end
+    /*  
+    This action removes an Item2D from the internal array.
 
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+
+        Item2D parentItem
+        Item2D child
+        parentItem:Add(0, child)
+        parentItem:Remove(child)
+        
+    */
     action Remove(Item2D item) returns boolean
         RequestLayout()
         return parent:Item2D:Remove(item)
     end
+    /*  
+    This action removes an Item2D at a specifed index from the internal array.
 
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+
+        Item2D parentItem
+        Item2D child
+        parentItem:Add(0, child)
+        parentItem:Remove(0)
+        
+    */
     action Remove(integer index) returns Item2D
         RequestLayout()
         return parent:Item2D:Remove(index)
@@ -520,7 +556,16 @@ class Control is Item2D
     action SetHorizontalLayoutMode(integer mode)
         defaultProperties:SetHorizontalLayoutMode(mode)
     end
+    /*
+    The GetHorizontalLayoutMode is used to determine how the width of a
+    Control is calculated. It should be one of the following constants:
+    STANDARD, which will calculate the width as a set number of pixels plus a
+    percentage of the container's width.
+    FILL, which will make the width fill the remaining width of the container.
+    FIT_CONTENTS, which will calculate the width to fit the children contents.
 
+    Attribute: Returns the integer that maps to the layout mode constant, one of STANDARD, FILL, or FILL_CONTENTS.
+    */
     action GetHorizontalLayoutMode returns integer
         return defaultProperties:GetHorizontalLayoutMode()
     end
@@ -540,7 +585,18 @@ class Control is Item2D
     action SetVerticalLayoutMode(integer mode)
         defaultProperties:SetVerticalLayoutMode(mode)
     end
+    /*
+    The SetVerticalLayoutMode is used to determine how the height of a
+    Control is calculated. It should be one of the following constants:
+    STANDARD, which will calculate the height as a set number of pixels plus a
+    percentage of the container's height.
+    FILL, which will make the height fill the remaining height of the container.
+    FIT_CONTENTS, which will calculate the height to fit the children contents.
+    FIT_FONT, which will fit the height of the Control to the line height of the
+    Font set in this LayoutProperties.
 
+    Attribute: Returns the integer that maps to the layout mode constant, one of STANDARD, FILL, FILL_CONTENTS, or FIT_FONT.
+    */
     action GetVerticalLayoutMode returns integer
         return defaultProperties:GetVerticalLayoutMode()
     end
@@ -628,35 +684,79 @@ class Control is Item2D
     action GetPixelY returns number
         return defaultProperties:GetPixelY()
     end
+    /*
+    This action sets the width of the Control relative to the size of its
+    container, if the container's Layout supports it.
 
+    Attribute: Parameter width The target width as a percentage (as a value between 0.0 and 1.0) of the container's width.
+    */
     action SetPercentageWidth(number width)
         defaultProperties:SetPercentageWidth(width)
     end
+    /*
+    This action returns the width of the Control relative to the size of 
+    its container, if the container's Layout supports it.
 
+    Attribute: Returns The target width as a percentage (as a value between 0.0 and 1.0) of the container's width.
+    */
     action GetPercentageWidth returns number
         return defaultProperties:GetPercentageWidth()
     end
+    /*
+    This action sets the height of the Control relative to the size of its
+    container, if the container's Layout supports it.
 
+    Attribute: Parameter height The target height as a percentage (as a value between 0.0 and 1.0) of the container's height.
+    */
     action SetPercentageHeight(number height)
         defaultProperties:SetPercentageHeight(height)
     end
+    /*
+    This action returns the height of the Control relative to the size of 
+    its container, if the container's Layout supports it.
 
+    Attribute: Returns The target height as a percentage (as a value between 0.0 and 1.0) of the container's height.
+    */
     action GetPercentageHeight returns number
         return defaultProperties:GetPercentageHeight()
     end
+    /*
+    This action sets the width of the Control in pixels, if the container's 
+    Layout supports it. If the Control has also been set to use a percentage of
+    the container's width to set the width, then the two values will be
+    added together.
 
+    Attribute: Parameter height The target height of this Control in pixels.
+    */
     action SetPixelWidth(number width)
         defaultProperties:SetPixelWidth(width)
     end
+    /*
+    This action returns the target width of the Control in pixels. Note
+    that this may not be used by some layouts (such as FlowLayout).
 
+    Attribute: Returns The target height of this Control in pixels.
+    */
     action GetPixelWidth returns number
         return defaultProperties:GetPixelWidth()
     end
+    /*
+    This action sets the height of the Control in pixels, if the container's 
+    Layout supports it. If the Control has also been set to use a percentage of
+    the container's height to set the height, then the two values will be
+    added together.
 
+    Attribute: Parameter height The target height of this Control in pixels.
+    */
     action SetPixelHeight(number height)
         defaultProperties:SetPixelHeight(height)
     end
+    /*
+    This action returns the target height of the Control in pixels. Note
+    that this may not be used by some layouts (such as FlowLayout).
 
+    Attribute: Returns The target height of this Control in pixels.
+    */
     action GetPixelHeight returns number
         return defaultProperties:GetPixelHeight()
     end
@@ -862,67 +962,131 @@ class Control is Item2D
     action GetPercentageOriginY returns number
         return defaultProperties:GetPercentageOriginY()
     end
+    /*
+    This action sets the left margin size. The left margin is the space outside of the left border.
 
+    Attribute: Parameter padding the amount of left margin.
+    */
     action SetLeftMargin(number padding)
         defaultProperties:SetLeftMargin(padding)
     end
+    /*
+    This action sets the right margin size. The right margin is the space outside of the right border.
 
+    Attribute: Parameter padding the amount of right margin.
+    */
     action SetRightMargin(number padding)
         defaultProperties:SetRightMargin(padding)
     end
+    /*
+    This action sets the bottom margin size. The bottom margin is the space outside of the bottom border.
 
+    Attribute: Parameter padding the amount of bottom margin.
+    */
     action SetBottomMargin(number padding)
         defaultProperties:SetBottomMargin(padding)
     end
+    /*
+    This action sets the top margin size. The top margin is the space outside of the top border.
 
+    Attribute: Parameter padding the amount of top margin.
+    */
     action SetTopMargin(number padding)
         defaultProperties:SetTopMargin(padding)
     end
+    /*
+    This action gets the left margin size. The left margin is the space outside of the left border.
 
+    Attribute: Returns the number amount of left margin.
+    */
     action GetLeftMargin returns number
         return defaultProperties:GetLeftMargin()
     end
+    /*
+    This action gets the right margin size. The right margin is the space outside of the right border.
 
+    Attribute: Returns the number amount of right margin.
+    */
     action GetRightMargin returns number
         return defaultProperties:GetRightMargin()
     end
+    /*
+    This action gets the bottom margin size. The bottom margin is the space outside of the bottom border.
 
+    Attribute: Returns the number amount of bottom margin.
+    */
     action GetBottomMargin returns number
         return defaultProperties:GetBottomMargin()
     end
+    /*
+    This action gets the top margin size. The top margin is the space outside of the top border.
 
+    Attribute: Returns the number amount of top margin.
+    */
     action GetTopMargin returns number
         return defaultProperties:GetTopMargin()
     end
+    /*
+    This action sets the left padding size. The left padding is the space inside of the left border.
 
+    Attribute: Parameter padding the amount of left margin.
+    */
     action SetLeftPadding(number padding)
         defaultProperties:SetLeftPadding(padding)
     end
+    /*
+    This action sets the right padding size. The right padding is the space inside of the right border.
 
+    Attribute: Parameter padding the amount of right margin.
+    */
     action SetRightPadding(number padding)
         defaultProperties:SetRightPadding(padding)
     end
+    /*
+    This action sets the bottom padding size. The bottom padding is the space inside of the bottom border.
 
+    Attribute: Parameter padding the amount of bottom margin.
+    */
     action SetBottomPadding(number padding)
         defaultProperties:SetBottomPadding(padding)
     end
+    /*
+    This action sets the top padding size. The top padding is the space inside of the top border.
 
+    Attribute: Parameter padding the amount of top margin.
+    */
     action SetTopPadding(number padding)
         defaultProperties:SetTopPadding(padding)
     end
+    /*
+    This action gets the left padding size. The left padding is the space inside of the left border.
 
+    Attribute: Returns the number amount of left padding.
+    */
     action GetLeftPadding returns number
         return defaultProperties:GetLeftPadding()
     end
+    /*
+    This action gets the right padding size. The right padding is the space inside of the right border.
 
+    Attribute: Returns the number amount of right padding.
+    */
     action GetRightPadding returns number
         return defaultProperties:GetRightPadding()
     end
+    /*
+    This action gets the bottom padding size. The bottom padding is the space inside of the bottom border.
 
+    Attribute: Returns the number amount of bottom padding.
+    */
     action GetBottomPadding returns number
         return defaultProperties:GetBottomPadding()
     end
+    /*
+    This action gets the top padding size. The top padding is the space inside of the top border.
 
+    Attribute: Returns the number amount of top padding.
+    */
     action GetTopPadding returns number
         return defaultProperties:GetTopPadding()
     end
@@ -1088,7 +1252,10 @@ class Control is Item2D
     end
 
     /*
+    This action gets the Icon (typically an image or texture) used by this Control. Different Controls use this
+    Icon differently, depending on their purpose.
 
+    Attribute: returns The Icon to use for this Control.
     */
     action GetIcon returns TextureRegion
         return defaultProperties:GetIcon()
@@ -1143,27 +1310,41 @@ class Control is Item2D
     action GetInterfaceOptionsKey returns text
         return defaultProperties:GetInterfaceOptionsKey()
     end
-
+    /*
+        This action sets the border style either, LayoutProperties.TOP, LayoutProperties.BOTTOM,
+        LayoutProperties.LEFT, LayoutProperties.RIGHT, and LayoutProperties.ALL.
+    */
     action SetBorderStyle(integer style)
         defaultProperties:SetBorderStyle(style)
     end
-
+    /*
+        This action gets the border style either, LayoutProperties.TOP, LayoutProperties.BOTTOM,
+        LayoutProperties.LEFT, LayoutProperties.RIGHT, and LayoutProperties.ALL.
+    */
     action GetBorderStyle returns integer
         return defaultProperties:GetBorderStyle()
     end
-
+    /*
+        This action returns true when teh left border is enabled.
+    */
     action HasLeftBorder returns boolean
         return defaultProperties:HasLeftBorder()
     end
-
+    /*
+        This action returns true when teh right border is enabled.
+    */
     action HasRightBorder returns boolean
         return defaultProperties:HasRightBorder()
     end
-
+    /*
+        This action returns true when teh bottom border is enabled.
+    */
     action HasBottomBorder returns boolean
         return defaultProperties:HasBottomBorder()
     end
-
+    /*
+        This action returns true when teh top border is enabled.
+    */
     action HasTopBorder returns boolean
         return defaultProperties:HasTopBorder()
     end
@@ -1197,7 +1378,9 @@ class Control is Item2D
     end
 
     /*
+        This action sets the interface scale for the control.
 
+        Attribute: Parameter scale a number between 0 and 1 that scales the control.
     */
     action SetInterfaceScale(number scale)
         defaultProperties:SetInterfaceScale(scale)
@@ -1215,7 +1398,9 @@ class Control is Item2D
     end
 
     /*
+        This action sets the interface scale for the control.
 
+        Attribute: Returns the scale, a number between 0 and 1 that scales the control.
     */
     action GetInterfaceScale returns number
         return defaultProperties:GetInterfaceScale()
@@ -1381,7 +1566,7 @@ class Control is Item2D
     end
 
     /*
-
+        Update all behaviors elements.
     */
     action UpdateAll(number seconds)
         Update(seconds)
@@ -1424,7 +1609,10 @@ class Control is Item2D
     end
 
     /*
-
+        This action adds the given SelectionListeners to the
+        Control.
+    
+        Attribute: Parameter listener the selectionListener to add to the control.
     */
     action AddSelectionListener(SelectionListener listener)
         if selectionListeners = undefined
@@ -1436,7 +1624,11 @@ class Control is Item2D
     end
 
     /*
-
+        This action removes the given SelectionListeners from the
+        Control.
+    
+        Attribute: Parameter listener the selectionListener to remove from the control.
+        Attribute: Returns true if the selectionListener is removed.
     */
     action RemoveSelectionListener(SelectionListener listener) returns boolean
         if selectionListeners = undefined
@@ -1453,7 +1645,8 @@ class Control is Item2D
     end
 
     /*
-
+        This action empties or removes all SelectionListeners which have been added to the
+        Control of the given SelectionEvent.
     */
     action EmptySelectionListeners
         if selectionListeners = undefined
@@ -1464,7 +1657,10 @@ class Control is Item2D
     end
 
     /*
+    This action return an iterator of all SelectionListeners which have been added to the
+    Control of the given SelectionEvent.
 
+    Attribute: Returns All SelectionListeners registered with the Control.
     */
     action GetSelectionListeners returns Iterator<SelectionListener>
         if selectionListeners not= undefined
@@ -1501,407 +1697,801 @@ class Control is Item2D
     action SelectByFirstLetters(text firstLetter)
         // In the default Control class, this function does nothing.
     end
-
+    /*
+    This action sets the color and property in the Control.
+    Attribute: Parameter value the color.
+    */
     action SetColorProperty(text property, ColorGroup value)
         defaultProperties:SetColorProperty(property, value)
     end
-
+    /*
+    This action gets the color of a given property in the Control.
+    Attribute: Parameter value the color.
+    */
     action GetColorProperty(text property) returns ColorGroup
         return defaultProperties:GetColorProperty(property)
     end
-
+    /*
+        This action sets a generic property with a specified name and number value.
+        
+        Attribute: Parameter property the property name.
+        Attribute: Parameter value the number value for the generic property.
+    */
     action SetNumberProperty(text property, number value)
         defaultProperties:SetNumberProperty(property, value)
     end
-
+    /*
+        This action gets a generic property with a specified name from the control.
+        
+        Attribute: Parameter property the property name.
+        Attribute: Returns the number value of the property.
+    */
     action GetNumberProperty(text property) returns number
         return defaultProperties:GetNumberProperty(property)
     end
+    /*
+        This action gets whether the color property override is activated.
 
+        Attribute: Returns true if the color property is overridden.
+    */
     action HasColorPropertyOverride(text property) returns boolean
         return defaultProperties:HasColorPropertyOverride(property)
     end
+    /*
+        This action gets whether the number property override is activated.
 
+        Attribute: Returns true if the number property is overridden.
+    */
     action HasNumberPropertyOverride(text property) returns boolean
         return defaultProperties:HasNumberPropertyOverride(property)
     end
-
+    /*
+    This action sets the background color in the Control.
+    Attribute: Parameter value the background color.
+    */
     action SetBackgroundColor(ColorGroup value)
         defaultProperties:SetBackgroundColor(value)
     end
-
+    /*
+    This action gets the color of the Control background color.
+    Attribute: Returns the background the color.
+    */
     action GetBackgroundColor returns ColorGroup
         return defaultProperties:GetBackgroundColor()
     end
-
+    /*
+    This action sets the foreground color in the Control.
+    Attribute: Parameter value the foreground color.
+    */
     action SetForegroundColor(ColorGroup value)
         defaultProperties:SetForegroundColor(value)
     end
-
+    /*
+    This action gets the color of the Control foreground color.
+    Attribute: Returns the foreground color.
+    */
     action GetForegroundColor returns ColorGroup
         return defaultProperties:GetForegroundColor()
     end
-
+    /*
+    This action sets the foreground selection color in the Control.
+    Attribute: Parameter value the foreground selection color.
+    */
     action SetForegroundSelectionColor(ColorGroup value)
         defaultProperties:SetForegroundSelectionColor(value)
     end
-
+    /*
+    This action gets the color of the Control foreground selection color.
+    Attribute: Returns the foreground selection color.
+    */
     action GetForegroundSelectionColor returns ColorGroup
         return defaultProperties:GetForegroundSelectionColor()
     end
-
+    /*
+    This action sets the font color of the font contained in the Control.
+    */
     action SetFontColor(ColorGroup value)
         defaultProperties:SetFontColor(value)
     end
-
+    /*
+    This action gets the current the font color of the font contained in the Control.
+    */
     action GetFontColor returns ColorGroup
         return defaultProperties:GetFontColor()
     end
+    /*  
+        This action sets the font outline color value.
 
+        Attribute: Parameter value the font outline color value.
+    */
     action SetFontOutlineColor(ColorGroup value)
         defaultProperties:SetFontOutlineColor(value)
     end
+    /*  
+        This action gets the font outline color value.
 
+        Attribute: Returns the font outline color value.
+    */
     action GetFontOutlineColor returns ColorGroup
         return defaultProperties:GetFontOutlineColor()
     end
+    /*  
+        This action sets the border color of the control.
 
+        Attribute: Parameter value the border color.
+    */
     action SetBorderColor(ColorGroup value)
         defaultProperties:SetBorderColor(value)
     end
+    /*  
+        This action gets the border color of the control.
 
+        Attribute: Returns the controls border color.
+    */
     action GetBorderColor returns ColorGroup
         return defaultProperties:GetBorderColor()
     end
+    /*  
+        This action sets the focus color.
 
+        Attribute: Parameter value the focus color.
+    */
     action SetFocusColor(ColorGroup value)
         defaultProperties:SetFocusColor(value)
     end
+    /*  
+        This action sets the focus color.
 
+        Attribute: Returns the focus color.
+    */
     action GetFocusColor returns ColorGroup
         return defaultProperties:GetFocusColor()
     end
+    /*  
+        This action sets focus font color.
 
+        Attribute: Parameter value the focus font color.
+    */
     action SetFocusFontColor(ColorGroup value)
         defaultProperties:SetFocusFontColor(value)
     end
+    /*  
+        This action gets focus font color.
 
+        Attribute: Returns the focus font color.
+    */
     action GetFocusFontColor returns ColorGroup
         return defaultProperties:GetFocusFontColor()
     end
+    /*  
+        This action sets the focus border color.
 
+        Attribute: Parameter value the focus border color.
+    */
     action SetFocusBorderColor(ColorGroup value)
         defaultProperties:SetFocusBorderColor(value)
     end
+    /*  
+        This action gets the focus border color.
 
+        Attribute: Returns the focus border color.
+    */
     action GetFocusBorderColor returns ColorGroup
         return defaultProperties:GetFocusBorderColor()
     end
+    /*  
+        This action sets the mouse over color.
 
+        Attribute: Parameter value the mouse over color.
+    */
     action SetMouseOverColor(ColorGroup value)
         defaultProperties:SetMouseOverColor(value)
     end
+    /*  
+        This action gets the mouse over color.
 
+        Attribute: Returns the mouse over color.
+    */
     action GetMouseOverColor returns ColorGroup
         return defaultProperties:GetMouseOverColor()
     end
+    /*  
+        This action sets the mouse over font color.
 
+        Attribute: Parameter value the mouse over font color value.
+    */
     action SetMouseOverFontColor(ColorGroup value)
         defaultProperties:SetMouseOverFontColor(value)
     end
+    /*  
+        This action gets the mouse over font color.
 
+        Attribute: Returns the mouse over font color value.
+    */
     action GetMouseOverFontColor returns ColorGroup
         return defaultProperties:GetMouseOverFontColor()
     end
+    /*  
+        This action sets the mouse down color.
 
+        Attribute: Parameter value the mouse down color.
+    */
     action SetMouseDownColor(ColorGroup value)
         defaultProperties:SetMouseDownColor(value)
     end
+    /*  
+        This action gets the mouse down font color.
 
+        Attribute: Returns the mouse over font color value.
+    */
     action GetMouseDownColor returns ColorGroup
         return defaultProperties:GetMouseDownColor()
     end
+    /*  
+        This action sets the mouse down font color.
 
+        Attribute: Parameter value the mouse down font color.
+    */
     action SetMouseDownFontColor(ColorGroup value)
         defaultProperties:SetMouseDownFontColor(value)
     end
+    /*  
+        This action gets the mouse down font color.
 
+        Attribute: Returns the mouse down font color.
+    */
     action GetMouseDownFontColor returns ColorGroup
         return defaultProperties:GetMouseDownFontColor()
     end
+    /*  
+        This action sets the selection color on the control.
 
+        Attribute: Parameter value the selection color.
+    */
     action SetSelectionColor(ColorGroup value)
         defaultProperties:SetSelectionColor(value)
     end
+    /*  
+        This action gets the selection color from the control.
 
+        Attribute: Returns the selection color.
+    */
     action GetSelectionColor returns ColorGroup
         return defaultProperties:GetSelectionColor()
     end
+    /*  
+        This action sets the selection border color.
 
+        Attribute: Parameter value the selection border color.
+    */
     action SetSelectionBorderColor(ColorGroup value)
         defaultProperties:SetSelectionBorderColor(value)
     end
+    /*  
+        This action gets the selection border color.
 
+        Attribute: Returns the selection border color.
+    */
     action GetSelectionBorderColor returns ColorGroup
         return defaultProperties:GetSelectionBorderColor()
     end
+    /*  
+        This action sets the unfocused selection color on the control.
 
+        Attribute: Parameter value the unfocused selection color.
+    */
     action SetUnfocusedSelectionColor(ColorGroup value)
         defaultProperties:SetUnfocusedSelectionColor(value)
     end
+    /*  
+        This action gets the unfocused selection color on the control.
 
+        Attribute: Returns the unfocused selection color.
+    */
     action GetUnfocusedSelectionColor returns ColorGroup
         return defaultProperties:GetUnfocusedSelectionColor()
     end
+    /*  
+        This action sets the unfocused selection border color.
 
+        Attribute: Parameter value the unfocused selection border color.
+    */
     action SetUnfocusedSelectionBorderColor(ColorGroup value)
         defaultProperties:SetUnfocusedSelectionBorderColor(value)
     end
+    /*  
+        This action gets the unfocused selection border color on the control.
 
+        Attribute: Returns the unfocused selection border color.
+    */
     action GetUnfocusedSelectionBorderColor returns ColorGroup
         return defaultProperties:GetUnfocusedSelectionBorderColor()
     end
+    /*  
+        This action sets the selection font color on the control.
 
+        Attribute: Parameter value the selection font color.
+    */
     action SetSelectionFontColor(ColorGroup value)
         defaultProperties:SetSelectionFontColor(value)
     end
+    /*  
+        This action gets the selection font color on the control.
 
+        Attribute: Returns the selection font color.
+    */
     action GetSelectionFontColor returns ColorGroup
         return defaultProperties:GetSelectionFontColor()
     end
+    /*  
+        This action sets the unfocused selection font color on the control.
 
+        Attribute: Parameter value the unfocused selection font color.
+    */
     action SetUnfocusedSelectionFontColor(ColorGroup value)
         defaultProperties:SetUnfocusedSelectionFontColor(value)
     end
+    /*  
+        This action gets the unfocused selection font color on the control.
 
+        Attribute: Returns the unfocused selection font color.
+    */
     action GetUnfocusedSelectionFontColor returns ColorGroup
         return defaultProperties:GetUnfocusedSelectionFontColor()
     end
+    /*  
+        This action sets the glow color on the control.
 
+        Attribute: Parameter value the glow color.
+    */
     action SetGlowColor(ColorGroup value)
         defaultProperties:SetGlowColor(value)
     end
+    /*  
+        This action gets the glow color from the control.
 
+        Attribute: Returns the glow color.
+    */
     action GetGlowColor returns ColorGroup
         return defaultProperties:GetGlowColor()
     end
+    /*  
+        This action sets the mouse over glow color.
 
+        Attribute: Parameter value the mouse over glow color.
+    */
     action SetMouseOverGlowColor(ColorGroup value)
         defaultProperties:SetMouseOverGlowColor(value)
     end
+    /*  
+        This action gets the mouse over glow color.
 
+        Attribute: Returns the mouse over glow color.
+    */
     action GetMouseOverGlowColor returns ColorGroup
         return defaultProperties:GetMouseOverGlowColor()
     end
+    /*  
+        This action sets the mouse down glow color.
 
+        Attribute: Parameter value the mouse down glow color.
+    */
     action SetMouseDownGlowColor(ColorGroup value)
         defaultProperties:SetMouseDownGlowColor(value)
     end
+    /*  
+        This action gets the mouse down glow color.
 
+        Attribute: Returns the mouse down glow color.
+    */
     action GetMouseDownGlowColor returns ColorGroup
         return defaultProperties:GetMouseDownGlowColor()
     end
+    /*  
+        This action sets the Icon color on the control.
 
+        Attribute: Parameter value the icon color.
+    */
     action SetIconColor(ColorGroup value)
         defaultProperties:SetIconColor(value)
     end
+    /*  
+        This action gets the Icon color from the control.
 
+        Attribute: Returns the icon color.
+    */
     action GetIconColor returns ColorGroup
         return defaultProperties:GetIconColor()
     end
+    /*  
+        This action sets the accent color on the control.
 
+        Attribute: Parameter value the accent control.
+    */
     action SetAccentColor(ColorGroup value)
         defaultProperties:SetAccentColor(value)
     end
+    /*  
+        This action gets the accent color from the control.
 
+        Attribute: Returns the accent control.
+    */
     action GetAccentColor returns ColorGroup
         return defaultProperties:GetAccentColor()
     end
+    /*  
+        This action sets the shaddow color on the control.
 
+        Attribute: Parameter value the shaddow color.
+    */
     action SetShadowColor(ColorGroup value)
         defaultProperties:SetShadowColor(value)
     end
+    /*  
+        This action gets the shaddow color from the control.
 
+        Attribute: Returns the shaddow color.
+    */
     action GetShadowColor returns ColorGroup
         return defaultProperties:GetShadowColor()
     end
+    /*  
+        This action sets the border thickness on the control.
 
+        Attribute: Parameter value the border thickness.
+    */
     action SetBorderThickness(number value)
         defaultProperties:SetBorderThickness(value)
     end
+    /*  
+        This action gets the border thickness on the control.
 
+        Attribute: Returns the border thickness.
+    */
     action GetBorderThickness returns number
         return defaultProperties:GetBorderThickness()
     end
+    /*  
+        This action returns true when the border thickness on the control has been set.
 
+        Attribute: Returns true when the border has thickness on the control.
+    */
     action HasBorderThickness returns boolean
         return defaultProperties:HasBorderThickness()
     end
+    /*  
+        This action sets the font outline thickness value.
 
+        Attribute: Parameter value the font outline thickness value.
+    */
     action SetFontOutlineThickness(number value)
         defaultProperties:SetFontOutlineThickness(value)
     end
+    /*  
+        This action returns the font outline thickness value.
 
+        Attribute: Returns the font outline thickness value.
+    */
     action GetFontOutlineThickness returns number
         return defaultProperties:GetFontOutlineThickness()
     end
+    /*  
+        This action returns the current status of the font outline thickness.
 
+        Attribute: Returns true if the control has a font outline thickness set.
+    */
     action HasFontOutlineThickness returns boolean
         return defaultProperties:HasFontOutlineThickness()
     end
+    /*  
+        This action sets the top left rounding value.
 
+        Attribute: Parameter value the  top left rounding value.
+    */
     action SetTopLeftRounding(number value)
         defaultProperties:SetTopLeftRounding(value)
     end
+    /*  
+        This action returns the top left rounding value.
 
+        Attribute: Returns the top left rounding value.
+    */
     action GetTopLeftRounding returns number
         return defaultProperties:GetTopLeftRounding()
     end
+    /*  
+        This action returns the current status of the top left rounding value.
 
+        Attribute: Returns true if the control has a top left rounding value.
+    */
     action HasTopLeftRounding returns boolean
         return defaultProperties:HasTopLeftRounding()
     end
+    /*  
+        This action sets the top right rounding value.
 
+        Attribute: Parameter value the  top right rounding value.
+    */
     action SetTopRightRounding(number value)
         defaultProperties:SetTopRightRounding(value)
     end
+    /*  
+        This action returns the top right rounding value.
 
+        Attribute: Returns the top right rounding value.
+    */
     action GetTopRightRounding returns number
         return defaultProperties:GetTopRightRounding()
     end
+    /*  
+        This action returns the current status of the top right rounding value.
 
+        Attribute: Returns true if the control has a top right rounding value.
+    */
     action HasTopRightRounding returns boolean
         return defaultProperties:HasTopRightRounding()
     end
+    /*  
+        This action sets the bottom left rounding value.
 
+        Attribute: Parameter value the  bottom left rounding value.
+    */
     action SetBottomLeftRounding(number value)
         defaultProperties:SetBottomLeftRounding(value)
     end
+    /*  
+        This action returns the bottom left rounding value.
 
+        Attribute: Returns the bottom left rounding value.
+    */
     action GetBottomLeftRounding returns number
         return defaultProperties:GetBottomLeftRounding()
     end
+    /*  
+        This action returns the current status of the bottom left rounding value.
 
+        Attribute: Returns true if the control has a bottom left rounding value.
+    */
     action HasBottomLeftRounding returns boolean
         return defaultProperties:HasBottomLeftRounding()
     end
+    /*  
+        This action sets the bottom right rounding value.
 
+        Attribute: Parameter value the  bottom right rounding value.
+    */
     action SetBottomRightRounding(number value)
         defaultProperties:SetBottomRightRounding(value)
     end
+    /*  
+        This action returns the bottom right rounding value.
 
+        Attribute: Returns the bottom right rounding value.
+    */
     action GetBottomRightRounding returns number
         return defaultProperties:GetBottomRightRounding()
     end
+    /*  
+        This action returns the current status of the bottom right rounding value.
 
+        Attribute: Returns true if the control has a bottom right rounding value.
+    */
     action HasBottomRightRounding returns boolean
         return defaultProperties:HasBottomRightRounding()
     end
+    /*  
+        This action sets the top left pixel rounding value.
 
+        Attribute: Parameter value the top left pixel rounding value.
+    */
     action SetTopLeftPixelRounding(number value)
         defaultProperties:SetTopLeftPixelRounding(value)
     end
+    /*  
+        This action returns the top left pixel rounding value.
 
+        Attribute: Returns the top left pixel rounding value.
+    */
     action GetTopLeftPixelRounding returns number
         return defaultProperties:GetTopLeftPixelRounding()
     end
+    /*  
+        This action returns the current status of the top left pixel rounding value.
 
+        Attribute: Returns true if the control has a top left pixel rounding value.
+    */
     action HasTopLeftPixelRounding returns boolean
         return defaultProperties:HasTopLeftPixelRounding()
     end
+    /*  
+        This action sets the top right pixel rounding value.
 
+        Attribute: Parameter value the  top right pixel rounding value.
+    */
     action SetTopRightPixelRounding(number value)
         defaultProperties:SetTopRightPixelRounding(value)
     end
+    /*  
+        This action returns the top right pixel rounding value.
 
+        Attribute: Returns the top right pixel rounding value.
+    */
     action GetTopRightPixelRounding returns number
         return defaultProperties:GetTopRightPixelRounding()
     end
+    /*  
+        This action returns the current status of the top right pixel rounding value.
 
+        Attribute: Returns true if the control has a top right pixel rounding value.
+    */
     action HasTopRightPixelRounding returns boolean
         return defaultProperties:HasTopRightPixelRounding()
     end
+    /*  
+        This action sets the bottom left pixel rounding value.
 
+        Attribute: Parameter value the  bottom left pixel rounding value.
+    */
     action SetBottomLeftPixelRounding(number value)
         defaultProperties:SetBottomLeftPixelRounding(value)
     end
+    /*  
+        This action returns the bottom left pixel rounding value.
 
+        Attribute: Returns the bottom left pixel rounding value.
+    */
     action GetBottomLeftPixelRounding returns number
         return defaultProperties:GetBottomLeftPixelRounding()
     end
+    /*  
+        This action returns the current status of the bottom left pixel rounding value.
 
+        Attribute: Returns true if the control has a bottom left pixel rounding value.
+    */
     action HasBottomLeftPixelRounding returns boolean
         return defaultProperties:HasBottomLeftPixelRounding()
     end
+    /*  
+        This action sets the bottom right pixel rounding value.
 
+        Attribute: Parameter value the  bottom right pixel rounding value.
+    */
     action SetBottomRightPixelRounding(number value)
         defaultProperties:SetBottomRightPixelRounding(value)
     end
+    /*  
+        This action returns the bottom right pixel rounding value.
 
+        Attribute: Returns the bottom right pixel rounding value.
+    */
     action GetBottomRightPixelRounding returns number
         return defaultProperties:GetBottomRightPixelRounding()
     end
+    /*  
+        This action returns the current status of the bottom right pixel rounding value.
 
+        Attribute: Returns true if the control has a bottom right pixel rounding value.
+    */
     action HasBottomRightPixelRounding returns boolean
         return defaultProperties:HasBottomRightPixelRounding()
     end
+    /*  
+        This action sets the shadow X value.
 
+        Attribute: Parameter value the shadow X value.
+    */
     action SetShadowX(number value)
         defaultProperties:SetShadowX(value)
     end
+    /*  
+        This action returns the shadow X value.
 
+        Attribute: Returns the shadow X value.
+    */
     action GetShadowX returns number
         return defaultProperties:GetShadowX()
     end
+    /*  
+        This action returns the current status of the shadow X value.
 
+        Attribute: Returns true if the control has a shadow X value.
+    */
     action HasShadowX returns boolean
         return defaultProperties:HasShadowX()
     end
+    /*  
+        This action sets the shadow Y value.
 
+        Attribute: Parameter value the shadow Y value.
+    */
     action SetShadowY(number value)
         defaultProperties:SetShadowY(value)
     end
+    /*  
+        This action returns the shadow Y value.
 
+        Attribute: Returns the shadow Y value.
+    */
     action GetShadowY returns number
         return defaultProperties:GetShadowY()
     end
+    /*  
+        This action returns the current status of the shadow Y value.
 
+        Attribute: Returns true if the control has a shadow Y value.
+    */
     action HasShadowY returns boolean
         return defaultProperties:HasShadowY()
     end
+    /*  
+        This action sets the shadow width percent. A value between 0 and 1.
 
+        Attribute: Parameter value the shadow width.
+    */
     action SetShadowWidth(number value)
         defaultProperties:SetShadowWidth(value)
     end
+    /*  
+        This action returns the shadow width property.
 
+        Attribute: Returns the shadow width number.
+    */
     action GetShadowWidth returns number
         return defaultProperties:GetShadowWidth()
     end
+    /*  
+        This action returns the current status of the shadow width.
 
+        Attribute: Returns true if the control has a shadow width.
+    */
     action HasShadowWidth returns boolean
         return defaultProperties:HasShadowWidth()
     end
+    /*  
+        This action sets the shadow height percent. A value between 0 and 1.
 
+        Attribute: Parameter value the shadow height.
+    */
     action SetShadowHeight(number value)
         defaultProperties:SetShadowHeight(value)
     end
+    /*  
+        This action returns the shadow height property.
 
+        Attribute: Returns the shadow height number.
+    */
     action GetShadowHeight returns number
         return defaultProperties:GetShadowHeight()
     end
+    /*  
+        This action returns the current status of the shadow height.
 
+        Attribute: Returns true if the control has a shadow height.
+    */
     action HasShadowHeight returns boolean
         return defaultProperties:HasShadowHeight()
     end
+    /*  
+        This action sets the shadow edge fade percent. A value between 0 and 1.
 
+        Attribute: Parameter value the shadow edge fade percent.
+    */
     action SetShadowEdgeFade(number value)
         defaultProperties:SetShadowEdgeFade(value)
     end
+    /*  
+        This action returns the shadow edge fade property.
 
+        Attribute: Returns the shadow edge fade number.
+    */
     action GetShadowEdgeFade returns number
         return defaultProperties:GetShadowEdgeFade()
     end
+    /*  
+        This action returns the current status of the shadow edge fade.
 
+        Attribute: Returns true if the control has a shadow edge fade.
+    */
     action HasShadowEdgeFade returns boolean
         return defaultProperties:HasShadowEdgeFade()
     end

@@ -22,6 +22,7 @@ use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
 use Libraries.Web.Page.WebPage
 use Libraries.Web.Page.MetaData
 use Libraries.Compute.Vector2
+use Libraries.Compute.Math
 
 class ChartWriter
     private number axisPointX = 105
@@ -182,12 +183,16 @@ class ChartWriter
         if chart:IsShowingSubtitle()
             AddChartSubtitle(chartCanvas, chart)
         end
-        AddChartContent(chartCanvas, chart)
-
         if chart:IsShowingLegend()
             AddLegend(chartCanvas, chart)
         end
+        if chart:IsShowingLinearRegression()
+//            AddRegressionLines(chartCanvas, chart)
+        end
 
+        chartCanvas:Add(chartInformation)
+
+        AddChartContent(chartCanvas, chart)
         //add the rest of the chart information after the chart content has been populated
         if chart:IsShowingXAxis()
             chartInformation:Add(horizontalPanel)
@@ -198,7 +203,6 @@ class ChartWriter
         if chart:IsShowingLegend()
             chartInformation:Add(legendPanel)
         end
-        chartCanvas:Add(chartInformation)
 
         //Generate a list tree to give navigation structure
         if HasAccessibility()
@@ -280,8 +284,13 @@ class ChartWriter
         if chart:IsShowingSubtitle()
             AddChartSubtitle(chartCanvas, chart)
         end
-        AddChartContent(chartCanvas, chart)
+        if chart:IsShowingLinearRegression()
+//            AddRegressionLines(chartCanvas, chart)
+        end        
 
+        chartCanvas:Add(chartInformation)
+
+        AddChartContent(chartCanvas, chart)
         //add the rest of the chart information after the chart content has been populated
         if chart:IsShowingXAxis()
             chartInformation:Add(horizontalPanel)
@@ -292,7 +301,6 @@ class ChartWriter
         if chart:IsShowingLegend()
             chartInformation:Add(legendPanel)
         end
-        chartCanvas:Add(chartInformation)
 
         //Generate a list tree to give navigation structure
         if HasAccessibility()
@@ -584,12 +592,12 @@ class ChartWriter
             //background:SetStyleClass("quorum-chart-element quorum-chart-information-list")
             background:SetTabIndex(-1)
             background:SetRole("graphics-object")
-            if chart:GetTitle() not= ""
+            if chart:IsShowingTitle()
                 chartTitle = chart:GetTitle()
             else
                 chartTitle = chart:GetName()
             end
-            if chart:GetSubtitle() not= "Subtitle"
+            if chart:IsShowingSubtitle()
                 chartTitle = chartTitle + ", " + chart:GetSubtitle()
             end
             chart:GenerateSummary()
@@ -685,8 +693,12 @@ class ChartWriter
                     horizontalPanel:SetID(canvas:GetID() + "_" + horizontalAxisPanel:GetHashCode())
                     horizontalPanel:SetStyleClass("quorum-chart-element quorum-chart-information-list")
                     horizontalPanel:SetRole("graphics-object")
-                    //horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + horizontalAxisPanel:GetDescription())
-                    horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + " shows " + horizontalAxisPanel:GetTitleLabel():GetText() + " and ranges from " + chart:GetXAxisMinimum() +  " to " + chart:GetXAxisMaximum())
+                    Array<ChartLabel> xTextLabels = horizontalAxisPanel:GetLabels()
+                    if xTextLabels:GetSize() not= 0
+                        horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + " shows " + horizontalAxisPanel:GetTitleLabel():GetText() + " and ranges from " + xTextLabels:Get(0):GetText() +  " to " + xTextLabels:Get(xTextLabels:GetSize()-1):GetText())       
+                    else
+                        horizontalPanel:SetAriaLabel(horizontalAxisPanel:GetName() + " shows " + horizontalAxisPanel:GetTitleLabel():GetText() + " and ranges from " + chart:GetXAxisMinimum() +  " to " + chart:GetXAxisMaximum())       
+                    end
                     horizontalPanel:SetAriaHidden("false")
                 end
                 //chartInformation:Add(horizontalPanel)
@@ -803,7 +815,12 @@ class ChartWriter
                     verticalPanel:SetStyleClass("quorum-chart-element quorum-chart-information-list")
                     verticalPanel:SetRole("graphics-object")
                     //verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + verticalAxisPanel:GetDescription())
-                    verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + " shows " + verticalAxisPanel:GetTitleLabel():GetText() +  " and ranges from " + chart:GetYAxisMinimum() +  " to " + chart:GetYAxisMaximum())
+                    Array<ChartLabel> yTextLabels = verticalAxisPanel:GetLabels()
+                    if yTextLabels:GetSize() not= 0
+                        verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + " shows " + verticalAxisPanel:GetTitleLabel():GetText() + " and ranges from " + yTextLabels:Get(0):GetText() +  " to " + yTextLabels:Get(yTextLabels:GetSize()-1):GetText())       
+                    else
+                        verticalPanel:SetAriaLabel(verticalAxisPanel:GetName() + " shows " + verticalAxisPanel:GetTitleLabel():GetText() + " and ranges from " + chart:GetYAxisMinimum() +  " to " + chart:GetYAxisMaximum())       
+                    end
                     verticalPanel:SetAriaHidden("false")
                 end
                 //chartInformation:Add(verticalPanel)
@@ -1626,6 +1643,12 @@ class ChartWriter
                 svgElementSeriesIcon:SetPosition(currentSeriesIcon:GetGlobalX(), TranslatePositionY(currentSeriesIcon) - currentSeriesIcon:GetHeight())
                 svgElementSeriesIcon:SetFill(currentSeriesIcon:GetColor())
 
+                if currentSeriesIcon:GetBorderThickness() > 0
+                    svgElementSeriesIcon:SetStroke(cast(Color, currentSeriesIcon:GetBorderColor()))
+                    svgElementSeriesIcon:SetStrokeOpacity(cast(Color, currentSeriesIcon:GetBorderColor()))
+                    svgElementSeriesIcon:SetStrokeWidth(currentSeriesIcon:GetBorderThickness())
+                end
+
                 if HasAccessibility()
                     svgElementSeriesIcon:SetTabIndex(-1)
                     svgElementSeriesIcon:SetID(canvas:GetID() + "_" + currentSeriesIcon:GetHashCode())
@@ -1763,6 +1786,12 @@ class ChartWriter
         repeat while i < chart:GetSeriesList():GetSize()
             RegressionLine line = chart:GetSeriesList():Get(i):GetRegressionLine()
             if line not= undefined
+                text x1 = NumberToText(line:GetX1())
+                text y1 = NumberToText(line:GetY1())
+                text x2 = NumberToText(line:GetX2())
+                text y2 = NumberToText(line:GetY2())
+                text pointsText = "(" + x1 + ", " + y1 + ") to (" + x2 + ", " + y2 + ")"
+
                 Line svgElementRegLine
                 Vector2 startPoint = line:GetPixelStartPosition()
                 Vector2 endPoint = line:GetPixelEndPosition()
@@ -1773,6 +1802,10 @@ class ChartWriter
 
                 svgElementRegLine:SetStrokeOpacity(line:GetColor())
                 svgElementRegLine:SetStrokeWidth(line:GetLineThickness())
+
+                text seriesName = chart:GetSeriesList():Get(i):GetName()
+                svgElementRegLine:SetTitle(seriesName + ", regression line from " + pointsText + ". Regression Equation: " + line:GetEquationLabel():GetText())
+                output "Set title to " + svgElementRegLine:GetTitle()
 
                 if HasAccessibility()
                     svgElementRegLine:SetTabIndex(-1)
@@ -1802,6 +1835,15 @@ class ChartWriter
         uuid = "" + datetime:GetMonth() + datetime:GetDayOfMonth() + datetime:GetYear() + datetime:GetHour() + datetime:GetMinute() + datetime:GetSecond() + randomizedInteger
 
         return uuid
+    end
+
+    private action NumberToText(number value) returns text
+        if value = cast(integer, value)
+            return "" + cast(integer, value)
+        else
+            Math math
+            return "" + math:Round(value, 2)
+        end
     end
 
 end

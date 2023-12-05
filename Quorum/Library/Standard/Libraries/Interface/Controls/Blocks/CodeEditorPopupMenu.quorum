@@ -16,17 +16,21 @@ class CodeEditorPopupMenu is PopupMenu
     MenuItem delete
 
     on create
+        CodeEditorCopyToClipboardBehavior copyBehavior
+        CodeEditorCutToClipboardBehavior cutBehavior
+        CodeEditorPasteFromClipboardBehavior pasteBehavior
+        CodeEditorDeleteBlockBehavior deleteBehavior
         cut:SetName("Cut")
-        //cut:SetBehavior(qs:GetBehaviors():GetCutBehavior())
+        cut:SetBehavior(cutBehavior)
         
         copy:SetName("Copy")
-        //copy:SetBehavior(qs:GetBehaviors():GetCopyBehavior())
+        copy:SetBehavior(copyBehavior)
         
         paste:SetName("Paste")
-        //paste:SetBehavior(qs:GetBehaviors():GetPasteBehavior())   
+        paste:SetBehavior(pasteBehavior)   
 
         delete:SetName("Delete")  
-        //paste:SetBehavior(qs:GetBehaviors():GetPasteBehavior())   
+        delete:SetBehavior(deleteBehavior)   
     end
 
     action GetCodeEditor returns CodeEditor
