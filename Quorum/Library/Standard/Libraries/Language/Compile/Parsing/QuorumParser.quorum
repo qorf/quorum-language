@@ -2614,9 +2614,16 @@ next = tokenIterator:Next()
             next = copy:Next()
 
             if next = undefined
-                statementError = CreateCompilerError(textEndedError + " an identifier. "
-                    + "You could try calling an action with parens (), setting it to a value with = (equals) "
-                    + "or other options." )
+                text message = textEndedError + " an identifier"
+                if idToken not= undefined and idToken:value not= undefined
+                    message = message + " named '" + idToken:value + ".' "
+                else
+                    message = message + ". "
+                end
+                
+                message = message + "You could try calling an action with parens (), setting it to a value with = (equals) "
+                    + "or other options."
+                statementError = CreateCompilerError(message)
                 statementError:SetCode(codes:PARSER_GET_STATEMENT_TYPE_POST_ID)
                 return NONE
             end
@@ -2907,6 +2914,9 @@ next = tokenIterator:Next()
                         else
                             SendDefaultError("A statement was expected but broke for unclear reasons.", codes:PARSER_CLASS_STATEMENT_BAD_STATEMENT_FALLBACK_NO_TOKEN)
                         end
+                    else
+                        SendToCompilerErrorManager(statementError)
+                        statementError = undefined
                     end
 
                     return undefined
