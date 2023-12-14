@@ -89,10 +89,13 @@ class CodeEditor is ScrollableLineControl, GutterListener
     boolean shouldRefreshView = false
     number totalContentWidth = -1
     number totalContentHeight = -1
+
+    // variables for find/replace
     text findWord = ""
     FindReplace findReplace
     Array<Pair<integer>> findIndices = undefined
     integer findSelection = -1
+
     boolean failState = false
     File file = undefined
     Class clazz = undefined
@@ -233,48 +236,6 @@ class CodeEditor is ScrollableLineControl, GutterListener
         findReplace:SetText(textValue)
         findIndices = findReplace:Find(find, wholeWord, matchCase)
 
-//        //if there is a current selection then it needs to be removed
-//        if findSelection >= 0
-//            RemoveCurrentSelection()
-//        end
-//        integer findIndex = 0
-//        integer findSize = find:GetSize()       //size of the word we are searching for
-//        integer endIndex = textValue:GetSize()
-//                
-//        removeIndices = findIndices:CopyToArray()       //remove any previously highlighted instances of find 
-//        findIndices:Empty()
-//
-//        if removeIndices:GetSize() not= 0 
-//            RemoveSelections()
-//        end
-//        if find not= ""
-//            if textValue:GetSize() not= 0
-//                repeat while (findIndex >= 0) and ((findIndex + findSize) < endIndex + 1)   //start from beginning of text and go through til the end
-//                    Pair<integer> indices
-//                    if find:EqualsIgnoringCase(textValue:GetSubtext(findIndex, (findIndex + findSize)))
-//                        indices:Set(findIndex, (findIndex + (findSize - 1)))
-//                        findIndices:Add(indices)
-//                        findIndex = findIndex + findSize
-//                    else
-//                        findIndex = findIndex + 1
-//                    end
-//                end
-//            end
-//
-//            if matchCase
-//                findIsMatchCase = true
-//                MatchCaseFindText(find)
-//            else
-//                findIsMatchCase = false
-//            end
-//
-//            if wholeWord
-//                findIsWholeWord = true
-//                WholeWordFindText(find)
-//            else
-//                findIsWholeWord = false
-//            end
-//
 //            if dialogIsOpen
 //                UpdateSelections()
 //            end
@@ -294,48 +255,18 @@ class CodeEditor is ScrollableLineControl, GutterListener
         end
     end
 
-    action GetRootBlock returns RootBlock
-        return renderer:GetRootBlock()
-    end
-
     /* moves the selection index to the previous position and sends the 
     previousSelection index to UpdatCurrentSelection() to add the new 
     currentSelection highlight and remove the previousSelection highlight 
     from the textBox */
     action PreviousFindSelection()
         if findIndices not= undefined and findIndices:GetSize() not= 0
-            integer previousSelection = findSelection
+            integer previousSelection = findSelection 
             findSelection = findSelection - 1
             UpdateCurrentFindSelection(previousSelection, true)
         end
     end
 
-    /*
-    This action scrolls the scrolling area vertically to center on the start line of the Block.
-    */
-    action GoToBlock(Block block)
-        GoToLine(block:GetNavigationIndex())
-    end
-
-    /*
-    This action attempts to center the scrolling area vertically on the provided navigation line index.
-    Note that in most cases, but not all, this will match the line of text.
-    */
-    action GoToLine(integer line)
-        // This equation was derived by algebraicly reverse-engineering the GetLineY action for a fixed y and an unknown scroll percentage.
-        number targetY = renderer:GetHeight() / 2.0
-        number viewPercent = (targetY - (renderer:GetHeight() + cachedLinePositions:Get(line))) / GetTotalContentHeight()
-        
-        if viewPercent < 0
-            viewPercent = 0
-        elseif viewPercent > 1
-            viewPercent = 1
-        end
-
-        if viewPercent not= GetScrollPercentageY()
-            SetScrollPercentageY(viewPercent)
-        end
-    end
     
     /* called by PreviousSelection(), NextSelection(), and SetSelection() to 
     update the current selection in the array of indices. Highlights the line 
@@ -350,22 +281,22 @@ class CodeEditor is ScrollableLineControl, GutterListener
         end
 
         integer wordStartIndex =  findIndices:Get(findSelection):GetFirstValue()
+        integer wordEndIndex = findIndices:Get(findSelection):GetSecondValue() + 1 
         integer line = GetLineIndex(wordStartIndex)
 
-          
-        SelectBlockAtLine(line, false)
-        //GoToLine(line)
-//
-//        
-//        integer wordStartIndex =  findIndices:Get(findSelection):GetFirstValue()
-//        integer wordEndIndex = findIndices:Get(findSelection):GetSecondValue()        
-//
-//        integer lineStartIndex = GetLineIndexOfCharacter(wordStartIndex)
-//        //only go to the line when using next and previous functionality
-//        if moveCaret
-//            GoToLine(lineStartIndex)
-//        end
-//
+        
+        Block startBlock = renderer:GetNavigableBlockAtTextLine(line)
+        if startBlock:GetStartIndex() <= wordStartIndex and startBlock:GetEndIndex() > wordEndIndex
+            integer relativeStart = wordStartIndex - startBlock:GetStartIndex()
+            integer relativeEnd = wordEndIndex - startBlock:GetStartIndex()
+            FreeformBlock newFreeform = ConvertToFreeform(startBlock)
+            EditBox textBox = newFreeform:GetTextBox()
+            textBox:Select(relativeStart, relativeEnd)
+
+            SelectBlockAtTextLine(line, false)
+        else
+            SelectBlockAtTextLine(line, false)
+        end
 //        ColoredHighlight highlight
 //        ColoredHighlight selectionHighlight
 //        highlight:SetVisibleWhileSelected(false)
@@ -422,6 +353,91 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
     action GetFindMatches returns integer
         return findIndices:GetSize()
+    end
+
+/* replaces only the current selection of find with replace, if there is no
+    text in the replaceField of the dialog, then the findWOrd is replaced with a 
+    blank text. */
+    action Replace(text replaceWord) 
+        //SetTextChangeListenerOn(false) *In the ReplaceBehavior
+        if findSelection < 0
+            findSelection = 0
+        end
+        if findIndices:GetSize() not= 0
+            MultipleLineText newCode = rawCode
+            integer startIndex = findIndices:Get(findSelection):GetFirstValue()
+            integer endIndex = findIndices:Get(findSelection):GetSecondValue()
+            newCode = newCode:Delete(startIndex, (endIndex + 1))
+            newCode = newCode:Insert(startIndex, replaceWord)
+            editManager:SetSpecialAction(true)
+            SetCode(newCode)
+            editManager:SetSpecialAction(false)
+        end
+        //SetTextChangeListenerOn(true) *In the ReplaceBehavior*
+    end
+
+
+    /* replaces all instances of the current find word with the current replace 
+    word using an offset if necessary to correctly replace the findWord indices 
+    throughout the textBox. If the replaceField is empty, then the findWord is
+    replaced with blank text. */
+    action ReplaceAll(text findWord, text replaceWord)
+        if findIndices:GetSize() not= 0   
+            integer replaceSize = replaceWord:GetSize()
+            integer findSize = findWord:GetSize()
+            integer offset = replaceSize - findSize
+            integer startIndex = 0
+            integer endIndex = 0
+
+            integer i = 0
+            MultipleLineText newCode = rawCode
+            repeat while i < findIndices:GetSize()
+                if i not= 0
+                    startIndex = ((findIndices:Get(i):GetFirstValue()) + (offset * i))
+                    endIndex = ((findIndices:Get(i):GetSecondValue()) + (offset * i))
+                else
+                    startIndex = findIndices:Get(i):GetFirstValue()
+                    endIndex = findIndices:Get(i):GetSecondValue()
+                end
+                newCode = newCode:Delete(startIndex, (endIndex + 1))
+                newCode = newCode:Insert(startIndex, replaceWord)
+                i = i + 1
+            end
+            editManager:SetSpecialAction(true)
+            SetCode(newCode)
+            editManager:SetSpecialAction(false)
+        end
+    end
+
+    action GetRootBlock returns RootBlock
+        return renderer:GetRootBlock()
+    end
+
+    /*
+    This action scrolls the scrolling area vertically to center on the start line of the Block.
+    */
+    action GoToBlock(Block block)
+        GoToLine(block:GetNavigationIndex())
+    end
+
+    /*
+    This action attempts to center the scrolling area vertically on the provided navigation line index.
+    Note that in most cases, but not all, this will match the line of text.
+    */
+    action GoToLine(integer line)
+        // This equation was derived by algebraicly reverse-engineering the GetLineY action for a fixed y and an unknown scroll percentage.
+        number targetY = renderer:GetHeight() / 2.0
+        number viewPercent = (targetY - (renderer:GetHeight() + cachedLinePositions:Get(line))) / GetTotalContentHeight()
+        
+        if viewPercent < 0
+            viewPercent = 0
+        elseif viewPercent > 1
+            viewPercent = 1
+        end
+
+        if viewPercent not= GetScrollPercentageY()
+            SetScrollPercentageY(viewPercent)
+        end
     end
 
     action SetInterfaceOptionsKey(text key)
@@ -1244,6 +1260,21 @@ and usually shouldn't be called directly by users.
 
         SelectBlockOrItem(block)
         return block
+    end
+
+    action SelectBlockAtTextLine(integer line, boolean focus) returns Block
+        if focus
+            return SelectBlockAtTextLine(line)
+        end
+        if line >= GetLineCount() or line < 0
+            return undefined
+        end
+
+        Block candidate = renderer:GetNavigableBlockAtTextLine(line)
+
+        // Selecting the block without selecting an item will cause it to be focused.
+        selection:Set(candidate, line, undefined)
+        return candidate
     end
 
     action SelectBlockAtLine(integer line)
