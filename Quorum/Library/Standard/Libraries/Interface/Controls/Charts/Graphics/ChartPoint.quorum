@@ -9,7 +9,14 @@ use Libraries.Game.Graphics.Shaders.ShaderProgram
 use Libraries.Game.Graphics.Shaders.ControlShaderProgram
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Color
+/*
+    This class represents the chart area points for charts like a scatterplot
+    and line chart. Points have many customizations, anything from location to
+    annotations.
 
+
+    Attribute: Hannah Williams, Tim Kluthe, William Allee
+*/
 class ChartPoint is ChartDrawable
     number percentX = 0
     number percentY = 0
@@ -27,60 +34,111 @@ class ChartPoint is ChartDrawable
     on create
         SetCornerRounding(1, 1, 1, 1)
     end
-
+    /*
+        Get the name of the chart point.
+        Attribute: Returns the text name of the chart point. 
+    */
     action GetName returns text
         return name
     end
-
+    /*
+        Set the name of the chart point.
+        Attribute: Parameter name the text name of the chart point. 
+    */
     action SetName(text name)
         me:name = name
         parent:ChartItem:SetName(name)
     end
-
+    /*
+        Get the X percent of the chart point.
+        Attribute: Returns the number X percent of the chart point. 
+    */
     action GetPercentX returns number
         return percentX
     end
-
+    /*
+        Set the X percent of the chart point. For positioning.
+        Attribute: Parameter percentY the X percent of the chart point. 
+    */
     action SetPercentX(number percentX)
         me:percentX = percentX
     end
-
+    /*
+        Get the Y percent of the chart point.
+        Attribute: Returns the number Y percent of the chart point. 
+    */
     action GetPercentY returns number
         return percentY
     end
-
+    /*
+        Set the Y percent of the chart point. For positioning.
+        Attribute: Parameter percentY the Y percent of the chart point. 
+    */
     action SetPercentY(number percentY)
         me:percentY = percentY
     end
+    /*
+        Get the X value of the chart point. A chart point has two
+        values, X and Y.
 
+        Attribute: Returns the number X value of the chart point. 
+    */
     action GetValueX returns number
         return valueX
     end
+    /*
+        Set the X value of the chart point. A chart point has two values an
+        X and Y value.
 
+        Attribute: Parameter valueX the x value of the chart point. 
+    */
     action SetValueX(number valueX)
         me:valueX = valueX
     end
+    /*
+        Get the Y value of the chart point. A chart point has two
+        values, X and Y.
 
+        Attribute: Returns the number Y value of the chart point. 
+    */
     action GetValueY returns number
         return valueY
     end
-
+    /*
+        Set the Y value of the chart point.
+        Attribute: Parameter valueY the y value of the chart point. 
+    */
     action SetValueY(number valueY)
         me:valueY = valueY
     end
-
+    /*
+        Set the parent region of the chart point.
+        Attribute: Parameter region the ChartDrawable region containing the chart point. 
+    */
     action SetParentRegion(ChartDrawable region)
         parentRegion = region
     end
+    /*
+        Get the parent region of the chart point.
 
+        Attribute: Returns the ChartDrawable, parent region, of the chart point. 
+    */
     action GetParentRegion returns ChartDrawable
         return parentRegion
     end
+    /*
+        Get the series of the chart point.
 
+        Attribute: Returns the Series of the chart point. 
+    */
     action GetSeries returns Series
         return series
     end
-
+    /*
+        Set the series for the chart point. The series is a collection of grouped
+        chart points.
+        Attribute: Parameter series the chart point Series. 
+    */
     action SetSeries(Series series)
         me:series = series
     end
@@ -106,7 +164,11 @@ class ChartPoint is ChartDrawable
 
         parent:Control:LoadGraphics(properties)
     end
+    /*
+        This action gets the chart point border color.
 
+        Attribute: Returns the chart point border color. 
+    */
     action GetBorderColor returns ColorGroup
         if HasColorPropertyOverride("borderColor")
             return parent:Control:GetBorderColor()
@@ -119,7 +181,11 @@ class ChartPoint is ChartDrawable
 
         return parent:Control:GetBorderColor()
     end
+    /*
+        This action gets the chart point background color.
 
+        Attribute: Returns the chart point background color. 
+    */
     action GetBackgroundColor returns ColorGroup
         if HasColorPropertyOverride("backgroundColor")
             return parent:Control:GetBackgroundColor()
@@ -127,7 +193,11 @@ class ChartPoint is ChartDrawable
 
         return parent:Drawable:GetColorGroup()
     end
+    /*
+        This action gets the chart point border thickness.
 
+        Attribute: Returns the chart point border thickness (number). 
+    */
     action GetBorderThickness returns number
         if HasNumberPropertyOverride("borderThickness")
             return parent:Control:GetBorderThickness()
@@ -140,11 +210,18 @@ class ChartPoint is ChartDrawable
 
         return parent:Control:GetBorderThickness()
     end
-
+    /*
+        Set the letter code annotation label for the chart point.
+        Attribute: Parameter name the text name of the chart point. 
+    */
     action SetLetterCode(text letterCode)
         me:letterCode = letterCode
     end
+    /*
+        This action gets the chart point letter code annotation.
 
+        Attribute: Returns the text letter code. 
+    */
     action GetLetterCode returns text
         return me:letterCode
     end
@@ -153,7 +230,11 @@ class ChartPoint is ChartDrawable
         text convert = "A"
         me:letterCode = convert:GetUnicodeValue((iteration mod 26) + 65)
     end
-    
+    /*
+        This action gets the chart point selection color.
+
+        Attribute: Returns the chart point selection color (ColorGroup). 
+    */
     action GetSelectionColor returns ColorGroup
         Chart chart = GetParentChart()
         if chart not= undefined
@@ -162,19 +243,33 @@ class ChartPoint is ChartDrawable
 
         return undefined
     end
+    /*
+        This action gets the chart point x name override value.
 
+        Attribute: Returns the chart point x name. 
+    */
     action GetXNameOverride returns text
         return xNameOverride
     end
-
+    /*
+        Set the x name override of the chart point (for description).
+        Attribute: Parameter xNameOverride the text name override. 
+    */
     action SetXNameOverride(text xNameOverride)
         me:xNameOverride = xNameOverride
     end
+    /*
+        This action gets the chart point y name override value.
 
+        Attribute: Returns the chart point y name. 
+    */
     action GetYNameOverride returns text
         return yNameOverride
     end
-
+    /*
+        Set the y name override of the chart point.
+        Attribute: Parameter yNameOverride the text name override (for description). 
+    */
     action SetYNameOverride(text yNameOverride)
         me:yNameOverride = yNameOverride
     end

@@ -19,16 +19,27 @@ use Libraries.System.Properties
 
     Attriute: Example
 
-    use Libraries.Interface.Controls.Charts.LineChart
+    use Libraries.Compute.Statistics.DataFrame
     use Libraries.Game.Game
-
+    use Libraries.Interface.Controls.Charts.LineChart
+    
     class Main is Game
         action Main
             StartGame()
         end
-
+    
         action CreateGame
-            LineChart chart
+            DataFrame frame
+            frame:Load("Data/Cats.csv")
+            frame:AddSelectedColumn(2)
+        
+            LineChart chart = frame:LineChart()
+            chart:SetSize(900, 400)
+
+            chart:SetTitle("Sample Title")
+            chart:SetXAxisTitle("X-axis Variable")
+            chart:SetYAxisTitle("Y-axis Variable")
+            
             Add(chart)
         end
     end
@@ -208,19 +219,27 @@ class LineChart is TwoVariableChart
         end
         chartItem:SetDescription(description)
     end
-    
+    /*
+        This action gets the group text.
+    */
     action GetGroupText returns text
         return groupText
     end
-
+    /*
+        This action gets the groups text.
+    */
     action GetGroupsText returns text
         return groupsText
     end
-
+    /*
+        This action gets the chart item text.
+    */
     action GetChartItemText returns text
         return chartItemText
     end
-
+    /*
+        This action gets the chart items text.
+    */
     action GetChartItemsText returns text
         return chartItemsText
     end

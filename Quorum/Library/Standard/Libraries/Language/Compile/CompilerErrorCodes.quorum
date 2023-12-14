@@ -465,9 +465,10 @@ shared class CompilerErrorCodes
 
     public constant integer PARSER_FULL_CLASS_STATEMENT_BAD_STATEMENT_FALLBACK = 254
     public constant integer PARSER_FULL_CLASS_STATEMENT_BAD_STATEMENT_FALLBACK_NO_TOKEN = 255
+    public constant integer PARSER_ACTION_SHARED_NO_RETURN = 266
 
     /* The highest value + 1 */
-    private constant integer HIGHEST = PARSER_FULL_CLASS_STATEMENT_BAD_STATEMENT_FALLBACK_NO_TOKEN + 1
+    private constant integer HIGHEST = PARSER_ACTION_SHARED_NO_RETURN + 1
 
     action IsValid(integer code) returns boolean
         if code < 0

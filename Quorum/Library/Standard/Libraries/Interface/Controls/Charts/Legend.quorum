@@ -228,7 +228,11 @@ class Legend is ChartItem
         end
         parent:Control:LoadGraphics(properties)
     end
-
+    /*
+        This action is used to load the graphical legend components of the Control. This is
+        handled automatically by the Game engine as needed, and most users shouldn't
+        need to use this action directly.
+    */
     action LoadLegend(Chart chart, LayoutProperties properties)
         DisposeDrawables()
         if properties = undefined
@@ -358,6 +362,9 @@ class Legend is ChartItem
         end
     end
 
+    /*
+        This action applies the color palette across a series.
+    */
     action ApplySeriesColor()
         ChartOptions options
         i = 0
@@ -373,7 +380,9 @@ class Legend is ChartItem
             i = i + 1
         end
     end
-
+    /*
+        This action disposes of the elements on the legend.
+    */
     action DisposeDrawables()
         if title not= undefined
             title:Dispose()
@@ -397,31 +406,50 @@ class Legend is ChartItem
     end
 
     /*
-        These actions control the title of the legend.
+        This action gets the title of the legend font size.
 
-        Attribute: Label for legend.
+        Attribute: Returns the legend title font size.
     */
-
     action GetTitleFontSize returns integer
         return titleFontSize
     end
+    /*
+        This action sets the title font size of the legend title.
 
+        Attribute: Parameter size the legend title font size.
+    */
     action SetTitleFontSize(integer size)
         titleFontSize = size
     end
+    /*
+        This action sets the title label on the legend.
 
+        Attribute: Parameter title the title label to be added to the legend.
+    */
     action SetTitleLabel(ChartLabel title)
         me:title = title
     end
+    /*
+        This action sets the title on the legend.
 
+        Attribute: Parameter name the title to be set on the legend.
+    */
     action SetTitleText(text name)
         titleText = name
     end    
+    /*
+        This action gets the title label object on the legend.
 
+        Attribute: Returns the legend title chart label.
+    */
     action GetTitleLabel() returns ChartLabel
         return title
     end
+    /*
+        This action gets the title of the legend.
 
+        Attribute: Returns the legend title.
+    */
     action GetTitleText() returns text
         return titleText
     end
@@ -431,97 +459,163 @@ class Legend is ChartItem
         the Chart. Layout is handled automatically so users don't need to use this
         action directly.
 
-        Attribute: The series for the legend
+        Attribute: seriesList The series for the legend.
     */
     action SetSeriesList(Array<Series> seriesList)
         me:seriesList = seriesList
     end
+    /*
+        This action gets the series list on the legend.
 
+        Attribute: Returns the size of the text items on the legend.
+    */
     action GetSeriesList() returns Array<Series>
         return seriesList 
     end
+    /*
+        This action gets the legends label font size.
 
+        Attribute: Returns the size of the text items on the legend.
+    */
     action GetLabelFontSize returns integer
         return labelFontSize
     end
+    /*
+        This action sets the legends label font size.
 
+        Attribute: Parameter size of the text items on the legend.
+    */
     action SetLabelFontSize(integer size)
         labelFontSize = size
     end
+    /*
+        This action returns whether the regression equation is displayed or not.
 
+        Attribute: Returns true if the requession equation is displayed.
+    */
     action IsShowingRegression returns boolean
         return showRegression
     end
+    /*
+        This action displays or hides the regression equation on the legend.
 
+        Attribute: Parameter show true the requession equation is displayed on the legend.
+    */
     action ShowRegression(boolean show)
         showRegression = show
     end
+    /*
+        This action adds an item to the legend.
 
+        Attribute: Parameter entry the item name on the legend.
+    */
     action Add(text entry)
         itemNames:AddToEnd(entry)
     end
-
+    /*
+        This action empties the legend of its items.
+    */
     action Empty()
         parent:Control:Empty()
         itemNames:Empty()
     end
-
+    /*
+        This action set the legend location on the top of the chart.
+    */
     action SetLocationToTop
         displayOnLeft = false
         displayOnRight = false
         displayOnTop = true
         displayOnBottom = false
     end
-
+    /*
+        This action set the legend location on the bottom of the chart.
+    */
     action SetLocationToBottom
         displayOnLeft = false
         displayOnRight = false
         displayOnTop = false
         displayOnBottom = true
     end
-
+    /*
+        This action set the legend location on the left of the chart.
+    */
     action SetLocationToLeft
         displayOnLeft = true
         displayOnRight = false
         displayOnTop = false
         displayOnBottom = false
     end
-
+    /*
+        This action set the legend location on the right of the chart.
+    */
     action SetLocationToRight
         displayOnLeft = false
         displayOnRight = true
         displayOnTop = false
         displayOnBottom = false
     end
+    /*
+        This action returns true when the legend position is set to the left.
 
+        Attribute: Returns true when legend is located on the left of the chart.
+    */
     action DisplayOnLeft returns boolean
         return displayOnLeft
     end
+    /*
+        This action returns true when the legend position is set to the right.
 
+        Attribute: Returns true when legend is located on the right of the chart.
+    */
     action DisplayOnRight returns boolean
         return displayOnRight
     end
+    /*
+        This action returns true when the legend position is set to the top.
 
+        Attribute: Returns true when legend is located on the top of the chart.
+    */
     action DisplayOnTop returns boolean
         return displayOnTop
     end
+    /*
+        This action returns true when the legend position is set to the bottom.
 
+        Attribute: Returns true when legend is located on the bottom of the chart.
+    */
     action DisplayOnBottom returns boolean
         return displayOnBottom
     end
+    /*
+        This action sets the minimum width of the legend.
 
+        Attribute: Parameter minimumWidth the minimum width of the legend.
+    */
     action SetMinimumWidth(number minimumWidth)
         me:minimumWidth = minimumWidth
     end
+    /*
+        This action gets the minimum width of the legend.
 
+        Attribute: Returns the number minimum width of the legend.
+    */
     action GetMinimumWidth returns number
         return minimumWidth
     end
+    /*
+        This action sets the minimum height of the legend.
 
+        Attribute: Parameter minimumHeight the minimum height of the legend.
+    */
     action SetMinimumHeight(number minimumHeight)
         me:minimumHeight = minimumHeight
     end
+    /*
+        This action gets the minimum height of the legend.
 
+        Attribute: Returns the number minimum height of the legend.
+    */
     action GetMinimumHeight returns number
         return minimumHeight
     end
@@ -803,7 +897,11 @@ class Legend is ChartItem
 
         return newItemStructure
     end
+    /*
+        This action gets the border color on the legend.
 
+        Attribute: Returns the border color on the legend.
+    */
     action GetBorderColor returns ColorGroup
         if borderColor not= undefined
             return borderColor
@@ -815,11 +913,19 @@ class Legend is ChartItem
         end
         return undefined
     end
+    /*
+        This action sets the border color on the legend.
 
+        Attribute: Parameter color the border color to be used on the legend.
+    */
     action SetBorderColor(ColorGroup color)
         borderColor = color
     end
+    /*
+        This action gets the background color on the legend.
 
+        Attribute: Returns the background color on the legend.
+    */
     action GetBackgroundColor returns ColorGroup
         if backgroundColor not= undefined
             return backgroundColor
@@ -832,11 +938,19 @@ class Legend is ChartItem
 
         return undefined
     end
+    /*
+        This action sets the background color on the legend.
 
+        Attribute: Parameter color the background color to be used on the legend.
+    */
     action SetBackgroundColor(ColorGroup color)
         backgroundColor = color
     end
+    /*
+        This action gets the selection border color on the legend.
 
+        Attribute: Returns the selection border color on the legend.
+    */
     action GetSelectionBorderColor returns ColorGroup
         if HasColorPropertyOverride("selectionBorderColor")
             return parent:Control:GetSelectionBorderColor()
@@ -852,11 +966,19 @@ class Legend is ChartItem
         end
         return undefined
     end
+    /*
+        This action sets the selection border color on the legend.
 
+        Attribute: Parameter color the selection border color to be used on the legend.
+    */
     action SetSelectionBorderColor(ColorGroup color)
         selectionBorderColor = color
     end
+    /*
+        This action gets the selection color on the legend.
 
+        Attribute: Returns the selection color on the legend.
+    */
     action GetSelectionColor returns ColorGroup
         if selectionColor not= undefined
             return selectionColor
@@ -869,17 +991,12 @@ class Legend is ChartItem
 
         return undefined
     end
+    /*
+        This action sets the selection color on the legend.
 
+        Attribute: Parameter color the selection color to be used on the legend.
+    */
     action SetSelectionColor(ColorGroup color)
         selectionColor = color
     end
-
-    // Try to get the chart this is attached to via the parent hierarchy.
-//    private action Gturns Chart
-//        Item2D parentItem = GetParent()
-//        repeat until parentItem is Chart or parentItem = undefined
-//            parentItem = parentItem:GetParent()
-//        end
-//        return cast(Chart, parentItem)
-//    end
 end

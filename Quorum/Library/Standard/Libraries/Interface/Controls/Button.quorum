@@ -29,6 +29,30 @@ use Libraries.Interface.Events.TextureLoadListener
 use Libraries.Interface.Events.TextureLoadEvent
 use Libraries.Interface.Layouts.ButtonLayout
 
+/*
+    The Button class is a control object and UI element it is added to the Game 
+    class. The Button is used to represent a general button with a standard 
+    look and function across game applications.
+
+    Attribute: Author Andreas Stefik, William Allee
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.Button
+    use Libraries.Interface.Forms.FormBehavior
+    
+    class Main 
+        action Main 
+            Form form
+            Page page = form:GetMainPage()
+            
+            Button button = page:AddButton("myButton")
+            
+            form:Display()
+        end
+    end
+*/
 class Button is Control, TextureLoadListener
 
     Behavior activationBehavior = undefined
@@ -43,13 +67,14 @@ class Button is Control, TextureLoadListener
     // If this is true, the Button will automatically attempt to fit its font within the button.
     boolean automaticFontSizing = true
     
-    /*By default, automatic font sizing is disabled if the font size is manually set.
-However, if the automatic font sizing has been explicitly set to true, we don't
-want to override that (especially in something like a Layout), so we track if
-the auto-font sizing has been explicitly set here.*/
+    /*  
+        By default, automatic font sizing is disabled if the font size is manually set.
+        However, if the automatic font sizing has been explicitly set to true, we don't
+        want to override that (especially in something like a Layout), so we track if
+        the auto-font sizing has been explicitly set here.
+    */
     boolean explicitAutoFontSizing = false
     
-
     on create
         ButtonLayout layout
         SetLayout(layout)
@@ -75,6 +100,10 @@ the auto-font sizing has been explicitly set here.*/
         SetRightPadding(7)
     end
 
+    /*
+        This action gets the default font name.
+        Attribute: Returns the font name in text format.
+    */
     action GetDefaultFontName returns text
         Font font
         if font:IsFontAvailable("Arial")
@@ -82,19 +111,59 @@ the auto-font sizing has been explicitly set here.*/
         end
         return parent:Control:GetDefaultFontName()
     end
-
+    /*
+        This action gets the default font size.
+        Attribute: Returns the font size in integer format.
+    */
     action GetDefaultFontSize returns integer
         return 16
     end
-
+    /*
+        This action sets a defined behavior for the control.
+        Attribute: Parameter behavior the event behavior to attatch to the control.
+        
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Interface.Forms.FormBehavior
+        use Libraries.Interface.Controls.Button
+        use Libraries.Interface.Events.BehaviorEvent
+        
+        class Main is FormBehavior
+            action Main
+                Form form
+                Page page = form:GetMainPage()
+                
+                Button button = page:AddButton("Hi")
+                
+                button:SetBehavior(me)
+                form:Display()
+            end
+        
+            action Run(BehaviorEvent event)
+                Form form = GetForm()
+                Page page = GetPage()
+                Button button = cast(Button, event:GetItem())
+                output button:GetLabelText()
+        
+            end
+        end
+    */
     action SetBehavior(Behavior behavior)
         activationBehavior = behavior
     end
-
+    /*
+        This action gets the behavior for the control.
+        Attribute: Returns behavior the event behavior to attatch to the control.
+    */
     action GetActivationBehavior returns Behavior
         return activationBehavior
     end
-
+    /*
+        This action activates the behavior for the control.
+        Attribute: Parameter event the event behavior to activate.
+    */
     action Activate(BehaviorEvent event)
         parent:Control:Activate(event)
 
@@ -103,7 +172,10 @@ the auto-font sizing has been explicitly set here.*/
             accessibility:ButtonActivated(me)
         end
     end
-
+    /*
+        This action sets the name of the control.
+        Attribute: Parameter name the name of the control.
+    */
     action SetName(text name)
         parent:Item2D:SetName(name)
         
@@ -429,11 +501,14 @@ the auto-font sizing has been explicitly set here.*/
         LoadGraphics(GetDefaultLayoutProperties())
         RequestLayout()
     end
-
+    /*
+        This action sets the font size of text on the button.
+        Attribute: Parameter size the button font size.
+    */
     action SetFontSize(integer size)
         parent:Control:SetFontSize(size)
         if explicitAutoFontSizing = false
-automaticFontSizing = false
+            automaticFontSizing = false
         end
     end
 

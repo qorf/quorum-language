@@ -3,6 +3,11 @@ package Libraries.Interface.Controls.Charts
 use Libraries.Interface.Controls.ControlLabel
 use Libraries.Game.Graphics.ColorGroup
 
+/*
+    This class represents labels on chart items. 
+
+    Attribute: Author William Allee
+*/
 class ChartLabel is ControlLabel, ChartItem
 
     // Try to get the chart this is attached to via the parent hierarchy.
@@ -13,7 +18,11 @@ class ChartLabel is ControlLabel, ChartItem
         end
         return cast(Chart, parentItem)
     end
+    /*
+        Gets the font color of the chart label.
 
+        Attribute: Returns ColorGroup or color of the font on a label.
+    */
     action GetFontColor returns ColorGroup
         Chart chart = GetParentChart()
         if chart not= undefined
@@ -22,7 +31,11 @@ class ChartLabel is ControlLabel, ChartItem
 
         return parent:Control:GetFontColor()
     end
+    /*
+        Gets the selected text, font color of the chart label.
 
+        Attribute: Returns ColorGroup or color of the font on a selected label.
+    */
     action GetSelectionFontColor returns ColorGroup
         Chart chart = GetParentChart()
         if chart not= undefined
@@ -31,7 +44,11 @@ class ChartLabel is ControlLabel, ChartItem
 
         return parent:Control:GetFontColor()
     end
+    /*
+        Gets the selection color of the chart label.
 
+        Attribute: Returns ColorGroup or color of the font on a selected label.
+    */
     action GetSelectionColor returns ColorGroup
         Chart chart = GetParentChart()
         if chart not= undefined
@@ -40,12 +57,16 @@ class ChartLabel is ControlLabel, ChartItem
 
         return parent:Control:GetFontColor()
     end
-
+    /*
+        This action is called when the chart label gains focus.
+    */
     action GainedSelection
         parent:ChartItem:GainedSelection()
         parent:ControlLabel:GainedSelection()
     end
-
+    /*
+        This action is called when the chart label loses focus.
+    */
     action LostSelection
         parent:ChartItem:LostSelection()
         parent:ControlLabel:LostSelection()
