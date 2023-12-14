@@ -81,7 +81,17 @@ action GenerateDocumentation
         output "Root: " + website:GetAbsolutePath()
         website:SetAbsolutePath(website:GetAbsolutePath() + 
 "/quorum-server/quorum-website/QuorumWebsite/html")
+        output "Deleting old Libraries pages"
+        File delete
+        delete:SetAbsolutePath(website:GetAbsolutePath() + 
+"/Libraries")
+        output delete:GetAbsolutePath()
+        delete:Delete(true)
+        delete:SetAbsolutePath(website:GetAbsolutePath() + 
+"/libraries.html")
+        delete:Delete()
+        output "Copying"
         location:Copy(website, true)
-        output "Copy Completed."
+        output "Finished."
     end
 end
