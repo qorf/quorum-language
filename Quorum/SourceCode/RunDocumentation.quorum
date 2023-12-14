@@ -1,0 +1,87 @@
+use Libraries.Language.Compile.Compiler
+use Libraries.System.DateTime
+use Libraries.System.File
+use Libraries.Language.Compile.Library
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Documentation.DocumentationGenerator
+use Libraries.Containers.HashTable
+use Libraries.System.Console
+
+
+
+
+class RunDocumentation
+    boolean sendToWebsite = true
+public constant text LIBRARY_FLAG = "-library"
+HashTable<text,Array<text>> flagValues
+DocumentationGenerator generator
+    action Main
+Console console
+Array<text> flags = console:GetConsoleArguments()
+        GenerateDocumentation()
+        if sendToWebsite
+            SendToWebsite()
+        end
+    end
+    
+action GenerateDocumentation
+        Compiler compiler
+        File root
+        root:SetPath("")
+        compiler:SetOutputFolder(root)
+
+        DateTime time
+        File standardLibraryFolder = undefined 
+        output compiler:GetVersion() + " Standard Library Documentation Generator"
+        Library library
+
+        if flagValues:HasKey(LIBRARY_FLAG)
+            Array<text> names = flagValues:GetValue(LIBRARY_FLAG)
+            if names:GetSize() not= 1
+                output "I noticed the library flag was used, but it does not have exactly 1 value."
+                return now
+            else
+                path = names:Get(0)
+                File libraryPath
+                libraryPath:SetWorkingDirectory(path)
+                libraryPath:SetPath("Standard")
+                compiler:SetStandardLibraryFolder(libraryPath)
+                library:SetLocation(libraryPath)
+            end
+        else 
+            standardLibraryFolder = compiler:GetStandardLibraryFolder()
+            compiler:SetStandardLibraryFolder(standardLibraryFolder)
+            library:SetLocation(standardLibraryFolder)
+        end
+
+        File outputLocation
+        outputLocation:SetPath("Library/Compiled")
+        output "Scanning"
+        number start = time:GetEpochTime()
+        
+        library:SetCachingLibraryOpcodes(true)
+        library:SetLocation(standardLibraryFolder)
+        library:SetOutputFolder(outputLocation)
+        library:Scan()
+        output "Writing Standard Library to HTML"
+        generator:SetRunFolder(compiler:GetRunFolder())
+        generator:Write(library)
+
+        number finish = time:GetEpochTime()
+        output "Time: " + ((finish - start) / 1000.0) + " seconds"
+    end
+    
+    action SendToWebsite
+        File folder = generator:GetRunFolder()
+        File location
+        location:SetAbsolutePath(folder:GetPath() + "/Documents")
+        output "Documents Folder: " + location:GetAbsolutePath()
+        File website
+        website = website:GetParentDirectory():GetParentDirectory()
+        output "Root: " + website:GetAbsolutePath()
+        website:SetAbsolutePath(website:GetAbsolutePath() + 
+"/quorum-server/quorum-website/QuorumWebsite/html")
+        location:Copy(website, true)
+        output "Copy Completed."
+    end
+end
