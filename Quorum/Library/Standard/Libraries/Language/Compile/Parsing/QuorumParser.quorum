@@ -2345,6 +2345,8 @@ next = tokenIterator:Next()
             AssignmentDeclaractionContext theReturn = AssignmentDeclaration()
             context:returnsStatement = theReturn
             if theReturn = undefined
+                SendDefaultError("Return type was missing when creating an action. " 
+                + moreInformationActions, codes:PARSER_ACTION_SHARED_NO_RETURN)
                 return undefined
             else
                 context:returnType = theReturn:type

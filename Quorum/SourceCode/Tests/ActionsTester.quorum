@@ -117,6 +117,7 @@ class ActionsTester
         HOCReturnIntFromCalledProcedureWrongType2()
         HOCUndeclaredVarToUndeclaredVar()
         HOCUndeclaredFunction()
+        HalfActionCrash()
         IncorrectAssignment()
         InvalidActionNumber()
         InvalidActionSymbol1()
@@ -1267,6 +1268,15 @@ class ActionsTester
         Array<File> files
         File main
         main:SetPath(path + "FieldSoloAction.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+    end
+
+    action HalfActionCrash
+        Array<File> files
+        File main
+        main:SetPath(path + "HalfActionCrash.quorum")
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
