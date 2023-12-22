@@ -45,6 +45,7 @@ use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Hints.Hint
 use Libraries.Language.Compile.CompilerError
 use Libraries.Interface.Controls.CodeEditorLineNumberGutter
+use Libraries.Interface.Accessibility
 
 /*
     This is a class representing a code editor that contains source code and blocks. The design is 
@@ -73,6 +74,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
     BlockEditManager editManager
 
     GameStateManager manager
+    Accessibility accessibility = undefined
 
     number blockNotchTopWidth = 50
     number blockNotchBottomWidth = 25
@@ -127,6 +129,8 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
         SetFont(GetDefaultFont())
 
+        accessibility = manager:GetAccessibility()
+
         selection:Initialize(me, "")
         editManager:SetEditor(me)
         AddTextChangeListener(editManager)
@@ -145,7 +149,19 @@ class CodeEditor is ScrollableLineControl, GutterListener
         SetPopupMenu(popup)
         SetAccessibilityCode(parent:Item:PANE)
     end
-    
+
+    action NotifyAccessibility(Item item, text message)
+        if accessibility not= undefined
+            accessibility:Notify(item, message)
+        end
+    end
+
+    action GetWhereAmI returns text
+        text location = ""
+        location = "Line " + selection:GetLine()
+        return location
+    end
+
     action SelectAll
         selection:Set(renderer:GetRootBlock():GetNextNavigableBlock(), 0, GetLineCount() - 1, undefined)
     end
@@ -1326,7 +1342,7 @@ and usually shouldn't be called directly by users.
         end
 
         integer currentLine = selection:GetLine()
-        integer targetIndex = 0
+        integer targetIndex = -1
         if selection:GetBlock() not= undefined
             currentLine = selection:GetBlock():GetEndLine()
         end
@@ -1338,12 +1354,13 @@ and usually shouldn't be called directly by users.
             targetIndex = rawCode:CharacterIndexFromLineIndex(currentLine + 1) - rawCode:GetLineSeparator():GetSize()
         end
         boolean sharesLine = false
-        if selection:GetBlock() not= undefined
+        if selection:GetBlock() not= undefined and targetIndex > 0
+            
             text postText = rawCode:GetText(selection:GetBlock():GetEndIndex(), targetIndex)
-if postText:Trim() not= ""
-            sharesLine = true
-            targetIndex = selection:GetBlock():GetEndIndex()
-        end
+            if postText:Trim() not= ""
+                sharesLine = true
+                targetIndex = selection:GetBlock():GetEndIndex()
+            end
         end
         
         // Get the parent that the new block will be attached to.
@@ -1397,6 +1414,9 @@ if postText:Trim() not= ""
         else
             parentBlock:OffsetIndices(targetIndex, newLine:GetSize(), 2)
         end
+        if targetIndex < 0
+            targetIndex = 0
+        end
 
         // Process a text change event. This will automatically update the MultipleLineText.
         TextChangeEvent event
@@ -1405,7 +1425,7 @@ if postText:Trim() not= ""
 
         FreeformBlock newBlock
 
-        if targetIndex not= 0
+        if currentLine >= 0
             targetIndex = targetIndex + newLine:GetSize()
 
             newBlock:SetLocalStartLine(currentLine + 1 - parentBlock:GetStartLine())
@@ -1730,7 +1750,7 @@ if selection:GetBlock() not= undefined
                         if targetSelection = undefined
                             targetSelection = parentBlock:GetChild(parentBlock:GetChildCount() - 1):GetNextNavigableBlock()
                         end
-                        DeleteBlockAndChildren(block)
+                        DeleteBlockAndChildren(actionParent)
                         RequestViewRefresh()
                         if triggerEvent
                             BlockChangeEvent event
