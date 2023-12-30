@@ -32,12 +32,18 @@ use Libraries.Language.Compile.Symbol.Class
 use Libraries.Language.Compile.Symbol.Documentation
 use Libraries.Language.Compile.Library
 use Libraries.Language.Compile.Compiler
+use Libraries.Web.Page.Section
+use Libraries.Web.Page.Heading
+use Libraries.Web.Page.Paragraph
+use Libraries.Web.Page.Image
 
 class DocumentationGenerator 
     File runFolder = undefined
     constant text DOCUMENTATION_FOLDER = "Documents/"
     boolean isBuildingStandardLibrary = false
     boolean isBuildingSourceFiles = true
+    Section packageIndex = undefined
+    Section mobilePackageIndex = undefined
 
     action GetRunFolder returns File
         return runFolder
@@ -49,7 +55,7 @@ class DocumentationGenerator
 
     action Write(Library library, HashTable<text, ClassOpcode> opcodeHash, boolean includeStandardLibrary)
         NavigationBar navigation
-        navigation:Setup()
+        //navigation:Setup()
         Footer footer = GetFooter()
 
         Iterator<ClassOpcode> opcodes = opcodeHash:GetValueIterator()
@@ -93,11 +99,16 @@ class DocumentationGenerator
 
     action Write(Library library)
         NavigationBar navigation
-        navigation:Setup()
+        //navigation:Setup()
         Footer footer = GetFooter()
 
         Iterator<ClassOpcode> opcodes = library:GetOpcodes()
         SymbolTable table = library:GetSymbolTable()
+        
+        packageIndex = CreatePackageIndex(table)
+        mobilePackageIndex = CreateMobilePackageIndex(table)
+        UnorderedList navigationList = navigation:GetList()
+        navigationList:AddNestedTag(mobilePackageIndex)
         repeat while opcodes:HasNext()
             ClassOpcode opcode = opcodes:Next()
             Class clazz = opcode:GetClass()
@@ -129,6 +140,107 @@ class DocumentationGenerator
         WriteIndexPage(library:GetSymbolTable())
     end
 
+    /*This action presumes that a navigation bar will place all the list items inside of a larger
+unordered list. */
+    action CreateMobilePackageIndex(SymbolTable symbolTable) returns Section
+        Section section
+        section:SetClassAttribute("sm:hidden")
+        Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
+        repeat while packages:HasNext()
+            text key = packages:Next()
+
+            Division listDivision
+
+            //put in the heading for the page
+            Heading packageHeading
+            packageHeading:SetClassAttribute("font-bold h-full py-3 block w-full group")
+            packageHeading:SetScale(3)
+            packageHeading:AddText(key)
+            //Add a little line
+            Division lineDivision
+
+            lineDivision:SetClassAttribute("flex items-center justify-center my-4 mx-2")
+            Division theLine
+            theLine:SetClassAttribute("w-full border-t border-neutral-grey-25")
+            lineDivision:Add(theLine)
+            listDivision:Add(lineDivision)
+            listDivision:Add(packageHeading)
+            //now put in all of the classes in this package
+            Array<Class> classes = symbolTable:GetClassesSortedInPackage(key)
+            i = 0
+            repeat while i < classes:GetSize()
+                Class clazz = classes:Get(i)
+                
+                Link classLink = GetWebLinkForClassFromIndex(clazz, false)
+                classLink:SetClassAttribute("h-full py-3 block w-full group")
+                ListItem item
+                item:SetClassAttribute("h-full group flex items-center flex-row block rounded-2xl pl-3 hover:bg-neutral-grey-40 sm:px-4 sm:duration-150 sm:text-center sm:rounded-3xl sm:block sm:font-medium sm:text-sm sm:text-neutral-black sm:bg-quorum-blue-100 sm:inline relative")
+                item:Add(classLink)
+                listDivision:AddNestedTag(item)
+                i = i + 1
+            end
+
+            section:Add(listDivision)
+        end
+        return section
+    end
+
+    action CreatePackageIndex(SymbolTable symbolTable) returns Section
+        Section section
+        section:SetClassAttribute("font-sans hidden md:min-w-1/8 md:flex flex-col w-1/5 gap-y-2 pt-6 sticky top-8 h-screen overflow-auto")
+        Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
+        repeat while packages:HasNext()
+            text key = packages:Next()
+
+            Division listDivision
+            listDivision:SetClassAttribute("w-full")
+
+            //put in the heading for the page
+            Heading packageHeading
+            packageHeading:SetClassAttribute("font-bold break-words")
+            packageHeading:SetScale(3)
+            packageHeading:AddText(key)
+            
+            UnorderedList packageList
+            listDivision:Add(packageHeading)
+            listDivision:Add(packageList)
+            //now put in all of the classes in this package
+            Array<Class> classes = symbolTable:GetClassesSortedInPackage(key)
+            i = 0
+            repeat while i < classes:GetSize()
+                Class clazz = classes:Get(i)
+                
+                Link classLink = GetWebLinkForClassFromIndex(clazz, false)
+                classLink:SetClassAttribute("block w-full py-1 px-2 capitalize")
+                ListItem item
+                item:SetClassAttribute("w-full rounded-xl hover:bg-quorum-blue-25")
+                item:Add(classLink)
+                packageList:Add(item)
+                i = i + 1
+            end
+
+            section:Add(listDivision)
+        end
+        return section
+    end
+    
+    action GetSearchSection returns Section
+        Section section
+
+        Form form
+        Input searchInput
+        searchInput:SetName("Search Query")
+        searchInput:SetType("text")
+        Input searchButton
+        searchButton:SetName("Search Button")
+        searchButton:SetType("submit")
+        form:Add(searchInput)
+        form:Add(searchButton)
+        section:Add(form)
+
+        return section
+    end
+    
     action WriteIndexPage(SymbolTable symbolTable)
         WebPage page
         AddDefaultHeaders(page)
@@ -149,15 +261,18 @@ class DocumentationGenerator
         page:SetWebPageTitle("Standard Library Index - " + compiler:GetVersion())
         MainContent mainRegion
         mainRegion:AddAttribute("role","main")
-
+mainRegion:SetClassAttribute("flex flex-row w-full box-border mx-1 md:mx-2 lg:mx-4 md:gap-x-2")
+        
+        text phrase = "Introducing the " + compiler:GetVersion() + " Standard Library"
         Header headDiv
-        headDiv:SetClassAttribute("pageHeader outermostContainer")
-        headDiv:AddHeading(compiler:GetVersion() + " Standard Library", 1)
+        Section introHeaderSection = CreateHeaderSection(phrase)
+        headDiv:Add(introHeaderSection)
         page:Add(headDiv)
 
         Division bodyDiv
-        bodyDiv:SetClassAttribute("bodyContainer")
-        bodyDiv:AddHeading("Quorum's Built-in Packages and Classes", 2)
+        bodyDiv:SetClassAttribute("w-full pr-4 pl-4 md:w-5/6 lg:w-4/6 md:pl-8 md:pr-8 md:pl-12 md:pr-12 space-y-2")
+        Heading heading = bodyDiv:AddHeading("Quorum's Built-in Packages and Classes", 2)
+        heading:SetClassAttribute("font-bold text-3xl pt-6")
         bodyDiv:AddParagraph("This page shows the full list of classes Quorum 
 supports in the current version of the standard library. These classes are 
 placed into packages organized by their subject area. For example, math related 
@@ -169,51 +284,9 @@ sound, digital signal processing, mobile applications). The purpose of this
 index page is to help users find information about specific packages or 
 classes. Thus, this page is structured as a reference and is not intended as a 
 tutorial.")
-
-        Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
-        repeat while packages:HasNext()
-            text key = packages:Next()
-            if not key:IsEmpty() //ignore the default package
-                WebTable table
-                table:SetBorder(true)
-
-                TableRow headerRow
-                TableHeaderCell packageNameHeaderCell
-                packageNameHeaderCell:AddText(key)
-                headerRow:Add(packageNameHeaderCell)
-                table:Add(headerRow)
-
-                Array<Class> classes = symbolTable:GetClassesSortedInPackage(key)
-                integer i2 = 0
-                repeat classes:GetSize() times
-                    Class clazz = classes:Get(i2)
-                    TableRow row
-
-                    TableData data
-                    data:Add(GetWebLinkForClassFromIndex(clazz, true))
-                    row:Add(data)
-
-                    Documentation doc = clazz:GetDocumentation()
-                    if doc not= undefined
-                        constant integer DOC_SIZE = 120
-                        text description = doc:GetDescription()
-                        if description = undefined
-                            description = ""
-                        end
-                        if description:GetSize() > DOC_SIZE
-                            description = description:GetSubtext(0, DOC_SIZE) + " ..."
-                        end
-                        data:AddText(": " + description)
-                    end
-                    table:Add(row)
-                    i2 = i2 + 1
-                end
-                bodyDiv:Add(table)
-                LineBreak break
-                bodyDiv:Add(break)
-            end
-        end
-
+        //Section searchSection = GetSearchSection()
+        //bodyDiv:Add(searchSection)
+        mainRegion:Add(packageIndex)
         mainRegion:Add(bodyDiv)
         page:Add(mainRegion)
         page:Add(GetFooter())
@@ -222,6 +295,41 @@ tutorial.")
         documentationFile:SetWorkingDirectory(runFolder:GetAbsolutePath())
         documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + "libraries.html")
         documentationFile:Write(page:Generate())
+    end
+
+    action CreateHeaderSection(text header) returns Section
+        Section blueSection
+        blueSection:AddClassAttribute("bg-quorum-blue-25 flex flex-row items-center justify-center py-10 w-full")
+    
+        // Quorum Icon and Text section
+        Division leftText
+        leftText:AddClassAttribute("flex flex-col") // Updated to flex-col and added gap and margin-right
+    
+        Heading quorumHeader
+        quorumHeader:SetScale(1)
+        quorumHeader:AddText(header)
+        quorumHeader:AddClassAttribute("text-2xl w-72 font-bold font-sans")
+        leftText:Add(quorumHeader)
+    
+        Paragraph p
+        p:AddText("Build complex applications, master data, and make programs accessible for everyone.")
+        p:AddClassAttribute("w-72 font-light")
+        leftText:Add(p)
+    
+        // Bunny Image
+        Division bunnyImageHolder
+        bunnyImageHolder:AddClassAttribute("w-1/4 max-w-[200px]")
+    
+        Image bunny
+        bunny:SetAddress("/media/userInterface/quorumAssets/LIBRARY.png")
+        bunny:AddClassAttribute("w-full")
+        bunny:SetAlternate("A cartoon rabbit named Quincy wearing glasses. 
+        Quincy is reading a book containing documentation for the standard library. We reluctantly admit it is a boring book.")
+        bunnyImageHolder:Add(bunny)
+        blueSection:Add(bunnyImageHolder)
+blueSection:Add(leftText)
+    
+        return blueSection
     end
 
     action AddDefaultHeaders(WebPage page)
@@ -253,18 +361,22 @@ tutorial.")
         page:AddScript("/script/prism-quorum.js")
         
         //add style sheet tags
-        page:AddStylesheet("/style/style.css")
+        //page:AddStylesheet("/style/style.css")
         page:AddStylesheet("/style/google.css")
+        page:AddStylesheet("/style/output.css")
         page:AddIcon("/media/favicon.ico")
 
         //Add Responsive Stylesheets
         WebPageHeader webHeader = page:GetWebPageHeader()
-        webHeader:Add(GetMediaStyleSheet("/style/style-small.css", "(max-width: 500px)"))
-        webHeader:Add(GetMediaStyleSheet("/style/style-medium.css", "(min-width: 501px) and (max-width: 1000px)"))
-        webHeader:Add(GetMediaStyleSheet("/style/style-large.css", "(min-width: 1001px)"))
+        //webHeader:Add(GetMediaStyleSheet("/style/style-small.css", "(max-width: 500px)"))
+        //webHeader:Add(GetMediaStyleSheet("/style/style-medium.css", "(min-width: 501px) and (max-width: 1000px)"))
+        //webHeader:Add(GetMediaStyleSheet("/style/style-large.css", "(min-width: 1001px)"))
 
         //Add the navigation bar
         NavigationBar navigation
+        Section index = GetMobilePackageIndex()
+        UnorderedList list = navigation:GetList()
+        list:AddNestedTag(index)
         page:Add(navigation)
     end
 
@@ -288,8 +400,8 @@ tutorial.")
         footer:AddText("The Quorum Programming Language")
         footer:SetIdentifier("footer")
         SmallText small
-        small:AddText("Copyright &copy; 2014-2018. Art and Design by 
-            Andreas Stefik, Melissa Stefik, and Evan Pierzina")
+        small:AddText("Copyright &copy; 2014-2023. Art and Design by 
+            Andreas Stefik, Melissa Stefik, Evan Pierzina, Kristine Monsada, and Brandon Fidler.")
         footer:Add(small)
         return footer
     end
@@ -326,7 +438,7 @@ tutorial.")
     private action GetWebLinkForClassFromIndex(Class from, boolean boldLink) returns Link
         Link link
         text key = from:GetStaticKey()
-        text linkText = ""
+        text linkText = "/"
         Array<text> fromSplit = key:Split("\.")
         if fromSplit not= undefined
             i = 0
@@ -349,6 +461,14 @@ tutorial.")
         end
         
         return link
+    end
+
+    action GetPackageIndex returns Section
+        return packageIndex
+    end
+
+    action GetMobilePackageIndex returns Section
+        return mobilePackageIndex
     end
 
 end
