@@ -353,6 +353,9 @@ class CompilerTestSuite is ProcessListener
             text message = e:GetErrorMessage()
             result:errorMessage = message
             result:stackTrace = e:GetStackTrace()
+            File testFile 
+            testFile = files:Get(0)
+            result:SetName(testFile:GetPath())
         end
         result:isPythonTest = true
         Add(result)
