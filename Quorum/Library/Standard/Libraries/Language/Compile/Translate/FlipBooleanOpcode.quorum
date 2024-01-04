@@ -33,6 +33,11 @@ class FlipBooleanOpcode is UnaryOpcode
     action SetBytecodeWriteOffsetToAllChildren(integer offset)
     end
 
+    action WritePython returns text
+        QuorumOpcode op = me:GetOpcode()
+        return "not " + op:WritePython()
+    end
+
     action WriteJavaScript returns text
         QuorumOpcode op = me:GetOpcode()
         return "!" + op:WriteJavaScript()

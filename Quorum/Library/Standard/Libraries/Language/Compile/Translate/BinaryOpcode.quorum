@@ -229,6 +229,8 @@ class BinaryOpcode is QuorumOpcode
         text leftResult = left:WritePython()
         text operator = ""
         
+        Type leftType = left:GetType()
+        Type rightType = right:GetType()
 
         if current = op:PLUS
             operator =  "+"
@@ -237,7 +239,11 @@ class BinaryOpcode is QuorumOpcode
         elseif current = op:TIMES
             operator =  "*"
         elseif current = op:DIVIDE
-            operator =  "/"
+            if leftType:IsInteger() and rightType:IsInteger()
+                operator =  "//"
+            else
+                operator =  "/"
+            end
         elseif current = op:MODULUS
             operator =  "%"
         elseif current = op:AND
@@ -260,10 +266,7 @@ class BinaryOpcode is QuorumOpcode
             operator =  "!"
         end
 
-        text rightResult = right:WritePython()
-
-        Type leftType = left:GetType()
-        Type rightType = right:GetType()
+        text rightResult = right:WritePython() 
 
         result = leftResult + " " + operator + " " + rightResult
 //        if leftType:IsText() and rightType:IsNumber()

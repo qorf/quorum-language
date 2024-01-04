@@ -38,6 +38,11 @@ class NegateUnaryOpcode is UnaryOpcode
         end
     end
 
+    action WritePython returns text
+        QuorumOpcode op = me:GetOpcode()
+        return "-" + op:WritePython()
+    end
+
     action WriteJavaScript returns text
         QuorumOpcode op = me:GetOpcode()
         return "-" + op:WriteJavaScript()
