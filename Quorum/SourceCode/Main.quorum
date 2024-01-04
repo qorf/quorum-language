@@ -36,6 +36,7 @@ class Main is NetworkExchangeListener
     public constant text SERVER_FLAG = "-server"
     public constant text WEB_FLAG = "-web"
     public constant text JAVASCRIPT_FLAG = "-javascript"
+    public constant text PYTHON_FLAG = "-python"
     public constant text LIBRARY_FLAG = "-library"
     public constant text REGENERATE_STANDARD_LIBRARY = "-setup"
     public constant text TEST_FLAG = "-test"
@@ -47,8 +48,8 @@ class Main is NetworkExchangeListener
     DateTime time
 
     action Main
-        ProcessConsoleFlags()
-        //CompileTest()
+        //ProcessConsoleFlags()
+        CompileTest()
         //GenerateDocumentation()
         //StartServer(DEFAULT_PORT)
     end
@@ -219,7 +220,7 @@ class Main is NetworkExchangeListener
 
         File main
         main:SetAbsolutePath(
-    "/Users/stefik/Repositories/quorum-language/Quorum/Library/Tests/Expressions/Fail/BadAndTest.quorum")
+    "/Users/stefik/Repositories/quorum-language/Quorum/Library/Tests/Expressions/Pass/CastTest.quorum")
         //main:SetWorkingDirectory("Library/Tests/Game/Pass")
         //main:SetPath("WebTest.quorum")
         //main2:SetPath("ButtonBehavior.quorum")
@@ -255,7 +256,7 @@ class Main is NetworkExchangeListener
         request:files = files
         request:library = compiler:GetStandardLibrary()
         request:main = main
-        //request:SetOutputType(request:JAVASCRIPT)
+        request:SetOutputType(request:PYTHON)
         //request:mainOnlyJavaScript = true
         //request:isWebRequest = true
 
@@ -306,6 +307,14 @@ class Main is NetworkExchangeListener
                 myOutput:SetWorkingDirectory("Output/Run")
                 myOutput:SetPath("TestQuorum.js")
                 myOutput:Write(result:convertedJavaScript)
+                output "File written."
+            elseif request:GetOutputType() = request:PYTHON
+                File myOutput
+                myOutput:SetWorkingDirectory("Output/Run")
+                myOutput:SetPath("TestQuorum.python")
+                output "Outputting python with the result:"
+                output result:convertedPython
+                //myOutput:Write(result:convertedPython)
                 output "File written."
             end
         else
@@ -675,6 +684,24 @@ class Main is NetworkExchangeListener
             return now
         end
 
+        if flagValues:HasKey(PYTHON_FLAG)
+            Array<text> names = flagValues:GetValue(PYTHON_FLAG)
+
+            if flagValues:HasKey(WEB_FLAG) or flagValues:HasKey(COMPILE_FLAG)
+                output "I noticed the python flag was used with the compile flag or the web flag. Only one can be passed, otherwise I cannot determine how to package the program."
+                return now
+            end
+
+            if names:IsEmpty()
+                output "I noticed you asked for a program to be compiled to Python, but that no files were passed."
+                output GetHelpText()
+                return now
+            end
+
+            Compile(name, names, false, false)
+            return now
+        end
+
         if flagValues:HasKey(WEB_FLAG)
             if flagValues:HasKey(COMPILE_FLAG)
                 output "I noticed the compile flag and the web flag were both used. Only one can be passed, otherwise I cannot determine how to package the program."
@@ -785,6 +812,10 @@ class Main is NetworkExchangeListener
             compiler:SetOutputType(compiler:JAVASCRIPT)
             compiler:SetWritingJavaScriptToDisk(true)
             request:SetOutputType(request:JAVASCRIPT)
+        elseif flagValues:HasKey(PYTHON_FLAG)
+            compiler:SetOutputType(compiler:PYTHON)
+            compiler:SetWritingJavaScriptToDisk(true)
+            request:SetOutputType(request:PYTHON)
         end
         
         if not errorsOnly

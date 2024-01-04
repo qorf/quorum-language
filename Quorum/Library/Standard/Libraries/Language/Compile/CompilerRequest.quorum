@@ -19,9 +19,11 @@ class CompilerRequest
     public constant integer JAVA_BYTECODE = 0
     public constant integer JAVASCRIPT = 1
     public constant integer DOCUMENT = 2
+    public constant integer PYTHON = 3
     public boolean noWritingFiles = false
     public boolean mainOnlyJavaScript = false
     public boolean writeJavaScriptToDisk = false
+    public boolean writePythonToDisk = false
     public boolean disposeAfterNextCompile = false
 
     //by default, output Java Bytecode
@@ -35,7 +37,7 @@ class CompilerRequest
         This action tells the compiler what kind of output to emit.
     */
     action SetOutputType(integer type)
-        if type >= JAVA_BYTECODE and type <= DOCUMENT
+        if type >= JAVA_BYTECODE and type <= PYTHON
             currentOutputType = type
         else
             currentOutputType = 0

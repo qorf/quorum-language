@@ -109,6 +109,47 @@ class BinaryAndOrOpcode is QuorumOpcode
         end
     end
 
+    action WritePython returns text
+        //This isn't working yet, it's just been stubbed in
+        text result = "(" + left:WritePython()
+        text operator = ""
+        integer current = op:GetOperation()
+
+        if current = op:PLUS
+            operator =  "+"
+        elseif current = op:MINUS
+            operator =  "-"
+        elseif current = op:TIMES
+            operator =  "*"
+        elseif current = op:DIVIDE
+            operator =  "/"
+        elseif current = op:MODULUS
+            operator =  "%"
+        elseif current = op:AND
+            operator =  "and"
+        elseif current = op:OR
+            operator =  "or"
+        elseif current = op:EQUALS
+            operator =  "=="
+        elseif current = op:NOT_EQUALS
+            operator =  "!="
+        elseif current = op:GREATER_EQUALS
+            operator =  ">="
+        elseif current = op:GREATER
+            operator =  ">"
+        elseif current = op:LESS_EQUALS
+            operator =  "<="
+        elseif current = op:LESS
+            operator =  "<"
+        elseif current = op:NOT
+            operator =  "!"
+        end
+
+        result = result + " " + operator
+        result = result + " " + right:WritePython() + ")"
+        return result
+    end
+
     action WriteJavaScript returns text
         //This isn't working yet, it's just been stubbed in
         text result = "(" + left:WriteJavaScript()

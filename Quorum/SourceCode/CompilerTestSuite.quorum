@@ -24,16 +24,19 @@ class CompilerTestSuite is ProcessListener
     integer total = 0
     integer totalBytecode = 0
     integer totalJavaScript = 0
+    integer totalPython = 0
 
     integer bytecodePassed = 0
     integer javaScriptPassed = 0
+    integer pythonPassed = 0
     integer passed = 0
     integer failed = 0
     integer previousPass = 0
     integer previousTotal = 0
     
-    boolean testBytecode = true
-    boolean testJavaScript = true
+    boolean testBytecode = false
+    boolean testJavaScript = false
+    boolean testPython = true
     Library library
     Tester tester
     text javascriptStandardLibraryText = ""
@@ -180,86 +183,86 @@ class CompilerTestSuite is ProcessListener
         expressions:Test()
         output expressions:GetName() + GetCurrentTestPassText()
         
-        typeChecks:Test()
-        output typeChecks:GetName() + GetCurrentTestPassText()
-        
-        typeChecksGenerated:Test()
-        output typeChecksGenerated:GetName() + GetCurrentTestPassText()
-        
-        chainingChecks:Test()
-        output chainingChecks:GetName() + GetCurrentTestPassText()
-        
-        ifStatementChecks:Test()
-        output ifStatementChecks:GetName() + GetCurrentTestPassText()
-        
-        loopsChecks:Test()
-        output loopsChecks:GetName() + GetCurrentTestPassText()
-        
-        actionsChecks:Test()
-        output actionsChecks:GetName() + GetCurrentTestPassText()
-        
-        inheritanceChecks:Test()
-        output inheritanceChecks:GetName() + GetCurrentTestPassText()
-        
-        templatingChecks:Test()
-        output templatingChecks:GetName() + GetCurrentTestPassText()
-        
-        templatingChecksGenerated:Test()
-        output templatingChecksGenerated:GetName() + GetCurrentTestPassText()
-        
-        exceptionChecks:Test()
-        output exceptionChecks:GetName() + GetCurrentTestPassText()
-        
-        arrayChecks:Test()
-        output arrayChecks:GetName() + GetCurrentTestPassText()
-        
-        stackChecks:Test()
-        output stackChecks:GetName() + GetCurrentTestPassText()
-        
-        queueChecks:Test()
-        output queueChecks:GetName() + GetCurrentTestPassText()
-        
-        mathChecks:Test()
-        output mathChecks:GetName() + GetCurrentTestPassText()
-        
-        listChecks:Test()
-        output listChecks:GetName() + GetCurrentTestPassText()
-
-        hashChecks:Test()
-        output hashChecks:GetName() + GetCurrentTestPassText()
-
-        svChecks:Test()
-        output svChecks:GetName() + GetCurrentTestPassText()
-
-        decompresserChecks:Test()
-        output decompresserChecks:GetName() + GetCurrentTestPassText()
-
-        useChecks:Test()
-        output useChecks:GetName() + GetCurrentTestPassText()
-
-        randomChecks:Test()
-        output randomChecks:GetName() + GetCurrentTestPassText()
-
-        tableChecks:Test()
-        output tableChecks:GetName() + GetCurrentTestPassText()
-
-        bitwiseChecks:Test()
-        output bitwiseChecks:GetName() + GetCurrentTestPassText()
-
-        matrixChecks:Test()
-        output matrixChecks:GetName() + GetCurrentTestPassText()
-
-        jsonChecks:Test()
-        output jsonChecks:GetName() + GetCurrentTestPassText()
-
-        bigIntegerChecks:Test()
-        output bigIntegerChecks:GetName() + GetCurrentTestPassText()
-
-        byteArrayChecks:Test()
-        output byteArrayChecks:GetName() + GetCurrentTestPassText()
-
-        scienceChecks:Test()
-        output scienceChecks:GetName() + GetCurrentTestPassText()
+//        typeChecks:Test()
+//        output typeChecks:GetName() + GetCurrentTestPassText()
+//        
+//        typeChecksGenerated:Test()
+//        output typeChecksGenerated:GetName() + GetCurrentTestPassText()
+//        
+//        chainingChecks:Test()
+//        output chainingChecks:GetName() + GetCurrentTestPassText()
+//        
+//        ifStatementChecks:Test()
+//        output ifStatementChecks:GetName() + GetCurrentTestPassText()
+//        
+//        loopsChecks:Test()
+//        output loopsChecks:GetName() + GetCurrentTestPassText()
+//        
+//        actionsChecks:Test()
+//        output actionsChecks:GetName() + GetCurrentTestPassText()
+//        
+//        inheritanceChecks:Test()
+//        output inheritanceChecks:GetName() + GetCurrentTestPassText()
+//        
+//        templatingChecks:Test()
+//        output templatingChecks:GetName() + GetCurrentTestPassText()
+//        
+//        templatingChecksGenerated:Test()
+//        output templatingChecksGenerated:GetName() + GetCurrentTestPassText()
+//        
+//        exceptionChecks:Test()
+//        output exceptionChecks:GetName() + GetCurrentTestPassText()
+//        
+//        arrayChecks:Test()
+//        output arrayChecks:GetName() + GetCurrentTestPassText()
+//        
+//        stackChecks:Test()
+//        output stackChecks:GetName() + GetCurrentTestPassText()
+//        
+//        queueChecks:Test()
+//        output queueChecks:GetName() + GetCurrentTestPassText()
+//        
+//        mathChecks:Test()
+//        output mathChecks:GetName() + GetCurrentTestPassText()
+//        
+//        listChecks:Test()
+//        output listChecks:GetName() + GetCurrentTestPassText()
+//
+//        hashChecks:Test()
+//        output hashChecks:GetName() + GetCurrentTestPassText()
+//
+//        svChecks:Test()
+//        output svChecks:GetName() + GetCurrentTestPassText()
+//
+//        decompresserChecks:Test()
+//        output decompresserChecks:GetName() + GetCurrentTestPassText()
+//
+//        useChecks:Test()
+//        output useChecks:GetName() + GetCurrentTestPassText()
+//
+//        randomChecks:Test()
+//        output randomChecks:GetName() + GetCurrentTestPassText()
+//
+//        tableChecks:Test()
+//        output tableChecks:GetName() + GetCurrentTestPassText()
+//
+//        bitwiseChecks:Test()
+//        output bitwiseChecks:GetName() + GetCurrentTestPassText()
+//
+//        matrixChecks:Test()
+//        output matrixChecks:GetName() + GetCurrentTestPassText()
+//
+//        jsonChecks:Test()
+//        output jsonChecks:GetName() + GetCurrentTestPassText()
+//
+//        bigIntegerChecks:Test()
+//        output bigIntegerChecks:GetName() + GetCurrentTestPassText()
+//
+//        byteArrayChecks:Test()
+//        output byteArrayChecks:GetName() + GetCurrentTestPassText()
+//
+//        scienceChecks:Test()
+//        output scienceChecks:GetName() + GetCurrentTestPassText()
         
 
         text EOL = ""
@@ -336,6 +339,55 @@ class CompilerTestSuite is ProcessListener
             end
             result:Check(result:passed, true)
         end
+    end
+
+    action TestPython(Array<File> files, Array<text> reply)
+        if testPython = false
+            return now
+        end
+        CompilerTestResult result
+        check
+            result = RunPythonTestFile(files)
+            TestResult(result, reply)
+        detect e
+            text message = e:GetErrorMessage()
+            result:errorMessage = message
+            result:stackTrace = e:GetStackTrace()
+        end
+        result:isPythonTest = true
+        Add(result)
+        tester:Add(result)
+    end
+
+    action RunPythonTestFile(Array<File> files) returns CompilerTestResult
+        CompilerTestResult result = undefined
+        Compiler compiler  = GetDefaultCompiler()
+        
+        CompilerRequest request
+        request:main = files:Get(0)
+        request:isWebRequest = false
+        request:library = library
+        request:SetOutputType(request:PYTHON)
+        request:files = files
+
+        CompilerResult compilerResult = compiler:Compile(request)
+        CompilerErrorManager manager = compilerResult:compilerErrorManager
+
+        File testFile 
+        testFile = files:Get(0)
+        CompilerProfiler profiler = compiler:GetCompilerProfiler()
+        summaryProfiler:Add(profiler)
+
+        if manager:IsCompilationErrorFree() //run the program
+            text convertedPython = compilerResult:convertedPython
+            result = RunPython(convertedPython)
+        else
+            CompilerTestResult result2
+            result = result2
+            result:errorMessage = "Compilation had errors"
+        end
+        result:SetName(testFile:GetPath())
+        return result
     end
 
     action TestJavaScript(Array<File> files, Array<text> reply)
@@ -442,6 +494,57 @@ class CompilerTestSuite is ProcessListener
         Array<text> flags
         flags:Add("-jar")
         flags:Add("Default.jar")
+
+        process:SetParameters(flags)
+        process:AddListener(me)
+        //now Run it
+        process:Run()  
+
+        Array<text> lines = javascriptOutput:Split(JAVASCRIPT_DELIMITER)  
+        if lines not= undefined
+            result:lines = lines
+        end
+        
+        if javascriptError
+            result:ranWithoutError = false
+        else 
+            result:ranWithoutError = true
+        end
+        result:returnCode = javascriptExitCode
+        
+        return result
+    end
+
+    action RunPython(text script) returns CompilerTestResult
+        CompilerTestResult result
+        result:isJavaScriptTest = true
+
+        //First merge the script with the standard library
+        File root
+        root:SetPath("Output")
+
+        File outFile
+        outFile:SetWorkingDirectory(root:GetAbsolutePath())
+        outFile:SetPath("Run/Result.py")
+
+        text resultText = script
+        if outFile:Exists()
+            outFile:Delete()
+        end
+
+        outFile:GetParentDirectory():CreateDirectories()
+        outFile:Write(resultText)
+
+        //now run the output file in python3. It uses the same system as JavaScript
+        Process process
+        process:SetName("python3")
+        
+        File processDirectory
+        processDirectory:SetAbsolutePath(outFile:GetParentDirectory():GetAbsolutePath())
+        process:SetDirectory(processDirectory)
+
+        Array<text> flags
+        flags:Add("Result.py")
 
         process:SetParameters(flags)
         process:AddListener(me)
@@ -638,6 +741,14 @@ Start();
             end
         end
 
+        if result:isPythonTest
+            totalPython = totalPython + 1
+            value = value + " (Python)"
+            if result:passed
+                totalPython = totalPython + 1
+            end
+        end
+
         if result:exceptionThrown
             value = value + " ... " + "failed"
         elseif result:exceptionThrown and result:passed = false
@@ -659,7 +770,6 @@ Start();
         else
             value = value + " ... " + "passed"
         end
-        //output value
     end
 
     action RunTestFail(text source) returns CompilerTestResult

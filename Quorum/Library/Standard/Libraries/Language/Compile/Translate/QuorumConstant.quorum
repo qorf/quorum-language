@@ -32,6 +32,49 @@ class QuorumConstant is QuorumOpcode
         runtime:PushToStack(result)
     end
 
+    action WritePython returns text
+        Type type = GetType()
+        if type:IsInteger()
+            return type:GetIntegerConstant() + ""
+        elseif type:IsNumber()
+            return type:GetNumberConstant() + ""
+        elseif type:IsBoolean()
+            boolean val = type:GetBooleanConstant()
+            if val
+                return "True"
+            else
+                return "False"
+            end
+        elseif type:IsText()
+            text value = type:GetTextConstant() 
+            //because this is javascript, strings have to be sanitized for escape characters.
+            //namely \ needs to become \\ and we have to handle carriage returns and line feeds differently
+            text processedText = ""
+            text CR = value:GetCarriageReturn()
+            text LF = value:GetLineFeed()
+            i = 0
+            repeat while i < value:GetSize()
+                text character = value:GetCharacter(i)
+                
+                if character = "\"
+                    character = "\\"
+                elseif character = LF
+                    character = "\n"
+                elseif character = CR
+                    character = "\r"
+                end
+
+                processedText = processedText + character
+                i = i + 1
+            end
+
+            return textValue:GetDoubleQuote() + processedText + textValue:GetDoubleQuote() + ""
+        elseif type:IsUndefined()
+            return "None"
+        end
+        return ""
+    end
+
     action WriteJavaScript returns text
         Type type = GetType()
         if type:IsInteger()

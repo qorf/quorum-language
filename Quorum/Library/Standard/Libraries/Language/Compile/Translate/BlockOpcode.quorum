@@ -86,6 +86,17 @@ class BlockOpcode is QuorumOpcode
         return opcodes:IsEmpty()
     end
 
+    action WritePython returns text
+        text result = ""
+        Iterator<QuorumOpcode> iterator = opcodes:GetIterator()
+        repeat while iterator:HasNext()
+            QuorumOpcode opcode = iterator:Next()
+            result = result + opcode:WritePython()
+        end
+
+        return result
+    end
+
     action WriteJavaScript returns text
         text result = ""
         Iterator<QuorumOpcode> iterator = opcodes:GetIterator()

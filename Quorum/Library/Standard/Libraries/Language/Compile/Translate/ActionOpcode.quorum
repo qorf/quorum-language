@@ -197,6 +197,67 @@ class ActionOpcode is QuorumOpcode
             undefined, start, finish, 0)
     end
 
+    action WritePython returns text
+        text result = ""
+
+//        result = "this." + method:ConvertActionToJavaScriptName() + " = function "  + "("
+        
+        EOL = result:GetCarriageReturn() + result:GetLineFeed()
+//        Iterator<Variable> parameters = method:GetParameterIterator()
+//        integer position = 1
+//        repeat while parameters:HasNext()
+//            Variable param = parameters:Next()
+//            result = result + param:GetJavaScriptName()
+//            if parameters:HasNext()
+//                result = result + ", "
+//            end
+//        end
+//        result = result + ") {
+//"
+        
+        Iterator<QuorumOpcode> iterator = opcodeList:GetIterator()
+        repeat while iterator:HasNext()
+            QuorumOpcode opcode = iterator:Next()
+            result = result + opcode:WritePython()
+        end
+
+//        if method:IsSystem() //write to a Javascript plugin
+//            if not clazz:IsObject()
+//                result = result + "return this." + clazz:GetPluginName() + "." + method:ConvertActionToJavaScriptName() 
+//                    + "("
+//                parameters = method:GetParameterIterator()
+//                repeat while parameters:HasNext()
+//                    Variable param = parameters:Next()
+//                    result = result + param:GetJavaScriptName()
+//                    if parameters:HasNext()
+//                        result = result + ", "
+//                    end
+//                end
+//    
+//                result = result + ");" + EOL
+//            else
+//                if method:GetStaticKey() = "GetHashCode" //inline this action
+//                    result = result + "return this.myHash;" + EOL
+//                end
+//            end
+//        elseif method:IsBlueprint()
+//            result = result + "return " + "this.prototype." + method:ConvertActionToJavaScriptName() 
+//                + "("
+//            parameters = method:GetParameterIterator()
+//            repeat while parameters:HasNext()
+//                Variable param = parameters:Next()
+//                result = result + param:GetJavaScriptName()
+//                if parameters:HasNext()
+//                    result = result + ", "
+//                end
+//            end
+//            result = result + ");" + EOL
+//        end
+//        result = result + "};" + EOL
+
+        return result
+    end
+
     action WriteJavaScript returns text
         text result = "this." + method:ConvertActionToJavaScriptName() + " = function "  + "("
         

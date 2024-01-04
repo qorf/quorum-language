@@ -39,6 +39,7 @@ class Compiler
     public constant integer JAVA_BYTECODE = 0
     public constant integer JAVASCRIPT = 1
     public constant integer DOCUMENT = 2
+    public constant integer PYTHON = 3
     boolean hasScannedStandardLibrary = false
 
     integer currentOutputType = 0
@@ -49,6 +50,7 @@ class Compiler
     Array<File> additionalJarFiles
     boolean hasBeenCompiled = false
     boolean writeJavaScriptToDisk = true
+    boolean writePythonToDisk = true
     CodeCompletionHandler codeCompletionhandler
     DocumentationGenerator documentationGenerator
     CompilerErrorCodes compilerCodes
@@ -68,7 +70,15 @@ class Compiler
     end
 
     action SetWritingJavaScriptToDisk(boolean write)
-        writeJavaScriptToDisk = write
+        writePythonToDisk = write
+    end
+
+    action IsWritingPythonToDisk returns boolean
+        return writePythonToDisk
+    end
+
+    action SetWritingPythonToDisk(boolean write)
+        writePythonToDisk = write
     end
 
     action HasSpeechCallInCompile returns boolean
@@ -101,7 +111,7 @@ class Compiler
         This action tells the compiler what kind of output to emit.
     */
     action SetOutputType(integer type)
-        if type >= JAVA_BYTECODE and type <= DOCUMENT
+        if type >= JAVA_BYTECODE and type <= PYTHON
             currentOutputType = type
         else
             currentOutputType = 0
@@ -265,6 +275,7 @@ class Compiler
 
         
         text convertedJavaScript = ""
+        text convertedPython = ""
         DateTime time
         boolean containsSpeechCommandInCompile = false
         boolean outputSpeechCommands = false
@@ -593,7 +604,14 @@ class Compiler
                 if request:writeJavaScriptToDisk
                     WriteJavaScript(convertedJavaScript, request)
                 end
-                
+            elseif request:GetOutputType() = PYTHON
+                //first copy all of the standard library opcodes into the array
+                Array<ClassOpcode> classOpcodes = theOpcodes:CopyToValueArray()
+                convertedPython = CompileToPython(classOpcodes, request, m)
+                result:convertedPython = convertedPython
+                if request:writePythonToDisk
+                    WritePython(convertedPython, request)
+                end
             elseif request:GetOutputType() = request:DOCUMENT
                 CreateDocumentation(library, theOpcodes)
             end
@@ -632,6 +650,10 @@ class Compiler
             next:ComputeGenericsTables(errors)
             types:Add(next)
         end
+    end
+
+    private action WritePython(text value, CompilerRequest request)
+        
     end
 
     private action WriteJavaScript(text value, CompilerRequest request)
@@ -1040,6 +1062,53 @@ There are many ways to load canvases and this is provided only as an exemplar.
         error:SetColumnNumber(1)
         error:SetColumnNumberEnd(1)
         errors:Add(error)
+    end
+
+    private action CompileToPython(Array<ClassOpcode> classOpcodes, CompilerRequest request, Class mainClass) returns text
+        text result = ""
+        text plugins = ""
+        text main = ""
+        Iterator<ClassOpcode> codes = classOpcodes:GetIterator()
+        repeat while codes:HasNext()
+            ClassOpcode code = codes:Next()
+            Class clazz = code:GetClass()
+
+            //Class mainClazz = mainClass
+            text mainClazzName = mainClass:GetStaticKey()
+            text clazzName = clazz:GetStaticKey()
+            if mainClass:GetStaticKey() = clazzName
+                main = code:WritePython()
+            else
+                result = result + code:WritePython()
+            end
+
+            //check if this class has a plugin. If it does, include it.
+//            if clazz:HasSystemAction()
+//                File folder = GetStandardLibraryFolder() 
+//                path = folder:GetPath() + "/Plugins/javascript/"
+//
+//                key = clazz:GetStaticKey()
+//                Array<text> keys = key:Split("\.")
+//                i = 0
+//                repeat keys:GetSize() times
+//                    newKey = keys:Get(i)
+//                    if i = keys:GetSize() - 1
+//                        path = path + newKey + ".js"
+//                    else
+//                        path = path + newKey + "/"
+//                    end
+//                    i = i + 1
+//                end
+//                File location
+//                location:SetWorkingDirectory(folder:GetWorkingDirectory())
+//                location:SetPath(path)
+//                if location:Exists() 
+//                    value = location:Read()
+//                    plugins = plugins + value + value:GetCarriageReturn() + value:GetLineFeed()
+//                end
+//            end
+        end
+        return plugins + result + main
     end
 
     private action CompileToJavaScript(Array<ClassOpcode> classOpcodes, CompilerRequest request, Class mainClass) returns text

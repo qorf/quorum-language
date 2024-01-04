@@ -446,6 +446,129 @@ class ActionCallOpcode is QuorumOpcode
         end
     end
 
+    action WritePython returns text 
+        text result = ""
+//        if isActionCall
+//            Action act = actionResolution:resolvedAction
+//            Class clazz = act:GetParentClass()
+//            
+//            if isParentCall
+//                if variableToMakeParentCallOn not= undefined
+//                    //in Quorum-11, this is not true for objects
+//                    if not variableToMakeParentCallOn:IsField()
+//                        result = result + "this." + variableToMakeParentCallOn:GetJavaScriptName()
+//                    else
+//                        result = result + variableToMakeParentCallOn:GetJavaScriptName()
+//                    end
+//                end
+//
+//                if parentToCallOn not= undefined
+//                    text value = parentToCallOn:ConvertStaticKeyToParentFieldName()
+//                    if not parentToCallOn:IsObject()
+//                        if variableToMakeParentCallOn not= undefined
+//                            result = result + "." + value
+//                        else
+//                            result = result + "this." + value
+//                        end
+//                    end
+//                end
+//            end
+//
+//            if not pushOnMe //object call
+//                text name = act:ConvertActionToJavaScriptName()
+//                if field = undefined
+//                    if actionResolution:isCallOnPrimitive
+//                        text value = clazz:ConvertStaticKeyToJavaScriptName()
+//                        if clazz:GetStaticKey() = "Libraries.Language.Types.Integer"
+//                            name = name + "$IntegerPrimitive"
+//                        elseif clazz:GetStaticKey() = "Libraries.Language.Types.Number"
+//                            name = name + "$NumberPrimitive"
+//                        end
+//                        
+//                        result = result + "." + name + "("
+//                    else 
+//                        result = result + "." + name + "("
+//                    end
+//                else 
+//                    if field:IsField()
+//                        result = result + "this." + field:GetJavaScriptName() + "." + name + "("
+//                    else
+//                        result = result + field:GetJavaScriptName() + "." + name + "("
+//                    end
+//                end
+//            else 
+//                if isParentCall
+//                    if not parentToCallOn:IsObject()
+//                        text t = "." + act:ConvertActionToJavaScriptName()
+//                        result = result + t + "("
+//                    else
+//                        if act:GetName() = "Equals"
+//                            result = result + "global_Object_Equals(this.prototype, "
+//                        elseif act:GetName() = "GetHashCode"
+//                            result = result + "global_Object_GetHashCode(this.prototype, "
+//                        elseif act:GetName() = "Compare"
+//                            result = result + "global_Object_Compare(this.prototype, "
+//                        end
+//                    end
+//                else
+//                    text t = "this.prototype." + act:ConvertActionToJavaScriptName()
+//                    result = result + t + "("
+//                end
+//            end
+//
+//            integer numParams = parameters:GetSize()
+//            i = 0
+//            repeat numParams times
+//                QuorumOpcode param = parameters:Get(i)
+//                result = result + param:WriteJavaScript()
+//                i = i + 1
+//
+//                if i < numParams
+//                    result = result + ", "
+//                end
+//            end
+//            
+//            result = result + ")"
+//
+//            
+//            if autoBoxing not= undefined
+//                result = result + autoBoxing:WriteJavaScript()
+//            end
+//            EOL = ""
+//            result = result + EOL
+//
+//        else
+//            if field:IsField()
+//                if isChainedCall
+//                    Class p = field:GetParentClass()
+//                    result = result + "." + p:ConvertToActionNameFromField(field, true) + "()"
+//                else
+//                    if isParentCall
+//                        path = parentToCallOn:ConvertStaticKeyToParentFieldName()
+//                        result = result 
+//                        if variableToMakeParentCallOn not= undefined
+//                            if variableToMakeParentCallOn:IsField()
+//                                result = result + "this."
+//                            end
+//                            result = result + variableToMakeParentCallOn:GetJavaScriptName() + "."
+//                        else 
+//                            result = result + "this."
+//                        end
+//                        result = result + path + "." + field:GetJavaScriptName()
+//                    else
+//                        Class p = field:GetParentClass()
+//                        result = result + "this." + p:ConvertToActionNameFromField(field, true) + "()"
+//                    end
+//                    
+//                end
+//            else
+                result = result + field:GetJavaScriptName()
+//            end
+//            
+//        end
+        return result
+    end
+
     action WriteJavaScript returns text 
         text result = ""
         if isActionCall

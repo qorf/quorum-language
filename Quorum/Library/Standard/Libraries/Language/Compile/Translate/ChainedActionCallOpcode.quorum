@@ -77,6 +77,38 @@ class ChainedActionCallOpcode is QuorumOpcode
         end
     end
 
+    action WritePython returns text
+        text result = ""
+        Iterator<ActionCallOpcode> it = ops:GetIterator()
+        repeat while it:HasNext()
+            ActionCallOpcode op = it:Next()
+            boolean wrapGetValue = false
+            QuorumOpcode op2 = op:GetAutoBoxOpcode()
+            if op2 not= undefined
+                Type box = op2:GetType()
+                //if it's a primitive, do something else
+                if box not= undefined
+                    if box:IsPrimitive()
+                        wrapGetValue = true
+                    end
+                end
+            end
+
+            if wrapGetValue
+                text DQ = ""
+                DQ = DQ:GetDoubleQuote()
+                result = op:WritePython()//might need to wrap. Not sure yet.
+            else
+                result = result + op:WritePython()
+            end
+        end
+        if isSoloCall
+            result = result// + ";" + result:GetCarriageReturn() + result:GetLineFeed()
+        end
+
+        return result
+    end
+
     action WriteJavaScript returns text
         text result = ""
         Iterator<ActionCallOpcode> it = ops:GetIterator()

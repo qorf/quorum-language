@@ -42,6 +42,10 @@ class QuorumOpcode
 
     blueprint action WriteJavaScript returns text
 
+    action WritePython returns text
+        return "ERROR:PYTHON_NOT_IMPLEMENTED: ---" + WriteJavaScript() + "---" 
+    end
+
     action GetType returns Type
         return type
     end

@@ -43,6 +43,21 @@ class OutputOpcode is QuorumOpcode
                 "(" + converter:ConvertTypeToBytecodeSignature(type) + ")V", false)
     end
 
+    action WritePython returns text
+        EOL = ""
+        quote = EOL:GetDoubleQuote()
+        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+        opcodeResult = opcode:WritePython()
+        text result = ""
+        Type type = opcode:GetType()
+        if type:IsBoolean()
+            result = "print(str(" + opcodeResult + ").lower())" + EOL
+        else
+            result = "print(" + opcodeResult + ")" + EOL
+        end
+        return result
+    end
+
     action WriteJavaScript returns text
         constant text OUTPUT_VARIABLE = "OuTpUt_$tRiNg_"
         EOL = ""

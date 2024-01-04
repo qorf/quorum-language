@@ -223,6 +223,64 @@ class BinaryOpcode is QuorumOpcode
         runtime:PushToStack(result)
     end
 
+    action WritePython returns text
+        integer current = op:GetOperation()
+        text result = ""
+        text leftResult = left:WritePython()
+        text operator = ""
+        
+
+        if current = op:PLUS
+            operator =  "+"
+        elseif current = op:MINUS
+            operator =  "-"
+        elseif current = op:TIMES
+            operator =  "*"
+        elseif current = op:DIVIDE
+            operator =  "/"
+        elseif current = op:MODULUS
+            operator =  "%"
+        elseif current = op:AND
+            operator =  "&&"
+        elseif current = op:OR
+            operator =  "||"
+        elseif current = op:EQUALS
+            operator =  "=="
+        elseif current = op:NOT_EQUALS
+            operator =  "!="
+        elseif current = op:GREATER_EQUALS
+            operator =  ">="
+        elseif current = op:GREATER
+            operator =  ">"
+        elseif current = op:LESS_EQUALS
+            operator =  "<="
+        elseif current = op:LESS
+            operator =  "<"
+        elseif current = op:NOT
+            operator =  "!"
+        end
+
+        text rightResult = right:WritePython()
+
+        Type leftType = left:GetType()
+        Type rightType = right:GetType()
+
+        result = leftResult + " " + operator + " " + rightResult
+//        if leftType:IsText() and rightType:IsNumber()
+//            rightResult = "(global_number_converter_(" + rightResult + "))"
+//        elseif leftType:IsNumber() and rightType:IsText()
+//            leftResult = "(global_number_converter_(" + leftResult + "))"
+//        end
+//
+//        //we have to take the floor, because JavaScript doesn't have integers
+//        if leftType:IsInteger() and rightType:IsInteger() and current = op:DIVIDE
+//            result = result + "global_truncate_(" + leftResult + " " + operator + " " + rightResult + ")"
+//        else
+//            result = result + "(" + leftResult + " " + operator + " " + rightResult + ")"
+//        end
+        return result
+    end
+
     action WriteJavaScript returns text
         integer current = op:GetOperation()
         text result = ""

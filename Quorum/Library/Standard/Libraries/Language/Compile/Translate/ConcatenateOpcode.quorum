@@ -27,6 +27,30 @@ class ConcatenateOpcode is BinaryOpcode
             "java/lang/String", "concat", "(Ljava/lang/String;)Ljava/lang/String;", false)
     end
 
+    action WritePython returns text
+        QuorumOpcode left = GetLeftOpcode()
+        text leftText = left:WritePython()
+
+        QuorumOpcode right = GetRightOpcode()
+        text rightText = right:WritePython()
+        
+        Type lt = left:GetType()
+        Type rt = right:GetType()
+        if not lt:IsText() and not lt:IsBoolean()
+            leftText = "str(" + leftText + ")"
+        elseif not lt:IsText() and lt:IsBoolean()
+            leftText = "str(" + leftText + ").lower()"
+        end
+
+        if not rt:IsText() and not rt:IsBoolean()
+            rightText = "str(" + rightText + ")"
+        elseif not rt:IsText() and rt:IsBoolean()
+            rightText = "str(" + rightText + ").lower()"
+        end
+
+        return leftText + " + " + rightText
+    end
+
     action Evaluate(Runtime runtime)
         QuorumOpcode left = GetLeftOpcode()
         QuorumOpcode right = GetRightOpcode()

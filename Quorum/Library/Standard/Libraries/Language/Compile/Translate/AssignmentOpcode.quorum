@@ -236,6 +236,53 @@ class AssignmentOpcode is QuorumOpcode
             path, setterName, methodName, true)
     end
 
+    action WritePython returns text 
+        text result = ""
+
+        if isObjectField
+            if variable:IsField()
+                Class p = variable:GetParentClass()
+                result = result + "this." + p:ConvertToActionNameFromField(variable, true) + "()"
+            else
+                result = result + variable:GetJavaScriptName()
+            end
+
+            if field:IsField()
+                Class p = field:GetParentClass()
+                result = result + "." + p:ConvertToActionNameFromField(field, false) + "("
+                result = result + rightHandSide:WriteJavaScript() + ");"
+            else
+                result = result + "." + field:GetJavaScriptName() + " = " + rightHandSide:WriteJavaScript() + ";"
+            end
+
+            EOL = ""
+            EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+            result = result + EOL
+            return result
+        end
+        if variable:IsField()
+            result = result + "this." 
+            if parentWithField not= undefined
+                if field not= undefined
+                    Class p = field:GetParentClass()
+                    result = result + p:ConvertToActionNameFromField(field, true) + "()" + "."
+                end
+                result = result + parentWithField:ConvertStaticKeyToParentFieldName() + "."
+            end
+            result = result + variable:GetJavaScriptName()
+        else
+//            if isNewAssignment
+//                result = result + "" 
+//            end
+            result = result + variable:GetJavaScriptName() 
+        end
+        result = result + " = " + rightHandSide:WritePython()
+        EOL = ""
+        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+        result = result + EOL
+        return result
+    end
+
     action WriteJavaScript returns text 
         text result = ""
 
