@@ -681,6 +681,45 @@ Start();
         tester:Add(result)
     end
 
+    /*
+        This action is identical to the JavaScript implementation, except in Python mode. Generally, 
+        you would expect if it passes one it passes the other, but tis is a test of such a hypothesis.
+    */
+    action TestPythonFail(Array<File> files)
+        if testPython = false
+            return now
+        end
+        Compiler compiler = GetDefaultCompiler()
+        CompilerRequest request
+        request:main = files:Get(0)
+        request:isWebRequest = false
+        request:library = library
+        request:SetOutputType(request:PYTHON)
+        request:files = files
+
+        CompilerResult compilerResult = compiler:Compile(request)
+        CompilerErrorManager manager = compilerResult:compilerErrorManager
+
+        CompilerTestResult result
+        File testFile 
+        testFile = files:Get(0)
+        result:SetName(testFile:GetPath())
+        result:isJavaScriptTest = true
+        CompilerProfiler profiler = compiler:GetCompilerProfiler()
+        summaryProfiler:Add(profiler)
+
+        if manager:IsCompilationErrorFree()
+            result:passed = false
+            result:SetPassed(false)
+            result:errorMessage = "Compilation was error free"
+        else
+            result:SetPassed(true)
+            result:passed = true
+        end
+        Add(result)
+        tester:Add(result)
+    end
+
     action TestJavaScriptFail(Array<File> files)
         if testJavaScript = false
             return now
