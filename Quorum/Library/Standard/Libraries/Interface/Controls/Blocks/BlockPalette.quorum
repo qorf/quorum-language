@@ -137,7 +137,7 @@ class BlockPalette is TabPane
         dq = dq:GetDoubleQuote()
         lf = dq:GetLineFeed()
         page:AddBlockPaletteItem("action myAction" + lf + "end")
-        page:AddBlockPaletteItem("action myAction(parameter)" + lf + "end")
+        page:AddBlockPaletteItem("action myAction(type name)" + lf + "end")
         page:AddBlockPaletteItem("action myAction returns integer" + lf + "return 0" + lf + "end")
         page:AddBlockPaletteItem("return")
         page:AddBlockPaletteItem("class MyClass" + lf + "end")
