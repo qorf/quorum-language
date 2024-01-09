@@ -6,6 +6,13 @@ use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Views.ToggleView
 use Libraries.Game.GameStateManager
 
+/*
+    The ToggleButton class is a Button object that is used as a parent
+    class for toggle button type of buttons. This includes Radio buttons
+    and CheckBox buttons.
+
+    Attribute: Author Andreas Stefik, William Allee
+*/
 class ToggleButton is Button
     
     boolean toggled = false
@@ -18,6 +25,11 @@ class ToggleButton is Button
         SetAccessibilityCode(parent:Item:TOGGLE_BUTTON)
     end
 
+    /*
+        Sets whether the toggle button is toggled on (checked/selected) or not.
+
+        Attribute: Parameter toggleState if true toggle on.
+    */
     action SetToggleState(boolean toggleState)
         if toggled = toggleState
             return now
@@ -59,17 +71,25 @@ class ToggleButton is Button
             LostSelection()
         end
     end
-
+    /*
+        This action is fired if the item received the focus.
+    */
     action GainedSelection
         parent:Control:GainedSelection()
         parent:Button:UpdateLabelColor()
     end
-
+    /*
+        This action is fired if the item lost the focus.
+    */
     action LostSelection
         parent:Control:LostSelection()
         parent:Button:UpdateLabelColor()
     end
+    /*
+        Gets whether the toggle button is toggled on (checked/selected) or not.
 
+        Attribute: Returns true if the button is toggle on.
+    */
     action GetToggleState returns boolean
         return toggled
     end
@@ -82,19 +102,32 @@ class ToggleButton is Button
 
         parent:Libraries.Interface.Item2D:Update(seconds)
     end
-
+    /*
+    This action sets the button group for the toggle button object.
+    Attribute: Parameter buttonGroup the group of buttons associated with this toggle button.
+    */
     action SetButtonGroup(ButtonGroup buttonGroup)
         group = buttonGroup
     end
-
+    /*
+    This action gets the button group for the toggle button object.
+    Attribute: Returns the group of buttons associated with this toggle button.
+    */
     action GetButtonGroup returns ButtonGroup
         return group
     end
 
+    /*
+    This action sets the toggle buttons ability to toggle off.
+    Attribute: Parameter canToggleOff when true the button can toggle off.
+    */
     action AllowToggleOff(boolean canToggleOff)
         me:canToggleOff = canToggleOff
     end
-
+    /*
+    This action gets the toggle buttons toggle off status.
+    Attribute: Returns true when the button can toggle off.
+    */
     action CanToggleOff returns boolean
         return canToggleOff
     end
@@ -106,7 +139,9 @@ class ToggleButton is Button
     action OnToggleOff
 
     end
-
+    /*
+        Returns true if rendering the selection event occurs.
+    */
     action IsRenderingSelection returns boolean
         return GetToggleState()
     end

@@ -24,7 +24,7 @@ class CodeEditorAcceptDraggedBlockBehavior is Behavior
         Item received = dropEvent:GetDestination()
         
         Item source = dropEvent:GetSource()
-        
+
         if received is CodeEditor
             CodeEditor editor = cast(CodeEditor, received)
             number y = dropEvent:GetY() - editor:GetGlobalY()
@@ -81,6 +81,7 @@ class CodeEditorAcceptDraggedBlockBehavior is Behavior
                     if editor:HasPlaceholders()
                         editor:ConvertPlaceholdersToBlocks(toInsert)
                     end
+                    sourceBlocks = undefined
                 end
             end
         end

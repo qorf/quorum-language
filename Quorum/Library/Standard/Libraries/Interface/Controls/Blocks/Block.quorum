@@ -18,6 +18,9 @@ use Libraries.Containers.List
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Accessibility
 use Libraries.Game.Graphics.Painter2D
+use Libraries.Game.Graphics.ColorNamer
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Color
 
 class Block is Control
     integer scopeDepth = 0
@@ -530,6 +533,11 @@ be dropped. Placeholder blocks have special rules around their text values and h
     */
     action OffsetIndices(integer changeIndex, integer textChanged, integer linesChanged, Block block)
         Block current = me
+        boolean atStartOfFile = false
+        if changeIndex < 0
+            atStartOfFile = true
+            changeIndex = 0
+        end
         repeat until current = undefined
             integer counter = 0
             repeat while counter < current:GetChildCount()
@@ -537,32 +545,47 @@ be dropped. Placeholder blocks have special rules around their text values and h
                 integer startIndex = child:GetStartIndex()
                 integer endIndex = child:GetEndIndex()
 
-                if changeIndex < endIndex or (IsOffendingBlock(child, block) and changeIndex = endIndex)
-                    if changeIndex > startIndex or (IsOffendingBlock(child, block) and changeIndex = startIndex)
+                boolean atStartOfBlock = (IsOffendingBlock(child, block) and changeIndex = startIndex)
+                boolean atEndOfBlock = (IsOffendingBlock(child, block) and changeIndex = endIndex)
+
+                // if the change is before the end of the block something has to change
+                if changeIndex < endIndex 
+                    // if the change is inside the block offset relative
+                    if changeIndex > startIndex or atStartOfBlock
                         child:OffsetRelativeIndices(changeIndex - startIndex, textChanged)
                     else
+                        // if the change is before the start only the local start moves
                         child:SetLocalStartIndex(child:GetLocalStartIndex() + textChanged)
                     end
+                    child:SetLocalEndIndex(child:GetLocalEndIndex() + textChanged)
+                elseif atEndOfBlock
+                    child:OffsetRelativeIndices(changeIndex - startIndex, textChanged)
+                    child:SetLocalEndIndex(child:GetLocalEndIndex() + textChanged)
+                elseif changeIndex = startIndex and changeIndex = 0 and atStartOfFile
+                    // special case where the change is at the beginning (new line from top)
+                    // other cases you assume the change is after the block if the indicies conflict
+                    child:SetLocalStartIndex(child:GetLocalStartIndex() + textChanged)
                     child:SetLocalEndIndex(child:GetLocalEndIndex() + textChanged)
                 end
 
                 // Only process line indices if the number of lines changed.
                 // Also, don't do it if there's no offending block and our start/end indices are identical.
                 // This resolves an edge case when adding a new line to the end of an empty freeform block.
-                if linesChanged not= 0 and not (IsOffendingBlock(child, block) = false and startIndex = endIndex)
+                if linesChanged not= 0 and not (IsOffendingBlock(child, block) = false and (changeIndex = endIndex) and not atStartOfFile)
                     integer startLine = child:GetLocalStartLine()
                     integer endLine = child:GetLocalEndLine()
 
+                    if changeIndex < endIndex or atEndOfBlock
+                        child:SetLocalEndLine(endLine + linesChanged)
+                    end
                     if changeIndex <= startIndex
-                        if changeIndex = startIndex and IsOffendingBlock(child, block)
+                        if atStartOfBlock
                             // don't modify the start line in this case
                         else
                             child:SetLocalStartLine(startLine + linesChanged)
                         end
                     end
-                    if changeIndex < endIndex or (IsOffendingBlock(child, block) and changeIndex = endIndex)
-                        child:SetLocalEndLine(endLine + linesChanged)
-                    end
+
                 end
 
                 counter = counter + 1
@@ -700,6 +723,14 @@ be dropped. Placeholder blocks have special rules around their text values and h
     
     action SetBlockEnvironment(BlockEnvironment environment)
         me:environment = environment
+    end
+
+    action GetColorName returns text
+        text colorName = ""
+        ColorNamer namer
+        Color color = cast(Color, GetBackgroundColor())
+        colorName = namer:GetName(color:GetRed(), color:GetGreen(), color:GetBlue())
+        return colorName
     end
 
     action Setup

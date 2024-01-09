@@ -6,6 +6,14 @@ use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Selections.ButtonGroupSelection
 
+/*
+    ButtonGroup is predominantly a part of the Form hierarchy to organize 
+    forms. It is used internally by the subclass Grouping located in 
+    Interface.Forms.Grouping. Usually, the Grouping class is used to
+    generate a grouping.
+
+    Attribute: Author William Allee, Andreas Stefik
+*/
 class ButtonGroup is Control
     
     Array<ToggleButton> buttons
@@ -18,17 +26,27 @@ class ButtonGroup is Control
         SetInputGroup("ButtonGroup")
         selection:Initialize(me, -1)
     end
+    /*
+        This action adds a button to the button grouping. 
 
+        Attribute: Parameter button the button to add to the grouping. 
+    */
     action AddToGrouping(ToggleButton button)
         buttons:Add(button)
         button:SetButtonGroup(me)
     end
+    /*
+        This action removes a specified button from the button grouping if it is found in the grouping. 
 
+        Attribute: Parameter button the button to remove from the grouping. 
+    */
     action RemoveFromGrouping(ToggleButton button)
         button:SetButtonGroup(undefined)
         buttons:Remove(button)
     end
-
+    /*
+        This action removes all the buttons from the button grouping. 
+    */
     action Empty
         integer i = 0
         repeat while i < buttons:GetSize()
@@ -37,7 +55,9 @@ class ButtonGroup is Control
         end
         parent:Control:Empty()
     end
-
+    /*
+        This action selects the next button from the button grouping. 
+    */
     action SelectNext
         if buttons:IsEmpty() return now end
         integer index = selection:GetIndex()
@@ -47,7 +67,9 @@ class ButtonGroup is Control
             buttons:Get(0):SetToggleState(true)
         end
     end
-
+    /*
+        This action selects the previous button from the button grouping. 
+    */
     action SelectPrevious
         if buttons:IsEmpty() return now end
         integer index = selection:GetIndex()
@@ -57,7 +79,11 @@ class ButtonGroup is Control
             buttons:Get(GetSize() - 1):SetToggleState(true)
         end
     end
+    /*
+        This action updates the button in the grouping that is currently selected. 
 
+        Attribute: Parameter button the button that is selected.
+    */
     action UpdateSelection(ToggleButton button)
         integer size = GetSize()
         integer index = selection:GetIndex()
@@ -79,27 +105,52 @@ class ButtonGroup is Control
             end
         end
     end
+    /*
+        This action returns the ButtonGroupSelection object as a whole. 
 
+        Attribute: Returns the ButtonGroupSelection or selection as a whole.
+    */
     action GetSelection returns ButtonGroupSelection
         return selection
     end
+    /*
+        This action returns the currently selected button object. 
 
+        Attribute: Returns the ToggleButton that is selected in the grouping.
+    */
     action GetSelectedButton returns ToggleButton
         return selection:GetButton()
     end
+    /*
+        This action returns the button at a specifed index within the ButtonGrouping. 
 
+        Attribute: Parameter index the location of the button to retrieve.
+        Attribute: Returns the ToggleButton at the given index.
+    */
     action GetButtonAt(integer index) returns ToggleButton
         return buttons:Get(index)
     end
-
+    /*
+        This action returns all the buttons within the ButtonGrouping. 
+    
+        Attribute: Returns the Array<ToggleButton>
+    */
     action GetButtons returns Array<ToggleButton>
         return buttons
     end
-
+    /*
+        This action returns number of buttons within the ButtonGrouping. 
+    
+        Attribute: Returns the integer size.
+    */
     action GetSize returns integer
         return buttons:GetSize()
     end
-
+    /*
+        This action sets the button groupings focused button. 
+    
+        Attribute: Parameter event the FocusEvent that triggers a button gaining focus.
+    */
     action GainedFocus(FocusEvent event)
         if not buttons:IsEmpty()
             if selection:GetIndex() = -1
@@ -111,7 +162,9 @@ class ButtonGroup is Control
         end
         parent:Control:GainedFocus(event)
     end
-
+    /*
+        This action deselects any selection in the button grouping. 
+    */
     action DeselectAll()
         integer i = 0
         repeat while i < buttons:GetSize()

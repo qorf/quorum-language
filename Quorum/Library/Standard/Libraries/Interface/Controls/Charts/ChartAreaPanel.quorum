@@ -96,7 +96,11 @@ class ChartAreaPanel is ChartItem
     action AddChartAreaItem(ChartItem item)
         chartAreaItems:Add(item)
     end
+    /*
+        This action gets the chart area panel border color.
 
+        Attribute: Returns the chart area panel border color. 
+    */
     action GetBorderColor returns ColorGroup
         if borderColor not= undefined
             return borderColor
@@ -108,11 +112,19 @@ class ChartAreaPanel is ChartItem
         end
         return undefined
     end
+    /*
+        This action sets the chart area panel border color.
 
+        Attribute: Parameter color the chart area panel border color. 
+    */
     action SetBorderColor(ColorGroup color)
         borderColor = color
     end
+    /*
+        This action gets the chart area panel background color.
 
+        Attribute: Returns the chart area panel background color. 
+    */
     action GetBackgroundColor returns ColorGroup
         if backgroundColor not= undefined
             return backgroundColor
@@ -125,11 +137,19 @@ class ChartAreaPanel is ChartItem
 
         return undefined
     end
+    /*
+        This action sets the chart area panel background color.
 
+        Attribute: Parameter color the chart area panel background color. 
+    */
     action SetBackgroundColor(ColorGroup color)
         backgroundColor = color
     end
+    /*
+        This action gets the chart area panel selection border color.
 
+        Attribute: Returns the chart area panel selection border color. 
+    */
     action GetSelectionBorderColor returns ColorGroup
         if HasColorPropertyOverride("selectionBorderColor")
             return parent:Control:GetSelectionBorderColor()
@@ -145,11 +165,19 @@ class ChartAreaPanel is ChartItem
         end
         return undefined
     end
+    /*
+        This action sets the chart area panel selection border color.
 
+        Attribute: Parameter color the chart area panel selection border color. 
+    */
     action SetSelectionBorderColor(ColorGroup color)
         selectionBorderColor = color
     end
+    /*
+        This action gets the chart area panel selection color.
 
+        Attribute: Returns the chart area panel selection color. 
+    */
     action GetSelectionColor returns ColorGroup
         if selectionColor not= undefined
             return selectionColor
@@ -162,7 +190,11 @@ class ChartAreaPanel is ChartItem
 
         return undefined
     end
+    /*
+        This action sets the chart area panel selection color.
 
+        Attribute: Parameter color the chart area panel selection color. 
+    */
     action SetSelectionColor(ColorGroup color)
         selectionColor = color
     end

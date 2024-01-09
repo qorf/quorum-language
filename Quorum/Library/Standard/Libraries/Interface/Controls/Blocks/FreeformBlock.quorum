@@ -424,7 +424,7 @@ class FreeformBlock is SingleLineBlock
                     end
                     current = tokenIterator:Next()
                 elseif current:category = constants:UNTIL
-                    untilType = false
+                    untilType = true
                     if not tokenIterator:HasNext()
                         StartUndo() 
                         editRegion:SetCaretPosition(editRegion:GetSize())
@@ -765,6 +765,10 @@ class FreeformBlock is SingleLineBlock
         if result not= undefined
             editor:Replace(me, result)
         end
+    end
+
+    action GetTextBox returns EditBox
+        return editRegion
     end
 
 end

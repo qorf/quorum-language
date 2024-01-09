@@ -27,6 +27,11 @@ class GroupPanel is ChartDrawable
         items:Add(item)
     end
 
+    /*
+        Get the item from the group panel at the given index.
+        Attribute: Parameter index the location of the chartDrawable in an array.
+        Attribute: Returns the item (ChartDrawable) from the group panel.
+    */
     action GetItemAt(integer index) returns ChartDrawable
         if index >= 0 and index < GetSize()
             return items:Get(index)
@@ -34,15 +39,25 @@ class GroupPanel is ChartDrawable
             return undefined
         end
     end
+    /*
+        Get the array of items from the group panel.
 
+        Attribute: Returns the items (Array<ChartDrawable>) from the group panel.
+    */
     action GetGroupItems() returns Array<ChartDrawable>
         return items
     end
+    /*
+        Get the size of the array of items from the group panel.
 
+        Attribute: Returns the size of the items array (Array<ChartDrawable>) from the group panel.
+    */
     action GetSize() returns integer
         return items:GetSize()
     end
-
+    /*
+        Empty the array of items from the group panel.
+    */
     action EmptyItems()
         items:Empty()
     end
@@ -53,23 +68,43 @@ class GroupPanel is ChartDrawable
     action SetChartArea(ChartAreaPanel chartArea)
         me:chartArea = chartArea
     end
+    /*
+        Get the chart area.
 
+        Attribute: Returns the chart area panel.
+    */
     action GetChartArea returns ChartAreaPanel
         return chartArea
     end
+    /*
+        Get the selection braket for the group panel.
 
+        Attribute: Returns the selection bracket for the group panel.
+    */
     action GetSelectionBracket returns Array<Drawable> 
         return selectionBracket
     end
+    /*
+        Get the selection arrow for the group panel.
 
+        Attribute: Returns the selection arrow for the group panel.
+    */
     action GetSelectionArrow returns Drawable
         return selectionArrow
     end
+    /*
+        Set the selection arrow verticies for the group panel.
 
+        Attribute: Parameter verticies the selection arrow vertices.
+    */
     action SetSelectionArrowVertices(Array <number> vertices)
         me:vertices = vertices
     end
+    /*
+        Get the selection arrow verticies for the group panel.
 
+        Attribute: Returns the selection arrow vertices.
+    */
     action GetSelectionArrowVertices returns Array<number>
         return vertices
     end

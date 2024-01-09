@@ -367,6 +367,8 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         var para = document.createElement(elementType);
         para.id = id;       //sets the item's id to the item's HashCode value
 
+        var sendInputEvents = false;
+
         switch(item.GetAccessibilityCode()){
             //ITEM or CUSTOM
             case 0:
@@ -431,6 +433,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 role="textbox";
                 para.setAttribute('aria-multiline','true');
                 para.id = id;
+                sendInputEvents = true;
                 break;
             //MENU_BAR
             case 7:
@@ -557,6 +560,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 para = document.createElement(elementType);
                 para.id = id;
                 para.type = "text"
+                sendInputEvents = true;
                 //role = "textbox";
                 //para.setAttribute("contenteditable",true);
                 break;
@@ -724,6 +728,13 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 }
                 control.Activate();
             });
+        }
+
+        if (sendInputEvents && plugins_quorum_Libraries_Game_WebInput_.HasTouchScreen())
+        {
+            para.addEventListener('input', plugins_quorum_Libraries_Game_WebInput_.InputText);
+            // If it can process input events, we'll need to sometimes refer back to the Quorum item in order to update text.
+            para.quorumItem = item;
         }
 
         //add element to a parent if need be or directly to the root
