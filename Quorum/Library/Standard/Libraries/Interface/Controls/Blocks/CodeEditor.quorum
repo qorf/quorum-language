@@ -54,12 +54,10 @@ use Libraries.Interface.Controls.CodeEditorLineNumberGutter
     this block is not present, the editor should default to the behavior of a normal textbox. In other words,
     if a block representation is available, it uses this, whereas if it is not, then it is just text.
 */
-class CodeEditor is ScrollableLineControl, GutterListener
+class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
     public constant text CODE_EDITOR_INPUT_GROUP = "CodeEditor"
     MultipleLineText rawCode
     CodeEditorSelection selection
-
-    number percentageLineHeightPadding = 1.0
 
     CodeEditorRenderer renderer
     ParserToBlockListener blockListener = undefined
@@ -74,13 +72,6 @@ class CodeEditor is ScrollableLineControl, GutterListener
 
     GameStateManager manager
 
-    number blockNotchTopWidth = 50
-    number blockNotchBottomWidth = 25
-    number blockNotchHeight = 0.3
-    
-    // Scope width is measured as multiples of "default indentation", where default indentation is the width of 4 characters in the font.
-    // In other words, scoped areas are four characters wide times the scopeBarWidth.
-    number scopeBarWidth = 1.0
 
     boolean shouldCalculateWidth = true
     boolean shouldCalculateHeight = true
@@ -605,7 +596,7 @@ class CodeEditor is ScrollableLineControl, GutterListener
     end
 
     action GetDefaultLineHeight returns number
-        return GetFont():GetLineHeight() * (1 + percentageLineHeightPadding)
+        return GetFont():GetLineHeight() * (1 + GetPercentageLineHeightPadding())
     end
 
     action GetLineHeight(integer line) returns number
@@ -636,22 +627,6 @@ class CodeEditor is ScrollableLineControl, GutterListener
         // A better implementation here depends on a better data structure for the blocks/nodes.
         MultipleLineText line = rawCode:GetLine(lineIndex)
         return GetDefaultGlyphWidth() * (line:GetSize() + 5)
-    end
-
-    action GetDefaultUnpaddedLineHeight returns number
-        return GetFont():GetLineHeight()
-    end
-
-    action GetUnpaddedLineHeight(integer line) returns number
-        return GetDefaultUnpaddedLineHeight()
-    end
-
-    action GetLineHeightPadding(integer line) returns number
-        return GetUnpaddedLineHeight(line) * percentageLineHeightPadding
-    end
-
-    action GetPercentageLinePadding(integer line) returns number
-        return GetPercentageLineHeightPadding()
     end
 
     action GetTotalContentHeight returns number
@@ -830,16 +805,6 @@ integer i = 0
         return rawCode:LineIndexFromCharacterIndex(characterIndex)
     end
 
-    action GetDefaultGlyphWidth returns number
-        // This approach relies on a monospaced font.
-        return GetFont():GetGlyph("W"):horizontalAdvance
-    end
-
-    action GetScopeIndentationWidth returns number
-        // Calculate the indentation width as a multiple of the default glyph width for this font.
-        return GetDefaultGlyphWidth() * 4 * scopeBarWidth
-    end
-
     /*
     This action instructs the CodeEditor to refresh its view.
     Typically it'll do this during the next frame of animation.
@@ -886,6 +851,7 @@ and usually shouldn't be called directly by users.
         // When regenerating the blocks, we must assume that the sizing information we held previously might become invalid.
         shouldCalculateWidth = true
         shouldCalculateHeight = true
+        shouldCalculateNavigationIndices = true
 
         shouldRegenerateBlocks = false
 
@@ -903,14 +869,6 @@ and usually shouldn't be called directly by users.
             SelectBlockAtLine(selectionLine)
             UpdateSelectionCursor()
         end
-    end
-
-    action GetPercentageLineHeightPadding returns number
-        return percentageLineHeightPadding
-    end
-
-    action SetPercentageLineHeightPadding(number percentageLineHeightPadding)
-        me:percentageLineHeightPadding = percentageLineHeightPadding
     end
 
     action AddTextChangeListener(TextChangeListener listener)
@@ -2052,7 +2010,7 @@ if selection:GetBlock() not= undefined
     end
 
     /*
-        This on it's own will only affect the raw code underneath but this is usually done with other operations 
+        This on its own will only affect the raw code underneath but this is usually done with other operations 
         such as taking a freeform block and converting it into a MultipleLineBlockPart
     */
     action SetIndentation(Block block, integer scopeDepth)
@@ -2087,10 +2045,10 @@ if selection:GetBlock() not= undefined
         Item focus = manager:GetFocus()
         if focus is Block
             Block block = cast(Block, focus)
-            return block:GetEditor() = me
+            return block:GetBlockEnvironment():Equals(me)
         elseif focus is BlockItem
             BlockItem item = cast(BlockItem, focus)
-            return item:GetEditor() = me
+            return item:GetBlockEnvironment():Equals(me)
         end
 
         return false
@@ -2106,35 +2064,7 @@ if selection:GetBlock() not= undefined
 
     action SetBlockListener(ParserToBlockListener blockListener)
         me:blockListener = blockListener
-        me:blockListener:SetCodeEditor(me)
-    end
-
-    action GetBlockNotchTopWidth returns number
-        return blockNotchTopWidth
-    end
-
-    action SetBlockNotchTopWidth(number blockNotchTopWidth)
-        me:blockNotchTopWidth = blockNotchTopWidth
-    end
-
-    action GetBlockNotchBottomWidth returns number
-        return blockNotchBottomWidth
-    end
-
-    action SetBlockNotchBottomWidth(number blockNotchBottomWidth)
-        me:blockNotchBottomWidth = blockNotchBottomWidth
-    end
-
-    action GetBlockNotchPixelHeight returns number
-        return blockNotchHeight * (GetDefaultUnpaddedLineHeight() * percentageLineHeightPadding)
-    end
-
-action GetBlockNotchPercentageHeight returns number
-        return blockNotchHeight
-    end
-    
-    action SetBlockNotchPercentageHeight(number blockNotchHeight)
-        me:blockNotchHeight = blockNotchHeight
+        me:blockListener:SetBlockEnvironment(me)
     end
 
     action GetFailState returns boolean
@@ -2624,23 +2554,7 @@ Block lastBlock = GetLastBlock()
         return current
     end
     
-    /*
-This action sets the width of the scope bars, as a multiple of "default indentation widths".
-A single default indentation is four characters wide in the editor's font. For example, passing
-a value of 2 would make the scoped bars take up 8 characters of space horizontally.
-*/
-    action SetScopeBarWidth(number width)
-        scopeBarWidth = width
-    end
     
-/*
-This action returns the width of the scope bars, as a multiple of "default indentation widths".
-A single default indentation is four characters wide in the editor's font. For example,
-a value of 2 indicates that the scoped bars take up 8 characters of space horizontally.
-*/
-    action GetScopeBarWidth returns number
-        return scopeBarWidth
-    end
     
 action IsAccessibleParent returns boolean
         return true

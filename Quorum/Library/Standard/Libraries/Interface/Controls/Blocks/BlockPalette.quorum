@@ -71,6 +71,7 @@ class BlockPalette is TabPane
         me:editor = editor
         if editor not= undefined
             editor:AddSelectionListener(suggestPage)
+            SetFontSize(editor:GetFontSize())
         end
     end
 

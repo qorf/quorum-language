@@ -33,8 +33,17 @@ class BlockItem is Control
     end
 
     action GetEditor returns CodeEditor
+        BlockEnvironment environment = GetBlockEnvironment()
+        if environment is CodeEditor
+            return cast(CodeEditor, environment)
+        end
+
+        return undefined
+    end
+
+    action GetBlockEnvironment returns BlockEnvironment
         check
-            return GetBlock():GetEditor()
+            return GetBlock():GetBlockEnvironment()
         detect error
             error:OutputStackTrace()
             return undefined

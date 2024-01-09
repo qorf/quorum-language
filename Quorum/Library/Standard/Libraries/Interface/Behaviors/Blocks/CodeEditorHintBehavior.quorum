@@ -29,10 +29,12 @@ class CodeEditorHintBehavior is Behavior
             editor = cast(CodeEditor, originalItem)
         elseif originalItem is Block
             block = cast(Block, originalItem)
-            editor = block:GetEditor()
+//            editor = block:GetEditor()
+            editor = cast(CodeEditor, block:GetBlockEnvironment())
         elseif originalItem is BlockItem
             BlockItem item = cast(BlockItem, originalItem)
-            editor = item:GetEditor()
+//            editor = item:GetEditor()
+            editor = cast(CodeEditor, item:GetBlockEnvironment())
         else
             // If we can't find the editor, abort.
             return now

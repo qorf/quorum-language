@@ -13,15 +13,94 @@ use Libraries.Language.Compile.Parsing.QuorumLexer
 use Libraries.Language.Compile.Parsing.QuorumParser
 use Libraries.Language.Compile.Context.StartContext
 use Libraries.Language.Compile.Blocks.ParserToBlockListener
+use Libraries.Interface.Layouts.LayoutProperties
 
 
-class BlockPaletteItem is Button
+class BlockPaletteItem is Button, BlockEnvironment
 
     BlockPalette palette = undefined
     Array<Block> blocksToDrag = undefined
-
+    
+    text code = ""
+    RootBlock root = undefined
+    Array<Block> visualBlocks
+    
     on create
+        SetVerticalLayoutMode(parent:Control:STANDARD)
         SetInputGroup("Block")
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        if code not= undefined and code not= "" and root = undefined
+            
+            CompilerErrorManager manager
+            QuorumLexer lexer
+            lexer:SetCompilerErrorManager(manager)
+            lexer:Read(code)
+            
+            QuorumParser parser
+            parser:SetCompilerErrorManager(manager)
+            parser:SetLexer(lexer)
+            StartContext start = parser:Start()
+            
+            ParserToBlockListener blockListener
+            blockListener:SetBlockEnvironment(me)
+            blockListener:SetQuorumLexer(lexer)
+            blockListener:SetStartContext(start)
+            root = blockListener:Update(0, code:GetSize())
+    
+            number height = 0        
+            Block block = root
+            repeat until block = undefined
+    block:SetFontSize(GetFontSize())
+
+                
+                if block is SingleLineBlock
+                    Block copy = block:CopyToPlaceholder()
+                    copy:LoadGraphics(copy:GetDefaultLayoutProperties())
+                    copy:SetInputGroup("")
+                    Add(copy)
+                    visualBlocks:Add(copy)
+    
+                    height = height + GetLineHeight(0)
+                end
+    
+                block = block:GetNextBlock()
+            end
+    
+            SetPixelHeight(height)
+            SetHeight(height)
+            RequestLayout()
+    
+            integer i = 0
+            number current = height
+            repeat while i < visualBlocks:GetSize()
+                Block child = visualBlocks:Get(i)
+                current = current - GetLineHeight(i)
+                child:SetPosition(0, current)
+                i = i + 1
+            end
+        end
+    end
+    
+    action GetLineY(integer index) returns number
+        return index * (GetFont():GetLineHeight() * (1 + GetPercentageLineHeightPadding()))
+    end
+    
+    action GetLineHeight(integer index) returns number
+        return GetFont():GetLineHeight() * (1 + GetPercentageLineHeightPadding())
+    end
+    
+    action GetCode returns text
+        return code
+    end
+
+    action SetCode(text value)
+        code = value
+    end
+    
+    action GetCodeBetween(integer startIndex, integer endIndex) returns text
+        return code:GetSubtext(startIndex, endIndex)
     end
 
     action SetPalette(BlockPalette palette)
@@ -55,8 +134,9 @@ class BlockPaletteItem is Button
         box:SetText(GetName())
         Array<Item2D> children
         children:Add(box)
-placeholder:SetEditor(GetEditor())
-placeholder:SetScopeDepth(1)
+//        placeholder:SetEditor(GetEditor())
+        placeholder:SetBlockEnvironment(GetEditor())
+        placeholder:SetScopeDepth(1)
         placeholder:SetAsPlaceholder(GetName(), children)
         placeholder:Setup()
 
@@ -65,13 +145,13 @@ placeholder:SetScopeDepth(1)
     end
     
     action ParseToBlocks(text code) returns Array<Block>
+        SetCode(code)
         
-CodeEditor fakeEditor = undefined
+        CodeEditor fakeEditor = undefined
         ParserToBlockListener listener
         CodeEditor editor2
         fakeEditor = editor2
         fakeEditor:SetBlockListener(listener)
-        
 
         integer size = 15
         fakeEditor:SetPercentageWidth(1)
@@ -84,7 +164,7 @@ CodeEditor fakeEditor = undefined
             return undefined
         end
         Array<Block> blocks
-CompilerErrorManager manager
+        CompilerErrorManager manager
         QuorumLexer lexer
         lexer:SetCompilerErrorManager(manager)
         lexer:Read(code)
@@ -108,7 +188,7 @@ CompilerErrorManager manager
         ParserToBlockListener blockListener
         blockListener:SetQuorumLexer(lexer)
         blockListener:SetStartContext(start)
-        blockListener:SetCodeEditor(fakeEditor)
+        blockListener:SetBlockEnvironment(fakeEditor)
         RootBlock root = blockListener:Update(0,100)
         Block block = root:GetNextNavigableBlock()
         repeat while block not= undefined

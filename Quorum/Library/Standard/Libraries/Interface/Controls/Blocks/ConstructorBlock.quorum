@@ -28,7 +28,7 @@ class ConstructorBlock is MultipleLineBlock
     end
 
     private action SetupElements
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
         SetLeftPadding(spacing * 0.5)
         SetRightPadding(spacing * 0.5)
@@ -42,13 +42,13 @@ class ConstructorBlock is MultipleLineBlock
         // The start line is always the beginning of the multi-block, so it always starts at local index 0.
         part:SetLocalStartIndex(0)
 
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
 
         BlockLabel constructorLabel
         me:constructorLabel = constructorLabel
-        constructorLabel:SetFont(GetEditor():GetFont())
-        constructorLabel:SetFontSize(GetEditor():GetFontSize())
+        constructorLabel:SetFont(editor:GetFont())
+        constructorLabel:SetFontSize(editor:GetFontSize())
         constructorLabel:SetText("on create")
         part:Add(constructorLabel)
 

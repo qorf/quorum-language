@@ -51,7 +51,7 @@ class ActionBlock is MultipleLineBlock
     end
 
     private action SetupElements
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
         SetLeftPadding(spacing * 0.5)
         SetRightPadding(spacing * 0.5)
@@ -66,7 +66,7 @@ class ActionBlock is MultipleLineBlock
         // The start line is always the beginning of the multi-block, so it always starts at local index 0.
         part:SetLocalStartIndex(0)
 
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
         
         integer localEndLine = 0
@@ -74,8 +74,8 @@ class ActionBlock is MultipleLineBlock
         if actionContext:access not= undefined
             BlockLabel accessModifierLabel
             me:accessModifierLabel = accessModifierLabel
-            accessModifierLabel:SetFont(GetEditor():GetFont())
-            accessModifierLabel:SetFontSize(GetEditor():GetFontSize())
+            accessModifierLabel:SetFont(editor:GetFont())
+            accessModifierLabel:SetFontSize(editor:GetFontSize())
             if actionContext:access:isPrivate
                 accessModifierLabel:SetText("private")
             else
@@ -89,8 +89,8 @@ class ActionBlock is MultipleLineBlock
             part:UseNeutralScopeStyling()
             BlockLabel systemLabel
             me:systemLabel = systemLabel
-            systemLabel:SetFont(GetEditor():GetFont())
-            systemLabel:SetFontSize(GetEditor():GetFontSize())
+            systemLabel:SetFont(editor:GetFont())
+            systemLabel:SetFontSize(editor:GetFontSize())
             systemLabel:SetText("system")
             systemLabel:SetRightPadding(spacing)
             part:Add(systemLabel)
@@ -99,8 +99,8 @@ class ActionBlock is MultipleLineBlock
             part:UseNeutralScopeStyling()
             BlockLabel blueprintLabel
             me:blueprintLabel = blueprintLabel
-            blueprintLabel:SetFont(GetEditor():GetFont())
-            blueprintLabel:SetFontSize(GetEditor():GetFontSize())
+            blueprintLabel:SetFont(editor:GetFont())
+            blueprintLabel:SetFontSize(editor:GetFontSize())
             blueprintLabel:SetText("blueprint")
             blueprintLabel:SetRightPadding(spacing)
             part:Add(blueprintLabel)
@@ -108,8 +108,8 @@ class ActionBlock is MultipleLineBlock
 
         BlockLabel actionLabel
         me:actionLabel = actionLabel
-        actionLabel:SetFont(GetEditor():GetFont())
-        actionLabel:SetFontSize(GetEditor():GetFontSize())
+        actionLabel:SetFont(editor:GetFont())
+        actionLabel:SetFontSize(editor:GetFontSize())
         actionLabel:SetText("action")
         actionLabel:SetRightPadding(spacing)
         part:Add(actionLabel)
@@ -130,8 +130,8 @@ class ActionBlock is MultipleLineBlock
 
             BlockLabel leftParen
             me:leftParen = leftParen
-            leftParen:SetFont(GetEditor():GetFont())
-            leftParen:SetFontSize(GetEditor():GetFontSize())
+            leftParen:SetFont(editor:GetFont())
+            leftParen:SetFontSize(editor:GetFontSize())
             leftParen:SetText("(")
             part:Add(leftParen)
 
@@ -145,22 +145,22 @@ class ActionBlock is MultipleLineBlock
 
             BlockLabel rightParen
             me:rightParen = rightParen
-            rightParen:SetFont(GetEditor():GetFont())
-            rightParen:SetFontSize(GetEditor():GetFontSize())
+            rightParen:SetFont(editor:GetFont())
+            rightParen:SetFontSize(editor:GetFontSize())
             rightParen:SetText(")")
             part:Add(rightParen)
 
             // Place the end of the block one character after the last parameter (to account for the right parenthesis).
             localEnd = paramField:GetEndIndex() + 1
             
-localEndLine = lastParam:GetLineNumberEnd() - actionContext:GetLocation():GetLineNumber()
+            localEndLine = lastParam:GetLineNumberEnd() - actionContext:GetLocation():GetLineNumber()
         end
 
         if actionContext:returnLocation not= undefined
             BlockLabel returnsLabel
             me:returnsLabel = returnsLabel
-            returnsLabel:SetFont(GetEditor():GetFont())
-            returnsLabel:SetFontSize(GetEditor():GetFontSize())
+            returnsLabel:SetFont(editor:GetFont())
+            returnsLabel:SetFontSize(editor:GetFontSize())
             returnsLabel:SetText("returns")
             returnsLabel:SetLeftPadding(spacing * 0.5)
             returnsLabel:SetRightPadding(spacing * 0.5)
@@ -177,7 +177,7 @@ localEndLine = lastParam:GetLineNumberEnd() - actionContext:GetLocation():GetLin
             localEnd = returnField:GetEndIndex()
             
             
-localEndLine = returnLocation:GetLineNumberEnd() - actionContext:GetLocation():GetLineNumber()
+            localEndLine = returnLocation:GetLineNumberEnd() - actionContext:GetLocation():GetLineNumber()
         end
 
         part:SetLocalEndIndex(localEnd)

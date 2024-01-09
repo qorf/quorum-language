@@ -110,7 +110,8 @@ class EditRegion is BlockItem
 
     action GetLineIndex returns integer
         Block block = GetBlock()
-        return GetEditor():GetLineIndex(block:GetStartIndex() + startIndex)
+        CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
+        return editor:GetLineIndex(block:GetStartIndex() + startIndex)
     end
 
     blueprint action UpdateLength

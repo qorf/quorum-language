@@ -9,16 +9,19 @@ use Libraries.Interface.Controls.Blocks.CodeEditor
 use Libraries.Interface.Controls.Blocks.BlockItem
 use Libraries.Interface.Controls.Blocks.MultipleLineBlock
 use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
+use Libraries.Interface.Controls.Blocks.BlockEnvironment
 
 class MultipleLineBlockLayout is Layout
 
     action Layout(Control container, Array<Item2D> items, number newContainerWidth, number newContainerHeight)
         MultipleLineBlock block = cast(MultipleLineBlock, container)
-        CodeEditor editor = block:GetEditor()
+        //CodeEditor editor = block:GetEditor()
+        BlockEnvironment editor = block:GetBlockEnvironment()
 
         integer lineRange = block:GetTotalNavigationSize()
         integer blockIndex = block:GetNavigationIndex()
         number connectionTop = 0
+        number longestWidth = 0
 
         Array<MultipleLineBlockPart> blockParts = block:GetBlockParts()
         Array<Control> connectors = block:GetBlockConnectors()
@@ -46,12 +49,16 @@ class MultipleLineBlockLayout is Layout
             end
 
             connectionTop = currentHeight + 1 * part:GetBorderThickness() + 1
+            
+            if part:GetWidth() > longestWidth
+                longestWidth = part:GetWidth()
+            end
 
             i = i + 1
         end
 
         number totalBlockHeight = (editor:GetLineY(blockIndex) + editor:GetLineHeight(blockIndex)) - editor:GetLineY(blockIndex + lineRange - 1)
-        block:SetSize(editor:GetTotalContentWidth() - (block:GetScopeDepth() * 4.5 + 1) * editor:GetDefaultGlyphWidth(), totalBlockHeight)
+        block:SetSize(longestWidth - (block:GetScopeDepth() * 4.5 + 1) * editor:GetDefaultGlyphWidth(), totalBlockHeight)
     end
     
 end

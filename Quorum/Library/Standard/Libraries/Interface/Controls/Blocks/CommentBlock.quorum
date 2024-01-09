@@ -34,7 +34,7 @@ class CommentBlock is SingleLineBlock
     end
 
     action SetupElements
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
         SetLeftPadding(spacing * 0.5)
         SetRightPadding(spacing * 0.5)
@@ -42,8 +42,8 @@ class CommentBlock is SingleLineBlock
         if not isMultiLineComment
             BlockLabel bl
             me:commentLabel = bl
-            commentLabel:SetFont(GetEditor():GetFont())
-            commentLabel:SetFontSize(GetEditor():GetFontSize())
+            commentLabel:SetFont(editor:GetFont())
+            commentLabel:SetFontSize(editor:GetFontSize())
             commentLabel:SetText("//")
             commentLabel:SetRightPadding(spacing)
             Add(commentLabel)
@@ -51,9 +51,15 @@ class CommentBlock is SingleLineBlock
             EditField box
             me:messageField = box
             Add(messageField)
-            integer eolSize = editor:GetCode():GetDefaultLineSeparator():GetSize()
+
             text endOfLine = ""
-            endOfLine = GetEditor():GetCode():GetDefaultLineSeparator()
+            endOfLine = endOfLine:GetLineFeed()
+            integer eolSize = endOfLine:GetSize()
+
+//            integer eolSize = editor:GetCode():GetDefaultLineSeparator():GetSize()
+//            text endOfLine = ""
+//            endOfLine = editor:GetCode():GetDefaultLineSeparator()
+
             if token:value:EndsWith(endOfLine)
                 messageField:Setup("Message", token:startIndex + 2 - GetStartIndex(), 1 + token:endIndex - eolSize - GetStartIndex())
             else
@@ -62,8 +68,8 @@ class CommentBlock is SingleLineBlock
         else
             BlockLabel bl
             me:commentLabel = bl
-            commentLabel:SetFont(GetEditor():GetFont())
-            commentLabel:SetFontSize(GetEditor():GetFontSize())
+            commentLabel:SetFont(editor:GetFont())
+            commentLabel:SetFontSize(editor:GetFontSize())
             commentLabel:SetText("/*")
             commentLabel:SetRightPadding(spacing)
             Add(commentLabel)
@@ -76,8 +82,8 @@ class CommentBlock is SingleLineBlock
 
             BlockLabel bl2
             me:secondLabel = bl2
-            secondLabel:SetFont(GetEditor():GetFont())
-            secondLabel:SetFontSize(GetEditor():GetFontSize())
+            secondLabel:SetFont(editor:GetFont())
+            secondLabel:SetFontSize(editor:GetFontSize())
             secondLabel:SetText("*/")
             Add(secondLabel)
         end
@@ -105,7 +111,8 @@ class CommentBlock is SingleLineBlock
         // Check if we have a valid context and parent block, but the start index hasn't been set yet.
         if token not= undefined and GetParentBlock() not= undefined and GetLocalStartIndex() < 0
             text endOfLine = ""
-            endOfLine = GetEditor():GetCode():GetDefaultLineSeparator()
+//            endOfLine = GetEditor():GetCode():GetDefaultLineSeparator()
+            endOfLine = endOfLine:GetLineFeed()
             // Set our starting local values using the context and parent.
             SetLocalStartIndex(token:startIndex - GetParentBlock():GetStartIndex())
             if token:value:EndsWith(endOfLine)

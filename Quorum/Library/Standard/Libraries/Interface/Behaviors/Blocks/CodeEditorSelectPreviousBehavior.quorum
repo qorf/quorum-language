@@ -14,10 +14,12 @@ class CodeEditorSelectPreviousBehavior is Behavior
             editor = cast(CodeEditor, event:GetItem())
         elseif event:GetItem() is Block
             Block block = cast(Block, event:GetItem())
-            editor = block:GetEditor()
+//            editor = block:GetEditor()
+            editor = cast(CodeEditor, block:GetBlockEnvironment())
         elseif event:GetItem() is BlockItem
             BlockItem item = cast(BlockItem, event:GetItem())
-            editor = item:GetEditor()
+//            editor = item:GetEditor()
+            editor = cast(CodeEditor, item:GetBlockEnvironment())
         else
             // If we can't find the editor, abort.
             return now

@@ -21,7 +21,8 @@ use Libraries.Game.Graphics.Painter2D
 
 class Block is Control
     integer scopeDepth = 0
-    CodeEditor editor = undefined
+    //CodeEditor editor = undefined
+    BlockEnvironment environment = undefined
     ParseContext context = undefined
 
     /*
@@ -208,7 +209,8 @@ be dropped. Placeholder blocks have special rules around their text values and h
     action Add(Block block)
         block:SetParentIndex(GetChildCount())
         block:SetParentBlock(me)
-        block:SetEditor(GetEditor())
+        block:SetBlockEnvironment(GetBlockEnvironment())
+//        block:SetEditor(GetEditor())
 
         AddChildBlock(block)
     end
@@ -222,7 +224,8 @@ be dropped. Placeholder blocks have special rules around their text values and h
         block:SetParentIndex(index)
         block:SetParentBlock(me)
 
-        block:SetEditor(GetEditor())
+        block:SetBlockEnvironment(GetBlockEnvironment())
+//        block:SetEditor(GetEditor())
 
         integer i = index
         repeat while i < GetChildCount()
@@ -252,7 +255,8 @@ be dropped. Placeholder blocks have special rules around their text values and h
 
             block:SetParentIndex(-1)
             block:SetParentBlock(undefined)
-            block:SetEditor(undefined)
+            block:SetBlockEnvironment(undefined)
+//            block:SetEditor(undefined)
         end
 
         return result
@@ -267,7 +271,8 @@ be dropped. Placeholder blocks have special rules around their text values and h
         if result not= undefined
             result:SetParentIndex(-1)
             result:SetParentBlock(undefined)
-            result:SetEditor(undefined)
+//            result:SetEditor(undefined)
+            result:SetBlockEnvironment(undefined)
     
             integer i = GetChildCount() - 1
             repeat while i >= index
@@ -632,19 +637,21 @@ be dropped. Placeholder blocks have special rules around their text values and h
     end
 
     action GetTopNotchPosition returns number
-        if editor = undefined
+        BlockEnvironment environment = GetBlockEnvironment()
+        if environment = undefined
             return 0
         end
 
-        return editor:GetScopeIndentationWidth() * topNotchPositionFactor
+        return environment:GetScopeIndentationWidth() * topNotchPositionFactor
     end
 
     action GetBottomNotchPosition returns number
-        if editor = undefined
+        BlockEnvironment environment = GetBlockEnvironment()
+        if environment = undefined
             return 0
         end
 
-        return editor:GetScopeIndentationWidth() * bottomNotchPositionFactor
+        return environment:GetScopeIndentationWidth() * bottomNotchPositionFactor
     end
 
     action UseEnterScopeStyling
@@ -680,18 +687,26 @@ be dropped. Placeholder blocks have special rules around their text values and h
     end
 
     action GetEditor returns CodeEditor
-        return editor
-    end
+        if environment is CodeEditor
+            return cast(CodeEditor, environment)
+        end
 
-    action SetEditor(CodeEditor editor)
-        me:editor = editor
+        return undefined
+    end
+    
+    action GetBlockEnvironment returns BlockEnvironment
+        return environment
+    end
+    
+    action SetBlockEnvironment(BlockEnvironment environment)
+        me:environment = environment
     end
 
     action Setup
         if IsPlaceholder()
             SetupPlaceholderElements(placeholderText)
         else
-SetupElements()
+        SetupElements()
         SetDefaultTabOrder()
 
         // Set the default name to reflect the first line of the block.
@@ -703,9 +718,8 @@ SetupElements()
     private blueprint action SetupElements
     
     private action SetupPlaceholderElements(text code)
-        // TO-DO: This should become a blueprint. This implementation is only for during testing.
         
-CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
         SetLeftPadding(spacing * 0.5)
         SetRightPadding(spacing * 0.5)
@@ -716,25 +730,25 @@ CodeEditor editor = GetEditor()
                 Item2D child = placeholderControls:Get(i)
                 if child is EditRegion
                     EditRegion region = cast(EditRegion, child)
-                    region:SetFont(GetEditor():GetFont())
-                    region:SetFontSize(GetEditor():GetFontSize())
-Add(region)
+                    region:SetFont(editor:GetFont())
+                    region:SetFontSize(editor:GetFontSize())
+                    Add(region)
                     
                     region:SetupAsPlaceholder(region:GetName(), region:GetText())
                 elseif child is BlockLabel
                     BlockLabel label = cast(BlockLabel, child)
-label:SetFont(GetEditor():GetFont())
-        label:SetFontSize(GetEditor():GetFontSize())
+                    label:SetFont(editor:GetFont())
+                    label:SetFontSize(editor:GetFontSize())
                     Add(label)
                 end
                 i = i + 1
             end
         else
-BlockLabel label
-        label:SetFont(GetEditor():GetFont())
-        label:SetFontSize(GetEditor():GetFontSize())
-        label:SetText(code)
-        Add(label)
+            BlockLabel label
+            label:SetFont(editor:GetFont())
+            label:SetFontSize(editor:GetFontSize())
+            label:SetText(code)
+            Add(label)
         end
     end
 
@@ -954,8 +968,12 @@ BlockLabel label
 
     action SetParentBlock(Block parentBlock)
         me:parentBlock = parentBlock
-        if parentBlock not= undefined and parentBlock:GetEditor() not= editor
-            SetEditor(parentBlock:GetEditor())
+//        if parentBlock not= undefined and parentBlock:GetEditor() not= editor
+//            SetEditor(parentBlock:GetEditor())
+//        end
+
+        if parentBlock not= undefined and parentBlock:GetBlockEnvironment() not= GetBlockEnvironment()
+            SetBlockEnvironment(parentBlock:GetBlockEnvironment())
         end
 
         InitializeLocalIndices()
@@ -1032,7 +1050,7 @@ BlockLabel label
 
     */
     action GetMinimumWidth returns number
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         if editor not= undefined
             number minimumWidth = GetTopNotchPosition()
             if GetBottomNotchPosition() > minimumWidth
@@ -1173,61 +1191,66 @@ the provided code. For more specific visuals, use SetAsPlaceholder(text, Array<I
     end
     
     /*This action sets the block as a placeholder. The actual appearance will be dictated by the given controls.
-This action will make a COPY of each of the provided elements. It does not store the original elements or
-maintain a shallow copy of the given array.
-
-Because the given controls supply the visuals, the code will not be used visually, but must still correctly
-match the code the block represents, because it will be used if the placeholder is converted to a real block.*/
+    This action will make a COPY of each of the provided elements. It does not store the original elements or
+    maintain a shallow copy of the given array.
+    
+    Because the given controls supply the visuals, the code will not be used visually, but must still correctly
+    match the code the block represents, because it will be used if the placeholder is converted to a real block.*/
     action SetAsPlaceholder(text code, Array<Item2D> controls)
         isPlaceholder = true
         placeholderText = code
         
         if controls not= undefined
-CodeEditor editor = GetEditor()
-        number spacing = editor:GetDefaultGlyphWidth()
-        SetLeftPadding(spacing * 0.5)
-        SetRightPadding(spacing * 0.5)
-            
-Array<Item2D> newArray
-        placeholderControls = newArray
-        integer i = 0
-        repeat while i < controls:GetSize()
-Item2D child = controls:Get(i)
-            if child is EditField
-                EditField field = cast(EditField, child)
-                EditField newField
-                newField:SetName(field:GetName())
+            BlockEnvironment editor = GetBlockEnvironment()
+            number spacing = editor:GetDefaultGlyphWidth()
+            SetLeftPadding(spacing * 0.5)
+            SetRightPadding(spacing * 0.5)
+                
+            Array<Item2D> newArray
+            placeholderControls = newArray
+            integer i = 0
+            repeat while i < controls:GetSize()
+                Item2D child = controls:Get(i)
+                if child is EditField
+                    EditField field = cast(EditField, child)
+                    EditField newField
+                    newField:SetName(field:GetName())
                     newField:SetText(field:GetText())
                     newField:SetLeftPadding(field:GetLeftPadding())
                     newField:SetRightPadding(field:GetRightPadding())
-
-                placeholderControls:Add(newField)
-            elseif child is EditBox
-                EditBox box = cast(EditBox, child)
-                EditBox newBox
-newBox:SetName(box:GetName())
+                    newField:SetInputGroup("")
+    
+                    placeholderControls:Add(newField)
+                elseif child is EditBox
+                    EditBox box = cast(EditBox, child)
+                    EditBox newBox
+                    newBox:SetName(box:GetName())
                     newBox:SetText(box:GetText())
-newBox:SetLeftPadding(box:GetLeftPadding())
+                    newBox:SetLeftPadding(box:GetLeftPadding())
                     newBox:SetRightPadding(box:GetRightPadding())
-                
-                placeholderControls:Add(newBox)
-            elseif child is BlockLabel
-                BlockLabel label = cast(BlockLabel, child)
-                BlockLabel newLabel
-                newLabel:SetText(label:GetText())
-newLabel:SetLeftPadding(label:GetLeftPadding())
-                    newLabel:SetRightPadding(label:GetRightPadding())
+                    newBox:SetInputGroup("")
                     
-                placeholderControls:Add(newLabel)
+                    placeholderControls:Add(newBox)
+                elseif child is BlockLabel
+                    BlockLabel label = cast(BlockLabel, child)
+                    BlockLabel newLabel
+                    newLabel:SetText(label:GetText())
+                    newLabel:SetLeftPadding(label:GetLeftPadding())
+                    newLabel:SetRightPadding(label:GetRightPadding())
+                        
+                    placeholderControls:Add(newLabel)
+                end
+                
+                i = i + 1
             end
-            
-            i = i + 1
-        end
         end
         
     end
     
     action GetPlaceholderText returns text
+        if placeholderText = undefined
+            return "Placeholder"
+        end
         return placeholderText
     end
     
@@ -1239,7 +1262,8 @@ newLabel:SetLeftPadding(label:GetLeftPadding())
         //The actual type of block is irrelevant, as the placeholder calls will supersede anything it would do. 
         ActionCallBlock placeholder
         placeholder:SetInterfaceOptionsKey(GetInterfaceOptionsKey())
-placeholder:SetEditor(GetEditor())
+//        placeholder:SetEditor(GetEditor())
+        placeholder:SetBlockEnvironment(GetBlockEnvironment())
         placeholder:SetAsPlaceholder(GetText(), children)
         placeholder:SetScopeDepth(GetScopeDepth())
         placeholder:Setup()

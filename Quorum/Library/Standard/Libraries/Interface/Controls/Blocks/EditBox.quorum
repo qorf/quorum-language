@@ -37,17 +37,19 @@ class EditBox is TextBox, EditRegion
 
         SetName(name)
 
-        SetFont(GetEditor():GetFont())
-        SetFontSize(GetEditor():GetFontSize())
+        BlockEnvironment editor = GetBlockEnvironment()
+
+        SetFont(editor:GetFont())
+        SetFontSize(editor:GetFontSize())
         SetIndices(relativeStartIndex, relativeEndIndex)
-        SetText(GetEditor():GetCodeBetween(block:GetStartIndex() + relativeStartIndex, block:GetStartIndex() + relativeEndIndex))
+        SetText(editor:GetCodeBetween(block:GetStartIndex() + relativeStartIndex, block:GetStartIndex() + relativeEndIndex))
         UpdateLength()
 
         initialized = true
     end
     
     action SetupAsPlaceholder(text name, text code)
-Block block = GetBlock()
+        Block block = GetBlock()
         if block = undefined
             text dq = ""
             dq = dq:GetDoubleQuote()
@@ -57,12 +59,14 @@ Block block = GetBlock()
         parent:EditRegion:placeholder = true
         SetName(name)
         
-// Change the input group so it stops acting like a text box -- we only want it to visually reflect one
+        // Change the input group so it stops acting like a text box -- we only want it to visually reflect one
         SetInputGroup("")
 
-        SetFont(GetEditor():GetFont())
-        SetFontSize(GetEditor():GetFontSize())
-SetText(code)
+        BlockEnvironment environment = GetBlockEnvironment()
+
+        SetFont(environment:GetFont())
+        SetFontSize(environment:GetFontSize())
+        SetText(code)
         UpdateLength()
 
         initialized = true
@@ -71,7 +75,7 @@ SetText(code)
     action UpdateLength
         number glyphWidth = 10
         number height = 10
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         Block block = GetBlock()
 
         if editor not= undefined
@@ -152,7 +156,7 @@ SetText(code)
         text deleted = event:GetDeletedText()
         integer change = added:GetSize() - deleted:GetSize()
         
-        CodeEditor editor = GetEditor()
+        CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
         if editor not= undefined
             editor:OnTextChange(event, GetBlock():GetStartIndex() + GetStartIndex())
         end

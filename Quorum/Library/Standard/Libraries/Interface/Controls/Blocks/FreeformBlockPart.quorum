@@ -21,7 +21,7 @@ class FreeformBlockPart is FreeformBlock, MultipleLineBlockPart
         CompilerErrorManager manager
         QuorumLexer lexer
 
-        CodeEditor editor = GetEditor()
+        CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
         text code = editor:GetText()
 
         lexer:SetCompilerErrorManager(manager)

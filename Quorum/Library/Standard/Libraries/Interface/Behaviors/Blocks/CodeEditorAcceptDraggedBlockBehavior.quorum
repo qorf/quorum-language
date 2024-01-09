@@ -33,7 +33,7 @@ class CodeEditorAcceptDraggedBlockBehavior is Behavior
                 line = editor:GetLineCount() - 1
             end
             
-Array<Block> sourceBlocks = sourceDragBehavior:GetSourceBlocks()
+            Array<Block> sourceBlocks = sourceDragBehavior:GetSourceBlocks()
             
             if dropEvent:eventType = dropEvent:DRAGGING_CONTINUED
                 if line not= lastCandidateLine
@@ -45,7 +45,7 @@ Array<Block> sourceBlocks = sourceDragBehavior:GetSourceBlocks()
                             // Do nothing, there's no placeholders there to adjust.
                         end
                     elseif editor:HasPlaceholders()
-editor:MovePlaceholdersToNavigationIndex(line)
+                        editor:MovePlaceholdersToNavigationIndex(line)
                     else
                         Array<Block> placeholders
                         integer i = 0
@@ -53,8 +53,7 @@ editor:MovePlaceholdersToNavigationIndex(line)
                             if sourceBlocks:Get(i):IsPlaceholder()
                                 placeholders:Add(sourceBlocks:Get(i))
                             else
-placeholders:Add(sourceBlocks:Get(i):CopyToPlaceholder())
-                                
+                                placeholders:Add(sourceBlocks:Get(i):CopyToPlaceholder())
                                 
                             end
                             i = i + 1
@@ -72,7 +71,11 @@ placeholders:Add(sourceBlocks:Get(i):CopyToPlaceholder())
                     Block lastBlock = sourceBlocks:GetFromEnd()
                     text toInsert = ""
 
-                        toInsert = firstBlock:GetEditor():GetCode():GetText(firstBlock:GetStartIndex(), lastBlock:GetEndIndex())+toInsert:GetLineFeed()
+//                    toInsert = firstBlock:GetEditor():GetCode():GetText(firstBlock:GetStartIndex(), lastBlock:GetEndIndex()) + toInsert:GetLineFeed()
+                    
+                    CodeEditor firstEditor = cast(CodeEditor, firstBlock:GetBlockEnvironment())
+                    toInsert = firstEditor:GetCode():GetText(firstBlock:GetStartIndex(), lastBlock:GetEndIndex()) + toInsert:GetLineFeed()
+
                     lastCandidateLine = -2
                     
                     if editor:HasPlaceholders()

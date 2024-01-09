@@ -16,6 +16,7 @@ use Libraries.Interface.Controls.Blocks.EditRegion
 use Libraries.Interface.Views.SingleLineBlockView
 use Libraries.Interface.Controls.Blocks.BlockPaletteItem
 use Libraries.Interface.Controls.Blocks.BlockPalette
+use Libraries.Interface.Controls.Blocks.BlockEnvironment
 
 class BlockDragBehavior is Behavior
     
@@ -42,15 +43,24 @@ class BlockDragBehavior is Behavior
                 dragSource = editor
             elseif targetItem is Block
                 Block block = cast(Block, targetItem)
-                editor = block:GetEditor()
-                
-                // Check to see if this Block is actually on an Editor, or if the Editor has been associated from elsewhere.
+                //editor = block:GetEditor()
+                BlockEnvironment environment = block:GetBlockEnvironment()
+                if environment is CodeEditor
+                    editor = cast(CodeEditor, environment)
+                elseif environment is BlockPaletteItem
+BlockPaletteItem paletteItem = cast(BlockPaletteItem, environment)
+                editor = paletteItem:GetPalette():GetEditor()
+                dragSource = paletteItem:GetPalette()
+                sourceBlocks = paletteItem:GetBlocks()
+                else
+// Check to see if this Block is actually on an Editor, or if the Editor has been associated from elsewhere.
                 Item2D parentItem = block
                 repeat until parentItem = undefined or parentItem is CodeEditor
                     parentItem = parentItem:GetParent()
                 end
                 
                 dragSource = parentItem
+                end
                 
             elseif targetItem is BlockPaletteItem
                 BlockPaletteItem paletteItem = cast(BlockPaletteItem, targetItem)
@@ -116,7 +126,12 @@ class BlockDragBehavior is Behavior
             return now
         end
         
-        CodeEditor editor = blocks:GetFromFront():GetEditor()
+        //CodeEditor editor = blocks:GetFromFront():GetEditor()
+        BlockEnvironment environment = blocks:GetFromFront():GetBlockEnvironment()
+        CodeEditor editor = undefined
+        if environment is CodeEditor
+            editor = cast(CodeEditor, environment)
+        end
         
         integer i = 0
         number targetX = 0
@@ -134,17 +149,6 @@ class BlockDragBehavior is Behavior
             if not block:IsPlaceholder()
                 dummyBlock = block:CopyToPlaceholder()
             end
-//            Control dummyBlock
-//            dummyBlock:SetBackgroundColor(block:GetBackgroundColor())
-//            dummyBlock:SetBorderColor(block:GetBorderColor())
-//            dummyBlock:SetBorderThickness(block:GetBorderThickness())
-//            dummyBlock:SetSize(block:GetWidth(), block:GetHeight())
-//            dummyBlock:SetPosition(targetX, targetY)
-//            
-//            // Temporary debugging view.
-//            ControlShaderView view
-//            view:Initialize()
-//            dummyBlock:SetView2D(view)
             
             dummyBlock:SetSize(block:GetWidth(), block:GetHeight())
             dummyBlock:SetPosition(targetX, targetY)

@@ -22,6 +22,7 @@ class BlockPalettePage is StackedRowPage
         button:SetToDefaultFontSize()
         button:SetBehavior(behave)
         button:SetBlocks(button:ParseToBlocks(name))
+        button:SetFontSize(palette:GetFontSize())
 
         Add(button)
         return button
