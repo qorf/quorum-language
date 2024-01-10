@@ -696,6 +696,25 @@ class Action is Symbol
         return result
     end
 
+    action ConvertActionToPythonName returns text
+        //this is a special case where we have a constructor. Return a 
+        //different name
+        if GetName() = "on create"
+            return "constructor_"
+        end
+        text result = ""
+        result = result + GetName()
+        Iterator<Variable> params = GetParameterIterator()
+        repeat while params:HasNext()
+            Variable par = params:Next()
+            Type type = par:GetType()
+            text t = type:ConvertStaticKeyToJavaScriptName()
+            result = result + "__" + t
+        end
+
+        return result
+    end
+
     action Compare(Object object) returns integer
         Action right = cast(Action, object)
         text l = GetName()
