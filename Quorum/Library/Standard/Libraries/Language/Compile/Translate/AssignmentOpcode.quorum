@@ -245,7 +245,7 @@ class AssignmentOpcode is QuorumOpcode
         if isObjectField
             if variable:IsField()
                 Class p = variable:GetParentClass()
-                result = result + "this." + p:ConvertToActionNameFromField(variable, true) + "()"
+                result = result + "self." + p:ConvertToActionNameFromField(variable, true) + "()"
             else
                 result = result + variable:GetJavaScriptName()
             end
@@ -253,9 +253,9 @@ class AssignmentOpcode is QuorumOpcode
             if field:IsField()
                 Class p = field:GetParentClass()
                 result = result + "." + p:ConvertToActionNameFromField(field, false) + "("
-                result = result + rightHandSide:WriteJavaScript() + ");"
+                result = result + rightHandSide:WritePython() + ");"
             else
-                result = result + "." + field:GetJavaScriptName() + " = " + rightHandSide:WriteJavaScript() + ";"
+                result = result + "." + field:GetJavaScriptName() + " = " + rightHandSide:WritePython() + ";"
             end
 
             EOL = ""
@@ -264,7 +264,7 @@ class AssignmentOpcode is QuorumOpcode
             return result
         end
         if variable:IsField()
-            result = result + "this." 
+            result = result + "self." 
             if parentWithField not= undefined
                 if field not= undefined
                     Class p = field:GetParentClass()
@@ -276,7 +276,15 @@ class AssignmentOpcode is QuorumOpcode
         else
             result = result + tabs + variable:GetJavaScriptName() 
         end
-        result = result + " = " + rightHandSide:WritePython()
+
+        //if the variable is a number and the RHS is an integer, python won't make this implicit, so cast
+        Type lType = variable:GetType()
+        Type rType = rightHandSide:GetType()
+        if lType:IsNumber() and rType:IsInteger()
+            result = result + " = float(" + rightHandSide:WritePython() + ")"
+        else
+            result = result + " = " + rightHandSide:WritePython()
+        end
         EOL = ""
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
         result = result + EOL

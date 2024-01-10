@@ -1751,6 +1751,7 @@ actLink:SetClassAttribute("hover:underline text-sm")
         TranslateConstants constants
         constants:ResetTabs()
         text tabs = constants:GetTabText()
+        text tab = tabs:GetTab()
 
         TextBuilder convertedSource
 //        if clazz:IsProgramStartingClass()
@@ -1868,24 +1869,22 @@ actLink:SetClassAttribute("hover:underline text-sm")
         end
         
         //write the actions for the fields
-//        Iterator<Variable> fieldVariableIterator = clazz:GetVariables()
-//        repeat while fieldVariableIterator:HasNext()
-//            Variable variable = fieldVariableIterator:Next()
-//
-//            text varName = variable:GetName()
-//            Type type = variable:GetType()
-//            text converted = type:ConvertTypeToBytecodeSignature()
-//            text hiddenGetterName = clazz:ConvertToActionNameFromField(variable, true)
-//
-//            convertedSource:Append("this." + hiddenGetterName + " = function() {" + EOL)
-//            convertedSource:Append("   return this." + variable:GetJavaScriptName() + ";" + EOL)
-//            convertedSource:Append("};" + EOL)
-//            
-//            text hiddenSetterName = clazz:ConvertToActionNameFromField(variable, false)
-//            convertedSource:Append("this." + hiddenSetterName + " = function(value) {" + EOL)
-//            convertedSource:Append("   this." + variable:GetJavaScriptName() + " = value;" + EOL)
-//            convertedSource:Append("};" + EOL)
-//        end
+        Iterator<Variable> fieldVariableIterator = clazz:GetVariables()
+        repeat while fieldVariableIterator:HasNext()
+            Variable variable = fieldVariableIterator:Next()
+
+            text varName = variable:GetName()
+            Type type = variable:GetType()
+            text converted = type:ConvertTypeToBytecodeSignature()
+            text hiddenGetterName = clazz:ConvertToActionNameFromField(variable, true)
+
+            convertedSource:Append(tab + "def " + hiddenGetterName + "(self):" + EOL)
+            convertedSource:Append(tab + tab + "return self." + variable:GetJavaScriptName() + EOL)
+            
+            text hiddenSetterName = clazz:ConvertToActionNameFromField(variable, false)
+            convertedSource:Append(tab + "def " + hiddenSetterName + "(self):" + EOL)
+            convertedSource:Append(tab + tab + "self." + variable:GetJavaScriptName() + " = value" + EOL)
+        end
 //
 //        //write the actions for parent fields
 //        if not clazz:IsError() //errors are special, don't write these
@@ -1922,6 +1921,10 @@ actLink:SetClassAttribute("hover:underline text-sm")
 //                convertedSource:Append(tempGetterSetter)
 //            end
 //        end
+
+        //Add an initialization area for fields and parents in python mode
+        convertedSource:Append(tab + "def __init__(self):" + EOL)
+        boolean hasFieldOrParent = false
 //
 //        //initialize all of the parent objects as values, if appropriate
 //        convertedSource:Append("if(parents == null) {" + EOL)
@@ -1985,11 +1988,11 @@ actLink:SetClassAttribute("hover:underline text-sm")
 //            end
 //        end
 //
-//        Iterator<QuorumOpcode> fieldIterator = fields:GetIterator()
-//        repeat while fieldIterator:HasNext()
-//            QuorumOpcode field = fieldIterator:Next()
-//            convertedSource:Append(field:WriteJavaScript())
-//        end
+        Iterator<QuorumOpcode> fieldIterator = fields:GetIterator()
+        repeat while fieldIterator:HasNext()
+            QuorumOpcode field = fieldIterator:Next()
+            convertedSource:Append(tab + tab + field:WritePython())
+        end
 
         //now that all of the parents have had their parent's set, 
         //call their constructors.
@@ -2031,6 +2034,10 @@ actLink:SetClassAttribute("hover:underline text-sm")
 //        //end
 //
 //        convertedSource:Append(EOL + "};" + EOL)
+
+        //in the case where there are no parents or fields, make this a dummy action
+        convertedSource:Append(tab + tab + "return" + EOL)
+
         if clazz:IsProgramStartingClass()
             convertedSource:Append(EOL + EOL + "if __name__ == '__main__':" + EOL)
             convertedSource:Append("    starter_______ = " + clazz:ConvertStaticKeyToUnderScore() + "()" + EOL)
