@@ -165,20 +165,27 @@ class LoopOpcode is QuorumOpcode
         TranslateConstants constants
         text tabs = constants:GetTabText()
 
-        text hash = "$L" + GetHashCode() 
+        text hash = "_L" + GetHashCode() + "_"
         if isTimes
             text hashMiddleExpression = hash + "Mid"
-            result = result + tabs + "var " + hashMiddleExpression + " = " + expression:WritePython() + ":" + EOL
-            result = result + tabs + "for(var " + hash + "=0;" + hash + "<" + hashMiddleExpression + ";" + hash + "++) {" + EOL
+            result = result + tabs + hash + " = 0" + EOL
+            result = result + tabs + hashMiddleExpression + " = " + expression:WritePython() + EOL
+            result = result + tabs + "while " + hash + " < " + hashMiddleExpression + ":" + EOL
         elseif isUntil
-            result = result + tabs + "while (!(" + expression:WriteJavaScript() + ")):" + EOL
+            result = result + tabs + "while (not(" + expression:WritePython() + ")):" + EOL
         else //it's a while loop
-            result = result + tabs + "while (" + expression:WriteJavaScript() + "):" + EOL
+            result = result + tabs + "while (" + expression:WritePython() + "):" + EOL
 
         end
 
         constants:IncreaseTab()
         result = result + block:WritePython()
+
+        //the loop counter in python
+        if isTimes
+            //one extra tab
+            result = result + tabs + tabs:GetTab() + hash + " = " + hash + " + 1" + EOL
+        end
         constants:DecreaseTab()
         return result
     end
