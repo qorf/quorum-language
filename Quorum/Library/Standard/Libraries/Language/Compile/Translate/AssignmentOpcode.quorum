@@ -239,6 +239,9 @@ class AssignmentOpcode is QuorumOpcode
     action WritePython returns text 
         text result = ""
 
+        TranslateConstants constants
+        text tabs = constants:GetTabText()
+
         if isObjectField
             if variable:IsField()
                 Class p = variable:GetParentClass()
@@ -269,12 +272,9 @@ class AssignmentOpcode is QuorumOpcode
                 end
                 result = result + parentWithField:ConvertStaticKeyToParentFieldName() + "."
             end
-            result = result + variable:GetJavaScriptName()
+            result = result + tabs + variable:GetJavaScriptName()
         else
-//            if isNewAssignment
-//                result = result + "" 
-//            end
-            result = result + variable:GetJavaScriptName() 
+            result = result + tabs + variable:GetJavaScriptName() 
         end
         result = result + " = " + rightHandSide:WritePython()
         EOL = ""

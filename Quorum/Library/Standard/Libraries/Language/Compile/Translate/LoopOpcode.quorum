@@ -157,6 +157,32 @@ class LoopOpcode is QuorumOpcode
         //end
     end
 
+    action WritePython returns text
+        text result = ""
+
+        EOL = ""
+        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+        TranslateConstants constants
+        text tabs = constants:GetTabText()
+
+        text hash = "$L" + GetHashCode() 
+        if isTimes
+            text hashMiddleExpression = hash + "Mid"
+            result = result + tabs + "var " + hashMiddleExpression + " = " + expression:WritePython() + ":" + EOL
+            result = result + tabs + "for(var " + hash + "=0;" + hash + "<" + hashMiddleExpression + ";" + hash + "++) {" + EOL
+        elseif isUntil
+            result = result + tabs + "while (!(" + expression:WriteJavaScript() + ")):" + EOL
+        else //it's a while loop
+            result = result + tabs + "while (" + expression:WriteJavaScript() + "):" + EOL
+
+        end
+
+        constants:IncreaseTab()
+        result = result + block:WritePython()
+        constants:DecreaseTab()
+        return result
+    end
+
     action WriteJavaScript returns text
         text result = ""
 

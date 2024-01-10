@@ -47,13 +47,16 @@ class OutputOpcode is QuorumOpcode
         EOL = ""
         quote = EOL:GetDoubleQuote()
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+        TranslateConstants constants
+        text tabs = constants:GetTabText()
+
         opcodeResult = opcode:WritePython()
         text result = ""
         Type type = opcode:GetType()
         if type:IsBoolean()
-            result = "print(str(" + opcodeResult + ").lower())" + EOL
+            result = tabs + "print(str(" + opcodeResult + ").lower())" + EOL
         else
-            result = "print(" + opcodeResult + ")" + EOL
+            result = tabs + "print(" + opcodeResult + ")" + EOL
         end
         return result
     end

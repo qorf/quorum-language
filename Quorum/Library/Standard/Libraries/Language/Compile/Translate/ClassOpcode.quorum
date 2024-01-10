@@ -1746,27 +1746,32 @@ actLink:SetClassAttribute("hover:underline text-sm")
         EOL = ""
         quote = EOL:GetDoubleQuote()
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+        constant text TAB = EOL:GetTab()
+
+        TranslateConstants constants
+        constants:ResetTabs()
+        text tabs = constants:GetTabText()
+
         TextBuilder convertedSource
-        //text convertedSource = ""
 //        if clazz:IsProgramStartingClass()
 //            convertedSource:Append("var " + OUTPUT_VARIABLE + " = " + quote + quote + ";" + EOL)
 //        end
-//        convertedSource:Append(EOL + "function "
-//            + clazz:ConvertStaticKeyToUnderScore() + "(parents") 
-//
-//        //if this is a primitive wrapper, put in the wrapping code
-//        text value = clazz:GetStaticKey()
-//        if value = "Libraries.Language.Types.Integer"
-//            or value = "Libraries.Language.Types.Boolean"
-//            or value = "Libraries.Language.Types.Number"
-//            or value = "Libraries.Language.Types.Text"
-//            convertedSource:Append(", optional")
-//        end
-//
-//        convertedSource:Append(") {" + EOL)
-//        convertedSource:Append("this.prototype = this;" + EOL)
-//
-//        //write the parents
+        convertedSource:Append(EOL + "class "
+            + clazz:ConvertStaticKeyToUnderScore())// + "(parents") 
+
+        //if this is a primitive wrapper, put in the wrapping code
+        text value = clazz:GetStaticKey()
+        if value = "Libraries.Language.Types.Integer"
+            or value = "Libraries.Language.Types.Boolean"
+            or value = "Libraries.Language.Types.Number"
+            or value = "Libraries.Language.Types.Text"
+//            convertedSource:Append(", optional") //not sure here yet
+        end
+
+        convertedSource:Append(":" + EOL)
+        //convertedSource:Append("this.prototype = this;" + EOL)
+
+        //write the parents
 //        convertedSource:Append("this.parentNames_ = [")
 //        Iterator<Class> parents = clazz:GetParentClasses()
 //        repeat while parents:HasNext()
@@ -1855,6 +1860,7 @@ actLink:SetClassAttribute("hover:underline text-sm")
 //convertedSource:Append(thisParentAction)
 //        end
 
+        constants:IncreaseTab()
         Iterator<ActionOpcode> actionIterator = actions:GetIterator()
         repeat while actionIterator:HasNext()
             ActionOpcode act = actionIterator:Next()
@@ -2025,37 +2031,11 @@ actLink:SetClassAttribute("hover:underline text-sm")
 //        //end
 //
 //        convertedSource:Append(EOL + "};" + EOL)
-//        if clazz:IsProgramStartingClass()
-//            convertedSource:Append("var $starter;")
-//            convertedSource:Append("function Start(){" + EOL)
-//
-//            if clazz:IsStatic()
-//                convertedSource:Append("$starter = " +
-//                    "(global_Get_Shared_Class(" + quote + clazz:GetStaticKey() + quote +
-//                    ") == null ? global_Add_Shared_Class("+quote+clazz:GetStaticKey()+quote+
-//                    ", new "+clazz:ConvertStaticKeyToUnderScore()+"()) : global_Get_Shared_Class("+quote+clazz:GetStaticKey()+quote+"));"
-//                    + EOL)
-//            else
-//                convertedSource:Append("$starter = new " + 
-//                    clazz:ConvertStaticKeyToUnderScore() + "();" + EOL)
-//            end
-//            
-//            convertedSource:Append("$starter.Main();" + EOL)
-//            //convertedSource:Append(OUTPUT_VARIABLE + ";" + EOL)
-//            convertedSource:Append("}" + EOL)
-//
-//            convertedSource:Append("function Stop(){" + EOL)
-//            convertedSource:Append("   var manager = new quorum_Libraries_Game_GameStateManager_();" + EOL)
-//            convertedSource:Append("   var game = manager.GetGame();" + EOL)
-//            convertedSource:Append("   if ((game != null)) {" + EOL)
-//            convertedSource:Append("       game.Exit();" + EOL)
-//            convertedSource:Append("   }" + EOL)
-//            convertedSource:Append("   else if (typeof plugins_quorum_Libraries_Sound_Audio_ === " + quote + "function" + quote + " && typeof plugins_quorum_Libraries_Sound_Audio_.StopAllSources === " + quote + "function" + quote + ") {" + EOL)
-//            convertedSource:Append("       plugins_quorum_Libraries_Sound_Audio_.StopAllSources();" + EOL)
-//            convertedSource:Append("   }" + EOL)
-//            convertedSource:Append("   global_Empty_Shared_Classes();" + EOL)
-//            convertedSource:Append("}" + EOL)
-//        end
+        if clazz:IsProgramStartingClass()
+            convertedSource:Append(EOL + EOL + "if __name__ == '__main__':" + EOL)
+            convertedSource:Append("    starter_______ = " + clazz:ConvertStaticKeyToUnderScore() + "()" + EOL)
+            convertedSource:Append("    starter_______.Main()" + EOL)
+        end
 
         
         return convertedSource:ToText()

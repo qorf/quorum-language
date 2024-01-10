@@ -71,6 +71,30 @@ class ReturnOpcode is QuorumOpcode
         end
     end
 
+    action WritePython returns text 
+        text result = ""
+        EOL = ""
+        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+        TranslateConstants constants
+        text tabs = constants:GetTabText()
+
+        Type type = GetType()
+        if not type:IsVoid()
+            if returnValue not= undefined
+                //in the python version if the cast is implicit, we need to make it explicit
+                Type returnValueType = returnValue:GetType()
+                if returnValueType:IsInteger() and type:IsNumber()
+                    result = tabs + "return float(" + returnValue:WritePython() + ")" + EOL
+                else
+                    result = tabs + "return " + returnValue:WritePython() + EOL
+                end
+            end
+        else 
+            result = tabs + "return" + EOL
+        end
+        return result
+    end
+
     action WriteJavaScript returns text 
         text result = ""
         EOL = ""

@@ -195,6 +195,40 @@ class ConditionalOpcode is QuorumOpcode
         end
     end
 
+    action WritePython returns text
+        EOL = ""
+        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+        TranslateConstants constants
+        text tabs = constants:GetTabText()
+        text result = tabs + "if " + expression:WritePython() + ":" + EOL
+        constants:IncreaseTab()
+        result = result + block:WritePython()
+        constants:DecreaseTab()
+
+        i = 0
+        repeat elseIfExpressions:GetSize() times
+            QuorumOpcode elseIfOp = elseIfExpressions:Get(i)
+            BlockOpcode elseIfBlock = elseIfBlocks:Get(i)
+
+            result = result + tabs + "elif " + elseIfOp:WritePython() + ":" + EOL
+            constants:IncreaseTab()
+            result = result + elseIfBlock:WritePython()
+            constants:DecreaseTab()
+            i = i + 1
+        end
+        
+        if elseBlock not= undefined
+            if not elseBlock:IsEmpty()
+                result = result + tabs + "else:" + EOL
+                constants:IncreaseTab()
+                result = result + elseBlock:WritePython()
+                constants:DecreaseTab()
+            end
+        end
+
+        return result
+    end
+
     action WriteJavaScript returns text
         EOL = ""
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()

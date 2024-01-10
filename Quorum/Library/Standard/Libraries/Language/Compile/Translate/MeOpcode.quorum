@@ -38,6 +38,10 @@ class MeOpcode is QuorumOpcode
         methodWriter:VisitField(opcodes:GetGetField(), converted, hidden, convertedHiddenType)
     end
 
+    action WritePython returns text
+        return "self."
+    end
+
     action WriteJavaScript returns text
         return "this.prototype"
     end

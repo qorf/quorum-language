@@ -199,27 +199,30 @@ class ActionOpcode is QuorumOpcode
 
     action WritePython returns text
         text result = ""
-
-//        result = "this." + method:ConvertActionToJavaScriptName() + " = function "  + "("
-        
         EOL = result:GetCarriageReturn() + result:GetLineFeed()
-//        Iterator<Variable> parameters = method:GetParameterIterator()
-//        integer position = 1
-//        repeat while parameters:HasNext()
-//            Variable param = parameters:Next()
-//            result = result + param:GetJavaScriptName()
-//            if parameters:HasNext()
-//                result = result + ", "
-//            end
-//        end
-//        result = result + ") {
-//"
+
+        //tell the translator to move things over
+        TranslateConstants constants
+        text tabs = constants:GetTabText()
+
+        result = tabs + "def " + method:ConvertActionToPythonName() + "(self"
         
+        
+        Iterator<Variable> parameters = method:GetParameterIterator()
+        integer position = 1
+        repeat while parameters:HasNext()
+            Variable param = parameters:Next()
+            result = result + ", " + param:GetJavaScriptName()
+        end
+        result = result + "):
+"
+        constants:IncreaseTab()
         Iterator<QuorumOpcode> iterator = opcodeList:GetIterator()
         repeat while iterator:HasNext()
             QuorumOpcode opcode = iterator:Next()
             result = result + opcode:WritePython()
         end
+        constants:DecreaseTab()
 
 //        if method:IsSystem() //write to a Javascript plugin
 //            if not clazz:IsObject()

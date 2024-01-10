@@ -268,7 +268,7 @@ class BinaryOpcode is QuorumOpcode
 
         text rightResult = right:WritePython() 
 
-        result = leftResult + " " + operator + " " + rightResult
+        result = "(" + leftResult + " " + operator + " " + rightResult + ")"
 //        if leftType:IsText() and rightType:IsNumber()
 //            rightResult = "(global_number_converter_(" + rightResult + "))"
 //        elseif leftType:IsNumber() and rightType:IsText()
