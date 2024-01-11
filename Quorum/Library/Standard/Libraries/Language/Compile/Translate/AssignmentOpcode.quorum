@@ -242,6 +242,7 @@ class AssignmentOpcode is QuorumOpcode
         TranslateConstants constants
         text tabs = constants:GetTabText()
 
+        result = tabs
         if isObjectField
             if variable:IsField()
                 Class p = variable:GetParentClass()
@@ -272,9 +273,9 @@ class AssignmentOpcode is QuorumOpcode
                 end
                 result = result + parentWithField:ConvertStaticKeyToParentFieldName() + "."
             end
-            result = result + tabs + variable:GetJavaScriptName()
+            result = result + variable:GetJavaScriptName()
         else
-            result = result + tabs + variable:GetJavaScriptName() 
+            result = result + variable:GetJavaScriptName() 
         end
 
         //if the variable is a number and the RHS is an integer, python won't make this implicit, so cast

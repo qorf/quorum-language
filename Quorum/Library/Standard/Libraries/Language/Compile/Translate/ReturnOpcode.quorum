@@ -84,7 +84,7 @@ class ReturnOpcode is QuorumOpcode
                 //in the python version if the cast is implicit, we need to make it explicit
                 Type returnValueType = returnValue:GetType()
                 if returnValueType:IsInteger() and type:IsNumber()
-                    result = tabs + "return float(" + returnValue:WritePython() + ")" + EOL
+                    result = tabs + "return __builtins__.float(" + returnValue:WritePython() + ")" + EOL
                 else
                     result = tabs + "return " + returnValue:WritePython() + EOL
                 end

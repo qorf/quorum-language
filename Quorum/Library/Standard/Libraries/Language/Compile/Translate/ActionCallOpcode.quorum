@@ -534,8 +534,7 @@ class ActionCallOpcode is QuorumOpcode
             if autoBoxing not= undefined
                 result = result + autoBoxing:WritePython()
             end
-            EOL = ""
-            result = result + EOL
+            result = result
         else
             if field:IsField()
                 if isChainedCall

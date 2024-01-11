@@ -1988,11 +1988,13 @@ actLink:SetClassAttribute("hover:underline text-sm")
 //            end
 //        end
 //
+        constants:IncreaseTab()
         Iterator<QuorumOpcode> fieldIterator = fields:GetIterator()
         repeat while fieldIterator:HasNext()
             QuorumOpcode field = fieldIterator:Next()
-            convertedSource:Append(tab + tab + field:WritePython())
+            convertedSource:Append(field:WritePython())
         end
+        constants:DecreaseTab()
 
         //now that all of the parents have had their parent's set, 
         //call their constructors.

@@ -79,6 +79,9 @@ class ChainedActionCallOpcode is QuorumOpcode
 
     action WritePython returns text
         text result = ""
+        EOL = result:GetCarriageReturn() + result:GetLineFeed()
+        TranslateConstants constants
+        text tabs = constants:GetTabText()
         Iterator<ActionCallOpcode> it = ops:GetIterator()
         repeat while it:HasNext()
             ActionCallOpcode op = it:Next()
@@ -103,7 +106,7 @@ class ChainedActionCallOpcode is QuorumOpcode
             end
         end
         if isSoloCall
-            result = result// + ";" + result:GetCarriageReturn() + result:GetLineFeed()
+            result = tabs + result + EOL// + ";" + result:GetCarriageReturn() + result:GetLineFeed()
         end
 
         return result

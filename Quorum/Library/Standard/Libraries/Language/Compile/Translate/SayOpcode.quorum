@@ -50,6 +50,25 @@ class SayOpcode is QuorumOpcode
                 "(" + converter:ConvertTypeToBytecodeSignature(type) + ")V", false)
     end
 
+    /* This is incorrect and needs to be changed to speech. Need to check on this. */
+    action WritePython returns text
+        EOL = ""
+        quote = EOL:GetDoubleQuote()
+        EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
+        TranslateConstants constants
+        text tabs = constants:GetTabText()
+
+        opcodeResult = opcode:WritePython()
+        text result = ""
+        Type type = opcode:GetType()
+        if type:IsBoolean()
+            result = tabs + "print(__builtins__.str(" + opcodeResult + ").lower())" + EOL
+        else
+            result = tabs + "print(" + opcodeResult + ")" + EOL
+        end
+        return result
+    end
+
     action WriteJavaScript returns text
         text rhs = opcode:WriteJavaScript()
         text utterance = "$utterance = new SpeechSynthesisUtterance(" + rhs + ");"
