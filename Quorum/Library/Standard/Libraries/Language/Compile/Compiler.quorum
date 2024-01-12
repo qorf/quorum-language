@@ -614,7 +614,14 @@ class Compiler
                     Class cl = iterator:Next()
                     ClassOpcode op = library:GetOpcode(cl:GetStaticKey())
                     if op not= undefined
-                        classOpcodes:Add(op)
+                        if  cl:GetStaticKey() = "Libraries.Language.Types.Integer" or
+                            cl:GetStaticKey() = "Libraries.Language.Types.Number" or
+                            cl:GetStaticKey() = "Libraries.Language.Types.Text" or
+                            cl:GetStaticKey() = "Libraries.Language.Types.Boolean" or
+                            cl:GetStaticKey() = "Libraries.Language.Errors.InvalidLocationError" or
+                            cl:GetStaticKey() = "Libraries.Containers.Array"
+                            classOpcodes:Add(op)
+                        end
                     end
                 end
 

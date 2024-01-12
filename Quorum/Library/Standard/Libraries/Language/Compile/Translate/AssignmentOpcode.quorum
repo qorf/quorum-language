@@ -282,7 +282,7 @@ class AssignmentOpcode is QuorumOpcode
         Type lType = variable:GetType()
         Type rType = rightHandSide:GetType()
         if lType:IsNumber() and rType:IsInteger()
-            result = result + " = float(" + rightHandSide:WritePython() + ")"
+            result = result + " = __builtins__.float(" + rightHandSide:WritePython() + ")"
         else
             result = result + " = " + rightHandSide:WritePython()
         end

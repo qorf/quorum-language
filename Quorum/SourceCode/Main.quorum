@@ -221,10 +221,10 @@ class Main is NetworkExchangeListener
         File main
         File main2
         main:SetAbsolutePath(
-    "/Users/stefik/Repositories/quorum-language/Quorum/Library/Tests/TypeChecker/Pass/AutoboxIntObj.quorum")
+    "/Users/stefik/Repositories/quorum-language/Quorum/Library/Tests/Array/Pass/ArrayAdd.quorum")
         //main:SetWorkingDirectory("Library/Tests/Game/Pass")
         //main:SetPath("WebTest.quorum")
-        main2:SetAbsolutePath("/Users/stefik/Repositories/quorum-language/Quorum/Library/Tests/TypeChecker/Pass/AutoboxTempClass.quorum")
+        //main2:SetAbsolutePath("/Users/stefik/Repositories/quorum-language/Quorum/Library/Tests/TypeChecker/Pass/AutoboxTempClass.quorum")
         Array<File> files
 //        Array<File> compilerFiles = compilerRootFolder:GetDirectoryListing()
 //        i = 0
@@ -251,7 +251,7 @@ class Main is NetworkExchangeListener
 
         //files = main:GetParentDirectory():GetDirectoryListing()
         //files:Add(compilerRootFolder)
-        files:Add(main2)
+        //files:Add(main2)
 
         CompilerRequest request
         request:files = files
@@ -313,8 +313,11 @@ class Main is NetworkExchangeListener
                 File myOutput
                 myOutput:SetWorkingDirectory("Output/Run")
                 myOutput:SetPath("Result.py")
+                if not myOutput:Exists()
+                    myOutput:GetParentDirectory():CreateDirectories()
+                end
                 output "Outputting python with the result:"
-                output result:convertedPython
+                //output result:convertedPython
                 myOutput:Write(result:convertedPython)
                 output "File written."
             end

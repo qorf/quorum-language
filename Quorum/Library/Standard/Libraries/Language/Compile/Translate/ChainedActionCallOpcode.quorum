@@ -100,7 +100,7 @@ class ChainedActionCallOpcode is QuorumOpcode
             if wrapGetValue
                 text DQ = ""
                 DQ = DQ:GetDoubleQuote()
-                result = op:WritePython()//might need to wrap. Not sure yet.
+                result = result + op:WritePython()//might need to wrap. Not sure yet.
             else
                 result = result + op:WritePython()
             end
