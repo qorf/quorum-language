@@ -55,6 +55,26 @@ class AlertOpcode is QuorumOpcode
         methodWriter:VisitInstruction(opcodes:GetObjectThrow())
     end
 
+    action WritePython returns text
+        text result = ""
+        text EOL = result:GetCarriageReturn() + result:GetLineFeed()
+        TranslateConstants constants
+        text tabs = constants:GetTabText()
+
+        if opcode not= undefined
+            Type value = opcode:GetType()
+            if value:IsText()
+//                result = result + "var exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();" + EOL
+//                result = result + " exceptionInstance_.SetErrorMessage$quorum_text(" + opcode:WriteJavaScript() + ");" + EOL
+//                result = result +  "throw exceptionInstance_;" + EOL
+            else
+//                result = result +  "raise " + opcode:WriteJavaScript() + ";"
+            end
+        end
+
+        return result
+    end
+
     action WriteJavaScript returns text
         text result = ""
         text EOL = result:GetCarriageReturn() + result:GetLineFeed()

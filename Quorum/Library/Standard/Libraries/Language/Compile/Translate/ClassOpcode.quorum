@@ -1972,22 +1972,22 @@ actLink:SetClassAttribute("hover:underline text-sm")
 
 //        convertedSource:Append("}" + EOL)
 //
-//        if clazz:HasSystemAction() //this has a plugin, so instantiate it.
-//            //if this is a primitive wrapper, pass the actual primitive
-//            if clazz:GetStaticKey() = "Libraries.Language.Types.Boolean" or
-//               clazz:GetStaticKey() = "Libraries.Language.Types.Integer" or
-//               clazz:GetStaticKey() = "Libraries.Language.Types.Number" or
-//               clazz:GetStaticKey() = "Libraries.Language.Types.Text"
-//               convertedSource:Append("this." + clazz:GetPluginName() + 
-//                    " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(optional, this);" + EOL)
-//            else 
-//                if not clazz:IsObject()
-//                    convertedSource:Append("this." + clazz:GetPluginName() + 
-//                        " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(this);" + EOL)
-//                end
-//            end
-//        end
-//
+        if clazz:HasSystemAction() //this has a plugin, so instantiate it.
+            //if this is a primitive wrapper, pass the actual primitive
+            if clazz:GetStaticKey() = "Libraries.Language.Types.Boolean" or
+               clazz:GetStaticKey() = "Libraries.Language.Types.Integer" or
+               clazz:GetStaticKey() = "Libraries.Language.Types.Number" or
+               clazz:GetStaticKey() = "Libraries.Language.Types.Text"
+               convertedSource:Append(tab + tab + "self." + clazz:GetPluginName() + 
+                    " = " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "()" + EOL)
+            else 
+                if not clazz:IsObject()
+                    convertedSource:Append(tab + tab + "self." + clazz:GetPluginName() + 
+                        " = " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "()" + EOL)
+                end
+            end
+        end
+
         constants:IncreaseTab()
         Iterator<QuorumOpcode> fieldIterator = fields:GetIterator()
         repeat while fieldIterator:HasNext()

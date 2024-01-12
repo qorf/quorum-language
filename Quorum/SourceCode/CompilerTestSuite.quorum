@@ -180,11 +180,11 @@ class CompilerTestSuite is ProcessListener
         output "Testing"
         DateTime date
         start = date:GetEpochTime()
-        expressions:Test()
-        output expressions:GetName() + GetCurrentTestPassText()
+//        expressions:Test()
+//        output expressions:GetName() + GetCurrentTestPassText()
         
-//        typeChecks:Test()
-//        output typeChecks:GetName() + GetCurrentTestPassText()
+        typeChecks:Test()
+        output typeChecks:GetName() + GetCurrentTestPassText()
 //        
 //        typeChecksGenerated:Test()
 //        output typeChecksGenerated:GetName() + GetCurrentTestPassText()
@@ -200,7 +200,7 @@ class CompilerTestSuite is ProcessListener
 //        
 //        actionsChecks:Test()
 //        output actionsChecks:GetName() + GetCurrentTestPassText()
-//        
+        
 //        inheritanceChecks:Test()
 //        output inheritanceChecks:GetName() + GetCurrentTestPassText()
 //        

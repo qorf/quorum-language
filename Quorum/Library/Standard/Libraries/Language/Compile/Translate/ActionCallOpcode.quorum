@@ -475,7 +475,7 @@ class ActionCallOpcode is QuorumOpcode
             end
 
             if not pushOnMe //object call
-                text name = act:ConvertActionToJavaScriptName()
+                text name = act:ConvertActionToPythonName()
                 if field = undefined
                     if actionResolution:isCallOnPrimitive
                         text value = clazz:ConvertStaticKeyToJavaScriptName()
@@ -499,7 +499,7 @@ class ActionCallOpcode is QuorumOpcode
             else 
                 if isParentCall
                     if not parentToCallOn:IsObject()
-                        text t = "." + act:ConvertActionToJavaScriptName()
+                        text t = "." + act:ConvertActionToPythonName()
                         result = result + t + "("
                     else
                         if act:GetName() = "Equals"

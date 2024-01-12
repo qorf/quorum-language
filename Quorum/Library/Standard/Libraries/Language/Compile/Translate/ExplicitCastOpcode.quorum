@@ -36,6 +36,17 @@ class ExplicitCastOpcode is QuorumOpcode
     action SetOpcodeToCast(QuorumOpcode op)
         opcodeToCast = op
     end
+
+    action WritePython returns text
+        text DQ = ""
+        DQ = DQ:GetDoubleQuote()
+        if opcodeToCast not= undefined
+            Type type = GetType()
+            return opcodeToCast:WritePython()
+        else 
+            return ""
+        end
+    end
     
     action WriteJavaScript returns text
         text DQ = ""

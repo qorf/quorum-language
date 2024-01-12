@@ -339,9 +339,10 @@ class TypeCheckTester
         results:Add(0, "2")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
-action AutoBoxingAndMethodOverloadingNum
+    action AutoBoxingAndMethodOverloadingNum
         Array<File> files
         Array<text> results
         File main
@@ -350,6 +351,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "1.0")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action AutoboxBoolObj
@@ -364,6 +366,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action AutoboxBoolObjSemiWrapped
@@ -378,6 +381,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action AutoboxBoolean
@@ -392,6 +396,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "false")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action AutoboxBooleanSemiWrapped
@@ -406,6 +411,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "false")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action AutoboxIntObj
@@ -420,6 +426,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action AutoboxIntObjSemiWrapped
@@ -434,6 +441,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action AutoboxInteger
@@ -448,6 +456,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action AutoboxIntegerSemiWrapped
@@ -462,6 +471,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action AutoboxNumObj
@@ -476,6 +486,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "7.5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action AutoboxNumObjSemiWrapped
@@ -490,6 +501,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "7.5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action AutoboxNumber
@@ -504,6 +516,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "7.5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action AutoboxNumberSemiWrapped
@@ -518,6 +531,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "7.5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action AutoboxText
@@ -532,6 +546,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "text")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action AutoboxTextObj
@@ -546,6 +561,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "text")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action AutoboxTextObjSemiWrapped
@@ -560,6 +576,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "text")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action AutoboxTextSemiWrapped
@@ -574,6 +591,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "text")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action BooleanCompare 
@@ -585,6 +603,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action BooleanEquals 
@@ -597,6 +616,8 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "false")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
+        suite:TestPython(files, results)
     end
 
     action BooleanGetText 
@@ -609,6 +630,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "false")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CastFieldIntObjDest 
@@ -620,6 +642,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CastFieldIntObjSource 
@@ -631,6 +654,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CastFieldIntObjSourceDest 
@@ -642,6 +666,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CastFieldObjIntDest 
@@ -653,6 +678,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CastFieldObjIntSource 
@@ -664,6 +690,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CastFieldObjIntSourceDest 
@@ -675,6 +702,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CastLocalVarIntObj 
@@ -686,6 +714,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CastLocalVarObjInt 
@@ -697,6 +726,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CastParamIntObj 
@@ -708,6 +738,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CastParamObjInt 
@@ -719,6 +750,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CompareBugTest
@@ -732,6 +764,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(2, "Equal")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignBoolObjBoolObj
@@ -743,6 +776,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignBoolObjBoolean
@@ -754,6 +788,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignBoolObjObject
@@ -765,6 +800,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignBoolObjUndefined
@@ -776,6 +812,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignBooleanBoolObj
@@ -787,6 +824,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignBooleanBoolean
@@ -798,6 +836,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignBooleanObject
@@ -809,6 +848,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignBooleanText
@@ -820,6 +860,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignIntObjIntObj
@@ -831,6 +872,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignIntObjInteger
@@ -842,6 +884,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignIntObjObject
@@ -853,6 +896,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignIntObjUndefined
@@ -864,6 +908,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignIntegerIntObj
@@ -875,6 +920,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignIntegerInteger
@@ -886,6 +932,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignIntegerNumber
@@ -897,6 +944,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignIntegerObject
@@ -908,6 +956,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignIntegerText
@@ -919,6 +968,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignNumObjNumObj
@@ -930,6 +980,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignNumObjNumber
@@ -941,6 +992,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignNumObjObject
@@ -952,6 +1004,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignNumObjUndefined
@@ -963,6 +1016,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignNumberInteger
@@ -974,6 +1028,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignNumberNumObj
@@ -985,6 +1040,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignNumberNumber
@@ -996,6 +1052,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignNumberObject
@@ -1007,6 +1064,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignNumberText
@@ -1018,6 +1076,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignObjectBoolObj
@@ -1029,6 +1088,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignObjectBoolean
@@ -1040,6 +1100,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignObjectIntObj
@@ -1051,6 +1112,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignObjectInteger
@@ -1062,6 +1124,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignObjectNumObj
@@ -1073,6 +1136,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignObjectNumber
@@ -1084,6 +1148,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignObjectObject
@@ -1095,6 +1160,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignObjectText
@@ -1106,6 +1172,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignObjectTextObj
@@ -1117,6 +1184,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignObjectUndefined
@@ -1128,6 +1196,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignTextBoolean
@@ -1139,6 +1208,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignTextInteger 
@@ -1150,6 +1220,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignTextNumber
@@ -1161,6 +1232,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignTextObject
@@ -1172,6 +1244,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignTextText
@@ -1183,6 +1256,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignTextTextObj 
@@ -1194,6 +1268,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignTextUndefined
@@ -1205,6 +1280,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignTextObjObject
@@ -1216,6 +1292,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignTextObjText
@@ -1227,6 +1304,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignTextObjTextObj 
@@ -1238,6 +1316,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignTextObjUndefined
@@ -1249,6 +1328,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignBoolObjBoolObjField
@@ -1260,6 +1340,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignBoolObjBooleanField
@@ -1271,6 +1352,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignBoolObjObjectField
@@ -1282,6 +1364,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignBoolObjUndefinedField
@@ -1293,6 +1376,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignBooleanBoolObjField
@@ -1304,6 +1388,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignBooleanBooleanField
@@ -1315,6 +1400,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignBooleanObjectField
@@ -1326,6 +1412,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignBooleanTextField
@@ -1337,6 +1424,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignIntObjIntObjField
@@ -1348,6 +1436,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignIntObjIntegerField
@@ -1359,6 +1448,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignIntObjObjectField
@@ -1370,6 +1460,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignIntObjUndefinedField
@@ -1381,6 +1472,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignIntegerIntObjField
@@ -1392,6 +1484,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignIntegerIntegerField
@@ -1403,6 +1496,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignIntegerNumberField
@@ -1414,6 +1508,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignIntegerObjectField
@@ -1425,6 +1520,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignIntegerTextField
@@ -1436,6 +1532,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignNumObjNumObjField
@@ -1447,6 +1544,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignNumObjNumberField
@@ -1458,6 +1556,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignNumObjObjectField
@@ -1469,6 +1568,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignNumObjUndefinedField
@@ -1480,6 +1580,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignNumberIntegerField
@@ -1491,6 +1592,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignNumberNumObjField
@@ -1502,6 +1604,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignNumberNumberField
@@ -1513,6 +1616,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignNumberObjectField
@@ -1524,6 +1628,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignNumberTextField
@@ -1535,6 +1640,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignObjectBoolObjField
@@ -1546,6 +1652,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignObjectBooleanField
@@ -1557,6 +1664,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignObjectIntObjField
@@ -1568,6 +1676,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignObjectIntegerField
@@ -1579,6 +1688,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignObjectNumObjField
@@ -1590,6 +1700,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignObjectNumberField
@@ -1601,6 +1712,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignObjectObjectField
@@ -1612,6 +1724,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignObjectTextField
@@ -1623,6 +1736,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignObjectTextObjField
@@ -1634,6 +1748,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignObjectUndefinedField
@@ -1645,6 +1760,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignTextBooleanField
@@ -1656,6 +1772,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignTextIntegerField
@@ -1667,6 +1784,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignTextNumberField
@@ -1689,6 +1807,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignTextTextField
@@ -1700,6 +1819,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignTextTextObjField
@@ -1711,6 +1831,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignTextUndefinedField
@@ -1722,6 +1843,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignTextObjObjectField
@@ -1733,6 +1855,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignTextObjTextField
@@ -1755,6 +1878,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExpAssignTextObjUndefinedField
@@ -1766,6 +1890,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IndexOfPrefix 
@@ -1778,6 +1903,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "2")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ImpAssignTextUndefinedDirect
@@ -1789,6 +1915,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IndexOfPrefixIndex 
@@ -1801,6 +1928,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "3")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action InstanceTypeChildOfChild 
@@ -1821,6 +1949,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "false")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action InstanceTypeCurrent
@@ -1835,6 +1964,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action InstanceTypeDirectChild
@@ -1852,6 +1982,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "false")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action InstanceTypeDirectParent
@@ -1872,6 +2003,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action InstanceTypeObject
@@ -1892,6 +2024,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action InstanceTypeParentOfParent
@@ -1912,6 +2045,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IntegerBitCount
@@ -1924,6 +2058,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "7")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IntegerCompare
@@ -1935,6 +2070,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IntegerEquals
@@ -1947,6 +2083,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IntegerGetBinary
@@ -1959,6 +2096,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "101111101")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IntegerGetOctal
@@ -1971,6 +2109,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "575")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IntegerGetText
@@ -1983,6 +2122,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IntegerHighestOneBit
@@ -1995,6 +2135,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "256")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IntegerLeadingZeros
@@ -2007,6 +2148,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "23")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IntegerLowestOneBit
@@ -2019,6 +2161,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "1")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IntegerReverse
@@ -2033,6 +2176,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(3, "1048576000")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IntegerRotateLeft
@@ -2047,6 +2191,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(3, "1520")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IntegerRotateRight
@@ -2061,6 +2206,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(3, "95")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IntegerTrailingZeros
@@ -2075,6 +2221,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(3, "2")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action NumberCompare
@@ -2086,6 +2233,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action NumberEquals
@@ -2098,6 +2246,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action NumberGetHex
@@ -2110,6 +2259,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "0x1.4cccccccccccdp2")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action NumberGetInteger
@@ -2122,6 +2272,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action NumberGetText
@@ -2134,6 +2285,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "5.2")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action NumberIsInfinite
@@ -2146,6 +2298,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "false")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action NumberIsNotANumber
@@ -2158,6 +2311,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "false")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ReturningIntegerInPlaceOfNumber
@@ -2169,6 +2323,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "4.0")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextCompare
@@ -2187,6 +2342,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(7, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextCompareIgnoringCase
@@ -2205,6 +2361,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(7, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextContains
@@ -2219,6 +2376,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(3, "false")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextEndsWith
@@ -2245,6 +2403,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(3, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextEqualsIgnoringCase
@@ -2257,6 +2416,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextGetCharacter
@@ -2269,6 +2429,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "o")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextGetLength
@@ -2281,6 +2442,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextGetSubtext
@@ -2293,6 +2455,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "llo")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextGetSubtextWithEnd
@@ -2305,6 +2468,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "o")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextIndexOf
@@ -2319,6 +2483,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(3, "-1")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextIndexOfII
@@ -2337,6 +2502,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(7, "25")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextIsEmpty
@@ -2349,6 +2515,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextParseBoolean
@@ -2365,6 +2532,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(5, "false")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextParseInteger
@@ -2377,6 +2545,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "13")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextParseNumber
@@ -2389,6 +2558,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "13.5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextReplace
@@ -2401,6 +2571,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "help")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextSetAndGetValue
@@ -2412,6 +2583,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextStartsWith
@@ -2424,6 +2596,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextSpecialCR
@@ -2443,6 +2616,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, correct)
         results:Add(1, correct)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextSpecialDC
@@ -2457,6 +2631,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, correct)
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextSpecialLF
@@ -2476,6 +2651,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, correct)
         results:Add(1, correct)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextSpecialTAB
@@ -2490,6 +2666,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, correct)
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextSpecialUnicode
@@ -2502,6 +2679,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextSplit
@@ -2526,6 +2704,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(13, "one.")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextSplitII
@@ -2544,6 +2723,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(7, "4")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextToLowerCase
@@ -2556,6 +2736,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "hello")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextToUpperCase
@@ -2568,6 +2749,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "HELLO")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TextTrim
@@ -2580,6 +2762,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(1, "hello")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TypeInferenceBoolean
@@ -2591,6 +2774,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TypeInferenceBooleanAnd
@@ -2602,6 +2786,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "false")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TypeInferenceCast
@@ -2613,6 +2798,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "3")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TypeInferenceInteger
@@ -2624,6 +2810,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "3")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TypeInferenceLiterals
@@ -2638,6 +2825,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(3, "hello")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TypeInferenceNestedFunctionCalls
@@ -2649,6 +2837,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "4")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TypeInferenceNumber
@@ -2660,6 +2849,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "3.0")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TypeInferenceReturnTypesInt
@@ -2671,6 +2861,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "3")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TypeInferenceReturnTypesNum
@@ -2682,6 +2873,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "3.5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TypeInferenceText
@@ -2693,6 +2885,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "hello world")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     //FAIL TESTS
@@ -2706,6 +2899,7 @@ action AutoBoxingAndMethodOverloadingNum
         results:Add(0, "3.4")
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBoolObjIntObj
@@ -2715,6 +2909,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBoolObjIntObjField
@@ -2724,6 +2919,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBoolObjInteger
@@ -2733,6 +2929,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBoolObjIntegerField
@@ -2742,6 +2939,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBoolObjNumObj
@@ -2751,6 +2949,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBoolObjNumObjField
@@ -2760,6 +2959,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBoolObjNumber
@@ -2769,6 +2969,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBoolObjNumberField
@@ -2778,6 +2979,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBoolObjText
@@ -2787,6 +2989,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBoolObjTextField
@@ -2796,6 +2999,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBoolObjTextObj
@@ -2805,6 +3009,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBoolObjTextObjField
@@ -2814,6 +3019,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBooleanIntObj
@@ -2824,6 +3030,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBooleanIntObjField
@@ -2834,6 +3041,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBooleanInteger
@@ -2844,6 +3052,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBooleanIntegerField
@@ -2854,6 +3063,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBooleanNumObj
@@ -2864,6 +3074,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBooleanNumObjField
@@ -2874,6 +3085,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBooleanNumber
@@ -2884,6 +3096,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBooleanNumberField
@@ -2894,6 +3107,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBooleanTextObj
@@ -2904,6 +3118,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBooleanTextObjField
@@ -2914,6 +3129,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBooleanUndefined
@@ -2924,6 +3140,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignBooleanUndefinedField
@@ -2934,6 +3151,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignIntObjBoolObj
@@ -2943,6 +3161,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignIntObjBoolObjField
@@ -2952,6 +3171,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignIntObjBoolean
@@ -2961,6 +3181,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignIntObjBooleanField
@@ -2970,6 +3191,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignIntObjNumObj
@@ -2979,6 +3201,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignIntObjNumObjField
@@ -2988,6 +3211,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignIntObjNumber
@@ -2997,6 +3221,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignIntObjNumberField
@@ -3006,6 +3231,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignIntObjText
@@ -3015,6 +3241,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignIntObjTextField
@@ -3024,6 +3251,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignIntObjTextObj
@@ -3033,6 +3261,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignIntObjTextObjField
@@ -3042,6 +3271,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignIntegerBoolObj
@@ -3051,6 +3281,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignIntegerBoolObjField
@@ -3060,6 +3291,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
     
     action ExpAssignIntegerNumObj
@@ -3069,6 +3301,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignIntegerNumObjField
@@ -3078,6 +3311,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignIntegerBoolean
@@ -3087,6 +3321,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignIntegerBooleanField
@@ -3096,6 +3331,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignIntegerTextObj
@@ -3105,6 +3341,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignIntegerTextObjField
@@ -3114,6 +3351,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignIntegerUndefined
@@ -3123,6 +3361,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignIntegerUndefinedField
@@ -3132,6 +3371,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignNumObjBoolObj
@@ -3141,6 +3381,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignNumObjBoolObjField
@@ -3150,6 +3391,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignNumObjBoolean
@@ -3159,6 +3401,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignNumObjBooleanField
@@ -3168,6 +3411,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignNumObjIntObj
@@ -3177,6 +3421,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignNumObjIntObjField
@@ -3186,6 +3431,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignNumObjInteger
@@ -3195,6 +3441,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignNumObjIntegerField
@@ -3204,6 +3451,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignNumObjText
@@ -3213,6 +3461,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignNumObjTextField
@@ -3222,6 +3471,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignNumObjTextObj
@@ -3231,6 +3481,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignNumObjTextObjField
@@ -3249,6 +3500,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignNumberBoolObjField
@@ -3258,6 +3510,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignNumberBoolean
@@ -3267,6 +3520,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignNumberBooleanField
@@ -3276,6 +3530,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignNumberIntObj
@@ -3285,6 +3540,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignNumberIntObjField
@@ -3294,6 +3550,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignNumberTextObj
@@ -3303,6 +3560,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignNumberTextObjField
@@ -3312,6 +3570,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignNumberUndefined
@@ -3321,6 +3580,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignNumberUndefinedField
@@ -3330,6 +3590,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignTextBoolObj
@@ -3339,6 +3600,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignTextBoolObjField
@@ -3348,6 +3610,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignTextIntObj
@@ -3366,6 +3629,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignTextNumObj
@@ -3375,6 +3639,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignTextNumObjField
@@ -3384,6 +3649,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignTextObjBoolObj
@@ -3393,6 +3659,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignTextObjBoolObjField
@@ -3402,6 +3669,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignTextObjBoolean
@@ -3411,6 +3679,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignTextObjBooleanField
@@ -3420,6 +3689,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignTextObjIntObj
@@ -3429,6 +3699,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignTextObjIntObjField
@@ -3438,6 +3709,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignTextObjInteger
@@ -3447,6 +3719,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignTextObjIntegerField
@@ -3456,6 +3729,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignTextObjNumObj
@@ -3465,6 +3739,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignTextObjNumObjField
@@ -3474,6 +3749,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignTextObjNumber
@@ -3483,6 +3759,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignTextObjNumberField
@@ -3492,6 +3769,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignUndefinedObject
@@ -3501,6 +3779,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ExpAssignUndefinedObjectField
@@ -3510,6 +3789,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action InstanceTypeUnrelatedTypes
@@ -3519,6 +3799,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action PrimitiveTextGetValue
@@ -3528,6 +3809,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action PrimitiveTextSetValue
@@ -3537,6 +3819,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action TypeInferenceDifferentLiteralTypes
@@ -3546,6 +3829,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action TypeInferenceDifferentReturnTypes
@@ -3555,6 +3839,7 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action TypeInferenceDifferentTypes
@@ -3564,7 +3849,6 @@ action AutoBoxingAndMethodOverloadingNum
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
-
 end
-

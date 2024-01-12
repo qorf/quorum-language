@@ -607,6 +607,17 @@ class Compiler
             elseif request:GetOutputType() = PYTHON
                 //first copy all of the standard library opcodes into the array
                 Array<ClassOpcode> classOpcodes = theOpcodes:CopyToValueArray()
+
+                //temporarily, let's write the library to disk
+                Iterator<Class> iterator = table:GetClasses()
+                repeat while iterator:HasNext()
+                    Class cl = iterator:Next()
+                    ClassOpcode op = library:GetOpcode(cl:GetStaticKey())
+                    if op not= undefined
+                        classOpcodes:Add(op)
+                    end
+                end
+
                 convertedPython = CompileToPython(classOpcodes, request, m)
                 result:convertedPython = convertedPython
                 if request:writePythonToDisk
@@ -1083,30 +1094,30 @@ There are many ways to load canvases and this is provided only as an exemplar.
             end
 
             //check if this class has a plugin. If it does, include it.
-//            if clazz:HasSystemAction()
-//                File folder = GetStandardLibraryFolder() 
-//                path = folder:GetPath() + "/Plugins/javascript/"
-//
-//                key = clazz:GetStaticKey()
-//                Array<text> keys = key:Split("\.")
-//                i = 0
-//                repeat keys:GetSize() times
-//                    newKey = keys:Get(i)
-//                    if i = keys:GetSize() - 1
-//                        path = path + newKey + ".js"
-//                    else
-//                        path = path + newKey + "/"
-//                    end
-//                    i = i + 1
-//                end
-//                File location
-//                location:SetWorkingDirectory(folder:GetWorkingDirectory())
-//                location:SetPath(path)
-//                if location:Exists() 
-//                    value = location:Read()
-//                    plugins = plugins + value + value:GetCarriageReturn() + value:GetLineFeed()
-//                end
-//            end
+            if clazz:HasSystemAction()
+                File folder = GetStandardLibraryFolder() 
+                path = folder:GetPath() + "/Plugins/python/"
+
+                key = clazz:GetStaticKey()
+                Array<text> keys = key:Split("\.")
+                i = 0
+                repeat keys:GetSize() times
+                    newKey = keys:Get(i)
+                    if i = keys:GetSize() - 1
+                        path = path + newKey + ".py"
+                    else
+                        path = path + newKey + "/"
+                    end
+                    i = i + 1
+                end
+                File location
+                location:SetWorkingDirectory(folder:GetWorkingDirectory())
+                location:SetPath(path)
+                if location:Exists() 
+                    value = location:Read()
+                    plugins = plugins + value + value:GetCarriageReturn() + value:GetLineFeed()
+                end
+            end
         end
         return plugins + result + main
     end
