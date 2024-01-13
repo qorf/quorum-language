@@ -93,6 +93,7 @@ class InheritanceTester
         results:Add(1, "12")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action AssignToParentsVariable 
@@ -113,6 +114,7 @@ class InheritanceTester
         results:Add(3, "117")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ButtonName 
@@ -124,6 +126,7 @@ class InheritanceTester
         results:Add(0, "Unnamed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CallInheritedAction 
@@ -146,6 +149,7 @@ class InheritanceTester
         results:Add(2, "implemented by B")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CallInheritedActionFieldAssignment
@@ -168,6 +172,7 @@ class InheritanceTester
         results:Add(2, "implemented by B")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CallMethodCallingBlueprint
@@ -185,6 +190,7 @@ class InheritanceTester
         results:Add(0, "child")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CallMethodCallingInheritedBlueprint
@@ -205,6 +211,7 @@ class InheritanceTester
         results:Add(0, "grandchild")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CheckCast
@@ -223,6 +230,7 @@ class InheritanceTester
         results:Add(0, "hi")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action DerivedCall 
@@ -240,6 +248,7 @@ class InheritanceTester
         results:Add(0, "This is We Win.")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action DogMain 
@@ -258,6 +267,7 @@ class InheritanceTester
         results:Add(1, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action GetParentFieldMain
@@ -273,6 +283,7 @@ class InheritanceTester
         results:Add(0, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action InheritedTemplatedMethods 
@@ -299,6 +310,7 @@ class InheritanceTester
         results:Add(3, "10")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action InheritanceOverloadingMain 
@@ -317,6 +329,7 @@ class InheritanceTester
         results:Add(1, "SubClass")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IsTestMain 
@@ -337,6 +350,7 @@ class InheritanceTester
         results:Add(0, "a is b")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action MainGetParentFieldCast
@@ -355,6 +369,7 @@ class InheritanceTester
         results:Add(0, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action MainSetParentFieldCast
@@ -373,6 +388,7 @@ class InheritanceTester
         results:Add(0, "4")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action MeTest 
@@ -395,6 +411,7 @@ class InheritanceTester
         results:Add(1, "B-Foo!")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action MultipleInheritanceCallingAmbiguousBlueprints 
@@ -418,6 +435,7 @@ class InheritanceTester
         results:Add(0, "grandchild")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action OnCreatePolymorphism 
@@ -438,6 +456,7 @@ class InheritanceTester
         results:Add(0, "From-C!")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action OutputParentValue 
@@ -456,6 +475,7 @@ class InheritanceTester
         results:Add(1, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action OutputParentFieldMain
@@ -471,6 +491,7 @@ class InheritanceTester
         results:Add(0, "10")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action OutputParentValueField
@@ -489,6 +510,7 @@ class InheritanceTester
         results:Add(1, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action OutputParentValueClass
@@ -507,6 +529,7 @@ class InheritanceTester
         results:Add(1, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ParentActionCall 
@@ -518,6 +541,7 @@ class InheritanceTester
         results:Add(0, "success")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
    
     action ParentFullyQualified 
@@ -529,6 +553,7 @@ class InheritanceTester
         results:Add(0, "success")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action SimpleCast 
@@ -549,6 +574,7 @@ class InheritanceTester
         results:Add(0, "implemented by B")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action SystemActionInherit 
@@ -560,6 +586,7 @@ class InheritanceTester
         results:Add(0, "success")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TruckMain 
@@ -581,6 +608,7 @@ class InheritanceTester
         results:Add(1, "Size of gas tank (gallons): 20")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ParentActionTest2 
@@ -599,6 +627,7 @@ class InheritanceTester
         results:Add(0, "x = 1")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action StaticClassTest 
@@ -611,6 +640,7 @@ class InheritanceTester
         results:Add(1, "True")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
 //FAIL Tests
@@ -630,6 +660,7 @@ class InheritanceTester
         files:Add(dependent3)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action CircularInheritance 
@@ -648,6 +679,7 @@ class InheritanceTester
         files:Add(dependent3)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action BadTemplate 
@@ -666,6 +698,7 @@ class InheritanceTester
         files:Add(dependent3)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action InvalidParentName 
@@ -678,6 +711,7 @@ class InheritanceTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ParentActionNotExist
@@ -692,6 +726,7 @@ class InheritanceTester
         files:Add(dependent1)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action OutputPrivateParentValue() 
@@ -708,6 +743,7 @@ class InheritanceTester
         files:Add(dependent2)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action UseInvalidVariable
@@ -722,6 +758,7 @@ class InheritanceTester
         files:Add(dependent2)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action UsePrivateVariable
@@ -736,6 +773,7 @@ class InheritanceTester
         files:Add(dependent2)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action UsePrivateAction
@@ -750,6 +788,7 @@ class InheritanceTester
         files:Add(dependent2)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action UsePrivateActionSoloCall
@@ -764,6 +803,7 @@ class InheritanceTester
         files:Add(dependent2)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action WrongBlueprint
@@ -780,6 +820,7 @@ class InheritanceTester
         files:Add(dependent3)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ForgotBlueprint
@@ -796,5 +837,6 @@ class InheritanceTester
         files:Add(dependent3)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 end

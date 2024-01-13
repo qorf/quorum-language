@@ -1725,6 +1725,10 @@ class Class is Symbol
         end
     end
 
+    action GetParentSize returns integer
+        return parents:GetSize()
+    end
+
     /*
         This action returns the order in which parents should be instantiated.
         It provides an optimal ordering to ensure children do not get created 

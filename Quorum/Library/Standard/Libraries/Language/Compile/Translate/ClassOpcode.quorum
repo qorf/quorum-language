@@ -1774,7 +1774,7 @@ actLink:SetClassAttribute("hover:underline text-sm")
 
         //write the parents
 //        convertedSource:Append("this.parentNames_ = [")
-//        Iterator<Class> parents = clazz:GetParentClasses()
+        Iterator<Class> parents = clazz:GetParentClasses()
 //        repeat while parents:HasNext()
 //            Class p = parents:Next()
 //            text parentKey = p:GetStaticKey()
@@ -1800,66 +1800,76 @@ actLink:SetClassAttribute("hover:underline text-sm")
 //            convertedSource:Append("this.myHash = 0;" + EOL)
 //        end
 //
-//        if clazz:HasConstructor()
-//            convertedSource:Append(constructor:WriteJavaScript())
-//        end
+        if clazz:HasConstructor()
+            constants:IncreaseTab()
+            convertedSource:Append(constructor:WritePython())
+            constants:DecreaseTab()
+        end
 //
-//        Iterator<Action> it = clazz:GetParentActions()
-//        text tempParentActions = ""
-//        repeat while it:HasNext()
-//            Action act = it:Next()
-//            text thisParentAction = ""
-//            Class parentOfMethod = act:GetParentClass()
-//            thisParentAction = thisParentAction + "this." + act:ConvertActionToJavaScriptName()
-//                + " = function("
-//
-//            Iterator<Variable> params = act:GetParameterIterator()
-//            repeat while params:HasNext()
-//                Variable param = params:Next()
-//                thisParentAction = thisParentAction + param:GetJavaScriptName()
+        Iterator<Action> it = clazz:GetParentActions()
+        text tempParentActions = ""
+        repeat while it:HasNext()
+            Action act = it:Next()
+            text thisParentAction = ""
+            Class parentOfMethod = act:GetParentClass()
+            thisParentAction = thisParentAction + tab + "def " + act:ConvertActionToPythonName()
+                + "(self"
+
+            Iterator<Variable> params = act:GetParameterIterator()
+            repeat while params:HasNext()
+                Variable param = params:Next()
+                thisParentAction = thisParentAction + ", " + param:GetJavaScriptName()
 //                if params:HasNext()
 //                    thisParentAction = thisParentAction + ", "
 //                end
-//            end
-//
-//            if not parentOfMethod:IsObject()
-//                thisParentAction = thisParentAction + ") {" + EOL
-//                    + "     return this." + parentOfMethod:ConvertStaticKeyToParentFieldName() + "." 
-//            else 
-//                //call one of the global functions
-//                thisParentAction = thisParentAction  + ") {" + EOL
-//                if act:GetName() = "Equals"
-//                    thisParentAction = thisParentAction  + "return global_Object_Equals(this.prototype, "
-//                elseif act:GetName() = "GetHashCode"
-//                    thisParentAction = thisParentAction  + "return global_Object_GetHashCode(this.prototype, "
-//                elseif act:GetName() = "Compare"
-//                    thisParentAction = thisParentAction  + "return global_Object_Compare(this.prototype, "
-//                end
-//            end
-//
-//            text paramListText = ""
-//
-//            //if this is a parent object call, wrap in the this.prototype
-//            if not parentOfMethod:IsObject()
-//                paramListText = act:ConvertActionToJavaScriptName() + "("
-//            end
-//
-//            params = act:GetParameterIterator()
-//            repeat while params:HasNext()
-//                Variable param = params:Next()
-//                paramListText = paramListText + param:GetJavaScriptName()
-//                if params:HasNext()
-//                    paramListText = paramListText + ", "
-//                end
-//            end
-//
-//            paramListText = paramListText + ");"
-//            thisParentAction = thisParentAction + paramListText
-//                  + EOL 
-//                + "}" + EOL
-//            
-//convertedSource:Append(thisParentAction)
-//        end
+            end
+
+            boolean dontWrapParams = false
+            if not parentOfMethod:IsObject()
+                thisParentAction = thisParentAction + "):" + EOL
+                    + tab + tab + "return self." + parentOfMethod:ConvertStaticKeyToParentFieldName() + "." 
+            else 
+                //call one of the global functions
+                thisParentAction = thisParentAction  + "):" + EOL
+                dontWrapParams = true
+                if act:GetName() = "Equals"
+                    thisParentAction = thisParentAction  + tab + tab + "return (hash() == object.hash())" + EOL
+                elseif act:GetName() = "GetHashCode"
+                    thisParentAction = thisParentAction  + tab + tab + "return hash()" + EOL
+                elseif act:GetName() = "Compare"
+                    thisParentAction = thisParentAction  + tab + tab + 
+                    "if hash() == object.hash():" + EOL
+                    + tab + tab + tab + "return 0" + EOL
+                    + tab + tab + "elif hash() > object.hash():" + EOL
+                    + tab + tab + tab + "return 1" + EOL
+                    + tab + tab + "else:" + EOL
+                    + tab + tab + tab + "return -1" + EOL
+                end
+            end
+
+            text paramListText = ""
+            if not dontWrapParams
+                //if this is a parent object call, wrap in the this.prototype
+                if not parentOfMethod:IsObject()
+                    paramListText = act:ConvertActionToPythonName() + "("
+                end
+    
+                params = act:GetParameterIterator()
+                repeat while params:HasNext()
+                    Variable param = params:Next()
+                    paramListText = paramListText + ", " + param:GetJavaScriptName()
+    //                if params:HasNext()
+    //                    paramListText = paramListText + ", "
+    //                end
+                end
+    
+                paramListText = paramListText + ")"
+                thisParentAction = thisParentAction + paramListText
+                      + EOL 
+                      + EOL
+            end
+            convertedSource:Append(thisParentAction)
+        end
 
         constants:IncreaseTab()
         Iterator<ActionOpcode> actionIterator = actions:GetIterator()
@@ -1886,89 +1896,94 @@ actLink:SetClassAttribute("hover:underline text-sm")
             convertedSource:Append(tab + tab + "self." + variable:GetJavaScriptName() + " = value" + EOL)
         end
 //
-//        //write the actions for parent fields
-//        if not clazz:IsError() //errors are special, don't write these
-//            text tempGetterSetter = ""
-//            Iterator<Class> parentClasses = clazz:GetParentClasses()
-//            repeat while parentClasses:HasNext()
-//                Class p = parentClasses:Next()
-//                if not p:IsObject() //Not for objects in Quorum-11
-//                    text parentKey = p:GetStaticKey()
-//                    Iterator<Variable> parentFieldIterator = p:GetVariables()
-//                    repeat while parentFieldIterator:HasNext()
-//                        Variable variable = parentFieldIterator:Next()
-//                        Type type = variable:GetType()
-//                        text getter = p:ConvertToActionNameFromField(variable, true)
-//                        text setter = p:ConvertToActionNameFromField(variable, false)
-//    
-//                        text thisTempGetterSetter = ""
-//                        //the getter
-//                        thisTempGetterSetter = "this." + getter + " = function() {" + EOL
-//                             + "   return this." + p:ConvertStaticKeyToParentFieldName() + "." + getter + "();" + EOL
-//                             + "};" + EOL
-//    
-//                        //the setter
-//                        thisTempGetterSetter = thisTempGetterSetter + "this." + setter + " = function(value) {" + EOL
-//                             + "   this." + p:ConvertStaticKeyToParentFieldName() + "." + setter + "(value);" + EOL
-//                             + "};" + EOL
-//
-//                        tempGetterSetter = tempGetterSetter + thisTempGetterSetter
-//                    end
-//                end
-//            end
-//
-//            if not tempGetterSetter:IsEmpty()
-//                convertedSource:Append(tempGetterSetter)
-//            end
-//        end
+        //write the actions for parent fields
+        if not clazz:IsError() //errors are special, don't write these
+            text tempGetterSetter = ""
+            Iterator<Class> parentClasses = clazz:GetParentClasses()
+            repeat while parentClasses:HasNext()
+                Class p = parentClasses:Next()
+                if not p:IsObject() //Not for objects in Quorum-11
+                    text parentKey = p:GetStaticKey()
+                    Iterator<Variable> parentFieldIterator = p:GetVariables()
+                    repeat while parentFieldIterator:HasNext()
+                        Variable variable = parentFieldIterator:Next()
+                        Type type = variable:GetType()
+                        text getter = p:ConvertToActionNameFromField(variable, true)
+                        text setter = p:ConvertToActionNameFromField(variable, false)
+    
+                        text thisTempGetterSetter = ""
+                        //the getter
+                        thisTempGetterSetter = tab + "def " + getter + "(self):" + EOL
+                             + tab + tab + "return self." + p:ConvertStaticKeyToParentFieldName() + "." + getter + "()" + EOL + EOL
+    
+                        //the setter
+                        thisTempGetterSetter = thisTempGetterSetter + tab + "def " + setter + "(self):" + EOL
+                             + tab + tab + "self." + p:ConvertStaticKeyToParentFieldName() + "." + setter + "(value)" + EOL
+                             + EOL
+
+                        tempGetterSetter = tempGetterSetter + thisTempGetterSetter
+                    end
+                end
+            end
+
+            if not tempGetterSetter:IsEmpty()
+                convertedSource:Append(tempGetterSetter)
+            end
+        end
 
         //Add an initialization area for fields and parents in python mode
-        convertedSource:Append(tab + "def __init__(self):" + EOL)
+        convertedSource:Append(tab + "def __init__(self, parents = 0):" + EOL)
         boolean hasFieldOrParent = false
-//
-//        //initialize all of the parent objects as values, if appropriate
-//        convertedSource:Append("if(parents == null) {" + EOL)
-//        parents = clazz:GetParentCreationOrder()
-//        repeat while parents:HasNext()
-//            Class p = parents:Next()
-//            if not p:IsObject()
-//                text parentKey = p:GetStaticKey()
-//                text parentName = p:ConvertStaticKeyToParentFieldName()
-//                convertedSource:Append("   this." + parentName + " = new " 
-//                    + p:ConvertStaticKeyToJavaScriptName() + "(false);" + EOL)
-//            end
-//        end
+
+        //initialize all of the parent objects as values, if appropriate
+        parents = clazz:GetParentCreationOrder()
+        if parents:HasNext()
+            
+            if clazz:GetParentSize() > 1 //more than object
+                convertedSource:Append(tab + tab + "if parents == 0:" + EOL) 
+            end
+            
+            repeat while parents:HasNext()
+                Class p = parents:Next()
+                if not p:IsObject()
+                    text parentKey = p:GetStaticKey()
+                    text parentName = p:ConvertStaticKeyToParentFieldName()
+                    convertedSource:Append(tab + tab + tab + "self." + parentName + " = " 
+                        + p:ConvertStaticKeyToJavaScriptName() + "(0)" + EOL)
+                end
+            end
+        end
 
         //now that all parents have been instantiated, get 
         //their parents and set them appropriately
-//        parents = clazz:GetParentCreationOrder()
-//        repeat while parents:HasNext()
-//            Class p = parents:Next()
-//            if not p:IsObject() //Not in Quorum-11
-//                text parentKey = p:GetStaticKey()
-//                text parentName = p:ConvertStaticKeyToParentFieldName()
-//                text convertedParentName = p:ConvertStaticKeyToBytecodePath()
-//                text convertedParentNameType = p:ConvertStaticKeyToBytecodePathTypeName()
-//    
-//                Iterator<Class> grandParents = p:GetParentClasses()
-//                repeat while grandParents:HasNext()
-//                    Class grandParent = grandParents:Next()
-//                    text grandParentKey = grandParent:GetStaticKey()
-//                    text grandParentName = grandParent:ConvertStaticKeyToParentFieldName()
-//                    text convertedGrandParent = grandParent:ConvertStaticKeyToBytecodePathTypeName()
-//                    
-//                    if not p:IsObject() and not grandParent:IsObject()
-//                    convertedSource:Append("   this." + parentName + "." + grandParentName + 
-//                        " = this." +  grandParentName + ";" + EOL)
-//                    end
-//
-//                    if not p:IsObject() 
-//                        convertedSource:Append("   this." + parentName 
-//                            + ".prototype = this;"  + EOL)
-//                    end
-//                end
-//            end
-//        end
+        parents = clazz:GetParentCreationOrder()
+        repeat while parents:HasNext()
+            Class p = parents:Next()
+            if not p:IsObject() //Not in Quorum-11
+                text parentKey = p:GetStaticKey()
+                text parentName = p:ConvertStaticKeyToParentFieldName()
+                text convertedParentName = p:ConvertStaticKeyToBytecodePath()
+                text convertedParentNameType = p:ConvertStaticKeyToBytecodePathTypeName()
+    
+                Iterator<Class> grandParents = p:GetParentClasses()
+                repeat while grandParents:HasNext()
+                    Class grandParent = grandParents:Next()
+                    text grandParentKey = grandParent:GetStaticKey()
+                    text grandParentName = grandParent:ConvertStaticKeyToParentFieldName()
+                    text convertedGrandParent = grandParent:ConvertStaticKeyToBytecodePathTypeName()
+                    
+                    if not p:IsObject() and not grandParent:IsObject()
+                    convertedSource:Append(tab + tab + tab + "self." + parentName + "." + grandParentName + 
+                        " = self." +  grandParentName + EOL)
+                    end
+
+                    if not p:IsObject() 
+                        convertedSource:Append(tab + tab + tab + "self." + parentName 
+                            + ".me = self"  + EOL)
+                    end
+                end
+            end
+        end
 
 //        convertedSource:Append("}" + EOL)
 //
