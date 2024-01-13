@@ -503,11 +503,11 @@ class ActionCallOpcode is QuorumOpcode
                         result = result + t + "("
                     else
                         if act:GetName() = "Equals"
-                            result = result + "global_Object_Equals(this.prototype, "
+                            result = result + "self.me_.Equals__quorum_Libraries_Language_Object("
                         elseif act:GetName() = "GetHashCode"
-                            result = result + "global_Object_GetHashCode(this.prototype, "
+                            result = result + "self.me_.GetHashCode("
                         elseif act:GetName() = "Compare"
-                            result = result + "global_Object_Compare(this.prototype, "
+                            result = result + "self.me_.Compare__quorum_Libraries_Language_Object("
                         end
                     end
                 else

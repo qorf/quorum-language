@@ -61,6 +61,16 @@ class IsOpcode is QuorumOpcode
         methodWriter:VisitType(opcodes:GetInstanceOf(), theType)
     end
 
+    action WritePython returns text
+        text result = "("
+        if opcode not= undefined
+            result = result + "'" + castTo:GetStaticKey() + "'"
+            Type type = opcode:GetType()
+            result = result + " in " + opcode:WritePython() + ".me_.inheritance_"
+        end
+        return result + ")"
+    end
+
     action WriteJavaScript returns text
         text result = "global_InstanceOf("
         if opcode not= undefined

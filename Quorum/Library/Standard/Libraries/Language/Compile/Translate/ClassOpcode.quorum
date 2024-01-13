@@ -1812,16 +1812,19 @@ actLink:SetClassAttribute("hover:underline text-sm")
             Action act = it:Next()
             text thisParentAction = ""
             Class parentOfMethod = act:GetParentClass()
+            if parentOfMethod:IsObject()
+                a = 5
+            end
             thisParentAction = thisParentAction + tab + "def " + act:ConvertActionToPythonName()
                 + "(self"
 
             Iterator<Variable> params = act:GetParameterIterator()
             repeat while params:HasNext()
                 Variable param = params:Next()
-                thisParentAction = thisParentAction + param:GetJavaScriptName()
-                if params:HasNext()
-                    thisParentAction = thisParentAction + ", "
-                end
+                thisParentAction = thisParentAction + ", " + param:GetJavaScriptName()
+//                if params:HasNext()
+//                    thisParentAction = thisParentAction + ", "
+//                end
             end
 
             boolean dontWrapParams = false
@@ -1934,6 +1937,17 @@ actLink:SetClassAttribute("hover:underline text-sm")
         //Add an initialization area for fields and parents in python mode
         convertedSource:Append(tab + "def __init__(self, parents = 0):" + EOL)
         convertedSource:Append(tab + tab + "self.me_ = self" + EOL)
+
+        convertedSource:Append(tab + tab + "self.inheritance_ = {")
+        parents = clazz:GetParentClasses()
+        repeat while parents:HasNext()
+            Class p = parents:Next()
+            text parentKey = p:GetStaticKey()
+            convertedSource:Append("'" + parentKey + "', ")
+        end
+        convertedSource:Append(" '" + clazz:GetStaticKey() + "'}" + EOL)
+
+
         boolean hasFieldOrParent = false
 
         //initialize all of the parent objects as values, if appropriate
@@ -2013,26 +2027,33 @@ actLink:SetClassAttribute("hover:underline text-sm")
         constants:DecreaseTab()
 
         //now that all of the parents have had their parent's set, 
-        //call their constructors.
-//        convertedSource:Append(EOL + "if(parents == null) {" + EOL)
-//        parents = clazz:GetParentCreationOrder()
-//        repeat while parents:HasNext()
-//            Class p = parents:Next()
-//            if not p:IsObject()
-//                text parentKey = p:GetStaticKey()
-//                text parentName = p:ConvertStaticKeyToParentFieldName()
-//    
-//                if p:HasConstructor()
-//                    convertedSource:Append("this." + parentName + ".constructor_();" + EOL)
-//                end
-//            end
-//        end
-//        convertedSource:Append("}" + EOL)
-//
-//        //if this class has a null parents flag, call its constructor
-//        if clazz:HasConstructor()
-//            convertedSource:Append("if (parents == null) {this.constructor_();}" + EOL)
-//        end
+        //call their constructors. Only if there's at least one non-object parent.
+        if clazz:GetParentSize() > 1
+            boolean atLeastOneConstructor = false
+            text temp = EOL + tab + tab + "if parents > 0:" + EOL
+            parents = clazz:GetParentCreationOrder()
+            repeat while parents:HasNext()
+                Class p = parents:Next()
+                if not p:IsObject()
+                    text parentKey = p:GetStaticKey()
+                    text parentName = p:ConvertStaticKeyToParentFieldName()
+        
+                    if p:HasConstructor()
+                        atLeastOneConstructor = true
+                        temp = temp + tab + tab + tab + "self." + parentName + ".constructor_();" + EOL
+                    end
+                end
+            end
+            if atLeastOneConstructor
+                convertedSource:Append(temp)
+            end
+        end
+
+        //if this class has a null parents flag, call its constructor
+        if clazz:HasConstructor()
+            convertedSource:Append(tab + tab + "if parents == 0:" + EOL)
+            convertedSource:Append(tab + tab + tab + "self.constructor_()" + EOL)
+        end
 //
 //        if value = "Libraries.Language.Types.Integer"
 //            convertedSource:Append("this.value = optional == null ? 0: optional;")
