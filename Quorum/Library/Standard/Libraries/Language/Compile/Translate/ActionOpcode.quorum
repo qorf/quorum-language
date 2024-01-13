@@ -244,9 +244,9 @@ class ActionOpcode is QuorumOpcode
                     result = result + tabs + tab + "return self.myHash" + EOL
                 end
             end
-//        elseif method:IsBlueprint()
-//            result = result + "return " + "this.prototype." + method:ConvertActionToJavaScriptName() 
-//                + "("
+        elseif method:IsBlueprint()
+            result = result + tabs + tab + "return "// + "this.prototype." + method:ConvertActionToJavaScriptName() 
+                //+ "("
 //            parameters = method:GetParameterIterator()
 //            repeat while parameters:HasNext()
 //                Variable param = parameters:Next()

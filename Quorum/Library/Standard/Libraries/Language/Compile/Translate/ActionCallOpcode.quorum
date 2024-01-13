@@ -456,9 +456,9 @@ class ActionCallOpcode is QuorumOpcode
                 if variableToMakeParentCallOn not= undefined
                     //in Quorum-11, this is not true for objects
                     if not variableToMakeParentCallOn:IsField()
-                        result = result + "this." + variableToMakeParentCallOn:GetJavaScriptName()
-                    else
                         result = result + variableToMakeParentCallOn:GetJavaScriptName()
+                    else
+                        result = result + "self." + variableToMakeParentCallOn:GetJavaScriptName()
                     end
                 end
 
@@ -468,7 +468,7 @@ class ActionCallOpcode is QuorumOpcode
                         if variableToMakeParentCallOn not= undefined
                             result = result + "." + value
                         else
-                            result = result + "this." + value
+                            result = result + "self." + value
                         end
                     end
                 end
@@ -491,7 +491,7 @@ class ActionCallOpcode is QuorumOpcode
                     end
                 else 
                     if field:IsField()
-                        result = result + "this." + field:GetJavaScriptName() + "." + name + "("
+                        result = result + "self." + field:GetJavaScriptName() + "." + name + "("
                     else
                         result = result + field:GetJavaScriptName() + "." + name + "("
                     end
@@ -511,7 +511,7 @@ class ActionCallOpcode is QuorumOpcode
                         end
                     end
                 else
-                    text t = "self." + act:ConvertActionToPythonName()
+                    text t = "self.me_." + act:ConvertActionToPythonName()
                     result = result + t + "("
                 end
             end

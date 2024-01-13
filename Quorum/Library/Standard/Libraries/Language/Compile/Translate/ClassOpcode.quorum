@@ -1818,10 +1818,10 @@ actLink:SetClassAttribute("hover:underline text-sm")
             Iterator<Variable> params = act:GetParameterIterator()
             repeat while params:HasNext()
                 Variable param = params:Next()
-                thisParentAction = thisParentAction + ", " + param:GetJavaScriptName()
-//                if params:HasNext()
-//                    thisParentAction = thisParentAction + ", "
-//                end
+                thisParentAction = thisParentAction + param:GetJavaScriptName()
+                if params:HasNext()
+                    thisParentAction = thisParentAction + ", "
+                end
             end
 
             boolean dontWrapParams = false
@@ -1857,10 +1857,10 @@ actLink:SetClassAttribute("hover:underline text-sm")
                 params = act:GetParameterIterator()
                 repeat while params:HasNext()
                     Variable param = params:Next()
-                    paramListText = paramListText + ", " + param:GetJavaScriptName()
-    //                if params:HasNext()
-    //                    paramListText = paramListText + ", "
-    //                end
+                    paramListText = paramListText + param:GetJavaScriptName()
+                    if params:HasNext()
+                        paramListText = paramListText + ", "
+                    end
                 end
     
                 paramListText = paramListText + ")"
@@ -1933,6 +1933,7 @@ actLink:SetClassAttribute("hover:underline text-sm")
 
         //Add an initialization area for fields and parents in python mode
         convertedSource:Append(tab + "def __init__(self, parents = 0):" + EOL)
+        convertedSource:Append(tab + tab + "self.me_ = self" + EOL)
         boolean hasFieldOrParent = false
 
         //initialize all of the parent objects as values, if appropriate
@@ -1979,7 +1980,7 @@ actLink:SetClassAttribute("hover:underline text-sm")
 
                     if not p:IsObject() 
                         convertedSource:Append(tab + tab + tab + "self." + parentName 
-                            + ".me = self"  + EOL)
+                            + ".me_ = self"  + EOL)
                     end
                 end
             end
