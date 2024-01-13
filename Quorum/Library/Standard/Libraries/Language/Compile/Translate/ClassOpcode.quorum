@@ -1833,14 +1833,14 @@ actLink:SetClassAttribute("hover:underline text-sm")
                 thisParentAction = thisParentAction  + "):" + EOL
                 dontWrapParams = true
                 if act:GetName() = "Equals"
-                    thisParentAction = thisParentAction  + tab + tab + "return (hash() == object.hash())" + EOL
+                    thisParentAction = thisParentAction  + tab + tab + "return (hash(self) == hash(object))" + EOL
                 elseif act:GetName() = "GetHashCode"
-                    thisParentAction = thisParentAction  + tab + tab + "return hash()" + EOL
+                    thisParentAction = thisParentAction  + tab + tab + "return hash(self)" + EOL
                 elseif act:GetName() = "Compare"
                     thisParentAction = thisParentAction  + tab + tab + 
-                    "if hash() == object.hash():" + EOL
+                    "if hash(self) == hash(object):" + EOL
                     + tab + tab + tab + "return 0" + EOL
-                    + tab + tab + "elif hash() > object.hash():" + EOL
+                    + tab + tab + "elif hash(self) > hash(object):" + EOL
                     + tab + tab + tab + "return 1" + EOL
                     + tab + tab + "else:" + EOL
                     + tab + tab + tab + "return -1" + EOL
@@ -2057,8 +2057,16 @@ actLink:SetClassAttribute("hover:underline text-sm")
 
         if clazz:IsProgramStartingClass()
             convertedSource:Append(EOL + EOL + "if __name__ == '__main__':" + EOL)
-            convertedSource:Append("    starter_______ = " + clazz:ConvertStaticKeyToUnderScore() + "()" + EOL)
-            convertedSource:Append("    starter_______.Main()" + EOL)
+
+            if clazz:IsStatic()
+                convertedSource:Append(tab + "starter_______ = " +
+                    "Global_Add_Shared_Class("+quote +clazz:GetStaticKey() + quote + ", "+clazz:ConvertStaticKeyToUnderScore()+"()) " +
+                    "if Global_Get_Shared_Class(" +quote+ clazz:GetStaticKey()+ quote+ ") == None " + 
+                    "else Global_Get_Shared_Class("+quote+clazz:GetStaticKey()+quote+")" + EOL)
+            else
+                convertedSource:Append(tab + "starter_______ = " + clazz:ConvertStaticKeyToUnderScore() + "()" + EOL)
+            end
+            convertedSource:Append(tab + "starter_______.Main()" + EOL)
         end
 
         

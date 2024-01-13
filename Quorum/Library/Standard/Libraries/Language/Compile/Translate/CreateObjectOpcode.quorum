@@ -49,9 +49,9 @@ class CreateObjectOpcode is QuorumOpcode
 
         if clazz:IsStatic()
             result = result + " = " +
-            "(global_Get_Shared_Class(" +quote+ clazz:GetStaticKey()+ quote+
-            ") == null ? global_Add_Shared_Class("+quote +clazz:GetStaticKey() + quote +
-            ", new "+clazz:ConvertStaticKeyToUnderScore()+"()) : global_Get_Shared_Class("+quote+clazz:GetStaticKey()+quote+"));"
+            "Global_Add_Shared_Class("+quote +clazz:GetStaticKey() + quote + ", "+clazz:ConvertStaticKeyToUnderScore()+"()) " +
+            "if Global_Get_Shared_Class(" +quote+ clazz:GetStaticKey()+ quote+ ") == None " + 
+            "else Global_Get_Shared_Class("+quote+clazz:GetStaticKey()+quote+")"
             + EOL
         else
             result = result + " = " + clazz:ConvertStaticKeyToUnderScore() + "()" + EOL
