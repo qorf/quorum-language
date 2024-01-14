@@ -82,6 +82,14 @@ class DetectBlockOpcode is QuorumOpcode
         methodWriter:VisitInstruction(opcodes:GetObjectThrow())
     end
 
+    action WritePython returns text
+        text result = ""
+        if block not= undefined
+            result = result + block:WritePython()
+        end
+        return result
+    end
+
     action WriteJavaScript returns text
         text result = ""
         if block not= undefined

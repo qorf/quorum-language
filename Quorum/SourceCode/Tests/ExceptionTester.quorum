@@ -111,7 +111,7 @@ class ExceptionTester
         //These tests do actually cause exceptions to be thrown, 
         //but they are kind of pointless to run in Q3, since the test suite
         //doesn't account for exceptions thrown around and not caught.
-        //That said, they "could" be convered into pass tests if the exception
+        //That said, they "could" be converted into pass tests if the exception
         //string was copied in.
         MultipleCatchAllClauses()
         MultipleDetectsSameType()
@@ -152,6 +152,7 @@ class ExceptionTester
         results:Add(0, "caught")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CastTextToBoolean
@@ -163,6 +164,7 @@ class ExceptionTester
         results:Add(0, "caught")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CatchCastAlertException 
@@ -174,6 +176,7 @@ class ExceptionTester
         results:Add(0, "2")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CatchCastErrorFromOtherMethod 
@@ -185,6 +188,7 @@ class ExceptionTester
         results:Add(0, "got cast error")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CatchCastException 
@@ -196,6 +200,7 @@ class ExceptionTester
         results:Add(0, "2")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CatchCastSimpleAlertException 
@@ -207,6 +212,7 @@ class ExceptionTester
         results:Add(0, "2")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CatchMethodErrorInAlways 
@@ -218,6 +224,7 @@ class ExceptionTester
         results:Add(0, "alert")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CatchWithAlwaysCastAlertException 
@@ -230,6 +237,7 @@ class ExceptionTester
         results:Add(1, "3")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CatchWithAlwaysCastException 
@@ -241,6 +249,7 @@ class ExceptionTester
         results:Add(0, "3")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CatchWithAlwaysCastSimpleAlertException 
@@ -252,6 +261,7 @@ class ExceptionTester
         results:Add(0, "3")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CaughtActionException 
@@ -263,6 +273,7 @@ class ExceptionTester
         results:Add(0, "Error: callMe failed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CaughtActionExceptionWithAlways 
@@ -275,6 +286,7 @@ class ExceptionTester
         results:Add(1, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CheckDetectAlwaysEmptyCheck 
@@ -286,6 +298,7 @@ class ExceptionTester
         results:Add(0, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CheckDetectAlwaysEmptyCheckInElse 
@@ -297,6 +310,7 @@ class ExceptionTester
         results:Add(0, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CheckDetectAlwaysEmptyCheckInElseIf 
@@ -308,6 +322,7 @@ class ExceptionTester
         results:Add(0, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CheckDetectAlwaysEmptyCheckInIf 
@@ -319,6 +334,7 @@ class ExceptionTester
         results:Add(0, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CheckDetectAlwaysEmptyCheckInIfElseElseIf 
@@ -330,6 +346,7 @@ class ExceptionTester
         results:Add(0, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CheckDetectAlwaysEmptyCheckInRepeatTimes 
@@ -342,6 +359,7 @@ class ExceptionTester
         results:Add(1, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CheckDetectAlwaysEmptyCheckInRepeatUntil 
@@ -354,6 +372,7 @@ class ExceptionTester
         results:Add(1, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CheckDetectAlwaysEmptyCheckInRepeatWhile 
@@ -366,6 +385,7 @@ class ExceptionTester
         results:Add(1, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CheckDetectAlwaysInElse 
@@ -378,6 +398,7 @@ class ExceptionTester
         results:Add(1, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CheckDetectAlwaysInElseIf 
@@ -390,6 +411,7 @@ class ExceptionTester
         results:Add(1, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CheckDetectAlwaysInIf 
@@ -402,6 +424,7 @@ class ExceptionTester
         results:Add(1, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CheckDetectInElse 
@@ -413,6 +436,7 @@ class ExceptionTester
         results:Add(0, "detect")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CheckDetectInElseIf 
@@ -424,6 +448,7 @@ class ExceptionTester
         results:Add(0, "detect")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CheckDetectInIf 
@@ -435,6 +460,7 @@ class ExceptionTester
         results:Add(0, "detect")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CheckDetectInRepeatTimes 
@@ -449,6 +475,7 @@ class ExceptionTester
         results:Add(3, "detect")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CheckDetectInRepeatTimesIf 
@@ -460,6 +487,7 @@ class ExceptionTester
         results:Add(0, "detect")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CheckDetectInRepeatUntil 
@@ -474,6 +502,7 @@ class ExceptionTester
         results:Add(3, "detect")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CheckDetectInRepeatUntilIf 
@@ -485,6 +514,7 @@ class ExceptionTester
         results:Add(0, "detect")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CheckDetectInRepeatWhile 
@@ -499,6 +529,7 @@ class ExceptionTester
         results:Add(3, "detect")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CheckDetectInRepeatWhileIf 
@@ -510,6 +541,7 @@ class ExceptionTester
         results:Add(0, "detect")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ComplexExceptionScenario1 
@@ -525,6 +557,7 @@ class ExceptionTester
         results:Add(4, "ok 5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ComplexExceptionScenario2 
@@ -541,6 +574,7 @@ class ExceptionTester
         results:Add(5, "ok 3")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action GenericCatchCastAlertException 
@@ -552,6 +586,7 @@ class ExceptionTester
         results:Add(0, "2")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action GenericCatchCastException 
@@ -563,6 +598,7 @@ class ExceptionTester
         results:Add(0, "2")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IfElseIfElseInAlways 
@@ -575,6 +611,7 @@ class ExceptionTester
         results:Add(1, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IfElseIfElseInCheck 
@@ -586,6 +623,7 @@ class ExceptionTester
         results:Add(0, "detect")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IfElseIfElseInCheckWithAlways 
@@ -598,6 +636,7 @@ class ExceptionTester
         results:Add(1, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IfElseIfElseInDetect 
@@ -609,6 +648,7 @@ class ExceptionTester
         results:Add(0, "detect")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IfElseIfElseInDetectWithAlways 
@@ -621,6 +661,7 @@ class ExceptionTester
         results:Add(1, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IfElseIfInAlways 
@@ -633,6 +674,7 @@ class ExceptionTester
         results:Add(1, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IfElseIfInCheck 
@@ -644,6 +686,7 @@ class ExceptionTester
         results:Add(0, "detect")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IfElseIfInCheckWithAlways 
@@ -656,6 +699,7 @@ class ExceptionTester
         results:Add(1, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IfElseIfInDetect 
@@ -667,6 +711,7 @@ class ExceptionTester
         results:Add(0, "detect")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IfElseIfInDetectWithAlways 
@@ -679,6 +724,7 @@ class ExceptionTester
         results:Add(1, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IfInAlways 
@@ -691,6 +737,7 @@ class ExceptionTester
         results:Add(1, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IfInCheck 
@@ -702,6 +749,7 @@ class ExceptionTester
         results:Add(0, "detect")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IfInCheckWithAlways 
@@ -714,6 +762,7 @@ class ExceptionTester
         results:Add(1, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IfInDetect 
@@ -725,6 +774,7 @@ class ExceptionTester
         results:Add(0, "detect")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IfInDetectWithAlways 
@@ -737,6 +787,7 @@ class ExceptionTester
         results:Add(1, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action FieldError 
@@ -748,6 +799,7 @@ class ExceptionTester
         results:Add(0, "Hello world!")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action MultipleDetects 
@@ -759,6 +811,7 @@ class ExceptionTester
         results:Add(0, "error")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action MultipleDetectsWithAlways 
@@ -771,6 +824,7 @@ class ExceptionTester
         results:Add(1, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
 
@@ -786,6 +840,7 @@ class ExceptionTester
         results:Add(3, "hi2")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action NestedCatchCastAlertException 
@@ -803,6 +858,7 @@ class ExceptionTester
         results:Add(0, "3")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action NestedCatchCastException 
@@ -820,6 +876,7 @@ class ExceptionTester
         results:Add(0, "3")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action NestedCatchSimpleAlertException 
@@ -837,6 +894,7 @@ class ExceptionTester
         results:Add(0, "3")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action NestedCheckDetectInAllBlocks 
@@ -852,6 +910,7 @@ class ExceptionTester
         results:Add(4, "D")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RecursiveCallFromAlways 
@@ -863,6 +922,7 @@ class ExceptionTester
         results:Add(0, "detect hit")
         suite:Test(files, results)
         //suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RepeatTimesInAlways 
@@ -876,6 +936,7 @@ class ExceptionTester
         results:Add(2, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RepeatTimesInCheck 
@@ -887,6 +948,7 @@ class ExceptionTester
         results:Add(0, "detect")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RepeatTimesInCheckWithAlways 
@@ -899,6 +961,7 @@ class ExceptionTester
         results:Add(1, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RepeatTimesInDetect 
@@ -911,6 +974,7 @@ class ExceptionTester
         results:Add(1, "detect")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RepeatTimesInDetectWithAlways 
@@ -924,6 +988,7 @@ class ExceptionTester
         results:Add(2, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RepeatUntilInAlways 
@@ -937,6 +1002,7 @@ class ExceptionTester
         results:Add(2, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RepeatUntilInCheck 
@@ -948,6 +1014,7 @@ class ExceptionTester
         results:Add(0, "detect")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RepeatUntilInCheckWithAlways 
@@ -960,6 +1027,7 @@ class ExceptionTester
         results:Add(1, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RepeatUntilInDetect 
@@ -972,6 +1040,7 @@ class ExceptionTester
         results:Add(1, "detect")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RepeatUntilInDetectWithAlways 
@@ -985,6 +1054,7 @@ class ExceptionTester
         results:Add(2, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RepeatWhileInAlways 
@@ -998,6 +1068,7 @@ class ExceptionTester
         results:Add(2, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RepeatWhileInCheck 
@@ -1009,6 +1080,7 @@ class ExceptionTester
         results:Add(0, "detect")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RepeatWhileInCheckWithAlways 
@@ -1021,6 +1093,7 @@ class ExceptionTester
         results:Add(1, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RepeatWhileInDetect 
@@ -1033,6 +1106,7 @@ class ExceptionTester
         results:Add(1, "detect")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RepeatWhileInDetectWithAlways 
@@ -1046,6 +1120,7 @@ class ExceptionTester
         results:Add(2, "always")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RethrowError 
@@ -1057,6 +1132,7 @@ class ExceptionTester
         results:Add(0, "alert")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RethrowErrorWithAlways 
@@ -1069,6 +1145,7 @@ class ExceptionTester
         results:Add(1, "alert")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RuntimeCastError 
@@ -1080,6 +1157,7 @@ class ExceptionTester
         results:Add(0, "Passed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TriplyNestedCheckDetect 
@@ -1093,6 +1171,7 @@ class ExceptionTester
         results:Add(2, "check 3")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TriplyNestedCheckDetectAlways 
@@ -1109,6 +1188,7 @@ class ExceptionTester
         results:Add(5, "always 1")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TriplyNestedCheckDetectSomeAlways 
@@ -1124,6 +1204,7 @@ class ExceptionTester
         results:Add(4, "always 1")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action UndefinedErrorInCheck 
@@ -1135,6 +1216,7 @@ class ExceptionTester
         results:Add(0, "Success!")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action DetectAllReorder 
@@ -1146,6 +1228,7 @@ class ExceptionTester
         results:Add(0, "This test reordered the detect all")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action DetectAllReorder2 
@@ -1157,6 +1240,7 @@ class ExceptionTester
         results:Add(0, "This test reordered the detect all")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
 //FAIL TESTS
@@ -1167,6 +1251,7 @@ class ExceptionTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action MultipleDetectsSameType 
@@ -1176,6 +1261,7 @@ class ExceptionTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action MultipleDetectsMixedError 
@@ -1185,6 +1271,7 @@ class ExceptionTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action MultipleDetectsMixedError2
@@ -1194,6 +1281,7 @@ class ExceptionTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action CastTextToIntegerException 
@@ -1203,6 +1291,7 @@ class ExceptionTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action CastTextToNumberException 
@@ -1212,6 +1301,7 @@ class ExceptionTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action MultipleDetectsWithAlwaysThrowingCastError 
@@ -1221,6 +1311,7 @@ class ExceptionTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action NestedUncaughtCastAlertException 
@@ -1236,6 +1327,7 @@ class ExceptionTester
         files:Add(dependent2)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action NestedUncaughtCastException 
@@ -1251,6 +1343,7 @@ class ExceptionTester
         files:Add(dependent2)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action NestedUncaughtSimpleAlertException 
@@ -1266,6 +1359,7 @@ class ExceptionTester
         files:Add(dependent2)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action UncaughtCastAlertException 
@@ -1275,6 +1369,7 @@ class ExceptionTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action UncaughtCastException 
@@ -1284,6 +1379,7 @@ class ExceptionTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action UncaughtErrorInAlways 
@@ -1293,6 +1389,7 @@ class ExceptionTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action UncaughtSimpleAlertException 
@@ -1302,6 +1399,7 @@ class ExceptionTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action missingParameters 
@@ -1311,6 +1409,7 @@ class ExceptionTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action missingParameters2 
@@ -1320,6 +1419,7 @@ class ExceptionTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 end
 

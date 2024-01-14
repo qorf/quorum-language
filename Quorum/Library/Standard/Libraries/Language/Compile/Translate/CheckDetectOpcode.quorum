@@ -295,6 +295,120 @@ class CheckDetectOpcode is QuorumOpcode
         methodWriter:VisitTryCatchBlock(labels:left, labels:middle, labels:right, labels:type)
     end
 
+    action WritePython returns text
+        TranslateConstants constants
+        text tabs = constants:GetTabText()
+        text result = ""
+        text EOL = result:GetCarriageReturn() + result:GetLineFeed()
+        boolean isCheckEmpty = false
+        if block not= undefined
+            if block:IsEmpty()
+                isCheckEmpty = true
+            end
+        end
+
+        constant text checkExceptionName = "e" + GetCheckLabelInteger() + "_"
+
+        text null = undefined
+        if not isCheckEmpty
+            result = result + tabs + "try:" + EOL
+            constants:IncreaseTab()
+            result = result + block:WritePython()
+            constants:DecreaseTab()
+        elseif isCheckEmpty and alwaysBlock not= undefined
+            //in this case, we need an empty try block for javascript to accept it
+            result = result + tabs + "try:" + EOL
+        end
+
+        boolean hasCatchAll = false
+        if not isCheckEmpty //if the block is empty, there's no need to write detect blocks
+            Iterator<DetectBlockOpcode> it = detectBlocks:GetIterator()
+            integer detectAmount = 0
+            
+            result = result + tabs + "except Exception as "
+            boolean isFirst = true
+            repeat while it:HasNext()
+                DetectBlockOpcode det = it:Next()
+                Variable value = det:GetExceptionVariable()
+                text exceptionVariableName = value:GetJavaScriptName()
+                if isFirst
+                    if value not= undefined
+                        result = result + checkExceptionName + ":" + EOL
+                    else
+                        result = result + checkExceptionName + ":" + EOL
+                    end
+                    isFirst = false
+                end
+
+                if errorBlock not= det
+                    Iterator<Class> detectClasses = det:GetDeclaredDetectsIterator()
+//                    if detectAmount > 0
+//                        result = result + "     else if(" + checkExceptionName + " instanceof "
+//                    else
+//                        result = result + "     if(" + checkExceptionName + " instanceof "
+//                    end
+//
+//                    boolean first = true
+//                    repeat while detectClasses:HasNext()
+//                        Class classDetect = detectClasses:Next()
+//                        text name = classDetect:ConvertStaticKeyToJavaScriptName()
+//                        if first
+//                            result = result + name
+//                        else
+//                            result = result + " || " + checkExceptionName + " instanceof " + name
+//                        end
+//                    end
+
+//                    result = result + ") {" + EOL
+//                    result = result + "     " + exceptionVariableName + " = global_ErrorCheck(" + checkExceptionName + ");" + EOL
+                    constants:IncreaseTab()
+                    result = result + det:WritePython()
+                    constants:DecreaseTab()
+                    detectAmount = detectAmount + 1
+                end
+            end
+            
+
+            //if we have an error block with a catch-all that has been reordered
+            //write it now.
+            if errorBlock not= undefined
+                if detectAmount > 0
+                    Variable value = errorBlock:GetExceptionVariable()
+                    text exceptionVariableName = value:GetJavaScriptName()
+//                    result = result + " else {" + EOL
+//                    result = result + "     " + exceptionVariableName + " = global_ErrorCheck(" + checkExceptionName + ");" + EOL
+                    constants:IncreaseTab()
+                    result = result + errorBlock:WritePython()
+                    constants:DecreaseTab()
+//                    result = result + " }" + EOL
+                else
+                    Variable value = errorBlock:GetExceptionVariable()
+//                    text exceptionVariableName = value:GetJavaScriptName()
+//                    result = result + "     " + exceptionVariableName + " = global_ErrorCheck(" + checkExceptionName + ");" + EOL
+                    constants:IncreaseTab()
+                    result = result + errorBlock:WritePython()
+                    constants:DecreaseTab()
+                end
+            else
+//                result = result + " else {" + EOL
+//                result = result + "     throw " + checkExceptionName + ";" + EOL
+//                result = result + " }" + EOL
+            end
+
+//            result = result + "}" + EOL
+            
+        end
+
+        if alwaysBlock not= undefined
+            result = result + tabs + "else:" + EOL
+            constants:IncreaseTab()
+            result = result + alwaysBlock:WriteJavaScript() + EOL
+            constants:DecreaseTab()
+        end
+
+        return result
+    end
+
     action WriteJavaScript returns text
         text result = ""
         text EOL = result:GetCarriageReturn() + result:GetLineFeed()

@@ -11,3 +11,11 @@ def Global_Remove_Shared_Class(key):
 
 def global_Empty_Shared_Classes():
 	globalSharedClasses.clear()
+	
+def Global_Cast_Text_To_Boolean(value):
+	if value == "true":
+    		return true
+	elif value == "false":
+		return false
+	else:
+		raise Exception("Error: Cast Error: An error occurred while casting")
