@@ -215,15 +215,23 @@ class ActionOpcode is QuorumOpcode
             Variable param = parameters:Next()
             result = result + ", " + param:GetJavaScriptName()
         end
-        result = result + "):
-"
+        result = result + "):" + EOL
+
         constants:IncreaseTab()
         Iterator<QuorumOpcode> iterator = opcodeList:GetIterator()
+        text temp = ""
         repeat while iterator:HasNext()
             QuorumOpcode opcode = iterator:Next()
-            result = result + opcode:WritePython()
+            temp = temp + opcode:WritePython()
         end
-        constants:DecreaseTab()
+        //if the action is empty, besides the block, issue a null op.
+        if temp:IsEmpty() and not method:GetParentClass():IsObject()
+            text tabs2 = constants:GetTabText()
+            result = result + tabs2 + "pass" + EOL
+        else
+            result = result + temp
+        end
+        constants:DecreaseTab()        
 
         if method:IsSystem() //write to a Javascript plugin
             if not clazz:IsObject()

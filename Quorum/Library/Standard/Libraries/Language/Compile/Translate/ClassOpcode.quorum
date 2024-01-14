@@ -1895,7 +1895,7 @@ actLink:SetClassAttribute("hover:underline text-sm")
             convertedSource:Append(tab + tab + "return self." + variable:GetJavaScriptName() + EOL)
             
             text hiddenSetterName = clazz:ConvertToActionNameFromField(variable, false)
-            convertedSource:Append(tab + "def " + hiddenSetterName + "(self):" + EOL)
+            convertedSource:Append(tab + "def " + hiddenSetterName + "(self, value):" + EOL)
             convertedSource:Append(tab + tab + "self." + variable:GetJavaScriptName() + " = value" + EOL)
         end
 //
@@ -1920,7 +1920,7 @@ actLink:SetClassAttribute("hover:underline text-sm")
                              + tab + tab + "return self." + p:ConvertStaticKeyToParentFieldName() + "." + getter + "()" + EOL + EOL
     
                         //the setter
-                        thisTempGetterSetter = thisTempGetterSetter + tab + "def " + setter + "(self):" + EOL
+                        thisTempGetterSetter = thisTempGetterSetter + tab + "def " + setter + "(self, value):" + EOL
                              + tab + tab + "self." + p:ConvertStaticKeyToParentFieldName() + "." + setter + "(value)" + EOL
                              + EOL
 
