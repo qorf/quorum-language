@@ -4,6 +4,7 @@ use Libraries.Language.Compile.Translate.QuorumOpcode
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Symbol.ActionCallResolution
 
 class ChainedActionCallOpcode is QuorumOpcode
     boolean isSoloCall = false
@@ -82,7 +83,9 @@ class ChainedActionCallOpcode is QuorumOpcode
         EOL = result:GetCarriageReturn() + result:GetLineFeed()
         TranslateConstants constants
         text tabs = constants:GetTabText()
+        Array<text> values
         Iterator<ActionCallOpcode> it = ops:GetIterator()
+        integer i = 0
         repeat while it:HasNext()
             ActionCallOpcode op = it:Next()
             boolean wrapGetValue = false
@@ -97,13 +100,47 @@ class ChainedActionCallOpcode is QuorumOpcode
                 end
             end
 
-            if wrapGetValue
+            ActionCallResolution res = op:GetActionCallResolution()
+            //try to detect if the next thing in the chain is calling on a primitive. If so, we have to wrap
+            if res not= undefined and res:isCallOnPrimitive
+                //take the previous value and wrap it in the object form of the primitive
+                //this is less efficient than typical Quorum, but seems to be the only obvious way to solve it in the Python 
+                //translator
+                text value = values:Get(i - 1)
+                Type type = res:typeToMakeCallOn
+                if type:IsBoolean()
+                    value = "Bool_(" + value + ")"
+                    values:Set(i - 1, value)
+                elseif type:IsInteger()
+                    value = "Integer_(" + value + ")"
+                    values:Set(i - 1, value)
+                elseif type:IsNumber()
+                    value = "Number_(" + value + ")"
+                    values:Set(i - 1, value)
+                elseif type:IsText()
+                    value = "Text_(" + value + ")"
+                    values:Set(i - 1, value)
+                end
+
+                //now write the new opcode
+                values:Add(op:WritePython())
+            elseif wrapGetValue
                 text DQ = ""
                 DQ = DQ:GetDoubleQuote()
-                result = result + op:WritePython()//might need to wrap. Not sure yet.
+                //result = result + op:WritePython()//might need to wrap. Not sure yet.
+                values:Add(op:WritePython())
             else
-                result = result + op:WritePython()
+                //result = result + op:WritePython()
+                values:Add(op:WritePython())
             end
+    
+            i = i + 1
+        end
+
+        i = 0
+        repeat while i < values:GetSize()
+            result = result + values:Get(i)
+            i = i + 1
         end
         if isSoloCall
             result = tabs + result + EOL// + ";" + result:GetCarriageReturn() + result:GetLineFeed()

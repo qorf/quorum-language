@@ -1,3 +1,8 @@
+def Integer_(value):
+	val = quorum_Libraries_Language_Types_Integer_()
+	val.SetValue__quorum_integer(value)
+	return val
+
 class plugins_quorum_Libraries_Language_Types_Integer_:
 	def __init__(self, value = 0):
 		self.integer = value

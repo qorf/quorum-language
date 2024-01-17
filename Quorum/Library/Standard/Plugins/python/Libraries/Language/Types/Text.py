@@ -1,3 +1,9 @@
+def Text_(value):
+	val = quorum_Libraries_Language_Types_Text_()
+	val.SetValue__quorum_text(value)
+	return val
+
+
 class plugins_quorum_Libraries_Language_Types_Text_:
 	def __init__(self, value = ""):
 		self.text = value
