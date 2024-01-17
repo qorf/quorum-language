@@ -224,8 +224,9 @@ class ActionOpcode is QuorumOpcode
             QuorumOpcode opcode = iterator:Next()
             temp = temp + opcode:WritePython()
         end
-        //if the action is empty, besides the block, issue a null op.
-        if method:IsBlueprint()
+
+        //if the action is empty, besides the block, issue a null op. Do this as well if it's a blueprint call.
+        if method:IsBlueprint() or (not (method:IsSystem()) and temp:IsEmpty())
             text tabs2 = constants:GetTabText()
             result = result + tabs2 + "pass" + EOL
         else

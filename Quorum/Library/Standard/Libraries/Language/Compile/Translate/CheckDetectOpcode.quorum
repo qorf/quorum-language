@@ -298,6 +298,7 @@ class CheckDetectOpcode is QuorumOpcode
     action WritePython returns text
         TranslateConstants constants
         text tabs = constants:GetTabText()
+        text tab = tabs:GetTab()
         text result = ""
         text EOL = result:GetCarriageReturn() + result:GetLineFeed()
         boolean isCheckEmpty = false
@@ -313,11 +314,17 @@ class CheckDetectOpcode is QuorumOpcode
         if not isCheckEmpty
             result = result + tabs + "try:" + EOL
             constants:IncreaseTab()
-            result = result + block:WritePython()
+            text value = block:WritePython()
+            if value = undefined or value:IsEmpty()
+                result = result + tabs + tab + "push" + EOL
+            else
+                result = result + value
+            end
             constants:DecreaseTab()
         elseif isCheckEmpty and alwaysBlock not= undefined
-            //in this case, we need an empty try block for javascript to accept it
+            //in this case, we need a push statement for python to accept it.
             result = result + tabs + "try:" + EOL
+            result = result + tabs + tab + "push" + EOL
         end
 
         boolean hasCatchAll = false
@@ -402,7 +409,7 @@ class CheckDetectOpcode is QuorumOpcode
         if alwaysBlock not= undefined
             result = result + tabs + "else:" + EOL
             constants:IncreaseTab()
-            result = result + alwaysBlock:WriteJavaScript() + EOL
+            result = result + alwaysBlock:WritePython() + EOL
             constants:DecreaseTab()
         end
 
