@@ -14,6 +14,11 @@ class BooleanToTextOpcode is ExplicitCastOpcode
         methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "java/lang/Boolean", "toString", "(Z)Ljava/lang/String;", false)
     end
 
+    action WritePython returns text
+        QuorumOpcode opcodeToCast = GetOpcodeToCast()
+        return opcodeToCast:WritePython()
+    end
+
     action WriteJavaScript returns text
         QuorumOpcode opcodeToCast = GetOpcodeToCast()
         return opcodeToCast:WriteJavaScript()

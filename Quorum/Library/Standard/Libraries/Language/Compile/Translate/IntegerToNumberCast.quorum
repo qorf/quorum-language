@@ -20,7 +20,7 @@ class IntegerToNumberCast is ExplicitCastOpcode
         text result = ""
         QuorumOpcode opcodeToCast = GetOpcodeToCast()
         if opcodeToCast not= undefined
-            result = result + "float(" + opcodeToCast:WritePython() + ")"
+            result = result + "__builtins__.float(" + opcodeToCast:WritePython() + ")"
         end
         return result
     end

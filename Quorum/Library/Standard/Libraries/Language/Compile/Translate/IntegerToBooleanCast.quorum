@@ -17,6 +17,15 @@ class IntegerToBooleanCast is ExplicitCastOpcode
                 "(I)Z", false)
     end
     
+    action WritePython returns text
+        text result = ""
+        QuorumOpcode opcodeToCast = GetOpcodeToCast()
+        if opcodeToCast not= undefined
+            result = result + "false if" + opcodeToCast:WritePython() + " == 0: else true"
+        end
+        return result
+    end
+
     action WriteJavaScript returns text
         text result = ""
         QuorumOpcode opcodeToCast = GetOpcodeToCast()

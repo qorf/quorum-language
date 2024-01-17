@@ -17,6 +17,16 @@ class NumberToBooleanCast is ExplicitCastOpcode
                 "(D)I", false)
     end
     
+    action WritePython returns text
+        text result = ""
+        QuorumOpcode opcodeToCast = GetOpcodeToCast()
+        if opcodeToCast not= undefined
+            text temp = opcodeToCast:WritePython()
+            result = result + " Global_Cast_Text_To_Boolean(" + temp + ")"
+        end
+        return result
+    end
+
     action WriteJavaScript returns text
         text result = ""
         QuorumOpcode opcodeToCast = GetOpcodeToCast()

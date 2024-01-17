@@ -125,10 +125,19 @@ class BinaryAndOrOpcode is QuorumOpcode
             operator =  "/"
         elseif current = op:MODULUS
             operator =  "%"
+
+        /*  The and and or operators are strange in the python override.
+            Python doesn't allow overriding the logical and and or, although there is a proposal to change this:
+
+            https://peps.python.org/pep-0335/
+
+            Thus, since users aren't actually writing this code anyway, we override the bitwise shifts for
+            this type. This is definitely strange, but a compromise to get other Quorum features working.
+        */
         elseif current = op:AND
-            operator =  "and"
+            operator =  "&"
         elseif current = op:OR
-            operator =  "or"
+            operator =  "|"
         elseif current = op:EQUALS
             operator =  "=="
         elseif current = op:NOT_EQUALS

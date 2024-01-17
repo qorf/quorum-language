@@ -15,6 +15,16 @@ class NumberToIntegerCast is ExplicitCastOpcode
         end
         methodWriter:VisitInstruction(opcodes:GetDoubleToInteger())
     end
+
+    action WritePython returns text
+        text result = ""
+        QuorumOpcode opcodeToCast = GetOpcodeToCast()
+        if opcodeToCast not= undefined
+            text temp = opcodeToCast:WritePython()
+            result = result + " __builtins__.int(" + temp + ")"
+        end
+        return result
+    end
     
     action WriteJavaScript returns text
         QuorumOpcode opcodeToCast = GetOpcodeToCast()

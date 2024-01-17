@@ -1752,6 +1752,7 @@ actLink:SetClassAttribute("hover:underline text-sm")
         constants:ResetTabs()
         text tabs = constants:GetTabText()
         text tab = tabs:GetTab()
+        constants:SetClass(clazz)
 
         TextBuilder convertedSource
 //        if clazz:IsProgramStartingClass()
@@ -1935,7 +1936,27 @@ actLink:SetClassAttribute("hover:underline text-sm")
         end
 
         //Add an initialization area for fields and parents in python mode
-        convertedSource:Append(tab + "def __init__(self, parents = 0):" + EOL)
+        if value = "Libraries.Language.Types.Integer"
+            convertedSource:Append(tab + "def __init__(self, parents = 0, value = 0):" + EOL)
+        elseif value = "Libraries.Language.Types.Boolean"
+            //add helpers for the type to manage its operations as objects
+            convertedSource:Append(tab + "def __and__(self, other):" + EOL)
+            convertedSource:Append(tab + tab + "return Bool_(self.value and other.value)" + EOL)
+            convertedSource:Append(tab + "def __or__(self, other):" + EOL)
+            convertedSource:Append(tab + tab + "return Bool_(self.value or other.value)" + EOL)
+            convertedSource:Append(tab + "def __repr__(self):" + EOL)
+            convertedSource:Append(tab + tab + "return repr(self.value).lower()" + EOL + EOL)
+
+            //add an init area
+            convertedSource:Append(tab + "def __init__(self, parents = 0, value = False):" + EOL)
+        elseif value = "Libraries.Language.Types.Number"
+            convertedSource:Append(tab + "def __init__(self, parents = 0, value = 0.0):" + EOL)
+        elseif value = "Libraries.Language.Types.Text"
+            convertedSource:Append(tab + "def __init__(self, parents = 0, value = ''):" + EOL)
+        else
+            convertedSource:Append(tab + "def __init__(self, parents = 0):" + EOL)
+        end
+        
         convertedSource:Append(tab + tab + "self.me_ = self" + EOL)
 
         convertedSource:Append(tab + tab + "self.inheritance_ = {")
@@ -2025,6 +2046,13 @@ actLink:SetClassAttribute("hover:underline text-sm")
             convertedSource:Append(field:WritePython())
         end
         constants:DecreaseTab()
+
+        if  clazz:GetStaticKey() = "Libraries.Language.Types.Boolean" or
+            clazz:GetStaticKey() = "Libraries.Language.Types.Integer" or
+            clazz:GetStaticKey() = "Libraries.Language.Types.Number" or
+            clazz:GetStaticKey() = "Libraries.Language.Types.Text"
+            convertedSource:Append(tab + tab + "self.value = value" + EOL)
+        end
 
         //now that all of the parents have had their parent's set, 
         //call their constructors. Only if there's at least one non-object parent.

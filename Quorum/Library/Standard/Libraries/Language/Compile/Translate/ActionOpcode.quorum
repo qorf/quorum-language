@@ -225,7 +225,7 @@ class ActionOpcode is QuorumOpcode
             temp = temp + opcode:WritePython()
         end
         //if the action is empty, besides the block, issue a null op.
-        if temp:IsEmpty() and not method:GetParentClass():IsObject()
+        if method:IsBlueprint()
             text tabs2 = constants:GetTabText()
             result = result + tabs2 + "pass" + EOL
         else

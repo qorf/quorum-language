@@ -15,6 +15,15 @@ class NumberObjectToNumberPrimitiveCast is ExplicitCastOpcode
         methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "plugins/quorum/Libraries/Language/Types/Number", "ConvertNumberObjectToNumber",
                 "(Lquorum/Libraries/Language/Types/Number_;)D", false)
     end
+
+    action WritePython returns text
+        text result = ""
+        QuorumOpcode opcodeToCast = GetOpcodeToCast()
+        if opcodeToCast not= undefined
+            result = result + WrapGetValuePython(opcodeToCast)
+        end
+        return result
+    end
     
     action WriteJavaScript returns text
         text result = ""

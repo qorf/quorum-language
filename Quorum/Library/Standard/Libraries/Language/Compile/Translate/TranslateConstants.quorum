@@ -1,9 +1,12 @@
 package Libraries.Language.Compile.Translate
+use Libraries.Language.Compile.Symbol.Class
+use Libraries.Language.Compile.Symbol.Action
 
 shared class TranslateConstants
     integer tab = 0
     text tabText = ""
     text TAB_VALUE = tabText:GetTab()
+    Class clazz = undefined
 
     action GetTab returns integer
         return tab
@@ -31,5 +34,13 @@ shared class TranslateConstants
     action ResetTabs
         tab = 0
         tabText = ""
+    end
+
+    action GetClass returns Class
+        return clazz
+    end
+
+    action SetClass(Class clazz)
+        me:clazz = clazz
     end
 end

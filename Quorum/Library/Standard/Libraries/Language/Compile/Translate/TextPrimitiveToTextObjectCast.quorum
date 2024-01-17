@@ -15,6 +15,15 @@ class TextPrimitiveToTextObjectCast is ExplicitCastOpcode
         methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "plugins/quorum/Libraries/Language/Types/Text", "ConvertTextToTextObject",
                 "(Ljava/lang/String;)Lquorum/Libraries/Language/Types/Text_;", false)
     end
+
+    action WritePython returns text
+        text result = "quorum_Libraries_Language_Types_Text_(0, "
+        QuorumOpcode opcodeToCast = GetOpcodeToCast()
+        if opcodeToCast not= undefined
+            result = result + opcodeToCast:WritePython()
+        end
+        return result + ")"
+    end
     
     action WriteJavaScript returns text
         text result = "new quorum_Libraries_Language_Types_Text_(false, "

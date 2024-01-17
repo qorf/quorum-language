@@ -3,6 +3,7 @@ package Libraries.Language.Compile.Translate
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.Interpreter.Runtime
 use Libraries.Language.Compile.Interpreter.Result
+use Libraries.Language.Compile.Symbol.Class
 
 class QuorumConstant is QuorumOpcode
     public integer integerValue = 0
@@ -33,6 +34,8 @@ class QuorumConstant is QuorumOpcode
     end
 
     action WritePython returns text
+        TranslateConstants constants
+        Class clazz = constants:GetClass()
         Type type = GetType()
         if type:IsInteger()
             return type:GetIntegerConstant() + ""
@@ -40,10 +43,18 @@ class QuorumConstant is QuorumOpcode
             return type:GetNumberConstant() + ""
         elseif type:IsBoolean()
             boolean val = type:GetBooleanConstant()
-            if val
-                return "True"
+            if clazz:GetStaticKey() not= type:BOOLEAN_OBJECT_KEY
+                if val
+                    return "Bool_(True)"
+                else
+                    return "Bool_(False)"
+                end
             else
-                return "False"
+                if val
+                    return "True"
+                else
+                    return "False"
+                end
             end
         elseif type:IsText()
             text value = type:GetTextConstant() 

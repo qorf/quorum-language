@@ -223,17 +223,17 @@ class Main is NetworkExchangeListener
         File main3
         File main4
         main:SetAbsolutePath(
-    "/Users/stefik/Repositories/quorum-language/Quorum/Library/Tests/IfStatement/Pass/MultipleIfBlocksNestedLevel2_1C0.quorum")
+    "/Users/stefik/Repositories/quorum-language/Quorum/Library/Tests/Expressions/Pass/BoolParens.quorum")
         //main:SetWorkingDirectory("Library/Tests/Game/Pass")
         //main:SetPath("WebTest.quorum")
         main2:SetAbsolutePath(
-            "/Users/stefik/Repositories/quorum-language/Quorum/Library/Tests/Inheritance/Pass/A.quorum")
+            "/Users/stefik/Repositories/quorum-language/Quorum/Library/Tests/TypeChecker/Pass/AutoboxTempClass.quorum")
 
         main3:SetAbsolutePath(
-            "/Users/stefik/Repositories/quorum-language/Quorum/Library/Tests/Inheritance/Pass/B.quorum")
+            "/Users/stefik/Repositories/quorum-language/Quorum/Library/Tests/Inheritance/Pass/B5.quorum")
 
         main4:SetAbsolutePath(
-            "/Users/stefik/Repositories/quorum-language/Quorum/Library/Tests/Inheritance/Pass/C.quorum")
+            "/Users/stefik/Repositories/quorum-language/Quorum/Library/Tests/Inheritance/Pass/CIsAB.quorum")
 
         Array<File> files
 //        Array<File> compilerFiles = compilerRootFolder:GetDirectoryListing()
@@ -329,7 +329,7 @@ class Main is NetworkExchangeListener
                     myOutput:GetParentDirectory():CreateDirectories()
                 end
                 output "Outputting python with the result:"
-                //output result:convertedPython
+                //output "'" + result:convertedPython + "'"
                 myOutput:Write(result:convertedPython)
                 output "File written."
             end

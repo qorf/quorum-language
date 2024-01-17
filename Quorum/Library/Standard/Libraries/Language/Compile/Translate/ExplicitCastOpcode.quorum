@@ -60,6 +60,12 @@ class ExplicitCastOpcode is QuorumOpcode
         end
     end
 
+    action WrapGetValuePython(QuorumOpcode op) returns text
+        text DQ = ""
+        DQ = DQ:GetDoubleQuote()
+        return op:WritePython() + ".GetValue()"
+    end
+
     action WrapGetValue(QuorumOpcode op) returns text
         text DQ = ""
         DQ = DQ:GetDoubleQuote()

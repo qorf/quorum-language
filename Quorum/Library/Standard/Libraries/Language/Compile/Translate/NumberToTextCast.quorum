@@ -19,6 +19,17 @@ class NumberToTextCast is ExplicitCastOpcode
                 "(D)Ljava/lang/String;", false)
     end
     
+    action WritePython returns text
+        text result = ""
+        text DQ = result:GetDoubleQuote()
+        QuorumOpcode opcodeToCast = GetOpcodeToCast()
+        if opcodeToCast not= undefined
+            text temp = opcodeToCast:WritePython()
+            result = result + " __builtins__.str(" + temp + ")"
+        end
+        return result
+    end
+
     action WriteJavaScript returns text
         text result = ""
         text DQ = result:GetDoubleQuote()
@@ -26,7 +37,6 @@ class NumberToTextCast is ExplicitCastOpcode
         if opcodeToCast not= undefined
             text temp = opcodeToCast:WriteJavaScript()
             result = result + "(global_number_converter_(" + temp + "))"
-            //result = result + "((" + temp  + " % 1 == 0? "+temp + ".toFixed(1) : " + temp + ") + " + DQ + DQ + ").replace(/e\+/g, " + DQ + "E" + DQ + ") + " + DQ + DQ
         end
         return result
     end

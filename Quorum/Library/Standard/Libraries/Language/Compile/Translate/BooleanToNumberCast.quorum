@@ -16,6 +16,16 @@ class BooleanToNumberCast is ExplicitCastOpcode
         methodWriter:VisitMethodInvoke(opcodes:GetInvokeStatic(), "plugins/quorum/Libraries/Language/Types", "BooleanToNumberCast",
                 "(I)D", false)
     end
+
+    action WritePython returns text
+        text result = ""
+        text DQ = result:GetDoubleQuote()
+        QuorumOpcode opcodeToCast = GetOpcodeToCast()
+        if opcodeToCast not= undefined
+            result = result + "__builtins__.float(" + opcodeToCast:WritePython() + ")"
+        end
+        return result
+    end
     
     action WriteJavaScript returns text
         text result = ""
