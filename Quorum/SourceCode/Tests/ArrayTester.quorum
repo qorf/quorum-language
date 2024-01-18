@@ -110,6 +110,7 @@ class ArrayTester
         results:Add(2, "3")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayAddAt
@@ -123,6 +124,7 @@ class ArrayTester
         results:Add(2, "14")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayAddLots
@@ -139,6 +141,7 @@ class ArrayTester
         results:Add("Finished")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayAddToEnd
@@ -152,6 +155,7 @@ class ArrayTester
         results:Add(2, "14")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayAddToFront
@@ -165,6 +169,7 @@ class ArrayTester
         results:Add(2, "14")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayCopy
@@ -178,6 +183,7 @@ class ArrayTester
         results:Add(2, "14")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayEmpty
@@ -191,6 +197,7 @@ class ArrayTester
         results:Add(2, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayGetFirstLocationFound
@@ -202,6 +209,7 @@ class ArrayTester
         results:Add(0, "1")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayGetFirstLocationNotFound
@@ -213,6 +221,7 @@ class ArrayTester
         results:Add(0, "-1")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayGetFromEnd
@@ -226,6 +235,7 @@ class ArrayTester
         results:Add(2, "13")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayGetFromFront
@@ -239,6 +249,7 @@ class ArrayTester
         results:Add(2, "14")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayGetLastLocationFound
@@ -250,6 +261,7 @@ class ArrayTester
         results:Add(0, "3")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayGetMaxSize
@@ -261,6 +273,7 @@ class ArrayTester
         results:Add(0, "10")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayGetSize
@@ -273,6 +286,7 @@ class ArrayTester
         results:Add(1, "2")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayIsEmpty
@@ -285,6 +299,7 @@ class ArrayTester
         results:Add(1, "false")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayMultidimensional
@@ -296,6 +311,7 @@ class ArrayTester
         results:Add(0, "2")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayOfTypeBooleanActionSetGetBoolean
@@ -316,224 +332,241 @@ class ArrayTester
         results:Add(9, "false")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayOfTypeBooleanObjectActionSetGetBooleanObject
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "ArrayOfTypeBooleanObjectActionSetGetBooleanObject.quorum")
-            files:Add(main)
-            results:Add(0, "true")
-            results:Add(1, "true")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ArrayOfTypeBooleanObjectActionSetGetBooleanObject.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayOfTypeIntegerActionSetGetInteger
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "ArrayOfTypeIntegerActionSetGetInteger.quorum")
-            files:Add(main)
-            results:Add(0, "1")
-            results:Add(1, "2")
-            results:Add(2, "3")
-            results:Add(3, "4")
-            results:Add(4, "5")
-            results:Add(5, "6")
-            results:Add(6, "7")
-            results:Add(7, "8")
-            results:Add(8, "9")
-            results:Add(9, "0")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ArrayOfTypeIntegerActionSetGetInteger.quorum")
+        files:Add(main)
+        results:Add(0, "1")
+        results:Add(1, "2")
+        results:Add(2, "3")
+        results:Add(3, "4")
+        results:Add(4, "5")
+        results:Add(5, "6")
+        results:Add(6, "7")
+        results:Add(7, "8")
+        results:Add(8, "9")
+        results:Add(9, "0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayOfTypeIntegerObjectActionSetGetIntegerObject
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "ArrayOfTypeIntegerObjectActionSetGetIntegerObject.quorum")
-            files:Add(main)
-            results:Add(0, "true")
-            results:Add(1, "1")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ArrayOfTypeIntegerObjectActionSetGetIntegerObject.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        results:Add(1, "1")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayOfTypeNumberActionSetGetNumber
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "ArrayOfTypeNumberActionSetGetNumber.quorum")
-            files:Add(main)
-            results:Add(0, "1.5")
-            results:Add(1, "2.5")
-            results:Add(2, "3.5")
-            results:Add(3, "4.5")
-            results:Add(4, "5.5")
-            results:Add(5, "6.5")
-            results:Add(6, "7.5")
-            results:Add(7, "8.5")
-            results:Add(8, "9.5")
-            results:Add(9, "0.5")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ArrayOfTypeNumberActionSetGetNumber.quorum")
+        files:Add(main)
+        results:Add(0, "1.5")
+        results:Add(1, "2.5")
+        results:Add(2, "3.5")
+        results:Add(3, "4.5")
+        results:Add(4, "5.5")
+        results:Add(5, "6.5")
+        results:Add(6, "7.5")
+        results:Add(7, "8.5")
+        results:Add(8, "9.5")
+        results:Add(9, "0.5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayOfTypeNumberObjectActionSetGetNumberObject
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "ArrayOfTypeNumberObjectActionSetGetNumberObject.quorum")
-            files:Add(main)
-            results:Add(0, "true")
-            results:Add(1, "1.5")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ArrayOfTypeNumberObjectActionSetGetNumberObject.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        results:Add(1, "1.5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayOfTypeTextActionSetGetText
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "ArrayOfTypeTextActionSetGetText.quorum")
-            files:Add(main)
-            results:Add(0, "t")
-            results:Add(1, "f")
-            results:Add(2, "t")
-            results:Add(3, "f")
-            results:Add(4, "t")
-            results:Add(5, "f")
-            results:Add(6, "t")
-            results:Add(7, "f")
-            results:Add(8, "t")
-            results:Add(9, "t")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ArrayOfTypeTextActionSetGetText.quorum")
+        files:Add(main)
+        results:Add(0, "t")
+        results:Add(1, "f")
+        results:Add(2, "t")
+        results:Add(3, "f")
+        results:Add(4, "t")
+        results:Add(5, "f")
+        results:Add(6, "t")
+        results:Add(7, "f")
+        results:Add(8, "t")
+        results:Add(9, "t")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayOfTypeTextObjectActionSetGetTextObject
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "ArrayOfTypeTextObjectActionSetGetTextObject.quorum")
-            files:Add(main)
-            results:Add(0, "true")
-            results:Add(1, "t")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ArrayOfTypeTextObjectActionSetGetTextObject.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        results:Add(1, "t")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayRemove
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "ArrayRemove.quorum")
-            files:Add(main)
-            results:Add(0, "12")
-            results:Add(1, "14")
-            results:Add(2, "2")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ArrayRemove.quorum")
+        files:Add(main)
+        results:Add(0, "12")
+        results:Add(1, "14")
+        results:Add(2, "2")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayRemoveAll
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "ArrayRemoveAll.quorum")
-            files:Add(main)
-            results:Add(0, "12")
-            results:Add(1, "1")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ArrayRemoveAll.quorum")
+        files:Add(main)
+        results:Add(0, "12")
+        results:Add(1, "1")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayRemoveAt
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "ArrayRemoveAt.quorum")
-            files:Add(main)
-            results:Add(0, "12")
-            results:Add(1, "14")
-            results:Add(2, "2")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ArrayRemoveAt.quorum")
+        files:Add(main)
+        results:Add(0, "12")
+        results:Add(1, "14")
+        results:Add(2, "2")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayRemoveFromEnd
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "ArrayRemoveFromEnd.quorum")
-            files:Add(main)
-            results:Add(0, "14")
-            results:Add(1, "13")
-            results:Add(2, "12")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ArrayRemoveFromEnd.quorum")
+        files:Add(main)
+        results:Add(0, "14")
+        results:Add(1, "13")
+        results:Add(2, "12")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayRemoveFromFront
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "ArrayRemoveFromFront.quorum")
-            files:Add(main)
-            results:Add(0, "13")
-            results:Add(1, "12")
-            results:Add(2, "14")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ArrayRemoveFromFront.quorum")
+        files:Add(main)
+        results:Add(0, "13")
+        results:Add(1, "12")
+        results:Add(2, "14")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArraySetMaxSize
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "ArraySetMaxSize.quorum")
-            files:Add(main)
-            results:Add(0, "12")
-            results:Add(1, "13")
-            results:Add(2, "20")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ArraySetMaxSize.quorum")
+        files:Add(main)
+        results:Add(0, "12")
+        results:Add(1, "13")
+        results:Add(2, "20")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArraySetSize
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "ArraySetSize.quorum")
-            files:Add(main)
-            results:Add(0, "3")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ArraySetSize.quorum")
+        files:Add(main)
+        results:Add(0, "3")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArraySetSizeCheck
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "ArraySetSizeCheck.quorum")
-            files:Add(main)
-            results:Add(0, "passed")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ArraySetSizeCheck.quorum")
+        files:Add(main)
+        results:Add(0, "passed")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArraySortInteger
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "ArraySortInteger.quorum")
-            files:Add(main)
-            results:Add(0, "sorted")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ArraySortInteger.quorum")
+        files:Add(main)
+        results:Add(0, "sorted")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayShuffle
@@ -549,6 +582,7 @@ class ArrayTester
         results:Add(4, "2")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArrayShuffleRange
@@ -566,292 +600,316 @@ class ArrayTester
         results:Add(6, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArraySortNumber
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "ArraySortNumber.quorum")
-            files:Add(main)
-            results:Add(0, "sorted")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ArraySortNumber.quorum")
+        files:Add(main)
+        results:Add(0, "sorted")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ArraySortText
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "ArraySortText.quorum")
-            files:Add(main)
-            results:Add(0, "sorted")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ArraySortText.quorum")
+        files:Add(main)
+        results:Add(0, "sorted")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action AssignFromGetIntToNum
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "AssignFromGetIntToNum.quorum")
-            files:Add(main)
-            results:Add(0, "1.0")
-            results:Add(1, "5.0")
-            results:Add(2, "6.0")
-            results:Add(3, "1.0")
-            results:Add(4, "5.0")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "AssignFromGetIntToNum.quorum")
+        files:Add(main)
+        results:Add(0, "1.0")
+        results:Add(1, "5.0")
+        results:Add(2, "6.0")
+        results:Add(3, "1.0")
+        results:Add(4, "5.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ComplexSet
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "ComplexSet.quorum")
-            files:Add(main)
-            results:Add(0, "10")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ComplexSet.quorum")
+        files:Add(main)
+        results:Add(0, "10")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action VectorAdd
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "VectorAdd.quorum")
-            files:Add(main)
-            results:Add(0, "12")
-            results:Add(1, "13")
-            results:Add(2, "14")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "VectorAdd.quorum")
+        files:Add(main)
+        results:Add(0, "12")
+        results:Add(1, "13")
+        results:Add(2, "14")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action VectorAddAt
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "VectorAddAt.quorum")
-            files:Add(main)
-            results:Add(0, "13")
-            results:Add(1, "12")
-            results:Add(2, "14")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "VectorAddAt.quorum")
+        files:Add(main)
+        results:Add(0, "13")
+        results:Add(1, "12")
+        results:Add(2, "14")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action VectorAddToEnd
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "VectorAddToEnd.quorum")
-            files:Add(main)
-            results:Add(0, "13")
-            results:Add(1, "12")
-            results:Add(2, "14")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "VectorAddToEnd.quorum")
+        files:Add(main)
+        results:Add(0, "13")
+        results:Add(1, "12")
+        results:Add(2, "14")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action VectorAddToFront
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "VectorAddToFront.quorum")
-            files:Add(main)
-            results:Add(0, "13")
-            results:Add(1, "12")
-            results:Add(2, "14")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "VectorAddToFront.quorum")
+        files:Add(main)
+        results:Add(0, "13")
+        results:Add(1, "12")
+        results:Add(2, "14")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action VectorCopy
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "VectorCopy.quorum")
-            files:Add(main)
-            results:Add(0, "13")
-            results:Add(1, "12")
-            results:Add(2, "14")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "VectorCopy.quorum")
+        files:Add(main)
+        results:Add(0, "13")
+        results:Add(1, "12")
+        results:Add(2, "14")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action VectorEmpty
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "VectorEmpty.quorum")
-            files:Add(main)
-            results:Add(0, "true")
-            results:Add(1, "false")
-            results:Add(2, "true")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "VectorEmpty.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        results:Add(1, "false")
+        results:Add(2, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action VectorGetFromEnd
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "VectorGetFromEnd.quorum")
-            files:Add(main)
-            results:Add(0, "14")
-            results:Add(1, "12")
-            results:Add(2, "13")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "VectorGetFromEnd.quorum")
+        files:Add(main)
+        results:Add(0, "14")
+        results:Add(1, "12")
+        results:Add(2, "13")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action VectorGetFromFront
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "VectorGetFromFront.quorum")
-            files:Add(main)
-            results:Add(0, "13")
-            results:Add(1, "12")
-            results:Add(2, "14")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "VectorGetFromFront.quorum")
+        files:Add(main)
+        results:Add(0, "13")
+        results:Add(1, "12")
+        results:Add(2, "14")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action VectorGetMaxSize
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "VectorGetMaxSize.quorum")
-            files:Add(main)
-            results:Add(0, "10")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "VectorGetMaxSize.quorum")
+        files:Add(main)
+        results:Add(0, "10")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action VectorGetSize
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "VectorGetSize.quorum")
-            files:Add(main)
-            results:Add(0, "0")
-            results:Add(1, "1")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "VectorGetSize.quorum")
+        files:Add(main)
+        results:Add(0, "0")
+        results:Add(1, "1")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action VectorIsEmpty
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "VectorIsEmpty.quorum")
-            files:Add(main)
-            results:Add(0, "true")
-            results:Add(1, "false")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "VectorIsEmpty.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        results:Add(1, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action VectorOverMaxSize
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "VectorOverMaxSize.quorum")
-            files:Add(main)
-            results:Add(0, "11")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "VectorOverMaxSize.quorum")
+        files:Add(main)
+        results:Add(0, "11")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action VectorRemove
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "VectorRemove.quorum")
-            files:Add(main)
-            results:Add(0, "12")
-            results:Add(1, "14")
-            results:Add(2, "2")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "VectorRemove.quorum")
+        files:Add(main)
+        results:Add(0, "12")
+        results:Add(1, "14")
+        results:Add(2, "2")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action VectorRemoveAll
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "VectorRemoveAll.quorum")
-            files:Add(main)
-            results:Add(0, "12")
-            results:Add(1, "1")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "VectorRemoveAll.quorum")
+        files:Add(main)
+        results:Add(0, "12")
+        results:Add(1, "1")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action VectorRemoveAt
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "VectorRemoveAt.quorum")
-            files:Add(main)
-            results:Add(0, "12")
-            results:Add(1, "14")
-            results:Add(2, "2")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "VectorRemoveAt.quorum")
+        files:Add(main)
+        results:Add(0, "12")
+        results:Add(1, "14")
+        results:Add(2, "2")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action VectorRemoveFromEnd
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "VectorRemoveFromEnd.quorum")
-            files:Add(main)
-            results:Add(0, "14")
-            results:Add(1, "13")
-            results:Add(2, "12")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "VectorRemoveFromEnd.quorum")
+        files:Add(main)
+        results:Add(0, "14")
+        results:Add(1, "13")
+        results:Add(2, "12")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action VectorRemoveFromFront
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "VectorRemoveFromFront.quorum")
-            files:Add(main)
-            results:Add(0, "13")
-            results:Add(1, "12")
-            results:Add(2, "14")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "VectorRemoveFromFront.quorum")
+        files:Add(main)
+        results:Add(0, "13")
+        results:Add(1, "12")
+        results:Add(2, "14")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action VectorSetMaxSize
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "VectorSetMaxSize.quorum")
-            files:Add(main)
-            results:Add(0, "12")
-            results:Add(1, "13")
-            results:Add(2, "20")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "VectorSetMaxSize.quorum")
+        files:Add(main)
+        results:Add(0, "12")
+        results:Add(1, "13")
+        results:Add(2, "20")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action VectorSetSize
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "VectorSetSize.quorum")
-            files:Add(main)
-            results:Add(0, "6")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "VectorSetSize.quorum")
+        files:Add(main)
+        results:Add(0, "6")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     //FAIL TESTS
@@ -863,6 +921,7 @@ class ArrayTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ArrayOfTypeBooleanActionSetGetBooleanObject()
@@ -872,6 +931,7 @@ class ArrayTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ArrayOfTypeIntegerActionSetGetIntegerObject()
@@ -881,6 +941,7 @@ class ArrayTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ArrayOfTypeNumberActionSetGetNumberObject()
@@ -890,6 +951,7 @@ class ArrayTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ArrayOfTypeTextActionSetGetTextObject()
@@ -899,6 +961,7 @@ class ArrayTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action ArrayOverMaxSize()
@@ -908,5 +971,6 @@ class ArrayTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 end
