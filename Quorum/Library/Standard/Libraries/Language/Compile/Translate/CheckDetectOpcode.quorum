@@ -316,15 +316,15 @@ class CheckDetectOpcode is QuorumOpcode
             constants:IncreaseTab()
             text value = block:WritePython()
             if value = undefined or value:IsEmpty()
-                result = result + tabs + tab + "push" + EOL
+                result = result + tabs + tab + "pass" + EOL
             else
                 result = result + value
             end
             constants:DecreaseTab()
         elseif isCheckEmpty and alwaysBlock not= undefined
-            //in this case, we need a push statement for python to accept it.
+            //in this case, we need a pass statement for python to accept it.
             result = result + tabs + "try:" + EOL
-            result = result + tabs + tab + "push" + EOL
+            result = result + tabs + tab + "pass" + EOL
         end
 
         boolean hasCatchAll = false
@@ -404,7 +404,7 @@ class CheckDetectOpcode is QuorumOpcode
         end
 
         if alwaysBlock not= undefined
-            result = result + tabs + "else:" + EOL
+            result = result + tabs + "finally:" + EOL
             constants:IncreaseTab()
             result = result + alwaysBlock:WritePython() + EOL
             constants:DecreaseTab()
