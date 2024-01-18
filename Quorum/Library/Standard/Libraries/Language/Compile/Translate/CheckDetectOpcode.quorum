@@ -337,13 +337,10 @@ class CheckDetectOpcode is QuorumOpcode
             repeat while it:HasNext()
                 DetectBlockOpcode det = it:Next()
                 Variable value = det:GetExceptionVariable()
-                text exceptionVariableName = value:GetJavaScriptName()
+                text exceptionVariableName = value:GetName()
                 if isFirst
-                    if value not= undefined
-                        result = result + checkExceptionName + ":" + EOL
-                    else
-                        result = result + checkExceptionName + ":" + EOL
-                    end
+                    result = result + exceptionVariableName + ":" + EOL
+
                     isFirst = false
                 end
 

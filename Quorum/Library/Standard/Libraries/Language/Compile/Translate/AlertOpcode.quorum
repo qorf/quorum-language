@@ -63,12 +63,15 @@ class AlertOpcode is QuorumOpcode
 
         if opcode not= undefined
             Type value = opcode:GetType()
+            //raise quorum_Libraries_Language_Errors_Error_(0, "Sorry, bro")
             if value:IsText()
+                result = result + tabs + "raise quorum_Libraries_Language_Errors_Error_" + 
+                    "(0, " + opcode:WritePython() + ")" + EOL
 //                result = result + "var exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();" + EOL
 //                result = result + " exceptionInstance_.SetErrorMessage$quorum_text(" + opcode:WriteJavaScript() + ");" + EOL
 //                result = result +  "throw exceptionInstance_;" + EOL
             else
-//                result = result +  "raise " + opcode:WriteJavaScript() + ";"
+                result = result + tabs + "raise " + opcode:WritePython() + EOL
             end
         end
 

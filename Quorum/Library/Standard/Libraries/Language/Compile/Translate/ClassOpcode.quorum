@@ -1770,8 +1770,14 @@ actLink:SetClassAttribute("hover:underline text-sm")
 //            convertedSource:Append(", optional") //not sure here yet
         end
 
+        Type errorType
+        boolean hasErrorParent = clazz:HasParentClass(errorType:ERROR_KEY)
+        if clazz:IsError()
+            convertedSource:Append("(Exception)")
+        elseif hasErrorParent
+            convertedSource:Append("(quorum_Libraries_Language_Errors_Error_)")
+        end
         convertedSource:Append(":" + EOL)
-        //convertedSource:Append("this.prototype = this;" + EOL)
 
         //write the parents
 //        convertedSource:Append("this.parentNames_ = [")
@@ -1806,16 +1812,13 @@ actLink:SetClassAttribute("hover:underline text-sm")
             convertedSource:Append(constructor:WritePython())
             constants:DecreaseTab()
         end
-//
+
         Iterator<Action> it = clazz:GetParentActions()
         text tempParentActions = ""
         repeat while it:HasNext()
             Action act = it:Next()
             text thisParentAction = ""
             Class parentOfMethod = act:GetParentClass()
-            if parentOfMethod:IsObject()
-                a = 5
-            end
             thisParentAction = thisParentAction + tab + "def " + act:ConvertActionToPythonName()
                 + "(self"
 
@@ -1823,9 +1826,6 @@ actLink:SetClassAttribute("hover:underline text-sm")
             repeat while params:HasNext()
                 Variable param = params:Next()
                 thisParentAction = thisParentAction + ", " + param:GetJavaScriptName()
-//                if params:HasNext()
-//                    thisParentAction = thisParentAction + ", "
-//                end
             end
 
             boolean dontWrapParams = false
@@ -1961,12 +1961,13 @@ actLink:SetClassAttribute("hover:underline text-sm")
             convertedSource:Append(tab + "def __init__(self, parents = 0, value = 0.0):" + EOL)
         elseif value = "Libraries.Language.Types.Text"
             convertedSource:Append(tab + "def __init__(self, parents = 0, value = ''):" + EOL)
+        elseif clazz:IsError()
+            convertedSource:Append(tab + "def __init__(self, parents = 0, message='', errors=None):" + EOL)
         else
             convertedSource:Append(tab + "def __init__(self, parents = 0):" + EOL)
         end
         
         convertedSource:Append(tab + tab + "self.me_ = self" + EOL)
-
         convertedSource:Append(tab + tab + "self.inheritance_ = {")
         parents = clazz:GetParentClasses()
         repeat while parents:HasNext()
@@ -1982,7 +1983,6 @@ actLink:SetClassAttribute("hover:underline text-sm")
         //initialize all of the parent objects as values, if appropriate
         parents = clazz:GetParentCreationOrder()
         if parents:HasNext()
-            
             if clazz:GetParentSize() > 1 //more than object
                 convertedSource:Append(tab + tab + "if parents == 0:" + EOL) 
             end
@@ -2029,8 +2029,6 @@ actLink:SetClassAttribute("hover:underline text-sm")
             end
         end
 
-//        convertedSource:Append("}" + EOL)
-//
         if clazz:HasSystemAction() //this has a plugin, so instantiate it.
             //if this is a primitive wrapper, pass the actual primitive
             if clazz:GetStaticKey() = "Libraries.Language.Types.Boolean" or
@@ -2062,6 +2060,11 @@ actLink:SetClassAttribute("hover:underline text-sm")
             convertedSource:Append(tab + tab + "self.value = value" + EOL)
         end
 
+        if clazz:IsError()
+            convertedSource:Append(tab + tab + "super().__init__(message)" + EOL)
+            convertedSource:Append(tab + tab + "self.errorMessage = message" + EOL)
+        end
+
         //now that all of the parents have had their parent's set, 
         //call their constructors. Only if there's at least one non-object parent.
         if clazz:GetParentSize() > 1
@@ -2090,25 +2093,6 @@ actLink:SetClassAttribute("hover:underline text-sm")
             convertedSource:Append(tab + tab + "if parents == 0:" + EOL)
             convertedSource:Append(tab + tab + tab + "self.constructor_()" + EOL)
         end
-//
-//        if value = "Libraries.Language.Types.Integer"
-//            convertedSource:Append("this.value = optional == null ? 0: optional;")
-//        elseif value = "Libraries.Language.Types.Boolean"
-//            convertedSource:Append("this.value = optional == null ? false: optional;")
-//        elseif value = "Libraries.Language.Types.Number"
-//            convertedSource:Append("this.value = optional == null ? 0.0: optional;")
-//        elseif value = "Libraries.Language.Types.Text"
-//            convertedSource:Append("this.value = optional == null ? " + quote + quote + ": optional;")
-//        end
-//
-//        //All objects need a global hash now, not just the parent. This makes the file larger,
-//        //but should save on memory.
-//        //if clazz:IsObject()
-//            convertedSource:Append("this.myHash = globalStaticHash;" + EOL)
-//            convertedSource:Append("globalStaticHash = globalStaticHash + 1;" + EOL)
-//        //end
-//
-//        convertedSource:Append(EOL + "};" + EOL)
 
         //in the case where there are no parents or fields, make this a dummy action
         convertedSource:Append(tab + tab + "return" + EOL)

@@ -614,7 +614,8 @@ class Compiler
                     Class cl = iterator:Next()
                     ClassOpcode op = library:GetOpcode(cl:GetStaticKey())
                     if op not= undefined
-                        if  cl:GetStaticKey() = "Libraries.Language.Object" or
+                        if  cl:GetStaticKey() = "Libraries.Language.Errors.Error" or
+                            cl:GetStaticKey() = "Libraries.Language.Object" or
                             cl:GetStaticKey() = "Libraries.Language.Types.Integer" or
                             cl:GetStaticKey() = "Libraries.Language.Types.Number" or
                             cl:GetStaticKey() = "Libraries.Language.Types.Text" or
