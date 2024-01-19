@@ -7,6 +7,7 @@ shared class TranslateConstants
     text tabText = ""
     text TAB_VALUE = tabText:GetTab()
     Class clazz = undefined
+    boolean isUserCodeAsync = true
 
     action GetTab returns integer
         return tab
@@ -42,5 +43,13 @@ shared class TranslateConstants
 
     action SetClass(Class clazz)
         me:clazz = clazz
+    end
+
+    action IsUserCodeAsynchronous returns boolean
+        return isUserCodeAsync
+    end
+
+    action SetUserCodeAsynchronous(boolean isUserCodeAsync)
+        me:isUserCodeAsync = isUserCodeAsync
     end
 end

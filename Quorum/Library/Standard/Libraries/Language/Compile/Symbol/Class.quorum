@@ -56,6 +56,7 @@ class Class is Symbol
     text staticKeyUnderscores = ""
     text staticKeySlashes = ""
     boolean staticClass = false
+    boolean isUserCode = false
     CompilerErrorCodes codes
 
     on create
@@ -2596,4 +2597,12 @@ class Class is Symbol
 //        end
 //        return result
 //    end
+    action IsUserCode returns boolean
+        return isUserCode
+    end
+
+    action SetUserCode(boolean isUserCode)
+        me:isUserCode = isUserCode
+    end
+
 end

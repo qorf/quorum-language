@@ -5,6 +5,8 @@ use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Symbol.Type
 use Libraries.Language.Compile.Symbol.ActionCallResolution
+use Libraries.Language.Compile.Symbol.Class
+use Libraries.Language.Compile.Symbol.Action
 
 class ChainedActionCallOpcode is QuorumOpcode
     boolean isSoloCall = false
@@ -82,9 +84,12 @@ class ChainedActionCallOpcode is QuorumOpcode
         text result = ""
         EOL = result:GetCarriageReturn() + result:GetLineFeed()
         TranslateConstants constants
+        boolean async = constants:IsUserCodeAsynchronous()
+        boolean userCode = false
         text tabs = constants:GetTabText()
         Array<text> values
         Iterator<ActionCallOpcode> it = ops:GetIterator()
+        boolean containsSpikeSystemCall = false
         integer i = 0
         repeat while it:HasNext()
             ActionCallOpcode op = it:Next()
@@ -101,6 +106,29 @@ class ChainedActionCallOpcode is QuorumOpcode
             end
 
             ActionCallResolution res = op:GetActionCallResolution()
+
+            /*
+                If this is true, it's a lego system call,  which means if the program is async, 
+                we need to await for any call.
+
+            */
+            if res not= undefined
+                Class callingClass = res:callingClass
+                if callingClass not= undefined
+                    userCode = callingClass:IsUserCode()
+                end
+                Class callOnClass = res:classToMakeCallOn
+                if callOnClass not= undefined
+                    text pack = callOnClass:GetPackageKey()
+                    if pack = "Libraries.Robots.Spike"
+                        Action act = res:resolvedAction
+                        if act not= undefined and act:IsSystem()
+                            containsSpikeSystemCall = true
+                        end
+                    end
+                end
+            end
+
             //try to detect if the next thing in the chain is calling on a primitive. If so, we have to wrap
             if res not= undefined and res:isCallOnPrimitive
                 //take the previous value and wrap it in the object form of the primitive
@@ -143,7 +171,11 @@ class ChainedActionCallOpcode is QuorumOpcode
             i = i + 1
         end
         if isSoloCall
-            result = tabs + result + EOL// + ";" + result:GetCarriageReturn() + result:GetLineFeed()
+            if async and userCode and containsSpikeSystemCall
+                result = tabs + "await " + result + EOL
+            else
+                result = tabs + result + EOL// + ";" + result:GetCarriageReturn() + result:GetLineFeed()
+            end
         end
 
         return result

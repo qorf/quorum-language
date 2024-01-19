@@ -2097,9 +2097,14 @@ actLink:SetClassAttribute("hover:underline text-sm")
         //in the case where there are no parents or fields, make this a dummy action
         convertedSource:Append(tab + tab + "return" + EOL)
 
+        boolean async = constants:IsUserCodeAsynchronous()
         if clazz:IsProgramStartingClass()
-            convertedSource:Append(EOL + EOL + "if __name__ == '__main__':" + EOL)
 
+            if async
+                convertedSource:Append(EOL + EOL + "async def SuperMain():" + EOL)
+            
+            end
+            
             if clazz:IsStatic()
                 convertedSource:Append(tab + "starter_______ = " +
                     "Global_Add_Shared_Class("+quote +clazz:GetStaticKey() + quote + ", "+clazz:ConvertStaticKeyToUnderScore()+"()) " +
@@ -2108,7 +2113,19 @@ actLink:SetClassAttribute("hover:underline text-sm")
             else
                 convertedSource:Append(tab + "starter_______ = " + clazz:ConvertStaticKeyToUnderScore() + "()" + EOL)
             end
-            convertedSource:Append(tab + "starter_______.Main()" + EOL)
+
+            if async
+                convertedSource:Append(tab + "await starter_______.Main()" + EOL)
+            else
+                convertedSource:Append(tab + "starter_______.Main()" + EOL)
+            end
+
+            convertedSource:Append(EOL + EOL + "if __name__ == '__main__':" + EOL)
+            if async
+                convertedSource:Append(tab + "runloop.run(SuperMain())" + EOL)
+            else 
+                convertedSource:Append(tab + "SuperMain()" + EOL)
+            end
         end
 
         

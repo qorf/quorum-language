@@ -480,9 +480,9 @@ class ActionCallOpcode is QuorumOpcode
                     if actionResolution:isCallOnPrimitive
                         text value = clazz:ConvertStaticKeyToJavaScriptName()
                         if clazz:GetStaticKey() = "Libraries.Language.Types.Integer"
-                            name = name + "$IntegerPrimitive"
+                            name = name + "__IntegerPrimitive"
                         elseif clazz:GetStaticKey() = "Libraries.Language.Types.Number"
-                            name = name + "$NumberPrimitive"
+                            name = name + "__NumberPrimitive"
                         end
                         
                         result = result + "." + name + "("

@@ -607,6 +607,14 @@ class Compiler
             elseif request:GetOutputType() = PYTHON
                 //first copy all of the standard library opcodes into the array
                 Array<ClassOpcode> classOpcodes = theOpcodes:CopyToValueArray()
+                //set that it's user code
+                i = 0
+                repeat while i < classOpcodes:GetSize()
+                    ClassOpcode co = classOpcodes:Get(i)
+                    Class c = co:GetClass()
+                    c:SetUserCode(true)
+                    i = i + 1
+                end
 
                 //temporarily, let's write the library to disk
                 Iterator<Class> iterator = table:GetClasses()
@@ -614,16 +622,16 @@ class Compiler
                     Class cl = iterator:Next()
                     ClassOpcode op = library:GetOpcode(cl:GetStaticKey())
                     if op not= undefined
-                        if  cl:GetStaticKey() = "Libraries.Language.Errors.Error" or
-                            cl:GetStaticKey() = "Libraries.Language.Object" or
-                            cl:GetStaticKey() = "Libraries.Language.Types.Integer" or
-                            cl:GetStaticKey() = "Libraries.Language.Types.Number" or
-                            cl:GetStaticKey() = "Libraries.Language.Types.Text" or
-                            cl:GetStaticKey() = "Libraries.Language.Types.Boolean"
-//                            cl:GetStaticKey() = "Libraries.Language.Errors.InvalidLocationError"
-//                            cl:GetStaticKey() = "Libraries.Containers.Array"
+//                        if  cl:GetStaticKey() = "Libraries.Containers.Array" or
+//                            cl:GetStaticKey() = "Libraries.Language.Errors.Error" or
+//                            cl:GetStaticKey() = "Libraries.Language.Errors.InvalidLocationError" or
+//                            cl:GetStaticKey() = "Libraries.Language.Object" or
+//                            cl:GetStaticKey() = "Libraries.Language.Types.Integer" or
+//                            cl:GetStaticKey() = "Libraries.Language.Types.Number" or
+//                            cl:GetStaticKey() = "Libraries.Language.Types.Text" or
+//                            cl:GetStaticKey() = "Libraries.Language.Types.Boolean"
                             classOpcodes:Add(op)
-                        end
+//                        end
                     end
                 end
 

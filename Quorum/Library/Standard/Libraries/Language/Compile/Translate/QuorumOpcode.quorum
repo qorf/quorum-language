@@ -91,6 +91,15 @@ class QuorumOpcode
         end
     end
 
+    action WriteBlockOrPassIfEmpty(text value) returns text
+        TranslateConstants constants
+        if value not= undefined and not value:IsEmpty()
+            return value
+        else 
+            return constants:GetTabText() + "pass" + value:GetCarriageReturn() + value:GetLineFeed()
+        end
+    end
+
     /*
         This action copies only that information provided by the type
         checker. It guarantees that the object is of the same type,

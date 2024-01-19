@@ -202,7 +202,7 @@ class ConditionalOpcode is QuorumOpcode
         text tabs = constants:GetTabText()
         text result = tabs + "if " + expression:WritePython() + ":" + EOL
         constants:IncreaseTab()
-        result = result + block:WritePython()
+        result = result + WriteBlockOrPassIfEmpty(block:WritePython())
         constants:DecreaseTab()
 
         i = 0
@@ -212,7 +212,7 @@ class ConditionalOpcode is QuorumOpcode
 
             result = result + tabs + "elif " + elseIfOp:WritePython() + ":" + EOL
             constants:IncreaseTab()
-            result = result + elseIfBlock:WritePython()
+            result = result + WriteBlockOrPassIfEmpty(elseIfBlock:WritePython())
             constants:DecreaseTab()
             i = i + 1
         end
@@ -221,7 +221,7 @@ class ConditionalOpcode is QuorumOpcode
             if not elseBlock:IsEmpty()
                 result = result + tabs + "else:" + EOL
                 constants:IncreaseTab()
-                result = result + elseBlock:WritePython()
+                result = result + WriteBlockOrPassIfEmpty(elseBlock:WritePython())
                 constants:DecreaseTab()
             end
         end
