@@ -2115,12 +2115,15 @@ actLink:SetClassAttribute("hover:underline text-sm")
             end
 
             if async
-                convertedSource:Append(tab + "await starter_______.Main()" + EOL)
+                convertedSource:Append(tab + "await starter_______.Main()" + EOL + EOL)
             else
-                convertedSource:Append(tab + "starter_______.Main()" + EOL)
+                convertedSource:Append(tab + "starter_______.Main()" + EOL + EOL)
             end
 
-            convertedSource:Append(EOL + EOL + "if __name__ == '__main__':" + EOL)
+            if async
+                convertedSource:Append("import runloop" + EOL)
+            end
+            convertedSource:Append("if __name__ == '__main__':" + EOL)
             if async
                 convertedSource:Append(tab + "runloop.run(SuperMain())" + EOL)
             else 

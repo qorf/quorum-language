@@ -1,0 +1,71 @@
+package Libraries.Robots.Spike
+
+class Motor
+
+    action GetPort returns integer
+        return GetPortNative()
+    end
+
+    action SetPort(integer port)
+        SetPortNative(port)
+    end
+
+    private system action GetPortNative returns integer
+    private system action SetPortNative(integer port) returns integer
+
+    action GetAbsolutePosition returns integer
+        return GetAbsolutePositionNative()
+    end
+
+    private system action GetAbsolutePositionNative returns integer
+
+    action GetDutyCycle returns integer
+        return GetDutyCycleNative()
+    end
+
+    private system action GetDutyCycleNative returns integer
+
+    action GetRelativePosition returns integer
+        return GetRelativePositionNative()
+    end
+
+    private system action GetRelativePositionNative returns integer
+
+    action SetRelativePosition(integer position)
+        SetRelativePositionNative(position)
+    end
+    private system action SetRelativePositionNative(integer position)
+
+    action Run(integer velocity)
+        RunNative(velocity, 1000)
+    end
+
+    action Run(integer velocity, integer acceleration)
+        RunNative(velocity, acceleration)
+    end
+
+    private system action RunNative(integer velocity, integer acceleration)
+
+    system action RunToDegrees(integer degrees, integer velocity)
+
+    system action RunForTime(integer time, integer velocity)
+
+    system action RunToAbsolutePosition(integer position, integer velocity)
+
+    system action RunToRelativePosition(integer position, integer velocity)
+
+    action SetDutyCycle(integer pulseWidthModulation)
+        SetDutyCycle(pulseWidthModulation)
+    end
+    private system action SetDutyCycleNative(integer pulseWidthModulation)
+
+    action Stop
+        StopNative()
+    end
+    private system action StopNative
+
+    action GetVelocity returns integer
+        return GetVelocityNative()
+    end
+    private system action GetVelocityNative returns integer
+end
