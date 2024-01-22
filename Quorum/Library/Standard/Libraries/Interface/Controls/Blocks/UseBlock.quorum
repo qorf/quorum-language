@@ -58,6 +58,13 @@ class UseBlock is SingleLineBlock
 
         nameField:Setup("Name", location:GetIndex() - GetStartIndex(), 1 + location:GetIndexEnd() - GetStartIndex())
     end
+    
+    action GetLibraryName returns text
+        if nameField not= undefined
+            return nameField:GetText()
+        end
+        return ""
+    end
 
     action GetUseContext returns UseContext
         return useContext

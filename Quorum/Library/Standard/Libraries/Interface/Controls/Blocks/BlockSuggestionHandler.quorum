@@ -53,6 +53,9 @@ Type primitiveCheck
             AssignmentBlock assign = cast(AssignmentBlock, block)
             className = assign:GetClassName()
             variableName = assign:GetVariableName()
+        elseif block is UseBlock
+            UseBlock useBlock = cast(UseBlock, block)
+            className = useBlock:GetLibraryName()
         end
 if className:Contains("<")
             className = className:Split("<"):Get(0)
@@ -72,11 +75,12 @@ QuorumLexer luthor
         request:table = table
         CalculateScope(block:GetStartIndex(), tokenIterator, request)
 if className = "" and variableName not= ""
-
             CheckVariable(request, clazz, variableName)
         end
         Array<Action> actions = AddActions(request)
+        Array<Variable> variables = AddVariables(request)
         result:actions = actions
+        result:variables = variables
         result:clazz = request:clazz
         result:variableName = variableName
         
@@ -93,6 +97,12 @@ if className = "" and variableName not= ""
         end
             Class classFile = best:symbolTable:GetClassInFile(file)
             if classFile not= undefined and className not= ""
+            if className:Contains(".")
+                Class fullKey = best:symbolTable:GetClass(className)
+                if fullKey not= undefined
+                    return fullKey
+                end
+            end
 Class resolvedClass = classFile:GetValidUseName(className)
             if resolvedClass not= undefined
                     return resolvedClass
@@ -118,7 +128,12 @@ Class resolvedClass = classFile:GetValidUseName(className)
             if classFile not= undefined
                 return classFile
             end
-
+if className not= "" and className:Contains(".")
+                Class fullKey = best:symbolTable:GetClass(className)
+                if fullKey not= undefined
+                    return fullKey
+                end
+        end
         
 
         return undefined
@@ -191,6 +206,46 @@ Class resolvedClass = classFile:GetValidUseName(className)
         return actionsToReturn
     end
 
+    private action AddVariables(CodeCompletionRequest request) returns Array<Variable>
+        Array<Variable> variablesToReturn
+        AddBlockVariables(request, variablesToReturn)
+        
+        return variablesToReturn
+    end
+    
+    action AddVariable(CodeCompletionRequest request, Array<Variable> vars, Variable variable)
+if request:isRequestInClass
+                vars:Add(variable)
+            else
+                if not variable:IsPrivate()
+                    vars:Add(variable)
+                end
+            end
+    end
+    
+    action AddBlockVariables(CodeCompletionRequest request, Array<Variable> vars)
+        if request:block not= undefined
+Iterator<Variable> variables = request:block:GetVariablesAllBlocks()
+        repeat while variables:HasNext()
+            Variable variable = variables:Next()
+            if variable not= undefined and variable:IsVisibleToDebugger()
+AddVariable(request, vars, variable)
+            end
+        end
+        end
+
+        Action method = request:method
+        if method not= undefined
+            Iterator<Variable> parameters = method:GetParameterIterator()
+            repeat while parameters:HasNext()
+                Variable variable = parameters:Next()
+                if variable not= undefined and variable:IsVisibleToDebugger()
+                    AddVariable(request, vars, variable)
+                end
+            end
+        end
+        
+    end
     
 private action GetSortedBlocks(Action act) returns Array<Libraries.Language.Compile.Symbol.Block>
         Array<Libraries.Language.Compile.Symbol.Block> blocks
