@@ -50,7 +50,7 @@ void main()
     v_notchSize = a_notchSize;
     v_notchPositions = a_notchPositions;
 
-    float bottomOffset = " + attributes:TEXTURE_COORDINATES + "0.y > 0.5 ? (u_notchHeight + 1) : 0.0;
+    float bottomOffset = " + attributes:TEXTURE_COORDINATES + "0.y > 0.5 ? (u_notchHeight + 1.0) : 0.0;
     vec4 adjustedPosition = vec4(" + attributes:POSITION + ".x, " + attributes:POSITION + ".y - bottomOffset, "  + attributes:POSITION + ".zw);
 
     gl_Position =  u_projTrans * adjustedPosition;

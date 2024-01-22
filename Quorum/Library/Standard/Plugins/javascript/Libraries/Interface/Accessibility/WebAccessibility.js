@@ -230,6 +230,9 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextBoxSelection
     }else{
         var id = textBox.GetHashCode();
         var element = document.getElementById(id);
+        if (element == null) {
+            return;
+        }
         element.selectionStart = selection.GetStartIndex();
         element.selectionEnd = selection.GetEndIndex();
     }
@@ -239,10 +242,16 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextBoxSelection
 //  private system action TextSelectionChanged(TextBoxSelection selection)
 this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelection = function(selection) {
     var textField = selection.GetTextField();
-    var id = textField.GetHashCode();
-    var element = document.getElementById(id);
-    
-    element.setSelectionRange(selection.GetStartIndex(),selection.GetEndIndex());
+    if (textField == null) {
+        return;
+    } else {
+        var id = textField.GetHashCode();
+        var element = document.getElementById(id);
+        if (element == null) {
+            return;
+        }
+        element.setSelectionRange(selection.GetStartIndex(),selection.GetEndIndex());
+    }
 
     //console.log("TextField Selection Changed");
 }
