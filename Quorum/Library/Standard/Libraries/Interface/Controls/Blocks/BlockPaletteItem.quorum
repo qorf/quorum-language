@@ -14,6 +14,7 @@ use Libraries.Language.Compile.Parsing.QuorumParser
 use Libraries.Language.Compile.Context.StartContext
 use Libraries.Language.Compile.Blocks.ParserToBlockListener
 use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Language.Compile.Context.StatementContext
 
 
 class BlockPaletteItem is Button, BlockEnvironment
@@ -21,7 +22,7 @@ class BlockPaletteItem is Button, BlockEnvironment
     BlockPalette palette = undefined
     Array<Block> blocksToDrag = undefined
     
-    text code = ""
+    text code = undefined
     RootBlock root = undefined
     Array<Block> visualBlocks
     
@@ -31,8 +32,7 @@ class BlockPaletteItem is Button, BlockEnvironment
     end
 
     action LoadGraphics(LayoutProperties properties)
-        if code not= undefined and code not= "" and root = undefined
-            
+        if code not= undefined and root = undefined
             CompilerErrorManager manager
             QuorumLexer lexer
             lexer:SetCompilerErrorManager(manager)
@@ -43,25 +43,65 @@ class BlockPaletteItem is Button, BlockEnvironment
             parser:SetLexer(lexer)
             StartContext start = parser:Start()
             
-            ParserToBlockListener blockListener
+ParserToBlockListener blockListener
             blockListener:SetBlockEnvironment(me)
             blockListener:SetQuorumLexer(lexer)
+            
+            if manager:IsCompilationErrorFree()
             blockListener:SetStartContext(start)
             root = blockListener:Update(0, code:GetSize())
+            elseif code = "" or code = "Blank"
+FreeformBlock newBlock
+                    newBlock:SetLocalStartLine(0)
+                    newBlock:SetLocalEndLine(0)
+                    newBlock:SetLocalStartIndex(0)
+                    newBlock:SetLocalEndIndex(0)
+                    newBlock:SetScopeDepth(0)
+                
+                RootBlock newRoot
+                root = newRoot
+                root:SetBlockEnvironment(me)
+                root:Add(cast(Block, newBlock))
+                
+                newBlock:Setup()
+                
+            else
+                manager:Empty()
+                StatementContext statement = parser:Statement()
+                parser:Statement()
+                
+                if statement = undefined
+FreeformBlock newBlock
+                    newBlock:SetLocalStartLine(0)
+                    newBlock:SetLocalEndLine(0)
+                    newBlock:SetLocalStartIndex(0)
+                    newBlock:SetLocalEndIndex(code:GetSize())
+                    newBlock:SetScopeDepth(0)
+                
+                RootBlock newRoot
+                root = newRoot
+                root:SetBlockEnvironment(me)
+                root:Add(cast(Block, newBlock))
+                
+                newBlock:Setup()
+                else
+blockListener:SetStartContext(undefined)
+            root = blockListener:ParseStatement(statement)
+                end
+            end
+            
     
             number height = 0        
             Block block = root
             repeat until block = undefined
-    block:SetFontSize(GetFontSize())
-
-                
+                block:SetFontSize(GetFontSize())
                 if block is SingleLineBlock
                     Block copy = block:CopyToPlaceholder()
                     copy:LoadGraphics(copy:GetDefaultLayoutProperties())
                     copy:SetInputGroup("")
                     Add(copy)
                     visualBlocks:Add(copy)
-    
+                    
                     height = height + GetLineHeight(0)
                 end
     
@@ -77,6 +117,7 @@ class BlockPaletteItem is Button, BlockEnvironment
             repeat while i < visualBlocks:GetSize()
                 Block child = visualBlocks:Get(i)
                 current = current - GetLineHeight(i)
+                child:Resize()
                 child:SetPosition(0, current)
                 i = i + 1
             end

@@ -615,6 +615,17 @@ class ParserToBlockListener is QuorumSourceListener
         return rootBlock
     end
 
+    action ParseStatement(StatementContext context) returns RootBlock
+        rootBlock:EmptyChildBlocks()
+        rootBlock:SetBlockEnvironment(editor)
+        rootBlock:SetStartContext(undefined)
+        currentBlock = rootBlock
+
+        context:Traverse(me)
+
+        return rootBlock
+    end
+
     action GetBlockEnvironment returns BlockEnvironment
         return editor
     end

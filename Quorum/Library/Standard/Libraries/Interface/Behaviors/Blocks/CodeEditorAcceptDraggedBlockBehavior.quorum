@@ -74,8 +74,11 @@ class CodeEditorAcceptDraggedBlockBehavior is Behavior
 //                    toInsert = firstBlock:GetEditor():GetCode():GetText(firstBlock:GetStartIndex(), lastBlock:GetEndIndex()) + toInsert:GetLineFeed()
                     
                     CodeEditor firstEditor = cast(CodeEditor, firstBlock:GetBlockEnvironment())
-                    toInsert = firstEditor:GetCode():GetText(firstBlock:GetStartIndex(), lastBlock:GetEndIndex()) + toInsert:GetLineFeed()
-
+                    if firstBlock = lastBlock and firstBlock:IsPlaceholder()
+                        toInsert = firstBlock:GetPlaceholderText() + toInsert:GetLineFeed()
+                    else
+toInsert = firstEditor:GetCode():GetText(firstBlock:GetStartIndex(), lastBlock:GetEndIndex()) + toInsert:GetLineFeed()
+                    end
                     lastCandidateLine = -2
                     
                     if editor:HasPlaceholders()

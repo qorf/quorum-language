@@ -47,6 +47,7 @@ class BlockDragBehavior is Behavior
                 BlockEnvironment environment = block:GetBlockEnvironment()
                 if environment is CodeEditor
                     editor = cast(CodeEditor, environment)
+                    dragSource = editor
                 elseif environment is BlockPaletteItem
 BlockPaletteItem paletteItem = cast(BlockPaletteItem, environment)
                 editor = paletteItem:GetPalette():GetEditor()
@@ -69,7 +70,7 @@ BlockPaletteItem paletteItem = cast(BlockPaletteItem, environment)
                 sourceBlocks = paletteItem:GetBlocks()
             elseif targetItem is Item2D
                 Item2D target = cast(Item2D, targetItem)
-                repeat until (target = undefined) or (target is CodeEditor) or (target is BlockPalette) or (target is EditRegion)
+                repeat until (target = undefined) or (target is CodeEditor) or (target is BlockPalette) or (target is BlockPaletteItem)
                     target = target:GetParent()
                 end
                 
@@ -78,6 +79,11 @@ BlockPaletteItem paletteItem = cast(BlockPaletteItem, environment)
                 if target is CodeEditor
                     editor = cast(CodeEditor, target)
                     dragSource = editor
+                elseif target is BlockPaletteItem
+BlockPaletteItem paletteItem = cast(BlockPaletteItem, target)
+                editor = paletteItem:GetPalette():GetEditor()
+                dragSource = paletteItem:GetPalette()
+                sourceBlocks = paletteItem:GetBlocks()
                 elseif target is BlockPalette
                     BlockPalette palette = cast(BlockPalette, target)
                     editor = palette:GetEditor()
@@ -138,6 +144,9 @@ BlockPaletteItem paletteItem = cast(BlockPaletteItem, environment)
         number targetY = 0
         Layer2D targetLayer = blocks:Get(i):GetLayer()
         if targetLayer = undefined
+            if dragSource = undefined
+                return now
+            end
             targetLayer = dragSource:GetLayer()
         end
         dragAnchor:SetPosition(startX, startY)

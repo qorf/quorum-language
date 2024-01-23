@@ -614,6 +614,10 @@ class CodeEditorRenderer is Control
             parentBlock = rootBlock
             followingBlock = GetNavigableBlockAtLine(0)
         else
+            if navigationIndex > GetEditor():GetLineCount()
+                navigationIndex = GetEditor():GetLineCount()
+            end
+            
             Block targetBlock = GetNavigableBlockAtLine(navigationIndex - 1)
             currentNavigationIndex = targetBlock:GetNavigationIndex() + targetBlock:GetNavigationSize()
             

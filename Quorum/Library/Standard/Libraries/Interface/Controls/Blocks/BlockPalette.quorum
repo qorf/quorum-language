@@ -100,7 +100,7 @@ class BlockPalette is TabPane
         page:SetPalette(me)
         text dq = ""
         dq = dq:GetDoubleQuote()
-        page:AddBlockPaletteItem("Blank")
+        page:AddBlockPaletteItem("")
         page:AddBlockPaletteItem("integer a = 0")
         page:AddBlockPaletteItem("number b = 0.0")
         page:AddBlockPaletteItem("boolean bool = true")
@@ -120,7 +120,7 @@ class BlockPalette is TabPane
         dq = dq:GetDoubleQuote()
         lf = dq:GetLineFeed()
         page:AddBlockPaletteItem("if true" + lf + "end")
-        page:AddBlockPaletteItem("elseif")
+        page:AddBlockPaletteItem("elseif true")
         page:AddBlockPaletteItem("if true"+lf+"else"+lf+"end")
         page:AddBlockPaletteItem("else")
         page:AddBlockPaletteItem("repeat 1 times" + lf + "end")
@@ -139,7 +139,7 @@ class BlockPalette is TabPane
         page:AddBlockPaletteItem("action myAction" + lf + "end")
         page:AddBlockPaletteItem("action myAction(type name)" + lf + "end")
         page:AddBlockPaletteItem("action myAction returns integer" + lf + "return 0" + lf + "end")
-        page:AddBlockPaletteItem("return")
+        page:AddBlockPaletteItem("return value")
         page:AddBlockPaletteItem("class MyClass" + lf + "end")
         page:AddBlockPaletteItem("use myLibrary")
         

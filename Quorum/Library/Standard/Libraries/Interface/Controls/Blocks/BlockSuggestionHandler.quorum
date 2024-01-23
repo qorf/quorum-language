@@ -322,43 +322,43 @@ private action CalculateScope(integer index, TokenIterator<Token> iterator, Code
                 end
             elseif token:category = constants:IF
                 blockIndex = blockIndex + 1
-                if IsInToken(index, token) and blockIndex < blocks:GetSize() and blockIndex >= 0
+                if IsInToken(index, token) and blocks not= undefined and blockIndex < blocks:GetSize() and blockIndex >= 0
                     request:block = blocks:Get(blockIndex)
                     blockStack:Push(request:block)
                 end
             elseif token:category = constants:ELSE_IF
                 blockIndex = blockIndex + 1
-                if IsInToken(index, token) and blockIndex < blocks:GetSize() and blockIndex >= 0
+                if IsInToken(index, token) and blocks not= undefined and blockIndex < blocks:GetSize() and blockIndex >= 0
                     request:block = blocks:Get(blockIndex)
                     blockStack:Push(request:block)
                 end
             elseif token:category = constants:ELSE
                 blockIndex = blockIndex + 1
-                if IsInToken(index, token) and blockIndex < blocks:GetSize() and blockIndex >= 0
+                if IsInToken(index, token) and blocks not= undefined and blockIndex < blocks:GetSize() and blockIndex >= 0
                     request:block = blocks:Get(blockIndex)
                     blockStack:Push(request:block)
                 end
             elseif token:category = constants:REPEAT
                 blockIndex = blockIndex + 1
-                if index > token:startIndex and blockIndex < blocks:GetSize() and blockIndex >= 0
+                if index > token:startIndex and blocks not= undefined and blockIndex < blocks:GetSize() and blockIndex >= 0
                     request:block = blocks:Get(blockIndex)
                     blockStack:Push(request:block)
                 end
             elseif token:category = constants:CHECK
                 blockIndex = blockIndex + 1
-                if IsInToken(index, token) and blockIndex < blocks:GetSize() and blockIndex > 0
+                if IsInToken(index, token) and blocks not= undefined and blockIndex < blocks:GetSize() and blockIndex > 0
                     request:block = blocks:Get(blockIndex)
                     blockStack:Push(request:block)
                 end
             elseif token:category = constants:DETECT
                 blockIndex = blockIndex + 1
-                if IsInToken(index, token) and blockIndex < blocks:GetSize() and blockIndex > 0
+                if IsInToken(index, token) and blocks not= undefined and blockIndex < blocks:GetSize() and blockIndex > 0
                     request:block = blocks:Get(blockIndex)
                     blockStack:Push(request:block)
                 end
             elseif token:category = constants:ALWAYS
                 blockIndex = blockIndex + 1
-                if IsInToken(index, token) and blockIndex < blocks:GetSize() and blockIndex >= 0
+                if IsInToken(index, token) and blocks not= undefined and blockIndex < blocks:GetSize() and blockIndex >= 0
                     request:block = blocks:Get(blockIndex)
                     blockStack:Push(request:block)
                 end
