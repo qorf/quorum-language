@@ -71,6 +71,13 @@ BlockPaletteItem paletteItem = cast(BlockPaletteItem, environment)
             elseif targetItem is Item2D
                 Item2D target = cast(Item2D, targetItem)
                 repeat until (target = undefined) or (target is CodeEditor) or (target is BlockPalette) or (target is BlockPaletteItem)
+                    if target is EditRegion
+                        EditRegion region = cast(EditRegion, target)
+                        Block block = region:GetBlock()
+                        if block not= undefined and block:IsPlaceholder() = false
+                            return now
+                        end
+                    end
                     target = target:GetParent()
                 end
                 

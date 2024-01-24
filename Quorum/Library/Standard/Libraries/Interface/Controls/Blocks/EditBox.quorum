@@ -60,7 +60,9 @@ class EditBox is TextBox, EditRegion
         SetName(name)
         
         // Change the input group so it stops acting like a text box -- we only want it to visually reflect one
+        // Also remove the self-event listener
         SetInputGroup("")
+        RemoveMouseMovementListener(me)
 
         BlockEnvironment environment = GetBlockEnvironment()
 

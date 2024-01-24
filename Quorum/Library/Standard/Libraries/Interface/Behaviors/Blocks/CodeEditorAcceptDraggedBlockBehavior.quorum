@@ -40,8 +40,10 @@ class CodeEditorAcceptDraggedBlockBehavior is Behavior
                     
                     if editor:CanAcceptPlaceholdersAtNavigationIndex(line) = false
                         if editor:HasPlaceholders()
+                            output "Couldn't accept at " + line + ", removing placeholders"
                             editor:RemovePlaceholders()
                         else
+                            output "Invalid at " + line + ", no placeholders"
                             // Do nothing, there's no placeholders there to adjust.
                         end
                     elseif editor:HasPlaceholders()
@@ -64,7 +66,7 @@ class CodeEditorAcceptDraggedBlockBehavior is Behavior
                     lastCandidateLine = line
                 end
             elseif dropEvent:eventType = dropEvent:DRAGGED_ONTO_DESTINATION
-                lastCandidateLine = line
+                // Don't do anything in this case. The work in the dragging continued case can cover this part.
             elseif dropEvent:eventType = dropEvent:DROPPED
                 if sourceBlocks:IsEmpty() = false
                     Block firstBlock = sourceBlocks:GetFromFront()

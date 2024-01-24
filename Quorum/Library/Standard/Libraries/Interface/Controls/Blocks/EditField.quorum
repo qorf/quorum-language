@@ -57,7 +57,10 @@ class EditField is TextField, EditRegion
         SetName(name)
 
         // Change the input group so it stops acting like a text field -- we only want it to visually reflect one
+        // Also remove the default self-event listening
         SetInputGroup("")
+        RemoveMouseListener(me)
+        RemoveMouseMovementListener(me)
         
         BlockEnvironment environment = GetBlockEnvironment()
 
