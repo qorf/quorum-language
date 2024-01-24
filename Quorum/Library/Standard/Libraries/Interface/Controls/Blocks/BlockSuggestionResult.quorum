@@ -9,7 +9,10 @@ use Libraries.Containers.Array
 class BlockSuggestionResult
 
     public Array<Action> actions = undefined
-    public Array<Variable> variables = undefined
+    public Array<Variable> blockVariables = undefined
+    public Array<Variable> classVariables = undefined
+public Array<Variable> parentVariables = undefined
+    public Block requestingBlock = undefined
     public Class clazz = undefined
     public text variableName = ""
     

@@ -18,6 +18,8 @@ use Libraries.Interface.Events.TextChangeListener
 use Libraries.Interface.Events.TextChangeEvent
 use Libraries.Language.Compile.Symbol.Documentation
 use Libraries.Language.Compile.Symbol.Variable
+use Libraries.Interface.Controls.List
+use Libraries.Containers.HashTable
 
 class BlockSuggestionPage is BlockPalettePage, SelectionListener, TextChangeListener
 
@@ -62,11 +64,10 @@ class BlockSuggestionPage is BlockPalettePage, SelectionListener, TextChangeList
         text variableName = result:variableName
         me:variableName = variableName
         
-        Array<Variable> variables = result:variables
-        if variables not= undefined
-            variables:Sort()
-        end
-        SetTitle(clazz:GetName())
+        Array<Variable> blockVariables = result:blockVariables
+Array<Variable> classVariables = result:classVariables
+Array<Variable> parentVariables = result:parentVariables
+    SetTitle(clazz:GetName())
         Documentation clazzDocs = undefined
         clazzDocs = clazz:GetDocumentation()
         if clazzDocs = undefined
@@ -74,7 +75,43 @@ class BlockSuggestionPage is BlockPalettePage, SelectionListener, TextChangeList
         else
             AddLabel(clazz:GetDocumentation():GetShortDescription())
         end
+if blockVariables not= undefined
+            integer i = 0
+            Array<text> vars
+            HashTable<text, Variable> jumpList
+            repeat while i < blockVariables:GetSize()
+                Variable variable = blockVariables:Get(i)
+                text name = variable:GetDisplayName()+" "+variable:GetType():GetName()+" Line: "+variable:GetLineNumber()
+                vars:Add(name)
+                i = i + 1
+            end
+            vars:Sort()
+            AddVariableList("Local Variables", vars)
+        end
+if classVariables not= undefined
+            integer i = 0
+            Array<text> vars
+            repeat while i < classVariables:GetSize()
+                Variable variable = classVariables:Get(i)
+                vars:Add(variable:GetDisplayName()+" "+variable:GetType():GetName()+" Line: "+variable:GetLineNumber())
+                i = i + 1
+            end
+            vars:Sort()
+            AddVariableList("Class Variables", vars)
+        end
+if parentVariables not= undefined
+            integer i = 0
+            Array<text> vars
+            repeat while i < parentVariables:GetSize()
+                Variable variable = parentVariables:Get(i)
+                vars:Add(variable:GetDisplayName()+" "+variable:GetType():GetName()+" Line: "+variable:GetLineNumber())
+                i = i + 1
+            end
+            vars:Sort()
+            AddVariableList("Parent Variables", vars)
+        end
         if actions not= undefined
+            AddLabel("Actions")
 AddFilterTextField()
 
         integer i = 0
@@ -86,13 +123,19 @@ suggestedActionItems:Add(AddBlockPaletteItem(call))
             i = i + 1
         end
         end
-        if variables not= undefined
-            integer i = 0
-            repeat while i < variables:GetSize()
-                Variable variable = variables:Get(i)
-                AddLabel(variable:GetDisplayName()+" Line: "+variable:GetLineNumber())
-                i = i + 1
-            end
+        
+    end
+    
+    action AddVariableList(text header, Array<text> items)
+        if items = undefined or items:IsEmpty()
+            return now
+        end
+        AddLabel(header)
+        integer i = 0
+        List varList = AddList(header + " List")
+        repeat while i < items:GetSize()
+            varList:Add(items:Get(i))
+            i = i + 1
         end
     end
 

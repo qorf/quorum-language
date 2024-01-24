@@ -49,13 +49,23 @@ Type primitiveCheck
                 request:clazzCurrentParse = lastClazz
             end
         end
+        // defaults for showing variables
+        boolean addBlockVariables = true
+boolean addClassVariables = true
+boolean addParentVariables = false
         if block is AssignmentBlock
+            addBlockVariables = false
+            addParentVariables = true
             AssignmentBlock assign = cast(AssignmentBlock, block)
             className = assign:GetClassName()
             variableName = assign:GetVariableName()
         elseif block is UseBlock
+            addBlockVariables = false
+            addParentVariables = true
             UseBlock useBlock = cast(UseBlock, block)
             className = useBlock:GetLibraryName()
+        elseif block is FreeformBlock
+            addParentVariables = true
         end
 if className:Contains("<")
             className = className:Split("<"):Get(0)
@@ -77,10 +87,24 @@ QuorumLexer luthor
 if className = "" and variableName not= ""
             CheckVariable(request, clazz, variableName)
         end
+        
         Array<Action> actions = AddActions(request)
-        Array<Variable> variables = AddVariables(request)
+        if addBlockVariables
+Array<Variable> vars
+AddBlockVariables(request, vars)
+            result:blockVariables = vars
+        end
+        if addClassVariables
+Array<Variable> vars
+AddClassVariables(request, vars)
+            result:classVariables = vars
+        end
+if addParentVariables
+Array<Variable> vars
+AddParentVariables(request, vars)
+            result:parentVariables = vars
+        end
         result:actions = actions
-        result:variables = variables
         result:clazz = request:clazz
         result:variableName = variableName
         
@@ -245,6 +269,59 @@ AddVariable(request, vars, variable)
             end
         end
         
+    end
+    
+    
+/* Add all of the fields from this class */
+    private action AddClassVariables(CodeCompletionRequest request, Array<Variable> vars)
+        Class clazzToProcess = request:clazz
+        if request:variableClass not= undefined
+            clazzToProcess = request:variableClass
+            if clazzToProcess not= undefined and request:clazz not= undefined
+               and clazzToProcess:GetStaticKey() not= request:clazz:GetStaticKey()
+                request:isRequestInClass = false
+            end
+        end
+
+        if clazzToProcess = undefined
+            return now
+        end
+
+        Iterator<Variable> variables = clazzToProcess:GetVariables()
+        repeat while variables:HasNext()
+            Variable variable2 = variables:Next()
+            if variable2:GetType() not= undefined
+                if request:isRequestInClass
+AddVariable(request, vars, variable2)
+                else
+                    if not variable2:IsPrivate()
+AddVariable(request, vars, variable2)
+                    end
+                end
+            end
+        end
+    end
+    
+    
+private action AddParentVariables(CodeCompletionRequest request, Array<Variable> vars)
+        //now add all of the parent fields from this class
+        Iterator<Class> parents = request:clazz:GetParentClasses()
+        repeat while parents:HasNext()
+            Class par = parents:Next()
+            Iterator<Variable> variables2 = par:GetVariables()
+            repeat while variables2:HasNext()
+                Variable variable2 = variables2:Next()
+                if variable2:GetType() not= undefined
+                    if request:isRequestInClass
+AddVariable(request, vars, variable2)
+                    else
+                        if not variable2:IsPrivate()
+AddVariable(request, vars, variable2)
+                        end
+                    end
+                end
+            end
+        end
     end
     
 private action GetSortedBlocks(Action act) returns Array<Libraries.Language.Compile.Symbol.Block>
