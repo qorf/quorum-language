@@ -30,15 +30,15 @@ class SayBlock is SingleLineBlock
     end
 
     action SetupElements
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
         SetLeftPadding(spacing * 0.5)
         SetRightPadding(spacing * 0.5)
 
         BlockLabel bl
         me:sayLabel = bl
-        sayLabel:SetFont(GetEditor():GetFont())
-        sayLabel:SetFontSize(GetEditor():GetFontSize())
+        sayLabel:SetFont(editor:GetFont())
+        sayLabel:SetFontSize(editor:GetFontSize())
         sayLabel:SetText("say")
         sayLabel:SetRightPadding(spacing)
         Add(sayLabel)

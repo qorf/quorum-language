@@ -31,15 +31,15 @@ class OutputBlock is SingleLineBlock
     end
 
     action SetupElements
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
         SetLeftPadding(spacing * 0.5)
         SetRightPadding(spacing * 0.5)
 
         BlockLabel bl
         me:outputLabel = bl
-        outputLabel:SetFont(GetEditor():GetFont())
-        outputLabel:SetFontSize(GetEditor():GetFontSize())
+        outputLabel:SetFont(editor:GetFont())
+        outputLabel:SetFontSize(editor:GetFontSize())
         outputLabel:SetText("output")
         outputLabel:SetRightPadding(spacing)
         Add(outputLabel)

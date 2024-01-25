@@ -1,6 +1,12 @@
 package Libraries.Interface.Behaviors.Blocks
 
-use Libraries.Game.GameStateManageruse Libraries.Interface.Controls.Blocks.Blockuse Libraries.Interface.Events.BehaviorEventuse Libraries.Interface.Controls.Blocks.CodeEditoruse Libraries.Interface.Controls.Blocks.BlockItemuse Libraries.Interface.Controls.Blocks.EditBoxuse Libraries.Game.InputTable
+use Libraries.Game.GameStateManager
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Blocks.CodeEditor
+use Libraries.Interface.Controls.Blocks.BlockItem
+use Libraries.Interface.Controls.Blocks.EditBox
+use Libraries.Game.InputTable
 use Libraries.Interface.Behaviors.Behavior
 
 class CodeEditorMultipleSelectionDownBehavior is Behavior
@@ -13,7 +19,8 @@ class CodeEditorMultipleSelectionDownBehavior is Behavior
             editor = cast(CodeEditor, event:GetItem())
         elseif event:GetItem() is Block
             Block block = cast(Block, event:GetItem())
-            editor = block:GetEditor()
+//            editor = block:GetEditor()
+            editor = cast(CodeEditor, block:GetBlockEnvironment())
         elseif event:GetItem() is BlockItem
             if event:GetItem() is EditBox
                 EditBox box = cast(EditBox, event:GetItem())
@@ -26,7 +33,8 @@ class CodeEditorMultipleSelectionDownBehavior is Behavior
             end
 
             BlockItem item = cast(BlockItem, event:GetItem())
-            editor = item:GetEditor()
+//            editor = item:GetEditor()
+            editor = cast(CodeEditor, item:GetBlockEnvironment())
         else
             // If we can't find the editor, abort.
             return now

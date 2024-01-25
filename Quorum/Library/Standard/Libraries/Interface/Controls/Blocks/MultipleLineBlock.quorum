@@ -121,9 +121,11 @@ repeat until blockConnectors:GetSize() <= blockParts:GetSize() - 1
         part:UseExitScopeStyling()
         part:SetName("end")
 
+        BlockEnvironment environment = GetBlockEnvironment()
+
         BlockLabel endLabel
-        endLabel:SetFont(GetEditor():GetFont())
-        endLabel:SetFontSize(GetEditor():GetFontSize())
+        endLabel:SetFont(environment:GetFont())
+        endLabel:SetFontSize(environment:GetFontSize())
         endLabel:SetText("end")
         part:Add(endLabel)
 
@@ -141,11 +143,11 @@ repeat until blockConnectors:GetSize() <= blockParts:GetSize() - 1
     action SetEditor(CodeEditor editor)
         integer counter = 0
         repeat while counter < blockParts:GetSize()
-            blockParts:Get(counter):SetEditor(editor)
+            blockParts:Get(counter):SetBlockEnvironment(editor)
             counter = counter + 1
         end
 
-        parent:Block:SetEditor(editor)
+        parent:Block:SetBlockEnvironment(editor)
     end
 
     action SetInterfaceOptionsKey(text key)

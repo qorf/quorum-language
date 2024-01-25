@@ -27,7 +27,7 @@ class RepeatBlock is MultipleLineBlock
     end
 
     action SetupElements
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
         SetLeftPadding(spacing * 0.5)
         SetRightPadding(spacing * 0.5)
@@ -41,13 +41,13 @@ class RepeatBlock is MultipleLineBlock
         // The start line is always the beginning of the multi-block, so it always starts at local index 0.
         part:SetLocalStartIndex(0)
 
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
 
         BlockLabel repeatLabel
         me:repeatLabel = repeatLabel
-        repeatLabel:SetFont(GetEditor():GetFont())
-        repeatLabel:SetFontSize(GetEditor():GetFontSize())
+        repeatLabel:SetFont(editor:GetFont())
+        repeatLabel:SetFontSize(editor:GetFontSize())
         repeatLabel:SetText("repeat")
         repeatLabel:SetRightPadding(spacing)
         part:Add(repeatLabel)
@@ -55,16 +55,16 @@ class RepeatBlock is MultipleLineBlock
         if loopContext:isUntil
             BlockLabel loopLabel
             me:loopLabel = loopLabel
-            loopLabel:SetFont(GetEditor():GetFont())
-            loopLabel:SetFontSize(GetEditor():GetFontSize())
+            loopLabel:SetFont(editor:GetFont())
+            loopLabel:SetFontSize(editor:GetFontSize())
             loopLabel:SetText("until")
             loopLabel:SetRightPadding(spacing)
             part:Add(loopLabel)
         elseif loopContext:isWhile
             BlockLabel loopLabel
             me:loopLabel = loopLabel
-            loopLabel:SetFont(GetEditor():GetFont())
-            loopLabel:SetFontSize(GetEditor():GetFontSize())
+            loopLabel:SetFont(editor:GetFont())
+            loopLabel:SetFontSize(editor:GetFontSize())
             loopLabel:SetText("while")
             loopLabel:SetRightPadding(spacing)
             part:Add(loopLabel)
@@ -84,8 +84,8 @@ class RepeatBlock is MultipleLineBlock
         if loopContext:isTimes
             BlockLabel loopLabel
             me:loopLabel = loopLabel
-            loopLabel:SetFont(GetEditor():GetFont())
-            loopLabel:SetFontSize(GetEditor():GetFontSize())
+            loopLabel:SetFont(editor:GetFont())
+            loopLabel:SetFontSize(editor:GetFontSize())
             loopLabel:SetText("times")
             loopLabel:SetLeftPadding(spacing * 0.5)
             loopLabel:SetRightPadding(spacing * 0.5)

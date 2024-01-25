@@ -29,6 +29,7 @@ use Libraries.Interface.Views.SingleLineBlockView
 use Libraries.Interface.Controls.Blocks.CodeEditor
 use Libraries.Interface.Views.BlockErrorShaderView
 use Libraries.Interface.Options.BlockOptionConstants
+use Libraries.Interface.Controls.Blocks.BlockEnvironment
 
 class BlockErrorShaderMapping is BatchingShaderMapping2D
 
@@ -296,7 +297,8 @@ number halfSize = width / 2.0
         if drawable is BlockErrorShaderView
             BlockErrorShaderView blockView = cast(BlockErrorShaderView, drawable)
             Block block = cast(Block, blockView:GetItem())
-            CodeEditor editor = block:GetEditor()
+            //CodeEditor editor = block:GetEditor()
+            BlockEnvironment editor = block:GetBlockEnvironment()
 
             topWidth = editor:GetBlockNotchTopWidth() * block:GetInterfaceScale()
             bottomWidth = editor:GetBlockNotchBottomWidth() * block:GetInterfaceScale()

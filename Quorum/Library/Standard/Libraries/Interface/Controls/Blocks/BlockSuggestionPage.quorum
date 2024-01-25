@@ -194,7 +194,6 @@ suggestedActionItems:Add(AddBlockPaletteItem(call))
         if params not= undefined
             repeat while params:HasNext()
                 Variable param = params:Next()
-                call = call + param:GetType():GetName() + " "
                 call = call + param:GetName()
                 if params:HasNext()
                     call = call + ", "

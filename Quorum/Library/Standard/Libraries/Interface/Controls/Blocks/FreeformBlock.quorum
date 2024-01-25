@@ -51,7 +51,7 @@ class FreeformBlock is SingleLineBlock
     end
 
     action SetupElements
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
         SetLeftPadding(spacing * 0.5)
         SetRightPadding(spacing * 0.5)
@@ -107,7 +107,7 @@ class FreeformBlock is SingleLineBlock
     end
 
     private action AllTokensOnSingleLine returns boolean
-        CodeEditor editor = GetEditor()
+        CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
         if editor not= undefined
             text code = editor:GetText()
             CompilerErrorManager manager
@@ -148,14 +148,14 @@ class FreeformBlock is SingleLineBlock
             return now
         end
         addedCode = true
-        CodeEditor editor
+        CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
         BlockEditManager editManager = editor:GetBlockEditManager()
         editManager:SetSpecialAction(true)
     end
 
     private action EndUndo()
         if addedCode
-            CodeEditor editor
+            CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
             BlockEditManager editManager = editor:GetBlockEditManager()
             editManager:SetSpecialAction(false)
         end
@@ -185,7 +185,12 @@ class FreeformBlock is SingleLineBlock
             return now
         end
 
-        CodeEditor editor = GetEditor()
+        CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
+
+        if editor = undefined
+            return now
+        end
+
         boolean failState = editor:GetFailState()
         /*
         First check special cases where the user has typed a short-cut.

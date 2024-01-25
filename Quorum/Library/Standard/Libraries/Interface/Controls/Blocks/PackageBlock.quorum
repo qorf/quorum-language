@@ -31,15 +31,15 @@ class PackageBlock is SingleLineBlock
     end
 
     action SetupElements
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
         SetLeftPadding(spacing * 0.5)
         SetRightPadding(spacing * 0.5)
 
         BlockLabel bl
         me:useLabel = bl
-        useLabel:SetFont(GetEditor():GetFont())
-        useLabel:SetFontSize(GetEditor():GetFontSize())
+        useLabel:SetFont(editor:GetFont())
+        useLabel:SetFontSize(editor:GetFontSize())
         useLabel:SetText("package")
         useLabel:SetRightPadding(spacing)
         Add(useLabel)

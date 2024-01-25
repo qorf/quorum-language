@@ -34,17 +34,19 @@ class EditField is TextField, EditRegion
 
         SetName(name)
 
-        SetFont(GetEditor():GetFont())
-        SetFontSize(GetEditor():GetFontSize())
+        BlockEnvironment editor = GetBlockEnvironment()
+
+        SetFont(editor:GetFont())
+        SetFontSize(editor:GetFontSize())
         SetIndices(relativeStartIndex, relativeEndIndex)
         UpdateLength()
-        SetText(GetEditor():GetCodeBetween(block:GetStartIndex() + relativeStartIndex, block:GetStartIndex() + relativeEndIndex))
+        SetText(editor:GetCodeBetween(block:GetStartIndex() + relativeStartIndex, block:GetStartIndex() + relativeEndIndex))
 
         initialized = true
     end
     
     action SetupAsPlaceholder(text name, text code)
-Block block = GetBlock()
+        Block block = GetBlock()
         if block = undefined
             text dq = ""
             dq = dq:GetDoubleQuote()
@@ -55,12 +57,17 @@ Block block = GetBlock()
         SetName(name)
 
         // Change the input group so it stops acting like a text field -- we only want it to visually reflect one
+        // Also remove the default self-event listening
         SetInputGroup("")
+        RemoveMouseListener(me)
+        RemoveMouseMovementListener(me)
         
-        SetFont(GetEditor():GetFont())
-        SetFontSize(GetEditor():GetFontSize())
+        BlockEnvironment environment = GetBlockEnvironment()
+
+        SetFont(environment:GetFont())
+        SetFontSize(environment:GetFontSize())
         SetText(code)
-UpdateLength()
+        UpdateLength()
 
         initialized = true
     end
@@ -69,7 +76,7 @@ UpdateLength()
     action UpdateLength
         number glyphWidth = 10
         number height = 10
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         if editor not= undefined
             glyphWidth = editor:GetDefaultGlyphWidth()
             height = editor:GetUnpaddedLineHeight(GetBlock():GetStartLine())
@@ -136,7 +143,7 @@ UpdateLength()
         text deleted = event:GetDeletedText()
         integer change = added:GetSize() - deleted:GetSize()
 
-        CodeEditor editor = GetEditor()
+        CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
         if editor not= undefined
             editor:OnTextChange(event, GetBlock():GetStartIndex() + GetStartIndex())
         end

@@ -68,8 +68,10 @@ class SingleLineBlock is Block
     */
     action GetDescription returns text
         text result = ""
-        if GetEditor() not= undefined and GetEditor():GetSelection() not= undefined
-            CodeEditor editor = GetEditor()
+
+        CodeEditor editor = GetEditor()
+
+        if editor not= undefined and editor:GetSelection() not= undefined
             CodeEditorSelection selection = editor:GetSelection()
             if selection:IsMultipleSelection()
                 Array<Block> blocks = editor:GetSelectedBlocks()
@@ -158,7 +160,7 @@ class SingleLineBlock is Block
         end
         
         CodeEditor editor = GetEditor()
-        if GetStartIndex() >= 0 and GetEndIndex() >= 0 and editor not= undefined
+        if editor not= undefined and GetStartIndex() >= 0 and GetEndIndex() >= 0
             check
                return editor:GetCode():GetText(GetStartIndex(), GetEndIndex())
             detect error
