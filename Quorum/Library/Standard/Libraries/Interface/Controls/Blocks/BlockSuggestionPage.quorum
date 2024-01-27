@@ -143,6 +143,7 @@ suggestedActionItems:Add(AddBlockPaletteItem(call))
         if filterField not= undefined
             filterField:RemoveTextChangeListener(me)
         end
+        AddLabel("Search")
         filterField = AddTextField("Filter")
         filterField:AddTextChangeListener(me)
     end
@@ -160,7 +161,7 @@ suggestedActionItems:Add(AddBlockPaletteItem(call))
                 Action act = suggestedActions:Get(i)
                 text actionName = act:GetName()
                 actionName = actionName:ToLowerCase()
-                if actionName:StartsWith(filter)
+                if actionName:Contains(filter)
                     text call = MakeFullActionCall(act, variableName)
                     if call not= ""
 suggestedActionItems:Add(AddBlockPaletteItem(call))
