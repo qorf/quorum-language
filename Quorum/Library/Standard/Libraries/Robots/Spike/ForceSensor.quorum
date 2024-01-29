@@ -1,0 +1,32 @@
+package Libraries.Robots.Spike
+
+class ForceSensor
+    action GetPort returns integer
+        return GetPortNative()
+    end
+
+    action SetPort(integer port)
+        SetPortNative(port)
+    end
+
+    private system action GetPortNative returns integer
+    private system action SetPortNative(integer port) returns integer
+
+    action GetForce returns integer
+        return GetForceNative()
+    end
+
+    private system action GetForceNative returns integer
+
+    action GetRawForce returns integer
+        return GetRawForceNative()
+    end
+
+    private system action GetRawForceNative returns integer
+
+    action IsPressed returns boolean
+        return IsPressedNative()
+    end
+
+    private system action IsPressedNative returns boolean
+end
