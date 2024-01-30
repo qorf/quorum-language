@@ -125,6 +125,10 @@ class Plot is ChartDrawable
     end
     
     action GetInfoAt(integer index) returns number
+        if index > info:GetSize()
+            number nan = 0
+            return nan:GetNotANumberValue()
+        end
         return info:Get(index)
     end
 
