@@ -79,19 +79,23 @@ class CrossTab is DataFrameTransform, ColumnInput
         i = 0
         HashTable<text, HashTable<text, integer>> hash
         repeat while i < left:GetSize()
-            text leftKey = left:GetAsText(i)
-            text rightKey = right:GetAsText(i)
+            if not left:IsUndefined(i)
+                text leftKey = left:GetAsText(i)
+                text rightKey = right:GetAsText(i)
+    
+                if not hash:HasKey(leftKey)
+                    HashTable<text, integer> newHash
+                    hash:Add(leftKey, newHash)
+                end
 
-            if not hash:HasKey(leftKey)
-                HashTable<text, integer> newHash
-                hash:Add(leftKey, newHash)
-            end
-
-            HashTable<text,integer> count = hash:GetValue(leftKey)
-            if count:HasKey(rightKey)
-                count:Add(rightKey, count:GetValue(rightKey) + 1)
-            else
-                count:Add(rightKey, 1)
+                HashTable<text,integer> count = hash:GetValue(leftKey)
+                if not right:IsUndefined(i)
+                    if count:HasKey(rightKey)
+                        count:Add(rightKey, count:GetValue(rightKey) + 1)
+                    else
+                        count:Add(rightKey, 1)
+                    end
+                end
             end
             i = i + 1
         end
