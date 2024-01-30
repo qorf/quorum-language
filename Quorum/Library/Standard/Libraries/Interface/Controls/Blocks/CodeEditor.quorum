@@ -2019,7 +2019,9 @@ if selection:GetBlock() not= undefined
         i = startLine
         repeat while i <= endLine
             integer startIndex = updatedText:CharacterIndexFromLineIndex(i)
+            if startIndex + 4 < updatedText:GetSize() 
             updatedText = updatedText:Delete(startIndex, startIndex + 4)
+            end
             i = i + 1
         end
 
