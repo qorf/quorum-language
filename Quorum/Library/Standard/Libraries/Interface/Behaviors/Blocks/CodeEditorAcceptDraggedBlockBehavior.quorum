@@ -9,6 +9,7 @@ use Libraries.Containers.Array
 use Libraries.Interface.Controls.Blocks.Block
 use Libraries.Interface.Controls.Blocks.BlockPalette
 use Libraries.Interface.Controls.Blocks.BlockPaletteItem
+use Libraries.Interface.Controls.Blocks.BlockEnvironment
 
 class CodeEditorAcceptDraggedBlockBehavior is Behavior
     
@@ -40,10 +41,8 @@ class CodeEditorAcceptDraggedBlockBehavior is Behavior
                     
                     if editor:CanAcceptPlaceholdersAtNavigationIndex(line) = false
                         if editor:HasPlaceholders()
-                            output "Couldn't accept at " + line + ", removing placeholders"
                             editor:RemovePlaceholders()
                         else
-                            output "Invalid at " + line + ", no placeholders"
                             // Do nothing, there's no placeholders there to adjust.
                         end
                     elseif editor:HasPlaceholders()
@@ -74,12 +73,11 @@ class CodeEditorAcceptDraggedBlockBehavior is Behavior
                     text toInsert = ""
 
 //                    toInsert = firstBlock:GetEditor():GetCode():GetText(firstBlock:GetStartIndex(), lastBlock:GetEndIndex()) + toInsert:GetLineFeed()
-                    
-                    CodeEditor firstEditor = cast(CodeEditor, firstBlock:GetBlockEnvironment())
+                    BlockEnvironment environment = firstBlock:GetBlockEnvironment()
                     if firstBlock = lastBlock and firstBlock:IsPlaceholder()
                         toInsert = firstBlock:GetPlaceholderText() + toInsert:GetLineFeed()
                     else
-toInsert = firstEditor:GetCode():GetText(firstBlock:GetStartIndex(), lastBlock:GetEndIndex()) + toInsert:GetLineFeed()
+toInsert = environment:GetCodeBetween(firstBlock:GetStartIndex(), lastBlock:GetEndIndex()) + toInsert:GetLineFeed()
                     end
                     lastCandidateLine = -2
                     

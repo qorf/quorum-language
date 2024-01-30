@@ -188,19 +188,8 @@ blockListener:SetStartContext(undefined)
     action ParseToBlocks(text code) returns Array<Block>
         SetCode(code)
         
-        CodeEditor fakeEditor = undefined
         ParserToBlockListener listener
-        CodeEditor editor2
-        fakeEditor = editor2
-        fakeEditor:SetBlockListener(listener)
 
-        integer size = 15
-        fakeEditor:SetPercentageWidth(1)
-        fakeEditor:SetPercentageHeight(1)
-        fakeEditor:SetFontSize(size)
-        fakeEditor:SetBlockNotchTopWidth(40)
-        fakeEditor:SetBlockNotchBottomWidth(20)
-        fakeEditor:SetCode(code)
         if GetEditor() = undefined
             return undefined
         end
@@ -229,7 +218,7 @@ blockListener:SetStartContext(undefined)
         ParserToBlockListener blockListener
         blockListener:SetQuorumLexer(lexer)
         blockListener:SetStartContext(start)
-        blockListener:SetBlockEnvironment(fakeEditor)
+        blockListener:SetBlockEnvironment(me)
         RootBlock root = blockListener:Update(0,100)
         Block block = root:GetNextNavigableBlock()
         repeat while block not= undefined
