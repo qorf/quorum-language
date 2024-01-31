@@ -153,15 +153,14 @@ suggestedActionItems:Add(AddBlockPaletteItem(call))
             return now
         end
         text filter = filterField:GetText()
-        if filter not= ""
-            filter = filter:ToLowerCase()
+            filter = filter:ToLowerCase():Trim()
             ClearSuggestions()
             integer i = 0
             repeat while i < suggestedActions:GetSize()
                 Action act = suggestedActions:Get(i)
                 text actionName = act:GetName()
                 actionName = actionName:ToLowerCase()
-                if actionName:Contains(filter)
+                if actionName:Contains(filter) or filter = ""
                     text call = MakeFullActionCall(act, variableName)
                     if call not= ""
 suggestedActionItems:Add(AddBlockPaletteItem(call))
@@ -169,7 +168,6 @@ suggestedActionItems:Add(AddBlockPaletteItem(call))
                 end
                 i = i + 1
             end
-        end
     end
 
     action ClearSuggestions
