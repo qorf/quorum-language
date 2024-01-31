@@ -1,6 +1,7 @@
 package Libraries.Interface.Controls.Blocks
 
 use Libraries.Interface.Controls.Control
+use Libraries.Game.Graphics.Font
 
 class BlockEnvironment is Control
     
@@ -98,6 +99,15 @@ a value of 2 indicates that the scoped bars take up 8 characters of space horizo
 */
     action GetScopeBarWidth returns number
         return scopeBarWidth
+    end
+    
+action GetFont returns Font
+        Font font = parent:Control:GetFont()
+        integer size = cast(integer, GetFontSize() * GetInterfaceScale())
+        if font:GetSize() not= size
+            font:SetSize(size)
+        end
+        return font
     end
     
 end
