@@ -50,6 +50,7 @@ class BitwiseTester
         results:Add(1, "8")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ExclusiveOr
@@ -62,6 +63,7 @@ class BitwiseTester
         results:Add(1, "435")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action Negate
@@ -73,6 +75,7 @@ class BitwiseTester
         results:Add(0, "-315")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action Or
@@ -85,6 +88,7 @@ class BitwiseTester
         results:Add(1, "443")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ShiftLeft
@@ -97,6 +101,7 @@ class BitwiseTester
         results:Add(1, "-1256")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ShiftRight
@@ -109,6 +114,7 @@ class BitwiseTester
         results:Add(1, "-79")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ShiftRightKeepSign
@@ -121,6 +127,7 @@ class BitwiseTester
         results:Add(1, "1073741745")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
 end

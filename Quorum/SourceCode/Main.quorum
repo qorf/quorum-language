@@ -26,6 +26,7 @@ use Libraries.Network.NetworkExchangeListener
 use Libraries.Network.NetworkExchange
 use Libraries.Network.WebServer
 use Libraries.Compute.Statistics.DataFrame
+use Libraries.Language.Compile.Translate.TranslateConstants
 
 class Main is NetworkExchangeListener
     public constant text NAME_FLAG = "-name"
@@ -218,12 +219,16 @@ class Main is NetworkExchangeListener
         compilerRootFolder:SetWorkingDirectory("/Users/andreasstefik/Repositories/demogames/Bug Buster")
         compilerRootFolder:SetPath("SourceCode")
 
+
+        TranslateConstants constants
+        constants:SetUserCodeAsynchronous(false)
         File main
         File main2
         File main3
         File main4
         main:SetAbsolutePath(
-    "/Users/stefik/Repositories/quorum-language/Quorum/Library/Tests/Exceptions/Pass/CatchMethodErrorInAlways.quorum")
+    "/Users/stefik/Repositories/quorum-language/Quorum/Library/Tests/Bitwise/Pass/ShiftRightKeepSign.quorum")
+        //"/Users/stefik/Quorum Studio/SpikeTest/SourceCode/Main.quorum")
         //main:SetWorkingDirectory("Library/Tests/Game/Pass")
         //main:SetPath("WebTest.quorum")
         main2:SetAbsolutePath(

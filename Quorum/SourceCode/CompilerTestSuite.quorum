@@ -19,6 +19,7 @@ use Libraries.System.Process
 use Libraries.System.ProcessEvent
 use Libraries.System.ProcessListener
 use Libraries.System.Properties
+use Libraries.Language.Compile.Translate.TranslateConstants
 
 class CompilerTestSuite is ProcessListener
     integer total = 0
@@ -246,8 +247,8 @@ class CompilerTestSuite is ProcessListener
 //        tableChecks:Test()
 //        output tableChecks:GetName() + GetCurrentTestPassText()
 //
-//        bitwiseChecks:Test()
-//        output bitwiseChecks:GetName() + GetCurrentTestPassText()
+        bitwiseChecks:Test()
+        output bitwiseChecks:GetName() + GetCurrentTestPassText()
 //
 //        matrixChecks:Test()
 //        output matrixChecks:GetName() + GetCurrentTestPassText()
@@ -366,6 +367,8 @@ class CompilerTestSuite is ProcessListener
         CompilerTestResult result = undefined
         Compiler compiler  = GetDefaultCompiler()
         
+        TranslateConstants constants
+        constants:SetUserCodeAsynchronous(false)
         CompilerRequest request
         request:main = files:Get(0)
         request:isWebRequest = false

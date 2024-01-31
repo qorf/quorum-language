@@ -1,0 +1,39 @@
+package Libraries.Robots.Spike
+use Libraries.Game.Graphics.Color
+
+class ColorSensor
+    
+    action GetPort returns integer
+        return GetPortNative()
+    end
+
+    action SetPort(integer port)
+        SetPortNative(port)
+    end
+
+    private system action GetPortNative returns integer
+    private system action SetPortNative(integer port) returns integer
+
+    action GetColorInteger returns integer
+        return GetColorIntegerNative()
+    end
+
+    private system action GetColorIntegerNative returns integer
+
+    action GetReflection returns integer
+        return GetReflectionNative()
+    end
+
+    private system action GetReflectionNative returns integer
+
+    action GetColor returns Color
+        Color color
+        SetColorValuesIntoPassedColorNative(color)
+        return color
+    end
+
+    /* 
+        This action sets the passed color to the current color RGB values. 
+    */
+    private system action SetColorValuesIntoPassedColorNative(Color color)
+end

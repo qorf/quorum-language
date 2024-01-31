@@ -2102,7 +2102,8 @@ actLink:SetClassAttribute("hover:underline text-sm")
 
             if async
                 convertedSource:Append(EOL + EOL + "async def SuperMain():" + EOL)
-            
+            else
+                convertedSource:Append(EOL + "def SuperMain():" + EOL)
             end
             
             if clazz:IsStatic()

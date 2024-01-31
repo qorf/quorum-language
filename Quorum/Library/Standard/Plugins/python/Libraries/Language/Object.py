@@ -14,8 +14,8 @@ def global_Empty_Shared_Classes():
 	
 def Global_Cast_Text_To_Boolean(value):
 	if value == "true":
-    		return true
+    		return True
 	elif value == "false":
-		return false
+		return False
 	else:
 		raise Exception("Error: Cast Error: An error occurred while casting")
