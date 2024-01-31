@@ -56,6 +56,7 @@ class QueueTester
         results:Add(0, "One")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action Contains 
@@ -70,6 +71,7 @@ class QueueTester
         results:Add(3, "false")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action Copy 
@@ -81,6 +83,7 @@ class QueueTester
         results:Add(0, "OneTwoThreeFourFive")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action Empty 
@@ -95,6 +98,7 @@ class QueueTester
         results:Add(3, "0")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IsEmpty 
@@ -107,6 +111,7 @@ class QueueTester
         results:Add(1, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action Iterator 
@@ -118,6 +123,7 @@ class QueueTester
         results:Add(0, "OneTwoThreeFourFiveSixSeven")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action Peek 
@@ -129,6 +135,7 @@ class QueueTester
         results:Add(0, "One")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action Pop 
@@ -142,6 +149,7 @@ class QueueTester
         results:Add(2, "Two")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action Push 
@@ -155,6 +163,7 @@ class QueueTester
         results:Add(2, "OneTwoThreeFourFive")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RemoveAll 
@@ -168,6 +177,7 @@ class QueueTester
         results:Add(2, "TwoFourFiveSix")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RemoveValue 
@@ -182,6 +192,7 @@ class QueueTester
         results:Add(3, "OneTwoFourFive")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action Size 
@@ -194,6 +205,7 @@ class QueueTester
         results:Add(1, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
 //FAIL TESTS
@@ -204,6 +216,7 @@ class QueueTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action RemoveTooMany
@@ -213,7 +226,7 @@ class QueueTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
-
 end
 

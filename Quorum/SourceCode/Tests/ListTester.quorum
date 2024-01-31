@@ -68,6 +68,7 @@ class ListTester
         results:Add(0, "FirstPurpleDinosaurChairWhiteCouchLego")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action Add2 
@@ -79,6 +80,7 @@ class ListTester
         results:Add(0, "SystemMonsterComputerClock")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action Append 
@@ -90,6 +92,7 @@ class ListTester
         results:Add(0, "ThisIsATestIThinkMaybe")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action Clear 
@@ -101,6 +104,7 @@ class ListTester
         results:Add(0, "ThisIsATextLinkedList!")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action Contains 
@@ -117,6 +121,7 @@ class ListTester
         results:Add(5, "false")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action Copy 
@@ -129,6 +134,7 @@ class ListTester
         results:Add(1, "1234567")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action Get 
@@ -140,6 +146,7 @@ class ListTester
         results:Add(0, "onefivenineoneeightthreeone")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action GetFirst 
@@ -151,6 +158,7 @@ class ListTester
         results:Add(0, "One")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action GetFirstIndexOf 
@@ -162,6 +170,7 @@ class ListTester
         results:Add(0, "0")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action GetLast 
@@ -173,6 +182,7 @@ class ListTester
         results:Add(0, "Five")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action GetLastIndexOf 
@@ -184,6 +194,7 @@ class ListTester
         results:Add(0, "4")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IsEmpty 
@@ -196,6 +207,7 @@ class ListTester
         results:Add(1, "false")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action Iterator 
@@ -207,6 +219,7 @@ class ListTester
         results:Add(0, "FirstPurpleDinosaurChairWhiteCouchLego")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ListSortInteger 
@@ -218,6 +231,7 @@ class ListTester
         results:Add(0, "sorted")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action Remove 
@@ -229,6 +243,7 @@ class ListTester
         results:Add(0, "FiveNineOneEightThreeOne")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RemoveAll 
@@ -241,6 +256,7 @@ class ListTester
         results:Add(1, "FiveNineEightThree")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RemoveAt 
@@ -252,6 +268,7 @@ class ListTester
         results:Add(0, "FiveNineOneThree")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RemoveFirst 
@@ -263,6 +280,7 @@ class ListTester
         results:Add(0, "FiveNineOneEightThreeOne")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RemoveLast 
@@ -274,6 +292,7 @@ class ListTester
         results:Add(0, "OneFiveNineOneEightThree")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action Set 
@@ -285,6 +304,7 @@ class ListTester
         results:Add(0, "eightthreenineone")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action Size
@@ -298,6 +318,7 @@ class ListTester
         results:Add(2, "7")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
 //FAIL TESTS
@@ -308,6 +329,7 @@ class ListTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action GetLocationEmptyList
@@ -317,6 +339,7 @@ class ListTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action GetLocationOutOfBounds
@@ -326,6 +349,7 @@ class ListTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action GetLocationEmptyListNeg
@@ -335,7 +359,7 @@ class ListTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
-
 end
 

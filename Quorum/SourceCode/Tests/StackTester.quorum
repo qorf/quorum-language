@@ -60,284 +60,307 @@ class StackTester
     end
 
     action AddInt
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "AddInt.quorum")
-            files:Add(main)
-            results:Add(0, "54321")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "AddInt.quorum")
+        files:Add(main)
+        results:Add(0, "54321")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action AddText
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "AddText.quorum")
-            files:Add(main)
-            results:Add(0, "FiveFourThreeTwoOne")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "AddText.quorum")
+        files:Add(main)
+        results:Add(0, "FiveFourThreeTwoOne")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ContainsInt
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "ContainsInt.quorum")
-            files:Add(main)
-            results:Add(0, "true")
-            results:Add(1, "false")
-            results:Add(2, "true")
-            results:Add(3, "false")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ContainsInt.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        results:Add(1, "false")
+        results:Add(2, "true")
+        results:Add(3, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action ContainsText
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "ContainsText.quorum")
-            files:Add(main)
-            results:Add(0, "true")
-            results:Add(1, "false")
-            results:Add(2, "true")
-            results:Add(3, "false")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ContainsText.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        results:Add(1, "false")
+        results:Add(2, "true")
+        results:Add(3, "false")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CopyInt
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "CopyInt.quorum")
-            files:Add(main)
-            results:Add(0, "54321")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "CopyInt.quorum")
+        files:Add(main)
+        results:Add(0, "54321")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action CopyText
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "CopyText.quorum")
-            files:Add(main)
-            results:Add(0, "FiveFourThreeTwoOne")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "CopyText.quorum")
+        files:Add(main)
+        results:Add(0, "FiveFourThreeTwoOne")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action EmptyInt
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "EmptyInt.quorum")
-            files:Add(main)
-            results:Add(0, "54321")
-            results:Add(1, "true")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "EmptyInt.quorum")
+        files:Add(main)
+        results:Add(0, "54321")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action EmptyText
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "EmptyText.quorum")
-            files:Add(main)
-            results:Add(0, "FiveFourThreeTwoOne")
-            results:Add(1, "true")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "EmptyText.quorum")
+        files:Add(main)
+        results:Add(0, "FiveFourThreeTwoOne")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IsEmptyInt
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "IsEmptyInt.quorum")
-            files:Add(main)
-            results:Add(0, "false")
-            results:Add(1, "true")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IsEmptyInt.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IsEmptyText
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "IsEmptyText.quorum")
-            files:Add(main)
-            results:Add(0, "false")
-            results:Add(1, "true")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IsEmptyText.quorum")
+        files:Add(main)
+        results:Add(0, "false")
+        results:Add(1, "true")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IteratorInt
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "IteratorInt.quorum")
-            files:Add(main)
-            results:Add(0, "7654321")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IteratorInt.quorum")
+        files:Add(main)
+        results:Add(0, "7654321")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action IteratorText
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "IteratorText.quorum")
-            files:Add(main)
-            results:Add(0, "SevenSixFiveFourThreeTwoOne")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "IteratorText.quorum")
+        files:Add(main)
+        results:Add(0, "SevenSixFiveFourThreeTwoOne")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action PeekInt
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "PeekInt.quorum")
-            files:Add(main)
-            results:Add(0, "5")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "PeekInt.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action PeekText
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "PeekText.quorum")
-            files:Add(main)
-            results:Add(0, "Five")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "PeekText.quorum")
+        files:Add(main)
+        results:Add(0, "Five")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action PopInt
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "PopInt.quorum")
-            files:Add(main)
-            results:Add(0, "6")
-            results:Add(1, "5")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "PopInt.quorum")
+        files:Add(main)
+        results:Add(0, "6")
+        results:Add(1, "5")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action PopText
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "PopText.quorum")
-            files:Add(main)
-            results:Add(0, "Six")
-            results:Add(1, "Five")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "PopText.quorum")
+        files:Add(main)
+        results:Add(0, "Six")
+        results:Add(1, "Five")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action PushInt
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "PushInt.quorum")
-            files:Add(main)
-            results:Add(0, "54321")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "PushInt.quorum")
+        files:Add(main)
+        results:Add(0, "54321")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
 
     action PushText
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "PushText.quorum")
-            files:Add(main)
-            results:Add(0, "FiveFourThreeTwoOne")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "PushText.quorum")
+        files:Add(main)
+        results:Add(0, "FiveFourThreeTwoOne")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RemoveAllInt
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "RemoveAllInt.quorum")
-            files:Add(main)
-            results:Add(0, "6542")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RemoveAllInt.quorum")
+        files:Add(main)
+        results:Add(0, "6542")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RemoveAllText
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "RemoveAllText.quorum")
-            files:Add(main)
-            results:Add(0, "SixFiveFourTwo")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RemoveAllText.quorum")
+        files:Add(main)
+        results:Add(0, "SixFiveFourTwo")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RemoveValueInt
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "RemoveValueInt.quorum")
-            files:Add(main)
-            results:Add(0, "5421")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RemoveValueInt.quorum")
+        files:Add(main)
+        results:Add(0, "5421")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RemoveValueText
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "RemoveValueText.quorum")
-            files:Add(main)
-            results:Add(0, "FiveFourTwoOne")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RemoveValueText.quorum")
+        files:Add(main)
+        results:Add(0, "FiveFourTwoOne")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action SizeInt
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "SizeInt.quorum")
-            files:Add(main)
-            results:Add(0, "5")
-            results:Add(1, "4")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SizeInt.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        results:Add(1, "4")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action SizeText
-            Array<File> files
-            Array<text> results
-            File main
-            main:SetPath(path + "SizeText.quorum")
-            files:Add(main)
-            results:Add(0, "5")
-            results:Add(1, "4")
-            suite:Test(files, results)
-            suite:TestJavaScript(files, results)
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "SizeText.quorum")
+        files:Add(main)
+        results:Add(0, "5")
+        results:Add(1, "4")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     //FAIL TESTS
-
 end

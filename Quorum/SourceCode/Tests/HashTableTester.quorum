@@ -58,6 +58,7 @@ class HashTableTester
         results:Add(1, "3")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action Empty 
@@ -69,6 +70,7 @@ class HashTableTester
         results:Add(0, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action GetKey 
@@ -81,6 +83,7 @@ class HashTableTester
         results:Add(1, "height")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action GetKeyIterator 
@@ -93,6 +96,7 @@ class HashTableTester
         results:Add(1, "age")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action GetSize 
@@ -104,6 +108,7 @@ class HashTableTester
         results:Add(0, "2")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action GetValueIterator 
@@ -116,6 +121,7 @@ class HashTableTester
         results:Add(1, "23")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action GetValueWrap 
@@ -127,6 +133,7 @@ class HashTableTester
         results:Add(0, "undefined")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action HasKey 
@@ -138,6 +145,7 @@ class HashTableTester
         results:Add(0, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action HasKeyWrap 
@@ -149,6 +157,7 @@ class HashTableTester
         results:Add(0, "false")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action HasValue 
@@ -160,6 +169,7 @@ class HashTableTester
         results:Add(0, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action Put 
@@ -172,6 +182,7 @@ class HashTableTester
         results:Add(1, "65")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RemoveAllKey 
@@ -183,6 +194,7 @@ class HashTableTester
         results:Add(0, "true")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RemoveAllValue 
@@ -195,6 +207,7 @@ class HashTableTester
         results:Add(1, "false")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RemoveKey 
@@ -206,6 +219,7 @@ class HashTableTester
         results:Add(0, "23")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RemoveValue 
@@ -217,7 +231,6 @@ class HashTableTester
         results:Add(0, "age")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
-
 end
-

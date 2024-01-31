@@ -60,6 +60,7 @@ class RandomTester
         results:Add(0, "false")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RandomInteger 
@@ -71,6 +72,7 @@ class RandomTester
         results:Add(0, "1749605806")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RandomIntegerBetween 
@@ -91,6 +93,7 @@ class RandomTester
         results:Add(9, "16")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RandomIntegerWithMaximum 
@@ -111,6 +114,7 @@ class RandomTester
         results:Add(9, "4")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RandomListOfIntegers 
@@ -128,6 +132,7 @@ class RandomTester
         results:Add(6, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action RandomListOfNumbers 
@@ -145,6 +150,7 @@ class RandomTester
         results:Add(6, "5")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action SetSeed 
@@ -156,6 +162,7 @@ class RandomTester
         results:Add(0, "8")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action TestDistribution 
@@ -167,6 +174,7 @@ class RandomTester
         results:Add(0, "Normal Distribution")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
 //FAIL TESTS
@@ -177,6 +185,7 @@ class RandomTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action RandomIntegerBetweenWithNegativeNumbers 
@@ -186,6 +195,7 @@ class RandomTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action RandomIntegerBetweenWithSameValues 
@@ -195,6 +205,7 @@ class RandomTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action RandomIntegerFail 
@@ -204,6 +215,7 @@ class RandomTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action RandomListOfIntegersWithInvalidLength 
@@ -213,6 +225,7 @@ class RandomTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 
     action RandomListOfNumbersWithInvalidLength 
@@ -222,7 +235,7 @@ class RandomTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
-
 end
 
