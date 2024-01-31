@@ -99,6 +99,7 @@ blockListener:SetStartContext(undefined)
                     Block copy = block:CopyToPlaceholder()
                     copy:LoadGraphics(copy:GetDefaultLayoutProperties())
                     copy:SetInputGroup("")
+                    copy:SetInterfaceScale(GetInterfaceScale())
                     Add(copy)
                     visualBlocks:Add(copy)
                     
