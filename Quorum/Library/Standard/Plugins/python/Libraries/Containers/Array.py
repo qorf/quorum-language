@@ -12,7 +12,7 @@ class plugins_quorum_Libraries_Containers_Array_:
 		return self.array_[index]
 
 	def SetSizeNative__quorum_integer(self, size):
-		return
+		self.array_ = [None] * size
 
 	def SetSizeNoFillNative__quorum_integer(self, size):
 		self.SetSizeNative__quorum_integer(size)
