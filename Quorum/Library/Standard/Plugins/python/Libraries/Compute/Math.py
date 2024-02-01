@@ -1,111 +1,93 @@
-function plugins_quorum_Libraries_Compute_Math_() {
-    this.Floor$quorum_number = function (value) {
-        return Math.floor(value);
-    };
+import math
 
-    this.Ceiling$quorum_number = function (value) {
-        return Math.ceil(value);
-    };
+class plugins_quorum_Libraries_Compute_Math_():
+	def Floor__quorum_number (self, value):
+		return math.floor(value)
 
-    this.Sine$quorum_number = function (value) {
-        return Math.sin(value);
-    };
 
-    this.Cosine$quorum_number = function (value) {
-        return Math.cos(value);
-    };
+	def Ceiling__quorum_number (self, value):
+		return math.ceil(value)
 
-    this.Tangent$quorum_number = function (value) {
-        return Math.tan(value);
-    };
 
-    this.HyperbolicSine$quorum_number = function (value) {
-        return (Math.pow(Math.E, value) - Math.pow(Math.E, -1 * value)) / 2.0;
-    };
+	def Sine__quorum_number (self, value):
+		return math.sin(value)
 
-    this.HyperbolicCosine$quorum_number = function (value) {
-        return (Math.pow(Math.E, value) + Math.pow(Math.E, -1 * value)) / 2.0;
-    };
 
-    this.HyperbolicTangent$quorum_number = function (value) {
-        return this.HyperbolicSine$quorum_number(value) / this.HyperbolicCosine$quorum_number(value);
-    };
+	def Cosine__quorum_number (self, value):
+		return math.cos(value)
 
-    this.InverseSine$quorum_number = function (value) {
-        return Math.asin(value);
-    };
 
-    this.InverseCosine$quorum_number = function (value) {
-        return Math.acos(value);
-    };
+	def Tangent__quorum_number (self, value):
+		return math.tan(value)
 
-    this.InverseTangent$quorum_number = function (value) {
-        return Math.atan(value);
-    };
 
-    this.InverseTangent$quorum_number$quorum_number = function (x, y) {
-        return Math.atan2(y, x);
-    };
+	def HyperbolicSine__quorum_number (self, value):
+		return math.sinh(value)
 
-    this.InverseHyperbolicSine$quorum_number = function (value) {
-        if (value === -Math.Infinity) {
-            return value;
-        } else {
-            return Math.log(value + Math.sqrt(value * value + 1));
-        }
-    };
 
-    this.InverseHyperbolicCosine$quorum_number = function (value) {
-        return Math.log(value + Math.sqrt(value * value - 1));
-    };
+	def HyperbolicCosine__quorum_number (self, value):
+		return math.cosh(value)
 
-    this.InverseHyperbolicTangent$quorum_number = function (value) {
-        return Math.log((1+value)/(1-value)) / 2;
-    };
 
-    this.Logarithm$quorum_number = function (value) {
-        return Math.log(value) / Math.LN10;
-    };
+	def HyperbolicTangent__quorum_number (self, value):
+		return math.tanh(value)
 
-    this.NaturalLogarithm$quorum_number = function (value) {
-        return Math.log(value);
-    };
 
-    this.SquareRoot$quorum_number = function (value) {
-        return Math.sqrt(value);
-    };
+	def InverseSine__quorum_number (self, value):
+		return math.asin(value)
 
-    this.Round$quorum_number = function (value) {
-        return Math.round(value);
-    };
 
-    this.RoundToNearestInteger$quorum_number = function (value) {
-        let y = Math.floor(value);
-        let d = value - y;
-        if (d > 0.5) {
-            if (y == -1.0) {
-                return -0.0; // Preserve sign of operand
-            }
-            return y+1.0;
-        }
+	def InverseCosine__quorum_number (self, value):
+		return math.acos(value)
 
-        if (d < 0.5) {
-            return y;
-        }
-        /* half way, round to even */
-        let z =  parseInt(y);
-        return (z & 1) == 0 ? y : y + 1.0;
-    };
 
-    this.RaiseToPower$quorum_number$quorum_number = function (value, power) {
-        return Math.pow(value, power);
-    };
+	def InverseTangent__quorum_number (self, value):
+		return math.atan(value)
 
-    this.DegreesToRadians$quorum_number = function (degrees) {
-        return degrees * Math.PI / 180;
-    };
 
-    this.RadiansToDegrees$quorum_number = function (radians) {
-        return 180 * radians  / Math.PI;
-    };
-}
+	def InverseTangent__quorum_number__quorum_number (self, x, y):
+		return math.asin(x) / math.acos(y)
+
+
+	def InverseHyperbolicSine__quorum_number (self, value):
+		return math.asinh(value)
+
+
+	def InverseHyperbolicCosine__quorum_number (self, value):
+		return math.acosh(value)
+
+
+	def InverseHyperbolicTangent__quorum_number (self, value):
+		return math.atanh(value)
+
+
+	def Logarithm__quorum_number (self, value):
+		return math.log10(value)
+
+
+	def NaturalLogarithm__quorum_number (self, value):
+		return math.log(value)
+
+
+	def SquareRoot__quorum_number (self, value):
+		return math.sqrt(value)
+
+
+	def Round__quorum_number (self, value):
+		return round(value)
+
+
+	def RoundToNearestInteger__quorum_number (self, value):
+		return round(value)
+
+
+	def RaiseToPower__quorum_number__quorum_number (self, value, power):
+		return math.pow(value, power)
+
+
+	def DegreesToRadians__quorum_number (self, degrees):
+		return degrees * math.pi / 180
+
+
+	def RadiansToDegrees__quorum_number (self, radians):
+		return 180 * radians  / math.pi

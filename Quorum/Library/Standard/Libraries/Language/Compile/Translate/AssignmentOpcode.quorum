@@ -248,7 +248,7 @@ class AssignmentOpcode is QuorumOpcode
                 Class p = variable:GetParentClass()
                 result = result + "self." + p:ConvertToActionNameFromField(variable, true) + "()"
             else
-                result = result + variable:GetJavaScriptName()
+                result = result + variable:GetPythonName()
             end
 
             if field:IsField()
@@ -256,7 +256,7 @@ class AssignmentOpcode is QuorumOpcode
                 result = result + "." + p:ConvertToActionNameFromField(field, false) + "("
                 result = result + rightHandSide:WritePython() + ");"
             else
-                result = result + "." + field:GetJavaScriptName() + " = " + rightHandSide:WritePython() + ";"
+                result = result + "." + field:GetPythonName() + " = " + rightHandSide:WritePython() + ";"
             end
 
             EOL = ""
@@ -273,9 +273,9 @@ class AssignmentOpcode is QuorumOpcode
                 end
                 result = result + parentWithField:ConvertStaticKeyToParentFieldName() + "."
             end
-            result = result + variable:GetJavaScriptName()
+            result = result + variable:GetPythonName()
         else
-            result = result + variable:GetJavaScriptName() 
+            result = result + variable:GetPythonName() 
         end
 
         //if the variable is a number and the RHS is an integer, python won't make this implicit, so cast

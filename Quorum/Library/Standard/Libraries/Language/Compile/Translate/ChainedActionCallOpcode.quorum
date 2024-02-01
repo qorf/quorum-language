@@ -155,8 +155,11 @@ class ChainedActionCallOpcode is QuorumOpcode
             elseif wrapGetValue
                 text DQ = ""
                 DQ = DQ:GetDoubleQuote()
+                //values:Add("Global_GetValue_(" + result + op:WritePython() + ", " + DQ + GetType():GetStaticKey() + DQ + ")")
                 //result = result + op:WritePython()//might need to wrap. Not sure yet.
+                values:Add(0, "Global_GetValue_(")
                 values:Add(op:WritePython())
+                values:Add(", " + DQ + GetType():GetStaticKey() + DQ + ")")
             else
                 //result = result + op:WritePython()
                 values:Add(op:WritePython())

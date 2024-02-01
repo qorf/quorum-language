@@ -1727,7 +1727,7 @@ actLink:SetClassAttribute("hover:underline text-sm")
                 Iterator<Variable> parameters = myAction:GetParameterIterator()
                 repeat while parameters:HasNext()
                     Variable variable = parameters:Next()
-                    convertedSource = convertedSource + variable:GetJavaScriptName()
+                    convertedSource = convertedSource + variable:GetPythonName()
 
                     if parameters:HasNext()
                         convertedSource = convertedSource + ", "
@@ -1825,7 +1825,7 @@ actLink:SetClassAttribute("hover:underline text-sm")
             Iterator<Variable> params = act:GetParameterIterator()
             repeat while params:HasNext()
                 Variable param = params:Next()
-                thisParentAction = thisParentAction + ", " + param:GetJavaScriptName()
+                thisParentAction = thisParentAction + ", " + param:GetPythonName()
             end
 
             boolean dontWrapParams = false
@@ -1861,7 +1861,7 @@ actLink:SetClassAttribute("hover:underline text-sm")
                 params = act:GetParameterIterator()
                 repeat while params:HasNext()
                     Variable param = params:Next()
-                    paramListText = paramListText + param:GetJavaScriptName()
+                    paramListText = paramListText + param:GetPythonName()
                     if params:HasNext()
                         paramListText = paramListText + ", "
                     end
@@ -1893,11 +1893,11 @@ actLink:SetClassAttribute("hover:underline text-sm")
             text hiddenGetterName = clazz:ConvertToActionNameFromField(variable, true)
 
             convertedSource:Append(tab + "def " + hiddenGetterName + "(self):" + EOL)
-            convertedSource:Append(tab + tab + "return self." + variable:GetJavaScriptName() + EOL)
+            convertedSource:Append(tab + tab + "return self." + variable:GetPythonName() + EOL)
             
             text hiddenSetterName = clazz:ConvertToActionNameFromField(variable, false)
             convertedSource:Append(tab + "def " + hiddenSetterName + "(self, value):" + EOL)
-            convertedSource:Append(tab + tab + "self." + variable:GetJavaScriptName() + " = value" + EOL)
+            convertedSource:Append(tab + tab + "self." + variable:GetPythonName() + " = value" + EOL)
         end
 //
         //write the actions for parent fields

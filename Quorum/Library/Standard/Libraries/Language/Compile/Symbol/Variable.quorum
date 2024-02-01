@@ -164,8 +164,8 @@ class Variable is Symbol
             or name = "implements"
             or name = "import"
             or name = "in" or name = "instanceof" or name = "int"
-             or name = "interface"
-            or name = "let" or name = "long" or name = "native" 
+            or name = "interface" or name = "let" 
+            or name = "long" or name = "native" 
             or name = "new" or name = "null" or name = "package"
             or name = "private" or name = "protected" or name = "public"
             or name = "return"
@@ -176,6 +176,27 @@ class Variable is Symbol
             or name = "typeof" or name = "var" or name = "void"
             or name = "volatile" or name = "while" 
             or name = "with" or name = "yield" 
+            return name + "__"
+        end
+        return name
+    end
+
+    action GetPythonName returns text
+        name = GetName()
+        if  name = "False" 
+            or name = "class" or name = "finally" 
+            or name = "is" or name = "return" or name = "None" 
+            or name = "continue" or name = "for" or name = "lambda"
+            or name = "try" or name = "True" or name = "def"
+            or name = "from" or name = "nonlocal" or name = "while" 
+            or name = "and" or name = "del" or name = "global" 
+            or name = "not" or name = "with" or name = "as" or name = "elif"
+            or name = "if" or name = "or" or name = "yield"
+            or name = "assert"
+            or name = "else" or name = "import" or name = "pass"
+            or name = "break" or name = "except" or name = "in"
+            or name = "raise" or name = "async" or name = "await"
+             
             return name + "__"
         end
         return name

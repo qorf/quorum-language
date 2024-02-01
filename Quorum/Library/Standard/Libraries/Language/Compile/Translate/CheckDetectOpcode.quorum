@@ -378,7 +378,7 @@ class CheckDetectOpcode is QuorumOpcode
             if errorBlock not= undefined
                 if detectAmount > 0
                     Variable value = errorBlock:GetExceptionVariable()
-                    text exceptionVariableName = value:GetJavaScriptName()
+                    text exceptionVariableName = value:GetPythonName()
 //                    result = result + " else {" + EOL
 //                    result = result + "     " + exceptionVariableName + " = global_ErrorCheck(" + checkExceptionName + ");" + EOL
                     constants:IncreaseTab()

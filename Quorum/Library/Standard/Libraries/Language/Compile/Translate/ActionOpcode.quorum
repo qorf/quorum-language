@@ -219,7 +219,7 @@ class ActionOpcode is QuorumOpcode
         integer position = 1
         repeat while parameters:HasNext()
             Variable param = parameters:Next()
-            result = result + ", " + param:GetJavaScriptName()
+            result = result + ", " + param:GetPythonName()
         end
         result = result + "):" + EOL
 
@@ -247,7 +247,7 @@ class ActionOpcode is QuorumOpcode
                 parameters = method:GetParameterIterator()
                 repeat while parameters:HasNext()
                     Variable param = parameters:Next()
-                    result = result + param:GetJavaScriptName()
+                    result = result + param:GetPythonName()
                     if parameters:HasNext()
                         result = result + ", "
                     end

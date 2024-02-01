@@ -42,9 +42,9 @@ class CreateObjectOpcode is QuorumOpcode
         
         text result = ""
         if variable:IsField()
-            result = tabs + "self." + variable:GetJavaScriptName()
+            result = tabs + "self." + variable:GetPythonName()
         else
-            result = tabs + variable:GetJavaScriptName()
+            result = tabs + variable:GetPythonName()
         end
 
         if clazz:IsStatic()

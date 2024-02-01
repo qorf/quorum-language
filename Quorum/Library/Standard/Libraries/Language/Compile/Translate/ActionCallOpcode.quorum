@@ -456,9 +456,9 @@ class ActionCallOpcode is QuorumOpcode
                 if variableToMakeParentCallOn not= undefined
                     //in Quorum-11, this is not true for objects
                     if not variableToMakeParentCallOn:IsField()
-                        result = result + variableToMakeParentCallOn:GetJavaScriptName()
+                        result = result + variableToMakeParentCallOn:GetPythonName()
                     else
-                        result = result + "self." + variableToMakeParentCallOn:GetJavaScriptName()
+                        result = result + "self." + variableToMakeParentCallOn:GetPythonName()
                     end
                 end
 
@@ -491,9 +491,9 @@ class ActionCallOpcode is QuorumOpcode
                     end
                 else 
                     if field:IsField()
-                        result = result + "self." + field:GetJavaScriptName() + "." + name + "("
+                        result = result + "self." + field:GetPythonName() + "." + name + "("
                     else
-                        result = result + field:GetJavaScriptName() + "." + name + "("
+                        result = result + field:GetPythonName() + "." + name + "("
                     end
                 end
             else 
@@ -548,11 +548,11 @@ class ActionCallOpcode is QuorumOpcode
                             if variableToMakeParentCallOn:IsField()
                                 result = result + "self."
                             end
-                            result = result + variableToMakeParentCallOn:GetJavaScriptName() + "."
+                            result = result + variableToMakeParentCallOn:GetPythonName() + "."
                         else 
                             result = result + "self."
                         end
-                        result = result + path + "." + field:GetJavaScriptName()
+                        result = result + path + "." + field:GetPythonName()
                     else
                         Class p = field:GetParentClass()
                         result = result + "self." + p:ConvertToActionNameFromField(field, true) + "()"
@@ -560,7 +560,7 @@ class ActionCallOpcode is QuorumOpcode
                     
                 end
             else
-                result = result + field:GetJavaScriptName()
+                result = result + field:GetPythonName()
             end
             
         end

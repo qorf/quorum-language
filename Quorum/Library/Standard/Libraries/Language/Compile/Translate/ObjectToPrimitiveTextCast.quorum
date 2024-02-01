@@ -22,7 +22,7 @@ class ObjectToPrimitiveTextCast is ExplicitCastOpcode
         if opcodeToCast not= undefined
             result = result + WrapGetValuePython(opcodeToCast)
         else
-            result = ".GetValue()"
+            result = ""
         end
         return result
     end

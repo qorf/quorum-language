@@ -19,3 +19,12 @@ def Global_Cast_Text_To_Boolean(value):
 		return False
 	else:
 		raise Exception("Error: Cast Error: An error occurred while casting")
+		
+def  Global_GetValue_(value, type):
+	if (value == None):
+		if(type == "number" or type == "boolean" or type == "integer"):
+			raise ValueError("Cannot get a value from the type: " + type)
+		else:
+			return None
+	else:
+		return value.GetValue()

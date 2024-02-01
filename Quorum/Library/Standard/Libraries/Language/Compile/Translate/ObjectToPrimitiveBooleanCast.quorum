@@ -22,7 +22,7 @@ class ObjectToPrimitiveBooleanCast is ExplicitCastOpcode
         if opcodeToCast not= undefined
             result = result + WrapGetValuePython(opcodeToCast)
         else
-            result = ".GetValue()"
+            result = ""//".GetValue()"
         end
         return result
     end
