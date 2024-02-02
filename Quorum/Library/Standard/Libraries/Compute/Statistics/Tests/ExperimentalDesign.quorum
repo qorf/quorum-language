@@ -10,6 +10,7 @@ use Libraries.Containers.Iterator
 use Libraries.Compute.Matrix
 use Libraries.Compute.Statistics.Transforms.ConvertColumnsToRanksTransform
 use Libraries.Compute.Statistics.Transforms.TransformWider
+use Libraries.Compute.Statistics.Columns.TextColumn
 
 /*
 The ExperimentalDesign class is a helper class for several statistical tests including
@@ -71,6 +72,7 @@ Control Matrix:         https://en.wikipedia.org/wiki/Control_variable
 Contrast Matrix:        https://en.wikipedia.org/wiki/Contrast_(statistics)
 */
 class ExperimentalDesign
+    boolean removeUndefined = true
     boolean transformed = false
     boolean repeatedMeasures = false
     boolean multivariate = false
@@ -184,6 +186,7 @@ class ExperimentalDesign
         transformed = false
         repeatedMeasures = false
         multivariate = false
+        removeUndefined = true
         numberOfSubjects = 0            
         numberOfObservations = 0        
         numberOfMeasurements = 0        
@@ -583,10 +586,14 @@ class ExperimentalDesign
     output design:GetNumberOfMeasurements()
     */
     action GetNumberOfMeasurements returns integer
-        if contrastMatrix = undefined 
-            contrastMatrix = CreateContrastMatrix()
+        if withinSubjectsFactorHeaders:GetSize() > 0
+            if contrastMatrix = undefined 
+                contrastMatrix = CreateContrastMatrix()
+            end
+            return numberOfMeasurements
+        else
+            return 1
         end
-        return numberOfMeasurements
     end
 
     /*
@@ -685,6 +692,7 @@ class ExperimentalDesign
     
     ExperimentalDesign design
     design:AddSubjectIdentifier("ResponseID")
+    design:AddBetweenSubjectsFactor("Groups")
     design:AddDependentVariable("Variable1")
     design:AddDependentVariable("Variable2")
     design:AddDependentVariable("Variable3")
@@ -695,6 +703,11 @@ class ExperimentalDesign
     */
     action Multivariate(boolean multivariate)
         me:multivariate = multivariate
+    end
+
+
+    action RemoveUndefined(boolean removeUndefined)
+        me:removeUndefined = removeUndefined
     end  
 
     /*
@@ -721,6 +734,34 @@ class ExperimentalDesign
             ConstructGroupsFrame()
         end
         return groupsFrame
+    end
+
+    /*
+    This action returns a table with each multivariate group/sample/measure as it's own dataframe.  
+
+    Attribute: Returns The table dataframe holding each multivariate sample
+    
+    Attribute: Example
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+    DataFrame frame
+    frame:Load("data.csv")
+    
+    ExperimentalDesign design
+    design:AddSubjectIdentifier("ResponseID")
+    design:AddBetweenSubjectsFactor("Groups")
+    design:AddDependentVariable("Weight")
+    design:AddDependentVariable("Height")
+    design:Transform(frame)
+
+    HashTable<text, DataFrame> groupsTable = design:GetGroupsTable()
+    */
+    action GetGroupsTable returns HashTable<text, DataFrame>
+        if groupsTable = undefined
+            ConstructGroupsTable()
+        end
+        return groupsTable
     end
 
     /*
@@ -1244,19 +1285,17 @@ class ExperimentalDesign
                 j = j + 1
             end 
             // Subjects for between design
-            if not repeatedMeasures
-                numberOfSubjects = longFrame:GetColumn(0):GetSize()
-                if subjectIdentifierHeader = ""
-                    NumberColumn id
-                    i = 0
-                    repeat while i < numberOfSubjects
-                        id:Add(i+1)
-                        i = i + 1
-                    end
-                    subjectIdentifierHeader = "subject_id"
-                    id:SetHeader(subjectIdentifierHeader)
-                    longFrame:AddColumn(id)
+            numberOfSubjects = longFrame:GetColumn(0):GetSize()
+            if subjectIdentifierHeader = ""
+                TextColumn id
+                i = 0
+                repeat while i < numberOfSubjects
+                    id:Add("subject"+(i+1))
+                    i = i + 1
                 end
+                subjectIdentifierHeader = "subject_id"
+                id:SetHeader(subjectIdentifierHeader)
+                longFrame:AddColumn(id)
             end
             longFrame:AddSelectedFactors(betweenFactor) 
             betweenSubjectsFactorHeaders:Add(betweenFactor) 
@@ -1287,19 +1326,17 @@ class ExperimentalDesign
 
             DataFrame tempFrame = frame:Copy()
             // Subjects for within design
-            if repeatedMeasures 
-                numberOfSubjects = tempFrame:GetColumn(0):GetSize()
-                if subjectIdentifierHeader = ""
-                    NumberColumn id
-                    i = 0
-                    repeat while i < numberOfSubjects
-                        id:Add(i+1)
-                        i = i + 1
-                    end
-                    subjectIdentifierHeader = "subject_id"
-                    id:SetHeader(subjectIdentifierHeader)
-                    tempFrame:AddColumn(id)
+            numberOfSubjects = tempFrame:GetColumn(0):GetSize()
+            if subjectIdentifierHeader = ""
+                TextColumn id
+                i = 0
+                repeat while i < numberOfSubjects
+                    id:Add("subject"+(i+1))
+                    i = i + 1
                 end
+                subjectIdentifierHeader = "subject_id"
+                id:SetHeader(subjectIdentifierHeader)
+                tempFrame:AddColumn(id)
             end
 
             // Lengthen Within Factor
@@ -1346,10 +1383,10 @@ class ExperimentalDesign
             if repeatedMeasures 
                 numberOfSubjects = tempFrame:GetColumn(0):GetSize()
                 if subjectIdentifierHeader = ""
-                    NumberColumn id
+                    TextColumn id
                     i = 0
                     repeat while i < numberOfSubjects
-                        id:Add(i+1)
+                        id:Add("subject"+(i+1))
                         i = i + 1
                     end
                     subjectIdentifierHeader = "subject_id"
@@ -1396,10 +1433,10 @@ class ExperimentalDesign
             if not repeatedMeasures
                 numberOfSubjects = longFrame:GetColumn(0):GetSize()
                 if subjectIdentifierHeader = ""
-                    NumberColumn id
+                    TextColumn id
                     i = 0
                     repeat while i < numberOfSubjects
-                        id:Add(i+1)
+                        id:Add("subject"+(i+1))
                         i = i + 1
                     end
                     subjectIdentifierHeader = "subject_id"
@@ -1410,6 +1447,28 @@ class ExperimentalDesign
         else
             // Copy frame
             longFrame = frame:Copy()
+
+            if withinSubjectsFactorHeaders:IsEmpty()
+                repeatedMeasures = false
+            else
+                repeatedMeasures = true
+            end
+
+            // Subjects for between design
+            if not repeatedMeasures
+                numberOfSubjects = longFrame:GetColumn(0):GetSize()
+                if subjectIdentifierHeader = ""
+                    TextColumn id
+                    i = 0
+                    repeat while i < numberOfSubjects
+                        id:Add("subject"+(i+1))
+                        i = i + 1
+                    end
+                    subjectIdentifierHeader = "subject_id"
+                    id:SetHeader(subjectIdentifierHeader)
+                    longFrame:AddColumn(id)
+                end
+            end
 
             // Copy selection
             i = 0
@@ -1428,31 +1487,97 @@ class ExperimentalDesign
         DataFrame newFrame
         /*  
             For long data:
-            1. Add the subject column to frame (within design only)
-            2. Add the specified between factors to frame
-            3. Add the specified within factors to frame
-            4. Add the specified dependent variables to frame 
-            5. Add any additional selected factors as between factors 
-            6. Add any additional selected columns as dependent variables 
+            Remove any subject with undefined values
+            Add the subject column to frame
+            Add the specified between factors to frame
+            Add the specified within factors to frame
+            Add the specified dependent variables to frame 
+            Add any additional selected factors as between factors 
+            Add any additional selected columns as dependent variables 
         */
         if withinSubjectsFactorHeaders:IsEmpty()
             repeatedMeasures = false
         else
             repeatedMeasures = true
         end
-                
-        // 1. Add the subject column to frame 
-        if subjectIdentifierHeader not= "" and repeatedMeasures
-            newFrame:AddColumn(longFrame:GetColumn(subjectIdentifierHeader))
-            newFrame:AddSelectedFactors(subjectIdentifierHeader)
-            numberOfObservations = longFrame:GetColumn(subjectIdentifierHeader):GetSize()
-        else
-            if repeatedMeasures
-                alert("Since your data is in long format for repeated measures, please specify the subject identification column using AddSubjectIdentifier().")
-            else
-                numberOfSubjects = longFrame:GetColumn(0):GetSize()
-                numberOfObservations = longFrame:GetColumn(0):GetSize()
+
+        if repeatedMeasures and subjectIdentifierHeader = ""
+            alert("Your data is in long format and your design has repeated measures, please specify the subject identification column using AddSubjectIdentifier().")
+        end
+
+        // Remove any subject with undefined variables
+        text removalOperation = ""
+        text dq = removalOperation:GetDoubleQuote()
+        boolean isNumberID = longFrame:GetColumn(subjectIdentifierHeader):IsNumberColumn()
+        i = 0
+        repeat while i < dependentVariableHeaders:GetSize()
+            DataFrameColumn dv = longFrame:GetColumn(dependentVariableHeaders:Get(i))
+            j = 0
+            repeat while j < dv:GetSize()
+                if dv:IsUndefined(j)
+                    if isNumberID
+                        number remove = longFrame:GetColumn(subjectIdentifierHeader):GetAsNumber(j)
+                        if removalOperation = ""
+                            removalOperation = subjectIdentifierHeader + " not= " + remove
+                        else
+                            removalOperation = removalOperation + " and " + subjectIdentifierHeader+ " not= " + remove
+                        end
+                    else
+                        text remove = longFrame:GetColumn(subjectIdentifierHeader):GetAsText(j)
+                        if removalOperation = ""
+                            removalOperation = subjectIdentifierHeader + " not= " + dq + remove + dq
+                        else
+                            removalOperation = removalOperation + " and " + subjectIdentifierHeader+ " not= " + dq + remove + dq
+                        end
+                    end
+                end
+                j = j + 1
             end
+            i = i + 1
+        end
+        i = 0
+        repeat while i < longFrame:GetSelectedColumnSize()
+            DataFrameColumn dv = longFrame:GetColumn(longFrame:GetSelection():GetColumn(i))
+            j = 0
+            repeat while j < dv:GetSize()
+                if dv:IsUndefined(j)
+                    if isNumberID
+                        number remove = longFrame:GetColumn(subjectIdentifierHeader):GetAsNumber(j)
+                        if removalOperation = ""
+                            removalOperation = subjectIdentifierHeader + " not= " + remove
+                        else
+                            removalOperation = removalOperation + " and " + subjectIdentifierHeader+ " not= " + remove
+                        end
+                    else
+                        text remove = longFrame:GetColumn(subjectIdentifierHeader):GetAsText(j)
+                        if removalOperation = ""
+                            removalOperation = subjectIdentifierHeader + " not= " + dq + remove + dq
+                        else
+                            removalOperation = removalOperation + " and " + subjectIdentifierHeader+ " not= " + dq + remove + dq
+                        end
+                    end
+                end
+                j = j + 1
+            end
+            i = i + 1
+        end 
+        if removalOperation not= ""
+            if removeUndefined
+                longFrame:Filter(removalOperation)
+            else
+                alert("Cannot have undefined values, use RemoveUndefined(true) to remove the entries with undefined values.")
+            end
+        end
+
+        // 1. Add the subject column to frame 
+        if subjectIdentifierHeader not= ""
+            newFrame:AddColumn(longFrame:GetColumn(subjectIdentifierHeader))
+            if repeatedMeasures
+                newFrame:AddSelectedFactors(subjectIdentifierHeader)
+            else
+                numberOfSubjects = longFrame:GetColumn(subjectIdentifierHeader):GetSize()
+            end
+            numberOfObservations = longFrame:GetColumn(subjectIdentifierHeader):GetSize()
         end
 
 

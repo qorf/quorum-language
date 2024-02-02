@@ -27,8 +27,6 @@ use Science.Tests.SummarizeTest
 use Science.Tests.SummarizeFromSelectionTest
 use Science.Tests.FilterTest
 use Science.Tests.BetaDistributionTest
-use Science.Tests.CompareCountsGoodnessOfFitTest
-use Science.Tests.CompareCountsIndependenceTest
 use Science.Tests.CompareMeansPairwiseUnfittedStrictCorrectionTest
 use Science.Tests.CompareMeansPairwiseFittedStrictCorrectionTest
 use Science.Tests.CompareMeansPairwiseFittedLenientCorrectionTest
@@ -57,6 +55,11 @@ use Science.Tests.FactorialCompareVariancesTest
 use Science.Tests.RegressionPredictionTest
 use Science.Tests.MultivariateCompareVariancesTest
 use Science.Tests.FactorialCompareSeveralRelatedMeansTest
+use Science.Tests.CompareCountsTest
+use Science.Tests.CompareRelatedCountsTest
+use Science.Tests.CompareCountsGoodnessOfFitTest
+use Science.Tests.CompareCountsPairwiseTest
+use Science.Tests.CompareRelatedCountsPairwiseTest
 
 class ScienceTester
     Tester tester = undefined
@@ -72,9 +75,9 @@ class ScienceTester
         TestCompareDistributions()
         TestCorrelateGroups()
         TestPrincipalComponentAnalysis()
+        TestCompareCounts()
+        TestCompareCountsPairwise()
 
-        TestCompareCountsGoodnessOfFit()
-        TestCompareCountsTestOfIndependence()
         TestVariance()
         TestStandardDeviation()
         TestRegression()
@@ -136,15 +139,6 @@ class ScienceTester
 
         FactorialCompareSeveralRelatedMeansTest test14
         tester:Run(test14)
-
-//        MultivariateCompareSeveralRelatedMeansTest test15
-//        tester:Run(test15)
-//
-//        MultivariateFactorialCompareSeveralRelatedMeansTest test16
-//        tester:Run(test16)
-//
-//        MixedDesignCompareSeveralMeansTest test17
-//        tester:Run(test17)
     end
 
     action TestCompareMeansPairwise
@@ -196,6 +190,25 @@ class ScienceTester
         tester:Run(test3)
     end
 
+    action TestCompareCounts
+        CompareCountsTest test1
+        tester:Run(test1)
+
+        CompareRelatedCountsTest test2
+        tester:Run(test2)
+
+        CompareCountsGoodnessOfFitTest test3
+        tester:Run(test3)
+    end
+
+    action TestCompareCountsPairwise
+        CompareCountsPairwiseTest test1
+        tester:Run(test1)
+
+        CompareRelatedCountsPairwiseTest test2
+        tester:Run(test2)
+    end
+
     action TestFilters
         FilterTest test
         tester:Run(test)
@@ -238,16 +251,6 @@ class ScienceTester
 
     action ZeroFinder
         ZeroFinderTest test
-        tester:Run(test)
-    end
-
-    action TestCompareCountsTestOfIndependence
-        CompareCountsIndependenceTest test
-        tester:Run(test)
-    end
-
-    action TestCompareCountsGoodnessOfFit
-        CompareCountsGoodnessOfFitTest test
         tester:Run(test)
     end
 

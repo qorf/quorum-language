@@ -1,0 +1,517 @@
+package Libraries.Compute.Statistics.Tests
+
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Math
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Compute.Statistics.Distributions.ClassificationDistribution
+use Libraries.Compute.Statistics.Calculations.Summarize
+use Libraries.Compute.Statistics.Reporting.CompareCountsResult
+
+/*
+This class implements several post hoc analysis tests, which are intended to be used 
+after a significant CompareCounts test with three or more samples. This class can take two 
+approaches: The first approach, called the 'fitted' approach, will use the fitted result of the prior 
+CompareCounts test to calculate the standard error and adjustments to correct for familywise error. 
+The formal names of tests included in fitted approach are as follows: Residual Analysis-Bonferroni. 
+The second and default approach, called the 'unfitted' approach, will not use the fitted result of prior 
+CompareCounts test, instead it will run individual two-sample CompareCounts tests and then correct for 
+familywise error using Bonferroni. The formal names of tests included in the unfitted approach are as 
+follows: Chi-Squared test, Fisher exact test, Cochran's Q-test and McNemar test. 
+Currently, the only type of correction for these pairwise test is 'strict' which refers to any test that applies 
+the Bonferroni correction to the p-values. 
+
+See the INFORMATION comment block at the bottom of this class for more information about each test.
+For more information: https://en.wikipedia.org/wiki/Post_hoc_analysis
+    
+Attribute: Author Hannah Stabler
+Attribute: Example
+
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.CompareCountsPairwise
+
+DataFrame frame
+frame:Load("Data/Data.csv")
+
+// this example will show a two-factor between subjects design
+
+// make a design for the test to follow 
+ExperimentalDesign design
+
+// select the name of a column in your frame as a categorical independent variable (factor)
+design:AddBetweenSubjectsFactor("Group")    
+
+// select the name of a column in your frame as the categorical dependent variable 
+design:AddDependentVariable("Response")    
+
+// tell the frame to use this design and run a compare means pairwise test
+CompareCountsPairwise pairwise = frame:CompareCountsPairwise(design)
+
+// output the pairwise summary, a list of adjusted p-values for every comparison
+output pairwise:GetPairwiseSummary()
+*/
+class CompareCountsPairwise is CompareCounts
+    /* The distribution used to calculate the p-value in nemenyi test. */
+    private ClassificationDistribution x2Distribution
+
+    private Array <CompareCountsResult> results = undefined              // Results for all sources
+    private HashTable<text, Array<CompareCountsResult>> sourceResults    // Results for each source
+
+    /* Set if the test has already been calculated, and we simply want to run a post hoc follow up */
+    private CompareCountsResult testResult = undefined
+    private boolean defaultVarianceAssumption = true        
+    private boolean defaultDistributionAssumption = true           
+
+    Math math
+
+    action Calculate(DataFrame frame)    
+        CompareCounts compare
+        compare:Paired(Paired())
+        compare:RepeatedMeasures(RepeatedMeasures())
+        if GetExperimentalDesign() not= undefined
+            compare:SetExperimentalDesign(GetExperimentalDesign()) // share the design between the several-sample and pairwise tests
+        end
+        compare:Calculate(frame)
+        SetExperimentalDesign(compare:GetExperimentalDesign())
+        Calculate(compare:GetResult())
+    end
+
+    private action RunTest(DataFrame frame)
+
+    end
+
+    action Calculate(CompareCountsResult result)
+        if result = undefined
+            alert("Prior CompareCounts test result is undefined.")
+        end
+        if result:GetGroupsTable():GetSize() > 0
+            alert("Multivariate CompareCountsPairwise tests are not available yet.")
+        end
+        if result:GetGroupsFrame():GetSize() < 2
+            alert("Prior CompareCounts test result must be from a test with at least two samples, your test only has "+
+                   result:GetGroupsFrame():GetSize()+" samples. This doesn't make sense for a pairwise test.")
+        end
+        results = undefined
+        sourceResults:Empty()
+        testResult = result
+        RepeatedMeasures(testResult:IsRepeated())
+        if GetExperimentalDesign() = undefined
+            SetExperimentalDesign(result:GetExperimentalDesign()) // share the design between the several-sample and pairwise tests
+        end
+        if GetExperimentalDesign():GetDesignFrame() = undefined
+            alert("Undefined ExperimentalDesign. Use the design from your CompareCounts test with the following action SetExperimentalDesign()")
+        end
+
+        if result:GetGroupsFrame():GetSize() = 2 // Only one result from two-sample test
+            Array <CompareCountsResult> onlyResult
+            onlyResult:Add(result)
+            results = onlyResult
+        else
+            if UsingFittedApproach()
+                if testResult:GetGroupsTable():GetSize() > 0 // Multivariate: Not implemented yet
+                    MultivariateFittedApproach()
+                else
+                    // MRD + Bonferroni (Strict)
+                    // Residual Analysis + Bonferroni (Strict)  
+                    // MRD (None) 
+                    // Residual Analysis (None)
+                    UnivariateFittedApproach()
+                end
+            elseif UsingUnfittedApproach()
+                if testResult:GetGroupsTable():GetSize() > 0 // Multivariate: Not implemented yet
+                    MultivariateUnfittedApproach()
+                else
+                    // Pairwise two-sample test + Bonferroni (Strict)
+                    // Pairwise two-sample test (None)
+                    UnivariateUnfittedApproach()
+                end
+            end   
+        end                 
+    end
+
+    /*
+        Attribute: Returns an array of all the CompareCountsResult objects
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareCountsPairwise
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+    
+        ExperimentalDesign design
+        design:AddBetweenSubjectsFactor("Age")
+        design:AddBetweenSubjectsFactor("Group")
+        design:AddDependentVariable("Response")
+    
+        CompareCountsPairwise compare
+        compare:SetExperimentalDesign(design)
+        frame:Calculate(compare)
+
+        Array<CompareCountsResult> results = compare:GetResults()
+    */
+    action GetResults returns Array<CompareCountsResult>
+        if testResult = undefined
+            alert("It doesn't look like you've run the test yet. Use Calculate() to run the CompareCountsPairwise test.")
+        end
+        if results = undefined
+            results = CompileResults()
+        end
+        return results
+    end
+
+    /*
+        Attribute: Returns an array of the CompareCountsResult objects for a 
+        single source (i.e. a main effect or an interaction effect)
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareCountsPairwise
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+
+        ExperimentalDesign design
+        design:AddBetweenSubjectsFactor("Age")
+        design:AddBetweenSubjectsFactor("Group")
+        design:AddDependentVariable("Response")
+    
+        CompareCountsPairwise compare
+        compare:SetExperimentalDesign(design)
+        frame:Calculate(compare)
+
+        Array<CompareCountsResult> results = compare:GetResults("Age")
+    */
+    action GetResults(text source) returns Array<CompareCountsResult>
+        if testResult = undefined
+            alert("It doesn't look like you've run the test yet. Use Calculate() to run the CompareCountsPairwise test.")
+        end
+        if sourceResults:HasKey(source)
+            return sourceResults:GetValue(source)
+        end
+        alert("There are no results for that source. Try GetSources() to see the available effects.")
+    end
+
+
+    /*
+        This returns the simple pairwise summary of the results for all effects.
+
+        Attribute: Returns the pairwise summary.
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareCountsPairwise
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+    
+        ExperimentalDesign design
+        design:AddBetweenSubjectsFactor("Age")
+        design:AddBetweenSubjectsFactor("Group")
+        design:AddDependentVariable("Response")
+    
+        CompareCountsPairwise compare
+        compare:SetExperimentalDesign(design)
+        frame:Calculate(compare)
+
+        output compare:GetPairwiseSummary() 
+    */
+    action GetPairwiseSummary returns text
+        if testResult = undefined
+            alert("It doesn't look like you've run the test yet. Use Calculate() to run the CompareCountsPairwise test.")
+        end
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        integer digits = GetStatisticalFormatting():GetSignificantDigits()
+        Array<CompareCountsResult> results = GetResults()
+        integer i = 0
+        repeat while i < results:GetSize()
+            CompareCountsResult pair = results:Get(i)
+            if i = 0
+                summary = summary + pair:GetFormalTestName()
+            end
+            if pair:GetGroupsFrame():GetSize() > 1
+                text group1 = pair:GetGroupsFrame():GetColumn(0):GetHeader()
+                text group2 = pair:GetGroupsFrame():GetColumn(1):GetHeader()
+                summary = summary + lf + "  " + group1 + " - " + group2 + ": p = " + math:Round(pair:GetProbabilityValue(), digits)
+                if pair:IsSignificant()
+                    summary = summary + " ** significant **"
+                end
+            end
+            i = i + 1
+        end
+        return summary
+    end
+
+    /*
+        This returns the simple pairwise summary of the results for a given effect.
+
+        Attribute: Returns the pairwise summary.
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareCountsPairwise
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+    
+        ExperimentalDesign design
+        design:AddBetweenSubjectsFactor("Age")
+        design:AddBetweenSubjectsFactor("Group")
+        design:AddDependentVariable("Response")
+    
+        CompareCountsPairwise compare
+        compare:SetExperimentalDesign(design)
+        frame:Calculate(compare)
+
+        output compare:GetPairwiseSummary("Age")
+    */
+    action GetPairwiseSummary(text source) returns text
+        if testResult = undefined
+            alert("It doesn't look like you've run the test yet. Use Calculate() to run the CompareCountsPairwise test.")
+        end
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        integer digits = GetStatisticalFormatting():GetSignificantDigits()
+        Array<CompareCountsResult> results = GetResults(source)
+        integer i = 0
+        repeat while i < results:GetSize()
+            CompareCountsResult pair = results:Get(i)
+            if i = 0
+                summary = summary + pair:GetFormalTestName()
+            end
+            if pair:GetGroupsFrame():GetSize() > 1
+                text group1 = pair:GetGroupsFrame():GetColumn(0):GetHeader()
+                text group2 = pair:GetGroupsFrame():GetColumn(1):GetHeader()
+                summary = summary + lf + "  " + group1 + " - " + group2 + ": p = " + math:Round(pair:GetProbabilityValue(), digits)
+                if pair:IsSignificant()
+                    summary = summary + " ** significant **"
+                end
+            end
+            i = i + 1
+        end
+        return summary
+    end
+
+    action GetSources returns Array<text>
+        if testResult = undefined
+            alert("It doesn't look like you've run the test yet. Use Calculate() to run the CompareCountsPairwise test.")
+        end
+        return testResult:GetSources()
+    end
+
+    private action MultivariateFittedApproach()
+        alert("A multivariate fitted approach for CompareCountsPairwise test is not available.")
+    end
+
+    private action MultivariateUnfittedApproach()
+        alert("A multivariate unfitted approach for CompareCountsPairwise test is not available.")
+    end
+
+    private action UnivariateFittedApproach()
+        alert("A univariate fitted approach for CompareCountsPairwise test is not available yet. Formal test: Adjusted Residuals Test")
+    end
+
+    private action UnivariateUnfittedApproach()
+        text source = ""
+        Array<text> sources = testResult:GetSources()
+        DataFrame frame = GetExperimentalDesign():GetDesignFrame():Copy()
+        i = 0
+        repeat while i < sources:GetSize()
+            source = sources:Get(i)
+            // Factor the groups by only this source/effect, ignoring other factors.
+            frame:EmptySelectedColumns()
+            frame:EmptySelectedFactors()
+            Array<text> factors = source:Split(":")
+            j = 0
+            repeat while j < factors:GetSize()
+                frame:AddSelectedFactors(factors:Get(j))
+                j = j + 1
+            end
+            frame:AddSelectedColumns(GetExperimentalDesign():GetDependentVariables():Get(0))
+            DataFrame sourceFrame = frame:CreateNewDataFrameFromFactoredColumns() 
+
+            // Apply multiple comparison test to this source/effect           
+            sourceResults:Add(source, CalculatePairwiseUsingUnfittedApproach(sourceFrame, source))
+            i = i + 1
+        end
+    end
+
+    private action CalculatePairwiseUsingFittedApproach(DataFrame sourceFrame, text source) returns Array<CompareCountsResult>
+        integer numberOfGroups = sourceFrame:GetSize()
+        number numberOfTestsPerformed = (numberOfGroups * (numberOfGroups-1)) / 2 // numberOfGroups choose 2
+
+        if RepeatedMeasures()
+            // What test goes here??
+        else
+            // Adjusted Residual Test         
+        end
+
+        Array<CompareCountsResult> sourceResults
+        return sourceResults
+    end
+
+    private action CalculatePairwiseUsingUnfittedApproach(DataFrame sourceFrame, text source) returns Array<CompareCountsResult>
+        number numberOfGroups = sourceFrame:GetSize()
+        number numberOfTestsPerformed = (numberOfGroups * (numberOfGroups-1)) / 2 // numberOfGroups choose 2
+
+        Array<CompareCountsResult> sourceResults
+        i = 0
+        repeat while i < numberOfGroups
+            j = i + 1
+            repeat while j < numberOfGroups
+                DataFrameColumn left = sourceFrame:GetColumn(i)
+                DataFrameColumn right = sourceFrame:GetColumn(j)
+                text group1Text = left:GetHeader()
+                text group2Text = right:GetHeader()
+                text combo = group1Text+"_"+group2Text
+
+                DataFrame pairFrame
+                pairFrame:AddColumn(left)
+                pairFrame:AddColumn(right)
+                pairFrame:SelectAllColumns()
+
+                // If the source is within-subjects or if the two samples are from the same subjects but different within-subjects levels. 
+                boolean paired = CheckIfPaired(source, group1Text, group2Text)
+
+                // Run the appropriate two-sample test to get the statistic
+                CompareCounts compare
+                compare:Paired(paired)
+                compare:Calculate(pairFrame)
+                CompareCountsResult result = compare:GetResult()                 
+
+                number stat = result:GetTestStatistic()    
+                number df = result:GetDegreesOfFreedom()
+                number p = result:GetProbabilityValue() 
+                text testName = ""
+                if UsingStrictCorrection()
+                    // Adjust p-value using Bonferroni correction
+                    p = p * numberOfTestsPerformed 
+                    if p > 1
+                        p = 1
+                    end
+                    testName = "Pairwise " + result:GetFormalTestName() + " with Bonferroni Correction"
+                else
+                    testName = "Pairwise " + result:GetFormalTestName()
+                end
+
+                CompareCountsResult pair
+                pair:SetSignificanceLevel(GetSignificanceLevel())
+                pair:SetFormat(GetStatisticalFormatting())
+                pair:SetGroupsFrame(pairFrame)
+                pair:SetFormalTestName(testName)
+                pair:SetTestStatistic(combo, result:GetTestStatisticName(), stat)
+                pair:SetProbabilityValue(combo, result:GetTestStatisticName(), p)
+                pair:SetDegreesOfFreedom(combo, result:GetTestStatisticName(), df)
+                pair:SetInformation(combo, result:GetTestStatisticName(), stat)
+                pair:SetInformation(combo, "df", df)
+                pair:SetInformation(combo, "p", p)
+                pair:SetExperimentalDesign(result:GetExperimentalDesign())
+                sourceResults:Add(pair)
+                j = j + 1
+            end
+            i = i + 1
+        end
+        return sourceResults
+    end
+
+    private action CheckIfPaired(text source, text sample1, text sample2) returns boolean
+        Array<text> factors = source:Split(":")
+        Array<text> betweenFactors = GetExperimentalDesign():GetBetweenSubjectsFactors()
+
+        Text sample1Text
+        sample1Text:SetValue(sample1)
+        Array<text> sample1Levels = sample1Text:Split(".")
+
+        Text sample2Text
+        sample2Text:SetValue(sample2)
+        Array<text> sample2Levels = sample2Text:Split(".")
+        
+        // If factor is a between-subjects and the same subjects are used then use paired, otherwise use independent
+        boolean sameBetween = true
+        i = 0
+        repeat while i < factors:GetSize()
+            j = 0
+            repeat while j < betweenFactors:GetSize()
+                if factors:Get(i) = betweenFactors:Get(j)
+                    if sample1Levels:Get(i) not= sample2Levels:Get(i)
+                        sameBetween = false
+                    end
+                end
+                j = j + 1
+            end
+            i = i + 1
+        end
+        return sameBetween
+    end
+
+    private action CompileResults returns Array<CompareCountsResult>
+        Array<CompareCountsResult> results
+        Array<text> sources = GetSources()
+        i = 0
+        repeat while i < sources:GetSize()
+            if sourceResults:HasKey(sources:Get(i))
+                Array<CompareCountsResult> sResults = sourceResults:GetValue(sources:Get(i))
+                j = 0
+                repeat while j < sResults:GetSize()
+                    results:Add(sResults:Get(j))
+                    j = j + 1
+                end
+            end
+            i = i + 1
+        end
+        return results
+    end
+
+    /* 
+    INFORMATION:
+
+    Fitted approach:   
+            This is the default, it uses pairwise estimated marginal means based on the CompareCounts several-sample test result.
+    Unfitted approach:    
+            This uses pairwise two-sample CompareCounts tests (i.e. t-test, wilcoxon test, etc)
+
+    Corrections: 
+        These are applied to the degrees of freedom or p-values after a standalone test to correct for familywise error.
+    Multiple Comparison Tests:
+        Standalone tests that sometimes inherently apply correction and sometimes need correction applied afterwards.    
+
+    Lenient:
+
+    Strict:
+        Adjusted Residual Analysis 
+            After CompareSeveralCounts
+            Controls for family-wise error rate by adjusting p-values of individual adjusted residual tests
+            For more information: https://real-statistics.com/chi-square-and-f-distributions/independence-testing/independence-testing-follow-up/
+
+        Bonferroni Correction 
+            After CompareSeveralCounts
+            Controls for family-wise error rate by adjusting p-values of individual tests
+            For more information: https://en.wikipedia.org/wiki/Bonferroni_correction
+
+        ** NOT IMPLEMENTED YET **
+        Benjamini-Hochberg Correction
+            After CompareSeveralCounts OR CompareSeveralRelatedCounts
+            For more information: https://en.wikipedia.org/wiki/False_discovery_rate
+
+        ** NOT IMPLEMENTED YET **
+        Holm-Bonferroni Correction (Bonferroni Extension)
+            After CompareSeveralCounts OR CompareSeveralRelatedCounts
+            Controls for family-wise error rate by adjusting p-values
+            For more information: https://en.wikipedia.org/wiki/Holm%E2%80%93Bonferroni_method
+
+        ** NOT IMPLEMENTED YET **
+        Sidak Correction 
+            After CompareSeveralCounts OR CompareSeveralRelatedCounts
+            Controls for family-wise error rate by adjusting p-values
+            For more information: https://en.wikipedia.org/wiki/%C5%A0id%C3%A1k_correction
+
+    Extremely Strict:
+        ** NOT IMPLEMENTED YET **
+        Scheffé Multiple Comparison Test
+            After CompareSeveralCounts OR CompareSeveralRelatedCounts
+            Controls for family-wise error rate by adjusting p-values
+            For more information: https://en.wikipedia.org/wiki/Bonferroni_correction 
+    */
+end

@@ -9,14 +9,17 @@ use Libraries.Compute.Statistics.DataFrameCalculation
 use Libraries.Compute.Statistics.Reporting.StatisticalTestResult
 use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Containers.HashTable
+use Libraries.Compute.Matrix
 
 class StatisticalTest is DataFrameCalculation, ColumnInput, FactorInput
+    // Formatting used in test result summary
     StatisticsFormatting formatting
 
+    // Significance level used in test result summary
     number significanceLevel = 0.05
-    boolean removeUndefined = false
-    boolean useFactor = false
-    text factorText = ""
+
+    // Flags to deal with missing values
+    boolean removeUndefined = true
 
     action Calculate(DataFrame frame) 
         /* 
@@ -44,35 +47,7 @@ class StatisticalTest is DataFrameCalculation, ColumnInput, FactorInput
             RunTest(frame)
         end
     end
-
-    /*
-        This action takes a DataFrame and a DataFrameColumn (filter) and separates that frame 
-        into smaller DataFrames. One DataFrame for each unique item in the selected filter.
-    */
-    private action CalculateBy(DataFrame frame, integer filterIndex) 
-        DataFrameColumn filter = frame:GetColumn(filterIndex):Copy(true,true)
-        integer i = 0
-        repeat while i < filter:GetSize()
-            text header = filter:GetHeader()
-            text dq = header:GetDoubleQuote()
-            DataFrame newFrame     
-
-            if filter:IsNumberColumn() or filter:IsIntegerColumn()
-                newFrame = frame:Copy(header+"="+filter:GetAsNumber(i))
-            elseif filter:IsDateTimeColumn()
-                alert("Dataframe factor by datetime doesn't seem to work right now.")
-                //newFrame = frame:Copy(header+"="+factor:GetAsDateTime(i))
-            elseif filter:IsBooleanColumn()
-                newFrame = frame:Copy(header+"="+filter:GetAsBoolean(i))
-            else
-                newFrame = frame:Copy(header+"="+dq+filter:GetAsText(i)+dq)
-            end
-
-            RunTest(newFrame)
-            i = i + 1
-        end
-    end
-
+   
     /*
         This action makes a new frame from a column based on a factor 
         and runs a test on the new frame.
@@ -113,8 +88,6 @@ class StatisticalTest is DataFrameCalculation, ColumnInput, FactorInput
         EmptyColumns()
         factorFrame:GetSelection():CopyTo(cast(ColumnInput, me))
 
-        useFactor = true
-        factorText = column:GetHeader() + " by " + factor:GetHeader()
         RunTest(factorFrame)  
     end
 
@@ -143,14 +116,6 @@ class StatisticalTest is DataFrameCalculation, ColumnInput, FactorInput
 
     private action RemoveUndefined(boolean removeUndefined)
         me:removeUndefined = removeUndefined
-    end
-
-    action UseFactor returns boolean
-        return useFactor
-    end
-
-    action GetFactorText returns text
-        return factorText
     end
 
     /*

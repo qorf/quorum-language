@@ -161,8 +161,6 @@ class CompareMeansSummary
                 groups:SelectAllColumns()
                 BoxPlot chart = groups:BoxPlot()
                 chart:SetTitle("BoxPlot")
-                // this must be there for the html to generate so it can be used in the report
-                chart:Display(true)
                 return chart
             else //numberOfSamples >= 2
                 if multivariate
@@ -170,7 +168,6 @@ class CompareMeansSummary
 
                     BoxPlot chart = frame:BoxPlot()
                     chart:SetTitle("BoxPlot")
-                    chart:Display(true)
                     return chart
                 else
                     // If mixed, use within subjects factor(s) as x-axis and between subjects factor(s) as series
@@ -183,7 +180,6 @@ class CompareMeansSummary
                         chart:SeparateBySeries(cast(integer, math:Round(math:SquareRoot(result:GetExperimentalDesign():GetNumberOfIndependentGroups()))))
                         chart:ShowLegend(false)
                         chart:SetTitle("BoxPlot")
-                        chart:Display(true)
                         return chart
                     else
                         Array<text> between = result:GetExperimentalDesign():GetBetweenSubjectsFactors()
@@ -216,8 +212,6 @@ class CompareMeansSummary
 
                             BoxPlot chart = frame:BoxPlot()
                             chart:SetTitle("BoxPlot")
-                            // this must be there for the html to generate so it can be used in the report
-                            chart:Display(true)
                             return chart
                         end
                     end
@@ -280,7 +274,9 @@ class CompareMeansSummary
         table2:Add(GetDescriptiveStatisticsDataFrame())
         divide:Add(table2)
 
-        divide:AddText(chartWriter:WriteOutChart(GetChart()))       
+        BoxPlot chart = GetChart()
+        chart:Display(true)
+        divide:AddText(chartWriter:WriteOutChart(chart))       
         return divide             
     end
 
@@ -1048,6 +1044,7 @@ class CompareMeansSummary
         boolean significantEffectCorrected = false      // Still significant after correction
         Array <text> significantEffects
         Array <text> significantEffectSummary
+        integer numberOfEffects = 0
         // For each source:
         i = 0
         repeat while i < result:GetSources():GetSize()
@@ -1056,18 +1053,21 @@ class CompareMeansSummary
                 HashTable<text, number> sourceInfo = result:GetInformation():GetValue(source)
                 if multivariate
                     if result:UsePillaiStatistic() and sourceInfo:HasKey("pillai p")
+                        numberOfEffects = numberOfEffects + 1
                         number pvalue = sourceInfo:GetValue("pillai p")
                         if pvalue <= result:GetSignificanceLevel()
                             significantEffects:Add(source)
                             significantEffectSummary:Add(GetFormalNumericalResultSeveral(source))
                         end
                     elseif result:UseHotellingStatistic() and sourceInfo:HasKey("hotelling p")
+                        numberOfEffects = numberOfEffects + 1
                         number pvalue = sourceInfo:GetValue("hotelling p")
                         if pvalue <= result:GetSignificanceLevel()
                             significantEffects:Add(source)
                             significantEffectSummary:Add(GetFormalNumericalResultSeveral(source))
                         end
                     elseif result:UseWilksStatistic() and sourceInfo:HasKey("wilks p")
+                        numberOfEffects = numberOfEffects + 1
                         number pvalue = sourceInfo:GetValue("wilks p")
                         if pvalue <= result:GetSignificanceLevel()
                             significantEffects:Add(source)
@@ -1076,6 +1076,7 @@ class CompareMeansSummary
                     end
                 else
                     if sourceInfo:HasKey("p")
+                        numberOfEffects = numberOfEffects + 1
                         boolean useCorrection = false
                         number pvalue = sourceInfo:GetValue("p")
                         if pvalue <= result:GetSignificanceLevel()
@@ -1157,7 +1158,7 @@ class CompareMeansSummary
             end
         end
 
-        if significantEffects:GetSize() < result:GetSources():GetSize() and significantEffects:GetSize() > 0
+        if significantEffects:GetSize() < numberOfEffects and significantEffects:GetSize() > 0
             summary = summary + " The samples may not be different under the other effects."
         end
 
@@ -2253,7 +2254,7 @@ class CompareMeansSummary
             end
             i = i + 1
         end
-        resultFrame:Sort(result:GetFormalTestName())
+//        resultFrame:Sort(result:GetFormalTestName())
         return resultFrame
     end  
 

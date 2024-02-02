@@ -28,115 +28,27 @@ use Libraries.System.File
 use Libraries.Interface.Controls.Charts.all
 use Libraries.Compute.Statistics.Transforms.TransformWider
 
-
 /*
-    This class implements several parametric and non-parametric tests:
-    Parametric:
-        CompareMeanTo is a One-Sample T-Test. 
-        Difference between one group and a given mean
-        For more information: https://en.wikipedia.org/wiki/Student%27s_t-test
+This class implements several parametric and non-parametric comparison hypothesis tests. 
+In addition to the comparison tests, this class can be directed to run any assumption tests and post-hoc tests 
+that are typically accompanied with the given comparison test. Controls for specific post hoc analysis 
+approaches or corrections can be used via this class as well.
+See the INFORMATION comment block at the bottom of this class for more information about each test.
+For more information: https://en.wikipedia.org/wiki/Analysis_of_variance
 
-        CompareTwoRelatedMeans is a Paired T-Test
-        Difference between two paired groups and a given mean
-        For more information: https://en.wikipedia.org/wiki/Student%27s_t-test 
 
-        CompareTwoMeans is a Two-Sample T-Test
-        Difference between two groups when groups have equal variances
-        For more information: https://en.wikipedia.org/wiki/Student%27s_t-test
+Attribute: Author Andreas Stefik, Hannah Stabler
+Attribute: Example
 
-        CompareTwoMeans is a Welch's Two-Sample T-Test. 
-        Difference between two groups when groups have unequal variances
-        For more information: https://en.wikipedia.org/wiki/Welch%27s_t-test       
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.CompareMeans
 
-        CompareSeveralMeans is a Welch's (One-Way) Analysis Of Variance (ANOVA) 
-        Difference between several groups on one dependent variable when groups have unequal variances with one independent variable
-        For more information: https://en.wikipedia.org/wiki/One-way_analysis_of_variance
+DataFrame frame
+frame:Load("Data/Data.csv")
+frame:AddSelectedColumnRange(0,3)
 
-        CompareSeveralMeans is a Univariate Analysis Of Variance (ANOVA)
-        Difference between several groups on one dependent variable when groups have equal variances with one or more independent variables
-        For more information: https://en.wikipedia.org/wiki/Analysis_of_variance
-        For more information: https://en.wikipedia.org/wiki/One-way_analysis_of_variance
-        For more information: https://en.wikipedia.org/wiki/Two-way_analysis_of_variance
-        For more information: https://www.statology.org/factorial-anova/
-
-        CompareSeveralMeans is a Multivariate Analysis Of Variance (MANOVA). 
-        Difference between several groups on more than one dependent variable with one or more independent variables
-        For more information: https://en.wikipedia.org/wiki/Multivariate_analysis_of_variance 
-
-        CompareSeveralRelatedMeans is a Repeated Measures Univariate Analysis Of Variance (RM ANOVA, Mixed ANOVA)
-        Difference between several groups on one dependent variable when there are repeated measures
-        For more information: https://en.wikipedia.org/wiki/Repeated_measures_design
-        For more information: https://en.wikipedia.org/wiki/Mixed-design_analysis_of_variance
-
-        ** Mixed MANOVA is NOT IMPLEMENTED YET **
-        CompareSeveralRelatedMeans is a Repeated Measures Multivariate Analysis Of Variance (RM MANOVA, Mixed MANOVA)
-        Difference between several groups on more than one dependent variable when there are repeated measures
-        For more information: https://en.wikipedia.org/wiki/Repeated_measures_design
-        For more information: https://en.wikipedia.org/wiki/Mixed-design_analysis_of_variance       
-
-        ** NOT IMPLEMENTED YET **
-        _____________ is a Univariate Analysis Of Covariance (ANCOVA)
-        Difference between several groups while controlling for nuisance variables
-        For more information: https://en.wikipedia.org/wiki/Analysis_of_covariance
-
-        ** NOT IMPLEMENTED YET **
-        _____________ is a Multivariate Analysis Of Covariance (MANCOVA)
-        Difference between several groups while controlling for nuisance variables
-        For more information: https://en.wikipedia.org/wiki/Multivariate_analysis_of_covariance
-
-        ** NOT IMPLEMENTED YET **
-        _____________ is a Repeated Measures Univariate Analysis Of Covariance (RM ANCOVA, Mixed ANCOVA)
-        Difference between several groups while controlling for nuisance variables when there are repeated measures
-        For more information: https://en.wikipedia.org/wiki/Analysis_of_covariance
-
-        ** NOT IMPLEMENTED YET **
-        _____________ is a Repeated Measures Multivariate Analysis Of Covariance (RM MANCOVA, Mixed MANCOVA)
-        Difference between several groups while controlling for nuisance variables when there are repeated measures
-        For more information: https://en.wikipedia.org/wiki/Multivariate_analysis_of_covariance
-
-    Non-Parametric:
-        CompareRankedMeanTo is a Wilcoxon Signed-Ranks Test
-        Difference between one rank ordered group and a given median without assumptions about the distribution.
-        For more information: https://en.wikipedia.org/wiki/Wilcoxon_signed-rank_test
-
-        CompareTwoRelatedRankedMeans is a Wilcoxon Signed-Ranks Test
-        Difference between two rank ordered paired groups without assumptions about the distribution.
-        For more information: https://en.wikipedia.org/wiki/Wilcoxon_signed-rank_test
-
-        CompareTwoRankedMeans is a Mann-Whitney U-Test aka Wilcoxon Rank-Sum Test
-        Difference between two rank ordered groups without assumptions about the distribution
-        For more information: https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test
-    
-        CompareSeveralRelatedRankedMeans is a Friedman Test
-        Difference between three or more rank ordered repeated measures groups without assumptions about the distribution
-        For more information: https://en.wikipedia.org/wiki/Friedman_test
-
-        CompareSeveralRankedMeans is a (One-Way) Kruskal-Wallis H Test
-        Difference between three or more rank ordered groups without assumptions about the distribution
-        For more information: https://en.wikipedia.org/wiki/Kruskal%E2%80%93Wallis_one-way_analysis_of_variance
-
-        ** NOT IMPLEMENTED YET **
-        _____________ is a Factorial (Multi-Way) Scheirer–Ray–Hare Test
-        Difference between several rank ordered groups on multiple independent variables without assumptions about the distribution
-        For more information: https://en.wikipedia.org/wiki/Scheirer%E2%80%93Ray%E2%80%93Hare_test
-
-    This class was partially adapted from the same model in Apache Commons, but was expanded 
-    upon to simplify the library and add a variety of helper actions that were missing.
-    More information about this class can be found on its documentation pages for
-    OneWayAnova, TTest, MannWhitneyUTest and WilcoxonSignedRankTest
-    https://commons.apache.org/proper/commons-math/javadocs/api-3.6.1/index.html
-
-    Attribute: Author Andreas Stefik, Hannah Williams
-    Attribute: Example
-
-    use Libraries.Compute.Statistics.DataFrame
-    use Libraries.Compute.Statistics.Tests.CompareMeans
-
-    DataFrame frame
-    frame:Load("Data/Data.csv")
-    frame:AddSelectedColumnRange(0,3)
-    CompareMeans compare = frame:CompareMeans()
-    output compare:GetSummary()
+CompareMeans compare = frame:CompareMeans()
+output compare:GetSummary()
 */
 class CompareMeans is StatisticalTest
     private Math math
@@ -173,6 +85,7 @@ class CompareMeans is StatisticalTest
 
     // USER CONTROLS
     boolean ranked = false                          // The sample observations are to be ranked
+    boolean correctContinuityError = true           // For now, this is always true since we use normal approximation in ranked tests
 
     // ASSUMPTION USER CONTROLS
     boolean assumeEqualVariances = false            // Calculations are to assume variances are equal 
@@ -184,7 +97,6 @@ class CompareMeans is StatisticalTest
 
     // PAIRWISE USER CONTROLS
     boolean correctFamilyWiseError = true           // Family-wise correction is applied in N-sample pairwise tests 
-    boolean correctContinuityError = true           // For now, this is always true since we use normal approximation in ranked tests
     boolean useStrictCorrection = false             // Procedure to be applied in N-sample pairwise tests (corrects for p-value using Bonferroni correction)
     boolean useLenientCorrection = true             // Procedure to be applied in N-sample pairwise tests (corrects for p-value inherently)
     boolean useFittedApproach = true                // Conducts comparisons using the several-sample test results and estimated marginal means
@@ -858,7 +770,8 @@ class CompareMeans is StatisticalTest
                 within:SetExperimentalDesign(wDesign)
                 within:TestVarianceAssumption(false)
                 within:TestPairwise(false)
-                within:Calculate(newFrame)
+                within:CompareSeveralRelatedMeans(newFrame) // force n-sample test even if only 2 measurements
+//                within:Calculate(newFrame)
                 CompareMeansResult withinResult = within:GetResult()
 
                 // Mauchly's Test
@@ -2892,7 +2805,7 @@ class CompareMeans is StatisticalTest
         TestDistributionAssumption()
     end
 
-    /* Conservative method is the default for most tests if another is not selected */
+    /* Lenient correction fitted approach is the default for most tests if another is not selected */
     action CorrectFamilyWiseError(boolean correctFamilyWiseError)
         me:correctFamilyWiseError = correctFamilyWiseError
         if not useLenientCorrection
@@ -3710,8 +3623,12 @@ class CompareMeans is StatisticalTest
             dfErrors:Set(errorFactor, dfErrors:GetValue(errorFactor) - dfInteraction)
             return errorFactor
         else
-            ssErrors:Set(design:GetSubjectIdentifier(), ssErrors:GetValue(design:GetSubjectIdentifier()) - ssInteraction)
-            dfErrors:Set(design:GetSubjectIdentifier(), dfErrors:GetValue(design:GetSubjectIdentifier()) - dfInteraction)
+            if ssErrors:HasKey(design:GetSubjectIdentifier())
+                ssErrors:Set(design:GetSubjectIdentifier(), ssErrors:GetValue(design:GetSubjectIdentifier()) - ssInteraction)
+            end
+            if dfErrors:HasKey(design:GetSubjectIdentifier())
+                dfErrors:Set(design:GetSubjectIdentifier(), dfErrors:GetValue(design:GetSubjectIdentifier()) - dfInteraction)
+            end
             return design:GetSubjectIdentifier()
         end
     end
@@ -3821,5 +3738,103 @@ class CompareMeans is StatisticalTest
         rowHeaders:SetHeader("Probability")
         return frame:RemoveUndefinedRows()
     end
-end
 
+    /*
+    INFORMATION:
+
+    Parametric:
+        CompareMeanTo is a One-Sample T-Test. 
+        Difference between one group and a given mean
+        For more information: https://en.wikipedia.org/wiki/Student%27s_t-test
+
+        CompareTwoRelatedMeans is a Paired T-Test
+        Difference between two paired groups and a given mean
+        For more information: https://en.wikipedia.org/wiki/Student%27s_t-test 
+
+        CompareTwoMeans is a Two-Sample T-Test
+        Difference between two groups when groups have equal variances
+        For more information: https://en.wikipedia.org/wiki/Student%27s_t-test
+
+        CompareTwoMeans is a Welch's Two-Sample T-Test. 
+        Difference between two groups when groups have unequal variances
+        For more information: https://en.wikipedia.org/wiki/Welch%27s_t-test       
+
+        CompareSeveralMeans is a Welch's (One-Way) Analysis Of Variance (ANOVA) 
+        Difference between several groups on one dependent variable when groups have unequal variances with one independent variable
+        For more information: https://en.wikipedia.org/wiki/One-way_analysis_of_variance
+
+        CompareSeveralMeans is a Univariate Analysis Of Variance (ANOVA)
+        Difference between several groups on one dependent variable when groups have equal variances with one or more independent variables
+        For more information: https://en.wikipedia.org/wiki/Analysis_of_variance
+        For more information: https://en.wikipedia.org/wiki/One-way_analysis_of_variance
+        For more information: https://en.wikipedia.org/wiki/Two-way_analysis_of_variance
+        For more information: https://www.statology.org/factorial-anova/
+
+        CompareSeveralMeans is a Multivariate Analysis Of Variance (MANOVA). 
+        Difference between several groups on more than one dependent variable with one or more independent variables
+        For more information: https://en.wikipedia.org/wiki/Multivariate_analysis_of_variance 
+
+        CompareSeveralRelatedMeans is a Repeated Measures Univariate Analysis Of Variance (RM ANOVA, Mixed ANOVA)
+        Difference between several groups on one dependent variable when there are repeated measures
+        For more information: https://en.wikipedia.org/wiki/Repeated_measures_design
+        For more information: https://en.wikipedia.org/wiki/Mixed-design_analysis_of_variance
+
+        ** Mixed MANOVA is NOT IMPLEMENTED YET **
+        CompareSeveralRelatedMeans is a Repeated Measures Multivariate Analysis Of Variance (RM MANOVA, Mixed MANOVA)
+        Difference between several groups on more than one dependent variable when there are repeated measures
+        For more information: https://en.wikipedia.org/wiki/Repeated_measures_design
+        For more information: https://en.wikipedia.org/wiki/Mixed-design_analysis_of_variance       
+
+        ** NOT IMPLEMENTED YET **
+        _____________ is a Univariate Analysis Of Covariance (ANCOVA)
+        Difference between several groups while controlling for nuisance variables
+        For more information: https://en.wikipedia.org/wiki/Analysis_of_covariance
+
+        ** NOT IMPLEMENTED YET **
+        _____________ is a Multivariate Analysis Of Covariance (MANCOVA)
+        Difference between several groups while controlling for nuisance variables
+        For more information: https://en.wikipedia.org/wiki/Multivariate_analysis_of_covariance
+
+        ** NOT IMPLEMENTED YET **
+        _____________ is a Repeated Measures Univariate Analysis Of Covariance (RM ANCOVA, Mixed ANCOVA)
+        Difference between several groups while controlling for nuisance variables when there are repeated measures
+        For more information: https://en.wikipedia.org/wiki/Analysis_of_covariance
+
+        ** NOT IMPLEMENTED YET **
+        _____________ is a Repeated Measures Multivariate Analysis Of Covariance (RM MANCOVA, Mixed MANCOVA)
+        Difference between several groups while controlling for nuisance variables when there are repeated measures
+        For more information: https://en.wikipedia.org/wiki/Multivariate_analysis_of_covariance
+
+    Non-Parametric:
+        CompareRankedMeanTo is a Wilcoxon Signed-Ranks Test
+        Difference between one rank ordered group and a given median without assumptions about the distribution.
+        For more information: https://en.wikipedia.org/wiki/Wilcoxon_signed-rank_test
+
+        CompareTwoRelatedRankedMeans is a Wilcoxon Signed-Ranks Test
+        Difference between two rank ordered paired groups without assumptions about the distribution.
+        For more information: https://en.wikipedia.org/wiki/Wilcoxon_signed-rank_test
+
+        CompareTwoRankedMeans is a Mann-Whitney U-Test aka Wilcoxon Rank-Sum Test
+        Difference between two rank ordered groups without assumptions about the distribution
+        For more information: https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test
+    
+        CompareSeveralRelatedRankedMeans is a Friedman Test
+        Difference between three or more rank ordered repeated measures groups without assumptions about the distribution
+        For more information: https://en.wikipedia.org/wiki/Friedman_test
+
+        CompareSeveralRankedMeans is a (One-Way) Kruskal-Wallis H Test
+        Difference between three or more rank ordered groups without assumptions about the distribution
+        For more information: https://en.wikipedia.org/wiki/Kruskal%E2%80%93Wallis_one-way_analysis_of_variance
+
+        ** NOT IMPLEMENTED YET **
+        _____________ is a Factorial (Multi-Way) Scheirer–Ray–Hare Test
+        Difference between several rank ordered groups on multiple independent variables without assumptions about the distribution
+        For more information: https://en.wikipedia.org/wiki/Scheirer%E2%80%93Ray%E2%80%93Hare_test
+
+        This class was partially adapted from the same model in Apache Commons, but was expanded 
+        upon to simplify the library's use and add a variety of actions and tests that were missing.
+        More information about this class can be found on its documentation pages for
+        OneWayAnova, TTest, MannWhitneyUTest and WilcoxonSignedRankTest
+        https://commons.apache.org/proper/commons-math/javadocs/api-3.6.1/index.html
+    */
+end

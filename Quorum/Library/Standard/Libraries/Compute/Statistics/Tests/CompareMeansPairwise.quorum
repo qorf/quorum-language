@@ -17,7 +17,7 @@ use Libraries.Compute.Statistics.Calculations.Summarize
 /*
 This class implements several post hoc analysis tests, which are intended to be used 
 after a significant CompareMeans test with three or more samples. This class can take two 
-approaches. The first which is the default, called the 'fitted' approach, will use the fiited result of the prior 
+approaches. The first, which is the default, called the 'fitted' approach, will use the fitted result of the prior 
 CompareMeans test to calculate the standard error and adjustments to correct for familywise error. 
 The formal names of tests included in fitted approach are as follows: Tukey's HSD, Tukey-Kramer, Games-Howell, 
 Emmeans-Bonferroni, Nemenyi, Dunn-Bonferroni, and Conover-Iman-Bonferroni. The second approach, 
@@ -25,9 +25,9 @@ called the 'unfitted' approach, will not use the fitted result of prior CompareM
 run individual two-sample CompareMeans tests and then correct for familywise error using Bonferroni.
 The formal names of tests included in the unfitted approach are as follows: t-test, Welch's t-test, paired t-test,
 paired Wilcoxon test, and Mann-Whitney-Wilcoxon test. There are two types of corrections as well, the first is 'lenient', 
-which is an inherent correction applied in some tests, the second is 'strict' which refers to any test that applies the
-Bonferroni correction to the p-values. See the INFORMATION comment block at the bottom of this class for more information
-about each test.
+which is an inherent correction applied in some fitted tests, the second is 'strict' which refers to any test that applies the
+Bonferroni correction to the p-values. 
+See the INFORMATION comment block at the bottom of this class for more information about each test.
 For more information: https://en.wikipedia.org/wiki/Post_hoc_analysis
     
 
@@ -76,7 +76,7 @@ class CompareMeansPairwise is CompareMeans
     /* The distribution used to calculate the p-value in dunn test. */
     private NormalDistribution zDistribution
 
-    private Array <CompareMeansResult> results = undefined              // Results for every source
+    private Array <CompareMeansResult> results = undefined              // Results for all sources
     private HashTable<text, Array<CompareMeansResult>> sourceResults    // Results for each source
 
     /* Set if the test has already been calculated, and we simply want to run a post hoc follow up */
@@ -119,7 +119,6 @@ class CompareMeansPairwise is CompareMeans
         end
         results = undefined
         sourceResults:Empty()
-
         testResult = result
         Ranked(testResult:IsRanked())
         RepeatedMeasures(testResult:IsRepeated())
@@ -127,39 +126,46 @@ class CompareMeansPairwise is CompareMeans
         if GetDesign():GetDesignFrame() = undefined
             alert("Undefined ExperimentalDesign. Use the design from your CompareMeans test with the following action SetExperimentalDesign()")
         end
-    
-        if UsingFittedApproach()
-            if Ranked()
-                // Nemenyi (Lenient)
-                // Dunn + Bonferroni (Strict)
-                // Conover + Bonferroni (Strict)  
-                // Dunn (None)
-                // Conover (None)                
-                CalculateRankedFittedApproach()
-            else
-                if testResult:GetGroupsTable():GetSize() > 0 // Multivariate: Not implemented yet
-                    // Tukey HSD, Tukey-Kramer, Games-Howell (Lenient)
-                    // EMMEANS + Bonferroni (Strict)
-                    // EMMEANS (None)
-                    CalculateMultivariateFittedApproach()
+
+        
+        if result:GetGroupsFrame():GetSize() = 2 // Only one result from two-sample test
+            Array <CompareMeansResult> onlyOneResult
+            onlyOneResult:Add(result)
+            results = onlyOneResult
+        else
+            if UsingFittedApproach()
+                if Ranked()
+                    // Nemenyi (Lenient)
+                    // Dunn + Bonferroni (Strict)
+                    // Conover + Bonferroni (Strict)  
+                    // Dunn (None)
+                    // Conover (None)                
+                    CalculateRankedFittedApproach()
                 else
-                    // Tukey HSD, Tukey-Kramer, Games-Howell (Lenient)
-                    // EMMEANS + Bonferroni (Strict)
-                    // EMMEANS (None)
-                    CalculateUnivariateFittedApproach()
+                    if testResult:GetGroupsTable():GetSize() > 0 // Multivariate: Not implemented yet
+                        // Tukey HSD, Tukey-Kramer, Games-Howell (Lenient)
+                        // EMMEANS + Bonferroni (Strict)
+                        // EMMEANS (None)
+                        CalculateMultivariateFittedApproach()
+                    else
+                        // Tukey HSD, Tukey-Kramer, Games-Howell (Lenient)
+                        // EMMEANS + Bonferroni (Strict)
+                        // EMMEANS (None)
+                        CalculateUnivariateFittedApproach()
+                    end
                 end
-            end
-        elseif UsingUnfittedApproach()
-            if testResult:GetGroupsTable():GetSize() > 0 // Multivariate: Not implemented yet
-                // Hotellings T2-test + Bonferroni (Strict)
-                // Hotellings T2-test (None)
-                CalculateMultivariateUnfittedApproach()
-            else
-                // Pairwise two-sample test + Bonferroni (Strict)
-                // Pairwise two-sample test (None)
-                CalculateUnivariateUnfittedApproach()
-            end
-        end                    
+            elseif UsingUnfittedApproach()
+                if testResult:GetGroupsTable():GetSize() > 0 // Multivariate: Not implemented yet
+                    // Hotellings T2-test + Bonferroni (Strict)
+                    // Hotellings T2-test (None)
+                    CalculateMultivariateUnfittedApproach()
+                else
+                    // Pairwise two-sample test + Bonferroni (Strict)
+                    // Pairwise two-sample test (None)
+                    CalculateUnivariateUnfittedApproach()
+                end
+            end   
+        end                 
     end
 
     action AssumeEqualVariances(boolean assume)
