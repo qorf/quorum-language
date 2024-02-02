@@ -2085,6 +2085,64 @@ class Matrix
         return newMatrix
     end
 
+    /*
+    This action sums the matrix by row and returns a new matrix.
+
+    Attribute Returns a Matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 7)
+            Matrix newMatrix = matrix:SumByRow()
+        end
+    end
+    */
+    action SumByColumn() returns Matrix
+        Matrix newMatrix
+        newMatrix:Fill(1,me:GetColumns(), 0)
+        i = 0
+        repeat while i < me:GetColumns()
+            number sum = me:GetColumn(i):GetTotal()
+            newMatrix:Set(0,i,sum)
+            i = i + 1
+        end
+        return newMatrix
+    end
+
+    /*
+    This action sums the matrix by row and returns a new matrix.
+
+    Attribute Returns a Matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix
+
+    class Main
+        action Main
+            Matrix matrix
+            matrix:Fill(4, 4, 7)
+            Matrix newMatrix = matrix:SumByRow()
+        end
+    end
+    */
+    action SumByRow() returns Matrix
+        Matrix newMatrix
+        newMatrix:Fill(me:GetRows(), 1, 0)
+        i = 0
+        repeat while i < me:GetRows()
+            number sum = me:GetRow(i):GetTotal()
+            newMatrix:Set(i,0,sum)
+            i = i + 1
+        end
+        return newMatrix
+    end
+
 
     /*
     This method shifts a matrix a given number of offsetRows and offsetColumns (relative to 0,0 in the upper right corner). The new matrix will have the number of rows and columns specified by those parameters and any empty values in the new matrix will be filled with fillValue.
