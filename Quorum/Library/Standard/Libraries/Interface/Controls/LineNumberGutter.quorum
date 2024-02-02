@@ -42,6 +42,9 @@ class LineNumberGutter is Gutter, BreakpointListener
 
     action ToggledBreakpoint(BreakpointEvent event)
         Breakpoint breakpoint = event:GetBreakpoint()
+        if breakpoint = undefined
+            return now
+        end
         File breakFile = breakpoint:GetFile()
         text breakPath = breakFile:GetAbsolutePath()
         text path = ""

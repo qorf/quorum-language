@@ -305,6 +305,10 @@ AddVariable(request, vars, variable2)
     
 private action AddParentVariables(CodeCompletionRequest request, Array<Variable> vars)
         //now add all of the parent fields from this class
+        Class classToProcess = request:clazz
+        if classToProcess = undefined
+            return now
+        end
         Iterator<Class> parents = request:clazz:GetParentClasses()
         repeat while parents:HasNext()
             Class par = parents:Next()
