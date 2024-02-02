@@ -11,6 +11,8 @@ class BlockOpcode is QuorumOpcode
     List<QuorumOpcode> opcodes
     BlockOpcode parentOpcode = undefined
     Block block = undefined
+    boolean isDetectBlock = false
+    CheckDetectOpcode checkDetectOpcode = undefined
 
     action SetBlock(Block block)
         me:block = block
@@ -116,4 +118,21 @@ class BlockOpcode is QuorumOpcode
     action Add(QuorumOpcode opcode)
         opcodes:Add(opcode)
     end
+
+    action IsDetectBlock returns boolean
+        return isDetectBlock
+    end
+
+    action SetIsDetectBlock(boolean isDetectBlock)
+        me:isDetectBlock = isDetectBlock
+    end
+
+    action GetCheckDetectOpcode returns CheckDetectOpcode
+        return checkDetectOpcode
+    end
+
+    action SetCheckDetectOpcode(CheckDetectOpcode checkDetectOpcode)
+        me:checkDetectOpcode = checkDetectOpcode
+    end
+
 end

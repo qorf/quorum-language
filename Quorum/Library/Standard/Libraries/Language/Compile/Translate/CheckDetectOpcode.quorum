@@ -295,6 +295,14 @@ class CheckDetectOpcode is QuorumOpcode
         methodWriter:VisitTryCatchBlock(labels:left, labels:middle, labels:right, labels:type)
     end
 
+    action GetPythonCleanupVariableName returns text
+        if block not= undefined
+            return "finallyCleanup" + block:GetHashCode() + "_"
+        else 
+            return "finallyCleanup" + "_" //not sure here
+        end
+    end
+
     action WritePython returns text
         TranslateConstants constants
         text tabs = constants:GetTabText()
@@ -310,6 +318,10 @@ class CheckDetectOpcode is QuorumOpcode
 
         constant text checkExceptionName = "e" + GetCheckLabelInteger() + "_"
 
+        text cleanupName = GetPythonCleanupVariableName()
+        //Python is weird. Make a cleanup variable, so finally can bail sometimes
+        cleanupStatement =  cleanupName + " = True" + EOL
+        result = result + tabs + cleanupStatement + EOL
         text null = undefined
         if not isCheckEmpty
             result = result + tabs + "try:" + EOL
@@ -332,39 +344,40 @@ class CheckDetectOpcode is QuorumOpcode
             Iterator<DetectBlockOpcode> it = detectBlocks:GetIterator()
             integer detectAmount = 0
             
-            result = result + tabs + "except Exception as "
+            //result = result + tabs + "except Exception as "
             boolean isFirst = true
             repeat while it:HasNext()
                 DetectBlockOpcode det = it:Next()
                 Variable value = det:GetExceptionVariable()
                 text exceptionVariableName = value:GetName()
-                if isFirst
-                    result = result + exceptionVariableName + ":" + EOL
-
-                    isFirst = false
-                end
+//                if isFirst
+//                    result = result + exceptionVariableName + ":" + EOL
+//
+//                    isFirst = false
+//                end
 
                 if errorBlock not= det
                     Iterator<Class> detectClasses = det:GetDeclaredDetectsIterator()
-//                    if detectAmount > 0
-//                        result = result + "     else if(" + checkExceptionName + " instanceof "
-//                    else
-//                        result = result + "     if(" + checkExceptionName + " instanceof "
-//                    end
-//
-//                    boolean first = true
-//                    repeat while detectClasses:HasNext()
+//                    if detectAmount > 1
+                        text temp = tabs + "except (" 
+                        boolean first = true
+                        repeat while detectClasses:HasNext()
+                            Class classDetect = detectClasses:Next()
+                            text name = classDetect:ConvertStaticKeyToJavaScriptName()
+                            if first
+                                temp = temp + name
+                            else
+                                temp = temp + ", " + name
+                            end
+                        end
+                        temp = temp + ") as " + exceptionVariableName + ":" + EOL
+                        result = result + temp
+//                    elseif detectAmount > 0
 //                        Class classDetect = detectClasses:Next()
 //                        text name = classDetect:ConvertStaticKeyToJavaScriptName()
-//                        if first
-//                            result = result + name
-//                        else
-//                            result = result + " || " + checkExceptionName + " instanceof " + name
-//                        end
+//                        result = result + tabs + "except " + name + "as " + exceptionVariableName + ":" + EOL
 //                    end
 
-//                    result = result + ") {" + EOL
-//                    result = result + "     " + exceptionVariableName + " = global_ErrorCheck(" + checkExceptionName + ");" + EOL
                     constants:IncreaseTab()
                     result = result + det:WritePython()
                     constants:DecreaseTab()
@@ -372,41 +385,26 @@ class CheckDetectOpcode is QuorumOpcode
                 end
             end
             
-
             //if we have an error block with a catch-all that has been reordered
             //write it now.
             if errorBlock not= undefined
-                if detectAmount > 0
-                    Variable value = errorBlock:GetExceptionVariable()
-                    text exceptionVariableName = value:GetPythonName()
-//                    result = result + " else {" + EOL
-//                    result = result + "     " + exceptionVariableName + " = global_ErrorCheck(" + checkExceptionName + ");" + EOL
-                    constants:IncreaseTab()
-                    result = result + errorBlock:WritePython()
-                    constants:DecreaseTab()
-//                    result = result + " }" + EOL
-                else
-                    Variable value = errorBlock:GetExceptionVariable()
-//                    text exceptionVariableName = value:GetJavaScriptName()
-//                    result = result + "     " + exceptionVariableName + " = global_ErrorCheck(" + checkExceptionName + ");" + EOL
-                    constants:IncreaseTab()
-                    result = result + errorBlock:WritePython()
-                    constants:DecreaseTab()
-                end
-            else
-//                result = result + " else {" + EOL
-//                result = result + "     throw " + checkExceptionName + ";" + EOL
-//                result = result + " }" + EOL
+                
+                Variable value = errorBlock:GetExceptionVariable()
+                text exceptionVariableName = value:GetPythonName()
+                result = result + tabs + "except Exception as " + exceptionVariableName + ":" + EOL
+                constants:IncreaseTab()
+                result = result + errorBlock:WritePython()
+                constants:DecreaseTab()
             end
-
-//            result = result + "}" + EOL
-            
         end
 
         if alwaysBlock not= undefined
             result = result + tabs + "finally:" + EOL
+            result = result + tabs + tab + "if " + cleanupName + ":" + EOL
+            constants:IncreaseTab()
             constants:IncreaseTab()
             result = result + alwaysBlock:WritePython() + EOL
+            constants:DecreaseTab()
             constants:DecreaseTab()
         end
 

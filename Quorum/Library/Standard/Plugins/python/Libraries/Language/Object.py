@@ -24,10 +24,16 @@ def Global_Cast_To_Text(value):
 	return str(value)
 	
 def Global_Cast_Text_To_Integer(value):
-	return int(value)
+	try:
+		return int(value)
+	except ValueError as e:
+		raise quorum_Libraries_Language_Errors_CastError_()
 	
 def Global_Cast_Text_To_Number(value):
-	return float(value)
+	try:
+		return float(value)
+	except ValueError as e:
+		raise quorum_Libraries_Language_Errors_CastError_()
 
 def Global_Cast_Boolean_To_Text(value):
 	if value == True:

@@ -720,6 +720,10 @@ class QuorumBytecodeListener is QuorumSourceListener
         op:SetLocation(context:GetLocation())
         op:SetMethodWriter(methodWriter)
         BlockOpcode recentlyPopped = poppedBlockOpcodes:Pop()
+        if recentlyPopped not= undefined and checkOp not= undefined
+            recentlyPopped:SetIsDetectBlock(true)
+            recentlyPopped:SetCheckDetectOpcode(checkOp)
+        end
         op:SetBlock(recentlyPopped)
         Block value = recentlyPopped:GetBlock()
         value:SetBlockType(value:DETECT)
@@ -2627,6 +2631,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             end
 
             ReturnOpcode opcode = cast(ReturnOpcode, result:GetQuorumOpcode())
+            opcode:SetBlock(currentBlockOpcode)
             opcode:SetLocation(context:GetLocation())
             opcode:SetReturnValue(right)
             opcode:SetMethodWriter(methodWriter)
@@ -2651,6 +2656,7 @@ class QuorumBytecodeListener is QuorumSourceListener
                 end
             end
             ReturnOpcode opcode
+            opcode:SetBlock(currentBlockOpcode)
             opcode:SetLocation(context:GetLocation())
             opcode:SetType(type)
             opcode:SetMethodWriter(methodWriter)

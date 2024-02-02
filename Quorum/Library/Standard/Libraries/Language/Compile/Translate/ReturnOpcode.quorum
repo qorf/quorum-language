@@ -10,6 +10,7 @@ class ReturnOpcode is QuorumOpcode
     JavaBytecodeOpcodes opcodes
     integer opcode = -1
     integer opcode2 = -1
+    BlockOpcode block = undefined
 
     action SetBytecodeWriteOffsetToAllChildren(integer offset)
         SetBytecodeWriteOffset(offset)
@@ -78,19 +79,26 @@ class ReturnOpcode is QuorumOpcode
         TranslateConstants constants
         text tabs = constants:GetTabText()
 
+        if block not= undefined and block:IsDetectBlock() and block:GetCheckDetectOpcode() not= undefined
+            CheckDetectOpcode checkOp = block:GetCheckDetectOpcode()
+            text name = checkOp:GetPythonCleanupVariableName()
+            result = tabs + name + " = False" + EOL
+        end
+
         Type type = GetType()
         if not type:IsVoid()
             if returnValue not= undefined
                 //in the python version if the cast is implicit, we need to make it explicit
                 Type returnValueType = returnValue:GetType()
+                
                 if returnValueType:IsInteger() and type:IsNumber()
-                    result = tabs + "Global_Cast_Integer_To_Number(" + returnValue:WritePython() + ")" + EOL
+                    result = result + tabs + "Global_Cast_Integer_To_Number(" + returnValue:WritePython() + ")" + EOL
                 else
-                    result = tabs + "return " + returnValue:WritePython() + EOL
+                    result = result + tabs + "return " + returnValue:WritePython() + EOL
                 end
             end
         else 
-            result = tabs + "return" + EOL
+            result = result + tabs + "return" + EOL
         end
         return result
     end
@@ -118,4 +126,13 @@ class ReturnOpcode is QuorumOpcode
         op:SetJavaOpcode2(me:GetJavaOpcode2())
         return op
     end
+
+    action GetBlock returns BlockOpcode
+        return block
+    end
+
+    action SetBlock(BlockOpcode block)
+        me:block = block
+    end
+
 end
