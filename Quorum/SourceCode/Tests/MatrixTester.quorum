@@ -49,6 +49,7 @@ class MatrixTester
                     results:Add(0, "pass")
                     suite:Test(files, results)
                     suite:TestJavaScript(files, results)
+                    suite:TestPython(files, results)
                 end
             end
         end
@@ -70,6 +71,7 @@ class MatrixTester
                     files:Add(main)
                     suite:TestFail(files)
                     suite:TestJavaScriptFail(files)
+                    suite:TestPythonFail(files)
                 end
             end
         end

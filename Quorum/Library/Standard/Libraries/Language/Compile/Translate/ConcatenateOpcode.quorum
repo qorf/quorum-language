@@ -37,15 +37,15 @@ class ConcatenateOpcode is BinaryOpcode
         Type lt = left:GetType()
         Type rt = right:GetType()
         if not lt:IsText() and not lt:IsBoolean()
-            leftText = "__builtins__.str(" + leftText + ")"
+            leftText = "Global_Cast_To_Text(" + leftText + ")"
         elseif not lt:IsText() and lt:IsBoolean()
-            leftText = "__builtins__.str(" + leftText + ").lower()"
+            leftText = "Global_Cast_Boolean_To_Text(" + leftText + ")"
         end
 
         if not rt:IsText() and not rt:IsBoolean()
-            rightText = "__builtins__.str(" + rightText + ")"
+            rightText = "Global_Cast_To_Text(" + rightText + ")"
         elseif not rt:IsText() and rt:IsBoolean()
-            rightText = "__builtins__.str(" + rightText + ").lower()"
+            rightText = "Global_Cast_Boolean_To_Text(" + rightText + ")"
         end
 
         return leftText + " + " + rightText

@@ -21,7 +21,7 @@ class NumberToIntegerCast is ExplicitCastOpcode
         QuorumOpcode opcodeToCast = GetOpcodeToCast()
         if opcodeToCast not= undefined
             text temp = opcodeToCast:WritePython()
-            result = result + " __builtins__.int(" + temp + ")"
+            result = result + " Global_Cast_Number_To_Integer(" + temp + ")"
         end
         return result
     end

@@ -50,6 +50,7 @@ class UsePackageTester
         results:Add(0, "Hello")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action UseValueSamePackage
@@ -61,6 +62,7 @@ class UsePackageTester
         results:Add(0, "Hi")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action DefaultPackageTest
@@ -75,6 +77,7 @@ class UsePackageTester
         results:Add(0, "Hello")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action GrabAllContainers
@@ -86,6 +89,7 @@ class UsePackageTester
         results:Add(0, "You")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action UseFromInheritSamePackage
@@ -100,6 +104,7 @@ class UsePackageTester
         results:Add(0, "Hi")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action AllSubpackageTest
@@ -118,6 +123,7 @@ class UsePackageTester
         results:Add(1, "How are you?")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
     end
 
     action FailNicely
@@ -127,6 +133,7 @@ class UsePackageTester
         files:Add(main)
         suite:TestFail(files)
         suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
     end
 end
 

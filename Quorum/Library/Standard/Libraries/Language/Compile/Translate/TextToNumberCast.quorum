@@ -21,7 +21,7 @@ class TextToNumberCast is ExplicitCastOpcode
         text DQ = result:GetDoubleQuote()
         QuorumOpcode opcodeToCast = GetOpcodeToCast()
         if opcodeToCast not= undefined
-            result = result + "__builtins__.float(" + opcodeToCast:WritePython() + ")"
+            result = result + "Global_Cast_Text_To_Number(" + opcodeToCast:WritePython() + ")"
         end
         return result
     end

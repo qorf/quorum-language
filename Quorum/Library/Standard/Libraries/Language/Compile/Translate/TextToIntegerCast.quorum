@@ -21,7 +21,7 @@ class TextToIntegerCast is ExplicitCastOpcode
         text DQ = result:GetDoubleQuote()
         QuorumOpcode opcodeToCast = GetOpcodeToCast()
         if opcodeToCast not= undefined
-            result = result + "__builtins__.int(" + opcodeToCast:WritePython() + ")"
+            result = result + "Global_Cast_Text_To_Integer(" + opcodeToCast:WritePython() + ")"
         end
         return result
     end

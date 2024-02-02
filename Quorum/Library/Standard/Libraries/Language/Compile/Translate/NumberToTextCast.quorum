@@ -25,7 +25,7 @@ class NumberToTextCast is ExplicitCastOpcode
         QuorumOpcode opcodeToCast = GetOpcodeToCast()
         if opcodeToCast not= undefined
             text temp = opcodeToCast:WritePython()
-            result = result + " __builtins__.str(" + temp + ")"
+            result = result + " Global_Cast_Number_To_Text(" + temp + ")"
         end
         return result
     end
