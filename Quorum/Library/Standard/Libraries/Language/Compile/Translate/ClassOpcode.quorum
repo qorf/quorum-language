@@ -1963,6 +1963,9 @@ actLink:SetClassAttribute("hover:underline text-sm")
             convertedSource:Append(tab + "def __init__(self, parents = 0, value = ''):" + EOL)
         elseif clazz:IsError()
             convertedSource:Append(tab + "def __init__(self, parents = 0, message='', errors=None):" + EOL)
+        elseif clazz:IsObject()
+            convertedSource:Append(tab + "def __init__(self, parents = 0):" + EOL)
+            convertedSource:Append(tab + tab + "self.myHash = hash(self)" + EOL)
         else
             convertedSource:Append(tab + "def __init__(self, parents = 0):" + EOL)
         end

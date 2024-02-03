@@ -92,7 +92,7 @@ class ReturnOpcode is QuorumOpcode
                 Type returnValueType = returnValue:GetType()
                 
                 if returnValueType:IsInteger() and type:IsNumber()
-                    result = result + tabs + "Global_Cast_Integer_To_Number(" + returnValue:WritePython() + ")" + EOL
+                    result = result + tabs + "return Global_Cast_Integer_To_Number(" + returnValue:WritePython() + ")" + EOL
                 else
                     result = result + tabs + "return " + returnValue:WritePython() + EOL
                 end
