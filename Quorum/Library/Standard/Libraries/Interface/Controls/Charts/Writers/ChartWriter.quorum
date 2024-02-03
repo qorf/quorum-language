@@ -1805,7 +1805,6 @@ class ChartWriter
 
                 text seriesName = chart:GetSeriesList():Get(i):GetName()
                 svgElementRegLine:SetTitle(seriesName + ", regression line from " + pointsText + ". Regression Equation: " + line:GetEquationLabel():GetText())
-                output "Set title to " + svgElementRegLine:GetTitle()
 
                 if HasAccessibility()
                     svgElementRegLine:SetTabIndex(-1)

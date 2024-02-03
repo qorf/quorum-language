@@ -29,6 +29,9 @@ shared class Properties
     /* This is a public property that is set to true if we are running on an ios simulator. */
     public constant text iosSimulator = "IOS-Simulator"
 
+    /* This is a public constant for the java runtime name. */
+    public constant text javaRuntimeName = "java.runtime.name"
+
     /* This asks the system for the operating system version. */
     public constant text version = "os.version"
 
@@ -187,8 +190,8 @@ shared class Properties
     output value
     */
     action IsAndroid returns boolean
-        text os = GetOperatingSystemName()
-        if os:Contains("Android Runtime")
+        text os = GetOperatingSystemName()text runtime = GetProperty(javaRuntimeName) // Android tablets often use 'Linux' for their os.name property, attempt to find 'Android' in a different property
+        if os:Contains("Android Runtime") or runtime:Contains("Android Runtime")
             return true
         end
 
