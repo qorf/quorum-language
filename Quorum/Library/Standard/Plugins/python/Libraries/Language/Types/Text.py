@@ -25,9 +25,9 @@ class plugins_quorum_Libraries_Language_Types_Text_:
 
 	def ParseBoolean(self):
 		if self.text == "True" or self.text == "true":
-			return true
+			return True
 		else:
-			return false
+			return False
 			
 	def GetLineFeed(self):
 		return "\n"
@@ -39,40 +39,56 @@ class plugins_quorum_Libraries_Language_Types_Text_:
 		return "\t"
 
 	def GetDoubleQuote(self):
-		return '"'
+		return "\""
 		
 	def GetUnicodeValue__quorum_integer(self, value):
-		return ""
+		return chr(value)
 
 	def GetUnicodeInteger__quorum_integer(self, value):
-		return ""
+		return ord(self.text[value])
 
 	def ContainsNative__quorum_text__quorum_text(self, left, right):
-		return False
+		return right in left
 
 	def EndsWith__quorum_text(self, left, right):
-		return False
+		return left.endswith(right)
 
 	def StartsWithNative__quorum_text__quorum_text(self, left, right):
-		return False
+		return left.startswith(right)
  
 	def SplitIntoLines(self):
-		return ""
+		lines = self.text.splitlines()
+		array = quorum_Libraries_Containers_Array_()
+		for line in lines:
+			array.Add__quorum_Libraries_Language_Object(Text_(line))
+		return array
 
 	def IndexOfNative__quorum_text__quorum_text(self, left, right):
-		return ""
+		try:
+			return left.index(right)
+		except:
+			return -1
 
-	def IndexOf__quorum_text__quorum_integer(self, left, right, index):
-		return ""
+	def IndexOfNative__quorum_text__quorum_text__quorum_integer(self, left, right, index):
+		try:
+			val = left[index:]
+			
+			result = val.find(right)
+			if result == -1:
+				return -1
+			else:
+				return result + index
+		except:
+			return -1
 
 	def IsEmptyNative__quorum_text(self, left):
-		return False
+		return len(self.text) == 0
 
 	def ReplaceNative__quorum_text__quorum_text__quorum_text(self, left, old, replacement):
-		return ""
+		return self.text.replace(old, replacement)
 
-	def GetSubtextNative__quorum_text__quorum_integer(left, index):
-		return ""
+	def GetSubtextNative__quorum_text__quorum_integer(self, left, index):
+		return left[index:]
 
 	def ToLowerCase(self):
 		return self.text.lower()
@@ -81,19 +97,28 @@ class plugins_quorum_Libraries_Language_Types_Text_:
 		return self.text.upper()
 
 	def TrimNative__quorum_text(self, left):
-		return ""
+		return left.strip()
 
 	def EqualsIgnoringCaseNative__quorum_text__quorum_text(self, left, right):
-		return False
+		return left.lower() == right.lower()
     
 	def CompareInt__quorum_text__quorum_text__quorum_boolean(self, left, right, isIgnoringCase):
-		return 0
+		if isIgnoringCase:
+			left = left.lower()
+			right = right.lower()
+			
+		if left == right:
+			return 0
+		elif left < right:
+			return -1
+		else:
+			return 1
     
 	def GetSize(self):
-		return self.text.len()
+		return len(self.text)
 
 	def GetHashCode(self):
-		return 0
+		return hash(self.text)
 
 	def GetSubtext__quorum_integer__quorum_integer(self, startIndex, endIndex):
-		return self.text[startIndex, endIndex]
+		return self.text[startIndex:endIndex+1]
