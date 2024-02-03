@@ -55,6 +55,8 @@ class OutputOpcode is QuorumOpcode
         Type type = opcode:GetType()
         if type:IsBoolean()
             result = tabs + "print(Global_Cast_Boolean_To_Text(" + opcodeResult + "))" + EOL
+        elseif type:IsNumber()
+            result = tabs + "print(Global_Cast_Number_To_Text(" + opcodeResult + "))" + EOL
         else
             result = tabs + "print(" + opcodeResult + ")" + EOL
         end

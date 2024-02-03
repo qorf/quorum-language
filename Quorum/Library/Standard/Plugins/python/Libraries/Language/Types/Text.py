@@ -121,4 +121,4 @@ class plugins_quorum_Libraries_Language_Types_Text_:
 		return hash(self.text)
 
 	def GetSubtext__quorum_integer__quorum_integer(self, startIndex, endIndex):
-		return self.text[startIndex:endIndex+1]
+		return self.text[startIndex:endIndex]
