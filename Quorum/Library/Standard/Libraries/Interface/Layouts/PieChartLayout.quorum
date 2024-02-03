@@ -12,6 +12,7 @@ use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Color
 use Libraries.Compute.Math
 use Libraries.Containers.Array
+use Libraries.Interface.Controls.Charts.PieSliceComparison
 
 /*
     This class determines the visual layout for a pie chart.
@@ -71,6 +72,9 @@ class PieChartLayout is ChartLayout
 
         if pieBox not= undefined
             Array<PieSlice> slices = pieBox:GetSlices()
+            PieSliceComparison comparison
+            slices:Sort(comparison)
+
             number width = chartAreaContainer:GetWidth()
             number height = chartAreaContainer:GetHeight()
             number donutHolePercent = chart:GetDonutHolePercent()
