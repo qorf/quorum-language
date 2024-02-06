@@ -126,7 +126,10 @@ class InheritanceTester
         results:Add(0, "Unnamed")
         suite:Test(files, results)
         suite:TestJavaScript(files, results)
-        suite:TestPython(files, results)
+
+        //This test is removed because the game engine is not implemented in python
+        //there are no plans to support this and as such I'm removing the test.
+        //suite:TestPython(files, results)
     end
 
     action CallInheritedAction 

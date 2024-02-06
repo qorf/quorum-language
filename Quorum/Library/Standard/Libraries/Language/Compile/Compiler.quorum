@@ -367,11 +367,6 @@ class Compiler
                 Traverse(value, listener, table, errors, checker, file, result)
                 needsCompilationSet:Add(file:GetAbsolutePath(), true)
             end //otherwise ignore it
-//            Lexer luthor = listener:GetLexer()
-//            if luthor not= undefined
-//                text value = file:GetAbsolutePath()
-//                lexers:Add(value, luthor)
-//            end
             i = i + 1
         end
         profiler:Add(time:GetEpochTime())
@@ -455,7 +450,6 @@ class Compiler
             repeat while i < files:GetSize() and errors:IsCompilationErrorFree()
                 File file = files:Get(i)
                 QuorumBytecodeListener listener
-
                 if request:recompile not= undefined and request:recompileValue not= undefined and file:GetAbsolutePath() = request:recompile:GetAbsolutePath()
                     Traverse(request:recompileValue, listener, table, errors, checker, file, result)
                     if listener:HasSayStatementInClass()
@@ -1313,6 +1307,7 @@ There are many ways to load canvases and this is provided only as an exemplar.
             QualifiedName pack = clazz:GetPackage()
             ResolveAllClassesInContainer(table, pack, library, resolvedPackages, errors)
 
+            names:Rewind()
             ResolveQualifiedNames(table, names, clazz, library, resolvedPackages, errors)
 
             Iterator<QualifiedName> parents = clazz:GetUnresolvedParents()
@@ -1349,6 +1344,14 @@ There are many ways to load canvases and this is provided only as an exemplar.
                     dependencies:Add(next)
                 end
             end
+
+            QualifiedName pack = clazz:GetPackage()
+            ResolveAllClassesInContainer(table, pack, library, resolvedPackages, errors)
+
+            Iterator<QualifiedName> parents = clazz:GetUnresolvedParents()
+            ResolveParents(table, parents, clazz, library, errors)
+
+            ResolveBlocks(table, clazz, library, errors)
             i = i + 1
         end
 

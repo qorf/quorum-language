@@ -43,8 +43,8 @@ class plugins_quorum_Libraries_Containers_Array_:
 	def SetMaxSize__quorum_integer(self, size):
 		if self.capacity > size:
 			self.array_ = self.array_[:size]
-		else:
-			self.capacity = size
+			
+		self.capacity = size
 			
 
 	def GetMaxSize(self):

@@ -50,6 +50,7 @@ class HashTableIterator<Key, Value>// is Iterator<HashNode<Key, Value>>
     action Rewind
         position = -1
         node = undefined
+        GoToNextNode()
     end
 
     action GetArray returns Array<HashNode<Key, Value>>
@@ -59,6 +60,5 @@ class HashTableIterator<Key, Value>// is Iterator<HashNode<Key, Value>>
     action SetArray(Array<HashNode<Key, Value>> array) 
         me:array = array
         Rewind()
-        GoToNextNode()
     end
 end
