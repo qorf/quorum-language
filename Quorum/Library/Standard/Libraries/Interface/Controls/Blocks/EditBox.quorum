@@ -37,10 +37,38 @@ class EditBox is TextBox, EditRegion
 
         SetName(name)
 
-        SetFont(GetEditor():GetFont())
-        SetFontSize(GetEditor():GetFontSize())
+        BlockEnvironment editor = GetBlockEnvironment()
+
+        SetFont(editor:GetFont())
+        SetFontSize(editor:GetFontSize())
         SetIndices(relativeStartIndex, relativeEndIndex)
-        SetText(GetEditor():GetCodeBetween(block:GetStartIndex() + relativeStartIndex, block:GetStartIndex() + relativeEndIndex))
+        SetText(editor:GetCodeBetween(block:GetStartIndex() + relativeStartIndex, block:GetStartIndex() + relativeEndIndex))
+        UpdateLength()
+
+        initialized = true
+    end
+    
+    action SetupAsPlaceholder(text name, text code)
+        Block block = GetBlock()
+        if block = undefined
+            text dq = ""
+            dq = dq:GetDoubleQuote()
+            alert("I cannot set up the EditRegion named " + dq + name + dq + " because this region hasn't been added to a block yet. Add this to a block before calling Setup.")
+        end
+
+        parent:EditRegion:placeholder = true
+        SetName(name)
+        
+        // Change the input group so it stops acting like a text box -- we only want it to visually reflect one
+        // Also remove the self-event listener
+        SetInputGroup("")
+        RemoveMouseMovementListener(me)
+
+        BlockEnvironment environment = GetBlockEnvironment()
+
+        SetFont(environment:GetFont())
+        SetFontSize(environment:GetFontSize())
+        SetText(code)
         UpdateLength()
 
         initialized = true
@@ -49,7 +77,7 @@ class EditBox is TextBox, EditRegion
     action UpdateLength
         number glyphWidth = 10
         number height = 10
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         Block block = GetBlock()
 
         if editor not= undefined
@@ -58,9 +86,6 @@ class EditBox is TextBox, EditRegion
             height = editor:GetDefaultUnpaddedLineHeight() * (block:GetLocalEndLine() - block:GetLocalStartLine() + 1)     
         end
 
-        integer startIndex = GetStartIndex()
-        integer endIndex = GetEndIndex()
-
         number minimumLength = 0
         number length = 0
 
@@ -68,7 +93,7 @@ class EditBox is TextBox, EditRegion
             minimumLength = block:GetMinimumWidth() - GetX() - block:GetRightPadding()
         end
 
-        if block:GetLocalStartLine() not= block:GetLocalEndLine()
+        if GetLineCount() > 1
             MultipleLineText value = GetMultipleLineText()
             integer textLength = 0
             integer i = 0
@@ -81,7 +106,7 @@ class EditBox is TextBox, EditRegion
             end
             length = textLength * glyphWidth + GetLeftCharacterPadding() * 2
         else
-            length = (endIndex - startIndex) * glyphWidth + GetLeftCharacterPadding() * 2
+            length = GetSize() * glyphWidth + GetLeftCharacterPadding() * 2
         end
 
         if length < glyphWidth + GetLeftCharacterPadding()
@@ -133,7 +158,7 @@ class EditBox is TextBox, EditRegion
         text deleted = event:GetDeletedText()
         integer change = added:GetSize() - deleted:GetSize()
         
-        CodeEditor editor = GetEditor()
+        CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
         if editor not= undefined
             editor:OnTextChange(event, GetBlock():GetStartIndex() + GetStartIndex())
         end
@@ -188,5 +213,9 @@ class EditBox is TextBox, EditRegion
             return ""
         end
         return GetText(selection:GetStartIndex(), selection:GetEndIndex())
+    end
+    
+    action GetText returns text
+        return parent:TextBox:GetText()
     end
 end

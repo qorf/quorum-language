@@ -1,0 +1,20 @@
+package Libraries.Interface.Controls.Blocks
+
+
+use Libraries.Language.Compile.Symbol.Class
+use Libraries.Language.Compile.Symbol.Action
+use Libraries.Language.Compile.Symbol.Variable
+use Libraries.Containers.Array
+
+class BlockSuggestionResult
+
+    public Array<Action> actions = undefined
+    public Array<Variable> blockVariables = undefined
+    public Array<Variable> classVariables = undefined
+public Array<Variable> parentVariables = undefined
+    public Block requestingBlock = undefined
+    public Class clazz = undefined
+    public text variableName = ""
+    
+
+end

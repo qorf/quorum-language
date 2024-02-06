@@ -31,15 +31,15 @@ class AlertBlock is SingleLineBlock
     end
 
     action SetupElements
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
         SetLeftPadding(spacing * 0.5)
         SetRightPadding(spacing * 0.5)
 
         BlockLabel alertLabel
         me:alertLabel = alertLabel
-        alertLabel:SetFont(GetEditor():GetFont())
-        alertLabel:SetFontSize(GetEditor():GetFontSize())
+        alertLabel:SetFont(editor:GetFont())
+        alertLabel:SetFontSize(editor:GetFontSize())
         alertLabel:SetText("alert")
         alertLabel:SetRightPadding(spacing)
         Add(alertLabel)

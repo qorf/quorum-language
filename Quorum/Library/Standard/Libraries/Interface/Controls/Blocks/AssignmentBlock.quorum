@@ -45,8 +45,24 @@ class AssignmentBlock is SingleLineBlock
         SetName("Assignment Block")
     end
 
+    action GetClassName returns text
+        if typeField not= undefined
+            return typeField:GetText()
+        end
+        return ""
+    end
+
+    action GetVariableName returns text
+        if nameField not= undefined
+            return nameField:GetText()
+        end
+        return ""
+    end
+
     private action SetupElements
-        number spacing = GetEditor():GetDefaultGlyphWidth()
+        BlockEnvironment environment = GetBlockEnvironment()
+
+        number spacing = environment:GetDefaultGlyphWidth()
         SetLeftPadding(spacing * 0.5)
         SetRightPadding(spacing * 0.5)
         
@@ -58,8 +74,8 @@ class AssignmentBlock is SingleLineBlock
             if normalAssignmentContext:isConstant
                 BlockLabel constantLabel
                 me:constantLabel = constantLabel
-                constantLabel:SetFont(GetEditor():GetFont())
-                constantLabel:SetFontSize(GetEditor():GetFontSize())
+                constantLabel:SetFont(environment:GetFont())
+                constantLabel:SetFontSize(environment:GetFontSize())
                 constantLabel:SetText("constant")
                 constantLabel:SetRightPadding(spacing)
                 Add(constantLabel)
@@ -118,8 +134,8 @@ class AssignmentBlock is SingleLineBlock
         if expression not= undefined
             BlockLabel label
             equalsLabel = label
-            label:SetFont(GetEditor():GetFont())
-            label:SetFontSize(GetEditor():GetFontSize())
+            label:SetFont(environment:GetFont())
+            label:SetFontSize(environment:GetFontSize())
             label:SetText("=")
             label:SetLeftPadding(spacing)
             label:SetRightPadding(spacing)
@@ -135,12 +151,13 @@ class AssignmentBlock is SingleLineBlock
 
     action AddAccessModiferLabel(AccessModifierContext context)
         if context not= undefined
-            number spacing = GetEditor():GetDefaultGlyphWidth()
+            BlockEnvironment environment = GetBlockEnvironment()
+            number spacing = environment:GetDefaultGlyphWidth()
 
             BlockLabel accessModifierLabel
             me:accessModifierLabel = accessModifierLabel
-            accessModifierLabel:SetFont(GetEditor():GetFont())
-            accessModifierLabel:SetFontSize(GetEditor():GetFontSize())
+            accessModifierLabel:SetFont(environment:GetFont())
+            accessModifierLabel:SetFontSize(environment:GetFontSize())
             if context:isPrivate
                 accessModifierLabel:SetText("private")
             else

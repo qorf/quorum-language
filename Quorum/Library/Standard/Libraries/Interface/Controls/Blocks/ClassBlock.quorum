@@ -33,7 +33,7 @@ class ClassBlock is MultipleLineBlock
     end
 
     private action SetupElements
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
         SetLeftPadding(spacing * 0.5)
         SetRightPadding(spacing * 0.5)
@@ -48,23 +48,25 @@ class ClassBlock is MultipleLineBlock
         // The start line is always the beginning of the multi-block, so it always starts at local index 0.
         part:SetLocalStartIndex(0)
 
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
+//        CodeEditor editor = GetEditor()
+
         number spacing = editor:GetDefaultGlyphWidth()
-if fullClass not= undefined
+        if fullClass not= undefined
             if fullClass:staticClass
                 BlockLabel static
                 me:sharedLabel = static
-sharedLabel:SetFont(GetEditor():GetFont())
-        sharedLabel:SetFontSize(GetEditor():GetFontSize())
-        sharedLabel:SetText("shared")
-        sharedLabel:SetRightPadding(spacing)
-        part:Add(sharedLabel)
+                sharedLabel:SetFont(editor:GetFont())
+                sharedLabel:SetFontSize(editor:GetFontSize())
+                sharedLabel:SetText("shared")
+                sharedLabel:SetRightPadding(spacing)
+                part:Add(sharedLabel)
             end
         end
         BlockLabel classLabel
         me:classLabel = classLabel
-        classLabel:SetFont(GetEditor():GetFont())
-        classLabel:SetFontSize(GetEditor():GetFontSize())
+        classLabel:SetFont(editor:GetFont())
+        classLabel:SetFontSize(editor:GetFontSize())
         classLabel:SetText("class")
         classLabel:SetRightPadding(spacing)
         part:Add(classLabel)
@@ -111,12 +113,12 @@ sharedLabel:SetFont(GetEditor():GetFont())
     end
 
     action AddInherits(MultipleLineBlockPart part, InheritStatementsContext inherits)
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
         BlockLabel isLabel
         me:isLabel = isLabel
-        isLabel:SetFont(GetEditor():GetFont())
-        isLabel:SetFontSize(GetEditor():GetFontSize())
+        isLabel:SetFont(editor:GetFont())
+        isLabel:SetFontSize(editor:GetFontSize())
         isLabel:SetText("is")
         isLabel:SetLeftPadding(spacing * 0.5)
         isLabel:SetRightPadding(spacing * 0.5)

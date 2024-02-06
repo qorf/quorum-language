@@ -39,6 +39,17 @@ class CodeEditorRenderer is Control
     number cursorTimer = 0
     boolean cursorActive = false
     
+    // Blocks that are used to indicate placeholders where blocks can be dropped into.
+    Array<Block> placeholderBlocks
+    
+    // Blocks that are currently slated to be potentially moved or deleted.
+    Array<Block> movingBlocks
+    
+    // Start/end global text indices for the starting position of text that's being moved.
+    integer movingStartIndex = -1
+    integer movingEndIndex = -1
+    
+    
     on create
         SetCustomDrawing(true)
         SetChildrenProcessingMouseEvents(true)
@@ -558,4 +569,201 @@ class CodeEditorRenderer is Control
             end
         end
     end
+    
+    action CanAcceptPlaceholdersAtNavigationIndex(integer navigationIndex) returns boolean
+        if navigationIndex = 0
+            return true
+        end
+        
+        Block target = undefined
+        check
+            target = GetNavigableBlockAtLine(navigationIndex - 1)
+        detect error
+            return false
+        end
+        
+        repeat while target not= undefined and target:IsPlaceholder()
+            target = target:GetNextNavigableBlock()
+        end
+        
+        if target = undefined
+            return false
+        end
+        
+        Block next = target:GetNextNavigableBlock()
+        if next not= undefined and next:IsMoving()
+            return false
+        end
+        
+        return target:CanAcceptPlaceholders()
+    end
+    
+    action InsertPlaceholdersAtNavigationIndex(integer navigationIndex, Array<Block> placeholders)
+        if placeholders:IsEmpty()
+            return now
+        end
+        
+        Block firstPlaceholder = placeholders:GetFromFront()
+        Block parentBlock = undefined
+        Block followingBlock = undefined
+        
+        integer addIndex = 0
+        integer currentNavigationIndex = 0
+        
+        if navigationIndex <= 0
+            parentBlock = rootBlock
+            followingBlock = GetNavigableBlockAtLine(0)
+        else
+            if navigationIndex > GetEditor():GetLineCount()
+                navigationIndex = GetEditor():GetLineCount()
+            end
+            
+            Block targetBlock = GetNavigableBlockAtLine(navigationIndex - 1)
+            currentNavigationIndex = targetBlock:GetNavigationIndex() + targetBlock:GetNavigationSize()
+            
+            if targetBlock is MultipleLineBlockPart
+                parentBlock = targetBlock
+                followingBlock = parentBlock:GetNextNavigableBlock()
+            else
+                parentBlock = targetBlock:GetParentBlock()
+                followingBlock = targetBlock:GetNextNavigableBlock()
+                addIndex = targetBlock:GetParentIndex() + 1
+            end
+        end
+        
+integer i = 0
+        integer placeholderIndex = 0
+        if followingBlock not= undefined
+            placeholderIndex = followingBlock:GetStartIndex()
+        else
+            placeholderIndex = GetEditor():GetCode():GetSize()
+        end
+            
+            Block currentBlock = undefined
+            repeat while i < placeholders:GetSize()
+                currentBlock = placeholders:Get(i)
+                parentBlock:Add(addIndex + i, currentBlock)
+                currentBlock:SetNavigationIndex(currentNavigationIndex)
+            currentBlock:SetLocalStartIndex(placeholderIndex - parentBlock:GetStartIndex())
+            currentBlock:SetLocalEndIndex(currentBlock:GetLocalStartIndex())
+            
+            // During movements, we're already using the placeholderBlocks as our input.
+            if placeholders not= placeholderBlocks
+placeholderBlocks:Add(currentBlock)
+            end
+                
+                currentNavigationIndex = currentNavigationIndex + currentBlock:GetNavigationSize()
+                i = i + 1
+            end
+            
+            currentBlock = currentBlock:GetNextNavigableBlock()
+            repeat until currentBlock = undefined
+                currentBlock:SetNavigationIndex(currentNavigationIndex)
+currentNavigationIndex = currentNavigationIndex + currentBlock:GetNavigationSize()
+                currentBlock = currentBlock:GetNextNavigableBlock()
+            end
+        
+        GetEditor():RequestHeightRefresh()
+            RefreshBlockView()
+        
+    end
+    
+    action MovePlaceholdersToNavigationIndex(integer index)
+        InternalRemovePlaceholders()
+        InsertPlaceholdersAtNavigationIndex(index, placeholderBlocks)
+    end
+    
+    action RemovePlaceholders
+        InternalRemovePlaceholders()
+        
+placeholderBlocks:Empty()
+        
+            RefreshBlockView()
+    end
+    
+    private action InternalRemovePlaceholders
+integer i = 0
+        repeat while i < placeholderBlocks:GetSize()
+Block block = placeholderBlocks:Get(i)
+            Block parentBlock = block:GetParentBlock()
+            parentBlock:Remove(block)
+            i = i + 1
+        end
+        
+RefreshNavigationIndices()
+    end
+    
+    action HasPlaceholders returns boolean
+        return placeholderBlocks:IsEmpty() = false
+    end
+    
+    action SetMovingBlocks(Array<Block> blocks)
+        if not movingBlocks:IsEmpty()
+            repeat while movingBlocks:IsEmpty() = false
+                Block block = movingBlocks:RemoveFromEnd()
+                block:SetMoving(false)
+            end
+            
+        end
+        
+        if blocks = undefined or blocks:IsEmpty()
+            return now
+        end
+        
+        integer i = 0
+        repeat while i < blocks:GetSize()
+            Block block = blocks:Get(i)
+            movingBlocks:Add(block)
+            block:SetMoving(true)
+            
+            i = i + 1
+        end
+        
+        MultipleLineText code = GetEditor():GetCode()
+        text newLine = code:GetLineSeparator()
+        
+        movingStartIndex = movingBlocks:GetFromFront():GetStartIndex()
+        movingEndIndex = movingBlocks:GetFromEnd():GetEndIndex()
+        
+        // Capture leading spaces
+        repeat while movingStartIndex > 0 and code:GetText(movingStartIndex - 1, movingStartIndex) = " "
+            movingStartIndex = movingStartIndex - 1
+        end
+        
+        // Capture trailing new line
+        if (movingEndIndex + newLine:GetSize() < code:GetSize()) and (code:GetText(movingEndIndex, movingEndIndex + newLine:GetSize()) = newLine)
+            movingEndIndex = movingEndIndex + newLine:GetSize()
+        end
+        
+    end
+    
+action ConvertPlaceholdersToBlocks(text toInsert)
+        CodeEditor editor = GetEditor()
+        integer destination = placeholderBlocks:GetFromFront():GetStartIndex()
+
+        MultipleLineText code = editor:GetCode()
+        if not movingBlocks:IsEmpty()
+            text toMove = editor:GetCodeBetween(movingStartIndex, movingEndIndex)
+            if movingStartIndex < destination
+                code = code:Insert(destination, toMove)
+                code = code:Delete(movingStartIndex, movingEndIndex)
+            else
+                code = code:Delete(movingStartIndex, movingEndIndex)
+                code = code:Insert(destination, toMove)
+            end
+        else
+            code = code:Insert(destination, toInsert)
+        end
+placeholderBlocks:Empty()
+        
+        integer i = 0
+        repeat while i < movingBlocks:GetSize()
+            movingBlocks:Get(i):SetMoving(false)
+            i = i + 1
+        end
+        movingBlocks:Empty()
+        
+        editor:SetCode(code)
+    end
+    
 end

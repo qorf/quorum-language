@@ -174,7 +174,7 @@ class HorizontalAxisPanel is ChartItem
 
         Attribute: Parameters include the ChartItems that the axis may be linked to if they are showing.
     */
-    action GenerateInfoTree(Chart chart, ChartItem summary, ChartItem chartArea, ChartItem yAxis, ChartItem xAxis)
+    action GenerateInfoTree(Chart chart, ChartItem summary, ChartItem yAxis, ChartItem xAxis)
         xAxis:SetLeftItem(summary)
         summary:SetRightItem(xAxis)
         xAxis:SetDisplayName(GenerateSummary())

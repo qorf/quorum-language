@@ -27,12 +27,15 @@ use Libraries.Game.NumberUtilities
 use Libraries.Interface.Controls.Blocks.Block
 use Libraries.Interface.Views.SingleLineBlockView
 use Libraries.Interface.Controls.Blocks.CodeEditor
+use Libraries.Interface.Options.BlockOptionConstants
+use Libraries.Interface.Controls.Blocks.BlockEnvironment
 
 class BlockShaderMapping is BatchingShaderMapping2D
 
     ShaderProgram program = undefined
     GameStateManager manager
     NumberUtilities utility
+    BlockOptionConstants constants
 
     constant integer BATCH_SIZE = 200
 
@@ -270,6 +273,19 @@ number halfSize = width / 2.0
                         borderColor = control:GetFocusBorderColor()
                     end
                 end
+                
+                if control is Block
+                    Block block = cast(Block, control)
+                    ColorGroup movingColor = block:GetColorProperty(constants:MOVING_BACKGROUND_COLOR)
+                    if block:IsMoving() and movingColor not= undefined
+                        backgroundColor = movingColor
+                    else
+                        ColorGroup placeholderColor = block:GetColorProperty(constants:PLACEHOLDER_BACKGROUND_COLOR)
+                        if block:IsPlaceholder() and block:IsInEditorTree() and placeholderColor not= undefined
+                            backgroundColor = placeholderColor
+                        end
+                    end
+                end
 
                 if backgroundColor = undefined
                     backgroundColor = control:GetBackgroundColor()
@@ -311,7 +327,8 @@ number halfSize = width / 2.0
         if drawable is SingleLineBlockView
             SingleLineBlockView blockView = cast(SingleLineBlockView, drawable)
             Block block = cast(Block, blockView:GetItem())
-            CodeEditor editor = block:GetEditor()
+            //CodeEditor editor = block:GetEditor()
+            BlockEnvironment editor = block:GetBlockEnvironment()
 
             topWidth = editor:GetBlockNotchTopWidth() * block:GetInterfaceScale()
             bottomWidth = editor:GetBlockNotchBottomWidth() * block:GetInterfaceScale()

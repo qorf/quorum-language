@@ -199,6 +199,7 @@ class Chart is ChartItem
     text styleFilepath = ""
 
     on create
+        CheckPlatformInstructions()
         chartArea:SetName("Chart Area")
         Add(chartArea)
 
@@ -345,7 +346,7 @@ class Chart is ChartItem
             horizontalPanelHeightPercent = 0.15
             Add(horizontalPanel)
         end
-
+        
         verticalPanel:LoadAxis(me, properties)
         if IsShowingYAxis()
             verticalPanelWidthPercent = 0.15
@@ -361,6 +362,12 @@ class Chart is ChartItem
         if IsShowingLegend()
             legendPanelWidthPercent = 0.10
             Add(legend)
+        elseif legend:GetSeriesList():GetSize() > 0
+            integer i = 0
+            repeat while i < legend:GetSeriesList():GetSize()
+                Add(legend:GetSeriesList():Get(i))
+                i = i + 1
+            end
         end
 
         Add(chartArea)
@@ -3880,6 +3887,7 @@ class Chart is ChartItem
             description = description + " To navigate the chart, " + enterInstruction + " to move into the list of sub charts or " + generalInstruction + " to navigate the chart information."
         end
         me:GetChartArea():SetDescription(description)
+        me:SetDescription(description)
     end
 
     /*
@@ -4109,11 +4117,11 @@ class Chart is ChartItem
     action CheckPlatformInstructions
         Properties properties
         if (properties:IsIos() or properties:IsAndroid())
-            generalInstruction = "swipe Left or Right"
-            listOrderInstruction = "swipe Left or Right"
+            generalInstruction = "two finger swipe Left or Right"
+            listOrderInstruction = "two finger swipe Left or Right"
             //valueOrderInstruction = " "
-            enterInstruction = "swipe Down"
-            exitInstruction = "swipe Up"
+            enterInstruction = "two finger swipe Down"
+            exitInstruction = "two finger swipe Up"
         end
     end
 

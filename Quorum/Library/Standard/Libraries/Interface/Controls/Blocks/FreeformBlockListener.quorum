@@ -30,7 +30,7 @@ class FreeformBlockListener is QuorumSourceListener
 
     action SetSourceBlock(FreeformBlock sourceBlock)
         dummyRoot:EmptyChildBlocks()
-        dummyRoot:SetEditor(sourceBlock:GetEditor())
+        dummyRoot:SetBlockEnvironment(sourceBlock:GetBlockEnvironment())
 
         Block parentBlock = sourceBlock:GetParentBlock()
         dummyRoot:SetLocalStartIndex(parentBlock:GetStartIndex())
@@ -59,7 +59,7 @@ class FreeformBlockListener is QuorumSourceListener
                 comment:SetIsMultiLineComment(next:IsMultiLineComment())
                 comment:SetToken(next)
                 comment:SetScopeDepth(scopeDepth)
-                comment:SetEditor(dummyRoot:GetEditor())
+                comment:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
                 block = comment
                 return now
             end
@@ -99,7 +99,7 @@ class FreeformBlockListener is QuorumSourceListener
 
             SayBlock result
             result:SetScopeDepth(scopeDepth)
-            result:SetEditor(dummyRoot:GetEditor())
+            result:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
             result:SetSayContext(context)
             block = result
         end
@@ -112,7 +112,7 @@ class FreeformBlockListener is QuorumSourceListener
 
         CheckBlock block
         block:SetScopeDepth(scopeDepth)
-        block:SetEditor(dummyRoot:GetEditor())
+        block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
 
         dummyRoot:Add(cast(Block, block))
@@ -150,7 +150,7 @@ class FreeformBlockListener is QuorumSourceListener
         end
         // FOR NOW we're not offseting the class statements because we assume we're making an empty class
         ClassBlock block
-        block:SetEditor(dummyRoot:GetEditor())
+        block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetFullClass(ctx)
         
         dummyRoot:Add(cast(Block, block))
@@ -208,7 +208,7 @@ class FreeformBlockListener is QuorumSourceListener
 
             OutputBlock result
             result:SetScopeDepth(scopeDepth)
-            result:SetEditor(dummyRoot:GetEditor())
+            result:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
             result:SetOutputContext(context)
             block = result
         end
@@ -223,7 +223,7 @@ class FreeformBlockListener is QuorumSourceListener
         OffsetLocation(context:GetLocation())
         ConstructorBlock block
         block:SetScopeDepth(scopeDepth)
-        block:SetEditor(dummyRoot:GetEditor())
+        block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
         
         dummyRoot:Add(cast(Block, block))
@@ -259,7 +259,7 @@ class FreeformBlockListener is QuorumSourceListener
         end
         ActionBlock block
         block:SetScopeDepth(scopeDepth)
-        block:SetEditor(dummyRoot:GetEditor())
+        block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetActionContext(context)
 
         dummyRoot:Add(cast(Block, block))
@@ -321,7 +321,7 @@ class FreeformBlockListener is QuorumSourceListener
 
         IfBlock block
         block:SetScopeDepth(scopeDepth)
-        block:SetEditor(dummyRoot:GetEditor())
+        block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
 
         dummyRoot:Add(cast(Block, block))
@@ -385,7 +385,7 @@ class FreeformBlockListener is QuorumSourceListener
 
         RepeatBlock block
         block:SetScopeDepth(scopeDepth)
-        block:SetEditor(dummyRoot:GetEditor())
+        block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
 
         dummyRoot:Add(cast(Block, block))
@@ -444,7 +444,7 @@ class FreeformBlockListener is QuorumSourceListener
         end
         ReturnBlock block
         block:SetScopeDepth(scopeDepth)
-        block:SetEditor(dummyRoot:GetEditor())
+        block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
         
         me:block = block
@@ -472,7 +472,7 @@ class FreeformBlockListener is QuorumSourceListener
 
         AlertBlock block
         block:SetScopeDepth(scopeDepth)
-        block:SetEditor(dummyRoot:GetEditor())
+        block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
 
         me:block = block
@@ -487,7 +487,7 @@ class FreeformBlockListener is QuorumSourceListener
         end
         UseBlock block
         block:SetScopeDepth(scopeDepth)
-        block:SetEditor(dummyRoot:GetEditor())
+        block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
 
         me:block = block
@@ -520,7 +520,7 @@ class FreeformBlockListener is QuorumSourceListener
 
         PackageBlock block
         block:SetScopeDepth(scopeDepth)
-        block:SetEditor(dummyRoot:GetEditor())
+        block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
 
         me:block = block
@@ -538,7 +538,7 @@ class FreeformBlockListener is QuorumSourceListener
         end
         AssignmentBlock block
         block:SetScopeDepth(scopeDepth)
-        block:SetEditor(dummyRoot:GetEditor())
+        block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
 
         me:block = block
@@ -552,7 +552,7 @@ class FreeformBlockListener is QuorumSourceListener
 
         AssignmentBlock block
         block:SetScopeDepth(scopeDepth)
-        block:SetEditor(dummyRoot:GetEditor())
+        block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
 
         me:block = block
@@ -568,7 +568,7 @@ class FreeformBlockListener is QuorumSourceListener
 
         AssignmentBlock block
         block:SetScopeDepth(scopeDepth)
-        block:SetEditor(dummyRoot:GetEditor())
+        block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
 
         me:block = block
@@ -582,7 +582,7 @@ class FreeformBlockListener is QuorumSourceListener
 
         AssignmentBlock block
         block:SetScopeDepth(scopeDepth)
-        block:SetEditor(dummyRoot:GetEditor())
+        block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
 
         me:block = block
@@ -597,7 +597,7 @@ class FreeformBlockListener is QuorumSourceListener
 
         ActionCallBlock block
         block:SetScopeDepth(scopeDepth)
-        block:SetEditor(dummyRoot:GetEditor())
+        block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
 
         me:block = block
@@ -609,7 +609,7 @@ class FreeformBlockListener is QuorumSourceListener
 
         ActionCallBlock block
         block:SetScopeDepth(scopeDepth)
-        block:SetEditor(dummyRoot:GetEditor())
+        block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
 
         me:block = block

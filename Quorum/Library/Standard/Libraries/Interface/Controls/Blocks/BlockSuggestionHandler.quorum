@@ -1,0 +1,530 @@
+package Libraries.Interface.Controls.Blocks
+use Libraries.Language.Compile.CompilerResult
+use Libraries.Language.Compile.Symbol.SymbolTable
+use Libraries.Language.Compile.Symbol.Class
+use Libraries.Language.Compile.CodeCompletionRequest
+use Libraries.Language.Compile.Parsing.QuorumLexer
+use Libraries.Language.Compile.Parsing.TokenIterator
+use Libraries.Containers.Iterator
+use Libraries.Language.Compile.Symbol.Action
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Parsing.ActionIndexSort
+use Libraries.Containers.Stack
+use Libraries.Language.Compile.Parsing.Token
+use Libraries.Language.Compile.Parsing.QuorumLexerConstants
+use Libraries.Language.Compile.Symbol.Variable
+use Libraries.Language.Compile.Symbol.Type
+
+
+class BlockSuggestionHandler
+    BlockPalette palette = undefined
+
+
+    QuorumLexerConstants constants
+ActionIndexSort actionSorter
+Type primitiveCheck
+    
+    action Request(Block block, CodeCompletionRequest request, BlockPalette palette)
+        me:palette = palette
+        CompilerResult compilerResult = request:result
+        CompilerResult lastCompiledResult = request:lastCompiledResult
+        text source = request:source
+        BlockSuggestionResult result
+        text className = ""
+        text variableName = ""
+
+        SymbolTable last = undefined
+        SymbolTable compiled = undefined
+        if compilerResult not= undefined
+            last = compilerResult:symbolTable
+        end
+
+        if lastCompiledResult not= undefined
+            compiled = lastCompiledResult:symbolTable
+        end
+
+        if last not= undefined 
+            Class lastClazz = last:GetClassInFile(request:fileKey)
+            if lastClazz not= undefined
+                request:clazzCurrentParse = lastClazz
+            end
+        end
+        // defaults for showing variables
+        boolean addBlockVariables = true
+boolean addClassVariables = true
+boolean addParentVariables = false
+        if block is AssignmentBlock
+            addBlockVariables = false
+            addParentVariables = true
+            AssignmentBlock assign = cast(AssignmentBlock, block)
+            className = assign:GetClassName()
+            variableName = assign:GetVariableName()
+        elseif block is UseBlock
+            addBlockVariables = false
+            addParentVariables = true
+            UseBlock useBlock = cast(UseBlock, block)
+            className = useBlock:GetLibraryName()
+        elseif block is FreeformBlock
+            addParentVariables = true
+        end
+if className:Contains("<")
+            className = className:Split("<"):Get(0)
+        end
+        Class clazz = GetBestChoiceClass(request:result, lastCompiledResult, request:fileKey, className, variableName)
+        SymbolTable table = GetBestChoiceSymbolTable(request:result, lastCompiledResult)
+
+        if primitiveCheck:IsPrimitive()
+            request:isPrimitiveConversion = true
+        end
+QuorumLexer luthor
+        luthor:Read(source)
+        TokenIterator<Libraries.Language.Compile.Parsing.Token> tokenIterator = luthor:GetIterator()
+
+        //true or true  or true and false
+        request:clazz = clazz
+        request:table = table
+        CalculateScope(block:GetStartIndex(), tokenIterator, request)
+if className = "" and variableName not= ""
+            CheckVariable(request, clazz, variableName)
+        end
+        
+        Array<Action> actions = AddActions(request)
+        if addBlockVariables
+Array<Variable> vars
+AddBlockVariables(request, vars)
+            result:blockVariables = vars
+        end
+        if addClassVariables
+Array<Variable> vars
+AddClassVariables(request, vars)
+            result:classVariables = vars
+        end
+if addParentVariables
+Array<Variable> vars
+AddParentVariables(request, vars)
+            result:parentVariables = vars
+        end
+        result:actions = actions
+        result:clazz = request:clazz
+        result:variableName = variableName
+        
+        palette:SetSuggestionResult(result)
+    end
+
+    private action GetBestChoiceClass(CompilerResult last, CompilerResult compiled, text file, text className, text variableName) returns Class
+        CompilerResult best = compiled
+        if best = undefined or best:symbolTable = undefined
+            if last = undefined or last:symbolTable = undefined    
+                return undefined
+            end
+            best = last
+        end
+            Class classFile = best:symbolTable:GetClassInFile(file)
+            if classFile not= undefined and className not= ""
+            if className:Contains(".")
+                Class fullKey = best:symbolTable:GetClass(className)
+                if fullKey not= undefined
+                    return fullKey
+                end
+            end
+Class resolvedClass = classFile:GetValidUseName(className)
+            if resolvedClass not= undefined
+                    return resolvedClass
+            end
+                // if not found but it might be in the same package
+            text newKey = ""
+            if classFile:GetPackageKey() not= ""
+                newKey = classFile:GetPackageKey()+"."+className 
+            else
+                newKey = className
+            end
+                Class samePackageClass = best:symbolTable:GetClass(newKey)
+                if samePackageClass not= undefined
+                    return samePackageClass
+                end
+                // if still not found check if it's a primitive
+                primitiveCheck:SetToObject(className)
+                Class primitiveClass = best:symbolTable:GetClass(primitiveCheck:ConvertToNonPrimitiveStaticKey())
+                if primitiveClass not= undefined
+                    return primitiveClass
+                end
+                end
+            if classFile not= undefined
+                return classFile
+            end
+if className not= "" and className:Contains(".")
+                Class fullKey = best:symbolTable:GetClass(className)
+                if fullKey not= undefined
+                    return fullKey
+                end
+        end
+        
+
+        return undefined
+    end
+
+    private action GetBestChoiceSymbolTable(CompilerResult last, CompilerResult compiled) returns SymbolTable
+        if compiled not= undefined and compiled:symbolTable not= undefined
+            return compiled:symbolTable
+        end
+
+        if last not= undefined and last:symbolTable not= undefined
+            return last:symbolTable
+        end
+
+        return undefined
+    end
+
+    private action AddActions(CodeCompletionRequest request) returns Array<Action>
+        Class clazzToProcess = request:clazz
+
+        if request:variableClass not= undefined
+            clazzToProcess = request:variableClass
+            if clazzToProcess not= undefined and request:clazz not= undefined
+               and clazzToProcess:GetStaticKey() not= request:clazz:GetStaticKey()
+                request:isRequestInClass = false
+            end
+        end
+
+        if clazzToProcess = undefined
+            return undefined
+        end
+
+        //if this is the current class, load all methods, public or private
+        //if this is a variable, load only its public methods.
+        Iterator<Action> actions = clazzToProcess:GetVirtualTable()
+        Array<Action> actionsToReturn
+        repeat while actions:HasNext()
+            Action act = actions:Next()
+//            text filter = result:filter
+//            integer size = filter:GetSize()
+//            item:dotOffset = request:caretLocation - size// + additionalDotOffset
+
+            //is this action in the base class or the v-table?
+            if request:clazz:HasAction(act:GetStaticKey())
+//                item:isBaseClassAction = true
+            end
+
+            boolean isPrimitive = request:isPrimitiveConversion
+            if isPrimitive
+                text value = act:GetName()
+                if value not= "GetValue" and value not= "SetValue"
+                    if request:isRequestInClass
+                        actionsToReturn:Add(act)
+                    else
+                        if not act:IsPrivate()
+                            actionsToReturn:Add(act)
+                        end
+                    end
+                end
+            else
+                if request:isRequestInClass
+                    actionsToReturn:Add(act)
+                else
+                    if not act:IsPrivate()
+                        actionsToReturn:Add(act)
+                    end
+                end
+            end
+        end
+        return actionsToReturn
+    end
+
+    private action AddVariables(CodeCompletionRequest request) returns Array<Variable>
+        Array<Variable> variablesToReturn
+        AddBlockVariables(request, variablesToReturn)
+        
+        return variablesToReturn
+    end
+    
+    action AddVariable(CodeCompletionRequest request, Array<Variable> vars, Variable variable)
+if request:isRequestInClass
+                vars:Add(variable)
+            else
+                if not variable:IsPrivate()
+                    vars:Add(variable)
+                end
+            end
+    end
+    
+    action AddBlockVariables(CodeCompletionRequest request, Array<Variable> vars)
+        if request:block not= undefined
+Iterator<Variable> variables = request:block:GetVariablesAllBlocks()
+        repeat while variables:HasNext()
+            Variable variable = variables:Next()
+            if variable not= undefined and variable:IsVisibleToDebugger()
+AddVariable(request, vars, variable)
+            end
+        end
+        end
+
+        Action method = request:method
+        if method not= undefined
+            Iterator<Variable> parameters = method:GetParameterIterator()
+            repeat while parameters:HasNext()
+                Variable variable = parameters:Next()
+                if variable not= undefined and variable:IsVisibleToDebugger()
+                    AddVariable(request, vars, variable)
+                end
+            end
+        end
+        
+    end
+    
+    
+/* Add all of the fields from this class */
+    private action AddClassVariables(CodeCompletionRequest request, Array<Variable> vars)
+        Class clazzToProcess = request:clazz
+        if request:variableClass not= undefined
+            clazzToProcess = request:variableClass
+            if clazzToProcess not= undefined and request:clazz not= undefined
+               and clazzToProcess:GetStaticKey() not= request:clazz:GetStaticKey()
+                request:isRequestInClass = false
+            end
+        end
+
+        if clazzToProcess = undefined
+            return now
+        end
+
+        Iterator<Variable> variables = clazzToProcess:GetVariables()
+        repeat while variables:HasNext()
+            Variable variable2 = variables:Next()
+            if variable2:GetType() not= undefined
+                if request:isRequestInClass
+AddVariable(request, vars, variable2)
+                else
+                    if not variable2:IsPrivate()
+AddVariable(request, vars, variable2)
+                    end
+                end
+            end
+        end
+    end
+    
+    
+private action AddParentVariables(CodeCompletionRequest request, Array<Variable> vars)
+        //now add all of the parent fields from this class
+        Class classToProcess = request:clazz
+        if classToProcess = undefined
+            return now
+        end
+        Iterator<Class> parents = request:clazz:GetParentClasses()
+        repeat while parents:HasNext()
+            Class par = parents:Next()
+            Iterator<Variable> variables2 = par:GetVariables()
+            repeat while variables2:HasNext()
+                Variable variable2 = variables2:Next()
+                if variable2:GetType() not= undefined
+                    if request:isRequestInClass
+AddVariable(request, vars, variable2)
+                    else
+                        if not variable2:IsPrivate()
+AddVariable(request, vars, variable2)
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+private action GetSortedBlocks(Action act) returns Array<Libraries.Language.Compile.Symbol.Block>
+        Array<Libraries.Language.Compile.Symbol.Block> blocks
+        Libraries.Language.Compile.Symbol.Block block = act:GetBlock()
+        
+
+        if block not= undefined
+            blocks:Add(block)
+
+            Iterator<Libraries.Language.Compile.Symbol.Block> actionBlocks = block:GetBlocks()
+            repeat while actionBlocks:HasNext()
+                block = actionBlocks:Next()
+                blocks:Add(block)
+                FillFromBlock(blocks, block)
+            end
+        end
+        return blocks
+    end
+    
+private action GetSortedActions(Class clazz) returns Array<Action> 
+        Iterator<Action> iterator = clazz:GetActions()
+
+        Array<Action> actions
+        repeat while iterator:HasNext()
+            actions:Add(iterator:Next())
+        end
+
+        
+        actions:Sort(actionSorter)
+        return actions
+    end
+    
+    
+private action FillFromBlock(Array<Libraries.Language.Compile.Symbol.Block> blocks, Libraries.Language.Compile.Symbol.Block block)
+        Iterator<Libraries.Language.Compile.Symbol.Block> iterator = block:GetBlocks()
+        repeat while iterator:HasNext()
+            Libraries.Language.Compile.Symbol.Block next = iterator:Next()
+            blocks:Add(next)
+            FillFromBlock(blocks, next)
+        end
+    end
+    
+    
+private action IsInToken(integer index, Libraries.Language.Compile.Parsing.Token token) returns boolean
+        if index >= token:startIndex// and index < token:endIndex
+            return true
+        end
+
+        return false
+    end
+    
+
+    
+
+private action CheckVariable(CodeCompletionRequest request, Class clazz, text name)
+        text left = name
+        if left = undefined
+            return now //should never return undefined unless the request is invalid
+        end
+        request:left = left
+
+        if request:block not= undefined
+            Variable variable = request:block:GetVariable(left)
+            request:variable = variable
+
+            if variable not= undefined
+                Type type = variable:GetType()
+                SymbolTable table = request:table
+                if type not= undefined and not type:IsPrimitive()
+                    text key = type:GetStaticKey()
+                    Class varClass = table:GetClass(key)
+                    request:variableClass = varClass
+                    //in this case, the class isn't in the cache, but it might be in the 
+                    //standard library if this table knows what library it is using
+                    if request:variableClass = undefined
+                        //we did not get lucky. Let's see if this class has been resolved
+                        Class potential = clazz:GuessBestUsage(table, key)
+                        if potential not= undefined
+                            request:variableClass = potential
+                            return now
+                        end
+                    end
+                else 
+                    if type not= undefined
+                        text key = type:ConvertToNonPrimitiveStaticKey()
+                        Class varClass = table:GetClass(key)
+                        request:variableClass = varClass
+                        request:isPrimitiveConversion = true
+                    end
+                end
+            end
+        end
+    end
+    
+private action CalculateScope(integer index, TokenIterator<Token> iterator, CodeCompletionRequest request)
+        if request = undefined or request:clazz = undefined or iterator = undefined or index < 0
+            return now
+        end
+
+        Class clazz = request:clazz
+        integer actionIndex = -1
+        integer blockIndex = 0
+        integer candidateBlock = -1
+        Stack<Libraries.Language.Compile.Symbol.Block> blockStack
+        Array<Action> actions = GetSortedActions(clazz)
+        Array<Libraries.Language.Compile.Symbol.Block> blocks = undefined
+        if clazz not= undefined and clazz:IsImplicitClass()
+            Action main = actions:Get(0) //must be one
+            blocks = GetSortedBlocks(main)
+            request:block = main:GetBlock()
+            blockStack:Push(request:block)
+        end
+
+        boolean inClass = false
+        boolean inAction = false
+        repeat while iterator:HasNext() 
+            Token token = iterator:Next()
+            if token:category = constants:CLASS
+                request:clazz = clazz
+                inClass = true
+            elseif token:category = constants:ACTION
+                actionIndex = actionIndex + 1
+                if IsInToken(index, token) and actionIndex < actions:GetSize() and actionIndex >= 0
+                    request:method = actions:Get(actionIndex)
+                    request:block = request:method:GetBlock()
+                    blockStack:Push(request:block)
+                    blocks = GetSortedBlocks(request:method)
+                    blockIndex = 0
+                end
+            elseif token:category = constants:IF
+                blockIndex = blockIndex + 1
+                if IsInToken(index, token) and blocks not= undefined and blockIndex < blocks:GetSize() and blockIndex >= 0
+                    request:block = blocks:Get(blockIndex)
+                    blockStack:Push(request:block)
+                end
+            elseif token:category = constants:ELSE_IF
+                blockIndex = blockIndex + 1
+                if IsInToken(index, token) and blocks not= undefined and blockIndex < blocks:GetSize() and blockIndex >= 0
+                    request:block = blocks:Get(blockIndex)
+                    blockStack:Push(request:block)
+                end
+            elseif token:category = constants:ELSE
+                blockIndex = blockIndex + 1
+                if IsInToken(index, token) and blocks not= undefined and blockIndex < blocks:GetSize() and blockIndex >= 0
+                    request:block = blocks:Get(blockIndex)
+                    blockStack:Push(request:block)
+                end
+            elseif token:category = constants:REPEAT
+                blockIndex = blockIndex + 1
+                if index > token:startIndex and blocks not= undefined and blockIndex < blocks:GetSize() and blockIndex >= 0
+                    request:block = blocks:Get(blockIndex)
+                    blockStack:Push(request:block)
+                end
+            elseif token:category = constants:CHECK
+                blockIndex = blockIndex + 1
+                if IsInToken(index, token) and blocks not= undefined and blockIndex < blocks:GetSize() and blockIndex > 0
+                    request:block = blocks:Get(blockIndex)
+                    blockStack:Push(request:block)
+                end
+            elseif token:category = constants:DETECT
+                blockIndex = blockIndex + 1
+                if IsInToken(index, token) and blocks not= undefined and blockIndex < blocks:GetSize() and blockIndex > 0
+                    request:block = blocks:Get(blockIndex)
+                    blockStack:Push(request:block)
+                end
+            elseif token:category = constants:ALWAYS
+                blockIndex = blockIndex + 1
+                if IsInToken(index, token) and blocks not= undefined and blockIndex < blocks:GetSize() and blockIndex >= 0
+                    request:block = blocks:Get(blockIndex)
+                    blockStack:Push(request:block)
+                end
+            elseif token:category = constants:END  
+                //it's constrained. If we are in a block and it's before the end, we have a winner
+                //if it's not, then just decrement the values, as this isn't the right candidate
+                if index <= token:endIndex
+                    return now
+                else //if there's a block left, pop it off
+                    if not blockStack:IsEmpty()
+                        request:block = blockStack:Pop()
+                    else
+                        request:block = undefined
+                        request:method = undefined
+                    end
+
+                    if actionIndex >= actions:GetSize() - 1
+                        inClass = false
+                    end
+                end
+            end
+        end
+
+        //This is an implicit class, so get the implicit Main and use it as a block
+        if not inClass
+            Action act = clazz:GetAction("Main")
+            if act not= undefined
+                request:method = act
+                request:block = act:GetBlock()
+            end
+        end
+    end
+end

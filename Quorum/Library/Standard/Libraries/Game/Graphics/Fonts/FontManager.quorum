@@ -50,6 +50,9 @@ class FontManager
 
     // Each font uniquely produces a string key to the table.
     HashTable<text, FontStrategy> fontTable
+    
+    // Rather than repeatedly asking the file system if a font is available, we keep that info around.
+    HashTable<text, boolean> availableFontTable
 
     // An array containing all fonts available on the web.
     // Update this array in the on create to add/remove available fonts for web.
@@ -254,14 +257,20 @@ class FontManager
         end
     */
     action IsFontAvailable(text fontName) returns boolean
+        if availableFontTable:HasKey(fontName)
+            return availableFontTable:GetValue(fontName)
+        end
+        
         if gameStateManager:GetOperatingSystem() = "Web Browser"
             integer counter = 0
             repeat while counter < availableWebFonts:GetSize()
                 if availableWebFonts:Get(counter) = fontName
+                    availableFontTable:Add(fontName, true)
                     return true
                 end
                 counter = counter + 1
             end
+            availableFontTable:Add(fontName, false)
             return false
         end
 
@@ -271,24 +280,29 @@ class FontManager
 
         fontFile:SetPath(fontName + ".ttf")
         if fontFile:Exists()
+            availableFontTable:Add(fontName, true)
            return true
         end
 
         fontFile:SetPath(fontName + ".ttc")
         if fontFile:Exists()
+            availableFontTable:Add(fontName, true)
             return true
         end
                 
         fontFile:SetPath(fontName + ".otf")
         if fontFile:Exists()
+            availableFontTable:Add(fontName, true)
             return true
         end
 
         fontFile:SetPath(fontName + ".dfont")
         if fontFile:Exists()
+            availableFontTable:Add(fontName, true)
             return true
         end
 
+        availableFontTable:Add(fontName, false)
         return false
     end
 

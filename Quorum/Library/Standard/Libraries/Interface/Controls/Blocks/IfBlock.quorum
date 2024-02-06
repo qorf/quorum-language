@@ -39,7 +39,7 @@ class IfBlock is MultipleLineBlock
     end
 
     action SetupElements
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
         SetLeftPadding(spacing * 0.5)
         SetRightPadding(spacing * 0.5)
@@ -53,13 +53,13 @@ class IfBlock is MultipleLineBlock
         // The start line is always the beginning of the multi-block, so it always starts at local index 0.
         part:SetLocalStartIndex(0)
 
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
 
         BlockLabel ifLabel
         me:ifLabel = ifLabel
-        ifLabel:SetFont(GetEditor():GetFont())
-        ifLabel:SetFontSize(GetEditor():GetFontSize())
+        ifLabel:SetFont(editor:GetFont())
+        ifLabel:SetFontSize(editor:GetFontSize())
         ifLabel:SetText("if")
         ifLabel:SetRightPadding(spacing)
         part:Add(ifLabel)
@@ -88,13 +88,13 @@ class IfBlock is MultipleLineBlock
 
         part:SetLocalStartIndex(elseifToken:startIndex - GetStartIndex())
 
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
 
         BlockLabel elseifLabel
         me:elseifLabels:Add(elseifLabel)
-        elseifLabel:SetFont(GetEditor():GetFont())
-        elseifLabel:SetFontSize(GetEditor():GetFontSize())
+        elseifLabel:SetFont(editor:GetFont())
+        elseifLabel:SetFontSize(editor:GetFontSize())
         elseifLabel:SetText("elseif")
         elseifLabel:SetRightPadding(spacing)
         part:Add(elseifLabel)
@@ -129,7 +129,7 @@ class IfBlock is MultipleLineBlock
             end
         end
 
-        CodeEditor editor = GetEditor()
+        CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
         number spacing = editor:GetDefaultGlyphWidth()
 
         editor:SetIndentation(block, GetScopeDepth())
@@ -148,8 +148,8 @@ class IfBlock is MultipleLineBlock
 
         BlockLabel elseifLabel
         me:elseifLabels:Add(elseifLabel)
-        elseifLabel:SetFont(GetEditor():GetFont())
-        elseifLabel:SetFontSize(GetEditor():GetFontSize())
+        elseifLabel:SetFont(editor:GetFont())
+        elseifLabel:SetFontSize(editor:GetFontSize())
         elseifLabel:SetText("elseif")
         elseifLabel:SetRightPadding(spacing)
         part:Add(elseifLabel)
@@ -208,13 +208,13 @@ class IfBlock is MultipleLineBlock
 
         part:SetLocalStartIndex(ifContext:elseLocation:GetIndex() - GetStartIndex())
 
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
 
         BlockLabel elseLabel
         me:elseLabel = elseLabel
-        elseLabel:SetFont(GetEditor():GetFont())
-        elseLabel:SetFontSize(GetEditor():GetFontSize())
+        elseLabel:SetFont(editor:GetFont())
+        elseLabel:SetFontSize(editor:GetFontSize())
         elseLabel:SetText("else")
         part:Add(elseLabel)
 
@@ -240,7 +240,7 @@ class IfBlock is MultipleLineBlock
             i = i + 1
         end
 
-        CodeEditor editor = GetEditor()
+        CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
         number spacing = editor:GetDefaultGlyphWidth()
 
         editor:SetIndentation(block, GetScopeDepth())
@@ -257,8 +257,8 @@ class IfBlock is MultipleLineBlock
 
         BlockLabel elseLabel
         me:elseLabel = elseLabel
-        elseLabel:SetFont(GetEditor():GetFont())
-        elseLabel:SetFontSize(GetEditor():GetFontSize())
+        elseLabel:SetFont(editor:GetFont())
+        elseLabel:SetFontSize(editor:GetFontSize())
         elseLabel:SetText("else")
         elseLabel:SetRightPadding(spacing)
         part:Add(elseLabel)
@@ -341,8 +341,13 @@ class IfBlock is MultipleLineBlock
 
 
     private action RemoveIfPart(Block block)
+        CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
+        if editor = undefined
+            return now
+        end
+
         // Just modify the text directly and refresh the blocks.
-        MultipleLineText updatedText = GetEditor():GetCode()
+        MultipleLineText updatedText = editor:GetCode()
         integer startLine = block:GetStartLine()
 
         // The end line is where the new end of the updated text will be, once we've deleted the text of the direct children
@@ -405,10 +410,10 @@ class IfBlock is MultipleLineBlock
             i = i + 1
         end
 
-        GetEditor():SetCode(updatedText)
+        editor:SetCode(updatedText)
         TextChangeEvent event
         event:Initialize(me, "", "", 0)
-        GetEditor():OnTextChange(event, 0)
+        editor:OnTextChange(event, 0)
 
     end
 
@@ -425,7 +430,12 @@ class IfBlock is MultipleLineBlock
     end
 
     private action RemoveMiddleBlockPart(Block block, Block newParent)
-        MultipleLineText rawCode = GetEditor():GetCode()
+        CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
+        if editor = undefined
+            return now
+        end
+
+        MultipleLineText rawCode = editor:GetCode()
         Array<Block> preservedChildren
         integer i = 0
         repeat while i < block:GetChildCount()
@@ -467,7 +477,7 @@ class IfBlock is MultipleLineBlock
 
         block:SetParentIndex(-1)
         block:SetParentBlock(undefined)
-        block:SetEditor(undefined)
+        block:SetBlockEnvironment(undefined)
 
         MultipleLineBlockPart part = cast(MultipleLineBlockPart, block)
         GetBlockParts():Remove(part)
@@ -483,7 +493,7 @@ class IfBlock is MultipleLineBlock
         // Process a text change event. This will automatically update the MultipleLineText.
         TextChangeEvent event
         event:Initialize(me, "", deletedText, targetIndex)
-        GetEditor():OnTextChange(event, 0)
+        editor:OnTextChange(event, 0)
 
         // We need to correct the offsets based on the size of the deleted text
         offset = offset - textSize
@@ -503,26 +513,32 @@ class IfBlock is MultipleLineBlock
             
             i = i + 1
         end
-        GetEditor():RefreshNavigationIndices()
-        if cast(Block, block) = GetEditor():GetSelection():GetBlock()
+
+        editor:RefreshNavigationIndices()
+        if cast(Block, block) = editor:GetSelection():GetBlock()
             if nextBlock not= undefined
-                GetEditor():SelectBlockOrItem(nextBlock)
+                editor:SelectBlockOrItem(nextBlock)
             else
-                GetEditor():SelectBlockOrItem(previousBlock)
+                editor:SelectBlockOrItem(previousBlock)
             end
         end
-        GetEditor():RequestNavigationIndicesUpdate()
+        editor:RequestNavigationIndicesUpdate()
     end
 
     private action RemoveEndPart(Block block)
+        CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
+        if editor = undefined
+            return now
+        end
+
         // if no else or elseif parts delete whole if preserving children
         if elsePart = undefined and elseifParts:IsEmpty()
-            GetEditor():DeleteBlockPreservingGrandchildren(me, GetParentBlock())
+            editor:DeleteBlockPreservingGrandchildren(me, GetParentBlock())
             return now
         end
 
         // Just modify the text directly and refresh the blocks.
-        MultipleLineText rawCode = GetEditor():GetCode()
+        MultipleLineText rawCode = editor:GetCode()
         
         integer startLine = block:GetStartLine()
 
@@ -594,11 +610,11 @@ class IfBlock is MultipleLineBlock
 //            updatedText = updatedText:Delete(startIndex, startIndex + 4)
 //            i = i + 1
 //        end
-//
-        GetEditor():SetCode(rawCode)
+
+        editor:SetCode(rawCode)
         TextChangeEvent event
         event:Initialize(me, "", "", 0)
-        GetEditor():OnTextChange(event, 0)
+        editor:OnTextChange(event, 0)
     end
 
     action GetIfContext returns IfContext

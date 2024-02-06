@@ -49,9 +49,7 @@ class ChartNavigateBehavior is Behavior
             elseif event:GetGestureEvent() not= undefined
                 GestureEvent gesture = event:GetGestureEvent()
 
-                if gesture:eventType = gesture:SINGLE_TAP //Double Tap with talkback
-                        direction = TAB            
-                elseif gesture:eventType = gesture:SWIPE
+                if gesture:eventType = gesture:SWIPE
                     if gesture:GetDirection() = gesture:LEFT //2 finger Swipe Left with talkback
                         direction = X_AXIS_PREV
                     elseif gesture:GetDirection() = gesture:RIGHT //2 finger Swipe Right with talkback
@@ -61,8 +59,6 @@ class ChartNavigateBehavior is Behavior
                     elseif gesture:GetDirection() = gesture:DOWN //2 finger Swipe Down with talkback
                         direction = SHIFT_ENTER
                     end
-                elseif gesture:eventType = gesture:LONG_PRESS //Double Tap and long press with talkback
-                    direction = SHIFT_TAB
                 else 
                     return now
                 end                

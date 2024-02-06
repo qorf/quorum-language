@@ -31,15 +31,15 @@ class UseBlock is SingleLineBlock
     end
 
     action SetupElements
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
         SetLeftPadding(spacing * 0.5)
         SetRightPadding(spacing * 0.5)
 
         BlockLabel bl
         me:useLabel = bl
-        useLabel:SetFont(GetEditor():GetFont())
-        useLabel:SetFontSize(GetEditor():GetFontSize())
+        useLabel:SetFont(editor:GetFont())
+        useLabel:SetFontSize(editor:GetFontSize())
         useLabel:SetText("use")
         useLabel:SetRightPadding(spacing)
         Add(useLabel)
@@ -57,6 +57,13 @@ class UseBlock is SingleLineBlock
         Add(nameField)
 
         nameField:Setup("Name", location:GetIndex() - GetStartIndex(), 1 + location:GetIndexEnd() - GetStartIndex())
+    end
+    
+    action GetLibraryName returns text
+        if nameField not= undefined
+            return nameField:GetText()
+        end
+        return ""
     end
 
     action GetUseContext returns UseContext

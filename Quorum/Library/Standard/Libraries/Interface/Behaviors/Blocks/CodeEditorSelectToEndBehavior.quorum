@@ -3,25 +3,28 @@ package Libraries.Interface.Behaviors.Blocks
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Controls.Blocks.Block
-use Libraries.Interface.Controls.Blocks.CodeEditoruse Libraries.Interface.Controls.Blocks.BlockItem
+use Libraries.Interface.Controls.Blocks.CodeEditor
+use Libraries.Interface.Controls.Blocks.BlockItem
 
 class CodeEditorSelectToEndBehavior is Behavior
     
-action Run(BehaviorEvent event)
+    action Run(BehaviorEvent event)
         CodeEditor editor = undefined
         if event:GetItem() is CodeEditor
             editor = cast(CodeEditor, event:GetItem())
         elseif event:GetItem() is Block
             Block block = cast(Block, event:GetItem())
-            editor = block:GetEditor()
+//            editor = block:GetEditor()
+            editor = cast(CodeEditor, block:GetBlockEnvironment())
         elseif event:GetItem() is BlockItem
             BlockItem item = cast(BlockItem, event:GetItem())
-            editor = item:GetEditor()
+//            editor = item:GetEditor()
+            editor = cast(CodeEditor, item:GetBlockEnvironment())
         else
             // If we can't find the editor, abort.
             return now
         end
 
         editor:SelectRangeToLastBlock()
-end
+    end
 end

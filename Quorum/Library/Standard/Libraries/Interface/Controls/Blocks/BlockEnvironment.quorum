@@ -1,0 +1,113 @@
+package Libraries.Interface.Controls.Blocks
+
+use Libraries.Interface.Controls.Control
+use Libraries.Game.Graphics.Font
+
+class BlockEnvironment is Control
+    
+number percentageLineHeightPadding = 1.0
+    
+number blockNotchTopWidth = 50
+    number blockNotchBottomWidth = 25
+    number blockNotchHeight = 0.3
+    
+    // Scope width is measured as multiples of "default indentation", where default indentation is the width of 4 characters in the font.
+    // In other words, scoped areas are four characters wide times the scopeBarWidth.
+    number scopeBarWidth = 1.0
+    
+    blueprint action GetLineY(integer index) returns number
+    
+    blueprint action GetLineHeight(integer index) returns number
+    
+    blueprint action GetCodeBetween(integer startIndex, integer endIndex) returns text
+    
+    action GetDefaultGlyphWidth returns number
+        // This approach relies on a monospaced font.
+        return GetFont():GetGlyph("W"):horizontalAdvance
+    end
+
+    action GetScopeIndentationWidth returns number
+        // Calculate the indentation width as a multiple of the default glyph width for this font.
+        return GetDefaultGlyphWidth() * 4 * scopeBarWidth
+    end
+    
+    action GetBlockNotchTopWidth returns number
+        return blockNotchTopWidth
+    end
+
+    action SetBlockNotchTopWidth(number blockNotchTopWidth)
+        me:blockNotchTopWidth = blockNotchTopWidth
+    end
+
+    action GetBlockNotchBottomWidth returns number
+        return blockNotchBottomWidth
+    end
+
+    action SetBlockNotchBottomWidth(number blockNotchBottomWidth)
+        me:blockNotchBottomWidth = blockNotchBottomWidth
+    end
+
+    action GetBlockNotchPixelHeight returns number
+        return blockNotchHeight * (GetDefaultUnpaddedLineHeight() * percentageLineHeightPadding)
+    end
+
+    action GetBlockNotchPercentageHeight returns number
+        return blockNotchHeight
+    end
+    
+    action SetBlockNotchPercentageHeight(number blockNotchHeight)
+        me:blockNotchHeight = blockNotchHeight
+    end
+    
+    action GetDefaultUnpaddedLineHeight returns number
+        return GetFont():GetLineHeight()
+    end
+
+    action GetUnpaddedLineHeight(integer line) returns number
+        return GetDefaultUnpaddedLineHeight()
+    end
+
+    action GetLineHeightPadding(integer line) returns number
+        return GetUnpaddedLineHeight(line) * percentageLineHeightPadding
+    end
+
+    action GetPercentageLinePadding(integer line) returns number
+        return GetPercentageLineHeightPadding()
+    end
+    
+    action GetPercentageLineHeightPadding returns number
+        return percentageLineHeightPadding
+    end
+
+    action SetPercentageLineHeightPadding(number percentageLineHeightPadding)
+        me:percentageLineHeightPadding = percentageLineHeightPadding
+    end
+    
+    /*
+    This action sets the width of the scope bars, as a multiple of "default indentation widths".
+    A single default indentation is four characters wide in the editor's font. For example, passing
+    a value of 2 would make the scoped bars take up 8 characters of space horizontally.
+    */
+    action SetScopeBarWidth(number width)
+        scopeBarWidth = width
+    end
+    
+/*
+This action returns the width of the scope bars, as a multiple of "default indentation widths".
+A single default indentation is four characters wide in the editor's font. For example,
+a value of 2 indicates that the scoped bars take up 8 characters of space horizontally.
+*/
+    action GetScopeBarWidth returns number
+        return scopeBarWidth
+    end
+    
+action GetFont returns Font
+        Font font = parent:Control:GetFont()
+        integer size = cast(integer, GetFontSize() * GetInterfaceScale())
+        if font:GetSize() not= size
+            font:SetSize(size)
+        end
+        return font
+    end
+    
+end

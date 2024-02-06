@@ -39,7 +39,7 @@ class CheckBlock is MultipleLineBlock
     end
 
     action SetupElements
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
         SetLeftPadding(spacing * 0.5)
         SetRightPadding(spacing * 0.5)
@@ -53,13 +53,13 @@ class CheckBlock is MultipleLineBlock
         // The start line is always the beginning of the multi-block, so it always starts at local index 0.
         part:SetLocalStartIndex(0)
 
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
 
         BlockLabel checkLabel
         me:checkLabel = checkLabel
-        checkLabel:SetFont(GetEditor():GetFont())
-        checkLabel:SetFontSize(GetEditor():GetFontSize())
+        checkLabel:SetFont(editor:GetFont())
+        checkLabel:SetFontSize(editor:GetFontSize())
         checkLabel:SetText("check")
         part:Add(checkLabel)
 
@@ -77,13 +77,13 @@ class CheckBlock is MultipleLineBlock
         part:SetLocalStartIndex(detectContext:GetLocation():GetIndex() - GetStartIndex())
         part:SetLocalStartLine(detectContext:GetLocation():GetLineNumber() - GetStartLine() - 1)
 
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
 
         BlockLabel detectLabel
         me:detectLabels:Add(detectLabel)
-        detectLabel:SetFont(GetEditor():GetFont())
-        detectLabel:SetFontSize(GetEditor():GetFontSize())
+        detectLabel:SetFont(editor:GetFont())
+        detectLabel:SetFontSize(editor:GetFontSize())
         detectLabel:SetText("detect")
         detectLabel:SetRightPadding(spacing)
         part:Add(detectLabel)
@@ -101,8 +101,8 @@ class CheckBlock is MultipleLineBlock
         if detectContext:qualifiedNameContexts not= undefined
             BlockLabel isLabel
             me:detectIsLabels:Add(isLabel)
-            isLabel:SetFont(GetEditor():GetFont())
-            isLabel:SetFontSize(GetEditor():GetFontSize())
+            isLabel:SetFont(editor:GetFont())
+            isLabel:SetFontSize(editor:GetFontSize())
             isLabel:SetText("is")
             isLabel:SetRightPadding(spacing)
             part:Add(isLabel)
@@ -126,6 +126,7 @@ class CheckBlock is MultipleLineBlock
         else
             part:SetLocalEndIndex(part:GetLocalStartIndex() + detectContext:nameLocation:GetIndexEnd() + 1 - part:GetStartIndex())
         end
+
         me:detectParts:Add(part)
         return part
     end
@@ -146,7 +147,8 @@ class CheckBlock is MultipleLineBlock
             end
         end
 
-        CodeEditor editor = GetEditor()
+//        CodeEditor editor = GetEditor()
+        CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
         number spacing = editor:GetDefaultGlyphWidth()
 
         editor:SetIndentation(block, GetScopeDepth())
@@ -165,8 +167,8 @@ class CheckBlock is MultipleLineBlock
 
         BlockLabel detectLabel
         me:detectLabels:Add(detectLabel)
-        detectLabel:SetFont(GetEditor():GetFont())
-        detectLabel:SetFontSize(GetEditor():GetFontSize())
+        detectLabel:SetFont(editor:GetFont())
+        detectLabel:SetFontSize(editor:GetFontSize())
         detectLabel:SetText("detect")
         detectLabel:SetRightPadding(spacing)
         part:Add(detectLabel)
@@ -182,8 +184,8 @@ class CheckBlock is MultipleLineBlock
         if detectContext:qualifiedNameContexts not= undefined
             BlockLabel isLabel
             me:detectIsLabels:Add(isLabel)
-            isLabel:SetFont(GetEditor():GetFont())
-            isLabel:SetFontSize(GetEditor():GetFontSize())
+            isLabel:SetFont(editor:GetFont())
+            isLabel:SetFontSize(editor:GetFontSize())
             isLabel:SetText("is")
             isLabel:SetRightPadding(spacing)
             part:Add(isLabel)
@@ -244,13 +246,13 @@ class CheckBlock is MultipleLineBlock
 
         part:SetLocalStartIndex(context:GetLocation():GetIndex() - GetStartIndex())
 
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
 
         BlockLabel alwaysLabel
         me:alwaysLabel = alwaysLabel
-        alwaysLabel:SetFont(GetEditor():GetFont())
-        alwaysLabel:SetFontSize(GetEditor():GetFontSize())
+        alwaysLabel:SetFont(editor:GetFont())
+        alwaysLabel:SetFontSize(editor:GetFontSize())
         alwaysLabel:SetText("always")
         part:Add(alwaysLabel)
         part:SetLocalEndIndex(part:GetLocalStartIndex() + alwaysLabel:GetText():GetSize())
@@ -273,7 +275,8 @@ class CheckBlock is MultipleLineBlock
             i = i + 1
         end
 
-        CodeEditor editor = GetEditor()
+//        CodeEditor editor = GetEditor()
+        CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
         number spacing = editor:GetDefaultGlyphWidth()
 
         editor:SetIndentation(block, GetScopeDepth())
@@ -294,8 +297,8 @@ class CheckBlock is MultipleLineBlock
 
         BlockLabel alwaysLabel
         me:alwaysLabel = alwaysLabel
-        alwaysLabel:SetFont(GetEditor():GetFont())
-        alwaysLabel:SetFontSize(GetEditor():GetFontSize())
+        alwaysLabel:SetFont(editor:GetFont())
+        alwaysLabel:SetFontSize(editor:GetFontSize())
         alwaysLabel:SetText("always")
         part:Add(alwaysLabel)
         part:SetLocalEndIndex(part:GetLocalStartIndex() + alwaysLabel:GetText():GetSize())
@@ -368,14 +371,18 @@ class CheckBlock is MultipleLineBlock
 
     action RemoveCheckPart(Block block)
         // a check detect makes no sense without a check and a detect can't be converted to a check so delete the whole thing
-        GetEditor():DeleteBlockPreservingGrandchildren(me, GetParentBlock())
+//        GetEditor():DeleteBlockPreservingGrandchildren(me, GetParentBlock())
+        CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
+        editor:DeleteBlockPreservingGrandchildren(me, GetParentBlock())
     end
 
     action RemoveDetectPart(Block block)
         if detectParts:GetSize() > 1
             RemoveMiddleBlockPart(block, block:GetPreviousSibling())
         else
-            GetEditor():DeleteBlockPreservingGrandchildren(me, GetParentBlock())
+//            GetEditor():DeleteBlockPreservingGrandchildren(me, GetParentBlock())
+            CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
+            editor:DeleteBlockPreservingGrandchildren(me, GetParentBlock())
         end
         MultipleLineBlockPart detectPart = cast(MultipleLineBlockPart, block)
         detectParts:Remove(detectPart)
@@ -389,12 +396,16 @@ class CheckBlock is MultipleLineBlock
 
     action RemoveEndPart(Block block)
         if detectParts:GetSize() = 1  and alwaysPart = undefined
-            GetEditor():DeleteBlockPreservingGrandchildren(me, GetParentBlock())
+//            GetEditor():DeleteBlockPreservingGrandchildren(me, GetParentBlock())
+            CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
+            editor:DeleteBlockPreservingGrandchildren(me, GetParentBlock())
             return now
         end
 
+        CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
+
         // Just modify the text directly and refresh the blocks.
-        MultipleLineText rawCode = GetEditor():GetCode()
+        MultipleLineText rawCode = editor:GetCode()
         
         integer startLine = block:GetStartLine()
 
@@ -458,14 +469,15 @@ class CheckBlock is MultipleLineBlock
 //            i = i + 1
 //        end
 //
-        GetEditor():SetCode(rawCode)
+        editor:SetCode(rawCode)
         TextChangeEvent event
         event:Initialize(me, "", "", 0)
-        GetEditor():OnTextChange(event, 0)
+        editor:OnTextChange(event, 0)
     end
 
-private action RemoveMiddleBlockPart(Block block, Block newParent)
-        MultipleLineText rawCode = GetEditor():GetCode()
+    private action RemoveMiddleBlockPart(Block block, Block newParent)
+        CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
+        MultipleLineText rawCode = editor:GetCode()
         Array<Block> preservedChildren
         integer i = 0
         repeat while i < block:GetChildCount()
@@ -505,7 +517,7 @@ private action RemoveMiddleBlockPart(Block block, Block newParent)
         end
         block:SetParentIndex(-1)
         block:SetParentBlock(undefined)
-        block:SetEditor(undefined)
+        block:SetBlockEnvironment(undefined)
 
         /*
         Call OffsetIndices on the parent. By passing false for the final parameter,
@@ -517,7 +529,7 @@ private action RemoveMiddleBlockPart(Block block, Block newParent)
         // Process a text change event. This will automatically update the MultipleLineText.
         TextChangeEvent event
         event:Initialize(me, "", deletedText, targetIndex)
-        GetEditor():OnTextChange(event, 0)
+        editor:OnTextChange(event, 0)
 
         // We need to correct the offsets based on the size of the deleted text
         offset = offset - textSize

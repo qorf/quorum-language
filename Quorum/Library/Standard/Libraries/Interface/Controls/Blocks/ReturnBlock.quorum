@@ -32,15 +32,15 @@ class ReturnBlock is SingleLineBlock
     end
 
     action SetupElements
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
         SetLeftPadding(spacing * 0.5)
         SetRightPadding(spacing * 0.5)
 
         BlockLabel bl
         me:returnLabel = bl
-        returnLabel:SetFont(GetEditor():GetFont())
-        returnLabel:SetFontSize(GetEditor():GetFontSize())
+        returnLabel:SetFont(editor:GetFont())
+        returnLabel:SetFontSize(editor:GetFontSize())
         returnLabel:SetText("return")
         returnLabel:SetRightPadding(spacing)
         Add(returnLabel)
@@ -48,8 +48,8 @@ class ReturnBlock is SingleLineBlock
         if returnContext:isReturnNow
             BlockLabel nowLabel
             me:nowLabel = nowLabel
-            nowLabel:SetFont(GetEditor():GetFont())
-            nowLabel:SetFontSize(GetEditor():GetFontSize())
+            nowLabel:SetFont(editor:GetFont())
+            nowLabel:SetFontSize(editor:GetFontSize())
             nowLabel:SetText("now")
             nowLabel:SetRightPadding(spacing)
             Add(nowLabel)

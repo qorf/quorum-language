@@ -18,10 +18,14 @@ use Libraries.Containers.List
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Accessibility
 use Libraries.Game.Graphics.Painter2D
+use Libraries.Game.Graphics.ColorNamer
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Color
 
 class Block is Control
     integer scopeDepth = 0
-    CodeEditor editor = undefined
+    //CodeEditor editor = undefined
+    BlockEnvironment environment = undefined
     ParseContext context = undefined
 
     /*
@@ -68,6 +72,21 @@ class Block is Control
 
     // Used to identify when the rendering needs to be refreshed due to Hints changing.
     boolean renderingImportantHints = false
+    
+    /* 
+Used to indicate if this is a placeholder. Placeholders don't represent "real" text in the code,
+but instead are used to indicate "potential" code, e.g. where blocks that are being dragged might
+be dropped. Placeholder blocks have special rules around their text values and how they're rendered.
+*/
+    boolean isPlaceholder = false
+    // If this is a placeholder, it doesn't represent text in the real code, so it needs to store it separately here.
+    text placeholderText = ""
+    // This represents the controls used for a placeholder. Undefined by default.
+    Array<Item2D> placeholderControls = undefined
+    
+    // Indicates that this Block is currently being moved with the mouse or keyboard.
+    boolean isMoving = false
+    
 
     on create
         SetName("Block")
@@ -193,7 +212,8 @@ class Block is Control
     action Add(Block block)
         block:SetParentIndex(GetChildCount())
         block:SetParentBlock(me)
-        block:SetEditor(GetEditor())
+        block:SetBlockEnvironment(GetBlockEnvironment())
+//        block:SetEditor(GetEditor())
 
         AddChildBlock(block)
     end
@@ -207,7 +227,8 @@ class Block is Control
         block:SetParentIndex(index)
         block:SetParentBlock(me)
 
-        block:SetEditor(GetEditor())
+        block:SetBlockEnvironment(GetBlockEnvironment())
+//        block:SetEditor(GetEditor())
 
         integer i = index
         repeat while i < GetChildCount()
@@ -237,7 +258,8 @@ class Block is Control
 
             block:SetParentIndex(-1)
             block:SetParentBlock(undefined)
-            block:SetEditor(undefined)
+            block:SetBlockEnvironment(undefined)
+//            block:SetEditor(undefined)
         end
 
         return result
@@ -252,7 +274,8 @@ class Block is Control
         if result not= undefined
             result:SetParentIndex(-1)
             result:SetParentBlock(undefined)
-            result:SetEditor(undefined)
+//            result:SetEditor(undefined)
+            result:SetBlockEnvironment(undefined)
     
             integer i = GetChildCount() - 1
             repeat while i >= index
@@ -510,6 +533,11 @@ class Block is Control
     */
     action OffsetIndices(integer changeIndex, integer textChanged, integer linesChanged, Block block)
         Block current = me
+        boolean atStartOfFile = false
+        if changeIndex < 0
+            atStartOfFile = true
+            changeIndex = 0
+        end
         repeat until current = undefined
             integer counter = 0
             repeat while counter < current:GetChildCount()
@@ -517,32 +545,47 @@ class Block is Control
                 integer startIndex = child:GetStartIndex()
                 integer endIndex = child:GetEndIndex()
 
-                if changeIndex < endIndex or (IsOffendingBlock(child, block) and changeIndex = endIndex)
-                    if changeIndex > startIndex or (IsOffendingBlock(child, block) and changeIndex = startIndex)
+                boolean atStartOfBlock = (IsOffendingBlock(child, block) and changeIndex = startIndex)
+                boolean atEndOfBlock = (IsOffendingBlock(child, block) and changeIndex = endIndex)
+
+                // if the change is before the end of the block something has to change
+                if changeIndex < endIndex 
+                    // if the change is inside the block offset relative
+                    if changeIndex > startIndex or atStartOfBlock
                         child:OffsetRelativeIndices(changeIndex - startIndex, textChanged)
                     else
+                        // if the change is before the start only the local start moves
                         child:SetLocalStartIndex(child:GetLocalStartIndex() + textChanged)
                     end
+                    child:SetLocalEndIndex(child:GetLocalEndIndex() + textChanged)
+                elseif atEndOfBlock
+                    child:OffsetRelativeIndices(changeIndex - startIndex, textChanged)
+                    child:SetLocalEndIndex(child:GetLocalEndIndex() + textChanged)
+                elseif changeIndex = startIndex and changeIndex = 0 and atStartOfFile
+                    // special case where the change is at the beginning (new line from top)
+                    // other cases you assume the change is after the block if the indicies conflict
+                    child:SetLocalStartIndex(child:GetLocalStartIndex() + textChanged)
                     child:SetLocalEndIndex(child:GetLocalEndIndex() + textChanged)
                 end
 
                 // Only process line indices if the number of lines changed.
                 // Also, don't do it if there's no offending block and our start/end indices are identical.
                 // This resolves an edge case when adding a new line to the end of an empty freeform block.
-                if linesChanged not= 0 and not (IsOffendingBlock(child, block) = false and startIndex = endIndex)
+                if linesChanged not= 0 and not (IsOffendingBlock(child, block) = false and (changeIndex = endIndex) and not atStartOfFile)
                     integer startLine = child:GetLocalStartLine()
                     integer endLine = child:GetLocalEndLine()
 
+                    if changeIndex < endIndex or atEndOfBlock
+                        child:SetLocalEndLine(endLine + linesChanged)
+                    end
                     if changeIndex <= startIndex
-                        if changeIndex = startIndex and IsOffendingBlock(child, block)
+                        if atStartOfBlock
                             // don't modify the start line in this case
                         else
                             child:SetLocalStartLine(startLine + linesChanged)
                         end
                     end
-                    if changeIndex < endIndex or (IsOffendingBlock(child, block) and changeIndex = endIndex)
-                        child:SetLocalEndLine(endLine + linesChanged)
-                    end
+
                 end
 
                 counter = counter + 1
@@ -617,19 +660,21 @@ class Block is Control
     end
 
     action GetTopNotchPosition returns number
-        if editor = undefined
+        BlockEnvironment environment = GetBlockEnvironment()
+        if environment = undefined
             return 0
         end
 
-        return editor:GetScopeIndentationWidth() * topNotchPositionFactor
+        return environment:GetScopeIndentationWidth() * topNotchPositionFactor
     end
 
     action GetBottomNotchPosition returns number
-        if editor = undefined
+        BlockEnvironment environment = GetBlockEnvironment()
+        if environment = undefined
             return 0
         end
 
-        return editor:GetScopeIndentationWidth() * bottomNotchPositionFactor
+        return environment:GetScopeIndentationWidth() * bottomNotchPositionFactor
     end
 
     action UseEnterScopeStyling
@@ -665,22 +710,78 @@ class Block is Control
     end
 
     action GetEditor returns CodeEditor
-        return editor
+        if environment is CodeEditor
+            return cast(CodeEditor, environment)
+        end
+
+        return undefined
+    end
+    
+    action GetBlockEnvironment returns BlockEnvironment
+        return environment
+    end
+    
+    action SetBlockEnvironment(BlockEnvironment environment)
+        me:environment = environment
     end
 
-    action SetEditor(CodeEditor editor)
-        me:editor = editor
+    action GetColorName returns text
+        text colorName = ""
+        ColorNamer namer
+        Color color = cast(Color, GetBackgroundColor())
+        colorName = namer:GetName(color:GetRed(), color:GetGreen(), color:GetBlue())
+        return colorName
     end
 
     action Setup
+        if IsPlaceholder()
+            SetupPlaceholderElements(placeholderText)
+        else
         SetupElements()
         SetDefaultTabOrder()
 
         // Set the default name to reflect the first line of the block.
         UpdateName(0)
+        end
+        
     end
 
     private blueprint action SetupElements
+    
+    private action SetupPlaceholderElements(text code)
+        
+        BlockEnvironment editor = GetBlockEnvironment()
+        number spacing = editor:GetDefaultGlyphWidth()
+        SetLeftPadding(spacing * 0.5)
+        SetRightPadding(spacing * 0.5)
+        
+        if placeholderControls not= undefined
+            integer i = 0
+            repeat while i < placeholderControls:GetSize()
+                Item2D child = placeholderControls:Get(i)
+                if child is EditRegion
+                    EditRegion region = cast(EditRegion, child)
+                    region:SetFont(editor:GetFont())
+                    region:SetFontSize(editor:GetFontSize())
+                    Add(region)
+                    
+                    region:SetupAsPlaceholder(region:GetName(), region:GetText())
+                elseif child is BlockLabel
+                    BlockLabel label = cast(BlockLabel, child)
+                    label:SetFont(editor:GetFont())
+                    label:SetFontSize(editor:GetFontSize())
+                    Add(label)
+                end
+                i = i + 1
+            end
+        else
+            BlockLabel label
+            label:SetFont(editor:GetFont())
+            label:SetFontSize(editor:GetFontSize())
+            label:SetText(code)
+            Add(label)
+        end
+    end
 
     blueprint action UpdateName(integer selectedLine)
 
@@ -898,8 +999,12 @@ class Block is Control
 
     action SetParentBlock(Block parentBlock)
         me:parentBlock = parentBlock
-        if parentBlock not= undefined and parentBlock:GetEditor() not= editor
-            SetEditor(parentBlock:GetEditor())
+//        if parentBlock not= undefined and parentBlock:GetEditor() not= editor
+//            SetEditor(parentBlock:GetEditor())
+//        end
+
+        if parentBlock not= undefined and parentBlock:GetBlockEnvironment() not= GetBlockEnvironment()
+            SetBlockEnvironment(parentBlock:GetBlockEnvironment())
         end
 
         InitializeLocalIndices()
@@ -976,7 +1081,7 @@ class Block is Control
 
     */
     action GetMinimumWidth returns number
-        CodeEditor editor = GetEditor()
+        BlockEnvironment editor = GetBlockEnvironment()
         if editor not= undefined
             number minimumWidth = GetTopNotchPosition()
             if GetBottomNotchPosition() > minimumWidth
@@ -1083,4 +1188,118 @@ action DrawContents(Painter2D painter)
 action IsAccessibleParent returns boolean
         return true
     end
+    
+    // Indicates if this block is currently moving (e.g. being dragged with the mouse)
+    action SetMoving(boolean moving)
+        isMoving = moving
+    end
+    
+    action IsMoving returns boolean
+        return isMoving
+    end
+    
+    // This action indicates if the given placeholder blocks can be placed under this block.
+    // For example, if this is a block that's currently moving, it won't accept any placeholders.
+    action CanAcceptPlaceholders returns boolean
+        return isMoving = false
+    end
+    
+    /*This action returns false if the given placeholder would be an error in the code if it is placed under this block,
+or true otherwise. This doesn't indicate whether or not the placeholder is allowed to be placed there or not -- for
+that information, use CanAcceptPlaceholders().*/
+    action IsPlaceholderValid(Block block) returns boolean
+        return true
+    end
+    
+    action IsPlaceholder returns boolean
+        return isPlaceholder
+    end
+    
+    /*This action sets the block as a placeholder. It will visually appear as a block with a single label containing
+the provided code. For more specific visuals, use SetAsPlaceholder(text, Array<Item2D>).*/
+    action SetAsPlaceholder(text code)
+        SetAsPlaceholder(code, undefined)
+    end
+    
+    /*This action sets the block as a placeholder. The actual appearance will be dictated by the given controls.
+    This action will make a COPY of each of the provided elements. It does not store the original elements or
+    maintain a shallow copy of the given array.
+    
+    Because the given controls supply the visuals, the code will not be used visually, but must still correctly
+    match the code the block represents, because it will be used if the placeholder is converted to a real block.*/
+    action SetAsPlaceholder(text code, Array<Item2D> controls)
+        isPlaceholder = true
+        placeholderText = code
+        
+        if controls not= undefined
+            BlockEnvironment editor = GetBlockEnvironment()
+            number spacing = editor:GetDefaultGlyphWidth()
+            SetLeftPadding(spacing * 0.5)
+            SetRightPadding(spacing * 0.5)
+                
+            Array<Item2D> newArray
+            placeholderControls = newArray
+            integer i = 0
+            repeat while i < controls:GetSize()
+                Item2D child = controls:Get(i)
+                if child is EditField
+                    EditField field = cast(EditField, child)
+                    EditField newField
+                    newField:SetName(field:GetName())
+                    newField:SetText(field:GetText())
+                    newField:SetLeftPadding(field:GetLeftPadding())
+                    newField:SetRightPadding(field:GetRightPadding())
+                    newField:SetInputGroup("")
+    
+                    placeholderControls:Add(newField)
+                elseif child is EditBox
+                    EditBox box = cast(EditBox, child)
+                    EditBox newBox
+                    newBox:SetName(box:GetName())
+                    newBox:SetText(box:GetText())
+                    newBox:SetLeftPadding(box:GetLeftPadding())
+                    newBox:SetRightPadding(box:GetRightPadding())
+                    newBox:SetInputGroup("")
+                    
+                    placeholderControls:Add(newBox)
+                elseif child is BlockLabel
+                    BlockLabel label = cast(BlockLabel, child)
+                    BlockLabel newLabel
+                    newLabel:SetText(label:GetText())
+                    newLabel:SetLeftPadding(label:GetLeftPadding())
+                    newLabel:SetRightPadding(label:GetRightPadding())
+                        
+                    placeholderControls:Add(newLabel)
+                end
+                
+                i = i + 1
+            end
+        end
+        
+    end
+    
+    action GetPlaceholderText returns text
+        if placeholderText = undefined
+            return "Placeholder"
+        end
+        return placeholderText
+    end
+    
+    // Makes a copy of this block as a placeholder. Used for operatings like dragging blocks to show previews.
+    action CopyToPlaceholder returns Block
+        integer i = 0
+        Array<Item2D> children = GetChildren()
+        
+        //The actual type of block is irrelevant, as the placeholder calls will supersede anything it would do. 
+        ActionCallBlock placeholder
+        placeholder:SetInterfaceOptionsKey(GetInterfaceOptionsKey())
+//        placeholder:SetEditor(GetEditor())
+        placeholder:SetBlockEnvironment(GetBlockEnvironment())
+        placeholder:SetAsPlaceholder(GetText(), children)
+        placeholder:SetScopeDepth(GetScopeDepth())
+        placeholder:Setup()
+        return placeholder
+    end
+    
+    
 end

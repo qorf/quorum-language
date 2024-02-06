@@ -32,6 +32,8 @@ shared class BlockOptionConstants
     public constant text PRIMARY_ERROR_COLOR = "primaryErrorColor"
     public constant text SECONDARY_ERROR_COLOR = "secondaryErrorColor"
     public constant text HINT_BORDER_COLOR = "hintBorderColor"
+    public constant text MOVING_BACKGROUND_COLOR = "movingBackgroundColor"
+    public constant text PLACEHOLDER_BACKGROUND_COLOR = "placeholderBackgroundColor"
 
     Array<text> colorOptionKeys
 
@@ -70,6 +72,8 @@ shared class BlockOptionConstants
         colorOptionKeys:Add(STATIC_FONT_COLOR)
         colorOptionKeys:Add(PRIMARY_ERROR_COLOR)
         colorOptionKeys:Add(SECONDARY_ERROR_COLOR)
+        colorOptionKeys:Add(MOVING_BACKGROUND_COLOR)
+colorOptionKeys:Add(PLACEHOLDER_BACKGROUND_COLOR)
 
         // Add all custom number options to the appropriate array.
         numberOptionKeys:Add(EDIT_BORDER_THICKNESS)

@@ -1,0 +1,231 @@
+package Libraries.Interface.Controls.Blocks
+
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Behaviors.Blocks.BlockPaletteInsertBehavior
+use Libraries.Game.InputTable
+use Libraries.Game.InputSet
+use Libraries.Interface.Behaviors.Blocks.BlockPaletteItemStartDragBehavior
+use Libraries.Interface.Behaviors.Blocks.BlockPaletteItemContinueDragBehavior
+use Libraries.Interface.Behaviors.Blocks.BlockPaletteItemDropBehavior
+use Libraries.Containers.Array
+use Libraries.Language.Compile.CompilerErrorManager
+use Libraries.Language.Compile.Parsing.QuorumLexer
+use Libraries.Language.Compile.Parsing.QuorumParser
+use Libraries.Language.Compile.Context.StartContext
+use Libraries.Language.Compile.Blocks.ParserToBlockListener
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Language.Compile.Context.StatementContext
+
+
+class BlockPaletteItem is Button, BlockEnvironment
+
+    BlockPalette palette = undefined
+    Array<Block> blocksToDrag = undefined
+    
+    text code = undefined
+    RootBlock root = undefined
+    Array<Block> visualBlocks
+    
+    on create
+        SetVerticalLayoutMode(parent:Control:STANDARD)
+        SetInputGroup("Block")
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        if code not= undefined and root = undefined
+            CompilerErrorManager manager
+            QuorumLexer lexer
+            lexer:SetCompilerErrorManager(manager)
+            lexer:Read(code)
+            
+            QuorumParser parser
+            parser:SetCompilerErrorManager(manager)
+            parser:SetLexer(lexer)
+            StartContext start = parser:Start()
+            
+ParserToBlockListener blockListener
+            blockListener:SetBlockEnvironment(me)
+            blockListener:SetQuorumLexer(lexer)
+            
+            if manager:IsCompilationErrorFree()
+            blockListener:SetStartContext(start)
+            root = blockListener:Update(0, code:GetSize())
+            elseif code = "" or code = "Blank"
+FreeformBlock newBlock
+                    newBlock:SetLocalStartLine(0)
+                    newBlock:SetLocalEndLine(0)
+                    newBlock:SetLocalStartIndex(0)
+                    newBlock:SetLocalEndIndex(0)
+                    newBlock:SetScopeDepth(0)
+                
+                RootBlock newRoot
+                root = newRoot
+                root:SetBlockEnvironment(me)
+                root:Add(cast(Block, newBlock))
+                
+                newBlock:Setup()
+                
+            else
+                manager:Empty()
+                StatementContext statement = parser:Statement()
+                parser:Statement()
+                
+                if statement = undefined
+FreeformBlock newBlock
+                    newBlock:SetLocalStartLine(0)
+                    newBlock:SetLocalEndLine(0)
+                    newBlock:SetLocalStartIndex(0)
+                    newBlock:SetLocalEndIndex(code:GetSize())
+                    newBlock:SetScopeDepth(0)
+                
+                RootBlock newRoot
+                root = newRoot
+                root:SetBlockEnvironment(me)
+                root:Add(cast(Block, newBlock))
+                
+                newBlock:Setup()
+                else
+blockListener:SetStartContext(undefined)
+            root = blockListener:ParseStatement(statement)
+                end
+            end
+            
+    
+            number height = 0        
+            Block block = root
+            repeat until block = undefined
+                block:SetFontSize(GetFontSize())
+                if block is SingleLineBlock
+                    Block copy = block:CopyToPlaceholder()
+                    copy:LoadGraphics(copy:GetDefaultLayoutProperties())
+                    copy:SetInputGroup("")
+                    copy:SetInterfaceScale(GetInterfaceScale())
+                    Add(copy)
+                    visualBlocks:Add(copy)
+                    
+                    height = height + GetLineHeight(0)
+                end
+    
+                block = block:GetNextBlock()
+            end
+    
+            SetPixelHeight(height)
+            SetHeight(height)
+            RequestLayout()
+    
+            integer i = 0
+            number current = height
+            repeat while i < visualBlocks:GetSize()
+                Block child = visualBlocks:Get(i)
+                current = current - GetLineHeight(i)
+                child:Resize()
+                child:SetPosition(0, current)
+                i = i + 1
+            end
+        end
+    end
+    
+    action GetLineY(integer index) returns number
+        return index * (GetFont():GetLineHeight() * (1 + GetPercentageLineHeightPadding()))
+    end
+    
+    action GetLineHeight(integer index) returns number
+        return GetFont():GetLineHeight() * (1 + GetPercentageLineHeightPadding())
+    end
+    
+    action GetCode returns text
+        return code
+    end
+
+    action SetCode(text value)
+        code = value
+    end
+    
+    action GetCodeBetween(integer startIndex, integer endIndex) returns text
+        return code:GetSubtext(startIndex, endIndex)
+    end
+
+    action SetPalette(BlockPalette palette)
+        me:palette = palette
+    end
+
+    action GetPalette returns BlockPalette
+        return palette
+    end
+
+    action GetEditor returns CodeEditor
+        if palette not= undefined
+            return palette:GetEditor()
+        end
+        return undefined
+    end
+
+
+    action SetBlocks(Array<Block> blocks)
+        blocksToDrag = blocks
+    end
+    
+    action GetBlocks returns Array<Block>
+        if blocksToDrag not= undefined
+            return blocksToDrag
+        end
+        Array<Block> blocks
+        
+        ActionCallBlock placeholder
+        EditBox box
+        box:SetText(GetName())
+        Array<Item2D> children
+        children:Add(box)
+//        placeholder:SetEditor(GetEditor())
+        placeholder:SetBlockEnvironment(GetEditor())
+        placeholder:SetScopeDepth(1)
+        placeholder:SetAsPlaceholder(GetName(), children)
+        placeholder:Setup()
+
+        blocks:Add(placeholder)
+        return blocks
+    end
+    
+    action ParseToBlocks(text code) returns Array<Block>
+        SetCode(code)
+        
+        ParserToBlockListener listener
+
+        if GetEditor() = undefined
+            return undefined
+        end
+        Array<Block> blocks
+        CompilerErrorManager manager
+        QuorumLexer lexer
+        lexer:SetCompilerErrorManager(manager)
+        lexer:Read(code)
+        
+        if not manager:IsCompilationErrorFree()
+//            text value = manager:GetCompilerErrorsAsText()
+//            output "WARNING: Couldn't generate start context due to the following error:
+//" + value
+            return undefined
+        end
+        QuorumParser parser
+        parser:SetCompilerErrorManager(manager)
+        parser:SetLexer(lexer)
+        StartContext start = parser:Start()
+        if not manager:IsCompilationErrorFree()
+//            text value = manager:GetCompilerErrorsAsText()
+//            output "WARNING: Couldn't generate start context due to the following error:
+//" + value
+            return undefined
+        end
+        ParserToBlockListener blockListener
+        blockListener:SetQuorumLexer(lexer)
+        blockListener:SetStartContext(start)
+        blockListener:SetBlockEnvironment(me)
+        RootBlock root = blockListener:Update(0,100)
+        Block block = root:GetNextNavigableBlock()
+        repeat while block not= undefined
+            blocks:Add(block)
+            block = block:GetNextNavigableBlock()
+        end
+        return blocks
+    end
+end

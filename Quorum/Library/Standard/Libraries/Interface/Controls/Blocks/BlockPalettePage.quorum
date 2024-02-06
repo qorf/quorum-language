@@ -1,0 +1,139 @@
+package Libraries.Interface.Controls.Blocks
+
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Behaviors.Blocks.BlockPaletteInsertBehavior
+use Libraries.Interface.Pages.StackedRowPage
+use Libraries.Game.Graphics.Painter2D
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.ScrollPaneRenderer
+
+class BlockPalettePage is StackedRowPage
+
+    BlockPalette palette = undefined
+    
+    // Arrays used during the Draw action. Should not be used otherwise!
+    Array<Block> renderArray
+    Array<MultipleLineBlock> currentMultiBlocks
+    
+    
+on create
+SetCustomDrawing(true)
+        SetChildrenProcessingMouseEvents(true)
+    end
+    
+action Draw(Painter2D painter)
+if GetView2D() not= undefined
+            GetView2D():Draw(painter)
+        end
+        
+        number topY = GetGlobalY() + GetHeight()
+        number bottomY = GetGlobalY()
+        
+        Array<Item2D> items = GetScrollRegionItems()
+        integer i = 0
+        repeat while i < items:GetSize()
+            Item2D item = items:Get(i)
+            number itemTop = item:GetGlobalY() + item:GetHeight()
+            number itemBottom = item:GetGlobalY()
+            if itemTop < bottomY
+                // This item is off the bottom of the scroll area, so don't bother looking through the rest.
+                i = items:GetSize()
+            elseif itemBottom > topY
+                // Do nothing, we have to keep looking through the items.
+                // This item also can't be visible, though, since it's off the top of the scroll area, so don't draw it.
+            elseif item is BlockPaletteItem
+                if item:GetView2D() not= undefined
+                    item:GetView2D():Draw(painter)
+                end
+                
+                Array<Item2D> subItems = item:GetChildren()
+                integer j = 0
+                repeat while j < subItems:GetSize()
+                    Item2D subItem = subItems:Get(j)
+                    if subItem is Block
+                        renderArray:Add(cast(Block, subItem))
+                    else
+                        subItem:Draw(painter)
+                    end
+                    
+j = j + 1
+                end
+                
+            else
+                item:Draw(painter)
+            end
+            
+            i = i + 1
+        end
+        
+        i = 0
+        repeat while i < renderArray:GetSize()
+            Block block = renderArray:Get(i)
+if block is MultipleLineBlock
+                MultipleLineBlock multiBlock = cast(MultipleLineBlock, block)
+                multiBlock:DrawParts(painter)
+                currentMultiBlocks:Add(multiBlock)
+            else
+                block:Draw(painter)
+            end
+            
+            i = i + 1
+        end
+        
+        repeat until renderArray:IsEmpty()
+            Block block = renderArray:RemoveFromFront()
+            block:DrawContents(painter)
+        end
+        
+        repeat until currentMultiBlocks:IsEmpty()
+currentMultiBlocks:RemoveFromFront():DrawConnectors(painter)
+        end
+        
+
+        // Now that we've finally rendered all the contents, render the scroll bars.
+Array<Item2D> children = GetChildren()
+        i = 0
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is ScrollPaneRenderer = false
+                child:Draw(painter)
+            end
+            i = i + 1
+        end
+        
+        
+end
+
+    action AddBlockPaletteItem(text name) returns Button
+        BlockPaletteItem button
+        button:SetPalette(palette)
+
+        //BlockPaletteInsertBehavior behave
+
+        button:SetName(name)
+        button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
+        button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
+        button:SetToDefaultFontSize()
+        //button:SetBehavior(behave)
+        button:SetBlocks(button:ParseToBlocks(name))
+        button:SetFontSize(palette:GetFontSize())
+
+        Add(button)
+        return button
+    end
+
+
+    action GetEditor returns CodeEditor
+        return palette:GetEditor()
+    end
+
+    action SetPalette(BlockPalette blockPalette)
+        me:palette = blockPalette
+    end
+
+    action GetPalette returns BlockPalette
+        return palette
+    end
+
+end

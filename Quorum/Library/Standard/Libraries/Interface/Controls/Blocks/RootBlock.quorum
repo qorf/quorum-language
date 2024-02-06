@@ -97,7 +97,7 @@ class RootBlock is Block
     */
     action GetLocalEndIndex returns integer
         // The RootBlock ends at the end of the text.
-        CodeEditor editor = GetEditor()
+        CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
         if editor not= undefined and editor:GetCode() not= undefined
             return editor:GetCode():GetSize()
         end
@@ -130,7 +130,7 @@ class RootBlock is Block
     */
     action GetLocalEndLine returns integer
         // The RootBlock ends on the last line of the text.
-        CodeEditor editor = GetEditor()
+        CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
         if editor not= undefined and editor:GetCode() not= undefined
             return editor:GetCode():GetLineCount() - 1
         end

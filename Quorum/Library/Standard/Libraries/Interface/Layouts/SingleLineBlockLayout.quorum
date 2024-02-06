@@ -7,6 +7,7 @@ use Libraries.Interface.Item2D
 use Libraries.Interface.Controls.Blocks.Block
 use Libraries.Interface.Controls.Blocks.EditRegion
 use Libraries.Interface.Controls.Blocks.CodeEditor
+use Libraries.Interface.Controls.Blocks.BlockEnvironment
 
 class SingleLineBlockLayout is Layout
 
@@ -17,7 +18,8 @@ class SingleLineBlockLayout is Layout
             return now
         end
 
-        CodeEditor editor = block:GetEditor()
+        //CodeEditor editor = block:GetEditor()
+        BlockEnvironment editor = block:GetBlockEnvironment()
         
         if editor = undefined
             return now
@@ -75,7 +77,7 @@ class SingleLineBlockLayout is Layout
         Our aim is to ensure that if the last Item in the block is an EditRegion, it fills any extra space
         present due to the minimum width.
         */
-        if items:GetFromEnd() is EditRegion
+        if items:GetSize() > 0 and items:GetFromEnd() is EditRegion
             EditRegion region = cast(EditRegion, items:GetFromEnd())
             number fillWidth = block:GetMinimumWidth() - region:GetX() - block:GetRightPadding()
             if region:GetWidth() < fillWidth

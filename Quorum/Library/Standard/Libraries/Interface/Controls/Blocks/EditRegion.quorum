@@ -22,12 +22,18 @@ class EditRegion is BlockItem
 
     // Used to query for edit-specific properties from the options.
     BlockOptionConstants constants
+    
+    // This indicates if this EditRegion is being used as part of a placeholder block.
+    // Placeholder edit regions don't take text from the code editor and don't accept standard field/text box input.
+    boolean placeholder = false
 
     on create
         SetCornerPixelRounding(4, 4, 4, 4)
     end
 
     blueprint action Setup(text name, integer relativeStartIndex, integer relativeEndIndex)
+    
+    blueprint action SetupAsPlaceholder(text name, text code)
 
     action GetDefaultFontName returns text
         text name = undefined
@@ -104,7 +110,8 @@ class EditRegion is BlockItem
 
     action GetLineIndex returns integer
         Block block = GetBlock()
-        return GetEditor():GetLineIndex(block:GetStartIndex() + startIndex)
+        CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
+        return editor:GetLineIndex(block:GetStartIndex() + startIndex)
     end
 
     blueprint action UpdateLength
@@ -192,4 +199,11 @@ class EditRegion is BlockItem
     blueprint action HideCaret
 
     blueprint action GetSelectedText returns text
+    
+    blueprint action GetText returns text
+    
+action IsPlaceholder returns boolean
+        return placeholder
+    end
+    
 end
