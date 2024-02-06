@@ -118,7 +118,14 @@ class plugins_quorum_Libraries_Language_Types_Text_:
 		return len(self.text)
 
 	def GetHashCode(self):
-		return hash(self.text)
+		theString = self.text
+		size = len(theString)
+		h = 0
+		i = 0
+		while(i < size):
+			h = 31 * h + ord(theString[i])
+			i = i + 1
+		return h
 
 	def GetSubtext__quorum_integer__quorum_integer(self, startIndex, endIndex):
 		return self.text[startIndex:endIndex]

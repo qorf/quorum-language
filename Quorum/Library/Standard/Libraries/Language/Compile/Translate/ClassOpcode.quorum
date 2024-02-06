@@ -2034,7 +2034,7 @@ actLink:SetClassAttribute("hover:underline text-sm")
                clazz:GetStaticKey() = "Libraries.Language.Types.Number" or
                clazz:GetStaticKey() = "Libraries.Language.Types.Text"
                convertedSource:Append(tab + tab + "self." + clazz:GetPluginName() + 
-                    " = " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "()" + EOL)
+                    " = " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(value)" + EOL)
             else 
                 if not clazz:IsObject()
                     convertedSource:Append(tab + tab + "self." + clazz:GetPluginName() + 
