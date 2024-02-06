@@ -75,3 +75,30 @@ def  Global_GetValue_(value, type):
 			return None
 	else:
 		return value.GetValue()
+		
+def Global_CheckCast(from_, to):
+	if (from_ is None or from_ == None):
+		return from_
+	names = from_.inheritance_;
+	for element in names:
+		if(element == to):
+			return from_
+    
+	raise quorum_Libraries_Language_Errors_CastError_()
+	
+def Exception_(e):
+	val = e
+	if isinstance(e, quorum_Libraries_Language_Errors_Error_):
+		return e
+	elif isinstance(e, AttributeError):
+		if "NoneType" in str(e): 
+			val = quorum_Libraries_Language_Errors_UndefinedObjectError_()
+		else:
+			val = quorum_Libraries_Language_Errors_Error_()
+	else:
+		val = quorum_Libraries_Language_Errors_Error_()
+	
+	message = str(e)
+	val.Set_Libraries_Language_Errors_Error__errorMessage_(message)
+	
+	return val

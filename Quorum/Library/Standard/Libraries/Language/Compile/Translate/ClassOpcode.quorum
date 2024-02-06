@@ -1772,9 +1772,9 @@ actLink:SetClassAttribute("hover:underline text-sm")
 
         Type errorType
         boolean hasErrorParent = clazz:HasParentClass(errorType:ERROR_KEY)
-        if clazz:IsError()
+        if clazz:GetStaticKey() = errorType:ERROR_KEY
             convertedSource:Append("(Exception)")
-        elseif hasErrorParent
+        elseif clazz:IsError() //error or a subclass.
             convertedSource:Append("(quorum_Libraries_Language_Errors_Error_)")
         end
         convertedSource:Append(":" + EOL)
@@ -1971,14 +1971,7 @@ actLink:SetClassAttribute("hover:underline text-sm")
         end
         
         convertedSource:Append(tab + tab + "self.me_ = self" + EOL)
-        convertedSource:Append(tab + tab + "self.inheritance_ = {")
-        parents = clazz:GetParentClasses()
-        repeat while parents:HasNext()
-            Class p = parents:Next()
-            text parentKey = p:GetStaticKey()
-            convertedSource:Append("'" + parentKey + "', ")
-        end
-        convertedSource:Append(" '" + clazz:GetStaticKey() + "'}" + EOL)
+        
 
 
         boolean hasFieldOrParent = false
@@ -2032,6 +2025,8 @@ actLink:SetClassAttribute("hover:underline text-sm")
             end
         end
 
+        
+
         if clazz:HasSystemAction() //this has a plugin, so instantiate it.
             //if this is a primitive wrapper, pass the actual primitive
             if clazz:GetStaticKey() = "Libraries.Language.Types.Boolean" or
@@ -2067,6 +2062,15 @@ actLink:SetClassAttribute("hover:underline text-sm")
             convertedSource:Append(tab + tab + "super().__init__(message)" + EOL)
             convertedSource:Append(tab + tab + "self.errorMessage = message" + EOL)
         end
+
+        convertedSource:Append(tab + tab + "self.inheritance_ = {")
+        parents = clazz:GetParentClasses()
+        repeat while parents:HasNext()
+            Class p = parents:Next()
+            text parentKey = p:GetStaticKey()
+            convertedSource:Append("'" + parentKey + "', ")
+        end
+        convertedSource:Append(" '" + clazz:GetStaticKey() + "'}" + EOL)
 
         //now that all of the parents have had their parent's set, 
         //call their constructors. Only if there's at least one non-object parent.

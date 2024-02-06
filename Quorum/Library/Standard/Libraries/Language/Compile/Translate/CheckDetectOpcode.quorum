@@ -392,6 +392,8 @@ class CheckDetectOpcode is QuorumOpcode
                 Variable value = errorBlock:GetExceptionVariable()
                 text exceptionVariableName = value:GetPythonName()
                 result = result + tabs + "except Exception as " + exceptionVariableName + ":" + EOL
+                result = result + tabs + tab +exceptionVariableName + " = Exception_(" + exceptionVariableName + ")" + EOL
+                
                 constants:IncreaseTab()
                 result = result + errorBlock:WritePython()
                 constants:DecreaseTab()

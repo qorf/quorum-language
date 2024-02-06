@@ -616,22 +616,20 @@ class Compiler
                     i = i + 1
                 end
 
-                //temporarily, let's write the library to disk
+                Class errorClass = table:GetClass("Libraries.Language.Errors.Error")
+                //it's special so shove Error in the front
+                if errorClass not= undefined
+                    ClassOpcode op = library:GetOpcode(errorClass:GetStaticKey())
+                    if op not= undefined
+                        classOpcodes:AddToFront(op)
+                    end
+                end
                 Iterator<Class> iterator = table:GetClasses()
                 repeat while iterator:HasNext()
                     Class cl = iterator:Next()
                     ClassOpcode op = library:GetOpcode(cl:GetStaticKey())
-                    if op not= undefined
-//                        if  cl:GetStaticKey() = "Libraries.Containers.Array" or
-//                            cl:GetStaticKey() = "Libraries.Language.Errors.Error" or
-//                            cl:GetStaticKey() = "Libraries.Language.Errors.InvalidLocationError" or
-//                            cl:GetStaticKey() = "Libraries.Language.Object" or
-//                            cl:GetStaticKey() = "Libraries.Language.Types.Integer" or
-//                            cl:GetStaticKey() = "Libraries.Language.Types.Number" or
-//                            cl:GetStaticKey() = "Libraries.Language.Types.Text" or
-//                            cl:GetStaticKey() = "Libraries.Language.Types.Boolean"
-                            classOpcodes:Add(op)
-//                        end
+                    if op not= undefined and cl:GetStaticKey() not= "Libraries.Language.Errors.Error" 
+                        classOpcodes:Add(op)
                     end
                 end
 

@@ -42,7 +42,8 @@ class ExplicitCastOpcode is QuorumOpcode
         DQ = DQ:GetDoubleQuote()
         if opcodeToCast not= undefined
             Type type = GetType()
-            return opcodeToCast:WritePython()
+            return "Global_CheckCast(" + opcodeToCast:WritePython()+ ", "
+                + DQ + type:GetStaticKey() + DQ + ")"
         else 
             return ""
         end
