@@ -46,7 +46,7 @@ class plugins_quorum_Libraries_Compute_Math_():
 
 
 	def InverseTangent__quorum_number__quorum_number (self, x, y):
-		return math.asin(x) / math.acos(y)
+		return math.atan2(y, x)
 
 
 	def InverseHyperbolicSine__quorum_number (self, value):

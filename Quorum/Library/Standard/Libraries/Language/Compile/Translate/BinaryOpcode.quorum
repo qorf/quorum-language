@@ -239,11 +239,11 @@ class BinaryOpcode is QuorumOpcode
         elseif current = op:TIMES
             operator =  "*"
         elseif current = op:DIVIDE
-            if leftType:IsInteger() and rightType:IsInteger()
-                operator =  "//"
-            else
+//            if leftType:IsInteger() and rightType:IsInteger()
+//                operator =  "//"
+//            else
                 operator =  "/"
-            end
+//            end
         elseif current = op:MODULUS
             operator =  "%"
         elseif current = op:AND
@@ -268,7 +268,11 @@ class BinaryOpcode is QuorumOpcode
 
         text rightResult = right:WritePython() 
 
-        result = "(" + leftResult + " " + operator + " " + rightResult + ")"
+        if leftType:IsInteger() and rightType:IsInteger() and current = op:DIVIDE
+            result = "Global_Cast_To_Int(" + leftResult + " " + operator + " " + rightResult + ")"
+        else
+            result = "(" + leftResult + " " + operator + " " + rightResult + ")"
+        end
 //        if leftType:IsText() and rightType:IsNumber()
 //            rightResult = "(global_number_converter_(" + rightResult + "))"
 //        elseif leftType:IsNumber() and rightType:IsText()

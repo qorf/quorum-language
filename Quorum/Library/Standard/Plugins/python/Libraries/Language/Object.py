@@ -76,6 +76,9 @@ def  Global_GetValue_(value, type):
 	else:
 		return value.GetValue()
 		
+def Global_Cast_To_Int(value):
+	return int(value)
+		
 def Global_CheckCast(from_, to):
 	if (from_ is None or from_ == None):
 		return from_
