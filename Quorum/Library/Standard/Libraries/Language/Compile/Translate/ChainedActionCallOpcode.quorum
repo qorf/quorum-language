@@ -137,17 +137,17 @@ class ChainedActionCallOpcode is QuorumOpcode
                 text value = values:Get(i - 1)
                 Type type = res:typeToMakeCallOn
                 if type:IsBoolean()
-                    value = "Bool_(" + value + ")"
-                    values:Set(i - 1, value)
+                    values:Add(0, "Bool_(")
+                    values:Add(")")
                 elseif type:IsInteger()
-                    value = "Integer_(" + value + ")"
-                    values:Set(i - 1, value)
+                    values:Add(0, "Integer_(")
+                    values:Add(")")
                 elseif type:IsNumber()
-                    value = "Number_(" + value + ")"
-                    values:Set(i - 1, value)
+                    values:Add(0, "Number_(")
+                    values:Add(")")
                 elseif type:IsText()
-                    value = "Text_(" + value + ")"
-                    values:Set(i - 1, value)
+                    values:Add(0, "Text_(")
+                    values:Add(")")
                 end
 
                 //now write the new opcode
