@@ -59,6 +59,7 @@ def Global_Cast_Integer_To_Text(value):
 def Global_Cast_Number_To_Text(value):
 	value = str(float(value))
 	value = value.replace("e+", "E")
+	value = value.replace("e-", "E-")
 	return value
 	
 def Global_Cast_Integer_To_Number(value):

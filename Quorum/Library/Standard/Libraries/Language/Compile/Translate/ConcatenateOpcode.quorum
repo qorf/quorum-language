@@ -36,14 +36,18 @@ class ConcatenateOpcode is BinaryOpcode
         
         Type lt = left:GetType()
         Type rt = right:GetType()
-        if not lt:IsText() and not lt:IsBoolean()
+        if not lt:IsText() and not lt:IsBoolean() and not lt:IsNumber()
             leftText = "Global_Cast_To_Text(" + leftText + ")"
+        elseif not lt:IsText() and lt:IsNumber()
+            leftText = "Global_Cast_Number_To_Text(" + leftText + ")"
         elseif not lt:IsText() and lt:IsBoolean()
             leftText = "Global_Cast_Boolean_To_Text(" + leftText + ")"
         end
 
-        if not rt:IsText() and not rt:IsBoolean()
+        if not rt:IsText() and not rt:IsBoolean() and not rt:IsNumber()
             rightText = "Global_Cast_To_Text(" + rightText + ")"
+        elseif not rt:IsText() and rt:IsNumber()
+            rightText = "Global_Cast_Number_To_Text(" + rightText + ")"
         elseif not rt:IsText() and rt:IsBoolean()
             rightText = "Global_Cast_Boolean_To_Text(" + rightText + ")"
         end
