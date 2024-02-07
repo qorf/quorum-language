@@ -25,12 +25,16 @@ import org.robovm.rt.bro.annotation.Pointer;
 import plugins.quorum.Libraries.Game.libGDX.Array;
 import plugins.quorum.Libraries.Game.libGDX.Pool;
 
+import plugins.quorum.Libraries.Interface.Accessibility.IOS.TextAdjust;
+import plugins.quorum.Libraries.Interface.Accessibility.IOS.TextFieldIOS;
 import quorum.Libraries.Game.IOSConfiguration_;
 import quorum.Libraries.Game.IOSConfiguration;
+import quorum.Libraries.Interface.Controls.TextField_;
 import quorum.Libraries.Interface.Events.GestureEvent;
 import quorum.Libraries.Interface.Events.TouchEvent;
 import quorum.Libraries.Containers.List_;
 import quorum.Libraries.Containers.List;
+import quorum.Libraries.Interface.Item_;
 
 /**
  *
@@ -41,6 +45,14 @@ public class IOSInput
     public java.lang.Object me_ = null;
     
     static final int MAX_TOUCHES = 20;
+
+    public TextAdjust getFocusedTextAdjust() {
+        return focusedTextAdjust;
+    }
+
+    public void setFocusedTextAdjust(TextAdjust focusedTextField) {
+        this.focusedTextAdjust = focusedTextField;
+    }
 
     private static class NSObjectWrapper<T extends NSObject> 
     {
@@ -261,13 +273,10 @@ public class IOSInput
     {
         return touchDown[pointer] != 0;
     }
-    
-    /* For the first pass on iOS input, text input is not yet implemented.
-    
-    
-    public void getTextInput(TextInputListener listener, String title, String text, String hint) {
-            buildUIAlertView(listener, title, text, hint).show();
-    }	
+
+//    public void getTextInput(TextInputListener listener, String title, String text, String hint) {
+//            buildUIAlertView(listener, title, text, hint).show();
+//    }
 
     // hack for software keyboard support
     // uses a hidden textfield to capture input
@@ -287,69 +296,85 @@ public class IOSInput
 
             @Override
             public void deleteBackward () {
-                    app.input.inputProcessor.keyTyped((char)8);
+//                    app.input.inputProcessor.keyTyped((char)8);
                     super.deleteBackward();
-                    Gdx.graphics.requestRendering();
+//                    Gdx.graphics.requestRendering();
             }
     }
+
+    private TextAdjust focusedTextAdjust = null;
+
 
     private UITextField textfield = null;
     private final UITextFieldDelegate textDelegate = new UITextFieldDelegateAdapter() {
             @Override
             public boolean shouldChangeCharacters (UITextField textField, NSRange range, String string) {
-                    for (int i = 0; i < range.getLength(); i++) {
-                            app.input.inputProcessor.keyTyped((char)8);
-                    }
+                if(focusedTextAdjust == null) {
+                    return false;
+                }
 
-                    if (string.isEmpty()) {
-                            if (range.getLength() > 0) Gdx.graphics.requestRendering();
-                            return false;
-                    }
-
+                //the user clicked delete, I "think"
+                if(string == null || string.isEmpty()) {
+                    focusedTextAdjust.DeleteBackward();
+                } else {
                     char[] chars = new char[string.length()];
                     string.getChars(0, string.length(), chars, 0);
-
                     for (int i = 0; i < chars.length; i++) {
-                            app.input.inputProcessor.keyTyped(chars[i]);
+                        focusedTextAdjust.Insert(chars[i] + "");
                     }
-                    Gdx.graphics.requestRendering();
+                }
 
-                    return true;
+                focusedTextAdjust.setAccessibilityValue(focusedTextAdjust.GetText());
+                return true;
             }
 
             @Override
             public boolean shouldEndEditing (UITextField textField) {
+                System.out.println("Triggered should end editing");
                     // Text field needs to have at least one symbol - so we can use backspace
-                    textField.setText("x");
-                    Gdx.graphics.requestRendering();
+                textField.setText("x");
+//                    Gdx.graphics.requestRendering();
 
                     return true;
             }
 
-            @Override
-            public boolean shouldReturn (UITextField textField) {
-                    if (keyboardCloseOnReturn) setOnscreenKeyboardVisible(false);
-                    app.input.inputProcessor.keyDown(Keys.ENTER);
-                    app.input.inputProcessor.keyTyped((char)13);
-                    Gdx.graphics.requestRendering();
-                    return false;
+        public boolean shouldClear(UITextField textField) {
+            System.out.println("Should clear");
+            return true;
+        }
+
+        public void textFieldDidChangeSelection(UITextField textField) {
+            UITextRange range = textField.getSelectedTextRange();
+        }
+
+        @Override
+        public boolean shouldReturn (UITextField textField) {
+            System.out.println("Triggered should return");
+                if (keyboardCloseOnReturn) setOnscreenKeyboardVisible(false);
+//                    app.input.inputProcessor.keyDown(Keys.ENTER);
+//                    app.input.inputProcessor.keyTyped((char)13);
+//                    Gdx.graphics.requestRendering();
+                return false;
             }
     };
 
     public void setOnscreenKeyboardVisible (boolean visible) {
-            if (textfield == null) createDefaultTextField();
-            if (visible) {
-                    textfield.becomeFirstResponder();
-                    textfield.setDelegate(textDelegate);
-            } else {
-                    textfield.resignFirstResponder();
-            }
+        System.out.println("Set on screen visible: " + visible);
+        if (textfield == null) createDefaultTextField();
+        if (visible) {
+            System.out.println("Visible");
+            textfield.becomeFirstResponder();
+            textfield.setDelegate(textDelegate);
+        } else {
+            System.out.println("Not visible");
+            textfield.resignFirstResponder();
+        }
     }
     
     /**
      * Set the keyboard to close when the UITextField return key is pressed
      * @param shouldClose Whether or not the keyboard should clsoe on return key press
-     *-
+     */
     public void setKeyboardCloseOnReturnKey (boolean shouldClose) {
             keyboardCloseOnReturn = shouldClose;
     }
@@ -371,55 +396,53 @@ public class IOSInput
             textfield.setHidden(true);
             // Text field needs to have at least one symbol - so we can use backspace
             textfield.setText("x");
-            app.getUIViewController().getView().addSubview(textfield);
+//            app.getUIViewController().getView().addSubview(textfield);
     }
     
     // Issue 773 indicates this may solve a premature GC issue
     UIAlertViewDelegate delegate;
 
-    /** Builds an {@link UIAlertView} with an added {@link UITextField} for inputting text.
-     * @param listener Text input listener
-     * @param title Dialog title
-     * @param text Text for text field
-     * @return UiAlertView *-
-    private UIAlertView buildUIAlertView (final TextInputListener listener, String title, String text, String placeholder) {
-            delegate = new UIAlertViewDelegateAdapter() {
-                    @Override
-                    public void clicked (UIAlertView view, long clicked) {
-                            if (clicked == 0) {
-                                    // user clicked "Cancel" button
-                                    listener.canceled();
-                            } else if (clicked == 1) {
-                                    // user clicked "Ok" button
-                                    UITextField textField = view.getTextField(0);
-                                    listener.input(textField.getText());
-                            }
-                            delegate = null;
-                    }
-
-                    @Override
-                    public void cancel (UIAlertView view) {
-                            listener.canceled();
-                            delegate = null;
-                    }
-            };
-
-            // build the view
-            final UIAlertView uiAlertView = new UIAlertView();
-            uiAlertView.setTitle(title);
-            uiAlertView.addButton("Cancel");
-            uiAlertView.addButton("Ok");
-            uiAlertView.setAlertViewStyle(UIAlertViewStyle.PlainTextInput);
-            uiAlertView.setDelegate(delegate);
-
-            UITextField textField = uiAlertView.getTextField(0);
-            textField.setPlaceholder(placeholder);
-            textField.setText(text);
-
-            return uiAlertView;
-    }
-    
-    */
+//    /** Builds an {@link UIAlertView} with an added {@link UITextField} for inputting text.
+//     * @param listener Text input listener
+//     * @param title Dialog title
+//     * @param text Text for text field
+//     * @return UiAlertView */
+//    private UIAlertView buildUIAlertView (final TextInputListener listener, String title, String text, String placeholder) {
+//            delegate = new UIAlertViewDelegateAdapter() {
+//                    @Override
+//                    public void clicked (UIAlertView view, long clicked) {
+//                            if (clicked == 0) {
+//                                    // user clicked "Cancel" button
+//                                    listener.canceled();
+//                            } else if (clicked == 1) {
+//                                    // user clicked "Ok" button
+//                                    UITextField textField = view.getTextField(0);
+//                                    listener.input(textField.getText());
+//                            }
+//                            delegate = null;
+//                    }
+//
+//                    @Override
+//                    public void cancel (UIAlertView view) {
+//                            listener.canceled();
+//                            delegate = null;
+//                    }
+//            };
+//
+//            // build the view
+//            final UIAlertView uiAlertView = new UIAlertView();
+//            uiAlertView.setTitle(title);
+//            uiAlertView.addButton("Cancel");
+//            uiAlertView.addButton("Ok");
+//            uiAlertView.setAlertViewStyle(UIAlertViewStyle.PlainTextInput);
+//            uiAlertView.setDelegate(delegate);
+//
+//            UITextField textField = uiAlertView.getTextField(0);
+//            textField.setPlaceholder(placeholder);
+//            textField.setText(text);
+//
+//            return uiAlertView;
+//    }
 
     public void Vibrate (int milliseconds) 
     {

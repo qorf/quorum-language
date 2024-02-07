@@ -5,37 +5,66 @@
  */
 package plugins.quorum.Libraries.Game;
 
+import org.robovm.apple.foundation.*;
+import org.robovm.apple.uikit.*;
 import quorum.Libraries.Game.Game_;
-import quorum.Libraries.Game.Graphics.GraphicsManager;
 import quorum.Libraries.Game.IOSConfiguration_;
-import quorum.Libraries.Game.IOSConfiguration;
 import quorum.Libraries.Game.IOSDisplay_;
 import quorum.Libraries.Game.IOSDisplay;
 import quorum.Libraries.Game.Graphics.IOSGraphics;
-import quorum.Libraries.Game.Graphics.Painter2D;
 
 import org.robovm.apple.coregraphics.CGRect;
-import org.robovm.apple.foundation.Foundation;
-import org.robovm.apple.foundation.NSBundle;
-import org.robovm.apple.foundation.NSString;
-import org.robovm.apple.uikit.UIApplication;
-import org.robovm.apple.uikit.UIApplicationLaunchOptions;
-import org.robovm.apple.uikit.UIWindow;
-import org.robovm.apple.uikit.UIScreen;
-import org.robovm.apple.uikit.UIDevice;
-import org.robovm.apple.uikit.UIUserInterfaceIdiom;
-import org.robovm.apple.uikit.UIViewController;
-import org.robovm.apple.uikit.UIInterfaceOrientation;
-
-import java.util.Iterator;
-import java.util.Properties;
 
 /**
  *
  * @author alleew
  */
+
+
 public class IOSApplication
 {
+    public class IOSAccessibilityContainer extends UIView implements UIAccessibilityContainer
+    {
+        private NSMutableArray<UIAccessibilityElement> accessibilityElements = new NSMutableArray<>();
+        private UIAccessibilityContainerType accessibilityContainerType = UIAccessibilityContainerType.SemanticGroup;
+
+        @Override
+        public NSMutableArray<UIAccessibilityElement> getAccessibilityElements() {
+            return accessibilityElements;
+        }
+
+        @Override
+        //WARNING: Do not actually set to NSArray<UIAccessibilityElement> as it will crash the program.
+        // it has to be NSMutableArray<UIAccessibilityElement>
+        public void setAccessibilityElements(NSArray<UIAccessibilityElement> v) {
+            accessibilityElements = (NSMutableArray<UIAccessibilityElement>) v;
+        }
+
+        @Override
+        public UIAccessibilityContainerType getAccessibilityContainerType() {
+            return accessibilityContainerType;
+        }
+
+        @Override
+        public void setAccessibilityContainerType(UIAccessibilityContainerType v) {
+            accessibilityContainerType = v;
+        }
+
+        @Override
+        public long getAccessibilityElementCount() {
+            return accessibilityElements.size();
+        }
+
+        @Override
+        public UIAccessibilityElement getAccessibilityElement(long index) {
+            return accessibilityElements.get((int)index);
+        }
+
+        @Override
+        public long indexOfAccessibilityElement(UIAccessibilityElement element) {
+            return accessibilityElements.indexOf(element);
+        }
+    }
     static final String SIMULATOR_SEARCH = "CoreSimulator";
     static final String SIMULATOR_PROPERTY = "IOS-Simulator";
     static {
@@ -50,12 +79,14 @@ public class IOSApplication
 
     // Reference to the game so we can call its actions.
     public Game_ game;
+    public static String name = "";
 
     UIApplication uiApp;
     UIWindow uiWindow;
     //IOSViewControllerListener viewControllerListener;
     IOSConfiguration_ config;
     IOSDisplay_ display;
+    public static IOSAccessibilityContainer accessibilityContainer;
     //IOSFiles files;
     //IOSInput input;
     //IOSNet net;
@@ -63,6 +94,10 @@ public class IOSApplication
 
     // The display scale factor (1.0f for normal, 2.0f to use retina coordinates/dimensions.
     float displayScaleFactor;
+    public CGRect screenBounds;
+    public static CGRect accessibilityContainerBounds;
+    public static int containerScaleFactorWidth;
+    public static int containerScaleFactorHeight;
 
     // Reference to the delegate -- may not be necessary.
     IOSDelegate delegate;
@@ -99,6 +134,7 @@ public class IOSApplication
     public void SetupNative(Game_ game)
     {
         this.game = game;
+        name = game.GetGameName();
 
         // Make the default working directory more useful if we're not on a simulator.
         if (IsSimulator())
@@ -106,9 +142,11 @@ public class IOSApplication
             plugins.quorum.Libraries.System.QuorumFile qFile = new plugins.quorum.Libraries.System.QuorumFile();
             qFile.defaultWorkingDirectory = NSBundle.getMainBundle().getBundlePath();
         }
+        System.out.println("IOSApplication: SetupNative: NSBundle.getMainBundle().getBundlePath() = " + NSBundle.getMainBundle().getBundlePath());
 
         delegate = new IOSDelegate();
         delegate.Begin(this);
+        System.out.println("IOSApplication: SetupNative: delegate.Begin(this) called.");
     }
 
     final boolean DidFinishLaunching(UIApplication uiApp, UIApplicationLaunchOptions options)
@@ -172,7 +210,23 @@ public class IOSApplication
         this.uiWindow = new UIWindow(UIScreen.getMainScreen().getBounds());
         this.uiWindow.setRootViewController(((IOSDisplay)display).plugin_.viewController);
         this.uiWindow.makeKeyAndVisible();
+        accessibilityContainer = new IOSAccessibilityContainer();
+        accessibilityContainerBounds = UIScreen.getMainScreen().getBounds();
+        screenBounds = GetBounds();
+        containerScaleFactorWidth = (int)(screenBounds.getWidth() / accessibilityContainerBounds.getWidth());
+        containerScaleFactorHeight = (int)(screenBounds.getHeight() / accessibilityContainerBounds.getHeight());
+        accessibilityContainer.setFrame(UIScreen.getMainScreen().getBounds());
+        accessibilityContainer.setHidden(false);
 
+        accessibilityContainer.setAccessibilityIdentifier(name);
+
+        this.uiWindow.getRootViewController().getView().addSubview(accessibilityContainer);
+
+        //hidden text field for the keyboard
+        UITextField field = input.getKeyboardTextField();
+        this.uiWindow.getRootViewController().getView().addSubview(field);
+
+        System.out.println("IOSApplication: DidFinishLaunching: this.uiWindow.makeKeyAndVisible() called.32323");
         return true;
     }
 

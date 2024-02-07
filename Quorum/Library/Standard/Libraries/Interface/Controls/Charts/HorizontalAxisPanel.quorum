@@ -176,16 +176,22 @@ class HorizontalAxisPanel is ChartItem
     */
     action GenerateInfoTree(Chart chart, ChartItem summary, ChartItem yAxis, ChartItem xAxis)
         xAxis:SetLeftItem(summary)
+        xAxis:SetRightItem(summary)
         summary:SetRightItem(xAxis)
+        summary:SetLeftItem(xAxis)
         xAxis:SetDisplayName(GenerateSummary())
         xAxis:SetContainer(chart)
 
         if chart:IsShowingYAxis()
             xAxis:SetRightItem(yAxis)
             yAxis:SetLeftItem(xAxis)
+            yAxis:SetRightItem(summary)
+            summary:SetLeftItem(yAxis)
         elseif chart:IsShowingLegend()
             xAxis:SetRightItem(chart:GetLegend())   
-            chart:GetLegend():SetLeftItem(xAxis)   
+            chart:GetLegend():SetLeftItem(xAxis) 
+            chart:GetLegend():SetRightItem(summary)
+            summary:SetLeftItem(chart:GetLegend())   
         end   
         
         if not chart:IsSeparated()

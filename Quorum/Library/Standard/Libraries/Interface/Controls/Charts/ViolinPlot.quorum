@@ -715,6 +715,9 @@ class ViolinPlot is Chart
                     end
                     i = i + 1
                 end
+                previousArea:SetDescription(previousArea:GetDescription() + " End of list order.")
+                previousArea:SetRightItem(firstArea)
+                firstArea:SetLeftItem(previousArea)
             end
         else
             if HasGroups()
@@ -740,6 +743,9 @@ class ViolinPlot is Chart
                         AddPlots(summary, group, plotGroups:Get(i):GetPlots())
                         i = i + 1
                     end
+                    previousGroup:SetDescription(previousGroup:GetDescription() + " End of list order.")
+                    previousGroup:SetRightItem(firstGroup)
+                    firstGroup:SetLeftItem(previousGroup)
                 end
             else
                 if plotGroups:GetSize() > 0 and plotGroups:Get(0):GetSize() > 0
@@ -766,6 +772,9 @@ class ViolinPlot is Chart
                         end
                         i = i + 1
                     end
+                    previousPlot:SetDescription(previousPlot:GetDescription() + " End of list order.")
+                    previousPlot:SetRightItem(firstPlot)
+                    firstPlot:SetLeftItem(previousPlot)
         
                     // Add UP/DOWN navigation
                     PlotGroupComparison comparison
@@ -785,6 +794,7 @@ class ViolinPlot is Chart
                             end
                             i = i + 1
                         end
+                        previousPlot:SetDescription(previousPlot:GetDescription() + " End of value order.")
                     end
                 end
             end
@@ -835,6 +845,9 @@ class ViolinPlot is Chart
                 previousPlot = plot
                 i = i + 1
             end
+            previousPlot:SetDescription(previousPlot:GetDescription() + " End of list order.")
+            previousPlot:SetRightItem(firstPlot)
+            firstPlot:SetLeftItem(previousPlot)
 
             // Add UP/DOWN navigation
             PlotComparison comparison
@@ -851,6 +864,7 @@ class ViolinPlot is Chart
                 previousPlot = plot
                 i = i + 1
             end
+            previousPlot:SetDescription(previousPlot:GetDescription() + " End of value order.")
         end
     end
 
@@ -883,12 +897,13 @@ class ViolinPlot is Chart
                     item:SetEscapeItem(parentItem)
                     item:SetLeftItem(previousItem)
                     previousItem:SetRightItem(item)
-                    item:SetDownItem(previousItem)
-                    previousItem:SetUpItem(item)
                     previousItem = item
                 end
                 i = i + 1
             end
+            previousItem:SetDescription(previousItem:GetDescription() + " End of list order.")
+            previousItem:SetRightItem(firstItem)
+            firstItem:SetLeftItem(previousItem)
         end
     end
 

@@ -832,6 +832,9 @@ class PieChart is Chart
                         previousSlice = slice
                         j = j + 1
                     end
+                    previousSlice:SetDescription(previousSlice:GetDescription() + " End of list order.")
+                    previousSlice:SetRightItem(firstSlice)
+                    firstSlice:SetLeftItem(previousSlice)
 
                     // Iterate over the slices again, this time in value order.
                     Array<ChartItem> sortedSlices = chartAreaItems:CopyToArray()
@@ -847,6 +850,7 @@ class PieChart is Chart
                         previousSlice = slice
                         j = j + 1
                     end
+                    previousSlice:SetDescription(previousSlice:GetDescription() + " End of value order.")
                 end
 
                 integer i = 1
@@ -885,6 +889,9 @@ class PieChart is Chart
                                 previousSlice = slice
                                 j = j + 1
                             end
+                            previousSlice:SetDescription(previousSlice:GetDescription() + " End of list order.")
+                            previousSlice:SetRightItem(firstSlice)
+                            firstSlice:SetLeftItem(previousSlice)
 
                             // Iterate over the slices again, this time in value order.
                             Array<ChartItem> sortedSlices = chartSubAreaItems:CopyToArray()
@@ -900,10 +907,14 @@ class PieChart is Chart
                                 previousSlice = slice
                                 j = j + 1
                             end
+                            previousSlice:SetDescription(previousSlice:GetDescription() + " End of value order.")
                         end
                     end
                     i = i + 1
                 end
+                previousArea:SetDescription(previousArea:GetDescription() + " End of list order.")
+                previousArea:SetRightItem(firstArea)
+                firstArea:SetLeftItem(previousArea)
             end
         else
             PieBox box = pieBoxes:Get(0)
@@ -928,6 +939,9 @@ class PieChart is Chart
                     previousSlice = slice
                     i = i + 1
                 end
+                previousSlice:SetDescription(previousSlice:GetDescription() + " End of list order.")
+                previousSlice:SetRightItem(firstSlice)
+                firstSlice:SetLeftItem(previousSlice)
 
                 // Iterate over the slices again, this time in value order.
                 Array<PieSlice> sortedSlices = box:GetSlices():CopyToArray()
@@ -943,6 +957,7 @@ class PieChart is Chart
                     previousSlice = slice
                     j = j + 1
                 end
+                previousSlice:SetDescription(previousSlice:GetDescription() + " End of value order.")
             end
         end
         
