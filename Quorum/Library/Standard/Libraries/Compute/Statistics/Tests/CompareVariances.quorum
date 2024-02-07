@@ -17,6 +17,8 @@ use Libraries.Compute.Statistics.Reporting.CompareMeansResult
 use Libraries.Containers.HashTable
 use Libraries.Compute.Statistics.Distributions.VarianceRatioDistribution
 use Libraries.Compute.Statistics.Transforms.TransformWider
+use Libraries.System.File
+use Libraries.Interface.Controls.Charts.all
 
 /*
     This class implements several tests:
@@ -203,6 +205,7 @@ class CompareVariances is StatisticalTest
             groups = GetGroups(copy)
         end
 
+        needToProcessData = false
         if repeatedMeasures
             if needToSelectTest
                 RunTest(copy)
@@ -215,8 +218,6 @@ class CompareVariances is StatisticalTest
                 designFrame = copy
             end
         end
-
-        needToProcessData = false
     end
 
     private action CopySelection(DataFrame frame)
@@ -229,6 +230,7 @@ class CompareVariances is StatisticalTest
     end
 
     private action RunTest(DataFrame frame)
+        needToProcessData = false
         if groups:GetSize() < 2
             alert("A CompareVariances calculation must include at least two samples.")
         end
@@ -297,7 +299,9 @@ class CompareVariances is StatisticalTest
             end
     
             // Conduct a one-way ANOVA on the centered groups
-            CompareMeans compare       
+            CompareMeans compare
+            compare:TestVarianceAssumption(false)  
+            compare:TestPairwise(false)       
             compare:CompareSeveralMeans(centeredGroupFrame)
             CompareMeansResult aov = compare:GetResult()
     
@@ -317,13 +321,23 @@ class CompareVariances is StatisticalTest
                 end
             end
             sources:Add(source)
-            result:SetTestStatistic(source, "F", aov:GetTestStatistic())
-            result:SetDegreesOfFreedom(source, "numerator", aov:GetDegreesOfFreedomTable():GetValue("Groups"):GetValueIterator():Next())
-            result:SetDegreesOfFreedom(source, "denominator", aov:GetDegreesOfFreedomTable():GetValue("Residual Error"):GetValue("Residual Error"))
-            result:SetProbabilityValue(source, source, aov:GetProbabilityValue())
+            text aovSource = "Groups"
+            number f = aov:GetInformation():GetValue("Groups"):GetValue("F")
+            number dfn = aov:GetInformation():GetValue("Groups"):GetValue("df")
+            number dfd = aov:GetInformation():GetValue("Groups"):GetValue("error df")
+            number p = aov:GetInformation():GetValue("Groups"):GetValue("p")
+            
+            result:SetTestStatistic(source, "F", f)
+            result:SetDegreesOfFreedom(source, "numerator", dfn)
+            result:SetDegreesOfFreedom(source, "denominator", dfd)
+            result:SetProbabilityValue(source, source, p)
             result:SetSignificanceLevel(GetSignificanceLevel())
             result:SetFormat(GetStatisticalFormatting())
             result:SetFormalTestName("Levene's Test for Homogeneity of Variances"+center)
+            result:SetInformation(source, "F", f)
+            result:SetInformation(source, "dfn", dfn)
+            result:SetInformation(source, "dfd", dfd)
+            result:SetInformation(source, "p", p)
             result:SetGroupsFrame(uncenteredGroupFrame)
             result:SetFactors(factorHeaders)
             result:SetColumns(columnHeaders)
@@ -515,7 +529,8 @@ class CompareVariances is StatisticalTest
             i = i + 1
         end
 
-        Matrix responseMatrix = groupFrame:CopySelectedColumns():ConvertToMatrix()
+        DataFrame measuresFrame = groupFrame:CopySelectedColumns()
+        Matrix responseMatrix = measuresFrame:ConvertToMatrix()
 
         // Create residual SSCP Matrix
         // Create the design matrix using between-subjects factors (intercept only if no factors)
@@ -656,9 +671,60 @@ class CompareVariances is StatisticalTest
         result:SetFormat(GetStatisticalFormatting())
         result:Repeated(true)
         result:SetFormalTestName("Mauchly's Test of Sphericity")
-        result:SetGroupsFrame(groupFrame:CopySelectedColumns()) // The only groupings that matter in mauchly's are the within-subjects groups
+        result:SetGroupsFrame(measuresFrame) // The only groupings that matter in mauchly's are the within-subjects groups
         result:SetFactors(factorHeaders)
         result:SetColumns(columnHeaders)
+        if between:GetSize() > 0 // For mixed design, do a levene's test on the each level of the within subjects factor
+            betweenDesign:Empty()
+            text betweensource = ""
+            text formalNameAddition = ""            
+            i = 0
+            repeat while i < between:GetSize()
+                betweenDesign:AddBetweenSubjectsFactor(between:Get(i))
+                if i = 0
+                    betweensource = between:Get(i)
+                else
+                    betweensource = betweensource + ":" + between:Get(i)
+                end
+                i = i + 1
+            end  
+         
+            groupFrame:EmptySelectedColumns()
+            i = 0
+            repeat while i < measuresFrame:GetSize()
+                text measure = measuresFrame:GetColumn(i):GetHeader()
+                text source = betweensource + ":" + measure
+
+                ExperimentalDesign bDesign = betweenDesign:Copy()
+                bDesign:AddDependentVariable(measure)
+
+                CompareVariances levene
+                levene:SetExperimentalDesign(bDesign)
+                levene:Calculate(groupFrame)
+    
+                CompareVariancesResult betweenResult = levene:GetResult()
+                number f = betweenResult:GetInformation():GetValue(betweensource):GetValue("F")
+                number dfn = betweenResult:GetInformation():GetValue(betweensource):GetValue("dfn")
+                number dfd = betweenResult:GetInformation():GetValue(betweensource):GetValue("dfd")
+                number p = betweenResult:GetInformation():GetValue(betweensource):GetValue("p")
+    
+                result:SetTestStatistic(source, "F", f)
+                result:SetDegreesOfFreedom(source, "numerator", dfn)
+                result:SetDegreesOfFreedom(source, "denominator", dfd)
+                result:SetProbabilityValue(source, source, p)
+                result:SetInformation(source, "F", f)
+                result:SetInformation(source, "dfn", dfn)
+                result:SetInformation(source, "dfd", dfd)
+                result:SetInformation(source, "p", p)
+                sources:Add(source)
+
+                if i = 0
+                    formalNameAddition = betweenResult:GetFormalTestName()
+                end
+                i = i + 1
+            end            
+            result:SetFormalTestName("Mauchly's Test of Sphericity and "+formalNameAddition)
+        end
         result:SetSources(sources)
         results:Add(result)
     end
@@ -885,7 +951,25 @@ class CompareVariances is StatisticalTest
         return summary
     end
 
+    action GetReport(File file) 
+//        CompareVariancesResult result       
+//        i = 0
+//        repeat while i < results:GetSize()
+//            result = results:Get(i)
+//            
+//            result:GetReportResult(file)
+//            
+//            i = i + 1
+//        end   
+        GetResult():GetReportResult(file)              
+    end
     
+    action GetChart() returns BoxPlot
+        CompareVariancesResult result                  
+        result = GetResults():Get(0)                
+        return result:GetChartResult()
+    end
+   
     private action ComputeSumOfSquaresCrossProductMatrix(Matrix x, Matrix y) returns Matrix
         Matrix xT = x:Transpose()
         Matrix xTx_inv = xT:Multiply(x):Inverse()       

@@ -1,0 +1,129 @@
+package Science.Tests
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.CompareCounts
+use Libraries.Compute.Statistics.Reporting.CompareCountsResult
+use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+
+/*
+    This class tests mcNemar, mcNemar-bowker and cochran's Q tests.
+*/
+class CompareRelatedCountsTest is Test
+
+    on create
+        SetName("CompareRelatedCountsTest - McNemar, McNemar-Bowker and Cochran's Q Test")
+    end
+
+    action Run
+        DataFrame frame
+        frame:LoadFromCommaSeparatedValue("id,t1,t2,t3,t4,t5,t6,t7,t8
+        1,no,no,yes,no,maybe,maybe,no,yes
+        2,no,no,yes,maybe,maybe,no,maybe,yes
+        3,no,no,yes,no,maybe,no,no,yes
+        4,no,no,yes,yes,maybe,maybe,maybe,yes
+        5,no,no,yes,no,maybe,maybe,maybe,yes
+        6,no,no,yes,maybe,maybe,maybe,maybe,yes
+        7,no,no,no,maybe,yes,yes,maybe,yes
+        8,no,no,no,maybe,no,no,maybe,yes
+        9,no,no,no,no,no,yes,maybe,yes
+        10,no,no,no,maybe,no,no,no,yes
+        11,no,no,yes,yes,yes,maybe,no,yes
+        12,no,no,yes,no,yes,no,no,yes
+        13,no,no,yes,yes,no,maybe,no,yes
+        14,no,no,yes,yes,yes,yes,no,yes
+        15,no,no,yes,yes,no,maybe,maybe,yes
+        16,no,yes,yes,yes,maybe,yes,maybe,yes
+        17,no,yes,no,no,no,yes,maybe,yes
+        18,no,yes,no,yes,no,no,no,yes
+        19,no,yes,no,yes,maybe,no,no,yes
+        20,no,yes,yes,maybe,yes,no,maybe,yes
+        21,no,yes,yes,no,no,no,maybe,yes
+        22,no,yes,yes,no,yes,no,no,yes
+        23,no,yes,yes,maybe,yes,yes,maybe,yes
+        24,no,yes,yes,no,yes,yes,maybe,yes
+        25,no,yes,yes,yes,no,maybe,maybe,yes
+        26,no,yes,no,yes,no,no,no,yes
+        27,no,yes,no,no,maybe,maybe,maybe,yes
+        28,no,yes,no,no,maybe,no,no,yes
+        29,no,yes,yes,no,maybe,no,no,yes
+        30,no,yes,yes,yes,maybe,maybe,maybe,yes
+        31,yes,no,yes,yes,no,yes,no,yes
+        32,yes,no,yes,yes,yes,yes,no,yes
+        33,yes,no,yes,maybe,no,no,maybe,yes
+        34,yes,no,yes,maybe,yes,no,no,yes
+        35,yes,no,yes,yes,maybe,maybe,maybe,yes
+        36,yes,no,yes,maybe,no,maybe,maybe,yes
+        37,yes,no,yes,yes,yes,maybe,no,yes
+        38,yes,no,yes,no,yes,maybe,maybe,yes
+        39,yes,no,yes,maybe,yes,no,maybe,yes
+        40,yes,no,yes,no,yes,yes,maybe,yes
+        41,yes,yes,yes,yes,maybe,no,no,yes
+        42,yes,yes,no,no,yes,no,no,yes
+        43,yes,yes,no,maybe,yes,no,maybe,yes
+        44,yes,yes,no,no,no,maybe,no,yes
+        45,yes,yes,no,yes,yes,no,maybe,yes
+        46,yes,yes,no,maybe,yes,yes,no,yes
+        47,yes,yes,no,no,maybe,no,no,yes
+        48,yes,yes,no,maybe,maybe,yes,no,yes
+        49,yes,yes,no,no,yes,yes,no,yes
+        50,yes,yes,no,maybe,no,no,maybe,yes")
+
+        // Frame approach: 2 measures x 2 categories (mcnemar)  
+        frame:AddSelectedColumns("t1,t2")
+        CompareCounts compare0 = frame:CompareRelatedCounts()    
+
+        CompareCountsResult result0 = compare0:GetResult()
+        Check(result0:GetTestStatistic(), 1.0)
+        Check(result0:GetDegreesOfFreedom(), 1.0)
+        Check(result0:GetProbabilityValue(), 0.31731050786291415)  
+        Check(true, result0:GetSummary() not= "")
+        Check(true, result0:GetFormalSummary() not= "")
+        Check(true, compare0:GetSummary() not= "")
+        Check(true, compare0:GetFormalSummary() not= "")
+
+        // Frame approach: 3 groups x 2 categories (cochran)
+        frame:EmptySelectedColumns() 
+        frame:AddSelectedColumns("t1,t2,t3")
+        CompareCounts compare1 = frame:CompareRelatedCounts()    
+
+        CompareCountsResult result1 = compare1:GetResult()
+        Check(result1:GetTestStatistic(), 4.044444444444444)
+        Check(result1:GetDegreesOfFreedom(), 2.0)
+        Check(result1:GetProbabilityValue(), 0.13236100245958893)  
+        Check(true, result1:GetSummary() not= "")
+        Check(true, result1:GetFormalSummary() not= "")
+        Check(true, compare1:GetSummary() not= "")
+        Check(true, compare1:GetFormalSummary() not= "")
+
+
+        // Frame approach: 2 groups x 3 categories (mcnemar-bowker)
+        frame:EmptySelectedColumns()   
+        frame:AddSelectedColumns("t4,t5")
+        CompareCounts compare2 = frame:CompareRelatedCounts() 
+
+        CompareCountsResult result2 = compare2:GetResult()
+        Check(result2:GetTestStatistic(), 0.48717948717948717)
+        Check(result2:GetDegreesOfFreedom(), 3.0)
+        Check(result2:GetProbabilityValue(), 0.9216988585754073)  
+        Check(true, result2:GetSummary() not= "")
+        Check(true, result2:GetFormalSummary() not= "")
+        Check(true, compare2:GetSummary() not= "")
+        Check(true, compare2:GetFormalSummary() not= "")
+
+        // Design approach: 2 groups x 3 categories (should be equivelent to test above) 
+        ExperimentalDesign design
+        design:AddWithinSubjectsFactor("iv","dv","t4,t5")
+        CompareCounts compare3 = frame:CompareCounts(design)
+
+        CompareCountsResult result3 = compare3:GetResult()
+        Check(result3:GetTestStatistic(), 0.48717948717948717)
+        Check(result3:GetDegreesOfFreedom(), 3.0)
+        Check(result3:GetProbabilityValue(), 0.9216988585754073) 
+        text summary3 = result3:GetSummary()
+        text formalsummary3 = result3:GetFormalSummary()
+        Check(true, result3:GetSummary() not= "")
+        Check(true, result3:GetFormalSummary() not= "")
+        Check(true, compare3:GetSummary() not= "")
+        Check(true, compare3:GetFormalSummary() not= "")
+    end
+end

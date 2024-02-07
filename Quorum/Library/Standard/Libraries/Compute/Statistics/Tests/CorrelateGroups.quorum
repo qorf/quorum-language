@@ -13,6 +13,7 @@ use Libraries.Containers.Array
 use Libraries.Containers.HashTable
 use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Statistics.Columns.TextColumn
+use Libraries.System.File
 
 /*
     This class implements two tests:
@@ -166,7 +167,6 @@ class CorrelateGroups is StatisticalTest
                     result:SetDegreesOfFreedom(df)
                     result:SetTestStatistic(t)
                     result:SetFormalTestName("Pearson's Correlation")
-                    result:SetFactor(GetFactorText())
                     result:SetGroups(left, right)
                     results:Add(result)
                     j = j + 1
@@ -423,6 +423,9 @@ class CorrelateGroups is StatisticalTest
         return GetMultipleTestSummaryDataFrame()
     end
 
+    action GetReport(File file)
+        GetResult():GetReport(file)
+    end
     /*
         This action summarizes the results and places them into formal academic language, in APA format.
         For more information: https://apastyle.apa.org/instructional-aids/numbers-statistics-guide.pdf

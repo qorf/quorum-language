@@ -1,0 +1,243 @@
+package Libraries.Data.Formats.ScalableVectorGraphics
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Charts.ChartOptions
+
+/*
+    The Pattern class is an implementation of SVG pattern definitions to be used in the SVG standard. Like other
+    ScalableVectorGraphicsObjects the pattern class inherits global attributes but it also has
+    its own attributes such as spacing.
+
+    Attribute: Author Hannah Stabler
+
+    Attribute: Example
+
+    Libraries.Data.Formats.ScalableVectorGraphics.all
+
+    // make the svg pattern definitions
+    Pattern pattern
+    pattern:SetCanvasSize(1000,500)
+    pattern:SetSpacing(50)  
+    pattern:SetPatternPalette(options:GetPatternPalette())
+
+    output pattern:ToText() 
+*/
+class Pattern is ScalableVectorGraphicsObject
+    ChartOptions options
+    constant text objectName = "pattern"
+    integer canvasWidth = 0
+    integer canvasHeight = 0
+    number spacing = 0
+    private Array<integer> patternPalette
+    private HashTable<text, integer> definedPatterns
+
+    on create
+        SetIsContainer(true)
+    end
+
+    /*
+        This action writes out all of the necessary tags and attributes that make up this
+        ellipse. This action will be called automatically by the parent ScalableVectorGraphics,
+        as such this action does not need to be used directly by the user.
+
+        Attribute: Returns the formatted string of all tags and attributes for this shape
+
+    */
+    action ToText returns text
+        text result = ""
+        text newLine = result:GetLineFeed()
+        text tab = result:GetTab()
+        text dq = result:GetDoubleQuote()
+
+        // Defaults
+        if GetFill() = ""
+            SetFill("black")
+        end
+        if GetStroke() = ""
+            SetStroke("black")
+        end
+        if GetStrokeWidth() = ""
+            SetStrokeWidth(3)
+        end
+        if spacing <= 0 or spacing > canvasWidth
+            spacing = cast(integer, canvasWidth * 0.02)
+            if spacing < 10
+                spacing = 10
+                SetStrokeWidth(1)
+            end
+        end
+
+        i = 0
+        repeat while i < patternPalette:GetSize()
+            integer patternType = patternPalette:Get(i)
+            text patternID = "pattern" + patternType
+
+            if not definedPatterns:HasKey(patternID)
+                result = result + DefinePattern(patternID, patternType)
+                definedPatterns:Add(patternID, patternType)  
+            end
+            i = i + 1
+        end
+
+        return result
+    end
+
+    /* This action defines the texture/shapes/lines for a given pattern type */
+    private action DefinePattern(text patternID, integer patternType) returns text
+        text result = ""
+        text newLine = result:GetLineFeed()
+        text tab = result:GetTab()
+        text dq = result:GetDoubleQuote()
+
+        text patternSVG = ""
+        text width = "" + spacing
+        text height = "" + spacing
+        text rotate = "0"
+
+        if patternType = options:VERTICAL_LINES
+            width = "1"
+            rotate = "90"
+            patternSVG = "<path d="+dq+"M -1,2 l 6,0" +dq+" stroke="+dq+GetStroke()+dq+" stroke-width="+dq+GetStrokeWidth()+dq+"/>"
+        elseif patternType = options:HORIZONTAL_LINES
+            width = "1"
+            patternSVG = "<path d="+dq+"M -1,2 l 6,0" +dq+" stroke="+dq+GetStroke()+dq+" stroke-width="+dq+GetStrokeWidth()+dq+"/>"
+        elseif patternType = options:DIAGONAL_DOWN_LINES
+            width = "1"
+            rotate = "45"
+            patternSVG = "<path d="+dq+"M -1,2 l 6,0" +dq+" stroke="+dq+GetStroke()+dq+" stroke-width="+dq+GetStrokeWidth()+dq+"/>"
+        elseif patternType = options:DIAGONAL_UP_LINES
+            width = "1"
+            rotate = "-45"
+            patternSVG = "<path d="+dq+"M -1,2 l 6,0" +dq+" stroke="+dq+GetStroke()+dq+" stroke-width="+dq+GetStrokeWidth()+dq+"/>"
+        elseif patternType = options:PLAIN_CROSSHATCH      
+            number x = spacing + 1.0
+            patternSVG = "<rect width="+dq+x+dq+" height="+dq+x+dq+" fill="+dq+"none"+dq+" stroke="+dq+GetStroke()+dq+" stroke-width="+dq+GetStrokeWidth()+dq+"/>"
+        elseif patternType = options:DIAGONAL_CROSSHATCH
+            rotate = "45"
+            number x = spacing + 1.0
+            patternSVG = "<rect width="+dq+x+dq+" height="+dq+x+dq+" fill="+dq+"none"+dq+" stroke="+dq+GetStroke()+dq+" stroke-width="+dq+GetStrokeWidth()+dq+"/>"
+        elseif patternType = options:SOLID_CIRCLES
+            number cx = spacing/2.0
+            number cy = spacing/2.0
+            number r = spacing/4.0
+            patternSVG = "<circle cx="+dq+cx+dq+" cy="+dq+cy+dq+" r="+dq+r+dq+" fill="+dq+GetFill()+dq+" stroke="+dq+GetStroke()+dq+" stroke-width="+dq+GetStrokeWidth()+dq+"/>"
+        elseif patternType = options:HOLLOW_CIRCLES     
+            number cx = spacing/2.0
+            number cy = spacing/2.0
+            number r = spacing/4.0
+            patternSVG = "<circle cx="+dq+cx+dq+" cy="+dq+cy+dq+" r="+dq+r+dq+" fill="+dq+"none"+dq+" stroke="+dq+GetStroke()+dq+" stroke-width="+dq+GetStrokeWidth()+dq+"/>"
+        elseif patternType = options:PINPOINT_DASHES  
+            rotate = "45"
+            patternSVG = "<path d="+dq+"M -1,2 l 6,0" +dq+" stroke="+dq+GetStroke()+dq+" stroke-width="+dq+GetStrokeWidth()+dq+"/>"
+        elseif patternType = options:SOLID_TRIANGLES
+            number x = spacing/2.0
+            text points = "0 "+x+","+x+" "+x+","+x+" "+x+","+x+" 0"
+            patternSVG = "<polygon points="+dq+points+dq+" fill="+dq+GetFill()+dq+" stroke="+dq+GetStroke()+dq+" stroke-width="+dq+GetStrokeWidth()+dq+"/>"
+        elseif patternType = options:HOLLOW_TRIANGLES    
+            number x = spacing/2.0
+            text points = "0 "+x+","+x+" "+x+","+x+" "+x+","+x+" 0"
+            patternSVG = "<polygon points="+dq+points+dq+" fill="+dq+"none"+dq+" stroke="+dq+GetStroke()+dq+" stroke-width="+dq+GetStrokeWidth()+dq+"/>"
+        elseif patternType = options:SOLID_BOXES
+            number x = spacing/2.0
+            patternSVG = "<rect width="+dq+x+dq+" height="+dq+x+dq+" fill="+dq+GetFill()+dq+" stroke="+dq+GetStroke()+dq+" stroke-width="+dq+GetStrokeWidth()+dq+"/>"
+        elseif patternType = options:HOLLOW_BOXES   
+            number x = spacing/2.0
+            patternSVG = "<rect width="+dq+x+dq+" height="+dq+x+dq+" fill="+dq+"none"+dq+" stroke="+dq+GetStroke()+dq+" stroke-width="+dq+GetStrokeWidth()+dq+"/>"
+        else
+            return ""
+        end
+
+        result = "<" + objectName 
+        result = result + " id=" +dq+ patternID + dq        
+
+        result = result + " patternUnits=" +dq+ "userSpaceOnUse" + dq
+
+        if rotate not= ""
+            result = result + " patternTransform=" +dq+ "rotate(" + rotate + ")" + dq
+        end
+        if width not= ""
+            result = result + " width=" +dq+ width +dq
+        end
+        if height not= ""
+            result = result + " height=" +dq+ height +dq
+        end
+
+        result = result + GlobalAttributesToText()
+        result = result + ">" + patternSVG
+
+        result = result + GetCloseTag(objectName, IsContainer())
+        
+        if IsOneLine() = false
+            result = result + newLine
+        end
+
+        return result
+    end
+
+    /*
+        This action sets the width and height of canvas (used for default spacings). 
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Pattern patterns
+        patterns:SetCanvasSize(100,100)
+    */
+    action SetCanvasSize(integer width, integer height)
+        me:canvasWidth = width
+        me:canvasHeight = height
+    end
+
+    /*
+        This action sets the pattern palette that needs to be defined in the SVG
+
+        Attribute: Parameter palette. The integers corresponding to a pattern palette from the ChartOptions class. 
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        ChartOptions options
+
+        Pattern patterns
+        patterns:SetPatternPalette(options:GetPatternPalette())
+    */
+    action SetPatternPalette(Array<integer> palette)
+        patternPalette = palette
+    end
+
+    /*
+        This action retrieves the pattern palette that needs to be defined in the SVG
+
+        Attribute: Parameter Array<integer>. The integers corresponding to a pattern from the ChartOptions palette. 
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        ChartOptions options
+
+        Pattern patterns
+        patterns:GetPatternPalette(options:GetPatternPalette())
+    */
+    action GetPatternPalette returns Array<integer>
+        return patternPalette
+    end
+
+    /*
+        This action sets the height spacing of the pattern markings.
+
+        Attribute: Parameter height. The vertical spacing of the pattern. 
+
+        Attribute: Example
+
+        Libraries.Data.Formats.ScalableVectorGraphics.all
+
+        Pattern patterns
+        patterns:SetSpacing(50)
+    */
+    action SetSpacing(number spacing)
+        me:spacing = spacing
+    end
+end

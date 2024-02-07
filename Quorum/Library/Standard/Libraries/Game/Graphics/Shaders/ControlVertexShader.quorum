@@ -11,6 +11,7 @@ class ControlVertexShader is Shader
         DefaultAttributeNames attributes
         SetCode(GetOpenGLVersion() +
 "
+" + GetPreprocessorDefinitions() + "
 " +
 "in vec4 " + attributes:POSITION + ";
 in vec4 " + attributes:COLOR + ";
@@ -31,6 +32,9 @@ out vec4 v_rounding;
 out vec4 v_borderThickness;
 out float v_aspectRatio;
 out float v_antiAlias;
+" + GetExtraInputs() + "
+
+" + GetExtraFunctions() + "
 
 void main()
 {
@@ -42,9 +46,28 @@ void main()
     v_borderThickness = vec4(a_leftBorder, a_topBorder, a_rightBorder, a_bottomBorder);
     v_aspectRatio = a_aspectRatio;
     v_antiAlias = a_antiAlias;
+
+    " + GetAppendedCode() + "
+
     gl_Position =  u_projTrans * " + attributes:POSITION + ";
 }"
 )
+    end
+
+    private action GetPreprocessorDefinitions returns text
+        return ""
+    end
+
+    private action GetExtraInputs returns text
+        return ""
+    end
+
+    private action GetExtraFunctions returns text
+        return ""
+    end
+
+    private action GetAppendedCode returns text
+        return ""
     end
 
 end

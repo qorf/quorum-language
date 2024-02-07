@@ -11,6 +11,7 @@ use Libraries.Compute.Matrix
 use Libraries.Compute.Math
 use Libraries.Containers.Array
 use Libraries.Compute.Statistics.Columns.TextColumn
+use Libraries.System.File
 
 /*
     This class implements two tests: 
@@ -305,7 +306,6 @@ class CompareDistributions is StatisticalTest
                 result:SetTestStatistic(w)
                 result:SetProbabilityValue(p)
                 result:SetFormalTestName("Shapiro-Wilk Normality Test")
-                result:SetFactor(GetFactorText())
                 result:SetGroups(sample)
                 results:Add(result)
                 i = i + 1
@@ -497,6 +497,19 @@ class CompareDistributions is StatisticalTest
             i = i + 1
         end
         return summary
+    end
+
+
+    action GetReport(File file) 
+        CompareDistributionsResult result       
+        i = 0
+        repeat while i < results:GetSize()
+            result = results:Get(i)
+            
+            result:GetReport(file)
+            
+            i = i + 1
+        end 
     end
 
     private action GetMultipleTestSummaryDataFrame returns DataFrame

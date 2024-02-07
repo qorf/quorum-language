@@ -1,5 +1,6 @@
 package Libraries.Compute.Statistics.Reporting
 
+
 use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
 use Libraries.Compute.Math
@@ -7,6 +8,17 @@ use Libraries.Containers.Array
 use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.Columns.TextColumn
 use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Web.Page.all
+use Libraries.System.File
+use Libraries.Interface.Controls.Charts.all
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Compute.Statistics.Tests.CompareMeansPairwise
+use Libraries.Compute.Statistics.Tests.CompareDistributions
+use Libraries.Compute.Statistics.Tests.CompareVariances
+use Libraries.Compute.Statistics.Calculations.Summarize
+use Libraries.Compute.Statistics.Transforms.TransformWider
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.Columns.IntegerColumn
 
 class CompareMeansSummary
     CompareMeansResult result = undefined
@@ -40,6 +52,21 @@ class CompareMeansSummary
                 end
             end
         end
+    end
+
+    action GetEasySummary returns text
+        if result not= undefined
+            if numberOfSamples = 1
+                return GetEasySummaryOne()
+
+            elseif numberOfSamples = 2 and not multivariate and not nSampleOverride
+                return GetEasySummaryTwo()
+
+            else //numberOfSamples >= 2
+                return GetEasySummarySeveral()
+            end
+        end
+        alert("There is no CompareMeansResult defined to summarize. Try using SetResult()")
     end
 
     action GetSummary returns text
@@ -113,6 +140,1093 @@ class CompareMeansSummary
         end
         alert("There is no CompareMeansResult defined to summarize. Try using SetResult()")
     end
+    
+    action GetDescriptiveStatisticsDataFrame() returns DataFrame
+        if result not= undefined
+            if numberOfSamples = 1
+                return GetDescriptiveStatisticsDataFrameOne()
+            elseif numberOfSamples = 2 and not multivariate and not nSampleOverride
+                return GetDescriptiveStatisticsDataFrameTwo()
+            else
+                return GetDescriptiveStatisticsDataFrameSeveral()
+            end
+        end  
+        alert("There is no CompareMeansResult defined to summarize. Try using SetResult()") 
+    end
+
+    action GetChart() returns BoxPlot
+        if result not= undefined
+            if numberOfSamples = 1 or (numberOfSamples = 2 and not multivariate and not nSampleOverride)
+                DataFrame groups = result:GetGroupsFrame()       
+                groups:SelectAllColumns()
+                BoxPlot chart = groups:BoxPlot()
+                chart:SetTitle("BoxPlot")
+                return chart
+            else //numberOfSamples >= 2
+                if multivariate
+                    DataFrame frame = result:GetExperimentalDesign():GetDesignFrame()
+
+                    BoxPlot chart = frame:BoxPlot()
+                    chart:SetTitle("BoxPlot")
+                    return chart
+                else
+                    // If mixed, use within subjects factor(s) as x-axis and between subjects factor(s) as series
+                    if result:GetExperimentalDesign():HasBetweenSubjectsFactors() and result:GetExperimentalDesign():HasWithinSubjectsFactors()
+                        text bInteraction = ""
+                        text wInteraction = ""
+                        DataFrame merged = MergeFactorsAndSelect(true, true, bInteraction, wInteraction, true, true)
+
+                        BoxPlot chart = merged:BoxPlot()
+                        chart:SeparateBySeries(cast(integer, math:Round(math:SquareRoot(result:GetExperimentalDesign():GetNumberOfIndependentGroups()))))
+                        chart:ShowLegend(false)
+                        chart:SetTitle("BoxPlot")
+                        return chart
+                    else
+                        Array<text> between = result:GetExperimentalDesign():GetBetweenSubjectsFactors()
+                        Array<text> within = result:GetExperimentalDesign():GetWithinSubjectsFactors()
+                        Array<text> dvs = result:GetExperimentalDesign():GetDependentVariables()
+                        DataFrame frame = result:GetExperimentalDesign():GetDesignFrame():Copy()
+                        integer factors = between:GetSize() + within:GetSize()
+                        if factors > 2
+                            // If three or more factorial use first factor as x-axis and the rest as series
+                            
+                        else
+                            // If one or two factorial just use regular boxplot mechanics
+                            i = 0
+                            repeat while i < between:GetSize()
+                                frame:AddSelectedFactors(between:Get(i))
+                                i = i + 1
+                            end
+
+                            i = 0
+                            repeat while i < within:GetSize()
+                                frame:AddSelectedFactors(within:Get(i))
+                                i = i + 1
+                            end
+
+                            i = 0
+                            repeat while i < dvs:GetSize()
+                                frame:AddSelectedColumns(dvs:Get(i))
+                                i = i + 1
+                            end
+
+                            BoxPlot chart = frame:BoxPlot()
+                            chart:SetTitle("BoxPlot")
+                            return chart
+                        end
+                    end
+                end
+            end
+        end
+        alert("There is no CompareMeansResult defined to summarize. Try using SetResult()")
+    end
+    
+    action GetReport(File file)
+        WebPage page        
+
+        //add language headers
+        page:AddAttribute("xml:lang", "en")
+        page:SetLanguage("en")
+
+        //add the meta-data character set
+        MetaData charset
+        charset:SetCharacterSet("UTF-8")
+        page:AddMetaData(charset)
+
+        MetaData viewport
+        viewport:SetContent("width=device-width, initial-scale=1")
+        viewport:SetName("viewport")
+        page:AddMetaData(viewport)
+
+        page:AddIcon("http://quorumlanguage.com/media/favicon.ico")
+        page:AddScript("http://quorumlanguage.com/script/quorumCharts.js")
+        page:AddStylesheet("http://quorumlanguage.com/style/quorumCharts.css")
+        page:SetWebPageTitle("Quorum Statistical Report: " + result:GetFormalTestName())
+
+        page:Add(GetReportDiv())                          
+
+        file:Write(page:Generate()) 
+    end
+
+    action GetReportDiv() returns Division       
+        BoxPlotWriter chartWriter
+        Division divide
+       
+        // for summary
+        divide:SetStyle("font-family: sans-serif")
+        divide:AddHeading(result:GetFormalTestName() + " Report", 2)
+//        divide:AddHeading("Summary: GetSummary()", 3)
+//        divide:AddParagraph(GetSummary())
+//        divide:AddHeading("Formal Summary: GetFormalSummary()", 3)
+//        divide:AddParagraph(GetFormalSummary())
+        divide:AddHeading("Summary: GetEasySummary()", 3)
+        divide:AddParagraph(GetEasySummary())
+
+        // for table
+        divide:AddHeading("Table Summary", 3)
+        WebTable table1
+        WebTable table2
+        table1:SetBorder(true)
+        table2:SetBorder(true)     
+
+        table1:Add(GetSummaryDataFrame())
+        divide:Add(table1)
+        table2:Add(GetDescriptiveStatisticsDataFrame())
+        divide:Add(table2)
+
+        BoxPlot chart = GetChart()
+        chart:Display(true)
+        divide:AddText(chartWriter:WriteOutChart(chart))       
+        return divide             
+    end
+
+    private action GetDescriptiveStatisticsDataFrameOne() returns DataFrame
+        DataFrame resultFrame
+        
+        text groupName = result:GetGroupsFrame():GetColumn(0):GetHeader()
+        text statName = result:GetTestStatisticName()
+        integer digits = format:GetSignificantDigits()
+        
+        TextColumn sampleCol
+        sampleCol:SetHeader("Sample")
+        sampleCol:Add(groupName)
+        NumberColumn sizeCol
+        sizeCol:SetHeader("Size")
+        sizeCol:Add(result:GetTestStatistic())
+        NumberColumn sdCol
+        sdCol:SetHeader("Standard Deviation")
+        sdCol:Add(math:Round(math:SquareRoot(result:GetInformation():GetValue(groupName):GetValue("variance")),digits))                
+
+        resultFrame:AddColumn(sampleCol)
+        resultFrame:AddColumn(sizeCol)
+        if result:IsRanked() // Wilcoxon 
+            NumberColumn medianCol
+            medianCol:SetHeader("Median")
+            medianCol:Add(math:Round(result:GetInformation():GetValue(groupName):GetValue("median"), digits))
+            resultFrame:AddColumn(medianCol)                      
+        else            
+            NumberColumn meanCol
+            meanCol:SetHeader("Mean")
+            meanCol:Add(math:Round(result:GetInformation():GetValue(groupName):GetValue("mean"), digits))                                   
+            resultFrame:AddColumn(meanCol) 
+            NumberColumn dfCol
+            dfCol:SetHeader("Degrees Of Freedom")
+            dfCol:Add(math:Round(result:GetDegreesOfFreedom(), digits))            
+        end
+        
+        resultFrame:AddColumn(sdCol)               
+        return resultFrame
+    end
+
+    private action GetDescriptiveStatisticsDataFrameTwo() returns DataFrame
+        DataFrame resultFrame
+        
+        text group1Name = result:GetGroupsFrame():GetColumn(0):GetHeader()
+        text group2Name = result:GetGroupsFrame():GetColumn(1):GetHeader()
+        text statName = result:GetTestStatisticName()
+        integer digits = format:GetSignificantDigits()
+        
+        TextColumn sampleCol
+        sampleCol:SetHeader("Sample")
+        sampleCol:Add(group1Name)
+        sampleCol:Add(group2Name)
+        NumberColumn sizeCol
+        // IDK HOW TO GET THE SIZE 
+        sizeCol:SetHeader("Size")
+        sizeCol:Add(result:GetInformation():GetValue(group1Name):GetValue("size"))
+        sizeCol:Add(result:GetInformation():GetValue(group2Name):GetValue("size"))
+        
+        resultFrame:AddColumn(sampleCol)
+        resultFrame:AddColumn(sizeCol)
+        
+        if result:IsRanked()
+            NumberColumn medianCol
+            medianCol:SetHeader("Median")
+            medianCol:Add(result:GetInformation():GetValue(group1Name):GetValue("median"))            
+            medianCol:Add(result:GetInformation():GetValue(group2Name):GetValue("median"))
+           
+            resultFrame:AddColumn(medianCol)             
+        else
+            NumberColumn meanCol
+            meanCol:SetHeader("Mean")
+            meanCol:Add(result:GetInformation():GetValue(group1Name):GetValue("mean"))
+            meanCol:Add(result:GetInformation():GetValue(group2Name):GetValue("mean"))
+            
+            NumberColumn sdCol
+            sdCol:SetHeader("Standard Deviation")
+            sdCol:Add(math:Round(math:SquareRoot(result:GetInformation():GetValue(group1Name):GetValue("variance")),digits))      
+            sdCol:Add(math:Round(math:SquareRoot(result:GetInformation():GetValue(group2Name):GetValue("variance")),digits))                          
+    
+            NumberColumn dfCol
+            dfCol:SetHeader("Degrees Of Freedom")            
+            dfCol:Add(result:GetDegreesOfFreedom())
+            dfCol:Add(result:GetDegreesOfFreedom())
+
+            resultFrame:AddColumn(meanCol)  
+            resultFrame:AddColumn(sdCol)          
+            resultFrame:AddColumn(dfCol)
+        end
+               
+        return resultFrame
+    end
+
+    private action GetDescriptiveStatisticsDataFrameSeveral() returns DataFrame
+        DataFrame resultFrame
+        integer digits = format:GetSignificantDigits()
+
+        if multivariate
+            if result:GetExperimentalDesign():HasBetweenSubjectsFactors() and result:GetExperimentalDesign():HasWithinSubjectsFactors()
+                // Between or Within Only
+                // group name column
+                TextColumn sampleCol
+                sampleCol:SetHeader("Sample")
+                resultFrame:AddColumn(sampleCol)
+
+                TextColumn measureCol
+                measureCol:SetHeader("Measurement")
+                resultFrame:AddColumn(measureCol)
+
+                // group size column
+                IntegerColumn sizeCol
+                sizeCol:SetHeader("Size")
+                resultFrame:AddColumn(sizeCol)
+
+                // group mean column
+                NumberColumn meanCol
+                meanCol:SetHeader("Mean")
+                resultFrame:AddColumn(meanCol)
+                
+                // group sd column
+                NumberColumn sdCol
+                sdCol:SetHeader("Standard Deviation")
+                resultFrame:AddColumn(sdCol)
+
+                DataFrame groups = result:GetGroupsFrame()
+                groups:SelectAllColumns()
+                Array<Summarize> summaries = groups:SummarizeSelectedColumns()
+                i = 0
+                repeat while i < summaries:GetSize()
+                    text groupName = groups:GetColumn(i):GetHeader()
+                    Array<text> factors = groupName:Split(":")
+                    text between = ""
+                    text within = ""
+                    j = 0
+                    repeat while j < factors:GetSize()
+                        if j < result:GetExperimentalDesign():GetNumberOfBetweenSubjectsFactors()
+                            if between = ""
+                                between = factors:Get(j)
+                            else
+                                between = between + ":" + factors:Get(j)
+                            end
+                        else
+                            if within = ""
+                                within = factors:Get(j)
+                            else
+                                within = within + ":" + factors:Get(j)
+                            end
+                        end
+                        j = j + 1
+                    end
+
+                    sampleCol:Add(between)
+                    measureCol:Add(within)
+                    sizeCol:Add(cast(integer, summaries:Get(i):GetSize()))
+                    meanCol:Add(math:Round(summaries:Get(i):GetMean(), digits))
+                    sdCol:Add(math:Round(math:SquareRoot(summaries:Get(i):GetVariance()), digits))
+                    i = i + 1
+                end        
+                resultFrame:Sort("Sample,Measurement")             
+            else
+                // Between or Within Only
+                // group name column
+                TextColumn sampleCol
+                if result:GetExperimentalDesign():HasBetweenSubjectsFactors()
+                    sampleCol:SetHeader("Sample")
+                else
+                    sampleCol:SetHeader("Measurement")
+                end
+                resultFrame:AddColumn(sampleCol)
+
+                // group size column
+                IntegerColumn sizeCol
+                sizeCol:SetHeader("Size")
+                resultFrame:AddColumn(sizeCol)
+
+                HashTable<text, DataFrame> groups = result:GetGroupsTable()
+                Array<text> groupNames = groups:CopyToKeyArray()
+                groupNames:Sort()
+                i = 0
+                repeat while i < groupNames:GetSize()  
+                    text groupName = groupNames:Get(i)
+                    sampleCol:Add(groupName)
+
+                    DataFrame variables = groups:GetValue(groupName)
+                    variables:SelectAllColumns()
+                    Array<Summarize> summaries = variables:SummarizeSelectedColumns()
+                    j = 0
+                    repeat while j < summaries:GetSize()
+                        text variable = variables:GetColumn(j):GetHeader()
+                        if i = 0
+                            // group + var mean column
+                            NumberColumn meanCol
+                            meanCol:SetHeader("Mean ("+variable+")")
+                            resultFrame:AddColumn(meanCol)
+                            
+                            // group + var sd column
+                            NumberColumn sdCol
+                            sdCol:SetHeader("Standard Deviation ("+variable+")")
+                            resultFrame:AddColumn(sdCol)
+                        end
+                        if j = 0
+                            sizeCol:Add(cast(integer, summaries:Get(j):GetSize()))
+                        end
+                        resultFrame:GetColumn("Mean ("+variable+")"):Add(""+math:Round(summaries:Get(j):GetMean(), digits))
+                        resultFrame:GetColumn("Standard Deviation ("+variable+")"):Add(""+math:Round(math:SquareRoot(summaries:Get(j):GetVariance()), digits))
+                        j = j + 1
+                    end                   
+                    i = i + 1
+                end          
+            end
+        else
+            if result:GetExperimentalDesign():HasBetweenSubjectsFactors() and result:GetExperimentalDesign():HasWithinSubjectsFactors()
+                // Between or Within Only
+                // group name column
+                TextColumn sampleCol
+                sampleCol:SetHeader("Sample")
+                resultFrame:AddColumn(sampleCol)
+
+                TextColumn measureCol
+                measureCol:SetHeader("Measurement")
+                resultFrame:AddColumn(measureCol)
+
+                // group size column
+                IntegerColumn sizeCol
+                sizeCol:SetHeader("Size")
+                resultFrame:AddColumn(sizeCol)
+
+                // group mean column
+                NumberColumn meanCol
+                meanCol:SetHeader("Mean")
+                resultFrame:AddColumn(meanCol)
+                
+                // group sd column
+                NumberColumn sdCol
+                sdCol:SetHeader("Standard Deviation")
+                resultFrame:AddColumn(sdCol)
+
+                DataFrame groups = result:GetGroupsFrame()
+                groups:SelectAllColumns()
+                Array<Summarize> summaries = groups:SummarizeSelectedColumns()
+                i = 0
+                repeat while i < summaries:GetSize()
+                    text groupName = groups:GetColumn(i):GetHeader()
+                    Array<text> factors = groupName:Split(":")
+                    text between = ""
+                    text within = ""
+                    j = 0
+                    repeat while j < factors:GetSize()
+                        if j < result:GetExperimentalDesign():GetNumberOfBetweenSubjectsFactors()
+                            if between = ""
+                                between = factors:Get(j)
+                            else
+                                between = between + ":" + factors:Get(j)
+                            end
+                        else
+                            if within = ""
+                                within = factors:Get(j)
+                            else
+                                within = within + ":" + factors:Get(j)
+                            end
+                        end
+                        j = j + 1
+                    end
+
+                    sampleCol:Add(between)
+                    measureCol:Add(within)
+                    sizeCol:Add(cast(integer, summaries:Get(i):GetSize()))
+                    meanCol:Add(math:Round(summaries:Get(i):GetMean(), digits))
+                    sdCol:Add(math:Round(math:SquareRoot(summaries:Get(i):GetVariance()), digits))
+                    i = i + 1
+                end        
+                resultFrame:Sort("Sample,Measurement")             
+            else
+                // Between or Within Only
+                // group name column
+                TextColumn sampleCol
+                if result:GetExperimentalDesign():HasBetweenSubjectsFactors()
+                    sampleCol:SetHeader("Sample")
+                else
+                    sampleCol:SetHeader("Measurement")
+                end
+                resultFrame:AddColumn(sampleCol)
+
+                // group size column
+                IntegerColumn sizeCol
+                sizeCol:SetHeader("Size")
+                resultFrame:AddColumn(sizeCol)
+
+                // group mean column
+                NumberColumn meanCol
+                meanCol:SetHeader("Mean")
+                resultFrame:AddColumn(meanCol)
+                
+                // group sd column
+                NumberColumn sdCol
+                sdCol:SetHeader("Standard Deviation")
+                resultFrame:AddColumn(sdCol)
+
+                DataFrame groups = result:GetGroupsFrame()
+                groups:SelectAllColumns()
+                Array<Summarize> summaries = groups:SummarizeSelectedColumns()
+                i = 0
+                repeat while i < summaries:GetSize()
+                    sampleCol:Add(groups:GetColumn(i):GetHeader())
+                    sizeCol:Add(cast(integer, summaries:Get(i):GetSize()))
+                    meanCol:Add(math:Round(summaries:Get(i):GetMean(), digits))
+                    sdCol:Add(math:Round(math:SquareRoot(summaries:Get(i):GetVariance()), digits))
+                    i = i + 1
+                end
+                if result:GetExperimentalDesign():HasBetweenSubjectsFactors()
+                    resultFrame:Sort("Sample")
+                else
+                    resultFrame:Sort("Measurement")
+                end
+            end
+        end               
+        return resultFrame
+    end
+
+    private action GetEasySummaryOne() returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        integer digits = format:GetSignificantDigits()
+        text groupName = result:GetGroupsFrame():GetColumn(0):GetHeader()
+
+        if result:GetInformation():HasKey(groupName) and result:GetInformation():HasKey("proposed")
+            HashTable<text, number> groupInfo = result:GetInformation():GetValue(groupName)
+            HashTable<text, number> expectedInfo = result:GetInformation():GetValue("proposed")
+            number pvalue = result:GetProbabilityValue()
+
+            if result:IsRanked()
+                if groupInfo:HasKey("median") and expectedInfo:HasKey("median")
+                    number groupMedian = math:Round(groupInfo:GetValue("median"), digits)
+                    number proposedMedian = math:Round(expectedInfo:GetValue("median"), digits)
+                    summary = summary + "A rank comparison between 1 sample and an expected value was tested."
+                    if pvalue <= result:GetSignificanceLevel()
+                        summary = summary + " Results show that it is likely there is a difference between "+groupName
+                        +" (Mdn = " + groupMedian + ") and what was expected (Mdn = " + proposedMedian + ")"
+                    else
+                        summary = summary + " Results show that there may not be a difference between the sample and what was expected"
+                    end
+                    summary = summary +", " + GetFormalNumericalResult() + "."
+                end
+            else
+                if groupInfo:HasKey("mean") and groupInfo:HasKey("sd") and expectedInfo:HasKey("mean") 
+                    number groupMean = math:Round(groupInfo:GetValue("mean"), digits)
+                    number groupSD = math:Round(groupInfo:GetValue("sd"), digits)
+                    number proposedMean = math:Round(expectedInfo:GetValue("mean"), digits)
+                    summary = summary + "A comparison between 1 sample and an expected value was tested."
+                    if pvalue <= result:GetSignificanceLevel()
+                        summary = summary + " Results show that it is likely there is a difference between "+groupName
+                        +" (M = " + groupMean + ", SD = "+ groupSD+") and what was expected (M = " + proposedMean + ")"
+                    else
+                        summary = summary + " Results show that there may not be a difference between the sample and what was expected"
+                    end
+                    summary = summary +", " + GetFormalNumericalResult() + "."
+                end
+            end
+        end
+        return summary
+    end
+
+    private action GetEasySummaryTwo() returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        integer digits = format:GetSignificantDigits()
+        if result:GetGroupsFrame():GetSize() = 2
+            text group1Name = result:GetGroupsFrame():GetColumn(0):GetHeader()
+            text group2Name = result:GetGroupsFrame():GetColumn(1):GetHeader()
+            text combo = group1Name+"_"+group2Name
+        
+            number pvalue = result:GetProbabilityValue()
+
+            if result:IsRepeated()
+                if result:GetInformation():HasKey("difference") and result:GetInformation():HasKey("proposed")
+                    HashTable<text, number> differenceInfo = result:GetInformation():GetValue("difference")
+                    HashTable<text, number> expectedInfo = result:GetInformation():GetValue("proposed")    
+                    if result:IsRanked()
+                        if differenceInfo:HasKey("median") and expectedInfo:HasKey("median")
+                            number differenceMedian = math:Round(differenceInfo:GetValue("median"), digits)
+                            number proposedMedian = math:Round(expectedInfo:GetValue("median"), digits)
+                            summary = summary + "A rank comparison between 1 sample across 2 measurements was tested."
+                            if pvalue <= result:GetSignificanceLevel()
+                                summary = summary + " Results show that it is likely there is a difference between the paired difference (Mdn = " 
+                                + differenceMedian + ") and what was expected (Mdn = " + proposedMedian + ")"
+                            else
+                                summary = summary + " Results show that there may not be a difference between the paired difference and what was expected"
+                            end
+                            summary = summary +", " + GetFormalNumericalResult() + "."
+                        end
+                    else
+                        if differenceInfo:HasKey("mean") and differenceInfo:HasKey("sd") and expectedInfo:HasKey("mean") 
+                            number differenceMean = math:Round(differenceInfo:GetValue("mean"), digits)
+                            number differenceSD = math:Round(differenceInfo:GetValue("sd"), digits)
+                            number proposedMean = math:Round(expectedInfo:GetValue("mean"), digits)
+                            summary = summary + "A comparison between 1 sample across 2 measurements was tested."
+                            if pvalue <= result:GetSignificanceLevel()
+                                summary = summary + " Results show that it is likely there is a difference between the paired difference (M = " 
+                                + differenceMean + ", SD = "+ differenceSD+") and what was expected (M = " + proposedMean + ")"
+                            else
+                                summary = summary + " Results show that there may not be a difference between the paired difference and what was expected"
+                            end
+                            summary = summary +", " + GetFormalNumericalResult() + "."
+                        end
+                    end
+                end    
+            else
+                HashTable<text, number> group1Info = result:GetInformation():GetValue(group1Name)
+                HashTable<text, number> group2Info = result:GetInformation():GetValue(group2Name)
+                if result:IsRanked()
+                    if group1Info:HasKey("median") and group2Info:HasKey("median")
+                        number group1Median = math:Round(group1Info:GetValue("median"), digits)
+                        number group2Median = math:Round(group2Info:GetValue("median"), digits)
+                        summary = summary + "A rank comparison between 2 samples was tested."
+                        if pvalue <= result:GetSignificanceLevel()
+                            summary = summary + " Results show that it is likely there is a difference between "+group1Name
+                            +" (Mdn = " + group1Median + ") and "+ group2Name +" (Mdn = " + group2Median + ")"
+                        else
+                            summary = summary + " Results show that there may not be a difference between "+group1Name+" and "+group2Name
+                        end
+                        summary = summary +", " + GetFormalNumericalResult() + "."
+                    end
+                else
+                    if group1Info:HasKey("mean") and group1Info:HasKey("sd") and group2Info:HasKey("mean") and group2Info:HasKey("sd")
+                        number group1Mean = math:Round(group1Info:GetValue("mean"), digits)
+                        number group1SD = math:Round(group1Info:GetValue("sd"), digits)
+                        number group2Mean = math:Round(group2Info:GetValue("mean"), digits)
+                        number group2SD = math:Round(group2Info:GetValue("sd"), digits)
+                        summary = summary + "A comparison between 2 samples was tested."
+                        if pvalue <= result:GetSignificanceLevel()
+                            summary = summary + " Results show that it is likely there is a difference between "+group1Name
+                            +" (M = " + group1Mean + ", SD = "+ group1SD +") and "+ group2Name +" (M = " + group2Mean + ", SD = " + group2SD + ")"
+                        else
+                            summary = summary + " Results show that there may not be a difference between "+group1Name+" and "+group2Name
+                        end
+                        summary = summary +", " + GetFormalNumericalResult() + "."
+                    end
+                end
+            end
+        end
+        return summary
+    end
+
+    private action GetEasySummarySeveral() returns text
+        text summary = ""
+        text lf = summary:GetLineFeed()
+        text tab = "    "
+        integer digits = format:GetSignificantDigits()
+
+        Array<text> between = result:GetExperimentalDesign():GetBetweenSubjectsFactors()
+        Array<text> within = result:GetExperimentalDesign():GetWithinSubjectsFactors()
+        integer factors = between:GetSize() + within:GetSize()
+        text ivs = ""
+        if factors = 1
+            if between:GetSize() = 1
+                ivs = between:Get(0)
+            else
+                ivs = within:Get(0)
+            end
+        elseif factors = 2
+            if between:GetSize() = 2
+                ivs = between:Get(0) + " and " + between:Get(1)
+            elseif within:GetSize() = 2
+                ivs = within:Get(0) + " and " + within:Get(1)
+            else
+                ivs = between:Get(0) + " and " + within:Get(0)
+            end
+        elseif factors > 2
+            index = 0
+            j = 0
+            repeat while j < between:GetSize() 
+                if index = factors - 1
+                    ivs = ivs + "and "+ between:Get(j)
+                elseif index = factors - 2
+                    ivs = ivs + between:Get(j)+" "
+                else
+                    ivs = ivs + between:Get(j)+", "
+                end
+                index = index + 1
+                j = j + 1
+            end
+            j = 0
+            repeat while j < within:GetSize() 
+                if index = factors - 1
+                    ivs = ivs + "and "+ within:Get(j)
+                elseif index = factors - 2
+                    ivs = ivs + within:Get(j)+" "
+                else
+                    ivs = ivs + within:Get(j)+", "
+                end
+                index = index + 1
+                j = j + 1
+            end
+        end
+        
+    
+        Array <text> variables = result:GetExperimentalDesign():GetDependentVariables()
+        text dvs = ""
+        if variables:GetSize() = 1
+            dvs = variables:Get(0)
+        elseif variables:GetSize() = 2
+            dvs = variables:Get(0) + " and " + variables:Get(1)
+        elseif variables:GetSize() > 2
+            j = 0
+            repeat while j < variables:GetSize() 
+                if j = variables:GetSize() - 1
+                    dvs = dvs + "and "+ variables:Get(j)
+                elseif j = variables:GetSize() - 2
+                    dvs = dvs + variables:Get(j)+" "
+                else
+                    dvs = dvs + variables:Get(j)+", "
+                end
+                j = j + 1
+            end
+        end
+
+        if result:IsRanked()
+            if between:GetSize() > 0 and within:GetSize() > 0
+                integer betweenLevels = result:GetExperimentalDesign():GetNumberOfIndependentGroups()
+                integer withinLevels = result:GetExperimentalDesign():GetNumberOfMeasurements()
+                summary = summary + "A rank comparison to measure the effect of " + ivs + " on " + dvs + " was tested"
+                summary = summary + " using "+betweenLevels+" samples across "+withinLevels+" measurements."
+            elseif between:GetSize() > 0
+                integer betweenLevels = result:GetExperimentalDesign():GetNumberOfIndependentGroups()
+                summary = summary + "A rank comparison to measure the effect of " + ivs + " on " + dvs + " was tested"
+                summary = summary + " using "+betweenLevels+" samples."   
+            elseif within:GetSize() > 0
+                integer withinLevels = result:GetExperimentalDesign():GetNumberOfMeasurements()
+                summary = summary + "A rank comparison to measure the effect of " + ivs + " on " + dvs + " was tested"
+                summary = summary + " using 1 sample across "+withinLevels+" measurements." 
+            end
+        else
+            if between:GetSize() > 0 and within:GetSize() > 0
+                integer betweenLevels = result:GetExperimentalDesign():GetNumberOfIndependentGroups()
+                integer withinLevels = result:GetExperimentalDesign():GetNumberOfMeasurements()
+                summary = summary + "A comparison to measure the effect of " + ivs + " on " + dvs + " was tested"
+                summary = summary + " using "+betweenLevels+" samples across "+withinLevels+" measurements."
+            elseif between:GetSize() > 0
+                integer betweenLevels = result:GetExperimentalDesign():GetNumberOfIndependentGroups()
+                summary = summary + "A comparison to measure the effect of " + ivs + " on " + dvs + " was tested"
+                summary = summary + " using "+betweenLevels+" samples."   
+            elseif within:GetSize() > 0
+                integer withinLevels = result:GetExperimentalDesign():GetNumberOfMeasurements()
+                summary = summary + "A comparison to measure the effect of " + ivs + " on " + dvs + " was tested"
+                summary = summary + " using 1 sample across "+withinLevels+" measurements." 
+            end
+        end
+
+        text variancePrefix = " First"
+        // Distribution Results
+        if result:GetDistributionTest() not= undefined
+            variancePrefix = " Second"
+
+            CompareDistributions normality = result:GetDistributionTest()
+            Array<CompareDistributionsResult> dvResults = normality:GetResults()
+            summary = summary + " First, the residuals were tested for normality"
+            Array <text> significantDV
+            Array <text> significantDVSummary
+            i = 0
+            repeat while i < dvResults:GetSize() and i < variables:GetSize() 
+                number pvalue = dvResults:Get(i):GetProbabilityValue()
+                if pvalue <= result:GetSignificanceLevel()
+                    text dvSummary = ""
+                    if pvalue < format:PRECISION_LIMIT
+                        dvSummary = " (p < " + format:FormatProbabilityValue(pvalue)+")"
+                    else
+                        dvSummary = " (p = " + format:FormatProbabilityValue(pvalue)+")"
+                    end
+                    significantDV:Add(variables:Get(i))
+                    significantDVSummary:Add(dvSummary)
+                end
+                i = i + 1
+            end
+            boolean showAllOthersAreNormal = true
+            if significantDV:GetSize() = 1
+                summary = summary + ", the residuals for "+significantDV:Get(0)+significantDVSummary:Get(0)+" may not be normal."
+            elseif significantDV:GetSize() = 2
+                summary = summary + " the residuals for "+significantDV:Get(0)+significantDVSummary:Get(0)+" and "
+                +significantDV:Get(1) + significantDVSummary:Get(1)+" may not be normal."
+            elseif significantDV:GetSize() > 2
+                showAllOthersAreNormal = false
+                if dvResults:GetSize() = 3
+                    summary = summary + " and the residuals for all three variables may not be normal."
+                else
+                    summary = summary + " and the residuals for three or more variables may not be normal."
+                end
+            else
+                summary = summary + " and all residuals appear to be normal."
+            end
+            if significantDV:GetSize() > 0 and variables:GetSize() > significantDV:GetSize() and showAllOthersAreNormal
+                summary = summary + " All other residuals appear to be normal."
+            end
+        end
+        
+        // Variance Results
+        if result:GetVarianceTest() not= undefined
+            CompareVariances variances = result:GetVarianceTest()
+            if between:GetSize() > 0 and within:GetSize() > 0
+                CompareVariancesResult vResult = variances:GetResult()
+                Array<text> sources = vResult:GetSources()
+
+                boolean equality = true     // Levene's test    (1 source, the interaction of all between factors)
+                boolean sphericity = true   // Mauchly's test   (1+ sources based on within factors or interactions)
+                number equality_pvalue = 1
+                number sphericity_pvalue = 1
+
+                Array <text> significantBetween
+                Array <text> significantBetweenSummary
+                Array <text> significantWithin
+                Array <text> significantWithinSummary
+                i = 0
+                repeat while i < sources:GetSize()
+                    if vResult:GetInformation():HasKey(sources:Get(i)) and vResult:GetInformation():GetValue(sources:Get(i)):HasKey("p")
+                        if vResult:GetInformation():GetValue(sources:Get(i)):HasKey("F") 
+                            // Levene's test
+                            equality_pvalue = vResult:GetInformation():GetValue(sources:Get(i)):GetValue("p")
+                            if equality_pvalue <= result:GetSignificanceLevel()
+                                equality = false
+                                text bSummary = ""
+                                if equality_pvalue < format:PRECISION_LIMIT
+                                    bSummary = " (p < " + format:FormatProbabilityValue(equality_pvalue)+")"
+                                else
+                                    bSummary = " (p = " + format:FormatProbabilityValue(equality_pvalue)+")"
+                                end
+                                significantBetween:Add(sources:Get(i))
+                                significantBetweenSummary:Add(bSummary)
+                            end
+                        else
+                            // Mauchly's test
+                            sphericity_pvalue = vResult:GetInformation():GetValue(sources:Get(i)):GetValue("p")
+                            if sphericity_pvalue <= result:GetSignificanceLevel()
+                                sphericity = false
+                                text wSummary = ""
+                                if sphericity_pvalue < format:PRECISION_LIMIT
+                                    wSummary = " (p < " + format:FormatProbabilityValue(sphericity_pvalue)+")"
+                                else
+                                    wSummary = " (p = " + format:FormatProbabilityValue(sphericity_pvalue)+")"
+                                end
+                                significantWithin:Add(sources:Get(i))
+                                significantWithinSummary:Add(wSummary)
+                            end
+                        end
+                    end                    
+                    i = i + 1
+                end                
+                
+                integer betweenLevels = result:GetExperimentalDesign():GetNumberOfIndependentGroups()
+                integer withinLevels = result:GetExperimentalDesign():GetNumberOfMeasurements()
+                if equality and sphericity
+                    summary = summary + variancePrefix +", the variances were tested and appear to be similar between the "+
+                    betweenLevels+" samples and across the "+withinLevels+" measurements."
+                elseif equality
+                    summary = summary + variancePrefix +", the variances were tested and appear to be similar between the "+
+                    betweenLevels+" samples but may not be similar across the "+withinLevels+" measurements"
+                    if within:GetSize() > 1 
+                        if significantWithin:GetSize() = 1
+                            summary = summary + " under the effect " + significantWithin:Get(0) + significantWithinSummary:Get(0) + "."
+                        elseif significantWithin:GetSize() = 2
+                            summary = summary + " under the effects " + significantWithin:Get(0) + significantWithinSummary:Get(0)
+                            summary = summary + " and " + significantWithin:Get(1) + significantWithinSummary:Get(1) + "."
+                        else
+                            summary = summary + " under three or more effects."
+                        end
+                    else
+                        summary = summary + "."
+                    end
+                elseif sphericity
+                    summary = summary + variancePrefix +", the variances were tested and appear to be similar across the "+
+                    withinLevels+" measurements but may not be similar between the "+betweenLevels+" samples"
+                    if between:GetSize() > 1 
+                        if significantBetween:GetSize() = 1
+                            summary = summary + " in the measurement " + significantBetween:Get(0) + significantBetweenSummary:Get(0) + "."
+                        elseif significantBetween:GetSize() = 2
+                            summary = summary + " in the measurements " + significantBetween:Get(0) + significantBetweenSummary:Get(0)
+                            summary = summary + " and " + significantBetween:Get(1) + significantBetweenSummary:Get(1) + "."
+                        else
+                            summary = summary + " in three or more measurements."
+                        end
+                    else
+                        summary = summary + "."
+                    end
+                else
+                    summary = summary + variancePrefix +", the variances were tested and may not be similar between the "+betweenLevels+" samples"
+                    if between:GetSize() > 1 
+                        if significantBetween:GetSize() = 1
+                            summary = summary + " in the measurement " + significantBetween:Get(0) + significantBetweenSummary:Get(0) + "."
+                        elseif significantBetween:GetSize() = 2
+                            summary = summary + " in the measurements " + significantBetween:Get(0) + significantBetweenSummary:Get(0)
+                            summary = summary + " and " + significantBetween:Get(1) + significantBetweenSummary:Get(1) + "."
+                        else
+                            summary = summary + " in three or more measurements, "
+                        end
+                    else
+                        summary = summary + ","
+                    end
+                    summary = summary + " and may not be similar across the "+withinLevels+" measurements"
+
+                    if within:GetSize() > 1 
+                        if significantWithin:GetSize() = 1
+                            summary = summary + " under the effect " + significantWithin:Get(0) + significantWithinSummary:Get(0) + "."
+                        elseif significantWithin:GetSize() = 2
+                            summary = summary + " under the effects " + significantWithin:Get(0) + significantWithinSummary:Get(0)
+                            summary = summary + " and " + significantWithin:Get(1) + significantWithinSummary:Get(1) + "."
+                        else
+                            summary = summary + " under three or more effects."
+                        end
+                    else
+                        summary = summary + "."
+                    end              
+                end
+            elseif between:GetSize() > 0
+                integer betweenLevels = result:GetExperimentalDesign():GetNumberOfIndependentGroups()
+                number pvalue = 1
+                if multivariate
+                    CompareVariancesResult vResult = variances:GetResult()
+                    text source = vResult:GetSources():Get(0)
+                    if vResult:UseFApproximation()
+                        HashTable<text, number> pvalues = vResult:GetProbabilityValuesTable(source+"F")
+                        pvalue = pvalues:GetValue(source+"F")
+                    elseif vResult:UseX2Approximation()
+                        HashTable<text, number> pvalues = vResult:GetProbabilityValuesTable(source+"χ2")
+                        pvalue = pvalues:GetValue(source+"χ2")
+                    end
+                else
+                    pvalue = variances:GetProbabilityValue()
+                end 
+                if pvalue <= result:GetSignificanceLevel()
+                    summary = summary + variancePrefix +", the variances were tested and may not be similar for the "+betweenLevels+" samples"
+                    if pvalue < format:PRECISION_LIMIT
+                        summary = summary + ", (p < " + format:FormatProbabilityValue(pvalue)+")."
+                    else
+                        summary = summary + ", (p = " + format:FormatProbabilityValue(pvalue)+")."
+                    end
+                else
+                    summary = summary + variancePrefix +", the variances were tested and appear to be similar for the "+betweenLevels+" samples."
+                end 
+            elseif within:GetSize() > 0
+                integer withinLevels = result:GetExperimentalDesign():GetNumberOfMeasurements()
+                number pvalue = 1
+                if multivariate
+                    CompareVariancesResult vResult = variances:GetResult()
+                    text source = vResult:GetSources():Get(0)
+                    HashTable<text, number> pvalues = vResult:GetProbabilityValuesTable(source)
+                    if vResult:UseFApproximation() and pvalues:HasKey(source+"F")
+                        pvalue = pvalues:GetValue(source+"F")
+                    elseif vResult:UseX2Approximation() and pvalues:HasKey(source+"χ2")
+                        pvalue = pvalues:GetValue(source+"χ2")
+                    end
+                else
+                    pvalue = variances:GetProbabilityValue()
+                end 
+                if pvalue <= result:GetSignificanceLevel()
+                    summary = summary + variancePrefix +", the variances were tested and may not appear be similar across the "+withinLevels+" measurements"
+                    if pvalue < format:PRECISION_LIMIT
+                        summary = summary + ", (p < " + format:FormatProbabilityValue(pvalue)+")."
+                    else
+                        summary = summary + ", (p = " + format:FormatProbabilityValue(pvalue)+")."
+                    end 
+                else
+                    summary = summary + variancePrefix +", the variances were tested and appear to be similar across the "+withinLevels+" measurements."
+                end  
+            end
+        end
+
+        boolean significantEffectCorrected = false      // Still significant after correction
+        Array <text> significantEffects
+        Array <text> significantEffectSummary
+        integer numberOfEffects = 0
+        // For each source:
+        i = 0
+        repeat while i < result:GetSources():GetSize()
+            text source = result:GetSources():Get(i)
+            if result:GetInformation():HasKey(source)
+                HashTable<text, number> sourceInfo = result:GetInformation():GetValue(source)
+                if multivariate
+                    if result:UsePillaiStatistic() and sourceInfo:HasKey("pillai p")
+                        numberOfEffects = numberOfEffects + 1
+                        number pvalue = sourceInfo:GetValue("pillai p")
+                        if pvalue <= result:GetSignificanceLevel()
+                            significantEffects:Add(source)
+                            significantEffectSummary:Add(GetFormalNumericalResultSeveral(source))
+                        end
+                    elseif result:UseHotellingStatistic() and sourceInfo:HasKey("hotelling p")
+                        numberOfEffects = numberOfEffects + 1
+                        number pvalue = sourceInfo:GetValue("hotelling p")
+                        if pvalue <= result:GetSignificanceLevel()
+                            significantEffects:Add(source)
+                            significantEffectSummary:Add(GetFormalNumericalResultSeveral(source))
+                        end
+                    elseif result:UseWilksStatistic() and sourceInfo:HasKey("wilks p")
+                        numberOfEffects = numberOfEffects + 1
+                        number pvalue = sourceInfo:GetValue("wilks p")
+                        if pvalue <= result:GetSignificanceLevel()
+                            significantEffects:Add(source)
+                            significantEffectSummary:Add(GetFormalNumericalResultSeveral(source))
+                        end
+                    end
+                else
+                    if sourceInfo:HasKey("p")
+                        numberOfEffects = numberOfEffects + 1
+                        boolean useCorrection = false
+                        number pvalue = sourceInfo:GetValue("p")
+                        if pvalue <= result:GetSignificanceLevel()
+                            if result:GetVarianceResult() not= undefined and sourceInfo:HasKey("sphericity p")
+                                number sphericitypvalue = sourceInfo:GetValue("sphericity p")
+                                if sphericitypvalue <= result:GetSignificanceLevel()
+                                    pvalue = sourceInfo:GetValue("gg p")
+                                    useCorrection = true
+                                end
+                            end
+                        end
+
+                        if pvalue <= result:GetSignificanceLevel()
+                            significantEffects:Add(source)
+                            if useCorrection
+                                number correction = sourceInfo:GetValue("gg")
+                                number dfn = sourceInfo:GetValue("df")*correction
+                                number dfd = sourceInfo:GetValue("error df")*correction
+
+                                text effName = result:GetEffectSizesTable():GetValue(source):GetKeyIterator():Next()
+                                number eff = result:GetEffectSizesTable():GetValue(source):GetValue(effName)
+                                text statName = result:GetTestStatisticsTable():GetValue(source):GetKeyIterator():Next()
+                                number stat = result:GetTestStatisticsTable():GetValue(source):GetValue(statName)
+                                
+                                text sourceSummary = ""
+                                sourceSummary = sourceSummary +statName+"("+format:FormatDegreesOfFreedom(dfn)+", "
+                                sourceSummary = sourceSummary + format:FormatDegreesOfFreedom(dfd)+") = "+format:FormatTestStatistic(stat)
+                                if pvalue < format:PRECISION_LIMIT
+                                    sourceSummary = sourceSummary + ", p < " + format:FormatProbabilityValue(pvalue)
+                                else
+                                    sourceSummary = sourceSummary + ", p = " + format:FormatProbabilityValue(pvalue)
+                                end
+                                sourceSummary = sourceSummary + ", (ε = "+format:FormatWithoutLeadingZero(correction, 2)+")"
+                                sourceSummary = sourceSummary + ", "+effName+" = " + format:FormatWithoutLeadingZero(eff,3)
+
+                                significantEffectSummary:Add(sourceSummary)
+                                significantEffectCorrected = true
+                            else
+                                significantEffectSummary:Add(GetFormalNumericalResultSeveral(source))
+                            end
+                        end
+                    end
+                end
+            end
+            i = i + 1
+        end
+
+        if significantEffectCorrected
+            summary = summary + " After correcting for the difference in variances across the measurements, results"
+        else
+            summary = summary + " Results"
+        end
+        if significantEffects:GetSize() = 1
+            summary = summary + " show that it is likely there is a difference in the samples under the effect "
+            summary = summary + significantEffects:Get(0)+" ("+significantEffectSummary:Get(0)+")."
+        elseif significantEffects:GetSize() = 2
+            summary = summary + " show that it is likely there is a difference in the samples under the effects "
+            summary = summary + significantEffects:Get(0)+" ("+significantEffectSummary:Get(0)+") and "+significantEffects:Get(1)+" ("+significantEffectSummary:Get(1)+")."
+        elseif significantEffects:GetSize() > 2
+            summary = summary + " show that it is likely there is a difference in the samples under the effects "
+            j = 0
+            repeat while j < significantEffects:GetSize() 
+                if j = significantEffects:GetSize() - 1
+                    summary = summary + "and "+ significantEffects:Get(j)+" ("+significantEffectSummary:Get(j)+")."
+                elseif j = significantEffects:GetSize() - 2
+                    summary = summary + significantEffects:Get(j)+" ("+significantEffectSummary:Get(j)+") "
+                else
+                    summary = summary + significantEffects:Get(j)+" ("+significantEffectSummary:Get(j)+"), "
+                end
+                j = j + 1
+            end
+        else
+            if between:GetSize() + within:GetSize() = 1
+                summary = summary + " show that there may not be a difference in the samples under the effect."
+            elseif between:GetSize() + within:GetSize() = 2
+                summary = summary + " show that there may not be a difference in the samples under either effect."
+            else
+                summary = summary + " show that there may not be a difference in the samples under any effect."
+            end
+        end
+
+        if significantEffects:GetSize() < numberOfEffects and significantEffects:GetSize() > 0
+            summary = summary + " The samples may not be different under the other effects."
+        end
+
+        // Univariate Post Hoc Results
+        if significantEffects:GetSize() > 0  and result:GetPairwiseTest() not= undefined
+            CompareMeansPairwise pairwise = result:GetPairwiseTest()
+            summary = summary + lf
+            j = 0
+            repeat while j < significantEffects:GetSize() 
+                // For each significant effect get post hoc
+                // for each significant post hoc, report.
+                Array <text> significantPairsSummary
+                Array <CompareMeansResult> pairs = pairwise:GetResults(significantEffects:Get(j))
+                k = 0
+                repeat while k < pairs:GetSize()
+                    number pvalue = pairs:Get(k):GetProbabilityValue()
+                    if pvalue < result:GetSignificanceLevel()
+                        DataFrame pair = pairs:Get(k):GetGroupsFrame()
+                        text pairSummary = pair:GetColumn(0):GetHeader()+" likely differs from "+pair:GetColumn(1):GetHeader()
+                        if pvalue < format:PRECISION_LIMIT
+                            pairSummary = pairSummary + " (p < " + format:FormatProbabilityValue(pvalue)+")"
+                        else
+                            pairSummary = pairSummary + " (p = " + format:FormatProbabilityValue(pvalue)+")"
+                        end
+                        significantPairsSummary:Add(pairSummary)
+                    end
+                    k = k + 1
+                end
+
+                if j = 0
+                    summary = summary + "Follow up pairwise comparisons for the effect "+significantEffects:Get(j)
+                else
+                    summary = summary + " Follow up pairwise comparisons for the effect "+significantEffects:Get(j)
+                end
+                if significantPairsSummary:GetSize() = 0
+                    summary = summary + " show that after adjusting for familywise error"
+                    summary = summary + " all samples under the effect "+significantEffects:Get(j)+" appear similar."
+                else
+                    boolean showAllOthersAreSimilar = true
+                    if significantPairsSummary:GetSize() = 1
+                        summary = summary + " show that " + significantPairsSummary:Get(0)+ "."
+                    elseif significantPairsSummary:GetSize() = 2
+                        summary = summary + " show that " + significantPairsSummary:Get(0)+ " and "+significantPairsSummary:Get(1)+"."
+                    elseif significantPairsSummary:GetSize() > 2
+                        showAllOthersAreSimilar = false
+                        summary = summary + " show that three or more pairs likely differ under this effect."
+//                        summary = summary + " show that "
+//                        k = 0
+//                        repeat while k < significantPairsSummary:GetSize() 
+//                            if k = significantPairsSummary:GetSize() - 1
+//                                summary = summary + "and "+ significantPairsSummary:Get(k)+"."
+//                            elseif k = significantPairsSummary:GetSize() - 2
+//                                summary = summary + significantPairsSummary:Get(k)+" "
+//                            else
+//                                summary = summary + significantPairsSummary:Get(k)+", "
+//                            end
+//                            k = k + 1
+//                        end
+                    end
+                    if pairs:GetSize() > significantPairsSummary:GetSize() and showAllOthersAreSimilar
+                        summary = summary + " However, all other pairs under the effect "+significantEffects:Get(j)+" appear similar."  
+                    end  
+                end
+                j = j + 1
+            end
+        end
+        return summary
+    end
 
     private action GetSummaryOne() returns text
         text summary = ""
@@ -166,8 +1280,7 @@ class CompareMeansSummary
         text factors = result:GetFactorList()
         text columns = result:GetColumnList()
         text statisticName = result:GetTestStatisticName()
-        integer group1Size = cast(integer, result:GetInformation():GetValue(group1Name):GetValue("size"))
-        integer group2Size = cast(integer, result:GetInformation():GetValue(group1Name):GetValue("size"))
+
         number statistic = result:GetTestStatistic()
         number pvalue = result:GetProbabilityValue()
 
@@ -183,31 +1296,39 @@ class CompareMeansSummary
         end
         summary = summary + lf + "Samples: " + group1Name + " and " + group2Name
         if result:IsRanked()
-            number group1Median = result:GetInformation():GetValue(group1Name):GetValue("median")
-            number group2Median = result:GetInformation():GetValue(group2Name):GetValue("median")
-            summary = summary + lf + "Median of " + group1Name + ": " + math:Round(group1Median, digits)
-            summary = summary + lf + "Median of " + group2Name + ": " + math:Round(group2Median, digits)
-            summary = summary + lf + "Size of " + group1Name + ": " + group1Size
-            summary = summary + lf + "Size of " + group2Name + ": " + group2Size
-            if result:IsRepeated()
-                number differenceMean = result:GetInformation():GetValue("difference"):GetValue("median")
-                number proposedMean = result:GetInformation():GetValue("proposed"):GetValue("median")
-                summary = summary + lf + "Paired Difference Median: " + math:Round(differenceMean, digits)
-                summary = summary + lf + "Proposed Median: " + math:Round(proposedMean, digits)
+            if result:GetInformation():HasKey(group1Name)
+                number group1Median = result:GetInformation():GetValue(group1Name):GetValue("median")
+                number group2Median = result:GetInformation():GetValue(group2Name):GetValue("median")
+                integer group1Size = cast(integer, result:GetInformation():GetValue(group1Name):GetValue("size"))
+                integer group2Size = cast(integer, result:GetInformation():GetValue(group2Name):GetValue("size"))
+                summary = summary + lf + "Median of " + group1Name + ": " + math:Round(group1Median, digits)
+                summary = summary + lf + "Median of " + group2Name + ": " + math:Round(group2Median, digits)
+                summary = summary + lf + "Size of " + group1Name + ": " + group1Size
+                summary = summary + lf + "Size of " + group2Name + ": " + group2Size
+                if result:IsRepeated()
+                    number differenceMean = result:GetInformation():GetValue("difference"):GetValue("median")
+                    number proposedMean = result:GetInformation():GetValue("proposed"):GetValue("median")
+                    summary = summary + lf + "Paired Difference Median: " + math:Round(differenceMean, digits)
+                    summary = summary + lf + "Proposed Median: " + math:Round(proposedMean, digits)
+                end
             end
             summary = summary + lf + "Statistic ("+statisticName+"): " + math:Round(statistic, digits)
         else
-            number group1Mean = result:GetInformation():GetValue(group1Name):GetValue("mean")
-            number group2Mean = result:GetInformation():GetValue(group2Name):GetValue("mean")
-            summary = summary + lf + "Mean of " + group1Name + ": " + math:Round(group1Mean, digits)
-            summary = summary + lf + "Mean of " + group2Name + ": " + math:Round(group2Mean, digits)
-            summary = summary + lf + "Size of " + group1Name + ": " + group1Size
-            summary = summary + lf + "Size of " + group2Name + ": " + group2Size
-            if result:IsRepeated()
-                number differenceMean = result:GetInformation():GetValue("difference"):GetValue("mean")
-                number proposedMean = result:GetInformation():GetValue("proposed"):GetValue("mean")
-                summary = summary + lf + "Paired Difference Mean: " + math:Round(differenceMean, digits)
-                summary = summary + lf + "Proposed Mean: " + math:Round(proposedMean, digits)
+            if result:GetInformation():HasKey(group1Name)
+                number group1Mean = result:GetInformation():GetValue(group1Name):GetValue("mean")
+                number group2Mean = result:GetInformation():GetValue(group2Name):GetValue("mean")
+                integer group1Size = cast(integer, result:GetInformation():GetValue(group1Name):GetValue("size"))
+                integer group2Size = cast(integer, result:GetInformation():GetValue(group2Name):GetValue("size"))
+                summary = summary + lf + "Mean of " + group1Name + ": " + math:Round(group1Mean, digits)
+                summary = summary + lf + "Mean of " + group2Name + ": " + math:Round(group2Mean, digits)
+                summary = summary + lf + "Size of " + group1Name + ": " + group1Size
+                summary = summary + lf + "Size of " + group2Name + ": " + group2Size
+                if result:IsRepeated()
+                    number differenceMean = result:GetInformation():GetValue("difference"):GetValue("mean")
+                    number proposedMean = result:GetInformation():GetValue("proposed"):GetValue("mean")
+                    summary = summary + lf + "Paired Difference Mean: " + math:Round(differenceMean, digits)
+                    summary = summary + lf + "Proposed Mean: " + math:Round(proposedMean, digits)
+                end
             end
             number degreesOfFreedom = result:GetDegreesOfFreedom()
             summary = summary + lf + "Statistic ("+statisticName+"): " + math:Round(statistic, digits)
@@ -429,84 +1550,92 @@ class CompareMeansSummary
 
         if result:IsRanked()
             if result:IsRepeated()
-                text groupName = "The difference between "+ group1Name + " and "+ group2Name
-                number groupMedian = math:Round(result:GetInformation():GetValue("difference"):GetValue("median"), digits)
-                number proposedMedian = math:Round(result:GetInformation():GetValue("proposed"):GetValue("median"), digits)
-                if result:IsSignificant()
-                    summary = summary + "The difference was indicated to be statistically significant."
-                    if groupMedian > proposedMedian
-                        summary = summary + lf + groupName + " had a higher overall median (Mdn = " + groupMedian + ") compared to "
-                            + " (Mdn = " + proposedMedian +")"
-                    elseif groupMedian < proposedMedian
-                        summary = summary + lf + groupName + " had a lower overall median (Mdn = " + groupMedian + ") compared to "
-                            + " (Mdn = " + proposedMedian +")"
+                if result:GetInformation():HasKey("difference")
+                    text groupName = "The difference between "+ group1Name + " and "+ group2Name
+                    number groupMedian = math:Round(result:GetInformation():GetValue("difference"):GetValue("median"), digits)
+                    number proposedMedian = math:Round(result:GetInformation():GetValue("proposed"):GetValue("median"), digits)
+                    if result:IsSignificant()
+                        summary = summary + "The difference was indicated to be statistically significant."
+                        if groupMedian > proposedMedian
+                            summary = summary + lf + groupName + " had a higher overall median (Mdn = " + groupMedian + ") compared to "
+                                + " (Mdn = " + proposedMedian +")"
+                        elseif groupMedian < proposedMedian
+                            summary = summary + lf + groupName + " had a lower overall median (Mdn = " + groupMedian + ") compared to "
+                                + " (Mdn = " + proposedMedian +")"
+                        else
+                            summary = summary + lf + groupName + " had an equal median (Mdn = " + groupMedian + ") compared to "
+                                + " (Mdn = " + proposedMedian +")"             
+                        end
                     else
-                        summary = summary + lf + groupName + " had an equal median (Mdn = " + groupMedian + ") compared to "
-                            + " (Mdn = " + proposedMedian +")"             
+                        summary = summary + lf + groupName + " (Mdn = " + groupMedian + ") is not significantly different from (Mdn = " + proposedMedian +")"
                     end
-                else
-                    summary = summary + lf + groupName + " (Mdn = " + groupMedian + ") is not significantly different from (Mdn = " + proposedMedian +")"
                 end
             else
-                number group1Median = math:Round(result:GetInformation():GetValue(group1Name):GetValue("median"), digits)
-                number group2Median = math:Round(result:GetInformation():GetValue(group2Name):GetValue("median"), digits)
-                if result:IsSignificant()
-                    summary = summary + lf + "The difference was indicated to be statistically significant."
-                    if group1Median > group2Median
-                        summary = summary + lf + group1Name + " had a higher overall median (Mdn = " + group1Median + ") compared to "
-                            + group2Name + " (Mdn = " + group2Median +")"
-                    elseif group1Median < group2Median
-                        summary = summary + lf + group1Name + " had a lower overall median (Mdn = " + group1Median + ") compared to "
-                            + group2Name + " (Mdn = " + group2Median +")"
+                if result:GetInformation():HasKey(group1Name)
+                    number group1Median = math:Round(result:GetInformation():GetValue(group1Name):GetValue("median"), digits)
+                    number group2Median = math:Round(result:GetInformation():GetValue(group2Name):GetValue("median"), digits)
+                    if result:IsSignificant()
+                        summary = summary + lf + "The difference was indicated to be statistically significant."
+                        if group1Median > group2Median
+                            summary = summary + lf + group1Name + " had a higher overall median (Mdn = " + group1Median + ") compared to "
+                                + group2Name + " (Mdn = " + group2Median +")"
+                        elseif group1Median < group2Median
+                            summary = summary + lf + group1Name + " had a lower overall median (Mdn = " + group1Median + ") compared to "
+                                + group2Name + " (Mdn = " + group2Median +")"
+                        else
+                            summary = summary + lf + group1Name + " had an equal median (Mdn = " + group1Median + ") compared to "
+                                + group2Name + " (Mdn = " + group2Median +")"             
+                        end
                     else
-                        summary = summary + lf + group1Name + " had an equal median (Mdn = " + group1Median + ") compared to "
-                            + group2Name + " (Mdn = " + group2Median +")"             
+                        summary = summary + lf + " " + group1Name + " (Mdn = " + group1Median + ") is not significantly different from " + group2Name +" (Mdn = " + group2Median +")"
                     end
-                else
-                    summary = summary + lf + " " + group1Name + " (Mdn = " + group1Median + ") is not significantly different from " + group2Name +" (Mdn = " + group2Median +")"
                 end
             end
         else
             if result:IsRepeated()
-                text groupName = "The difference between "+ group1Name + " and "+ group2Name
-                number groupMean = math:Round(result:GetInformation():GetValue("difference"):GetValue("mean"), digits)
-                number groupSD = math:Round(math:SquareRoot(result:GetInformation():GetValue("difference"):GetValue("variance")), digits)
-                number proposedMean = math:Round(result:GetInformation():GetValue("proposed"):GetValue("mean"), digits)
-                if result:IsSignificant()
-                    summary = summary + " The difference was indicated to be statistically significant."
-                    if groupMean > proposedMean
-                        summary = summary + lf + groupName + " had a higher overall mean (M = " + groupMean + ", SD = " + groupSD + ") compared to "
-                            + " (M = " + proposedMean +")"
-                    elseif groupMean < proposedMean
-                        summary = summary + lf + groupName + " had a lower overall mean (M = " + groupMean + ", SD = " + groupSD + ") compared to "
-                            + " (M = " + proposedMean +")"
+                if result:GetInformation():HasKey("difference")
+                    text groupName = "The difference between "+ group1Name + " and "+ group2Name
+                    number groupMean = math:Round(result:GetInformation():GetValue("difference"):GetValue("mean"), digits)
+                    number groupSD = math:Round(math:SquareRoot(result:GetInformation():GetValue("difference"):GetValue("variance")), digits)
+                    number proposedMean = math:Round(result:GetInformation():GetValue("proposed"):GetValue("mean"), digits)
+                    if result:IsSignificant()
+                        summary = summary + " The difference was indicated to be statistically significant."
+                        if groupMean > proposedMean
+                            summary = summary + lf + groupName + " had a higher overall mean (M = " + groupMean + ", SD = " + groupSD + ") compared to "
+                                + " (M = " + proposedMean +")"
+                        elseif groupMean < proposedMean
+                            summary = summary + lf + groupName + " had a lower overall mean (M = " + groupMean + ", SD = " + groupSD + ") compared to "
+                                + " (M = " + proposedMean +")"
+                        else
+                            summary = summary + lf + groupName + " had an equal mean (M = " + groupMean + ", SD = " + groupSD + ") compared to "
+                                + " (M = " + proposedMean +")"             
+                        end
                     else
-                        summary = summary + lf + groupName + " had an equal mean (M = " + groupMean + ", SD = " + groupSD + ") compared to "
-                            + " (M = " + proposedMean +")"             
+                        summary = summary + lf + " " + groupName + " (M = " + groupMean + ", SD = " + groupSD + ") is not significantly different from (M = " + proposedMean +")."
                     end
-                else
-                    summary = summary + lf + " " + groupName + " (M = " + groupMean + ", SD = " + groupSD + ") is not significantly different from (M = " + proposedMean +")."
                 end
             else
-                number group1Mean = math:Round(result:GetInformation():GetValue(group1Name):GetValue("mean"), digits)
-                number group2Mean = math:Round(result:GetInformation():GetValue(group2Name):GetValue("mean"), digits)
-                number group1SD = math:Round(math:SquareRoot(result:GetInformation():GetValue(group1Name):GetValue("variance")), digits)
-                number group2SD = math:Round(math:SquareRoot(result:GetInformation():GetValue(group2Name):GetValue("variance")), digits)
-                if result:IsSignificant()
-                    summary = summary + " The difference was indicated to be statistically significant."
-                    if group1Mean > group2Mean
-                        summary = summary + lf + group1Name + " had a higher overall mean (M = " + group1Mean + ", SD = " + group1SD + ") compared to "
-                            + group2Name + " (M = " + group2Mean + ", SD = " + group2SD + ")"
-                    elseif group1Mean < group2Mean
-                        summary = summary + lf + group1Name + " had a lower overall mean (M = " + group1Mean + ", SD = " + group1SD + ") compared to "
-                            + group2Name + " (M = " + group2Mean + ", SD = " + group2SD + ")"
+                if result:GetInformation():HasKey(group1Name)
+                    number group1Mean = math:Round(result:GetInformation():GetValue(group1Name):GetValue("mean"), digits)
+                    number group2Mean = math:Round(result:GetInformation():GetValue(group2Name):GetValue("mean"), digits)
+                    number group1SD = math:Round(math:SquareRoot(result:GetInformation():GetValue(group1Name):GetValue("variance")), digits)
+                    number group2SD = math:Round(math:SquareRoot(result:GetInformation():GetValue(group2Name):GetValue("variance")), digits)
+                    if result:IsSignificant()
+                        summary = summary + " The difference was indicated to be statistically significant."
+                        if group1Mean > group2Mean
+                            summary = summary + lf + group1Name + " had a higher overall mean (M = " + group1Mean + ", SD = " + group1SD + ") compared to "
+                                + group2Name + " (M = " + group2Mean + ", SD = " + group2SD + ")"
+                        elseif group1Mean < group2Mean
+                            summary = summary + lf + group1Name + " had a lower overall mean (M = " + group1Mean + ", SD = " + group1SD + ") compared to "
+                                + group2Name + " (M = " + group2Mean + ", SD = " + group2SD + ")"
+                        else
+                            summary = summary + lf + group1Name + " had an equal mean (M = " + group1Mean + ", SD = " + group1SD + ") compared to "
+                                + group2Name + " (M = " + group2Mean + ", SD = " + group2SD + ")"           
+                        end
                     else
-                        summary = summary + lf + group1Name + " had an equal mean (M = " + group1Mean + ", SD = " + group1SD + ") compared to "
-                            + group2Name + " (M = " + group2Mean + ", SD = " + group2SD + ")"           
+                        summary = summary + lf + group1Name + " (M = " + group1Mean + ", SD = " + group1SD + ") is not significantly different from " 
+                                                + group2Name + " (M = " + group2Mean + ", SD = " + group2SD + ")"
                     end
-                else
-                    summary = summary + lf + group1Name + " (M = " + group1Mean + ", SD = " + group1SD + ") is not significantly different from " 
-                                            + group2Name + " (M = " + group2Mean + ", SD = " + group2SD + ")"
                 end
             end
         end
@@ -554,8 +1683,8 @@ class CompareMeansSummary
                         number pval = info:GetValue("p")
                         text equation = ""
                         // If significant: show corrected results
-                        if pval <= result:GetSignificanceLevel()
-                            if info:GetValue("sphericity p") <= result:GetSignificanceLevel()
+                        if pval <= result:GetSignificanceLevel() 
+                            if info:HasKey("sphericity p") and info:GetValue("sphericity p") <= result:GetSignificanceLevel()
                                 text statName = result:GetTestStatisticsTable():GetValue(source):GetKeyIterator():Next()
                                 number stat = result:GetTestStatisticsTable():GetValue(source):GetValue(statName)
                                 number correction = info:GetValue("gg")
@@ -878,7 +2007,9 @@ class CompareMeansSummary
         integer digits = format:GetSignificantDigits()
 
         TextColumn testCol
-        testCol:SetHeader(result:GetFormalTestName())
+        testCol:SetHeader("Technical Name")
+        TextColumn comparisonCol
+        comparisonCol:SetHeader("Comparison")
         NumberColumn statisticCol
         statisticCol:SetHeader("Statistic ("+result:GetTestStatisticName()+")")
         NumberColumn pCol
@@ -886,47 +2017,24 @@ class CompareMeansSummary
         NumberColumn effectCol
         effectCol:SetHeader("Effect Size ("+result:GetEffectSizeName()+")")
         TextColumn equationCol
-        equationCol:SetHeader("APA Report")
+        equationCol:SetHeader("APA Report")         
 
         text groupName = result:GetGroupsFrame():GetColumn(0):GetHeader()
         text statName = result:GetTestStatisticName()
-        testCol:Add(groupName)
+        testCol:Add(result:GetFormalTestName())
+        comparisonCol:Add(groupName)
         statisticCol:Add(math:Round(result:GetTestStatistic(), digits))
         pCol:Add(math:Round(result:GetProbabilityValue(), digits))
         effectCol:Add(math:Round(result:GetEffectSize(), digits)) 
         equationCol:Add(GetFormalNumericalResult())    
 
-        if result:IsRanked()
-            NumberColumn medianCol
-            medianCol:SetHeader("Median")
-            medianCol:Add(math:Round(result:GetInformation():GetValue(groupName):GetValue("median"), digits))
-
-            resultFrame:AddColumn(testCol)
-            resultFrame:AddColumn(medianCol)
-            resultFrame:AddColumn(statisticCol)
-            resultFrame:AddColumn(pCol)
-            resultFrame:AddColumn(effectCol) 
-            resultFrame:AddColumn(equationCol)   
-        else
-            NumberColumn meanCol
-            meanCol:SetHeader("Mean")
-            meanCol:Add(math:Round(result:GetInformation():GetValue(groupName):GetValue("mean"), digits))
-            NumberColumn sdCol
-            sdCol:SetHeader("Standard Deviation")
-            sdCol:Add(math:Round(math:SquareRoot(result:GetInformation():GetValue(groupName):GetValue("variance")),digits))
-            NumberColumn dfCol
-            dfCol:SetHeader("Degrees Of Freedom")
-            dfCol:Add(math:Round(result:GetDegreesOfFreedom(), digits))
-
-            resultFrame:AddColumn(testCol)
-            resultFrame:AddColumn(meanCol)
-            resultFrame:AddColumn(sdCol)
-            resultFrame:AddColumn(dfCol)
-            resultFrame:AddColumn(statisticCol)
-            resultFrame:AddColumn(pCol)
-            resultFrame:AddColumn(effectCol)  
-            resultFrame:AddColumn(equationCol)  
-        end
+        resultFrame:AddColumn(testCol)
+        resultFrame:AddColumn(comparisonCol)  
+        resultFrame:AddColumn(statisticCol)
+        resultFrame:AddColumn(pCol)
+        resultFrame:AddColumn(effectCol)  
+        resultFrame:AddColumn(equationCol)  
+        
         return resultFrame
     end
 
@@ -935,7 +2043,11 @@ class CompareMeansSummary
         integer digits = format:GetSignificantDigits()
 
         TextColumn testCol
-        testCol:SetHeader(result:GetFormalTestName())
+        testCol:SetHeader("Technical Name")
+        TextColumn comparisonCol1
+        comparisonCol1:SetHeader("Comparison 1")
+        TextColumn comparisonCol2
+        comparisonCol2:SetHeader("Comparison 2")
         NumberColumn statisticCol
         statisticCol:SetHeader("Statistic ("+result:GetTestStatisticName()+")")
         NumberColumn pCol
@@ -943,66 +2055,28 @@ class CompareMeansSummary
         NumberColumn effectCol
         effectCol:SetHeader("Effect Size ("+result:GetEffectSizeName()+")")
         TextColumn equationCol
-        equationCol:SetHeader("APA Report")
+        equationCol:SetHeader("APA Report")   
 
         text group1Name = result:GetGroupsFrame():GetColumn(0):GetHeader()
         text group2Name = result:GetGroupsFrame():GetColumn(1):GetHeader()
         text statName = result:GetTestStatisticName()
 
-        testCol:Add(group1Name+"_"+group2Name)
+        testCol:Add(result:GetFormalTestName())
+        comparisonCol1:Add(group1Name)
+        comparisonCol2:Add(group2Name)
         statisticCol:Add(math:Round(result:GetTestStatistic(), digits))
         pCol:Add(math:Round(result:GetProbabilityValue(), digits))
         effectCol:Add(math:Round(result:GetEffectSize(), digits))     
         equationCol:Add(GetFormalNumericalResult())
 
-        if result:IsRanked()
-            NumberColumn median1Col
-            median1Col:SetHeader("Median 1")
-            median1Col:Add(result:GetInformation():GetValue(group1Name):GetValue("median"))
-
-            NumberColumn median2Col
-            median2Col:SetHeader("Median 2")
-            median2Col:Add(result:GetInformation():GetValue(group2Name):GetValue("median"))
-
-            resultFrame:AddColumn(testCol)
-            resultFrame:AddColumn(median1Col)
-            resultFrame:AddColumn(median2Col)
-            resultFrame:AddColumn(statisticCol)
-            resultFrame:AddColumn(pCol)
-            resultFrame:AddColumn(effectCol) 
-            resultFrame:AddColumn(equationCol)   
-        else
-            NumberColumn mean1Col
-            mean1Col:SetHeader("Mean 1")
-            mean1Col:Add(result:GetInformation():GetValue(group1Name):GetValue("mean"))
-
-            NumberColumn mean2Col
-            mean2Col:SetHeader("Mean 2")
-            mean2Col:Add(result:GetInformation():GetValue(group2Name):GetValue("mean"))
-
-            NumberColumn sd1Col
-            sd1Col:SetHeader("Standard Deviation 1")
-            sd1Col:Add(math:SquareRoot(result:GetInformation():GetValue(group1Name):GetValue("variance")))
-
-            NumberColumn sd2Col
-            sd2Col:SetHeader("Standard Deviation 2")
-            sd2Col:Add(math:SquareRoot(result:GetInformation():GetValue(group2Name):GetValue("variance")))
-
-            NumberColumn dfCol
-            dfCol:SetHeader("Degrees Of Freedom")
-            dfCol:Add(result:GetDegreesOfFreedom())
-
-            resultFrame:AddColumn(testCol)
-            resultFrame:AddColumn(mean1Col)
-            resultFrame:AddColumn(mean2Col)
-            resultFrame:AddColumn(sd1Col)
-            resultFrame:AddColumn(sd2Col)
-            resultFrame:AddColumn(dfCol)
-            resultFrame:AddColumn(statisticCol)
-            resultFrame:AddColumn(pCol)
-            resultFrame:AddColumn(effectCol)
-            resultFrame:AddColumn(equationCol)  
-        end
+        resultFrame:AddColumn(testCol)  
+        resultFrame:AddColumn(comparisonCol1)           
+        resultFrame:AddColumn(comparisonCol2)
+        resultFrame:AddColumn(statisticCol)
+        resultFrame:AddColumn(pCol)
+        resultFrame:AddColumn(effectCol)
+        resultFrame:AddColumn(equationCol)  
+        
         return resultFrame
     end
 
@@ -1146,7 +2220,6 @@ class CompareMeansSummary
                         resultFrame:AddColumn(equationCol) 
                     end
                     testCol:Add(source)
-                    equationCol:Add(GetFormalNumericalResultSeveral(source))
                     if result:GetInformation():GetValue(source):HasKey("F")
                         text statName = result:GetTestStatisticsTable():GetValue(source):GetKeyIterator():Next()
                         text effectName = result:GetEffectSizesTable():GetValue(source):GetKeyIterator():Next()
@@ -1161,6 +2234,7 @@ class CompareMeansSummary
                             statisticCol:SetHeader("Statistic ("+statName+")")
                             effectCol:SetHeader("Effect Size ("+effectName+")")
                         end
+                        equationCol:Add(GetFormalNumericalResultSeveral(source))
                     else
                         if source = "Residual Error"
                             ssCol:Add(math:Round(result:GetInformation():GetValue(source):GetValue("ss"), digits))
@@ -1173,12 +2247,119 @@ class CompareMeansSummary
                             dfeCol:Add(math:Round(result:GetInformation():GetValue(source):GetValue("df"), digits))
                             pCol:Add(undefined)
                             effectCol:Add(undefined)
+                            equationCol:Add(undefined)
                         end
                     end
                 end
             end
             i = i + 1
         end
+//        resultFrame:Sort(result:GetFormalTestName())
         return resultFrame
-    end
+    end  
+
+
+    /* Merges the factors into one column, useful for chart and descriptive stats summaries */
+    private action MergeFactorsAndSelect(boolean mergeBetween, boolean mergeWithin, text bInteraction, text wInteraction, boolean selectBetween, boolean selectWithin) returns DataFrame
+        Array<text> between = result:GetExperimentalDesign():GetBetweenSubjectsFactors()
+        Array<text> within = result:GetExperimentalDesign():GetWithinSubjectsFactors()
+        Array<text> dvs = result:GetExperimentalDesign():GetDependentVariables()
+        DataFrame frame = result:GetExperimentalDesign():GetDesignFrame():Copy()
+        text dq = ""
+        dq = dq:GetDoubleQuote()
+        text bOperation = ""
+        text wOperation = ""
+
+        if mergeWithin
+            if within:GetSize() = 1
+                wInteraction = within:Get(0)
+            else
+                i = 0
+                repeat while i < within:GetSize()
+                    if i = 0
+                        wInteraction = within:Get(i)
+                        wOperation = within:Get(i)
+                    else
+                        wInteraction = wInteraction + ":" + within:Get(i)
+                        wOperation = wOperation + " + " + dq + ":" + dq + " + " + within:Get(i)
+                    end
+                    i = i + 1
+                end
+            end
+            if wOperation not= ""
+                frame:AddColumn(wInteraction, wOperation)
+            end
+            frame:AddSelectedFactors(wInteraction)
+        else
+            i = 0
+            repeat while i < within:GetSize()
+                frame:AddSelectedFactors(within:Get(i))
+                i = i + 1
+            end
+        end
+
+        if mergeBetween
+            if between:GetSize() = 1
+                bInteraction = between:Get(0)
+            else
+                i = 0
+                repeat while i < between:GetSize()
+                    if i = 0
+                        bInteraction = between:Get(i)
+                        bOperation = between:Get(i)
+                    else
+                        bInteraction = bInteraction + ":"+ between:Get(i)
+                        bOperation = bOperation + " + " + dq + ":" + dq + " + " + between:Get(i)
+                    end
+                    i = i + 1
+                end
+            end
+            if bOperation not= ""
+                frame:AddColumn(bInteraction, bOperation)
+            end
+            frame:AddSelectedFactors(bInteraction)
+        else
+            i = 0
+            repeat while i < between:GetSize()
+                frame:AddSelectedFactors(between:Get(i))
+                i = i + 1
+            end
+        end
+
+        i = 0
+        repeat while i < dvs:GetSize()
+            frame:AddSelectedColumns(dvs:Get(i))
+            i = i + 1
+        end
+
+        // Drop other info (like subject id)
+        frame = frame:CopySelectedColumns()
+        // Reselect
+        if mergeWithin and selectWithin
+            frame:AddSelectedFactors(wInteraction)
+        elseif selectWithin
+            i = 0
+            repeat while i < within:GetSize()
+                frame:AddSelectedFactors(within:Get(i))
+                i = i + 1
+            end
+        end
+
+        if mergeBetween and selectBetween
+            frame:AddSelectedFactors(bInteraction)
+        elseif selectBetween
+            i = 0
+            repeat while i < between:GetSize()
+                frame:AddSelectedFactors(between:Get(i))
+                i = i + 1
+            end
+        end
+
+        i = 0
+        repeat while i < dvs:GetSize()
+            frame:AddSelectedColumns(dvs:Get(i))
+            i = i + 1
+        end
+        return frame
+    end         
 end

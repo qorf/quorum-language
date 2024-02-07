@@ -428,6 +428,16 @@ class BoxPlotWriter is ChartWriter
                                 itemSVG:Add(plotLine)
                             end
 
+                            if k = 3 and plot:HasPattern()
+                                Rectangle boxPattern
+                                boxPattern:SetWidth(currentItem:GetWidth())
+                                boxPattern:SetHeight(currentItem:GetHeight())
+                                boxPattern:SetPosition(currentItem:GetGlobalX(), TranslatePositionY(currentItem) - currentItem:GetHeight()) 
+                                text patternID = "pattern"+plot:GetPattern() 
+                                boxPattern:SetFill("url(#"+patternID+")")  
+                                canvas:Add(boxPattern)
+                            end
+
                             if k not= 2 and k not= 4 and k not= 5 and k not= 9 // skip elements not in nav
                                 if currentItem:ShowAnnotation() or chart:ShowAnnotations()
                                     ChartLabel label = currentItem:GetAnnotation()
@@ -714,6 +724,16 @@ class BoxPlotWriter is ChartWriter
     
                                 text itemFocus = ""
                                 text itemBlur = ""
+
+                                if k = 3 and plot:HasPattern()
+                                    Rectangle boxPattern
+                                    boxPattern:SetWidth(currentItem:GetWidth())
+                                    boxPattern:SetHeight(currentItem:GetHeight())
+                                    boxPattern:SetPosition(currentItem:GetGlobalX(), TranslatePositionY(currentItem) - currentItem:GetHeight()) 
+                                    text patternID = "pattern"+plot:GetPattern() 
+                                    boxPattern:SetFill("url(#"+patternID+")")  
+                                    canvas:Add(boxPattern)
+                                end
 
                                 if k > 10 and currentItem is ChartPoint// These are the outlier dots
                                     Circle outlier

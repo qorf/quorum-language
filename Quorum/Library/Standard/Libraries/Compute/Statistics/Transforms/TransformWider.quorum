@@ -151,7 +151,7 @@ class TransformWider is DataFrameTransform
                 j = 0
                 repeat while j < uniqueFactors:GetSize()
                     TextColumn newColumn
-                    if frame:GetSize() = 3
+                    if numberOfColumnsSelected = 1 //frame:GetSize() = 3
                         newColumn:SetHeader(uniqueFactors:GetAsText(j))
                     else
                         newColumn:SetHeader(uniqueFactors:GetAsText(j)+"_"+column:GetHeader())
@@ -185,7 +185,7 @@ class TransformWider is DataFrameTransform
                     if j < factor:GetSize()
                         if uniqueRowsWithoutFactor:HasKey(rowTextWithoutFactor) and not column:IsUndefined(j) and not factor:IsUndefined(j)
                             text colIndex = ""
-                            if frame:GetSize() = 3
+                            if numberOfColumnsSelected = 1 //frame:GetSize() = 3
                                 colIndex = factor:GetAsText(j)
                             else
                                 colIndex = factor:GetAsText(j)+"_"+column:GetHeader()

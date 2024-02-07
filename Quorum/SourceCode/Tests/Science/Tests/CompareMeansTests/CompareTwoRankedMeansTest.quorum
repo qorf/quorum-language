@@ -26,6 +26,11 @@ class CompareTwoRankedMeansTest is Test
         CompareMeansResult result = compare:GetResult()
         Check(result:GetTestStatistic(), 13.5)
         Check(result:GetProbabilityValue(), 0.5203772558898254)
-        Check(result:GetEffectSize(), 0.18554997976872775)
+        Check(result:GetEffectSize(), -0.18554997976872775)
+
+        text summary = result:GetSummary()
+        text formalsummary = result:GetFormalSummary()
+        Check(true, summary not= "")
+        Check(true, formalsummary not= "")
     end
 end

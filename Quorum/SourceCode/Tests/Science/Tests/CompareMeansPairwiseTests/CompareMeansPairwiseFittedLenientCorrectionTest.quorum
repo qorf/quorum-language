@@ -1,0 +1,133 @@
+package Science.Tests
+
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.CompareMeansPairwise
+use Libraries.Compute.Statistics.Reporting.CompareMeansResult
+
+/*
+    This class tests a bonferroni procedure on pairwise comparisons with tukey/nemenyi/games-howell corrections
+*/
+class CompareMeansPairwiseFittedLenientCorrectionTest is Test
+
+    on create
+        SetName("Calculate CompareMeansPairwiseFittedLenientCorrectionTest")
+    end
+
+    action Run
+        ColumnCalculationTest framer
+        DataFrame frame = framer:GetDefaultDataFrame()
+        frame:AddSelectedColumnRange(0,2)
+
+        // Tukey HSD
+        CompareMeansPairwise compare
+        compare:AssumeEqualVariances(true)
+        compare:UseFittedApproach(true)
+        compare:UseLenientCorrection(true)
+        frame:Calculate(compare)
+        // Compare y-x1
+        CompareMeansResult result0 = compare:GetResults():Get(0)
+        Check(result0:GetTestStatistic(), -0.3348809561713313)
+        Check(result0:GetDegreesOfFreedom(), 15.0)
+        Check(result0:GetProbabilityValue(), 0.9403814678068939)
+        // Compare y-x2
+        CompareMeansResult result1 = compare:GetResults():Get(1)
+        Check(result1:GetTestStatistic(), 4.975374205974067)
+        Check(result1:GetDegreesOfFreedom(), 15.0)
+        Check(result1:GetProbabilityValue(), 5.955996183658607e-4)
+        // Compare x1-x2
+        CompareMeansResult result2 = compare:GetResults():Get(2)
+        Check(result2:GetTestStatistic(), 5.310255162145399)
+        Check(result2:GetDegreesOfFreedom(), 15.0)
+        Check(result2:GetProbabilityValue(), 3.8830988779747777e-4)
+
+        // Tukey HSD Repeated Measures with gg correction
+        CompareMeansPairwise compare1
+        compare1:Paired(true)
+        compare1:UseFittedApproach(true)
+        compare1:UseLenientCorrection(true)
+        frame:Calculate(compare1)
+        // Compare y-x1
+        CompareMeansResult result01 = compare1:GetResults():Get(0)
+        Check(result01:GetTestStatistic(), -0.3246270467841736)
+        Check(result01:GetDegreesOfFreedom(), 5.08991366310939)
+        Check(result01:GetProbabilityValue(), 0.9442870838891481)
+        // Compare y-x2
+        CompareMeansResult result02 = compare1:GetResults():Get(1)
+        Check(result02:GetTestStatistic(), 4.8230304093648675)
+        Check(result02:GetDegreesOfFreedom(), 5.08991366310939)
+        Check(result02:GetProbabilityValue(), 0.010676022140309493)
+        // Compare x1-x2
+        CompareMeansResult result03 = compare1:GetResults():Get(2)
+        Check(result03:GetTestStatistic(), 5.147657456149041)
+        Check(result03:GetDegreesOfFreedom(), 5.08991366310939)
+        Check(result03:GetProbabilityValue(), 0.008120058105180017)
+
+        // Games-Howell
+        CompareMeansPairwise compare2
+        compare2:AssumeEqualVariances(false)
+        compare2:UseFittedApproach(true)
+        compare2:UseLenientCorrection(true)
+        frame:Calculate(compare2)
+        // Compare y-x1
+        CompareMeansResult result3 = compare2:GetResults():Get(0)
+        Check(result3:GetTestStatistic(), -0.3854541397819923)
+        Check(result3:GetDegreesOfFreedom(), 9.996467122178753)
+        Check(result3:GetProbabilityValue(), 0.9220795277937274)
+        // Compare y-x2
+        CompareMeansResult result4 = compare2:GetResults():Get(1)
+        Check(result4:GetTestStatistic(), 4.681076771500411)
+        Check(result4:GetDegreesOfFreedom(), 9.074870440383508)
+        Check(result4:GetProbabilityValue(), 0.0030215163722205896)
+        // Compare x1-x2
+        CompareMeansResult result5 = compare2:GetResults():Get(2)
+        Check(result5:GetTestStatistic(), 5.027825732483661)
+        Check(result5:GetDegreesOfFreedom(), 8.985191528246991)
+        Check(result5:GetProbabilityValue(), 0.001987116003782652)
+
+        // Nemenyi Kruskal
+        CompareMeansPairwise compare3
+        compare3:Ranked(true)
+        compare3:UseFittedApproach(true)
+        compare3:UseLenientCorrection(true)
+        frame:Calculate(compare3)
+        // Compare y-x1
+        CompareMeansResult result6 = compare3:GetResults():Get(0)
+        Check(result6:GetTestStatistic(), -0.4876708078874113)
+        Check(result6:GetDegreesOfFreedom(), 2.0)
+        Check(result6:GetProbabilityValue(), 0.887886456530477)
+        // Compare y-x2
+        CompareMeansResult result7 = compare3:GetResults():Get(1)
+        Check(result7:GetTestStatistic(), 2.682189443380762)
+        Check(result7:GetDegreesOfFreedom(), 2.0)
+        Check(result7:GetProbabilityValue(), 0.02740389547448918)
+        // Compare x1-x2
+        CompareMeansResult result8 = compare3:GetResults():Get(2)
+        Check(result8:GetTestStatistic(), 3.1698602512681737)
+        Check(result8:GetDegreesOfFreedom(), 2.0)
+        Check(result8:GetProbabilityValue(), 0.0065781152800017395)
+
+        // Nemenyi Friedman
+        CompareMeansPairwise compare4
+        compare4:Ranked(true)
+        compare4:Paired(true)
+        compare4:UseFittedApproach(true)
+        compare4:UseLenientCorrection(true)
+        frame:Calculate(compare4)
+        // Compare y-x1
+        CompareMeansResult result9 = compare4:GetResults():Get(0)
+        Check(result9:GetTestStatistic(), -1.1547005383792515)
+        Check(result9:GetDegreesOfFreedom(), 3.0)
+        Check(result9:GetProbabilityValue(), 0.4804368017266536)
+        // Compare y-x2
+        CompareMeansResult result10 = compare4:GetResults():Get(1)
+        Check(result10:GetTestStatistic(), 2.0207259421636903)
+        Check(result10:GetDegreesOfFreedom(), 3.0)
+        Check(result10:GetProbabilityValue(), 0.10723605462582908)
+        // Compare x1-x2
+        CompareMeansResult result11 = compare4:GetResults():Get(2)
+        Check(result11:GetTestStatistic(), 3.1754264805429417)
+        Check(result11:GetDegreesOfFreedom(), 3.0)
+        Check(result11:GetProbabilityValue(), 0.004276591369865912)
+    end
+end

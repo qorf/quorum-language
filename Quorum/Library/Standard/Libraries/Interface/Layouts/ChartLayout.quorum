@@ -30,6 +30,7 @@ use Libraries.Interface.Controls.Charts.Graphics.RegressionLinePointMarker
 use Libraries.Interface.Controls.Charts.ChartOptions
 use Libraries.Interface.Controls.Charts.ScatterPlot
 use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Views.PatternControlShaderView
 
 class ChartLayout is Layout
     integer minimumLabelOffset = 35
@@ -764,10 +765,17 @@ class ChartLayout is Layout
                     end
 
                     currentIcon = series:GetEntryIcon()
+
                     if currentIcon:GetView2D() = undefined
-                        ControlShaderView view
-                        view:Initialize()
-                        currentIcon:SetView2D(view)
+                        if series:HasPattern()
+                            PatternControlShaderView view
+                            view:Initialize(series:GetPattern())
+                            currentIcon:SetView2D(view)
+                        else
+                            ControlShaderView view
+                            view:Initialize()
+                            currentIcon:SetView2D(view)
+                        end
                     end
     
                     currentIcon:SetBackgroundColor(series:GetColor())

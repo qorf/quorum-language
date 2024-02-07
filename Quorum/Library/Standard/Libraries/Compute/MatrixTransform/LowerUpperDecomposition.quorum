@@ -138,11 +138,11 @@ class LowerUpperDecomposition
                 row = row + 1
             end
 
-//            //Apache Commons is clear as mud as to what this is, but I am 
-//            //guessing it is a threshold value that tells us whether a solution can be found.
-//            if math:AbsoluteValue(lu:Get(max, column)) < DEFAULT_TOO_SMALL
-//                singular = true
-//            end
+            //Apache Commons is clear as mud as to what this is, but I am 
+            //guessing it is a threshold value that tells us whether a solution can be found.
+            if math:AbsoluteValue(lu:Get(max, column)) < DEFAULT_TOO_SMALL
+                singular = true
+            end
 
             if max not= column
                 number temp = 0
@@ -272,6 +272,31 @@ class LowerUpperDecomposition
         end
         
         return result
+    end
+
+    /*
+        This action calculates the determinant using the decomposition 
+    */
+    action GetDeterminant returns number
+        if singular
+            return 0
+        else
+            integer m = pivot:GetSize()
+            number determinant = -1
+            if even
+                determinant = 1
+            end
+            i = 0
+            repeat while i < m
+                determinant = determinant * decomposition:Get(i,i)
+                i = i + 1
+            end
+            Math math
+            if math:AbsoluteValue(determinant) = 0
+                return 0
+            end
+            return determinant
+        end
     end
 
     /*

@@ -76,7 +76,13 @@ class Inverse is MatrixTransform
 
             LowerUpperDecomposition ludecomp
             ludecomp:Calculate(matrix)
-            newMatrix = ludecomp:GetInverse()
+            if ludecomp:GetDeterminant() not= 0
+                newMatrix = ludecomp:GetInverse()
+            else
+                SingularValueDecomposition svdecomp
+                svdecomp:Calculate(matrix)
+                newMatrix = svdecomp:GetInverse()
+            end
         end
         return newMatrix
     end

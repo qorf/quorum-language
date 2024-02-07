@@ -1,0 +1,23 @@
+package Libraries.Game.Graphics.Shaders
+
+class LinePatternControlFragmentShader is ControlFragmentShader, LinePatternFragmentShaderPart
+
+    constant text SHADER_NAME = "Line Pattern Control Fragment Shader"
+
+    on create
+        SetName(SHADER_NAME)
+    end
+
+    private action GetExtraFunctions returns text
+        return parent:LinePatternFragmentShaderPart:GetExtraFunctions()
+    end
+
+    private action GetExtraInputs returns text
+        return parent:LinePatternFragmentShaderPart:GetExtraInputs()
+    end
+
+    private action GetAppendedCode returns text
+        return parent:LinePatternFragmentShaderPart:GetAppendedCode()
+    end
+
+end

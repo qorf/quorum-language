@@ -78,6 +78,7 @@ use Libraries.Compute.Statistics.Tests.CompareMeansPairwise
 use Libraries.Compute.Statistics.Transforms.ColumnRoundTransform
 use Libraries.Compute.Statistics.Transforms.TransformLonger
 use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+use Libraries.Compute.Statistics.Tests.CompareCountsPairwise
 
 /*
     The DataFrame class is a collection of columns and rows, like a spreadsheet, 
@@ -2302,6 +2303,164 @@ class DataFrame
     end
 
     /*
+        This action uses the selection to conduct a count comparison between one or more columns. 
+        The CompareCounts object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2   McNemar Test
+            2   McNemar-Bowker Test
+            3+  Cochran Q Test
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareCounts
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,2)
+        CompareCounts compare = frame:CompareRelatedCounts()
+        output compare:GetSummary()
+    */
+    action CompareRelatedCounts returns CompareCounts
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CompareCounts counts
+        selection:CopyTo(cast(ColumnInput, counts))
+        selection:CopyTo(cast(FactorInput, counts))
+        counts:RepeatedMeasures(true)
+        counts:Calculate(me)
+        return counts
+    end
+
+    /*
+        This action uses an experimental design to pick and conduct the appropriate 
+        CompareCounts test.
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareCounts
+        use Libraries.Compute.Statistics.Tests.ExperimentalDesign
+    
+        ExperimentalDesign design
+        design:AddBetweenSubjectsFactor("Group")
+        design:AddDependentVariable("Answer")
+
+        DataFrame frame
+        frame:Load("Data.csv")
+        CompareCounts compare = frame:CompareCounts(design)
+        output compare:GetFormalSummary()
+    */
+    action CompareCounts(ExperimentalDesign design) returns CompareCounts       
+        CompareCounts compare
+        compare:SetExperimentalDesign(design)
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
+        This action uses the selection to conduct a comparison between groups. 
+        The CompareCountsPairwise object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2+   Pairwise Two Sample Test (with corrections)
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareCountsPairwise
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,4)
+        CompareCountsPairwise compare = frame:CompareCountsPairwise()
+        output compare:GetFormalSummary()
+    */
+    action CompareCountsPairwise returns CompareCountsPairwise
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CompareCountsPairwise compare
+        selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
+        This action uses the selection to conduct a comparison between groups. 
+        The CompareCountsPairwise object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+        This action runs a test based on the selections made in the design.
+
+        Attribute: Parameter design This is the design of the model holding all the factors and variables.
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareCountsPairwise
+
+        ExperimentalDesign design
+        design:AddSubjectIdentifier("id")
+        design:AddWithinSubjectsFactor("Time")
+        design:AddDependentVariable("Value")
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        CompareCountsPairwise compare = frame:CompareCountsPairwise(design)
+        output compare:GetPairwiseSummary()
+    */
+    action CompareCountsPairwise(ExperimentalDesign design) returns CompareCountsPairwise
+        CompareCountsPairwise compare
+        compare:SetExperimentalDesign(design)
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
+        This action uses the selection to conduct a comparison between groups. 
+        The CompareCountsPairwise object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+
+        This action runs a test based on how many columns are selected:
+            2+   Pairwise Paired Chi-Squared Test (with corrections)
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareCountsPairwise
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        frame:AddSelectedColumnRange(0,4)
+        CompareCountsPairwise compare = frame:CompareRelatedCountsPairwise()
+        output compare:GetFormalSummary()
+    */
+    action CompareRelatedCountsPairwise returns CompareCountsPairwise
+        if IsInvalidSelection()
+            alert("Invalid Selection")
+        end
+
+        CompareCountsPairwise compare
+        selection:CopyTo(cast(FactorInput, compare))
+        selection:CopyTo(cast(ColumnInput, compare))
+        compare:Paired(true)
+        compare:RepeatedMeasures(true)
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
         This action uses the selection to conduct a comparison between two or more independent columns. 
         The CompareMeans object returned gives information back in several formats, 
         including text formatted in the American Psychological Association (APA) style.
@@ -2673,6 +2832,38 @@ class DataFrame
     end
 
     /*
+        This action uses the selection to conduct a comparison between groups. 
+        The CompareMeansPairwise object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+        This action runs a test based on the selections made in the design.
+
+        Attribute: Parameter design This is the design of the model holding all the factors and variables.
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareMeansPairwise
+
+        ExperimentalDesign design
+        design:AddSubjectIdentifier("id")
+        design:AddWithinSubjectsFactor("Time")
+        design:AddBetweenSubjectsFactor("Group")
+        design:AddDependentVariable("Value")
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        CompareMeansPairwise compare = frame:CompareMeansPairwise(design)
+        output compare:GetPairwiseSummary()
+    */
+    action CompareMeansPairwise(ExperimentalDesign design) returns CompareMeansPairwise
+        CompareMeansPairwise compare
+        compare:SetExperimentalDesign(design)
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
         This action uses the selection to conduct a comparison between groups when 
         they are not assumed to be normally distributed. 
         The CompareMeansPairwise object returned gives information back in several formats, 
@@ -2810,6 +3001,39 @@ class DataFrame
     end
 
     /*
+        This action uses the selection to conduct a lenient comparison between groups. 
+        The CompareMeansPairwise object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+        This action runs a test based on the selections made in the design.
+
+        Attribute: Parameter design This is the design of the model holding all the factors and variables.
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareMeansPairwise
+
+        ExperimentalDesign design
+        design:AddSubjectIdentifier("id")
+        design:AddWithinSubjectsFactor("Time")
+        design:AddBetweenSubjectsFactor("Group")
+        design:AddDependentVariable("Value")
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        CompareMeansPairwise compare = frame:CompareMeansPairwiseUsingLenientCorrection(design)
+        output compare:GetPairwiseSummary()
+    */
+    action CompareMeansPairwiseUsingLenientCorrection(ExperimentalDesign design) returns CompareMeansPairwise
+        CompareMeansPairwise compare
+        compare:SetExperimentalDesign(design)
+        compare:UseLenientCorrection(true)
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
         This action uses the selection to conduct a liberal comparison between groups. 
         The CompareMeansPairwise object returned gives information back in several formats, 
         including text formatted in the American Psychological Association (APA) style.
@@ -2837,6 +3061,73 @@ class DataFrame
         CompareMeansPairwise compare
         selection:CopyTo(cast(FactorInput, compare))
         selection:CopyTo(cast(ColumnInput, compare))
+        compare:UseStrictCorrection(true)
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
+        This action uses the selection to conduct a strict comparison between groups. 
+        The CompareMeansPairwise object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+        This action runs a test based on the selections made in the design.
+
+        Attribute: Parameter design This is the design of the model holding all the factors and variables.
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareMeansPairwise
+
+        ExperimentalDesign design
+        design:AddSubjectIdentifier("id")
+        design:AddWithinSubjectsFactor("Time")
+        design:AddBetweenSubjectsFactor("Group")
+        design:AddDependentVariable("Value")
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        CompareMeansPairwise compare = frame:CompareMeansPairwiseUsingStrictCorrection(design)
+        output compare:GetPairwiseSummary()
+    */
+    action CompareMeansPairwiseUsingStrictCorrection(ExperimentalDesign design) returns CompareMeansPairwise
+        CompareMeansPairwise compare
+        compare:SetExperimentalDesign(design)
+        compare:UseStrictCorrection(true)
+        compare:Calculate(me)
+        return compare
+    end
+
+    /*
+        This action uses the selection to conduct a strict comparison between groups using the unfitted approach. 
+        The CompareMeansPairwise object returned gives information back in several formats, 
+        including text formatted in the American Psychological Association (APA) style.
+        This action runs a test based on the selections made in the design.
+
+        Attribute: Parameter design This is the design of the model holding all the factors and variables.
+
+        Attribute: Returns an object representing the comparison
+    
+        Attribute: Example
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareMeansPairwise
+
+        ExperimentalDesign design
+        design:AddSubjectIdentifier("id")
+        design:AddWithinSubjectsFactor("Time")
+        design:AddBetweenSubjectsFactor("Group")
+        design:AddDependentVariable("Value")
+    
+        DataFrame frame
+        frame:Load("Data.csv")
+        CompareMeansPairwise compare = frame:CompareMeansPairwiseUsingUnfittedAproach(design)
+        output compare:GetPairwiseSummary()
+    */
+    action CompareMeansPairwiseUsingUnfittedAproach(ExperimentalDesign design) returns CompareMeansPairwise
+        CompareMeansPairwise compare
+        compare:SetExperimentalDesign(design)
+        compare:UseUnfittedApproach(true)
         compare:UseStrictCorrection(true)
         compare:Calculate(me)
         return compare

@@ -6,6 +6,8 @@ use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.Columns.TextColumn
 use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Math
+use Libraries.System.File
+use Libraries.Interface.Controls.Charts.all
 
 /*
     This class represents data that comes back from a CompareVariances calculation.
@@ -155,5 +157,23 @@ class CompareVariancesResult is CompareMeansResult
         CompareVariancesSummary summary
         summary:SetResult(me)
         return summary:GetSummaryDataFrame()
+    end
+
+    /*
+        This action summarizes the result and creates a HTML file with the contents.
+    */   
+    action GetReportResult(File file)
+        CompareVariancesSummary summary
+        summary:SetResult(me)
+        summary:GetReport(file)
+    end
+
+    /*
+        This action summarizes the result in chart form.
+    */
+    action GetChartResult() returns BoxPlot
+        CompareVariancesSummary summary
+        summary:SetResult(me)        
+        return summary:GetChart()        
     end
 end

@@ -18,6 +18,7 @@ use Libraries.Interface.Controls.Charts.Graphics.Plot
 use Libraries.Interface.Controls.Charts.Graphics.PlotGroup
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 use Libraries.Game.Graphics.ColorGroup
+use Libraries.Interface.Views.PatternControlShaderView
 
 /*
     This class determines the visual layout for the chart.
@@ -204,7 +205,17 @@ class BoxPlotLayout is ChartLayout
                 
                             //IQR Region
                             percent = (lowerQuartile - rangeMin)/range // used for 3-6
-                            item:Get(3):LoadFilledRectangle(center+line, cast(integer,(upperQuartile-lowerQuartile)/dataScale)+line, lightColor)
+                            ChartDrawable interQuartile = item:Get(3)
+                            if chart:IsShowingPatterns()
+                                PatternControlShaderView view
+                                view:Initialize(plot:GetSeries():GetPattern())
+                                interQuartile:SetView2D(view)
+                                interQuartile:LoadFilledRectangle(center+line, cast(integer,(upperQuartile-lowerQuartile)/dataScale)+line, lightColor:CustomColor(0, 0, 0, 0))
+                                interQuartile:SetBackgroundColor(lightColor)
+                            else
+                                item:Get(3):LoadFilledRectangle(center+line, cast(integer,(upperQuartile-lowerQuartile)/dataScale)+line, lightColor)
+                            end
+                            
                             item:Get(3):SetPosition(startw+size, cast(integer, percent*height)-halfline)
                 
                             //Right IQR line

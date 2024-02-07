@@ -130,11 +130,16 @@ class WebTable is WebTag
             TableRow tr
             repeat while col < frame:GetSize()
                 DataFrameColumn column = frame:GetColumn(col)
-                
-                if row < column:GetSize()
+
+                if row < column:GetSize() and not column:IsUndefined(row)
                     text value = column:GetAsText(row)
                     TableData data
                     data:AddText(value)
+                    data:AddAttribute("scope", "row")
+                    tr:Add(data)
+                else
+                    TableData data
+                    data:AddText("")
                     data:AddAttribute("scope", "row")
                     tr:Add(data)
                 end

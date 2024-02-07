@@ -105,5 +105,10 @@ class MultivariateFactorialCompareSeveralMeansTest is Test
         Check(result:GetEffectSizesTable():GetValue("factor1"+stat):GetValue("partial-eta-squared"), 0.9728227179505211)
         Check(result:GetEffectSizesTable():GetValue("factor2"+stat):GetValue("partial-eta-squared"), 0.9040329776070455)
         Check(result:GetEffectSizesTable():GetValue("factor1:factor2"+stat):GetValue("partial-eta-squared"), 0.9589032802743747)
+
+        text summary = result:GetSummary()
+        text formalsummary = result:GetFormalSummary()
+        Check(true, summary not= "")
+        Check(true, formalsummary not= "")
     end
 end

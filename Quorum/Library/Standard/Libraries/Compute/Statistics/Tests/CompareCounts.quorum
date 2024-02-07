@@ -14,62 +14,324 @@ use Libraries.Compute.Statistics.Distributions.ClassificationDistribution
 use Libraries.Containers.Iterator
 use Libraries.Compute.Math
 use Libraries.Compute.Matrix
+use Libraries.Compute.Vector
+use Libraries.Compute.Statistics.Transforms.CrossTab
 
 /*
-    This class conducts a Pearson's chi-squared test on a DataFrame. 
-    Pearson's chi-squared test is used to assess three types of comparison:
-        Goodness of fit
-        Test of independence
-        Test of homogeneity - not implemented
-    More information about this kind of statistical test can be found here: 
-    https://en.wikipedia.org/wiki/Pearson%27s_chi-squared_test
+This class implements several proportion comparison hypothesis tests. 
+In addition to the comparison tests, this class can be directed to run any assumption tests and post-hoc tests 
+that are typically accompanied with the given comparison test. Controls for specific post hoc analysis 
+approaches or corrections can be used via this class as well.
+See the INFORMATION comment block at the bottom of this class for more information about each test.
+For more information: https://en.wikipedia.org/wiki/Pearson%27s_chi-squared_test
 
-    It was adapted from the same model in Apache Commons, but was expanded 
-    upon to simplify the library and add a variety of helper actions that were missing.
-    More information about this class can be found on its documentation page ChiSquaredTest:
-    https://commons.apache.org/proper/commons-math/javadocs/api-3.6.1/index.html
+Attribute: Author Hannah Stabler
+Attribute: Example
 
-    Attribute: Author Hannah Williams
-    Attribute: Example
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.CompareCounts
 
-    use Libraries.Compute.Statistics.DataFrame
-    use Libraries.Compute.Statistics.Tests.CompareCounts
+DataFrame frame
+frame:Load("Data/Data.csv")
+frame:AddSelectedColumnRange(0,2)
 
-    DataFrame frame
-    frame:Load("data.csv")
-    frame:AddSelectedColumns(0)
-    frame:AddSelectedColumns(1)
-
-    CompareCounts compare = frame:CompareSelectedCounts()
-    output compare:GetSummary()      
+CompareCounts compare = frame:CompareCounts()
+output compare:GetSummary()   
 */
 
 class CompareCounts is StatisticalTest
-    /* The distribution used to calculate the p-value from x2 and df.*/
-    ClassificationDistribution distribution
+    private Math math
+    private ClassificationDistribution distribution // Distribution to calculate the p-value from test-statistic and degrees of freedom
 
-    /* A flag to let the user know approximation may be incorrect due to low counts. */
-    boolean approximationWarning = false
+    // TEST AUTO-SELECTION ELEMENTS
+    private boolean needToSelectTest = true         // Flag to let this class auto-select a test based on given data
+    private boolean needToProcessData = true        // Flag to let tell this class to process the selected data     
+    private boolean defaultPairwiseComparisons = true   // Flag to test pairwise tests if several-sample test is significant
+    private boolean defaultAssumptionTests = true       // Flag to test assumption tests if applicable
 
-    /* A flag if using a goodness of fit test */
-    boolean goodnessOfFit = false
+    // DESIGN ELEMENTS AND CONTROLS
+    private ExperimentalDesign design = undefined   // Design object to hold and process various selections and data formats      
+    private integer numberOfInputVariables = 0      // Number of independent variables (IVs) selected
+    private integer numberOfOutputVariables = 0     // Number of dependent variables (DVs) selected
+    private boolean factorial = false               // Flag for multiple independent variables (IVs)
+    private boolean multivariate = false            // Flag for multiple dependent variables (DVs)
+    private boolean repeated = false                // Flag for paired or repeated measures tests    
+    
+    // PAIRWISE USER CONTROLS
+    private boolean correctFamilyWiseError = true   // Family-wise correction is applied in several-sample pairwise tests 
+    private boolean useStrictCorrection = true      // Procedure to be applied in pairwise tests (corrects for p-value using Bonferroni correction)
+    private boolean useLenientCorrection = false    // Procedure to be applied in pairwise tests (corrects for p-value inherently when applicable)
+    private boolean useFittedApproach = false       // Conducts comparisons using the fitted several-sample test results
+    private boolean useUnfittedApproach = true      // Conducts comparisons using individual pariwise two-sample tests
 
-    /* This stores a hash of all of the results. */
-    HashTable<text, CompareCountsResult> results        // Used to find the result by column or pair of columns.        
-    HashTable<text, CompareCountsResult> indexResults   // Used to find the result by index or pair of indices.
+    // TEST USER CONTROLS
+    private boolean useContinuityCorrection = false // A flag for continuity correction for approximation error (only applicable for 2x2 tests)
+    private boolean approximationWarning = false    // A flag to let the user know approximation may be incorrect due to low counts.
+    private boolean goodnessOfFit = false           // A flag if requesting a goodness of fit test (default for one sample).
+    private boolean testAssumptionsTests = true     // A flag to request assumption tests manually if applicable
+    private boolean testPairwiseComparisons = false // A flag to request pairwise tests regardless of significance in several-sample test
+    private boolean skipPairwiseComparisons = false // A flag to skip pairwise tests regardless of significance in several-sample test
 
-    Math math
+    // TEST RESULTS
+    private Array <CompareCountsResult> results     // An array of results, typically only one result except in pairwise tests
 
-    private action RunTest(DataFrame frame)
-        if GetColumnSize() < 1
-            alert("Must include at least one column.")
+    action Calculate(DataFrame frame) 
+        results:Empty()
+
+        if design = undefined
+            ExperimentalDesign newDesign
+            design = newDesign
+        end
+          
+        if design:GetDesignFrame() = undefined
+            design:RepeatedMeasures(repeated)
+            design:Transform(frame)
+        end 
+        repeated = design:RepeatedMeasures()    // This will override the boolean if a within factor is or isn't specified.
+
+        numberOfInputVariables = design:GetBetweenSubjectsFactors():GetSize() + design:GetWithinSubjectsFactors():GetSize()
+        numberOfOutputVariables = design:GetDependentVariables():GetSize()
+
+        if numberOfInputVariables > 0 and numberOfOutputVariables > 1
+            multivariate = true
+        else
+            multivariate = false
         end
 
-        if GetColumnSize() = 1
+        if numberOfInputVariables > 1
+            factorial = true
+        else
+            factorial = false
+        end
+
+        needToProcessData = false
+        if needToSelectTest
+            SelectTest(design:GetDesignFrame())
+        end
+    end
+     
+    private action RunTest(DataFrame frame)
+        SelectTest(frame)
+    end
+
+    private action SelectTest(DataFrame frame)
+        needToProcessData = false
+
+        if multivariate
+            alert("A multivariate CompareCounts test with multiple dependent variables is not supported yet.")
+        end
+        if factorial
+            alert("A factorial CompareCounts test with multiple independent variables is not supported yet.")
+        end
+
+        integer numberOfSamples = 0
+        if repeated
+            numberOfSamples = design:GetNumberOfMeasurements()
+        else
+            numberOfSamples = design:GetNumberOfIndependentGroups()
+        end
+        if numberOfSamples < 1
+            alert("A CompareCounts calculation must include at least one sample.")
+        end
+
+        if numberOfSamples = 1
             GoodnessOfFit(frame)
         else
-            TestOfIndependence(frame)
+            if repeated
+                CompareSeveralRelatedCounts(frame)
+            else
+                CompareSeveralCounts(frame)
+            end
         end
+    end
+
+    /*
+        This action represents a McNemar-Bowker Test of Symmetry on three or more columns of data.
+        It calculates the observed values by counting the frequencies of unique items.
+        It then calculates the expected counts and compares the two to get the x2 value.
+
+        H0: The two variables are independent.
+        Ha: The two variables are not independent.
+
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareCounts
+    
+        DataFrame frame
+        frame:Load("data.csv")
+        frame:AddSelectedColumns(0)
+        frame:AddSelectedColumns(1)
+    
+        CompareCounts compare = frame:CompareRelatedCounts()
+        output compare:GetSummary()
+    */
+    action CompareSeveralRelatedCounts(DataFrame frame)
+        repeated = true
+        if needToProcessData or design = undefined
+            needToSelectTest = false  // This test has been selected (skip RunTest)
+            me:Calculate(frame)
+        end
+        if not repeated
+            CompareSeveralCounts(frame)
+        end
+
+        Array<text> ivs = design:GetWithinSubjectsFactors()
+        Array<text> dvs = design:GetDependentVariables()        
+        number numberOfInputCategories = design:GetNumberOfMeasurements()
+        number numberOfOutputCategories = 0
+
+        Array<text> sources
+        source = ivs:Get(0)
+        sources:Add(source)
+        DataFrame observed
+        if design:GetGroupsFrame():GetSize() = 2
+            // The cross tab should have the same categories on rows and cols
+            CrossTab tab
+            tab:AddColumn(0)
+            tab:AddColumn(1)
+            tab:FullRowsAndColumns(true)
+            observed = tab:Transform(design:GetGroupsFrame()) 
+            numberOfOutputCategories = observed:GetSize()-1 // The first column is row headers
+        else
+            numberOfOutputCategories = design:GetDesignFrame():GetColumn(dvs:Get(0)):Copy(true,true):GetSize()
+        end
+      
+        CompareCountsResult result
+        text testName = ""
+        number x2 = 0 
+        number df = 0
+        if numberOfInputCategories = 2 and numberOfOutputCategories = 2
+            x2 = McNemar(observed, source, result) 
+            df = 1
+            testName = "McNemar's Test For Symmetry"
+        elseif numberOfInputCategories = 2 and numberOfOutputCategories >= 3
+            x2 = McNemarBowker(observed, source, result)
+            df = numberOfOutputCategories * (numberOfOutputCategories - 1) / 2.0
+            testName = "McNemar-Bowker's Test Of Symmetry"
+        elseif numberOfInputCategories >= 3 and numberOfOutputCategories = 2
+            x2 = Cochran(observed, source, result)
+            df = numberOfInputCategories-1 
+            testName = "Cochran's Q Test"         
+        else
+            alert("A CompareCounts test using 3 or more input categories and 3 or more output categories is not available yet. Formal Test: Log-Linear Analysis")
+        end
+        distribution:Setup(df)
+        number p = 1.0 - distribution:CumulativeDistribution(x2)
+
+        result:SetGroupsFrame(design:GetGroupsFrame())
+        result:SetSources(sources)
+        result:SetObserved(observed)
+        result:SetTestStatistic(source, "X2", x2)
+        result:SetDegreesOfFreedom(source, "X2", df)
+        result:SetProbabilityValue(source, "X2", p)
+        result:SetInformation(source, "X2", x2)
+        result:SetInformation(source, "p", p)
+        result:SetExperimentalDesign(design)
+        result:SetFormalTestName(testName)
+        if approximationWarning
+            result:SetApproximationWarningFlag(true)
+            approximationWarning = false //reset
+        end
+        if design:GetGroupsFrame():GetSize() > 2 and (p <= GetSignificanceLevel() or testPairwiseComparisons) and not skipPairwiseComparisons
+            // Pairwise tests are only necessary if the test is significant
+            CompareCountsPairwise compare
+            compare:SetSignificanceLevel(GetSignificanceLevel())
+            compare:SetStatisticalFormatting(GetStatisticalFormatting())
+            compare:UseLenientCorrection(useLenientCorrection)
+            compare:UseStrictCorrection(useStrictCorrection)
+            compare:SetExperimentalDesign(design)
+            compare:Calculate(result)
+            result:SetPairwiseResults(compare:GetResults())
+            result:SetPairwiseTest(compare)
+        end
+        results:Add(result)
+    end
+
+
+    /*
+        This action represents a chi-squared test of independence test on two or more columns of data.
+        It calculates the observed values by counting the frequencies of unique items.
+        It then calculates the expected counts and compares the two to get the x2 value.
+
+        H0: The two variables are independent.
+        Ha: The two variables are not independent.
+
+        Attribute: Example
+    
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareCounts
+    
+        DataFrame frame
+        frame:Load("data.csv")
+        frame:AddSelectedColumns(0)
+        frame:AddSelectedColumns(1)
+    
+        CompareCounts compare = frame:CompareCounts()
+        output compare:GetSummary()
+    */
+    action CompareSeveralCounts(DataFrame frame)
+        if needToProcessData or design = undefined
+            needToSelectTest = false  // This test has been selected (skip RunTest)
+            me:Calculate(frame)
+        end
+        if repeated
+            CompareSeveralRelatedCounts(frame)
+        end
+        Array<text> ivs = design:GetBetweenSubjectsFactors()
+        Array<text> dvs = design:GetDependentVariables()
+
+        DataFrameColumn iv = design:GetDesignFrame():GetColumn(ivs:Get(0))
+        DataFrameColumn dv = design:GetDesignFrame():GetColumn(dvs:Get(0))
+        DataFrame observed = CalculateObserved(iv, dv)
+        DataFrame expected = CalculateExpectedFromObserved(observed)
+        integer rows = observed:GetColumn(0):GetSize()
+        integer cols = observed:GetColumns():GetSize()-1
+        number x2 = ChiSquare(observed, expected)  
+        number df = (rows-1)*(cols-1)
+        distribution:Setup(df)
+        number p = 1.0 - distribution:CumulativeDistribution(x2)
+        number v = math:SquareRoot(x2 / (design:GetNumberOfSubjects() * df))
+
+        Array<text> sources
+        text source = ivs:Get(0)
+        sources:Add(source)
+        CompareCountsResult result
+        result:SetGroupsFrame(design:GetGroupsFrame())
+        result:SetSources(sources)
+        result:SetObserved(observed)
+        result:SetExpected(expected)
+        result:SetResiduals(CalculateResiduals(observed, expected))
+        result:SetAdjustedResiduals(CalculateAdjustedResiduals(observed, expected))
+        result:SetTestStatistic(source, "X2", x2)
+        result:SetDegreesOfFreedom(source, "X2", df)
+        result:SetProbabilityValue(source, "X2", p)
+        result:SetInformation(source, "X2", x2)
+        result:SetInformation(source, "p", p)
+        result:SetEffectSize(source, "Cramer's V", v)
+        result:SetVariable1(iv:GetHeader())
+        result:SetVariable2(dv:GetHeader())
+        result:SetFactor(ivs:Get(0))
+        result:SetSampleSize(design:GetNumberOfSubjects())
+        result:SetExperimentalDesign(design)
+        result:SetFormalTestName("Pearson's Chi-Squared Test of Independence")
+        if approximationWarning
+            result:SetApproximationWarningFlag(true)
+            approximationWarning = false //reset
+        end
+        if design:GetGroupsFrame():GetSize() > 2 and (p <= GetSignificanceLevel() or testPairwiseComparisons) and not skipPairwiseComparisons
+            // Pairwise tests are only necessary if the test is significant
+            CompareCountsPairwise compare
+            compare:SetSignificanceLevel(GetSignificanceLevel())
+            compare:SetStatisticalFormatting(GetStatisticalFormatting())
+            compare:UseLenientCorrection(useLenientCorrection)
+            compare:UseStrictCorrection(useStrictCorrection)
+            compare:SetExperimentalDesign(design)
+            compare:Calculate(result)
+            result:SetPairwiseResults(compare:GetResults())
+            result:SetPairwiseTest(compare)
+        end
+        results:Add(result)
     end
 
     /*
@@ -90,14 +352,19 @@ class CompareCounts is StatisticalTest
         frame:Load("data.csv")
         frame:AddSelectedColumns(0)
     
-        CompareCounts compare = frame:CompareSelectedCounts()
+        CompareCounts compare = frame:CompareCounts()
         output compare:GetSummary()
     */
     action GoodnessOfFit(DataFrame frame)
+        if needToProcessData or design = undefined
+            needToSelectTest = false  // This test has been selected manually
+            me:Calculate(frame)
+        end
+
         goodnessOfFit = true
         integer i = 0
-        repeat while i < GetColumnSize()
-            DataFrame observed = CalculateObserved(frame:GetColumn(GetColumn(i)))
+        repeat while i < design:GetGroupsFrame():GetSize()
+            DataFrame observed = CalculateObserved(design:GetGroupsFrame():GetColumn(i))
             DataFrame expected = CalculateExpectedFromObserved(observed)
             integer rows = observed:GetColumn(0):GetSize()
             integer cols = observed:GetColumns():GetSize()
@@ -105,30 +372,32 @@ class CompareCounts is StatisticalTest
             number df = (rows-1)*(cols-1)
             distribution:Setup(df)
             number p = 1.0 - distribution:CumulativeDistribution(x2)
+            number v = math:SquareRoot(x2 / (design:GetNumberOfSubjects() * df))
     
-            text factor = ""
-            text variable = frame:GetColumn(GetColumn(i)):GetHeader()
-            text resultKey = frame:GetColumn(GetColumn(i)):GetHeader()
-            if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
-                factor = frame:GetColumn(GetFactor(0)):GetAsText(0)+" "+frame:GetColumn(GetFactor(0)):GetHeader()
-                resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0) + " : " + resultKey
-            end
-            if not results:HasKey(resultKey)
-                CompareCountsResult result
-                result:SetObserved(observed)
-                result:SetExpected(expected)
-                result:SetResiduals(CalculateResiduals(observed, expected))
-                result:SetDegreesOfFreedom(df)
-                result:SetTestStatistic(x2)
-                result:SetProbabilityValue(p)
-                result:SetGoodnessOfFit(true)
-                result:SetVariable1(variable)
-                result:SetFactor(factor)
-                result:SetFormalTestName("Pearson's Chi-Squared Goodness of Fit Test")
-                result:SetSampleSize(frame:GetColumn(GetColumn(i)):GetSize())
-                results:Add(resultKey, result)
-                indexResults:Add(""+GetColumn(i), result)
-            end 
+            text variable = design:GetGroupsFrame():GetColumn(i):GetHeader()
+
+            Array<text> sources
+            text source = variable
+            sources:Add(source)
+            CompareCountsResult result
+            result:SetGroupsFrame(design:GetGroupsFrame())
+            result:SetGoodnessOfFit(true)
+            result:SetSources(sources)
+            result:SetObserved(observed)
+            result:SetExpected(expected)
+            result:SetResiduals(CalculateResiduals(observed, expected))
+            result:SetAdjustedResiduals(CalculateAdjustedResiduals(observed, expected))
+            result:SetTestStatistic(source, "X2", x2)
+            result:SetDegreesOfFreedom(source, "X2", df)
+            result:SetProbabilityValue(source, "X2", p)
+            result:SetInformation(source, "X2", x2)
+            result:SetInformation(source, "p", p)
+            result:SetEffectSize(source, "Cramer's V", v)
+            result:SetVariable1(variable)
+            result:SetSampleSize(design:GetNumberOfSubjects())
+            result:SetExperimentalDesign(design)
+            result:SetFormalTestName("Pearson's Chi-Squared Goodness of Fit Test")
+            results:Add(result)
             i = i + 1
         end
     end
@@ -157,11 +426,14 @@ class CompareCounts is StatisticalTest
         percent:Add(0.6)
 
         CompareCounts compare
-        frame:GetSelection():CopyTo(cast(ColumnInput, compare))
         compare:GoodnessOfFitAgainstExpectedPercents(frame, percent)
         compare:GetSummary()
     */
     action GoodnessOfFitAgainstExpectedPercents(DataFrame frame, DataFrameColumn percents)
+        if needToProcessData or design = undefined
+            needToSelectTest = false  // This test has been selected manually
+            me:Calculate(frame)
+        end
         if not percents:IsNumberColumn()
             alert("Expected percents must be a number column. Example: 0.5")
         else
@@ -173,8 +445,8 @@ class CompareCounts is StatisticalTest
         end
         goodnessOfFit = true
         integer i = 0
-        repeat while i < GetColumnSize()
-            DataFrame observed = CalculateObserved(frame:GetColumn(GetColumn(i)))
+        repeat while i < design:GetGroupsFrame():GetSize()
+            DataFrame observed = CalculateObserved(design:GetGroupsFrame():GetColumn(i))
             DataFrame percentFrame
             percentFrame:AddColumn(observed:GetColumn(0):Copy())
             percentFrame:AddColumn(percents)
@@ -185,32 +457,32 @@ class CompareCounts is StatisticalTest
             number df = (rows-1)*(cols-1)
             distribution:Setup(df)
             number p = 1.0 - distribution:CumulativeDistribution(x2)
-    
-            text resultKey = frame:GetColumn(GetColumn(i)):GetHeader()
-            if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
-                resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0) + ", " + resultKey
-            end
-            if not results:HasKey(resultKey)
-                CompareCountsResult result
-                result:SetObserved(observed)
-                result:SetExpected(expected)
-                result:SetResiduals(CalculateResiduals(observed, expected))
-                result:SetDegreesOfFreedom(df)
-                result:SetTestStatistic(x2)
-                result:SetProbabilityValue(p)
-                result:SetFormalTestName("Pearson's Chi-Squared Goodness of Fit Test")
-                results:Add(resultKey, result)
-                indexResults:Add(""+GetColumn(i), result)
-            else
-                CompareCountsResult result = results:GetValue(resultKey)
-                result:SetObserved(observed)
-                result:SetExpected(expected)
-                result:SetResiduals(CalculateResiduals(observed, expected))
-                result:SetDegreesOfFreedom(df)
-                result:SetCriticalValue(x2)
-                result:SetProbabilityValue(p)
-                indexResults:Set(""+GetColumn(i), result)
-            end 
+            number v = math:SquareRoot(x2 / (design:GetNumberOfSubjects() * df))
+
+            text variable = design:GetGroupsFrame():GetColumn(i):GetHeader()
+
+            Array<text> sources
+            text source = variable
+            sources:Add(source)
+            CompareCountsResult result
+            result:SetGroupsFrame(design:GetGroupsFrame())
+            result:SetGoodnessOfFit(true)
+            result:SetSources(sources)
+            result:SetObserved(observed)
+            result:SetExpected(expected)
+            result:SetResiduals(CalculateResiduals(observed, expected))
+            result:SetAdjustedResiduals(CalculateAdjustedResiduals(observed, expected))
+            result:SetTestStatistic(source, "X2", x2)
+            result:SetDegreesOfFreedom(source, "X2", df)
+            result:SetProbabilityValue(source, "X2", p)
+            result:SetInformation(source, "X2", x2)
+            result:SetInformation(source, "p", p)
+            result:SetEffectSize(source, "Cramer's V", v)
+            result:SetVariable1(variable)
+            result:SetSampleSize(design:GetNumberOfSubjects())
+            result:SetExperimentalDesign(design)
+            result:SetFormalTestName("Pearson's Chi-Squared Goodness of Fit Test")
+            results:Add(result)
             i = i + 1
         end
     end
@@ -247,11 +519,14 @@ class CompareCounts is StatisticalTest
         expected:AddColumn(percent)
 
         CompareCounts compare
-        frame:GetSelection():CopyTo(cast(ColumnInput, compare))
         compare:GoodnessOfFitAgainstExpectedPercents(frame, expected)
         compare:GetSummary()
     */
     action GoodnessOfFitAgainstExpectedPercents(DataFrame frame, DataFrame percents)
+        if needToProcessData or design = undefined
+            needToSelectTest = false  // This test has been selected manually
+            me:Calculate(frame)
+        end
         if percents:GetColumns():GetSize() not= 2
             alert("Expected percents DataFrame must include a text column (for the category) and a number column (for the percent). Example: male, 0.5")
         else
@@ -263,8 +538,8 @@ class CompareCounts is StatisticalTest
         end
         goodnessOfFit = true
         integer i = 0
-        repeat while i < GetColumnSize()
-            DataFrame observed = CalculateObservedToFollowGivenOrder(frame:GetColumn(GetColumn(i)), percents:GetColumn(0))
+        repeat while i < design:GetGroupsFrame():GetSize()
+            DataFrame observed = CalculateObservedToFollowGivenOrder(design:GetGroupsFrame():GetColumn(i), percents:GetColumn(0))
             DataFrame expected = CalculateExpectedFromPercentOfTotal(observed, percents)
             if observed:GetColumns():GetSize() > 0
                 integer rows = observed:GetColumn(0):GetSize()
@@ -273,32 +548,32 @@ class CompareCounts is StatisticalTest
                 number df = (rows-1)*(cols-1)
                 distribution:Setup(df)
                 number p = 1.0 - distribution:CumulativeDistribution(x2)
+                number v = math:SquareRoot(x2 / (design:GetNumberOfSubjects() * df))
         
-                text resultKey = frame:GetColumn(GetColumn(i)):GetHeader()
-                if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
-                    resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0) + ", " + resultKey
-                end
-                if not results:HasKey(resultKey)
-                    CompareCountsResult result
-                    result:SetObserved(observed)
-                    result:SetExpected(expected)
-                    result:SetResiduals(CalculateResiduals(observed, expected))
-                    result:SetDegreesOfFreedom(df)
-                    result:SetCriticalValue(x2)
-                    result:SetProbabilityValue(p)
-                    result:SetFormalTestName("Pearson's Chi-Squared Goodness of Fit Test")
-                    results:Add(resultKey, result)
-                    indexResults:Add(""+GetColumn(i), result)
-                else
-                    CompareCountsResult result = results:GetValue(resultKey)
-                    result:SetObserved(observed)
-                    result:SetExpected(expected)
-                    result:SetResiduals(CalculateResiduals(observed, expected))
-                    result:SetDegreesOfFreedom(df)
-                    result:SetTestStatistic(x2)
-                    result:SetProbabilityValue(p)
-                    indexResults:Set(""+GetColumn(i), result)
-                end 
+                text variable = design:GetGroupsFrame():GetColumn(i):GetHeader()
+    
+                Array<text> sources
+                text source = variable
+                sources:Add(source)
+                CompareCountsResult result
+                result:SetGroupsFrame(design:GetGroupsFrame())
+                result:SetGoodnessOfFit(true)
+                result:SetSources(sources)
+                result:SetObserved(observed)
+                result:SetExpected(expected)
+                result:SetResiduals(CalculateResiduals(observed, expected))
+                result:SetAdjustedResiduals(CalculateAdjustedResiduals(observed, expected))
+                result:SetTestStatistic(source, "X2", x2)
+                result:SetDegreesOfFreedom(source, "X2", df)
+                result:SetProbabilityValue(source, "X2", p)
+                result:SetInformation(source, "X2", x2)
+                result:SetInformation(source, "p", p)
+                result:SetEffectSize(source, "Cramer's V", v)
+                result:SetVariable1(variable)
+                result:SetSampleSize(design:GetNumberOfSubjects())
+                result:SetExperimentalDesign(design)
+                result:SetFormalTestName("Pearson's Chi-Squared Goodness of Fit Test")
+                results:Add(result)
             end
             i = i + 1
         end
@@ -335,110 +610,53 @@ class CompareCounts is StatisticalTest
         expected:AddColumn(count)
 
         CompareCounts compare
-        frame:GetSelection():CopyTo(cast(ColumnInput, compare))
         compare:GoodnessOfFitAgainstExpectedCounts(frame, expected)
         compare:GetSummary()
     */
     action GoodnessOfFitAgainstExpectedCounts(DataFrame frame, DataFrame expected)
+        if needToProcessData or design = undefined
+            needToSelectTest = false  // This test has been selected manually
+            me:Calculate(frame)
+        end
         if expected:GetColumns():GetSize() not= 2
             alert("Expected Counts DataFrame must include a text column (for the category) and a number column (for the count). Example: male, 400")
         end
         goodnessOfFit = true
         integer i = 0
-        repeat while i < GetColumnSize()
-            DataFrame observed = CalculateObservedToFollowGivenOrder(frame:GetColumn(GetColumn(i)), expected:GetColumn(0))
+        repeat while i < design:GetGroupsFrame():GetSize()
+            DataFrame observed = CalculateObservedToFollowGivenOrder(design:GetGroupsFrame():GetColumn(i), expected:GetColumn(0))
             integer rows = observed:GetColumn(0):GetSize()
             integer cols = observed:GetColumns():GetSize()
             number x2 = ChiSquare(observed:GetColumn(1), expected:GetColumn(1))  
             number df = (rows-1)*(cols-1)
             distribution:Setup(df)
             number p = 1.0 - distribution:CumulativeDistribution(x2)
+            number v = math:SquareRoot(x2 / (design:GetNumberOfSubjects() * df))
     
-            text resultKey = frame:GetColumn(GetColumn(i)):GetHeader()
-            if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
-                resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0) + ", " + resultKey
-            end
-            if not results:HasKey(resultKey)
-                CompareCountsResult result
-                result:SetObserved(observed)
-                result:SetExpected(expected)
-                result:SetResiduals(CalculateResiduals(observed, expected))
-                result:SetDegreesOfFreedom(df)
-                result:SetTestStatistic(x2)
-                result:SetProbabilityValue(p)
-                result:SetFormalTestName("Pearson's Chi-Squared Goodness of Fit Test")
-                results:Add(resultKey, result)
-                indexResults:Add(""+GetColumn(i), result)
-            end 
-            i = i + 1
-        end
-    end
+            text variable = design:GetGroupsFrame():GetColumn(i):GetHeader()
 
-    /*
-        This action represents a pairwise test of independence chi-squared test on two columns of data.
-        It calculates the observed values by counting the frequencies of unique items.
-        It then calculates the expected counts and compares the two to get the x2 value.
-
-        H0: The two variables are independent.
-        Ha: The two variables are not independent.
-
-        Attribute: Example
-    
-        use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CompareCounts
-    
-        DataFrame frame
-        frame:Load("data.csv")
-        frame:AddSelectedColumns(0)
-        frame:AddSelectedColumns(1)
-    
-        CompareCounts compare = frame:CompareSelectedCounts()
-        output compare:GetSummary()
-    */
-    action TestOfIndependence(DataFrame frame)
-        integer i = 0
-        repeat while i < GetColumnSize()
-            integer j = i + 1
-            repeat while j < GetColumnSize()
-                DataFrameColumn left = frame:GetColumn(GetColumn(i))
-                DataFrameColumn right = frame:GetColumn(GetColumn(j))
-                DataFrame observed = CalculateObserved(left, right)
-                DataFrame expected = CalculateExpectedFromObserved(observed)
-                integer rows = observed:GetColumn(0):GetSize()
-                integer cols = observed:GetColumns():GetSize()-1
-                number x2 = ChiSquare(observed, expected)  
-                number df = (rows-1)*(cols-1)
-                distribution:Setup(df)
-                number p = 1.0 - distribution:CumulativeDistribution(x2)
-                
-                text factor = ""
-                text resultKey = left:GetHeader()+" & "+right:GetHeader()
-                if GetFactorSize() > 0 and frame:GetColumn(GetFactor(0)):GetSize() > 0
-                    factor = frame:GetColumn(GetFactor(0)):GetAsText(0)+" "+frame:GetColumn(GetFactor(0)):GetHeader()
-                    resultKey = frame:GetColumn(GetFactor(0)):GetAsText(0) + " : " + resultKey
-                end
-                if not results:HasKey(resultKey)
-                    CompareCountsResult result
-                    result:SetObserved(observed)
-                    result:SetExpected(expected)
-                    result:SetResiduals(CalculateResiduals(observed, expected))
-                    result:SetDegreesOfFreedom(df)
-                    result:SetTestStatistic(x2)
-                    result:SetProbabilityValue(p)
-                    result:SetVariable1(left:GetHeader())
-                    result:SetVariable2(right:GetHeader())
-                    result:SetFactor(factor)
-                    result:SetSampleSize(left:GetSize())
-                    result:SetFormalTestName("Pearson's Chi-Squared Test of Independence")
-                    if approximationWarning
-                        result:SetApproximationWarningFlag(true)
-                        approximationWarning = false //reset
-                    end
-                    results:Add(resultKey, result)
-                    indexResults:Add(""+GetColumn(i)+" & "+GetColumn(j), result)
-                end  
-                j = j + 1
-            end
+            Array<text> sources
+            text source = variable
+            sources:Add(source)
+            CompareCountsResult result
+            result:SetGroupsFrame(design:GetGroupsFrame())
+            result:SetGoodnessOfFit(true)
+            result:SetSources(sources)
+            result:SetObserved(observed)
+            result:SetExpected(expected)
+            result:SetResiduals(CalculateResiduals(observed, expected))
+            result:SetAdjustedResiduals(CalculateAdjustedResiduals(observed, expected))
+            result:SetTestStatistic(source, "X2", x2)
+            result:SetDegreesOfFreedom(source, "X2", df)
+            result:SetProbabilityValue(source, "X2", p)
+            result:SetInformation(source, "X2", x2)
+            result:SetInformation(source, "p", p)
+            result:SetEffectSize(source, "Cramer's V", v)
+            result:SetVariable1(variable)
+            result:SetSampleSize(design:GetNumberOfSubjects())
+            result:SetExperimentalDesign(design)
+            result:SetFormalTestName("Pearson's Chi-Squared Goodness of Fit Test")
+            results:Add(result)
             i = i + 1
         end
     end
@@ -618,29 +836,77 @@ class CompareCounts is StatisticalTest
     end
 
     // Pearson residuals (observed - expected) / sqrt(expected)
+    // For more information: https://scholarworks.umass.edu/cgi/viewcontent.cgi?article=1269&context=pare
     private action CalculateResiduals(DataFrame observed, DataFrame expected) returns DataFrame
-        DataFrame residuals
-        if observed:GetColumns():GetSize() > 0 
-            residuals:AddColumn(observed:GetColumn(0):Copy()) // First column is just row headers.
-        end
-        integer i = 1 //skip row headers
-        repeat while i < observed:GetColumns():GetSize()
-            DataFrameColumn oCol = observed:GetColumn(i)
-            DataFrameColumn eCol = expected:GetColumn(i)
-            NumberColumn res
-            res:SetHeader(oCol:GetHeader())
+        observed:SelectAllColumns()
+        observed:RemoveSelectedColumn(0) // First column is just row headers.
+        expected:SelectAllColumns()
+        expected:RemoveSelectedColumn(0) // First column is just row headers.
+        DataFrame observedCopy = observed:CopySelectedColumns()
+        Matrix observedMatrix = observedCopy:ConvertToMatrix()
+        Matrix expectedMatrix = expected:CopySelectedColumns():ConvertToMatrix()
+
+        Matrix rowSums = observedMatrix:SumByRow()
+        Matrix colSums = observedMatrix:SumByColumn()
+        number total = rowSums:GetTotal()
+        
+        Matrix residualsMatrix = observedMatrix:SubtractElements(expectedMatrix)
+        integer i = 0
+        repeat while i < rowSums:GetRows()
             integer j = 0 
-            repeat while j < oCol:GetSize() and  j < eCol:GetSize()
-                if eCol:GetAsNumber(j) > 0
-                    res:Add((oCol:GetAsNumber(j) - eCol:GetAsNumber(j)) / math:SquareRoot(eCol:GetAsNumber(j)))
-                else
+            repeat while j < colSums:GetColumns()
+                number eValue = expectedMatrix:Get(i,j)
+                if eValue = 0
                     alert("The expected values cannot be 0")
                 end
+                number rValue = residualsMatrix:Get(i, j) / math:SquareRoot(eValue)
+                residualsMatrix:Set(i, j, rValue)
                 j = j + 1 
             end
-            residuals:AddColumn(res)
             i = i + 1 
         end
+
+        Array<text> columnHeaders = observedCopy:GetHeaders()
+        DataFrame residuals = residualsMatrix:ConvertToDataFrame(columnHeaders)
+        residuals:AddColumn(0, observed:GetColumn(0):Copy()) // Add row headers as first column.        
+
+        return residuals
+    end
+
+    // Adjusted standardized residuals (observed - expected) / sqrt(expected * (1 - rowSum/total) * (1 - colSum/total))
+    // For more information: https://scholarworks.umass.edu/cgi/viewcontent.cgi?article=1269&context=pare
+    private action CalculateAdjustedResiduals(DataFrame observed, DataFrame expected) returns DataFrame
+        observed:SelectAllColumns()
+        observed:RemoveSelectedColumn(0) // First column is just row headers.
+        expected:SelectAllColumns()
+        expected:RemoveSelectedColumn(0) // First column is just row headers.
+        DataFrame observedCopy = observed:CopySelectedColumns()
+        Matrix observedMatrix = observedCopy:ConvertToMatrix()
+        Matrix expectedMatrix = expected:CopySelectedColumns():ConvertToMatrix()
+
+        Matrix rowSums = observedMatrix:SumByRow()
+        Matrix colSums = observedMatrix:SumByColumn()
+        number total = rowSums:GetTotal()
+        
+        Matrix residualsMatrix = observedMatrix:SubtractElements(expectedMatrix)
+        integer i = 0
+        repeat while i < rowSums:GetRows()
+            integer j = 0 
+            repeat while j < colSums:GetColumns()
+                number eValue = expectedMatrix:Get(i,j)
+                if eValue = 0
+                    alert("The expected values cannot be 0")
+                end
+                number rValue = residualsMatrix:Get(i, j) / math:SquareRoot(eValue * (1.0 - rowSums:Get(i,0) / total) * (1.0 - colSums:Get(0,j) / total))
+                residualsMatrix:Set(i, j, rValue)
+                j = j + 1 
+            end
+            i = i + 1 
+        end
+
+        Array<text> columnHeaders = observedCopy:GetHeaders()
+        DataFrame residuals = residualsMatrix:ConvertToDataFrame(columnHeaders)
+        residuals:AddColumn(0, observed:GetColumn(0):Copy()) // Add row headers as first column.        
 
         return residuals
     end
@@ -673,9 +939,6 @@ class CompareCounts is StatisticalTest
         if observedSummary:GetMinimum() < 0
             alert("Observed cannot have negative values.")
         end
-        if observedSummary:GetMinimum() < 5
-            approximationWarning = true
-        end
         number observedSum = observedSummary:GetSum()
 
         // Verify Expected. All values must be greater than 0. Cannot be 0?
@@ -686,6 +949,9 @@ class CompareCounts is StatisticalTest
         expectedSummary:Calculate(expected)
         if expectedSummary:GetMinimum() <= 0
             alert("Expected must have positive values.")
+        end
+        if expectedSummary:GetMinimum() < 5
+            approximationWarning = true
         end
         number expectedSum = expectedSummary:GetSum()
 
@@ -730,8 +996,12 @@ class CompareCounts is StatisticalTest
     end
 
     /*
-        This action compares two contingency tables (observed and expected) in the 
-        form of DataFrames and calculates the X-squared critical value / test statistic.
+        This action uses a KxMxV contingency table of observed and expected counts 
+        to calculate the chi-squared test statistic.
+        K is the number of independent groups       (example: treatmentA, treatmentB, and control)
+        M is the number of repeated measurements    
+        V is the number of outcome categories       (example: high, low and medium)
+        For this test: K >= 2, M = 1 and V >= 2
 
         Attribute: Returns the chi-squared test statistic.
     */
@@ -747,8 +1017,10 @@ class CompareCounts is StatisticalTest
             alert("Observed and Expected must be the same size.")
         end
 
-        number sumSquared = 0
-        integer i = 1 // First column is row headers
+        boolean twoByTwoTable = observed:GetSize() = 3 and observed:GetColumn(0):GetSize() = 2 // The first column is row headers
+
+        number x2 = 0
+        integer i = 1 // The first column is row headers
         repeat while i < observed:GetColumns():GetSize() and i < expected:GetColumns():GetSize()
             DataFrameColumn observe = observed:GetColumn(i)
             DataFrameColumn expect = expected:GetColumn(i)
@@ -764,16 +1036,152 @@ class CompareCounts is StatisticalTest
 
             integer j = 0
             repeat while j < observe:GetSize() and j < expect:GetSize()
-                if observe:GetAsNumber(j) < 5 and not approximationWarning
+                if expect:GetAsNumber(j) < 5 and not approximationWarning
                     approximationWarning = true
                 end
-                number dev = observe:GetAsNumber(j) - expect:GetAsNumber(j)
-                sumSquared = sumSquared + (dev * dev / expect:GetAsNumber(j))
+
+                if useContinuityCorrection and twoByTwoTable // Yate's correction
+                    number top = math:AbsoluteValue(observe:GetAsNumber(j) - expect:GetAsNumber(j)) - 0.5
+                    x2 = x2 + (top * top / expect:GetAsNumber(j))
+                else
+                    number top = observe:GetAsNumber(j) - expect:GetAsNumber(j)
+                    x2 = x2 + (top * top / expect:GetAsNumber(j))
+                end
                 j = j + 1
             end
             i = i + 1
         end
-        return sumSquared
+        return x2
+    end
+
+    /*
+        This action uses a KxMxV contingency table of observed counts of paired data 
+        to calculate the chi-squared test statistic.
+        K is the number of independent groups       
+        M is the number of repeated measurements    (example: before and after)
+        V is the number of outcome categories       (example: yes and no)
+        For this test: K = 1, M = 2 and V = 2
+
+        Attribute: Returns the chi-squared test statistic.
+    */
+    private action McNemar(DataFrame observed, text source, CompareCountsResult result) returns number 
+        number x2 = 0
+        number cohensG = 0
+        if observed:GetSize() = 3 and observed:GetColumn(0):GetSize() = 2 // The first column is row headers
+            number b = observed:GetColumn(2):GetAsNumber(0)
+            number c = observed:GetColumn(1):GetAsNumber(1)
+            cohensG = math:AbsoluteValue(math:MaximumOf(b,c) / (b + c))
+
+            if useContinuityCorrection // Edwards correction
+                number top = math:AbsoluteValue(b - c) - 1.0
+                x2 = top * top / (b + c)
+            else
+                number top = b - c
+                x2 = top * top / (b + c)
+            end
+        end
+        cohensG = cohensG - 0.5
+        result:SetEffectSize(source, "Cohen's g", cohensG)
+        return x2
+    end   
+
+    /*
+        This action uses a KxMxV contingency table of observed counts of paired data 
+        to calculate the chi-squared test statistic.
+        K is the number of independent groups 
+        M is the number of repeated measurements    (example: before and after)
+        V is the number of outcome categories       (example: for, against and neutral)
+        For this test: K = 1, M = 2 and V >= 3
+
+        Attribute: Returns the chi-squared test statistic.
+    */
+    private action McNemarBowker(DataFrame observed, text source, CompareCountsResult result) returns number         
+        // https://www.ncss.com/wp-content/themes/ncss/pdf/Procedures/PASS/Tests_for_Multiple_Correlated_Proportions-McNemar-Bowker_Test_of_Symmetry.pdf
+        // Since our tables are input categories x outcome categories we can just grab the first column.
+        number k = observed:GetColumns():GetSize()-1 // number of output categories
+        number x2 = 0
+        number cohensG = 0
+        integer col = 2 // The first column is row headers
+        repeat while col < observed:GetColumns():GetSize()
+            integer row = 0
+            repeat while row < col-1
+                number b = observed:GetColumn(col):GetAsNumber(row)
+                number c = observed:GetColumn(row+1):GetAsNumber(col-1)
+                number top = b - c
+                cohensG = cohensG + (math:AbsoluteValue(math:MaximumOf(b,c) / (b + c)) - 0.5)
+
+                x2 = x2 + top * top / (b + c)
+                row = row + 1
+            end
+            col = col + 1
+        end
+        cohensG = cohensG / k
+        result:SetEffectSize(source, "Cohen's g", cohensG)
+        return x2
+    end   
+
+    /*
+        This action uses a KxMxV contingency table of observed counts of repeated data 
+        to calculate the chi-squared test statistic.
+        K is the number of independent groups 
+        M is the number of repeated measurements (example: before, during and after)
+        V being the number of outcome categories (example: correct and incorrect)
+        For this test: K = 1, M >= 3 and V = 2
+
+        Attribute: Returns the chi-squared test statistic.
+    */
+    private action Cochran(DataFrame observed, text source, CompareCountsResult result) returns number 
+        integer k = design:GetNumberOfMeasurements()
+        integer n = design:GetNumberOfSubjects()
+
+        DataFrameColumn levels = design:GetDesignFrame():GetColumn(design:GetDependentVariables():Get(0)):Copy(true,true)
+        Matrix dummyCodedData = EncodeOutputCategoriesIntoMatrix(levels)
+        Matrix subjectCounts = dummyCodedData:SumByRow()
+        Matrix measureCounts = dummyCodedData:SumByColumn()      
+
+        // For more information: https://stats.stackexchange.com/questions/9867/effect-size-of-cochrans-q
+        // https://peterstatistics.com/CrashCourse/5-ThreeVarPair/binary/MultipleBinaryPaired3c.html#:~:text=For%20the%20omnibus%20test%20(the,%2C%20%26%20Mielke%2C%202007).
+        Matrix measureOnes = measureCounts                          // how many 1s per column
+        Matrix measureZeros = measureCounts:Multiply(-1.0):Add(n)     // how many 0s per column
+        number measureDifferenceSum = measureOnes:MultiplyElements(measureZeros):GetTotal() // sum of all differences
+        number nChoose2 = math:Factorial(n) / math:Factorial(2) * math:Factorial(n - 2)
+        number measureDelta = (1.0 / k * nChoose2) * measureDifferenceSum
+        Matrix subjectOnesProp = subjectCounts:Divide(cast(number, k))                                          // proportion of 1s per row
+        Matrix subjectDifference = subjectOnesProp:MultiplyElements(subjectOnesProp:Multiply(-1.0):Add(1.0))    // sum of all proportion differences
+        number subjectOnesPropSum = subjectOnesProp:GetTotal()
+        number subjectDifferenceSum = subjectDifference:GetTotal()
+        number subjectDelta = (2.0 / (n * (n - 1.0))) * (subjectOnesPropSum * (n - subjectOnesPropSum) - subjectDifferenceSum)
+        number R = 1.0 - measureDelta / subjectDelta
+        result:SetEffectSize(source, "chance-corrected R", R) // Chance corrected R https://alexisdinno.com/stata/cochranq.txt
+
+        // https://www.ncss.com/wp-content/themes/ncss/pdf/Procedures/NCSS/Cochrans_Q_Test.pdf
+        number sumOfMeasureSquaredSums = measureCounts:GetSumOfSquares()        
+        number sumOfSubjectSums = measureCounts:GetTotal()                      
+        number sumOfSubjectSquaredSums = subjectCounts:GetSumOfSquares()  
+        number q = (k - 1) * (k * sumOfMeasureSquaredSums - (sumOfSubjectSums * sumOfSubjectSums)) / (k * sumOfSubjectSums - sumOfSubjectSquaredSums)
+        return q
+    end  
+
+    private action EncodeOutputCategoriesIntoMatrix(DataFrameColumn levels) returns Matrix
+        Matrix encoded
+        encoded:Fill(design:GetGroupsFrame():GetColumn(0):GetSize(), design:GetGroupsFrame():GetSize(), 0)
+        HashTable<text, integer> encoding
+        integer i = 0
+        repeat while i < levels:GetSize()
+            encoding:Add(levels:GetAsText(i), i)
+            i = i + 1
+        end
+        i = 0 // first column is row headers, second column we will leave as encoded with 0
+        repeat while i < design:GetGroupsFrame():GetSize()
+            DataFrameColumn group = design:GetGroupsFrame():GetColumn(i)
+            j = 0
+            repeat while j < group:GetSize()
+                encoded:Set(j,i,encoding:GetValue(group:GetAsText(j)))
+                j = j + 1
+            end
+            i = i + 1
+        end        
+        return encoded
     end
 
     /*
@@ -850,122 +1258,12 @@ class CompareCounts is StatisticalTest
         CompareCountsResult result = compare:GetResult()
     */
     action GetResult returns CompareCountsResult
-        if results:GetSize() = 1
-            return results:GetValueIterator():Next()
+        if GetResults():GetSize() = 0
+            alert("There are no results calculated")
+        elseif GetResults():GetSize() = 1
+            return GetResults():Get(0)
         else
-            alert("There is more than one test result, either specify which result or use GetResults() for an array of all results")
-        end
-    end
-
-    /*
-        This returns a result on one particular column. If no such result exists, 
-        this action returns undefined.
-
-        Attribute: Returns the CompareCountsResult for one group. 
-        Attribute: Example
-
-        use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CompareCounts
-    
-        DataFrame frame
-        frame:Load("Data/Data.csv")
-        frame:AddSelectedColumns("region")
-        CompareCounts compare = frame:CompareSelectedCounts()
-        
-        CompareCountsResult result = compare:GetResult("region")
-    */
-    action GetResult(text columnName) returns CompareCountsResult
-        if results:HasKey(columnName)
-            return results:GetValue(columnName)
-        else
-            alert("There are no test results with the column " + columnName)
-        end
-    end
-
-    /*
-        This returns a result on one particular column. If no such result exists, 
-        this action returns undefined.
-
-        Attribute: Returns the CompareCountsResult for one group. 
-        Attribute: Example
-
-        use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CompareCounts
-    
-        DataFrame frame
-        frame:Load("Data/Data.csv")
-        frame:AddSelectedColumns(0)
-        CompareCounts compare = frame:CompareSelectedCounts()
-        
-        CompareCountsResult result = compare:GetResult(0)
-    */
-    action GetResult(integer columnIndex) returns CompareCountsResult
-        if indexResults:HasKey(""+columnIndex)
-            return indexResults:GetValue(""+columnIndex)
-        else
-            alert("There are no test results with the column index " + columnIndex)
-        end
-    end
-
-    /*
-        This returns a result between two particular columns. If no such result exists, 
-        this action returns undefined.
-
-        Attribute: Returns the CompareCountsResult between two groups. 
-        Attribute: Example
-
-        use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CompareCounts
-    
-        DataFrame frame
-        frame:Load("Data/Data.csv")
-        frame:AddSelectedColumns("region")
-        frame:AddSelectedColumns("age")
-        frame:AddSelectedColumns("bmi")
-        CompareCounts compare = frame:CompareSelectedCounts()
-        
-        CompareCountsResult result = compare:GetResult("age", "region")
-    */
-    action GetResult(text column1Name, text column2Name) returns CompareCountsResult
-        text hash1 = column1Name + " & " + column2Name
-        text hash2 = column2Name + " & " + column1Name
-        if results:HasKey(hash1)
-            return results:GetValue(hash1)
-        elseif results:HasKey(hash2)
-            return results:GetValue(hash2)
-        else
-            alert("There are no test results with the columns " + hash1)
-        end
-    end
-
-    /*
-        This returns a result between two particular columns. If no such result exists, 
-        this action returns undefined.
-
-        Attribute: Returns the CompareCountsResult between two groups. 
-        Attribute: Example
-
-        use Libraries.Compute.Statistics.DataFrame
-        use Libraries.Compute.Statistics.Tests.CompareCounts
-    
-        DataFrame frame
-        frame:Load("Data/Data.csv")
-        frame:AddSelectedColumns(0)
-        frame:AddSelectedColumns(1)
-        frame:AddSelectedColumns(2)
-        CompareCounts compare = frame:CompareSelectedCounts()
-        
-        CompareCountsResult result = compare:GetResult(0, 1)
-    */
-    action GetResult(integer column1Index, integer column2Index) returns CompareCountsResult
-        text hash1 = "" + column1Index + " & " + column2Index
-        text hash2 = "" + column2Index + " & " + column1Index
-        if indexResults:HasKey(hash1)
-            return indexResults:GetValue(hash1)
-        elseif indexResults:HasKey(hash2)
-            return indexResults:GetValue(hash2)
-        else
-            alert("There are no test results with the column indices " + hash1)
+            alert("There is more than one test result, use GetResults() for an array of all results")
         end
     end
 
@@ -990,7 +1288,64 @@ class CompareCounts is StatisticalTest
         Array<CompareCountsResult> results = compare:GetResults()
     */
     action GetResults returns Array<CompareCountsResult>
-        return results:CopyToValueArray()
+        return results
+    end
+
+    /*
+        This returns the pairwise results if only one result exists.
+        Pairwise results are only calculated in N-sample tests, 
+        otherwise this will return undefined.
+
+        Attribute: Returns the pairwise results. 
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareMeans
+        use Libraries.Compute.Statistics.Reporting.CompareCountsResult
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+    
+        CompareCounts compare
+        compare:Add(0)
+        compare:Add(1)
+        compare:Add(2)
+        compare:Add(3)
+        compare:TestPairwise()
+        frame:Calculate(compare)
+
+        Array<CompareMeansResult> pairwise = compare:GetPairwiseResults() 
+    */
+    action GetPairwiseResults returns Array<CompareCountsResult>
+        return GetResult():GetPairwiseResults()
+    end
+
+    /*
+        This returns the pairwise summary if only one result exists.
+        Pairwise results are only calculated in N-sample tests, 
+        otherwise this will return nothing.
+
+        Attribute: Returns the pairwise summary.
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.DataFrame
+        use Libraries.Compute.Statistics.Tests.CompareCounts
+    
+        DataFrame frame
+        frame:Load("Data/Data.csv")
+    
+        CompareCounts compare
+        compare:Add(0)
+        compare:Add(1)
+        compare:Add(2)
+        compare:Add(3)
+        compare:TestPairwise()
+        frame:Calculate(compare)
+
+        output compare:GetPairwiseSummary() 
+    */
+    action GetPairwiseSummary returns text
+        return GetResult():GetPairwiseSummary()
     end
 
     /*
@@ -999,16 +1354,16 @@ class CompareCounts is StatisticalTest
     action GetSummary returns text
         text summary = ""
         text lf = summary:GetLineFeed()
-        Iterator<CompareCountsResult> i = results:GetValueIterator()
         CompareCountsResult result 
-        repeat while i:HasNext()
-            result = i:Next()
+        i = 0
+        repeat while i < GetResults():GetSize()
+            result = GetResults():Get(i)
 
             summary = summary + lf
             summary = summary + result:GetSummary()
             summary = summary + lf
+            i = i + 1
         end
-
         return summary
     end
 
@@ -1022,17 +1377,180 @@ class CompareCounts is StatisticalTest
         StatisticsFormatting format = GetStatisticalFormatting()
         text summary = ""
         text lf = summary:GetLineFeed()
-        Iterator<CompareCountsResult> i = results:GetValueIterator()
         CompareCountsResult result 
-        repeat while i:HasNext()
-            result = i:Next()
+        i = 0
+        repeat while i < GetResults():GetSize()
+            result = GetResults():Get(i)
             result:SetFormat(format)
 
             summary = summary + lf
             summary = summary + result:GetFormalSummary()
             summary = summary + lf
+            i = i + 1
         end
-
         return summary
     end
+
+    /* Used in N-sample tests */
+    action TestPairwise
+        testPairwiseComparisons = true
+    end
+
+    /* Used in N-sample tests */
+    action TestPairwise(boolean test)
+        testPairwiseComparisons = test
+        if not test
+            skipPairwiseComparisons = true
+        end
+    end
+
+    /* Used in 2-sample tests */
+    action Paired(boolean paired)
+        me:repeated = paired
+    end
+
+    /* Used in 2-sample tests */
+    action Paired returns boolean
+        return repeated
+    end
+
+    /* Used in N-sample tests */
+    action RepeatedMeasures(boolean repeatedMeasures)
+        me:repeated = repeatedMeasures
+    end
+
+    /* Used in N-sample tests */
+    action RepeatedMeasures returns boolean
+        return repeated
+    end
+
+    action SetExperimentalDesign(ExperimentalDesign design)
+        me:design = design:Copy()
+    end
+
+    // This is the class that holds all design selections and design frame.
+    action GetExperimentalDesign returns ExperimentalDesign
+        return design
+    end
+
+    /* Strict method is the default for most tests if another is not selected */
+    action CorrectFamilyWiseError(boolean correctFamilyWiseError)
+        me:correctFamilyWiseError = correctFamilyWiseError
+        if not useLenientCorrection
+            useStrictCorrection = correctFamilyWiseError
+        end
+    end
+
+    /* Choose strict pairwise comparison as correction for N-sample pairwise tests */
+    action UseStrictCorrection(boolean useStrictCorrection)
+        correctFamilyWiseError = useStrictCorrection
+        me:useStrictCorrection = useStrictCorrection
+        if useStrictCorrection
+            useLenientCorrection = false
+        end
+    end
+
+    /* Choose lenient multiple comparison as correction for N-sample pairwise tests */
+    action UseLenientCorrection(boolean useLenientCorrection)
+        correctFamilyWiseError = useLenientCorrection
+        me:useLenientCorrection = useLenientCorrection
+        if useLenientCorrection
+            useStrictCorrection = false
+        end
+    end
+
+    /* Returns true for correction */
+    action CorrectFamilyWiseError returns boolean
+        return correctFamilyWiseError
+    end
+
+    /* Returns true for strict pairwise comparison as correction for N-sample pairwise tests */
+    action UsingStrictCorrection returns boolean
+        return useStrictCorrection
+    end
+
+    /* Returns true for lenient multiple comparison as correction for N-sample pairwise tests */
+    action UsingLenientCorrection returns boolean
+        return useLenientCorrection
+    end
+
+    /* Returns true for multiple comparisons to use the model as a reference for N-sample pairwise tests */
+    action UsingFittedApproach returns boolean
+        return useFittedApproach
+    end
+
+    /* Choose fitted (unplanned) approach pairwise comparisons for N-sample pairwise tests */
+    action UseFittedApproach(boolean useFittedApproach)
+        me:useFittedApproach = useFittedApproach
+        me:useUnfittedApproach = not useFittedApproach
+    end
+
+    /* Returns true for multiple comparisons to use individual tests for N-sample pairwise tests */
+    action UsingUnfittedApproach returns boolean
+        return useUnfittedApproach
+    end
+
+    /* Choose unfitted (planned) approach pairwise comparisons for N-sample pairwise tests */
+    action UseUnfittedApproach(boolean useUnfittedApproach)
+        me:useUnfittedApproach = useUnfittedApproach
+        me:useFittedApproach = not useUnfittedApproach
+    end
+
+    /*
+    INFORMATION:
+
+    CompareCountsToDistribution is a Chi-squared Goodness Of Fit Test
+    Check if sample data matches the population.
+    For more information: https://en.wikipedia.org/wiki/Goodness_of_fit
+    For more information: https://en.wikipedia.org/wiki/Chi-squared_test
+
+    CompareSeveralRelatedCounts is a McNemar Test and a McNemar-Bowker Test Of Symmetry
+    Difference between two paired groups when the outcome variable has two or more categories.
+    For more information: https://en.wikipedia.org/wiki/McNemar%27s_test
+    For more information: https://www.ncss.com/wp-content/themes/ncss/pdf/Procedures/PASS/Tests_for_Multiple_Correlated_Proportions-McNemar-Bowker_Test_of_Symmetry.pdf
+
+    CompareSeveralRelatedCounts is a Cochran Q Test
+    Difference between three or more repeated groups when the outcome variable has two categories.
+    For more information: https://en.wikipedia.org/wiki/Cochran%27s_Q_test
+
+    CompareSeveralCounts is a Pearson Chi-squared Test Of Independence aka Test Of Association
+    Difference between two or more independent groups when the outcome variable has two or more categories. 
+    This test assumes most expected counts are at least 5 and none are less than 1.
+    For more information: https://en.wikipedia.org/wiki/Chi-squared_test
+
+    ** NOT IMPLEMENTED YET **
+    ____________________ is a Binomial Test
+    Test two possible outcomes' observed versus expected results.
+    For more information: https://www.stats4stem.org/chi-square-test-for-homogeneity
+
+    ** NOT IMPLEMENTED YET **
+    ____________________ is a Chi-squared Test Of Homogeniety
+    For more information: https://www.stats4stem.org/chi-square-test-for-homogeneity
+
+    ** NOT IMPLEMENTED YET **
+    ____________________ is a G-Test Of Goodness Of Fit Test
+    For more information: https://en.wikipedia.org/wiki/G-test
+
+    ** NOT IMPLEMENTED YET **
+    ____________________ is a G-Test Of Independence
+    For more information: https://en.wikipedia.org/wiki/G-test  
+
+    ** NOT IMPLEMENTED YET **
+    ____________________ is a Fisher's Exact Test
+    Difference between three or more independent groups when the outcome variable has two or more categories 
+    when counts are small and number of levels of the input factor are equal to number of levels of the output factor (nxn).
+    For more information: https://en.wikipedia.org/wiki/Fisher%27s_exact_test    
+
+    ** NOT IMPLEMENTED YET **
+    ____________________ is a (Multi-Way) Cochran–Mantel–Haenszel Test Of Conditional Independence
+    Difference between two independent groups when the outcome variable has two categories stratified by 
+    one or more additional independent factors with two or more levels in each.
+    This test assumes odds ratios are equal this can be tested using Breslow-Day or Woolf test.
+    https://en.wikipedia.org/wiki/Cochran%E2%80%93Mantel%E2%80%93Haenszel_statistics
+
+    This class was partially adapted from the same model in Apache Commons, but was expanded 
+    upon to simplify the library's use and add a variety of actions and tests that were missing.
+    More information about this class can be found on its documentation page ChiSquaredTest:
+    https://commons.apache.org/proper/commons-math/javadocs/api-3.6.1/index.html
+    */
 end

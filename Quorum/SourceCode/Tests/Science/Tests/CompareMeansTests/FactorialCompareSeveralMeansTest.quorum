@@ -53,5 +53,10 @@ class FactorialCompareSeveralMeansTest is Test
         Check(result:GetInformation():GetValue("factor1"):GetValue("partial-omega-squared"), 0.46940598481464907)
         Check(result:GetInformation():GetValue("factor2"):GetValue("partial-omega-squared"), -0.07261705146394859)
         Check(result:GetInformation():GetValue("factor1:factor2"):GetValue("partial-omega-squared"), 0.7309782608695651)
+
+        text summary = result:GetSummary()
+        text formalsummary = result:GetFormalSummary()
+        Check(true, summary not= "")
+        Check(true, formalsummary not= "")
     end
 end
