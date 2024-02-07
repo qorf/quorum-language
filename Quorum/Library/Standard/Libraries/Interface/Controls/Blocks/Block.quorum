@@ -95,6 +95,14 @@ be dropped. Placeholder blocks have special rules around their text values and h
         SetAccessibilityCode(parent:Item:ITEM)
     end
 
+    action GetBlockName returns text
+        return ""
+    end
+    
+    action GetBlockDescription returns text
+        return ""
+    end
+    
     private action UpdateHintsAndErrorsVisuals
         boolean changed = false
 
