@@ -38,6 +38,14 @@ class IfBlock is MultipleLineBlock
         SetName("If Block")
     end
 
+    action GetBlockName returns text
+        return "If Block"
+    end
+    
+    action GetBlockDescription returns text
+        return "The if block is used for decision making. If the expression in the if block is true the code between the start of the if and the next else or end will run."
+    end
+    
     action SetupElements
         BlockEnvironment editor = GetBlockEnvironment()
         number spacing = editor:GetDefaultGlyphWidth()
