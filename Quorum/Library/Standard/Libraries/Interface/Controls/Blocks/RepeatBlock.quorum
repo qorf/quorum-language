@@ -15,6 +15,7 @@ class RepeatBlock is MultipleLineBlock
     BlockLabel loopLabel = undefined
 
     LoopContext loopContext = undefined
+    
 
     on create
         BlockOptionConstants constants
@@ -99,6 +100,22 @@ class RepeatBlock is MultipleLineBlock
         part:SetLocalEndLine(localEndLine)
 
         return part
+    end
+    
+    action GetBlockName returns text
+        return "Repeat "+loopLabel:GetText()+" Block"
+    end
+    
+    action GetBlockDescription returns text
+        text result = "The repeat block is used to run a portion of code multiple times. "
+        if loopLabel:GetText() = "times"
+            result = result + "We can only repeat a whole number of times so the repeat times block takes an expression that gives a whole number of times to loop."
+        elseif loopLabel:GetText() = "until"
+result = result + "The repeat until block will continue to run the code within the block as long as the expression is false. Once it is true the loop will stop."
+        elseif loopLabel:GetText() = "while"
+result = result + "The repeat while block will continue to run the code within the block as long as the expression is true. Once it is false the loop will stop."
+        end
+        return result
     end
 
     action UpdateName(integer selectedLine)
