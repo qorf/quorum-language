@@ -71,14 +71,7 @@ integer LABEL_SIZE = 12
 Array<Variable> classVariables = result:classVariables
 Array<Variable> parentVariables = result:parentVariables
         
-if result:requestingBlock not= undefined
-            Block block = result:requestingBlock
-            if block is MultipleLineBlockPart
-                block = block:GetParentBlock()
-            end
-            AddLabel(block:GetBlockName()):SetFontSize(HEADER_SIZE)
-            AddLabel(block:GetBlockDescription()):SetFontSize(LABEL_SIZE)
-        end
+
     SetTitle(clazz:GetName())
         Documentation clazzDocs = undefined
         clazzDocs = clazz:GetDocumentation()
@@ -86,6 +79,14 @@ if result:requestingBlock not= undefined
             AddLabel("No documentation available"):SetFontSize(LABEL_SIZE)
         else
             AddLabel(clazz:GetDocumentation():GetShortDescription()):SetFontSize(LABEL_SIZE)
+        end
+if result:requestingBlock not= undefined
+            Block block = result:requestingBlock
+            if block is MultipleLineBlockPart
+                block = block:GetParentBlock()
+            end
+            AddLabel(block:GetBlockName()):SetFontSize(HEADER_SIZE)
+            AddLabel(block:GetBlockDescription()):SetFontSize(LABEL_SIZE)
         end
 if blockVariables not= undefined
             integer i = 0
@@ -145,6 +146,7 @@ suggestedActionItems:Add(AddBlockPaletteItem(call))
         AddLabel(header):SetFontSize(HEADER2_SIZE)
         integer i = 0
         List varList = AddList(header + " List")
+        varList:SetFontSize(LABEL_SIZE)
         repeat while i < items:GetSize()
             varList:Add(items:Get(i))
             i = i + 1
