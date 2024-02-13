@@ -1,12 +1,8 @@
-package Libraries.Interface.Controls.Blocks
+package Libraries.Interface.Controls.Blocks.Palette
 
 use Libraries.Interface.Controls.Button
-use Libraries.Interface.Behaviors.Blocks.BlockPaletteInsertBehavior
 use Libraries.Game.InputTable
 use Libraries.Game.InputSet
-use Libraries.Interface.Behaviors.Blocks.BlockPaletteItemStartDragBehavior
-use Libraries.Interface.Behaviors.Blocks.BlockPaletteItemContinueDragBehavior
-use Libraries.Interface.Behaviors.Blocks.BlockPaletteItemDropBehavior
 use Libraries.Containers.Array
 use Libraries.Language.Compile.CompilerErrorManager
 use Libraries.Language.Compile.Parsing.QuorumLexer
@@ -15,6 +11,14 @@ use Libraries.Language.Compile.Context.StartContext
 use Libraries.Language.Compile.Blocks.ParserToBlockListener
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Language.Compile.Context.StatementContext
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Interface.Controls.Blocks.RootBlock
+use Libraries.Interface.Controls.Blocks.ActionCallBlock
+use Libraries.Interface.Controls.Blocks.EditBox
+use Libraries.Interface.Controls.Blocks.CodeEditor
+use Libraries.Interface.Controls.Blocks.BlockEnvironment
+use Libraries.Interface.Controls.Blocks.FreeformBlock
+use Libraries.Interface.Controls.Blocks.SingleLineBlock
 
 
 class BlockPaletteItem is Button, BlockEnvironment

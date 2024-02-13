@@ -1,8 +1,7 @@
-package Libraries.Interface.Controls.Blocks
+package Libraries.Interface.Controls.Blocks.Palette
 
 use Libraries.Interface.Forms.Page
 use Libraries.Interface.Controls.Button
-use Libraries.Interface.Behaviors.Blocks.BlockPaletteInsertBehavior
 use Libraries.Interface.Events.SelectionEvent
 use Libraries.Interface.Events.SelectionListener
 use Libraries.Interface.Selections.Selection
@@ -20,6 +19,8 @@ use Libraries.Language.Compile.Symbol.Documentation
 use Libraries.Language.Compile.Symbol.Variable
 use Libraries.Interface.Controls.List
 use Libraries.Containers.HashTable
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
 
 class BlockSuggestionPage is BlockPalettePage, SelectionListener, TextChangeListener
 
