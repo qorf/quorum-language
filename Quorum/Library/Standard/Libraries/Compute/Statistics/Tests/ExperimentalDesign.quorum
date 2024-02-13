@@ -1774,7 +1774,7 @@ class ExperimentalDesign
                 else
                     columnsAssociatedWithFactor:GetValue(factorHeader):Add(current)
                 end
-                factorsAssociatedWithColumn:GetValue(current):Set(0, factorIndex:GetKey(factorHeader), 1)
+                factorsAssociatedWithColumn:GetValue(current):Set(0, factorIndex:GetKey(factorHeader), j+1)
                 current = current + 1
                 j = j + 1
             end
@@ -1841,38 +1841,51 @@ class ExperimentalDesign
             return now
         end
 
-        if not AlreadyAssociated(next, start, iscontrast)
-            // Check previous associations too
-            boolean previouslyAssociated = false
-            if start > 1 and reset >= start
-                i = start
-                repeat while i >= 1
-                    if AlreadyAssociated(next, i, iscontrast)
-                        previouslyAssociated = true
-                    end
-                    i = i - 1
+        if start <= reset or reset = 0 
+            if next < start
+                if not AlreadyAssociated(next, start, iscontrast)
+                    AssociateFactorsOfOldColumnToNewColumn(start, next, current, iscontrast)
+                    matrix:SetColumn(current, matrix:GetColumn(start):MultiplyElements(matrix:GetColumn(next)))
+                    current = current + 1
+                end
+                next = next + 1
+            else
+                start = start + 1
+                next = 1
+                if start > stop
+                    reset = stop
+                    stop = current - 1
                 end
             end
-            if not previouslyAssociated
-                AssociateFactorsOfOldColumnToNewColumn(start, next, current, iscontrast)
-                matrix:SetColumn(current, matrix:GetColumn(start):MultiplyElements(matrix:GetColumn(next)))
-                current = current + 1
-            end
-        end
-        if next = stop
-            start = start + 1
-            if start = stop
-                reset = stop
-                start = 1
-                stop = current - 1
-            end
-            if reset < start
-                next = start + 1
-            else
-                next = reset + 1
-            end
         else
-            next = next + 1
+            if next <= reset
+                if not AlreadyAssociated(next, start, iscontrast)                    
+                    // Check previous associations too
+                    boolean previouslyAssociated = false
+                    i = current-1
+                    repeat while i > stop
+                        if AlreadyExactlyAssociated(i, next, start, iscontrast)
+                            previouslyAssociated = true
+                            if previouslyAssociated 
+                                i = 0 // break away early to save time
+                            end
+                        end
+                        i = i - 1
+                    end
+                    if not previouslyAssociated
+                        AssociateFactorsOfOldColumnToNewColumn(start, next, current, iscontrast)
+                        matrix:SetColumn(current, matrix:GetColumn(start):MultiplyElements(matrix:GetColumn(next)))
+                        current = current + 1
+                    end
+                end
+                next = next + 1
+            else
+                start = start + 1
+                next = 1
+                if start > stop
+                    stop = current - 1
+                end
+            end            
         end
         AddInteractionsToMatrix(reset, start, next, stop, current, matrix, iscontrast)      
     end
@@ -1891,11 +1904,41 @@ class ExperimentalDesign
         if nextFactors not= undefined and currFactors not= undefined
             i = 0
             repeat while i < currFactors:GetColumns()
-                if currFactors:Get(0, i) = 1 and nextFactors:Get(0, i) = 1
-                    return true
+                if currFactors:Get(0, i) > 0 
+                    if nextFactors:Get(0, i) > 0 or currFactors:Get(0, i) = nextFactors:Get(0, i)
+                        return true
+                    end
                 end
                 i = i + 1
             end
+        end
+        return false
+    end
+
+    private action AlreadyExactlyAssociated(integer prevAssociation, integer currAssociation, integer nextAssociation, boolean iscontrast) returns boolean
+        Matrix nextFactors 
+        Matrix currFactors 
+        Matrix prevFactors
+        if iscontrast
+            nextFactors = contrastFactorsAssociatedWithColumn:GetValue(nextAssociation)
+            currFactors = contrastFactorsAssociatedWithColumn:GetValue(currAssociation)
+            prevFactors = contrastFactorsAssociatedWithColumn:GetValue(prevAssociation)
+        else
+            nextFactors = factorsAssociatedWithColumn:GetValue(nextAssociation)
+            currFactors = factorsAssociatedWithColumn:GetValue(currAssociation)
+            prevFactors = factorsAssociatedWithColumn:GetValue(prevAssociation)
+        end
+
+        if nextFactors not= undefined and currFactors not= undefined and prevFactors not= undefined
+            boolean exact = true
+            i = 0
+            repeat while i < prevFactors:GetColumns()
+                if prevFactors:Get(0, i) not= nextFactors:Get(0, i) and prevFactors:Get(0, i) not= currFactors:Get(0, i)
+                    exact = false
+                end
+                i = i + 1
+            end
+            return exact
         end
         return false
     end
@@ -1949,7 +1992,7 @@ class ExperimentalDesign
         j = 0
         repeat while j < factorEncoding:GetColumns()
             integer activation = cast(integer, factorEncoding:Get(0,j))
-            if activation = 1
+            if activation > 0
                 if factorText = "" 
                     if iscontrast
                         factorText = contrastFactorIndex:GetValue(j)
