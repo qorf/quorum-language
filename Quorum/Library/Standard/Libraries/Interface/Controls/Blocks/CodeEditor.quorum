@@ -915,7 +915,7 @@ and usually shouldn't be called directly by users.
         return textChangeListeners
     end
 
-    action OnTextChange(TextChangeEvent event, integer indexOffset)
+action OnTextChange(TextChangeEvent event, integer indexOffset)
         text deleted = event:GetDeletedText()
         text added = event:GetAddedText()
         integer index = event:GetIndex() + indexOffset
@@ -2098,10 +2098,16 @@ if selection:GetBlock() not= undefined
         Item focus = manager:GetFocus()
         if focus is Block
             Block block = cast(Block, focus)
-            return block:GetBlockEnvironment():Equals(me)
+            BlockEnvironment envir = block:GetBlockEnvironment()
+            if envir not= undefined
+                return envir:Equals(me)
+            end
         elseif focus is BlockItem
             BlockItem item = cast(BlockItem, focus)
-            return item:GetBlockEnvironment():Equals(me)
+            BlockEnvironment envir = item:GetBlockEnvironment()
+            if envir not= undefined
+                return envir:Equals(me)
+            end
         end
 
         return false
