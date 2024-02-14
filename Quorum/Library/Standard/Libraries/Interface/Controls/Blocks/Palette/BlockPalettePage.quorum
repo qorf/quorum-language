@@ -125,6 +125,14 @@ end
         return button
     end
 
+    action AddVariableList returns BlockPaletteVariableList
+        BlockPaletteVariableList varList
+        varList:SetPalette(GetPalette())
+        varList:SetIconFont(me:palette:GetIconFont())
+        varList:LoadIcons()
+        Add(varList)
+        return varList
+    end
 
     action GetEditor returns CodeEditor
         return palette:GetEditor()

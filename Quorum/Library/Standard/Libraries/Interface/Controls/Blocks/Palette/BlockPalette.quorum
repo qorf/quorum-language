@@ -17,6 +17,8 @@ use Libraries.Language.Compile.CodeCompletionResult
 use Libraries.Language.Compile.CodeCompletionRequest
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Game.Graphics.Font
+use Libraries.System.File
 
 
 class BlockPalette is TabPane
@@ -28,13 +30,16 @@ class BlockPalette is TabPane
     Tab suggestionTab
     
     SelectionListener suggestPage
+    BlockSuggestionHandler suggestionHandler = undefined
 
     // Resources used to handle the visual component of dragging-and-dropping palette items.
     GameStateManager manager
     Layer2D draggedItemLayer = undefined
     boolean dragLayerInUse = false
     Drawable draggedItem = undefined
-
+    Font fontAwesome
+text fontPath = ""
+    
     action Setup
         LayoutProperties properties = GetDefaultLayoutProperties()
         properties:SetHorizontalLayoutMode(properties:FILL)
@@ -73,6 +78,21 @@ class BlockPalette is TabPane
             editor:AddSelectionListener(suggestPage)
             SetFontSize(editor:GetFontSize())
         end
+    end
+    
+    action GetIconFont returns Font
+        return fontAwesome
+    end
+    
+    action SetFontPath(text path)
+        me:fontPath = path
+    end
+    
+    action LoadIconFont
+File file
+        file:SetPath(fontPath)
+        fontAwesome:LoadFont(file)
+        fontAwesome:SetSize(40)
     end
 
     action GetEditor returns CodeEditor
@@ -174,6 +194,15 @@ class BlockPalette is TabPane
     action UpdateSuggestion(Block block, CodeCompletionRequest request)
         BlockSuggestionHandler handler
         handler:Request(block, request, me)
+        me:suggestionHandler = handler
+    end
+    
+action SetBlockSuggestionHandler(BlockSuggestionHandler suggestionHandler)
+        me:suggestionHandler = suggestionHandler
+    end
+
+    action GetBlockSuggestionHandler returns BlockSuggestionHandler
+        return suggestionHandler
     end
 
     /*

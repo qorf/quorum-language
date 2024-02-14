@@ -28,6 +28,8 @@ class BlockSuggestionHandler
 ActionIndexSort actionSorter
 Type primitiveCheck
     
+    SymbolTable currentTable = undefined
+    
     action Request(Block block, CodeCompletionRequest request, BlockPalette palette)
         me:palette = palette
         CompilerResult compilerResult = request:result
@@ -40,11 +42,11 @@ Type primitiveCheck
         SymbolTable last = undefined
         SymbolTable compiled = undefined
         if compilerResult not= undefined
-            last = compilerResult:symbolTable
+            compiled = compilerResult:symbolTable
         end
 
         if lastCompiledResult not= undefined
-            compiled = lastCompiledResult:symbolTable
+            last = lastCompiledResult:symbolTable
         end
 
         if last not= undefined 
@@ -76,7 +78,7 @@ if className:Contains("<")
         end
         Class clazz = GetBestChoiceClass(request:result, lastCompiledResult, request:fileKey, className, variableName)
         SymbolTable table = GetBestChoiceSymbolTable(request:result, lastCompiledResult)
-
+currentTable = table
         if primitiveCheck:IsPrimitive()
             request:isPrimitiveConversion = true
         end
@@ -116,6 +118,37 @@ AddParentVariables(request, vars)
         palette:SetSuggestionResult(result)
     end
 
+    action RequestVariableActions(Variable variable) returns Array<Action>
+        if currentTable = undefined
+            return undefined
+        end
+        Type varType = variable:GetType()
+        
+        text staticKey = varType:GetStaticKey()
+        Class clazz = currentTable:GetClass(staticKey)
+        if clazz not= undefined
+Iterator<Action> actions = clazz:GetVirtualTable()
+        Array<Action> actionsToReturn
+        repeat while actions:HasNext()
+            Action act = actions:Next()
+            if varType:IsPrimitive()
+                text value = act:GetName()
+                if value not= "GetValue" and value not= "SetValue"
+                        if not act:IsPrivate()
+                            actionsToReturn:Add(act)
+                        end
+                end
+            else
+                    if not act:IsPrivate()
+                        actionsToReturn:Add(act)
+                    end
+            end
+        end
+        return actionsToReturn
+        end
+        return undefined
+    end
+    
     private action GetBestChoiceClass(CompilerResult last, CompilerResult compiled, text file, text className, text variableName) returns Class
         CompilerResult best = compiled
         if best = undefined or best:symbolTable = undefined

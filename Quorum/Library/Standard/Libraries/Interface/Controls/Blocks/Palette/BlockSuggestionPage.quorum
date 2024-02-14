@@ -21,6 +21,7 @@ use Libraries.Interface.Controls.List
 use Libraries.Containers.HashTable
 use Libraries.Interface.Controls.Blocks.Block
 use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
+use Libraries.Interface.Forms.Grouping
 
 class BlockSuggestionPage is BlockPalettePage, SelectionListener, TextChangeListener
 
@@ -72,8 +73,8 @@ integer LABEL_SIZE = 12
 Array<Variable> classVariables = result:classVariables
 Array<Variable> parentVariables = result:parentVariables
         
-
-    SetTitle(clazz:GetName())
+AddFilterTextField()
+    AddLabel(clazz:GetName()):SetFontSize(HEADER_SIZE)
         Documentation clazzDocs = undefined
         clazzDocs = clazz:GetDocumentation()
         if clazzDocs = undefined
@@ -86,21 +87,30 @@ if result:requestingBlock not= undefined
             if block is MultipleLineBlockPart
                 block = block:GetParentBlock()
             end
-            AddLabel(block:GetBlockName()):SetFontSize(HEADER_SIZE)
-            AddLabel(block:GetBlockDescription()):SetFontSize(LABEL_SIZE)
+            if block:GetBlockName() not= undefined
+                        AddLabel(block:GetBlockName()):SetFontSize(HEADER_SIZE)
+end
+            if block:GetBlockDescription() not= ""
+                        AddLabel(block:GetBlockDescription()):SetFontSize(LABEL_SIZE)
+end
+        end
+        BlockPaletteVariableList varList = undefined
+        if blockVariables not= undefined or classVariables not= undefined or parentVariables not= undefined
+            AddLabel("Variables"):SetFontSize(HEADER2_SIZE)
+            varList = AddVariableList()
+            varList:SetFontSize(LABEL_SIZE)
         end
 if blockVariables not= undefined
             integer i = 0
             Array<text> vars
-            HashTable<text, Variable> jumpList
             repeat while i < blockVariables:GetSize()
                 Variable variable = blockVariables:Get(i)
                 text name = variable:GetDisplayName()+" "+variable:GetType():GetName()
                 vars:Add(name)
+                varList:AddLocalVariable(variable)
                 i = i + 1
             end
             vars:Sort()
-            AddVariableList("Local Variables", vars)
         end
 if classVariables not= undefined
             integer i = 0
@@ -108,10 +118,10 @@ if classVariables not= undefined
             repeat while i < classVariables:GetSize()
                 Variable variable = classVariables:Get(i)
                 vars:Add(variable:GetDisplayName()+" "+variable:GetType():GetName())
+varList:AddClassVariable(variable)
                 i = i + 1
             end
             vars:Sort()
-            AddVariableList("Class Variables", vars)
         end
 if parentVariables not= undefined
             integer i = 0
@@ -119,14 +129,13 @@ if parentVariables not= undefined
             repeat while i < parentVariables:GetSize()
                 Variable variable = parentVariables:Get(i)
                 vars:Add(variable:GetDisplayName()+" "+variable:GetType():GetName())
+varList:AddParentVariable(variable)
                 i = i + 1
             end
             vars:Sort()
-            AddVariableList("Parent Variables", vars)
         end
         if actions not= undefined
             AddLabel("Actions"):SetFontSize(HEADER_SIZE)
-AddFilterTextField()
 
         integer i = 0
         repeat while i < actions:GetSize()
@@ -137,30 +146,44 @@ suggestedActionItems:Add(AddBlockPaletteItem(call))
             i = i + 1
         end
         end
-        
+        CalculateDefaultFocusOrdering()
     end
     
-    action AddVariableList(text header, Array<text> items)
-        if items = undefined or items:IsEmpty()
-            return now
-        end
-        AddLabel(header):SetFontSize(HEADER2_SIZE)
-        integer i = 0
-        List varList = AddList(header + " List")
-        varList:SetFontSize(LABEL_SIZE)
-        repeat while i < items:GetSize()
-            varList:Add(items:Get(i))
-            i = i + 1
-        end
-    end
 
     action AddFilterTextField
         if filterField not= undefined
             filterField:RemoveTextChangeListener(me)
         end
-        AddLabel("Search"):SetFontSize(HEADER2_SIZE)
-        filterField = AddTextField("Filter")
+        Grouping group = AddGrouping("Filter Group")
+        group:AddLabel("Filter"):SetFontSize(HEADER2_SIZE)
+        filterField = group:AddTextField("Filter Text Field")
         filterField:AddTextChangeListener(me)
+    end
+    
+    action SetActionsFromVariable(Variable variable)
+        BlockSuggestionHandler handler = GetPalette():GetBlockSuggestionHandler()
+        if handler = undefined
+            return now
+        end
+        Array<Action> actions = handler:RequestVariableActions(variable)
+        if actions = undefined
+            return now
+        end
+        ClearSuggestions()
+        AddLabel(variable:GetName()):SetFontSize(HEADER2_SIZE)
+        AddLabel(variable:GetType():GetStaticKey()):SetFontSize(LABEL_SIZE)
+integer i = 0
+            repeat while i < actions:GetSize()
+                Action act = actions:Get(i)
+                text actionName = act:GetName()
+                actionName = actionName:ToLowerCase()
+                    text call = MakeFullActionCall(act, variable:GetName())
+                    if call not= ""
+suggestedActionItems:Add(AddBlockPaletteItem(call))
+                    end
+                i = i + 1
+            end
+        CalculateDefaultFocusOrdering()
     end
 
     action TextChanged(TextChangeEvent event)
@@ -183,6 +206,7 @@ suggestedActionItems:Add(AddBlockPaletteItem(call))
                 end
                 i = i + 1
             end
+        CalculateDefaultFocusOrdering()
     end
 
     action ClearSuggestions
@@ -250,4 +274,5 @@ suggestedActionItems:Add(AddBlockPaletteItem(call))
             end
         end
     end
+
 end

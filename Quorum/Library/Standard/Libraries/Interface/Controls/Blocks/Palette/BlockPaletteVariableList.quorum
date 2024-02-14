@@ -1,0 +1,109 @@
+package Libraries.Interface.Controls.Blocks.Palette
+
+use Libraries.Interface.Controls.List
+use Libraries.Language.Compile.Symbol.Variable
+use Libraries.Game.Graphics.TextureRegion
+use Libraries.Game.Graphics.Glyph
+use Libraries.Game.Graphics.Font
+use Libraries.System.File
+use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Behaviors.Block.BlockPaletteVariableListBehavior
+use Libraries.Interface.Controls.ListItem
+
+
+class BlockPaletteVariableList is List
+    
+    BlockPalette palette = undefined
+    Font fontAwesome = undefined
+    // assumes the path for QS
+    private text fontPath = "Resources/Fonts/Font Awesome 6 Free-Solid-900.otf"
+    
+    Icon primitiveIcon
+    Icon actionIcon
+    Icon actionPrivateIcon
+    Icon fieldIcon
+    Icon fieldPrivateIcon
+    Icon packageIcon
+    Icon variableIcon
+    Icon parentIcon
+    Icon classIcon
+
+    on create
+        
+    end
+    
+    action Add(Variable variable)
+        
+        //Add(NewListItem(variable:GetName()))
+Add(NewListItem(variable:GetName()))
+    end
+    
+    action AddLocalVariable(Variable variable)
+        BlockPaletteVariableListBehavior behave
+                    behave:SetVariable(variable)
+behave:SetPage(cast(BlockSuggestionPage,GetPalette():GetSuggestionTab():GetRelatedItem()))
+        ListItem item = cast(ListItem, NewListItem(variable:GetName(), variableIcon))
+        item:SetActivationBehavior(behave)
+Add(item)
+end
+    
+    action AddClassVariable(Variable variable)
+BlockPaletteVariableListBehavior behave
+        behave:SetVariable(variable)
+behave:SetPage(cast(BlockSuggestionPage,GetPalette():GetSuggestionTab():GetRelatedItem()))
+        ListItem item = cast(ListItem, NewListItem(variable:GetName(), fieldIcon))
+        item:SetActivationBehavior(behave)
+Add(item)
+    end
+    
+action AddParentVariable(Variable variable)
+BlockPaletteVariableListBehavior behave
+        behave:SetVariable(variable)
+behave:SetPage(cast(BlockSuggestionPage,GetPalette():GetSuggestionTab():GetRelatedItem()))
+        ListItem item = cast(ListItem, NewListItem(variable:GetName(), parentIcon))
+        item:SetActivationBehavior(behave)
+Add(item)
+    end
+    
+    action LoadIcons()
+if fontAwesome = undefined
+File file
+        file:SetPath("")
+        fontAwesome:LoadFont(file)
+        fontAwesome:SetSize(40)
+end        
+primitiveIcon:Load(GetGlyphTexture(62930))
+            fieldIcon:Load(GetGlyphTexture(62163))
+            fieldPrivateIcon:Load(GetGlyphTexture(61766))
+            actionIcon:Load(GetGlyphTexture(61729))
+            actionPrivateIcon:Load(GetGlyphTexture(61475))
+            variableIcon:Load(GetGlyphTexture(61453))
+            parentIcon:Load(GetGlyphTexture(61827))
+            classIcon:Load(GetGlyphTexture(63087))
+            packageIcon:Load(GetGlyphTexture(62566))
+    end
+    
+    action SetIconFont(Font font)
+        me:fontAwesome = font
+    end
+    
+    action SetFontPath(text path)
+        me:fontPath = path
+    end
+    
+private action GetGlyphTexture(integer unicode) returns TextureRegion
+        text value = ""
+        value = value:GetUnicodeValue(unicode)
+        
+        Glyph glyph = fontAwesome:GetGlyph(value)
+        return glyph:texture
+    end
+    
+    action SetPalette(BlockPalette palette)
+        me:palette = palette
+    end
+
+    action GetPalette returns BlockPalette
+        return me:palette
+    end
+end
