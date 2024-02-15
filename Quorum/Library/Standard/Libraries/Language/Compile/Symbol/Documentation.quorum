@@ -27,6 +27,41 @@ class Documentation is Location
         return description
     end
 
+    action RemoveInternalWhitespace(text value) returns text
+        if value = undefined
+            return undefined
+        end
+        value = value:Trim()
+        text LF = ""
+        LF = LF:GetLineFeed()
+        text CR = LF:GetCarriageReturn()
+        text SPACE = " "
+        text TAB = LF:GetTab()
+        TextBuilder builder
+        builder:SetMaxSize(value:GetSize())
+        i = 0
+        repeat while i < value:GetSize()
+            text ch = value:GetCharacter(i)
+            if ch not= LF and ch not= CR and ch not= SPACE and ch not= TAB
+                builder:Append(ch)
+            elseif ch = SPACE
+                j = i + 1
+                repeat while j < value:GetSize()
+                    text ch2 = value:GetCharacter(j)
+                    if ch2 = SPACE
+                        i = i + 1
+                    else
+                        j = value:GetSize()
+                    end
+                    j = j + 1
+                end
+                builder:Append(SPACE)
+            end
+            i = i + 1
+        end
+        return builder:ToText()
+    end
+
     /*
         This action returns the first sentence from the description.
     */
