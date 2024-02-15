@@ -4,6 +4,12 @@ use Libraries.Interface.Controls.ControlLabel
 use Libraries.Game.Graphics.ColorGroup
 
 class ChartLabel is ControlLabel, ChartItem
+    
+    on create
+        SetInputGroup("Chart")
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:LABEL)
+    end
 
     // Try to get the chart this is attached to via the parent hierarchy.
     action GetParentChart returns Chart

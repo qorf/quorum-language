@@ -1,9 +1,11 @@
 package plugins.quorum.Libraries.Interface.Accessibility;
 
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityNodeProvider;
 import plugins.quorum.Libraries.Game.AndroidApplication;
 import quorum.Libraries.Interface.Accessibility;
@@ -16,6 +18,7 @@ import quorum.Libraries.Interface.Item_;
 import quorum.Libraries.Interface.Selections.TextBoxSelection_;
 import quorum.Libraries.Interface.Selections.TextFieldSelection_;
 
+
 /**
  *
  * @author andreasstefik
@@ -25,7 +28,7 @@ public class AndroidAccessibility{
     public static Item_ lastSpokenChild;
     public static Item_ lastHoveredChild;
 
-
+    
     public static void sendAccessibilityEventForVirtualView(Item_ item, int eventType) {
         if(item == null)
             return;
@@ -55,8 +58,9 @@ public class AndroidAccessibility{
             }
 
             event.getText().add(text);
-            AndroidApplication.accessibilityManager.interrupt();
-            AndroidApplication.accessibilityManager.sendAccessibilityEvent(event);
+
+            //AndroidApplication.accessibilityManager.interrupt();
+            //AndroidApplication.accessibilityManager.sendAccessibilityEvent(event);
         }
     }
 
@@ -64,23 +68,9 @@ public class AndroidAccessibility{
         AccessibilityEvent event = AccessibilityEvent.obtain(AccessibilityEvent.TYPE_ANNOUNCEMENT);
         event.setSource(AndroidApplication.viewRoot, lastSpokenChild.GetHashCode());
         event.getText().add(text);
-        AndroidApplication.accessibilityManager.interrupt();
-        AndroidApplication.accessibilityManager.sendAccessibilityEvent(event);
-    }
 
-    public static boolean onHoverVirtualView(Item_ item, MotionEvent event) {
-        final int action = event.getAction();
-        switch (action) {
-            case MotionEvent.ACTION_HOVER_ENTER: {
-                sendAccessibilityEventForVirtualView(item,
-                        AccessibilityEvent.TYPE_ANNOUNCEMENT);
-            } break;
-            case MotionEvent.ACTION_HOVER_EXIT: {
-                sendAccessibilityEventForVirtualView(item,
-                        AccessibilityEvent.TYPE_VIEW_HOVER_EXIT);
-            } break;
-        }
-        return true;
+        //AndroidApplication.accessibilityManager.interrupt();
+        //AndroidApplication.accessibilityManager.sendAccessibilityEvent(event);
     }
 
     public void  NameChanged(Item_ item) {}
@@ -96,16 +86,19 @@ public class AndroidAccessibility{
     public void  ProgressBarValueChanged(ProgressBarValueChangedEvent_ progress) {}
 
     public void  SelectionChanged(SelectionEvent_ event) {}
-
+    
+    
     public void ButtonActivated(Button_ button) {
-        sendAccessibilityEventForVirtualView(button, AccessibilityEvent.TYPE_ANNOUNCEMENT);
-        android.util.Log.e("Quorum", "ButtonActivated: ");
+        //sendAccessibilityEventForVirtualView(button, AccessibilityEvent.TYPE_ANNOUNCEMENT);
+        //android.util.Log.e("Quorum", "ButtonActivated: ");
     }
 
     public void  ToggleButtonToggled(ToggleButton_ button) {}
-
+    
+    
     public void  FocusChanged(FocusEvent_ event) throws Exception {
-
+    	//Log.d("myapp", Log.getStackTraceString(new Exception()));
+    	
         AccessibilityManager accessibilityManager = AndroidApplication.accessibilityManager;
         if(accessibilityManager == null) {
             return;
@@ -121,7 +114,31 @@ public class AndroidAccessibility{
         if(temp == null)
             return;
         //Log.e("Quorum", "FocusChanged: " + temp.GetDescription() + temp.GetName());
-        sendAccessibilityEventForVirtualView(temp, AccessibilityEvent.TYPE_ANNOUNCEMENT);
+        
+        AccessibilityEvent accessibilityEvent = AccessibilityEvent.obtain(AccessibilityEvent.TYPE_ANNOUNCEMENT);
+        accessibilityEvent.setPackageName(AndroidApplication.androidActivity.getPackageName());
+        accessibilityEvent.setClassName(item.GetName());
+        accessibilityEvent.setSource(AndroidApplication.viewRoot, item.GetHashCode());
+        String text = "";
+        if (!item.GetName().trim().isEmpty()) {
+            text += item.GetName() + " ";
+        }
+        if (!item.GetDescription().trim().isEmpty()){
+            text += item.GetDescription() + " ";
+        } else {
+            text += item.GetAccessibilityType();
+        }
+        if (item.GetAccessibilityCode() == item.Get_Libraries_Interface_Item__LIST_ITEM_()){
+            ((ListItem_) item).Select();
+            text += " " + ((ListItem_) item).GetText();
+        }
+
+        accessibilityEvent.getText().add(text);
+
+    	//Log.d("AndroidAccessibility", "FocusChanged(FocusEvent_ event) - INTERRUPT ON 2");
+		
+        AndroidApplication.accessibilityManager.interrupt();
+        AndroidApplication.accessibilityManager.sendAccessibilityEvent(accessibilityEvent);
     }
 
     public boolean NativeAdd(Item_ item) throws Exception {
@@ -147,14 +164,6 @@ public class AndroidAccessibility{
         AndroidApplication.quorumItems.put(id,item);
         AndroidApplication.accessibilityNodeProvider.createAccessibilityNodeInfo(id);
 
-        /*
-        int code = item.GetAccessibilityCode();
-        if(code == item.Get_Libraries_Interface_Item__BUTTON_()) { //this is a button.
-            System.out.println("This is a button.");
-            Button_ button = (Button_) item;
-
-        }
-        */
         return true;
     }
 

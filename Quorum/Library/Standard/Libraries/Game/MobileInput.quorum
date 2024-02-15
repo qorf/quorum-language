@@ -144,10 +144,9 @@ class MobileInput is GameInput
                     counter = counter - 1
 
                     Item temp = layers:Get(counter):ProcessTouchEvent(touchEvent)
-
                     if touchEvent:GetSource() not= undefined
                         Item seeker = touchEvent:GetSource()
-
+                        
                         boolean noMoveTarget = true
                         if not (touchEvent:eventType = touchEvent:MOVED or touchEvent:eventType = touchEvent:STATIONARY)
                             noMoveTarget = false
@@ -159,6 +158,7 @@ class MobileInput is GameInput
                         finishSet:SetInputTrigger(finishSet:FINISH)
 
                         repeat while seeker not= undefined and (useDefaultTable = true or noMoveTarget)
+                            
                             InputTable table = GetInputTable(seeker:GetInputGroup())
 
                             if useDefaultTable
@@ -219,11 +219,12 @@ class MobileInput is GameInput
                 if not touchEvent:WasEventHandled()
                     NotifyTouchListeners(touchEvent)
                 end
-
+                
                 behaviorEvent:SetItem(target)
                 InputTable table = undefined
-
+                
                 if touchEvent:eventType = touchEvent:MOVED or touchEvent:eventType = touchEvent:STATIONARY
+                    
                     if lastTouchMoveTarget not= touchMoveTarget
                         BehaviorEvent lastTargetEvent
                         lastTargetEvent:SetItem(undefined)
@@ -263,7 +264,7 @@ class MobileInput is GameInput
                         else
                             table = GetInputTable(lastTargetEvent:GetItem():GetInputGroup())
                         end
-
+                        
                         boolean tableProcessResult = table:ProcessInput(finishSet, lastTargetEvent)
 
                         BehaviorEvent newTargetEvent
@@ -339,7 +340,7 @@ class MobileInput is GameInput
                 else
                     table = GetInputTable(target:GetInputGroup())
                 end
-
+                
                 table:ProcessInput(set, behaviorEvent)
 
                 if touchEvent:eventType = touchEvent:BEGAN or touchEvent:eventType = touchEvent:ENDED
@@ -457,7 +458,7 @@ class MobileInput is GameInput
             InputSet set = keyboardModifiers:Copy()
             set:SetInputTrigger(set:CONTINUE)
             set:SetEventCount(current:tapCount)
-            set:SetInputType(set:TOUCH_INPUT)
+            set:SetInputType(set:TOUCH_MOVEMENT_INPUT)
 
             boolean processed = (table not= undefined)
 
@@ -487,6 +488,7 @@ class MobileInput is GameInput
         if elder is Item2D
             Item2D item = cast(Item2D, younger)
             repeat while item not= undefined
+                Item2D elderItem = cast(Item2D, elder)
                 if item:Equals(elder)
                     return true
                 end
@@ -596,10 +598,11 @@ class MobileInput is GameInput
                     end
                 end
 
+
                 if not gestureEvent:WasEventHandled()
                     NotifyGestureListeners(gestureEvent)
                 end
-
+                
                 behaviorEvent:SetItem(target)
                 InputTable table = undefined
 
@@ -627,7 +630,6 @@ class MobileInput is GameInput
                 else
                     table = GetInputTable(target:GetInputGroup())
                 end
-
                 table:ProcessInput(set, behaviorEvent)
 
                 // End of repeat statement over size of touch events.

@@ -124,6 +124,7 @@ class TwoVariableChart is Chart
                     chartArea = GetChartArea()
                 end
 
+                cline:SetInputGroup("Chart")
                 cline:SetFocusable(true)
                 cline:SetAccessibilityCode(parent:Item:CHART_ITEM)
                 cline:SetNextFocus(GetNextFocus())
@@ -144,6 +145,7 @@ class TwoVariableChart is Chart
                 j = 0
                 repeat while j < cline:GetPoints():GetSize()
                     ChartPoint point = cline:GetPoints():Get(j)
+                    point:SetInputGroup("Chart")
                     point:SetFocusable(true)
                     point:SetAccessibilityCode(parent:Item:CHART_ITEM)
                     point:SetNextFocus(GetNextFocus())
@@ -237,6 +239,7 @@ class TwoVariableChart is Chart
 
             repeat while i < points:GetSize()
                 ChartPoint point = points:Get(i)
+                point:SetInputGroup("Chart")
                 point:SetFocusable(true)
                 point:SetAccessibilityCode(parent:Item:CHART_ITEM)
                 point:SetNextFocus(GetNextFocus())
@@ -1088,6 +1091,7 @@ class TwoVariableChart is Chart
         region:SetPercentageY(percentY)
         region:SetPercentageWidth(percentWidth)
         region:SetPercentageHeight(percentHeight)
+        region:SetInputGroup("Chart")
         region:SetFocusable(true)
         region:SetAccessibilityCode(region:parent:Item:CHART_SECTION)
         LayoutProperties properties = region:GetDefaultLayoutProperties()
