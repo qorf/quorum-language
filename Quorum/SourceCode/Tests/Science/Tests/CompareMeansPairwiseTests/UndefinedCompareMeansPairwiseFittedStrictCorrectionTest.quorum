@@ -1,0 +1,153 @@
+package Science.Tests
+
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.CompareMeansPairwise
+use Libraries.Compute.Statistics.Reporting.CompareMeansResult
+
+/*
+    This class tests a bonferroni procedure on pairwise comparisons with bonferroni correction
+*/
+class UndefinedCompareMeansPairwiseFittedStrictCorrectionTest is Test
+
+    on create
+        SetName("Calculate CompareMeansPairwiseFittedStrictCorrectionTest")
+    end
+
+    action Run
+        ColumnCalculationTest framer
+        DataFrame frame = framer:GetDefaultDataFrame()
+        frame:AddSelectedColumnRange(0,2)
+
+        // Emmeans Standard
+        CompareMeansPairwise compare
+        compare:UseFittedApproach(true)
+        compare:UseStrictCorrection(true)
+        frame:Calculate(compare)
+        // Compare y-x1
+        CompareMeansResult result0 = compare:GetResults():Get(0)
+        Check(result0:GetTestStatistic(), -0.3348809561713313)
+        Check(result0:GetDegreesOfFreedom(), 15.0)
+        Check(result0:GetProbabilityValue(), 1.0)
+        // Compare y-x2
+        CompareMeansResult result1 = compare:GetResults():Get(1)
+        Check(result1:GetTestStatistic(), 4.975374205974067)
+        Check(result1:GetDegreesOfFreedom(), 15.0)
+        Check(result1:GetProbabilityValue(), 4.983472510126957e-4)
+        // Compare x1-x2
+        CompareMeansResult result2 = compare:GetResults():Get(2)
+        Check(result2:GetTestStatistic(), 5.310255162145399)
+        Check(result2:GetDegreesOfFreedom(), 15.0)
+        Check(result2:GetProbabilityValue(), 2.6199380936196766e-4)
+
+        // Emmeans Repeated Measures with gg correction!
+        CompareMeansPairwise compare1
+        compare1:Paired(true)
+        compare1:UseFittedApproach(true)
+        compare1:UseStrictCorrection(true)
+        frame:Calculate(compare1)
+        // Compare y-x1
+        CompareMeansResult result01 = compare1:GetResults():Get(0)
+        Check(result01:GetTestStatistic(), -0.3246270467841736)
+        Check(result01:GetDegreesOfFreedom(), 5.08991366310939)
+        Check(result01:GetProbabilityValue(), 1.0)
+        // Compare y-x2
+        CompareMeansResult result02 = compare1:GetResults():Get(1)
+        Check(result02:GetTestStatistic(), 4.8230304093648675)
+        Check(result02:GetDegreesOfFreedom(), 5.08991366310939)
+        Check(result02:GetProbabilityValue(), 0.013695329222541285)
+        // Compare x1-x2
+        CompareMeansResult result03 = compare1:GetResults():Get(2)
+        Check(result03:GetTestStatistic(), 5.147657456149041)
+        Check(result03:GetDegreesOfFreedom(), 5.08991366310939)
+        Check(result03:GetProbabilityValue(), 0.010321801039703166)
+
+        // Dunn Kruskal
+        CompareMeansPairwise compare2
+        compare2:Ranked(true)
+        compare2:AssumeEqualVariances(false)
+        compare2:UseFittedApproach(true)
+        compare2:UseStrictCorrection(true)
+        frame:Calculate(compare2)
+        // Compare y-x1
+        CompareMeansResult result3 = compare2:GetResults():Get(0)
+        Check(result3:GetTestStatistic(), -0.48716727568510676)
+        Check(result3:GetProbabilityValue(), 1.0)
+        // Compare y-x2
+        CompareMeansResult result4 = compare2:GetResults():Get(1)
+        Check(result4:GetTestStatistic(), 2.6794200162680872)
+        Check(result4:GetProbabilityValue(), 0.022124946075655405)
+        // Compare x1-x2
+        CompareMeansResult result5 = compare2:GetResults():Get(2)
+        Check(result5:GetTestStatistic(), 3.166587291953194)
+        Check(result5:GetProbabilityValue(), 0.004627171388242202)
+
+        // Dunn Friedman (not compared to other softwares.
+        CompareMeansPairwise compare3
+        compare3:Ranked(true)
+        compare3:Paired(true)
+        compare3:AssumeEqualVariances(false)
+        compare3:UseFittedApproach(true)
+        compare3:UseStrictCorrection(true)
+        frame:Calculate(compare3)
+        // Compare y-x1
+        CompareMeansResult result6 = compare3:GetResults():Get(0)
+        Check(result6:GetTestStatistic(), -1.1547005383792521)
+        Check(result6:GetProbabilityValue(), 0.7446392369697712)
+        // Compare y-x2
+        CompareMeansResult result7 = compare3:GetResults():Get(1)
+        Check(result7:GetTestStatistic(), 2.02072594216369)
+        Check(result7:GetProbabilityValue(), 0.12992442843237462)
+        // Compare x1-x2
+        CompareMeansResult result8 = compare3:GetResults():Get(2)
+        Check(result8:GetTestStatistic(), 3.175426480542942)
+        Check(result8:GetProbabilityValue(), 0.004488492869236582)
+
+        // Conover Kruskal
+        CompareMeansPairwise compare4
+        compare4:Ranked(true)
+        compare4:AssumeEqualVariances(true)
+        compare4:UseFittedApproach(true)
+        compare4:UseStrictCorrection(true)
+        frame:Calculate(compare4)
+        // Compare y-x1
+        CompareMeansResult result9 = compare4:GetResults():Get(0)
+        Check(result9:GetTestStatistic(), -0.8141546477834328)
+        Check(result9:GetDegreesOfFreedom(), 15.0)
+        Check(result9:GetProbabilityValue(), 1.0)
+        // Compare y-x2
+        CompareMeansResult result10 = compare4:GetResults():Get(1)
+        Check(result10:GetTestStatistic(), 4.4778505628088805)
+        Check(result10:GetDegreesOfFreedom(), 15.0)
+        Check(result10:GetProbabilityValue(), 0.0013272404402083855)
+        // Compare x1-x2
+        CompareMeansResult result11 = compare4:GetResults():Get(2)
+        Check(result11:GetTestStatistic(), 5.292005210592313)
+        Check(result11:GetDegreesOfFreedom(), 15.0)
+        Check(result11:GetProbabilityValue(), 2.712379457813997e-4)
+
+        // Conover Friedman - R's package PMCMR is incorrect as of 11/14/23
+        CompareMeansPairwise compare5
+        compare5:Ranked(true)
+        compare5:Paired(true)
+        compare5:AssumeEqualVariances(true)
+        compare5:UseFittedApproach(true)
+        compare5:UseStrictCorrection(true)
+        frame:Calculate(compare5)
+        // Compare y-x1
+        CompareMeansResult result12 = compare5:GetResults():Get(0)
+        Check(result12:GetTestStatistic(), -2.8284271247461894)
+        Check(result12:GetDegreesOfFreedom(), 10.0)
+        Check(result12:GetProbabilityValue(), 0.0537003696082915)
+        // Compare y-x2
+        CompareMeansResult result13 = compare5:GetResults():Get(1)
+        Check(result13:GetTestStatistic(), 4.949747468305832)
+        Check(result13:GetDegreesOfFreedom(), 10.0)
+        Check(result13:GetProbabilityValue(), 0.001736249320522697)
+        // Compare x1-x2
+        CompareMeansResult result14 = compare5:GetResults():Get(2)
+        Check(result14:GetTestStatistic(), 7.778174593052021)
+        Check(result14:GetDegreesOfFreedom(), 10.0)
+        Check(result14:GetProbabilityValue(), 4.515167675598558e-5)
+    end
+end

@@ -1,0 +1,44 @@
+package Science.Tests
+
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.CompareMeans
+use Libraries.Compute.Statistics.Reporting.CompareMeansResult
+
+/*
+    This class tests a kruskal-wallis test
+*/
+class UndefinedCompareSeveralRankedMeansTest is Test
+
+    on create
+        SetName("Calculate UndefinedCompareSeveralRankedMeansTest")
+    end
+
+    action Run
+        ColumnCalculationTest framer
+        DataFrame frame
+        frame:LoadFromCommaSeparatedValue("y,x1,x2,x3
+        2.0,4.0,-9.0,9
+        6.0,,-19.0,19
+        3.0,4.0,-18.0,18
+        9.0,8.0,-16.0,16
+        15.0,17.0,-2.0,2
+        1.0,3.0,-4.0,4")
+        frame:AddSelectedColumnRange(0,3)
+
+        CompareMeans compare
+        compare:Ranked(true)
+        frame:Calculate(compare)
+        
+        CompareMeansResult result = compare:GetResult()
+        Check(result:GetTestStatistic(), 14.368730920191892)
+        Check(result:GetDegreesOfFreedom(), 3.0)
+        Check(result:GetProbabilityValue(), 0.0024438841517434584)
+        Check(result:GetEffectSize(), 0.6247274313126909)
+
+        text summary = result:GetSummary()
+        text formalsummary = result:GetFormalSummary()
+        Check(true, summary not= "")
+        Check(true, formalsummary not= "")
+    end
+end

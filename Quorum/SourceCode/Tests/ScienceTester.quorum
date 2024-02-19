@@ -60,7 +60,29 @@ use Science.Tests.CompareRelatedCountsTest
 use Science.Tests.CompareCountsGoodnessOfFitTest
 use Science.Tests.CompareCountsPairwiseTest
 use Science.Tests.CompareRelatedCountsPairwiseTest
-
+use Science.Tests.UndefinedFactorialCompareSeveralMeansTest
+use Science.Tests.UndefinedFactorialCompareSeveralRelatedMeansTest
+use Science.Tests.UndefinedMultivariateCompareSeveralMeansTest
+use Science.Tests.UndefinedMultivariateFactorialCompareSeveralMeansTest
+use Science.Tests.UndefinedCompareSeveralMeansTest
+use Science.Tests.UndefinedCompareSeveralRankedMeansTest
+use Science.Tests.UndefinedCompareSeveralRelatedMeansTest
+use Science.Tests.UndefinedCompareSeveralRelatedRankedMeansTest
+use Science.Tests.UndefinedCompareToMeanTest
+use Science.Tests.UndefinedCompareToRankedMeanTest
+use Science.Tests.UndefinedCompareTwoMeansTest
+use Science.Tests.UndefinedCompareTwoRankedMeansTest
+use Science.Tests.UndefinedCompareTwoRelatedMeansTest
+use Science.Tests.UndefinedCompareTwoRelatedRankedMeansTest
+use Science.Tests.UndefinedCompareCountsPairwiseTest
+use Science.Tests.UndefinedCompareRelatedCountsPairwiseTest
+use Science.Tests.UndefinedCompareCountsGoodnessOfFitTest
+use Science.Tests.UndefinedCompareCountsTest
+use Science.Tests.UndefinedCompareRelatedCountsTest
+use Science.Tests.UndefinedCompareDistributionToNormalTest
+use Science.Tests.UndefinedCompareMeansPairwiseFittedLenientCorrectionTest
+use Science.Tests.UndefinedCompareMeansPairwiseFittedStrictCorrectionTest
+use Science.Tests.UndefinedCompareMeansPairwiseUnfittedStrictCorrectionTest
 class ScienceTester
     Tester tester = undefined
 
@@ -139,6 +161,48 @@ class ScienceTester
 
         FactorialCompareSeveralRelatedMeansTest test14
         tester:Run(test14)
+
+        UndefinedFactorialCompareSeveralMeansTest test15
+        tester:Run(test15)
+
+        UndefinedFactorialCompareSeveralRelatedMeansTest test16
+        tester:Run(test16)
+
+        UndefinedMultivariateCompareSeveralMeansTest test17
+        tester:Run(test17)
+
+        UndefinedMultivariateFactorialCompareSeveralMeansTest test18
+        tester:Run(test18)
+
+        UndefinedCompareSeveralMeansTest test19
+        tester:Run(test19)
+    
+        UndefinedCompareSeveralRankedMeansTest test20
+        tester:Run(test20)
+
+        UndefinedCompareSeveralRelatedMeansTest test21
+        tester:Run(test21)
+
+        UndefinedCompareSeveralRelatedRankedMeansTest test22
+        tester:Run(test22)
+
+        UndefinedCompareToMeanTest test23
+        tester:Run(test23)
+
+        UndefinedCompareToRankedMeanTest test24
+        tester:Run(test24)
+
+        UndefinedCompareTwoMeansTest test25
+        tester:Run(test25)
+
+        UndefinedCompareTwoRankedMeansTest test26
+        tester:Run(test26)
+
+        UndefinedCompareTwoRelatedMeansTest test27
+        tester:Run(test27)
+
+        UndefinedCompareTwoRelatedRankedMeansTest test28
+        tester:Run(test28)
     end
 
     action TestCompareMeansPairwise
@@ -150,6 +214,15 @@ class ScienceTester
 
         CompareMeansPairwiseFittedLenientCorrectionTest test3
         tester:Run(test3)
+
+        UndefinedCompareMeansPairwiseFittedLenientCorrectionTest test4
+        tester:Run(test4)
+
+        UndefinedCompareMeansPairwiseFittedStrictCorrectionTest test5
+        tester:Run(test5)
+
+        UndefinedCompareMeansPairwiseUnfittedStrictCorrectionTest test6
+        tester:Run(test6)
     end
 
     action TestCompareVariances
@@ -167,8 +240,11 @@ class ScienceTester
     end
 
     action TestCompareDistributions
-        CompareDistributionToNormalTest test
-        tester:Run(test)
+        CompareDistributionToNormalTest test1
+        tester:Run(test1)
+
+        UndefinedCompareDistributionToNormalTest test2
+        tester:Run(test2)
     end
 
     action TestCorrelateGroups
@@ -199,6 +275,15 @@ class ScienceTester
 
         CompareCountsGoodnessOfFitTest test3
         tester:Run(test3)
+
+        UndefinedCompareCountsGoodnessOfFitTest test4
+        tester:Run(test4)
+
+        UndefinedCompareCountsTest test5
+        tester:Run(test5)
+
+        UndefinedCompareRelatedCountsTest test6
+        tester:Run(test6)
     end
 
     action TestCompareCountsPairwise
@@ -207,6 +292,12 @@ class ScienceTester
 
         CompareRelatedCountsPairwiseTest test2
         tester:Run(test2)
+        
+        UndefinedCompareCountsPairwiseTest test3
+        tester:Run(test3)
+    
+        UndefinedCompareRelatedCountsPairwiseTest test4
+        tester:Run(test4)
     end
 
     action TestFilters

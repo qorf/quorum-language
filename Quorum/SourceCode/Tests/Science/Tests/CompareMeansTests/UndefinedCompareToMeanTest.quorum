@@ -1,0 +1,44 @@
+package Science.Tests
+
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.CompareMeans
+use Libraries.Compute.Statistics.Reporting.CompareMeansResult
+
+/*
+    This class tests a one-sample t-test
+*/
+class UndefinedCompareToMeanTest is Test
+
+    on create
+        SetName("Calculate UndefinedCompareToMeanTest")
+    end
+
+    action Run
+        ColumnCalculationTest framer
+        DataFrame frame
+        frame:LoadFromCommaSeparatedValue("y
+        2.0
+        6.0
+        3.0
+        9.0
+        15.0
+        1.0")
+        frame:AddSelectedColumn(0)
+
+        CompareMeans compare
+        frame:Calculate(compare)
+        
+        CompareMeansResult result = compare:GetResult()
+        Check(result:GetTestStatistic(), 2.7774602993176543)
+        Check(result:GetDegreesOfFreedom(), 5.0)
+        Check(result:GetInformation():GetValue(result:GetGroupsFrame():GetColumn(0):GetHeader()):GetValue("mean"), 6.0)
+        Check(result:GetProbabilityValue(), 0.03901915828494069)
+        Check(result:GetEffectSize(), 1.1338934190276817)
+
+        text summary = result:GetSummary()
+        text formalsummary = result:GetFormalSummary()
+        Check(true, summary not= "")
+        Check(true, formalsummary not= "")
+    end
+end

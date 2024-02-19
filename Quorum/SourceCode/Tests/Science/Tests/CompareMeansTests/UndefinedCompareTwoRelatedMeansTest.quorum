@@ -1,0 +1,44 @@
+package Science.Tests
+
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.CompareMeans
+use Libraries.Compute.Statistics.Reporting.CompareMeansResult
+
+/*
+    This class tests a undefined two-sample paired t-test
+*/
+class UndefinedCompareTwoRelatedMeansTest is Test
+
+    on create
+        SetName("Calculate UndefinedCompareTwoRelatedMeansTest")
+    end
+
+    action Run
+        ColumnCalculationTest framer
+        DataFrame frame
+        frame:LoadFromCommaSeparatedValue("y,x
+        2.0,4.0
+        6.0,7.0
+        3.0
+        9.0,8.0
+        15.0,17.0
+        1.0,3.0")
+        frame:AddSelectedColumnRange(0,1)
+
+        CompareMeans compare
+        compare:Paired(true)
+        frame:Calculate(compare)
+        
+        CompareMeansResult result = compare:GetResult()
+        Check(result:GetTestStatistic(), -2.4445060351935237)
+        Check(result:GetDegreesOfFreedom(), 5.0)
+        Check(result:GetProbabilityValue(), 0.05832930280626261)
+        Check(result:GetEffectSize(), -0.9979654098963519)
+
+        text summary = result:GetSummary()
+        text formalsummary = result:GetFormalSummary()
+        Check(true, summary not= "")
+        Check(true, formalsummary not= "")
+    end
+end
