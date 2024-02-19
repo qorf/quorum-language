@@ -83,6 +83,15 @@ use Science.Tests.UndefinedCompareDistributionToNormalTest
 use Science.Tests.UndefinedCompareMeansPairwiseFittedLenientCorrectionTest
 use Science.Tests.UndefinedCompareMeansPairwiseFittedStrictCorrectionTest
 use Science.Tests.UndefinedCompareMeansPairwiseUnfittedStrictCorrectionTest
+use Science.Tests.UndefinedCompareDependentVariancesTest
+use Science.Tests.UndefinedCompareIndependentVariancesTest
+use Science.Tests.UndefinedFactorialCompareVariancesTest
+use Science.Tests.UndefinedMultivariateCompareVariancesTest
+use Science.Tests.UndefinedCorrelate2GroupsTest
+use Science.Tests.UndefinedCorrelate2RankedGroupsTest
+use Science.Tests.UndefinedPrincipalComponentAnalysisNoRotationTest
+use Science.Tests.UndefinedPrincipalComponentAnalysisObliminRotationTest
+use Science.Tests.UndefinedPrincipalComponentAnalysisVarimaxRotationTest
 class ScienceTester
     Tester tester = undefined
 
@@ -237,6 +246,18 @@ class ScienceTester
 
         MultivariateCompareVariancesTest test4
         tester:Run(test4)
+
+        UndefinedCompareDependentVariancesTest test5
+        tester:Run(test5)
+
+        UndefinedCompareIndependentVariancesTest test6
+        tester:Run(test6)
+
+        UndefinedFactorialCompareVariancesTest test7
+        tester:Run(test7)
+
+        UndefinedMultivariateCompareVariancesTest test8
+        tester:Run(test8)
     end
 
     action TestCompareDistributions
@@ -253,6 +274,12 @@ class ScienceTester
 
         Correlate2RankedGroupsTest test2
         tester:Run(test2)
+
+        UndefinedCorrelate2GroupsTest test3
+        tester:Run(test3)
+
+        UndefinedCorrelate2RankedGroupsTest test4
+        tester:Run(test4)
     end
 
     action TestPrincipalComponentAnalysis
@@ -264,6 +291,15 @@ class ScienceTester
 
         PrincipalComponentAnalysisObliminRotationTest test3
         tester:Run(test3)
+
+        UndefinedPrincipalComponentAnalysisNoRotationTest test4
+        tester:Run(test4)
+        
+        UndefinedPrincipalComponentAnalysisObliminRotationTest test5
+        tester:Run(test5)
+
+        UndefinedPrincipalComponentAnalysisVarimaxRotationTest test6
+        tester:Run(test6)
     end
 
     action TestCompareCounts

@@ -1,0 +1,58 @@
+package Science.Tests
+
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.PrincipalComponentAnalysis
+use Libraries.Compute.Statistics.Reporting.PrincipalComponentAnalysisResult
+
+/*
+    This class tests a pca with oblimin rotation
+*/
+class UndefinedPrincipalComponentAnalysisObliminRotationTest is Test
+
+    on create
+        SetName("Calculate Undefined PCA with oblique correlated (oblimin) rotation")
+    end
+
+    action Run
+        DataFrame frame 
+        frame:LoadFromCommaSeparatedValue(
+        "Q01,Q02,Q03,Q04,Q05,Q06,Q07
+        4,5,2,4,4,4,3
+        5,5,2,3,4,4,4
+        4,3,4,4,2,5,4
+        3,5,5,2,3,3,2
+        4,5,3,4,4,3,3
+        4,5,3,4,2,2,2
+        4,3,3,4,4,4,4
+        4,4,3,4,4,4,4
+        3,3,5,2,1,3,1
+        4,2,2,3,4,5,4
+        4,5,1,4,4,5,4
+        4,5,3,3,2,3,3
+        3,5,3,2,3,4,3
+        4,4,5,4,4,4,3
+        4,4,3,2,4,4,3
+        3,5,4,4,4,4,4
+        5,4,1,4,5,5,5
+        4,4,3,3,3,2,3
+        4,3,2,4,3,5,5
+        4,5,5,4,3,2,2
+        5,4,3,4,2,5,4
+        3,4,4,2,2,1,1")
+        frame:SelectAllColumns()
+
+        PrincipalComponentAnalysis test
+        test:UseCorrelatedRotation()
+        test:Calculate(frame, 2)
+        
+        PrincipalComponentAnalysisResult result = test:GetResult()
+        Check(result:GetVarianceAccountedFor():Get(0), 3.5397407740036666)
+        Check(result:GetVarianceAccountedFor():Get(1), 1.2294610651594187)
+        Check(result:GetRootMeanSquareOfResiduals(), 0.09781678711624917)
+        Check(result:GetTestStatistic(), 8.840946429772941)
+        Check(result:GetDegreesOfFreedom(), 8.0)
+        Check(result:GetProbabilityValue(), 0.3558908155267472)
+        Check(result:GetModelFit(), 0.952461571082664)
+    end
+end
