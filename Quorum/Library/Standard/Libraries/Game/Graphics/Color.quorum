@@ -2,6 +2,7 @@ package Libraries.Game.Graphics
 
 use Libraries.Compute.BitwiseOperations
 use Libraries.Game.NumberUtilities
+use Libraries.Compute.Math
 
 /*
     The Color class stores information about a color used by the game engine.
@@ -382,6 +383,105 @@ class Color is ColorGroup
     */
     public action GetAlpha() returns number
       return alpha
+    end
+
+    /*
+        This action calculates the W3C color contrast between the current
+        color and the color passed. Contrast values range between
+        1 (minimum contrast) and 21 (maximum contrast).
+
+        Attribute: Parameter two the color to compare against
+
+        Attribute: Returns the contrast, between 1 and 21
+
+        Attribute: Example
+        use Libraries.Game.Graphics.Color
+        Color color
+        Color pinkish = color:CustomColor(236.0/255.0,85.0/255.0,93.0/255.0,1)
+        contrast = pinkish:CalculateContrast(color:White())
+        output contrast
+    */
+    action CalculateContrast(Color two) returns number
+        return CalculateContrast(me, two)
+    end
+
+    /*
+        This action calculates the W3C color contrast between two
+        colors passed as parameters. Contrast values range between
+        1 (minimum contrast) and 21 (maximum contrast).
+
+        Attribute: Parameter one the first color in the comparison
+        Attribute: Parameter two the color to compare against
+
+        Attribute: Returns the contrast, between 1 and 21
+
+        Attribute: Example
+        use Libraries.Game.Graphics.Color
+        Color color
+        Color pinkish = color:CustomColor(236.0/255.0,85.0/255.0,93.0/255.0,1)
+        contrast = color:CalculateContrast(pinkish, color:White())
+        output contrast
+    */
+    action CalculateContrast(Color one, Color two) returns number
+        number l1 = CalculateLuminance(one) + 0.05
+        number l2 = CalculateLuminance(two) + 0.05
+        if l1 > l2
+            return l1 / l2
+        else
+            return l2 / l1
+        end
+    end
+    
+    /*
+        This action calculates the W3C luminance of the current color. Luminance
+        ranges from 0 (black) to 1 (white). The potential values include the 
+        endpoints of 0 and 1.
+
+        Attribute: Returns the luminance, between 0 and 1 (inclusive)
+
+        Attribute: Example
+        use Libraries.Game.Graphics.Color
+        Color color //black by default
+        contrast = color:CalculateLuminance()
+        output contrast
+    */
+    action CalculateLuminance returns number
+        return CalculateLuminance(me)
+    end
+
+    /*
+        This action calculates the W3C luminance of the passed color. Luminance
+        ranges from 0 (black) to 1 (white). The potential values include the 
+        endpoints of 0 and 1.
+
+        Attribute: Parameter color the first color in the comparison
+
+        Attribute: Returns the luminance, between 0 and 1 (inclusive)
+
+        Attribute: Example
+        use Libraries.Game.Graphics.Color
+        Color color
+        contrast = color:CalculateLuminance(color:White())
+        output contrast
+    */
+    action CalculateLuminance(Color color) returns number
+        Math math
+        number r = LuminanceConvert(color:GetRed())
+        number g = LuminanceConvert(color:GetGreen())
+        number b = LuminanceConvert(color:GetBlue())
+        
+        number y = 0.2126 * r + 0.7152 * g + 0.0722 * b
+        return y
+    end
+
+    private action LuminanceConvert(number value) returns number
+        Math math
+        constant number val = 0.03928
+        if value < val
+            return value / 12.92
+        else
+            return math:RaiseToPower((value + 0.055) / 1.055, 2.4)
+        end
     end
 
     /*
