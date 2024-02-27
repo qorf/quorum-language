@@ -1,6 +1,7 @@
 package Libraries.Compute.MatrixTransform
 
 use Libraries.Compute.Matrix
+use Libraries.Compute.Math
 
 /*
     This is a MatrixTransform class to transpose matrix. 
@@ -70,18 +71,20 @@ class Inverse is MatrixTransform
                 i = i + 1
             end
         else
+            Math math
             // OrthonormalTriangularDecomposition qrdecomp
             // qrdecomp:Calculate(matrix)
             // newMatrix = qrdecomp:GetInverse()
 
             LowerUpperDecomposition ludecomp
             ludecomp:Calculate(matrix)
-            if ludecomp:GetDeterminant() not= 0
-                newMatrix = ludecomp:GetInverse()
-            else
+            boolean singular = math:AbsoluteValue(ludecomp:GetDeterminant()) = 0
+            if singular
                 SingularValueDecomposition svdecomp
                 svdecomp:Calculate(matrix)
                 newMatrix = svdecomp:GetInverse()
+            else
+                newMatrix = ludecomp:GetInverse()
             end
         end
         return newMatrix
