@@ -638,6 +638,11 @@ integer i = 0
         else
             placeholderIndex = GetEditor():GetCode():GetSize()
         end
+        
+        integer scopeOffset = parentBlock:GetScopeDepth() - firstPlaceholder:GetScopeDepth()
+        if parentBlock:IsEnteringScope()
+            scopeOffset = scopeOffset + 1
+        end
             
             Block currentBlock = undefined
             repeat while i < placeholders:GetSize()
@@ -646,6 +651,10 @@ integer i = 0
                 currentBlock:SetNavigationIndex(currentNavigationIndex)
             currentBlock:SetLocalStartIndex(placeholderIndex - parentBlock:GetStartIndex())
             currentBlock:SetLocalEndIndex(currentBlock:GetLocalStartIndex())
+            
+            if scopeOffset not= 0
+currentBlock:SetScopeDepth(currentBlock:GetScopeDepth() + scopeOffset)
+            end
             
             // During movements, we're already using the placeholderBlocks as our input.
             if placeholders not= placeholderBlocks

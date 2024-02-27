@@ -17,6 +17,7 @@ use Libraries.Interface.Views.SingleLineBlockView
 use Libraries.Interface.Controls.Blocks.Palette.BlockPaletteItem
 use Libraries.Interface.Controls.Blocks.Palette.BlockPalette
 use Libraries.Interface.Controls.Blocks.BlockEnvironment
+use Libraries.Compute.Vector2
 
 class BlockDragBehavior is Behavior
     
@@ -28,6 +29,13 @@ class BlockDragBehavior is Behavior
     // The source the Block was dragged from. Used to cancel the drag if dragged off onto an invalid target.
     Item2D dragSource = undefined
     
+    /*The dragOriginPoint stores the point on the screen where the mouse was first clicked when dragging began.
+When the distance dragged from the origin exceeds the dragDistanceThreshold, then the actual dragging
+behavior begins. The value of the threshold is determined based on the height of the block.*/
+    Vector2 dragOriginPoint
+    number dragDistanceThreshold = 0
+    boolean draggingStarted = false
+    
     on create
         dragAnchor:SetZ(-3)
         dragAnchor:SetName("Block Drag Anchor")
@@ -36,6 +44,39 @@ class BlockDragBehavior is Behavior
     action Run(BehaviorEvent event)
         DragAndDropEvent dragEvent = event:GetDragAndDropEvent()
         if dragEvent:eventType = dragEvent:DRAGGING_BEGAN
+            dragOriginPoint:Set(dragEvent:GetX(), dragEvent:GetY())
+            draggingStarted = false
+            
+            Item targetItem = event:GetItem()
+            if targetItem is Item2D = false
+                return now
+            end
+            
+            Item2D item2D = cast(Item2D, targetItem)
+            repeat until item2D is Block or item2D is BlockEnvironment or item2D = undefined
+                item2D = item2D:GetParent()
+            end
+            
+            // Try to get a good distance threshold relative to he line height, or use a default value otherwise.
+            if item2D not= undefined and item2D is Control
+                Control control = cast(Control, item2D)
+                if control is Block
+                    Block block = cast(Block, control)
+                    control = block:GetBlockEnvironment()
+                end
+                
+                dragDistanceThreshold = 0.8 * control:GetFont():GetLineHeight()
+            else
+dragDistanceThreshold = 10
+            end
+            
+        elseif dragEvent:eventType = dragEvent:DRAGGING_CONTINUED and draggingStarted = false
+            if dragOriginPoint:Distance(dragEvent:GetX(), dragEvent:GetY()) < dragDistanceThreshold
+                return now
+            end
+            
+            draggingStarted = true
+            
             Item targetItem = event:GetItem()
             CodeEditor editor = undefined
             if targetItem is CodeEditor
@@ -110,7 +151,7 @@ BlockPaletteItem paletteItem = cast(BlockPaletteItem, target)
                 LoadDraggedBlocks(sourceBlocks, dragEvent:GetStartX(), dragEvent:GetStartY())
             end
             
-        elseif dragEvent:eventType = dragEvent:DRAGGING_CONTINUED
+        elseif dragEvent:eventType = dragEvent:DRAGGING_CONTINUED and draggingStarted = true
             if IsDraggingBlocks()
                 dragAnchor:SetPosition(dragEvent:GetX(), dragEvent:GetY())
             end
@@ -125,6 +166,7 @@ BlockPaletteItem paletteItem = cast(BlockPaletteItem, target)
                 editor:SetMovingBlocks(undefined)
             end
             dragSource = undefined
+            draggingStarted = false
         end
         
     end
