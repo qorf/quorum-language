@@ -10,6 +10,7 @@ use Libraries.Interface.Controls.Blocks.Block
 use Libraries.Interface.Controls.Blocks.Palette.BlockPalette
 use Libraries.Interface.Controls.Blocks.Palette.BlockPaletteItem
 use Libraries.Interface.Controls.Blocks.BlockEnvironment
+use Libraries.Interface.Item2D
 
 class CodeEditorAcceptDraggedBlockBehavior is Behavior
     
@@ -25,6 +26,18 @@ class CodeEditorAcceptDraggedBlockBehavior is Behavior
         Item received = dropEvent:GetDestination()
         
         Item source = dropEvent:GetSource()
+        Item2D source2D = undefined
+        if source is Item2D
+            source2D = cast(Item2D, source)
+            repeat until source2D is Block or source2D = undefined
+                source2D = source2D:GetParent()
+            end
+        end
+        
+        // If the drag isn't attached to a block, ignore it.
+        if source2D = undefined
+            return now
+        end
 
         if received is CodeEditor
             CodeEditor editor = cast(CodeEditor, received)
@@ -35,6 +48,9 @@ class CodeEditorAcceptDraggedBlockBehavior is Behavior
             end
             
             Array<Block> sourceBlocks = sourceDragBehavior:GetSourceBlocks()
+            if sourceBlocks = undefined
+                return now
+            end
             
             if dropEvent:eventType = dropEvent:DRAGGING_CONTINUED
                 if line not= lastCandidateLine
@@ -64,6 +80,11 @@ class CodeEditorAcceptDraggedBlockBehavior is Behavior
                     
                     lastCandidateLine = line
                 end
+            elseif dropEvent:eventType = dropEvent:DRAGGED_OFF_DESTINATION
+                if editor:HasPlaceholders()
+                    editor:RemovePlaceholders()
+                end
+                lastCandidateLine = -2
             elseif dropEvent:eventType = dropEvent:DRAGGED_ONTO_DESTINATION
                 // Don't do anything in this case. The work in the dragging continued case can cover this part.
             elseif dropEvent:eventType = dropEvent:DROPPED
@@ -72,7 +93,6 @@ class CodeEditorAcceptDraggedBlockBehavior is Behavior
                     Block lastBlock = sourceBlocks:GetFromEnd()
                     text toInsert = ""
 
-//                    toInsert = firstBlock:GetEditor():GetCode():GetText(firstBlock:GetStartIndex(), lastBlock:GetEndIndex()) + toInsert:GetLineFeed()
                     BlockEnvironment environment = firstBlock:GetBlockEnvironment()
                     if firstBlock = lastBlock and firstBlock:IsPlaceholder()
                         toInsert = firstBlock:GetPlaceholderText() + toInsert:GetLineFeed()

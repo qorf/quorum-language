@@ -2422,6 +2422,11 @@ controlShiftHomeSet:AddModifier(controlHomeSet:CONTROL)
         table:Add(dragIntoContinueSet, draggedIntoBehavior)
         table:Add(dragIntoFinishSet, draggedIntoBehavior)
         
+InputSet dragOffSet
+        dragOffSet:SetDropItemInput()
+        dragOffSet:SetInputTrigger(dragOffSet:FINISH_UNCAUGHT)
+        table:Add(dragOffSet,draggedIntoBehavior)
+        
         gameInput:AddInputTable(table)
 
         

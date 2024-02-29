@@ -24,7 +24,7 @@ class BlockDragBehavior is Behavior
     Item2D dragAnchor
     
     // The original blocks that were selected for dragging.
-    Array<Block> sourceBlocks
+    Array<Block> sourceBlocks = undefined
     
     // The source the Block was dragged from. Used to cancel the drag if dragged off onto an invalid target.
     Item2D dragSource = undefined

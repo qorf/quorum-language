@@ -56,6 +56,12 @@ class InputSet
         BEGIN: When the mouse begins to move while holding a button down.
         CONTINUE: Each frame where the mouse moves while still holding the button.
         FINISH: When the mouse button is released.
+
+    DROP_INPUT:
+        BEGIN: When the dragged element first moves over the drop target.
+        CONTINUE: Each frame (including the first frame, after the BEGIN triggers) the dragged element moves over the target.
+        FINISH: When the dragged element is dropped onto the target.
+        FINISH_UNCAUGHT: When the dragged element is moved off of the target without dropping it.
     */
 
     public constant integer KEYBOARD_INPUT = 0
