@@ -736,11 +736,13 @@ class CompareMeans is StatisticalTest
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
-        boolean betweenDesign = design:GetBetweenSubjectsFactors():GetSize() > 0
-        boolean withinDesign = design:GetWithinSubjectsFactors():GetSize() > 0
+        boolean betweenDesign = design:GetNumberOfBetweenSubjectsFactors() > 0
+        boolean withinDesign = design:GetNumberOfWithinSubjectsFactors() > 0
         boolean mixedDesign = betweenDesign and withinDesign
 
-        if mixedDesign
+        if not mixedDesign
+            CompareSeveralMeans(frame)
+        else
             if multivariate
                 alert("A multivariate mixed design CompareMeans test is not currently supported.")
             else
@@ -771,7 +773,6 @@ class CompareMeans is StatisticalTest
                 within:TestVarianceAssumption(false)
                 within:TestPairwise(false)
                 within:CompareSeveralRelatedMeans(newFrame) // force n-sample test even if only 2 measurements
-//                within:Calculate(newFrame)
                 CompareMeansResult withinResult = within:GetResult()
 
                 // Mauchly's Test
@@ -813,7 +814,7 @@ class CompareMeans is StatisticalTest
                 if testDistributionAssumption
                     between:TestDistributionAssumption()
                 end
-                between:Calculate(newFrame)
+                between:CompareSeveralMeans(newFrame)
                 CompareMeansResult betweenResult = between:GetResult()
     
                 HashTable<text, number> ssFactors   // univariate
@@ -846,55 +847,42 @@ class CompareMeans is StatisticalTest
                     end
                     i = i + 1
                 end
-    
-                // Update error terms using between anova
+                   
+                // Update error terms using between anova and add to total
+                number ssTotal = 0
+                number dfTotal = 0 
                 i = 0 
                 repeat while i < betweenSources:GetSize()
                     text source = betweenSources:Get(i)
                     HashTable<text, number> info = betweenResult:GetInformation():GetValue(source)
                     if info:HasKey("error ss")
                         if not factorToError:HasKey(source)
-                            factorToError:Add(source, UpdateAndGetErrorTerm(ssErrors, dfErrors, source, info:GetValue("ss"),  info:GetValue("df"))) 
+                            number ss = info:GetValue("ss")
+                            number df = info:GetValue("df")
+                            ssTotal = ssTotal + ss
+                            dfTotal = dfTotal + df
+                            factorToError:Add(source, UpdateAndGetErrorTerm(ssErrors, dfErrors, source, ss,  df)) 
                         end       
                     end
                     i = i + 1
                 end 
 
-                // Compute the total sum of squares and total variance (error)
-                Array<text> errors = ssErrors:CopyToKeyArray()
-                number ssSubjects = 0 
-                number dfSubjects = 0
-                number ssTotalError = betweenResult:GetInformation():GetValue("Residual Error"):GetValue("ss") 
-                number dfTotalError = betweenResult:GetInformation():GetValue("Residual Error"):GetValue("df")     
-                number ssTotal = ssTotalError 
-                number dfTotal = dfTotalError  
+                // Compute total variance (error) and add to total
+                number ssTotalError = 0
+                number dfTotalError = 0
                 i = 0 
                 repeat while i < withinSources:GetSize()
                     text source = withinSources:Get(i)
-                    HashTable<text, number> info = withinResult:GetInformation():GetValue(source)
-                    if info:HasKey("error ss") and not dfFactors:HasKey(source)
-                        ssTotal = ssTotal + info:GetValue("ss")
-                        dfTotal = dfTotal + info:GetValue("df")
-                    end
+                    ssTotalError = ssTotalError + ssErrors:GetValue(source)
+                    dfTotalError = dfTotalError + dfErrors:GetValue(source)
                     i = i + 1
                 end    
+                ssTotal = ssTotal + ssTotalError
+                dfTotal = dfTotal + dfTotalError        
 
-                i = 0 
-                repeat while i < betweenSources:GetSize()
-                    text source = betweenSources:Get(i)
-                    if not withinResult:GetInformation():HasKey(source)
-                        HashTable<text, number> info = betweenResult:GetInformation():GetValue(source)
-                        if info:HasKey("error ss") and not dfFactors:HasKey(source) and factorToError:HasKey(source)
-                            if i = 0
-                                ssSubjects = ssErrors:GetValue(factorToError:GetValue(source))
-                                dfSubjects = dfErrors:GetValue(factorToError:GetValue(source))
-                            end
-                            ssTotal = ssTotal + info:GetValue("ss")
-                            dfTotal = dfTotal + info:GetValue("df")
-                        end
-                    end
-                    i = i + 1
-                end                              
+                // Compute the subjects sum of squares
+                number ssSubjects = ssErrors:GetValue(design:GetSubjectIdentifier())
+                number dfSubjects = dfErrors:GetValue(design:GetSubjectIdentifier())                
 
                 boolean significantWithin = false
                 boolean significantBetween = false
@@ -928,8 +916,8 @@ class CompareMeans is StatisticalTest
                         number generalized_eta_squared = ssFactor / (ssFactor + ssTotalError)
 
                         // See: https://www.jasonfinley.com/tools/OmegaSquaredQuickRef_JRF_3-31-13.pdf
-                        number omega_squared = factorVariation / (ssTotal + (ssSubjects / dfSubjects))
-                        number partial_omega_squared = factorVariation / (ssFactor + ssResiduals + ssSubjects + (ssSubjects / dfSubjects))
+                        number omega_squared = factorVariation / (ssTotal + (ssTotalError / dfTotalError))
+                        number partial_omega_squared = factorVariation / (ssFactor + ssResiduals + ssSubjects + (ssSubjects / dfSubjects)) // NEEDS WORK
                         number generalized_omega_squared = factorVariation / (factorVariation + numberOfObservations * (ssTotalError / dfTotalError))
 
                         sources:Add(source)
@@ -946,9 +934,9 @@ class CompareMeans is StatisticalTest
                         result:SetInformation(source, "eta-squared", eta_squared)
                         result:SetInformation(source, "partial-eta-squared", partial_eta_squared)
                         result:SetInformation(source, "generalized-eta-squared", generalized_eta_squared)
-                        result:SetInformation(source, "omega-squared", omega_squared)
-                        result:SetInformation(source, "partial-omega-squared", partial_omega_squared)
-                        result:SetInformation(source, "generalized-omega-squared", generalized_omega_squared)
+                        //result:SetInformation(source, "omega-squared", omega_squared)
+                        //result:SetInformation(source, "partial-omega-squared", partial_omega_squared)
+                        //result:SetInformation(source, "generalized-omega-squared", generalized_omega_squared)
 
                         // Add sphericity correction info
                         if vResult:GetInformation():HasKey(source) and vResult:GetInformation():GetValue(source):HasKey("p")
@@ -972,7 +960,7 @@ class CompareMeans is StatisticalTest
                         end
 
                         if factorial
-                            result:SetEffectSize(source, "partial-eta-squared", partial_eta_squared)
+                            result:SetEffectSize(source, "generalized-eta-squared", generalized_eta_squared)
                         else
                             result:SetEffectSize(source, "eta-squared", eta_squared)
                         end      
@@ -1007,8 +995,8 @@ class CompareMeans is StatisticalTest
                             number generalized_eta_squared = ssFactor / (ssFactor + ssTotalError)
     
                             // See: https://www.jasonfinley.com/tools/OmegaSquaredQuickRef_JRF_3-31-13.pdf
-                            number omega_squared = factorVariation / (ssTotal + (ssSubjects / dfSubjects))
-                            number partial_omega_squared = factorVariation / (ssFactor + ssSubjects + (ssSubjects / dfSubjects))
+                            number omega_squared = factorVariation / (ssTotal + (ssSubjects / dfSubjects)) 
+                            number partial_omega_squared = factorVariation / (ssFactor + ssSubjects + (ssSubjects / dfSubjects)) // factorVariation / (factorVariation + sumOfFactorVariations + N * MSE_subjects)
                             number generalized_omega_squared = factorVariation / (factorVariation + numberOfObservations * (ssTotalError / dfTotalError))
 
                             sources:Add(source)
@@ -1025,9 +1013,9 @@ class CompareMeans is StatisticalTest
                             result:SetInformation(source, "eta-squared", eta_squared)
                             result:SetInformation(source, "partial-eta-squared", partial_eta_squared)
                             result:SetInformation(source, "generalized-eta-squared", generalized_eta_squared)
-                            result:SetInformation(source, "omega-squared", omega_squared)
-                            result:SetInformation(source, "partial-omega-squared", partial_omega_squared)
-                            result:SetInformation(source, "generalized-omega-squared", generalized_omega_squared)
+                            //result:SetInformation(source, "omega-squared", omega_squared)
+                            //result:SetInformation(source, "partial-omega-squared", partial_omega_squared)
+                            //result:SetInformation(source, "generalized-omega-squared", generalized_omega_squared)
 
                             // Add sphericity correction info where appropriate
                             text errorSource = factorToError:GetValue(source)
@@ -1052,7 +1040,7 @@ class CompareMeans is StatisticalTest
                             end
     
                             if factorial
-                                result:SetEffectSize(source, "partial-eta-squared", partial_eta_squared)
+                                result:SetEffectSize(source, "generalized-eta-squared", generalized_eta_squared)
                             else
                                 result:SetEffectSize(source, "eta-squared", eta_squared)
                             end               
@@ -1103,8 +1091,6 @@ class CompareMeans is StatisticalTest
                 end
                 results:Add(result)
             end
-        else
-            CompareSeveralMeans(frame)
         end
 
         needToProcessData = true // Reset processing flag in case user changes selections
@@ -1281,11 +1267,8 @@ class CompareMeans is StatisticalTest
     
             if designFrame:GetSelectedFactorSize() > 0 
                 integer current = AddFactorsToDesignMatrix(designFrame, designMatrix)
-                integer start = 1
-                integer next = start + 1
-                integer stop = current - 1
                 if designFrame:GetSelectedFactorSize() > 1
-                    AddInteractionsToDesignMatrix(designMatrix, 0, start, next, stop, current)
+                    AddInteractionsToDesignMatrix(current)
                 end
     
                 DataFrame dependent
@@ -1363,8 +1346,8 @@ class CompareMeans is StatisticalTest
                 else
                     ssResiduals = ComputeSumOfSquares(designMatrix, responseMatrix)
                 end
+                residuals = ComputeResiduals(designMatrix, responseMatrix)
             end
-            residuals = ComputeResiduals(designMatrix, responseMatrix)
 
             // Sum Of Squares For Each Factor And Interaction (This type II ss calc is not currently that efficient)
             i = 1 // Skip Intercept
@@ -1691,9 +1674,9 @@ class CompareMeans is StatisticalTest
                         result:SetInformation(source, "omega-squared", omega_squared)
                         result:SetInformation(source, "partial-omega-squared", partial_omega_squared)
                         result:SetInformation(source, "generalized-omega-squared", generalized_omega_squared)
-                        
+
                         if factorial
-                            result:SetEffectSize(source, "partial-eta-squared", partial_eta_squared)
+                            result:SetEffectSize(source, "generalized-eta-squared", generalized_eta_squared)
                         else
                             result:SetEffectSize(source, "eta-squared", eta_squared)
                         end
@@ -3316,11 +3299,12 @@ class CompareMeans is StatisticalTest
     end
 
     private action GetInitialMatrix() returns Matrix
-        integer sum = 1
         integer prod = 1
         i = 0 
         repeat while i < factorLevels:GetSize()
-            prod = prod * factorLevels:Get(i):GetSize()
+            if factorLevels:Get(i):GetHeader() not= design:GetSubjectIdentifier()
+                prod = prod * factorLevels:Get(i):GetSize()
+            end
             i = i + 1
         end
         integer rows = totalObservations
@@ -3359,7 +3343,7 @@ class CompareMeans is StatisticalTest
                 else
                     columnsAssociatedWithFactor:GetValue(factorHeader):Add(j+1)
                 end
-                factorsAssociatedWithColumn:GetValue(j+1):Set(0, factorIndex:GetKey(factorHeader), 1)
+                factorsAssociatedWithColumn:GetValue(j+1):Set(0, factorIndex:GetKey(factorHeader), j+1)
                 j = j + 1
             end
             return 0
@@ -3368,77 +3352,173 @@ class CompareMeans is StatisticalTest
             integer reset = current
             i = 0 
             repeat while i < factorLevels:GetSize()
-                j = 0 
-                repeat while j < factorLevels:Get(i):GetSize() - 1
-                    text level = factorLevels:Get(i):GetAsText(j)
-                    DataFrameColumn factor = frame:GetColumn(frame:GetSelection():GetFactor(i))
-                    k = 0
-                    repeat while k < factor:GetSize()
-                        if factor:GetAsText(k) = level
-                            designMatrix:Set(k, current, 1)
+                if factorLevels:Get(i):GetHeader() not= design:GetSubjectIdentifier()
+                    j = 0 
+                    repeat while j < factorLevels:Get(i):GetSize() - 1
+                        text level = factorLevels:Get(i):GetAsText(j)
+                        DataFrameColumn factor = frame:GetColumn(frame:GetSelection():GetFactor(i))
+                        k = 0
+                        repeat while k < factor:GetSize()
+                            if factor:GetAsText(k) = level
+                                designMatrix:Set(k, current, 1)
+                            end
+                            k = k + 1
+                        end 
+                        text factorHeader = factor:GetHeader()
+                        if not columnsAssociatedWithFactor:HasKey(factorHeader)
+                            Array<integer> arr
+                            arr:Add(current)
+                            columnsAssociatedWithFactor:Add(factorHeader, arr)
+                        else
+                            columnsAssociatedWithFactor:GetValue(factorHeader):Add(current)
                         end
-                        k = k + 1
-                    end 
-                    text factorHeader = factor:GetHeader()
-                    if not columnsAssociatedWithFactor:HasKey(factorHeader)
-                        Array<integer> arr
-                        arr:Add(current)
-                        columnsAssociatedWithFactor:Add(factorHeader, arr)
-                    else
-                        columnsAssociatedWithFactor:GetValue(factorHeader):Add(current)
+                        factorsAssociatedWithColumn:GetValue(current):Set(0, factorIndex:GetKey(factorHeader), j+1)
+                        current = current + 1
+                        j = j + 1
                     end
-                    factorsAssociatedWithColumn:GetValue(current):Set(0, factorIndex:GetKey(factorHeader), 1)
-                    current = current + 1
-                    j = j + 1
+                    current = reset + (factorLevels:Get(i):GetSize() - 1)
+                    reset = current
                 end
-                current = reset + (factorLevels:Get(i):GetSize() - 1)
-                reset = current
-    
                 i = i + 1
             end
             return current
         end
     end
 
-    private action AddInteractionsToDesignMatrix(Matrix designMatrix, integer reset, integer start, integer next, integer stop, integer current)
-        if current > designMatrix:GetColumns() - 1
-            return now
+    private action AddInteractionsToDesignMatrix(integer currentIndex)
+        integer numberOfFactors = designFrame:GetSelectedFactorSize()
+
+        // Add double interactions
+        integer stop = currentIndex-1
+        integer i = 1 // skip 0, it is intercept
+        integer reset = 1
+        repeat while i <= stop
+            integer j = i + 1 
+            repeat while j <= stop
+                if not AlreadyAssociated(i, j)
+                    AssociateFactorsOfOldColumnToNewColumn(i, j, currentIndex)
+                    designMatrix:SetColumn(currentIndex, designMatrix:GetColumn(i):MultiplyElements(designMatrix:GetColumn(j)))
+                    currentIndex = currentIndex + 1
+                end
+                j = j + 1
+            end
+            i = i + 1
         end
 
-        if not AlreadyAssociated(next, start)
-            // Check previous associations too
-            boolean previouslyAssociated = false
-            if start > 1 and reset >= start
-                i = start
-                repeat while i >= 1
-                    if AlreadyAssociated(next, i)
-                        previouslyAssociated = true
-                    end
-                    i = i - 1
-                end
-            end
-            if not previouslyAssociated
-                AssociateFactorsOfOldColumnToNewColumn(start, next, current)
-                designMatrix:SetColumn(current, designMatrix:GetColumn(start):MultiplyElements(designMatrix:GetColumn(next)))
-                current = current + 1
-            end
-        end
-        if next = stop
-            start = start + 1
-            if start = stop
+        // Add triple or higher interactions
+        if numberOfFactors > 2
+            integer interaction = 3
+            integer factorsToCheck = 0 
+            integer factorsChecked = 0
+            repeat while currentIndex < designMatrix:GetColumns()
+                factorsToCheck = numberOfFactors-(interaction-1)
+                factorsChecked = 0
                 reset = stop
-                start = 1
-                stop = current - 1
+                stop = currentIndex-1 
+
+                i = 1 
+                repeat while i <= reset
+                    j = reset + 1
+                    repeat while j <= stop
+                        if not AlreadyAssociated(i, j)
+                            // Check previous associations too
+                            boolean previouslyAssociated = false
+                            k = reset + 1
+                            repeat while k < j
+                                if AlreadyExactlyAssociated(k, i, j)
+                                    previouslyAssociated = true
+                                    if previouslyAssociated 
+                                        k = j // break away early to save time
+                                    end
+                                end
+                                k = k + 1
+                            end
+                            if not previouslyAssociated
+                                AssociateFactorsOfOldColumnToNewColumn(i, j, currentIndex)
+                                designMatrix:SetColumn(currentIndex, designMatrix:GetColumn(i):MultiplyElements(designMatrix:GetColumn(j)))
+                                currentIndex = currentIndex + 1
+                            end
+                        end
+                        j = j + 1
+                    end
+                    i = i + 1
+                end
+
+                interaction = interaction + 1         
             end
-            if reset < start
-                next = start + 1
-            else
-                next = reset + 1
+        end 
+
+        if repeated    
+            // Multiply in the subject identifier for within-subjects
+            Matrix newDesignMatrix
+            newDesignMatrix:SetSize(designMatrix:GetRows(), designMatrix:GetColumns()*design:GetNumberOfSubjects())
+            
+            Matrix idMatrix
+            idMatrix:Fill(designMatrix:GetRows(), design:GetNumberOfSubjects(), 0)
+            idMatrix:SetColumn(0, 1)
+            DataFrameColumn levels = factorLevels:Get(factorIndex:GetKey(design:GetSubjectIdentifier()))
+            integer idCurrent = 1
+            Matrix idEncoding = GetInitialEncoding(factorLevels:GetSize())
+            idEncoding:Set(0, factorIndex:GetKey(design:GetSubjectIdentifier()), 1)
+            j = 0 
+            repeat while j < levels:GetSize() - 1
+                text level = levels:GetAsText(j)
+                DataFrameColumn factor = designFrame:GetColumn(design:GetSubjectIdentifier())
+                k = 0
+                repeat while k < factor:GetSize()
+                    if factor:GetAsText(k) = level
+                        idMatrix:Set(k, idCurrent, 1)
+                    end
+                    k = k + 1
+                end 
+                idCurrent = idCurrent + 1
+                j = j + 1
             end
-        else
-            next = next + 1
+
+            // Multiply each column in the idmatrix by all columns in the designmatrix 
+            HashTable<text, Array<integer>> newColumnsAssociatedWithFactor 
+            HashTable<integer, Matrix> newFactorsAssociatedWithColumn  
+            integer index = 0
+            i = 0 
+            repeat while i < idMatrix:GetColumns()
+                j = 0
+                repeat while j < designMatrix:GetColumns()
+                    Matrix designEncoding = factorsAssociatedWithColumn:GetValue(j)
+                    Matrix newEncoding 
+                    if i = 0
+                        if j = 0
+                            newEncoding =  GetInitialEncoding(factorLevels:GetSize())
+                        else
+                            newEncoding = designEncoding
+                        end
+                    else
+                        if j = 0
+                            newEncoding = idEncoding
+                        else
+                            newEncoding = designEncoding:AddElements(idEncoding)
+                        end
+                    end
+                    newFactorsAssociatedWithColumn:Set(index, newEncoding)
+
+                    text factorHeader = GetTextFromEncoding(newEncoding)
+                    if not newColumnsAssociatedWithFactor:HasKey(factorHeader)
+                        Array<integer> arr
+                        arr:Add(index)
+                        newColumnsAssociatedWithFactor:Add(factorHeader, arr)
+                    else
+                        newColumnsAssociatedWithFactor:GetValue(factorHeader):Add(index)
+                    end
+
+                    newDesignMatrix:SetColumn(index, idMatrix:GetColumn(i):MultiplyElements(designMatrix:GetColumn(j)))
+                    index = index + 1
+                    j = j + 1
+                end 
+                i = i + 1
+            end 
+            designMatrix = newDesignMatrix 
+            columnsAssociatedWithFactor = newColumnsAssociatedWithFactor   
+            factorsAssociatedWithColumn = newFactorsAssociatedWithColumn 
         end
-        AddInteractionsToDesignMatrix(designMatrix, reset, start, next, stop, current)
     end
 
     private action AlreadyAssociated(integer nextAssociation, integer currAssociation) returns boolean
@@ -3448,11 +3528,32 @@ class CompareMeans is StatisticalTest
         if nextFactors not= undefined and currFactors not= undefined
             i = 0
             repeat while i < currFactors:GetColumns()
-                if currFactors:Get(0, i) = 1 and nextFactors:Get(0, i) = 1
-                    return true
+                if currFactors:Get(0, i) > 0 
+                    if nextFactors:Get(0, i) > 0 or currFactors:Get(0, i) = nextFactors:Get(0, i)
+                        return true
+                    end
                 end
                 i = i + 1
             end
+        end
+        return false
+    end
+
+    private action AlreadyExactlyAssociated(integer prevAssociation, integer currAssociation, integer nextAssociation) returns boolean
+        Matrix nextFactors = factorsAssociatedWithColumn:GetValue(nextAssociation)
+        Matrix currFactors = factorsAssociatedWithColumn:GetValue(currAssociation)
+        Matrix prevFactors = factorsAssociatedWithColumn:GetValue(prevAssociation)
+
+        if nextFactors not= undefined and currFactors not= undefined and prevFactors not= undefined
+            boolean exact = true
+            i = 0
+            repeat while i < prevFactors:GetColumns()
+                if prevFactors:Get(0, i) not= nextFactors:Get(0, i) and prevFactors:Get(0, i) not= currFactors:Get(0, i)
+                    exact = false
+                end
+                i = i + 1
+            end
+            return exact
         end
         return false
     end
@@ -3481,7 +3582,7 @@ class CompareMeans is StatisticalTest
         j = 0
         repeat while j < factorEncoding:GetColumns()
             integer activation = cast(integer, factorEncoding:Get(0,j))
-            if activation = 1
+            if activation > 0
                 if factorText = "" 
                     factorText = factorIndex:GetValue(j)
                 else
@@ -3550,23 +3651,33 @@ class CompareMeans is StatisticalTest
             i = i + 1
         end
 
+        integer count = 0
+        j = 0 
+        repeat while j < factorEncoding:GetColumns()
+            if factorEncoding:Get(0, j) > 0
+                count = count + 1
+            end
+            j = j + 1
+        end
         i = 0
         repeat while i < designMatrix:GetColumns()
-            Matrix columnFactors = factorsAssociatedWithColumn:GetValue(i) 
-            boolean same = true
+            integer samecount = 0
+            Matrix columnFactors = factorsAssociatedWithColumn:GetValue(i)
             j = 0 
             repeat while j < columnFactors:GetColumns()
-                if columnFactors:Get(0, j) not= factorEncoding:Get(0, j)
-                    same = false
+                if columnFactors:Get(0, j) > 0 and factorEncoding:Get(0, j) > 0
+                    samecount = samecount + 1
+                elseif columnFactors:Get(0, j) > 0
+                    samecount = 0
+                    j = columnFactors:GetColumns()
                 end
                 j = j + 1
-            end
+            end            
 
-            if same
+            if samecount = count
                 newMatrix:SetColumn(colIndex, designMatrix:GetColumn(i))
                 colIndex = colIndex + 1
             end
-  
             i = i + 1
         end
         return newMatrix:GetSubMatrix(0, 0, designMatrix:GetRows(), colIndex)
@@ -3576,14 +3687,21 @@ class CompareMeans is StatisticalTest
         Matrix newMatrix
         newMatrix:SetSize(designMatrix)
         integer colIndex = 0
-        integer count = cast(integer, factorEncoding:GetTotal())
+        integer count = 0
+        j = 0 
+        repeat while j < factorEncoding:GetColumns()
+            if factorEncoding:Get(0, j) > 0
+                count = count + 1
+            end
+            j = j + 1
+        end
         i = 0
         repeat while i < designMatrix:GetColumns()
             integer samecount = 0
             Matrix columnFactors = factorsAssociatedWithColumn:GetValue(i)
             j = 0 
             repeat while j < columnFactors:GetColumns()
-                if columnFactors:Get(0, j) = 1 and factorEncoding:Get(0, j) = 1
+                if columnFactors:Get(0, j) > 0 and factorEncoding:Get(0, j) > 0
                     samecount = samecount + 1
                 end
                 j = j + 1
