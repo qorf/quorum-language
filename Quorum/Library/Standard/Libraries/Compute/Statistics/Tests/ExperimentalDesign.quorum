@@ -1571,7 +1571,12 @@ class ExperimentalDesign
 
         // 1. Add the subject column to frame 
         if subjectIdentifierHeader not= ""
-            newFrame:AddColumn(longFrame:GetColumn(subjectIdentifierHeader))
+            if not longFrame:GetColumn(subjectIdentifierHeader):IsTextColumn()
+                TextColumn id = longFrame:GetColumn(subjectIdentifierHeader):ConvertToTextColumn()
+                newFrame:AddColumn(id)
+            else
+                newFrame:AddColumn(longFrame:GetColumn(subjectIdentifierHeader))
+            end
             if repeatedMeasures
                 newFrame:AddSelectedFactors(subjectIdentifierHeader)
             else

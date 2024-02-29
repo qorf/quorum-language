@@ -3460,10 +3460,10 @@ class CompareMeans is StatisticalTest
             integer idCurrent = 1
             Matrix idEncoding = GetInitialEncoding(factorLevels:GetSize())
             idEncoding:Set(0, factorIndex:GetKey(design:GetSubjectIdentifier()), 1)
+            DataFrameColumn factor = designFrame:GetColumn(design:GetSubjectIdentifier())
             j = 0 
             repeat while j < levels:GetSize() - 1
                 text level = levels:GetAsText(j)
-                DataFrameColumn factor = designFrame:GetColumn(design:GetSubjectIdentifier())
                 k = 0
                 repeat while k < factor:GetSize()
                     if factor:GetAsText(k) = level
