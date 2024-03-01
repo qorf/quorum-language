@@ -8,6 +8,7 @@ use Libraries.Language.Compile.CompilerError
 use Libraries.Language.Compile.Hints.Hint
 use Libraries.Language.Compile.CompilerErrorType
 use Libraries.Language.Compile.CompilerErrorCodes
+use Libraries.Language.Support.TextBuilder
 
 /* 
     This is a default class named Main. It has one action, also named Main,
@@ -268,15 +269,27 @@ class QuorumLexer is Lexer
 
     private action MatchesFromIndex(text value) returns boolean
         if (index + value:GetSize() - 1) < currentValue:GetSize() 
-            and currentValue:GetSubtext(index, index + value:GetSize()) = value
+            integer i = 0
+            repeat while i < value:GetSize()
+                if currentValue:GetUnicodeInteger(index + i) not= value:GetUnicodeInteger(i)
+                    return false
+                end
+                i = i + 1
+            end
             return true
         end
         return false
     end
 
-    private action MatchesFromIndex(text value, integer i) returns boolean
-        if (i + value:GetSize() - 1) < currentValue:GetSize() 
-            and currentValue:GetSubtext(i, i + value:GetSize()) = value
+    private action MatchesFromIndex(text value, integer offset) returns boolean
+        if (offset + value:GetSize() - 1) < currentValue:GetSize() 
+            integer i = 0
+            repeat while i < value:GetSize()
+                if currentValue:GetUnicodeInteger(offset + i) not= value:GetUnicodeInteger(i)
+                    return false
+                end
+                i = i + 1
+            end
             return true
         end
         return false
@@ -322,19 +335,18 @@ class QuorumLexer is Lexer
     end
 
     private action ProcessGreedy(Token token, text ending)
-        string = ""
+        TextBuilder builder
         j = index
         boolean done = false
         repeat while j < currentValue:GetSize() and not done
-            char2 = currentValue:GetCharacter(j)
-            integer code = char2:GetUnicodeInteger(0)
+            integer code = currentValue:GetUnicodeInteger(j)
             
             if MatchesFromIndex(ending, j)
                 j = j + CalculateIndexChange(ending)
-                string = string + ending
+                builder:Append(ending)
                 done = true
             else 
-                string = string + char2
+                builder:Append(currentValue:GetCharacter(j))
             end
 
             if code = LINE_FEED
@@ -347,7 +359,7 @@ class QuorumLexer is Lexer
             j = j + 1
         end
         token:category = constants:COMMENTS
-        token:value = string
+        token:value = builder:ToText()
         index = j - 1
     end
 
@@ -447,12 +459,13 @@ class QuorumLexer is Lexer
         integer startIndex = index
         integer j = index + 1
         boolean done = false
-        text string = currentChar
+        TextBuilder builder
+        builder:Append(currentChar)
+        
         repeat while j < currentValue:GetSize() and not done
-            char2 = currentValue:GetCharacter(j)
-            integer code = char2:GetUnicodeInteger(0)
+            integer code = currentValue:GetUnicodeInteger(j)
             if IsAlphaNumeric(code) or IsUnderscore(code)
-                string = string + char2
+                builder:Append(currentValue:GetCharacter(j))
                 currentColumn = currentColumn + 1
             else //stop at the first non-digit
                 done = true
@@ -460,6 +473,7 @@ class QuorumLexer is Lexer
             j = j + 1
         end
 
+        text string = builder:ToText()
         token:value = string
         //check if this is a keyword
         if keywords:HasKey(string)
