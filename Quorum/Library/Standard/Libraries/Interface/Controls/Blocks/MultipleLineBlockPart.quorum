@@ -28,6 +28,7 @@ class MultipleLineBlockPart is SingleLineBlock
     multi-line blocks (as contents of a scope).
     */
     private action AddChildBlock(Block block)
+        block:SetEnclosingBlock(GetParentBlock())
         childBlocks:Add(block)
     end
 
@@ -37,6 +38,7 @@ class MultipleLineBlockPart is SingleLineBlock
     multi-line blocks (as contents of a scope).
     */
     private action AddChildBlock(integer index, Block block)
+block:SetEnclosingBlock(GetParentBlock())
         childBlocks:Add(index, block)
     end
 
