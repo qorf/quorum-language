@@ -736,11 +736,13 @@ class CompareMeans is StatisticalTest
             needToSelectTest = false  // This test has been selected (skip RunTest)
             me:Calculate(frame)
         end
-        boolean betweenDesign = design:GetBetweenSubjectsFactors():GetSize() > 0
-        boolean withinDesign = design:GetWithinSubjectsFactors():GetSize() > 0
+        boolean betweenDesign = design:GetNumberOfBetweenSubjectsFactors() > 0
+        boolean withinDesign = design:GetNumberOfWithinSubjectsFactors() > 0
         boolean mixedDesign = betweenDesign and withinDesign
 
-        if mixedDesign
+        if not mixedDesign
+            CompareSeveralMeans(frame)
+        else
             if multivariate
                 alert("A multivariate mixed design CompareMeans test is not currently supported.")
             else
@@ -771,7 +773,6 @@ class CompareMeans is StatisticalTest
                 within:TestVarianceAssumption(false)
                 within:TestPairwise(false)
                 within:CompareSeveralRelatedMeans(newFrame) // force n-sample test even if only 2 measurements
-//                within:Calculate(newFrame)
                 CompareMeansResult withinResult = within:GetResult()
 
                 // Mauchly's Test
@@ -813,7 +814,7 @@ class CompareMeans is StatisticalTest
                 if testDistributionAssumption
                     between:TestDistributionAssumption()
                 end
-                between:Calculate(newFrame)
+                between:CompareSeveralMeans(newFrame)
                 CompareMeansResult betweenResult = between:GetResult()
     
                 HashTable<text, number> ssFactors   // univariate
@@ -1090,8 +1091,6 @@ class CompareMeans is StatisticalTest
                 end
                 results:Add(result)
             end
-        else
-            CompareSeveralMeans(frame)
         end
 
         needToProcessData = true // Reset processing flag in case user changes selections
@@ -1268,11 +1267,8 @@ class CompareMeans is StatisticalTest
     
             if designFrame:GetSelectedFactorSize() > 0 
                 integer current = AddFactorsToDesignMatrix(designFrame, designMatrix)
-                integer start = 1
-                integer next = start + 1
-                integer stop = current - 1
                 if designFrame:GetSelectedFactorSize() > 1
-                    AddInteractionsToDesignMatrix(designMatrix, 0, start, next, stop, current)
+                    AddInteractionsToDesignMatrix(current)
                 end
     
                 DataFrame dependent
@@ -1350,8 +1346,8 @@ class CompareMeans is StatisticalTest
                 else
                     ssResiduals = ComputeSumOfSquares(designMatrix, responseMatrix)
                 end
+                residuals = ComputeResiduals(designMatrix, responseMatrix)
             end
-            residuals = ComputeResiduals(designMatrix, responseMatrix)
 
             // Sum Of Squares For Each Factor And Interaction (This type II ss calc is not currently that efficient)
             i = 1 // Skip Intercept
@@ -3303,11 +3299,12 @@ class CompareMeans is StatisticalTest
     end
 
     private action GetInitialMatrix() returns Matrix
-        integer sum = 1
         integer prod = 1
         i = 0 
         repeat while i < factorLevels:GetSize()
-            prod = prod * factorLevels:Get(i):GetSize()
+            if factorLevels:Get(i):GetHeader() not= design:GetSubjectIdentifier()
+                prod = prod * factorLevels:Get(i):GetSize()
+            end
             i = i + 1
         end
         integer rows = totalObservations
@@ -3355,90 +3352,173 @@ class CompareMeans is StatisticalTest
             integer reset = current
             i = 0 
             repeat while i < factorLevels:GetSize()
-                j = 0 
-                repeat while j < factorLevels:Get(i):GetSize() - 1
-                    text level = factorLevels:Get(i):GetAsText(j)
-                    DataFrameColumn factor = frame:GetColumn(frame:GetSelection():GetFactor(i))
-                    k = 0
-                    repeat while k < factor:GetSize()
-                        if factor:GetAsText(k) = level
-                            designMatrix:Set(k, current, 1)
+                if factorLevels:Get(i):GetHeader() not= design:GetSubjectIdentifier()
+                    j = 0 
+                    repeat while j < factorLevels:Get(i):GetSize() - 1
+                        text level = factorLevels:Get(i):GetAsText(j)
+                        DataFrameColumn factor = frame:GetColumn(frame:GetSelection():GetFactor(i))
+                        k = 0
+                        repeat while k < factor:GetSize()
+                            if factor:GetAsText(k) = level
+                                designMatrix:Set(k, current, 1)
+                            end
+                            k = k + 1
+                        end 
+                        text factorHeader = factor:GetHeader()
+                        if not columnsAssociatedWithFactor:HasKey(factorHeader)
+                            Array<integer> arr
+                            arr:Add(current)
+                            columnsAssociatedWithFactor:Add(factorHeader, arr)
+                        else
+                            columnsAssociatedWithFactor:GetValue(factorHeader):Add(current)
                         end
-                        k = k + 1
-                    end 
-                    text factorHeader = factor:GetHeader()
-                    if not columnsAssociatedWithFactor:HasKey(factorHeader)
-                        Array<integer> arr
-                        arr:Add(current)
-                        columnsAssociatedWithFactor:Add(factorHeader, arr)
-                    else
-                        columnsAssociatedWithFactor:GetValue(factorHeader):Add(current)
+                        factorsAssociatedWithColumn:GetValue(current):Set(0, factorIndex:GetKey(factorHeader), j+1)
+                        current = current + 1
+                        j = j + 1
                     end
-                    factorsAssociatedWithColumn:GetValue(current):Set(0, factorIndex:GetKey(factorHeader), j+1)
-                    current = current + 1
-                    j = j + 1
+                    current = reset + (factorLevels:Get(i):GetSize() - 1)
+                    reset = current
                 end
-                current = reset + (factorLevels:Get(i):GetSize() - 1)
-                reset = current
-    
                 i = i + 1
             end
             return current
         end
     end
 
-    private action AddInteractionsToDesignMatrix(Matrix designMatrix, integer reset, integer start, integer next, integer stop, integer current)
-        if current >= designMatrix:GetColumns()
-            return now
+    private action AddInteractionsToDesignMatrix(integer currentIndex)
+        integer numberOfFactors = designFrame:GetSelectedFactorSize()
+
+        // Add double interactions
+        integer stop = currentIndex-1
+        integer i = 1 // skip 0, it is intercept
+        integer reset = 1
+        repeat while i <= stop
+            integer j = i + 1 
+            repeat while j <= stop
+                if not AlreadyAssociated(i, j)
+                    AssociateFactorsOfOldColumnToNewColumn(i, j, currentIndex)
+                    designMatrix:SetColumn(currentIndex, designMatrix:GetColumn(i):MultiplyElements(designMatrix:GetColumn(j)))
+                    currentIndex = currentIndex + 1
+                end
+                j = j + 1
+            end
+            i = i + 1
         end
 
-        if start <= reset or reset = 0 
-            if next < start
-                if not AlreadyAssociated(next, start)
-                    AssociateFactorsOfOldColumnToNewColumn(start, next, current)
-                    designMatrix:SetColumn(current, designMatrix:GetColumn(start):MultiplyElements(designMatrix:GetColumn(next)))
-                    current = current + 1
-                end
-                next = next + 1
-            else
-                start = start + 1
-                next = 1
-                if start > stop
-                    reset = stop
-                    stop = current - 1
-                end
-            end
-        else
-            if next <= reset
-                if not AlreadyAssociated(next, start)                    
-                    // Check previous associations too
-                    boolean previouslyAssociated = false
-                    i = current-1
-                    repeat while i > stop
-                        if AlreadyExactlyAssociated(i, next, start)
-                            previouslyAssociated = true
-                            if previouslyAssociated 
-                                i = 0 // break away early to save time
+        // Add triple or higher interactions
+        if numberOfFactors > 2
+            integer interaction = 3
+            integer factorsToCheck = 0 
+            integer factorsChecked = 0
+            repeat while currentIndex < designMatrix:GetColumns()
+                factorsToCheck = numberOfFactors-(interaction-1)
+                factorsChecked = 0
+                reset = stop
+                stop = currentIndex-1 
+
+                i = 1 
+                repeat while i <= reset
+                    j = reset + 1
+                    repeat while j <= stop
+                        if not AlreadyAssociated(i, j)
+                            // Check previous associations too
+                            boolean previouslyAssociated = false
+                            k = reset + 1
+                            repeat while k < j
+                                if AlreadyExactlyAssociated(k, i, j)
+                                    previouslyAssociated = true
+                                    if previouslyAssociated 
+                                        k = j // break away early to save time
+                                    end
+                                end
+                                k = k + 1
+                            end
+                            if not previouslyAssociated
+                                AssociateFactorsOfOldColumnToNewColumn(i, j, currentIndex)
+                                designMatrix:SetColumn(currentIndex, designMatrix:GetColumn(i):MultiplyElements(designMatrix:GetColumn(j)))
+                                currentIndex = currentIndex + 1
                             end
                         end
-                        i = i - 1
+                        j = j + 1
                     end
-                    if not previouslyAssociated
-                        AssociateFactorsOfOldColumnToNewColumn(start, next, current)
-                        designMatrix:SetColumn(current, designMatrix:GetColumn(start):MultiplyElements(designMatrix:GetColumn(next)))
-                        current = current + 1
+                    i = i + 1
+                end
+
+                interaction = interaction + 1         
+            end
+        end 
+
+        if repeated    
+            // Multiply in the subject identifier for within-subjects
+            Matrix newDesignMatrix
+            newDesignMatrix:SetSize(designMatrix:GetRows(), designMatrix:GetColumns()*design:GetNumberOfSubjects())
+            
+            Matrix idMatrix
+            idMatrix:Fill(designMatrix:GetRows(), design:GetNumberOfSubjects(), 0)
+            idMatrix:SetColumn(0, 1)
+            DataFrameColumn levels = factorLevels:Get(factorIndex:GetKey(design:GetSubjectIdentifier()))
+            integer idCurrent = 1
+            Matrix idEncoding = GetInitialEncoding(factorLevels:GetSize())
+            idEncoding:Set(0, factorIndex:GetKey(design:GetSubjectIdentifier()), 1)
+            DataFrameColumn factor = designFrame:GetColumn(design:GetSubjectIdentifier())
+            j = 0 
+            repeat while j < levels:GetSize() - 1
+                text level = levels:GetAsText(j)
+                k = 0
+                repeat while k < factor:GetSize()
+                    if factor:GetAsText(k) = level
+                        idMatrix:Set(k, idCurrent, 1)
                     end
-                end
-                next = next + 1
-            else
-                start = start + 1
-                next = 1
-                if start > stop
-                    stop = current - 1
-                end
-            end            
+                    k = k + 1
+                end 
+                idCurrent = idCurrent + 1
+                j = j + 1
+            end
+
+            // Multiply each column in the idmatrix by all columns in the designmatrix 
+            HashTable<text, Array<integer>> newColumnsAssociatedWithFactor 
+            HashTable<integer, Matrix> newFactorsAssociatedWithColumn  
+            integer index = 0
+            i = 0 
+            repeat while i < idMatrix:GetColumns()
+                j = 0
+                repeat while j < designMatrix:GetColumns()
+                    Matrix designEncoding = factorsAssociatedWithColumn:GetValue(j)
+                    Matrix newEncoding 
+                    if i = 0
+                        if j = 0
+                            newEncoding =  GetInitialEncoding(factorLevels:GetSize())
+                        else
+                            newEncoding = designEncoding
+                        end
+                    else
+                        if j = 0
+                            newEncoding = idEncoding
+                        else
+                            newEncoding = designEncoding:AddElements(idEncoding)
+                        end
+                    end
+                    newFactorsAssociatedWithColumn:Set(index, newEncoding)
+
+                    text factorHeader = GetTextFromEncoding(newEncoding)
+                    if not newColumnsAssociatedWithFactor:HasKey(factorHeader)
+                        Array<integer> arr
+                        arr:Add(index)
+                        newColumnsAssociatedWithFactor:Add(factorHeader, arr)
+                    else
+                        newColumnsAssociatedWithFactor:GetValue(factorHeader):Add(index)
+                    end
+
+                    newDesignMatrix:SetColumn(index, idMatrix:GetColumn(i):MultiplyElements(designMatrix:GetColumn(j)))
+                    index = index + 1
+                    j = j + 1
+                end 
+                i = i + 1
+            end 
+            designMatrix = newDesignMatrix 
+            columnsAssociatedWithFactor = newColumnsAssociatedWithFactor   
+            factorsAssociatedWithColumn = newFactorsAssociatedWithColumn 
         end
-        AddInteractionsToDesignMatrix(designMatrix, reset, start, next, stop, current)   
     end
 
     private action AlreadyAssociated(integer nextAssociation, integer currAssociation) returns boolean
