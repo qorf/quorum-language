@@ -59,14 +59,14 @@ text fontPath = ""
         actionTab:DisplayCloseButton(false)
         actionTab:SetRelatedItem(MakeActionPage())
         
-        suggestionTab:SetName("Suggestions")
+        suggestionTab:SetName("Advice")
         suggestionTab:DisplayCloseButton(false)
         suggestionTab:SetRelatedItem(MakeSuggestionPage())
 
-        Add(basicTab)
+                Add(suggestionTab)
+Add(basicTab)
         Add(controlTab)
         Add(actionTab)
-        Add(suggestionTab)
     end
 
     action SetEditor(CodeEditor editor)
