@@ -16,7 +16,15 @@ class UndefinedCompareDistributionToNormalTest is Test
 
     action Run
         ColumnCalculationTest framer
-        DataFrame frame = framer:GetDefaultDataFrame()
+        DataFrame frame
+        frame:LoadFromCommaSeparatedValue("y,x1,x2,x3
+        2.0,4.0,-9.0,9
+        6.0,,-19.0,19
+        3.0,4.0,-18.0,18
+        9.0,8.0,-16.0,16
+        15.0,17.0,-2.0,2
+        1.0,3.0,-4.0,4")
+        frame:AddSelectedColumnRange(0,3)
 
         CompareDistributions compare
         compare:AddColumn(0)
@@ -26,19 +34,27 @@ class UndefinedCompareDistributionToNormalTest is Test
         frame:Calculate(compare)
         
         CompareDistributionsResult result0 = compare:GetResults():Get(0)
-        Check(result0:GetTestStatistic(), 0.9010217394232677)
-        Check(result0:GetProbabilityValue(), 0.3800046080481534)
+        Check(result0:GetTestStatistic(), 0.8634168860167546)
+output result0:GetTestStatistic()
+        Check(result0:GetProbabilityValue(), 0.24077788840254832)
+output result0:GetProbabilityValue()
 
         CompareDistributionsResult result1 = compare:GetResults():Get(1)
-        Check(result1:GetTestStatistic(), 0.8005110364700986)
-        Check(result1:GetProbabilityValue(), 0.05939933563619526)
+        Check(result1:GetTestStatistic(), 0.7824992888903158)
+output result1:GetTestStatistic()
+        Check(result1:GetProbabilityValue(), 0.05790357362782239)
+output result1:GetProbabilityValue()
 
         CompareDistributionsResult result2 = compare:GetResults():Get(2)
-        Check(result2:GetTestStatistic(), 0.8829593919162817)
-        Check(result2:GetProbabilityValue(), 0.2829245304652691)
+        Check(result2:GetTestStatistic(), 0.911731754625581)
+output result2:GetTestStatistic()
+        Check(result2:GetProbabilityValue(), 0.4780668978833811)
+output result2:GetProbabilityValue()
 
         CompareDistributionsResult result3 = compare:GetResults():Get(3)
-        Check(result3:GetTestStatistic(), 0.8829593919162814)
-        Check(result3:GetProbabilityValue(), 0.2829245304652672)
+        Check(result3:GetTestStatistic(), 0.9117317546255809)
+output result3:GetTestStatistic()
+        Check(result3:GetProbabilityValue(), 0.4780668978833811)
+output result3:GetProbabilityValue()
     end
 end
