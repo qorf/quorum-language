@@ -37,6 +37,27 @@ class ActionBlock is MultipleLineBlock
         SetLayout(layout)
         SetName("Action Block")
     end
+    
+    action GetBlockName returns text
+        if nameField not= undefined
+            return nameField:GetText() + " Action Block"
+        end
+        return "Action Block"
+    end
+    
+    action GetBlockDescription returns text
+        text actionDesc = ""
+        if paramField not= undefined
+            actionDesc = "Parameters: " + paramField:GetText() + actionDesc:GetLineFeed()
+        end
+        if returnField not= undefined
+            actionDesc = actionDesc + "Returns: " + returnField:GetText()
+        end
+        if actionDesc not= ""
+            return actionDesc
+        end
+        return "This Action Block is used to define actions which are behaviors that a program can take. They are useful for many reasons, including at least that they 1) allow us to reuse code, 2) can sometimes make it easier to separate out functionality in complex software, and they 3) allow us to break up a program's functionaity between different people on a team."
+    end
 
     action IsSystemAction returns boolean
         return actionContext:isSystem

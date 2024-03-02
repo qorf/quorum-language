@@ -29,6 +29,14 @@ class UseBlock is SingleLineBlock
         // This should be the entire text read by the screen reader when focused, not just the "output" portion
         SetName("use")
     end
+    
+    action GetBlockName returns text
+        return "Use Block"
+    end
+    
+    action GetBlockDescription returns text
+        return "The Use block is used to add more functionality to the program through the use of libraries."
+    end
 
     action SetupElements
         BlockEnvironment editor = GetBlockEnvironment()
