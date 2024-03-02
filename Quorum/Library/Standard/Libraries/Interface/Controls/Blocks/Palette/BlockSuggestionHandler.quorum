@@ -123,8 +123,12 @@ AddParentVariables(request, vars)
             return undefined
         end
         Type varType = variable:GetType()
-        
-        text staticKey = varType:GetStaticKey()
+        text staticKey = ""
+        if varType:IsPrimitive()
+            staticKey = varType:ConvertToNonPrimitiveStaticKey()
+        else
+                    staticKey = varType:GetStaticKey()
+        end
         Class clazz = currentTable:GetClass(staticKey)
         if clazz not= undefined
 Iterator<Action> actions = clazz:GetVirtualTable()
