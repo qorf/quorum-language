@@ -22,6 +22,14 @@ use Libraries.Containers.HashTable
 use Libraries.Interface.Controls.Blocks.Block
 use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
 use Libraries.Interface.Forms.Grouping
+use Libraries.Interface.Controls.TextBox
+use Libraries.Game.Graphics.Label
+use Libraries.Language.Compile.CompilerError
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Controls.Blocks.ActionBlock
+use Libraries.Interface.Controls.Blocks.ClassBlock
+use Libraries.Interface.Controls.Blocks.FreeformBlock
 
 class BlockSuggestionPage is BlockPalettePage, SelectionListener, TextChangeListener
 
@@ -32,6 +40,14 @@ class BlockSuggestionPage is BlockPalettePage, SelectionListener, TextChangeList
     integer HEADER_SIZE = 24
     integer HEADER2_SIZE = 18
 integer LABEL_SIZE = 12
+    Label variableNameLabel = undefined
+    Label variableTypeLabel = undefined
+    BlockPaletteVariableList variableList = undefined
+    boolean isImplicitClass = false
+    
+    on create
+        LeftAlignContent()
+    end
     
     action SelectionChanged(SelectionEvent event)
 //        GetFormChildren():Empty()
@@ -59,7 +75,20 @@ integer LABEL_SIZE = 12
         GetFormChildren():Empty()
         Class clazz = result:clazz
         if clazz = undefined
+            SetupDefaultSuggestions()
             return now
+        end
+        me:isImplicitClass = clazz:IsImplicitClass()
+        Block currentBlock = undefined
+        if result:requestingBlock not= undefined
+            currentBlock = result:requestingBlock
+if not currentBlock:IsErrorsEmpty()
+                CompilerError error = currentBlock:GetFirstError()
+                AddLabel("Errors: "):SetFontSize(HEADER2_SIZE)
+                AddLabel(error:GetErrorMessage()):SetFontSize(LABEL_SIZE)
+                SetupDefaultSuggestions()
+                return now
+            end
         end
         Array<Action> actions = result:actions
         if actions not= undefined
@@ -80,17 +109,22 @@ AddFilterTextField()
         if clazzDocs = undefined
             AddLabel("No documentation available"):SetFontSize(LABEL_SIZE)
         else
-            AddLabel(clazz:GetDocumentation():GetShortDescription()):SetFontSize(LABEL_SIZE)
+//TextBox box = AddTextBox("Class Documentation")
+                //box:SetFontSize(LABEL_SIZE)
+            //box:SetPercentageHeight(0.1)
+                        AddLabel(clazz:GetDocumentation():GetShortDescription()):SetFontSize(LABEL_SIZE)
         end
-if result:requestingBlock not= undefined
-            Block block = result:requestingBlock
-            if block is MultipleLineBlockPart
+if currentBlock not= undefined
+            Block block = currentBlock
+if block is MultipleLineBlockPart
                 block = block:GetParentBlock()
             end
-            if block:GetBlockName() not= undefined
+if block:GetBlockName() not= ""
                         AddLabel(block:GetBlockName()):SetFontSize(HEADER_SIZE)
 end
             if block:GetBlockDescription() not= ""
+                //TextBox box = AddTextBox("Block Description")
+                //box:SetFontSize(LABEL_SIZE)
                         AddLabel(block:GetBlockDescription()):SetFontSize(LABEL_SIZE)
 end
         end
@@ -99,7 +133,11 @@ end
             AddLabel("Variables"):SetFontSize(HEADER2_SIZE)
             varList = AddVariableList()
             varList:SetFontSize(LABEL_SIZE)
+            me:variableList = varList
         end
+        boolean showActions = true
+        
+        
 if blockVariables not= undefined
             integer i = 0
             Array<text> vars
@@ -134,6 +172,31 @@ varList:AddParentVariable(variable)
             end
             vars:Sort()
         end
+        
+        
+if currentBlock not= undefined
+            if currentBlock is FreeformBlock
+                if IsBlockInAction(currentBlock)
+                    AddBasicBlocks()
+                    AddControlBlocks()
+                elseif IsBlockInClass(currentBlock)
+                                        AddActionBlocks()
+AddBasicBlocks()
+                elseif not IsBlockInClass(currentBlock) and not me:isImplicitClass
+                    AddActionBlocks()
+                    showActions = false
+                elseif me:isImplicitClass
+                    AddBasicBlocks()
+                    AddControlBlocks()
+                    AddActionBlocks()
+                end
+            end
+        end
+        
+if not showActions
+            CalculateDefaultFocusOrdering()
+            return now
+        end
         if actions not= undefined
             AddLabel("Actions"):SetFontSize(HEADER_SIZE)
 
@@ -149,14 +212,23 @@ suggestedActionItems:Add(AddBlockPaletteItem(call))
         CalculateDefaultFocusOrdering()
     end
     
+    action SetupDefaultSuggestions
+        AddLabel("Basic"):SetFontSize(HEADER2_SIZE)
+        AddBasicBlocks()
+AddLabel("Control"):SetFontSize(HEADER2_SIZE)
+        AddControlBlocks()
+AddLabel("Action"):SetFontSize(HEADER2_SIZE)
+        AddActionBlocks()
+    end
 
     action AddFilterTextField
         if filterField not= undefined
             filterField:RemoveTextChangeListener(me)
         end
-        Grouping group = AddGrouping("Filter Group")
-        group:AddLabel("Filter"):SetFontSize(HEADER2_SIZE)
-        filterField = group:AddTextField("Filter Text Field")
+        //Grouping group = AddGrouping("Filter Group")
+        Label filterLabel = AddLabel("Filter")
+        filterLabel:SetFontSize(HEADER2_SIZE)
+        filterField = AddTextField("Filter Text Field")
         filterField:AddTextChangeListener(me)
     end
     
@@ -170,14 +242,29 @@ suggestedActionItems:Add(AddBlockPaletteItem(call))
             return now
         end
         ClearSuggestions()
-        AddLabel(variable:GetName()):SetFontSize(HEADER2_SIZE)
-        AddLabel(variable:GetType():GetStaticKey()):SetFontSize(LABEL_SIZE)
+        if variableNameLabel not= undefined
+            Remove(variableNameLabel)
+            variableNameLabel = undefined
+        end
+        if variableTypeLabel not= undefined
+            Remove(variableTypeLabel)
+            variableTypeLabel = undefined
+        end
+        variableNameLabel = AddLabel(variable:GetName())
+        variableNameLabel:SetFontSize(HEADER2_SIZE)
+        variableTypeLabel = AddLabel(variable:GetType():GetStaticKey())
+        variableTypeLabel:SetFontSize(LABEL_SIZE)
 integer i = 0
             repeat while i < actions:GetSize()
                 Action act = actions:Get(i)
                 text actionName = act:GetName()
                 actionName = actionName:ToLowerCase()
-                    text call = MakeFullActionCall(act, variable:GetName())
+            text call = ""
+            if me:variableName not= ""
+                                call = MakeFullActionCall(act, variable:GetName())
+            else
+call = MakeFullActionCall(act, me:variableName+":"+variable:GetName())
+end
                     if call not= ""
 suggestedActionItems:Add(AddBlockPaletteItem(call))
                     end
@@ -185,12 +272,44 @@ suggestedActionItems:Add(AddBlockPaletteItem(call))
             end
         CalculateDefaultFocusOrdering()
     end
+    
+    action IsBlockInAction(Block block) returns boolean
+        Block enclosing = block:GetEnclosingBlock()
+        repeat while enclosing not= undefined
+            if enclosing is ActionBlock
+                return true
+            end
+            enclosing = enclosing:GetEnclosingBlock()
+        end
+        return false
+    end
 
+action IsBlockInClass(Block block) returns boolean
+Block enclosing = block:GetEnclosingBlock()
+        repeat while enclosing not= undefined
+            if enclosing is ClassBlock
+                return true
+            end
+            enclosing = enclosing:GetEnclosingBlock()
+        end
+        return false
+    end
+    
+action IsBlockAtRootLevel(Block block) returns boolean
+        return false
+    end
+    
     action TextChanged(TextChangeEvent event)
-        if filterField = undefined or suggestedActions = undefined
+        if filterField = undefined
             return now
         end
-        text filter = filterField:GetText()
+text filter = filterField:GetText()
+        if variableList not= undefined
+            variableList:Filter(filter:ToLowerCase())
+        end
+        if suggestedActions = undefined
+            return now
+        end
             filter = filter:ToLowerCase():Trim()
             ClearSuggestions()
             integer i = 0

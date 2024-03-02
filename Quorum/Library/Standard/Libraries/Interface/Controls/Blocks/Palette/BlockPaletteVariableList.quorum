@@ -9,6 +9,7 @@ use Libraries.System.File
 use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Behaviors.Block.BlockPaletteVariableListBehavior
 use Libraries.Interface.Controls.ListItem
+use Libraries.Containers.Array
 
 
 class BlockPaletteVariableList is List
@@ -27,6 +28,11 @@ class BlockPaletteVariableList is List
     Icon variableIcon
     Icon parentIcon
     Icon classIcon
+    
+    Array<Variable> localVars
+    Array<Variable> classVars
+    Array<Variable> parentVars
+    boolean filtering = false
 
     on create
         
@@ -34,17 +40,21 @@ class BlockPaletteVariableList is List
     
     action Add(Variable variable)
         
-        //Add(NewListItem(variable:GetName()))
-Add(NewListItem(variable:GetName()))
+                Add(NewListItem(variable:GetName()))
+//Add(NewListItem(variable:GetName()))
+
     end
     
-    action AddLocalVariable(Variable variable)
+action AddLocalVariable(Variable variable)
         BlockPaletteVariableListBehavior behave
                     behave:SetVariable(variable)
 behave:SetPage(cast(BlockSuggestionPage,GetPalette():GetSuggestionTab():GetRelatedItem()))
-        ListItem item = cast(ListItem, NewListItem(variable:GetName(), variableIcon))
-        item:SetActivationBehavior(behave)
+ListItem item = cast(ListItem, NewListItem(variable:GetName(), variableIcon))
+                item:SetActivationBehavior(behave)
 Add(item)
+        if not filtering
+            localVars:Add(variable)
+        end
 end
     
     action AddClassVariable(Variable variable)
@@ -54,6 +64,9 @@ behave:SetPage(cast(BlockSuggestionPage,GetPalette():GetSuggestionTab():GetRelat
         ListItem item = cast(ListItem, NewListItem(variable:GetName(), fieldIcon))
         item:SetActivationBehavior(behave)
 Add(item)
+if not filtering
+            classVars:Add(variable)
+        end
     end
     
 action AddParentVariable(Variable variable)
@@ -63,6 +76,42 @@ behave:SetPage(cast(BlockSuggestionPage,GetPalette():GetSuggestionTab():GetRelat
         ListItem item = cast(ListItem, NewListItem(variable:GetName(), parentIcon))
         item:SetActivationBehavior(behave)
 Add(item)
+if not filtering
+            parentVars:Add(variable)
+        end
+    end
+    
+    action Filter(text filter)
+        repeat GetSize() times
+            Remove(0)
+        end
+        me:filtering = true
+        filter = filter:Trim()
+        integer i = 0
+        repeat while i < localVars:GetSize()
+            Variable var = localVars:Get(i)
+            if var:GetName():Contains(filter) or filter = ""
+                AddLocalVariable(var)
+            end
+            i = i + 1
+        end
+i = 0
+        repeat while i < classVars:GetSize()
+            Variable var = classVars:Get(i)
+            if var:GetName():Contains(filter) or filter = ""
+                AddClassVariable(var)
+            end
+            i = i + 1
+        end
+i = 0
+        repeat while i < parentVars:GetSize()
+            Variable var = parentVars:Get(i)
+            if var:GetName():Contains(filter) or filter = ""
+                AddParentVariable(var)
+            end
+            i = i + 1
+        end
+        me:filtering = false
     end
     
     action LoadIcons()
@@ -73,11 +122,11 @@ File file
         fontAwesome:SetSize(40)
 end        
 primitiveIcon:Load(GetGlyphTexture(62930))
-            fieldIcon:Load(GetGlyphTexture(62163))
+            fieldIcon:Load(GetGlyphTexture(62845))
             fieldPrivateIcon:Load(GetGlyphTexture(61766))
             actionIcon:Load(GetGlyphTexture(61729))
             actionPrivateIcon:Load(GetGlyphTexture(61475))
-            variableIcon:Load(GetGlyphTexture(61453))
+            variableIcon:Load(GetGlyphTexture(62070))
             parentIcon:Load(GetGlyphTexture(61827))
             classIcon:Load(GetGlyphTexture(63087))
             packageIcon:Load(GetGlyphTexture(62566))
