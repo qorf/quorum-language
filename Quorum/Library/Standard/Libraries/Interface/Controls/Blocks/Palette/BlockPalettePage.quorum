@@ -124,6 +124,45 @@ end
         Add(button)
         return button
     end
+    
+    action AddBasicBlocks
+        text dq = ""
+        dq = dq:GetDoubleQuote()
+        AddBlockPaletteItem("")
+        AddBlockPaletteItem("integer a = 0")
+        AddBlockPaletteItem("number b = 0.0")
+        AddBlockPaletteItem("boolean bool = true")
+        AddBlockPaletteItem("text string = "+dq+"words"+dq+"")
+        AddBlockPaletteItem("output "+dq+"words"+dq+"")
+        AddBlockPaletteItem("say "+dq+"words"+dq+"")
+        AddBlockPaletteItem("text string = input()")
+        AddBlockPaletteItem("// my comment")
+    end
+    
+    action AddControlBlocks
+text dq = ""
+        dq = dq:GetDoubleQuote()
+        lf = dq:GetLineFeed()
+        AddBlockPaletteItem("if true" + lf + "end")
+        AddBlockPaletteItem("elseif true")
+        AddBlockPaletteItem("if true"+lf+"else"+lf+"end")
+        AddBlockPaletteItem("else")
+        AddBlockPaletteItem("repeat 1 times" + lf + "end")
+        AddBlockPaletteItem("repeat until true" + lf + "end")
+        AddBlockPaletteItem("repeat while false" + lf + "end")
+    end
+    
+    action AddActionBlocks
+text dq = ""
+        dq = dq:GetDoubleQuote()
+        lf = dq:GetLineFeed()
+        AddBlockPaletteItem("action myAction" + lf + "end")
+        AddBlockPaletteItem("action myAction(type name)" + lf + "end")
+        AddBlockPaletteItem("action myAction returns integer" + lf + "return 0" + lf + "end")
+        AddBlockPaletteItem("return value")
+        AddBlockPaletteItem("class MyClass" + lf + "end")
+        AddBlockPaletteItem("use myLibrary")
+    end
 
     action AddVariableList returns BlockPaletteVariableList
         BlockPaletteVariableList varList

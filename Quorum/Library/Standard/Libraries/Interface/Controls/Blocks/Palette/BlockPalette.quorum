@@ -118,51 +118,21 @@ File file
     action MakeBasicPage returns Page
         BlockPalettePage page
         page:SetPalette(me)
-        text dq = ""
-        dq = dq:GetDoubleQuote()
-        page:AddBlockPaletteItem("")
-        page:AddBlockPaletteItem("integer a = 0")
-        page:AddBlockPaletteItem("number b = 0.0")
-        page:AddBlockPaletteItem("boolean bool = true")
-        page:AddBlockPaletteItem("text string = "+dq+"words"+dq+"")
-        page:AddBlockPaletteItem("output "+dq+"words"+dq+"")
-        page:AddBlockPaletteItem("say "+dq+"words"+dq+"")
-        page:AddBlockPaletteItem("text string = input()")
-        page:AddBlockPaletteItem("// my comment")
-        
+        page:AddBasicBlocks()
         return page
     end
 
     action MakeControlPage returns Page
         BlockPalettePage page
         page:SetPalette(me)
-        text dq = ""
-        dq = dq:GetDoubleQuote()
-        lf = dq:GetLineFeed()
-        page:AddBlockPaletteItem("if true" + lf + "end")
-        page:AddBlockPaletteItem("elseif true")
-        page:AddBlockPaletteItem("if true"+lf+"else"+lf+"end")
-        page:AddBlockPaletteItem("else")
-        page:AddBlockPaletteItem("repeat 1 times" + lf + "end")
-        page:AddBlockPaletteItem("repeat until true" + lf + "end")
-        page:AddBlockPaletteItem("repeat while false" + lf + "end")
-        
+        page:AddControlBlocks()
         return page
     end
 
     action MakeActionPage returns Page
         BlockPalettePage page
         page:SetPalette(me)
-        text dq = ""
-        dq = dq:GetDoubleQuote()
-        lf = dq:GetLineFeed()
-        page:AddBlockPaletteItem("action myAction" + lf + "end")
-        page:AddBlockPaletteItem("action myAction(type name)" + lf + "end")
-        page:AddBlockPaletteItem("action myAction returns integer" + lf + "return 0" + lf + "end")
-        page:AddBlockPaletteItem("return value")
-        page:AddBlockPaletteItem("class MyClass" + lf + "end")
-        page:AddBlockPaletteItem("use myLibrary")
-        
+        page:AddActionBlocks()
         return page
     end
     
@@ -173,6 +143,7 @@ File file
         if GetEditor() not= undefined
             GetEditor():AddSelectionListener(page)
         end
+        page:SetupDefaultSuggestions()
         return page
     end
 
