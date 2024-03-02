@@ -35,26 +35,18 @@ class UndefinedCompareDistributionToNormalTest is Test
         
         CompareDistributionsResult result0 = compare:GetResults():Get(0)
         Check(result0:GetTestStatistic(), 0.8634168860167546)
-output result0:GetTestStatistic()
         Check(result0:GetProbabilityValue(), 0.24077788840254832)
-output result0:GetProbabilityValue()
 
         CompareDistributionsResult result1 = compare:GetResults():Get(1)
         Check(result1:GetTestStatistic(), 0.7824992888903158)
-output result1:GetTestStatistic()
         Check(result1:GetProbabilityValue(), 0.05790357362782239)
-output result1:GetProbabilityValue()
 
         CompareDistributionsResult result2 = compare:GetResults():Get(2)
         Check(result2:GetTestStatistic(), 0.911731754625581)
-output result2:GetTestStatistic()
         Check(result2:GetProbabilityValue(), 0.4780668978833811)
-output result2:GetProbabilityValue()
 
         CompareDistributionsResult result3 = compare:GetResults():Get(3)
         Check(result3:GetTestStatistic(), 0.9117317546255809)
-output result3:GetTestStatistic()
         Check(result3:GetProbabilityValue(), 0.4780668978833811)
-output result3:GetProbabilityValue()
     end
 end
