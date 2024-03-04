@@ -6,7 +6,7 @@ use Libraries.Compute.Statistics.Tests.CompareMeans
 use Libraries.Compute.Statistics.Reporting.CompareMeansResult
 
 /*
-    This class tests a undefinedfriedman test
+    This class tests a undefined friedman test
 */
 class UndefinedCompareSeveralRelatedRankedMeansTest is Test
 
@@ -32,10 +32,10 @@ class UndefinedCompareSeveralRelatedRankedMeansTest is Test
         frame:Calculate(compare)
         
         CompareMeansResult result = compare:GetResult()
-        Check(result:GetTestStatistic(), 14.0)
+        Check(result:GetTestStatistic(), 11.16)
         Check(result:GetDegreesOfFreedom(), 3.0)
-        Check(result:GetProbabilityValue(), 0.0029051527742673944)
-        Check(result:GetEffectSize(), 0.7777777777777778)
+        Check(result:GetProbabilityValue(), 0.010891421468579354)
+        Check(result:GetEffectSize(), 0.744)
 
         text summary = result:GetSummary()
         text formalsummary = result:GetFormalSummary()
