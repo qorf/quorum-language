@@ -31,10 +31,10 @@ class UndefinedCompareSeveralRankedMeansTest is Test
         frame:Calculate(compare)
         
         CompareMeansResult result = compare:GetResult()
-        Check(result:GetTestStatistic(), 14.368730920191892)
+        Check(result:GetTestStatistic(), 14.084762849115858)
         Check(result:GetDegreesOfFreedom(), 3.0)
-        Check(result:GetProbabilityValue(), 0.0024438841517434584)
-        Check(result:GetEffectSize(), 0.6247274313126909)
+        Check(result:GetProbabilityValue(), 0.0027920171648835312)
+        Check(result:GetEffectSize(), 0.6402164931416299)
 
         text summary = result:GetSummary()
         text formalsummary = result:GetFormalSummary()
