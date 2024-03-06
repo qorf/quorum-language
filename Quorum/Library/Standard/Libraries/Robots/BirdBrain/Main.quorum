@@ -1,0 +1,173 @@
+use Libraries.Robots.BirdBrain.all
+use Libraries.System.SystemHelper
+use Libraries.Containers.Array
+
+SystemHelper time
+
+/*
+Hummingbird hummingbird
+
+hummingbird:Print("meh")
+hummingbird:Pause(1)
+hummingbird:SetDisplay("1111111111111111111111111")
+hummingbird:Pause(0.5)
+hummingbird:SetPoint(3, 3, 0)
+hummingbird:Pause(0.5)
+hummingbird:PlayNote(64, 0.5)
+hummingbird:Pause(0.5)
+
+hummingbird:SetPositionServo(1, 90)
+hummingbird:SetRotationServo(2, 50)
+hummingbird:SetLED(1, 100)
+hummingbird:SetTriLED(1, 100, 100, 100)
+
+output ""
+time:Sleep(100)
+
+output "Hummingbird Light on port 1: " + hummingbird:GetLight(1)
+output "Hummingbird Sound on port 2: " + hummingbird:GetSound(2)
+output "Hummingbird Distance on port 3: " + hummingbird:GetDistance(3)
+output "Hummingbird Dial on port 1: " + hummingbird:GetDial(1)
+output "Hummingbird Voltage on port 1: " + hummingbird:GetVoltage(1)
+
+
+output ""
+time:Sleep(100)
+
+output "X Acceleration: " + hummingbird:GetAcceleration("x")
+output "Y Acceleration: " + hummingbird:GetAcceleration("y")
+output "Z Acceleration: " + hummingbird:GetAcceleration("z")
+output "X Magnetometer: " + hummingbird:GetMagnetometer("x")
+output "Y Magnetometer: " + hummingbird:GetMagnetometer("y")
+output "Z Magnetometer: " + hummingbird:GetMagnetometer("z")
+
+output ""
+time:Sleep(100)
+
+output "Compass: " + hummingbird:GetCompass()
+output "Button A: " + hummingbird:GetButton("A")
+output "Button B: " + hummingbird:GetButton("B")
+output "Button LOGO: " + hummingbird:GetButton("LOGO")
+output "Sound: " + hummingbird:GetSound()
+output "Temperature: " + hummingbird:GetTemperature()
+output "Is Shaking?: " + hummingbird:IsShaking()
+output "Microbit Orientation: " + hummingbird:GetOrientation()
+
+
+hummingbird:Pause(1)
+hummingbird:StopAll()
+hummingbird:Disconnect()
+*/
+
+/*
+Microbit microbit
+
+microbit:Print("yo")
+microbit:Pause(1)
+microbit:SetDisplay("1111111111111111111111111")
+microbit:Pause(0.5)
+microbit:SetPoint(3, 3, 0)
+microbit:Pause(0.5)
+microbit:PlayNote(64, 0.5)
+microbit:Pause(0.5)
+
+output ""
+time:Sleep(100)
+
+output "X Acceleration: " + microbit:GetAcceleration("x")
+output "Y Acceleration: " + microbit:GetAcceleration("y")
+output "Z Acceleration: " + microbit:GetAcceleration("z")
+output "X Magnetometer: " + microbit:GetMagnetometer("x")
+output "Y Magnetometer: " + microbit:GetMagnetometer("y")
+output "Z Magnetometer: " + microbit:GetMagnetometer("z")
+
+output ""
+time:Sleep(100)
+
+output "Compass: " + microbit:GetCompass()
+output "Button A: " + microbit:GetButton("A")
+output "Button B: " + microbit:GetButton("B")
+output "Button LOGO: " + microbit:GetButton("LOGO")
+output "Sound: " + microbit:GetSound()
+output "Temperature: " + microbit:GetTemperature()
+output "Is Shaking?: " + microbit:IsShaking()
+output "Microbit Orientation: " + microbit:GetOrientation()
+
+
+microbit:Pause(1)
+microbit:StopAll()
+microbit:Disconnect()
+*/
+
+/*
+Finch finch
+
+finch:Print("hi")
+time:Sleep(1000)
+
+finch:SetDisplay("1111111111111111111111111")
+time:Sleep(500)
+finch:SetPoint(3, 3, 0)
+time:Sleep(500)
+
+finch:SetBeak(100, 100, 100)
+time:Sleep(1000)
+finch:SetTail(1, 0, 100, 100)
+time:Sleep(1000)
+finch:SetTail("all", 100, 0, 0)
+
+finch:PlayNote(60, 1)
+
+finch:SetMove("forward", 10, 50)
+finch:SetTurn("right", 90, 50)
+
+finch:SetMotors(20, 20)
+time:Sleep(1000)
+finch:Stop()
+
+output ""
+time:Sleep(100)
+
+output "Right Encoder: " + finch:GetEncoder("right")
+output "Left Encoder: " + finch:GetEncoder("left")
+finch:ResetEncoders()
+output "Right Encoder: " + finch:GetEncoder("right")
+output "Left Encoder: " + finch:GetEncoder("left")
+
+output ""
+time:Sleep(100)
+
+output "Distance Sensor: " + finch:GetDistance()
+output "Right Light Sensor: " + finch:GetLight("right")
+output "Left Light Sensor: " + finch:GetLight("left")
+output "Right Line Sensor: " + finch:GetLine("right")
+output "Left Line Sensor: " + finch:GetLine("left")
+output "Finch Orientation: " + finch:GetOrientation()
+
+output ""
+time:Sleep(100)
+
+output "X Acceleration: " + finch:GetAcceleration("x")
+output "Y Acceleration: " + finch:GetAcceleration("y")
+output "Z Acceleration: " + finch:GetAcceleration("z")
+output "X Magnetometer: " + finch:GetMagnetometer("x")
+output "Y Magnetometer: " + finch:GetMagnetometer("y")
+output "Z Magnetometer: " + finch:GetMagnetometer("z")
+
+output ""
+time:Sleep(100)
+
+output "Compass: " + finch:GetCompass()
+output "Button A: " + finch:GetButton("A")
+output "Button B: " + finch:GetButton("B")
+output "Button LOGO: " + finch:GetButton("LOGO")
+output "Sound: " + finch:GetSound()
+output "Temperature: " + finch:GetTemperature()
+output "Is Shaking?: " + finch:IsShaking()
+
+
+finch:Pause(1)
+finch:StopAll()
+finch:Disconnect()
+*/
+
