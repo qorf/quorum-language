@@ -25,7 +25,11 @@ class CodeEditorEscapeBehavior is Behavior
             return now
         end
 
-        editor:EscapeSelection()
+        if editor:IsKeyboardMovingBlocks()
+            editor:CancelKeyboardMovingBlocks()
+        else
+editor:EscapeSelection()
+        end
     end
 
 end

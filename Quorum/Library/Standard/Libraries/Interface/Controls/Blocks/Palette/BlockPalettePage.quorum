@@ -9,6 +9,7 @@ use Libraries.Interface.Controls.ScrollPaneRenderer
 use Libraries.Interface.Controls.Blocks.Block
 use Libraries.Interface.Controls.Blocks.MultipleLineBlock
 use Libraries.Interface.Controls.Blocks.CodeEditor
+use Libraries.Interface.Behaviors.Blocks.BlockPaletteItemInsertBehavior
 
 class BlockPalettePage is StackedRowPage
 
@@ -18,6 +19,8 @@ class BlockPalettePage is StackedRowPage
     Array<Block> renderArray
     Array<MultipleLineBlock> currentMultiBlocks
     
+    // A behavior assigned to each BlockPalettetItem that is added to this page.
+BlockPaletteItemInsertBehavior itemInsertBehavior
     
 on create
 SetCustomDrawing(true)
@@ -111,13 +114,11 @@ end
         BlockPaletteItem button
         button:SetPalette(palette)
 
-        //BlockPaletteInsertBehavior behave
-
         button:SetName(name)
         button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
         button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
         button:SetToDefaultFontSize()
-        //button:SetBehavior(behave)
+        button:SetBehavior(itemInsertBehavior)
         button:SetBlocks(button:ParseToBlocks(name))
         button:SetFontSize(palette:GetFontSize())
 

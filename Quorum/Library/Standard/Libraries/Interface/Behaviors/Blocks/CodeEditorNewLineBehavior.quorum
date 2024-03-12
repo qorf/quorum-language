@@ -25,7 +25,11 @@ class CodeEditorNewLineBehavior is Behavior
             return now
         end
 
-        editor:CreateNewLineBlock()
+        if editor:IsKeyboardMovingBlocks() = false
+editor:CreateNewLineBlock()
+        else
+            editor:ConfirmKeyboardMovingBlocks()
+        end
     end
 
 end

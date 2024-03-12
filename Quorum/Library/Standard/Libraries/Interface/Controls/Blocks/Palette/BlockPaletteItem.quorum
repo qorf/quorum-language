@@ -19,6 +19,7 @@ use Libraries.Interface.Controls.Blocks.CodeEditor
 use Libraries.Interface.Controls.Blocks.BlockEnvironment
 use Libraries.Interface.Controls.Blocks.FreeformBlock
 use Libraries.Interface.Controls.Blocks.SingleLineBlock
+use Libraries.Interface.Events.FocusEvent
 
 
 class BlockPaletteItem is Button, BlockEnvironment
@@ -32,7 +33,7 @@ class BlockPaletteItem is Button, BlockEnvironment
     
     on create
         SetVerticalLayoutMode(parent:Control:STANDARD)
-        SetInputGroup("Block")
+        SetInputGroup("BlockPaletteItem")
     end
 
     action LoadGraphics(LayoutProperties properties)
@@ -104,6 +105,7 @@ blockListener:SetStartContext(undefined)
                     copy:LoadGraphics(copy:GetDefaultLayoutProperties())
                     copy:SetInputGroup("")
                     copy:SetInterfaceScale(GetInterfaceScale())
+                    copy:SetFocusable(false)
                     Add(copy)
                     visualBlocks:Add(copy)
                     
@@ -232,4 +234,35 @@ blockListener:SetStartContext(undefined)
         end
         return blocks
     end
+    
+    action GainedFocus(FocusEvent event)
+        // Any child blocks we have need their vertices updated, in order to correctly show focus colors.
+        Array<Item2D> children = GetChildren()
+        integer counter = 0
+        repeat while counter < children:GetSize()
+            Item2D child = children:Get(counter)
+            if child is Block
+                child:RequestVerticesUpdate()
+            end
+            counter = counter + 1
+        end
+        
+        parent:Control:GainedFocus(event)
+    end
+    
+action LostFocus(FocusEvent event)
+        // Any child blocks we have need their vertices updated, in order to correctly show focus colors.
+        Array<Item2D> children = GetChildren()
+        integer counter = 0
+        repeat while counter < children:GetSize()
+            Item2D child = children:Get(counter)
+            if child is Block
+                child:RequestVerticesUpdate()
+            end
+            counter = counter + 1
+        end
+        
+        parent:Control:LostFocus(event)
+    end
+    
 end

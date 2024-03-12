@@ -47,9 +47,20 @@ class TabBar is Control
     end
 
     action Add(Tab tab)
+        if tabs:IsEmpty() = false
+Tab firstTab = tabs:GetFromFront()
+        Tab lastTab = tabs:GetFromEnd()
+            
+            firstTab:SetPreviousFocus(tab)
+            lastTab:SetNextFocus(tab)
+            tab:SetPreviousFocus(lastTab)
+            tab:SetNextFocus(firstTab)
+        end
+        
         tabs:Add(tab)
         parent:Item2D:Add(tab)
         tab:SetTabBar(me)
+        
         Resize()
 
         TabChangeEvent event

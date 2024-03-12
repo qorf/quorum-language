@@ -6,6 +6,7 @@ use Libraries.Interface.Item2D
 class TabViewArea is Control
     on create
         SetAccessibilityCode(parent:Item:NOT_ACCESSIBLE)
+        SetInputGroup("TabViewArea")
     end
 
     action GetAccessibleParent returns Item

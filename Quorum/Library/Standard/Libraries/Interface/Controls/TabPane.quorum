@@ -287,7 +287,10 @@ class TabPane is Control
     end
 
     /*
-
+TabPanes don't usually accept focus on themselves. Instead, they redirect focus to their contents.
+If the current tab has a focus target, that will receive the focus. If there isn't a target, the
+TabPane will try to focus the tab's related item. If the related item isn't focusable, it'll focus
+the first focusable item within the first generation of children of the related item instead.
     */
     action GainedFocus(FocusEvent event)
         if selection:IsEmpty() = true
@@ -298,10 +301,35 @@ class TabPane is Control
             Tab tab = selection:GetTab()
             if tab:GetFocusTarget() not= undefined
                 tab:GetFocusTarget():Focus()
-            elseif tab:GetRelatedItem():IsFocusable()
-                tab:GetRelatedItem():Focus()
+            else
+                Item2D relatedItem = tab:GetRelatedItem()
+                Item2D focusable = GetFirstFocusableChild(relatedItem)
+                if focusable not= undefined
+                    focusable:Focus()
+                end
             end
         end
         parent:Control:GainedFocus(event)
     end
+    
+    // Recursively depth-first searches an item's child hierarchy looking for a focusable Item. Will return the parameter if it's focusable.
+    private action GetFirstFocusableChild(Item2D item) returns Item2D
+        if item:IsFocusable()
+            return item
+        end
+        
+        Array<Item2D> children = item:GetChildren()
+        integer i = 0
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            Item2D target = GetFirstFocusableChild(child)
+            if target not= undefined
+                return target
+            end
+            i = i + 1
+        end
+        
+        return undefined
+    end
+    
 end

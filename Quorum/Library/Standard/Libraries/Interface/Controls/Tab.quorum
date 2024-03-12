@@ -334,7 +334,8 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
                 if focusTarget not= undefined
                     focusTarget:Focus()
                 else
-                    relatedItem:Focus()
+                    Item2D target = GetFirstFocusableChild(relatedItem)
+                    target:Focus()
                 end
             else
                 if bar not= undefined
@@ -348,6 +349,26 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
             SetToggleState(true)
             Activate()
         end
+    end
+    
+// Recursively depth-first searches an item's child hierarchy looking for a focusable Item. Will return the parameter if it's focusable.
+    private action GetFirstFocusableChild(Item2D item) returns Item2D
+        if item:IsFocusable()
+            return item
+        end
+        
+        Array<Item2D> children = item:GetChildren()
+        integer i = 0
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            Item2D target = GetFirstFocusableChild(child)
+            if target not= undefined
+                return target
+            end
+            i = i + 1
+        end
+        
+        return undefined
     end
 
     /*

@@ -746,6 +746,19 @@ RefreshNavigationIndices()
         
     end
     
+    action ConvertPlaceholdersToBlocks
+        text toInsert = ""
+        text lineFeed = toInsert:GetLineFeed()
+        integer i = 0
+        
+        repeat while i < placeholderBlocks:GetSize()
+            toInsert = toInsert + placeholderBlocks:Get(i):GetPlaceholderText() + lineFeed
+            i = i + 1
+        end
+        
+        ConvertPlaceholdersToBlocks(toInsert)
+    end
+    
 action ConvertPlaceholdersToBlocks(text toInsert)
         CodeEditor editor = GetEditor()
         integer destination = placeholderBlocks:GetFromFront():GetStartIndex()
@@ -773,6 +786,14 @@ placeholderBlocks:Empty()
         movingBlocks:Empty()
         
         editor:SetCode(code)
+    end
+    
+    action GetPlaceholderStartIndex returns integer
+        if placeholderBlocks:IsEmpty()
+            return -2
+        end
+        
+        return placeholderBlocks:GetFromFront():GetNavigationIndex()
     end
     
 end

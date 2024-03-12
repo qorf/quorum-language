@@ -103,6 +103,9 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
     Calculated while calculating total content height.
     */
     Array<number> cachedLinePositions
+    
+    // A flag indicating that the CodeEditor is moving blocks using the keyboard (e.g. block insertion via the palette)
+    boolean keyboardMovingBlocks = false
 
     on create
         /*
@@ -1073,6 +1076,20 @@ action OnTextChange(TextChangeEvent event, integer indexOffset)
             UpdateSelectionCursor()
         else
             GoToBlock(newBlock)
+        end
+        
+        if keyboardMovingBlocks
+            // Move the placeholders to go just under the selected block, if they're not in the right spot.
+            if renderer:GetPlaceholderStartIndex() not= selection:GetLine() + 1
+MovePlaceholdersToNavigationIndex(selection:GetLine() + 1)
+            end
+            
+            Block currentSelection = selection:GetBlock()
+            // It's possible that the selected block is one of the placeholders we've just moved (especially if the selection moved down into the placeholders).
+            // If this happens, we need to re-sync the selected block and the selected index.
+            if currentSelection not= undefined and currentSelection:IsPlaceholder() and GetBlockAtNavigationIndex(selection:GetLine()) not= currentSelection
+                GetBlockAtNavigationIndex(selection:GetLine()):Focus()
+            end
         end
     end
 
@@ -2616,8 +2633,6 @@ Block lastBlock = GetLastBlock()
         return current
     end
     
-    
-    
 action IsAccessibleParent returns boolean
         return true
     end
@@ -2651,4 +2666,38 @@ end
 action CanAcceptPlaceholdersAtNavigationIndex(integer navigationIndex) returns boolean
         return renderer:CanAcceptPlaceholdersAtNavigationIndex(navigationIndex)
 end
+    
+    /*This action inserts the array of given blocks as placeholders at the given navigation index.
+The user can then move the blocks up or down within the editor before confirming or cancelling
+the placement.*/
+    action KeyboardInsertBlocksAtIndex(integer navigationIndex, Array<Block> newBlocks)
+        keyboardMovingBlocks = true
+InsertPlaceholdersAtNavigationIndex(navigationIndex, newBlocks)
+        if selection:GetBlock() not= undefined
+            selection:GetBlock():Focus()
+        else
+            Focus()
+        end
+    end
+    
+    /*This action indicates whether the editor is currently moving blocks using the keyboard.
+This includes when placing blocks via keyboard commands from a block palette.*/
+    action IsKeyboardMovingBlocks returns boolean
+        return keyboardMovingBlocks
+    end
+    
+    /*This action confirms the placement of blocks being moved with the keyboard. The editor
+will convert the placeholders to "real" blocks and exit the keyboard moving mode.*/
+    action ConfirmKeyboardMovingBlocks
+        renderer:ConvertPlaceholdersToBlocks()
+        keyboardMovingBlocks = false
+    end
+    
+    /*This action cancels the placement of blocks being moved with the keyboard. The editor
+will remove the placeholders and revert the blocks to their prior state before exiting
+keyboard moving mode.*/
+    action CancelKeyboardMovingBlocks
+        RemovePlaceholders()
+        keyboardMovingBlocks = false
+    end
 end

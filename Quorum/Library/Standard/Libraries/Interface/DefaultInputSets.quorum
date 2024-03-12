@@ -244,6 +244,17 @@ shared class DefaultInputSets
         end
         
         gameInput:AddInputTable(tabPaneTable)
+        
+        // The table for the TabViewArea makes it possible to escape from TabPane content to focus on the TabBar.
+        InputTable tabViewTable
+        tabViewTable:SetIdentifier("TabViewArea")
+        
+        InputSet escapeSet
+        escapeSet:SetKeyboardInput(keys:ESCAPE)
+        TabViewAreaEscapeBehavior escapeBehavior
+        tabViewTable:Add(escapeSet, escapeBehavior)
+        
+        gameInput:AddInputTable(tabViewTable)
     end
 
     action SetupMenuInput(GameInput gameInput)
@@ -2479,6 +2490,19 @@ editFieldTable:RemoveKey(blockCommandZ)
         blockTable:Add(continueDrag, dragBehavior)
         blockTable:Add(endDrag, dragBehavior)
         gameInput:AddInputTable(blockTable)
+        
+        InputTable blockPaletteItemTable = blockTable:Copy()
+        blockPaletteItemTable:SetIdentifier("BlockPaletteItem")
+        
+InputSet spaceSet
+        spaceSet:SetKeyboardInput(keys:SPACE)
+        numpadEnterSet:SetKeyboardInput(keys:NUMPAD_ENTER)
+        ControlActivationBehavior activateBehavior
+        blockPaletteItemTable:Add(spaceSet, activateBehavior)
+        blockPaletteItemTable:Add(GetEnterKey(), activateBehavior)
+        blockPaletteItemTable:Add(numpadEnterSet, activateBehavior)
+        
+        gameInput:AddInputTable(blockPaletteItemTable)
         
         // Make sure the CodeEditor's drag receiving behavior has a needed reference to the starting drag behavior.
         draggedIntoBehavior:SetSourceDragBehavior(dragBehavior)

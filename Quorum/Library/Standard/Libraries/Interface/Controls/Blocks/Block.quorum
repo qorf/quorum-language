@@ -21,6 +21,7 @@ use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Graphics.ColorNamer
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Blocks.Palette.BlockPaletteItem
 
 class Block is Control
     integer scopeDepth = 0
@@ -1077,7 +1078,7 @@ be dropped. Placeholder blocks have special rules around their text values and h
 
     action GetText returns text
         check
-            return GetEditor():GetCode():GetText(GetStartIndex(), GetEndIndex())
+            return GetBlockEnvironment():GetCodeBetween(GetStartIndex(), GetEndIndex())
         detect error
             return undefined
         end
@@ -1309,5 +1310,14 @@ the provided code. For more specific visuals, use SetAsPlaceholder(text, Array<I
         return placeholder
     end
     
+    action IsRenderingSelection returns boolean
+        if GetParent() is BlockPaletteItem
+            if GetParent():IsFocused()
+                return true
+            end
+        end
+        
+        return parent:Control:IsRenderingSelection()
+    end
     
 end
