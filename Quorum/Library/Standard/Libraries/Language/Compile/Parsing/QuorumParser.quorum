@@ -2277,10 +2277,13 @@ next = tokenIterator:Next()
             if not IsValid() return undefined end
             next = tokenIterator:Next()
             //they are just using parens even though they aren't necessary
-            if next:category = constants:RIGHT_PAREN
+            if next not= undefined and next:category = constants:RIGHT_PAREN
                 context:SetLastToken(next)
                 next = tokenIterator:Next()
             else //if it's not a paren, it has to be a formal parameter. 
+                if next = undefined
+                    return undefined
+                end
                 List<Variable> variables = context:parameters
                 Array<FormalParameterContext> parameters
                 context:parameterContexts = parameters

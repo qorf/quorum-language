@@ -730,7 +730,19 @@ shared class DefaultInputSets
             textBoxAltLeft:AddModifier(textBoxAltLeft:ALT)
             TextBoxCaretToTokenStartBehavior textBoxCaretToTokenStartBehavior
             textBoxTable:Add(textBoxAltLeft, textBoxCaretToTokenStartBehavior)
+            
+            InputSet textBoxOptionBackspace
+            textBoxOptionBackspace:SetKeyboardInput(keys:BACKSPACE)
+            textBoxOptionBackspace:AddModifier(textBoxOptionBackspace:ALT)
+            TextBoxDeleteToTokenStartBehavior textBoxDeleteToTokenStartBehavior
+            textBoxTable:Add(textBoxOptionBackspace, textBoxDeleteToTokenStartBehavior)
 
+InputSet textBoxOptionDelete
+            textBoxOptionDelete:SetKeyboardInput(keys:FORWARD_DELETE)
+            textBoxOptionDelete:AddModifier(textBoxOptionBackspace:ALT)
+            TextBoxDeleteToTokenEndBehavior textBoxDeleteToTokenEndBehavior
+            textBoxTable:Add(textBoxOptionDelete, textBoxDeleteToTokenEndBehavior)
+            
         else
             InputSet textBoxControlC
             textBoxControlC:SetKeyboardInput(keys:C)
@@ -807,6 +819,18 @@ shared class DefaultInputSets
             textBoxControlLeft:AddModifier(textBoxControlLeft:CONTROL)
             TextBoxCaretToTokenStartBehavior textBoxCaretToTokenStartBehavior
             textBoxTable:Add(textBoxControlLeft, textBoxCaretToTokenStartBehavior)
+            
+InputSet textBoxControlBackspace
+            textBoxControlBackspace:SetKeyboardInput(keys:BACKSPACE)
+            textBoxControlBackspace:AddModifier(textBoxControlBackspace:CONTROL)
+            TextBoxDeleteToTokenStartBehavior textBoxDeleteToTokenStartBehavior
+            textBoxTable:Add(textBoxControlBackspace, textBoxDeleteToTokenStartBehavior)
+
+InputSet textBoxControlDelete
+            textBoxControlDelete:SetKeyboardInput(keys:FORWARD_DELETE)
+            textBoxControlDelete:AddModifier(textBoxControlDelete:CONTROL)
+            TextBoxDeleteToTokenEndBehavior textBoxDeleteToTokenEndBehavior
+            textBoxTable:Add(textBoxControlDelete, textBoxDeleteToTokenEndBehavior)
         end
         
         TextBoxCaretStartMoveBehavior textBoxLeftBehavior
@@ -1297,6 +1321,18 @@ shared class DefaultInputSets
             textFieldSelectAltLeft:AddModifier(textFieldSelectAltLeft:SHIFT)
             TextFieldSelectTokenStartBehavior textFieldSelectTokenStartBehavior
             textFieldTable:Add(textFieldSelectAltLeft, textFieldSelectTokenStartBehavior)
+            
+InputSet textFieldControlBackspace
+            textFieldControlBackspace:SetKeyboardInput(keys:BACKSPACE)
+            textFieldControlBackspace:AddModifier(textFieldControlBackspace:ALT)
+            TextFieldDeleteToTokenStartBehavior textFieldDeleteToTokenStartBehavior
+            textFieldTable:Add(textFieldControlBackspace, textFieldDeleteToTokenStartBehavior)
+
+InputSet textFieldControlDelete
+            textFieldControlDelete:SetKeyboardInput(keys:FORWARD_DELETE)
+            textFieldControlDelete:AddModifier(textFieldControlDelete:ALT)
+            TextFieldDeleteToTokenEndBehavior textFieldDeleteToTokenEndBehavior
+            textFieldTable:Add(textFieldControlDelete, textFieldDeleteToTokenEndBehavior)
         else
             InputSet textFieldControlC
             textFieldControlC:SetKeyboardInput(keys:C)
@@ -1361,6 +1397,18 @@ shared class DefaultInputSets
             textFieldSelectCtrlLeft:AddModifier(textFieldSelectCtrlLeft:SHIFT)
             TextFieldSelectTokenStartBehavior textFieldSelectTokenStartBehavior
             textFieldTable:Add(textFieldSelectCtrlLeft, textFieldSelectTokenStartBehavior)
+            
+InputSet textFieldControlBackspace
+            textFieldControlBackspace:SetKeyboardInput(keys:BACKSPACE)
+            textFieldControlBackspace:AddModifier(textFieldControlBackspace:CONTROL)
+            TextFieldDeleteToTokenStartBehavior textFieldDeleteToTokenStartBehavior
+            textFieldTable:Add(textFieldControlBackspace, textFieldDeleteToTokenStartBehavior)
+
+InputSet textFieldControlDelete
+            textFieldControlDelete:SetKeyboardInput(keys:FORWARD_DELETE)
+            textFieldControlDelete:AddModifier(textFieldControlDelete:CONTROL)
+            TextFieldDeleteToTokenEndBehavior textFieldDeleteToTokenEndBehavior
+            textFieldTable:Add(textFieldControlDelete, textFieldDeleteToTokenEndBehavior)
         end
         gameInput:AddInputTable(textFieldTable)
     end

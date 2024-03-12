@@ -1,0 +1,470 @@
+package Libraries.Robots.BirdBrain
+
+/*
+The Hummingbird class allows the user to control a single Hummingbird robotics kit from 
+BirdBrain Technologies. Use of this class requires a Hummingbird which is running BirdBrain Technologies' firmware and is connected to the computer over bluetooth via the BlueBird Connector app (firmware and software available at 
+https://learn.birdbraintechnologies.com/install-shortcuts/).
+
+Attribute: Example
+
+use Libraries.Robots.BirdBrain.Hummingbird
+class Main
+   action Main
+      
+      Hummingbird hummingbird
+
+      //wave a servo attached to port 1
+      repeat 4 times
+        hummingbird:SetPositionServo(1, 90)
+        hummingbird:Pause(1)
+        hummingbird:SetPositionServo(1, 180)
+        hummingbird:Pause(1)
+      end
+
+      hummingbird:Disconnect()
+
+   end
+end
+*/
+class Hummingbird
+    system action Hummingbird
+
+    /*
+        This action sets the position servo at a given port to a specific angle. 
+
+        Attribute: Parameter port The port that the position servo is attached to 
+        (Range: 1 to 4).
+
+        Attribute: Parameter position The angle of the position servo (Range: 0 to 180).
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        //Set the servo attached to port 1 to 90 degrees
+        hummingbird:SetPositionServo(1, 90)
+        hummingbird:Disconnect()
+
+    */
+    system action SetPositionServo(integer port, integer angle)
+
+    /*
+        This action sets the rotation servo at a given port to a specific speed. 
+
+        Attribute: Parameter port The port that the rotation servo is attached to
+        (Range: 1 to 4).
+
+        Attribute: Parameter speed The speed of the rotation servo (Range: -100 to 100).
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        //Set the servo attached to port 2 to 50% speed
+        hummingbird:SetRotationServo(2, 50)
+        hummingbird:Disconnect()
+
+    */
+    system action SetRotationServo(integer port, integer speed)
+
+    /*
+        This action sets the LED at a given port to a specific light intensity. 
+
+        Attribute: Parameter port The port that the LED is attached to (Range: 1 to 3).
+
+        Attribute: Parameter intensity The intensity of the LED (Range: 0 to 100).
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        //Set the LED attached to port 1 to the maximum brightness
+        hummingbird:SetLED(1, 100)
+        hummingbird:Disconnect()
+
+    */
+    system action SetLED(integer port, integer intensity)
+
+    /*
+        This action sets the triLED at a given port to a specific color. 
+
+        Attribute: Parameter port The port that the LED is attached to (Range: 1 to 2).
+
+        Attribute: Parameter red The intensity of red light of the triLED 
+        (Range: 0 to 100).
+
+        Attribute: Parameter green The intensity of green light of the triLED 
+        (Range: 0 to 100).
+
+        Attribute: Parameter blue The intensity of blue light of the triLED 
+        (Range: 0 to 100).
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        //Set the LED attached to port 1 to bright white
+        hummingbird:SetTriLED(1, 100, 100, 100)
+        hummingbird:Disconnect()
+
+    */
+    system action SetTriLED(integer port, integer red, integer green, integer blue)
+
+    /*
+        This action returns light sensor value at a given port after processing the
+        raw sensor value retrieved. 
+
+        Attribute: Parameter port The port that the light sensor is attached to 
+        (Range: 1 to 3).
+
+        Attribute: Returns The light sensor value. 
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        output "Hummingbird Light on port 1: " + hummingbird:GetLight(1)
+        hummingbird:Disconnect()
+
+    */
+    system action GetLight(integer port) returns integer
+
+    /*
+        This action returns sound sensor value at a given port after processing the raw sensor value retrieved.
+
+        Attribute: Parameter port The port that the sound sensor is attached to 
+        (Range: 1 to 3).
+
+        Attribute: Returns The sound sensor value. 
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        output "Hummingbird Sound on port 2: " + hummingbird:GetSound(2)
+        hummingbird:Disconnect()
+
+    */
+    system action GetSound(integer port) returns integer
+
+    /*
+        This action returns distance sensor value at a given port after processing 
+        the raw sensor value retrieved.
+
+        Attribute: Parameter port The port that the sound sensor is attached to 
+        (Range: 1 to 3).
+
+        Attribute: Returns The distance sensor value. 
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        output "Hummingbird Distance on port 3: " + hummingbird:GetDistance(3)
+        hummingbird:Disconnect()
+
+    */
+    system action GetDistance(integer port) returns integer
+
+    /*
+        This action returns dial value at a given port after processing the raw 
+        sensor value retrieved.
+
+        Attribute: Parameter port The port that the dial is attached to 
+        (Range: 1 to 3).
+
+        Attribute: Returns The dial value.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        output "Hummingbird Dial on port 1: " + hummingbird:GetDial(1)
+        hummingbird:Disconnect()
+
+    */
+    system action GetDial(integer port) returns integer
+
+    /*
+        This action returns voltage value at a given port after processing the raw sensor value retrieved.
+
+        Attribute: Parameter port The port that the dial is attached to (Range: 1 to 3).
+
+        Attribute: Returns The voltage value.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        output "Hummingbird Voltage on port 1: " + hummingbird:GetVoltage(1)
+        hummingbird:Disconnect()
+
+    */
+    system action GetVoltage(integer port) returns number
+
+    /*
+        This action lets the LED Array display a given message.
+
+        Attribute: Parameter message The message that will be displayed on the LED Array.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        hummingbird:Print("Hello world")
+        hummingbird:Disconnect()
+
+    */    
+    system action Print(text message)
+
+    /*
+        This action lets the LED Array display a given message.
+
+        Attribute: Parameter message The message that will be displayed on the LED Array.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        hummingbird:Output("Hello world")
+        hummingbird:Disconnect()
+
+    */
+    system action Output(text message)
+
+    /*
+        This action lets the LED Array display a pattern based on an array of 1s and 0s.
+
+        Attribute: Parameter ledValues The list of integers that the function takes in to 
+        set the LED Array. 1 means on and 0 means off.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        //Display a smiley face on the micro:bit LED array
+        hummingbird:SetDisplay("0000001010000001000101110")
+        hummingbird:Disconnect()
+
+    */
+    system action SetDisplay(text ledValues)
+
+    /*
+        This action turns on or off a single LED on the micro:bit LED array. 
+
+        Attribute: Parameter x The column of the LED (Range: 1 to 5).
+
+        Attribute: Parameter y The row of the LED (Range: 1 to 5).
+
+        Attribute: Parameter value The value of the LED (0 for off, 1 for on).
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        // Turn on the middle LED of the LED array.
+        hummingbird:SetPoint(3, 3, 1)
+        hummingbird:Disconnect()
+
+    */
+    system action SetPoint(integer row, integer column, integer value)
+
+    /*
+        This action sets the micro:bit buzzer to play the given note for 
+        the given duration.
+
+        Attribute: Parameter note Midi note number to play (Range: 32 to 135).
+
+        Attribute: Parameter beats Duration in beats (Range: 0 to 16); each 
+        beat is one second.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        //Play middle C for 1 beat.
+        hummingbird:PlayNote(60, 1)
+        hummingbird:Disconnect()
+
+    */
+    system action PlayNote(integer note, number beats)
+
+    /*
+        This action returns the acceleration in the given direction 
+        (X, Y, or Z) in meters per second squared.
+
+        Attribute: Parameter axis The direction of which the acceleration will 
+        be returned.
+
+        Attribute: Returns Acceleration in meters per second squared.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        output "X Acceleration: " + hummingbird:GetAcceleration("x")
+        hummingbird:Disconnect()
+
+    */
+    system action GetAcceleration(text axis) returns number
+
+    /*
+        This action returns the magnetometer value in the given direction 
+        (X, Y, or Z) in microtesla.
+
+        Attribute: Parameter axis The direction of which the magnetometer value 
+        will be returned.
+
+        Attribute: Returns Magnetometer value in microtesla.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        output "Z Magnetometer: " + hummingbird:GetMagnetometer("z")
+        hummingbird:Disconnect()
+
+    */
+    system action GetMagnetometer(text axis) returns integer
+
+    /*
+        This action returns the direction in degrees from north. 
+
+        Attribute: Returns The direction in degrees (Range: 0 to 360).
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        output "Compass: " + hummingbird:GetCompass()
+        hummingbird:Disconnect()
+
+    */
+    system action GetCompass returns integer
+
+    /*
+        This action checks whether the specified micro:bit button is pressed. 
+        The function prints an error if the inputs are not in the specified range.
+
+        Attribute: Parameter button The button that will be checked 
+        (Range: "A", "B", "LOGO").
+
+        Attribute: Returns true if the button is pressed and false otherwise.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        output "Button A: " + hummingbird:GetButton("A")
+        hummingbird:Disconnect()
+
+    */
+    system action GetButton(text button) returns boolean
+
+    /*
+        This action returns the current sound level from the micro:bit sound sensor.
+
+        Attribute: Returns Sound level.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        output "Sound: " + hummingbird:GetSound()
+        hummingbird:Disconnect()
+
+    */
+    system action GetSound returns integer
+
+    /*
+        This action returns the current temperature in degrees Celsius from the 
+        micro:bit temperature sensor.
+
+        Attribute: Returns Temperature in degrees Celsius.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        output "Temperature: " + hummingbird:GetTemperature()
+        hummingbird:Disconnect()
+
+    */
+    system action GetTemperature returns integer
+
+    /*
+        This action tells you whether the micro:bit is being shaken. 
+
+        Attribute: Returns A boolean value telling you the shake state.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        output "Is Shaking?: " + hummingbird:IsShaking()
+        hummingbird:Disconnect()
+
+    */
+    system action IsShaking returns boolean
+
+    /*
+        This action provides information about the device's current orientation.
+
+        Attribute: Returns The orientation of the device. (Range: Screen up, 
+        Screen down, Tilt left, Tilt right, Logo up, or Logo down).
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        output "Microbit Orientation: " + hummingbird:GetOrientation()
+        hummingbird:Disconnect()
+
+    */
+    system action GetOrientation returns text
+
+    /*
+        This action turns off all the outputs. 
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        hummingbird:StopAll()
+        hummingbird:Disconnect()
+
+    */
+    system action StopAll
+
+    /*
+        This action pauses the program for a time in seconds.
+
+        Attribute: Parameter seconds Amount of time the program should pause.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        //Display a smiley face for 1 second
+        hummingbird:SetDisplay("0000001010000001000101110")
+        hummingbird:Pause(1)
+        hummingbird:SetDisplay("0000000000000000000000000")
+        hummingbird:Disconnect()
+
+    */
+    system action Pause(number seconds)
+
+    /*
+        This action closes the http connection to save memory. It should be used 
+        at the end of every program.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Hummingbird
+        Hummingbird hummingbird
+        hummingbird:Disconnect()
+
+    */
+    system action Disconnect
+
+end

@@ -1,0 +1,297 @@
+package Libraries.Robots.BirdBrain
+
+/*
+The Microbit class allows the user to control a single BBC micro:bit. Use of this class 
+requires a micro:bit which is running BirdBrain Technologies' firmware and is connected to 
+the computer over bluetooth via the BlueBird Connector app (firmware and software available at 
+https://learn.birdbraintechnologies.com/install-shortcuts/).
+
+Attribute: Example
+
+use Libraries.Robots.BirdBrain.Microbit
+class Main
+   action Main
+      
+      Microbit microbit
+
+      //If the A button is being pressed, display a smiley face. Otherwise display a frown.
+      if microbit:GetButton("A")
+        microbit:SetDisplay("0000001010000001000101110")
+      else
+        microbit:SetDisplay("0000001010000000111010001")
+      end
+
+      microbit:Disconnect()
+
+   end
+end
+*/
+class Microbit
+    system action Microbit
+
+    /*
+        This action lets the LED Array display a given message.
+
+        Attribute: Parameter message The message that will be displayed on the LED Array.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Microbit
+        Microbit microbit
+        microbit:Print("Hello world")
+        microbit:Disconnect()
+
+    */    
+    system action Print(text message)
+
+    /*
+        This action lets the LED Array display a given message.
+
+        Attribute: Parameter message The message that will be displayed on the LED Array.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Microbit
+        Microbit microbit
+        microbit:Output("Hello world")
+        microbit:Disconnect()
+
+    */
+    system action Output(text message)
+
+    /*
+        This action lets the LED Array display a pattern based on an array of 1s and 0s.
+
+        Attribute: Parameter ledValues The list of integers that the function takes in to 
+        set the LED Array. 1 means on and 0 means off.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Microbit
+        Microbit microbit
+        //Display a smiley face on the micro:bit LED array
+        microbit:SetDisplay("0000001010000001000101110")
+        microbit:Disconnect()
+
+    */
+    system action SetDisplay(text ledValues)
+
+    /*
+        This action turns on or off a single LED on the micro:bit LED array. 
+
+        Attribute: Parameter x The column of the LED (Range: 1 to 5).
+
+        Attribute: Parameter y The row of the LED (Range: 1 to 5).
+
+        Attribute: Parameter value The value of the LED (0 for off, 1 for on).
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Microbit
+        Microbit microbit
+        // Turn on the middle LED of the LED array.
+        microbit:SetPoint(3, 3, 1)
+        microbit:Disconnect()
+
+    */
+    system action SetPoint(integer row, integer column, integer value)
+
+    /*
+        This action sets the micro:bit buzzer to play the given note for 
+        the given duration.
+
+        Attribute: Parameter note Midi note number to play (Range: 32 to 135).
+
+        Attribute: Parameter beats Duration in beats (Range: 0 to 16); each 
+        beat is one second.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Microbit
+        Microbit microbit
+        //Play middle C for 1 beat.
+        microbit:PlayNote(60, 1)
+        microbit:Disconnect()
+
+    */
+    system action PlayNote(integer note, number beats)
+
+    /*
+        This action returns the acceleration in the given direction 
+        (X, Y, or Z) in meters per second squared.
+
+        Attribute: Parameter axis The direction of which the acceleration will 
+        be returned.
+
+        Attribute: Returns Acceleration in meters per second squared.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Microbit
+        Microbit microbit
+        output "X Acceleration: " + microbit:GetAcceleration("x")
+        microbit:Disconnect()
+
+    */
+    system action GetAcceleration(text axis) returns number
+
+    /*
+        This action returns the magnetometer value in the given direction 
+        (X, Y, or Z) in microtesla.
+
+        Attribute: Parameter axis The direction of which the magnetometer value 
+        will be returned.
+
+        Attribute: Returns Magnetometer value in microtesla.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Microbit
+        Microbit microbit
+        output "Z Magnetometer: " + microbit:GetMagnetometer("z")
+        microbit:Disconnect()
+
+    */
+    system action GetMagnetometer(text axis) returns integer
+
+    /*
+        This action returns the direction in degrees from north. 
+
+        Attribute: Returns The direction in degrees (Range: 0 to 360).
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Microbit
+        Microbit microbit
+        output "Compass: " + microbit:GetCompass()
+        microbit:Disconnect()
+
+    */
+    system action GetCompass returns integer
+
+    /*
+        This action checks whether the specified micro:bit button is pressed. 
+        The function prints an error if the inputs are not in the specified range.
+
+        Attribute: Parameter button The button that will be checked 
+        (Range: "A", "B", "LOGO").
+
+        Attribute: Returns true if the button is pressed and false otherwise.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Microbit
+        Microbit microbit
+        output "Button A: " + microbit:GetButton("A")
+        microbit:Disconnect()
+
+    */
+    system action GetButton(text button) returns boolean
+
+    /*
+        This action returns the current sound level from the micro:bit sound sensor.
+
+        Attribute: Returns Sound level.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Microbit
+        Microbit microbit
+        output "Sound: " + microbit:GetSound()
+        microbit:Disconnect()
+
+    */
+    system action GetSound returns integer
+
+    /*
+        This action returns the current temperature in degrees Celsius from the 
+        micro:bit temperature sensor.
+
+        Attribute: Returns Temperature in degrees Celsius.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Microbit
+        Microbit microbit
+        output "Temperature: " + microbit:GetTemperature()
+        microbit:Disconnect()
+
+    */
+    system action GetTemperature returns integer
+
+    /*
+        This action tells you whether the micro:bit is being shaken. 
+
+        Attribute: Returns A boolean value telling you the shake state.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Microbit
+        Microbit microbit
+        output "Is Shaking?: " + microbit:IsShaking()
+        microbit:Disconnect()
+
+    */
+    system action IsShaking returns boolean
+
+    /*
+        This action provides information about the device's current orientation.
+
+        Attribute: Returns The orientation of the device. (Range: Screen up, 
+        Screen down, Tilt left, Tilt right, Logo up, or Logo down).
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Microbit
+        Microbit microbit
+        output "Microbit Orientation: " + microbit:GetOrientation()
+        microbit:Disconnect()
+
+    */
+    system action GetOrientation returns text
+
+    /*
+        This action turns off all the outputs. 
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Microbit
+        Microbit microbit
+        microbit:StopAll()
+        microbit:Disconnect()
+
+    */
+    system action StopAll
+
+    /*
+        This action pauses the program for a time in seconds.
+
+        Attribute: Parameter seconds Amount of time the program should pause.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Microbit
+        Microbit microbit
+        //Display a smiley face for 1 second
+        microbit:SetDisplay("0000001010000001000101110")
+        microbit:Pause(1)
+        microbit:SetDisplay("0000000000000000000000000")
+        microbit:Disconnect()
+
+    */
+    system action Pause(number seconds)
+
+    /*
+        This action closes the http connection to save memory. It should be used 
+        at the end of every program.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Microbit
+        Microbit microbit
+        microbit:Disconnect()
+
+    */
+    system action Disconnect
+
+end
