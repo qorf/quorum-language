@@ -63,7 +63,7 @@ integer LABEL_SIZE = 12
     end
     
     action SetFromList(Array<text> list)
-        GetFormChildren():Empty()
+        EmptyPage()
         integer i = 0
         repeat while i < list:GetSize()
             AddBlockPaletteItem(list:Get(i))
@@ -72,7 +72,9 @@ integer LABEL_SIZE = 12
     end
 
     action SetFromResult(BlockSuggestionResult result)
-        GetFormChildren():Empty()
+EmptyPage()
+        suggestedActionItems:Empty()
+        suggestedActions:Empty()
         Class clazz = result:clazz
         if clazz = undefined
             SetupDefaultSuggestions()
