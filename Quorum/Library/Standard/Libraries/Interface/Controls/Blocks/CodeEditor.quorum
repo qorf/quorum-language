@@ -1375,8 +1375,8 @@ MovePlaceholdersToNavigationIndex(selection:GetLine() + 1)
 " + GetIndentationText(scopeDepth)
         if sharesLine
             newLine = "
-
-" + GetIndentationText(scopeDepth)
+"+ GetIndentationText(scopeDepth)+"
+"
         end
 
         /*
@@ -1401,13 +1401,15 @@ MovePlaceholdersToNavigationIndex(selection:GetLine() + 1)
         FreeformBlock newBlock
 
         if currentLine >= 0
-            targetIndex = targetIndex + newLine:GetSize()
+            targetIndex = targetIndex + newLine:GetSize()- newLine:GetLineFeed():GetSize()
 
             newBlock:SetLocalStartLine(currentLine + 1 - parentBlock:GetStartLine())
             newBlock:SetLocalStartIndex(targetIndex - parentBlock:GetStartIndex())
+            newBlock:SetLocalEndIndex(targetIndex - parentBlock:GetStartIndex())
         else
             newBlock:SetLocalStartLine(0)
             newBlock:SetLocalStartIndex(0)
+            newBlock:SetLocalEndIndex(0)
         end
 
         newBlock:SetLocalEndIndex(newBlock:GetLocalStartIndex())
