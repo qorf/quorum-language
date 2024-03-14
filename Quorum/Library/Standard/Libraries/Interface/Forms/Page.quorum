@@ -492,6 +492,17 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
             CalculateDefaultFocusOrdering()
         end
     end
+    
+action EmptyPage
+Array<Item2D> children = GetFormChildren()
+        i = 0
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            Remove(child)
+            i = i + 1
+        end
+        GetFormChildren():Empty()
+end
 
     action GetFormChildren returns Array<Item2D>
         return GetScrollRegionItems()
