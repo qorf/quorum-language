@@ -136,6 +136,13 @@ end
 if clazzDocs not= undefined 
                         AddLabel(clazz:GetDocumentation():GetShortDescription()):SetFontSize(LABEL_SIZE)
         end
+        else
+            if clazzDocs not= undefined
+                AddBanner(className, clazz:GetDocumentation():GetShortDescription())
+            else
+                AddBanner(className + " Class")
+            end
+            AddFilterTextField()
         end
         
         BlockPaletteVariableList varList = undefined
@@ -157,8 +164,6 @@ if clazzDocs not= undefined
             varList:SetFontSize(LABEL_SIZE)
             me:variableList = varList
         end
-        boolean showActions = true
-        
         
 if blockVariables not= undefined and blockVariables:GetSize() > 0
             integer i = 0
@@ -195,7 +200,7 @@ varList:AddParentVariable(variable)
             vars:Sort()
         end
         
-        
+        boolean showActions = true
 if currentBlock not= undefined
             if currentBlock is FreeformBlock
                 if IsBlockInAction(currentBlock)
