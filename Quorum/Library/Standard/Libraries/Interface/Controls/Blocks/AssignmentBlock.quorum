@@ -96,17 +96,8 @@ class AssignmentBlock is SingleLineBlock
             AddVariableEditField(variable)
         elseif IsObjectAssignment()
             variable = objectAssignmentContext:variableLocation
-            Location objName = objectAssignmentContext:objectLocation
-            type = objectAssignmentContext:typeLocation
 
-            EditField typeField
-            me:typeField = typeField
-            Add(typeField)
-
-            typeField:Setup("Type", objName:GetIndex() - GetStartIndex(), objName:GetIndexEnd() + 1 - GetStartIndex())
-            typeField:SetRightPadding(spacing)
-
-            AddVariableEditField(variable)
+            AddVariableEditField(objectAssignmentContext:GetLocation(), variable)
         elseif IsParentAssignment()
             variable = parentAssignmentContext:variableLocation
 
