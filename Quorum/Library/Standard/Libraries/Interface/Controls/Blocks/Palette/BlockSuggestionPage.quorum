@@ -134,6 +134,10 @@ end
         if blockVariables not= undefined or classVariables not= undefined or parentVariables not= undefined
             AddLabel("Variables"):SetFontSize(HEADER2_SIZE)
             varList = AddVariableList()
+            text listName = "Variable List for class " + clazz:GetName()
+            varList:SetName(listName)
+            integer size = varList:GetSize()
+            varList:SetDescription(size + " items")
             varList:SetFontSize(LABEL_SIZE)
             me:variableList = varList
         end
