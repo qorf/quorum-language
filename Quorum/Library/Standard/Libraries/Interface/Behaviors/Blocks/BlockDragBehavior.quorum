@@ -204,6 +204,7 @@ BlockPaletteItem paletteItem = cast(BlockPaletteItem, target)
             Block block = blocks:Get(i)
             
             Block dummyBlock = block
+dummyBlock:SetInterfaceScale(environment:GetInterfaceScale())
             if not block:IsPlaceholder()
                 dummyBlock = block:CopyToPlaceholder()
             end

@@ -99,6 +99,7 @@ blockListener:SetStartContext(undefined)
             number height = 0        
             Block block = root
             repeat until block = undefined
+               block:SetInterfaceScale(GetInterfaceScale()) 
                 block:SetFontSize(GetFontSize())
                 if block is SingleLineBlock
                     Block copy = block:CopyToPlaceholder()
