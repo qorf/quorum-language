@@ -140,6 +140,8 @@ class ExpressionsTester
         NotIsObject()
         NoVariable()
         NoVariable2()
+        
+StrangeParentParserBug()
         SelfInitialize()
         TextDoublePlus()
         UndefinedFieldUsage()
@@ -1763,6 +1765,17 @@ class ExpressionsTester
         suite:TestPythonFail(files)
     end
 
+    
+    
+action StrangeParentParserBug
+        Array<File> files
+        File main
+        main:SetPath(path + "StrangeParentParserBug.quorum")
+        files:Add(main)
+        suite:TestFail(files)
+        suite:TestJavaScriptFail(files)
+        suite:TestPythonFail(files)
+    end
     action SelfInitialize
         Array<File> files
         File main

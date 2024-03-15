@@ -2596,7 +2596,12 @@ next = tokenIterator:Next()
                     //guarantee that this will parse, but it does mean all other options are off the table
                     if next not= undefined and next:category = constants:ID
                         next = copy:Next()
-                        if next:category = constants:EQUALITY
+                        if next = undefined
+                            statementError = CreateCompilerError("Expected identifier after parent name. " + moreInformationParent)
+                            statementError:SetCode(codes:PARSER_GET_STATEMENT_TYPE_BAD_PARENT_ID_UNDEFINED)
+                            SetCompilerErrorLocation(statementError, next, undefined)
+                            return NONE
+                        elseif next:category = constants:EQUALITY
                             return PARENT_ASSIGNMENT
                         else
                             return PARENT_VARIABLE_SOLO_ACTION_CALL
