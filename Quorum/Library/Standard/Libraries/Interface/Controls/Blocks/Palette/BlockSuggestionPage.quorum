@@ -80,14 +80,16 @@ EmptyPage()
             SetupDefaultSuggestions()
             return now
         end
+        text className = clazz:GetName()
         me:isImplicitClass = clazz:IsImplicitClass()
         Block currentBlock = undefined
         if result:requestingBlock not= undefined
             currentBlock = result:requestingBlock
 if not currentBlock:IsErrorsEmpty()
                 CompilerError error = currentBlock:GetFirstError()
-                AddLabel("Errors: "):SetFontSize(HEADER2_SIZE)
-                AddLabel(error:GetErrorMessage()):SetFontSize(LABEL_SIZE)
+                AddBanner("Errors: ", error:GetErrorMessage())
+                //AddLabel("Errors: "):SetFontSize(HEADER2_SIZE)
+                ///AddLabel(error:GetErrorMessage()):SetFontSize(LABEL_SIZE)
                 SetupDefaultSuggestions()
                 return now
             end
@@ -104,35 +106,49 @@ if not currentBlock:IsErrorsEmpty()
 Array<Variable> classVariables = result:classVariables
 Array<Variable> parentVariables = result:parentVariables
         
-AddFilterTextField()
-    AddLabel(clazz:GetName()):SetFontSize(HEADER_SIZE)
+    //AddLabel(className):SetFontSize(HEADER_SIZE)
         Documentation clazzDocs = undefined
         clazzDocs = clazz:GetDocumentation()
-        if clazzDocs = undefined
-            AddLabel("No documentation available"):SetFontSize(LABEL_SIZE)
-        else
-//TextBox box = AddTextBox("Class Documentation")
-                //box:SetFontSize(LABEL_SIZE)
-            //box:SetPercentageHeight(0.1)
-                        AddLabel(clazz:GetDocumentation():GetShortDescription()):SetFontSize(LABEL_SIZE)
-        end
+    text blockName = ""
+        text blockDescription = ""
 if currentBlock not= undefined
             Block block = currentBlock
 if block is MultipleLineBlockPart
                 block = block:GetParentBlock()
             end
 if block:GetBlockName() not= ""
-                        AddLabel(block:GetBlockName()):SetFontSize(HEADER_SIZE)
+                        blockName = block:GetBlockName()
 end
             if block:GetBlockDescription() not= ""
                 //TextBox box = AddTextBox("Block Description")
                 //box:SetFontSize(LABEL_SIZE)
-                        AddLabel(block:GetBlockDescription()):SetFontSize(LABEL_SIZE)
+                        blockDescription = block:GetBlockDescription()
 end
         end
+        if blockName not= ""
+            if blockDescription not= ""
+                AddBanner(blockName, blockDescription)
+            else
+                AddBanner(blockName)
+            end
+            AddFilterTextField()
+            AddLabel(className + " Class"):SetFontSize(HEADER_SIZE)
+if clazzDocs not= undefined 
+                        AddLabel(clazz:GetDocumentation():GetShortDescription()):SetFontSize(LABEL_SIZE)
+        end
+        end
+        
         BlockPaletteVariableList varList = undefined
-        if blockVariables not= undefined or classVariables not= undefined or parentVariables not= undefined
-            AddLabel("Variables"):SetFontSize(HEADER2_SIZE)
+        boolean showVariables = false
+        if blockVariables not= undefined and blockVariables:GetSize() > 0
+            showVariables = true
+        elseif classVariables not= undefined and classVariables:GetSize() > 0
+            showVariables = true
+        elseif parentVariables not= undefined and parentVariables:GetSize() > 0
+            showVariables = true
+        end
+        if showVariables
+            AddLabel("Variables for " + className):SetFontSize(HEADER2_SIZE)
             varList = AddVariableList()
             varList:SetFontSize(LABEL_SIZE)
             me:variableList = varList
@@ -140,7 +156,7 @@ end
         boolean showActions = true
         
         
-if blockVariables not= undefined
+if blockVariables not= undefined and blockVariables:GetSize() > 0
             integer i = 0
             Array<text> vars
             repeat while i < blockVariables:GetSize()
@@ -152,7 +168,7 @@ if blockVariables not= undefined
             end
             vars:Sort()
         end
-if classVariables not= undefined
+if classVariables not= undefined and classVariables:GetSize() > 0
             integer i = 0
             Array<text> vars
             repeat while i < classVariables:GetSize()
@@ -163,7 +179,7 @@ varList:AddClassVariable(variable)
             end
             vars:Sort()
         end
-if parentVariables not= undefined
+if parentVariables not= undefined and parentVariables:GetSize() > 0
             integer i = 0
             Array<text> vars
             repeat while i < parentVariables:GetSize()
@@ -191,6 +207,7 @@ AddBasicBlocks()
                     AddBasicBlocks()
                     AddControlBlocks()
                     AddActionBlocks()
+                    showActions = false
                 end
             end
         end
@@ -200,7 +217,7 @@ if not showActions
             return now
         end
         if actions not= undefined
-            AddLabel("Actions"):SetFontSize(HEADER_SIZE)
+            AddLabel("Actions for " + className):SetFontSize(HEADER_SIZE)
 
         integer i = 0
         repeat while i < actions:GetSize()
