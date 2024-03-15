@@ -46,6 +46,14 @@ class FreeformBlock is SingleLineBlock
         SetName("Freeform Block")
     end
     
+    action GetBlockName returns text
+        return "Freeform Block"
+    end
+    
+    action GetBlockDescription returns text
+        return "The freeform block is placeholder for text where you can type code before the editor tries to convert the text to blocks. By default freeform blocks are blank and are added in blank spots in a file where there is an empty line."
+    end
+    
     action IsFastEditable returns boolean
         return true
     end
