@@ -30,6 +30,7 @@ use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Controls.Blocks.ActionBlock
 use Libraries.Interface.Controls.Blocks.ClassBlock
 use Libraries.Interface.Controls.Blocks.FreeformBlock
+use Libraries.Interface.Forms.Banner
 
 class BlockSuggestionPage is BlockPalettePage, SelectionListener, TextChangeListener
 
@@ -127,18 +128,22 @@ end
         end
         if blockName not= ""
             if blockDescription not= ""
-                AddBanner(blockName, blockDescription)
+                Banner banner = AddBanner(blockName, blockDescription)
+                banner:GetLabel():SetFontSize(LABEL_SIZE)
             else
                 AddBanner(blockName)
             end
             AddFilterTextField()
             AddLabel(className + " Class"):SetFontSize(HEADER_SIZE)
 if clazzDocs not= undefined 
-                        AddLabel(clazz:GetDocumentation():GetShortDescription()):SetFontSize(LABEL_SIZE)
+                text description = clazzDocs:RemoveInternalWhitespace(clazzDocs:GetShortDescription())
+                        AddLabel(description):SetFontSize(LABEL_SIZE)
         end
         else
             if clazzDocs not= undefined
-                AddBanner(className, clazz:GetDocumentation():GetShortDescription())
+text description = clazzDocs:RemoveInternalWhitespace(clazzDocs:GetShortDescription())
+                Banner banner = AddBanner(className, description)
+banner:GetLabel():SetFontSize(LABEL_SIZE)
             else
                 AddBanner(className + " Class")
             end
@@ -155,7 +160,9 @@ if clazzDocs not= undefined
             showVariables = true
         end
         if showVariables
-            AddLabel("Variables for " + className):SetFontSize(HEADER2_SIZE)
+            Label varListLabel = AddLabel("Variables for " + className)
+            varListLabel:SetFontSize(HEADER2_SIZE)
+            varListLabel:SetFocusable(false)
             varList = AddVariableList()
             text listName = "Variable List for class " + clazz:GetName()
             varList:SetName(listName)
@@ -256,6 +263,7 @@ AddLabel("Action"):SetFontSize(HEADER2_SIZE)
         //Grouping group = AddGrouping("Filter Group")
         Label filterLabel = AddLabel("Filter")
         filterLabel:SetFontSize(HEADER2_SIZE)
+        filterLabel:SetFocusable(false)
         filterField = AddTextField("Filter Text Field")
         filterField:AddTextChangeListener(me)
     end
