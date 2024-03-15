@@ -1225,7 +1225,7 @@ next = tokenIterator:Next()
             context:SetLastToken(next)
             SetLocation(context)
             context:SetDocumentation(CheckForDocumentation())
-            context:isPublic = false
+            context:isPrivate = true
             tokenIterator:Next()
             return context
         end
