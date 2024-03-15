@@ -1401,7 +1401,10 @@ MovePlaceholdersToNavigationIndex(selection:GetLine() + 1)
         FreeformBlock newBlock
 
         if currentLine >= 0
-            targetIndex = targetIndex + newLine:GetSize()- newLine:GetLineFeed():GetSize()
+            targetIndex = targetIndex + newLine:GetSize()
+            if sharesLine
+                targetIndex = targetIndex - rawCode:GetLineSeparator():GetSize()
+            end
 
             newBlock:SetLocalStartLine(currentLine + 1 - parentBlock:GetStartLine())
             newBlock:SetLocalStartIndex(targetIndex - parentBlock:GetStartIndex())
