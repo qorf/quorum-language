@@ -112,7 +112,11 @@ AddParentVariables(request, vars)
             result:parentVariables = vars
         end
         result:actions = actions
-        result:clazz = request:clazz
+        if request:variableClass not= undefined
+            result:clazz = request:variableClass
+        else
+                    result:clazz = request:clazz
+        end
         result:variableName = variableName
         result:requestingBlock = block
         

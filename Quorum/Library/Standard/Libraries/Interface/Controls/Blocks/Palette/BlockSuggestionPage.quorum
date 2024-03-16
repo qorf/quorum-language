@@ -296,7 +296,7 @@ integer i = 0
                 text actionName = act:GetName()
                 actionName = actionName:ToLowerCase()
             text call = ""
-            if me:variableName not= ""
+            if me:variableName = ""
                                 call = MakeFullActionCall(act, variable:GetName())
             else
 call = MakeFullActionCall(act, me:variableName+":"+variable:GetName())
