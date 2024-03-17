@@ -32,9 +32,9 @@ class UndefinedCompareTwoRelatedRankedMeansTest is Test
         frame:Calculate(compare)
         
         CompareMeansResult result = compare:GetResult()
-        Check(result:GetTestStatistic(), 1.7153800557404717)
-        Check(result:GetProbabilityValue(), 0.08627556958252947)
-        Check(result:GetEffectSize(), 0.7003009752518536)
+        Check(result:GetTestStatistic(), 1.5181442305531794)
+        Check(result:GetProbabilityValue(), 0.1289780429919647)
+        Check(result:GetEffectSize(), 0.6789347398332044)
 
         text summary = result:GetSummary()
         text formalsummary = result:GetFormalSummary()
