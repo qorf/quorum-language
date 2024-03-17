@@ -19,9 +19,9 @@ class UndefinedCompareTwoRankedMeansTest is Test
         DataFrame frame
         frame:LoadFromCommaSeparatedValue("y,x
         2.0,4.0
-        6.0,7.0
+        6.0, 7.0
         3.0, 
-        9.0,8.0
+        ,8.0
         15.0,17.0
         1.0,3.0")
         frame:AddSelectedColumnRange(0,1)
@@ -31,10 +31,9 @@ class UndefinedCompareTwoRankedMeansTest is Test
         frame:Calculate(compare)
         
         CompareMeansResult result = compare:GetResult()
-        Check(result:GetTestStatistic(), 13.5)        
-        Check(result:GetProbabilityValue(), 0.5203772558898254)        
-        Check(result:GetEffectSize(), -0.18554997976872775)        
-
+        Check(result:GetTestStatistic(), 6.5) 
+        Check(result:GetProbabilityValue(), 0.24915263858192693)      
+        Check(result:GetEffectSize(), -0.3644240360469936)        
         text summary = result:GetSummary()
         text formalsummary = result:GetFormalSummary()
         Check(true, summary not= "")
