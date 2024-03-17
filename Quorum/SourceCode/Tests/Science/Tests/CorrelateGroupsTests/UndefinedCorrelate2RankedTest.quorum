@@ -35,23 +35,23 @@ class UndefinedCorrelate2RankedGroupsTest is Test
         
         // Compare 0-1
         CorrelateGroupsResult result0 = compare:GetResults():Get(0)
-        Check(result0:GetTestStatistic(), 11.6619037896906)
-        Check(result0:GetDegreesOfFreedom(), 4.0)
-        Check(result0:GetProbabilityValue(), 3.090856678496709e-4)
-        Check(result0:GetCorrelation(), 0.9856107606091623)
+        Check(result0:GetTestStatistic(), 7.549834435270755)
+        Check(result0:GetDegreesOfFreedom(), 3.0)
+        Check(result0:GetProbabilityValue(), 0.004818230468198537)
+        Check(result0:GetCorrelation(), 0.9746794344808964)
 
         // Compare 0-2
         CorrelateGroupsResult result1 = compare:GetResults():Get(1)
-        Check(result1:GetTestStatistic(), 0.05716619504750293)
-        Check(result1:GetDegreesOfFreedom(), 4.0)
-        Check(result1:GetProbabilityValue(), 0.957154518950437)
-        Check(result1:GetCorrelation(), 0.02857142857142856)
+        Check(result1:GetTestStatistic(), 0.1740776559556979)
+        Check(result1:GetDegreesOfFreedom(), 3.0)
+        Check(result1:GetProbabilityValue(), 0.8728885715695381)
+        Check(result1:GetCorrelation(), 0.10000000000000003)
 
         // Compare 1-2
         CorrelateGroupsResult result2 = compare:GetResults():Get(2)
-        Check(result2:GetTestStatistic(), 0.17459278859379762)
-        Check(result2:GetDegreesOfFreedom(), 4.0)
-        Check(result2:GetProbabilityValue(), 0.8698803787001039)
-        Check(result2:GetCorrelation(), 0.08696565534786727)
+        Check(result2:GetTestStatistic(), 0.36313651960128146)
+        Check(result2:GetDegreesOfFreedom(), 3.0)
+        Check(result2:GetProbabilityValue(), 0.7405819415910722)
+        Check(result2:GetCorrelation(), 0.20519567041703082)
     end
 end
