@@ -6,7 +6,7 @@ use Libraries.Compute.Statistics.Tests.CompareMeans
 use Libraries.Compute.Statistics.Reporting.CompareMeansResult
 
 /*
-    This class tests a repeated measures anova
+    This class tests a undefined repeated measures anova
 */
 class UndefinedCompareSeveralRelatedMeansTest is Test
 
@@ -31,16 +31,16 @@ class UndefinedCompareSeveralRelatedMeansTest is Test
         frame:Calculate(compare)
 
         CompareMeansResult result = compare:GetResult()
-        Check(result:GetTestStatistic(), 13.240542687771192)
+        Check(result:GetTestStatistic(), 8.742740891437025)
         Check(result:GetInformation():GetValue("Measures"):GetValue("df"), 3.0)
-        Check(result:GetInformation():GetValue("Measures"):GetValue("error df"), 15.0)
-        Check(result:GetProbabilityValue(), 1.7181881658023812e-4)
-        Check(result:GetInformation():GetValue("Measures"):GetValue("eta-squared"), 0.688329017807501)                  // matches effectsize::eta_squared in R
-        Check(result:GetInformation():GetValue("Measures"):GetValue("partial-eta-squared"), 0.7258853486112506)         // matches effectsize::eta_squared in R
-        Check(result:GetInformation():GetValue("Measures"):GetValue("generalized-eta-squared"), 0.688329017807501)      // matches effectsize::eta_squared in R
-        Check(result:GetInformation():GetValue("Measures"):GetValue("omega-squared"), 0.6298252896117127)               // matches https://www.jasonfinley.com/tools/OmegaSquaredQuickRef_JRF_3-31-13.pdf
-        Check(result:GetInformation():GetValue("Measures"):GetValue("partial-omega-squared"), 0.6298252896117127)       // matches https://www.jasonfinley.com/tools/OmegaSquaredQuickRef_JRF_3-31-13.pdf
-        Check(result:GetInformation():GetValue("Measures"):GetValue("generalized-omega-squared"), 0.6298252896117127)   // matches (Olejnik 2003)
+        Check(result:GetInformation():GetValue("Measures"):GetValue("error df"), 12.0)
+        Check(result:GetProbabilityValue(), 0.002397895410327533)
+        Check(result:GetInformation():GetValue("Measures"):GetValue("eta-squared"), 0.63599182004089981)                  // matches effectsize::eta_squared in R
+        Check(result:GetInformation():GetValue("Measures"):GetValue("partial-eta-squared"), 0.6860957910014513)         // matches effectsize::eta_squared in R
+        Check(result:GetInformation():GetValue("Measures"):GetValue("generalized-eta-squared"), 0.6359918200408998)      // matches effectsize::eta_squared in R
+        Check(result:GetInformation():GetValue("Measures"):GetValue("omega-squared"), 0.5531479157032437)               // matches https://www.jasonfinley.com/tools/OmegaSquaredQuickRef_JRF_3-31-13.pdf
+        Check(result:GetInformation():GetValue("Measures"):GetValue("partial-omega-squared"), 0.5531479157032437)       // matches https://www.jasonfinley.com/tools/OmegaSquaredQuickRef_JRF_3-31-13.pdf
+        Check(result:GetInformation():GetValue("Measures"):GetValue("generalized-omega-squared"), 0.5531479157032437)   // matches (Olejnik 2003)
     
         text summary = result:GetSummary()
         text formalsummary = result:GetFormalSummary()
