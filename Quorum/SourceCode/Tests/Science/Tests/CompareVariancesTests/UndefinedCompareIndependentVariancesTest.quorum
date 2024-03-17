@@ -32,10 +32,10 @@ class UndefinedCompareIndependentVariancesTest is Test
         frame:Calculate(compare)
         
         CompareVariancesResult result = compare:GetResult()
-        Check(result:GetTestStatistic(), 1.275736252280429)
+        Check(result:GetTestStatistic(), 0.9076824219537616)
         Check(result:GetDegreesOfFreedomTable():GetValue(result:GetSources():Get(0)):GetValue("numerator"), 3.0)
-        Check(result:GetDegreesOfFreedomTable():GetValue(result:GetSources():Get(0)):GetValue("denominator"), 20.0)
-        Check(result:GetProbabilityValue(), 0.30972657586910013)
+        Check(result:GetDegreesOfFreedomTable():GetValue(result:GetSources():Get(0)):GetValue("denominator"), 19.0)
+        Check(result:GetProbabilityValue(), 0.45581742749756604)
 
         text summary = result:GetSummary()
         text formalsummary = result:GetFormalSummary()
@@ -48,10 +48,10 @@ class UndefinedCompareIndependentVariancesTest is Test
         frame:Calculate(compare2)
         
         CompareVariancesResult result2 = compare2:GetResult()
-        Check(result2:GetTestStatistic(), 1.6138848191141646)
+        Check(result2:GetTestStatistic(), 1.203477314269633)
         Check(result2:GetDegreesOfFreedomTable():GetValue(result:GetSources():Get(0)):GetValue("numerator"), 3.0)
-        Check(result2:GetDegreesOfFreedomTable():GetValue(result:GetSources():Get(0)):GetValue("denominator"), 20.0)
-        Check(result2:GetProbabilityValue(), 0.2177022863231628)
+        Check(result2:GetDegreesOfFreedomTable():GetValue(result:GetSources():Get(0)):GetValue("denominator"), 19.0)
+        Check(result2:GetProbabilityValue(), 0.33539979109440277)
 
         text summary2 = result2:GetSummary()
         text formalsummary2 = result2:GetFormalSummary()
