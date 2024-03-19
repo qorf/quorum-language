@@ -53,6 +53,13 @@ class CodeEditorAcceptDraggedBlockBehavior is Behavior
             end
             
             if dropEvent:eventType = dropEvent:DRAGGING_CONTINUED
+                // Ignore any drag requests if the source behavior hasn't started dragging "for real" yet.
+                // This can occur if the drag is only a pixel or two, so it hasn't moved far enough yet to surpass the source behavior's distance threshold.
+                if sourceDragBehavior:IsDraggingBlocks() = false
+                    output "ADB: Return early."
+                    return now
+                end
+                
                 if line not= lastCandidateLine
                     
                     if editor:CanAcceptPlaceholdersAtNavigationIndex(line) = false
@@ -104,6 +111,7 @@ toInsert = environment:GetCodeBetween(firstBlock:GetStartIndex(), lastBlock:GetE
                         editor:ConvertPlaceholdersToBlocks(toInsert)
                     end
                     sourceBlocks = undefined
+                    sourceDragBehavior:Reset()
                 end
             end
         end

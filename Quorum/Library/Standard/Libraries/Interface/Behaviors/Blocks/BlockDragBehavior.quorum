@@ -84,7 +84,6 @@ dragDistanceThreshold = 10
                 dragSource = editor
             elseif targetItem is Block
                 Block block = cast(Block, targetItem)
-                //editor = block:GetEditor()
                 BlockEnvironment environment = block:GetBlockEnvironment()
                 if environment is CodeEditor
                     editor = cast(CodeEditor, environment)
@@ -140,7 +139,7 @@ BlockPaletteItem paletteItem = cast(BlockPaletteItem, target)
             end
             
             
-            if IsDraggingBlocks()
+            if IsDraggingSourceBlocks()
                 UnloadDraggedBlocks()
             end
             
@@ -152,11 +151,11 @@ BlockPaletteItem paletteItem = cast(BlockPaletteItem, target)
             end
             
         elseif dragEvent:eventType = dragEvent:DRAGGING_CONTINUED and draggingStarted = true
-            if IsDraggingBlocks()
+            if IsDraggingSourceBlocks()
                 dragAnchor:SetPosition(dragEvent:GetX(), dragEvent:GetY())
             end
         elseif dragEvent:eventType = dragEvent:DROPPED
-            if IsDraggingBlocks()
+            if IsDraggingSourceBlocks()
                 UnloadDraggedBlocks()
             end
             
@@ -172,6 +171,10 @@ BlockPaletteItem paletteItem = cast(BlockPaletteItem, target)
     end
     
     action IsDraggingBlocks returns boolean
+        return draggingStarted
+    end
+    
+    private action IsDraggingSourceBlocks returns boolean
         return sourceBlocks not= undefined
     end
     
@@ -198,7 +201,7 @@ BlockPaletteItem paletteItem = cast(BlockPaletteItem, target)
             end
             targetLayer = dragSource:GetLayer()
         end
-        dragAnchor:SetPosition(startX, startY)
+        //dragAnchor:SetPosition(startX, startY)
         
         repeat while i < blocks:GetSize()
             Block block = blocks:Get(i)
@@ -233,7 +236,7 @@ dummyBlock:SetInterfaceScale(environment:GetInterfaceScale())
     
     // Remove the visual representation of the dragged blocks from the Game.
     action UnloadDraggedBlocks
-        if IsDraggingBlocks()
+        if IsDraggingSourceBlocks()
 dragAnchor:Empty()
             
             Layer2D layer = dragAnchor:GetLayer()
@@ -249,6 +252,16 @@ layer:Remove(dragAnchor)
 
     action GetDragSource returns Item2D
         return dragSource
+    end
+    
+    // Used externally to indicate that the source blocks are no longer needed.
+    // This is necessary because order-of-operations in InputSets means that BlockDragBehavior
+    // will respond to the drag being finished before CodeEditorAcceptDraggedBlockBehavior does.
+    action Reset
+        if IsDraggingSourceBlocks()
+            UnloadDraggedBlocks()
+        end
+        sourceBlocks = undefined
     end
 
 end
