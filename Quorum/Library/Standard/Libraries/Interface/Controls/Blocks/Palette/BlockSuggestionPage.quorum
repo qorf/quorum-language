@@ -31,6 +31,7 @@ use Libraries.Interface.Controls.Blocks.ActionBlock
 use Libraries.Interface.Controls.Blocks.ClassBlock
 use Libraries.Interface.Controls.Blocks.FreeformBlock
 use Libraries.Interface.Forms.Banner
+use Libraries.Language.Compile.Symbol.Type
 
 class BlockSuggestionPage is BlockPalettePage, SelectionListener, TextChangeListener
 
@@ -72,6 +73,25 @@ integer LABEL_SIZE = 12
         end
     end
 
+    private action GetDescriptionFromResultClass(BlockSuggestionResult result, Class clazz, 
+Documentation clazzDocs) returns text
+        if result:isPrimitive and clazz not= undefined
+            Type type
+            type:SetToObject(clazz)
+            if type:IsIntegerObject()
+                return "A whole number between -2,147,483,648 and 2,147,483,647."
+            elseif type:IsNumberObject()
+                return "A number with a decimal point between roughly -1.79769e308 and 1.79769e308." 
+            elseif type:IsBooleanObject()
+                return "A value that can only be true or false."
+            elseif type:IsTextObject()
+                return "A set of characters in a sequence"
+            end
+        elseif clazzDocs not= undefined
+            return clazzDocs:RemoveInternalWhitespace(clazzDocs:GetShortDescription())
+        end
+        return ""
+    end
     action SetFromResult(BlockSuggestionResult result)
 EmptyPage()
         suggestedActionItems:Empty()
@@ -136,12 +156,14 @@ end
             AddFilterTextField()
             AddLabel(className + " Class"):SetFontSize(HEADER_SIZE)
 if clazzDocs not= undefined 
-                text description = clazzDocs:RemoveInternalWhitespace(clazzDocs:GetShortDescription())
+                text description = GetDescriptionFromResultClass(result, clazz, clazzDocs)
+//clazzDocs:RemoveInternalWhitespace(clazzDocs:GetShortDescription())
                         AddLabel(description):SetFontSize(LABEL_SIZE)
         end
         else
             if clazzDocs not= undefined
-text description = clazzDocs:RemoveInternalWhitespace(clazzDocs:GetShortDescription())
+text description = GetDescriptionFromResultClass(result, clazz, clazzDocs)
+//clazzDocs:RemoveInternalWhitespace(clazzDocs:GetShortDescription())
                 Banner banner = AddBanner(className, description)
 banner:GetLabel():SetFontSize(LABEL_SIZE)
             else
