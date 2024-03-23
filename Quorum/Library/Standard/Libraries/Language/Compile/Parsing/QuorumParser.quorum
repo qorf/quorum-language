@@ -2122,7 +2122,7 @@ next = tokenIterator:Next()
         end
         Token next = tokenIterator:GetCurrent()
         
-        if next:category = constants:OUTPUT
+        if next not= undefined and next:category = constants:OUTPUT
             OutputContext context
             context:SetFirstToken(next)
             context:SetDocumentation(CheckForDocumentation())
@@ -2153,7 +2153,7 @@ next = tokenIterator:Next()
             return undefined 
         end
         Token next = tokenIterator:GetCurrent()
-        if next:category = constants:SAY
+        if next not= undefined and next:category = constants:SAY
             SayContext context
             context:SetFirstToken(next)
             context:SetDocumentation(CheckForDocumentation())
@@ -2192,7 +2192,7 @@ next = tokenIterator:Next()
             current = tokenIterator:Next() //skip the output token
             
             //check if it's left and right paren or if it has an expression
-            if current:category = constants:LEFT_PAREN
+            if current not= undefined and current:category = constants:LEFT_PAREN
                 Token next = tokenIterator:LookAhead(1) //if this is a right paren, there is no expression
                 if next not= undefined and next:category = constants:RIGHT_PAREN
                     tokenIterator:Next()
@@ -2222,7 +2222,13 @@ next = tokenIterator:Next()
                     end
                 end
             else //this is an error
-                SendDefaultError("Expected ( (left paren), received " + current:value + "." + moreInformationAlert, codes:PARSER_ALERT_STATEMENT_BAD_LEFT_PAREN)
+                text val = ""
+                if current not= undefined
+                    val = current:value
+                else
+                    val = " no additional text"
+                end
+                SendDefaultError("Expected ( (left paren), received " + val + "." + moreInformationAlert, codes:PARSER_ALERT_STATEMENT_BAD_LEFT_PAREN)
                 return undefined 
             end
         end
