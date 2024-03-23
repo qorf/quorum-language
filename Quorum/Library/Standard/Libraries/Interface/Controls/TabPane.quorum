@@ -35,18 +35,13 @@ class TabPane is Control
             SetFontSize(font:GetSize())
         end
         
-        LayoutProperties paneProperties = GetDefaultLayoutProperties()
+LayoutProperties paneProperties = GetDefaultLayoutProperties()
         paneProperties:SetHorizontalLayoutMode(paneProperties:STANDARD)
         paneProperties:SetVerticalLayoutMode(paneProperties:STANDARD)
         paneProperties:SetPercentageWidth(1)
         paneProperties:SetPercentageHeight(1)
-
-        LayoutProperties viewLayoutProperties = viewArea:GetDefaultLayoutProperties()
-        viewLayoutProperties:SetHorizontalLayoutMode(viewLayoutProperties:STANDARD)
-        viewLayoutProperties:SetVerticalLayoutMode(viewLayoutProperties:FILL)
-        viewLayoutProperties:SetPercentageX(0)
-        viewLayoutProperties:SetPercentageWidth(1)
-        viewArea:SetClipping(true)
+        
+        TopAlignTabBar()
 
         Add(bar)
         Add(viewArea)
@@ -58,6 +53,31 @@ class TabPane is Control
 
         FlowLayout flow
         viewArea:SetLayout(flow)
+    end
+    
+    /*This action sets the TabBar to be a horizontal bar across the top of the TabPane.
+This is the default setting for the TabBar.*/
+    action TopAlignTabBar
+        LayoutProperties viewLayoutProperties = viewArea:GetDefaultLayoutProperties()
+        viewLayoutProperties:SetHorizontalLayoutMode(viewLayoutProperties:STANDARD)
+        viewLayoutProperties:SetVerticalLayoutMode(viewLayoutProperties:FILL)
+        viewLayoutProperties:SetPercentageX(0)
+        viewLayoutProperties:SetPercentageWidth(1)
+        viewArea:SetClipping(true)
+        
+        bar:SetToHorizontal()
+    end
+    
+    /*This action sets the TabBar to be a vertical bar placed on the left side of the TabPane.*/
+    action LeftAlignTabBar
+        LayoutProperties viewLayoutProperties = viewArea:GetDefaultLayoutProperties()
+        viewLayoutProperties:SetHorizontalLayoutMode(viewLayoutProperties:STANDARD)
+        viewLayoutProperties:SetVerticalLayoutMode(viewLayoutProperties:STANDARD)
+        viewLayoutProperties:SetPercentageHeight(1.0)
+        viewLayoutProperties:SetPercentageWidth(0.8)
+        viewArea:SetClipping(true)
+        
+        bar:SetToVertical()
     end
 
     action IsAccessibleParent returns boolean

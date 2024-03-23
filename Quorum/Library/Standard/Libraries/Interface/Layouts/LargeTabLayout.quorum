@@ -1,0 +1,60 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Item2D
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Font
+use Libraries.Interface.Controls.Tab
+use Libraries.Game.Graphics.Label
+
+class LargeTabLayout is Layout
+action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
+        
+        // Always ensure any necessary scaling is applied to the font size.
+Font font = container:GetFont()
+            if font:GetSize() not= cast(integer, container:GetFontSize() * container:GetInterfaceScale())
+                font:SetSize(cast(integer, container:GetFontSize() * container:GetInterfaceScale()))
+            end
+        
+        if container:GetDefaultLayoutProperties():NeedsRendering()
+            container:LoadGraphics(container:GetDefaultLayoutProperties())
+        end
+        
+        number targetContainerHeight = 0
+        if container:GetVerticalLayoutMode() = container:FIT_FONT
+            number fontLines = 2
+            
+            // We allow for percentage height to indicate the number of font lines, or assume the height is 2 lines if no info is given.
+            if container:GetPercentageHeight() > 0
+                fontLines = container:GetPercentageHeight()
+            end
+            
+            targetContainerHeight = font:GetLineHeight() * fontLines
+        end
+        
+        // Cast the container to a tab so we can grab components (especially the Label) directly.
+        Tab tab = cast(Tab, container)
+        Label label = tab:GetLabel()
+        
+        // If we're fitting the width to contents, the label will most likely be what we set it by.
+        // Even if not, we need the width in order to center the label.
+        number labelWidth = label:GetWidth() + label:GetLeftPadding() + label:GetRightPadding()
+        
+        number targetContainerWidth = 0
+        if container:GetHorizontalLayoutMode() = container:MAINTAIN_ASPECT_RATIO
+            
+        elseif container:GetHorizontalLayoutMode() = container:FIT_CONTENTS
+        end
+        
+        if container:GetVerticalLayoutMode() = container:MAINTAIN_ASPECT_RATIO
+            number ratio = 1.0
+            
+            // Get the ratio from the percentage height, or default to 1 if it wasn't set.
+            if container:GetPercentageHeight() > 0
+                ratio = container:GetPercentageHeight()
+            end
+            
+            targetContainerHeight = containerWidth * ratio
+        end
+end
+end

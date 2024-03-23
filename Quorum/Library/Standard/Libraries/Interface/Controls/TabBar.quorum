@@ -8,6 +8,7 @@ use Libraries.Interface.Views.View2D
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.TabFlowLayout
+use Libraries.Interface.Layouts.HorizontalTabFlowLayout
 use Libraries.Interface.Events.TabChangeEvent
 use Libraries.Interface.Events.TabChangeListener
 use Libraries.Interface.Selections.TabPaneSelection
@@ -16,26 +17,56 @@ use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Font
 use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Layouts.VerticalTabFlowLayout
+use Libraries.Interface.Layouts.FlowLayout
 
 class TabBar is Control
     
     Array<Tab> tabs
-    TabFlowLayout layout
+    TabFlowLayout layout = undefined
     TabPane pane = undefined
 
     Array<TabChangeListener> listeners
 
     on create
+        SetToHorizontal()
+
+        SetClipping(true)
+        SetName("Tab Bar")
+        SetInterfaceOptionsKey("TabBar")
+    end
+    
+    action SetToHorizontal
+HorizontalTabFlowLayout horizontalLayout
+        layout = horizontalLayout
+        
         LayoutProperties layoutProperties = GetDefaultLayoutProperties()
         layoutProperties:SetHorizontalLayoutMode(layoutProperties:STANDARD)
         layoutProperties:SetVerticalLayoutMode(layoutProperties:FIT_CONTENTS)
         layoutProperties:SetPercentageWidth(1.0)
 
         SetLayout(layout)
+    end
+    
+    action SetToVertical
+VerticalTabFlowLayout verticalLayout
+        layout = verticalLayout
+        
+        LayoutProperties layoutProperties = GetDefaultLayoutProperties()
+        layoutProperties:SetHorizontalLayoutMode(layoutProperties:STANDARD)
+        layoutProperties:SetVerticalLayoutMode(layoutProperties:STANDARD)
+        layoutProperties:SetPercentageWidth(0.2)
+        layoutProperties:SetPercentageHeight(1.0)
 
-        SetClipping(true)
-        SetName("Tab Bar")
-        SetInterfaceOptionsKey("TabBar")
+        SetLayout(layout)
+    end
+    
+    action IsHorizontal returns boolean
+        return GetLayout() is HorizontalTabFlowLayout
+    end
+    
+    action IsVertical returns boolean
+        return GetLayout() is VerticalTabFlowLayout
     end
 
     action Add(Array<Tab> array)
@@ -57,6 +88,12 @@ Tab firstTab = tabs:GetFromFront()
             tab:SetNextFocus(firstTab)
         end
         
+        if IsVertical()
+            SetTabPropertiesForVerticalBar(tab)
+        else
+            SetTabPropertiesForHorizontalBar(tab)
+        end
+        
         tabs:Add(tab)
         parent:Item2D:Add(tab)
         tab:SetTabBar(me)
@@ -66,6 +103,23 @@ Tab firstTab = tabs:GetFromFront()
         TabChangeEvent event
         event:Set(tab, pane, event:OPENED)
         NotifyTabChangeListeners(event)
+    end
+    
+    private action SetTabPropertiesForHorizontalBar(Tab tab)
+        FlowLayout flow
+flow:SetIgnoreHidden(true)
+        tab:SetLayout(flow)
+        
+        tab:SetHorizontalLayoutMode(tab:parent:Control:FIT_CONTENTS)
+    end
+    
+    private action SetTabPropertiesForVerticalBar(Tab tab)
+FlowLayout flow
+flow:SetIgnoreHidden(true)
+        tab:SetLayout(flow)
+        
+        tab:SetPercentageWidth(1.0)
+        tab:SetHorizontalLayoutMode(tab:parent:Control:STANDARD)
     end
 
     action Remove(Tab tab)
