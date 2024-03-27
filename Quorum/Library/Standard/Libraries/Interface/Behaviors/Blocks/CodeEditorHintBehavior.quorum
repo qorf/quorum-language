@@ -53,12 +53,7 @@ class CodeEditorHintBehavior is Behavior
         end
 
         Hint hint = block:GetFirstHint()
-        integer start = hint:GetStartOffset()
-        integer finish = hint:GetEndOffset()
 
-        text insert = hint:GetInsertionText()
-        MultipleLineText lines = editor:GetCode()
-        MultipleLineText newLine = lines:Insert(start, insert)
-        editor:SetCode(newLine)
+        editor:InsertText(hint:GetStartOffset(), hint:GetInsertionText())
     end
 end

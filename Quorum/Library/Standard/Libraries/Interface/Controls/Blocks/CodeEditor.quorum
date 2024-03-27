@@ -73,6 +73,7 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
 
     GameStateManager manager
     Accessibility accessibility = undefined
+    Item2D dummyItem = undefined
 
 
     boolean shouldCalculateWidth = true
@@ -130,7 +131,12 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
         AddTextChangeListener(editManager)
         rawCode:Initialize("")
 
-        SetFocusable(true)
+                Item2D temp
+        dummyItem = temp
+        dummyItem:SetAccessibilityCode(dummyItem:parent:Item:ITEM)
+        dummyItem:SetFocusable(true)
+        dummyItem:SetName("Top of File")
+        Add(dummyItem)
 
         
         lineGutter:SetPositionOnBaseLine(false)
@@ -1036,6 +1042,10 @@ action OnTextChange(TextChangeEvent event, integer indexOffset)
                 SelectBlockOrItem(selection:GetBlockItem())
             elseif selection:GetBlock() not= undefined
                 SelectBlockOrItem(selection:GetBlockItem())
+            elseif selection:GetLine() = -1
+                if dummyItem not= undefined
+                    dummyItem:Focus()
+                end
             end
         end
         
@@ -1150,6 +1160,9 @@ MovePlaceholdersToNavigationIndex(selection:GetLine() + 1)
                 SelectBlockOrItem(next)
             else
                 selection:SetToTopOfFile()
+                if dummyItem not= undefined
+                    dummyItem:Focus()
+                end
             end
         elseif selection:IsEmpty()
             SelectBlockAtLine(0)
@@ -1568,6 +1581,35 @@ if selection:GetBlock() not= undefined
 
         NotifyBlockChangeListeners(blockEvent)
 
+        shouldCalculateWidth = true
+        shouldCalculateHeight = true
+        shouldRegenerateBlocks = true
+        shouldCalculateNavigationIndices = true
+        RequestLayout()
+    end
+    
+    action InsertText(integer index, text value)
+        
+integer targetIndex = index
+        value = SanitizeNewLines(value)
+        editManager:SetSpecialAction(true)
+
+        if targetIndex >= rawCode:GetSize()
+            targetIndex = rawCode:GetSize() - 1
+        end
+
+
+        MultipleLineText oldCode = GetCode()
+        // Process a text change event. This will automatically update the MultipleLineText.
+        TextChangeEvent event
+        event:Initialize(me, value, "", targetIndex)
+        OnTextChange(event, 0)
+
+        BlockChangeEvent blockEvent
+        blockEvent:Set(me, oldCode, GetCode())
+
+        NotifyBlockChangeListeners(blockEvent)
+editManager:SetSpecialAction(false)
         shouldCalculateWidth = true
         shouldCalculateHeight = true
         shouldRegenerateBlocks = true
