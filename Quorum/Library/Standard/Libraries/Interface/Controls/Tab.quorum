@@ -194,6 +194,10 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
     action IsDisplayingCloseButton returns boolean
         return closeButton:IsShowing()
     end
+    
+    action GetCloseButton returns Button
+        return closeButton
+    end
 
     action SetToggleState(boolean toggleState)
         if toggled = toggleState
@@ -369,6 +373,13 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
     */
     action GetLabel returns Label
         return label
+    end
+    
+/*
+    For internal use only.
+    */
+    action GetTabIcon returns Icon
+        return icon
     end
 
     /*

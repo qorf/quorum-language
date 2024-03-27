@@ -47,6 +47,7 @@ text fontPath = ""
 //        properties:SetPercentageHeight(0.7)
         
         LeftAlignTabBar()
+        SetLargeTabs(true)
 
         basicTab:SetName("Basic")
         basicTab:DisplayCloseButton(false)
@@ -63,6 +64,20 @@ text fontPath = ""
         suggestionTab:SetName("Advice")
         suggestionTab:DisplayCloseButton(false)
         suggestionTab:SetRelatedItem(MakeSuggestionPage())
+        
+        Libraries.Game.Graphics.Color color
+        Drawable basic
+        basic:LoadFilledCircle(15, color:Orange())
+        basicTab:SetIcon(basic)
+        Drawable suggestion
+        suggestion:LoadFilledRectangle(30, 30, color:Blue())
+        suggestionTab:SetIcon(suggestion)
+        Drawable control
+        control:LoadFilledCircle(15, color:Purple())
+        controlTab:SetIcon(control)
+        Drawable actionDraw
+        actionDraw:LoadFilledRectangle(15, 15, color:Olive())
+        actionTab:SetIcon(actionDraw)
 
                 Add(suggestionTab)
 Add(basicTab)

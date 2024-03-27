@@ -79,6 +79,32 @@ This is the default setting for the TabBar.*/
         
         bar:SetToVertical()
     end
+    
+    /* This action returns true if the TabBar is aligned across the top of the TabPane, 
+or false otherwise. By default, this is true. */
+    action IsBarTopAligned returns boolean
+        return bar:IsVertical() = false
+    end
+    
+    /* This action returns true if the TabBar is aligned on the left side of the TabPane,
+or false otherwise. By default, this is false. */
+    action IsBarLeftAligned returns boolean
+        return bar:IsVertical()
+    end
+    
+    /* This action sets the TabBar to use large tabs if the given value is true, or to use
+the default smaller tabs if the value is false. Default tabs place the icon, label, and
+close button all together on a single horizontal line. Large tabs place the label at
+the bottom of the tab, with a larger icon on top of it. */
+    action SetLargeTabs(boolean enable)
+        bar:SetLargeTabs(enable)
+    end
+    
+/* This action returns whether or not the TabBar is using large tabs. By default,
+this is false. */
+    action IsUsingLargeTabs returns boolean
+        return bar:IsUsingLargeTabs()
+    end
 
     action IsAccessibleParent returns boolean
         return true

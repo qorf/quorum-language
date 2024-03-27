@@ -19,12 +19,14 @@ use Libraries.Game.Graphics.Font
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Layouts.VerticalTabFlowLayout
 use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.LargeTabLayout
 
 class TabBar is Control
     
     Array<Tab> tabs
     TabFlowLayout layout = undefined
     TabPane pane = undefined
+    boolean useLargeTabs = false
 
     Array<TabChangeListener> listeners
 
@@ -88,11 +90,7 @@ Tab firstTab = tabs:GetFromFront()
             tab:SetNextFocus(firstTab)
         end
         
-        if IsVertical()
-            SetTabPropertiesForVerticalBar(tab)
-        else
-            SetTabPropertiesForHorizontalBar(tab)
-        end
+        SetTabProperties(tab)
         
         tabs:Add(tab)
         parent:Item2D:Add(tab)
@@ -105,21 +103,51 @@ Tab firstTab = tabs:GetFromFront()
         NotifyTabChangeListeners(event)
     end
     
-    private action SetTabPropertiesForHorizontalBar(Tab tab)
-        FlowLayout flow
-flow:SetIgnoreHidden(true)
-        tab:SetLayout(flow)
-        
-        tab:SetHorizontalLayoutMode(tab:parent:Control:FIT_CONTENTS)
+    // Used when tab size or bar orientation changes. Updates all tabs with correct layouts and properties.
+    private action UpdateAllTabProperties
+        integer i = 0
+        repeat while i < tabs:GetSize()
+            SetTabProperties(tabs:Get(i))
+            i = i + 1
+        end
     end
     
-    private action SetTabPropertiesForVerticalBar(Tab tab)
+    private action SetTabProperties(Tab tab)
+        if IsUsingLargeTabs()
+            LargeTabLayout largeLayout
+            tab:SetLayout(largeLayout)
+            tab:SetPercentageHeight(4.0)
+        else
 FlowLayout flow
 flow:SetIgnoreHidden(true)
         tab:SetLayout(flow)
+        end
         
-        tab:SetPercentageWidth(1.0)
+        if IsVertical()
+tab:SetPercentageWidth(1.0)
         tab:SetHorizontalLayoutMode(tab:parent:Control:STANDARD)
+        else
+tab:SetHorizontalLayoutMode(tab:parent:Control:FIT_CONTENTS)
+        end
+    end
+    
+    /* This action sets the TabBar to use large tabs if the given value is true, or to use
+the default smaller tabs if the value is false. Default tabs place the icon, label, and
+close button all together on a single horizontal line. Large tabs place the label at
+the bottom of the tab, with a larger icon on top of it. */
+    action SetLargeTabs(boolean enable)
+        if enable = useLargeTabs
+            return now
+        end
+        
+        useLargeTabs = enable
+        UpdateAllTabProperties()
+    end
+    
+    /* This action returns whether or not the TabBar is using large tabs. By default,
+this is false. */
+    action IsUsingLargeTabs returns boolean
+        return useLargeTabs
     end
 
     action Remove(Tab tab)
