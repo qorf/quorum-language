@@ -2281,9 +2281,11 @@ next = tokenIterator:Next()
         //now process any parameters, if there are any
         if next not= undefined and next:category = constants:LEFT_PAREN
             if not IsValid() return undefined end
+            context:leftParen= next
             next = tokenIterator:Next()
             //they are just using parens even though they aren't necessary
             if next not= undefined and next:category = constants:RIGHT_PAREN
+                context:rightParen = next
                 context:SetLastToken(next)
                 next = tokenIterator:Next()
             else //if it's not a paren, it has to be a formal parameter. 
@@ -2332,6 +2334,7 @@ next = tokenIterator:Next()
                 end
 
                 if next not= undefined next:category = constants:RIGHT_PAREN
+                    context:rightParen= next
                     context:SetLastToken(next)
                     next = tokenIterator:Next()
                 else //this is an error
