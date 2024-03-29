@@ -32,6 +32,10 @@ use Libraries.Interface.Controls.Blocks.ClassBlock
 use Libraries.Interface.Controls.Blocks.FreeformBlock
 use Libraries.Interface.Forms.Banner
 use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Hints.Hint
+use Libraries.Interface.Behaviors.Blocks.BlockPaletteHintBehavior
+use Libraries.Interface.Forms.FormPanel
+use Libraries.Game.Graphics.Color
 
 class BlockSuggestionPage is BlockPalettePage, SelectionListener, TextChangeListener
 
@@ -171,7 +175,7 @@ banner:GetLabel():SetFontSize(LABEL_SIZE)
             end
             AddFilterTextField()
         end
-        
+        AddHints(result:requestingBlock)
         BlockPaletteVariableList varList = undefined
         boolean showVariables = false
         if blockVariables not= undefined and blockVariables:GetSize() > 0
@@ -282,12 +286,44 @@ AddLabel("Action"):SetFontSize(HEADER2_SIZE)
         if filterField not= undefined
             filterField:RemoveTextChangeListener(me)
         end
-        //Grouping group = AddGrouping("Filter Group")
-        Label filterLabel = AddLabel("Filter")
+        FormPanel panel
+        FlowLayout layout
+        layout:SetSingleLine(true)
+        panel:SetLayout(layout)
+        Color color
+        panel:SetBorderColor(color:Blue())
+        panel:SetBackgroundColor(color:White())
+        Label filterLabel = panel:AddLabel("Filter:")
         filterLabel:SetFontSize(HEADER2_SIZE)
+        filterLabel:SetBottomMargin(2)
+        filterLabel:SetPositionOnBaseLine(false)
+        filterLabel:SetRightMargin(5)
         filterLabel:SetFocusable(false)
-        filterField = AddTextField("Filter Text Field")
+        filterField = panel:AddTextField("Filter Text Field")
         filterField:AddTextChangeListener(me)
+        filterField:SetVerticalLayoutMode(filterField:parent:Control:FIT_FONT)
+filterField:SetHorizontalLayoutMode(filterField:parent:Control:FILL)
+        Add(panel)
+    end
+    
+    action AddHints(Block block)
+        if block = undefined
+            return now
+        end
+        if not block:IsHintsEmpty()
+            AddLabel("Hints"):SetFontSize(HEADER_SIZE)
+            integer i = 0
+            Iterator<Hint> hints = block:GetHintIterator()
+            repeat while hints:HasNext()
+                Hint hint = hints:Next()
+                BlockPaletteHintBehavior behave
+                behave:SetEditor(GetEditor())
+                behave:SetHint(hint)
+                AddLabel(hint:GetHintMessage()):SetFontSize(LABEL_SIZE)
+                Button butt = AddButton("Execute Hint")
+                butt:SetBehavior(behave)
+            end
+        end
     end
     
     action SetActionsFromVariable(Variable variable)
