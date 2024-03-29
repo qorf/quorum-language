@@ -10,6 +10,7 @@ use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Behaviors.Block.BlockPaletteVariableListBehavior
 use Libraries.Interface.Controls.ListItem
 use Libraries.Containers.Array
+use Libraries.Game.Graphics.Color
 
 
 class BlockPaletteVariableList is List
@@ -50,6 +51,7 @@ action AddLocalVariable(Variable variable)
                     behave:SetVariable(variable)
 behave:SetPage(cast(BlockSuggestionPage,GetPalette():GetSuggestionTab():GetRelatedItem()))
 ListItem item = cast(ListItem, NewListItem(variable:GetName(), variableIcon))
+        item:SetFontColor(item:GetFontColor())
                 item:SetActivationBehavior(behave)
 Add(item)
         if not filtering
@@ -62,6 +64,7 @@ BlockPaletteVariableListBehavior behave
         behave:SetVariable(variable)
 behave:SetPage(cast(BlockSuggestionPage,GetPalette():GetSuggestionTab():GetRelatedItem()))
         ListItem item = cast(ListItem, NewListItem(variable:GetName(), fieldIcon))
+        item:SetIconColor(item:GetFontColor())
         item:SetActivationBehavior(behave)
 Add(item)
 if not filtering
@@ -74,6 +77,7 @@ BlockPaletteVariableListBehavior behave
         behave:SetVariable(variable)
 behave:SetPage(cast(BlockSuggestionPage,GetPalette():GetSuggestionTab():GetRelatedItem()))
         ListItem item = cast(ListItem, NewListItem(variable:GetName(), parentIcon))
+        item:SetIconColor(item:GetFontColor())
         item:SetActivationBehavior(behave)
 Add(item)
 if not filtering
