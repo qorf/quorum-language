@@ -146,10 +146,8 @@ class ActionBlock is MultipleLineBlock
         // Assume the block ends with the name. This will be replaced with a more appropriate value if needed in the if sections below.
         integer localEnd = nameField:GetEndIndex()
 
-        if actionContext:parameterContexts not= undefined
-            Array<FormalParameterContext> paramList = actionContext:parameterContexts
-
-            BlockLabel leftParen
+        if actionContext:HasParentheses()
+         BlockLabel leftParen
             me:leftParen = leftParen
             leftParen:SetFont(editor:GetFont())
             leftParen:SetFontSize(editor:GetFontSize())
@@ -158,11 +156,10 @@ class ActionBlock is MultipleLineBlock
 
             EditBox paramField
             me:paramField = paramField
-            Location firstParam = paramList:Get(0):GetLocation()
-            Location lastParam = paramList:Get(paramList:GetSize() - 1):GetLocation()
             part:Add(paramField)
+            
 
-            paramField:Setup("Parameters", firstParam:GetIndex() - GetStartIndex(), lastParam:GetIndexEnd() + 1 - GetStartIndex())
+            paramField:Setup("Parameters", actionContext:leftParen:endIndex + 1 - GetStartIndex(), actionContext:rightParen:startIndex - GetStartIndex())
 
             BlockLabel rightParen
             me:rightParen = rightParen
@@ -172,9 +169,9 @@ class ActionBlock is MultipleLineBlock
             part:Add(rightParen)
 
             // Place the end of the block one character after the last parameter (to account for the right parenthesis).
-            localEnd = paramField:GetEndIndex() + 1
+            localEnd = paramField:GetEndIndex()+1
             
-            localEndLine = lastParam:GetLineNumberEnd() - actionContext:GetLocation():GetLineNumber()
+            localEndLine = actionContext:rightParen:endLine - actionContext:GetLocation():GetLineNumber()
         end
 
         if actionContext:returnLocation not= undefined
