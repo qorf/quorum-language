@@ -1550,10 +1550,10 @@ MovePlaceholdersToNavigationIndex(selection:GetLine() + 1)
         integer line = selection:GetLine()
         
 if selection:GetBlock() not= undefined
-            currentLine = selection:GetBlock():GetEndLine()
+            line = selection:GetBlock():GetEndLine()
         end
         
-        InsertTextAfterLine(selection:GetLine(), value)
+        InsertTextAfterLine(line, value)
     end
     
     action InsertTextAfterLine(integer line, text value)
@@ -1565,19 +1565,19 @@ if selection:GetBlock() not= undefined
             targetIndex = rawCode:GetSize()
         elseif currentLine >= 0
             // Get the start of the next line, then go back one to reach the end of the current line.
-            targetIndex = rawCode:CharacterIndexFromLineIndex(currentLine + 1) - rawCode:GetLineSeparator():GetSize()
+            targetIndex = rawCode:CharacterIndexFromLineIndex(currentLine + 1)
         end
 
-        text newLine = rawCode:GetLineSeparator() + value
+        text newLine = value + value:GetLineFeed()
 
-        MultipleLineText oldCode = GetCode()
+        MultipleLineText oldCode = rawCode
         // Process a text change event. This will automatically update the MultipleLineText.
         TextChangeEvent event
         event:Initialize(me, newLine, "", targetIndex)
         OnTextChange(event, 0)
 
         BlockChangeEvent blockEvent
-        blockEvent:Set(me, oldCode, GetCode())
+        blockEvent:Set(me, oldCode, rawCode)
 
         NotifyBlockChangeListeners(blockEvent)
 
