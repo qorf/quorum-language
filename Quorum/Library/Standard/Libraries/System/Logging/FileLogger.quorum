@@ -1,0 +1,45 @@
+package Libraries.System.Logging
+use Libraries.System.File
+use Libraries.System.Blueprints.FileWriterBlueprint
+use Libraries.System.DateTime
+
+class FileLogger is Logger
+    File file = undefined
+    FileWriterBlueprint writer = undefined
+    text lf = ""
+    on create
+        lf = lf:GetLineFeed()
+    end
+
+    action Log(text value)
+        if writer not= undefined and IsLoggingTime()
+            DateTime time
+            writer:Write("Time: " + time:ToText() + "." + lf)
+            writer:Write(value + lf)
+            writer:PushToDisk()
+        elseif writer not= undefined and not IsLoggingTime()
+            writer:Write(value + lf)
+            writer:PushToDisk()
+        else
+            output value
+        end
+    end
+
+    action Close
+        if writer not= undefined
+            writer:Close()
+        end
+    end
+    
+    action GetFile returns File
+        return file
+    end
+
+    action SetFile(File file)
+        me:file = file
+        if writer not= undefined
+            writer:Close()
+        end
+        writer = file:OpenForWriteAppend()
+    end
+end

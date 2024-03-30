@@ -1,0 +1,14 @@
+package Libraries.System.Logging
+class Logger
+    boolean time = false
+    blueprint action Log(text value)
+    blueprint action Close
+
+    action IsLoggingTime returns boolean
+        return time
+    end
+
+    action SetLoggingTime(boolean time)
+        me:time = time
+    end
+end
