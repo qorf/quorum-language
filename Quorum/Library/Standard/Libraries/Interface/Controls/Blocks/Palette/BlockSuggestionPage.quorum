@@ -162,14 +162,19 @@ end
 if clazzDocs not= undefined 
                 text description = GetDescriptionFromResultClass(result, clazz, clazzDocs)
 //clazzDocs:RemoveInternalWhitespace(clazzDocs:GetShortDescription())
-                        AddLabel(description):SetFontSize(LABEL_SIZE)
+                if description not= ""
+                    AddLabel(description):SetFontSize(LABEL_SIZE)
+                end
         end
         else
             if clazzDocs not= undefined
 text description = GetDescriptionFromResultClass(result, clazz, clazzDocs)
 //clazzDocs:RemoveInternalWhitespace(clazzDocs:GetShortDescription())
                 Banner banner = AddBanner(className, description)
-banner:GetLabel():SetFontSize(LABEL_SIZE)
+                Label bannerLabel = banner:GetLabel()
+                if bannerLabel not= undefined
+                    bannerLabel:SetFontSize(LABEL_SIZE)
+                end
             else
                 AddBanner(className + " Class")
             end
