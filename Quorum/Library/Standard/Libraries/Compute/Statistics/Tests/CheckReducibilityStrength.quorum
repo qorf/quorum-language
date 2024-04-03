@@ -8,6 +8,7 @@ use Libraries.Compute.Math
 use Libraries.Containers.Array
 use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Statistics.Columns.TextColumn
+use Libraries.System.File
 
 /*
     This class implements a suitibiity check before a Factor Analysis: 
@@ -282,5 +283,11 @@ class CheckReducibilityStrength is StatisticalTest
             i = i + 1
         end
         return summary
+    end
+    /*
+        This creates an HTML page with the results as its contents.  
+    */
+    action GetReport(File file)
+        GetResult():GetReportResult(file)
     end
 end
