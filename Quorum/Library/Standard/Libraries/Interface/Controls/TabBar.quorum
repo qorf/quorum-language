@@ -125,6 +125,8 @@ flow:SetIgnoreHidden(true)
         
         if IsVertical()
 tab:SetPercentageWidth(1.0)
+            tab:SetTopLeftRounding(0)
+            tab:SetTopRightRounding(0)
         tab:SetHorizontalLayoutMode(tab:parent:Control:STANDARD)
         else
 tab:SetHorizontalLayoutMode(tab:parent:Control:FIT_CONTENTS)
@@ -221,11 +223,20 @@ this is false. */
             return now
         end
 
-        if tab:GetX() <= 0
+        if IsHorizontal()
+if tab:GetX() <= 0
             LeftFitTab(index - 1.15)
         elseif tab:GetX() + tab:GetWidth() >= GetWidth()
             RightFitTab(index + 1.15)
         end
+        else
+            if tab:GetY() <= 0
+                BottomFitTab(index + 1.15)
+            elseif tab:GetY() + tab:GetHeight() >= GetHeight()
+                TopFitTab(index - 1.15)
+            end
+        end
+        
     end
 
     action LeftFitTab(number index)
@@ -283,6 +294,64 @@ this is false. */
         end
 
         layout:SetOffset(offset - GetWidth())
+        Resize()
+    end
+    
+action TopFitTab(number index)
+        Array<Item2D> children = GetChildren()
+        if index < 0
+            index = 0
+        elseif index >= children:GetSize()
+            index = children:GetSize() - 1
+        end
+
+        integer counter = 0
+        number offset = 0
+        integer intIndex = cast(integer, index)
+        repeat while counter < intIndex
+            Item2D item = children:Get(counter)
+            offset = offset + item:GetHeight()
+            counter = counter + 1
+        end
+
+        // Include a percentage of the height of the next item, if we have any remainder.
+        if counter < children:GetSize()
+            offset = offset + (index - intIndex) * children:Get(counter):GetHeight()
+        // If there's no next item, offset it by the last item, if there is one.
+        elseif counter - 1 < children:GetSize()
+            offset = offset + (index - intIndex) * children:Get(counter - 1):GetHeight()
+        end
+
+        layout:SetOffset(offset)
+        Resize()
+    end
+
+    action BottomFitTab(number index)
+        Array<Item2D> children = GetChildren()
+        if index < 0
+            index = 0
+        elseif index >= children:GetSize()
+            index = children:GetSize() - 1
+        end
+
+        integer counter = 0
+        number offset = 0
+        integer intIndex = cast(integer, index)
+        repeat while counter <= intIndex
+            Item2D item = children:Get(counter)
+            offset = offset + item:GetHeight()
+            counter = counter + 1
+        end
+
+        // Include a percentage of the height of the next item, if we have any remainder.
+        if counter < children:GetSize()
+            offset = offset + (index - intIndex) * children:Get(counter):GetHeight()
+        // If there's no next item, offset it by the last item, if there is one.
+        elseif counter - 1 < children:GetSize()
+            offset = offset + (index - intIndex) * children:Get(counter - 1):GetHeight()
+        end
+
+        layout:SetOffset(offset - GetHeight())
         Resize()
     end
 

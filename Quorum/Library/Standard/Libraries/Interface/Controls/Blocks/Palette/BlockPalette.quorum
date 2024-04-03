@@ -19,7 +19,14 @@ use Libraries.Containers.Array
 use Libraries.Interface.Controls.Blocks.Block
 use Libraries.Game.Graphics.Font
 use Libraries.System.File
-
+use Libraries.Game.Graphics.TextureFilter
+use Libraries.Interface.Options.InterfaceOptions
+use Libraries.Interface.Options.BlockOptions
+use Libraries.Interface.Options.BlockOptionConstants
+use Libraries.Game.Graphics.PixelMap
+use Libraries.Game.Graphics.Format
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Texture
 
 class BlockPalette is TabPane
 
@@ -40,11 +47,37 @@ class BlockPalette is TabPane
     Font fontAwesome
 text fontPath = ""
     
+    // The drawable used for the default circle icon applied to the tabs.
+    Drawable circleTexture
+    
     action Setup
+        PixelMap pixels
+Format format
+        format:SetValue(format:RGBA8888)
+        pixels:CreatePixelMap(81, 81, format)
+        Color color
+        pixels:FillCircle(40, 40, 40, color:Black())
+        pixels:FillCircle(40, 40, 38, color:White())
+        Texture texture
+        texture:LoadFromPixelMap(pixels)
+        circleTexture:Load(texture)
+        
+        // These texture filters will tell the game engine that when the circle isn't rendered pixel-perfect, try to smooth out the edges a little.
+        TextureFilter minifyFilter
+        TextureFilter magnifyFilter
+        minifyFilter:ConstructTextureFilter(minifyFilter:LINEAR)
+magnifyFilter:ConstructTextureFilter(magnifyFilter:LINEAR)
+        circleTexture:GetTexture():SetFilter(minifyFilter, magnifyFilter)
+        
+        InterfaceOptions options = manager:GetInterfaceOptions()
+        BlockOptions blockOptions = undefined
+        if options is BlockOptions
+            blockOptions = cast(BlockOptions, options)
+        end
+        
         LayoutProperties properties = GetDefaultLayoutProperties()
         properties:SetHorizontalLayoutMode(properties:FILL)
         properties:SetVerticalLayoutMode(properties:STANDARD)
-//        properties:SetPercentageHeight(0.7)
         
         LeftAlignTabBar()
         SetLargeTabs(true)
@@ -52,32 +85,30 @@ text fontPath = ""
         basicTab:SetName("Basic")
         basicTab:DisplayCloseButton(false)
         basicTab:SetRelatedItem(MakeBasicPage())
+        basicTab:SetIcon(circleTexture)
 
         controlTab:SetName("Control")
         controlTab:DisplayCloseButton(false)
         controlTab:SetRelatedItem(MakeControlPage())
+        controlTab:SetIcon(circleTexture)
 
         actionTab:SetName("Action")
         actionTab:DisplayCloseButton(false)
         actionTab:SetRelatedItem(MakeActionPage())
+        actionTab:SetIcon(circleTexture)
         
         suggestionTab:SetName("Advice")
         suggestionTab:DisplayCloseButton(false)
         suggestionTab:SetRelatedItem(MakeSuggestionPage())
+        suggestionTab:SetIcon(circleTexture)
         
-        Libraries.Game.Graphics.Color color
-        Drawable basic
-        basic:LoadFilledCircle(15, color:Orange())
-        basicTab:SetIcon(basic)
-        Drawable suggestion
-        suggestion:LoadFilledRectangle(30, 30, color:Blue())
-        suggestionTab:SetIcon(suggestion)
-        Drawable control
-        control:LoadFilledCircle(15, color:Purple())
-        controlTab:SetIcon(control)
-        Drawable actionDraw
-        actionDraw:LoadFilledRectangle(15, 15, color:Olive())
-        actionTab:SetIcon(actionDraw)
+        if blockOptions not= undefined
+            BlockOptionConstants constants
+            basicTab:SetIconColor(blockOptions:GetBackgroundColor(constants:ASSIGNMENT_KEY))
+            controlTab:SetIconColor(blockOptions:GetBackgroundColor(constants:IF_KEY))
+            actionTab:SetIconColor(blockOptions:GetBackgroundColor(constants:ACTION_KEY))
+            suggestionTab:SetIconColor(blockOptions:GetBackgroundColor(constants:PACKAGE_KEY))
+        end
 
                 Add(suggestionTab)
 Add(basicTab)

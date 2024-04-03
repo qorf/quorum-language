@@ -22,9 +22,6 @@ Font font = container:GetFont()
             container:LoadGraphics(container:GetDefaultLayoutProperties())
         end
         
-output "Container Mode = " + container:GetHorizontalLayoutMode() + "x" + container:GetVerticalLayoutMode()
-            output "Percentages = " + container:GetPercentageWidth() + ", " + container:GetPercentageHeight()
-        
         number targetContainerHeight = 0
         if container:GetVerticalLayoutMode() = container:FIT_FONT
             number fontLines = 2
@@ -93,15 +90,15 @@ output "Container Mode = " + container:GetHorizontalLayoutMode() + "x" + contain
         number tabWidth = tab:GetWidth()
         number tabHeight = tab:GetHeight()
         
-        label:SetPosition((tabWidth - labelWidth) / 2.0, label:GetBottomMargin())
+        label:SetPosition((tabWidth - label:GetWidth()) / 2.0, tab:GetBottomPadding())
         
-        number middleGap = label:GetTopPadding()
-        if icon:GetBottomPadding() > middleGap
-            middleGap = icon:GetBottomPadding()
+        number middleGap = label:GetTopMargin()
+        if icon:GetBottomMargin() > middleGap
+            middleGap = icon:GetBottomMargin()
         end
         middleGap = middleGap * icon:GetInterfaceScale()
         
-        number maxIconHeight = tabHeight - label:GetHeight() - label:GetBottomMargin() * label:GetInterfaceScale() - middleGap - icon:GetTopMargin() * icon:GetInterfaceScale()
+        number maxIconHeight = tabHeight - label:GetHeight() - label:GetY() - middleGap - icon:GetTopMargin() * icon:GetInterfaceScale()
         number maxIconWidth = tabWidth - (icon:GetLeftMargin() + icon:GetRightMargin()) * icon:GetInterfaceScale()
         
         // Icons are set by the Tab to always use the following layout modes: Vertical = STANDARD, Horizontal = MAINTAIN_ASPECT_RATIO
@@ -118,7 +115,7 @@ output "Container Mode = " + container:GetHorizontalLayoutMode() + "x" + contain
         end
         
         icon:SetSize(targetIconWidth, targetIconHeight)
-        icon:SetPosition((tabWidth - icon:GetWidth()) / 2.0, tabHeight - icon:GetHeight() - icon:GetTopMargin() * icon:GetInterfaceScale() - (maxIconHeight - icon:GetHeight()) / 2.0)
+        icon:SetPosition((tabWidth - icon:GetWidth()) / 2.0, tabHeight - icon:GetHeight() - icon:GetTopMargin() * icon:GetInterfaceScale() - (maxIconHeight - icon:GetHeight()) / 2.0 - tab:GetTopPadding())
         
         // The Close button is fixed by the Tab to be equal to font line height in both width and height, minus its margin.
         number buttonSize = font:GetLineHeight() - closeButton:GetTopMargin() - closeButton:GetBottomMargin()
