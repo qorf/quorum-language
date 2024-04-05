@@ -198,6 +198,9 @@ class Chart is ChartItem
     text scriptFilepath = ""
     text styleFilepath = ""
 
+    // Toggle Touch Exploration versus Gesture-based Structured Chart Navigation
+    boolean touchExplorationEnabled = false
+
     on create
         CheckPlatformInstructions()
         chartArea:SetName("Chart Area")
@@ -4143,6 +4146,24 @@ parent:Item2D:isResizing = true
             enterInstruction = "two finger swipe Down"
             exitInstruction = "two finger swipe Up"
         end
+    end
+
+    
+    /*
+    This action gets the flag to determine if touch exploration is enabled.
+
+    Attribute: Returns The flag for touch exploration.
+    */
+    action GetTouchExplorationEnabled returns boolean
+        return touchExplorationEnabled
+    end
+    /*
+    This action sets the flag to determine if touch exploration is enabled.
+
+    Attribute: Parameter touchExplorationEnabled The flag to determine if touch exploration is enabled.
+    */
+    action SetTouchExplorationEnabled(boolean touchExplorationEnabled)
+        me:touchExplorationEnabled = touchExplorationEnabled
     end
 
 end

@@ -129,6 +129,7 @@ class PieChart is Chart
                         integer i = 0
                         repeat while i < pieBoxes:Get(j):GetSize()
                             PieSlice slice = pieBoxes:Get(j):Get(i)
+                            slice:SetInputGroup("Chart")
                             slice:SetFocusable(true)
                             slice:SetAccessibilityCode(parent:Item:CHART_ITEM)
                             slice:SetNextFocus(GetNextFocus())
@@ -189,6 +190,7 @@ class PieChart is Chart
             integer i = 0
             repeat while i < pieBoxes:Get(0):GetSize()
                 PieSlice slice = pieBoxes:Get(0):Get(i)
+                slice:SetInputGroup("Chart")
                 slice:SetFocusable(true)
                 slice:SetAccessibilityCode(parent:Item:CHART_ITEM)
                 slice:SetNextFocus(GetNextFocus())
