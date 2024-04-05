@@ -684,10 +684,14 @@ class TwoVariableChart is Chart
 
         ChartItem summary = me
         // The chart area is the child unless y-axis is showing.
+        
         summary:SetDisplayName(GenerateSummary())
         summary:SetContainer(me)
-
+        
+        chartArea:SetName(summary:GetName())
+        chartArea:SetDisplayName(GenerateSummary())
         chartArea:SetContainer(me)
+        summary = chartArea
         
         text lineText = "lines"
         text pointText = "points"
@@ -713,13 +717,13 @@ class TwoVariableChart is Chart
     
         // If any of these are not showing the tree will skip them in the navigation   
         if IsShowingXAxis()
-            GetHorizontalPanel():GenerateInfoTree(me, summary, yAxis, xAxis)
+            GetHorizontalPanel():GenerateInfoTree(me, chartArea, yAxis, xAxis)
         end     
         if IsShowingYAxis()
-            GetVerticalPanel():GenerateInfoTree(me, summary, yAxis, xAxis)
+            GetVerticalPanel():GenerateInfoTree(me, chartArea, yAxis, xAxis)
         end
         //if IsShowingLegend()
-            GetLegend():GenerateInfoTree(me, summary, yAxis, xAxis)
+            GetLegend():GenerateInfoTree(me, chartArea, yAxis, xAxis)
         //end
 
         // Generate Line Chart Info
@@ -994,7 +998,7 @@ class TwoVariableChart is Chart
         end
         chartAreaItem = chartArea
         ChartSelection selection = GetSelection()
-        selection:Set(summary)
+        selection:Set(chartArea)
     end
 
     action CastToPoints(Array <Item> chartAreaItems) returns Array <ChartPoint>
@@ -1631,7 +1635,7 @@ class TwoVariableChart is Chart
                 previousPointItem = pointItem
                 i = i + 1
             end
-            previousPointItem:SetDescription(firstPointItem:GetDescription() + " End of Y value order.")
+            previousPointItem:SetDescription(previousPointItem:GetDescription() + " End of Y value order.")
 
         end
     end

@@ -43,6 +43,7 @@ class SharedBarChartParent is Chart
     private integer numberOfBars = 0
     private number maxBarValue = 0
     private number minBarValue = 0
+    private number betweenGroupPadding = -1
 
     private boolean annotationFontSizeOverride = false
     private integer annotationFontSize = 0
@@ -545,20 +546,22 @@ class SharedBarChartParent is Chart
         // The chart area is the child unless y-axis is showing.
         summary:SetDisplayName(GenerateSummary())
 
-        chartArea:SetDisplayName("Chart Area with " + numberOfBars + bartext)
+        chartArea:SetName(summary:GetName())
+        chartArea:SetDisplayName(GenerateSummary())
         chartArea:SetContainer(me)
+        summary = chartArea
 
         AddChartAreaInstructions(" with " + numberOfBars + bartext)
     
         // If any of these are not showing the tree will skip them in the navigation
         if IsShowingXAxis() 
-            GetHorizontalPanel():GenerateInfoTree(me, summary, yAxis, xAxis)
+            GetHorizontalPanel():GenerateInfoTree(me, chartArea, yAxis, xAxis)
         end        
         if IsShowingYAxis() 
-            GetVerticalPanel():GenerateInfoTree(me, summary, yAxis, xAxis)
+            GetVerticalPanel():GenerateInfoTree(me, chartArea, yAxis, xAxis)
         end
         if IsShowingLegend()
-            GetLegend():GenerateInfoTree(me, summary, yAxis, xAxis)
+            GetLegend():GenerateInfoTree(me, chartArea, yAxis, xAxis)
         end
 
         if IsSeparated()
@@ -832,7 +835,7 @@ class SharedBarChartParent is Chart
             end
         end
         ChartSelection selection = GetSelection()
-        selection:Set(summary)
+        selection:Set(chartArea)
     end
 
     /* 
@@ -928,6 +931,14 @@ class SharedBarChartParent is Chart
     action SetAnnotationFontSize (integer size)
         annotationFontSizeOverride = true
         annotationFontSize = size
+    end
+
+    action GetBetweenGroupPadding returns number
+        return betweenGroupPadding
+    end
+
+    action SetBetweenGroupPadding(number betweenGroupPadding)
+        me:betweenGroupPadding = betweenGroupPadding
     end
 
 end

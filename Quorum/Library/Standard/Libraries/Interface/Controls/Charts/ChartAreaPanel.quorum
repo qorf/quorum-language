@@ -74,19 +74,19 @@ class ChartAreaPanel is ChartItem
     end
 
     action GainedSelection
-        if GetParentChart():GetChartArea() = me
-            parent:Control:GainedSelection()
-        else
+        //if GetParentChart():GetChartArea() = me
+        //    parent:Control:GainedSelection()
+        //else
             parent:ChartItem:GainedSelection()
-        end
+        //end
     end
 
     action LostSelection
-        if GetParentChart():GetChartArea() = me
-            parent:Control:LostSelection()
-        else
+        //if GetParentChart():GetChartArea() = me
+        //    parent:Control:LostSelection()
+        //else
             parent:ChartItem:LostSelection()
-        end
+        //end
     end
 
     action GetChartAreaItems returns Array<ChartItem>

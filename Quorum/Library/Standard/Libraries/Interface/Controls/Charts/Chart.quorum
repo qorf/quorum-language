@@ -3270,6 +3270,13 @@ parent:Item2D:isResizing = true
                 end
                 temp:GetEntryIcon():SetColor(previousColor)
                 temp:GetEntryBox():SetColor(0,0,0,0)
+                if showLinearRegression and temp:GetRegressionLine() not= undefined
+                    RegressionLine regressionLine = cast(RegressionLine, temp:GetRegressionLine())
+                    regressionLine:SetZ(previousZ)
+                    regressionLine:SetColor(previousColor)
+                    regressionLine:GetLabel():LostSelection()
+                    regressionLine:GetRegressionIcon():SetColor(previousColor)
+                end
             elseif target is RegressionLine
                 RegressionLine temp = cast(RegressionLine, target)
                 temp:SetZ(previousZ)
@@ -3338,6 +3345,14 @@ parent:Item2D:isResizing = true
                 end
                 temp:GetEntryIcon():SetColor(GetSelectionColor())
                 temp:GetEntryBox():SetColor(GetSelectionColor())
+                if showLinearRegression and temp:GetRegressionLine() not= undefined
+                    RegressionLine regressionLine = cast(RegressionLine, temp:GetRegressionLine())
+                    previousZ = regressionLine:GetZ()
+                    regressionLine:SetZ(-5)
+                    //regressionLine:SetColor(GetSelectionColor())
+                    regressionLine:GetLabel():GainedSelection()
+                    regressionLine:GetRegressionIcon():SetColor(GetSelectionColor())
+                end 
             elseif target is RegressionLine
                 RegressionLine temp = cast(RegressionLine, target)
                 previousZ = temp:GetZ()
@@ -3373,8 +3388,8 @@ parent:Item2D:isResizing = true
                 Do whatever specialized work we want to do to show overall focus/selection on the ChartAreaPanel here.
                 Importantly, we do not want to override the color properties like we would if we fell into the last case below.
                 */
-            elseif target:Equals(me)
-                GetChartArea():GainedSelection()
+            //elseif target:Equals(me)
+            //    GetChartArea():GainedSelection()
             elseif target is HorizontalAxisPanel or target is VerticalAxisPanel
                 // Do nothing by default. The axis panel handles its own selection event.
             elseif target is Control
@@ -3398,8 +3413,9 @@ parent:Item2D:isResizing = true
     action LostSelection
         if GetChartArea() not= undefined
             GetChartArea():LostSelection()
+        else
+            parent:Control:LostSelection()
         end
-        parent:Control:LostSelection()
     end
 
     /*

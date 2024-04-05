@@ -811,18 +811,20 @@ class BoxPlot is Chart
         summary:SetDisplayName(GenerateSummary())
         summary:SetContainer(me)
 
-        chartArea:SetDisplayName("Box Plot")
+        chartArea:SetName(summary:GetName())
+        chartArea:SetDisplayName(GenerateSummary())
         chartArea:SetContainer(me)
+        summary = chartArea
     
         // If any of these are not showing the tree will skip them in the navigation
         if IsShowingXAxis()
-            GetHorizontalPanel():GenerateInfoTree(me, summary, yAxis, xAxis)
+            GetHorizontalPanel():GenerateInfoTree(me, chartArea, yAxis, xAxis)
         end        
         if IsShowingYAxis()
-            GetVerticalPanel():GenerateInfoTree(me, summary, yAxis, xAxis)
+            GetVerticalPanel():GenerateInfoTree(me, chartArea, yAxis, xAxis)
         end
         if IsShowingLegend()
-            GetLegend():GenerateInfoTree(me, summary, yAxis, xAxis)
+            GetLegend():GenerateInfoTree(me, chartArea, yAxis, xAxis)
         end
         
         if IsSeparated()
@@ -941,7 +943,7 @@ class BoxPlot is Chart
         end
         
         ChartSelection selection = GetSelection()
-        selection:Set(summary)
+        selection:Set(chartArea)
     end
 
     /* 
