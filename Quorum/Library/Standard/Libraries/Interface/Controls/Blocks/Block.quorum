@@ -22,6 +22,7 @@ use Libraries.Game.Graphics.ColorNamer
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Color
 use Libraries.Interface.Controls.Blocks.Palette.BlockPaletteItem
+use Libraries.Game.Graphics.Font
 
 class Block is Control
     integer scopeDepth = 0
@@ -777,7 +778,7 @@ be dropped. Placeholder blocks have special rules around their text values and h
                     region:SetupAsPlaceholder(region:GetName(), region:GetText())
                 elseif child is BlockLabel
                     BlockLabel label = cast(BlockLabel, child)
-                    label:SetFont(editor:GetFont())
+                    label:SetFont(GetLabelFont())
                     label:SetFontSize(editor:GetFontSize())
                     Add(label)
                 end
@@ -1318,6 +1319,23 @@ the provided code. For more specific visuals, use SetAsPlaceholder(text, Array<I
         end
         
         return parent:Control:IsRenderingSelection()
+    end
+    
+    /* This action returns the font that is used for labels on this Block.
+This is usually whatever font is attached to the BlockEnvironment,
+especially if it's a CodeEditor, but in some cases it might be fetched
+from elsewhere. For example, BlockPaletteItems don't use their own font,
+but instead use the font of the associated Editor, if there is one. */
+    action GetLabelFont returns Font
+        BlockEnvironment source = GetBlockEnvironment()
+        if source is BlockPaletteItem
+            BlockPaletteItem item = cast(BlockPaletteItem, source)
+            if item:GetEditor() not= undefined
+                source = item:GetEditor()
+            end
+        end
+        
+        return source:GetFont()
     end
     
 end

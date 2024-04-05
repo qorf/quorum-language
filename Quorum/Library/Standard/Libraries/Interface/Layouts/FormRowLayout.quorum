@@ -447,11 +447,11 @@ class FormRowLayout is Layout
                     end
 
                     font:SetSize(cast(integer, control:GetFontSize() * control:GetInterfaceScale()))
-
                     number height = font:GetLineHeight()
 
                     if height <= 0
                         height = defaultRowHeight
+                        output "DEFAULTING ROW HEIGHT!"
                     end
 
                     if control:GetPixelHeight() not= 0 or control:GetPercentageHeight() not= 0

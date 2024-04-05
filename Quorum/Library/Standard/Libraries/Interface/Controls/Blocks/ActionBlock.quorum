@@ -95,7 +95,7 @@ class ActionBlock is MultipleLineBlock
         if actionContext:access not= undefined
             BlockLabel accessModifierLabel
             me:accessModifierLabel = accessModifierLabel
-            accessModifierLabel:SetFont(editor:GetFont())
+            accessModifierLabel:SetFont(GetLabelFont())
             accessModifierLabel:SetFontSize(editor:GetFontSize())
             if actionContext:access:isPrivate
                 accessModifierLabel:SetText("private")
@@ -110,7 +110,7 @@ class ActionBlock is MultipleLineBlock
             part:UseNeutralScopeStyling()
             BlockLabel systemLabel
             me:systemLabel = systemLabel
-            systemLabel:SetFont(editor:GetFont())
+            systemLabel:SetFont(GetLabelFont())
             systemLabel:SetFontSize(editor:GetFontSize())
             systemLabel:SetText("system")
             systemLabel:SetRightPadding(spacing)
@@ -120,7 +120,7 @@ class ActionBlock is MultipleLineBlock
             part:UseNeutralScopeStyling()
             BlockLabel blueprintLabel
             me:blueprintLabel = blueprintLabel
-            blueprintLabel:SetFont(editor:GetFont())
+            blueprintLabel:SetFont(GetLabelFont())
             blueprintLabel:SetFontSize(editor:GetFontSize())
             blueprintLabel:SetText("blueprint")
             blueprintLabel:SetRightPadding(spacing)
@@ -129,7 +129,7 @@ class ActionBlock is MultipleLineBlock
 
         BlockLabel actionLabel
         me:actionLabel = actionLabel
-        actionLabel:SetFont(editor:GetFont())
+        actionLabel:SetFont(GetLabelFont())
         actionLabel:SetFontSize(editor:GetFontSize())
         actionLabel:SetText("action")
         actionLabel:SetRightPadding(spacing)
@@ -151,7 +151,7 @@ class ActionBlock is MultipleLineBlock
 
             BlockLabel leftParen
             me:leftParen = leftParen
-            leftParen:SetFont(editor:GetFont())
+            leftParen:SetFont(GetLabelFont())
             leftParen:SetFontSize(editor:GetFontSize())
             leftParen:SetText("(")
             part:Add(leftParen)
@@ -166,7 +166,7 @@ class ActionBlock is MultipleLineBlock
 
             BlockLabel rightParen
             me:rightParen = rightParen
-            rightParen:SetFont(editor:GetFont())
+            rightParen:SetFont(GetLabelFont())
             rightParen:SetFontSize(editor:GetFontSize())
             rightParen:SetText(")")
             part:Add(rightParen)
@@ -180,7 +180,7 @@ class ActionBlock is MultipleLineBlock
         if actionContext:returnLocation not= undefined
             BlockLabel returnsLabel
             me:returnsLabel = returnsLabel
-            returnsLabel:SetFont(editor:GetFont())
+            returnsLabel:SetFont(GetLabelFont())
             returnsLabel:SetFontSize(editor:GetFontSize())
             returnsLabel:SetText("returns")
             returnsLabel:SetLeftPadding(spacing * 0.5)

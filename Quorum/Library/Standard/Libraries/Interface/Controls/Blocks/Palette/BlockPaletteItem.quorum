@@ -95,8 +95,7 @@ blockListener:SetStartContext(undefined)
                 end
             end
             
-    
-            number height = 0        
+number height = 0        
             Block block = root
             repeat until block = undefined
                 block:SetFontSize(GetFontSize())
@@ -114,8 +113,8 @@ blockListener:SetStartContext(undefined)
     
                 block = block:GetNextBlock()
             end
-    
-            SetPixelHeight(height)
+        
+SetPixelHeight(height)
             SetHeight(height)
             RequestLayout()
     
@@ -125,6 +124,38 @@ blockListener:SetStartContext(undefined)
                 Block child = visualBlocks:Get(i)
                 current = current - GetLineHeight(i)
                 child:Resize()
+                child:SetPosition(0, current)
+                i = i + 1
+            end
+        end
+    end
+    
+    action SetInterfaceScale(number scale)
+        parent:Control:SetInterfaceScale(scale)
+        
+        // If we're using pixel height to match block contents, update that info.
+        if root not= undefined and GetPixelHeight() > 0
+number height = 0        
+            Block block = root
+            repeat until block = undefined
+                block:SetFontSize(GetFontSize())
+                if block is SingleLineBlock
+                    height = height + GetLineHeight(0)
+                end
+    
+                block = block:GetNextBlock()
+            end
+        
+SetPixelHeight(height)
+            SetHeight(height)
+            RequestLayout()
+    
+            integer i = 0
+            number current = height
+            repeat while i < visualBlocks:GetSize()
+                Block child = visualBlocks:Get(i)
+                current = current - GetLineHeight(i)
+                child:RequestLayout()
                 child:SetPosition(0, current)
                 i = i + 1
             end
