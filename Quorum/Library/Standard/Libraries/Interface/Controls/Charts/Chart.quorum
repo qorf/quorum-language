@@ -26,6 +26,7 @@ use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 use Libraries.Interface.Controls.Charts.Graphics.RegressionLinePointMarker
 use Libraries.System.Properties
+use Libraries.Game.Graphics.Gradient
 
 
 /*
@@ -233,8 +234,8 @@ class Chart is ChartItem
         // Set default size if necessary
         if GetWidth() <= 0 or GetHeight() <= 0
             //This was added in Quorum-12 to ensure it doesn't trigger layout during load graphics.
-boolean isResizing = parent:Item2D:isResizing
-parent:Item2D:isResizing = true
+            boolean isResizing = parent:Item2D:isResizing
+            parent:Item2D:isResizing = true
             SetSize(1000,1000)
             parent:Item2D:isResizing = isResizing
         end
@@ -4164,6 +4165,21 @@ parent:Item2D:isResizing = true
     */
     action SetTouchExplorationEnabled(boolean touchExplorationEnabled)
         me:touchExplorationEnabled = touchExplorationEnabled
+    end
+
+    /*
+    This action toggles the alpha value of the selection color between 0 and 1.
+
+    Attribute: Parameter visualHighlight The flag to determine if visual highlighting is showing.
+    */
+    action ShowVisualHighlight(boolean visualHighlight)
+        Color selectionColor = cast(Color, GetSelectionColor())
+        if visualHighlight
+            selectionColor:SetAlpha(1)
+        else
+            selectionColor:SetAlpha(0)
+        end
+        SetSelectionColor(selectionColor)
     end
 
 end

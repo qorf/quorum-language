@@ -122,6 +122,8 @@ class Legend is ChartItem
                 SetLeftItem(xAxis)
             else
                 summary:SetRightItem(me)
+                summary:SetLeftItem(me)
+                SetRightItem(summary)
                 SetLeftItem(summary)
             end
         end
