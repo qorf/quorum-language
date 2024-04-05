@@ -46,7 +46,7 @@ class OutputBlock is SingleLineBlock
 
         BlockLabel bl
         me:outputLabel = bl
-        outputLabel:SetFont(editor:GetFont())
+        outputLabel:SetFont(GetLabelFont())
         outputLabel:SetFontSize(editor:GetFontSize())
         outputLabel:SetText("output")
         outputLabel:SetRightPadding(spacing)

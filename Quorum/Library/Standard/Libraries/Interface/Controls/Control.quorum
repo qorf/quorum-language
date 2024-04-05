@@ -1383,8 +1383,11 @@ class Control is Item2D
         Attribute: Parameter scale a number between 0 and 1 that scales the control.
     */
     action SetInterfaceScale(number scale)
-        defaultProperties:SetInterfaceScale(scale)
+        if scale not= GetInterfaceScale()
+defaultProperties:SetInterfaceScale(scale)
         defaultProperties:SetRenderingFlag(true)
+            RequestLayout()
+        end
 
         Array<Item2D> children = GetChildren()
         integer counter = 0

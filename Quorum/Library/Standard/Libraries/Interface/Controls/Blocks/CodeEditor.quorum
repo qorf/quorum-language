@@ -463,12 +463,11 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
     end
 
     action SetInterfaceScale(number scale)
-        if scale = GetInterfaceScale()
-            return now
+        if scale not= GetInterfaceScale()
+shouldCalculateWidth = true
+        shouldCalculateHeight = true
         end
 
-        shouldCalculateWidth = true
-        shouldCalculateHeight = true
         parent:Control:SetInterfaceScale(scale)
     end
 

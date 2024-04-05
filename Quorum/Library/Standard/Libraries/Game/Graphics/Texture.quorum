@@ -1262,6 +1262,13 @@ class Texture is Disposable
         format:SetValue(format:RGBA8888)
         pixmap:CreatePixelMap(radius * 2 + 1, radius * 2 + 1, format)
 
+        // Before we fill the circle, make sure the transparent background has the right RGB values.
+        // This won't matter most of the time, but if the circle texture is rendered using LINEAR min/mag TextureFilters,
+        // having the default black transparent background will cause dark artifacts around the edges of the circle.
+        Color transparency = color:Copy()
+        transparency:SetAlpha(0)
+        pixmap:Fill(transparency)
+        
         pixmap:FillCircle(radius, radius, radius, color)
         
         FileTextureData data

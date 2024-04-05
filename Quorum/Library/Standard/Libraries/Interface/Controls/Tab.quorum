@@ -35,7 +35,6 @@ class Tab is Button
     Item2D focusTarget = undefined
 
     private boolean toggled = false
-    Layout layout = undefined
     LayoutProperties defaultProperties = undefined
     LayoutProperties iconLayoutProperties = undefined
     LayoutProperties labelLayoutProperties = undefined
@@ -58,11 +57,6 @@ class Tab is Button
 label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         
         SetInterfaceOptionsKey("Tab")
-
-        FlowLayout flow
-        layout = flow
-        flow:SetIgnoreHidden(true)
-        SetLayout(flow)
 
         iconLayoutProperties = icon:GetDefaultLayoutProperties()
         iconLayoutProperties:SetHorizontalLayoutMode(iconLayoutProperties:MAINTAIN_ASPECT_RATIO)
@@ -200,6 +194,10 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
     action IsDisplayingCloseButton returns boolean
         return closeButton:IsShowing()
     end
+    
+    action GetCloseButton returns Button
+        return closeButton
+    end
 
     action SetToggleState(boolean toggleState)
         if toggled = toggleState
@@ -315,7 +313,6 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         // undefined, the relatedItem is focused instead, if possible.
         focusTarget = undefined
 
-        layout = undefined
         defaultProperties = undefined
         iconLayoutProperties = undefined
         labelLayoutProperties = undefined
@@ -376,6 +373,13 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
     */
     action GetLabel returns Label
         return label
+    end
+    
+/*
+    For internal use only.
+    */
+    action GetTabIcon returns Icon
+        return icon
     end
 
     /*
