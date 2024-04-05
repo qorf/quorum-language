@@ -823,7 +823,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         if (endIndex < textValue:GetSize())
             postText = textValue:GetSubtext(endIndex, textValue:GetSize())
         end
-
+text deletedText = textValue:GetSubtext(startIndex, endIndex)
         textValue = preText + postText
         if (moveView)
             FitCharacterOnScreen(caretCharacter)
@@ -831,6 +831,12 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         GetLineDrawables()
         PositionCaret()
         ResetCaretBlinkTimer()
+        
+        
+TextChangeEvent changeEvent
+        changeEvent:Initialize(me, "", deletedText, GetCaretPosition())
+
+        NotifyTextChangeListeners(changeEvent)
 
         EmptySelectionEvent(true)
     end
