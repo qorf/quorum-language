@@ -1864,6 +1864,7 @@ editManager:SetSpecialAction(false)
             SelectBlockOrItem(targetSelection)
         else
             selection:SetToTopOfFile()
+            dummyItem:Focus()
         end
 
         if parentBlock is RootBlock and parentBlock:GetChildCount() = 0
