@@ -148,6 +148,7 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
         popup:SetCodeEditor(me)
         SetPopupMenu(popup)
         SetAccessibilityCode(parent:Item:PANE)
+        SetFocusable(true)
     end
 
     action NotifyAccessibility(Item item, text message)
