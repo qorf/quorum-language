@@ -1,9 +1,6 @@
-function plugins_quorum_Libraries_Language_Support_TextBuilder_(optional) {
+function plugins_quorum_Libraries_Language_Support_TextBuilder_() {
     this.text = "";
-    if(optional === undefined) {
-    } else {
-        this.text = optional;
-    }
+
     this.Append$quorum_text = function (value) {
         this.text = this.text + value;
     };
