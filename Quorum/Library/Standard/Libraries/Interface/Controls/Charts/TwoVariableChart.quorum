@@ -129,6 +129,7 @@ class TwoVariableChart is Chart
                     chartArea = GetChartArea()
                 end
 
+                cline:SetInputGroup("Chart")
                 cline:SetFocusable(true)
                 cline:SetAccessibilityCode(parent:Item:CHART_ITEM)
                 cline:SetNextFocus(GetNextFocus())
@@ -149,6 +150,7 @@ class TwoVariableChart is Chart
                 j = 0
                 repeat while j < cline:GetPoints():GetSize()
                     ChartPoint point = cline:GetPoints():Get(j)
+                    point:SetInputGroup("Chart")
                     point:SetFocusable(true)
                     point:SetAccessibilityCode(parent:Item:CHART_ITEM)
                     point:SetNextFocus(GetNextFocus())
@@ -242,6 +244,7 @@ class TwoVariableChart is Chart
 
             repeat while i < points:GetSize()
                 ChartPoint point = points:Get(i)
+                point:SetInputGroup("Chart")
                 point:SetFocusable(true)
                 point:SetAccessibilityCode(parent:Item:CHART_ITEM)
                 point:SetNextFocus(GetNextFocus())
@@ -697,10 +700,14 @@ class TwoVariableChart is Chart
 
         ChartItem summary = me
         // The chart area is the child unless y-axis is showing.
+        
         summary:SetDisplayName(GenerateSummary())
         summary:SetContainer(me)
-
+        
+        chartArea:SetName(summary:GetName())
+        chartArea:SetDisplayName(GenerateSummary())
         chartArea:SetContainer(me)
+        summary = chartArea
         
         text lineText = "lines"
         text pointText = "points"
@@ -726,13 +733,13 @@ class TwoVariableChart is Chart
     
         // If any of these are not showing the tree will skip them in the navigation   
         if IsShowingXAxis()
-            GetHorizontalPanel():GenerateInfoTree(me, summary, yAxis, xAxis)
+            GetHorizontalPanel():GenerateInfoTree(me, chartArea, yAxis, xAxis)
         end     
         if IsShowingYAxis()
-            GetVerticalPanel():GenerateInfoTree(me, summary, yAxis, xAxis)
+            GetVerticalPanel():GenerateInfoTree(me, chartArea, yAxis, xAxis)
         end
         //if IsShowingLegend()
-            GetLegend():GenerateInfoTree(me, summary, yAxis, xAxis)
+            GetLegend():GenerateInfoTree(me, chartArea, yAxis, xAxis)
         //end
 
         // Generate Line Chart Info
@@ -1007,7 +1014,7 @@ class TwoVariableChart is Chart
         end
         chartAreaItem = chartArea
         ChartSelection selection = GetSelection()
-        selection:Set(summary)
+        selection:Set(chartArea)
     end
 
     action CastToPoints(Array <Item> chartAreaItems) returns Array <ChartPoint>
@@ -1108,6 +1115,7 @@ class TwoVariableChart is Chart
         region:SetPercentageY(percentY)
         region:SetPercentageWidth(percentWidth)
         region:SetPercentageHeight(percentHeight)
+        region:SetInputGroup("Chart")
         region:SetFocusable(true)
         region:SetAccessibilityCode(region:parent:Item:CHART_SECTION)
         LayoutProperties properties = region:GetDefaultLayoutProperties()
@@ -1658,7 +1666,7 @@ class TwoVariableChart is Chart
                 previousPointItem = pointItem
                 i = i + 1
             end
-            previousPointItem:SetDescription(firstPointItem:GetDescription() + " End of Y value order.")
+            previousPointItem:SetDescription(previousPointItem:GetDescription() + " End of Y value order.")
 
         end
     end

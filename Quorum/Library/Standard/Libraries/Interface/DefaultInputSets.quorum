@@ -23,6 +23,7 @@ use Libraries.Interface.Events.GestureEvent
 
 
 
+
 shared class DefaultInputSets
 
     GameStateManager manager
@@ -2127,39 +2128,12 @@ InputSet textFieldControlDelete
     end
 
     action SetupChartInput(GameInput gameInput)
+        //General Chart Nav
         InputTable chartTable
         chartTable:SetIdentifier("Chart")
 
         InputSet numpadEnterSet
         numpadEnterSet:SetKeyboardInput(keys:NUMPAD_ENTER)
-
-        InputSet swipeSet
-        GestureEvent gestures
-        swipeSet:SetGestureInput(gestures:SWIPE)
-
-        InputSet tapSet
-        tapSet:SetGestureInput(gestures:SINGLE_TAP)
-
-        InputSet doubleTapSet
-        doubleTapSet:SetGestureInput(gestures:DOUBLE_TAP)
-
-        InputSet pinchSet
-        pinchSet:SetGestureInput(gestures:PINCH)
-
-        InputSet pinchContinue
-        pinchContinue:SetGestureInput(gestures:PINCH)
-        pinchContinue:SetInputTrigger(pinchContinue:CONTINUE)
-
-        InputSet pinchEnd
-        pinchEnd:SetGestureInput(gestures:PINCH)
-        pinchEnd:SetInputTrigger(pinchEnd:FINISH)
-
-
-        InputSet panSet
-        panSet:SetGestureInput(gestures:PAN)
-        
-        InputSet longPressSet
-        longPressSet:SetGestureInput(gestures:LONG_PRESS)
 
         InputSet escapeSet
         escapeSet:SetKeyboardInput(keys:ESCAPE)
@@ -2172,17 +2146,30 @@ InputSet textFieldControlDelete
         shiftNumpadEnterSet:SetKeyboardInput(keys:NUMPAD_ENTER)
         shiftNumpadEnterSet:AddModifier(shiftNumpadEnterSet:SHIFT)
 
-        InputSet tab
-        tab:SetKeyboardInput(keys:TAB)
-
-        InputSet shiftTab
-        shiftTab:SetKeyboardInput(keys:TAB)
-
         InputSet pageDown
         pageDown:SetKeyboardInput(keys:PAGE_DOWN)
 
         InputSet pageUp
         pageUp:SetKeyboardInput(keys:PAGE_UP)
+
+        InputSet swipeSet
+        GestureEvent gestures
+        swipeSet:SetGestureInput(gestures:SWIPE)
+
+        InputSet tapSet
+        tapSet:SetGestureInput(gestures:SINGLE_TAP)
+
+        InputSet doubleTapSet
+        doubleTapSet:SetGestureInput(gestures:DOUBLE_TAP)
+
+        InputSet panSet
+        panSet:SetGestureInput(gestures:PAN)
+
+        InputSet longPressSet
+        longPressSet:SetGestureInput(gestures:LONG_PRESS)
+
+        InputSet pinchSet
+        pinchSet:SetGestureInput(gestures:PINCH)
 
         ChartNavigateBehavior chartNavigateBehavior
         chartTable:Add(GetLeftArrowKey(), chartNavigateBehavior)
@@ -2193,20 +2180,35 @@ InputSet textFieldControlDelete
         chartTable:Add(numpadEnterSet, chartNavigateBehavior)
         chartTable:Add(shiftEnterSet, chartNavigateBehavior)
         chartTable:Add(shiftNumpadEnterSet, chartNavigateBehavior)
+        chartTable:Add(pageUp, chartNavigateBehavior)
+        chartTable:Add(pageDown, chartNavigateBehavior)
         chartTable:Add(swipeSet, chartNavigateBehavior)
         chartTable:Add(tapSet, chartNavigateBehavior)
         chartTable:Add(doubleTapSet, chartNavigateBehavior)
-        chartTable:Add(pinchSet, chartNavigateBehavior)
-        chartTable:Add(pinchContinue, chartNavigateBehavior)
-        chartTable:Add(pinchEnd, chartNavigateBehavior)
         chartTable:Add(panSet, chartNavigateBehavior)
         chartTable:Add(longPressSet, chartNavigateBehavior)
-        chartTable:Add(tab, chartNavigateBehavior)
-        chartTable:Add(shiftTab, chartNavigateBehavior)
-        chartTable:Add(pageUp, chartNavigateBehavior)
-        chartTable:Add(pageDown, chartNavigateBehavior)
-        gameInput:AddInputTable(chartTable)
+        chartTable:Add(pinchSet, chartNavigateBehavior)
 
+        InputSet chartTouchStart
+        chartTouchStart:SetInputType(chartTouchStart:TOUCH_INPUT)
+        chartTouchStart:SetInputTrigger(chartTouchStart:BEGIN)
+        ChartTouchStartBehavior chartTouchStartBehavior
+        chartTable:Add(chartTouchStart, chartTouchStartBehavior)
+
+        InputSet chartTouchContinue
+        chartTouchContinue:SetInputType(chartTouchContinue:TOUCH_MOVEMENT_INPUT)
+        chartTouchContinue:SetInputTrigger(chartTouchContinue:CONTINUE)
+        ChartTouchContinueBehavior chartTouchContinueBehavior
+        chartTable:Add(chartTouchContinue, chartTouchContinueBehavior)
+
+        InputSet chartTouchEnd
+        chartTouchEnd:SetInputType(chartTouchEnd:TOUCH_INPUT)
+        chartTouchEnd:SetInputTrigger(chartTouchEnd:FINISH)
+        ChartTouchEndBehavior chartTouchEndBehavior
+        chartTable:Add(chartTouchEnd, chartTouchEndBehavior)
+        gameInput:AddInputTable(chartTable)
+    
+        //Regression Line
         InputTable regressionLineTable
         regressionLineTable:SetIdentifier("RegressionLine")
         ChartMovableRegressionDragBehavior chartDragBehavior

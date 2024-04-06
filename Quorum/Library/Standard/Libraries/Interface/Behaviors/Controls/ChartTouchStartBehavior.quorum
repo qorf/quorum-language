@@ -1,0 +1,34 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Charts.ChartItem
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.Charts.ChartAreaPanel
+use Libraries.Interface.Controls.Charts.ChartLabel
+
+class ChartTouchStartBehavior is Behavior
+
+    action Run(BehaviorEvent event)
+        
+
+        Item item = event:GetItem()
+
+        if item is ChartLabel
+            ChartLabel chartLabel = cast(ChartLabel, item)
+            item = chartLabel:GetParent()
+        end
+
+        if item is ChartAreaPanel
+            return now
+        end
+
+        if item is ChartItem
+            ChartItem chartItem = cast(ChartItem, item)
+            if chartItem:GetContainer():GetTouchExplorationEnabled() and chartItem:GetContainer():GetSelection():GetChartItem() not= chartItem
+                chartItem:GetContainer():Select(chartItem)
+            end
+        end
+    end
+
+end

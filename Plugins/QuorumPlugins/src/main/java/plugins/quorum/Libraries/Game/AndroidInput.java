@@ -23,6 +23,7 @@ import quorum.Libraries.Interface.Item_;
  */
 public class AndroidInput 
 {
+    private final String DEBUG_TAG = "AndroidInput";
     public java.lang.Object me_ = null;
 
     public static final int GESTURE_SINGLE_TAP = 1;
@@ -74,6 +75,7 @@ public class AndroidInput
             int x;
             int y;
             Coordinates coordinates;
+            
             Item_ temp =  AndroidAccessibility.lastSpokenChild;
             switch(e.getActionMasked())
             {
@@ -124,7 +126,7 @@ public class AndroidInput
                         event.y = y;
                         event.fingerID = id;
                         event.eventType = event.BEGAN;
-                        map.put(id, new Coordinates(x, y));
+                      	map.put(id, new Coordinates(x, y));
                         event.movementX = 0;
                         event.movementY = 0;
                         eventArray[0] = event;
@@ -169,6 +171,7 @@ public class AndroidInput
                         currentFingerCount = e.getPointerCount();
                         x = (int)e.getRawX();
                         y = GameStateManager.display.GetHeight() - (int)e.getRawY();
+                        event.fingerID = id;
                         event.eventType = event.ENDED;
                         coordinates = map.get(id);
                         event.movementX = x - coordinates.x;
@@ -188,6 +191,7 @@ public class AndroidInput
 
                         x = (int)e.getRawX();
                         y = GameStateManager.display.GetHeight() - (int)e.getRawY();
+                        event.fingerID = id;
 
                         event.x = x;
                         event.y = y;
@@ -202,10 +206,12 @@ public class AndroidInput
                         break;
                     case (MotionEvent.ACTION_OUTSIDE):
                     default:
+                        id = e.getPointerId(e.getActionIndex());
                         eventArray = new TouchEvent_[1];
                         event = new TouchEvent();
                         x = (int)e.getRawX();
                         y = GameStateManager.display.GetHeight() - (int)e.getRawY();
+                        event.fingerID = id;
                         for(int i = 0; i < e.getPointerCount(); i++)
                         {
                         if (!map.containsKey(e.getPointerId(i)))
@@ -214,6 +220,7 @@ public class AndroidInput
                         event.eventType = -1;
                         eventArray[0] = event;
             }
+        
         return eventArray;
     }
     
@@ -257,6 +264,8 @@ public class AndroidInput
     public void AddSingleTapEvent(MotionEvent event)
     {
         GestureEvent quorumEvent = new GestureEvent();
+    	//Log.d(DEBUG_TAG, "AndroidInput - TAP");
+    	//Log.d("myapp", Log.getStackTraceString(new Exception()));
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.SINGLE_TAP);
 
         InitializeValues(event, quorumEvent);
@@ -267,6 +276,7 @@ public class AndroidInput
     public void AddDoubleTapEvent(MotionEvent event)
     {
         GestureEvent quorumEvent = new GestureEvent();
+    	//Log.d(DEBUG_TAG, "AndroidInput - DOUBLE TAP");
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.DOUBLE_TAP);
 
         InitializeValues(event, quorumEvent);
@@ -277,6 +287,7 @@ public class AndroidInput
     public void AddFlingEvent(MotionEvent event1, MotionEvent event2, float velocityX, float velocityY)
     {
         GestureEvent quorumEvent = new GestureEvent();
+    	//Log.d(DEBUG_TAG, "AndroidInput - SWIPE");
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.SWIPE);
 
         if (Math.abs(velocityX) > Math.abs(velocityY))
@@ -303,6 +314,7 @@ public class AndroidInput
     public void AddLongPressEvent(MotionEvent event)
     {
         GestureEvent quorumEvent = new GestureEvent();
+    	//Log.d(DEBUG_TAG, "AndroidInput - LONG PRESS");
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.LONG_PRESS);
 
         InitializeValues(event, quorumEvent);
@@ -320,6 +332,7 @@ public class AndroidInput
         longPressed = false;
 
         GestureEvent quorumEvent = new GestureEvent();
+    	//Log.d(DEBUG_TAG, "AndroidInput - LONG PRESS (FINISH)");
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.LONG_PRESS);
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__timingCode_(quorumEvent.FINISH);
 
@@ -331,6 +344,7 @@ public class AndroidInput
     public void AddScrollEvent(MotionEvent event1, MotionEvent event2, float distanceX, float distanceY)
     {
         GestureEvent quorumEvent = new GestureEvent();
+    	//Log.d(DEBUG_TAG, "AndroidInput - PAN");
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.PAN);
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__panDistanceX_((int)-distanceX);
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__panDistanceY_((int)distanceY);
@@ -359,6 +373,7 @@ public class AndroidInput
     public void AddScaleBeginEvent(ScaleGestureDetector detector)
     {
         GestureEvent quorumEvent = new GestureEvent();
+    	//Log.d(DEBUG_TAG, "AndroidInput - PINCH (BEGIN)");
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.PINCH);
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__timingCode_(quorumEvent.BEGIN);
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__scaleFactor_(detector.getScaleFactor());
@@ -371,6 +386,7 @@ public class AndroidInput
     public void AddScaleContinueEvent(ScaleGestureDetector detector)
     {
         GestureEvent quorumEvent = new GestureEvent();
+    	//Log.d(DEBUG_TAG, "AndroidInput - PINCH (CONTINUE)");
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.PINCH);
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__timingCode_(quorumEvent.CONTINUE);
 
@@ -385,6 +401,7 @@ public class AndroidInput
     public void AddScaleEndEvent(ScaleGestureDetector detector)
     {
         GestureEvent quorumEvent = new GestureEvent();
+    	//Log.d(DEBUG_TAG, "AndroidInput - PINCH (FINISH)");
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.PINCH);
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__timingCode_(quorumEvent.FINISH);
         quorumEvent.Set_Libraries_Interface_Events_GestureEvent__scaleFactor_(scaleFactor);

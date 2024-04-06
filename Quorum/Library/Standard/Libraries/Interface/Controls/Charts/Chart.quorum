@@ -26,6 +26,7 @@ use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 use Libraries.Interface.Controls.Charts.Graphics.RegressionLinePointMarker
 use Libraries.System.Properties
+use Libraries.Game.Graphics.Gradient
 
 
 /*
@@ -199,6 +200,9 @@ class Chart is ChartItem
     text scriptFilepath = ""
     text styleFilepath = ""
 
+    // Toggle Touch Exploration versus Gesture-based Structured Chart Navigation
+    boolean touchExplorationEnabled = false
+
     on create
         CheckPlatformInstructions()
         chartArea:SetName("Chart Area")
@@ -231,8 +235,8 @@ class Chart is ChartItem
         // Set default size if necessary
         if GetWidth() <= 0 or GetHeight() <= 0
             //This was added in Quorum-12 to ensure it doesn't trigger layout during load graphics.
-boolean isResizing = parent:Item2D:isResizing
-parent:Item2D:isResizing = true
+            boolean isResizing = parent:Item2D:isResizing
+            parent:Item2D:isResizing = true
             SetSize(1000,1000)
             parent:Item2D:isResizing = isResizing
         end
@@ -3288,6 +3292,13 @@ parent:Item2D:isResizing = true
                 end
                 temp:GetEntryIcon():SetColor(previousColor)
                 temp:GetEntryBox():SetColor(0,0,0,0)
+                if showLinearRegression and temp:GetRegressionLine() not= undefined
+                    RegressionLine regressionLine = cast(RegressionLine, temp:GetRegressionLine())
+                    regressionLine:SetZ(previousZ)
+                    regressionLine:SetColor(previousColor)
+                    regressionLine:GetLabel():LostSelection()
+                    regressionLine:GetRegressionIcon():SetColor(previousColor)
+                end
             elseif target is RegressionLine
                 RegressionLine temp = cast(RegressionLine, target)
                 temp:SetZ(previousZ)
@@ -3356,6 +3367,14 @@ parent:Item2D:isResizing = true
                 end
                 temp:GetEntryIcon():SetColor(GetSelectionColor())
                 temp:GetEntryBox():SetColor(GetSelectionColor())
+                if showLinearRegression and temp:GetRegressionLine() not= undefined
+                    RegressionLine regressionLine = cast(RegressionLine, temp:GetRegressionLine())
+                    previousZ = regressionLine:GetZ()
+                    regressionLine:SetZ(-5)
+                    //regressionLine:SetColor(GetSelectionColor())
+                    regressionLine:GetLabel():GainedSelection()
+                    regressionLine:GetRegressionIcon():SetColor(GetSelectionColor())
+                end 
             elseif target is RegressionLine
                 RegressionLine temp = cast(RegressionLine, target)
                 previousZ = temp:GetZ()
@@ -3391,8 +3410,8 @@ parent:Item2D:isResizing = true
                 Do whatever specialized work we want to do to show overall focus/selection on the ChartAreaPanel here.
                 Importantly, we do not want to override the color properties like we would if we fell into the last case below.
                 */
-            elseif target:Equals(me)
-                GetChartArea():GainedSelection()
+            //elseif target:Equals(me)
+            //    GetChartArea():GainedSelection()
             elseif target is HorizontalAxisPanel or target is VerticalAxisPanel
                 // Do nothing by default. The axis panel handles its own selection event.
             elseif target is Control
@@ -3416,8 +3435,9 @@ parent:Item2D:isResizing = true
     action LostSelection
         if GetChartArea() not= undefined
             GetChartArea():LostSelection()
+        else
+            parent:Control:LostSelection()
         end
-        parent:Control:LostSelection()
     end
 
     /*
@@ -4145,6 +4165,39 @@ parent:Item2D:isResizing = true
             enterInstruction = "two finger swipe Down"
             exitInstruction = "two finger swipe Up"
         end
+    end
+
+    
+    /*
+    This action gets the flag to determine if touch exploration is enabled.
+
+    Attribute: Returns The flag for touch exploration.
+    */
+    action GetTouchExplorationEnabled returns boolean
+        return touchExplorationEnabled
+    end
+    /*
+    This action sets the flag to determine if touch exploration is enabled.
+
+    Attribute: Parameter touchExplorationEnabled The flag to determine if touch exploration is enabled.
+    */
+    action SetTouchExplorationEnabled(boolean touchExplorationEnabled)
+        me:touchExplorationEnabled = touchExplorationEnabled
+    end
+
+    /*
+    This action toggles the alpha value of the selection color between 0 and 1.
+
+    Attribute: Parameter visualHighlight The flag to determine if visual highlighting is showing.
+    */
+    action ShowVisualHighlight(boolean visualHighlight)
+        Color selectionColor = cast(Color, GetSelectionColor())
+        if visualHighlight
+            selectionColor:SetAlpha(1)
+        else
+            selectionColor:SetAlpha(0)
+        end
+        SetSelectionColor(selectionColor)
     end
 
 end
