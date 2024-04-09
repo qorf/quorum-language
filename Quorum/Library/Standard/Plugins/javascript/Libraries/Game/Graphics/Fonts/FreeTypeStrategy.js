@@ -318,7 +318,7 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 		// How much padding there should be between symbols on the ImageSheet.
 		var padding = 1;
 
-		var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+		var graphics = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics;
 		var maxSize = graphics.glGetIntegerv(graphics.gl.MAX_TEXTURE_SIZE);
 
 		var rowHeight = padding;

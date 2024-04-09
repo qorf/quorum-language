@@ -61,7 +61,7 @@ class Shader
             alert("I couldn't compile this shader because its name hasn't been set. Use the SetName action before compiling this shader.")
         end
 
-        ShaderManager shaderManager
+        ShaderManager shaderManager = manager:GetShaderManager()
         shaderManager:Register(name, me)
 
         GraphicsManager graphics = manager:GetGameGraphics()
@@ -132,7 +132,7 @@ class Shader
     action Dispose
         GraphicsManager graphics = manager:GetGameGraphics()
         graphics:DeleteShader(shaderID)
-        ShaderManager shaderManager
+        ShaderManager shaderManager = manager:GetShaderManager()
         shaderManager:RemoveShader(name)
     end
 end

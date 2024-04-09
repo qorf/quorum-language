@@ -1392,8 +1392,9 @@ class Drawable is TextureRegion, Item2D
             end
     */
     action LoadFilledRectangle(integer width, integer height, ColorGroup color)
-        SharedTextureManager manager
-        Texture temp = manager:GetUnitTexture()
+        GameStateManager manager
+        SharedTextureManager textureManager = manager:GetSharedTextureManager()
+        Texture temp = textureManager:GetUnitTexture()
         Load(temp)
         SetSize(width, height)
         SetColor(color)
@@ -1598,8 +1599,9 @@ class Drawable is TextureRegion, Item2D
             end
     */
     action LoadFilledTriangle(integer x1, integer y1, integer x2, integer y2, integer x3, integer y3, ColorGroup color)
-        SharedTextureManager manager
-        Texture temp = manager:GetUnitTexture()
+        GameStateManager manager
+        SharedTextureManager textureManager = manager:GetSharedTextureManager()
+        Texture temp = textureManager:GetUnitTexture()
         Load(temp)
         SetColor(color)
         Vector2 vertex1

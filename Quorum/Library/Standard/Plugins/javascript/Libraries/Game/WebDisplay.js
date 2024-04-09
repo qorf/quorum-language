@@ -31,12 +31,14 @@ function plugins_quorum_Libraries_Game_WebDisplay_()
 
         canvas = document.createElement("canvas");
         canvas.setAttribute("aria-hidden", "true");
-        canvas.style.outline = "none";
-        canvas.style.position = "absolute";
-        canvas.style.left = 0;
-        canvas.style.top = 0;
-        canvas.style.width = "100%";
-        canvas.style.height = "100%";
+//        canvas.style.outline = "none";
+//        canvas.style.position = "absolute";
+//        canvas.style.left = 0;
+//        canvas.style.top = 0;
+//        canvas.style.width = "100%";
+//        canvas.style.height = "100%";
+        canvas.style.width = "50%";
+        canvas.style.height = "50%";
         container.appendChild(canvas);
     };
     

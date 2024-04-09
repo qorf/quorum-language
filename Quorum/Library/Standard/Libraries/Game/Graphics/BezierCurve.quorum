@@ -13,6 +13,7 @@ use Libraries.Containers.Iterator
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseWheelListener
+use Libraries.Game.GameStateManager
 
 /*
 This class represents a cubic Bezier curve. In other words, it represents a curved line that begins
@@ -71,7 +72,8 @@ class BezierCurve is Icon
         LoadFilledRectangle(2, 2)
         SetSize(width, height)
 
-        ShaderManager manager
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
         ShaderProgram program = undefined
         if manager:HasShaderProgram("Bezier Curve Shader Program")
             program = manager:GetShaderProgram("Bezier Curve Shader Program")

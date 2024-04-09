@@ -319,8 +319,9 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
     end
 
     private action GetSelectionTexture returns Texture
-        SharedTextureManager manager
-        return manager:GetUnitTexture()
+        GameStateManager manager
+        SharedTextureManager textureManager = manager:GetSharedTextureManager()
+        return textureManager:GetUnitTexture()
     end
 
     /*

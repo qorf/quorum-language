@@ -47,7 +47,7 @@ function plugins_quorum_Libraries_Game_Graphics_Mesh_()
         if (count === 0)
             return;
         
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics;
         
         if (autoBind === undefined)
             autoBind = this.quorumMesh.autoBind;

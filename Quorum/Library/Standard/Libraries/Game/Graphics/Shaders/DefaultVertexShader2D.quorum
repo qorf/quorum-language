@@ -1,10 +1,12 @@
 package Libraries.Game.Graphics.Shaders
+use Libraries.Game.GameStateManager
 
 class DefaultVertexShader2D is Shader
 
     on create
         SetType(parent:Shader:VERTEX_SHADER)
-        ShaderManager manager
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
         SetName(manager:DEFAULT_2D_VERTEX_SHADER)
 
         DefaultAttributeNames attributes

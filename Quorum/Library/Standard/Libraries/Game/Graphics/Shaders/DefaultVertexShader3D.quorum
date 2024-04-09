@@ -1,11 +1,14 @@
 package Libraries.Game.Graphics.Shaders
 
+use Libraries.Game.GameStateManager
+
 class DefaultVertexShader3D is Shader
 
     on create
         SetType(parent:Shader:VERTEX_SHADER)
-        ShaderManager manager
-        SetName(manager:DEFAULT_3D_VERTEX_SHADER)
+        GameStateManager manager
+        ShaderManager shaderManager = manager:GetShaderManager()
+        SetName(shaderManager:DEFAULT_3D_VERTEX_SHADER)
         
         DefaultAttributeNames attributes
         SetCode(GetOpenGLVersion() +

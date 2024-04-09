@@ -16,7 +16,7 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
     
     this.Load$quorum_integer = function(maximumSize) 
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics;
         
         this.supports32bits = graphics.gl.getExtension("OES_element_index_uint");
         
@@ -62,7 +62,7 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
         
         if (isBound)
         {
-            var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+            var graphics = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics;
             graphics.glBufferData(graphics.gl.ELEMENT_ARRAY_BUFFER, this.GetBuffer(), graphics.gl.STATIC_DRAW);
             isDirty = false;
         }
@@ -82,7 +82,7 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
             throw exceptionInstance_;
         }
         
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics;
         
         graphics.glBindBuffer(graphics.gl.ELEMENT_ARRAY_BUFFER, buffer);
         
@@ -96,14 +96,14 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
     
     this.Unbind = function() 
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics;
         graphics.glBindBuffer(graphics.gl.ELEMENT_ARRAY_BUFFER, null);
         isBound = false;
     };
     
     this.Invalidate = function() 
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics;
         buffer = graphics.glGenBuffer();
         isDirty = true;
     };
@@ -121,7 +121,7 @@ function plugins_quorum_Libraries_Game_Graphics_IndexArray_()
     
     this.Dispose = function() 
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics;
         graphics.glBindBuffer(graphics.gl.ELEMENT_ARRAY_BUFFER, null);
         graphics.glDeleteBuffer(buffer);
         buffer = null;

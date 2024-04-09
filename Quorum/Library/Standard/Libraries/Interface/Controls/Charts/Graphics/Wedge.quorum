@@ -13,6 +13,7 @@ use Libraries.Interface.Events.TouchListener
 use Libraries.Interface.Events.TouchEvent
 use Libraries.Interface.Controls.Charts.ChartOptions
 use Libraries.Game.Graphics.Shaders.all
+use Libraries.Game.GameStateManager
 
 /*
 The Wedge class is used to render wedges in a pie chart. Wedges have an outer radius that measures
@@ -83,7 +84,8 @@ class Wedge is ChartDrawable, TouchListener
     Vector2 point
 
     private action LoadDefaultShaderProgram returns ShaderProgram
-        ShaderManager manager
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
         if HasPattern()
             ChartOptions options
             integer pattern = GetPattern()
