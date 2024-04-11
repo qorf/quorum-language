@@ -1,0 +1,42 @@
+package Science.Tests
+
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.CompareMeans
+use Libraries.Compute.Statistics.Reporting.CompareMeansResult
+
+/*
+    This class tests a undefined two-sample mann-whitney test
+*/
+class UndefinedCompareTwoRankedMeansTest is Test
+
+    on create
+        SetName("Calculate UndefinedCompareTwoRankedMeansTest")
+    end
+
+    action Run
+        ColumnCalculationTest framer    
+        DataFrame frame
+        frame:LoadFromCommaSeparatedValue("y,x
+        2.0,4.0
+        6.0, 7.0
+        3.0, 
+        ,8.0
+        15.0,17.0
+        1.0,3.0")
+        frame:AddSelectedColumnRange(0,1)
+
+        CompareMeans compare
+        compare:Ranked(true)
+        frame:Calculate(compare)
+        
+        CompareMeansResult result = compare:GetResult()
+        Check(result:GetTestStatistic(), 6.5) 
+        Check(result:GetProbabilityValue(), 0.24915263858192693)      
+        Check(result:GetEffectSize(), -0.3644240360469936)        
+        text summary = result:GetSummary()
+        text formalsummary = result:GetFormalSummary()
+        Check(true, summary not= "")
+        Check(true, formalsummary not= "")
+    end
+end

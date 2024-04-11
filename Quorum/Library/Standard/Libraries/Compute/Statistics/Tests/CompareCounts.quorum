@@ -16,6 +16,7 @@ use Libraries.Compute.Math
 use Libraries.Compute.Matrix
 use Libraries.Compute.Vector
 use Libraries.Compute.Statistics.Transforms.CrossTab
+use Libraries.System.File
 
 /*
 This class implements several proportion comparison hypothesis tests. 
@@ -1389,6 +1390,13 @@ class CompareCounts is StatisticalTest
             i = i + 1
         end
         return summary
+    end
+
+     /*
+        This creates an HTML page with the results as its contents.  
+    */
+    action GetReport(File file)
+        GetResult():GetReportResult(file)
     end
 
     /* Used in N-sample tests */
