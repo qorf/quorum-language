@@ -129,6 +129,7 @@ class PieChart is Chart
                         integer i = 0
                         repeat while i < pieBoxes:Get(j):GetSize()
                             PieSlice slice = pieBoxes:Get(j):Get(i)
+                            slice:SetInputGroup("Chart")
                             slice:SetFocusable(true)
                             slice:SetAccessibilityCode(parent:Item:CHART_ITEM)
                             slice:SetNextFocus(GetNextFocus())
@@ -189,6 +190,7 @@ class PieChart is Chart
             integer i = 0
             repeat while i < pieBoxes:Get(0):GetSize()
                 PieSlice slice = pieBoxes:Get(0):Get(i)
+                slice:SetInputGroup("Chart")
                 slice:SetFocusable(true)
                 slice:SetAccessibilityCode(parent:Item:CHART_ITEM)
                 slice:SetNextFocus(GetNextFocus())
@@ -784,18 +786,20 @@ class PieChart is Chart
         summary:SetDisplayName(GenerateSummary())
         summary:SetContainer(me)
 
+        chartArea:SetName(summary:GetName())
+        chartArea:SetDisplayName(GenerateSummary())
         chartArea:SetContainer(me)
-        chartArea:SetDisplayName("Pie Chart")
+        summary = chartArea
     
         // If any of these are not showing the tree will skip them in the navigation 
         if IsShowingXAxis()
-            GetHorizontalPanel():GenerateInfoTree(me, summary, yAxis, xAxis)
+            GetHorizontalPanel():GenerateInfoTree(me, chartArea, yAxis, xAxis)
         end       
         if IsShowingYAxis()
-            GetVerticalPanel():GenerateInfoTree(me, summary, yAxis, xAxis)
+            GetVerticalPanel():GenerateInfoTree(me, chartArea, yAxis, xAxis)
         end
         if IsShowingLegend()
-            GetLegend():GenerateInfoTree(me, summary, yAxis, xAxis)
+            GetLegend():GenerateInfoTree(me, chartArea, yAxis, xAxis)
         end
 
         if IsSeparated()
@@ -962,7 +966,7 @@ class PieChart is Chart
         end
         
         ChartSelection selection = GetSelection()
-        selection:Set(summary)
+        selection:Set(chartArea)
     end
     /* 
         This action sorts the pie slices in the pie chart in descending size order.

@@ -54,7 +54,7 @@ public class AndroidGestures extends Activity{
         Context context = getActivity().getApplicationContext();
         return context;
     }
-    
+    /*
     @Override
     public boolean onTouchEvent(MotionEvent event){
         Log.d(DEBUG_TAG, "Inside onTouchEvent");
@@ -66,7 +66,7 @@ public class AndroidGestures extends Activity{
         return false;
         // return super.onTouchEvent(event);
         }
-    
+    */
     class MyGestureListener extends GestureDetector.SimpleOnGestureListener{
         @Override
         public boolean onDown(MotionEvent event){

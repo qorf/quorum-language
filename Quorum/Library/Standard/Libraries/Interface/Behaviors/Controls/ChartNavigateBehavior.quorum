@@ -7,6 +7,7 @@ use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Events.GestureEvent
 use Libraries.Game.InputMonitor
+use Libraries.Interface.Controls.Charts.ChartItem
 
 class ChartNavigateBehavior is Behavior
 
@@ -21,9 +22,10 @@ class ChartNavigateBehavior is Behavior
     integer isPinch = 0
 
     action Run(BehaviorEvent event)
-        if event:GetItem() is Chart
+        if event:GetItem() is ChartItem
             integer direction = -1
-            Chart chart = cast(Chart, event:GetItem())
+            ChartItem chartItem = cast(ChartItem, event:GetItem())
+            Chart chart = chartItem:GetContainer()
             InputMonitor monitor
             KeyboardEvent keyEvent = event:GetKeyboardEvent()
 
@@ -46,10 +48,10 @@ class ChartNavigateBehavior is Behavior
                 elseif keycode = keyEvent:TAB
                     direction = TAB
                 end
-            elseif event:GetGestureEvent() not= undefined
+            elseif chart:GetTouchExplorationEnabled() not= true and event:GetGestureEvent() not= undefined and event:GetGestureEvent():maxFingerCount = 2
                 GestureEvent gesture = event:GetGestureEvent()
 
-                if gesture:eventType = gesture:SWIPE and gesture:maxFingerCount = 2
+                if gesture:eventType = gesture:SWIPE
                     if gesture:GetDirection() = gesture:LEFT //2 finger Swipe Left with talkback
                         direction = X_AXIS_PREV
                     elseif gesture:GetDirection() = gesture:RIGHT //2 finger Swipe Right with talkback
@@ -61,7 +63,7 @@ class ChartNavigateBehavior is Behavior
                     end
                 else 
                     return now
-                end                
+                end       
             end
 
             if direction = Y_AXIS_NEXT
