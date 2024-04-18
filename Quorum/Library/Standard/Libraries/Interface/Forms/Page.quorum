@@ -495,13 +495,10 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
     
 action EmptyPage
 Array<Item2D> children = GetFormChildren()
-        i = 0
-        repeat while i < children:GetSize()
-            Item2D child = children:Get(i)
+        repeat until children:IsEmpty()
+            Item2D child = children:GetFromEnd()
             Remove(child)
-            i = i + 1
         end
-        GetFormChildren():Empty()
 end
 
     action GetFormChildren returns Array<Item2D>
