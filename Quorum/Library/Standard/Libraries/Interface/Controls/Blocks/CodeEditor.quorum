@@ -2621,6 +2621,9 @@ Block toNavigate = block
     action GetEditRegionAtTextIndex(integer index) returns EditRegion
         integer line = GetLineIndex(index)
         Block block = renderer:GetNavigableBlockAtTextLine(line)
+        if block = undefined
+            return undefined
+        end
         Array<Item2D> children = block:GetChildren()
         integer i = 0
         repeat while i < children:GetSize()
