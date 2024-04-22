@@ -39,7 +39,7 @@ import quorum.Libraries.Interface.Item_;
 
 import java.util.Map;
 
-import static plugins.quorum.Libraries.Interface.Accessibility.AndroidAccessibility.onHoverVirtualView;
+//import static plugins.quorum.Libraries.Interface.Accessibility.AndroidAccessibility.onHoverVirtualView;
 
 /**
  *
@@ -52,7 +52,7 @@ public class GLSurfaceView20 extends GLSurfaceView
     
     public int width;
     public int height;
-    public boolean aspectRatio = false;
+    public boolean aspectRatio = false; 
     public boolean canProceed = true;
 
     public final int scaleUpFactor = 10;
@@ -84,25 +84,31 @@ public class GLSurfaceView20 extends GLSurfaceView
         scaleDetector = new ScaleGestureDetector(context, new QuorumScaleGestureTranslator());
     }
     
+    
     @Override
     public boolean onTouchEvent(MotionEvent event)
     {
         canProceed = false;
         quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
         input.plugin_.AddEvent(event);
-
-        gestureDetector.onTouchEvent(event);
-        scaleDetector.onTouchEvent(event);
-
-        if (event.getAction() == MotionEvent.ACTION_UP)
-            input.plugin_.TestLongPressEnd(event);
+//        boolean scaleResult = scaleDetector.onTouchEvent(event);
+//        if (scaleResult == scaleDetector.isInProgress()) {
+//            Log.w("GLSurfaceView20", "Scale Detector In Progress");
+//        	return true;
+//        }
+//        else {
+        	boolean gestureResult = gestureDetector.onTouchEvent(event);
+        	if (gestureResult)
+        		return true;
+//    	}
         canProceed = true;
-        return true;
+        return super.onTouchEvent(event);
     }
 
+    
     @Override
     public boolean onHoverEvent(MotionEvent event) {
-        if (AndroidApplication.accessibilityManager.isTouchExplorationEnabled() && event.getPointerCount() == 1) {
+        if (AndroidApplication.accessibilityManager.isTouchExplorationEnabled()) {
             final int action = event.getAction();
             switch (action) {
                 case MotionEvent.ACTION_HOVER_ENTER: {
@@ -119,145 +125,6 @@ public class GLSurfaceView20 extends GLSurfaceView
         }
         return true;
     }
-
-    @Override
-    public boolean dispatchHoverEvent(MotionEvent event)
-    {
-        final int action = event.getAction();
-        if (action == MotionEvent.ACTION_HOVER_ENTER || action == MotionEvent.ACTION_HOVER_EXIT || !canProceed || event == null)
-            return true;
-        boolean handled = false;
-        Rect min = null;
-        Item_ minItem = null;
-
-        for (Map.Entry<Integer, Item_> set : AndroidApplication.quorumItems.entrySet())
-        {
-            Item_ item = set.getValue();
-            Rect childBounds;
-
-            if (item instanceof Item2D_)
-            {
-                double itemX = ((Item2D_)item).GetScreenX();
-                double itemY = (((Item2D_) item).GetScreenY());
-
-                if (itemX == Double.NaN)
-                    itemX = 0;
-
-                if (itemY == Double.NaN)
-                    itemY = 0;
-                int left = (int)itemX;
-                int top = AndroidApplication.screenHeight - (int)(itemY + ((Item2D_) item).GetHeight());
-                int right = (int) (itemX + ((Item2D_) item).GetWidth());
-                int bottom = AndroidApplication.screenHeight - (int)(itemY);
-                Log.e("Quorum", "dispatchHoverEvent: " + left + " " + top + " " + right + " " + bottom + " Name: " + item.GetName() + " Desc: " + item.GetDescription());
-                childBounds = new Rect(left, top, right, bottom);
-            }
-            else if (item instanceof Item3D_)
-            {
-                // This is only a place holder, to place a small box roughly at the
-                // center of a 3D object in the screen. To calculate this correctly,
-                // check how we calculate mouse input detection for 3D objects.
-
-                Rectangle_ rectangle = ((Item3D_) item).GetScreenBounds();
-
-                int left = (int)rectangle.GetX();
-                int top = AndroidApplication.screenHeight - (int)(rectangle.GetY() + rectangle.GetHeight());
-                int right = (int) (rectangle.GetX() + rectangle.GetWidth());
-                int bottom = AndroidApplication.screenHeight - (int)(rectangle.GetY());
-                Log.e("Quorum", "dispatchHoverEvent: " + left + " " + top + " " + right + " " + bottom + "Name: " + item.GetName());
-
-                childBounds = new Rect(left, top, right, bottom);
-            }
-            else
-            {
-                int left = 0;
-                int top = 0;
-                int right = 0;
-                int bottom = 0;
-                Log.e("Quorum", "dispatchHoverEvent: " + left + " " + top + " " + right + " " + bottom + "Name: " + item.GetName());
-
-                childBounds = new Rect(left, top, right, bottom);
-            }
-
-            final int childCoordsX = (int) event.getX() + getScrollX();
-            final int childCoordsY = (int) event.getY() + getScrollY();
-            if (!childBounds.contains(childCoordsX, childCoordsY)) {
-                continue;
-            }
-            else
-            {
-                if (min == null)
-                {
-                    min = childBounds;
-                    minItem = item;
-                }
-                else if ((min.height() * min.width()) > (childBounds.height() * childBounds.width()))
-                {
-                    min = childBounds;
-                    minItem = item;
-                }
-            }
-        }
-        //Log.e("Coordinates", "dispatchHoverEvent: " + min.left + " " + min.top + " " + min.right + " " + min.bottom);
-        if (min != null)
-        {
-            if(PieBox.class == minItem.getClass())
-            {
-                if (AndroidApplication.accessibilityManager.isTouchExplorationEnabled() && event.getPointerCount() == 1) {
-                    switch (action) {
-                        case MotionEvent.ACTION_HOVER_ENTER:
-                        case MotionEvent.ACTION_HOVER_MOVE: {
-                            event.setAction(MotionEvent.ACTION_DOWN);
-                        } break;
-                        case MotionEvent.ACTION_HOVER_EXIT: {
-                            event.setAction(MotionEvent.ACTION_UP);
-                        } break;
-                    }
-                    return onTouchEvent(event);
-                }
-            }
-            switch (action) {
-                case MotionEvent.ACTION_HOVER_ENTER: {
-                    AndroidAccessibility.lastHoveredChild = minItem;
-                    handled |= onHoverVirtualView(minItem, event);
-                    event.setAction(action);
-                } break;
-                case MotionEvent.ACTION_HOVER_MOVE: {
-                    if (minItem == AndroidAccessibility.lastHoveredChild) {
-                        handled |= onHoverVirtualView(minItem, event);
-                        event.setAction(action);
-                    } else {
-                        MotionEvent eventNoHistory = event.getHistorySize() > 0
-                                ? MotionEvent.obtainNoHistory(event) : event;
-                        eventNoHistory.setAction(MotionEvent.ACTION_HOVER_EXIT);
-                        onHoverVirtualView(AndroidAccessibility.lastHoveredChild, eventNoHistory);
-                        eventNoHistory.setAction(MotionEvent.ACTION_HOVER_ENTER);
-                        onHoverVirtualView(minItem, eventNoHistory);
-                        AndroidAccessibility.lastHoveredChild = minItem;
-                        eventNoHistory.setAction(MotionEvent.ACTION_HOVER_MOVE);
-                        handled |= onHoverVirtualView(minItem, eventNoHistory);
-                        if (eventNoHistory != event) {
-                            eventNoHistory.recycle();
-                        } else {
-                            event.setAction(action);
-                        }
-                    }
-                } break;
-                case MotionEvent.ACTION_HOVER_EXIT: {
-                    AndroidAccessibility.lastHoveredChild = null;
-                    handled |= onHoverVirtualView(minItem, event);
-                    event.setAction(action);
-                } break;
-            }
-        }
-
-        if (!handled && event.getAction() != MotionEvent.ACTION_UP) {
-            handled |= onHoverEvent(event);
-        }
-        return handled;
-
-    }
-
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
@@ -536,9 +403,11 @@ public class GLSurfaceView20 extends GLSurfaceView
 
     private class QuorumGestureTranslator extends GestureDetector.SimpleOnGestureListener
     {
+    		
         @Override
         public boolean onDown(MotionEvent event)
         {
+            //Log.w(TAG, "DOWN");
             // We're required to return true here -- if it returns false, all other gestures will fail.
             // We could conditionally return false to temporarily block gesture input, but otherwise it must be true.
             return true;
@@ -547,6 +416,7 @@ public class GLSurfaceView20 extends GLSurfaceView
         @Override
         public boolean onDoubleTap(MotionEvent event)
         {
+            //Log.w(TAG, "DOUBLE TAP");
             quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
             input.plugin_.AddDoubleTapEvent(event);
             return true;
@@ -555,6 +425,7 @@ public class GLSurfaceView20 extends GLSurfaceView
         @Override
         public boolean onFling(MotionEvent event1, MotionEvent event2, float velocityX, float velocityY)
         {
+            //Log.w(TAG, "FLING");
             quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
             input.plugin_.AddFlingEvent(event1, event2, velocityX, velocityY);
             return true;
@@ -563,6 +434,7 @@ public class GLSurfaceView20 extends GLSurfaceView
         @Override
         public void onLongPress(MotionEvent event)
         {
+            //Log.w(TAG, "LONG PRESS");
             quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
             input.plugin_.AddLongPressEvent(event);
         }
@@ -570,12 +442,14 @@ public class GLSurfaceView20 extends GLSurfaceView
         @Override
         public void onShowPress(MotionEvent e)
         {
+            //Log.w(TAG, "SHOW PRESS");
             // We currently don't do anything with the show press.
         }
 
         @Override
         public boolean onScroll(MotionEvent event1, MotionEvent event2, float distanceX, float distanceY)
         {
+            //Log.w(TAG, "SCROLL");
             quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
             input.plugin_.AddScrollEvent(event1, event2, distanceX, distanceY);
             return true;
@@ -584,6 +458,7 @@ public class GLSurfaceView20 extends GLSurfaceView
         @Override
         public boolean onSingleTapConfirmed(MotionEvent event)
         {
+            //Log.w(TAG, "SINGLE TAP CONFIRMED");
             quorum.Libraries.Game.AndroidInput input = (quorum.Libraries.Game.AndroidInput)GameStateManager.input;
             input.plugin_.AddSingleTapEvent(event);
             return true;

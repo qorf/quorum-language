@@ -173,6 +173,7 @@ class ViolinPlot is Chart
                     number iqr = thirdQ - firstQ
     
                     // Minimum Line 
+                    minimumLine:SetInputGroup("Chart")
                     minimumLine:SetFocusable(true)
                     minimumLine:SetAccessibilityCode(0)
                     minimumLine:SetNextFocus(GetNextFocus())
@@ -185,6 +186,7 @@ class ViolinPlot is Chart
                     chartArea:Add(minimumLine:GetSelectionArrow())
 
                     // Interquartile Range Region Area
+                    interQuartileRange:SetInputGroup("Chart")
                     interQuartileRange:SetFocusable(true)
                     interQuartileRange:SetAccessibilityCode(0)
                     interQuartileRange:SetNextFocus(GetNextFocus())
@@ -206,6 +208,7 @@ class ViolinPlot is Chart
                     chartArea:Add(bottomBrack)   
     
                     // Lower Quartile Line Q1
+                    firstQuartileLine:SetInputGroup("Chart")
                     firstQuartileLine:SetFocusable(true)
                     firstQuartileLine:SetAccessibilityCode(0)
                     firstQuartileLine:SetNextFocus(GetNextFocus())
@@ -218,6 +221,7 @@ class ViolinPlot is Chart
                     chartArea:Add(firstQuartileLine:GetSelectionArrow())                    
     
                     // Median dot (denser) 
+                    medianDot:SetInputGroup("Chart")
                     medianDot:SetFocusable(true)
                     medianDot:SetAccessibilityCode(0)
                     medianDot:SetNextFocus(GetNextFocus())
@@ -230,6 +234,7 @@ class ViolinPlot is Chart
                     chartArea:Add(medianDot:GetSelectionArrow())
     
                     // Upper Quartile Line Q3
+                    thirdQuartileLine:SetInputGroup("Chart")
                     thirdQuartileLine:SetFocusable(true)
                     thirdQuartileLine:SetAccessibilityCode(0)
                     thirdQuartileLine:SetNextFocus(GetNextFocus())
@@ -242,6 +247,7 @@ class ViolinPlot is Chart
                     chartArea:Add(thirdQuartileLine:GetSelectionArrow())
     
                     // Maximum Line
+                    maximumLine:SetInputGroup("Chart")
                     maximumLine:SetFocusable(true)
                     maximumLine:SetAccessibilityCode(0)
                     maximumLine:SetNextFocus(GetNextFocus())
@@ -297,6 +303,7 @@ class ViolinPlot is Chart
     
 
                 // Set the plot description
+                plot:SetInputGroup("Chart")
                 plot:SetFocusable(true)
                 plot:SetAccessibilityCode(parent:Item:ITEM)
                 plot:SetNextFocus(GetNextFocus())
@@ -356,6 +363,7 @@ class ViolinPlot is Chart
             // Area covering entire group panel
             group:SetName(group:GetName() + " group, ")
             group:SetDescription((i+1) + " of " + plotGroups:GetSize() + " groups, has " + group:GetSize() + " violin plots.")
+            group:SetInputGroup("Chart")
             group:SetFocusable(true)
             group:SetAccessibilityCode(parent:Item:ITEM)
             group:SetNextFocus(GetNextFocus())
@@ -669,21 +677,20 @@ class ViolinPlot is Chart
         summary:SetDisplayName(GenerateSummary())
         summary:SetContainer(me)
 
-        chartArea:SetDisplayName("Violin Plot")
+        chartArea:SetName(summary:GetName())
+        chartArea:SetDisplayName(GenerateSummary())
         chartArea:SetContainer(me)
-
-        summary:SetRightItem(chartArea)
-        chartArea:SetLeftItem(summary)
+        summary = chartArea
     
         // If any of these are not showing the tree will skip them in the navigation
         if IsShowingXAxis()
-            GetHorizontalPanel():GenerateInfoTree(me, summary, yAxis, xAxis)
+            GetHorizontalPanel():GenerateInfoTree(me, chartArea, yAxis, xAxis)
         end        
         if IsShowingYAxis()
-            GetVerticalPanel():GenerateInfoTree(me, summary, yAxis, xAxis)
+            GetVerticalPanel():GenerateInfoTree(me, chartArea, yAxis, xAxis)
         end
         if IsShowingLegend()
-            GetLegend():GenerateInfoTree(me, summary, yAxis, xAxis)
+            GetLegend():GenerateInfoTree(me, chartArea, yAxis, xAxis)
         end
 
         if IsSeparated()
@@ -801,7 +808,7 @@ class ViolinPlot is Chart
         end
         
         ChartSelection selection = GetSelection()
-        selection:Set(summary)
+        selection:Set(chartArea)
     end
 
     /* 

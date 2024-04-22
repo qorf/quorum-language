@@ -9,6 +9,12 @@ use Libraries.Game.Graphics.ColorGroup
     Attribute: Author William Allee
 */
 class ChartLabel is ControlLabel, ChartItem
+    
+    on create
+        SetInputGroup("Chart")
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:LABEL)
+    end
 
     // Try to get the chart this is attached to via the parent hierarchy.
     action GetParentChart returns Chart

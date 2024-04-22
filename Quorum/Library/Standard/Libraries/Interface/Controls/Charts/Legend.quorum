@@ -61,6 +61,7 @@ class Legend is ChartItem
         properties:SetFontSize(GetDefaultFontSize())
         SetName("Legend")
 
+        SetInputGroup("Chart")
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:CHART_SECTION)
     end
@@ -121,6 +122,8 @@ class Legend is ChartItem
                 SetLeftItem(xAxis)
             else
                 summary:SetRightItem(me)
+                summary:SetLeftItem(me)
+                SetRightItem(summary)
                 SetLeftItem(summary)
             end
         end

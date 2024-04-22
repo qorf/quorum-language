@@ -10,10 +10,11 @@ use Libraries.Interface.Controls.ScrollPane
 
 /*
 
-    This class represents a page on a Form application and is a form container control. 
-    This class provides a generic page for positioning and displaying elements. There 
+    Pages go inside a form and can be used to swap in and out a bunch of items at once, 
+    like a group of buttons or lists. 
+    This class also provides a generic page for positioning and displaying elements. There 
     are always one or more pages on a form, but only one page can be displayed on the form at
-    on time.
+    a time.
 
     Attribute: Author William Allee, Andreas Stefik
 
@@ -495,13 +496,10 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
     
 action EmptyPage
 Array<Item2D> children = GetFormChildren()
-        i = 0
-        repeat while i < children:GetSize()
-            Item2D child = children:Get(i)
+        repeat until children:IsEmpty()
+            Item2D child = children:GetFromEnd()
             Remove(child)
-            i = i + 1
         end
-        GetFormChildren():Empty()
 end
 
     action GetFormChildren returns Array<Item2D>

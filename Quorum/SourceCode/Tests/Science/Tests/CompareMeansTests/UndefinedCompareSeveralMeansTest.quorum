@@ -1,0 +1,68 @@
+package Science.Tests
+
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.CompareMeans
+use Libraries.Compute.Statistics.Reporting.CompareMeansResult
+use Libraries.Containers.Support.Pair
+/*
+    This class tests an anova (standard anova and welch anova)
+*/
+class UndefinedCompareSeveralMeansTest is Test
+
+    on create
+        SetName("Calculate UndefinedCompareSeveralMeansTest")
+    end
+
+    action Run
+        ColumnCalculationTest framer
+        DataFrame frame
+        frame:LoadFromCommaSeparatedValue("y,x1,x2,x3
+        2.0,4.0,-9.0,9
+        6.0,,-19.0,19
+        3.0,4.0,-18.0,18
+        9.0,8.0,-16.0,16
+        15.0,17.0,-2.0,2
+        1.0,3.0,-4.0,4")
+        frame:AddSelectedColumnRange(0,3)
+
+        // Standard anova (equal variances)
+        CompareMeans compare
+        frame:Calculate(compare)
+        
+        CompareMeansResult result = compare:GetResult()
+        text source = result:GetSources():Get(0)
+        Check(result:GetInformation():GetValue("Groups"):GetValue("F"), 13.876895510815793)
+        Check(result:GetInformation():GetValue("Groups"):GetValue("df"), 3.0)
+        Check(result:GetInformation():GetValue("Groups"):GetValue("error df"), 19.0)
+        Check(result:GetInformation():GetValue("Groups"):GetValue("p"), 4.988684011986155e-5)
+        Check(result:GetInformation():GetValue("Groups"):GetValue("eta-squared"), 0.6866273320221785)
+        Check(result:GetInformation():GetValue("Groups"):GetValue("partial-eta-squared"), 0.6866273320221785)
+        Check(result:GetInformation():GetValue("Groups"):GetValue("generalized-eta-squared"), 0.6866273320221785)
+        Check(result:GetInformation():GetValue("Groups"):GetValue("omega-squared"), 0.62680928456166165)
+        Check(result:GetInformation():GetValue("Groups"):GetValue("partial-omega-squared"), 0.6268092845616616)
+        Check(result:GetInformation():GetValue("Groups"):GetValue("generalized-omega-squared"), 0.6268092845616616)
+
+        text summary = result:GetSummary()
+        text formalsummary = result:GetFormalSummary()
+        Check(true, summary not= "")
+        Check(true, formalsummary not= "")
+
+        // Welch anova (unequal variances)
+        CompareMeans compare2
+        compare2:AssumeEqualVariances(false)
+        frame:Calculate(compare2)
+        
+        CompareMeansResult result2 = compare2:GetResult()
+        Check(result2:GetInformation():GetValue("Groups"):GetValue("F"), 10.136054790155757)
+        Check(result2:GetInformation():GetValue("Groups"):GetValue("df"), 3.0)
+        Check(result2:GetInformation():GetValue("Groups"):GetValue("error df"), 10.372838086343801)
+        Check(result2:GetInformation():GetValue("Groups"):GetValue("p"), 0.0020118102468669186)
+        Check(result2:GetInformation():GetValue("Groups"):GetValue("omega-squared"), 0.5437247063597687)
+
+        text summary2 = result2:GetSummary()
+        text formalsummary2 = result2:GetFormalSummary()
+        Check(true, summary2 not= "")
+        Check(true, formalsummary2 not= "")
+    end
+end
