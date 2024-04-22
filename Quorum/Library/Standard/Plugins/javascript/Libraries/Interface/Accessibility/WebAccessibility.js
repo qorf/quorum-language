@@ -11,6 +11,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     let focusButton = null;
     let blurDelayedCall = null;
     let removedFocusedElement = false;
+    let thisGame = null;
 
     const addBlurListener = function(element) {
         element.addEventListener("blur", () => {
@@ -33,7 +34,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         let container = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().display.plugin_.GetContainer();
         let canvas = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().display.plugin_.GetCanvas();
         let config = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().application.plugin_.GetConfiguration();
-
+        thisGame = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().game;
         let title = config.Get_Libraries_Game_WebConfiguration__title_();
         if (title == null) {
             title = container.dataset.title;
@@ -99,7 +100,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         focusButton.style.color = "rgba(0,0,0,0)";
 
         focusButton.addEventListener("click", (event) => {
-            plugins_quorum_Libraries_Game_WebInput_.TakeFocus();
+            plugins_quorum_Libraries_Game_WebInput_.TakeFocus(thisGame);
         });
 
         // Like the accessibility root, this element must be inserted before
@@ -343,7 +344,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             return;
         }
         currentFocus = item;
-        if (plugins_quorum_Libraries_Game_WebInput_.IsFocused() || removedFocusedElement) {
+        if (plugins_quorum_Libraries_Game_WebInput_.IsFocused(plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().game) || removedFocusedElement) {
             removedFocusedElement = false;
             let element = document.getElementById(id);
             element.focus();
