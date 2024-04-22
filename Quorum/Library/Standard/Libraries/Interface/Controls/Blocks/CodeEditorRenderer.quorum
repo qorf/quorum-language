@@ -764,6 +764,12 @@ action ConvertPlaceholdersToBlocks(text toInsert)
         integer destination = placeholderBlocks:GetFromFront():GetStartIndex()
 
         MultipleLineText code = editor:GetCode()
+        if destination = code:GetSize()
+            text lastCharacter = code:GetCharacter(code:GetSize() -1 )
+            if lastCharacter not= lastCharacter:GetLineFeed()
+                toInsert = toInsert:GetLineFeed() + toInsert
+            end
+        end
         if not movingBlocks:IsEmpty()
             text toMove = editor:GetCodeBetween(movingStartIndex, movingEndIndex)
             if movingStartIndex < destination
