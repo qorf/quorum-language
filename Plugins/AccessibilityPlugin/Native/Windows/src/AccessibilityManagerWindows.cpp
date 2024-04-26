@@ -196,10 +196,7 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	WCHAR* wTextboxName = CreateWideStringFromUTF8Win32(nativeTextboxName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
 
-	//jobject nativeSelf = env->NewGlobalRef(self);
-
 	const auto parentItem = GetItemFromLong(parent);
-	//const auto pTextboxControl = Create<TextBoxControl>(env, parentItem, wTextboxName, wDescription, nativeSelf);
 	const auto pTextboxControl = Create<TextBoxControl>(env, parentItem, wTextboxName, wDescription, self);
 
 	env->ReleaseStringUTFChars(textboxName, nativeTextboxName);
@@ -218,10 +215,7 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	WCHAR* wTextboxName = CreateWideStringFromUTF8Win32(nativeTextFieldName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
 
-	//jobject nativeSelf = env->NewGlobalRef(self);
-
 	const auto parentItem = GetItemFromLong(parent);
-	//const auto textFieldControl = Create<TextFieldControl>(env, parentItem, wTextboxName, wDescription, nativeSelf);
 	const auto textFieldControl = Create<TextFieldControl>(env, parentItem, wTextboxName, wDescription, self);
 
 	env->ReleaseStringUTFChars(textFieldName, nativeTextFieldName);
