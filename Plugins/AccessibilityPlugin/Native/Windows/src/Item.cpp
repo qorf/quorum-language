@@ -95,6 +95,7 @@ const WCHAR* Item::GetName()
 
 std::wstring Item::GetRoleDescription()
 {
+	/* This implementation is currently commented out due to a crash. The related section in ProviderT.h : GetPropertyValue() is also commented out.
 	auto env = GetJNIEnv();
 	if (env)
 	{
@@ -108,6 +109,7 @@ std::wstring Item::GetRoleDescription()
 			return wDescription;
 		}
 	}
+	*/
 
 	return L"";
 }
@@ -315,4 +317,14 @@ void Item::Disconnect() noexcept
 
 	RemoveFromParentInternal();
 	RemoveAllChildren();
+
+	// Remove the global reference to the Java item, if we have one. Failing to do this results in an item that can never be garbage collected and thus a memory leak.
+	if (javaItem)
+	{
+		auto env = GetJNIEnv();
+		if (env)
+		{
+			env->DeleteGlobalRef(javaItem);
+		}
+	}
 }
