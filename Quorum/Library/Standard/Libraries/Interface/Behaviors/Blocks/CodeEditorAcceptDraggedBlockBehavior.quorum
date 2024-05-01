@@ -100,17 +100,19 @@ class CodeEditorAcceptDraggedBlockBehavior is Behavior
                     text toInsert = ""
 
                     BlockEnvironment environment = firstBlock:GetBlockEnvironment()
+                    if environment not= undefined 
                     if firstBlock = lastBlock and firstBlock:IsPlaceholder()
                         toInsert = firstBlock:GetPlaceholderText() + toInsert:GetLineFeed()
                     else
 toInsert = environment:GetCodeBetween(firstBlock:GetStartIndex(), lastBlock:GetEndIndex()) + toInsert:GetLineFeed()
                     end
-                    lastCandidateLine = -2
+lastCandidateLine = -2
                     
                     if editor:HasPlaceholders()
                         editor:ConvertPlaceholdersToBlocks(toInsert)
                     end
-                    sourceBlocks = undefined
+                                                            end
+sourceBlocks = undefined
                     sourceDragBehavior:Reset()
                 end
             end
