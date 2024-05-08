@@ -434,14 +434,19 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
     This action scrolls the scrolling area vertically to center on the start line of the Block.
     */
     action GoToBlock(Block block)
+        if block not= undefined
         GoToLine(block:GetNavigationIndex())
-    end
+            end
+end
 
     /*
     This action attempts to center the scrolling area vertically on the provided navigation line index.
     Note that in most cases, but not all, this will match the line of text.
     */
     action GoToLine(integer line)
+        if line < 0 or line >= rawCode:GetLineCount()
+            return now
+        end
         // This equation was derived by algebraicly reverse-engineering the GetLineY action for a fixed y and an unknown scroll percentage.
         number targetY = renderer:GetHeight() / 2.0
         number viewPercent = (targetY - (renderer:GetHeight() + cachedLinePositions:Get(line))) / GetTotalContentHeight()
