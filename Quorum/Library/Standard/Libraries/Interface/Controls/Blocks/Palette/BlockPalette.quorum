@@ -51,6 +51,8 @@ text fontPath = ""
     Drawable circleTexture
     
     action Setup
+        SetName("Block Palette")
+        
         PixelMap pixels
 Format format
         format:SetValue(format:RGBA8888)
@@ -166,6 +168,7 @@ File file
         BlockPalettePage page
         page:SetPalette(me)
         page:AddBasicBlocks()
+        page:SetName("Basic Palette Page")
         return page
     end
 

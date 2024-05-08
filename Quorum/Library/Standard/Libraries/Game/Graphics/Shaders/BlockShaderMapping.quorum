@@ -329,26 +329,28 @@ number halfSize = width / 2.0
             Block block = cast(Block, blockView:GetItem())
             //CodeEditor editor = block:GetEditor()
             BlockEnvironment editor = block:GetBlockEnvironment()
-
-            topWidth = editor:GetBlockNotchTopWidth() * block:GetInterfaceScale()
-            bottomWidth = editor:GetBlockNotchBottomWidth() * block:GetInterfaceScale()
-            notchHeight = editor:GetBlockNotchPixelHeight()
-
-            topX = block:GetTopNotchPosition() + (topWidth / 2.0)
-            bottomX = block:GetBottomNotchPosition() + (topWidth / 2.0)
-
-            if block:HasImportantHints()
-                ColorGroup hintColor = editor:GetColorProperty("HintBorderColor")
-                if hintColor not= undefined
-                    borderColor = hintColor
-                end
-
-                if editor:GetDefaultLayoutProperties():HasNumberProperty("HintBorderThickness")
-                    number thickness = editor:GetNumberProperty("HintBorderThickness")
-                    leftBorder = thickness
-                    rightBorder = thickness
-                    topBorder = thickness
-                    bottomBorder = thickness
+            
+            if editor not= undefined
+                topWidth = editor:GetBlockNotchTopWidth() * block:GetInterfaceScale()
+                bottomWidth = editor:GetBlockNotchBottomWidth() * block:GetInterfaceScale()
+                notchHeight = editor:GetBlockNotchPixelHeight()
+    
+                topX = block:GetTopNotchPosition() + (topWidth / 2.0)
+                bottomX = block:GetBottomNotchPosition() + (topWidth / 2.0)
+    
+                if block:HasImportantHints()
+                    ColorGroup hintColor = editor:GetColorProperty("HintBorderColor")
+                    if hintColor not= undefined
+                        borderColor = hintColor
+                    end
+    
+                    if editor:GetDefaultLayoutProperties():HasNumberProperty("HintBorderThickness")
+                        number thickness = editor:GetNumberProperty("HintBorderThickness")
+                        leftBorder = thickness
+                        rightBorder = thickness
+                        topBorder = thickness
+                        bottomBorder = thickness
+                    end
                 end
             end
         end

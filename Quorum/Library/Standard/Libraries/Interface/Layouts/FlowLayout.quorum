@@ -279,6 +279,8 @@ class FlowLayout is Layout
                     width = (containerWidth - containerBorder * 2 - properties:GetLeftMargin() - properties:GetRightMargin()) * properties:GetPercentageWidth() + properties:GetPixelWidth() * interfaceScale
                 end
 
+                // Fix the width to an integer. We want things to align well to pixel coordinates.
+                width = cast(integer, width)
                 x = x + leftMargin
 
                 /*
