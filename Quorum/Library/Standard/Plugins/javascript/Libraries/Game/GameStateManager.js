@@ -31,6 +31,9 @@ function plugins_quorum_Libraries_Game_GameStateManager_()
     if (!plugins_quorum_Libraries_Game_GameStateManager_.initialized_plugins_quorum_Libraries_Game_GameStateManager_)
     {
         plugins_quorum_Libraries_Game_GameStateManager_.initialized_plugins_quorum_Libraries_Game_GameStateManager_ = true;
+        // Setting a default font manager for font information in the event a game hasn't been made yet
+        // Specifically needed for charts where charts need font information before the game is created
+        plugins_quorum_Libraries_Game_GameStateManager_.defaultFontManager = new quorum_Libraries_Game_Graphics_Fonts_FontManager_();
 
         const gameMap = new Map();
         plugins_quorum_Libraries_Game_GameStateManager_.registeredGames = gameMap;
@@ -108,6 +111,9 @@ function plugins_quorum_Libraries_Game_GameStateManager_()
     this.GetGame = function()
     {
         var gameInfo = this.GetActiveGameInfo();
+        if (gameInfo == null) {
+            return null;
+        }
         return gameInfo.game;
     };
     
@@ -193,6 +199,9 @@ function plugins_quorum_Libraries_Game_GameStateManager_()
     this.GetOperatingSystem = function() 
     {
         var gameInfo = this.GetActiveGameInfo();
+        if (gameInfo == null) {
+            return "Web Browser";
+        }
         return gameInfo.operatingSystem;
     };
     
@@ -205,6 +214,11 @@ function plugins_quorum_Libraries_Game_GameStateManager_()
     this.GetFontManager = function()
     {
         var gameInfo = this.GetActiveGameInfo();
+        // if there is no active game but the font manager is needed provide the default for basic font information
+        // needed for charts
+        if (gameInfo == null) {
+            return plugins_quorum_Libraries_Game_GameStateManager_.defaultFontManager;
+        }
         return gameInfo.fontManager;
     };
 
