@@ -764,7 +764,7 @@ action ConvertPlaceholdersToBlocks(text toInsert)
         integer destination = placeholderBlocks:GetFromFront():GetStartIndex()
 
         MultipleLineText code = editor:GetCode()
-        if destination = code:GetSize()
+        if code:GetSize() > 0 and destination = code:GetSize()
             text lastCharacter = code:GetCharacter(code:GetSize() -1 )
             if lastCharacter not= lastCharacter:GetLineFeed()
                 toInsert = toInsert:GetLineFeed() + toInsert
