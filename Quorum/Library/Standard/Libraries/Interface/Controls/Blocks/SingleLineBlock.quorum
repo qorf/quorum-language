@@ -6,6 +6,11 @@ use Libraries.Language.Compile.CompilerError
 use Libraries.Language.Compile.Hints.Hint
 use Libraries.Interface.Selections.CodeEditorSelection
 use Libraries.Containers.Array
+use Libraries.Language.Debug.BreakpointManager
+use Libraries.Language.Debug.Breakpoint
+use Libraries.Interface.Controls.AnnotationLineGutter
+use Libraries.Containers.HashTable
+use Libraries.Interface.Controls.Support.GutterAnnotation
 
 
 class SingleLineBlock is Block
@@ -149,8 +154,39 @@ class SingleLineBlock is Block
             if hint not= undefined
                 result = result + hint:GetDisplayName()
             end
-            result = result + " Press alt + enter to use the hint or the context menu to get a list"
+            result = result + " Press alt + enter to use the hint or the context menu to get a list."
         end
+        
+        if editor not= undefined
+            BreakpointManager breakpoints = editor:GetBreakpointManager()
+            
+            if breakpoints not= undefined and editor:GetFile() not= undefined
+integer currentLine = GetNavigationIndex()
+                integer debuggerLine = editor:GetDebuggerLine()
+Breakpoint point = breakpoints:GetBreakpoint(editor:GetFile():GetAbsolutePath(), currentLine)
+                if (point not= undefined) or (currentLine = debuggerLine and debuggerLine not= -1)
+                    if currentLine = debuggerLine
+                        result = result + " Debugging line."
+end
+if point not= undefined and point:GetLine() = currentLine
+                        result = result + " Breakpoint."
+                    end
+                end
+            end
+            
+            AnnotationLineGutter gutter = editor:GetAnnotationLineGutter()
+            if gutter not= undefined
+                HashTable<integer, GutterAnnotation> gutterAnnotations = gutter:GetAnnotations()
+                if gutterAnnotations not= undefined
+                    GutterAnnotation annotation = gutterAnnotations:GetValue(GetNavigationIndex())
+                    if annotation not= undefined
+result = result + " " + annotation:GetName() + "."
+                    end
+                end
+            end
+            
+        end
+        
         return result
     end
 

@@ -1263,6 +1263,12 @@ MovePlaceholdersToNavigationIndex(selection:GetLine() + 1)
     action ClearDebuggerLine
         lineGutter:SetDebuggerLine(-1)
     end
+    
+    /*This action returns the active line in the debugger, or -1 if the debugger is
+not currently active in the file.*/
+    action GetDebuggerLine returns integer
+        return lineGutter:GetDebuggerLine()
+    end
 
     action SelectBlockAtTextLine(integer line) returns Block
         Block block = renderer:GetNavigableBlockAtTextLine(line)
