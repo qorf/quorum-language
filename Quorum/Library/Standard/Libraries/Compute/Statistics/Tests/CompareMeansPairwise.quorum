@@ -841,7 +841,7 @@ class CompareMeansPairwise is CompareMeans
             number bottom = 0
             i = 0
             repeat while i < summaries:GetSize()
-                number n = summaries:Get(i):GetSize()
+                number n = sourceFrame:GetColumn(i):GetSize() - sourceFrame:GetColumn(i):GetUndefinedSize() // Summarize doesn't remove undefined values for size
                 number var = summaries:Get(i):GetVariance()
                 top = top + (n - 1) * var
                 bottom = bottom + (n - 1)
@@ -890,9 +890,9 @@ class CompareMeansPairwise is CompareMeans
                     number m2 = result:GetInformation():GetValue(group2Text):GetValue("mean")
                     number n1 = result:GetInformation():GetValue(group1Text):GetValue("size")
                     number n2 = result:GetInformation():GetValue(group2Text):GetValue("size")
-                    df = pooledDF
-                    number error = pooledSD * math:SquareRoot(1 / n1 + 1 / n2)
+                    number error = pooledSD * math:SquareRoot(1.0 / n1 + 1.0 / n2)
                     stat = (m1 - m2) / error
+                    df = pooledDF
                     tDistribution:Setup(df)
                     p = 2.0 * tDistribution:CumulativeDistribution(-math:AbsoluteValue(stat))
                     pooled = " and pooled standard deviation"

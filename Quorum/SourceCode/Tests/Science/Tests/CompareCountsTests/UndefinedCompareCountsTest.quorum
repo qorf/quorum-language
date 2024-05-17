@@ -22,7 +22,7 @@ class UndefinedCompareCountsTest is Test
         3,no,no,yes,no,maybe,no,no,yes
         4,no,no,yes,yes,maybe,maybe,maybe,yes
         5,no,no,yes,no,maybe,maybe,maybe,yes
-        6,no,no,,maybe,maybe,maybe,maybe,yes
+        6,no,no,yes,maybe,maybe,maybe,maybe,yes
         7,no,no,no,maybe,yes,yes,maybe,yes
         8,no,no,no,maybe,no,no,maybe,yes
         9,no,no,no,no,no,yes,maybe,yes
@@ -66,16 +66,17 @@ class UndefinedCompareCountsTest is Test
         47,yes,yes,no,no,maybe,no,no,yes
         48,yes,yes,no,maybe,maybe,yes,no,yes
         49,yes,yes,no,no,yes,yes,no,yes
-        50,yes,yes,no,maybe,no,no,maybe,yes")
+        50,,yes,no,,no,no,maybe,yes")
+        // Missing values on row 50
 
         // Frame approach: 2 groups x 2 categories   
         frame:AddSelectedColumns("t1,t2")
         CompareCounts compare1 = frame:CompareCounts()    
 
         CompareCountsResult result1 = compare1:GetResult()
-        Check(result1:GetTestStatistic(), 1.01010101010101)
+        Check(result1:GetTestStatistic(), 1.262755102040817)
         Check(result1:GetDegreesOfFreedom(), 1.0)
-        Check(result1:GetProbabilityValue(), 0.31487864133641996)  
+        Check(result1:GetProbabilityValue(), 0.261130230951078)  
         Check(true, result1:GetSummary() not= "")
         Check(true, result1:GetFormalSummary() not= "")
         Check(true, compare1:GetSummary() not= "")
@@ -87,9 +88,9 @@ class UndefinedCompareCountsTest is Test
         CompareCounts compare2 = frame:CompareCounts() 
 
         CompareCountsResult result2 = compare2:GetResult()
-        Check(result2:GetTestStatistic(), 2.531789949181254)
+        Check(result2:GetTestStatistic(), 2.592678606136332)
         Check(result2:GetDegreesOfFreedom(), 4.0)
-        Check(result2:GetProbabilityValue(), 0.6389525005339227)  
+        Check(result2:GetProbabilityValue(), 0.628120623420773)  
         Check(true, result2:GetSummary() not= "")
         Check(true, result2:GetFormalSummary() not= "")
         Check(true, compare2:GetSummary() not= "")
@@ -101,9 +102,9 @@ class UndefinedCompareCountsTest is Test
         CompareCounts compare3 = frame:CompareCounts(design)
 
         CompareCountsResult result3 = compare3:GetResult()
-        Check(result3:GetTestStatistic(), 2.531789949181254)
+        Check(result3:GetTestStatistic(), 2.592678606136332)
         Check(result3:GetDegreesOfFreedom(), 4.0)
-        Check(result3:GetProbabilityValue(), 0.6389525005339227) 
+        Check(result3:GetProbabilityValue(), 0.628120623420773) 
         Check(true, result3:GetSummary() not= "")
         Check(true, result3:GetFormalSummary() not= "")
         Check(true, compare3:GetSummary() not= "")

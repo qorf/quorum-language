@@ -22,7 +22,7 @@ class UndefinedCompareRelatedCountsTest is Test
         3,no,no,yes,no,maybe,no,no,yes
         4,no,no,yes,yes,maybe,maybe,maybe,yes
         5,no,no,yes,no,maybe,maybe,maybe,yes
-        6,no,no,,maybe,maybe,maybe,maybe,yes
+        6,no,no,yes,maybe,maybe,maybe,maybe,yes
         7,no,no,no,maybe,yes,yes,maybe,yes
         8,no,no,no,maybe,no,no,maybe,yes
         9,no,no,no,no,no,yes,maybe,yes
@@ -66,7 +66,8 @@ class UndefinedCompareRelatedCountsTest is Test
         47,yes,yes,no,no,maybe,no,no,yes
         48,yes,yes,no,maybe,maybe,yes,no,yes
         49,yes,yes,no,no,yes,yes,no,yes
-        50,yes,yes,no,maybe,no,no,maybe,yes")
+        50,,yes,no,,no,no,maybe,yes")
+        // Missing values in row 50
 
         // Frame approach: 2 measures x 2 categories (mcnemar)  
         frame:AddSelectedColumns("t1,t2")
@@ -87,10 +88,9 @@ class UndefinedCompareRelatedCountsTest is Test
         CompareCounts compare1 = frame:CompareRelatedCounts()    
 
         CompareCountsResult result1 = compare1:GetResult()
-        Check(result1:GetTestStatistic(), 4.044444444444444)
+        Check(result1:GetTestStatistic(), 4.954545454545454)
         Check(result1:GetDegreesOfFreedom(), 2.0)
-        Check(result1:GetProbabilityValue(), 0.13236100245958893) 
-//output  result0:GetProbabilityValue() 
+        Check(result1:GetProbabilityValue(), 0.08397192793251751) 
         Check(true, result1:GetSummary() not= "")
         Check(true, result1:GetFormalSummary() not= "")
         Check(true, compare1:GetSummary() not= "")
@@ -103,9 +103,9 @@ class UndefinedCompareRelatedCountsTest is Test
         CompareCounts compare2 = frame:CompareRelatedCounts() 
 
         CompareCountsResult result2 = compare2:GetResult()
-        Check(result2:GetTestStatistic(), 0.48717948717948717)
+        Check(result2:GetTestStatistic(), 0.9720279720279721)
         Check(result2:GetDegreesOfFreedom(), 3.0)
-        Check(result2:GetProbabilityValue(), 0.9216988585754073)  
+        Check(result2:GetProbabilityValue(), 0.8080199212048892)  
         Check(true, result2:GetSummary() not= "")
         Check(true, result2:GetFormalSummary() not= "")
         Check(true, compare2:GetSummary() not= "")
@@ -117,9 +117,9 @@ class UndefinedCompareRelatedCountsTest is Test
         CompareCounts compare3 = frame:CompareCounts(design)
 
         CompareCountsResult result3 = compare3:GetResult()
-        Check(result3:GetTestStatistic(), 0.48717948717948717)
+        Check(result3:GetTestStatistic(), 0.9720279720279721)
         Check(result3:GetDegreesOfFreedom(), 3.0)
-        Check(result3:GetProbabilityValue(), 0.9216988585754073) 
+        Check(result3:GetProbabilityValue(), 0.8080199212048892) 
         text summary3 = result3:GetSummary()
         text formalsummary3 = result3:GetFormalSummary()
         Check(true, result3:GetSummary() not= "")

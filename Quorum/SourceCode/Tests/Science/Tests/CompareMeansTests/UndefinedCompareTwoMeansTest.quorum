@@ -15,15 +15,14 @@ class UndefinedCompareTwoMeansTest is Test
     end
 
     action Run
-        ColumnCalculationTest framer
         DataFrame frame
-        frame:LoadFromCommaSeparatedValue("y,x
-        2.0,4.0
-        6.0,7.0
-        3.0 
-        9.0,8.0
-        15.0,17.0
-        1.0,3.0")
+        frame:LoadFromCommaSeparatedValue("y,x1,x2,x3
+        2.0,4.0,-9.0,9
+        6.0,7,-19.0,19
+        3.0,,-18.0,18
+        9.0,8.0,-16.0,16
+        15.0,17.0,-2.0,2
+        1.0,3.0,-4.0,4")
         frame:AddSelectedColumnRange(0,1)
 
         // Welch t-test (unequal variances)
@@ -52,7 +51,7 @@ class UndefinedCompareTwoMeansTest is Test
         Check(result2:GetTestStatistic(), -0.5501047109652415)        
         Check(result2:GetDegreesOfFreedom(), 9.0)        
         Check(result2:GetProbabilityValue(), 0.5956339683083105)
-        Check(result2:GetEffectSize(), -0.332252649090927)
+        Check(result2:GetEffectSize(), -0.3331049445889223)
 
         text summary2 = result2:GetSummary()
         text formalsummary2 = result2:GetFormalSummary()
