@@ -483,6 +483,7 @@ shouldCalculateWidth = true
         if failState
             blockListener:SetStartContext(undefined)
         end
+        
         shouldCalculateWidth = true
         shouldCalculateHeight = true
         shouldRegenerateBlocks = true
@@ -498,6 +499,7 @@ shouldCalculateWidth = true
         if failState
             blockListener:SetStartContext(undefined)
         end
+        
         shouldCalculateWidth = true
         shouldCalculateHeight = true
         shouldRegenerateBlocks = true
@@ -963,7 +965,7 @@ action OnTextChange(TextChangeEvent event, integer indexOffset)
         end
     end
 
-    private action NotifyTextChangeListeners(TextChangeEvent event)
+    action NotifyTextChangeListeners(TextChangeEvent event)
         integer counter = 0
         repeat while counter < textChangeListeners:GetSize()
             textChangeListeners:Get(counter):TextChanged(event)

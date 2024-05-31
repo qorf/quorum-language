@@ -18,6 +18,7 @@ use Libraries.Interface.Controls.Blocks.FreeformBlock
 use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
 use Libraries.Interface.Controls.Control
 use Libraries.Containers.MultipleLineText
+use Libraries.Interface.Events.TextChangeEvent
 
 class CodeEditorRenderer is Control
 
@@ -763,6 +764,12 @@ action ConvertPlaceholdersToBlocks(text toInsert)
         CodeEditor editor = GetEditor()
         integer destination = placeholderBlocks:GetFromFront():GetStartIndex()
 
+        text eventInsertion = ""
+        text eventDeletion = ""
+        integer eventInsertIndex = destination
+        integer eventDeletionIndex = -1
+        boolean eventDeleteFirst = true
+        
         MultipleLineText code = editor:GetCode()
         if code:GetSize() > 0 and destination = code:GetSize()
             text lastCharacter = code:GetCharacter(code:GetSize() -1 )
@@ -772,9 +779,12 @@ action ConvertPlaceholdersToBlocks(text toInsert)
         end
         if not movingBlocks:IsEmpty()
             text toMove = editor:GetCodeBetween(movingStartIndex, movingEndIndex)
+            eventDeletion = toMove
+            eventDeletionIndex = movingStartIndex
             if movingStartIndex < destination
                 code = code:Insert(destination, toMove)
                 code = code:Delete(movingStartIndex, movingEndIndex)
+                eventDeleteFirst = false
             else
                 code = code:Delete(movingStartIndex, movingEndIndex)
                 code = code:Insert(destination, toMove)
@@ -782,7 +792,7 @@ action ConvertPlaceholdersToBlocks(text toInsert)
         else
             code = code:Insert(destination, toInsert)
         end
-placeholderBlocks:Empty()
+        placeholderBlocks:Empty()
         
         integer i = 0
         repeat while i < movingBlocks:GetSize()
@@ -792,6 +802,28 @@ placeholderBlocks:Empty()
         movingBlocks:Empty()
         
         editor:SetCode(code)
+        
+        eventInsertion = toInsert
+        if eventDeletionIndex >= -1 and eventDeleteFirst
+            NotifyTextChangeListeners(eventDeletionIndex, "", eventDeletion)
+        end
+        
+        NotifyTextChangeListeners(eventInsertIndex, eventInsertion, "")
+        
+        if eventDeletionIndex >= -1 and eventDeleteFirst = false
+            NotifyTextChangeListeners(eventDeletionIndex, "", eventDeletion)
+        end
+    end
+    
+    private action NotifyTextChangeListeners(integer index, text added, text deleted)
+        CodeEditor editor = GetEditor()
+        if editor = undefined
+            return now
+        end
+
+        TextChangeEvent event
+        event:Initialize(editor, added, deleted, index)
+        editor:NotifyTextChangeListeners(event)
     end
     
     action GetPlaceholderStartIndex returns integer
