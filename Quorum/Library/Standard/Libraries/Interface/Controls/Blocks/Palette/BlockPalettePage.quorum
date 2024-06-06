@@ -19,6 +19,11 @@ class BlockPalettePage is StackedRowPage
     Array<Block> renderArray
     Array<MultipleLineBlock> currentMultiBlocks
     
+    
+    public constant integer HEADER_SIZE = 24
+    public constant integer HEADER2_SIZE = 18
+public constant integer LABEL_SIZE = 12
+    
     // A behavior assigned to each BlockPalettetItem that is added to this page.
 BlockPaletteItemInsertBehavior itemInsertBehavior
     

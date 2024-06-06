@@ -27,6 +27,7 @@ use Libraries.Game.Graphics.PixelMap
 use Libraries.Game.Graphics.Format
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Texture
+use Libraries.Data.Formats.ExtensibleMarkupReader
 
 class BlockPalette is TabPane
 
@@ -49,6 +50,7 @@ text fontPath = ""
     
     // The drawable used for the default circle icon applied to the tabs.
     Drawable circleTexture
+    Array<File> customPages
     
     action Setup
         SetName("Block Palette")
@@ -111,11 +113,52 @@ magnifyFilter:ConstructTextureFilter(magnifyFilter:LINEAR)
             actionTab:SetIconColor(blockOptions:GetBackgroundColor(constants:ACTION_KEY))
             suggestionTab:SetIconColor(blockOptions:GetBackgroundColor(constants:PACKAGE_KEY))
         end
+        Array<BlockPalettePage> allReadPages
+        if not customPages:IsEmpty()
+            BlockPaletteMarkupListener markupListener
+            markupListener:SetPalette(me)
+            integer i = 0
+            repeat while i < customPages:GetSize()
+                markupListener:Setup()
+                ExtensibleMarkupReader reader
+                reader:SetMarkupListener(markupListener)
+                boolean failed = false
+                check
+                    reader:Read(customPages:Get(i))
+                detect error
+                    failed = true
+                    output error:GetErrorMessage()
+                    output error:GetStackTraceMessage()
+                end
+                if not failed
+                    Array<BlockPalettePage> readPages = markupListener:GetCustomPages()
+                    integer j = 0
+                    repeat while j < readPages:GetSize()
+                        allReadPages:Add(readPages:Get(j))
+                        j = j + 1
+                    end
+                end
+                i = i + 1
+            end
+            
+        end
 
                 Add(suggestionTab)
 Add(basicTab)
         Add(controlTab)
         Add(actionTab)
+        if not allReadPages:IsEmpty()
+            integer i = 0
+            repeat while i < allReadPages:GetSize()
+                Tab customTab
+                customTab:SetName(allReadPages:Get(i):GetName())
+customTab:DisplayCloseButton(false)
+        customTab:SetRelatedItem(allReadPages:Get(i))
+        customTab:SetIcon(circleTexture)
+                Add(customTab)
+                i = i + 1
+            end
+        end
     end
 
     action SetEditor(CodeEditor editor)
@@ -270,6 +313,14 @@ action SetBlockSuggestionHandler(BlockSuggestionHandler suggestionHandler)
     */
     action GetDraggedItem returns Item
         return draggedItem
+    end
+
+    action GetCustomPages returns Array<File>
+        return customPages
+    end
+    
+    action AddCustomPalettePage(File file)
+        customPages:Add(file)
     end
 
 end
