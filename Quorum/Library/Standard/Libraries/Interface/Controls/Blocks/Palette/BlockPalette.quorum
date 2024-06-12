@@ -39,6 +39,9 @@ class BlockPalette is TabPane
     
     SelectionListener suggestPage
     BlockSuggestionHandler suggestionHandler = undefined
+    
+    boolean includeSuggestions = true
+    boolean includeDefaultTabs = true
 
     // Resources used to handle the visual component of dragging-and-dropping palette items.
     GameStateManager manager
@@ -86,6 +89,7 @@ magnifyFilter:ConstructTextureFilter(magnifyFilter:LINEAR)
         LeftAlignTabBar()
         SetLargeTabs(true)
 
+        if includeDefaultTabs
         basicTab:SetName("Basic")
         basicTab:DisplayCloseButton(false)
         basicTab:SetRelatedItem(MakeBasicPage())
@@ -99,13 +103,16 @@ magnifyFilter:ConstructTextureFilter(magnifyFilter:LINEAR)
         actionTab:SetName("Action")
         actionTab:DisplayCloseButton(false)
         actionTab:SetRelatedItem(MakeActionPage())
-        actionTab:SetIcon(circleTexture)
-        
+actionTab:SetIcon(circleTexture)
+                        end
+
+        if includeSuggestions
         suggestionTab:SetName("Advice")
         suggestionTab:DisplayCloseButton(false)
         suggestionTab:SetRelatedItem(MakeSuggestionPage())
         suggestionTab:SetIcon(circleTexture)
-        
+                end
+
         if blockOptions not= undefined
             BlockOptionConstants constants
             basicTab:SetIconColor(blockOptions:GetBackgroundColor(constants:ASSIGNMENT_KEY))
@@ -143,11 +150,15 @@ magnifyFilter:ConstructTextureFilter(magnifyFilter:LINEAR)
             
         end
 
-                Add(suggestionTab)
+        if includeSuggestions
+            Add(suggestionTab)
+        end
+        if includeDefaultTabs
 Add(basicTab)
         Add(controlTab)
         Add(actionTab)
-        if not allReadPages:IsEmpty()
+                end
+if not allReadPages:IsEmpty()
             integer i = 0
             repeat while i < allReadPages:GetSize()
                 Tab customTab
@@ -159,7 +170,7 @@ customTab:DisplayCloseButton(false)
                 i = i + 1
             end
         end
-    end
+end
 
     action SetEditor(CodeEditor editor)
         if me:editor not= undefined
@@ -321,6 +332,14 @@ action SetBlockSuggestionHandler(BlockSuggestionHandler suggestionHandler)
     
     action AddCustomPalettePage(File file)
         customPages:Add(file)
+    end
+
+    action IncludeSuggestions(boolean includeSuggestions)
+        me:includeSuggestions = includeSuggestions
+    end
+
+    action IncludeDefaultTabs(boolean includeDefaultTabs)
+        me:includeDefaultTabs = includeDefaultTabs
     end
 
 end
