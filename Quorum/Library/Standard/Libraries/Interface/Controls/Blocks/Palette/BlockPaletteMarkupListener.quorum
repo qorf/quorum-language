@@ -1,0 +1,123 @@
+package Libraries.Interface.Controls.Blocks.Palette
+
+use Libraries.Data.Formats.MarkupListener
+use Libraries.Data.Formats.Element
+use Libraries.Containers.Stack
+use Libraries.Interface.Controls.Blocks.Palette.BlockPalettePage
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Blocks.Palette.BlockPalette
+use Libraries.Data.Formats.AttributesImplementation
+use Libraries.Interface.Forms.Banner
+
+
+class BlockPaletteMarkupListener is MarkupListener
+    
+    Stack<Element> elementStack 
+    Element currentElement
+    
+    boolean doneReading = false
+    
+    BlockPalette palette = undefined
+    BlockPalettePage currentPage = undefined
+    Array<BlockPalettePage> customPages
+    text bannerTitle = ""
+    text bannerSubtitle = ""
+    
+    on create
+        Setup()
+    end
+    
+    action Setup
+        doneReading = false
+        elementStack:Empty()
+        currentElement = undefined
+        bannerTitle = ""
+        bannerSubtitle = ""
+        customPages:Empty()
+        currentPage = undefined
+    end
+    
+action StartElement(Element element)
+        elementStack:Push(element)
+        elementName = element:GetName()
+        currentElement = element
+        if elementName = "palette"
+if elementStack:GetSize() not= 1
+                alert("palette tag is not the first element")
+            end
+        elseif elementName = "page"
+BlockPalettePage page
+            page:SetPalette(me:palette)
+            currentPage = page
+AttributesImplementation attributes = element:GetAttributes()
+        integer i = 0
+        repeat attributes:GetSize() times
+            if attributes:GetName(i) = "name"
+                    currentPage:SetName(attributes:GetValue(i))
+                end
+            i = i + 1
+        end
+elseif elementName = "banner"
+bannerTitle = ""
+            bannerSubtitle = ""
+        end
+    end
+    
+    action Value(text value)
+        if doneReading
+            return now
+        end
+        Element current = elementStack:Peek()
+        text name = current:GetName()
+        value = value:Trim()
+        
+        if name = "title"
+            bannerTitle = value
+            elseif name = "subtitle"
+            bannerSubtitle = value
+            elseif name = "header"
+            integer fontSize = currentPage:HEADER_SIZE
+            currentPage:AddLabel(value):SetFontSize(fontSize)
+            elseif name = "subheading"
+            integer fontSize = currentPage:HEADER2_SIZE
+            currentPage:AddLabel(value):SetFontSize(fontSize)
+elseif name = "text"
+            integer fontSize = currentPage:LABEL_SIZE
+            currentPage:AddLabel(value):SetFontSize(fontSize)
+elseif name = "block"
+            currentPage:AddBlockPaletteItem(value)
+            // parse then add block palette item
+        else
+            // Bad file
+            doneReading = true
+        end
+    end
+    
+    action EndElement(Element element)
+        Element topOfStack = elementStack:Pop()
+        if topOfStack:GetName()= "palette"
+            doneReading = true
+        elseif topOfStack:GetName()= "page"
+            customPages:AddToEnd(currentPage)
+            currentPage = undefined
+elseif topOfStack:GetName()= "banner"
+            Banner banner = currentPage:AddBanner(bannerTitle, bannerTitle, bannerSubtitle)
+            if bannerSubtitle not= ""
+                banner:GetLabel():SetFontSize(currentPage:LABEL_SIZE)
+            end
+        end
+    end
+
+    action SetPalette(BlockPalette palette)
+        me:palette = palette
+    end
+
+    action GetPalette returns BlockPalette
+        return palette
+    end
+
+    action GetCustomPages returns Array<BlockPalettePage>
+        return customPages
+    end
+
+end
