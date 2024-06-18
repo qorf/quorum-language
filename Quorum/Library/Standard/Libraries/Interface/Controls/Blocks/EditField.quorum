@@ -90,6 +90,8 @@ if editor is BlockPaletteItem
         if editor not= undefined
             glyphWidth = editor:GetDefaultGlyphWidth()
             height = editor:GetUnpaddedLineHeight(GetBlock():GetStartLine())
+        elseif GetFont() not= undefined
+            height = GetFont():GetLineHeight()
         end
 
         integer characterCount = 0

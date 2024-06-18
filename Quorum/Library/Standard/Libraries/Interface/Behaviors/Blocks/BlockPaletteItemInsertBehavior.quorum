@@ -18,20 +18,25 @@ class BlockPaletteItemInsertBehavior is Behavior
             return now
         end
         
-        Array<Block> sourceBlocks = item:GetBlocks()
         CodeEditor editor = item:GetEditor()
+        // If there is no editor, or the editor we have isn't part of the Game any more, abort here.
+        if editor = undefined or editor:GetLayer() = undefined
+            return now
+        end
+
+        Array<Block> sourceBlocks = item:GetBlocks()
         integer line = editor:GetSelection():GetLine()
         
-Array<Block> placeholders
-                        integer i = 0
-                        repeat while i < sourceBlocks:GetSize()
-                            if sourceBlocks:Get(i):IsPlaceholder()
-                                placeholders:Add(sourceBlocks:Get(i))
-                            else
-                                placeholders:Add(sourceBlocks:Get(i):CopyToPlaceholder())
-                            end
-                            i = i + 1
-                        end
-                        editor:KeyboardInsertBlocksAtIndex(line + 1, placeholders)
+        Array<Block> placeholders
+        integer i = 0
+        repeat while i < sourceBlocks:GetSize()
+            if sourceBlocks:Get(i):IsPlaceholder()
+                placeholders:Add(sourceBlocks:Get(i))
+            else
+                placeholders:Add(sourceBlocks:Get(i):CopyToPlaceholder())
+            end
+            i = i + 1
+        end
+        editor:KeyboardInsertBlocksAtIndex(line + 1, placeholders)
     end
 end

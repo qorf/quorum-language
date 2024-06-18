@@ -56,7 +56,6 @@ class CodeEditorAcceptDraggedBlockBehavior is Behavior
                 // Ignore any drag requests if the source behavior hasn't started dragging "for real" yet.
                 // This can occur if the drag is only a pixel or two, so it hasn't moved far enough yet to surpass the source behavior's distance threshold.
                 if sourceDragBehavior:IsDraggingBlocks() = false
-                    output "ADB: Return early."
                     return now
                 end
                 
@@ -101,18 +100,18 @@ class CodeEditorAcceptDraggedBlockBehavior is Behavior
 
                     BlockEnvironment environment = firstBlock:GetBlockEnvironment()
                     if environment not= undefined 
-                    if firstBlock = lastBlock and firstBlock:IsPlaceholder()
-                        toInsert = firstBlock:GetPlaceholderText() + toInsert:GetLineFeed()
-                    else
-toInsert = environment:GetCodeBetween(firstBlock:GetStartIndex(), lastBlock:GetEndIndex()) + toInsert:GetLineFeed()
-                    end
-lastCandidateLine = -2
+                        if firstBlock = lastBlock and firstBlock:IsPlaceholder()
+                            toInsert = firstBlock:GetPlaceholderText() + toInsert:GetLineFeed()
+                        else
+                            toInsert = environment:GetCodeBetween(firstBlock:GetStartIndex(), lastBlock:GetEndIndex()) + toInsert:GetLineFeed()
+                        end
+                        lastCandidateLine = -2
                     
-                    if editor:HasPlaceholders()
-                        editor:ConvertPlaceholdersToBlocks(toInsert)
+                        if editor:HasPlaceholders()
+                            editor:ConvertPlaceholdersToBlocks(toInsert)
+                        end
                     end
-                                                            end
-sourceBlocks = undefined
+                    sourceBlocks = undefined
                     sourceDragBehavior:Reset()
                 end
             end

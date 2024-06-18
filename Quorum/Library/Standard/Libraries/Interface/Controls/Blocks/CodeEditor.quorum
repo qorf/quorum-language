@@ -757,6 +757,15 @@ shouldCalculateWidth = true
         return GetDefaultLineHeight() / GetTotalContentHeight()
     end
 
+    /*
+    Returns the number of lines used for the blocks in the CodeEditor. This also corresponds to the total navigation indices of the blocks in the code.
+    Note that this is different from GetRawTextLineCount, which returns how many lines are in the
+    the raw text that represent the blocks under the hood. These two values can be different if the
+    raw text splits up a single block's code on to multiple lines, e.g. if 
+    a long if statement has its contents split onto multiple lines of text, but still only takes 1 block to represent.
+
+    Attribute: Returns the number of lines used for blocks in the CodeEditor.
+    */
     action GetLineCount returns integer
         if shouldCalculateNavigationIndices
             RefreshNavigationIndices()
@@ -767,6 +776,18 @@ shouldCalculateWidth = true
         else
             return 0
         end
+    end
+
+    /*
+    Returns the number of lines in the raw text that the blocks represent.
+    Note that this is different from GetLineCount, which returns how many lines it takes to represent the blocks.
+    These two values can be different if the raw text splits up a single block's code on to multiple lines, e.g. if 
+    a long if statement has its contents split onto multiple lines of text, but still only takes 1 block to represent.
+
+    Attribute: Returns the number of lines in the raw text of the code.
+    */
+    action GetRawTextLineCount returns integer
+        return rawCode:GetLineCount()
     end
 
     /*
@@ -1098,7 +1119,7 @@ action OnTextChange(TextChangeEvent event, integer indexOffset)
         if keyboardMovingBlocks
             // Move the placeholders to go just under the selected block, if they're not in the right spot.
             if renderer:GetPlaceholderStartIndex() not= selection:GetLine() + 1
-MovePlaceholdersToNavigationIndex(selection:GetLine() + 1)
+                MovePlaceholdersToNavigationIndex(selection:GetLine() + 1)
             end
             
             Block currentSelection = selection:GetBlock()
@@ -2697,7 +2718,7 @@ Block lastBlock = GetLastBlock()
         return current
     end
     
-action IsAccessibleParent returns boolean
+    action IsAccessibleParent returns boolean
         return true
     end
     
@@ -2708,7 +2729,7 @@ action IsAccessibleParent returns boolean
     end
     
     action MovePlaceholdersToNavigationIndex(integer index)
-renderer:MovePlaceholdersToNavigationIndex(index)
+        renderer:MovePlaceholdersToNavigationIndex(index)
     end
     
     action HasPlaceholders returns boolean
@@ -2717,26 +2738,29 @@ renderer:MovePlaceholdersToNavigationIndex(index)
     
     action ConvertPlaceholdersToBlocks(text toInsert)
         renderer:ConvertPlaceholdersToBlocks(toInsert)
+        // If the editor has been manually instructed to convert placeholders to blocks,
+        // there's no longer anything to move with the keyboard, if we were doing so.
+        keyboardMovingBlocks = false
     end
     
     action RemovePlaceholders
         renderer:RemovePlaceholders()
     end
     
-action SetMovingBlocks(Array<Block> blocks)
+    action SetMovingBlocks(Array<Block> blocks)
         renderer:SetMovingBlocks(blocks)
-end
+    end
 
-action CanAcceptPlaceholdersAtNavigationIndex(integer navigationIndex) returns boolean
+    action CanAcceptPlaceholdersAtNavigationIndex(integer navigationIndex) returns boolean
         return renderer:CanAcceptPlaceholdersAtNavigationIndex(navigationIndex)
-end
+    end
     
     /*This action inserts the array of given blocks as placeholders at the given navigation index.
 The user can then move the blocks up or down within the editor before confirming or cancelling
 the placement.*/
     action KeyboardInsertBlocksAtIndex(integer navigationIndex, Array<Block> newBlocks)
         keyboardMovingBlocks = true
-InsertPlaceholdersAtNavigationIndex(navigationIndex, newBlocks)
+            InsertPlaceholdersAtNavigationIndex(navigationIndex, newBlocks)
         if selection:GetBlock() not= undefined
             selection:GetBlock():Focus()
         else

@@ -49,7 +49,7 @@ class BlockPalette is TabPane
     boolean dragLayerInUse = false
     Drawable draggedItem = undefined
     Font fontAwesome
-text fontPath = ""
+    text fontPath = ""
     
     // The drawable used for the default circle icon applied to the tabs.
     Drawable circleTexture
@@ -59,7 +59,7 @@ text fontPath = ""
         SetName("Block Palette")
         
         PixelMap pixels
-Format format
+        Format format
         format:SetValue(format:RGBA8888)
         pixels:CreatePixelMap(81, 81, format)
         Color color
@@ -73,7 +73,7 @@ Format format
         TextureFilter minifyFilter
         TextureFilter magnifyFilter
         minifyFilter:ConstructTextureFilter(minifyFilter:LINEAR)
-magnifyFilter:ConstructTextureFilter(magnifyFilter:LINEAR)
+        magnifyFilter:ConstructTextureFilter(magnifyFilter:LINEAR)
         circleTexture:GetTexture():SetFilter(minifyFilter, magnifyFilter)
         
         InterfaceOptions options = manager:GetInterfaceOptions()
@@ -90,28 +90,28 @@ magnifyFilter:ConstructTextureFilter(magnifyFilter:LINEAR)
         SetLargeTabs(true)
 
         if includeDefaultTabs
-        basicTab:SetName("Basic")
-        basicTab:DisplayCloseButton(false)
-        basicTab:SetRelatedItem(MakeBasicPage())
-        basicTab:SetIcon(circleTexture)
-
-        controlTab:SetName("Control")
-        controlTab:DisplayCloseButton(false)
-        controlTab:SetRelatedItem(MakeControlPage())
-        controlTab:SetIcon(circleTexture)
-
-        actionTab:SetName("Action")
-        actionTab:DisplayCloseButton(false)
-        actionTab:SetRelatedItem(MakeActionPage())
-actionTab:SetIcon(circleTexture)
-                        end
+            basicTab:SetName("Basic")
+            basicTab:DisplayCloseButton(false)
+            basicTab:SetRelatedItem(MakeBasicPage())
+            basicTab:SetIcon(circleTexture)
+    
+            controlTab:SetName("Control")
+            controlTab:DisplayCloseButton(false)
+            controlTab:SetRelatedItem(MakeControlPage())
+            controlTab:SetIcon(circleTexture)
+    
+            actionTab:SetName("Action")
+            actionTab:DisplayCloseButton(false)
+            actionTab:SetRelatedItem(MakeActionPage())
+            actionTab:SetIcon(circleTexture)
+        end
 
         if includeSuggestions
-        suggestionTab:SetName("Advice")
-        suggestionTab:DisplayCloseButton(false)
-        suggestionTab:SetRelatedItem(MakeSuggestionPage())
-        suggestionTab:SetIcon(circleTexture)
-                end
+            suggestionTab:SetName("Advice")
+            suggestionTab:DisplayCloseButton(false)
+            suggestionTab:SetRelatedItem(MakeSuggestionPage())
+            suggestionTab:SetIcon(circleTexture)
+        end
 
         if blockOptions not= undefined
             BlockOptionConstants constants

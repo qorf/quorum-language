@@ -67,7 +67,7 @@ behavior begins. The value of the threshold is determined based on the height of
                 
                 dragDistanceThreshold = 0.8 * control:GetFont():GetLineHeight()
             else
-dragDistanceThreshold = 10
+                dragDistanceThreshold = 10
             end
             
         elseif dragEvent:eventType = dragEvent:DRAGGING_CONTINUED and draggingStarted = false
@@ -79,6 +79,7 @@ dragDistanceThreshold = 10
             
             Item targetItem = event:GetItem()
             CodeEditor editor = undefined
+            BlockPaletteItem paletteItem = undefined
             if targetItem is CodeEditor
                 editor = cast(CodeEditor, targetItem)
                 dragSource = editor
@@ -89,25 +90,19 @@ dragDistanceThreshold = 10
                     editor = cast(CodeEditor, environment)
                     dragSource = editor
                 elseif environment is BlockPaletteItem
-BlockPaletteItem paletteItem = cast(BlockPaletteItem, environment)
-                editor = paletteItem:GetPalette():GetEditor()
-                dragSource = paletteItem:GetPalette()
-                sourceBlocks = paletteItem:GetBlocks()
+                    paletteItem = cast(BlockPaletteItem, environment)
                 else
-// Check to see if this Block is actually on an Editor, or if the Editor has been associated from elsewhere.
-                Item2D parentItem = block
-                repeat until parentItem = undefined or parentItem is CodeEditor
-                    parentItem = parentItem:GetParent()
-                end
-                
-                dragSource = parentItem
+                    // Check to see if this Block is actually on an Editor, or if the Editor has been associated from elsewhere.
+                    Item2D parentItem = block
+                    repeat until parentItem = undefined or parentItem is CodeEditor
+                        parentItem = parentItem:GetParent()
+                    end
+                    
+                    dragSource = parentItem
                 end
                 
             elseif targetItem is BlockPaletteItem
-                BlockPaletteItem paletteItem = cast(BlockPaletteItem, targetItem)
-                editor = paletteItem:GetPalette():GetEditor()
-                dragSource = paletteItem:GetPalette()
-                sourceBlocks = paletteItem:GetBlocks()
+                paletteItem = cast(BlockPaletteItem, targetItem)
             elseif targetItem is Item2D
                 Item2D target = cast(Item2D, targetItem)
                 repeat until (target = undefined) or (target is CodeEditor) or (target is BlockPalette) or (target is BlockPaletteItem)
@@ -127,17 +122,28 @@ BlockPaletteItem paletteItem = cast(BlockPaletteItem, environment)
                     editor = cast(CodeEditor, target)
                     dragSource = editor
                 elseif target is BlockPaletteItem
-BlockPaletteItem paletteItem = cast(BlockPaletteItem, target)
-                editor = paletteItem:GetPalette():GetEditor()
-                dragSource = paletteItem:GetPalette()
-                sourceBlocks = paletteItem:GetBlocks()
+                    paletteItem = cast(BlockPaletteItem, target)
                 elseif target is BlockPalette
                     BlockPalette palette = cast(BlockPalette, target)
                     editor = palette:GetEditor()
                     dragSource = palette
                 end
             end
+
+            if paletteItem not= undefined
+                editor = paletteItem:GetPalette():GetEditor()
+                // If there's no editor attached to the palette item, or if there's an editor but it's not in the Game anymore, abort now.
+                if editor = undefined or editor:GetLayer() = undefined
+                    draggingStarted = false
+                    return now
+                end
+                dragSource = paletteItem:GetPalette()
+                sourceBlocks = paletteItem:GetBlocks()
+            end
             
+            if editor:IsKeyboardMovingBlocks()
+                editor:CancelKeyboardMovingBlocks()
+            end
             
             if IsDraggingSourceBlocks()
                 UnloadDraggedBlocks()

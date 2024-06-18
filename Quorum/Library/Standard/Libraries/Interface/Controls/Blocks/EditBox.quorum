@@ -92,7 +92,9 @@ class EditBox is TextBox, EditRegion
 
         if editor not= undefined
             glyphWidth = editor:GetDefaultGlyphWidth()
-            height = editor:GetDefaultUnpaddedLineHeight() * (block:GetLocalEndLine() - block:GetLocalStartLine() + 1)     
+            height = editor:GetDefaultUnpaddedLineHeight() * (block:GetLocalEndLine() - block:GetLocalStartLine() + 1)
+        elseif GetFont() not= undefined
+            height = GetFont():GetLineHeight() * (block:GetLocalEndLine() - block:GetLocalStartLine() + 1)
         end
 
         number minimumLength = 0
@@ -106,7 +108,7 @@ class EditBox is TextBox, EditRegion
             Item2D item = blockChildren:Get(counter)
             if item is BlockItem
                 if item:Equals(me)
-minimumLength = block:GetMinimumWidth() - GetX() - block:GetRightPadding()
+                    minimumLength = block:GetMinimumWidth() - GetX() - block:GetRightPadding()
                 else
                     // If we found a different block item, abort.
                     counter = 0
