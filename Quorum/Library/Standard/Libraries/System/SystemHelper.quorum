@@ -100,4 +100,18 @@ class SystemHelper
         output help:GetThreadName()
     */
     system action GetThreadName returns text
+    
+    /* This action takes the file and opens it in the default
+text editor on the system, if one exists. If it cannot,
+it fails silently.
+
+Attribute: File the file to open.
+
+use Libraries.System.File
+use Libraries.System.SystemHelper
+SystemHelper help
+File file
+file:SetPath("SomeFile.txt")
+help:OpenInDefaultTextEditor(file)*/
+    system action OpenInDefaultTextEditor(File file)
 end
