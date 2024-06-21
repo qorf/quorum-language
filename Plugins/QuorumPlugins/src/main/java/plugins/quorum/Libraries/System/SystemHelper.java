@@ -58,7 +58,7 @@ public class SystemHelper
             String os = System.getProperty("os.name").toLowerCase();
 
             if (os.contains("win")) {
-                new ProcessBuilder("cmd", "/c", path).start();
+                new ProcessBuilder("notepad.exe", path).start();
             } else if (os.contains("mac")) {
                 new ProcessBuilder("open", path).start();
             } else if (os.contains("nix") || os.contains("nux")) {

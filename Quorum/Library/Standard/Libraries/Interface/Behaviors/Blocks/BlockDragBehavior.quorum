@@ -190,7 +190,6 @@ behavior begins. The value of the threshold is determined based on the height of
             return now
         end
         
-        //CodeEditor editor = blocks:GetFromFront():GetEditor()
         BlockEnvironment environment = blocks:GetFromFront():GetBlockEnvironment()
         CodeEditor editor = undefined
         if environment is CodeEditor
@@ -207,17 +206,14 @@ behavior begins. The value of the threshold is determined based on the height of
             end
             targetLayer = dragSource:GetLayer()
         end
-        //dragAnchor:SetPosition(startX, startY)
         
         repeat while i < blocks:GetSize()
             Block block = blocks:Get(i)
             
             Block dummyBlock = block
-dummyBlock:SetInterfaceScale(environment:GetInterfaceScale())
-            if not block:IsPlaceholder()
-                dummyBlock = block:CopyToPlaceholder()
-            end
+            dummyBlock:SetInterfaceScale(environment:GetInterfaceScale())
             
+            dummyBlock = block:CopyToPlaceholder()
             dummyBlock:SetSize(block:GetWidth(), block:GetHeight())
             dummyBlock:SetPosition(targetX, targetY)
             
@@ -243,11 +239,11 @@ dummyBlock:SetInterfaceScale(environment:GetInterfaceScale())
     // Remove the visual representation of the dragged blocks from the Game.
     action UnloadDraggedBlocks
         if IsDraggingSourceBlocks()
-dragAnchor:Empty()
+            dragAnchor:Empty()
             
             Layer2D layer = dragAnchor:GetLayer()
             if layer not= undefined
-layer:Remove(dragAnchor)
+                layer:Remove(dragAnchor)
             end
         end
     end

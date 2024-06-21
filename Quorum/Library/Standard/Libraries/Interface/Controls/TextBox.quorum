@@ -2545,6 +2545,13 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         integer selectionStart = selection:GetStartIndex()
         integer selectionEnd = selection:GetEndIndex()
         integer currentLine = GetLineIndexOfCharacter(index)
+        if currentLine < cast(integer, firstLine)
+            currentLine = cast(integer, firstLine)
+            integer startOfLine = GetIndexOfLine(currentLine)
+            if index < startOfLine
+                index = startOfLine
+            end
+        end
 
         // Because styles are sorted from lowest starting index to highest, there's never any need to check styles earlier than the last one we successfully applied.
         // On the first pass of the loop, we haven't checked any of them yet, so start from the beginning.

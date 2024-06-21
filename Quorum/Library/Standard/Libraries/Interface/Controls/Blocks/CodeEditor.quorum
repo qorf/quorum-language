@@ -2759,6 +2759,9 @@ Block lastBlock = GetLastBlock()
 The user can then move the blocks up or down within the editor before confirming or cancelling
 the placement.*/
     action KeyboardInsertBlocksAtIndex(integer navigationIndex, Array<Block> newBlocks)
+        if IsKeyboardMovingBlocks()
+            CancelKeyboardMovingBlocks()
+        end
         keyboardMovingBlocks = true
             InsertPlaceholdersAtNavigationIndex(navigationIndex, newBlocks)
         if selection:GetBlock() not= undefined

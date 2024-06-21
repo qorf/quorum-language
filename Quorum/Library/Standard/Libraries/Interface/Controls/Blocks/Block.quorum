@@ -1243,7 +1243,13 @@ the provided code. For more specific visuals, use SetAsPlaceholder(text, Array<I
         
         if controls not= undefined
             BlockEnvironment editor = GetBlockEnvironment()
-            number spacing = editor:GetDefaultGlyphWidth()
+            number spacing = 10
+            if editor not= undefined
+spacing = editor:GetDefaultGlyphWidth()
+            elseif GetFont() not= undefined
+                // As a fallback, use the width of a character from the font. Arbitrary if the font is monospaced, which it usually is. Otherwise, "W" is usually a wide character.
+                spacing = editor:GetFont():GetGlyph("W"):horizontalAdvance
+            end
             SetLeftPadding(spacing * 0.5)
             SetRightPadding(spacing * 0.5)
                 

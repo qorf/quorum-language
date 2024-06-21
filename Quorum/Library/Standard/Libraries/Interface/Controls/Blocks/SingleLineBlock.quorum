@@ -109,8 +109,8 @@ class SingleLineBlock is Block
         integer scope = GetScopeDepth()
         integer kids = GetChildCount()
         //only for scoped items, otherwise it tends to feel subjectively annoying in a screen reader.
-        if scope > 1 and IsEnteringScope()
-            result = ", level " + (scope - 1)
+        if scope >= 1 and IsEnteringScope()
+            result = ", level " + scope
         end
         
         if kids = 1
@@ -127,8 +127,8 @@ class SingleLineBlock is Block
             if mom not= undefined
                 text name = mom:GetName()
                 result = result + " to " + name
-                if scope > 1 //inside the action only
-                    result = result + ", level " + (scope - 1)
+                if scope >= 1 //inside the action only
+                    result = result + ", level " + scope
                 end
             end
         end

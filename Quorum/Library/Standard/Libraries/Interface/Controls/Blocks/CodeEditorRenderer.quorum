@@ -123,17 +123,9 @@ class CodeEditorRenderer is Control
         RecycleBlock(block)
     end
 
-    integer DEBUG = 0
-
     action Draw(Painter2D painter)
         if GetView2D() not= undefined
             GetView2D():Draw(painter)
-        end
-
-        DEBUG = DEBUG + 1
-        if DEBUG > 600
-            output "Placeholders: " + placeholderBlocks:GetSize()
-            DEBUG = 0
         end
 
         integer counter = 0
