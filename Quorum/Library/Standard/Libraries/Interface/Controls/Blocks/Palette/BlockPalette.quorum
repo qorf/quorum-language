@@ -121,6 +121,10 @@ class BlockPalette is TabPane
             suggestionTab:SetIconColor(blockOptions:GetBackgroundColor(constants:PACKAGE_KEY))
         end
         Array<BlockPalettePage> allReadPages
+        boolean showBasic = true
+        boolean showControl = true
+        boolean showAction = true
+        text selectedPage = ""
         if not customPages:IsEmpty()
             BlockPaletteMarkupListener markupListener
             markupListener:SetPalette(me)
@@ -138,6 +142,10 @@ class BlockPalette is TabPane
                     output error:GetStackTraceMessage()
                 end
                 if not failed
+                    showBasic = markupListener:GetShowBasic()
+                    showControl = markupListener:GetShowControl()
+                    showAction = markupListener:GetShowAction()
+                    selectedPage = markupListener:GetSelectedPage()
                     Array<BlockPalettePage> readPages = markupListener:GetCustomPages()
                     integer j = 0
                     repeat while j < readPages:GetSize()
@@ -154,9 +162,15 @@ class BlockPalette is TabPane
             Add(suggestionTab)
         end
         if includeDefaultTabs
-Add(basicTab)
-        Add(controlTab)
-        Add(actionTab)
+            if showBasic
+            Add(basicTab)
+end
+            if showControl
+                    Add(controlTab)
+end
+            if showAction
+                    Add(actionTab)
+end
                 end
 if not allReadPages:IsEmpty()
             integer i = 0
@@ -170,7 +184,25 @@ customTab:DisplayCloseButton(false)
                 i = i + 1
             end
         end
+        if selectedPage not= ""
+            SelectPageByName(selectedPage)
+        else
+            Select(0)
+        end
 end
+    
+    action SelectPageByName(text name)
+        integer i = 0
+        repeat while i < GetSize()
+            Tab tab = Get(i)
+            if tab:GetName():ToLowerCase() = name:ToLowerCase()
+                Select(tab)
+                return now
+            end
+            i = i + 1
+        end
+        Select(0)
+    end
 
     action SetEditor(CodeEditor editor)
         if me:editor not= undefined
@@ -222,7 +254,7 @@ File file
         BlockPalettePage page
         page:SetPalette(me)
         page:AddBasicBlocks()
-        page:SetName("Basic Palette Page")
+        page:SetName("Basic")
         return page
     end
 
@@ -230,6 +262,7 @@ File file
         BlockPalettePage page
         page:SetPalette(me)
         page:AddControlBlocks()
+page:SetName("Control")
         return page
     end
 
@@ -237,6 +270,7 @@ File file
         BlockPalettePage page
         page:SetPalette(me)
         page:AddActionBlocks()
+page:SetName("Action")
         return page
     end
     

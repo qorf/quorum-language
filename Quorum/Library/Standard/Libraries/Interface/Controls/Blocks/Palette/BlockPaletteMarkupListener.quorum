@@ -22,6 +22,10 @@ class BlockPaletteMarkupListener is MarkupListener
     Array<BlockPalettePage> customPages
     text bannerTitle = ""
     text bannerSubtitle = ""
+    text selectedPage = ""
+    boolean showBasic = true
+boolean showControl = true
+boolean showAction = true
     
     on create
         Setup()
@@ -45,6 +49,29 @@ action StartElement(Element element)
 if elementStack:GetSize() not= 1
                 alert("palette tag is not the first element")
             end
+AttributesImplementation attributes = element:GetAttributes()
+        integer i = 0
+        repeat attributes:GetSize() times
+            if attributes:GetName(i) = "selectedPage"
+                    selectedPage = attributes:GetValue(i)
+                end
+if attributes:GetName(i) = "showBasic"
+                    if attributes:GetValue(i):Trim() = "false" 
+                        showBasic = false
+                    end
+                end
+if attributes:GetName(i) = "showControl"
+if attributes:GetValue(i):Trim() = "false" 
+                        showControl = false
+                    end
+                end
+if attributes:GetName(i) = "showAction"
+if attributes:GetValue(i):Trim() = "false" 
+                        showAction = false
+                    end
+                end
+            i = i + 1
+        end
         elseif elementName = "page"
 BlockPalettePage page
             page:SetPalette(me:palette)
@@ -118,6 +145,22 @@ elseif topOfStack:GetName()= "banner"
 
     action GetCustomPages returns Array<BlockPalettePage>
         return customPages
+    end
+    
+    action GetSelectedPage returns text
+        return selectedPage
+    end
+
+    action GetShowBasic returns boolean
+        return showBasic
+    end
+
+    action GetShowControl returns boolean
+        return showControl
+    end
+
+    action GetShowAction returns boolean
+        return showAction
     end
 
 end
