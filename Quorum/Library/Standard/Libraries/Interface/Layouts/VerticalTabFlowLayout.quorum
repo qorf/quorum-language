@@ -4,6 +4,8 @@ use Libraries.Interface.Controls.Control
 use Libraries.Containers.Array
 use Libraries.Interface.Item2D
 use Libraries.Game.Graphics.Font
+use Libraries.Interface.Controls.Tab
+use Libraries.Game.Graphics.Label
 
 class VerticalTabFlowLayout is TabFlowLayout
     
@@ -16,11 +18,35 @@ class VerticalTabFlowLayout is TabFlowLayout
         LayoutProperties containerProperties = undefined
         number topContainerBorder = 0
         number bottomContainerBorder = 0
+        
+        // The smallest width allowed based on the Tab labels. Sets the container's width if it's too small or if it's using FIT_CONTENTS for width.
+number minimumContainerWidth = 0
 
         if container not= undefined
             containerProperties = container:GetLayoutProperties(containerWidth, containerHeight)
             if containerProperties not= undefined and containerProperties:NeedsRendering()
                     container:LoadGraphics(containerProperties)
+            end
+            
+// Adjust the container width to fit the labels if the container is using FIT_CONTENTS.
+                // Find the tab with the longest label. Use that to set the width.
+                integer counter = 0
+                repeat while counter < items:GetSize()
+                    Item2D item = items:Get(counter)
+                    if item is Tab
+                        Tab tab = cast(Tab, item)
+                        Label label = tab:GetLabel()
+                        number labelWidth = label:GetWidth() + (label:GetLeftMargin() + label:GetRightMargin()) * label:GetInterfaceScale()
+                        if labelWidth > minimumContainerWidth
+                            minimumContainerWidth = labelWidth
+                        end
+                    end
+                    counter = counter + 1
+                end
+            
+            if containerWidth < minimumContainerWidth or container:GetHorizontalLayoutMode() = container:FIT_CONTENTS
+                            containerWidth = minimumContainerWidth
+            container:SetWidth(minimumContainerWidth)
             end
             
             if container:HasTopBorder()

@@ -2,17 +2,21 @@ function plugins_quorum_Libraries_Game_InputMonitor_()
 {
     this.IsKeyPressed$quorum_integer = function(keyCode)
     {
-        if (plugins_quorum_Libraries_Game_WebInput_.IsFocused())
-            return plugins_quorum_Libraries_Game_WebInput_.pressedKeys[keyCode] === true;
+        var gameInfo = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo();
+
+        if (plugins_quorum_Libraries_Game_WebInput_.IsFocused(gameInfo.game))
+            return gameInfo.plugins_quorum_Libraries_Game_WebInput_.pressedKeys[keyCode] === true;
 
         return false;
     };
     
     this.IsMouseButtonPressed$quorum_integer = function(buttonCode)
     {
-        if (plugins_quorum_Libraries_Game_WebInput_.IsFocused())
+        var gameInfo = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo();
+
+        if (plugins_quorum_Libraries_Game_WebInput_.IsFocused(gameInfo.game))
         {
-            var buttons = plugins_quorum_Libraries_Game_WebInput_.mouseInfo.buttons;
+            var buttons = gameInfo.plugins_quorum_Libraries_Game_WebInput_.mouseInfo.buttons;
             switch (buttonCode)
             {
                 /*
@@ -45,30 +49,30 @@ function plugins_quorum_Libraries_Game_InputMonitor_()
     
     this.GetMouseX = function()
     {
-        return plugins_quorum_Libraries_Game_WebInput_.mouseInfo.x;
+        return plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().plugins_quorum_Libraries_Game_WebInput_.mouseInfo.x;
     };
     
     this.GetMouseY = function()
     {
-        return plugins_quorum_Libraries_Game_WebInput_.mouseInfo.y;
+        return plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().plugins_quorum_Libraries_Game_WebInput_.mouseInfo.y;
     };
     
     this.IsClicked = function()
     {
-        if (plugins_quorum_Libraries_Game_WebInput_.IsFocused())
-            return plugins_quorum_Libraries_Game_WebInput_.mouseInfo.buttons > 0;
+        if (plugins_quorum_Libraries_Game_WebInput_.IsFocused(plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().game))
+            return plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().plugins_quorum_Libraries_Game_WebInput_.mouseInfo.buttons > 0;
     };
     
     this.IsScrolled = function()
     {
-        var wheel = plugins_quorum_Libraries_Game_WebInput_.mouseInfo.wheel;
-        plugins_quorum_Libraries_Game_WebInput_.mouseInfo.wheel = 0;
+        var wheel = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().plugins_quorum_Libraries_Game_WebInput_.mouseInfo.wheel;
+        plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().plugins_quorum_Libraries_Game_WebInput_.mouseInfo.wheel = 0;
         return wheel;
     };
     
     this.NumberOfKeysPressed = function()
     {
-        return plugins_quorum_Libraries_Game_WebInput_.pressedKeysCount;
+        return plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().plugins_quorum_Libraries_Game_WebInput_.keyboardEvents.pressedKeysCount;
     };
 }
 

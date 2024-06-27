@@ -1243,7 +1243,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
                         quorumEvent.Set_Libraries_Interface_Events_MouseEvent__mouseButton_(quorumEvent.Get_Libraries_Interface_Events_MouseEvent__ANY_());
                 }
             }
-            
+
             gameInfo.plugins_quorum_Libraries_Game_WebInput_.mouseInfo.x = x;
             gameInfo.plugins_quorum_Libraries_Game_WebInput_.mouseInfo.y = y;
             

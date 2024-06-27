@@ -24,6 +24,7 @@ class TabPaneForwardTabBehavior is Behavior
         if not (item is TabPane)
             return now
         end
+        
         TabPane tabPane = cast(TabPane, item)
         if tabPane not= undefined
             TabPaneSelection selection = tabPane:GetSelection()

@@ -71,10 +71,9 @@ This is the default setting for the TabBar.*/
     /*This action sets the TabBar to be a vertical bar placed on the left side of the TabPane.*/
     action LeftAlignTabBar
         LayoutProperties viewLayoutProperties = viewArea:GetDefaultLayoutProperties()
-        viewLayoutProperties:SetHorizontalLayoutMode(viewLayoutProperties:STANDARD)
+        viewLayoutProperties:SetHorizontalLayoutMode(viewLayoutProperties:FILL)
         viewLayoutProperties:SetVerticalLayoutMode(viewLayoutProperties:STANDARD)
         viewLayoutProperties:SetPercentageHeight(1.0)
-        viewLayoutProperties:SetPercentageWidth(0.8)
         viewArea:SetClipping(true)
         
         bar:SetToVertical()

@@ -209,7 +209,7 @@ shared class DefaultInputSets
         TabPaneBackwardTabBehavior backward
         TabPaneCloseTabBehavior closeTab
 
-        if manager:GetOperatingSystem():Contains("OS X")
+        if manager:GetOperatingSystem():Contains("OS X") or manager:GetOperatingSystem():Contains("Web Browser")
             InputSet forwardTab
             forwardTab:SetKeyboardInput(keys:RIGHT_BRACKET)
             forwardTab:AddModifier(forwardTab:CONTROL)

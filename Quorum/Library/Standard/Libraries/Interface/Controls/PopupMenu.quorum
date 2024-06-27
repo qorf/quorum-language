@@ -91,7 +91,7 @@ class PopupMenu is MenuRoot, MouseListener
 
     action OpenAtCursor
         number x = monitor:GetMouseX()
-        number y = manager:GetGameDisplay():GetHeight() - monitor:GetMouseY()
+        number y = monitor:GetMouseY()
         OpenAt(x, y)
     end
 

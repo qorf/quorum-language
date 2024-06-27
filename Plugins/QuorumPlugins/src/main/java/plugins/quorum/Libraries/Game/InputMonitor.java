@@ -378,9 +378,11 @@ public class InputMonitor {
 
     public int GetMouseY () 
     {
-	double[] x = new double[1], y = new double[1];
+	    double[] x = new double[1], y = new double[1];
         GLFW.glfwGetCursorPos(DesktopDisplay.window, x, y);
-        return (int)(y[0] * GameStateManager.display.GetPixelScaleFactor());
+        // Subtract from the display height, because GLFW reports y-values inverted from our convention.
+        // GLFW assumes y=0 is the top, but we treat y=0 as the bottom.
+        return (int)(GameStateManager.display.GetHeight() - y[0] * GameStateManager.display.GetPixelScaleFactor());
     }
   
     public boolean IsMouseButtonPressed(int button)
