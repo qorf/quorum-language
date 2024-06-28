@@ -271,7 +271,7 @@ class BoxPlotCreator is DataFrameChartCreator, InterQuartileRange, ColumnInput, 
                     dataset:Sort()            
                     
                     if dataset:GetSize() > 0
-                        if i = 0
+                        if i = 0 and j = 0
                             yMin = dataset:Get(0)
                             yMax = dataset:Get(dataset:GetSize()-1)
                         else
