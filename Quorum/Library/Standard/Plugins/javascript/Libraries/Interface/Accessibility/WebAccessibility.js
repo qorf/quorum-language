@@ -321,7 +321,6 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
     
 //    system action FocusChanged(FocusEvent event)
     this.FocusChanged$quorum_Libraries_Interface_Events_FocusEvent = function(event) {
-        //console.log("Focus Changed");
         var item = event.GetNewFocus();
         if(item == null) {
             //console.log("Tried to focus nothing");
@@ -760,6 +759,15 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         // Set the element's bounds after we've added it, so setBounds can assume
         // the element's parent is already set.
         setBounds(para, item);
+
+        // Under rare circumstances, the item that is being added is supposed to already be focused by Quorum,
+        // or it was previously focused, but then was removed and re-added.
+        // If so, make sure it gets the focus.
+        if (item.IsFocused() && (plugins_quorum_Libraries_Game_WebInput_.IsFocused(plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().game) || removedFocusedElement)) {
+            removedFocusedElement = false;
+            para.focus();
+        }
+
         return true;
 };
 //    system action NativeRemove(Item item)
