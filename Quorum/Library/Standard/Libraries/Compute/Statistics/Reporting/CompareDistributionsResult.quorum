@@ -161,8 +161,11 @@ class CompareDistributionsResult is StatisticalTestResult
     
     action GetChart() returns ScatterPlot        
         DataFrame frame
-        frame:AddColumn(GetGroups():Get(0))
-        frame:AddColumn(GetGroups():Get(1))    
+        i = 0
+        repeat while i < GetGroups():GetSize()
+            frame:AddColumn(GetGroups():Get(i))
+            i = i + 1
+        end   
         frame:SelectAllColumns()    
         ScatterPlot chart = frame:NormalityCheckChart()
         chart:SetTitle("Scatter Plot")     
