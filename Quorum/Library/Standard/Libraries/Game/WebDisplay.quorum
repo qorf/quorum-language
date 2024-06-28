@@ -158,5 +158,21 @@ class WebDisplay is GameDisplay
     typically return true after the game has been started.
     */
     system action IsAvailable returns boolean
+    
+/*
+        Not all implementations support a clipboard, but all displays support
+        the operations so that they can be called everywhere. If an implementation
+        supports a clipboard, the appopriate system mechanisms are handled 
+        automatically.
+    */
+    system action GetClipboard returns text
+    
+    /*
+        Not all implementations support a clipboard, but all displays support
+        the operations so that they can be called everywhere. If an implementation
+        supports a clipboard, the appropriate system mechanisms are handled 
+        automatically.
+    */
+    system action SetClipboard(text value)
 
 end
