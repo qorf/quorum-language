@@ -518,8 +518,9 @@ class CompareMeansPairwise is CompareMeans
 
                 number t = 0
                 number p = 0
+                number error = 0
+                number difference = 0
                 if UsingLenientCorrection()
-                    number error = 0
                     number q = 0
                     if standardError = 0
                         // Games-Howell - uses Welch's df and pooled standard error instead of mse and error df
@@ -527,7 +528,8 @@ class CompareMeansPairwise is CompareMeans
                         number seR = varR / sizeR
                         degreesOfFreedom = ((seL + seR) * (seL + seR)) / ((seL * seL / (sizeL - 1)) + (seR * seR / (sizeR - 1)))
                         error = math:SquareRoot(seL + seR)
-                        t = (meanL - meanR) / error
+                        difference = meanL - meanR
+                        t = difference / error
                         q = math:SquareRoot(2) * math:AbsoluteValue(t)
                         qDistribution:Setup(numberOfGroups, degreesOfFreedom)
                         p = (1 - qDistribution:CumulativeDistribution(q))
@@ -536,12 +538,14 @@ class CompareMeansPairwise is CompareMeans
                         if sizeL = sizeR
                             // Tukey HSD 
                             error = math:SquareRoot(standardError * (2.0/sizeL))
-                            t = (meanL - meanR) / error
+                            difference = meanL - meanR
+                            t = difference / error
                             q = math:SquareRoot(2) * math:AbsoluteValue(t)
                         else
                             // Tukey-Kramer 
                             error = math:SquareRoot(standardError * (1.0 / sizeL + 1.0 / sizeR))
-                            t = (meanL - meanR) / error
+                            difference = meanL - meanR
+                            t = difference / error
                             q = math:SquareRoot(2) * math:AbsoluteValue(t)
                         end
                         qDistribution:Setup(numberOfGroups, degreesOfFreedom)
@@ -555,13 +559,16 @@ class CompareMeansPairwise is CompareMeans
                         number seR = varR / sizeR
                         degreesOfFreedom = ((seL + seR) * (seL + seR)) / ((seL * seL / (sizeL - 1)) + (seR * seR / (sizeR - 1)))
                         error = math:SquareRoot(seL + seR)
-                        t = (meanL - meanR) / error
+                        difference = meanL - meanR
+                        t = difference / error
                         tDistribution:Setup(degreesOfFreedom)
                         p = 2.0 * tDistribution:CumulativeDistribution(-math:AbsoluteValue(t))
                         dfCorrectionName = " with Welch Correction"
                         pCorrectionName = " and Bonferroni Correction"
                     else
-                        t = (meanL - meanR) / math:SquareRoot(standardError * (1.0 / sizeL + 1.0 / sizeR))
+                        error = math:SquareRoot(standardError * (1.0 / sizeL + 1.0 / sizeR))
+                        difference = meanL - meanR
+                        t = difference / error
                         tDistribution:Setup(degreesOfFreedom)
                         p = 2.0 * tDistribution:CumulativeDistribution(-math:AbsoluteValue(t))
                     end
@@ -585,6 +592,8 @@ class CompareMeansPairwise is CompareMeans
                 pair:SetInformation(combo,"t", t)
                 pair:SetInformation(combo,"df", degreesOfFreedom)
                 pair:SetInformation(combo,"p", p)
+                pair:SetInformation(combo,"difference", difference)
+                pair:SetInformation(combo,"error", error)
                 sourceResults:Add(pair)
                 j = j + 1
             end
@@ -635,6 +644,8 @@ class CompareMeansPairwise is CompareMeans
                 number t = 0
                 number df = 0
                 number p = 0
+                number error = 0 
+                number difference = 0
                 if UsingLenientCorrection()
                     // https://www.jmlr.org/papers/volume7/demsar06a/demsar06a.pdf
                     // https://arxiv.org/pdf/2202.09131.pdf
@@ -646,8 +657,8 @@ class CompareMeansPairwise is CompareMeans
                     // Nemenyi Multiple Comparisons Test --> corrects for familywise error
                     if RepeatedMeasures()
                         // Nemenyi Repeated Measures - ties don't matter after friedman's test
-                        number error = math:SquareRoot(numberOfGroups * (numberOfGroups + 1.0) / (6.0 * numberOfSubjects))                        
-                        number difference = (meanRankL-meanRankR)
+                        error = math:SquareRoot(numberOfGroups * (numberOfGroups + 1.0) / (6.0 * numberOfSubjects))                        
+                        difference = (meanRankL-meanRankR)
                         t = difference / error
                         number q = math:AbsoluteValue(t) * math:SquareRoot(2)
                         df = numberOfGroups
@@ -658,8 +669,8 @@ class CompareMeansPairwise is CompareMeans
                         // If ties are present, use chi squared distribution.
                         if tieCorrectionSum > 0 
                             // Nemenyi (Chi-Squared Approximation) should be: sizeL >= 6 and sizeR >= 6 and numberOfGroups >= 4 
-                            number error = math:SquareRoot(((numberOfSubjects * (numberOfSubjects + 1)) / 12.0) * (1.0 / sizeL + 1.0 / sizeR))
-                            number difference = (meanRankL-meanRankR)
+                            error = math:SquareRoot(((numberOfSubjects * (numberOfSubjects + 1)) / 12.0) * (1.0 / sizeL + 1.0 / sizeR))
+                            difference = (meanRankL-meanRankR)
                             t = difference / error
                             number tieCorrection = 1 - (tieCorrectionSum / (numberOfSubjects * numberOfSubjects * numberOfSubjects - numberOfSubjects))
                             t = t / tieCorrection
@@ -672,8 +683,8 @@ class CompareMeansPairwise is CompareMeans
                             //  alert("NEEDS WORK.") 
                         else
                             // Nemenyi (Tukey-Kramer Approximation)
-                            number error = math:SquareRoot(((numberOfSubjects * (numberOfSubjects + 1)) / 12.0) * (1.0 / sizeL + 1.0 / sizeR))
-                            number difference = (meanRankL-meanRankR)
+                            error = math:SquareRoot(((numberOfSubjects * (numberOfSubjects + 1)) / 12.0) * (1.0 / sizeL + 1.0 / sizeR))
+                            difference = (meanRankL-meanRankR)
                             t = difference / error
                             number q = math:AbsoluteValue(t) * math:SquareRoot(2)
                             df = numberOfGroups
@@ -708,8 +719,8 @@ class CompareMeansPairwise is CompareMeans
                                 pCorrectionName = " and Bonferroni Correction"
                             end   
                             number temp = 1.0 - (testStatistic / (numberOfSubjects * (numberOfGroups - 1.0)))
-                            number error = math:SquareRoot(s2 * (2 * numberOfSubjects * (numberOfGroups - 1.0) / df) * temp)
-                            number difference = (sumRankL - sumRankR)
+                            error = math:SquareRoot(s2 * (2 * numberOfSubjects * (numberOfGroups - 1.0) / df) * temp)
+                            difference = (sumRankL - sumRankR)
                             t = difference / error
                             tDistribution:Setup(df)
                             p = 2.0 * tDistribution:CumulativeDistribution(-math:AbsoluteValue(t))
@@ -729,8 +740,8 @@ class CompareMeansPairwise is CompareMeans
                             // See page 12: https://www.jmlr.org/papers/volume7/demsar06a/demsar06a.pdf
                             // See: https://manuals.pqstat.pl/en:statpqpl:porown3grpl:nparpl:anova_friepl
                             // Dunn-Bonferroni     
-                            number error = math:SquareRoot(numberOfGroups * (numberOfGroups + 1.0) / (6.0 * numberOfSubjects))
-                            number difference = (meanRankL-meanRankR)
+                            error = math:SquareRoot(numberOfGroups * (numberOfGroups + 1.0) / (6.0 * numberOfSubjects))
+                            difference = (meanRankL-meanRankR)
                             t = difference / error
                             number z = math:AbsoluteValue(t)
                             p = 2.0 * (1.0 - zDistribution:CumulativeDistribution(z))
@@ -763,8 +774,8 @@ class CompareMeansPairwise is CompareMeans
                                 pCorrectionName = " and Bonferroni Correction"
                             end
                             number temp = (numberOfSubjects - 1.0 - testStatistic) / df
-                            number error = math:SquareRoot(s2 * temp * (1.0 / sizeL + 1.0 / sizeR))
-                            number difference = (meanRankL-meanRankR)
+                            error = math:SquareRoot(s2 * temp * (1.0 / sizeL + 1.0 / sizeR))
+                            difference = (meanRankL-meanRankR)
                             t = difference / error
                             tDistribution:Setup(df)
                             p = 2.0 * tDistribution:CumulativeDistribution(-math:AbsoluteValue(t))
@@ -792,8 +803,8 @@ class CompareMeansPairwise is CompareMeans
                                 tieCorrectionName = " with tie correction" 
                                 pCorrectionName = " and Bonferroni Correction"
                             end       
-                            number error = math:SquareRoot(((numberOfSubjects * (numberOfSubjects + 1)) / 12.0 - tieCorrection) * (1.0 / sizeL + 1.0 / sizeR))
-                            number difference = (meanRankL-meanRankR)
+                            error = math:SquareRoot(((numberOfSubjects * (numberOfSubjects + 1)) / 12.0 - tieCorrection) * (1.0 / sizeL + 1.0 / sizeR))
+                            difference = (meanRankL-meanRankR)
                             t = difference / error
                             number z = math:AbsoluteValue(t)
                             p = 2.0 * (1.0 - zDistribution:CumulativeDistribution(z))
@@ -819,6 +830,8 @@ class CompareMeansPairwise is CompareMeans
                 pair:SetInformation(combo,"t", t)
                 pair:SetInformation(combo,"df", df)
                 pair:SetInformation(combo,"p", p)
+                pair:SetInformation(combo,"difference", difference)
+                pair:SetInformation(combo,"error", error)
                 sourceResults:Add(pair)
                 j = j + 1
             end
@@ -841,7 +854,7 @@ class CompareMeansPairwise is CompareMeans
             number bottom = 0
             i = 0
             repeat while i < summaries:GetSize()
-                number n = summaries:Get(i):GetSize()
+                number n = sourceFrame:GetColumn(i):GetSize() - sourceFrame:GetColumn(i):GetUndefinedSize() // Summarize doesn't remove undefined values for size
                 number var = summaries:Get(i):GetVariance()
                 top = top + (n - 1) * var
                 bottom = bottom + (n - 1)
@@ -890,9 +903,9 @@ class CompareMeansPairwise is CompareMeans
                     number m2 = result:GetInformation():GetValue(group2Text):GetValue("mean")
                     number n1 = result:GetInformation():GetValue(group1Text):GetValue("size")
                     number n2 = result:GetInformation():GetValue(group2Text):GetValue("size")
-                    df = pooledDF
-                    number error = pooledSD * math:SquareRoot(1 / n1 + 1 / n2)
+                    number error = pooledSD * math:SquareRoot(1.0 / n1 + 1.0 / n2)
                     stat = (m1 - m2) / error
+                    df = pooledDF
                     tDistribution:Setup(df)
                     p = 2.0 * tDistribution:CumulativeDistribution(-math:AbsoluteValue(stat))
                     pooled = " and pooled standard deviation"

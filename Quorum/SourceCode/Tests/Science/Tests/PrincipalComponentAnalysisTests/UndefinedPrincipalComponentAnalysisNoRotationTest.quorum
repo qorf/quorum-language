@@ -20,7 +20,7 @@ class UndefinedPrincipalComponentAnalysisNoRotationTest is Test
         "Q01,Q02,Q03,Q04,Q05,Q06,Q07
         4,5,2,4,4,4,3
         5,5,2,3,4,4,4
-        4,,4,4,2,5,4
+        4,3,4,4,2,5,4
         3,5,5,2,3,3,2
         4,5,3,4,4,3,3
         4,5,3,4,2,2,2
@@ -39,20 +39,20 @@ class UndefinedPrincipalComponentAnalysisNoRotationTest is Test
         4,3,2,4,3,5,5
         4,5,5,4,3,2,2
         5,4,3,4,2,5,4
-        3,4,4,2,2,1,1")
+        3,,4,2,2,1,1")
         frame:SelectAllColumns()
 
         PrincipalComponentAnalysis test
         test:Calculate(frame, 3)
         
         PrincipalComponentAnalysisResult result = test:GetResult()
-        Check(result:GetVarianceAccountedFor():Get(0), 3.5661357520011756)
-        Check(result:GetVarianceAccountedFor():Get(1), 1.2030660871619117)
-        Check(result:GetVarianceAccountedFor():Get(2), 0.7946417726133961)
-        Check(result:GetRootMeanSquareOfResiduals(), 0.08649123924653943)
-        Check(result:GetTestStatistic(), 6.912198646955561)
+        Check(result:GetVarianceAccountedFor():Get(0), 3.3285981311602826)
+        Check(result:GetVarianceAccountedFor():Get(1), 1.2813776444972922)
+        Check(result:GetVarianceAccountedFor():Get(2), 0.8807150522981919)
+        Check(result:GetRootMeanSquareOfResiduals(), 0.09240690484377691)
+        Check(result:GetTestStatistic(), 7.531429807395632)
         Check(result:GetDegreesOfFreedom(), 3.0)
-        Check(result:GetProbabilityValue(), 0.07474958200332105)
-        Check(result:GetModelFit(), 0.9628325918892325)
+        Check(result:GetProbabilityValue(), 0.05675636145961194)
+        Check(result:GetModelFit(), 0.950317411826676)
     end
 end

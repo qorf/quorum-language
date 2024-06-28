@@ -24,7 +24,7 @@ class UndefinedCompareCountsGoodnessOfFitTest is Test
         3,no,no,yes,no,maybe,no,no,yes
         4,no,no,yes,yes,maybe,maybe,maybe,yes
         5,no,no,yes,no,maybe,maybe,maybe,yes
-        6,no,no,,maybe,maybe,maybe,maybe,yes
+        6,no,no,yes,maybe,maybe,maybe,maybe,yes
         7,no,no,no,maybe,yes,yes,maybe,yes
         8,no,no,no,maybe,no,no,maybe,yes
         9,no,no,no,no,no,yes,maybe,yes
@@ -68,15 +68,16 @@ class UndefinedCompareCountsGoodnessOfFitTest is Test
         47,yes,yes,no,no,maybe,no,no,yes
         48,yes,yes,no,maybe,maybe,yes,no,yes
         49,yes,yes,no,no,yes,yes,no,yes
-        50,yes,yes,no,maybe,no,no,maybe,yes")
+        50,yes,yes,no,,no,no,maybe,yes")
+        // Missing value in row 50
         
         // Frame approach: Equal distribution test
         frame:AddSelectedColumns("t4")
         CompareCounts compare1 = frame:CompareCounts()
         CompareCountsResult result1 = compare1:GetResult()
-        Check(result1:GetTestStatistic(), 0.2799999999999999)
+        Check(result1:GetTestStatistic(), 0.5306122448979592)
         Check(result1:GetDegreesOfFreedom(), 2.0)
-        Check(result1:GetProbabilityValue(), 0.8693582353988059)
+        Check(result1:GetProbabilityValue(), 0.7669711269557101)
         Check(true, result1:GetSummary() not= "")
         Check(true, result1:GetFormalSummary() not= "")
         Check(true, compare1:GetSummary() not= "")
@@ -91,9 +92,9 @@ class UndefinedCompareCountsGoodnessOfFitTest is Test
         CompareCounts compare3
         compare3:GoodnessOfFitAgainstExpectedPercents(frame, percents)
         CompareCountsResult result3 = compare3:GetResult()
-        Check(result3:GetTestStatistic(), 8.04)
+        Check(result3:GetTestStatistic(), 9.040816326530612)
         Check(result3:GetDegreesOfFreedom(), 2.0)
-        Check(result3:GetProbabilityValue(), 0.017952964939502825)
+        Check(result3:GetProbabilityValue(), 0.010884580076015227)
         Check(true, result3:GetSummary() not= "")
         Check(true, result3:GetFormalSummary() not= "")
         Check(true, compare3:GetSummary() not= "")
@@ -115,9 +116,9 @@ class UndefinedCompareCountsGoodnessOfFitTest is Test
         CompareCounts compare4
         compare4:GoodnessOfFitAgainstExpectedCounts(frame, countsFrame)
         CompareCountsResult result4 = compare4:GetResult()
-        Check(result4:GetTestStatistic(), 2.8731060606060606)
+        Check(result4:GetTestStatistic(), 3.1859788219554974)
         Check(result4:GetDegreesOfFreedom(), 2.0)
-        Check(result4:GetProbabilityValue(), 0.23774585064575404)
+        Check(result4:GetProbabilityValue(), 0.20331690456311424)
         Check(true, result4:GetSummary() not= "")
         Check(true, result4:GetFormalSummary() not= "")
         Check(true, compare4:GetSummary() not= "")
@@ -139,9 +140,9 @@ class UndefinedCompareCountsGoodnessOfFitTest is Test
         CompareCounts compare5
         compare5:GoodnessOfFitAgainstExpectedCounts(frame, countsFrame2)
         CompareCountsResult result5 = compare5:GetResult()
-        Check(result5:GetTestStatistic(), 1.5397727272727273)
+        Check(result5:GetTestStatistic(), 1.1685902338672012)
         Check(result5:GetDegreesOfFreedom(), 2.0)
-        Check(result5:GetProbabilityValue(), 0.46306568642223567)
+        Check(result5:GetProbabilityValue(), 0.5574986947347295)
         Check(true, result5:GetSummary() not= "")
         Check(true, result5:GetFormalSummary() not= "")
         Check(true, compare5:GetSummary() not= "")
@@ -153,9 +154,9 @@ class UndefinedCompareCountsGoodnessOfFitTest is Test
         design:AddBetweenSubjectsFactor("iv","t4")
         CompareCounts compare2 = frame:CompareCounts(design)
         CompareCountsResult result2 = compare2:GetResult()
-        Check(result2:GetTestStatistic(), 0.2799999999999999)
+        Check(result2:GetTestStatistic(), 0.5306122448979592)
         Check(result2:GetDegreesOfFreedom(), 2.0)
-        Check(result2:GetProbabilityValue(), 0.8693582353988059)
+        Check(result2:GetProbabilityValue(), 0.7669711269557101)
         Check(true, result2:GetSummary() not= "")
         Check(true, result2:GetFormalSummary() not= "")
         Check(true, compare2:GetSummary() not= "")
@@ -166,9 +167,9 @@ class UndefinedCompareCountsGoodnessOfFitTest is Test
         design:AddDependentVariable("t4")
         CompareCounts compare6 = frame:CompareCounts(design)
         CompareCountsResult result6 = compare6:GetResult()
-        Check(result6:GetTestStatistic(), 0.2799999999999999)
+        Check(result6:GetTestStatistic(), 0.5306122448979592)
         Check(result6:GetDegreesOfFreedom(), 2.0)
-        Check(result6:GetProbabilityValue(), 0.8693582353988059)
+        Check(result6:GetProbabilityValue(), 0.7669711269557101)
         Check(true, result6:GetSummary() not= "")
         Check(true, result6:GetFormalSummary() not= "")
         Check(true, compare6:GetSummary() not= "")
