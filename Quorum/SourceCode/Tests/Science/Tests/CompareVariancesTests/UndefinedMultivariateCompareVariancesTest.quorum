@@ -20,7 +20,7 @@ class UndefinedMultivariateCompareVariancesTest is Test
         1,3,-4,4,a,c
         2,4,-9,9,a,c
         3,4,-18,18,a,c
-        6,,-19,19,a,d
+        6,7,-19,19,a,d
         9,8,-16,16,a,d
         15,17,-2,2,b,c
         10,2,1,12,b,c
@@ -28,7 +28,8 @@ class UndefinedMultivariateCompareVariancesTest is Test
         5,6,3,15,b,d
         8,11,-10,12,a,d
         5,13,-12,13,b,c
-        9,8,7,5,b,d")
+        9,8,7,5,b,d
+        4,,-4,14,b,d") // last row missing value
         frame:AddSelectedColumns("x1,x2")
         frame:AddSelectedFactors("factor1,factor2")
 

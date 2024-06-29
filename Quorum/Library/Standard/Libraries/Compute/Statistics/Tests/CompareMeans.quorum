@@ -629,19 +629,21 @@ class CompareMeans is StatisticalTest
                     text testname = ""
                     number t = 0
                     number df = 0
+                    number cohensD = 0
                     if assumeEqualVariances or defaultVarianceAssumption
                         number pooledVar = ((size1  - 1) * var1 + (size2 - 1) * var2 ) / (size1 + size2 - 2)
-                        t = (mean1 - mean2) / (math:SquareRoot(pooledVar * ((1 / size1) + (1 / size2))))
+                        t = (mean1 - mean2) / math:SquareRoot((pooledVar / size1) + (pooledVar / size2))
                         df = size1 + size2 - 2
+                        cohensD = (mean1 - mean2) / math:SquareRoot(pooledVar)
                         testname = "Two Sample t-test"
                     else
-                        t = (mean1 - mean2) / (math:SquareRoot((var1 / size1) + (var2 / size2)))
+                        t = (mean1 - mean2) / math:SquareRoot((var1 / size1) + (var2 / size2))
                         df = DegreesOfFreedom(var1, var2, size1, size2)
+                        cohensD = (mean1 - mean2) / math:SquareRoot((var1 + var2) / 2.0)
                         testname = "Welch Two Sample t-test"
                     end
                     tDistribution:Setup(df)
                     number p = 2.0 * tDistribution:CumulativeDistribution(-math:AbsoluteValue(t))
-                    number cohensD = (mean1 - mean2) / math:SquareRoot((var1 + var2) / 2.0)
 
                     // Save the result
                     CompareMeansResult result
@@ -2200,9 +2202,8 @@ class CompareMeans is StatisticalTest
             Array<Summarize> groupSummaries = groupFrame:SummarizeSelectedColumns()
             Array<Summarize> rankSummaries = rankedGroupsFrame:SummarizeSelectedColumns()
 
-
-            number n1 = left:GetSize()
-            number n2 = right:GetSize()
+            number n1 = left:GetSize() - left:GetUndefinedSize()
+            number n2 = right:GetSize() - right:GetUndefinedSize()
             number sum1 = rankSummaries:Get(0):GetSum()
             number sum2 = rankSummaries:Get(1):GetSum()
 

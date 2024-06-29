@@ -24,7 +24,7 @@ class UndefinedCompareRelatedCountsPairwiseTest is Test
         3,no,no,yes,no,maybe,no,no,yes
         4,no,no,yes,yes,maybe,maybe,maybe,yes
         5,no,no,yes,no,maybe,maybe,maybe,yes
-        6,no,no,,maybe,maybe,maybe,maybe,yes
+        6,no,no,yes,maybe,maybe,maybe,maybe,yes
         7,no,no,no,maybe,yes,yes,maybe,yes
         8,no,no,no,maybe,no,no,maybe,yes
         9,no,no,no,no,no,yes,maybe,yes
@@ -68,7 +68,8 @@ class UndefinedCompareRelatedCountsPairwiseTest is Test
         47,yes,yes,no,no,maybe,no,no,yes
         48,yes,yes,no,maybe,maybe,yes,no,yes
         49,yes,yes,no,no,yes,yes,no,yes
-        50,yes,yes,no,maybe,no,no,maybe,yes")
+        50,,yes,no,maybe,no,no,maybe,yes")
+        // Missing value in row 50
 
         // Frame approach: 3 groups x 2 categories
         frame:AddSelectedColumns("t1,t2,t3")
@@ -78,12 +79,12 @@ class UndefinedCompareRelatedCountsPairwiseTest is Test
         Check(result2:Get(0):GetTestStatistic(), 1.0)
         Check(result2:Get(0):GetDegreesOfFreedom(), 1.0)
         Check(result2:Get(0):GetProbabilityValue(), 0.9519315235887424) 
-        Check(result2:Get(1):GetTestStatistic(), 4.172413793103448)
+        Check(result2:Get(1):GetTestStatistic(), 5.142857142857143)
         Check(result2:Get(1):GetDegreesOfFreedom(), 1.0)
-        Check(result2:Get(1):GetProbabilityValue(), 0.1232616735834623) 
-        Check(result2:Get(2):GetTestStatistic(), 1.0)
+        Check(result2:Get(1):GetProbabilityValue(), 0.0700266060386715) 
+        Check(result2:Get(2):GetTestStatistic(), 1.4)
         Check(result2:Get(2):GetDegreesOfFreedom(), 1.0)
-        Check(result2:Get(2):GetProbabilityValue(), 0.9519315235887424) 
+        Check(result2:Get(2):GetProbabilityValue(), 0.710170711913572) 
         Check(true, compare2:GetSummary() not= "")
         Check(true, compare2:GetFormalSummary() not= "")
         Check(true, compare2:GetPairwiseSummary() not= "")
@@ -97,12 +98,12 @@ class UndefinedCompareRelatedCountsPairwiseTest is Test
         Check(result3:Get(0):GetTestStatistic(), 1.0)
         Check(result3:Get(0):GetDegreesOfFreedom(), 1.0)
         Check(result3:Get(0):GetProbabilityValue(), 0.9519315235887424) 
-        Check(result3:Get(1):GetTestStatistic(), 4.172413793103448)
+        Check(result3:Get(1):GetTestStatistic(), 5.142857142857143)
         Check(result3:Get(1):GetDegreesOfFreedom(), 1.0)
-        Check(result3:Get(1):GetProbabilityValue(), 0.1232616735834623) 
-        Check(result3:Get(2):GetTestStatistic(), 1.0)
+        Check(result3:Get(1):GetProbabilityValue(), 0.0700266060386715) 
+        Check(result3:Get(2):GetTestStatistic(), 1.4)
         Check(result3:Get(2):GetDegreesOfFreedom(), 1.0)
-        Check(result3:Get(2):GetProbabilityValue(), 0.9519315235887424) 
+        Check(result3:Get(2):GetProbabilityValue(), 0.710170711913572) 
         Check(true, compare3:GetSummary() not= "")
         Check(true, compare3:GetFormalSummary() not= "")
         Check(true, compare3:GetPairwiseSummary() not= "")
@@ -118,12 +119,12 @@ class UndefinedCompareRelatedCountsPairwiseTest is Test
         Check(result4:Get(0):GetTestStatistic(), 1.0)
         Check(result4:Get(0):GetDegreesOfFreedom(), 1.0)
         Check(result4:Get(0):GetProbabilityValue(), 0.31731050786291415) 
-        Check(result4:Get(1):GetTestStatistic(), 4.172413793103448)
+        Check(result4:Get(1):GetTestStatistic(), 5.142857142857143)
         Check(result4:Get(1):GetDegreesOfFreedom(), 1.0)
-        Check(result4:Get(1):GetProbabilityValue(), 0.041087224527820765) 
-        Check(result4:Get(2):GetTestStatistic(), 1.0)
+        Check(result4:Get(1):GetProbabilityValue(), 0.0233422020128905) 
+        Check(result4:Get(2):GetTestStatistic(), 1.4)
         Check(result4:Get(2):GetDegreesOfFreedom(), 1.0)
-        Check(result4:Get(2):GetProbabilityValue(), 0.31731050786291415) 
+        Check(result4:Get(2):GetProbabilityValue(), 0.23672357063785732) 
         Check(true, compare4:GetSummary() not= "")
         Check(true, compare4:GetFormalSummary() not= "")
         Check(true, compare4:GetPairwiseSummary() not= "")

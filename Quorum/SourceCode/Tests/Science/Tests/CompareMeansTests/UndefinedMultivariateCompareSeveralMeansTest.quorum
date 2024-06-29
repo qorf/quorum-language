@@ -20,12 +20,12 @@ class UndefinedMultivariateCompareSeveralMeansTest is Test
         1,3,-4,4,a,c
         2,4,-9,9,a,c
         3,4,-18,18,a,c
-        6,,-19,,a,d
+        6,7,-19,19,a,d
         9,8,-16,16,a,d
         15,17,-2,2,b,c
         10,2,1,12,b,c
         3,4,2,13,b,d
-        5,6,3,15,b,d")
+        5,,3,15,b,d") // last row missing value
         frame:AddSelectedColumns("y,x1,x2,x3")
         frame:AddSelectedFactors("factor1")
 
@@ -34,28 +34,28 @@ class UndefinedMultivariateCompareSeveralMeansTest is Test
         
         CompareMeansResult result = compare:GetResult()
         Check(result:GetInformation():GetValue("factor1"):GetValue("df"), 1.0)
-        Check(result:GetInformation():GetValue("factor1"):GetValue("error df"), 7.0)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("error df"), 6.0)
 
-        Check(result:GetInformation():GetValue("factor1"):GetValue("wilks"), 0.046743594246026525)
-        Check(result:GetInformation():GetValue("factor1"):GetValue("wilks f"), 20.393305673857242)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("wilks"), 0.032330989926299854)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("wilks f"), 22.447557566584365)
         Check(result:GetInformation():GetValue("factor1"):GetValue("wilks dfn"), 4.0)
-        Check(result:GetInformation():GetValue("factor1"):GetValue("wilks dfd"), 4.0)
-        Check(result:GetInformation():GetValue("factor1"):GetValue("wilks p"), 0.006350624704906105)
-        Check(result:GetInformation():GetValue("factor1"):GetValue("wilks pes"), 0.9532564057539735)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("wilks dfd"), 3.0)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("wilks p"), 0.014251514653388586)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("wilks pes"), 0.9676690100737001)
 
-        Check(result:GetInformation():GetValue("factor1"):GetValue("pillai"), 0.9532564057539743)
-        Check(result:GetInformation():GetValue("factor1"):GetValue("pillai f"), 20.393305673857622)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("pillai"), 0.9676690100737004)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("pillai f"), 22.447557566584567)
         Check(result:GetInformation():GetValue("factor1"):GetValue("pillai dfn"), 4.0)
-        Check(result:GetInformation():GetValue("factor1"):GetValue("pillai dfd"), 4.0)
-        Check(result:GetInformation():GetValue("factor1"):GetValue("pillai p"), 0.006350624704905883)
-        Check(result:GetInformation():GetValue("factor1"):GetValue("pillai pes"), 0.9532564057539743)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("pillai dfd"), 3.0)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("pillai p"), 0.014251514653388364)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("pillai pes"), 0.9676690100737004)
 
-        Check(result:GetInformation():GetValue("factor1"):GetValue("hotelling"), 20.393305673857228)
-        Check(result:GetInformation():GetValue("factor1"):GetValue("hotelling f"), 20.393305673857228)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("hotelling"), 29.93007675544645)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("hotelling f"), 22.447557566584837)
         Check(result:GetInformation():GetValue("factor1"):GetValue("hotelling dfn"), 4.0)
-        Check(result:GetInformation():GetValue("factor1"):GetValue("hotelling dfd"), 4.0)
-        Check(result:GetInformation():GetValue("factor1"):GetValue("hotelling p"), 0.006350624704906105)
-        Check(result:GetInformation():GetValue("factor1"):GetValue("hotelling pes"), 0.9532564057539734)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("hotelling dfd"), 3.0)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("hotelling p"), 0.014251514653388142)
+        Check(result:GetInformation():GetValue("factor1"):GetValue("hotelling pes"), 0.9676690100737008)
 
         text summary = result:GetSummary()
         text formalsummary = result:GetFormalSummary()
