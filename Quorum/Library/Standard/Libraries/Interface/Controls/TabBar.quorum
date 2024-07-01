@@ -219,7 +219,7 @@ this is false. */
 
     action FitTab(Tab tab)
         integer index = GetChildren():GetFirstLocation(tab)
-        if index = -1
+        if index = -1 or GetWidth() <= 0 or GetHeight() <= 0
             return now
         end
 
