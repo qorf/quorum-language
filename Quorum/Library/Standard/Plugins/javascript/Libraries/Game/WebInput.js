@@ -64,9 +64,9 @@ function plugins_quorum_Libraries_Game_WebInput_()
         {
             document.removeEventListener('keydown', plugins_quorum_Libraries_Game_WebInput_.KeyDown);
             document.removeEventListener('keyup', plugins_quorum_Libraries_Game_WebInput_.KeyUp);
-            document.removeEventListener('mousedown', plugins_quorum_Libraries_Game_WebInput_.MouseDown);
-            document.removeEventListener('mouseup', plugins_quorum_Libraries_Game_WebInput_.MouseUp);
-            document.removeEventListener('mousemove', plugins_quorum_Libraries_Game_WebInput_.MouseMove);
+            document.removeEventListener('pointerdown', plugins_quorum_Libraries_Game_WebInput_.MouseDown);
+            document.removeEventListener('pointerup', plugins_quorum_Libraries_Game_WebInput_.MouseUp);
+            document.removeEventListener('pointermove', plugins_quorum_Libraries_Game_WebInput_.MouseMove);
             document.removeEventListener('contextmenu', plugins_quorum_Libraries_Game_WebInput_.ContextMenu);
             document.removeEventListener('wheel', plugins_quorum_Libraries_Game_WebInput_.MouseScroll);
         }
@@ -207,13 +207,6 @@ function plugins_quorum_Libraries_Game_WebInput_()
 
         plugins_quorum_Libraries_Game_WebInput_.MouseDown = function(event)
         {
-            /*
-             * Testing for mouse click using the dimensions of the rectangle
-             * allows the first click on the window (i.e. the one that gives the
-             * window focus) to trigger a mouse event, and prevents clicks from
-             * outside the window being captured.
-             */
-
             var gameInfo = plugins_quorum_Libraries_Game_WebInput_.GetMousedGameInfo(event);
 
             if (gameInfo !== null)
@@ -344,20 +337,28 @@ function plugins_quorum_Libraries_Game_WebInput_()
             plugins_quorum_Libraries_Game_WebInput_.textEvents.push(quorumEvent);
         };
 
+        plugins_quorum_Libraries_Game_WebInput_.PointerCancel = function(event)
+        {
+            plugins_quorum_Libraries_Game_WebInput_.MouseUp(event);
+        }
+
+        var usingTouch = plugins_quorum_Libraries_Game_WebInput_.HasTouchScreen();
+
         /*
         Only add key up/down listeners if we don't have a touch screen.
         A touch screen means an extremely high chance of a "soft" touchscreen keyboard, which may have poor
         key up/down support and which may need special care for text input.
         */
-        if (!plugins_quorum_Libraries_Game_WebInput_.HasTouchScreen())
+        if (!usingTouch)
         {
             document.addEventListener('keydown', plugins_quorum_Libraries_Game_WebInput_.KeyDown, false);
             document.addEventListener('keyup', plugins_quorum_Libraries_Game_WebInput_.KeyUp, false);
         }
 
-        document.addEventListener('mousedown', plugins_quorum_Libraries_Game_WebInput_.MouseDown, false);
-        document.addEventListener('mouseup', plugins_quorum_Libraries_Game_WebInput_.MouseUp, false);
-        document.addEventListener('mousemove', plugins_quorum_Libraries_Game_WebInput_.MouseMove, false);
+        document.addEventListener('pointerdown', plugins_quorum_Libraries_Game_WebInput_.MouseDown, false);
+        document.addEventListener('pointerup', plugins_quorum_Libraries_Game_WebInput_.MouseUp, false);
+        document.addEventListener('pointermove', plugins_quorum_Libraries_Game_WebInput_.MouseMove, false);
+        document.addEventListener('pointercancel', plugins_quorum_Libraries_Game_WebInput_.MouseCancel, false);
         document.addEventListener('contextmenu', plugins_quorum_Libraries_Game_WebInput_.ContextMenu, false);
 
         /*

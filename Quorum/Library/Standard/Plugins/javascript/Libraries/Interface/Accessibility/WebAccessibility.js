@@ -443,6 +443,13 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 para.setAttribute('aria-multiline','true');
                 para.id = id;
                 sendInputEvents = true;
+
+                if (global_InstanceOf(item, "Libraries.Interface.Controls.TextBox"))
+                {
+                    let textBox = global_CheckCast(item, "Libraries.Interface.Controls.TextBox")
+                    para.value = textBox.GetText();
+                }
+
                 break;
             //MENU_BAR
             case 7:
@@ -570,8 +577,13 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 para.id = id;
                 para.type = "text"
                 sendInputEvents = true;
-                //role = "textbox";
-                //para.setAttribute("contenteditable",true);
+
+                if (global_InstanceOf(item, "Libraries.Interface.Controls.TextField"))
+                {
+                    let textField = global_CheckCast(item, "Libraries.Interface.Controls.TextField")
+                    para.value = textField.GetText();
+                }
+
                 break;
             //LIST
             case 18:
