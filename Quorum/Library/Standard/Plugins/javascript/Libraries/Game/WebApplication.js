@@ -33,6 +33,15 @@ function plugins_quorum_Libraries_Game_WebApplication_()
     {
         return configuration;
     };
+
+    this.GetWebOperatingSystem = function() {
+        let userAgent = window.navigator.userAgent;
+        if (userAgent.indexOf('Win') != -1) {
+            return 'Windows';
+        } else if (userAgent.indexOf('Mac') != -1) {
+            return 'Mac';
+        }
+    };
     
     this.SetupNative = function()
     {

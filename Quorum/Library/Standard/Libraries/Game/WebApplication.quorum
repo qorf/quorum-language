@@ -41,7 +41,12 @@ class WebApplication is Application
     Returns the WebConfiguration in use by the application.
     */
     system action GetConfiguration returns WebConfiguration
-
+    
+    /* 
+    Returns the operating system the web application is running on.
+*/
+system action GetWebOperatingSystem returns text
+    
     /*
     Sets the fpsInterval, lastTime, and currentTime values, then starts the main
     loop (in JavaScript).
