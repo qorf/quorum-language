@@ -3937,7 +3937,9 @@ next = tokenIterator:Next()
             end
         elseif current not= undefined and current:category = constants:PARENT
             ParentVariableFunctionCallContext call = ParentVariableActionCall()
-            call:hasMe = hasMe
+            if call not= undefined
+                call:hasMe = hasMe
+            end
             return call
         end
         return undefined
