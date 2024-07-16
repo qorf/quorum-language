@@ -66,7 +66,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         root.style.height = "1px";
         // Ensure that bugs in the positioning of shadow elements
         // don't affect the visible layout.
-        root.style.overflow = "hidden";
+        // root.style.overflow = "hidden";
 
         // The following style settings come from Flutter Web.
         // Make all semantics transparent. We use `filter` instead of `opacity`
