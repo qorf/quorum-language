@@ -43,6 +43,10 @@ class Series is ChartDrawable
     private Array<ChartDrawable> items
     private RegressionLine regressionline = undefined
     private LinePath trendLine = undefined
+    private text xMaximum = ""
+    private text xMinimum = ""
+    private text yMaximum = ""
+    private text yMinimum = ""
 
     // Standard entry in the legend
     /*************************************
@@ -164,6 +168,38 @@ class Series is ChartDrawable
 
     action GetChartArea returns ChartAreaPanel
         return chartArea
+    end
+
+    action GetXMaximum returns text
+        return xMaximum
+    end
+
+    action SetXMaximum(text xMaximum)
+        me:xMaximum = xMaximum
+    end
+
+    action GetXMinimum returns text
+        return xMinimum
+    end
+
+    action SetXMinimum(text xMinimum)
+        me:xMinimum = xMinimum
+    end
+
+    action GetYMaximum returns text
+        return yMaximum
+    end
+
+    action SetYMaximum(text yMaximum)
+        me:yMaximum = yMaximum
+    end
+
+    action GetYMinimum returns text
+        return yMinimum
+    end
+
+    action SetYMinimum(text yMinimum)
+        me:yMinimum = yMinimum
     end
 
 end

@@ -22,6 +22,7 @@ use Libraries.Interface.Controls.Icon
 use Libraries.Containers.Array
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 
 
 class Legend is ChartItem
@@ -130,11 +131,64 @@ class Legend is ChartItem
 
         // Legend Entries
         if seriesList:GetSize() > 0
-            ChartItem firstEntry = seriesList:Get(0)
+            Series firstEntry = seriesList:Get(0)
             firstEntry:SetContainer(chart)
             seriesList:Get(0):SetName(seriesList:Get(0):GetName())
 
             description = seriesList:Get(0):GetSize() + " points"
+            
+            Array<ChartDrawable> chartAreaItems = firstEntry:GetChartAreaItems():CopyToArray()
+            Array <ChartPoint> points
+            integer pointIndex  = 0
+            repeat while pointIndex < chartAreaItems:GetSize()
+                if (chartAreaItems:Get(pointIndex) is ChartPoint)
+                    ChartPoint point = cast(ChartPoint, chartAreaItems:Get(pointIndex))
+                    points:Add(point)
+                end
+                pointIndex = pointIndex + 1
+            end
+
+            if points:IsEmpty() = false and chart is ScatterPlot
+                ScatterPlot scatterPlot = cast(ScatterPlot, chart)
+
+                ChartPointComparison comparison
+                comparison:SetAscending(true)
+                if chart:GetHorizontalFlag()
+                    comparison:SetSortByX(true)
+                else
+                    comparison:SetSortByY(true)
+                end
+                Array<ChartPoint> sortLRPoints = points:CopyToArray()
+                sortLRPoints:Sort(comparison)
+    
+                firstEntry:SetXMinimum(scatterPlot:GeneratePointDescriptionX(sortLRPoints:Get(0)))
+                firstEntry:SetXMaximum(scatterPlot:GeneratePointDescriptionX(sortLRPoints:Get(sortLRPoints:GetSize()-1)))
+    
+                comparison:SetAscending(true)
+                if chart:GetHorizontalFlag()
+                    comparison:SetSortByY(true)
+                else
+                    comparison:SetSortByX(true)
+                end
+                Array<ChartPoint> sortUDPoints = points:CopyToArray()
+                sortUDPoints:Sort(comparison)
+                firstEntry:SetYMinimum(scatterPlot:GeneratePointDescriptionY(sortUDPoints:Get(0)))
+                firstEntry:SetYMaximum(scatterPlot:GeneratePointDescriptionY(sortUDPoints:Get(sortUDPoints:GetSize()-1)))
+                
+                
+                if firstEntry:GetXMinimum() not= ""
+                    description = description + ", minimum X " + firstEntry:GetXMinimum() 
+                end
+                if firstEntry:GetXMaximum() not= ""
+                    description = description + ", maximum X " + firstEntry:GetXMaximum()
+                end
+                if firstEntry:GetYMinimum() not= ""
+                    description = description + ", minimum Y " + firstEntry:GetYMinimum()
+                end
+                if firstEntry:GetYMaximum() not= ""
+                    description = description + ", maximum Y " + firstEntry:GetYMaximum() 
+                end
+            end
 
             if showRegression
                 if seriesList:Get(0):GetRegressionLine() not= undefined
@@ -181,9 +235,64 @@ class Legend is ChartItem
                 end
 
                 description = series:GetSize() + " points"
-                ChartItem entry = series
+                Series entry = series
                 entry:SetContainer(chart)
                 series:SetName(series:GetName())
+
+                chartAreaItems = entry:GetChartAreaItems():CopyToArray()
+                points:Empty()
+                
+                pointIndex  = 0
+                repeat while pointIndex < chartAreaItems:GetSize()
+                    if (chartAreaItems:Get(pointIndex) is ChartPoint)
+                        ChartPoint point = cast(ChartPoint, chartAreaItems:Get(pointIndex))
+                        points:Add(point)
+                    end
+                    pointIndex = pointIndex + 1
+                end
+    
+                if points:IsEmpty() = false and chart is ScatterPlot
+                    ScatterPlot scatterPlot = cast(ScatterPlot, chart)
+
+                    ChartPointComparison comparison
+                    comparison:SetAscending(true)
+                    if chart:GetHorizontalFlag()
+                        comparison:SetSortByX(true)
+                    else
+                        comparison:SetSortByY(true)
+                    end
+                    Array<ChartPoint> sortLRPoints = points:CopyToArray()
+                    sortLRPoints:Sort(comparison)
+        
+                    series:SetXMinimum(scatterPlot:GeneratePointDescriptionX(sortLRPoints:Get(0)))
+                    series:SetXMaximum(scatterPlot:GeneratePointDescriptionX(sortLRPoints:Get(sortLRPoints:GetSize()-1)))
+        
+                    comparison:SetAscending(true)
+                    if chart:GetHorizontalFlag()
+                        comparison:SetSortByY(true)
+                    else
+                        comparison:SetSortByX(true)
+                    end
+                    Array<ChartPoint> sortUDPoints = points:CopyToArray()
+                    sortUDPoints:Sort(comparison)
+        
+                    series:SetYMinimum(scatterPlot:GeneratePointDescriptionY(sortUDPoints:Get(0)))
+                    series:SetYMaximum(scatterPlot:GeneratePointDescriptionY(sortUDPoints:Get(sortUDPoints:GetSize()-1)))
+        
+                    if entry:GetXMinimum() not= ""
+                        description = description + ", minimum X " + entry:GetXMinimum() 
+                    end
+                    if entry:GetXMaximum() not= ""
+                        description = description + ", maximum X " + entry:GetXMaximum()
+                    end
+                    if entry:GetYMinimum() not= ""
+                        description = description + ", minimum Y " + entry:GetYMinimum()
+                    end
+                    if entry:GetYMaximum() not= ""
+                        description = description + ", maximum Y " + entry:GetYMaximum() 
+                    end
+                end
+
                 if showRegression
                     if series:GetRegressionLine() not= undefined
                         // Regression equation
