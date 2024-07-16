@@ -64,6 +64,11 @@ function plugins_quorum_Libraries_Game_GameStateManager_()
             }
         };
 
+        plugins_quorum_Libraries_Game_GameStateManager_.UnregisterGame = function(game)
+        {
+            gameMap.delete(game);
+        };
+
         plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGame = function()
         {
             var active = plugins_quorum_Libraries_Game_WebApplication_.activeGame;
@@ -87,6 +92,11 @@ function plugins_quorum_Libraries_Game_GameStateManager_()
     this.RegisterGame = function(newGame)
     {
         plugins_quorum_Libraries_Game_GameStateManager_.RegisterGame(newGame);
+    };
+
+    this.UnregisterGame = function(game)
+    {
+        plugins_quorum_Libraries_Game_GameStateManager_.UnregisterGame(game);
     };
 
     // Grab the active game stored by the WebApplication plugin. This is the Game that is currently running its code
