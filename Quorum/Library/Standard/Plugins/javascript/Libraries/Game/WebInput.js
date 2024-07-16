@@ -429,7 +429,6 @@ function plugins_quorum_Libraries_Game_WebInput_()
             // Code adapted from sample code provided in MDN documentation: https://developer.mozilla.org/en-US/docs/Web/API/VirtualKeyboard_API
             if ("virtualKeyboard" in navigator)
             {
-                console.log("Using VirtualKeyboard API for detection.");
                 virtualKeyboardDetection = DETECTION_STYLE_VIRTUAL_KEYBOARD;
                 navigator.virtualKeyboard.overlaysContent = true;
 
@@ -449,7 +448,6 @@ function plugins_quorum_Libraries_Game_WebInput_()
             // Approach using VisualViewport is adapated from this StackOverflow post: https://stackoverflow.com/questions/47841986/detecting-the-opening-or-closing-of-a-virtual-keyboard-on-a-touchscreen-device
             else if ("visualViewport" in window)
             {
-                console.log("Using VisualViewport API for detection.");
                 virtualKeyboardDetection = DETECTION_STYLE_VISUAL_VIEWPORT;
                 // Note that we only actually apply this method if we're using a device we suspect will have a virtual keyboard.
                 if (plugins_quorum_Libraries_Game_WebInput_.IsMobileOrTabletBrowser())
@@ -473,7 +471,6 @@ function plugins_quorum_Libraries_Game_WebInput_()
             // Note that this case should occur only rarely, as the VisualViewport API is widely supported.
             else
             {
-                console.log("Using Browser Detection for detection.");
                 virtualKeyboardDetection = DETECTION_STYLE_BROWSER_DETECTION;
                 virtualKeyboardOpen = plugins_quorum_Libraries_Game_WebInput_.IsMobileOrTabletBrowser();
             }
