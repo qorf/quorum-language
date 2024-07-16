@@ -35,12 +35,22 @@ function plugins_quorum_Libraries_Game_WebApplication_()
     };
 
     this.GetWebOperatingSystem = function() {
-        let userAgent = window.navigator.userAgent;
+	    let userAgent = window.navigator.userAgent;
+	    let platform = window.navigator.platform;
+        let os = 'Unknown';
+        if(typeof platform !== 'undefined') {
+            if(platform.indexOf('Mac') != -1) return 'Mac';
+            if(platform.indexOf('Win') != -1) return 'Windows';
+            if(platform.indexOf('Linux') != -1) return 'Linux';
+        }
         if (userAgent.indexOf('Win') != -1) {
             return 'Windows';
         } else if (userAgent.indexOf('Mac') != -1) {
             return 'Mac';
+        } else if (userAgent.indexOf('Linux') != -1) {
+            return 'Linux';
         }
+        return os;
     };
     
     this.SetupNative = function()
@@ -142,6 +152,9 @@ function plugins_quorum_Libraries_Game_WebApplication_()
                 if (plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_.initialized_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_) {
                     delete plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_.initialized_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_;
                 }
+
+                // Remove the game from list of active games
+                manager.plugin_.UnregisterGame(game);
 
                 // Reset values to their null defaults when the game ends.
                 // If a new game starts on the same page, we don't want left over data.
