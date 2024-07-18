@@ -140,6 +140,12 @@ constant text PYTHON_FOLDER = "python"
     action GetOutputFolder returns File
         return outputFolder
     end
+    
+    /*This action returns the raw text to prevent the user from changing this, 
+which they should not.*/
+    action GetPythonPath returns text
+        return pythonFolder:GetAbsolutePath()
+    end
 
     action SetOutputFolder(File file)
         outputFolder = file

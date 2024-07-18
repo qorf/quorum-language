@@ -15,6 +15,7 @@ use Libraries.Language.Compile.Parsing.QuorumLexer
 use Libraries.Language.Compile.Parsing.QuorumParser
 use Libraries.Language.Compile.Context.StartContext
 use Libraries.Language.Compile.CompilerErrorCodes
+use Libraries.Language.Support.TextBuilder
 
 class Compiler
     public constant number VERSION = 12.1
@@ -618,16 +619,33 @@ class Compiler
                         classOpcodes:AddToFront(op)
                     end
                 end
+                boolean cache = library:IsCachingLibraryOpcodes()
+                TextBuilder builder
                 Iterator<Class> iterator = table:GetClasses()
                 repeat while iterator:HasNext()
                     Class cl = iterator:Next()
+                    
                     ClassOpcode op = library:GetOpcode(cl:GetStaticKey())
                     if op not= undefined and cl:GetStaticKey() not= "Libraries.Language.Errors.Error" 
                         classOpcodes:Add(op)
+                        //If it's not caching, see if we can get it from the on disk store
+                    elseif not cache and cl:GetStaticKey() not= "Libraries.Language.Errors.Error"
+                        text path = library:GetPythonPath()
+                        text pythonPath = cl:GetStaticKey():Replace(".", "/") + ".py"
+                        File pythonReadFile
+                        pythonReadFile:SetWorkingDirectory(path)
+                        pythonReadFile:SetPath(pythonPath)
+                        if pythonReadFile:Exists()
+                            text value = pythonReadFile:Read()
+                            builder:Append(value + value:GetLineFeed() + value)
+                        end
                     end
                 end
 
                 convertedPython = CompileToPython(classOpcodes, request, m)
+                if not cache
+                    convertedPython = builder:ToText() + convertedPython
+                end
                 result:convertedPython = convertedPython
                 if request:writePythonToDisk
                     WritePython(convertedPython, request)
