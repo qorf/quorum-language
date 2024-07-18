@@ -673,7 +673,18 @@ class Compiler
     end
 
     private action WritePython(text value, CompilerRequest request)
-        
+        //check if the run folder is there.
+        File run = GetRunFolder()
+        if run not=undefined
+            if not run:Exists()
+                run:CreateDirectories()
+            end
+
+            File pythonFile
+            pythonFile:SetWorkingDirectory(run:GetAbsolutePath())
+            pythonFile:SetPath(GetName() + ".py")
+            pythonFile:Write(value)
+        end
     end
 
     private action WriteJavaScript(text value, CompilerRequest request)
