@@ -600,6 +600,27 @@ class Compiler
                     WriteJavaScript(convertedJavaScript, request)
                 end
             elseif request:GetOutputType() = PYTHON
+
+
+                HashTable<text, text> spikeMiniList
+                spikeMiniList:Add("Libraries.Robots.Spike.ColorSensor","")
+                spikeMiniList:Add("Libraries.Robots.Spike.ForceSensor","")
+                spikeMiniList:Add("Libraries.Robots.Spike.Hub","")
+                spikeMiniList:Add("Libraries.Robots.Spike.LightMatrix","")
+                spikeMiniList:Add("Libraries.Robots.Spike.Motor","")
+
+                //essential classes
+                spikeMiniList:Add("Libraries.Language.Object","")
+                spikeMiniList:Add("Libraries.Language.Types.Boolean","")
+                spikeMiniList:Add("Libraries.Language.Types.Integer","")
+                spikeMiniList:Add("Libraries.Language.Types.Number","")
+                spikeMiniList:Add("Libraries.Language.Types.Text","")
+
+                spikeMiniList:Add("Libraries.Compute.Math","")
+                spikeMiniList:Add("Libraries.Compute.Random","")
+                spikeMiniList:Add("Libraries.Containers.Array","")
+                spikeMiniList:Add("Libraries.Containers.Iterator","")
+                spikeMiniList:Add("Libraries.Containers.Support.ArrayIterator","")
                 //first copy all of the standard library opcodes into the array
                 Array<ClassOpcode> classOpcodes = theOpcodes:CopyToValueArray()
                 //set that it's user code
@@ -611,34 +632,36 @@ class Compiler
                     i = i + 1
                 end
 
+                /*
+                    The system may not cache opcodes under the condition that 
+                    it needs to conserve memory. It does this in Quorum Studio,
+                    but technically any run of the compiler could. In such a case
+                    it can pull the transpiled code from disk instead.
+                */
+                boolean cache = library:IsCachingLibraryOpcodes()
+                TextBuilder builder
                 Class errorClass = table:GetClass("Libraries.Language.Errors.Error")
                 //it's special so shove Error in the front
                 if errorClass not= undefined
                     ClassOpcode op = library:GetOpcode(errorClass:GetStaticKey())
                     if op not= undefined
                         classOpcodes:AddToFront(op)
+                    elseif not cache
+                        ReadPythonFile(library, errorClass, builder)
                     end
                 end
-                boolean cache = library:IsCachingLibraryOpcodes()
-                TextBuilder builder
+             
                 Iterator<Class> iterator = table:GetClasses()
                 repeat while iterator:HasNext()
                     Class cl = iterator:Next()
-                    
                     ClassOpcode op = library:GetOpcode(cl:GetStaticKey())
-                    if op not= undefined and cl:GetStaticKey() not= "Libraries.Language.Errors.Error" 
+                    if op not= undefined and cl:GetStaticKey() not= "Libraries.Language.Errors.Error"
+                        and (cl:IsUserCode() or spikeMiniList:HasKey(cl:GetStaticKey())) 
                         classOpcodes:Add(op)
                         //If it's not caching, see if we can get it from the on disk store
                     elseif not cache and cl:GetStaticKey() not= "Libraries.Language.Errors.Error"
-                        text path = library:GetPythonPath()
-                        text pythonPath = cl:GetStaticKey():Replace(".", "/") + ".py"
-                        File pythonReadFile
-                        pythonReadFile:SetWorkingDirectory(path)
-                        pythonReadFile:SetPath(pythonPath)
-                        if pythonReadFile:Exists()
-                            text value = pythonReadFile:Read()
-                            builder:Append(value + value:GetLineFeed())
-                        end
+                        and (cl:IsUserCode() or spikeMiniList:HasKey(cl:GetStaticKey())) 
+                        ReadPythonFile(library, cl, builder)
                     end
                 end
 
@@ -656,6 +679,18 @@ class Compiler
         end
         
         return result
+    end
+
+    private action ReadPythonFile(Library library, Class cl, TextBuilder builder)
+        text path = library:GetPythonPath()
+        text pythonPath = cl:GetStaticKey():Replace(".", "/") + ".py"
+        File pythonReadFile
+        pythonReadFile:SetWorkingDirectory(path)
+        pythonReadFile:SetPath(pythonPath)
+        if pythonReadFile:Exists()
+            text value = pythonReadFile:Read()
+            builder:Append(value + value:GetLineFeed())
+        end
     end
 
     private action CreateDocumentation(Library library, HashTable<text, ClassOpcode> opcodes)
@@ -701,6 +736,12 @@ class Compiler
             File pythonFile
             pythonFile:SetWorkingDirectory(run:GetAbsolutePath())
             pythonFile:SetPath(GetName() + ".py")
+
+            //if the file already exists, delete it
+            if pythonFile:Exists()
+                pythonFile:Delete()
+            end
+
             pythonFile:Write(value)
         end
     end
