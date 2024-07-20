@@ -637,7 +637,7 @@ class Compiler
                         pythonReadFile:SetPath(pythonPath)
                         if pythonReadFile:Exists()
                             text value = pythonReadFile:Read()
-                            builder:Append(value + value:GetLineFeed() + value)
+                            builder:Append(value + value:GetLineFeed())
                         end
                     end
                 end

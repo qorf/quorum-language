@@ -14,7 +14,7 @@ def global_Empty_Shared_Classes():
 	
 def Global_Cast_Text_To_Boolean(value):
 	if value == "true":
-    		return True
+			return True
 	elif value == "false":
 		return False
 	else:
@@ -68,7 +68,7 @@ def Global_Cast_Integer_To_Number(value):
 def Global_Cast_Number_To_Integer(value):
 	return int(value)
 		
-def  Global_GetValue_(value, type):
+def Global_GetValue_(value, type):
 	if (value == None):
 		if(type == "number" or type == "boolean" or type == "integer"):
 			raise ValueError("Cannot get a value from the type: " + type)
