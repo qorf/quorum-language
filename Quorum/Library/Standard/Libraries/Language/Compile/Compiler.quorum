@@ -600,27 +600,30 @@ class Compiler
                     WriteJavaScript(convertedJavaScript, request)
                 end
             elseif request:GetOutputType() = PYTHON
-
-
-                HashTable<text, text> spikeMiniList
-                spikeMiniList:Add("Libraries.Robots.Spike.ColorSensor","")
-                spikeMiniList:Add("Libraries.Robots.Spike.ForceSensor","")
-                spikeMiniList:Add("Libraries.Robots.Spike.Hub","")
-                spikeMiniList:Add("Libraries.Robots.Spike.LightMatrix","")
-                spikeMiniList:Add("Libraries.Robots.Spike.Motor","")
+                /* This is not general purpose, but tries to minimize
+                    using the code for spike.
+                */
+                HashTable<text, boolean> spikeMiniList
+                spikeMiniList:Add("Libraries.Robots.Spike.ColorSensor",false)
+                spikeMiniList:Add("Libraries.Robots.Spike.ForceSensor",false)
+                spikeMiniList:Add("Libraries.Robots.Spike.Hub",false)
+                spikeMiniList:Add("Libraries.Robots.Spike.LightMatrix",false)
+                spikeMiniList:Add("Libraries.Robots.Spike.Motor",false)
 
                 //essential classes
-                spikeMiniList:Add("Libraries.Language.Object","")
-                spikeMiniList:Add("Libraries.Language.Types.Boolean","")
-                spikeMiniList:Add("Libraries.Language.Types.Integer","")
-                spikeMiniList:Add("Libraries.Language.Types.Number","")
-                spikeMiniList:Add("Libraries.Language.Types.Text","")
+                spikeMiniList:Add("Libraries.Language.Object",false)
+                spikeMiniList:Add("Libraries.Language.Types.Boolean",false)
+                spikeMiniList:Add("Libraries.Language.Types.Integer",false)
+                spikeMiniList:Add("Libraries.Language.Types.Number",false)
+                spikeMiniList:Add("Libraries.Language.Types.Text",false)
 
-                spikeMiniList:Add("Libraries.Compute.Math","")
-                spikeMiniList:Add("Libraries.Compute.Random","")
-                spikeMiniList:Add("Libraries.Containers.Array","")
-                spikeMiniList:Add("Libraries.Containers.Iterator","")
-                spikeMiniList:Add("Libraries.Containers.Support.ArrayIterator","")
+                spikeMiniList:Add("Libraries.Compute.Math",false)
+                spikeMiniList:Add("Libraries.Compute.Random",false)
+                spikeMiniList:Add("Libraries.Containers.Array",false)
+                spikeMiniList:Add("Libraries.Containers.Iterator",false)
+                spikeMiniList:Add("Libraries.Containers.Support.ArrayIterator",false)
+                spikeMiniList:Add("Libraries.Game.Graphics.Color",false)
+                
                 //first copy all of the standard library opcodes into the array
                 Array<ClassOpcode> classOpcodes = theOpcodes:CopyToValueArray()
                 //set that it's user code
@@ -628,6 +631,13 @@ class Compiler
                 repeat while i < classOpcodes:GetSize()
                     ClassOpcode co = classOpcodes:Get(i)
                     Class c = co:GetClass()
+                    Iterator<Class> uses = c:GetValidUses()
+                    repeat while uses:HasNext()
+                        text key = uses:Next():GetStaticKey()
+                        if spikeMiniList:HasKey(key)
+                            spikeMiniList:Add(key, true)
+                        end
+                    end
                     c:SetUserCode(true)
                     i = i + 1
                 end
@@ -655,12 +665,21 @@ class Compiler
                 repeat while iterator:HasNext()
                     Class cl = iterator:Next()
                     ClassOpcode op = library:GetOpcode(cl:GetStaticKey())
-                    if op not= undefined and cl:GetStaticKey() not= "Libraries.Language.Errors.Error"
-                        and (cl:IsUserCode() or spikeMiniList:HasKey(cl:GetStaticKey())) 
+                    boolean includeClass = false
+                    if cl:GetStaticKey() = "Libraries.Language.Errors.Error"
+                        includeClass = false //just so nothing else goes
+                    elseif cl:IsUserCode()
+                        includeClass = true
+                    elseif spikeMiniList:HasKey(cl:GetStaticKey()) //the key is there, include it?
+                        if spikeMiniList:GetValue(cl:GetStaticKey())
+                            includeClass = true
+                        end
+                    end
+
+                    if op not= undefined and includeClass
                         classOpcodes:Add(op)
                         //If it's not caching, see if we can get it from the on disk store
-                    elseif not cache and cl:GetStaticKey() not= "Libraries.Language.Errors.Error"
-                        and (cl:IsUserCode() or spikeMiniList:HasKey(cl:GetStaticKey())) 
+                    elseif not cache and includeClass
                         ReadPythonFile(library, cl, builder)
                     end
                 end
