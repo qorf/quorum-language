@@ -130,12 +130,14 @@ class Chart is ChartItem
     private boolean defaultSeparateByFactor = false
     private boolean overrideDefaultSeparation = false
     private boolean showSubChartAreaBorders = true
+    private boolean showSubChartAreaTitles = true
     private Array<text> factorList = undefined
 
     // X-Axis Components
     private HorizontalAxisPanel horizontalPanel
     private Array <HorizontalAxisPanel> subHorizontalPanels
     private boolean showXAxis = true   
+    private boolean showXAxisTitle = true 
     private boolean showMajorXGridLines = true
     private boolean showMinorXGridLines = false
     private boolean xLabelFontSizeOverride = false
@@ -150,6 +152,7 @@ class Chart is ChartItem
     private VerticalAxisPanel verticalPanel
     private Array <VerticalAxisPanel> subVerticalPanels
     private boolean showYAxis = true
+    private boolean showYAxisTitle = true 
     private boolean showMajorYGridLines = true
     private boolean showMinorYGridLines = false   
     private boolean yLabelFontSizeOverride = false
@@ -1861,6 +1864,59 @@ class Chart is ChartItem
     action IsShowingTitle() returns boolean
         return showTitle
     end
+
+    /*
+        When true the x-axis title will be visible.
+
+        Attribute: Parameter show when true the title is visible.
+    */
+    action ShowXAxisTitle(boolean show)
+        showXAxisTitle = show
+    end
+    /*
+        This action checks if the title is visible.
+
+        Attribute: Returns true if the x-axis title is showing
+    */
+    action IsShowingXAxisTitle() returns boolean
+        return showXAxisTitle
+    end
+
+    /*
+        When true the y-axis title will be visible.
+
+        Attribute: Parameter show when true the title is visible.
+    */
+    action ShowYAxisTitle(boolean show)
+        showYAxisTitle = show
+    end
+    /*
+        This action checks if the title is visible.
+
+        Attribute: Returns true if the y-axis title is showing
+    */
+    action IsShowingYAxisTitle() returns boolean
+        return showYAxisTitle
+    end
+
+    /*
+        This action checks if the sub chart titles are visible.
+
+        Attribute: Parameter show when true the titles are visible.
+    */
+    action ShowSubChartAreaTitles(boolean show)
+        me:showSubChartAreaTitles = show
+    end
+
+    /*
+        This action checks if the titles are visible.
+
+        Attribute: Returns true if the sub chart titles are showing
+    */
+    action IsShowingSubChartAreaTitles returns boolean
+        return showSubChartAreaTitles
+    end
+
     /*
         Gets the title area height percent. This is handled automatically 
         so users don't need to use this action directly.
@@ -2880,6 +2936,9 @@ class Chart is ChartItem
                     horizontalPanel:GetTitleLabel():SetFontSize(fontsize)
                 end
             end
+            if not IsShowingXAxisTitle() and horizontalPanel:GetTitleLabel() not= undefined
+                horizontalPanel:GetTitleLabel():Hide()
+            end
         end
 
         // If the y axis title font size is default but it ended up too large for the y-axis panel
@@ -2890,6 +2949,9 @@ class Chart is ChartItem
                     fontsize = cast(integer, fontsize*((GetHeight()*verticalPanelHeightPercent)/verticalPanel:GetTitleLabel():GetWidth()))
                     verticalPanel:GetTitleLabel():SetFontSize(fontsize)
                 end
+            end
+            if not IsShowingYAxisTitle() and verticalPanel:GetTitleLabel() not= undefined
+                verticalPanel:GetTitleLabel():Hide()
             end
         end
 
