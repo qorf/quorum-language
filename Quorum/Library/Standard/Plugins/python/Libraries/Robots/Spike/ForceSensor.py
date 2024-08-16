@@ -10,11 +10,11 @@ class plugins_quorum_Libraries_Robots_Spike_ForceSensor_:
 	def SetPortNative__quorum_integer(self, port):
 		self.port = port
 		
-	def GetForceNative():
+	def GetForceNative(self):
 		return force_sensor.force(self.port)
 
-	def GetRawForceNative():
+	def GetRawForceNative(self):
 		return force_sensor.raw(self.port)
 
-	def IsPressedNative():
+	def IsPressedNative(self):
 		return force_sensor.pressed(self.port)

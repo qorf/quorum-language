@@ -208,9 +208,11 @@ if blockVariables not= undefined and blockVariables:GetSize() > 0
             Array<text> vars
             repeat while i < blockVariables:GetSize()
                 Variable variable = blockVariables:Get(i)
-                text name = variable:GetDisplayName()+" "+variable:GetType():GetName()
+                if variable not= undefined and variable:GetType() not= undefined
+text name = variable:GetDisplayName()+" "+variable:GetType():GetName()
                 vars:Add(name)
                 varList:AddLocalVariable(variable)
+                end
                 i = i + 1
             end
             vars:Sort()

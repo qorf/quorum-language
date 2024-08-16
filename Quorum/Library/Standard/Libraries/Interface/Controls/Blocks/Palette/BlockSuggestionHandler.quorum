@@ -224,11 +224,10 @@ if className not= "" and className:Contains(".")
 
     private action AddActions(CodeCompletionRequest request) returns Array<Action>
         Class clazzToProcess = request:clazz
-
-        if request:variableClass not= undefined
-            clazzToProcess = request:variableClass
-            if clazzToProcess not= undefined and request:clazz not= undefined
-               and clazzToProcess:GetStaticKey() not= request:clazz:GetStaticKey()
+        if request:clazzCurrentParse not= undefined
+            Class myself = request:clazzCurrentParse
+            if clazzToProcess not= undefined and myself not= undefined
+               and clazzToProcess:GetStaticKey() not= myself:GetStaticKey()
                 request:isRequestInClass = false
             end
         end
@@ -243,10 +242,6 @@ if className not= "" and className:Contains(".")
         Array<Action> actionsToReturn
         repeat while actions:HasNext()
             Action act = actions:Next()
-//            text filter = result:filter
-//            integer size = filter:GetSize()
-//            item:dotOffset = request:caretLocation - size// + additionalDotOffset
-
             //is this action in the base class or the v-table?
             if request:clazz:HasAction(act:GetStaticKey())
 //                item:isBaseClassAction = true
