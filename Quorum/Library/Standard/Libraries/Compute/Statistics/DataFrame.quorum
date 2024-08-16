@@ -480,6 +480,8 @@ class DataFrame
                     Result result = runtime:PopFromStack()
                     newColumn:AddAsResult(result)
                 end
+            else
+                newColumn:Add(undefined)
             end
 
             row = row + 1

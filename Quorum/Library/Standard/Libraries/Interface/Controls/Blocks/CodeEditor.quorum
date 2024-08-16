@@ -235,7 +235,8 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
     action GutterClicked(GutterEvent event)
         Gutter gutter = event:GetGutter()
         if gutter is LineNumberGutter
-            integer line = event:GetLine()
+            Block block = GetBlockAtNavigationIndex(event:GetLine())
+            integer line = block:GetStartLine()
             if line >= GetLineCount()
                 return now
             end
@@ -2791,5 +2792,67 @@ keyboard moving mode.*/
     action CancelKeyboardMovingBlocks
         RemovePlaceholders()
         keyboardMovingBlocks = false
+    end
+    
+    /*This action will return the navigation index that most closely matches with the given
+line number in the raw text. */
+    action GetNavigationIndexFromLine(integer line) returns integer
+        if GetLineCount() <= 0
+            return -1
+        end
+        
+        if line < 0
+            line = 0
+        end
+        if line >= GetLineCount()
+            line = GetLineCount() - 1
+        end
+        
+        // Once we start searching, we'll need to either to iterate forward or backwards through the blocks to find the correct line. 
+        // Assume at first we need to iterate forward, but we'll check if this makes sense before using it.
+        boolean moveForward = true
+        
+        // Start by trying to grab the block where (navigationIndex = lineNumber). Most of the time, these two will be the same.
+        Block block = GetBlockAtNavigationIndex(line)
+        if block not= undefined and line < block:GetStartLine()
+            moveForward = false
+        end
+        
+        // Return the block's index if it contains the line. Otherwise, check the next/previous block.
+        // This is technically O(n), but in practice, the navigation index and line numbers will rarely diverge very far.
+        repeat until block = undefined
+            if block:GetStartLine() >= line and block:GetEndLine() <= line
+                return block:GetNavigationIndex()
+            end
+            if moveForward
+                block = block:GetNextNavigableBlock()
+            else
+                block = block:GetPreviousNavigableBlock()
+            end
+        end
+        
+        return -1
+    end
+    
+/*This action will return the text line number that most closely matches with the given
+navigation index. */
+    action GetLineFromNavigationIndex(integer index) returns integer
+if GetLineCount() <= 0
+            return -1
+        end
+        
+        if index < 0
+            index = 0
+        end
+        if index >= GetLineCount()
+            index = GetLineCount() - 1
+        end
+        
+        Block block = GetBlockAtNavigationIndex(index)
+        if block not= undefined
+            return block:GetStartLine()
+        end
+        
+        return -1
     end
 end

@@ -230,13 +230,22 @@ function plugins_quorum_Libraries_Game_WebInput_()
                     // the canvas is about to lose focus.
                     plugins_quorum_Libraries_Game_WebInput_.ReleaseFocus(gameInfo.game);
                 }
+            }
 
-                var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumKeyEvent(event, false, gameInfo);
-                if (gameInfo.plugins_quorum_Libraries_Game_WebInput_.pressedKeys[quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__keyCode_()])
+            // Iterate over every registered game. If any game thinks that key is being held, inform it when it is released,
+            // even if that game doesn't currently have the focus.
+            // Prevents issues where keys get "stuck" because focus changed between a key being pressed and released.
+            var map = plugins_quorum_Libraries_Game_GameStateManager_.registeredGames;
+            for (let [key, value] of map)
+            {
+                let currentInfo = value;
+
+                var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumKeyEvent(event, false, currentInfo);
+                if (currentInfo && currentInfo.plugins_quorum_Libraries_Game_WebInput_ && currentInfo.plugins_quorum_Libraries_Game_WebInput_.pressedKeys[quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__keyCode_()])
                 {
-                    gameInfo.plugins_quorum_Libraries_Game_WebInput_.pressedKeys[quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__keyCode_()] = false;
-                    gameInfo.plugins_quorum_Libraries_Game_WebInput_.pressedKeysCount--;
-                    gameInfo.plugins_quorum_Libraries_Game_WebInput_.keyboardEvents.push(quorumEvent);
+                    currentInfo.plugins_quorum_Libraries_Game_WebInput_.pressedKeys[quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__keyCode_()] = false;
+                    currentInfo.plugins_quorum_Libraries_Game_WebInput_.pressedKeysCount--;
+                    currentInfo.plugins_quorum_Libraries_Game_WebInput_.keyboardEvents.push(quorumEvent);
                 }
             }
         };
