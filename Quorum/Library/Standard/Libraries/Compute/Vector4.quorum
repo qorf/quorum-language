@@ -1,0 +1,2090 @@
+package Libraries.Compute
+
+use Libraries.Compute.Math
+use Libraries.Compute.Matrix3
+use Libraries.Compute.Matrix4
+use Libraries.Compute.Quaternion
+use Libraries.Compute.Vector2
+use Libraries.Containers.Array
+
+/*
+Vector4 is a class representing a vector in 3D space. It may be used for operations like 3D color with an alpha component.
+
+Attribute: Author Andreas Stefik
+
+Attribute: Example
+
+use Libraries.Compute.Vector4
+
+Vector4 vector1
+Vector4 vector2
+
+vector1:Set(2, 6, 9, 3)
+vector2:Set(1, 7, 2, 3)
+
+vector1:CrossProduct(vector2)
+
+number newX = vector1:GetX()
+number newY = vector1:GetY()
+
+output "The cross product of the two vectors is: [" + newX + ", " + newY + "]"
+*/
+class Vector4 
+    number x = 0
+    number y = 0
+    number z = 0
+    number w = 0
+
+    Math math
+    constant number ROUNDING_MARGIN = 0.000001
+
+
+
+    action Output
+        output "The vector4 is: [" + x + ", " + y + ", " + z + ", " + w + "]"
+    end
+
+    /*
+    This action returns the x component of the vector.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Returns the x component of the vector
+    
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    vector:Set(1, 2, 3, 4)
+    
+    number x = vector:GetX()
+    output "The x component is: " + x
+
+    */
+    action GetX returns number
+        return x
+    end
+
+    /*
+    This action returns the y component of the vector.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Returns the y component of the vector
+    
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    vector:Set(1, 2, 3, 4)
+    
+    number y = vector:GetY()
+    output "The y component is: " + y
+
+    */
+    action GetY returns number
+        return y
+    end
+
+    /*
+    This action returns the z component of the vector.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Returns the z component of the vector
+    
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    vector:Set(1, 2, 3)
+    
+    number z = vector:GetZ()
+    output "The z component is: " + z
+
+    */
+    action GetZ returns number
+        return z
+    end
+
+    /*
+    This action returns the w component of the vector. The w component is the 4th item (past x, y, and z).
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Returns the z component of the vector
+    
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    vector:Set(1, 2, 3, 4)
+    
+    number w = vector:GetW()
+    output "The w component is: " + w
+
+    */
+    action GetW returns number
+        return w
+    end
+
+    /*
+    This action sets the x, y, z, and w components of the vector to the passed x, y, z
+    and w values. The w component is the last number in the vector.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter xValue the value to set as the x component
+    Attribute: Parameter yValue the value to set as the y component
+    Attribute: Parameter zValue the value to set as the z component
+    Attribute: Parameter wValue the value to set as the w component
+
+    Attribute: Returns the calling vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+    
+    Vector4 vector
+    vector:Set(8.8, 4.2, 9.2, 1.0)
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+    number newW = vector:GetW()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW"]"
+
+
+    */
+    action Set(number xValue, number yValue, number zValue, number wValue) returns Vector4
+        x = xValue
+        y = yValue
+        z = zValue
+        w = wValue
+        return me
+    end
+
+    /*
+    This action sets the vector's components to the components of the passed
+    vector.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter vector the vector to use to set the components
+
+    Attribute: Returns the calling vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 firstVector
+    firstVector:Set(2.4, 4.3, 2.7, 1.0)
+    
+    Vector4 secondVector
+    secondVector:Set(firstVector)
+
+    number newX = secondVector:GetX()
+    number newY = secondVector:GetY()
+    number newZ = secondVector:GetZ()
+    number newW = vector:GetW()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+    */
+    action Set(Vector4 vector) returns Vector4
+        return Set(vector:GetX(), vector:GetY(), vector:GetZ(), vector:GetW())
+    end
+
+    /*
+    This action sets the x, y, z, and w components of the vector to the elements of
+    the passed array. The x component is assigned the element at array position
+    0, the y component the element at array position 1, and the z component the
+    element at array position 2. The w component is position 3.
+    
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter array The array containing the numbers to assign as the x, y, z, and alpha components of the vector
+
+    Attribute: Returns the calling vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+    use Libraries.Containers.Array
+
+    Vector4 vector
+    Array<number> array
+
+    array:Add(3.0)
+    array:Add(-4.5)
+    array:Add(5.2)
+    array:Add(1.0)
+
+    vector:Set(array)
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+    number newW = vector:GetW()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+    */
+    action Set(Array<number> array) returns Vector4
+        return Set(array:Get(0), array:Get(1), array:Get(2), array:Get(3))
+    end
+
+    /*
+    This action sets the vector's x and y components to the x and y components
+    of the passed 2D vector and sets the z component to the passed z value.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter vector The 2D vector to set this vector's x and y components
+    Attribute: Parameter z The value to set the z component to
+
+    Attribute: Returns The calling vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+    use Libraries.Compute.Vector2
+
+    Vector4 vector
+    Vector2 setVector
+    
+    setVector:Set(3.5, -7.0)
+    
+    vector:Set(setVector, 4.2, 1.0)
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+    number newW = vector:GetW()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+    */
+    action Set(Vector2 vector, number z, number w) returns Vector4
+        return Set(vector:GetX(), vector:GetY(), z, w)
+    end
+
+    /*
+    This action sets the x component of the vector to the passed value.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter newX The value to set as the x component
+
+    */
+    action SetX(number newX)
+        x = newX
+    end
+
+    /*
+    This action sets the y component of the vector to the passed value.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter newY The value to set as the y component
+
+    */
+    action SetY(number newY)
+        y = newY
+    end
+
+    /*
+    This action sets the z component of the vector to the passed value.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter newZ The value to set as the z component
+
+    */
+    action SetZ(number newZ)
+        z = newZ
+    end
+
+    /*
+    This action sets the w component of the vector to the passed value. The w component is the last item, past x, y, and z.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter newW The value to set as the z component
+
+    */
+    action SetW(number newW)
+        w = newW
+    end
+
+    /*
+    This action returns a copy of the current vector. The new vector's x, y,
+    z, and w components are the same as the calling vector's x, y, z, and w components.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Returns a new vector that is a copy of the calling vector
+
+    Attribute: Example
+    
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    vector:Set(4.8, 3.2, -4.2, 1.0)
+    
+    Vector4 copyVector
+    copyVector = vector:Copy()
+
+    number newX = copyVector:GetX()
+    number newY = copyVector:GetY()
+    number newZ = copyVector:GetZ()
+    number newW = copyVector:GetW()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+    */
+    action Copy returns Vector4
+        Vector4 temp
+        temp:Set(x, y, z, w)
+        return temp
+    end
+
+
+    /*
+    This action makes the current vector point in the opposite direction by negating all of its components.
+    */
+    action MakeOpposite
+        x = -x
+        y = -y
+        z = -z
+        w = -w
+    end
+
+    /*
+    This action adds the passed vector to the calling vector. This action
+    changes the calling vector to the result of the addition.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter vector The vector to add
+    
+    Attribute: Returns The calling vector after addition
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 firstVector
+    Vector4 secondVector
+
+    firstVector:Set(3.2, 5.5, 9.0, 1.0)
+    secondVector:Set(8.3, 4.2, -7.3, 1.0)
+    
+    firstVector:Add(secondVector)
+
+    number newX = firstVector:GetX()
+    number newY = firstVector:GetY()
+    number newZ = firstVector:GetZ()
+    number newW = copyVector:GetW()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"  
+  
+    */
+    action Add(Vector4 vector) returns Vector4
+        return Add(vector:GetX(), vector:GetY(), vector:GetZ(), vector:GetW())
+    end
+
+    /*
+    This action adds the vector with the passed x, y, and z components to the
+    calling vector. This changes the calling vector to the result of the 
+    addition.
+    
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter xValue The x component of the vector to add
+    Attribute: Parameter yValue The y component of the vector to add
+    Attribute: Parameter zValue The z component of the vector to add
+    Attribute: Parameter wValue The w component of the vector to add
+
+    Attribute: Returns The calling vector after addition
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    vector:Set(4.3, 8.1, 6.6, 1.0)
+
+    vector:Add(3.3, 9.2, -4.3, 1.0)
+    
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+    number newW = copyVector:GetW()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]" 
+
+    */
+    action Add(number xValue, number yValue, number zValue, number wValue) returns Vector4
+        return Set(x + xValue, y + yValue, z + zValue, w + wValue)
+    end
+
+    /*
+    This action adds the passed value to the x, y, z, and w components of the
+    vector. This changes the vector to the result of the addition.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter value The value to add to the x, y, and z components
+
+    Attribute: Returns The vector after addition
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    vector:Set(3.5, 5.0, 3.1, 1.0)
+
+    vector:Add(4.0)
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+    number newW = vector:GetW()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]" 
+    
+    */
+    action Add(number value) returns Vector4
+        return Set(x + value, y + value, z + value, w + value)
+    end
+
+    /*
+    This action subtracts the passed vector from the calling vector. This
+    changes the calling vector to the result of the subtraction.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter vector The vector to subtract
+    
+    Attribute: Returns The calling vector after subtraction
+
+    Attribute: Example
+    
+    use Libraries.Compute.Vector4
+    
+    Vector4 firstVector
+    Vector4 secondVector
+
+    firstVector:Set(9.0, 8.0, 7.0, 1.0)
+    secondVector:Set(6.0, 5.0, 4.0, 1.0)
+    
+    firstVector:Subtract(secondVector)
+    
+    number newX = firstVector:GetX()
+    number newY = firstVector:GetY()
+    number newZ = firstVector:GetZ()
+    number newW = firstVector:GetW()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]" 
+
+    */
+    action Subtract(Vector4 vector) returns Vector4
+        return Subtract(vector:GetX(), vector:GetY(), vector:GetZ(), vector:GetW())
+    end
+
+
+    /*
+    This action subtracts a vector with the passed components from the calling 
+    vector. This action changes the calling vector to the result of the
+    subtraction.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter xValue The x component of the vector to subtract
+    Attribute: Parameter yValue The y component of the vector to subtract
+    Attribute: Parameter zValue The z component of the vector to subtract
+    Attribute: Parameter wValue The w component of the vector to subtract
+
+    Attribute: Returns The calling vector after subtraction
+
+    Attribute: Example
+    
+    use Libraries.Compute.Vector4
+    
+    Vector4 vector
+
+    vector:Set(9.0, 8.0, 7.0, 1.0)
+    
+    vector:Subtract(6.0, 5.0, 4.0, 1.0)
+    
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+    number newW = vector:GetW()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]" 
+
+    */
+    action Subtract(number xValue, number yValue, number zValue, number wValue) returns Vector4
+        return Set(x - xValue, y - yValue, z - zValue, w - wValue)        
+    end
+
+    /*
+    This action subtracts the passed value from the x, y, z, and w components of
+    the vector. This changes the vector to the result of the subtraction.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter value The value to subtract from the x, y, and z components
+
+    Attribute: Returns The vector after subtraction
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    vector:Set(3.5, 5,0, 3.1, 1.0)
+
+    vector:Subtract(2.0)
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+    number newW = vector:GetW()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+    
+    */
+    action Subtract(number value) returns Vector4
+        return Set(x - value, y - value, z - value, w - value)
+    end
+
+    /*
+    This action scales the vector by multiplying the x, y, and z components by
+    the passed scalar value.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter scalar The scalar value to multiply by
+    
+    Attribute: Returns The calling vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    vector:Set(2.0, 3.0, 4.0, 5.0)
+
+    vector:Scale(2.0)
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+    number newW = vector:GetW()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+    */
+    action Scale(number scalar) returns Vector4
+        return Set(x * scalar, y * scalar, z * scalar, w * scalar)
+    end
+
+    /*
+    This action scales the vector by multiplying the x component by the x 
+    component of the passed vector, the y component by the y component of the 
+    passed vector, the z component by the z component, and the w component by the w component.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter vector The vector to scale by
+    
+    Attribute: Returns The calling vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+    
+    Vector4 vector 
+    Vector4 scaleVector
+    
+    vector:Set(2.0, 3.0, 4.0, 5.0)
+    scaleVector:Set(3.0, 4.0, 2.0, 1.0)
+
+    vector:Scale(scaleVector)
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+    number newW = vector:GetW()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+    */
+    action Scale(Vector4 vector) returns Vector4
+        return Set(x * vector:GetX(), y * vector:GetY(), z * vector:GetZ(), w * vector:GetW())
+    end
+
+    /*
+    This action scales the vector by multiplying the x component with the
+    passed x value, the y component with the passed y value, the z component
+    with the passed z value, and the w component with the passed w component.
+    
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter xValue The value to multiply the x component by
+    Attribute: Parameter yValue The value to multiply the y component by
+    Attribute: Parameter zValue The value to multiply the z component by
+    Attribute: Parameter wValue The value to multiply the w component by
+
+    Attribute: Returns The calling vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+    
+    Vector4 vector
+    vector:Set(2.0, 3.0, 4.0)
+
+    vector:Scale(3.0, 4.0, 2.0)
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+    number newW = vector:GetW()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+    */
+    action Scale(number xValue, number yValue, number zValue, number wValue) returns Vector4
+        return Set(x * xValue, y * yValue, z * zValue, w * wValue)
+    end
+
+    /*
+    This action multiplies the passed vector by the passed scalar and adds the
+    result to the calling vector. This changes the calling vector to the result
+    of the multiplication and addition.
+
+    Attribute: Author Andreas Stefik
+    
+    Attribute: Parameter vector The vector to multiply by the scalar
+    Attribute: Parameter scalar The value to multiply the vector by
+    
+    Attribute: Returns The calling vector after multiplication and addition
+
+    Attribute: Example
+    
+    use Libraries.Compute.Vector4
+    
+    Vector4 vector
+    Vector4 addVector
+    
+    vector:Set(4.0, 7.0, 5.0, 4.0)
+    addVector:Set(2.5, 1.5, 2.0, 1.0)
+    
+    vector:MultiplyAndAdd(addVector, 2.0)
+    
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+    number newW = vector:GetW()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+    */
+    action MultiplyAndAdd(Vector4 vector, number scalar) returns Vector4
+        x = x + vector:GetX() * scalar
+        y = y + vector:GetY() * scalar
+        z = z + vector:GetZ() * scalar
+        w = w + vector:GetW() * scalar
+        return me
+    end
+
+    /*
+    This action multiplies the passed vector by the passed scalar vector and
+    adds the result to the calling vector. This changes the calling vector to
+    the result of the multiplication and addition.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter addVector The vector to multiply by the scale vector
+    Attribute: Parameter scaleVector The vector to multiply the add vector by
+
+    Attribute: Returns The calling vector after multiplication and addition
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    Vector4 addVector
+    Vector4 scaleVector
+
+    vector:Set(4.0, 7.0, 5.0, 1.0)
+    addVector:Set(2.0, 3.0, 1.0, 0.0)
+    scaleVector:Set(3.0, 1.0, 2.0, 4.0)
+
+    vector:MultiplyAndAdd(addVector, scaleVector)
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+    number newW = vector:GetW()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+    */
+    action MultiplyAndAdd(Vector4 addVector, Vector4 scaleVector) returns Vector4
+        x = x + addVector:GetX() * scaleVector:GetX()
+        y = y + addVector:GetY() * scaleVector:GetY()
+        z = z + addVector:GetZ() * scaleVector:GetZ()
+        w = w + addVector:GetW() * scaleVector:GetW()
+        return me
+    end
+
+    /*
+    This action returns the length of the vector measured from the origin (0, 0)
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Returns the length of the calling vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    vector:Set(1.0, 2.0, 2.0, 3.0)
+    
+    number length = vector:Length()
+    output "The length of the vector is " + length
+
+    */
+    action Length returns number
+        return math:SquareRoot(x * x + y * y + z * z + w * w)
+    end
+
+    /*
+    This action returns the length of the vector with the passed x, y, and z 
+    components measured from the origin (0, 0).
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter x The x component of the vector
+    Attribute: Parameter y The y component of the vector
+    Attribute: Parameter z The z component of the vector
+    Attribute: Parameter w The w component of the vector
+
+    Attribute: Returns The length of the vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    
+    number length = vector:Length(1.0, 2.0, 2.0, 3.0)
+    output "The length of the vector is " + length
+
+    */
+    action Length(number x, number y, number z, number w) returns number
+        return math:SquareRoot(x * x + y * y + z * z + w * w)
+    end
+
+    /*
+    This action returns the square of the length of the vector with the passed 
+    x, y, z, and w components measured from the origin (0, 0).
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter x The x component of the vector
+    Attribute: Parameter y The y component of the vector
+    Attribute: Parameter z The z component of the vector
+    Attribute: Parameter w The z component of the vector
+
+    Attribute: Returns The square of the length of the vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    
+    number lengthSquared = vector:LengthSquared(1.0, 2.0, 2.0, 3.0)
+    output "The square of the length of the vector is " + lengthSquared
+
+    */
+    action LengthSquared(number x, number y, number z, number w) returns number
+        return x * x + y * y + z * z + w * w
+    end
+
+    /*
+    This action returns the square of the length of the vector measured from the 
+    origin (0, 0).
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Returns The square of the length of the calling vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    vector:Set(2.0, 1.0, 2.0, 3.0)
+    
+    number lengthSquared = vector:LengthSquared()
+    output "The square of the length of the vector is " + lengthSquared
+
+    */
+    action LengthSquared returns number
+        return x * x + y * y + z * z + w * w
+    end
+
+    /*
+    This action determines whether the passed vector is equal to this vector.
+    Two vectors are equal if they have the same x, y, and z components.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter vector The vector to check if equal
+
+    Attribute: Returns true if the two vectors are equal, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 firstVector
+    Vector4 secondVector
+
+    firstVector:Set(2.0, 3.0, 4.0, 1.0)
+    secondVector:Set(2.0, 3.0, 4.0, 1.0)
+
+    boolean areEqual = firstVector:Equals(secondVector)
+
+    if areEqual
+        output "The two vectors are equal."
+    else
+        output "The two vectors are not equal."
+    end
+
+    */
+    action Equals(Vector4 vector) returns boolean
+        return x = vector:GetX() and y = vector:GetY() and z = vector:GetZ() and w = vector:GetW()
+    end
+
+    /*
+    This action computes the distance between the vectors represented by the
+    passed x, y, z, and w components.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter x1 The x component of the first vector
+    Attribute: Parameter y1 The y component of the first vector
+    Attribute: Parameter z1 The z component of the first vector
+    Attribute: Parameter w1 The w component of the first vector
+    Attribute: Parameter x2 The x component of the second vector
+    Attribute: Parameter y2 The y component of the second vector
+    Attribute: Parameter z2 The z component of the second vector
+    Attribute: Parameter w2 The 2 component of the second vector
+    
+    Attribute: Returns The distance between the two vectors
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    number distance = vector:Distance(2.0, 3.0, 4.0, 2.0, 5.0, 1.0)
+    output "The distance is " + distance
+
+    */
+    action Distance(number x1, number y1, number z1, number w1,
+                    number x2, number y2, number z2, number w2) returns number
+        number a = x2 - x1
+        number b = y2 - y1
+        number c = z2 - z1
+        number d = w2 - w1
+        return math:SquareRoot(a * a + b * b + c * c + d * d)
+    end
+    
+    /*
+    This action computes the distance between the calling vector and the passed
+    vector.
+    
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter vector The other vector
+    
+    Attribute: Returns The distance between the two vectors
+
+    Attribute: Example
+    
+    use Libraries.Compute.Vector4
+    
+    Vector4 vector
+    Vector4 otherVector
+    
+    vector:Set(2.0, 3.0, 4.0, 5.0)
+    otherVector:Set(2.0, 5.0, 1.0, 5.0)
+    
+    number distance = vector:Distance(otherVector)
+    output "The distance is " + distance
+
+    */
+    action Distance(Vector4 vector) returns number
+        number a = vector:GetX() - x
+        number b = vector:GetY() - y
+        number c = vector:GetZ() - z
+        number d = vector:GetW() - w
+        return math:SquareRoot(a * a + b * b + c * c + d * d)
+    end
+
+    /*
+    This action computes the distance between the calling vector and the vector
+    represented by the passed x, y, and z components.
+    
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter xValue The x component of the other vector
+    Attribute: Parameter yValue The y component of the other vector
+    Attribute: Parameter zValue The z component of the other vector
+    Attribute: Parameter wValue The w component of the other vector
+    
+    Attribute: Returns The distance between the two vectors
+
+    Attribute: Example
+    
+    use Libraries.Compute.Vector4
+    
+    Vector4 vector
+    
+    vector:Set(2.0, 3.0, 4.0, 5.0)
+    
+    number distance = vector:Distance(2.0, 5.0, 1.0, 0.0)
+    output "The distance is " + distance
+
+    */
+    action Distance(number xValue, number yValue, number zValue, number wValue) returns number
+        number a = xValue - x
+        number b = yValue - y
+        number c = zValue - z
+        number d = wValue - w
+        return math:SquareRoot(a * a + b * b + c * c + d * d)
+    end
+
+    /*
+    This action computes the square of the distance between the vectors
+    represented by the passed x, y, and z components.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter x1 The x component of the first vector
+    Attribute: Parameter y1 The y component of the first vector
+    Attribute: Parameter z1 The z component of the first vector
+    Attribute: Parameter w1 The w component of the first vector
+    Attribute: Parameter x2 The x component of the second vector
+    Attribute: Parameter y2 The y component of the second vector
+    Attribute: Parameter z2 The z component of the second vector
+    Attribute: Parameter w2 The w component of the second vector
+
+    Attribute: Returns The square of the distance between the two vectors
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    number distanceSquared = vector:DistanceSquared(2.0, 3.0, 4.0, 5.0, 2.0, 5.0, 1.0, 0.0)
+    output "The square of the distance is " + distanceSquared
+
+    */
+    action DistanceSquared(number x1, number y1, number z1, number w1,
+                           number x2, number y2, number z2, number w2) returns number
+        number a = x2 - x1
+        number b = y2 - y1
+        number c = z2 - z1
+        number d = w2 - w1
+        return a * a + b * b + c * c + d * d
+    end
+
+    /*
+    This action computes the square of the distance between the calling vector
+    and the passed vector.
+    
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter vector The other vector
+    
+    Attribute: Returns The square of the distance between the two vectors
+
+    Attribute: Example
+    
+    use Libraries.Compute.Vector4
+    
+    Vector4 vector
+    Vector4 otherVector
+    
+    vector:Set(2.0, 3.0, 4.0, 5.0)
+    otherVector:Set(2.0, 5.0, 1.0, 0.0)
+    
+    number distanceSquared = vector:DistanceSquared(otherVector)
+    output "The square of the distance is " + distanceSquared
+
+    */
+    action DistanceSquared(Vector4 vector) returns number
+        number a = vector:GetX() - x
+        number b = vector:GetY() - y
+        number c = vector:GetZ() - z
+        number d = vector:GetW() - w
+        return a * a + b * b + c * c + d * d
+    end
+
+/*
+    This action computes the square of the distance between the calling vector
+    and the vector represented by the passed x, y, z, and w components.
+    
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter xValue The x component of the other vector
+    Attribute: Parameter yValue The y component of the other vector
+    Attribute: Parameter zValue The z component of the other vector
+    Attribute: Parameter wValue The w component of the other vector
+
+    Attribute: Returns The square of the distance between the two vectors
+
+    Attribute: Example
+    
+    use Libraries.Compute.Vector4
+    
+    Vector4 vector
+    
+    vector:Set(2.0, 3.0, 4.0, 5.0)
+    
+    number distanceSquared = vector:DistanceSquared(2.0, 5.0, 1.0, 0.0)
+    output "The square of the distance is " + distanceSquared
+
+    */
+    action DistanceSquared(number xValue, number yValue, number zValue, number wValue) returns number
+        number a = xValue - x
+        number b = yValue - y
+        number c = zValue - z
+        number d = wValue - w
+        return a * a + b * b + c * c + d * d
+    end
+
+    /*
+    This action produces a normalized vector with the same direction as the
+    original vector but with a length of 1. This action changes the calling
+    vector to the normalized vector.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Returns the normalized vector with a length of 1
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    vector:Set(23.4, 43.2, 45.6, 57.9)
+    vector:Normalize()
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+    number newW = vector:GetW()
+
+    output "The normalized vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+    */
+    action Normalize returns Vector4
+        number len2 = me:LengthSquared()
+        if len2 = 0.0 or len2 = 1.0
+            return me
+        end
+
+        return me:Scale(1.0 / math:SquareRoot(len2))
+    end         
+
+    /*
+    This action computes the dot product between the calling vector and the
+    passed vector.
+
+    Attribute: Author Andreas Stefik
+    
+    Attribute: Parameter vector The other vector
+
+    Attribute: Returns The dot product of the two vectors
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 firstVector
+    Vector4 secondVector
+
+    firstVector:Set(3.0, 4.0, 5.0, 2.0)
+    secondVector:Set(5.0, 6.0, 7.0, 2.0)
+    
+    number dotProduct = firstVector:DotProduct(secondVector)
+    output "The dot product is " + dotProduct
+
+    */
+    action DotProduct(Vector4 vector) returns number
+        return x * vector:GetX() + y * vector:GetY() + z * vector:GetZ() + w * vector:GetW()
+    end
+
+    /*
+    This action computes the dot product between the calling vector and the
+    vector with the passed x, y, z, and w components.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter xValue The x component of the other vector
+    Attribute: Parameter yValue The y component of the other vector
+    Attribute: Parameter zValue The z component of the other vector
+    Attribute: Parameter wValue The w component of the other vector
+
+    Attribute: Returns The dot product of the two vectors
+
+    Attribute: Example
+    
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    vector:Set(3.0, 4.0, 5.0, 1.0)
+    
+    number dotProduct = vector:DotProduct(4.0, 5.0, 6.0, 2.0)
+    output "The dot product is " + dotProduct
+
+    */
+    action DotProduct(number xValue, number yValue, number zValue, number wValue) returns number
+        return x * xValue + y * yValue + z * zValue + w * wValue
+    end
+
+    /*
+    This action computes the dot product of the two vectors given by the passed
+    x, y, and z components.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter x1 The x component of the first vector
+    Attribute: Parameter y1 The y component of the first vector
+    Attribute: Parameter z1 The z component of the first vector
+    Attribute: Parameter w1 The w component of the first vector
+    Attribute: Parameter x2 The x component of the second vector
+    Attribute: Parameter y2 The y component of the second vector    
+    Attribute: Parameter z2 The z component of the second vector
+    Attribute: Parameter w2 The w component of the second vector
+
+    Attribute: Returns The dot product of the two vectors.
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    number dotProduct = vector:DotProduct(3.0, 4.0, 5.0, 6.0. 5.0, 6.0, 7.0, 8.0)
+    output "The dot product is " + dotProduct
+
+    */
+    action DotProduct(number x1, number y1, number z1, number w1,
+                      number x2, number y2, number z2, number w2) returns number
+        return x1 * x2 + y1 * y2 + z1 * z2 + w1 * w2
+    end
+
+    /*
+    This action determines whether the vector is a unit vector, meaning it has
+    a length of 1.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Returns true if the vector is a unit vector, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    vector:Set(0.0, 1.0, 0.0, 0.0)
+
+    boolean isUnit = vector:IsUnit()
+    
+    if isUnit
+        output "The vector is a unit vector."
+    else
+        output "The vector is not a unit vector."
+    end
+
+    */
+    action IsUnit returns boolean
+        return IsUnit(0.000000001)
+    end
+
+    /*
+    This action determines whether the vector is a unit vector, meaning it has
+    a length of 1 to within the passed precision.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter precision The desired precision
+
+    Attribute: Returns true if the vector is a unit vector to within the passed precision, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    vector:Set(0.0, 1.0, 0.0, 0.0)
+
+    boolean isUnit = vector:IsUnit(0.00001)
+    
+    if isUnit
+        output "The vector is a unit vector."
+    else
+        output "The vector is not a unit vector."
+    end
+
+    */
+    action IsUnit(number precision) returns boolean
+        return math:AbsoluteValue(LengthSquared() - 1.0) < precision
+    end
+
+    /*
+    This action determines whether the vector is the zero vector, meaning that
+    its x, y, z, and w components are 0.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Returns true if the vector is the zero vector, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 firstVector
+    Vector4 secondVector
+
+    firstVector:Set(5.0, 6.0, 7.0, 8.0)
+    secondVector:Set(5.0, 6.0, 7.0, 8.0)
+
+    firstVector:Subtract(secondVector)
+    
+    boolean isZero = firstVector:IsZero()
+
+    if isZero
+        output "The vector is the zero vector."
+    else
+        output "The vector is not the zero vector."
+    end
+
+    */
+    action IsZero returns boolean
+        return x = 0 and y = 0 and z = 0 and w = 0
+    end
+
+    /*
+    This action determines whether the vector is the zero vector to within the
+    passed precision, meaning that its x, y, z, and w components are 0.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter precision The desired precision
+
+    Attribute: Returns true if the vector is the zero vector to within the passed precision, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 firstVector
+    Vector4 secondVector
+
+    firstVector:Set(5.0, 6.0, 7.0, 8.0)
+    secondVector:Set(5.0, 6.0, 7.0, 8.0)
+
+    firstVector:Subtract(secondVector)
+    
+    boolean isZero = firstVector:IsZero(0.00001)
+
+    if isZero
+        output "The vector is the zero vector."
+    else
+        output "The vector is not the zero vector."
+    end
+
+    */
+    action IsZero(number precision) returns boolean
+        return LengthSquared() < precision
+    end
+
+    /*
+    This action determines whether the passed vector is on the same line as the
+    calling vector to within the passed precision, either in the same or
+    opposite direction
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter other The other vector
+    Attribute: Parameter precision The desired precision
+
+    Attribute: Returns true if the vectors are on the same line, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 firstVector
+    Vector4 secondVector
+    
+    firstVector:Set(1.0, 2.0, 3.0, 4.0)
+    secondVector:Set(-2.0, -4.0, -6.0, -8.0)
+
+    boolean onLine = firstVector:IsOnLine(secondVector, 0.00001)
+    
+    if onLine
+        output "The two vectors are on the same line."
+    else
+        output "The two vectors are not on the same line."
+    end
+    */
+    action IsOnLine(Vector4 other, number precision) returns boolean
+        //implementation from LibGDX: https://github.com/libgdx/libgdx/blob/master/gdx/src/com/badlogic/gdx/math/Vector4.java
+        BitwiseOperations ops
+
+        integer flags = 0
+        number dx = 0
+        number dy = 0
+        number dz = 0
+        number dw = 0
+        
+        //Do X
+        if math:Equals(x, 0, precision) 
+            if not math:Equals(other:GetX(), 0, precision)
+                return false
+            end
+        else
+            dx = x / other:GetX()
+            flags = ops:Or(flags, 1)
+        end
+
+        //Do Y
+        if math:Equals(y, 0, precision) 
+            if not math:Equals(other:GetY(), 0, precision)
+                return false
+            end
+        else
+            dy = y / other:GetY()
+            flags = ops:Or(flags, 2)
+        end
+
+        //Do Z
+        if math:Equals(z, 0, precision) 
+            if not math:Equals(other:GetZ(), 0, precision)
+                return false
+            end
+        else
+            dz = z / other:GetZ()
+            flags = ops:Or(flags, 4)
+        end
+
+        //Do W
+        if math:Equals(w, 0, precision) 
+            if not math:Equals(other:GetW(), 0, precision)
+                return false
+            end
+        else
+            dw = w / other:GetW()
+            flags = ops:Or(flags, 8)
+        end
+
+        if flags = 0 or flags = 1 or flags = 2 or flags  = 4 or flags = 8
+            return true
+        elseif flags = 3
+            return math:Equals(dx, dy, precision)
+        elseif flags = 5
+            return math:Equals(dx, dz, precision)
+        elseif flags = 9
+            return math:Equals(dx, dw, precision)
+        elseif flags = 6
+            return math:Equals(dy, dz, precision)
+        elseif flags = 10
+            return math:Equals(dy, dw, precision)
+        elseif flags = 12
+            return math:Equals(dz, dw, precision)
+        elseif flags = 7
+            return math:Equals(dx, dy, precision) and math:Equals(dx, dz, precision)
+        elseif flags = 11
+            return math:Equals(dx, dy, precision) and math:Equals(dx, dw, precision)
+        elseif flags = 13
+            return math:Equals(dx, dz, precision) and math:Equals(dx, dw, precision)
+        elseif flags = 14
+            return math:Equals(dy, dz, precision) and math:Equals(dy, dw, precision)
+        else
+            return math:Equals(dx, dy, precision) and math:Equals(dx, dz, precision) and math:Equals(dx, dw, precision)
+        end
+    end
+
+    /*
+    This action determines whether the passed vector is on the same line as the
+    calling vector, either in the same or opposite direction.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter other The other vector
+
+    Attribute: Returns true if the vectors are on the same line, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 firstVector
+    Vector4 secondVector
+    
+    firstVector:Set(1.0, 2.0, 3.0)
+    secondVector:Set(-2.0, -4.0, -6.0)
+
+    boolean onLine = firstVector:IsOnLine(secondVector)
+    
+    if onLine
+        output "The two vectors are on the same line."
+    else
+        output "The two vectors are not on the same line."
+    end
+
+    */
+    action IsOnLine(Vector4 other) returns boolean
+        return IsOnLine(other, ROUNDING_MARGIN)
+    end
+        
+    /*
+    This action determines whether the passed vector is collinear in the
+    opposite direction with the calling vector, meaning that it lies on the same
+    line as the calling vector and has the opposite direction as the calling
+    vector to within the passed precision.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter other The other vector
+    Attribute: Parameter precision The desired precision
+
+    Attribute: Returns true if the vectors are collinear in the opposite directions, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 firstVector
+    Vector4 secondVector
+    
+    firstVector:Set(3.0, 4.0, 5.0)
+    secondVector:Set(-6.0, -8.0, -10.0)
+
+    boolean collinearOpposite = firstVector:IsCollinearOpposite(secondVector, 0.00001)
+
+    if collinearOpposite
+        output "The two vectors are collinear in the opposite direction"
+    else
+        output "The two vectors are not collinear in the opposite direction"
+    end
+
+    */
+    action IsCollinearOpposite(Vector4 other, number precision) returns boolean
+        return IsOnLine(other, precision) and HasOppositeDirection(other)
+    end
+
+    /*
+    This action determines whether the passed vector is collinear in the
+    opposite direction with the calling vector, meaning that it lies on the same
+    line as the calling vector and has the opposite direction as the calling
+    vector.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter other The other vector
+
+    Attribute: Returns true if the vectors are collinear in the opposite directions, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 firstVector
+    Vector4 secondVector
+    
+    firstVector:Set(3.0, 4.0, 5.0)
+    secondVector:Set(-6.0, -8.0, -10.0)
+
+    boolean collinearOpposite = firstVector:IsCollinearOpposite(secondVector)
+
+    if collinearOpposite
+        output "The two vectors are collinear in the opposite direction"
+    else
+        output "The two vectors are not collinear in the opposite direction"
+    end
+
+    */
+    action IsCollinearOpposite(Vector4 other) returns boolean
+        return IsOnLine(other) and HasOppositeDirection(other)
+    end
+
+    /*
+    This action determines whether the passed vector is collinear with the
+    calling vector, meaning that it lies on the same line as the calling vector 
+    and has the same direction as the calling vector to within the passed 
+    precision.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter other The other vector
+    Attribute: Parameter precision The desired precision
+
+    Attribute: Returns true if the vectors are collinear, false otherwise.
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 firstVector
+    Vector4 secondVector
+    
+    firstVector:Set(3.0, 4.0, 5.0)
+    secondVector:Set(6.0, 8.0, 10.0)
+
+    boolean collinear = firstVector:IsCollinear(secondVector, 0.00001)
+
+    if collinear
+        output "The two vectors are collinear in the same direction"
+    else
+        output "The two vectors are not collinear in the same direction"
+    end
+
+    */
+    action IsCollinear(Vector4 other, number precision) returns boolean
+        return IsOnLine(other, precision) and HasSameDirection(other)
+    end
+
+    /*
+    This action determines whether the passed vector is collinear with the
+    calling vector, meaning that it lies on the same line as the calling vector 
+    and has the same direction as the calling vector.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter other The other vector
+
+    Attribute: Returns true if the vectors are collinear, false otherwise.
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 firstVector
+    Vector4 secondVector
+    
+    firstVector:Set(3.0, 4.0, 5.0)
+    secondVector:Set(6.0, 8.0, 10.0)
+
+    boolean collinear = firstVector:IsCollinear(secondVector)
+
+    if collinear
+        output "The two vectors are collinear in the same direction"
+    else
+        output "The two vectors are not collinear in the same direction"
+    end
+
+    */
+    action IsCollinear(Vector4 other) returns boolean
+        return IsOnLine(other) and HasSameDirection(other)
+    end
+
+    /*
+    This action determines whether the passed vector is perpendicular to the
+    calling vector.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter vector The other vector
+
+    Attribute: Returns true if the two vectors are perpendicular, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 firstVector
+    Vector4 secondVector
+
+    firstVector:Set(1.0, 0.0, 0.0, 0.0)
+    secondVector:Set(0.0, 1.0, 0.0, 0.0)
+    
+    boolean isPerpendicular = firstVector:IsPerpendicular(secondVector)
+    
+    if isPerpendicular
+        output "The two vectors are perpendicular."
+    else
+        output "The two vectors are not perpendicular."
+    end
+
+    */
+    action IsPerpendicular(Vector4 vector) returns boolean
+        return math:AbsoluteValue(DotProduct(vector)) <= ROUNDING_MARGIN
+    end
+
+    /*
+    This action determines whether the passed vector is perpendicular to the
+    calling vector to within the passed precision.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter vector The other vector
+    Attribute: Parameter precision The desired precision
+    
+    Attribute: Returns true if the two vectors are perpendicular, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 firstVector
+    Vector4 secondVector
+
+    firstVector:Set(1.0, 0.0, 0.0, 0.0)
+    secondVector:Set(0.0, 1.0, 0.0, 0.0)
+    
+    boolean isPerpendicular = firstVector:IsPerpendicular(secondVector, 0.00001)
+    
+    if isPerpendicular
+        output "The two vectors are perpendicular."
+    else
+        output "The two vectors are not perpendicular."
+    end
+
+    */
+    action IsPerpendicular(Vector4 vector, number precision) returns boolean
+        return math:AbsoluteValue(DotProduct(vector)) <= precision
+    end
+
+    /*
+    This action determines whether the passed vector has the same direction as
+    the calling vector.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter vector The other vector
+
+    Attribute: Returns true if the two vectors have the same direction, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 firstVector
+    Vector4 secondVector
+    
+    firstVector:Set(3.0, 4.0, 5.0, 4.0)
+    secondVector:Set(6.0, 8.0, 10.0, 12.0)
+
+    boolean isSame = firstVector:HasSameDirection(secondVector)
+
+    if isSame
+        output "The two vectors have the same direction."
+    else
+        output "The two vectors do not have the same direction."
+    end
+
+    */
+    action HasSameDirection(Vector4 vector) returns boolean
+        return DotProduct(vector) > 0
+    end
+
+    /*
+    This action determines whether the passed vector has the opposite direction
+    as the calling vector.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter vector The other vector
+
+    Attribute: Returns true if the two vectors have the opposite direction, false otherwise
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+    
+    Vector4 firstVector
+    Vector4 secondVector
+
+    firstVector:Set(3.0, 4.0, 5.0, 6.0)
+    secondVector:Set(-3.0, -4.0, -5.0, -6.0)
+    
+    boolean isOpposite = firstVector:HasOppositeDirection(secondVector)
+
+    if isOpposite
+       output "The two vectors have opposite directions." 
+    else
+       output "The two vectors do not have opposite directions."
+    end
+
+    */
+    action HasOppositeDirection(Vector4 vector) returns boolean
+        return DotProduct(vector) < 0
+    end
+
+    /*
+    This action performs a linear interpolation between the calling vector and 
+    the passed target vector by alpha, which is between 0 and 1, inclusive. 
+    This changes the calling vector to the result of the linear interpolation.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter target The target vector
+    Attribute: Parameter alpha The alpha value
+
+    Attribute: Returns The calling vector after linear interpolation
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    Vector4 target
+
+    vector:Set(1.0, 2.0, 1.0, 0.0)
+    target:Set(2.0, 3.0, 1.0, 0.0)
+    number alpha = 0.5
+
+    vector:LinearInterpolation(target, alpha)
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+    number newW = vector:GetW()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW"]"
+
+    */
+    action LinearInterpolation(Vector4 target, number alpha) returns Vector4
+        x = x + alpha * (target:GetX() - x)
+        y = y + alpha * (target:GetY() - y)
+        z = z + alpha * (target:GetZ() - z)
+        w = w + alpha * (target:GetW() - w)
+        return me
+    end
+
+    /*
+    This action performs a spherical interpolation between the calling
+    vector and the passed target vector by alpha, which is between 0 and 1,
+    inclusive. This changes the calling vector to the result of the spherical
+    linear interpolation.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter target The target vector
+    Attribute: Parameter alpha The alpha value
+
+    Attribute: Returns The calling vector after spherical linear interpolation
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    Vector4 target
+
+    vector:Set(0.4, 0.3, 0.2)
+    target:Set(0.1, 0.2, 0.3)
+    alpha = 0.5
+
+    vector:SphericalLinearInterpolation(target, alpha)
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
+
+    */
+//    action SphericalLinearInterpolation(Vector4 target, number alpha) returns Vector4
+//        constant number dotProduct = DotProduct(target)
+//
+//        if dotProduct > 0.9995 or dotProduct < -0.9995
+//            return LinearInterpolation(target, alpha)
+//        end
+//
+//        constant number theta0 = math:InverseCosine(dotProduct)
+//        constant number theta = theta0 * alpha
+//
+//        constant number st = math:Sine(theta)
+//        constant number tx = target:GetX() - x * dotProduct
+//        constant number ty = target:GetY() - y * dotProduct
+//        constant number tz = target:GetZ() - z * dotProduct
+//        constant number l2 = tx * tx + ty * ty + tz * tz
+//        number dl = 0
+//
+//        if l2 < 0.0001
+//            dl = st * 1.0
+//        else
+//            dl = st * (1.0 / math:SquareRoot(l2))
+//        end
+//
+//        return Scale(math:Cosine(theta)):Add(tx * dl, ty * dl, tz * dl):Normalize()
+//    end
+
+    /*
+    This action limits the length of the vector to the passed limit value. This
+    changes the calling vector to have a new length if its old length was
+    greater than the passed limit.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter limit The value to limit the length to
+
+    Attribute: Returns The vector with a new length if its old length was larger than the passed limit
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    vector:Set(2.0, 1.0, 2.0)
+    
+    vector:Limit(1.5)
+    
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+    number newW = vector:GetW()
+    
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+    */
+    action Limit(number limit) returns Vector4
+        return LimitSquared(limit * limit)
+    end
+
+    /*
+    This action limits the square of the length of the vector to the passed
+    value, which represents the square of the value to limit the length of the
+    vector to. This changes the calling vector to have a new length if the
+    old length squared was greater than the limit squared.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter limitSquared the square of the limit
+
+    Attribute: Returns the calling vector with a new length if the old length squared was greater than the limit squared
+    
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    vector:Set(2.0, 1.0, 2.0)
+    
+    vector:LimitSquared(2.25)
+    
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+    number newW = vector:GetW()
+    
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+    */
+    action LimitSquared(number limitSquared) returns Vector4
+        number lengthSquared = LengthSquared()
+        if lengthSquared > limitSquared
+            Scale(math:SquareRoot(limitSquared / lengthSquared))
+        end
+        
+        return me
+    end
+
+    /*
+    This action clamps the length of the vector to be between the passed minimum
+    and maximum values. This changes the vector if the length of the vector is
+    greater than the maximum or less than the minimum.
+
+    Attribute: Author Andreas Stefik
+    
+    Attribute: Parameter min The minimum length
+    Attribute: Parameter max The maximum length
+
+    Attribute: Returns The vector with a new length if the old length was below the minimum or above the maximum
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    vector:Set(2.0, 1.0, 2.0, 3.0)
+    
+    vector:Clamp(0.5, 1.5)
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+    number newW = vector:GetW()
+    
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+    */
+    action Clamp(number min, number max) returns Vector4
+        number len2 = LengthSquared()
+        if len2 = 0.0
+            return me
+        end
+        
+        number max2 = max * max
+        if len2 > max2
+            return Scale(math:SquareRoot(max2 / len2))
+        end
+
+        number min2 = min * min
+        if len2 < min2
+            return Scale(math:SquareRoot(min2 / len2))
+        end
+
+        return me
+    end
+
+    /*
+    This action determines whether the passed vector equals the calling vector
+    to within the passed precision.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter vector The other vector
+    Attribute: Parameter precision The desired precision
+
+    Attribute: Returns true if the vectors are equal within the passed precision, false otherwise
+    
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 firstVector
+    Vector4 secondVector
+
+    firstVector:Set(3.0, 4.0, 5.0, 6.0)
+    secondVector:Set(6.0, 8.0, 10.0, 12.0)
+    secondVector:Scale(0.5)
+
+    boolean areEqual = firstVector:EqualsAtPrecision(secondVector, 0.00001)
+    
+    if areEqual
+        output "The two vectors are equal."
+    else
+        output "The two vectors are not equal."
+    end
+
+    */
+    action EqualsAtPrecision(Vector4 other, number epsilon) returns boolean
+        if other = undefined
+            return false
+        end
+        if math:AbsoluteValue(other:GetX() - x) > epsilon
+            return false
+        end
+        if math:AbsoluteValue(other:GetY() - y) > epsilon
+            return false
+        end
+        if math:AbsoluteValue(other:GetZ() - z) > epsilon
+            return false
+        end
+        return true
+    end
+
+    /*
+    This action determines whether the vector represented by the passed x, y,
+    z, and w components equals the calling vector to within the passed precision.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Parameter xValue The x component of the other vector
+    Attribute: Parameter yValue The y component of the other vector
+    Attribute: Parameter zValue The z component of the other vector
+    Attribute: Parameter wValue The w component of the other vector
+    Attribute: Parameter precision The desired precision
+
+    Attribute: Returns true if the vectors are equal within the passed precision, false otherwise
+    
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+
+    vector:Set(3.0, 4.0, 7.5, 9.0)
+    
+    boolean areEqual = vector:EqualsAtPrecision(3.0, 4.0000001, 7.5000002, 9.00000001, 0.00001)
+    
+    if areEqual
+        output "The two vectors are equal."
+    else
+        output "The two vectors are not equal."
+    end
+
+    */
+    action EqualsAtPrecision(number xVal, number yVal, number zVal, number wVal, number precision) returns boolean  
+        if math:AbsoluteValue(xVal - x) > precision
+            return false
+        end
+        if math:AbsoluteValue(yVal - y) > precision
+            return false
+        end
+        if math:AbsoluteValue(zVal - z) > precision
+            return false
+        end
+        if math:AbsoluteValue(wVal - w) > precision
+            return false
+        end
+        return true
+    end
+
+    /*
+    This action sets the vector to the zero vector, meaning the x, y, z, and w
+    components will be set to 0.
+
+    Attribute: Author Andreas Stefik
+
+    Attribute: Returns The calling vector set to the zero vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+
+    Vector4 vector
+    vector:SetZero()
+    
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+    number newW = vector:GetW()
+    
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+    */
+    action SetZero returns Vector4
+        x = 0
+        y = 0
+        z = 0
+        w = 0
+        return me
+    end
+
+end
