@@ -1,0 +1,22 @@
+use Libraries.Compute.Vector4
+use Libraries.Compute.Math
+
+class Vector4Interpolation 
+    action Main
+        Vector4 vector
+        Vector4 target
+
+        vector:Set(1.0, 2.0, 1.0, 1.0)
+        target:Set(2.0, 3.0, 1.0, 2.0)
+        number alpha = 0.5
+
+        vector:LinearInterpolation(target, alpha)
+
+        number newX = vector:GetX()
+        number newY = vector:GetY()
+        number newZ = vector:GetZ()
+        number newW = vector:GetW()
+
+        output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"  
+    end
+end

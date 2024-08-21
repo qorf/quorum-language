@@ -1,0 +1,52 @@
+use Libraries.Compute.Vector4
+
+class Vector4IsCollinear 
+    action Main
+        Vector4 firstVector
+        Vector4 secondVector
+
+        firstVector:Set(3.0, 4.0, 5.0, 6.0)
+        secondVector:Set(-6.0, -8.0, -10.0, -12.0)
+
+        boolean collinearOpposite = firstVector:IsCollinearOpposite(secondVector, 0.00001)
+
+        if collinearOpposite
+            output "The two vectors are collinear in the opposite direction"
+        else
+            output "The two vectors are not collinear in the opposite direction"
+        end
+
+        firstVector:Set(3.0, 4.0, 5.0, 6.0)
+        secondVector:Set(-6.0, -8.0, -10.0, -12.0)
+
+        collinearOpposite = firstVector:IsCollinearOpposite(secondVector)
+
+        if collinearOpposite
+            output "The two vectors are collinear in the opposite direction"
+        else
+            output "The two vectors are not collinear in the opposite direction"
+        end
+
+        firstVector:Set(3.0, 4.0, 5.0, 6.0)
+        secondVector:Set(6.0, 8.0, 10.0, 12.0)
+
+        boolean collinear = firstVector:IsCollinear(secondVector, 0.00001)
+
+        if collinear
+            output "The two vectors are collinear in the same direction"
+        else
+            output "The two vectors are not collinear in the same direction"
+        end    
+
+        firstVector:Set(3.0, 4.0, 5.0, 6.0)
+        secondVector:Set(6.0, 8.0, 10.0, 12.0)
+
+        collinear = firstVector:IsCollinear(secondVector)
+
+        if collinear
+            output "The two vectors are collinear in the same direction"
+        else
+            output "The two vectors are not collinear in the same direction"
+        end
+    end
+end

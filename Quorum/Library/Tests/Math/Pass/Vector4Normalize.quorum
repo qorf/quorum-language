@@ -1,0 +1,16 @@
+use Libraries.Compute.Vector4
+
+class Vector4Normalize 
+    action Main
+        Vector4 vector
+        vector:Set(23.4, 43.2, 45.6, 23.4)
+        vector:Normalize()
+
+        number newX = vector:GetX()
+        number newY = vector:GetY()
+        number newZ = vector:GetZ()
+        number newW = vector:GetW()
+
+        output "The normalized vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+    end
+end

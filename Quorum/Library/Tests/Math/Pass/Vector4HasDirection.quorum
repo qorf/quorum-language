@@ -1,0 +1,30 @@
+use Libraries.Compute.Vector4
+
+class Vector4HasDirection 
+    action Main
+        Vector4 firstVector
+        Vector4 secondVector
+
+        firstVector:Set(3.0, 4.0, 5.0, 6.0)
+        secondVector:Set(6.0, 8.0, 10.0, 12.0)
+
+        boolean isSame = firstVector:HasSameDirection(secondVector)
+
+        if isSame
+            output "The two vectors have the same direction."
+        else
+            output "The two vectors do not have the same direction."
+        end
+
+        firstVector:Set(3.0, 4.0, 5.0, 6.0)
+        secondVector:Set(-3.0, -4.0, -5.0, -6.0)
+
+        boolean isOpposite = firstVector:HasOppositeDirection(secondVector)
+
+        if isOpposite
+           output "The two vectors have opposite directions." 
+        else
+           output "The two vectors do not have opposite directions."
+        end        
+    end
+end

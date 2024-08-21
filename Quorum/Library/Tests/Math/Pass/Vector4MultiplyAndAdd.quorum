@@ -1,0 +1,35 @@
+use Libraries.Compute.Vector4
+
+class Vector4MultiplyAndAdd 
+    action Main
+        Vector4 vector
+        Vector4 addVector
+
+        vector:Set(4.0, 7.0, 5.0, 6.0)
+        addVector:Set(2.5, 1.5, 2.0, 1.0)
+
+        vector:MultiplyAndAdd(addVector, 2.0)
+
+        number newX = vector:GetX()
+        number newY = vector:GetY()
+        number newZ = vector:GetZ()
+        number newW = vector:GetW()
+
+        output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+        Vector4 scaleVector
+
+        vector:Set(4.0, 7.0, 5.0, 6.0)
+        addVector:Set(2.0, 3.0, 1.0, 1.0)
+        scaleVector:Set(3.0, 1.0, 2.0, 5.0)
+
+        vector:MultiplyAndAdd(addVector, scaleVector)
+
+        newX = vector:GetX()
+        newY = vector:GetY()
+        newZ = vector:GetZ()
+        newW = vector:GetW()
+
+        output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+    end
+end

@@ -82,6 +82,24 @@ class MathTester
         Vector3Limit()
         Vector3Clamp()
         Vector3EqualsAtPrecision()
+        Vector4Add()
+        Vector4Subtract()
+        Vector4Scale()
+        Vector4MultiplyAndAdd()
+        Vector4Length()
+        Vector4Distance()
+        Vector4Normalize()
+        Vector4DotProduct()
+        Vector4IsUnit()
+        Vector4IsZero()
+        Vector4IsOnLine()
+        Vector4IsCollinear()
+        Vector4IsPerpendicular()
+        Vector4HasDirection()
+        Vector4Interpolation()
+        Vector4Limit()
+        Vector4Clamp()
+        Vector4EqualsAtPrecision()
         Matrix3Multiply()
         Matrix3SetToRotation()
         Matrix3Determinant()
@@ -1030,6 +1048,250 @@ class MathTester
         Array<text> results
         File main
         main:SetPath(path + "Vector3EqualsAtPrecision.quorum")
+        files:Add(main)
+        results:Add("The two vectors are equal.")
+        results:Add("The two vectors are equal.")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
+    end
+
+    action Vector4Add
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector4Add.quorum")
+        files:Add(main)
+        results:Add("The new vector is: [11.5, 9.7, 1.7000000000000002, 2.0]")
+        results:Add("The new vector is: [7.6, 17.299999999999997, 2.3, 2.0]")
+        results:Add("The new vector is: [7.5, 9.0, 7.1, 5.0]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
+    end
+
+    action Vector4Subtract
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector4Subtract.quorum")
+        files:Add(main)
+        results:Add("The new vector is: [3.0, 3.0, 3.0, 3.0]")
+        results:Add("The new vector is: [3.0, 3.0, 3.0, 3.0]")
+        results:Add("The new vector is: [1.5, 3.0, 1.1, 3.5]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
+    end
+
+    action Vector4Scale
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector4Scale.quorum")
+        files:Add(main)
+        results:Add("The new vector is: [4.0, 6.0, 8.0, 10.0]")
+        results:Add("The new vector is: [6.0, 12.0, 8.0, 5.0]")
+        results:Add("The new vector is: [6.0, 12.0, 8.0, 5.0]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
+    end
+
+    action Vector4MultiplyAndAdd
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector4MultiplyAndAdd.quorum")
+        files:Add(main)
+        results:Add("The new vector is: [9.0, 10.0, 9.0, 8.0]")
+        results:Add("The new vector is: [10.0, 10.0, 7.0, 11.0]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
+    end
+
+    action Vector4Length
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector4Length.quorum")
+        files:Add(main)
+        results:Add("The length of the vector is 4.0")
+        results:Add("The length of the vector is 4.0")
+        results:Add("The square of the length of the vector is 10.0")
+        results:Add("The square of the length of the vector is 18.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
+    end
+
+    action Vector4Distance
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector4Distance.quorum")
+        files:Add(main)
+        results:Add("The distance is 4.0")
+        results:Add("The distance is 4.0")
+        results:Add("The distance is 4.0")
+        results:Add("The square of the distance is 16.0")
+        results:Add("The square of the distance is 16.0")
+        results:Add("The square of the distance is 16.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
+    end
+
+    action Vector4Normalize
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector4Normalize.quorum")
+        files:Add(main)
+        results:Add("The normalized vector is: [0.3295866182835377, 0.6084676029849927, 0.6422713587063812, 0.3295866182835377]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
+    end
+
+    action Vector4DotProduct
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector4DotProduct.quorum")
+        files:Add(main)
+        results:Add("The dot product is 122.0")
+        results:Add("The dot product is 122.0")
+        results:Add("The dot product is 122.0")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
+    end
+
+    action Vector4IsUnit
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector4IsUnit.quorum")
+        files:Add(main)
+        results:Add("The vector is a unit vector.")
+        //results:Add("The vector is a unit vector.")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
+    end
+
+    action Vector4IsZero
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector4IsZero.quorum")
+        files:Add(main)
+        results:Add("The vector is the zero vector.")
+        results:Add("The vector is the zero vector.")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
+    end
+
+    action Vector4IsOnLine
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector4IsOnLine.quorum")
+        files:Add(main)
+        results:Add("The two vectors are on the same line.")
+        results:Add("The two vectors are on the same line.")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
+    end
+
+    action Vector4IsCollinear
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector4IsCollinear.quorum")
+        files:Add(main)
+        results:Add("The two vectors are collinear in the opposite direction")
+        results:Add("The two vectors are collinear in the opposite direction")
+        results:Add("The two vectors are collinear in the same direction")
+        results:Add("The two vectors are collinear in the same direction")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
+    end
+
+    action Vector4IsPerpendicular
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector4IsPerpendicular.quorum")
+        files:Add(main)
+        results:Add("The two vectors are perpendicular.")
+        results:Add("The two vectors are perpendicular.")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
+    end
+
+    action Vector4HasDirection
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector4HasDirection.quorum")
+        files:Add(main)
+        results:Add("The two vectors have the same direction.")
+        results:Add("The two vectors have opposite directions.")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
+    end
+
+    action Vector4Interpolation
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector4Interpolation.quorum")
+        files:Add(main)
+        results:Add("The new vector is: [1.5, 2.5, 1.0, 1.5]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
+    end
+
+    action Vector4Limit
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector4Limit.quorum")
+        files:Add(main)
+        results:Add("The new vector is: [0.8320502943378437, 0.41602514716892186, 0.8320502943378437, 0.8320502943378437]")
+        results:Add("The new vector is: [0.8320502943378437, 0.41602514716892186, 0.8320502943378437, 0.8320502943378437]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
+    end
+
+    action Vector4Clamp
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector4Clamp.quorum")
+        files:Add(main)
+        results:Add("The new vector is: [0.9486832980505138, 0.4743416490252569, 0.9486832980505138, 0.4743416490252569]")
+        results:Add("The new vector is: [0.9486832980505138, 0.4743416490252569, 0.9486832980505138, 0.4743416490252569]")
+        suite:Test(files, results)
+        suite:TestJavaScript(files, results)
+        suite:TestPython(files, results)
+    end
+
+    action Vector4EqualsAtPrecision
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "Vector4EqualsAtPrecision.quorum")
         files:Add(main)
         results:Add("The two vectors are equal.")
         results:Add("The two vectors are equal.")

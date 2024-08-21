@@ -1,0 +1,23 @@
+use Libraries.Compute.Vector4
+
+class Vector4DotProduct 
+    action Main
+        Vector4 firstVector
+        Vector4 secondVector
+
+        firstVector:Set(3.0, 4.0, 5.0, 6.0)
+        secondVector:Set(5.0, 6.0, 7.0, 8.0)
+
+        number dotProduct = firstVector:DotProduct(secondVector)
+        output "The dot product is " + dotProduct
+
+        Vector4 vector
+        vector:Set(3.0, 4.0, 5.0, 6.0)
+
+        dotProduct = vector:DotProduct(5.0, 6.0, 7.0, 8.0)
+        output "The dot product is " + dotProduct
+
+        dotProduct = vector:DotProduct(3.0, 4.0, 5.0, 6.0, 5.0, 6.0, 7.0, 8.0)
+        output "The dot product is " + dotProduct
+    end
+end

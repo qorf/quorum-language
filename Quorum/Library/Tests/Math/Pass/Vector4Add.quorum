@@ -1,0 +1,43 @@
+use Libraries.Compute.Vector4
+
+class Vector4Add 
+    action Main
+        Vector4 firstVector
+        Vector4 secondVector
+
+        firstVector:Set(3.2, 5.5, 9.0, 1.0)
+        secondVector:Set(8.3, 4.2, -7.3, 1.0)
+
+        firstVector:Add(secondVector)
+
+        number newX = firstVector:GetX()
+        number newY = firstVector:GetY()
+        number newZ = firstVector:GetZ()
+        number newW = firstVector:GetW()
+
+        output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+        Vector4 vector
+        vector:Set(4.3, 8.1, 6.6, 1.0)
+
+        vector:Add(3.3, 9.2, -4.3, 1.0)
+
+        newX = vector:GetX()
+        newY = vector:GetY()
+        newZ = vector:GetZ()
+        newW = vector:GetW()
+
+        output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+        vector:Set(3.5, 5.0, 3.1, 1.0)
+
+        vector:Add(4.0)
+
+        newX = vector:GetX()
+        newY = vector:GetY()
+        newZ = vector:GetZ()
+        newW = vector:GetW()
+
+        output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+    end
+end

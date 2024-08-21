@@ -1,0 +1,28 @@
+use Libraries.Compute.Vector4
+
+class Vector4Limit 
+    action Main
+        Vector4 vector
+        vector:Set(2.0, 1.0, 2.0, 2.0)
+
+        vector:Limit(1.5)
+
+        number newX = vector:GetX()
+        number newY = vector:GetY()
+        number newZ = vector:GetZ()
+        number newW = vector:GetW()
+
+        output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+        vector:Set(2.0, 1.0, 2.0, 2.0)
+
+        vector:LimitSquared(2.25)
+
+        newX = vector:GetX()
+        newY = vector:GetY()
+        newZ = vector:GetZ()
+        newW = vector:GetW()
+
+        output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"      
+    end
+end

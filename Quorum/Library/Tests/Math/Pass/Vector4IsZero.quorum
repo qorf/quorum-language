@@ -1,0 +1,34 @@
+use Libraries.Compute.Vector4
+
+class Vector4IsZero 
+    action Main
+        Vector4 firstVector
+        Vector4 secondVector
+
+        firstVector:Set(5.0, 6.0, 7.0, 8.0)
+        secondVector:Set(5.0, 6.0, 7.0, 8.0)
+
+        firstVector:Subtract(secondVector)
+
+        boolean isZero = firstVector:IsZero()
+
+        if isZero
+            output "The vector is the zero vector."
+        else
+            output "The vector is not the zero vector."
+        end
+
+        firstVector:Set(5.0, 6.0, 7.0, 8.0)
+        secondVector:Set(5.0, 6.0, 7.0, 8.0)
+
+        firstVector:Subtract(secondVector)
+
+        isZero = firstVector:IsZero(0.00001)
+
+        if isZero
+            output "The vector is the zero vector."
+        else
+            output "The vector is not the zero vector."
+        end        
+    end
+end

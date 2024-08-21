@@ -1,0 +1,30 @@
+use Libraries.Compute.Vector4
+
+class Vector4IsOnLine 
+    action Main
+        Vector4 firstVector
+        Vector4 secondVector
+
+        firstVector:Set(1.0, 2.0, 3.0, 4.0)
+        secondVector:Set(-2.0, -4.0, -6.0, -8.0)
+
+        boolean onLine = firstVector:IsOnLine(secondVector, 0.00001)
+
+        if onLine
+            output "The two vectors are on the same line."
+        else
+            output "The two vectors are not on the same line."
+        end
+
+        firstVector:Set(1.0, 2.0, 3.0, 4.0)
+        secondVector:Set(-2.0, -4.0, -6.0, -8.0)
+
+        onLine = firstVector:IsOnLine(secondVector)
+
+        if onLine
+            output "The two vectors are on the same line."
+        else
+            output "The two vectors are not on the same line."
+        end        
+    end
+end

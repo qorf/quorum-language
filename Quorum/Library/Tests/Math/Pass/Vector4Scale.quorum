@@ -1,0 +1,42 @@
+use Libraries.Compute.Vector4
+
+class Vector3Scale 
+    action Main
+        Vector4 vector
+        vector:Set(2.0, 3.0, 4.0, 5.0)
+
+        vector:Scale(2.0)
+
+        number newX = vector:GetX()
+        number newY = vector:GetY()
+        number newZ = vector:GetZ()
+        number newW = vector:GetW()
+
+        output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+        Vector4 scaleVector
+
+        vector:Set(2.0, 3.0, 4.0, 5.0)
+        scaleVector:Set(3.0, 4.0, 2.0, 1.0)
+
+        vector:Scale(scaleVector)
+
+        newX = vector:GetX()
+        newY = vector:GetY()
+        newZ = vector:GetZ()
+        newW = vector:GetW()
+
+        output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+        vector:Set(2.0, 3.0, 4.0, 5.0)
+
+        vector:Scale(3.0, 4.0, 2.0, 1.0)
+
+        newX = vector:GetX()
+        newY = vector:GetY()
+        newZ = vector:GetZ()
+        newW = vector:GetW()
+
+        output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+    end
+end

@@ -1,0 +1,26 @@
+use Libraries.Compute.Vector4
+
+class Vector4IsUnit 
+    action Main
+        Vector4 vector
+        vector:Set(0.0, 1.0, 0.0, 0.0)
+
+        boolean isUnit = vector:IsUnit()
+
+        if isUnit
+            output "The vector is a unit vector."
+        else
+            output "The vector is not a unit vector."
+        end
+
+        vector:Set(0.0, 1.0, 0.0, 0.0)
+
+        isUnit = vector:IsUnit(0.00001)
+
+        if isUnit
+            output "The vector is a unit vector."
+        else
+            output "The vector is not a unit vector."
+        end
+    end
+end

@@ -1,0 +1,22 @@
+use Libraries.Compute.Vector4
+
+class Vector4Length 
+    action Main
+        Vector4 vector
+        vector:Set(2.0, 2.0, 2.0, 2.0)
+
+        number length = vector:Length()
+        output "The length of the vector is " + length
+
+        length = vector:Length(2.0, 2.0, 2.0, 2.0)
+        output "The length of the vector is " + length
+
+        number lengthSquared = vector:LengthSquared(1.0, 2.0, 2.0, 1.0)
+        output "The square of the length of the vector is " + lengthSquared
+
+        vector:Set(2.0, 1.0, 2.0, 3.0)
+
+        lengthSquared = vector:LengthSquared()
+        output "The square of the length of the vector is " + lengthSquared        
+    end
+end

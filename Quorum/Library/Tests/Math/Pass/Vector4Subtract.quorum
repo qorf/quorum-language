@@ -1,0 +1,44 @@
+use Libraries.Compute.Vector4
+
+class Vector4Subtract 
+    action Main
+        Vector4 firstVector
+        Vector4 secondVector
+
+        firstVector:Set(9.0, 8.0, 7.0, 6.0)
+        secondVector:Set(6.0, 5.0, 4.0, 3.0)
+
+        firstVector:Subtract(secondVector)
+
+        number newX = firstVector:GetX()
+        number newY = firstVector:GetY()
+        number newZ = firstVector:GetZ()
+        number newW = firstVector:GetW()
+
+        output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+        Vector4 vector
+
+        vector:Set(9.0, 8.0, 7.0, 6.0)
+
+        vector:Subtract(6.0, 5.0, 4.0, 3.0)
+
+        newX = vector:GetX()
+        newY = vector:GetY()
+        newZ = vector:GetZ()
+        newW = vector:GetW()
+
+        output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+        vector:Set(3.5, 5.0, 3.1, 5.5)
+
+        vector:Subtract(2.0)
+
+        newX = vector:GetX()
+        newY = vector:GetY()
+        newZ = vector:GetZ()
+        newW = vector:GetW()
+
+        output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+    end
+end

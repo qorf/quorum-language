@@ -1,0 +1,36 @@
+use Libraries.Compute.Vector4
+
+class Vector4Distance 
+    action Main
+        Vector4 vector
+        number distance = vector:Distance(2.0, 2.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0)
+        output "The distance is " + distance
+
+        Vector4 otherVector
+
+        vector:Set(4.0, 3.0, 3.0, 3.0)
+        otherVector:Set(2.0, 5.0, 1.0, 1.0)
+
+        distance = vector:Distance(otherVector)
+        output "The distance is " + distance
+
+        vector:Set(4.0, 3.0, 3.0, 3.0)
+
+        distance = vector:Distance(2.0, 5.0, 1.0, 1.0)
+        output "The distance is " + distance
+
+        number distanceSquared = vector:DistanceSquared(2.0, 2.0, 2.0, 2.0, 4.0, 4.0, 4.0, 4.0)
+        output "The square of the distance is " + distanceSquared
+
+        vector:Set(2.0, 2.0, 2.0, 2.0)
+        otherVector:Set(0.0, 0.0, 0.0, 0.0)
+
+        distanceSquared = vector:DistanceSquared(otherVector)
+        output "The square of the distance is " + distanceSquared
+
+        vector:Set(2.0, 2.0, 2.0, 2.0)
+
+        distanceSquared = vector:DistanceSquared(4.0, 0.0, 4.0, 0.0)
+        output "The square of the distance is " + distanceSquared
+    end
+end

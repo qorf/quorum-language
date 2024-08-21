@@ -1,0 +1,30 @@
+use Libraries.Compute.Vector4
+
+class Vector4IsPerpendicular 
+    action Main
+        Vector4 firstVector
+        Vector4 secondVector
+
+        firstVector:Set(1.0, 0.0, 0.0, 0.0)
+        secondVector:Set(0.0, 1.0, 0.0, 0.0)
+
+        boolean isPerpendicular = firstVector:IsPerpendicular(secondVector)
+
+        if isPerpendicular
+            output "The two vectors are perpendicular."
+        else
+            output "The two vectors are not perpendicular."
+        end
+
+        firstVector:Set(1.0, 0.0, 0.0, 0.0)
+        secondVector:Set(0.0, 1.0, 0.0, 0.0)
+
+        isPerpendicular = firstVector:IsPerpendicular(secondVector, 0.00001)
+
+        if isPerpendicular
+            output "The two vectors are perpendicular."
+        else
+            output "The two vectors are not perpendicular."
+        end
+    end
+end
