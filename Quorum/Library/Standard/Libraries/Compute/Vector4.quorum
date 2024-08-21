@@ -1786,65 +1786,6 @@ class Vector4
     end
 
     /*
-    This action performs a spherical interpolation between the calling
-    vector and the passed target vector by alpha, which is between 0 and 1,
-    inclusive. This changes the calling vector to the result of the spherical
-    linear interpolation.
-
-    Attribute: Author Andreas Stefik
-
-    Attribute: Parameter target The target vector
-    Attribute: Parameter alpha The alpha value
-
-    Attribute: Returns The calling vector after spherical linear interpolation
-
-    Attribute: Example
-
-    use Libraries.Compute.Vector4
-
-    Vector4 vector
-    Vector4 target
-
-    vector:Set(0.4, 0.3, 0.2)
-    target:Set(0.1, 0.2, 0.3)
-    alpha = 0.5
-
-    vector:SphericalLinearInterpolation(target, alpha)
-
-    number newX = vector:GetX()
-    number newY = vector:GetY()
-    number newZ = vector:GetZ()
-
-    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + "]"
-
-    */
-//    action SphericalLinearInterpolation(Vector4 target, number alpha) returns Vector4
-//        constant number dotProduct = DotProduct(target)
-//
-//        if dotProduct > 0.9995 or dotProduct < -0.9995
-//            return LinearInterpolation(target, alpha)
-//        end
-//
-//        constant number theta0 = math:InverseCosine(dotProduct)
-//        constant number theta = theta0 * alpha
-//
-//        constant number st = math:Sine(theta)
-//        constant number tx = target:GetX() - x * dotProduct
-//        constant number ty = target:GetY() - y * dotProduct
-//        constant number tz = target:GetZ() - z * dotProduct
-//        constant number l2 = tx * tx + ty * ty + tz * tz
-//        number dl = 0
-//
-//        if l2 < 0.0001
-//            dl = st * 1.0
-//        else
-//            dl = st * (1.0 / math:SquareRoot(l2))
-//        end
-//
-//        return Scale(math:Cosine(theta)):Add(tx * dl, ty * dl, tz * dl):Normalize()
-//    end
-
-    /*
     This action limits the length of the vector to the passed limit value. This
     changes the calling vector to have a new length if its old length was
     greater than the passed limit.
@@ -1860,7 +1801,7 @@ class Vector4
     use Libraries.Compute.Vector4
 
     Vector4 vector
-    vector:Set(2.0, 1.0, 2.0)
+    vector:Set(2.0, 1.0, 2.0, 1.0)
     
     vector:Limit(1.5)
     
@@ -1893,7 +1834,7 @@ class Vector4
     use Libraries.Compute.Vector4
 
     Vector4 vector
-    vector:Set(2.0, 1.0, 2.0)
+    vector:Set(2.0, 1.0, 2.0, 1.0)
     
     vector:LimitSquared(2.25)
     
@@ -2006,6 +1947,9 @@ class Vector4
         if math:AbsoluteValue(other:GetZ() - z) > epsilon
             return false
         end
+        if math:AbsoluteValue(other:GetW() - w) > epsilon
+            return false
+        end
         return true
     end
 
@@ -2086,5 +2030,4 @@ class Vector4
         w = 0
         return me
     end
-
 end
