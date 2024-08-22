@@ -8,7 +8,7 @@ plugins {
 group 'plugins.quorum'
 version '10.0'
 
-project.ext.lwjglVersion = "3.3.4"
+project.ext.lwjglVersion = "3.3.1"
 project.ext.lwjglMac = "natives-macos"
 project.ext.lwjglMacArm = "natives-macos-arm64"
 project.ext.lwjglWindows = "natives-windows"
@@ -90,6 +90,7 @@ dependencies {
     runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglMac"
     runtimeOnly "org.lwjgl:lwjgl-opengles::$lwjglMac"
     runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglMac"
+    runtimeOnly "org.lwjgl:lwjgl-assimp::$lwjglMac"
 
     runtimeOnly "org.lwjgl:lwjgl::$lwjglMacArm"
     runtimeOnly "org.lwjgl:lwjgl-bgfx::$lwjglMacArm"
@@ -99,6 +100,7 @@ dependencies {
     runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglMacArm"
     runtimeOnly "org.lwjgl:lwjgl-opengles::$lwjglMacArm"
     runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglMacArm"
+    runtimeOnly "org.lwjgl:lwjgl-assimp::$lwjglMacArm"
 
     //lwjglWindows64
     runtimeOnly "org.lwjgl:lwjgl::$lwjglWindows"
@@ -109,16 +111,7 @@ dependencies {
     runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglWindows"
     runtimeOnly "org.lwjgl:lwjgl-opengles::$lwjglWindows"
     runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglWindows"
-
-    //lwjglWindows32 - should we drop support this release?
-//    runtimeOnly "org.lwjgl:lwjgl::$lwjglWindows32"
-//    runtimeOnly "org.lwjgl:lwjgl-bgfx::$lwjglWindows32"
-//    runtimeOnly "org.lwjgl:lwjgl-glfw::$lwjglWindows32"
-//    runtimeOnly "org.lwjgl:lwjgl-nfd::$lwjglWindows32"
-//    runtimeOnly "org.lwjgl:lwjgl-openal::$lwjglWindows32"
-//    runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglWindows32"
-//    runtimeOnly "org.lwjgl:lwjgl-opengles::$lwjglWindows32"
-//    runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglWindows32"
+    runtimeOnly "org.lwjgl:lwjgl-assimp::$lwjglWindows"
 
     //LEGO EV3
     implementation files('../RobotPlugin/LegoPlugins/libraries/ev3classes.jar')
