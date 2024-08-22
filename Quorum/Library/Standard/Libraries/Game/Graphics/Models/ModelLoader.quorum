@@ -1,0 +1,24 @@
+package Libraries.Game.Graphics.Models
+use Libraries.System.File
+class ModelLoader
+    action Load(File path) returns ModelData
+        File mom = path:GetParentDirectory()
+        return Load(path, mom)
+    end
+    system action Load(File path, File textures) returns ModelData
+    
+    action Load(text path) returns ModelData
+File filePath
+filePath:SetPath(path)
+File mom = filePath:GetParentDirectory()
+        return Load(filePath, mom)
+end
+    
+    action Load(text path, text textures) returns ModelData
+        File filePath
+        File texturePath
+        filePath:SetPath(path)
+        texturePath:SetPath(textures)
+        return Load(filePath, texturePath)
+end
+end

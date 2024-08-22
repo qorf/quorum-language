@@ -1,0 +1,15 @@
+package Libraries.Game.Graphics.Models
+
+use Libraries.Containers.Number32BitArray
+class Vertices
+    Number32BitArray array
+    
+    action GetArray returns Number32BitArray
+        return array
+    end
+
+    action SetArray(Number32BitArray array)
+        me:array = array
+    end
+
+end

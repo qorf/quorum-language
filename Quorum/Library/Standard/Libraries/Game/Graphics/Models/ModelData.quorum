@@ -1,0 +1,32 @@
+package Libraries.Game.Graphics.Models
+
+use Libraries.Containers.Array
+class ModelData
+    Array<Material> materials
+    Array<MeshData> meshes
+    text ID = undefined
+    action GetMaterials returns Array<Material>
+        return materials
+    end
+
+    action SetMaterials(Array<Material> materials)
+        me:materials = materials
+    end
+
+    action GetID returns text
+        return ID
+    end
+
+    action SetID(text ID)
+        me:ID = ID
+    end
+
+    action GetMeshes returns Array<MeshData>
+        return meshes
+    end
+
+    action SetMeshes(Array<MeshData> meshes)
+        me:meshes = meshes
+    end
+
+end

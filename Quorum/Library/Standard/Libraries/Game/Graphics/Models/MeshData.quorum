@@ -1,0 +1,40 @@
+package Libraries.Game.Graphics.Models
+
+class MeshData
+    integer materialIndex = -1
+    Vertices vertices = undefined
+    TextureCoordinates textureCoordinates = undefined
+    Indices indices = undefined
+    action GetMaterialIndex returns integer
+        return materialIndex
+    end
+
+    action SetMaterialIndex(integer materialIndex)
+        me:materialIndex = materialIndex
+    end
+
+    action GetVertices returns Vertices
+        return vertices
+    end
+
+    action SetVertices(Vertices vertices)
+        me:vertices = vertices
+    end
+
+    action GetTextureCoordinates returns TextureCoordinates
+        return textureCoordinates
+    end
+
+    action SetTextureCoordinates(TextureCoordinates textureCoordinates)
+        me:textureCoordinates = textureCoordinates
+    end
+
+    action GetIndices returns Indices
+        return indices
+    end
+
+    action SetIndices(Indices indices)
+        me:indices = indices
+    end
+
+end

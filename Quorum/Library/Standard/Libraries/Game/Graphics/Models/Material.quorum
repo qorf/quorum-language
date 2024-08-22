@@ -1,0 +1,23 @@
+package Libraries.Game.Graphics.Models
+use Libraries.Compute.Vector4
+
+class Material
+    text path = ""
+    Vector4 diffuse
+    action GetPath returns text
+        return path
+    end
+
+    action SetPath(text path)
+        me:path = path
+    end
+
+    action GetDiffuse returns Vector4
+        return diffuse
+    end
+
+    action SetDiffuse(Vector4 diffuse)
+        me:diffuse = diffuse
+    end
+
+end
