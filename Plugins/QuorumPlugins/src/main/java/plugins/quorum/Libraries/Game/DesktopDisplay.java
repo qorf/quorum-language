@@ -6,6 +6,8 @@
 package plugins.quorum.Libraries.Game;
 
 import java.nio.ByteBuffer;
+
+import org.lwjgl.system.MemoryUtil;
 import quorum.Libraries.Game.ScreenResolution_;
 import quorum.Libraries.Containers.Array_;
 
@@ -193,7 +195,12 @@ public class DesktopDisplay {
     }
     
     public void SetClipboard(String string) {
-        GLFW.glfwSetClipboardString(window, string);
+        ByteBuffer buffer = MemoryUtil.memUTF8(string);
+        try {
+            GLFW.glfwSetClipboardString(window, buffer);
+        } finally {
+            MemoryUtil.memFree(buffer);
+        }
     }
     
     public void SetupDisplay() 
