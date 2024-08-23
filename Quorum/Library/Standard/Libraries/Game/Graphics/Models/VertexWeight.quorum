@@ -1,0 +1,30 @@
+package Libraries.Game.Graphics.Models
+class VertexWeight
+    integer boneID = -1
+    integer vertexID = -1
+    number weight = 0.0
+    action GetBoneID returns integer
+        return boneID
+    end
+
+    action SetBoneID(integer boneID)
+        me:boneID = boneID
+    end
+
+    action GetVertexID returns integer
+        return vertexID
+    end
+
+    action SetVertexID(integer vertexID)
+        me:vertexID = vertexID
+    end
+
+    action GetWeight returns number
+        return weight
+    end
+
+    action SetWeight(number weight)
+        me:weight = weight
+    end
+
+end

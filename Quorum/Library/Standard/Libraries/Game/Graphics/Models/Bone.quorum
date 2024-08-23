@@ -1,0 +1,31 @@
+package Libraries.Game.Graphics.Models
+use Libraries.Compute.Matrix4
+class Bone
+    integer boneID = -1
+    text name = ""
+    Matrix4 offset = undefined
+    action GetBoneID returns integer
+        return boneID
+    end
+
+    action SetBoneID(integer boneID)
+        me:boneID = boneID
+    end
+
+    action GetOffset returns Matrix4
+        return offset
+    end
+
+    action SetOffset(Matrix4 offset)
+        me:offset = offset
+    end
+
+    action GetName returns text
+        return name
+    end
+
+    action SetName(text name)
+        me:name = name
+    end
+
+end

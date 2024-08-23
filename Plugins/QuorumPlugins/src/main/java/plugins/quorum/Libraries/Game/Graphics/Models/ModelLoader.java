@@ -11,22 +11,24 @@ import quorum.Libraries.System.File_;
 
 import java.io.File;
 import java.nio.IntBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.lwjgl.assimp.Assimp.*; //for the flags, but you could do this a different way too
 
 public class ModelLoader {
     public java.lang.Object me_ = null;
 
-    public ModelData_ Load(File_ filePath, File_ texturesPath) {
+    public ModelData_ Load(File_ filePath, File_ texturesPath, boolean animation) {
         String path = filePath.GetAbsolutePath();
         String textures = texturesPath.GetAbsolutePath();
-        return Load(path, textures);
+        return Load(path, textures,false);
     }
 
-    public ModelData_ Load(String path, String textures) {
+    public ModelData_ Load(String path, String textures, boolean animation) {
         int flags = aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices |
-                aiProcess_Triangulate | aiProcess_FixInfacingNormals | aiProcess_CalcTangentSpace |
-                aiProcess_PreTransformVertices;
+                aiProcess_Triangulate | aiProcess_FixInfacingNormals | aiProcess_CalcTangentSpace | aiProcess_LimitBoneWeights |
+                (animation ? 0 : aiProcess_PreTransformVertices);
         AIScene aiScene = aiImportFile(path, flags);
         if (aiScene == null) {
             //throw new RuntimeException("Error loading model [modelPath: " + modelPath + ", texturesDir:" + texturesDir + "]");
@@ -58,6 +60,9 @@ public class ModelLoader {
         Number32BitArray_ vertices = ProcessVertices(aiMesh);
         Integer32BitArray_ indices = ProcessIndices(aiMesh);
         Number32BitArray_ coordinates = ProcessTextureCoordinates(aiMesh);
+        Number32BitArray_ normals = ProcessNormals(aiMesh);
+        Number32BitArray_ tangents = ProcessTangents(aiMesh, normals.GetSize());
+        Number32BitArray_ bitangents = ProcessBiTangents(aiMesh, normals.GetSize());
 
         //if there are no textures, we need empty slots, or at least
         //the textbook says we do.
@@ -72,6 +77,9 @@ public class ModelLoader {
         mesh.SetVertices(vertices);
         mesh.SetIndices(indices);
         mesh.SetTextureCoordinates(coordinates);
+        mesh.SetNormals(normals);
+        mesh.SetTangents(tangents);
+        mesh.SetBitangents(bitangents);
         return mesh;
     }
 
@@ -132,6 +140,67 @@ public class ModelLoader {
         return array;
     }
 
+    private static Number32BitArray_ ProcessTangents(AIMesh aiMesh, int numNormals) {
+        Number32BitArray_ array = new Number32BitArray();
+        AIVector3D.Buffer aiTangents = aiMesh.mTangents();
+        if(aiTangents != null) {
+            int size = aiTangents.remaining() * 3;
+            array.SetSize(size);
+        } else {
+            array.SetSize(numNormals);
+            return array;
+        }
+        int i = 0;
+        while (aiTangents.remaining() > 0) { //can't be null at this point.
+            AIVector3D aiTangent = aiTangents.get();
+            array.Set(i, aiTangent.x());
+            array.Set(i + 1, aiTangent.y());
+            array.Set(i + 2, aiTangent.z());
+        }
+
+        return array;
+    }
+
+    private static Number32BitArray_ ProcessBiTangents(AIMesh aiMesh, int numNormals) {
+        Number32BitArray_ array = new Number32BitArray();
+        AIVector3D.Buffer aiBitangents = aiMesh.mBitangents();
+        if(aiBitangents != null) {
+            int size = aiBitangents.remaining() * 3;
+            array.SetSize(size);
+        } else {
+            array.SetSize(numNormals);
+            return array;
+        }
+        int i = 0;
+        while (aiBitangents.remaining() > 0) { //can't be null at this point.
+            AIVector3D aiBitangent = aiBitangents.get();
+            array.Set(i, aiBitangent.x());
+            array.Set(i + 1, aiBitangent.y());
+            array.Set(i + 2, aiBitangent.z());
+        }
+
+        return array;
+    }
+
+    private static Number32BitArray_ ProcessNormals(AIMesh aiMesh) {
+        Number32BitArray_ array = new Number32BitArray();
+        AIVector3D.Buffer aiNormals = aiMesh.mNormals();
+        if(aiNormals == null) {
+            return array;
+        }
+        int size = aiNormals.remaining() * 3;
+        array.SetSize(size);
+        int i = 0;
+        while (aiNormals.remaining() > 0) {
+            AIVector3D aiNormal = aiNormals.get();
+            array.Set(i, aiNormal.x());
+            array.Set(i + 1, aiNormal.y());
+            array.Set(i + 2, aiNormal.z());
+            i = i + 3;
+        }
+        return array;
+    }
+
     private static Material_ ProcessMaterial(AIMaterial aiMaterial, String texturesDir) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             AIColor4D colour = AIColor4D.create();
@@ -151,8 +220,41 @@ public class ModelLoader {
                 diffuse.Set(0.0, 0.0, 0.0, 0.0);
             }
 
+            AIString aiNormalMapPath = AIString.calloc(stack);
+            Assimp.aiGetMaterialTexture(aiMaterial, aiTextureType_NORMALS, 0, aiNormalMapPath, (IntBuffer) null,
+                    null, null, null, null, null);
+            String normalMapPath = aiNormalMapPath.dataString();
+            if (normalMapPath != null && normalMapPath.length() > 0) {
+                normalMapPath = texturesDir + File.separator + new File(normalMapPath).getName();
+            }
+
+            AIString aiMetallicRoughnessPath = AIString.calloc(stack);
+            Assimp.aiGetMaterialTexture(aiMaterial, AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLICROUGHNESS_TEXTURE, 0, aiMetallicRoughnessPath, (IntBuffer) null,
+                    null, null, null, null, null);
+            String metallicRoughnessPath = aiMetallicRoughnessPath.dataString();
+            if (metallicRoughnessPath != null && metallicRoughnessPath.length() > 0) {
+                metallicRoughnessPath = texturesDir + File.separator + new File(metallicRoughnessPath).getName();
+            }
+
+            float[] metallicArr = new float[]{0.0f};
+            int[] pMax = new int[]{1};
+            result = aiGetMaterialFloatArray(aiMaterial, AI_MATKEY_METALLIC_FACTOR, aiTextureType_NONE, 0, metallicArr, pMax);
+            if (result != aiReturn_SUCCESS) {
+                metallicArr[0] = 1.0f;
+            }
+
+            float[] roughnessArr = new float[]{0.0f};
+            result = aiGetMaterialFloatArray(aiMaterial, AI_MATKEY_ROUGHNESS_FACTOR, aiTextureType_NONE, 0, roughnessArr, pMax);
+            if (result != aiReturn_SUCCESS) {
+                roughnessArr[0] = 1.0f;
+            }
+
             Material_ material = new Material();
             material.SetDiffuse(diffuse);
+            material.SetNormalMapPath(normalMapPath);
+            material.SetMetalRoughMap(metallicRoughnessPath);
+            material.SetMettalic(metallicArr[0]);
+            material.SetRoughness(roughnessArr[0]);
 
             return material;
         }

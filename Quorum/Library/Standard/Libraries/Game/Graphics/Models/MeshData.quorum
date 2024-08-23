@@ -5,6 +5,9 @@ use Libraries.Containers.Integer32BitArray
 class MeshData
     integer materialIndex = -1
     Number32BitArray vertices = undefined
+Number32BitArray normals = undefined
+Number32BitArray tangents = undefined
+Number32BitArray bitangents = undefined
     Number32BitArray textureCoordinates = undefined
     Integer32BitArray indices = undefined
     action GetMaterialIndex returns integer
@@ -39,4 +42,27 @@ class MeshData
         me:indices = indices
     end
 
+    action GetNormals returns Number32BitArray
+        return normals
+    end
+
+    action SetNormals(Number32BitArray normals)
+        me:normals = normals
+    end
+
+    action GetTangents returns Number32BitArray
+        return tangents
+    end
+
+    action SetTangents(Number32BitArray tangents)
+        me:tangents = tangents
+    end
+
+    action GetBitangents returns Number32BitArray
+        return bitangents
+    end
+
+    action SetBitangents(Number32BitArray bitangents)
+        me:bitangents = bitangents
+    end
 end

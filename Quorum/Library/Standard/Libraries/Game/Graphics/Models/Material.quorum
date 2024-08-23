@@ -3,7 +3,11 @@ use Libraries.Compute.Vector4
 
 class Material
     text path = ""
+    text normalMapPath = ""
+    text metalRoughMap = ""
     Vector4 diffuse
+    number roughness = 0.0
+    number mettalic = 0.0
     action GetPath returns text
         return path
     end
@@ -18,6 +22,38 @@ class Material
 
     action SetDiffuse(Vector4 diffuse)
         me:diffuse = diffuse
+    end
+
+    action GetMetalRoughMap returns text
+        return metalRoughMap
+    end
+
+    action SetMetalRoughMap(text metalRoughMap)
+        me:metalRoughMap = metalRoughMap
+    end
+
+    action GetRoughness returns number
+        return roughness
+    end
+
+    action SetRoughness(number roughness)
+        me:roughness = roughness
+    end
+
+    action GetMettalic returns number
+        return mettalic
+    end
+
+    action SetMettalic(number mettalic)
+        me:mettalic = mettalic
+    end
+
+    action GetNormalMapPath returns text
+        return normalMapPath
+    end
+
+    action SetNormalMapPath(text normalMapPath)
+        me:normalMapPath = normalMapPath
     end
 
 end
