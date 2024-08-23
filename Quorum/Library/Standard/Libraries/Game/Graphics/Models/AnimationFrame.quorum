@@ -1,12 +1,14 @@
 package Libraries.Game.Graphics.Models
 use Libraries.Compute.Matrix4
+use Libraries.Containers.Array
 class AnimationFrame
-    Matrix4 joints = undefined
-    action GetJoints returns Matrix4
+    Array<Matrix4> joints
+
+    action GetJoints returns Array<Matrix4>
         return joints
     end
 
-    action SetJoints(Matrix4 joints)
+    action SetJoints(Array<Matrix4> joints)
         me:joints = joints
     end
 end

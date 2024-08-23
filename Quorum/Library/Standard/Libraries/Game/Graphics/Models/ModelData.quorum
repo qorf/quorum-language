@@ -4,6 +4,7 @@ use Libraries.Containers.Array
 class ModelData
     Array<Material> materials
     Array<MeshData> meshes
+    Animations animations = undefined
     text ID = undefined
     action GetMaterials returns Array<Material>
         return materials
@@ -27,6 +28,14 @@ class ModelData
 
     action SetMeshes(Array<MeshData> meshes)
         me:meshes = meshes
+    end
+
+    action GetAnimations returns Animations
+        return animations
+    end
+
+    action SetAnimations(Animations animations)
+        me:animations = animations
     end
 
 end

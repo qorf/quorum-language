@@ -1,0 +1,40 @@
+package Libraries.Game.Graphics.Models
+use Libraries.Compute.Matrix4
+use Libraries.Containers.Array
+class AnimationNode
+    Array<AnimationNode> children = undefined
+    AnimationNode mom = undefined
+    text name = ""
+    Matrix4 nodeTransform = undefined
+    action GetChildren returns Array<AnimationNode>
+        return children
+    end
+
+    action SetChildren(Array<AnimationNode> children)
+        me:children = children
+    end
+
+    action GetParent returns AnimationNode
+        return mom
+    end
+
+    action SetParent(AnimationNode mom)
+        me:mom = mom
+    end
+
+    action GetName returns text
+        return name
+    end
+
+    action SetName(text name)
+        me:name = name
+    end
+
+    action GetNodeTransform returns Matrix4
+        return nodeTransform
+    end
+
+    action SetNodeTransform(Matrix4 nodeTransform)
+        me:nodeTransform = nodeTransform
+    end
+end

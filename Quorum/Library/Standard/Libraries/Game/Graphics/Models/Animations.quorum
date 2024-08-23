@@ -1,7 +1,8 @@
 package Libraries.Game.Graphics.Models
 use Libraries.Containers.Array
 class Animations
-    Array<Animation> animations = undefined
+    Array<Animation> animations
+    Array<AnimationMeshData> animationMeshData
     action HasAnimations returns boolean
         if animations = undefined or animations:IsEmpty()
             return false
@@ -15,6 +16,14 @@ class Animations
 
     action SetAnimations(Array<Animation> animations)
         me:animations = animations
+    end
+
+    action GetAnimationMeshData returns Array<AnimationMeshData>
+        return animationMeshData
+    end
+
+    action SetAnimationMeshData(Array<AnimationMeshData> animationMeshData)
+        me:animationMeshData = animationMeshData
     end
 
 end

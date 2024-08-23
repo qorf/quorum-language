@@ -1,23 +1,30 @@
 package plugins.quorum.Libraries.Game.Graphics.Models;
 
+import android.renderscript.Matrix4f;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.assimp.*;
 import org.lwjgl.system.MemoryStack;
-import quorum.Libraries.Compute.Vector4;
-import quorum.Libraries.Compute.Vector4_;
+import quorum.Libraries.Compute.*;
 import quorum.Libraries.Containers.*;
 import quorum.Libraries.Game.Graphics.Models.*;
+import quorum.Libraries.Language.Object_;
 import quorum.Libraries.System.File_;
 
 import java.io.File;
+import java.lang.Math;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import static org.lwjgl.assimp.Assimp.*; //for the flags, but you could do this a different way too
 
 public class ModelLoader {
     public java.lang.Object me_ = null;
+    public static final int MAX_WEIGHTS = 4;
+    private static final int DEFAULT_MAX_JOINTS_MATRICES_LISTS = 100;
 
     public ModelData_ Load(File_ filePath, File_ texturesPath, boolean animation) {
         String path = filePath.GetAbsolutePath();
@@ -52,8 +59,256 @@ public class ModelLoader {
             meshes.Add(mesh);
         }
 
+        int numAnimations = aiScene.mNumAnimations();
+        if(animation && numAnimations > 0) {
+            Animations_ animations = new Animations();
+            Array_ animMeshDataList = animations.GetAnimationMeshData();
+            List<Bone_> boneList = new ArrayList<>();
+            for (int i = 0; i < numMeshes; i++) {
+                AIMesh aiMesh = AIMesh.create(aiMeshes.get(i));
+                AnimationMeshData_ animMeshData = ProcessBones(aiMesh, boneList);
+                animMeshDataList.Add(animMeshData);
+            }
+
+            AnimationNode_ rootNode = BuildNodesTree(aiScene.mRootNode(), null);
+            Matrix4_ globalInverseTransformation = ToMatrix(aiScene.mRootNode().mTransformation()).Inverse();
+            ProcessAnimations(aiScene, boneList, rootNode, globalInverseTransformation, animations);
+            data.SetAnimations(animations);
+        }
+
         aiReleaseImport(aiScene);
         return data;
+    }
+
+    private static void ProcessAnimations(AIScene aiScene, List<Bone_> boneList,
+                                          AnimationNode_ rootNode, Matrix4_ globalInverseTransformation,
+                                          Animations_ animations) {
+        Array_ animationsTopLevelArray = animations.GetAnimations();
+
+        int maxJointsMatricesLists = DEFAULT_MAX_JOINTS_MATRICES_LISTS;//temporary
+        // Process all animations
+        int numAnimations = aiScene.mNumAnimations();
+        PointerBuffer aiAnimations = aiScene.mAnimations();
+        for (int i = 0; i < numAnimations; i++) {
+            AIAnimation aiAnimation = AIAnimation.create(aiAnimations.get(i));
+            int maxFrames = CalculateAnimationMaxFrames(aiAnimation);
+            float frameMillis = (float) (aiAnimation.mDuration() / aiAnimation.mTicksPerSecond());
+
+            Animation_ animation = new Animation();
+            Array_ frames = animation.GetFrames();
+            animation.SetName(aiAnimation.mName().dataString());
+            animation.SetMilliseconds(frameMillis);
+            animationsTopLevelArray.Add(animation);
+
+            for (int j = 0; j < maxFrames; j++) {
+                Matrix4f[] jointMatrices = new Matrix4f[maxJointsMatricesLists];
+                AnimationFrame_ frame = new AnimationFrame();
+                Array_ joints = frame.GetJoints();
+                joints.SetSize(maxJointsMatricesLists);
+                for(int k = 0; k < joints.GetSize(); k++) {
+                    Matrix4_ identity = new Matrix4();
+                    identity.IdentityMatrix();
+                    joints.Set(k, identity);
+                }
+                BuildFrameMatrices(aiAnimation, boneList, frame, j, rootNode,
+                        rootNode.GetNodeTransform(), globalInverseTransformation);
+                frames.Add(frame);
+            }
+        }
+    }
+
+
+
+    private static void BuildFrameMatrices(AIAnimation aiAnimation, List<Bone_> boneList, AnimationFrame_ animatedFrame,
+                                           int frame, AnimationNode_ node, Matrix4_ parentTransformation, Matrix4_ globalInverseTransform) {
+        String nodeName = node.GetName();
+        AINodeAnim aiNodeAnim = FindAIAnimNode(aiAnimation, nodeName);
+        Matrix4_ nodeTransform = node.GetNodeTransform();
+        if (aiNodeAnim != null) {
+            nodeTransform = BuildNodeTransformationMatrix(aiNodeAnim, frame);
+        }
+        Matrix4_ nodeGlobalTransform = new Matrix4();
+        nodeGlobalTransform.Set(parentTransformation);
+        nodeGlobalTransform.Multiply(nodeTransform);
+
+        List<Bone_> affectedBones = new ArrayList<>();
+        Iterator<Bone_> iterator = boneList.iterator();
+        while(iterator.hasNext()) {
+            Bone_ next = iterator.next();
+            if(next.GetName() != null && next.GetName().equals(nodeName)) {
+                affectedBones.add(next);
+            }
+        }
+        for (Bone_ bone : affectedBones) {
+            Matrix4_ boneTransform = new Matrix4();
+            boneTransform.Set(globalInverseTransform);
+            boneTransform.Multiply(nodeGlobalTransform);
+            boneTransform.Multiply(bone.GetOffset());
+            int boneID = bone.GetBoneID();
+            Array_ joints = animatedFrame.GetJoints();
+            joints.Set(bone.GetBoneID(), boneTransform);
+        }
+
+        Array_ children = node.GetChildren();
+        for(int i = 0; i < children.GetSize(); i++) {
+            AnimationNode_ childNode = (AnimationNode_) children.Get(i);
+            BuildFrameMatrices(aiAnimation, boneList, animatedFrame, frame, childNode, nodeGlobalTransform,
+                    globalInverseTransform);
+        }
+    }
+
+    private static Matrix4_ BuildNodeTransformationMatrix(AINodeAnim aiNodeAnim, int frame) {
+        AIVectorKey.Buffer positionKeys = aiNodeAnim.mPositionKeys();
+        AIVectorKey.Buffer scalingKeys = aiNodeAnim.mScalingKeys();
+        AIQuatKey.Buffer rotationKeys = aiNodeAnim.mRotationKeys();
+
+        AIVectorKey aiVecKey;
+        AIVector3D vec;
+
+        Matrix4_ nodeTransform = new Matrix4();
+        int numPositions = aiNodeAnim.mNumPositionKeys();
+        if (numPositions > 0) {
+            aiVecKey = positionKeys.get(Math.min(numPositions - 1, frame));
+            vec = aiVecKey.mValue();
+            nodeTransform.Translate(vec.x(), vec.y(), vec.z());
+        }
+        int numRotations = aiNodeAnim.mNumRotationKeys();
+        if (numRotations > 0) {
+            AIQuatKey quatKey = rotationKeys.get(Math.min(numRotations - 1, frame));
+            AIQuaternion aiQuat = quatKey.mValue();
+            Quaternion_ quat = new Quaternion();
+            quat.Set(aiQuat.x(), aiQuat.y(), aiQuat.z(), aiQuat.w());
+            nodeTransform.Rotate(quat);
+        }
+        int numScalingKeys = aiNodeAnim.mNumScalingKeys();
+        if (numScalingKeys > 0) {
+            aiVecKey = scalingKeys.get(Math.min(numScalingKeys - 1, frame));
+            vec = aiVecKey.mValue();
+            nodeTransform.Scale(vec.x(), vec.y(), vec.z());
+        }
+
+        return nodeTransform;
+    }
+
+    private static AnimationNode_ BuildNodesTree(AINode aiNode, AnimationNode_ parentNode) {
+        String nodeName = aiNode.mName().dataString();
+        AnimationNode_ node = new AnimationNode();
+        node.SetName(nodeName);
+        node.SetParent(parentNode);
+        node.SetNodeTransform(ToMatrix(aiNode.mTransformation()));
+
+        int numChildren = aiNode.mNumChildren();
+        PointerBuffer aiChildren = aiNode.mChildren();
+        for (int i = 0; i < numChildren; i++) {
+            AINode aiChildNode = AINode.create(aiChildren.get(i));
+            AnimationNode_ childNode = BuildNodesTree(aiChildNode, node);
+            Array_ array = node.GetChildren();
+            if(array == null) {
+                array = new Array();
+                node.SetChildren(array);
+            }
+            array.Add(childNode);
+        }
+        return node;
+    }
+
+    private static int CalculateAnimationMaxFrames(AIAnimation aiAnimation) {
+        int maxFrames = 0;
+        int numNodeAnims = aiAnimation.mNumChannels();
+        PointerBuffer aiChannels = aiAnimation.mChannels();
+        for (int i = 0; i < numNodeAnims; i++) {
+            AINodeAnim aiNodeAnim = AINodeAnim.create(aiChannels.get(i));
+            int numFrames = Math.max(Math.max(aiNodeAnim.mNumPositionKeys(), aiNodeAnim.mNumScalingKeys()),
+                    aiNodeAnim.mNumRotationKeys());
+            maxFrames = Math.max(maxFrames, numFrames);
+        }
+
+        return maxFrames;
+    }
+
+    private static AINodeAnim FindAIAnimNode(AIAnimation aiAnimation, String nodeName) {
+        AINodeAnim result = null;
+        int numAnimNodes = aiAnimation.mNumChannels();
+        PointerBuffer aiChannels = aiAnimation.mChannels();
+        for (int i = 0; i < numAnimNodes; i++) {
+            AINodeAnim aiNodeAnim = AINodeAnim.create(aiChannels.get(i));
+            if (nodeName.equals(aiNodeAnim.mNodeName().dataString())) {
+                result = aiNodeAnim;
+                break;
+            }
+        }
+        return result;
+    }
+
+    private static AnimationMeshData_ ProcessBones(AIMesh aiMesh, List<Bone_> boneList) {
+        Integer32BitArray_ boneIds = new Integer32BitArray();
+        Number32BitArray_ weights = new Number32BitArray();
+
+        Map<Integer, List<VertexWeight_>> weightSet = new HashMap<>();
+        int numBones = aiMesh.mNumBones();
+        PointerBuffer aiBones = aiMesh.mBones();
+        for (int i = 0; i < numBones; i++) {
+            AIBone aiBone = AIBone.create(aiBones.get(i));
+            int id = boneList.size();
+            Bone_ bone = new Bone();
+            bone.SetBoneID(id);
+            bone.SetName(aiBone.mName().dataString());
+            bone.SetOffset(ToMatrix(aiBone.mOffsetMatrix()));
+            boneList.add(bone);
+            int numWeights = aiBone.mNumWeights();
+            AIVertexWeight.Buffer aiWeights = aiBone.mWeights();
+            for (int j = 0; j < numWeights; j++) {
+                AIVertexWeight aiWeight = aiWeights.get(j);
+                VertexWeight_ vw = new VertexWeight();
+                vw.SetBoneID(bone.GetBoneID());
+                vw.SetVertexID(aiWeight.mVertexId());
+                vw.SetWeight(aiWeight.mWeight());
+
+                List<VertexWeight_> vertexWeightList = weightSet.get(vw.GetVertexID());
+                if (vertexWeightList == null) {
+                    vertexWeightList = new ArrayList<>();
+                    weightSet.put(vw.GetVertexID(), vertexWeightList);
+                }
+                vertexWeightList.add(vw);
+            }
+        }
+
+        int numVertices = aiMesh.mNumVertices();
+        boneIds.SetSize(numVertices * MAX_WEIGHTS);
+        weights.SetSize(numVertices * MAX_WEIGHTS);
+        for (int i = 0; i < numVertices; i++) {
+            List<VertexWeight_> vertexWeightList = weightSet.get(i);
+            int size = vertexWeightList != null ? vertexWeightList.size() : 0;
+            for (int j = 0; j < MAX_WEIGHTS; j++) {
+                int index = (i * MAX_WEIGHTS) + j;
+                if (j < size) {
+                    VertexWeight_ vw = vertexWeightList.get(j);
+                    weights.Set(index, (float)vw.GetWeight());
+                    boneIds.Set(index, vw.GetBoneID());
+                } else {
+                    weights.Set(index, 0.0f);
+                    boneIds.Set(index, 0);
+                }
+            }
+        }
+
+        AnimationMeshData_ mesh = new AnimationMeshData();
+        mesh.SetBoneIDs(boneIds);
+        mesh.SetWeights(weights);
+        return mesh;
+    }
+
+    private static Matrix4_ ToMatrix (AIMatrix4x4 aiMatrix) {
+        Matrix4_ result = new Matrix4();
+        //I think both are row-major, or at least so far as I can tell from the documentation in both.
+        result.Set(
+            aiMatrix.a1(), aiMatrix.a2(), aiMatrix.a3(), aiMatrix.a4(),
+            aiMatrix.b1(), aiMatrix.b2(), aiMatrix.b3(), aiMatrix.b4(),
+            aiMatrix.c1(), aiMatrix.c2(), aiMatrix.c3(), aiMatrix.c4(),
+            aiMatrix.d1(), aiMatrix.d2(), aiMatrix.d3(), aiMatrix.d4()
+        );
+
+        return result;
     }
 
     private static MeshData_ ProcessMesh(AIMesh aiMesh) {
