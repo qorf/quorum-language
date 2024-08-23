@@ -85,6 +85,13 @@ function plugins_quorum_Libraries_Game_WebApplication_()
         game.CreateGame();
         
         loopCall = this.MainLoop;
+        let gameTitle = game.GetWebConfiguration().Get_Libraries_Game_WebConfiguration__title_();
+        const event = new CustomEvent('GameStarted', {
+            detail: {
+                title: gameTitle,
+            },
+        });
+        document.dispatchEvent(event);
         this.MainLoop(startTime);
     };
     
@@ -100,6 +107,8 @@ function plugins_quorum_Libraries_Game_WebApplication_()
             
             if (exitRequested)
             {
+
+                let gameTitle = game.GetWebConfiguration().Get_Libraries_Game_WebConfiguration__title_();
                 var accessibility = game.GetAccessibility();
                 if (accessibility != null)
                 {
@@ -169,6 +178,13 @@ function plugins_quorum_Libraries_Game_WebApplication_()
                 game = null;
                 display = null;
                 loopCall = null;
+
+                const event = new CustomEvent('GameClosed', {
+                    detail: {
+                        title: gameTitle,
+                    },
+                });
+                document.dispatchEvent(event);
                 return;
             }
             else
