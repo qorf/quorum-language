@@ -144,6 +144,18 @@ class Matrix4
 
         return me
     end
+    
+    /*This action returns the Matrix as text in row-major format with line feeds on each line. */
+    action ToText returns text
+        text result = ""
+        lf = result:GetLineFeed()
+        result = "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|" + lf
+result = result + "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|" + lf
+result = result + "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|" + lf
+result = result + "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
+        
+        return result
+    end
 
     /*
     This action sets the values of the matrix to the passed values.

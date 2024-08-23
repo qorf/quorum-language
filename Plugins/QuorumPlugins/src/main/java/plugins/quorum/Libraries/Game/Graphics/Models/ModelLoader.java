@@ -29,7 +29,7 @@ public class ModelLoader {
     public ModelData_ Load(File_ filePath, File_ texturesPath, boolean animation) {
         String path = filePath.GetAbsolutePath();
         String textures = texturesPath.GetAbsolutePath();
-        return Load(path, textures,false);
+        return Load(path, textures,animation);
     }
 
     public ModelData_ Load(String path, String textures, boolean animation) {
@@ -101,7 +101,6 @@ public class ModelLoader {
             animationsTopLevelArray.Add(animation);
 
             for (int j = 0; j < maxFrames; j++) {
-                Matrix4f[] jointMatrices = new Matrix4f[maxJointsMatricesLists];
                 AnimationFrame_ frame = new AnimationFrame();
                 Array_ joints = frame.GetJoints();
                 joints.SetSize(maxJointsMatricesLists);

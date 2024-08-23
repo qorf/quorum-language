@@ -2,7 +2,7 @@ package Libraries.Game.Graphics.Models
 use Libraries.Compute.Matrix4
 use Libraries.Containers.Array
 class AnimationNode
-    Array<AnimationNode> children = undefined
+    Array<AnimationNode> children
     AnimationNode mom = undefined
     text name = ""
     Matrix4 nodeTransform = undefined
