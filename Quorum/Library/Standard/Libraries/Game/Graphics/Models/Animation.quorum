@@ -1,0 +1,30 @@
+package Libraries.Game.Graphics.Models
+use Libraries.Containers.Array
+class Animation
+    text name = ""
+    number milliseconds = 0.0
+    Array<AnimationFrame> frames = undefined
+    action GetName returns text
+        return name
+    end
+
+    action SetName(text name)
+        me:name = name
+    end
+
+    action GetMilliseconds returns number
+        return milliseconds
+    end
+
+    action SetMilliseconds(number milliseconds)
+        me:milliseconds = milliseconds
+    end
+
+    action GetFrames returns Array<AnimationFrame>
+        return frames
+    end
+
+    action SetFrames(Array<AnimationFrame> frames)
+        me:frames = frames
+    end
+end

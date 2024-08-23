@@ -5,9 +5,7 @@ import org.lwjgl.assimp.*;
 import org.lwjgl.system.MemoryStack;
 import quorum.Libraries.Compute.Vector4;
 import quorum.Libraries.Compute.Vector4_;
-import quorum.Libraries.Containers.Array_;
-import quorum.Libraries.Containers.Integer32BitArray_;
-import quorum.Libraries.Containers.Number32BitArray_;
+import quorum.Libraries.Containers.*;
 import quorum.Libraries.Game.Graphics.Models.*;
 import quorum.Libraries.System.File_;
 
@@ -57,16 +55,15 @@ public class ModelLoader {
     }
 
     private static MeshData_ ProcessMesh(AIMesh aiMesh) {
-        Vertices_ vertices = ProcessVertices(aiMesh);
-        Indices_ indices = ProcessIndices(aiMesh);
-        TextureCoordinates_ coordinates = ProcessTextureCoordinates(aiMesh);
+        Number32BitArray_ vertices = ProcessVertices(aiMesh);
+        Integer32BitArray_ indices = ProcessIndices(aiMesh);
+        Number32BitArray_ coordinates = ProcessTextureCoordinates(aiMesh);
 
         //if there are no textures, we need empty slots, or at least
         //the textbook says we do.
-        Number32BitArray_ textureArray = coordinates.GetArray();
-        if (textureArray.GetSize() == 0) {
-            int size = (vertices.GetArray().GetSize() / 3) * 2;
-            textureArray.SetSize(size);
+        if (coordinates.GetSize() == 0) {
+            int size = (coordinates.GetSize() / 3) * 2;
+            coordinates.SetSize(size);
         }
 
         int materialIndex = aiMesh.mMaterialIndex();
@@ -78,11 +75,10 @@ public class ModelLoader {
         return mesh;
     }
 
-    private static TextureCoordinates_ ProcessTextureCoordinates(AIMesh aiMesh) {
+    private static Number32BitArray_ ProcessTextureCoordinates(AIMesh aiMesh) {
         AIVector3D.Buffer aiTextCoords = aiMesh.mTextureCoords(0);
         int numTextCoords = aiTextCoords != null ? aiTextCoords.remaining() : 0;
-        TextureCoordinates_ coordinates = new TextureCoordinates();
-        Number32BitArray_ array = coordinates.GetArray();
+        Number32BitArray_ array = new Number32BitArray();
         array.SetSize(numTextCoords * 2); //two each, x and y
 
         for (int i = 0; i < numTextCoords; i++) {
@@ -91,9 +87,9 @@ public class ModelLoader {
             array.Set(j, textCoord.x());
             array.Set(j + 1, 1 - textCoord.y());
         }
-        return coordinates;
+        return array;
     }
-    private static Indices_ ProcessIndices(AIMesh aiMesh) {
+    private static Integer32BitArray_ ProcessIndices(AIMesh aiMesh) {
         int numFaces = aiMesh.mNumFaces();
         AIFace.Buffer aiFaces = aiMesh.mFaces();
         //all faces should be the same size because we use triangles
@@ -105,8 +101,7 @@ public class ModelLoader {
                 throw new RuntimeException("Loading model that is not triangles. If this triggers, there's a bug in the loader.");
             }
         }
-        Indices_ indices = new Indices();
-        Integer32BitArray_ array = indices.GetArray();
+        Integer32BitArray_ array = new Integer32BitArray();
         array.SetSize(numFaces * 3);
         int j = 0;
         for (int i = 0; i < numFaces; i++) {
@@ -117,14 +112,13 @@ public class ModelLoader {
                 j = j + 1;
             }
         }
-        return indices;
+        return array;
     }
 
-    private static Vertices_ ProcessVertices(AIMesh aiMesh) {
+    private static Number32BitArray_ ProcessVertices(AIMesh aiMesh) {
         int size = aiMesh.mNumVertices();
         AIVector3D.Buffer aiVertices = aiMesh.mVertices();
-        Vertices_ vertices = new Vertices();
-        Number32BitArray_ array = vertices.GetArray();
+        Number32BitArray_ array = new Number32BitArray();
         array.SetSize(size * 3); //X, Y, and Z coordinates
         int i = 0;
         while (aiVertices.remaining() > 0) {
@@ -135,7 +129,7 @@ public class ModelLoader {
             i = i + 3;
         }
 
-        return vertices;
+        return array;
     }
 
     private static Material_ ProcessMaterial(AIMaterial aiMaterial, String texturesDir) {

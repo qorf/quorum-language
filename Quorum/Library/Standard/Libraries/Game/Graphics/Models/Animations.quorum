@@ -1,0 +1,20 @@
+package Libraries.Game.Graphics.Models
+use Libraries.Containers.Array
+class Animations
+    Array<Animation> animations = undefined
+    action HasAnimations returns boolean
+        if animations = undefined or animations:IsEmpty()
+            return false
+        else
+            return true
+        end
+    end
+    action GetAnimations returns Array<Animation>
+        return animations
+    end
+
+    action SetAnimations(Array<Animation> animations)
+        me:animations = animations
+    end
+
+end

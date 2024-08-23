@@ -1,0 +1,23 @@
+package Libraries.Game.Graphics.Models
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+class AnimationMeshData
+    Number32BitArray weights
+    Integer32BitArray boneIDs
+    action GetWeights returns Number32BitArray
+        return weights
+    end
+
+    action SetWeights(Number32BitArray weights)
+        me:weights = weights
+    end
+
+    action GetBoneIDs returns Integer32BitArray
+        return boneIDs
+    end
+
+    action SetBoneIDs(Integer32BitArray boneIDs)
+        me:boneIDs = boneIDs
+    end
+
+end

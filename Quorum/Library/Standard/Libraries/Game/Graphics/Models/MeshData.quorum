@@ -1,10 +1,12 @@
 package Libraries.Game.Graphics.Models
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
 
 class MeshData
     integer materialIndex = -1
-    Vertices vertices = undefined
-    TextureCoordinates textureCoordinates = undefined
-    Indices indices = undefined
+    Number32BitArray vertices = undefined
+    Number32BitArray textureCoordinates = undefined
+    Integer32BitArray indices = undefined
     action GetMaterialIndex returns integer
         return materialIndex
     end
@@ -13,27 +15,27 @@ class MeshData
         me:materialIndex = materialIndex
     end
 
-    action GetVertices returns Vertices
+    action GetVertices returns Number32BitArray
         return vertices
     end
 
-    action SetVertices(Vertices vertices)
+    action SetVertices(Number32BitArray vertices)
         me:vertices = vertices
     end
 
-    action GetTextureCoordinates returns TextureCoordinates
+    action GetTextureCoordinates returns Number32BitArray
         return textureCoordinates
     end
 
-    action SetTextureCoordinates(TextureCoordinates textureCoordinates)
+    action SetTextureCoordinates(Number32BitArray textureCoordinates)
         me:textureCoordinates = textureCoordinates
     end
 
-    action GetIndices returns Indices
+    action GetIndices returns Integer32BitArray
         return indices
     end
 
-    action SetIndices(Indices indices)
+    action SetIndices(Integer32BitArray indices)
         me:indices = indices
     end
 
