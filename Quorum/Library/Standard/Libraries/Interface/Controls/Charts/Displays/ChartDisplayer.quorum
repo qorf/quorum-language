@@ -9,8 +9,14 @@ use Libraries.Game.WebConfiguration
 use Libraries.Game.Layer2D
 use Libraries.Game.Layer3D
 use Libraries.Containers.Iterator
-class ChartDisplayer is Game
+use Libraries.Containers.Array
+use Libraries.Interface.Events.KeyboardListener
+use Libraries.Interface.Events.KeyboardEvent
+use Libraries.Game.InputMonitor
+class ChartDisplayer is Game, KeyboardListener
     HashTable<text, Chart> charts
+    Array<Chart> chartsArray
+    integer index = 0
 on create
         DesktopConfiguration desktop = GetDesktopConfiguration()
         desktop:targetFramesPerSecond = 10
@@ -28,22 +34,44 @@ action CreateGame
         Layer3D layer3D = GetCurrentLayer3D()
         layer3D:EnablePhysics(false)
 
-        Iterator<text> keys = charts:GetKeyIterator()
-        Chart first = undefined
-        repeat while keys:HasNext()
-            text key = keys:Next()
-            Chart chart = charts:GetValue(key)
-            if first = undefined
-                first = chart
-            end
+        if not chartsArray:IsEmpty()
+Chart chart = chartsArray:Get(0)
             Add(chart)
+            chart:Focus()
         end
-        if first not= undefined
-            first:Focus()
-        end
+        AddKeyboardListener(me)
     end
+    
+action ReleasedKey(KeyboardEvent event)
+        boolean isShifty = false
+InputMonitor monitor
+  if monitor:IsKeyPressed(event:SHIFT_LEFT) or monitor:IsKeyPressed(event:SHIFT_RIGHT)
+            isShifty = true
+  end
+   if event:keyCode = event:TAB
+Chart previous = chartsArray:Get(index)
+            if not isShifty
+index = index + 1
+if index > chartsArray:GetSize() - 1
+                index = 0
+            end
+            else
+index = index - 1
+if index < 0
+                index = chartsArray:GetSize() - 1
+            end
+            end
+            
+            Remove(previous)
+Chart next = chartsArray:Get(index)
+            Add(next)
+            next:Focus()
+            
+   end
+end
     
     action Add(text path, Chart chart)
         charts:Add(path, chart)
+        chartsArray:Add(chart)
     end
 end
