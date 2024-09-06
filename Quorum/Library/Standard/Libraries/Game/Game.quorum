@@ -310,8 +310,8 @@ class Game
             IOSGraphics iosGraphics
             manager:SetGameGraphics(iosGraphics)
         elseif application is WebApplication
-            
             WebInput newInput
+            newInput:InitializeGestureProcessor(webConfig:containerID)
             gameInput = newInput
             manager:SetInput(newInput)
 

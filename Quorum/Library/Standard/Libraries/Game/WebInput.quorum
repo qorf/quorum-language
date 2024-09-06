@@ -15,7 +15,13 @@ class WebInput is StandardInput
     Checks for any events that have occurred, and adds them to
     the end of the provided arrays.
     */
+    
     private system action CheckForEvents(Array<MouseEvent> mouseEvents, Array<KeyboardEvent> keyboardEvents,
-        Array<TextInputEvent> textInputEvents, Array<ResizeEvent> resizeEvents)
+        Array<TextInputEvent> textInputEvents, Array<ResizeEvent> resizeEvents, Array<GestureEvent> gestureEvents)
+    
+    action InitializeGestureProcessor(text containerID)
+GestureProcessor gestures
+        gestures:InitializeGestureProcessor(containerID)
+    end
 
 end
