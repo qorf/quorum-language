@@ -1,0 +1,49 @@
+package Libraries.Interface.Controls.Charts.Displays
+
+use Libraries.Containers.HashTable
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Game.Game
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Game.DesktopConfiguration
+use Libraries.Game.WebConfiguration
+use Libraries.Game.Layer2D
+use Libraries.Game.Layer3D
+use Libraries.Containers.Iterator
+class ChartDisplayer is Game
+    HashTable<text, Chart> charts
+on create
+        DesktopConfiguration desktop = GetDesktopConfiguration()
+        desktop:targetFramesPerSecond = 10
+        WebConfiguration web = GetWebConfiguration()
+        web:framesPerSecondLimit = 10
+    end
+    
+action CreateGame
+        ManualLayout layout
+        SetLayout(layout)
+
+        Layer2D layer = GetCurrentLayer2D()
+        layer:EnablePhysics(false)
+
+        Layer3D layer3D = GetCurrentLayer3D()
+        layer3D:EnablePhysics(false)
+
+        Iterator<text> keys = charts:GetKeyIterator()
+        Chart first = undefined
+        repeat while keys:HasNext()
+            text key = keys:Next()
+            Chart chart = charts:GetValue(key)
+            if first = undefined
+                first = chart
+            end
+            Add(chart)
+        end
+        if first not= undefined
+            first:Focus()
+        end
+    end
+    
+    action Add(text path, Chart chart)
+        charts:Add(path, chart)
+    end
+end
