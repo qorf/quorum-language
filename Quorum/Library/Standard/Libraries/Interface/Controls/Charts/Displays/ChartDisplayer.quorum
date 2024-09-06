@@ -13,10 +13,14 @@ use Libraries.Containers.Array
 use Libraries.Interface.Events.KeyboardListener
 use Libraries.Interface.Events.KeyboardEvent
 use Libraries.Game.InputMonitor
+use Libraries.System.File
 class ChartDisplayer is Game, KeyboardListener
     HashTable<text, Chart> charts
     Array<Chart> chartsArray
     integer index = 0
+    
+boolean exitOnStart = false
+    integer frame = 0
 on create
         DesktopConfiguration desktop = GetDesktopConfiguration()
         desktop:targetFramesPerSecond = 10
@@ -73,5 +77,45 @@ end
     action Add(text path, Chart chart)
         charts:Add(path, chart)
         chartsArray:Add(chart)
+    end
+    
+action Update(number seconds)
+        if frame >= 1 and exitOnStart
+            Exit()
+        end
+
+        frame = frame + 1
+    end
+    
+    action Save
+File directory
+        Save(directory)
+    end
+    
+    action Save(text path)
+        File directory
+        directory:SetPath(path)
+        Save(directory)
+    end
+    
+action Save(File directory)
+        text path = directory:GetAbsolutePath()
+        Iterator<text> keys = charts:GetKeyIterator()
+        repeat while keys:HasNext()
+            text key = keys:Next()
+            Chart chart = charts:GetValue(key)
+            File file
+            file:SetWorkingDirectory(path)
+            file:SetPath(key + ".svg")
+            chart:Save(file)
+        end
+    end
+    
+action GetExitOnStart returns boolean
+        return exitOnStart
+    end
+
+    action SetExitOnStart(boolean exitOnStart)
+        me:exitOnStart = exitOnStart
     end
 end
