@@ -7,7 +7,7 @@ class Material
     text metalRoughMap = ""
     Vector4 diffuse
     number roughness = 0.0
-    number mettalic = 0.0
+    number metalic = 0.0
     action GetPath returns text
         return path
     end
@@ -40,12 +40,12 @@ class Material
         me:roughness = roughness
     end
 
-    action GetMettalic returns number
-        return mettalic
+    action GetMetalic returns number
+        return metalic
     end
 
-    action SetMettalic(number mettalic)
-        me:mettalic = mettalic
+    action SetMetalic(number metalic)
+        me:metalic = metalic
     end
 
     action GetNormalMapPath returns text
