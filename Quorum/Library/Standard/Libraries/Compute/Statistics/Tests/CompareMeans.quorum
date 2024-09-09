@@ -1977,7 +1977,7 @@ class CompareMeans is StatisticalTest
                 number p = 2.0 * (1.0 - zdistribution:CumulativeDistribution(z))
         
                 // Calculate effect size
-                number r = z / math:SquareRoot(n)
+                number r = math:AbsoluteValue(z) / math:SquareRoot(n)
     
                 // Save the result
                 CompareMeansResult result
@@ -2243,7 +2243,7 @@ class CompareMeans is StatisticalTest
             end
     
             // Calculate effect size
-            number r = z / math:SquareRoot(N) 
+            number r = math:AbsoluteValue(z) / math:SquareRoot(N) 
     
             // Save the result
             CompareMeansResult result
