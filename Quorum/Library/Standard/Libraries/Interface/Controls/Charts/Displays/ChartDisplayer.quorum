@@ -14,12 +14,21 @@ use Libraries.Interface.Events.KeyboardListener
 use Libraries.Interface.Events.KeyboardEvent
 use Libraries.Game.InputMonitor
 use Libraries.System.File
+
+/*
+    This class is used as a default display region for multiple charts. It allows basic
+    charts to be shown on the screen and navigation between them using TAB or SHIFT + TAB.
+
+    Attribute: Author Andreas Stefik
+*/
 class ChartDisplayer is Game, KeyboardListener
     HashTable<text, Chart> charts
     Array<Chart> chartsArray
     integer index = 0
     
+    boolean oneTimeUpdate = false
 boolean exitOnStart = false
+    integer exitFrame = 3
     integer frame = 0
 on create
         DesktopConfiguration desktop = GetDesktopConfiguration()
@@ -37,12 +46,14 @@ action CreateGame
 
         Layer3D layer3D = GetCurrentLayer3D()
         layer3D:EnablePhysics(false)
-
-        if not chartsArray:IsEmpty()
-Chart chart = chartsArray:Get(0)
+        //first Add them all to trigger getting their graphics in order
+        integer i = chartsArray:GetSize() - 1
+        repeat while i >= 0
+            Chart chart = chartsArray:Get(i)
             Add(chart)
-            chart:Focus()
+            i = i - 1
         end
+        
         AddKeyboardListener(me)
     end
     
@@ -80,7 +91,17 @@ end
     end
     
 action Update(number seconds)
-        if frame >= 1 and exitOnStart
+        if frame >= exitFrame and not oneTimeUpdate
+Layer2D layer = GetCurrentLayer2D()
+            layer:Empty()
+            
+if not chartsArray:IsEmpty()
+Chart chart = chartsArray:Get(0)
+            Add(chart)
+            chart:Focus()
+        end
+            oneTimeUpdate = true
+        elseif frame >= exitFrame and exitOnStart
             Exit()
         end
 
@@ -109,6 +130,46 @@ action Save(File directory)
             file:SetPath(key + ".svg")
             chart:Save(file)
         end
+    end
+    
+/*  This action creates a default Game object for displaying charts and sets this chart
+        as the sole display. It is useful for interacting with charts without creating
+        a complex game setup.
+    */
+    action Display(integer width, integer height)
+SetScreenSize(width,height)
+StartGame()
+    end
+    
+/*  This action creates a default Game object for displaying charts and sets this chart
+        as the sole display. It is useful for interacting with charts without creating
+        a complex game setup. The exit flag tells the system, if true, to close the pre-built display
+        right after completing layout, which can be useful for writing to disk.
+    */
+action Display(integer width, integer height, boolean exit)
+SetExitOnStart(exit)
+    SetScreenSize(width,height)
+        StartGame()
+end
+    
+/*  This action creates a default Game object for displaying charts and sets this chart
+        as the sole display. It is useful for interacting with charts without creating
+        a complex game setup. The exit flag tells the system, if true, to close the pre-built display
+        right after completing layout, which can be useful for writing to disk.
+    */
+action Display(boolean exit)
+SetExitOnStart(exit)
+        SetScreenSize(1200,1000)
+StartGame()
+    end
+    
+/*  This action creates a default Game object for displaying charts and sets this chart
+        as the sole display. It is useful for interacting with charts without creating
+        a complex game setup.
+    */
+    action Display
+        SetScreenSize(1200,1000)
+StartGame()
     end
     
 action GetExitOnStart returns boolean
