@@ -20,6 +20,7 @@ use Libraries.Game.Graphics.DrawableShape
 use Libraries.Game.Graphics.VertexData
 use Libraries.Game.Graphics.IndexData
 use Libraries.Game.Graphics.OpenGL.OpenGLConstants
+use Libraries.Game.Graphics.OpenGL.OpenGLManager
 
 class ShaderProgram
 
@@ -71,6 +72,10 @@ class ShaderProgram
     on create
         matrix3Array:SetSize(9)
         matrix4Array:SetSize(16)
+    end
+
+    private action GetGraphics returns OpenGLManager
+        return cast(OpenGLManager, manager:GetGameGraphics())
     end
 
     action Add(Shader shader)
@@ -151,17 +156,17 @@ class ShaderProgram
     end
 
     private action FetchShaderInputs
-        GraphicsManager graphics = manager:GetGameGraphics()
+        OpenGLManager graphics = GetGraphics()
         shaderInputNames = graphics:GetShaderInputTables(GetID(), shaderInputLocations, shaderInputSizes, shaderInputTypes)
     end
 
     private action FetchInputs
-        GraphicsManager graphics = manager:GetGameGraphics()
+        OpenGLManager graphics = GetGraphics()
         vertexInputNames = graphics:GetVertexInputTables(GetID(), vertexInputLocations, vertexInputSizes, vertexInputTypes)
     end
 
     action Begin
-        GraphicsManager graphics = manager:GetGameGraphics()
+        OpenGLManager graphics = GetGraphics()
         CheckManaged()
         graphics:UseShaderProgram(GetID())
     end
@@ -549,13 +554,13 @@ class ShaderProgram
     end
 
     action EnableVertexInput(integer inputID)
-        GraphicsManager graphics = manager:GetGameGraphics()
+        OpenGLManager graphics = GetGraphics()
         CheckManaged()
         graphics:EnableVertexInput(inputID)
     end
 
     action EnableVertexInput(text inputName)
-        GraphicsManager graphics = manager:GetGameGraphics()
+        OpenGLManager graphics = GetGraphics()
         CheckManaged()
         if vertexInputLocations:HasKey(inputName)
             integer inputID = vertexInputLocations:GetValue(inputName)
@@ -564,13 +569,13 @@ class ShaderProgram
     end
 
     action DisableVertexInput(integer inputID)
-        GraphicsManager graphics = manager:GetGameGraphics()
+        OpenGLManager graphics = GetGraphics()
         CheckManaged()
         graphics:DisableVertexInput(inputID)
     end
 
     action DisableVertexInput(text inputName)
-        GraphicsManager graphics = manager:GetGameGraphics()
+        OpenGLManager graphics = GetGraphics()
         CheckManaged()
         if vertexInputLocations:HasKey(inputName)
             integer inputID = vertexInputLocations:GetValue(inputName)
@@ -585,7 +590,7 @@ class ShaderProgram
     end
 
     action SetDefaultVertexInputValue(integer inputID, number x)
-        GraphicsManager graphics = manager:GetGameGraphics()
+        OpenGLManager graphics = GetGraphics()
         CheckManaged()
         graphics:SetDefaultVertexValue(inputID, x)
     end
@@ -597,7 +602,7 @@ class ShaderProgram
     end
 
     action SetDefaultVertexInputValue(integer inputID, number x, number y)
-        GraphicsManager graphics = manager:GetGameGraphics()
+        OpenGLManager graphics = GetGraphics()
         CheckManaged()
         graphics:SetDefaultVertexValue(inputID, x, y)
     end
@@ -609,7 +614,7 @@ class ShaderProgram
     end
 
     action SetDefaultVertexInputValue(integer inputID, number x, number y, number z)
-        GraphicsManager graphics = manager:GetGameGraphics()
+        OpenGLManager graphics = GetGraphics()
         CheckManaged()
         graphics:SetDefaultVertexValue(inputID, x, y, z)
     end
@@ -621,7 +626,7 @@ class ShaderProgram
     end
 
     action SetDefaultVertexInputValue(integer inputID, number x, number y, number z, number w)
-        GraphicsManager graphics = manager:GetGameGraphics()
+        OpenGLManager graphics = GetGraphics()
         CheckManaged()
         graphics:SetDefaultVertexValue(inputID, x, y, z, w)
     end

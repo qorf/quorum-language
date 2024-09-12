@@ -7,12 +7,11 @@ package plugins.quorum.Libraries.Game;
 
 import org.robovm.apple.foundation.*;
 import org.robovm.apple.uikit.*;
-import plugins.quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL;
 import quorum.Libraries.Game.Game_;
 import quorum.Libraries.Game.IOSConfiguration_;
 import quorum.Libraries.Game.IOSDisplay_;
 import quorum.Libraries.Game.IOSDisplay;
-import quorum.Libraries.Game.Graphics.IOSGraphics;
+import quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL;
 
 import org.robovm.apple.coregraphics.CGRect;
 
@@ -202,11 +201,11 @@ public class IOSApplication
             }
         }
 
-        IOSOpenGL.init();
+        plugins.quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL.init();
 
         IOSInput input = ((quorum.Libraries.Game.IOSInput)GameStateManager.input).plugin_;
         input.Initialize(this);
-        ((IOSDisplay)display).plugin_.Initialize(scale, this, config, input, ((IOSGraphics)GameStateManager.graphics).plugin_);
+        ((IOSDisplay)display).plugin_.Initialize(scale, this, config, input, ((IOSOpenGL)GameStateManager.graphics).plugin_);
 
         this.uiWindow = new UIWindow(UIScreen.getMainScreen().getBounds());
         this.uiWindow.setRootViewController(((IOSDisplay)display).plugin_.viewController);
@@ -315,13 +314,21 @@ public class IOSApplication
     {
         ((IOSDisplay)display).plugin_.MakeCurrent();
         ((IOSDisplay)display).plugin_.Pause();
-        ((IOSGraphics)GameStateManager.graphics).plugin_.glFlush();
+
+        if (GameStateManager.graphics instanceof IOSOpenGL)
+        {
+            ((IOSOpenGL)GameStateManager.graphics).plugin_.glFlush();
+        }
+
     }
 
     public void WillTerminate (UIApplication uiApp)
     {
         ((IOSDisplay)display).plugin_.MakeCurrent();
-        ((IOSGraphics)GameStateManager.graphics).plugin_.glFlush();
+        if (GameStateManager.graphics instanceof IOSOpenGL)
+        {
+            ((IOSOpenGL) GameStateManager.graphics).plugin_.glFlush();
+        }
     }
 
     /*

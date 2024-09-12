@@ -5,16 +5,15 @@
  */
 
 package plugins.quorum.Libraries.Game;
-import plugins.quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL;
 import plugins.quorum.Libraries.Game.Graphics.OpenGL.OpenGLManager;
 import quorum.Libraries.Game.Graphics.GraphicsManager_;
 import quorum.Libraries.Game.Application_;
 import quorum.Libraries.Game.GameDisplay_;
 import quorum.Libraries.Game.GameInput_;
 import quorum.Libraries.Game.Game_;
-import quorum.Libraries.Game.Graphics.DesktopGraphics;
-import quorum.Libraries.Game.Graphics.IOSGraphics;
-import quorum.Libraries.Game.Graphics.AndroidGraphics;
+import quorum.Libraries.Game.Graphics.OpenGL.DesktopOpenGL;
+import quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL;
+import quorum.Libraries.Game.Graphics.OpenGL.AndroidOpenGL;
 import quorum.Libraries.Game.Graphics.Fonts.FontManager;
 import quorum.Libraries.Game.Graphics.Fonts.FontManager_;
 
@@ -65,27 +64,54 @@ public class GameStateManager
         {
             if (os.contains("Linux") && System.getProperty("java.runtime.name").contains("Android Runtime"))
             {
-                graphics = new AndroidGraphics();
-                nativeGraphics = ((AndroidGraphics)graphics).plugin_;
-                operatingSystem = "Linux (Android) : TEST-CODE-MCX";
+                if (IsVulkanRendering())
+                {
+                    throw new RuntimeException("NYI");
+                }
+                else
+                {
+                    graphics = new AndroidOpenGL();
+                    nativeGraphics = ((AndroidOpenGL)graphics).plugin_;
+                    operatingSystem = "Linux (Android) : TEST-CODE-MCX";
+                }
             }
             else
             {
-                graphics = new DesktopGraphics();
-                nativeGraphics = ((DesktopGraphics)graphics).plugin_;
+                if (IsVulkanRendering())
+                {
+                    throw new RuntimeException("NYI");
+                }
+                else
+                {
+                    graphics = new DesktopOpenGL();
+                    nativeGraphics = ((DesktopOpenGL) graphics).plugin_;
+                }
             }
         }
         else if (os.contains("iOS"))
         {
-            graphics = new IOSGraphics();
-            nativeGraphics = ((IOSGraphics)graphics).plugin_;
-            IOSOpenGL.init();
+            if (IsVulkanRendering())
+            {
+                throw new RuntimeException("NYI");
+            }
+            else
+            {
+                graphics = new IOSOpenGL();
+                nativeGraphics = ((IOSOpenGL) graphics).plugin_;
+                plugins.quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL.init();
+            }
         }
         else
         {
             System.out.println("Couldn't detect os! OS was " + os);
             nativeGraphics = null;
         }
+    }
+
+    private static boolean IsVulkanRendering()
+    {
+        // Temporary placeholder way for the GameStateManager plugin to decide whether to use OpenGL or Vulkan stuff.
+        return false;
     }
     
     public Game_ GetGame()
@@ -126,18 +152,24 @@ public class GameStateManager
     public void SetGameGraphics(GraphicsManager_ aGameGraphics) 
     {
         graphics = aGameGraphics;
-        
-        if (operatingSystem.contains("Android"))
+        if (IsVulkanRendering())
         {
-            nativeGraphics = ((AndroidGraphics)graphics).plugin_;
+            throw new RuntimeException("NYI");
         }
-        else if (operatingSystem.contains("Mac OS X") || operatingSystem.contains("Windows") || operatingSystem.contains("Linux"))
+        else
         {
-            nativeGraphics = ((DesktopGraphics)graphics).plugin_;
-        }
-        else if (operatingSystem.contains("iOS"))
-        {
-            nativeGraphics = ((IOSGraphics)graphics).plugin_;
+            if (operatingSystem.contains("Android"))
+            {
+                nativeGraphics = ((AndroidOpenGL) graphics).plugin_;
+            }
+            else if (operatingSystem.contains("Mac OS X") || operatingSystem.contains("Windows") || operatingSystem.contains("Linux"))
+            {
+                nativeGraphics = ((DesktopOpenGL) graphics).plugin_;
+            }
+            else if (operatingSystem.contains("iOS"))
+            {
+                nativeGraphics = ((IOSOpenGL) graphics).plugin_;
+            }
         }
     }
 
