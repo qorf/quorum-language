@@ -6,6 +6,7 @@
 package plugins.quorum.Libraries.Game.Graphics;
 
 import plugins.quorum.Libraries.Game.GameStateManager;
+import plugins.quorum.Libraries.Game.Graphics.OpenGL.OpenGLManager;
 import quorum.Libraries.Game.Graphics.Texture_;
 import quorum.Libraries.Game.Graphics.PixelMap;
 import quorum.Libraries.System.File_;
@@ -21,15 +22,15 @@ public class Skybox
     public void InitializeCubeMap(Texture_ texture)
     {
         Texture texturePlugin = ((quorum.Libraries.Game.Graphics.Texture)texture).plugin_;
-        texturePlugin.SetGraphicsInfo(GraphicsManager.GL_TEXTURE_CUBE_MAP, texturePlugin.CreateGLHandle());
+        texturePlugin.SetGraphicsInfo(OpenGLManager.GL_TEXTURE_CUBE_MAP, texturePlugin.CreateGLHandle());
         texturePlugin.Bind();
         
-        GraphicsManager graphics = GameStateManager.nativeGraphics;
-        graphics.SetTextureParameter(GraphicsManager.GL_TEXTURE_CUBE_MAP, GraphicsManager.GL_TEXTURE_MAG_FILTER, GraphicsManager.GL_LINEAR);
-        graphics.SetTextureParameter(GraphicsManager.GL_TEXTURE_CUBE_MAP, GraphicsManager.GL_TEXTURE_MIN_FILTER, GraphicsManager.GL_LINEAR);
-        graphics.SetTextureParameter(GraphicsManager.GL_TEXTURE_CUBE_MAP, GraphicsManager.GL_TEXTURE_WRAP_S, GraphicsManager.GL_CLAMP_TO_EDGE);
-        graphics.SetTextureParameter(GraphicsManager.GL_TEXTURE_CUBE_MAP, GraphicsManager.GL_TEXTURE_WRAP_T, GraphicsManager.GL_CLAMP_TO_EDGE);
-        graphics.SetTextureParameter(GraphicsManager.GL_TEXTURE_CUBE_MAP, GraphicsManager.GL_TEXTURE_WRAP_R, GraphicsManager.GL_CLAMP_TO_EDGE);
+        OpenGLManager graphics = GameStateManager.nativeGraphics;
+        graphics.SetTextureParameter(OpenGLManager.GL_TEXTURE_CUBE_MAP, OpenGLManager.GL_TEXTURE_MAG_FILTER, OpenGLManager.GL_LINEAR);
+        graphics.SetTextureParameter(OpenGLManager.GL_TEXTURE_CUBE_MAP, OpenGLManager.GL_TEXTURE_MIN_FILTER, OpenGLManager.GL_LINEAR);
+        graphics.SetTextureParameter(OpenGLManager.GL_TEXTURE_CUBE_MAP, OpenGLManager.GL_TEXTURE_WRAP_S, OpenGLManager.GL_CLAMP_TO_EDGE);
+        graphics.SetTextureParameter(OpenGLManager.GL_TEXTURE_CUBE_MAP, OpenGLManager.GL_TEXTURE_WRAP_T, OpenGLManager.GL_CLAMP_TO_EDGE);
+        graphics.SetTextureParameter(OpenGLManager.GL_TEXTURE_CUBE_MAP, OpenGLManager.GL_TEXTURE_WRAP_R, OpenGLManager.GL_CLAMP_TO_EDGE);
 
         // Flush the error queue -- on certain Android devices, spurious errors can be recorded by the last set texture parameter call.
         int errorCode = GameStateManager.nativeGraphics.GetGraphicsErrorCode();
@@ -52,22 +53,22 @@ public class Skybox
         
         switch(side)
         {
-            case GraphicsManager.GL_TEXTURE_CUBE_MAP_POSITIVE_X:
+            case OpenGLManager.GL_TEXTURE_CUBE_MAP_POSITIVE_X:
                 ((quorum.Libraries.Game.Graphics.Skybox)me_).rightSource = file;
                 break;
-            case GraphicsManager.GL_TEXTURE_CUBE_MAP_NEGATIVE_X:
+            case OpenGLManager.GL_TEXTURE_CUBE_MAP_NEGATIVE_X:
                 ((quorum.Libraries.Game.Graphics.Skybox)me_).leftSource = file;
                 break;
-            case GraphicsManager.GL_TEXTURE_CUBE_MAP_POSITIVE_Y:
+            case OpenGLManager.GL_TEXTURE_CUBE_MAP_POSITIVE_Y:
                 ((quorum.Libraries.Game.Graphics.Skybox)me_).upSource = file;
                 break;
-            case GraphicsManager.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y:
+            case OpenGLManager.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y:
                 ((quorum.Libraries.Game.Graphics.Skybox)me_).downSource = file;
                 break;
-            case GraphicsManager.GL_TEXTURE_CUBE_MAP_POSITIVE_Z:
+            case OpenGLManager.GL_TEXTURE_CUBE_MAP_POSITIVE_Z:
                 ((quorum.Libraries.Game.Graphics.Skybox)me_).backSource = file;
                 break;
-            case GraphicsManager.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z:
+            case OpenGLManager.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z:
                 ((quorum.Libraries.Game.Graphics.Skybox)me_).frontSource = file;
                 break;
         }

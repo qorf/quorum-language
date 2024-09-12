@@ -9,11 +9,13 @@ use Libraries.Compute.Vector3
 use Libraries.Game.BoundingBox
 use Libraries.Containers.Array
 use Libraries.Game.Disposable
-use Libraries.Game.Graphics.IndexBufferObject
-use Libraries.Game.Graphics.VertexBufferObject
+use Libraries.Game.Graphics.OpenGL.IndexBufferObject
+use Libraries.Game.Graphics.OpenGL.VertexBufferObject
+use Libraries.Game.Graphics.OpenGL.OpenGLManager
 use Libraries.Game.Graphics.Shaders.ShaderProgram
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.OpenGL.OpenGLConstants
 
 class Mesh is Disposable
 
@@ -32,18 +34,29 @@ class Mesh is Disposable
 
     action Load(boolean isStatic, integer maxVertices, integer maxIndices, VertexAttributes attributes)
         vertices = MakeVertexBuffer(isStatic, maxVertices, attributes)
-        IndexBufferObject index
+        
+        if manager:GetGameGraphics() is OpenGLManager
+IndexBufferObject index
         index:Load(isStatic, maxIndices)
         indices = index
+        else
+            alert("Vulkan support NYI")
+        end
+        
         isVertexArray = false
 
         AddReloadableMesh()
     end
 
     private action MakeVertexBuffer(boolean isStatic, integer maxVertices, VertexAttributes attributes) returns VertexData
+if manager:GetGameGraphics() is OpenGLManager
         VertexBufferObject temp
         temp:Load(isStatic, maxVertices, attributes)
         return temp
+        else
+            alert("Vulkan support NYI")
+            return undefined
+end
     end
 
     action SetVertices(Number32BitArray vertices)
@@ -275,13 +288,19 @@ class Mesh is Disposable
         end
 
         GraphicsManager graphics = manager:GetGameGraphics()
-
-        if indices:GetSize() > 0
+        if graphics is OpenGLManager
+            OpenGLManager openGL = cast(OpenGLManager, graphics)
+            
+if indices:GetSize() > 0
             OpenGLConstants constants
-            graphics:DrawIndexedBuffer(type, count, constants:GL_UNSIGNED_INT, offset * 4)
+            openGL:DrawIndexedBuffer(type, count, constants:GL_UNSIGNED_INT, offset * 4)
         else
-            graphics:DrawBuffer(type, offset, count)
+            openGL:DrawBuffer(type, offset, count)
         end
+        else
+            alert("Vulkan rendering NYI")
+        end
+
 
         if autoBind
             Unbind(program)

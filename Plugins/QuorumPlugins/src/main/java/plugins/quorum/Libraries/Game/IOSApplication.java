@@ -7,6 +7,7 @@ package plugins.quorum.Libraries.Game;
 
 import org.robovm.apple.foundation.*;
 import org.robovm.apple.uikit.*;
+import plugins.quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL;
 import quorum.Libraries.Game.Game_;
 import quorum.Libraries.Game.IOSConfiguration_;
 import quorum.Libraries.Game.IOSDisplay_;
@@ -201,7 +202,7 @@ public class IOSApplication
             }
         }
 
-        plugins.quorum.Libraries.Game.Graphics.IOSGraphics.init();
+        IOSOpenGL.init();
 
         IOSInput input = ((quorum.Libraries.Game.IOSInput)GameStateManager.input).plugin_;
         input.Initialize(this);

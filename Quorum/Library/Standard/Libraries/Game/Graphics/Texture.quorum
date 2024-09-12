@@ -15,6 +15,8 @@ use Libraries.Containers.Array
 use Libraries.Interface.Events.TextureLoadListener
 use Libraries.Interface.Events.TextureLoadEvent
 use Libraries.Interface.Controls.Control
+use Libraries.Game.Graphics.OpenGL.OpenGLConstants
+use Libraries.Game.Graphics.OpenGL.OpenGLManager
 
 /*
 The Texture class represents an image that can be drawn on the screen. Once
@@ -803,7 +805,10 @@ class Texture is Disposable
             alert(error)
         end
 
-        graphics:PixelStorageMode(constants:GL_UNPACK_ALIGNMENT,1)
+        if graphics is OpenGLManager
+            OpenGLManager openGL = cast(OpenGLManager, graphics)
+openGL:PixelStorageMode(constants:GL_UNPACK_ALIGNMENT,1)
+        end
 
         if data:UseMipMaps()
             // Generate MipMaps - only used for 3D textures. Java code below.
@@ -828,8 +833,12 @@ class Texture is Disposable
         minimizeFilter = minFilter
         magnifyFilter = magFilter
         Bind()
-        graphics:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_MIN_FILTER, minFilter:GetValue())
-        graphics:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_MAG_FILTER, magFilter:GetValue())
+        
+if graphics is OpenGLManager
+            OpenGLManager openGL = cast(OpenGLManager, graphics)
+openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_MIN_FILTER, minFilter:GetValue())
+        openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_MAG_FILTER, magFilter:GetValue())
+        end
 
     end
 
@@ -843,8 +852,12 @@ class Texture is Disposable
         horizontalWrap = hWrap
         verticalWrap = vWrap
         Bind()
-        graphics:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_S, hWrap:GetValue())
-        graphics:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_T, vWrap:GetValue())
+        
+if graphics is OpenGLManager
+            OpenGLManager openGL = cast(OpenGLManager, graphics)
+openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_S, hWrap:GetValue())
+        openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_T, vWrap:GetValue())
+        end
 
     end
 
@@ -1379,13 +1392,19 @@ class Texture is Disposable
     should never be used directly by users.
     */
     action UnsafeSetWrap(TextureWrap u, TextureWrap v)
-        if u not= undefined and u:GetValue() not= horizontalWrap:GetValue()
-            graphics:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_S, u:GetValue())
+    if u not= undefined and u:GetValue() not= horizontalWrap:GetValue()
+            if graphics is OpenGLManager
+                OpenGLManager openGL = cast(OpenGLManager, graphics)
+openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_S, u:GetValue())
+            end
             horizontalWrap = u
         end
 
         if v not= undefined and v:GetValue() not= verticalWrap:GetValue()
-            graphics:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_T, v:GetValue())
+if graphics is OpenGLManager
+                OpenGLManager openGL = cast(OpenGLManager, graphics)
+openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_T, v:GetValue())
+            end
             verticalWrap = v
         end
     end
@@ -1397,12 +1416,18 @@ class Texture is Disposable
     */
     action UnsafeSetFilter(TextureFilter min, TextureFilter mag)
         if min not= undefined and min:GetValue() not= minimizeFilter:GetValue()
-            graphics:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_MIN_FILTER, min:GetValue())
+if graphics is OpenGLManager
+                OpenGLManager openGL = cast(OpenGLManager, graphics)
+openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_MIN_FILTER, min:GetValue())
+            end
             minimizeFilter = min
         end
 
         if mag not= undefined and mag:GetValue() not= magnifyFilter:GetValue()
-            graphics:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_MAG_FILTER, mag:GetValue())
+if graphics is OpenGLManager
+                OpenGLManager openGL = cast(OpenGLManager, graphics)
+openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_MAG_FILTER, mag:GetValue())
+            end
             magnifyFilter = mag
         end
     end

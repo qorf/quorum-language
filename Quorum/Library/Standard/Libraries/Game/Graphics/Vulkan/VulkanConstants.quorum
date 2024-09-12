@@ -1,0 +1,20 @@
+package Libraries.Game.Graphics.Vulkan
+
+shared class VulkanConstants
+    
+    VulkanUtilities utilities
+    
+    // Constants representing common target Vulkan API versions. For other possible versions, see VulkanUtilities "ConvertToAPIVersionID" action.
+    public constant integer API_VERSION_1_0_0 = utilities:ConvertToAPIVersionID(1, 0, 0)
+    public constant integer API_VERSION_1_1_0 = utilities:ConvertToAPIVersionID(1, 1, 0)
+    
+    // Validation layer names. A platform might support some of these layers. If it does, it can use them for validation and error checking.
+    public constant text KHRONOS_VALIDATION_LAYER = "VK_LAYER_KHRONOS_validation"
+    public constant text LUNARG_STANDARD_VALIDATION_LAYER = "VK_LAYER_LUNARG_standard_validation"
+    public constant text LUNARG_PARAMETER_VALIDATION_LAYER = "VK_LAYER_LUNARG_parameter_validation"
+    public constant text LUNARG_OBJECT_TRACKER_VALIDATION_LAYER = "VK_LAYER_LUNARG_object_tracker"
+    public constant text LUNARG_CORE_VALIDATION_LAYER = "VK_LAYER_LUNARG_core_validation"
+public constant text GOOGLE_THREADING_VALIDATION_LAYER = "VK_LAYER_GOOGLE_threading"
+    public constant text GOOGLE_UNIQUE_OBJECTS_VALIDATION_LAYER = "VK_LAYER_GOOGLE_unique_objects"
+    
+end

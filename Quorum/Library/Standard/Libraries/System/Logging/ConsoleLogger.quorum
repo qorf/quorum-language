@@ -1,0 +1,18 @@
+package Libraries.System.Logging
+
+use Libraries.System.DateTime
+
+/*The ConsoleLogger class is a simple logger that outputs directly to the console using output statements.*/
+class ConsoleLogger is Logger
+    action Log(text value)
+        if IsLoggingTime()
+DateTime time
+            output "Time: " + time:ToText() + "."
+        end
+        output value
+    end
+    
+    action Close
+        // Do nothing. There's no file or other structure to close.
+    end
+end

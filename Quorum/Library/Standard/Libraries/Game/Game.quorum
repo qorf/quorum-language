@@ -13,7 +13,7 @@ use Libraries.Game.DesktopApplication
 use Libraries.Game.AndroidApplication
 use Libraries.Game.AndroidDisplay
 use Libraries.Game.AndroidConfiguration
-use Libraries.Game.Graphics.AndroidGraphics
+use Libraries.Game.Graphics.OpenGL.AndroidOpenGL
 use Libraries.Game.IOSApplication
 use Libraries.Game.IOSConfiguration
 use Libraries.Game.IOSDisplay
@@ -28,8 +28,8 @@ use Libraries.Game.FocusManager
 use Libraries.Game.Scenes.Scene
 use Libraries.Game.Scenes.SceneManager
 use Libraries.Game.Scenes.DefaultSceneManager
-use Libraries.Game.Graphics.WebGraphics
-use Libraries.Game.Graphics.IOSGraphics
+use Libraries.Game.Graphics.OpenGL.WebOpenGL
+use Libraries.Game.Graphics.OpenGL.IOSOpenGL
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.GraphicsManager
@@ -146,6 +146,7 @@ use Libraries.Interface.Events.ScreenshotEvent
 use Libraries.Game.Graphics.PixelMap
 use Libraries.Game.Graphics.SharedTextureManager
 use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.OpenGL.OpenGLManager
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -307,7 +308,7 @@ class Game
             manager:SetGameDisplay(display)
             display:SetConfiguration(iosConfig)
 
-            IOSGraphics iosGraphics
+            IOSOpenGL iosGraphics
             manager:SetGameGraphics(iosGraphics)
         elseif application is WebApplication
             
@@ -321,7 +322,7 @@ class Game
             display:SetConfiguration(webConfig)
             //display:SetupDisplay()
 
-            WebGraphics webGraphics
+            WebOpenGL webGraphics
             manager:SetGameGraphics(webGraphics)
 
             WebApplication webApp = cast(WebApplication, application)
@@ -503,7 +504,7 @@ class Game
         manager:SetGameDisplay(display)
         display:SetConfiguration(androidConfig)
 
-        AndroidGraphics graphics
+        AndroidOpenGL graphics
         manager:SetGameGraphics(graphics)
         gl20 = graphics
 
@@ -764,7 +765,10 @@ class Game
         color and depth buffers are cleared in OpenGL (failing to do this will
         cause odd rendering behavior).
         */
-        gl20:ClearScreen(16640)
+        if gl20 is OpenGLManager
+            OpenGLManager openGL = cast(OpenGLManager, gl20)
+            openGL:ClearScreen(16640)
+        end
     end
 
     /*
@@ -774,7 +778,10 @@ class Game
         /*
         256 is the value of GL_COLOR_BUFFER_BIT.
         */
-        gl20:ClearScreen(256)
+if gl20 is OpenGLManager
+            OpenGLManager openGL = cast(OpenGLManager, gl20)
+            openGL:ClearScreen(256)
+        end
     end
 
     /*
@@ -2355,7 +2362,12 @@ class Game
     */
     action InitializeLayers
         // TO-DO: Consider moving this elsewhere. This needs to happen as a first step in initializing graphics before Painters are made, which occurs when creating layers.
-        manager:GetGameGraphics():UseDefaultVertexArray()
+        GraphicsManager graphics = manager:GetGameGraphics()
+        // It's not clear yet if Vulkan will use the default vertex array in the same way OpenGL does for performance gain.
+        if graphics is OpenGLManager
+            OpenGLManager openGL = cast(OpenGLManager, graphics)
+            openGL:UseDefaultVertexArray()
+        end
 
         layers:Empty()
         

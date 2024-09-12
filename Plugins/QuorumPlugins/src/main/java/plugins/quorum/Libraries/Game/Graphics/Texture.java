@@ -7,6 +7,7 @@
 package plugins.quorum.Libraries.Game.Graphics;
 
 
+import plugins.quorum.Libraries.Game.Graphics.OpenGL.OpenGLManager;
 import quorum.Libraries.Game.Graphics.Color_;
 
 import plugins.quorum.Libraries.Game.libGDX.Array;
@@ -24,7 +25,7 @@ public class Texture
     public int glTarget; //The target, such as GL_TEXTURE_2D
     protected int glHandle;
 
-    private GraphicsManager gl20 = GameStateManager.nativeGraphics; 
+    private OpenGLManager gl20 = GameStateManager.nativeGraphics;
 
     /*
     The color that should be used to render this texture by the Painter2D when

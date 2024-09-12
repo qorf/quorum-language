@@ -18,6 +18,7 @@ use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.PerspectiveCamera
 use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.Painter3D
+use Libraries.Game.Graphics.OpenGL.OpenGLPainter3D
 use Libraries.Game.Graphics.Environment
 use Libraries.Game.Graphics.Light
 use Libraries.Game.Graphics.PointLight
@@ -43,6 +44,7 @@ use Libraries.System.SystemHelper
 use Libraries.Language.Errors.ConcurrencyError
 use Libraries.Interface.Events.GestureListener
 use Libraries.Interface.Events.GestureEvent
+use Libraries.Game.Graphics.OpenGL.OpenGLManager
 
 /*
 The Layer3D class is used to manage a number of 3D objects, as well as manage
@@ -95,12 +97,15 @@ class Layer3D is Layer
     Array<GestureListener> gestureListeners
     Array<Joint3D> joints
     Camera camera = undefined
-    Painter3D painter
     Environment environment
     Skybox skybox = undefined
     GameStateManager manager
     SystemHelper systemHelper
     GraphicsManager graphics = undefined
+    
+// The painter is lazy-loaded. Once it's loaded, it'll instantiate a different type of Painter depending on if the system uses OpenGL or Vulkan.
+    Painter3D painter = undefined
+    boolean painterInitialized = false
 
     boolean newItemAdded = false
 
@@ -151,6 +156,8 @@ class Layer3D is Layer
         camera:LookAt(0, 0, 0)
         camera:Update()
         SetViewport(0, 0, manager:GetGameDisplay():GetWidth(), manager:GetGameDisplay():GetHeight())
+        
+        Painter3D painter = GetPainter()
         painter:SetEnvironment(environment)
         painter:SetCamera(camera)
 
@@ -1049,12 +1056,15 @@ class Layer3D is Layer
         
         camera:Update()
 
-        if (GetViewportX() not= graphics:GetViewportX() or GetViewportY() not= graphics:GetViewportY()
-            or GetViewportWidth() not= graphics:GetViewportWidth() or GetViewportHeight() not= graphics:GetViewportHeight())
-
-            graphics:SetViewport(GetViewportX(), GetViewportY(), GetViewportWidth(), GetViewportHeight())
+if graphics is OpenGLManager
+            OpenGLManager openGL = cast(OpenGLManager, graphics)
+if (GetViewportX() not= openGL:GetViewportX() or GetViewportY() not= openGL:GetViewportY()
+            or GetViewportWidth() not= openGL:GetViewportWidth() or GetViewportHeight() not= openGL:GetViewportHeight())
+            openGL:SetViewport(GetViewportX(), GetViewportY(), GetViewportWidth(), GetViewportHeight())
+        end
         end
 
+Painter3D painter = GetPainter()
         painter:Begin()
 
         integer counter = 0
@@ -1099,6 +1109,7 @@ class Layer3D is Layer
     */
     action SetCamera(Camera cam)
         camera = cam
+Painter3D painter = GetPainter()
         painter:SetCamera(camera)
     end
 
@@ -2734,6 +2745,7 @@ class Layer3D is Layer
     */
     action SetSkybox(Skybox box)
         skybox = box
+Painter3D painter = GetPainter()
         painter:SetSkybox(box)
     end
 
@@ -3302,4 +3314,22 @@ class Layer3D is Layer
         Camera camera = GetCamera()
         camera:SetSize(width, height)
     end
+    
+action GetPainter returns Painter3D
+        if painter = undefined and painterInitialized = false
+            if manager:GetGameGraphics() is OpenGLManager
+                OpenGLPainter3D painter3D
+                painter = painter3D
+            else
+                alert("Vulkan support NYI")
+            end
+        end
+        return painter
+    end
+
+    action SetPainter(Painter3D painter)
+        painterInitialized = true
+        me:painter = painter
+    end
+    
 end

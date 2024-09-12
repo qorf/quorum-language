@@ -8,13 +8,12 @@ package plugins.quorum.Libraries.Game.Graphics.Shaders;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import plugins.quorum.Libraries.Game.GameStateManager;
-import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
+import plugins.quorum.Libraries.Game.Graphics.OpenGL.OpenGLManager;
 import plugins.quorum.Libraries.Game.Graphics.ShaderProgram;
 import quorum.Libraries.Compute.Matrix4;
 import quorum.Libraries.Game.Graphics.Camera_;
 import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
 import quorum.Libraries.Game.Graphics.Skybox_;
-import quorum.Libraries.System.Properties;
 
 /**
  *
@@ -149,17 +148,17 @@ public class SkyboxShader
 
         bufferHandle = GameStateManager.nativeGraphics.glGenBuffer();
 
-        GameStateManager.nativeGraphics.glBindBuffer(GraphicsManager.GL_ARRAY_BUFFER, bufferHandle);
-        GameStateManager.nativeGraphics.glBufferData(GraphicsManager.GL_ARRAY_BUFFER, byteBuffer.limit(), byteBuffer, GraphicsManager.GL_STATIC_DRAW);
-        GameStateManager.nativeGraphics.glBindBuffer(GraphicsManager.GL_ARRAY_BUFFER, 0);
+        GameStateManager.nativeGraphics.glBindBuffer(OpenGLManager.GL_ARRAY_BUFFER, bufferHandle);
+        GameStateManager.nativeGraphics.glBufferData(OpenGLManager.GL_ARRAY_BUFFER, byteBuffer.limit(), byteBuffer, OpenGLManager.GL_STATIC_DRAW);
+        GameStateManager.nativeGraphics.glBindBuffer(OpenGLManager.GL_ARRAY_BUFFER, 0);
     }
     
     public void Render(Skybox_ skybox, Camera_ camera)
     {
         program.Begin();
 
-        GraphicsManager graphics = GameStateManager.nativeGraphics;
-        graphics.glBindBuffer(GraphicsManager.GL_ARRAY_BUFFER, bufferHandle);
+        OpenGLManager graphics = GameStateManager.nativeGraphics;
+        graphics.glBindBuffer(OpenGLManager.GL_ARRAY_BUFFER, bufferHandle);
 
         Matrix4 m = (Matrix4)camera.GetViewMatrix();
         float[] temp = {-(float)m.row0column0,  (float)m.row1column0,  (float)m.row2column0, 0,
@@ -178,17 +177,17 @@ public class SkyboxShader
         program.SetUniformMatrix(rotationIndex, skybox.Get_Libraries_Game_Graphics_Skybox__transform_());
 
         program.EnableVertexAttribute(positionIndex);
-        program.SetVertexAttribute(positionIndex, 3, GraphicsManager.GL_FLOAT, false, 12, 0);
+        program.SetVertexAttribute(positionIndex, 3, OpenGLManager.GL_FLOAT, false, 12, 0);
 
-        graphics.glActiveTexture(GraphicsManager.GL_TEXTURE0);
+        graphics.glActiveTexture(OpenGLManager.GL_TEXTURE0);
         program.SetUniform(skyboxIndex, 0);
         skybox.Get_Libraries_Game_Graphics_Skybox__cubeMap_().Bind();
 
         program.SetUniform(inverterIndex, (float)skybox.Get_Libraries_Game_Graphics_Skybox__inverter_());
 
-        graphics.glDrawArrays(GraphicsManager.GL_TRIANGLES, 0, 36);
+        graphics.glDrawArrays(OpenGLManager.GL_TRIANGLES, 0, 36);
 
-        graphics.glBindBuffer(GraphicsManager.GL_ARRAY_BUFFER, 0);
+        graphics.glBindBuffer(OpenGLManager.GL_ARRAY_BUFFER, 0);
         program.DisableVertexAttribute(positionIndex);
         skybox.Get_Libraries_Game_Graphics_Skybox__cubeMap_().BindToDefault();
 

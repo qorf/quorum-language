@@ -9,8 +9,8 @@ import quorum.Libraries.Containers.Number32BitArray_;
 public class Number32BitBuffer {
     public java.lang.Object me_ = null;
     
-    ByteBuffer byteBuffer;
-    FloatBuffer buffer;
+    public ByteBuffer byteBuffer;
+    public FloatBuffer buffer;
     
     public void SetSize(int size)
     {

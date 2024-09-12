@@ -25,6 +25,7 @@ import java.nio.IntBuffer;
 //import com.badlogic.gdx.graphics.Color;
 //import com.badlogic.gdx.graphics.Mesh;
 
+import plugins.quorum.Libraries.Game.Graphics.OpenGL.OpenGLManager;
 import quorum.Libraries.Game.Graphics.Color_;
 import quorum.Libraries.Compute.Vector2;
 import quorum.Libraries.Compute.Vector3;
@@ -193,8 +194,8 @@ public class ShaderProgram
      * @param fragmentShader */
     private void CompileShaders(String vertexShader, String fragmentShader) 
     {
-        vertexShaderHandle = LoadShader(GraphicsManager.GL_VERTEX_SHADER, vertexShader);
-        fragmentShaderHandle = LoadShader(GraphicsManager.GL_FRAGMENT_SHADER, fragmentShader);
+        vertexShaderHandle = LoadShader(OpenGLManager.GL_VERTEX_SHADER, vertexShader);
+        fragmentShaderHandle = LoadShader(OpenGLManager.GL_FRAGMENT_SHADER, fragmentShader);
 
         if (vertexShaderHandle == -1 || fragmentShaderHandle == -1) 
         {
@@ -214,7 +215,7 @@ public class ShaderProgram
 
     private int LoadShader(int type, String source) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         IntBuffer intbuf = BufferUtils.newIntBuffer(1);
 
         int shader = gl.glCreateShader(type);
@@ -222,18 +223,18 @@ public class ShaderProgram
 
         gl.glShaderSource(shader, source);
         gl.glCompileShader(shader);
-        gl.glGetShaderiv(shader, GraphicsManager.GL_COMPILE_STATUS, intbuf);
+        gl.glGetShaderiv(shader, OpenGLManager.GL_COMPILE_STATUS, intbuf);
 
         int compiled = intbuf.get(0);
         if (compiled == 0) 
         {
-            GameStateManager.nativeGraphics.glGetProgramiv(program, GraphicsManager.GL_INFO_LOG_LENGTH, intbuf);
+            GameStateManager.nativeGraphics.glGetProgramiv(program, OpenGLManager.GL_INFO_LOG_LENGTH, intbuf);
             int infoLogLength = intbuf.get(0);
             if (infoLogLength > 1) 
             {
                 String infoLog = gl.glGetShaderInfoLog(shader);
                 log += infoLog;
-                log += "Version is: " + GameStateManager.nativeGraphics.glGetString(GraphicsManager.GL_VERSION);
+                log += "Version is: " + GameStateManager.nativeGraphics.glGetString(OpenGLManager.GL_VERSION);
             }
             return -1;
         }
@@ -243,7 +244,7 @@ public class ShaderProgram
 
     private int LinkProgram() 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         int program = gl.glCreateProgram();
         if (program == 0) return -1;
 
@@ -255,11 +256,11 @@ public class ShaderProgram
         tmp.order(ByteOrder.nativeOrder());
         IntBuffer intbuf = tmp.asIntBuffer();
 
-        gl.glGetProgramiv(program, GraphicsManager.GL_LINK_STATUS, intbuf);
+        gl.glGetProgramiv(program, OpenGLManager.GL_LINK_STATUS, intbuf);
         int linked = intbuf.get(0);
         if (linked == 0) 
         {
-            GameStateManager.nativeGraphics.glGetProgramiv(program, GraphicsManager.GL_INFO_LOG_LENGTH, intbuf);
+            GameStateManager.nativeGraphics.glGetProgramiv(program, OpenGLManager.GL_INFO_LOG_LENGTH, intbuf);
             int infoLogLength = intbuf.get(0);
             if (infoLogLength > 1) 
             {
@@ -277,7 +278,7 @@ public class ShaderProgram
     {
         if (isCompiled) 
         {
-            GameStateManager.nativeGraphics.glGetProgramiv(program, GraphicsManager.GL_INFO_LOG_LENGTH, intbuf);
+            GameStateManager.nativeGraphics.glGetProgramiv(program, OpenGLManager.GL_INFO_LOG_LENGTH, intbuf);
             int infoLogLength = intbuf.get(0);
             if (infoLogLength > 1) 
             {
@@ -299,7 +300,7 @@ public class ShaderProgram
 
     private int FetchAttributeLocation(String name) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         // -2 == not yet cached
         // -1 == cached but not found
         int location;
@@ -318,7 +319,7 @@ public class ShaderProgram
 
     public int FetchUniformLocation(String name, boolean pedantic) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         // -2 == not yet cached
         // -1 == cached but not found
         int location;
@@ -340,7 +341,7 @@ public class ShaderProgram
      * @param value the value */
     public void SetUniform(String name, int value) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         int location = FetchUniformLocation(name);
         gl.glUniform1i(location, value);
@@ -348,7 +349,7 @@ public class ShaderProgram
 
     public void SetUniform(int location, int value) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         gl.glUniform1i(location, value);
     }
@@ -361,7 +362,7 @@ public class ShaderProgram
      * @param value2 the second value */
     public void SetUniform(String name, int value1, int value2) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         int location = FetchUniformLocation(name);
         gl.glUniform2i(location, value1, value2);
@@ -369,7 +370,7 @@ public class ShaderProgram
 
     public void SetUniform(int location, int value1, int value2) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         gl.glUniform2i(location, value1, value2);
     }
@@ -383,7 +384,7 @@ public class ShaderProgram
      * @param value3 the third value */
     public void SetUniform(String name, int value1, int value2, int value3) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         int location = FetchUniformLocation(name);
         gl.glUniform3i(location, value1, value2, value3);
@@ -391,7 +392,7 @@ public class ShaderProgram
 
     public void SetUniform(int location, int value1, int value2, int value3) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         gl.glUniform3i(location, value1, value2, value3);
     }
@@ -406,7 +407,7 @@ public class ShaderProgram
      * @param value4 the fourth value */
     public void SetUniform(String name, int value1, int value2, int value3, int value4) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         int location = FetchUniformLocation(name);
         gl.glUniform4i(location, value1, value2, value3, value4);
@@ -414,7 +415,7 @@ public class ShaderProgram
 
     public void SetUniform(int location, int value1, int value2, int value3, int value4) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         gl.glUniform4i(location, value1, value2, value3, value4);
     }
@@ -426,7 +427,7 @@ public class ShaderProgram
      * @param value the value */
     public void SetUniform(String name, float value) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         int location = FetchUniformLocation(name);
         gl.glUniform1f(location, value);
@@ -434,7 +435,7 @@ public class ShaderProgram
 
     public void SetUniform(int location, float value) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         gl.glUniform1f(location, value);
     }
@@ -447,7 +448,7 @@ public class ShaderProgram
      * @param value2 the second value */
     public void SetUniform(String name, float value1, float value2) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         int location = FetchUniformLocation(name);
         gl.glUniform2f(location, value1, value2);
@@ -455,7 +456,7 @@ public class ShaderProgram
 
     public void SetUniform(int location, float value1, float value2) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         gl.glUniform2f(location, value1, value2);
     }
@@ -469,7 +470,7 @@ public class ShaderProgram
      * @param value3 the third value */
     public void SetUniform(String name, float value1, float value2, float value3) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         int location = FetchUniformLocation(name);
         gl.glUniform3f(location, value1, value2, value3);
@@ -477,7 +478,7 @@ public class ShaderProgram
 
     public void SetUniform(int location, float value1, float value2, float value3) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         gl.glUniform3f(location, value1, value2, value3);
     }
@@ -492,7 +493,7 @@ public class ShaderProgram
      * @param value4 the fourth value */
     public void SetUniform(String name, float value1, float value2, float value3, float value4)
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         int location = FetchUniformLocation(name);
         gl.glUniform4f(location, value1, value2, value3, value4);
@@ -500,14 +501,14 @@ public class ShaderProgram
 
     public void SetUniform(int location, float value1, float value2, float value3, float value4) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         gl.glUniform4f(location, value1, value2, value3, value4);
     }
 
     public void SetUniformVector1(String name, float[] values, int offset, int length) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         int location = FetchUniformLocation(name);
         gl.glUniform1fv(location, length, values, offset);
@@ -515,14 +516,14 @@ public class ShaderProgram
 
     public void SetUniformVector1(int location, float[] values, int offset, int length) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         gl.glUniform1fv(location, length, values, offset);
     }
 
     public void SetUniformVector2(String name, float[] values, int offset, int length) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         int location = FetchUniformLocation(name);
         gl.glUniform2fv(location, length / 2, values, offset);
@@ -530,14 +531,14 @@ public class ShaderProgram
 
     public void SetUniformVector2(int location, float[] values, int offset, int length) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         gl.glUniform2fv(location, length / 2, values, offset);
     }
 
     public void SetUniformVector3(String name, float[] values, int offset, int length) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         int location = FetchUniformLocation(name);
         gl.glUniform3fv(location, length / 3, values, offset);
@@ -545,14 +546,14 @@ public class ShaderProgram
 
     public void SetUniformVector3(int location, float[] values, int offset, int length) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         gl.glUniform3fv(location, length / 3, values, offset);
     }
 
     public void SetUniformVector4(String name, float[] values, int offset, int length) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         int location = FetchUniformLocation(name);
         gl.glUniform4fv(location, length / 4, values, offset);
@@ -560,7 +561,7 @@ public class ShaderProgram
 
     public void SetUniformVector4(int location, float[] values, int offset, int length) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         gl.glUniform4fv(location, length / 4, values, offset);
     }
@@ -593,7 +594,7 @@ public class ShaderProgram
 
     public void SetUniformMatrix(int location, Matrix4_ matrix, boolean transpose) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         MatrixToArray(matrix);
         gl.glUniformMatrix4fv(location, 1, transpose, floatsFromMatrix4, 0);
@@ -627,7 +628,7 @@ public class ShaderProgram
 
     public void SetUniformMatrix(int location, Matrix3_ matrix, boolean transpose) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         MatrixToArray(matrix);
         gl.glUniformMatrix3fv(location, 1, transpose, floatsFromMatrix3, 0);
@@ -648,7 +649,7 @@ public class ShaderProgram
     */
     public void SetUniformMatrix4(int location, float[] matrix, boolean transpose) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         gl.glUniformMatrix4fv(location, 1, transpose, matrix, 0);
     }
@@ -668,7 +669,7 @@ public class ShaderProgram
     */
     public void SetUniformMatrix3(int location, float[] matrix, boolean transpose) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         gl.glUniformMatrix3fv(location, 1, transpose, matrix, 0);
     }
@@ -681,7 +682,7 @@ public class ShaderProgram
      * @param transpose whether the uniform matrix should be transposed */
     public void SetUniformMatrix3(String name, FloatBuffer buffer, int count, boolean transpose) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         buffer.position(0);
         int location = FetchUniformLocation(name);
@@ -696,7 +697,7 @@ public class ShaderProgram
      * @param transpose whether the uniform matrix should be transposed */
     public void SetUniformMatrix4(String name, FloatBuffer buffer, int count, boolean transpose) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         buffer.position(0);
         int location = FetchUniformLocation(name);
@@ -705,7 +706,7 @@ public class ShaderProgram
 
     public void SetUniformMatrix4(int location, float[] values, int offset, int length) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         gl.glUniformMatrix4fv(location, length / 16, false, values, offset);
     }
@@ -777,7 +778,7 @@ public class ShaderProgram
      * @param buffer the buffer containing the vertex attributes. */
     public void SetVertexAttribute(String name, int size, int type, boolean normalize, int stride, Buffer buffer) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         int location = FetchAttributeLocation(name);
         if (location == -1) return;
@@ -786,7 +787,7 @@ public class ShaderProgram
 
     public void SetVertexAttribute(int location, int size, int type, boolean normalize, int stride, Buffer buffer) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
 
         gl.glVertexAttribPointer(location, size, type, normalize, stride, buffer);
@@ -804,7 +805,7 @@ public class ShaderProgram
      * @param offset byte offset into the vertex buffer object bound to GL20.GL_ARRAY_BUFFER. */
     public void SetVertexAttribute(String name, int size, int type, boolean normalize, int stride, int offset) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         int location = FetchAttributeLocation(name);
         if (location == -1) return;
@@ -813,7 +814,7 @@ public class ShaderProgram
 
     public void SetVertexAttribute(int location, int size, int type, boolean normalize, int stride, int offset) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         gl.glVertexAttribPointer(location, size, type, normalize, stride, offset);
     }
@@ -822,7 +823,7 @@ public class ShaderProgram
      * {@link ShaderProgram#end()}. */
     public void Begin() 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         gl.glUseProgram(program);
     }
@@ -831,14 +832,14 @@ public class ShaderProgram
      * shader resources. */
     public void End() 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         gl.glUseProgram(0);
     }
 
     /** Disposes all resources associated with this shader. Must be called when the shader is no longer used. */
     public void Dispose() 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         gl.glUseProgram(0);
         gl.glDeleteShader(vertexShaderHandle);
         gl.glDeleteShader(fragmentShaderHandle);
@@ -851,7 +852,7 @@ public class ShaderProgram
      * @param name the vertex attribute name */
     public void DisableVertexAttribute (String name) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         int location = FetchAttributeLocation(name);
         if (location == -1) return;
@@ -860,7 +861,7 @@ public class ShaderProgram
 
     public void DisableVertexAttribute(int location) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         gl.glDisableVertexAttribArray(location);
     }
@@ -870,7 +871,7 @@ public class ShaderProgram
      * @param name the vertex attribute name */
     public void EnableVertexAttribute(String name) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         int location = FetchAttributeLocation(name);
         if (location == -1) return;
@@ -879,7 +880,7 @@ public class ShaderProgram
 
     public void EnableVertexAttribute (int location) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         CheckManaged();
         gl.glEnableVertexAttribArray(location);
     }
@@ -930,7 +931,7 @@ public class ShaderProgram
      * @param value4 the fourth value */
     public void SetAttribute(String name, float value1, float value2, float value3, float value4) 
     {
-        GraphicsManager gl = GameStateManager.nativeGraphics;
+        OpenGLManager gl = GameStateManager.nativeGraphics;
         int location = FetchAttributeLocation(name);
         gl.glVertexAttrib4f(location, value1, value2, value3, value4);
     }
@@ -938,7 +939,7 @@ public class ShaderProgram
     private void FetchUniforms() 
     {
         params.clear();
-        GameStateManager.nativeGraphics.glGetProgramiv(program, GraphicsManager.GL_ACTIVE_UNIFORMS, params);
+        GameStateManager.nativeGraphics.glGetProgramiv(program, OpenGLManager.GL_ACTIVE_UNIFORMS, params);
         int numUniforms = params.get(0);
 
         uniformNames = new String[numUniforms];
@@ -960,7 +961,7 @@ public class ShaderProgram
     private void FetchAttributes() 
     {
         params.clear();
-        GameStateManager.nativeGraphics.glGetProgramiv(program, GraphicsManager.GL_ACTIVE_ATTRIBUTES, params);
+        GameStateManager.nativeGraphics.glGetProgramiv(program, OpenGLManager.GL_ACTIVE_ATTRIBUTES, params);
         int numAttributes = params.get(0);
 
         attributeNames = new String[numAttributes];

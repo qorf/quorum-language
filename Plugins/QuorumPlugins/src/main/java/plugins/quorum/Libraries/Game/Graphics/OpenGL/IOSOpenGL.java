@@ -3,25 +3,20 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package plugins.quorum.Libraries.Game.Graphics;
+package plugins.quorum.Libraries.Game.Graphics.OpenGL;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-import android.opengl.GLES20;
-import org.lwjgl.opengl.GL20;
-import org.robovm.apple.foundation.Foundation;
-import org.robovm.apple.foundation.NSString;
-import static plugins.quorum.Libraries.Game.Graphics.GraphicsManager.GL_FLOAT;
 import quorum.Libraries.Containers.Number32BitArray;
 import quorum.Libraries.Containers.Number32BitArray_;
 import quorum.Libraries.Game.Graphics.Integer32BitBuffer_;
 import quorum.Libraries.Game.Graphics.Number32BitBuffer_;
 import quorum.Libraries.Language.Types.Integer_;
 
-public class IOSGraphics implements GraphicsManager
+public class IOSOpenGL implements OpenGLManager
 {
     public java.lang.Object me_ = null;
     
@@ -57,7 +52,7 @@ public class IOSGraphics implements GraphicsManager
     public boolean IsShaderCompiled(int shaderID)
     {
         IntBuffer intbuf = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(1);
-        glGetShaderiv(shaderID, GraphicsManager.GL_COMPILE_STATUS, intbuf);
+        glGetShaderiv(shaderID, OpenGLManager.GL_COMPILE_STATUS, intbuf);
 
         int compiled = intbuf.get(0);
         return compiled != 0;
@@ -86,7 +81,7 @@ public class IOSGraphics implements GraphicsManager
     public boolean IsShaderProgramLinked(int programID)
     {
         IntBuffer intbuf = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(1);
-        glGetProgramiv(programID, GraphicsManager.GL_LINK_STATUS, intbuf);
+        glGetProgramiv(programID, OpenGLManager.GL_LINK_STATUS, intbuf);
 
         int linked = intbuf.get(0);
         return linked != 0;
@@ -145,7 +140,7 @@ public class IOSGraphics implements GraphicsManager
     public int GetMaxTextureUnits()
     {
         IntBuffer buffer = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(16);
-        glGetIntegerv(GraphicsManager.GL_MAX_TEXTURE_IMAGE_UNITS, buffer);
+        glGetIntegerv(OpenGLManager.GL_MAX_TEXTURE_IMAGE_UNITS, buffer);
         return buffer.get(0);
     }
     
@@ -221,7 +216,7 @@ public class IOSGraphics implements GraphicsManager
     public int GetShaderInputCount(int programID)
     {
         IntBuffer params = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(1);
-        glGetProgramiv(programID, GraphicsManager.GL_ACTIVE_UNIFORMS, params);
+        glGetProgramiv(programID, OpenGLManager.GL_ACTIVE_UNIFORMS, params);
         return params.get(0);
     }
 
@@ -243,7 +238,7 @@ public class IOSGraphics implements GraphicsManager
     public int GetVertexInputCount(int programID)
     {
         IntBuffer params = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(1);
-        glGetProgramiv(programID, GraphicsManager.GL_ACTIVE_ATTRIBUTES, params);
+        glGetProgramiv(programID, OpenGLManager.GL_ACTIVE_ATTRIBUTES, params);
         return params.get(0);
     }
 
@@ -759,10 +754,10 @@ public class IOSGraphics implements GraphicsManager
     
     public void glViewport(int x, int y, int width, int height) 
     {
-        IOSGraphics.x = x;
-        IOSGraphics.y = y;
-        IOSGraphics.width = width;
-        IOSGraphics.height = height;
+        IOSOpenGL.x = x;
+        IOSOpenGL.y = y;
+        IOSOpenGL.width = width;
+        IOSOpenGL.height = height;
         glViewportJni(x, y, width, height);
     }
 

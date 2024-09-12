@@ -1,0 +1,72 @@
+package Libraries.Game.Graphics.Vulkan
+
+use Libraries.System.Logging.Logger
+use Libraries.System.Logging.ConsoleLogger
+
+/*This class is a Quorum representation of a Vulkan instance.
+
+A Vulkan Instance is an interface that allows the application to send
+requests to the Vulkan library. Most commonly, Vulkan is used for rendering
+graphics, but it can also be used for any other hardware accelerated
+computations, such as performing statistical calculations on the GPU.
+
+An Instance isn't usually used directly. More often, it is used as a shared
+resource by other Vulkan objects, such as Vulkan Physical Devices.*/
+class VulkanInstance
+    
+    // A logger used to report any errors or warnings from Vulkan. By default, a ConsoleLogger is provided,
+    // but the user can replace this with any logger of their choosing.
+    Logger logger = undefined
+    
+    boolean initialized = false
+    
+    /*This action initializes the Vulkan instance so it can be used with other Vulkan objects.
+
+Attribute: Parameter applicationName The title of the application that is using this instance. Hardware agents can use this to identify your app, if they choose.
+Attribute: Parameter applicationVersion The version number of your application. Hardware agents can use this to identify the version of your app, if they choose.
+Attribute: Parameter apiVersion The Vulkan API version to use. This must be an encoded API number (see "ConvertToAPIVersionID" in VulkanUtilities).
+Attribute: Parameter useValidationLayers Whether or not the instance should use Validation Layers, if they are available. If this is true and they aren't available, the instance will be made without them.*/
+    action Create(text applicationName, integer applicationVersion, integer apiVersion, boolean useValidationLayers)
+        VulkanUtilities utility
+        if utility:AreValidationLayersSupported() = false
+            useValidationLayers = false
+        end
+        
+        if logger = undefined and useValidationLayers = true
+            ConsoleLogger consoleLogger
+            logger = consoleLogger
+        end
+
+        CreateNative(applicationName, applicationVersion, apiVersion, useValidationLayers)
+        initialized = true
+end
+    
+    private system action CreateNative(text applicationName, integer applicationVersion, integer apiVersion, boolean useValidationLayers)
+    
+    action IsInitialized returns boolean
+        return initialized
+    end
+    
+    /*This action sets the Logger that should be used by this Vulkan instance. All Vulkan errors and warnings (including any that
+would be produced by validation layers, if there are any) will be reported to the logger. By default, no logger is provided
+if validation layers are not used, and a ConsoleLogger is provided if validation layers are on.
+
+Attribute: Parameter logger A logger to handle errors and warnings from the Vulkan instance.*/
+    action SetLogger(Logger logger)
+        me:logger = logger
+    end
+    
+    /*This action returns the Logger that is being used by this Vulkan instance. All Vulkan errors and warnings (including any that
+would be produced by validation layers, if there are any) will be reported to the logger. By default, no logger is provided if
+validation layers are not used, and a ConsoleLogger is provided if validation layers are on.
+
+Attribute: Returns The Logger being used to handle errors and warnings from the Vulkan instance.*/
+    action GetLogger returns Logger
+        return logger
+    end
+    
+    /*This action destroys the instance and releases all system resources related to it. Once the instance is disposed, it can't
+be used anymore, so this should only be done to clean up resources when the instance is no longer needed.*/
+    system action Dispose
+    
+end

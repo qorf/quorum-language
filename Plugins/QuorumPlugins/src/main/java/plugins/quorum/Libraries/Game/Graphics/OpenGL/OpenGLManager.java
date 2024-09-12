@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package plugins.quorum.Libraries.Game.Graphics;
+package plugins.quorum.Libraries.Game.Graphics.OpenGL;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -17,7 +17,7 @@ import java.nio.IntBuffer;
  * 
  * This is a utility class utilized exclusively by the Java plugin side.
  */
-public interface GraphicsManager {
+public interface OpenGLManager {
     //public java.lang.Object me_ = null;
 
 	public int GetGraphicsErrorCode();

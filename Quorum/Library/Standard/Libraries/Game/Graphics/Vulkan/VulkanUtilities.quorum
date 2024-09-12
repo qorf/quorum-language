@@ -1,0 +1,79 @@
+package Libraries.Game.Graphics.Vulkan
+
+use Libraries.Compute.BitwiseOperations
+use Libraries.Containers.Array
+
+shared class VulkanUtilities
+    
+    VulkanConstants constants
+BitwiseOperations bits
+    
+    /*This action converts a Vulkan API version number from traditional "major.minor.patch" format
+(e.g., "1.1.0") to a single integer code. This can be used anywhere that a Vulkan API version
+number is required, but for most uses it's highly recommended to use one of the Vulkan API constant values
+from the VulkanConstants class instead.
+
+The encoded version ID will be an integer where the major component is bit-shifted left
+22 places, the minor component is shifted left 12 places, and the patch bits remain in-place.*/
+    action ConvertToAPIVersionID(integer major, integer minor, integer patch) returns integer
+        integer majorComponent = bits:ShiftLeft(major, 22)
+        integer minorComponent = bits:ShiftLeft(minor, 12)
+        return bits:Or(bits:Or(majorComponent, minorComponent), patch)
+    end
+    
+    /*This action returns an array containing the names of all the layers that are available on
+this platform. 
+Attribute: Returns An array containing the names of all layers available on this platform.*/
+    action GetSupportedLayers returns Array<text>
+        Array<text> layerNames
+        GetSupportedLayers(layerNames)
+        return layerNames
+    end
+    
+/*This action fetches all of the names of all the layers that are available on this platform,
+and stores them inside the provided text array.
+Attribute: Parameter returnedLayers A text array that will contain the names of the available layers when the action finishes.*/
+    system action GetSupportedLayers(Array<text> returnedLayers)
+    
+    action GetSupportedValidationLayers returns Array<text>
+        Array<text> layerNames = GetSupportedLayers()
+        Array<text> resultLayers
+        
+        // Try to find the optimal validation layers and only return those. 
+        // Begin with the standard Khronos validation layer. If it's not available, try to use the LunarG validation layer instead.
+        if layerNames:Has(constants:KHRONOS_VALIDATION_LAYER)
+            resultLayers:Add(constants:KHRONOS_VALIDATION_LAYER)
+        elseif layerNames:Has(constants:LUNARG_STANDARD_VALIDATION_LAYER)
+            resultLayers:Add(constants:LUNARG_STANDARD_VALIDATION_LAYER)
+        else
+            // If neither of our first options were available, grab whatever fallbacks are available.
+            if layerNames:Has(constants:GOOGLE_THREADING_VALIDATION_LAYER)
+                resultLayers:Add(constants:GOOGLE_THREADING_VALIDATION_LAYER)
+            end
+if layerNames:Has(constants:LUNARG_PARAMETER_VALIDATION_LAYER)
+                resultLayers:Add(constants:LUNARG_PARAMETER_VALIDATION_LAYER)
+            end
+if layerNames:Has(constants:LUNARG_OBJECT_TRACKER_VALIDATION_LAYER)
+                resultLayers:Add(constants:LUNARG_OBJECT_TRACKER_VALIDATION_LAYER)
+            end
+if layerNames:Has(constants:LUNARG_CORE_VALIDATION_LAYER)
+                resultLayers:Add(constants:LUNARG_CORE_VALIDATION_LAYER)
+            end
+if layerNames:Has(constants:GOOGLE_UNIQUE_OBJECTS_VALIDATION_LAYER)
+                resultLayers:Add(constants:GOOGLE_UNIQUE_OBJECTS_VALIDATION_LAYER)
+            end
+        end
+        
+        return resultLayers
+    end
+    
+    /*This action returns true if this platform has available validation layers for Vulkan, or false otherwise.
+Validation layers can be enabled to check for Vulkan errors and warnings, but they slow performance, so they
+typically should only be used while debugging.
+
+Attribute: Returns True if there are available validation layers to use, or false otherwise. */
+    action AreValidationLayersSupported returns boolean
+return GetSupportedValidationLayers():IsEmpty() = false
+end
+    
+end

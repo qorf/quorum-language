@@ -2,6 +2,8 @@ package Libraries.Game.Graphics
 
 use Libraries.Containers.Array
 use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.OpenGL.OpenGLConstants
+use Libraries.Game.Graphics.OpenGL.OpenGLManager
 
 /*
 The TextureBinder class manages the automatic binding and unbinding of texture resources for the rendering system.
@@ -44,7 +46,7 @@ class TextureBinder
 
     on create
         GraphicsManager graphics = manager:GetGameGraphics()
-        integer max = graphics:GetMaxTextureUnits()
+        integer max = graphics:GetMaximumTextureCount()
         count = max - 1 - offset
 
         textures:SetSize(count)
@@ -66,7 +68,10 @@ class TextureBinder
         //textures are active to prevent accidental manipulation of them.
 
         GraphicsManager graphics = manager:GetGameGraphics()
-        graphics:SetActiveTextureID(constants:GL_TEXTURE0)
+        if graphics is OpenGLManager
+            OpenGLManager openGL = cast(OpenGLManager, graphics)
+openGL:SetActiveTextureID(constants:GL_TEXTURE0)
+        end
     end    
 
     action Bind(TextureDescriptor descriptor) returns integer
@@ -89,7 +94,10 @@ class TextureBinder
             texture:Bind(result)
         else
             GraphicsManager graphics = manager:GetGameGraphics()
-            graphics:SetActiveTextureID(constants:GL_TEXTURE0 + result)
+if graphics is OpenGLManager
+            OpenGLManager openGL = cast(OpenGLManager, graphics)
+openGL:SetActiveTextureID(constants:GL_TEXTURE0 + result)
+        end
         end
 
         texture:UnsafeSetWrap(descriptor:uWrap, descriptor:vWrap)

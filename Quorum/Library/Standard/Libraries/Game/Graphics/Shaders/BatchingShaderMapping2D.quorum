@@ -7,10 +7,11 @@ use Libraries.Game.Graphics.VertexData
 use Libraries.Game.Graphics.Camera
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.GraphicsManager
-use Libraries.Game.Graphics.OpenGLConstants
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.VertexAttributes
 use Libraries.Game.Graphics.VertexAttribute
+use Libraries.Game.Graphics.OpenGL.OpenGLConstants
+use Libraries.Game.Graphics.OpenGL.OpenGLManager
 
 class BatchingShaderMapping2D is ShaderMapping
 
@@ -45,10 +46,13 @@ class BatchingShaderMapping2D is ShaderMapping
 
         GraphicsManager graphics = manager:GetGameGraphics()
         OpenGLConstants constants
-        graphics:SetDepthMask(true)
-        graphics:EnableProperty(constants:GL_DEPTH_TEST)
-        graphics:SetDepthFunction(constants:GL_LEQUAL)
-        graphics:DisableProperty(constants:GL_CULL_FACE)
+        if graphics is OpenGLManager
+            OpenGLManager openGL = cast(OpenGLManager, graphics)
+openGL:SetDepthMask(true)
+        openGL:EnableProperty(constants:GL_DEPTH_TEST)
+        openGL:SetDepthFunction(constants:GL_LEQUAL)
+        openGL:DisableProperty(constants:GL_CULL_FACE)
+        end
 
         // Grab and cache the input IDs if we don't already have them.
         if projectionTransformID < 0

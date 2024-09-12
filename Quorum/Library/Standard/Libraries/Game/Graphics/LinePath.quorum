@@ -12,6 +12,7 @@ use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Selections.LinePathSelection
+use Libraries.Game.Graphics.OpenGL.OpenGLPainter2D
 
 /*
 The LinePath class represents a series of curved or straight lines connecting a set of points.
@@ -493,7 +494,10 @@ end
                 curve:SetPointThickness((pointThickness + borderThickness) * GetInterfaceScale())
 
                 curve:Draw(painter)
-                painter:Flush()
+                if painter is OpenGLPainter2D
+                    OpenGLPainter2D painter2D = cast(OpenGLPainter2D, painter)
+painter2D:Flush()
+                end
 
                 // Set values back before the rest of the rendering occurs.
                 curve:SetBackgroundColor(GetBackgroundColor())

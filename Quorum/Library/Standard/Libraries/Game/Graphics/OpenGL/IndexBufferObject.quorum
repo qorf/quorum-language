@@ -1,9 +1,12 @@
-package Libraries.Game.Graphics
+package Libraries.Game.Graphics.OpenGL
 
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.IndexData
 use Libraries.Containers.Integer32BitArray
 use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.OpenGL.OpenGLConstants
+use Libraries.Game.Graphics.Integer32BitBuffer
+use Libraries.Game.Graphics.GraphicsManager
 
 class IndexBufferObject is IndexData
 
@@ -16,6 +19,11 @@ class IndexBufferObject is IndexData
     boolean empty = true
     GameStateManager manager
     OpenGLConstants constants
+    
+    private action GetGraphics returns OpenGLManager
+        GraphicsManager graphics = manager:GetGameGraphics()
+        return cast(OpenGLManager, graphics)
+    end
 
     action Load(integer maxIndices)
         Load(true, maxIndices)
@@ -29,7 +37,7 @@ class IndexBufferObject is IndexData
 
         buffer:SetSize(maxIndices)
 
-        GraphicsManager graphics = manager:GetGameGraphics()
+        OpenGLManager graphics = GetGraphics()
         bufferHandle = graphics:CreateBuffer()
         if isStatic
             usage = constants:GL_STATIC_DRAW
@@ -70,7 +78,7 @@ class IndexBufferObject is IndexData
 
     private action BufferChanged
         if isBound
-            GraphicsManager graphics = manager:GetGameGraphics()
+OpenGLManager graphics = GetGraphics()
             graphics:SetBuffer(constants:GL_ELEMENT_ARRAY_BUFFER, buffer, usage)   
             isDirty = false
         end
@@ -90,7 +98,7 @@ class IndexBufferObject is IndexData
             alert("I cannot bind the index buffer object because it hasn't been loaded yet.")
         end
 
-        GraphicsManager graphics = manager:GetGameGraphics()
+OpenGLManager graphics = GetGraphics()
         graphics:BindBuffer(constants:GL_ELEMENT_ARRAY_BUFFER, bufferHandle)
         isBound = true
 
@@ -100,13 +108,13 @@ class IndexBufferObject is IndexData
     end
 
     action Unbind
-        GraphicsManager graphics = manager:GetGameGraphics()
+OpenGLManager graphics = GetGraphics()
         graphics:BindBuffer(constants:GL_ELEMENT_ARRAY_BUFFER, 0)
         isBound = false
     end
 
     action Dispose
-        GraphicsManager graphics = manager:GetGameGraphics()
+OpenGLManager graphics = GetGraphics()
         graphics:BindBuffer(constants:GL_ELEMENT_ARRAY_BUFFER, 0)
         graphics:DeleteBuffer(bufferHandle)
         bufferHandle = 0
@@ -116,7 +124,7 @@ class IndexBufferObject is IndexData
 
     // Used to force OpenGL to create a new buffer handle. Used for context loss.
     action Reload
-        GraphicsManager graphics = manager:GetGameGraphics()
+OpenGLManager graphics = GetGraphics()
         bufferHandle = graphics:CreateBuffer()
         isDirty = true
     end

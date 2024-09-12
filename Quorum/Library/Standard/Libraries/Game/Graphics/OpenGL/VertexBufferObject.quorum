@@ -1,4 +1,4 @@
-package Libraries.Game.Graphics
+package Libraries.Game.Graphics.OpenGL
 
 use Libraries.Containers.Array
 use Libraries.Containers.Number32BitArray
@@ -7,6 +7,11 @@ use Libraries.Game.Graphics.VertexAttribute
 use Libraries.Game.Disposable
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.Graphics.OpenGL.OpenGLConstants
+use Libraries.Game.Graphics.OpenGL.OpenGLManager
+use Libraries.Game.Graphics.VertexAttributes
+use Libraries.Game.Graphics.Number32BitBuffer
+use Libraries.Game.Graphics.GraphicsManager
 
 class VertexBufferObject is VertexData
 
@@ -21,6 +26,11 @@ class VertexBufferObject is VertexData
 
     GameStateManager manager
     OpenGLConstants constants
+    
+private action GetGraphics returns OpenGLManager
+        GraphicsManager graphics = manager:GetGameGraphics()
+        return cast(OpenGLManager, graphics)
+    end
 
     action Load(boolean isStatic, integer verticesCount, Array<VertexAttribute> attributes)
         VertexAttributes vertexAttributes
@@ -29,7 +39,7 @@ class VertexBufferObject is VertexData
     end
 
     action Load(boolean isStatic, integer verticesCount, VertexAttributes attributes)
-        GraphicsManager graphics = manager:GetGameGraphics()
+OpenGLManager graphics = GetGraphics()
         
         bufferHandle = graphics:CreateBuffer()
 
@@ -86,7 +96,7 @@ class VertexBufferObject is VertexData
     end
 
     action Dispose
-        GraphicsManager graphics = manager:GetGameGraphics()
+OpenGLManager graphics = GetGraphics()
         graphics:BindBuffer(constants:GL_ARRAY_BUFFER, 0)
         graphics:DeleteBuffer(bufferHandle)
         bufferHandle = 0
@@ -103,7 +113,7 @@ class VertexBufferObject is VertexData
 
     private action BufferChanged
         if isBound
-            GraphicsManager graphics = manager:GetGameGraphics()
+OpenGLManager graphics = GetGraphics()
             graphics:SetBuffer(constants:GL_ARRAY_BUFFER, buffer, usage)   
             isDirty = false
         end
@@ -116,7 +126,7 @@ class VertexBufferObject is VertexData
     end
 
     action Reload
-        GraphicsManager graphics = manager:GetGameGraphics()
+OpenGLManager graphics = GetGraphics()
         bufferHandle = graphics:CreateBuffer()
         isDirty = true
     end
@@ -126,7 +136,7 @@ class VertexBufferObject is VertexData
     end
 
     action Bind(ShaderProgram program, Array<integer> locations)
-        GraphicsManager graphics = manager:GetGameGraphics()
+OpenGLManager graphics = GetGraphics()
         graphics:BindBuffer(constants:GL_ARRAY_BUFFER, bufferHandle)
         
         if isDirty
@@ -172,7 +182,7 @@ class VertexBufferObject is VertexData
     end
 
     action Unbind(ShaderProgram program, Array<integer> locations)
-        GraphicsManager graphics = manager:GetGameGraphics()
+OpenGLManager graphics = GetGraphics()
         integer attributeCount = attributes:GetSize()
 
         integer i = 0

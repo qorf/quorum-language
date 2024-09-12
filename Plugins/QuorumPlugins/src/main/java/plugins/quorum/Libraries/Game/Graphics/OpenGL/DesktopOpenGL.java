@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package plugins.quorum.Libraries.Game.Graphics;
+package plugins.quorum.Libraries.Game.Graphics.OpenGL;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -17,7 +17,6 @@ import java.nio.ByteOrder;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
-import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
@@ -37,7 +36,7 @@ import quorum.Libraries.Language.Types.Integer_;
  * 
  * This is a utility class utilized exclusively by the Java plugin side.
  */
-public class DesktopGraphics implements GraphicsManager {
+public class DesktopOpenGL implements OpenGLManager {
     public java.lang.Object me_ = null;
 
     // All GL20 constants are kept at the bottom of this class (as to make it
@@ -71,7 +70,7 @@ public class DesktopGraphics implements GraphicsManager {
     public boolean IsShaderCompiled(int shaderID)
     {
         IntBuffer intbuf = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(1);
-        glGetShaderiv(shaderID, GraphicsManager.GL_COMPILE_STATUS, intbuf);
+        glGetShaderiv(shaderID, OpenGLManager.GL_COMPILE_STATUS, intbuf);
 
         int compiled = intbuf.get(0);
         return compiled != 0;
@@ -100,7 +99,7 @@ public class DesktopGraphics implements GraphicsManager {
     public boolean IsShaderProgramLinked(int programID)
     {
         IntBuffer intbuf = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(1);
-        glGetProgramiv(programID, GraphicsManager.GL_LINK_STATUS, intbuf);
+        glGetProgramiv(programID, OpenGLManager.GL_LINK_STATUS, intbuf);
 
         int linked = intbuf.get(0);
         return linked != 0;
@@ -159,7 +158,7 @@ public class DesktopGraphics implements GraphicsManager {
     public int GetMaxTextureUnits()
     {
         IntBuffer buffer = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(16);
-        glGetIntegerv(GraphicsManager.GL_MAX_TEXTURE_IMAGE_UNITS, buffer);
+        glGetIntegerv(OpenGLManager.GL_MAX_TEXTURE_IMAGE_UNITS, buffer);
         return buffer.get(0);
     }
     
@@ -249,7 +248,7 @@ public class DesktopGraphics implements GraphicsManager {
     public int GetShaderInputCount(int programID)
     {
         IntBuffer params = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(1);
-        glGetProgramiv(programID, GraphicsManager.GL_ACTIVE_UNIFORMS, params);
+        glGetProgramiv(programID, OpenGLManager.GL_ACTIVE_UNIFORMS, params);
         return params.get(0);
     }
 
@@ -271,7 +270,7 @@ public class DesktopGraphics implements GraphicsManager {
     public int GetVertexInputCount(int programID)
     {
         IntBuffer params = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(1);
-        glGetProgramiv(programID, GraphicsManager.GL_ACTIVE_ATTRIBUTES, params);
+        glGetProgramiv(programID, OpenGLManager.GL_ACTIVE_ATTRIBUTES, params);
         return params.get(0);
     }
 

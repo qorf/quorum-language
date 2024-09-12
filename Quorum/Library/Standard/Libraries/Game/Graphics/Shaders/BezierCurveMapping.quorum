@@ -3,13 +3,14 @@ package Libraries.Game.Graphics.Shaders
 use Libraries.Game.Graphics.Shaders.ShaderMapping
 use Libraries.Game.Graphics.Shaders.ShaderProgram
 use Libraries.Game.Graphics.Drawable
-use Libraries.Game.Graphics.OpenGLConstants
 use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.GameStateManager
 use Libraries.Game.GameDisplay
 use Libraries.Game.Graphics.BezierCurve
 use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.OpenGL.OpenGLConstants
+use Libraries.Game.Graphics.OpenGL.OpenGLManager
 
 class BezierCurveMapping is ShaderMapping
 
@@ -21,10 +22,14 @@ class BezierCurveMapping is ShaderMapping
 
         GraphicsManager graphics = manager:GetGameGraphics()
         OpenGLConstants constants
-        graphics:SetDepthMask(true)
-        graphics:EnableProperty(constants:GL_DEPTH_TEST)
-        graphics:SetDepthFunction(constants:GL_LEQUAL)
-        graphics:DisableProperty(constants:GL_CULL_FACE)
+if graphics is OpenGLManager
+            OpenGLManager openGL = cast(OpenGLManager, graphics)
+openGL:SetDepthMask(true)
+        openGL:EnableProperty(constants:GL_DEPTH_TEST)
+        openGL:SetDepthFunction(constants:GL_LEQUAL)
+        openGL:DisableProperty(constants:GL_CULL_FACE)
+        end
+        
 
         // TO-DO: Replace hard-coded values with references to constants
         program:SetShaderInputMatrix("u_projTrans", camera:GetCombinedMatrix())

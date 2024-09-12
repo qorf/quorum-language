@@ -18,6 +18,7 @@ use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Views.View2D
 use Libraries.Game.Graphics.Painter2D
+use Libraries.Game.Graphics.OpenGL.OpenGLPainter2D
 use Libraries.Game.Graphics.Color
 use Libraries.Compute.Vector3
 use Libraries.Containers.Iterator
@@ -40,6 +41,7 @@ use Libraries.System.SystemHelper
 use Libraries.Language.Errors.ConcurrencyError
 use Libraries.Interface.Events.GestureListener
 use Libraries.Interface.Events.GestureEvent
+use Libraries.Game.Graphics.OpenGL.OpenGLManager
 
 /*
 The Layer2D class is used to manage a number of 2D objects, as well as manage
@@ -90,7 +92,10 @@ class Layer2D is Layer
     Array<GestureListener> gestureListeners
     Array<Item2D> depthSortedArray
     Camera camera = undefined
-    Painter2D painter
+    
+    // The painter is lazy-loaded. Once it's loaded, it'll instantiate a different type of Painter depending on if the system uses OpenGL or Vulkan.
+    Painter2D painter = undefined
+    boolean painterInitialized = false
 
     GameStateManager manager
     SystemHelper systemHelper
@@ -1104,17 +1109,22 @@ class Layer2D is Layer
             return now
         end
 
+        Painter2D painter = GetPainter()
+        
         CalculateDepthSortedArray()
         Array<Item2D> sortedItems = GetDepthSortedItems()
 
         camera:Update()
         painter:SetCamera(camera)
         
-        if (GetViewportX() not= graphics:GetViewportX() or GetViewportY() not= graphics:GetViewportY()
-            or GetViewportWidth() not= graphics:GetViewportWidth() or GetViewportHeight() not= graphics:GetViewportHeight())
-
-            graphics:SetViewport(GetViewportX(), GetViewportY(), GetViewportWidth(), GetViewportHeight())
+        if graphics is OpenGLManager
+            OpenGLManager openGL = cast(OpenGLManager, graphics)
+if (GetViewportX() not= openGL:GetViewportX() or GetViewportY() not= openGL:GetViewportY()
+            or GetViewportWidth() not= openGL:GetViewportWidth() or GetViewportHeight() not= openGL:GetViewportHeight())
+            openGL:SetViewport(GetViewportX(), GetViewportY(), GetViewportWidth(), GetViewportHeight())
         end
+        end
+        
 
         painter:Begin()
 
@@ -2251,7 +2261,7 @@ class Layer2D is Layer
     make all objects drawn on the layer to appear to be more red.
     */
     action SetColorFilter(Color color)
-        painter:SetColor(color)
+        GetPainter():SetColor(color)
     end
 
     /*
@@ -2264,7 +2274,7 @@ class Layer2D is Layer
     transparent, while an opacity of 1 will be totally visible. 
     */
     action SetColorFilter(number red, number green, number blue, number alpha)
-        painter:SetColor(red, green, blue, alpha)
+        GetPainter():SetColor(red, green, blue, alpha)
     end
 
     /*
@@ -3069,10 +3079,19 @@ class Layer2D is Layer
     end
 
     action GetPainter returns Painter2D
+        if painter = undefined and painterInitialized = false
+            if manager:GetGameGraphics() is OpenGLManager
+                OpenGLPainter2D painter2D
+                painter = painter2D
+            else
+                alert("Vulkan support NYI")
+            end
+        end
         return painter
     end
 
     action SetPainter(Painter2D painter)
+        painterInitialized = true
         me:painter = painter
     end
 

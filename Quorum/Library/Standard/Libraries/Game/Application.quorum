@@ -14,7 +14,6 @@ class Application
 
     Game game = undefined
     GameDisplay display = undefined
-    //integer loglevel = 1 //LOG_INFO
     GameStateManager manager
     GraphicsManager glmanager = undefined
     boolean running = true
@@ -35,12 +34,6 @@ class Application
         display = manager:GetGameDisplay()
 
         glmanager = manager:GetGameGraphics()
-        /*
-                Gdx.audio = audio;
-		Gdx.files = files;
-		Gdx.input = input;
-		Gdx.net = net;
-        */
     end
 
     /*

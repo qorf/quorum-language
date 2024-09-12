@@ -6,14 +6,13 @@
 
 package plugins.quorum.Libraries.Game.Graphics;
 
-import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import plugins.quorum.Libraries.Game.AndroidApplication;
 import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Game.GameFile;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
+import plugins.quorum.Libraries.Game.Graphics.OpenGL.OpenGLManager;
 import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
 
 /**
@@ -36,7 +35,7 @@ public class PixelMap {
     public static final int BLEND_NONE = 0;
     public static final int BLEND_SOURCE_OVER = 1;
     
-    private GraphicsManager gl20 = GameStateManager.nativeGraphics;
+    private OpenGLManager gl20 = GameStateManager.nativeGraphics;
     
     private static quorum.Libraries.Game.Graphics.Blending_ blending;
 
@@ -173,15 +172,15 @@ public class PixelMap {
         switch (format) 
         {
             case FORMAT_ALPHA:
-		return GraphicsManager.GL_ALPHA8;
+		return OpenGLManager.GL_ALPHA8;
             case FORMAT_LUMINANCE_ALPHA:
-		return GraphicsManager.GL_LUMINANCE_ALPHA;
+		return OpenGLManager.GL_LUMINANCE_ALPHA;
             case FORMAT_RGB888:
             case FORMAT_RGB565:
-		return GraphicsManager.GL_RGB;
+		return OpenGLManager.GL_RGB;
             case FORMAT_RGBA8888:
             case FORMAT_RGBA4444:
-		return GraphicsManager.GL_RGBA;
+		return OpenGLManager.GL_RGBA;
             default:
 		throw new GameRuntimeError("I couldn't recognize the currently set format with integer value " + format);
 	}
@@ -195,11 +194,11 @@ public class PixelMap {
             case FORMAT_LUMINANCE_ALPHA:
             case FORMAT_RGB888:
             case FORMAT_RGBA8888:
-		return GraphicsManager.GL_UNSIGNED_BYTE;
+		return OpenGLManager.GL_UNSIGNED_BYTE;
             case FORMAT_RGB565:
-		return GraphicsManager.GL_UNSIGNED_SHORT_5_6_5;
+		return OpenGLManager.GL_UNSIGNED_SHORT_5_6_5;
             case FORMAT_RGBA4444:
-		return GraphicsManager.GL_UNSIGNED_SHORT_4_4_4_4;
+		return OpenGLManager.GL_UNSIGNED_SHORT_4_4_4_4;
             default:
 		throw new GameRuntimeError("unknown format: " + format);
 	}
@@ -392,7 +391,7 @@ public class PixelMap {
         // We screenshot using RGBA format, so we need to multiply by 4 to store all 4 components.
         ByteBuffer buffer = BufferUtils.newByteBuffer(width * height * 4);
 
-        GameStateManager.nativeGraphics.glReadPixels(x, y, width, height, GraphicsManager.GL_RGBA, GraphicsManager.GL_UNSIGNED_BYTE, buffer);
+        GameStateManager.nativeGraphics.glReadPixels(x, y, width, height, OpenGLManager.GL_RGBA, OpenGLManager.GL_UNSIGNED_BYTE, buffer);
 
         // The result of read pixels is inverted, so we have to flip it vertically.
         ByteBuffer result = BufferUtils.newByteBuffer(width * height * 4);

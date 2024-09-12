@@ -5,7 +5,8 @@
  */
 
 package plugins.quorum.Libraries.Game;
-import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
+import plugins.quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL;
+import plugins.quorum.Libraries.Game.Graphics.OpenGL.OpenGLManager;
 import quorum.Libraries.Game.Graphics.GraphicsManager_;
 import quorum.Libraries.Game.Application_;
 import quorum.Libraries.Game.GameDisplay_;
@@ -44,7 +45,7 @@ public class GameStateManager
     public static GameFileHandler  fileHandler = new LWJGLFileHandler();
 
     // Having direct access to the Java GraphicsManager makes the Java side much easier.
-    public static GraphicsManager nativeGraphics;
+    public static OpenGLManager nativeGraphics;
 
     /*
     An ID for the main thread. Certain actions can only be done on the main
@@ -78,7 +79,7 @@ public class GameStateManager
         {
             graphics = new IOSGraphics();
             nativeGraphics = ((IOSGraphics)graphics).plugin_;
-            plugins.quorum.Libraries.Game.Graphics.IOSGraphics.init();
+            IOSOpenGL.init();
         }
         else
         {

@@ -15,7 +15,6 @@ import quorum.Libraries.Game.Graphics.ModelData.ModelNode;
 import quorum.Libraries.Game.Graphics.ModelData.ModelNodePart;
 import quorum.Libraries.Game.Graphics.ModelData.ModelAnimation;
 import quorum.Libraries.Game.Graphics.ModelData.ModelNodeAnimation;
-import quorum.Libraries.Game.Graphics.ModelData.ModelNodeKeyframe;
 import quorum.Libraries.Game.Graphics.ModelData.ModelNodeKeyframe_;
 import quorum.Libraries.Game.Graphics.VertexAttribute;
 import quorum.Libraries.Game.Graphics.Color;
@@ -26,7 +25,7 @@ import quorum.Libraries.Compute.Quaternion;
 import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.System.File_;
 
-import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
+import plugins.quorum.Libraries.Game.Graphics.OpenGL.OpenGLManager;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 import java.io.File;
 
@@ -135,23 +134,23 @@ public class Graphics3DLoader
     {
         if (type.equals("TRIANGLES")) 
         {
-            return GraphicsManager.GL_TRIANGLES;
+            return OpenGLManager.GL_TRIANGLES;
         } 
         else if (type.equals("LINES")) 
         {
-            return GraphicsManager.GL_LINES;
+            return OpenGLManager.GL_LINES;
         }
         else if (type.equals("POINTS")) 
         {
-            return GraphicsManager.GL_POINTS;
+            return OpenGLManager.GL_POINTS;
         }
         else if (type.equals("TRIANGLE_STRIP")) 
         {
-            return GraphicsManager.GL_TRIANGLE_STRIP;
+            return OpenGLManager.GL_TRIANGLE_STRIP;
         } 
         else if (type.equals("LINE_STRIP")) 
         {
-            return GraphicsManager.GL_LINE_STRIP;
+            return OpenGLManager.GL_LINE_STRIP;
         }
         else 
         {

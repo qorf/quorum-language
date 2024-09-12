@@ -1,4 +1,4 @@
-package Libraries.Game.Graphics
+package Libraries.Game.Graphics.OpenGL
 
 use Libraries.Containers.Array
 use Libraries.Containers.HashTable
@@ -6,20 +6,20 @@ use Libraries.Game.Graphics.Shaders.Shader
 use Libraries.Game.Graphics.Shaders.ShaderProgram
 use Libraries.Containers.Number32BitArray
 use Libraries.Containers.Iterator
-use Libraries.Game.GameStateManager
-use Libraries.Game.AndroidApplication
+use Libraries.Game.Graphics.Integer32BitBuffer
+use Libraries.Game.Graphics.Number32BitBuffer
 
 /*
 The GraphicsManager class represents a Quorum interface with OpenGL in order to
 draw on the screen. This is used internally by the Game class, and most users
 will not need to interact with this class directly.
 */
-class AndroidGraphics is GraphicsManager
+class IOSOpenGL is OpenGLManager
   
     /*
     This action sets the color to clear the screen with in OpenGL.
     */
-    system action ClearScreenColor(number red, number green, number blue, number alpha)
+    system action SetClearScreenColor(number red, number green, number blue, number alpha)
 
     /*
     This action clears the screen with the currently stored color in OpenGL.
@@ -94,13 +94,8 @@ class AndroidGraphics is GraphicsManager
             elseif shaderType = constants:GL_VERTEX_SHADER
                 typeText = "Vertex"
             end
-
-            GameStateManager manager
-            AndroidApplication application = cast(AndroidApplication, manager:GetApplication())
-            text dq = typeText:GetDoubleQuote()
-            application:Log("GLSL Error", "Error compiling " + typeText + " shader " + dq + shaderName + dq + ": " + GetShaderLog(id))
-
             
+            text dq = typeText:GetDoubleQuote()
             alert("Error compiling " + typeText + " shader " + dq + shaderName + dq + ": " + GetShaderLog(id))
         end
 
@@ -228,7 +223,7 @@ class AndroidGraphics is GraphicsManager
     This action returns the maximum number of textures that can be supported on the system. This number depends
     on the local hardware being used.
     */
-    system action GetMaxTextureUnits returns integer
+system action GetMaximumTextureCount returns integer
 
     /*
     This action sets the "active texture" within the rendering system. When using other texture-modifying graphics

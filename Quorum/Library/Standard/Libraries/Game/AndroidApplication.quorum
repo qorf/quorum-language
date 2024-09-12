@@ -15,7 +15,7 @@ class AndroidApplication is Application
             AndroidAccessibility accessibility
             game:SetAccessibility(accessibility)
         end
-        parent:Application:glmanager:ClearScreenColor(0.85, 0.85, 0.85, 1.0)
+        parent:Application:glmanager:SetClearScreenColor(0.85, 0.85, 0.85, 1.0)
         SetupNative(game, parent:Application:display:GetConfiguration())
     end
 

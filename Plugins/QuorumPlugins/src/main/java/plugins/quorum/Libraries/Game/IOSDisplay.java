@@ -16,24 +16,16 @@ import org.robovm.apple.glkit.GLKViewDrawableColorFormat;
 import org.robovm.apple.glkit.GLKViewDrawableDepthFormat;
 import org.robovm.apple.glkit.GLKViewDrawableStencilFormat;
 import org.robovm.apple.glkit.GLKViewDrawableMultisample;
-import org.robovm.apple.opengles.OpenGLES;
 import org.robovm.apple.uikit.*;
-import org.robovm.apple.coregraphics.CGPoint;
 import org.robovm.apple.coregraphics.CGRect;
-import org.robovm.apple.coregraphics.CGSize;
-import org.robovm.objc.Selector;
-import org.robovm.objc.annotation.BindSelector;
 import org.robovm.objc.annotation.Method;
-import org.robovm.rt.bro.annotation.Callback;
 import org.robovm.rt.bro.annotation.Pointer;
 import org.robovm.apple.opengles.EAGLContext;
 import org.robovm.apple.opengles.EAGLRenderingAPI;
 import plugins.quorum.Libraries.Game.libGDX.HWMachine;
 import plugins.quorum.Libraries.Game.libGDX.IOSDevice;
-import plugins.quorum.Libraries.Game.Graphics.IOSGraphics;
-import quorum.Libraries.Game.Graphics.Painter2D;
+import plugins.quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL;
 import quorum.Libraries.Game.IOSConfiguration_;
-import quorum.Libraries.Interface.Accessibility_;
 
 /**
  *
@@ -220,7 +212,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
     
     IOSApplication app;
     IOSInput input;
-    IOSGraphics graphics;
+    IOSOpenGL graphics;
     int width;
     int height;
     long lastFrameTime;
@@ -250,7 +242,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
     
     boolean created = false;
     
-    public void Initialize(float scale, IOSApplication app, IOSConfiguration_ config, IOSInput input, IOSGraphics graphics)
+    public void Initialize(float scale, IOSApplication app, IOSConfiguration_ config, IOSInput input, IOSOpenGL graphics)
     {
         this.config = config;
         
@@ -526,7 +518,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         To deal with the issue, IOSGraphics stores the last known data of
         the viewport so we can reset it.
         */
-        graphics.glViewport(IOSGraphics.x, IOSGraphics.y, IOSGraphics.width, IOSGraphics.height);
+        graphics.glViewport(IOSOpenGL.x, IOSOpenGL.y, IOSOpenGL.width, IOSOpenGL.height);
         
         if (!created)
         {

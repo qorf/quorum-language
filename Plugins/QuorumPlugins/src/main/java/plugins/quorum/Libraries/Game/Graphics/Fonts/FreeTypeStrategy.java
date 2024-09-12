@@ -10,7 +10,7 @@ import java.nio.IntBuffer;
 import java.util.LinkedList;
 import java.util.Queue;
 import plugins.quorum.Libraries.Game.GameStateManager;
-import plugins.quorum.Libraries.Game.Graphics.GraphicsManager;
+import plugins.quorum.Libraries.Game.Graphics.OpenGL.OpenGLManager;
 import plugins.quorum.Libraries.Game.Graphics.PixelMap;
 import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
 
@@ -281,7 +281,7 @@ public class FreeTypeStrategy
         int padding = 1;
         
         IntBuffer buffer = BufferUtils.newIntBuffer(1);
-        GameStateManager.nativeGraphics.glGetIntegerv(GraphicsManager.GL_MAX_TEXTURE_SIZE, buffer);
+        GameStateManager.nativeGraphics.glGetIntegerv(OpenGLManager.GL_MAX_TEXTURE_SIZE, buffer);
         int maxSize = buffer.get(0);
         int rowHeight = padding;
         int rowWidth = padding;

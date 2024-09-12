@@ -31,8 +31,8 @@ use Libraries.Game.Graphics.VertexAttribute
 use Libraries.Game.Graphics.VertexData
 use Libraries.Compute.Matrix3
 use Libraries.Containers.Number32BitArray
-use Libraries.Game.Graphics.OpenGLConstants
-
+use Libraries.Game.Graphics.OpenGL.OpenGLConstants
+use Libraries.Game.Graphics.OpenGL.OpenGLManager
 
 class DefaultShaderMapping3D is ShaderMapping
 
@@ -352,7 +352,10 @@ class DefaultShaderMapping3D is ShaderMapping
             blendDestination = destination
 
             GraphicsManager graphics = manager:GetGameGraphics()
-            graphics:SetBlendFunction(source, destination)
+            if graphics is OpenGLManager
+                OpenGLManager openGL = cast(OpenGLManager, graphics)
+openGL:SetBlendFunction(source, destination)
+            end
         end
     end
 
@@ -360,13 +363,18 @@ class DefaultShaderMapping3D is ShaderMapping
         if cullFace not= me:cullFace
             me:cullFace = cullFace
             GraphicsManager graphics = manager:GetGameGraphics()
-            graphics:SetCullFace(cullFace)
-
-            if cullFace = 0
-                graphics:DisableProperty(constants:GL_CULL_FACE)
+            
+if graphics is OpenGLManager
+                OpenGLManager openGL = cast(OpenGLManager, graphics)
+openGL:SetCullFace(cullFace)
+                
+if cullFace = 0
+                openGL:DisableProperty(constants:GL_CULL_FACE)
             else
-                graphics:EnableProperty(constants:GL_CULL_FACE)
+                openGL:EnableProperty(constants:GL_CULL_FACE)
             end
+            end
+            
         end
     end
 
@@ -378,19 +386,26 @@ class DefaultShaderMapping3D is ShaderMapping
 
         if depthFunction not= function
             depthFunction = function
-            if enabled
-                graphics:EnableProperty(constants:GL_DEPTH_TEST)
-                graphics:SetDepthFunction(depthFunction)
+            if graphics is OpenGLManager
+                OpenGLManager openGL = cast(OpenGLManager, graphics)
+if enabled
+                openGL:EnableProperty(constants:GL_DEPTH_TEST)
+                openGL:SetDepthFunction(depthFunction)
             else
-                graphics:DisableProperty(constants:GL_DEPTH_TEST)
+                openGL:DisableProperty(constants:GL_DEPTH_TEST)
             end
+            end
+            
         end
 
         if enabled
             if wasEnabled = false or depthRangeNear not= near or depthRangeFar not= far
-                depthRangeNear = near
+depthRangeNear = near
                 depthRangeFar = far
-                graphics:SetDepthRange(depthRangeNear, depthRangeFar)
+                if graphics is OpenGLManager
+OpenGLManager openGL = cast(OpenGLManager, graphics)
+openGL:SetDepthRange(depthRangeNear, depthRangeFar)
+                end
             end
         end
     end
@@ -398,7 +413,10 @@ class DefaultShaderMapping3D is ShaderMapping
     private action SetDepthMask(boolean mask)
         if depthMask not= mask
             GraphicsManager graphics = manager:GetGameGraphics()
-            graphics:SetDepthMask(mask)
+if graphics is OpenGLManager
+OpenGLManager openGL = cast(OpenGLManager, graphics)
+openGL:SetDepthMask(mask)
+                end
             depthMask = mask
         end
     end
@@ -647,18 +665,19 @@ class DefaultShaderMapping3D is ShaderMapping
     end
 
     private action EnableBlending(boolean enable)
-// TO-DO: Remove commented code
-//        if enableBlending not= enable
             enableBlending = enable
             program:SetShaderInput(enableBlendingID, enable)
 
             GraphicsManager graphics = manager:GetGameGraphics()
-            if enable
-                graphics:EnableProperty(constants:GL_BLEND)
+        if graphics is OpenGLManager
+            OpenGLManager openGL = cast(OpenGLManager, graphics)
+if enable
+                openGL:EnableProperty(constants:GL_BLEND)
             else
-                graphics:DisableProperty(constants:GL_BLEND)
+                openGL:DisableProperty(constants:GL_BLEND)
             end
-//        end
+        end
+            
     end
 
     private action EnableAlphaTest(boolean enable)
