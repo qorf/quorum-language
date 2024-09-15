@@ -238,7 +238,7 @@ public class AndroidDisplay implements Renderer
         gl.glViewport(0, 0, this.width, this.height);
         if (created == false) 
         {
-            GameStateManager.nativeGraphics.ClearScreenColor(0.85, 0.85, 0.85, 1);
+            GameStateManager.nativeGraphics.SetClearScreenColor(0.85, 0.85, 0.85, 1);
             app.GetGame().InitializeLayers();
             app.GetGame().CreateGame();
             created = true;

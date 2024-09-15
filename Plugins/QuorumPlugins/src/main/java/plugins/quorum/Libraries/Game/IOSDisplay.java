@@ -527,7 +527,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
             //Painter2D painter = new Painter2D();
             ((quorum.Libraries.Game.IOSApplication)GameStateManager.application).plugin_.game.InitializeLayers();
 
-            GameStateManager.nativeGraphics.ClearScreenColor(0.85f, 0.85f, 0.85f, 1.0f);
+            GameStateManager.nativeGraphics.SetClearScreenColor(0.85f, 0.85f, 0.85f, 1.0f);
 
             app.game.CreateGame();
             //app.game.Resize(width, height);

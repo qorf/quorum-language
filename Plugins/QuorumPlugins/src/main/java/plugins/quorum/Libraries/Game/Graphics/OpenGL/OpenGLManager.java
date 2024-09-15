@@ -23,7 +23,7 @@ public interface OpenGLManager {
 	public int GetGraphicsErrorCode();
 
 	//Sets the OpenGL Clear Screen color when wiping the screen
-    public void ClearScreenColor(float red, float green, float blue, float alpha);
+    public void SetClearScreenColor(float red, float green, float blue, float alpha);
 
     public void glBindTexture (int target, int texture);
 
@@ -34,7 +34,7 @@ public interface OpenGLManager {
     // This version of ClearScreenColor accepts the 64 bit values that the Quorum
     // "number" data type uses (i.e. doubles) and casts them down to 32 bit for
     // usage by GL11.
-    public void ClearScreenColor(double red, double green, double blue, double alpha);
+    public void SetClearScreenColor(double red, double green, double blue, double alpha);
 
     //Actually performs the screen clearing
     public void ClearScreen(int mask);

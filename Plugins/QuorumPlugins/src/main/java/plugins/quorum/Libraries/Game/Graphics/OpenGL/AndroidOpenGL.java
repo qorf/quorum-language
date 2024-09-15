@@ -33,7 +33,7 @@ public class AndroidOpenGL implements OpenGLManager
     private IntBuffer intBuffer = null;
 
     //Sets the OpenGL Clear Screen color when wiping the screen
-    public void ClearScreenColor(float red, float green, float blue, float alpha){
+    public void SetClearScreenColor(float red, float green, float blue, float alpha){
         GLES20.glClearColor(red, green, blue, alpha);
     }
     
@@ -443,7 +443,7 @@ public class AndroidOpenGL implements OpenGLManager
     // This version of ClearScreenColor accepts the 64 bit values that the Quorum
     // "number" data type uses (i.e. doubles) and casts them down to 32 bit for
     // usage by GL11.
-    public void ClearScreenColor(double red, double green, double blue, double alpha)
+    public void SetClearScreenColor(double red, double green, double blue, double alpha)
     {
         GLES20.glClearColor((float)red, (float)green, (float)blue, (float)alpha);
     }

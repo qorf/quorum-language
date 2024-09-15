@@ -433,12 +433,12 @@ public class IOSOpenGL implements OpenGLManager
     
     public native void glClear ( int mask );
 
-    public void ClearScreenColor(float red, float green, float blue, float alpha)
+    public void SetClearScreenColor(float red, float green, float blue, float alpha)
     {
         glClearColor(red, green, blue, alpha);
     }
     
-    public void ClearScreenColor(double red, double green, double blue, double alpha)
+    public void SetClearScreenColor(double red, double green, double blue, double alpha)
     {
         glClearColor((float)red, (float)green, (float)blue, (float)alpha);
     }
