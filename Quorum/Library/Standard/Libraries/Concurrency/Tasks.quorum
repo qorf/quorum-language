@@ -2,8 +2,8 @@ package Libraries.Concurrency
 use Libraries.Interface.Controls.List
 use Libraries.Interface.Behaviors.Behavior
 
-class DoTogether
-    system action Submit(Behavior behave) returns Future
+class Tasks
+    system action Do(FutureBehavior behave) returns Future
     system action Wait returns boolean
     system action Wait(number seconds) returns boolean
     system action SetThreadPoolSize(integer size)

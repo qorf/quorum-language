@@ -1,11 +1,12 @@
 package plugins.quorum.Libraries.Concurrency;
 
+import quorum.Libraries.Concurrency.FutureBehavior_;
 import quorum.Libraries.Concurrency.Future_;
 import quorum.Libraries.Interface.Behaviors.Behavior_;
 
 import java.util.concurrent.*;
 
-public class DoTogether {
+public class Tasks {
     public java.lang.Object me_ = null;
     ExecutorService executor = Executors.newFixedThreadPool(5);
 
@@ -20,13 +21,14 @@ public class DoTogether {
             executor = Executors.newFixedThreadPool(size);
         }
     }
-    public Future_ Submit(Behavior_ behave) {
+    public Future_ Do(FutureBehavior_ behave) {
         QuorumCallable callable = new QuorumCallable();
-        callable.setBehavior(behave);
+        callable.setFutureBehavior(behave);
         java.util.concurrent.Future future = executor.submit(callable);
 
         quorum.Libraries.Concurrency.Future quorumFuture = new quorum.Libraries.Concurrency.Future();
         plugins.quorum.Libraries.Concurrency.Future plugin = quorumFuture.plugin_;
+        plugin.setBehavior(behave);
         plugin.setJavaFuture(future);
         return quorumFuture;
     }
