@@ -522,6 +522,8 @@ public class DesktopDisplay {
     
     public void SetScreenResolution(ScreenResolution_ resolution)
     {
+        System.out.println("E1");
+
         // Currently the bit depths of the resolution are ignored as it isn't
         // possible to change it without destruction and recreation of the
         // window, which requires reinitializing all OpenGL assets - this is a
@@ -532,7 +534,9 @@ public class DesktopDisplay {
         }
         else
         {
+            System.out.println("E2");
             GLFWVidMode videoMode = GetOriginalResolution();
+            System.out.println("E3");
             int x = videoMode.width() - resolution.GetWidth();
             if (x > 0)
                 x = x / 2;
@@ -545,18 +549,24 @@ public class DesktopDisplay {
                 y = y / 2;
             else
                 y = 20;
-            
+
+            System.out.println("E4");
             double scaling = GetPixelScaleFactor();
-            GLFW.glfwSetWindowMonitor(window, 0, x, y, (int)(resolution.GetWidth() / scaling), (int)(resolution.GetHeight() / scaling), resolution.GetFrequency());
+            System.out.println("E5?");
+            GameStateManager.nativeGraphics.glActiveTexture(0);
+            //GLFW.glfwSetWindowMonitor(window, 0, x, y, (int)(resolution.GetWidth() / scaling), (int)(resolution.GetHeight() / scaling), resolution.GetFrequency());
+            System.out.println("E6");
         }
         
         this.resolution = resolution;
+        System.out.println("E7");
     }
     
     public boolean SetDisplayMode(int width, int height, boolean fullscreen)
     {
         try
         {
+            System.out.println("D1");
             ScreenResolution res = new ScreenResolution();
             res.Set_Libraries_Game_ScreenResolution__width_(width);
             res.Set_Libraries_Game_ScreenResolution__height_(height);
@@ -565,10 +575,14 @@ public class DesktopDisplay {
             res.Set_Libraries_Game_ScreenResolution__redBits_(8);
             res.Set_Libraries_Game_ScreenResolution__greenBits_(8);
             res.Set_Libraries_Game_ScreenResolution__blueBits_(8);
+            System.out.println("D2");
             // Use the refresh rate of the current desktop resolution (it's most likely the default GLFW will use).
             GLFWVidMode videoMode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
+            System.out.println("D3");
             res.Set_Libraries_Game_ScreenResolution__frequency_(videoMode.refreshRate());
+            System.out.println("D4");
             SetScreenResolution(res);
+            System.out.println("D5");
         }
         catch (Exception e)
         {

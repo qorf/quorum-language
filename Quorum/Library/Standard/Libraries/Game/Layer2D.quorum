@@ -1109,34 +1109,42 @@ class Layer2D is Layer
             return now
         end
 
+        output "BB1"
         Painter2D painter = GetPainter()
         
+        output "BB2"
         CalculateDepthSortedArray()
         Array<Item2D> sortedItems = GetDepthSortedItems()
 
+        output "BB3"
         camera:Update()
         painter:SetCamera(camera)
         
+        output "BB4"
         if graphics is OpenGLManager
             OpenGLManager openGL = cast(OpenGLManager, graphics)
-if (GetViewportX() not= openGL:GetViewportX() or GetViewportY() not= openGL:GetViewportY()
-            or GetViewportWidth() not= openGL:GetViewportWidth() or GetViewportHeight() not= openGL:GetViewportHeight())
-            openGL:SetViewport(GetViewportX(), GetViewportY(), GetViewportWidth(), GetViewportHeight())
-        end
+            if (GetViewportX() not= openGL:GetViewportX() or GetViewportY() not= openGL:GetViewportY()
+                    or GetViewportWidth() not= openGL:GetViewportWidth() or GetViewportHeight() not= openGL:GetViewportHeight())
+                openGL:SetViewport(GetViewportX(), GetViewportY(), GetViewportWidth(), GetViewportHeight())
+            end
         end
         
-
+        output "BB5"
         painter:Begin()
 
+        output "BB6"
         painter:SetClipping(false)
 
+        output "BB7"
         integer counter = sortedItems:GetSize()
         repeat while counter > 0
             counter = counter - 1
             sortedItems:Get(counter):QueueForDrawing(painter)
         end
 
+        output "BB8"
         painter:End()
+        output "BB9"
     end
 
     /*

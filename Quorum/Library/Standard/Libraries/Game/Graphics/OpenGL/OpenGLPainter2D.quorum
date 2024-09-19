@@ -471,12 +471,31 @@ class OpenGLPainter2D is Painter2D
         integer counter = 0
         repeat while counter < sortingArray:GetSize()
             Item2D item = sortingArray:Get(counter)
-            if item:IsCustomDrawing()
+            if item:GetName():Contains("Glyph") or item:GetName():Contains("OpenGLPainter2D.quorum Icon") = false
+                // Don't render during testing
+            elseif item:IsCustomDrawing()
                 customDrawingItem = true
                 item:Draw(me)
                 customDrawingItem = false
             elseif item is Drawable
+                output "EE1 STANDARD(" + item:GetName() + ")"
+                if item:GetName():Contains("OpenGLPainter2D.quorum Icon")// or true
+                    Drawable temp = cast(Drawable, item)
+                    Texture texture = temp:GetTexture()
+                    output "    Texture Info:"
+                    output "Handle: " + texture:GetGLHandle()
+                    output "Target: " + texture:GetGLTarget()
+                    TextureFilter minFilter = texture:GetMinimizeFilter()
+                    TextureFilter magFilter = texture:GetMagnifyFilter()
+                    output "MinFilter: " + minFilter:GetValue()
+                    output "MagFilter: " + magFilter:GetValue()
+                    TextureWrap hWrap = texture:GetHorizontalWrap()
+                    TextureWrap vWrap = texture:GetVerticalWrap()
+                    output "hWrap: " + hWrap:GetValue()
+                    output "vWrap: " + vWrap:GetValue()
+                end
                 Draw(cast(Drawable, item))
+                output "EE2 STANDARD"
             end
             
             counter = counter + 1
