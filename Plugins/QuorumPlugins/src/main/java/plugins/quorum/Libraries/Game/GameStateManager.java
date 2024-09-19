@@ -57,58 +57,58 @@ public class GameStateManager
     
     static
     {
-        String os = System.getProperty("os.name");
-        operatingSystem = os;
-        
-        if (os.contains("Mac OS X") || os.contains("Windows") || os.contains("Linux"))
-        {
-            if (os.contains("Linux") && System.getProperty("java.runtime.name").contains("Android Runtime"))
-            {
-                if (IsVulkanRendering())
-                {
-                    throw new RuntimeException("NYI");
-                }
-                else
-                {
-                    graphics = new AndroidOpenGL();
-                    nativeGraphics = ((AndroidOpenGL)graphics).plugin_;
-                    operatingSystem = "Linux (Android) : TEST-CODE-MCX";
-                }
-            }
-            else
-            {
-                if (IsVulkanRendering())
-                {
-                    throw new RuntimeException("NYI");
-                }
-                else
-                {
-                    graphics = new DesktopOpenGL();
-                    nativeGraphics = ((DesktopOpenGL) graphics).plugin_;
-                }
-            }
-        }
-        else if (os.contains("iOS"))
-        {
-            if (IsVulkanRendering())
-            {
-                throw new RuntimeException("NYI");
-            }
-            else
-            {
-                graphics = new IOSOpenGL();
-                nativeGraphics = ((IOSOpenGL) graphics).plugin_;
-                plugins.quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL.init();
-            }
-        }
-        else
-        {
-            System.out.println("Couldn't detect os! OS was " + os);
-            nativeGraphics = null;
-        }
+//        String os = System.getProperty("os.name");
+//        operatingSystem = os;
+//
+//        if (os.contains("Mac OS X") || os.contains("Windows") || os.contains("Linux"))
+//        {
+//            if (os.contains("Linux") && System.getProperty("java.runtime.name").contains("Android Runtime"))
+//            {
+//                if (IsVulkanRendering())
+//                {
+//                    throw new RuntimeException("NYI");
+//                }
+//                else
+//                {
+//                    graphics = new AndroidOpenGL();
+//                    nativeGraphics = ((AndroidOpenGL)graphics).plugin_;
+//                    operatingSystem = "Linux (Android) : TEST-CODE-MCX";
+//                }
+//            }
+//            else
+//            {
+//                if (IsVulkanRendering())
+//                {
+//                    throw new RuntimeException("NYI");
+//                }
+//                else
+//                {
+//                    graphics = new DesktopOpenGL();
+//                    nativeGraphics = ((DesktopOpenGL) graphics).plugin_;
+//                }
+//            }
+//        }
+//        else if (os.contains("iOS"))
+//        {
+//            if (IsVulkanRendering())
+//            {
+//                throw new RuntimeException("NYI");
+//            }
+//            else
+//            {
+//                graphics = new IOSOpenGL();
+//                nativeGraphics = ((IOSOpenGL) graphics).plugin_;
+//                plugins.quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL.init();
+//            }
+//        }
+//        else
+//        {
+//            System.out.println("Couldn't detect os! OS was " + os);
+//            nativeGraphics = null;
+//        }
     }
 
-    private static boolean IsVulkanRendering()
+    public static boolean IsVulkanRendering()
     {
         // Temporary placeholder way for the GameStateManager plugin to decide whether to use OpenGL or Vulkan stuff.
         return false;

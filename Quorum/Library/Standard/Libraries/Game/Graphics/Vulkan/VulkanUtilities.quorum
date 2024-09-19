@@ -5,7 +5,6 @@ use Libraries.Containers.Array
 
 shared class VulkanUtilities
     
-    VulkanConstants constants
 BitwiseOperations bits
     
     /*This action converts a Vulkan API version number from traditional "major.minor.patch" format
@@ -38,6 +37,7 @@ Attribute: Parameter returnedLayers A text array that will contain the names of 
     action GetSupportedValidationLayers returns Array<text>
         Array<text> layerNames = GetSupportedLayers()
         Array<text> resultLayers
+VulkanConstants constants
         
         // Try to find the optimal validation layers and only return those. 
         // Begin with the standard Khronos validation layer. If it's not available, try to use the LunarG validation layer instead.

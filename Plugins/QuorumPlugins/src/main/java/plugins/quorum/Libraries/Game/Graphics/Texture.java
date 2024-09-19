@@ -25,8 +25,6 @@ public class Texture
     public int glTarget; //The target, such as GL_TEXTURE_2D
     protected int glHandle;
 
-    private OpenGLManager gl20 = GameStateManager.nativeGraphics;
-
     /*
     The color that should be used to render this texture by the Painter2D when
     using the font shader. If the color is null, then the font shader will not be
@@ -44,26 +42,23 @@ public class Texture
 
     public void Bind() 
     {
-//        System.out.println("Binding to target = " + glTarget + ", handle = " + glHandle);
-        gl20.glBindTexture(glTarget, glHandle);
+        GameStateManager.nativeGraphics.glBindTexture(glTarget, glHandle);
     }
     
     public void Bind(int unit)
     {
-//        System.out.println("Bind Unit to target = " + glTarget + ", handle = " + glHandle + ", unit = " + unit);
-        gl20.glActiveTexture(gl20.GL_TEXTURE0 + unit);
-        gl20.glBindTexture(glTarget, glHandle);
+        GameStateManager.nativeGraphics.glActiveTexture(GameStateManager.nativeGraphics.GL_TEXTURE0 + unit);
+        GameStateManager.nativeGraphics.glBindTexture(glTarget, glHandle);
     }
     
     public void BindToDefault()
     {
-//        System.out.println("BindToDefault");
-        gl20.glBindTexture(glTarget, 0);
+        GameStateManager.nativeGraphics.glBindTexture(glTarget, 0);
     }
 
     public int CreateGLHandle()
     {
-      return gl20.glGenTexture();
+      return GameStateManager.nativeGraphics.glGenTexture();
     }
 
     public void SetGraphicsInfo(int target, int handle)
@@ -84,7 +79,7 @@ public class Texture
   
     public void AddReloadableTexture()
     {
-	RELOADABLE_TEXTURES.add(this);
+	    RELOADABLE_TEXTURES.add(this);
     }
     
     public void RemoveReloadableTexture()
@@ -96,7 +91,6 @@ public class Texture
     {
         if (glHandle != 0)
         {
-//            System.out.println("Disposed handle = " + glHandle);
             GameStateManager.nativeGraphics.glDeleteTexture(glHandle);
             glHandle = 0;
             RemoveReloadableTexture();

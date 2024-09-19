@@ -11,6 +11,10 @@ import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import android.util.Log;
+import quorum.Libraries.Game.Graphics.GraphicsManager_;
+import quorum.Libraries.Game.Graphics.OpenGL.AndroidOpenGL;
+import quorum.Libraries.Game.Graphics.OpenGL.DesktopOpenGL;
+import quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL;
 //import org.robovm.apple.foundation.Foundation;
 //import org.robovm.apple.foundation.NSString;
 //import org.robovm.apple.uikit.UIDevice;
@@ -115,6 +119,62 @@ public class Game
             return 2;
         else // If no other type is selected, it's assumed that it's iOS.
             return 3;
+    }
+
+    public quorum.Libraries.Game.Graphics.GraphicsManager_ CreateGraphicsManager()
+    {
+        String os = System.getProperty("os.name");
+        GameStateManager.operatingSystem = os;
+        GraphicsManager_ graphics = null;
+
+        if (os.contains("Mac OS X") || os.contains("Windows") || os.contains("Linux"))
+        {
+            if (os.contains("Linux") && System.getProperty("java.runtime.name").contains("Android Runtime"))
+            {
+                if (GameStateManager.IsVulkanRendering())
+                {
+                    throw new RuntimeException("NYI");
+                }
+                else
+                {
+                    graphics = new AndroidOpenGL();
+                    GameStateManager.nativeGraphics = ((AndroidOpenGL)graphics).plugin_;
+                    GameStateManager.operatingSystem = "Linux (Android) : TEST-CODE-MCX";
+                }
+            }
+            else
+            {
+                if (GameStateManager.IsVulkanRendering())
+                {
+                    throw new RuntimeException("NYI");
+                }
+                else
+                {
+                    graphics = new DesktopOpenGL();
+                    GameStateManager.nativeGraphics = ((DesktopOpenGL) graphics).plugin_;
+                }
+            }
+        }
+        else if (os.contains("iOS"))
+        {
+            if (GameStateManager.IsVulkanRendering())
+            {
+                throw new RuntimeException("NYI");
+            }
+            else
+            {
+                graphics = new IOSOpenGL();
+                GameStateManager.nativeGraphics = ((IOSOpenGL) graphics).plugin_;
+                plugins.quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL.init();
+            }
+        }
+        else
+        {
+            System.out.println("Couldn't detect os! OS was " + os);
+            GameStateManager.nativeGraphics = null;
+        }
+
+        return graphics;
     }
     
 }

@@ -3,6 +3,8 @@ package Libraries.Game
 use Libraries.Game.Graphics.Color
 use Libraries.Game.ScreenResolution
 use Libraries.Containers.Array
+use Libraries.System.Logging.Logger
+use Libraries.Game.Graphics.Vulkan.VulkanOptions
 
 /*
 This class represents the configuration of the game. It is referenced when
@@ -103,5 +105,15 @@ class DesktopConfiguration is ApplicationConfiguration
     do nothing.
     */
     public boolean enableAccessibility = true
+    
+    /*Whether or not this application should use Vulkan for rendering. If this value is
+false, or if the value is true but Vulkan isn't supported on this machine, the
+application will use OpenGL for rendering instead. Must be set before starting the game.*/
+    public boolean useVulkan = true
+    
+    /*The VulkanOptions describe various details about how the Vulkan library should be used
+to render the game, including the Vulkan API version and whether or not to use validation
+layers for debugging.*/
+    VulkanOptions vulkanOptions
 
 end
