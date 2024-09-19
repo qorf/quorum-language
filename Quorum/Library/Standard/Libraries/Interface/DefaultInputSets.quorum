@@ -2229,16 +2229,39 @@ InputSet textFieldControlDelete
 
         GameStateManager manager
 
+        
+InputSet swipeSet
+        GestureEvent gestures
+        swipeSet:SetGestureInput(gestures:SWIPE)
+
+        InputSet tapSet
+        tapSet:SetGestureInput(gestures:SINGLE_TAP)
+
+        InputSet doubleTapSet
+        doubleTapSet:SetGestureInput(gestures:DOUBLE_TAP)
+
+        InputSet panSet
+        panSet:SetGestureInput(gestures:PAN)
+
+        InputSet longPressSet
+        longPressSet:SetGestureInput(gestures:LONG_PRESS)
+
+        InputSet pinchSet
+        pinchSet:SetGestureInput(gestures:PINCH)
 
         InputSet downSet
         downSet:SetKeyboardInput(keys:DOWN)
         CodeEditorSelectionDownBehavior downBehavior
         table:Add(downSet, downBehavior)
+        
+        table:Add(swipeSet, downBehavior)
 
         InputSet upSet
         upSet:SetKeyboardInput(keys:UP)
         CodeEditorSelectionUpBehavior upBehavior
         table:Add(upSet, upBehavior)
+        
+        table:Add(swipeSet, upBehavior)
 
         InputSet shiftDownSet = downSet:Copy()
         shiftDownSet:AddModifier(shiftDownSet:SHIFT)
@@ -2254,12 +2277,14 @@ InputSet textFieldControlDelete
         tabSet:SetKeyboardInput(keys:TAB)
         CodeEditorSelectNextBehavior nextBehavior
         table:Add(tabSet, nextBehavior)
+        table:Add(swipeSet, nextBehavior)
 
         InputSet shiftTabSet
         shiftTabSet:SetKeyboardInput(keys:TAB)
         shiftTabSet:AddModifier(tabSet:SHIFT)
         CodeEditorSelectPreviousBehavior previousBehavior
         table:Add(shiftTabSet, previousBehavior)
+        table:Add(swipeSet,previousBehavior)
 
         InputSet escapeSet
         escapeSet:SetKeyboardInput(keys:ESCAPE)
@@ -2278,6 +2303,7 @@ InputSet textFieldControlDelete
         CodeEditorNewLineBehavior newLineBehavior
         table:Add(enterSet, newLineBehavior)
         table:Add(numpadEnterSet, newLineBehavior)
+        table:Add(doubleTapSet, newLineBehavior)
 
         //Editor Hint Application
         InputSet altEnterSet
