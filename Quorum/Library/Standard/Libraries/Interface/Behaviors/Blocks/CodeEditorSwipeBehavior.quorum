@@ -1,0 +1,28 @@
+package Libraries.Interface.Behaviors.Blocks
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.GestureEvent
+
+class CodeEditorSwipeBehavior is Behavior
+
+    action Run(BehaviorEvent event)
+if event:GetGestureEvent() not= undefined
+GestureEvent gesture = event:GetGestureEvent()
+                if gesture:GetDirection() = gesture:LEFT
+                CodeEditorSelectPreviousBehavior previous
+                previous:Run(event)
+            elseif gesture:GetDirection() = gesture:RIGHT
+                CodeEditorSelectNextBehavior next
+                next:Run(event)
+elseif gesture:GetDirection() = gesture:UP
+                CodeEditorSelectionUpBehavior up
+                up:Run(event)
+elseif gesture:GetDirection() = gesture:DOWN
+                CodeEditorSelectionDownBehavior down
+                down:Run(event)
+                end
+        end
+  end
+
+end

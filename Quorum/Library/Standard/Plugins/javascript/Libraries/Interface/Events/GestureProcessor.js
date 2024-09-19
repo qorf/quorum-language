@@ -42,8 +42,9 @@ function plugins_quorum_Libraries_Interface_Events_GestureProcessor_() {
                 } else if(ev.type === "panend" || ev.type === "pancancel") {
                     gestureEvent.timingCode = gestureEvent.Get_Libraries_Interface_Events_GestureEvent__FINISH_();
                 }
-                gestureEvent.x = ev.center.x;
-                gestureEvent.y = ev.center.y;
+                let boundingRect = ev.target.getBoundingClientRect();
+                gestureEvent.x = ev.center.x - boundingRect.left;
+                gestureEvent.y = ev.center.y - boundingRect.top;
                 gestureEvent.panDistanceX = ev.deltaX;
                 gestureEvent.panDistanceX = ev.deltaY;
                 gestureEvent.maxFingerCount = ev.pointers.length;
@@ -66,8 +67,9 @@ function plugins_quorum_Libraries_Interface_Events_GestureProcessor_() {
                 } else if(ev.type === "pinchend" || ev.type === "pinchcancel") {
                     gestureEvent.timingCode = gestureEvent.Get_Libraries_Interface_Events_GestureEvent__FINISH_();
                 }
-                gestureEvent.x = ev.center.x;
-                gestureEvent.y = ev.center.y;
+                let boundingRect = ev.target.getBoundingClientRect();
+                gestureEvent.x = ev.center.x - boundingRect.left;
+                gestureEvent.y = ev.center.y - boundingRect.top;
                 gestureEvent.maxFingerCount = ev.pointers.length;
                 let gameInfo = plugins_quorum_Libraries_Game_WebInput_.GetGestureGameInfo(ev);
                 if (gameInfo !== null)
@@ -80,8 +82,9 @@ function plugins_quorum_Libraries_Interface_Events_GestureProcessor_() {
             if(ev.pointerType !== "mouse") {
                 let gestureEvent = new quorum_Libraries_Interface_Events_GestureEvent_();
                 gestureEvent.eventType = gestureEvent.SINGLE_TAP;
-                gestureEvent.x = ev.center.x;
-                gestureEvent.y = ev.center.y;
+                let boundingRect = ev.target.getBoundingClientRect();
+                gestureEvent.x = ev.center.x - boundingRect.left;
+                gestureEvent.y = ev.center.y - boundingRect.top;
                 if(ev.type === 'twoFingerTap') {
                     gestureEvent.maxFingerCount = 2;
                 } else {
@@ -98,8 +101,9 @@ function plugins_quorum_Libraries_Interface_Events_GestureProcessor_() {
             if(ev.pointerType !== "mouse") {
                 let gestureEvent = new quorum_Libraries_Interface_Events_GestureEvent_();
                 gestureEvent.eventType = gestureEvent.DOUBLE_TAP;
-                gestureEvent.x = ev.center.x;
-                gestureEvent.y = ev.center.y;
+                let boundingRect = ev.target.getBoundingClientRect();
+                gestureEvent.x = ev.center.x - boundingRect.left;
+                gestureEvent.y = ev.center.y - boundingRect.top;
                 let gameInfo = plugins_quorum_Libraries_Game_WebInput_.GetGestureGameInfo(ev);
                 if (gameInfo !== null)
                 {
@@ -111,8 +115,9 @@ function plugins_quorum_Libraries_Interface_Events_GestureProcessor_() {
             if(ev.pointerType !== "mouse") {
                 let gestureEvent = new quorum_Libraries_Interface_Events_GestureEvent_();
                 gestureEvent.eventType = gestureEvent.LONG_PRESS;
-                gestureEvent.x = ev.center.x;
-                gestureEvent.y = ev.center.y;
+                let boundingRect = ev.target.getBoundingClientRect();
+                gestureEvent.x = ev.center.x - boundingRect.left;
+                gestureEvent.y = ev.center.y - boundingRect.top;
                 if(ev.type === "pressup") {
                     gestureEvent.timingCode = gestureEvent.Get_Libraries_Interface_Events_GestureEvent__FINISH_();
                 }
@@ -127,8 +132,9 @@ function plugins_quorum_Libraries_Interface_Events_GestureProcessor_() {
             if(ev.pointerType !== "mouse") {
                 let gestureEvent = new quorum_Libraries_Interface_Events_GestureEvent_();
                 gestureEvent.eventType = gestureEvent.SWIPE;
-                gestureEvent.x = ev.center.x;
-                gestureEvent.y = ev.center.y;
+                let boundingRect = ev.target.getBoundingClientRect();
+                gestureEvent.x = ev.center.x - boundingRect.left;
+                gestureEvent.y = ev.center.y - boundingRect.top;
                 if(ev.type === 'twoFingerSwipe') {
                     gestureEvent.maxFingerCount = 2;
                 } else {
