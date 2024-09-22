@@ -228,6 +228,7 @@ public class DesktopDisplay {
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, minor);
         GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE);
         GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, 1);
+        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_DEBUG, GLFW.GLFW_TRUE);
         
         if (GameStateManager.operatingSystem.contains("Windows 10") && config.Get_Libraries_Game_DesktopConfiguration__enableAccessibility_())
         {

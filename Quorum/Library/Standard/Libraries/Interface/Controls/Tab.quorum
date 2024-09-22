@@ -22,6 +22,7 @@ use Libraries.Game.Graphics.PixelMap
 use Libraries.Game.Graphics.Format
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.TextureFilter
 
 class Tab is Button
     TabPane container = undefined
@@ -398,11 +399,28 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
                 icon:Hide()
             end
         else
-            if icon:IsShowing() = false
+            if icon:IsShowing() = false or true
+//                output "Region info: "
+                output "L: " + region:GetLeftSide() + ", R: " + region:GetRightSide()
+                output "B: " + region:GetBottomSide() + ", T: " + region:GetTopSide()
+                output "Dimensions: " + region:GetRegionWidth() + "x" + region:GetRegionHeight()
+                Texture texture = region:GetTextureField()
+                output "Target: " + texture:GetGLTarget()
+                output "Handle: " + texture:GetGLHandle()
+//                output "Source: " + texture:GetSource()
+//                TextureFilter minFilter = texture:GetMinimizeFilter()
+//                TextureFilter magFilter = texture:GetMaximizeFilter()
+//                output "Min/Mag: "
+
+                region:GetTextureField():Dispose()
+                region:GetTextureField():LoadFilledCircle(20)
                 icon:Load(region)
+//                icon:LoadFilledCircle(20)
                 number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
                 iconLayoutProperties:SetPercentageWidth(aspectRatio)
                 icon:Show()
+            else
+                output "Showing = true!"
             end
             ColorGroup iconColor = properties:GetIconColor()
             if iconColor = undefined
