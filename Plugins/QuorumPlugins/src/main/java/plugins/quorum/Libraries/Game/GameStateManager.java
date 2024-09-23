@@ -54,59 +54,8 @@ public class GameStateManager
     the GameStateManager was somehow initialized in the wrong thread first).
     */
     public static String mainThreadID = "" + Thread.currentThread().getId();
-    
-    static
-    {
-//        String os = System.getProperty("os.name");
-//        operatingSystem = os;
-//
-//        if (os.contains("Mac OS X") || os.contains("Windows") || os.contains("Linux"))
-//        {
-//            if (os.contains("Linux") && System.getProperty("java.runtime.name").contains("Android Runtime"))
-//            {
-//                if (IsVulkanRendering())
-//                {
-//                    throw new RuntimeException("NYI");
-//                }
-//                else
-//                {
-//                    graphics = new AndroidOpenGL();
-//                    nativeGraphics = ((AndroidOpenGL)graphics).plugin_;
-//                    operatingSystem = "Linux (Android) : TEST-CODE-MCX";
-//                }
-//            }
-//            else
-//            {
-//                if (IsVulkanRendering())
-//                {
-//                    throw new RuntimeException("NYI");
-//                }
-//                else
-//                {
-//                    graphics = new DesktopOpenGL();
-//                    nativeGraphics = ((DesktopOpenGL) graphics).plugin_;
-//                }
-//            }
-//        }
-//        else if (os.contains("iOS"))
-//        {
-//            if (IsVulkanRendering())
-//            {
-//                throw new RuntimeException("NYI");
-//            }
-//            else
-//            {
-//                graphics = new IOSOpenGL();
-//                nativeGraphics = ((IOSOpenGL) graphics).plugin_;
-//                plugins.quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL.init();
-//            }
-//        }
-//        else
-//        {
-//            System.out.println("Couldn't detect os! OS was " + os);
-//            nativeGraphics = null;
-//        }
-    }
+
+
 
     public static boolean IsVulkanRendering()
     {

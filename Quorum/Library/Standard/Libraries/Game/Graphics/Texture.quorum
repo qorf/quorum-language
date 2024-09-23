@@ -54,7 +54,7 @@ class Texture is Disposable
 
     TextureData data = undefined
 
-    GraphicsManager graphics = undefined
+    GameStateManager manager
     OpenGLConstants constants
 
     TextureFilter minimizeFilter
@@ -69,13 +69,18 @@ class Texture is Disposable
     Array<TextureLoadListener> loadListeners
 
     on create
-        GameStateManager manager
-        graphics = manager:GetGameGraphics()
-
         minimizeFilter:ConstructTextureFilter(minimizeFilter:NEAREST)
         magnifyFilter:ConstructTextureFilter(magnifyFilter:NEAREST)
         horizontalWrap:ConstructTextureWrap(horizontalWrap:CLAMP_TO_EDGE)
         verticalWrap:ConstructTextureWrap(verticalWrap:CLAMP_TO_EDGE)
+    end
+
+    private action GetOpenGL returns OpenGLManager
+        GraphicsManager graphics = manager:GetGameGraphics()
+        if graphics is OpenGLManager
+            return cast(OpenGLManager, graphics)
+        end
+        return undefined
     end
 
     /*
@@ -725,9 +730,9 @@ class Texture is Disposable
 
     private system action SetGraphicsInfo(integer target, integer handle)
 
-    private system action GetGLTarget returns integer
+    public system action GetGLTarget returns integer
 
-    private system action GetGLHandle returns integer
+    public system action GetGLHandle returns integer
 
     // All actions placed below are originally from GLTexture.
 
@@ -805,9 +810,9 @@ class Texture is Disposable
             alert(error)
         end
 
-        if graphics is OpenGLManager
-            OpenGLManager openGL = cast(OpenGLManager, graphics)
-openGL:PixelStorageMode(constants:GL_UNPACK_ALIGNMENT,1)
+        OpenGLManager openGL = GetOpenGL()
+        if openGL not= undefined
+            openGL:PixelStorageMode(constants:GL_UNPACK_ALIGNMENT,1)
         end
 
         if data:UseMipMaps()
@@ -834,12 +839,11 @@ openGL:PixelStorageMode(constants:GL_UNPACK_ALIGNMENT,1)
         magnifyFilter = magFilter
         Bind()
         
-if graphics is OpenGLManager
-            OpenGLManager openGL = cast(OpenGLManager, graphics)
-openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_MIN_FILTER, minFilter:GetValue())
-        openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_MAG_FILTER, magFilter:GetValue())
+        OpenGLManager openGL = GetOpenGL()
+        if openGL not= undefined
+            openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_MIN_FILTER, minFilter:GetValue())
+            openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_MAG_FILTER, magFilter:GetValue())
         end
-
     end
 
     /*
@@ -853,12 +857,11 @@ openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_MIN_FILTER, minFi
         verticalWrap = vWrap
         Bind()
         
-if graphics is OpenGLManager
-            OpenGLManager openGL = cast(OpenGLManager, graphics)
-openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_S, hWrap:GetValue())
-        openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_T, vWrap:GetValue())
+        OpenGLManager openGL = GetOpenGL()
+        if openGL not= undefined
+            openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_S, hWrap:GetValue())
+            openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_T, vWrap:GetValue())
         end
-
     end
 
     /*
@@ -1392,19 +1395,20 @@ openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_S, hWrap:Get
     should never be used directly by users.
     */
     action UnsafeSetWrap(TextureWrap u, TextureWrap v)
-    if u not= undefined and u:GetValue() not= horizontalWrap:GetValue()
-            if graphics is OpenGLManager
-                OpenGLManager openGL = cast(OpenGLManager, graphics)
-openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_S, u:GetValue())
+        if u not= undefined and u:GetValue() not= horizontalWrap:GetValue()
+            OpenGLManager openGL = GetOpenGL()
+            if openGL not= undefined
+                openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_S, u:GetValue())
             end
             horizontalWrap = u
         end
 
         if v not= undefined and v:GetValue() not= verticalWrap:GetValue()
-if graphics is OpenGLManager
-                OpenGLManager openGL = cast(OpenGLManager, graphics)
-openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_T, v:GetValue())
+            OpenGLManager openGL = GetOpenGL()
+            if openGL not= undefined
+                openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_T, v:GetValue())
             end
+
             verticalWrap = v
         end
     end
@@ -1416,18 +1420,19 @@ openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_T, v:GetValu
     */
     action UnsafeSetFilter(TextureFilter min, TextureFilter mag)
         if min not= undefined and min:GetValue() not= minimizeFilter:GetValue()
-if graphics is OpenGLManager
-                OpenGLManager openGL = cast(OpenGLManager, graphics)
-openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_MIN_FILTER, min:GetValue())
+            OpenGLManager openGL = GetOpenGL()
+            if openGL not= undefined
+                openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_MIN_FILTER, min:GetValue())
             end
             minimizeFilter = min
         end
 
         if mag not= undefined and mag:GetValue() not= magnifyFilter:GetValue()
-if graphics is OpenGLManager
-                OpenGLManager openGL = cast(OpenGLManager, graphics)
-openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_MAG_FILTER, mag:GetValue())
+            OpenGLManager openGL = GetOpenGL()
+            if openGL not= undefined
+                openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_MAG_FILTER, mag:GetValue())
             end
+
             magnifyFilter = mag
         end
     end
