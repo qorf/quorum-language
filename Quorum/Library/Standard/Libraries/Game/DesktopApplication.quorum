@@ -51,9 +51,7 @@ class DesktopApplication is Application
 
         parent:Application:glmanager:SetClearScreenColor(0.85, 0.85, 0.85, 1.0)
 
-        output "A1"
         parent:Application:game:CreateGame()
-        output "A2"
 
         GameStateManager manager
         if manager:GetOperatingSystem():Contains("Windows 10")
@@ -113,6 +111,7 @@ class DesktopApplication is Application
 
             if(shouldrender)
                display:UpdateTime()
+
                parent:Application:game:ContinueGame()
                display:Update()
             end

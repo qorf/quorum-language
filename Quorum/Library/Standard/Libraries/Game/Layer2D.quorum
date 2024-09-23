@@ -1119,12 +1119,13 @@ class Layer2D is Layer
         
         if graphics is OpenGLManager
             OpenGLManager openGL = cast(OpenGLManager, graphics)
-            if (GetViewportX() not= openGL:GetViewportX() or GetViewportY() not= openGL:GetViewportY()
-                    or GetViewportWidth() not= openGL:GetViewportWidth() or GetViewportHeight() not= openGL:GetViewportHeight())
-                openGL:SetViewport(GetViewportX(), GetViewportY(), GetViewportWidth(), GetViewportHeight())
-            end
+if (GetViewportX() not= openGL:GetViewportX() or GetViewportY() not= openGL:GetViewportY()
+            or GetViewportWidth() not= openGL:GetViewportWidth() or GetViewportHeight() not= openGL:GetViewportHeight())
+            openGL:SetViewport(GetViewportX(), GetViewportY(), GetViewportWidth(), GetViewportHeight())
+        end
         end
         
+
         painter:Begin()
 
         painter:SetClipping(false)

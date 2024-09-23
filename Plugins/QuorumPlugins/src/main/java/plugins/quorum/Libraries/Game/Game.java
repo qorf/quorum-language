@@ -11,7 +11,6 @@ import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import android.util.Log;
-import plugins.quorum.Libraries.Game.Graphics.OpenGL.OpenGLManager;
 import quorum.Libraries.Game.Graphics.GraphicsManager_;
 import quorum.Libraries.Game.Graphics.OpenGL.AndroidOpenGL;
 import quorum.Libraries.Game.Graphics.OpenGL.DesktopOpenGL;
@@ -153,7 +152,6 @@ public class Game
                 {
                     graphics = new DesktopOpenGL();
                     GameStateManager.nativeGraphics = ((DesktopOpenGL) graphics).plugin_;
-                    //GameStateManager.nativeGraphics.glEnable(OpenGLManager.GL_DEBUG_OUTPUT);
                 }
             }
         }

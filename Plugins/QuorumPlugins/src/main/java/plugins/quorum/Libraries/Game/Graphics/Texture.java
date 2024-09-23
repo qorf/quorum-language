@@ -89,7 +89,6 @@ public class Texture
     
     public void Dispose()
     {
-        System.out.println("Disposed!");
         if (glHandle != 0)
         {
             GameStateManager.nativeGraphics.glDeleteTexture(glHandle);
