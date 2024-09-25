@@ -20,28 +20,39 @@ class VulkanInstance
     
     boolean initialized = false
     
-    /*This action initializes the Vulkan instance so it can be used with other Vulkan objects.
+    /*
+    This action initializes the Vulkan instance so it can be used with other Vulkan objects. If the instance is successfully created, this function returns true.
+    If the instance cannot be created, this action returns false instead.
 
-Attribute: Parameter applicationName The title of the application that is using this instance. Hardware agents can use this to identify your app, if they choose.
-Attribute: Parameter applicationVersion The version number of your application. Hardware agents can use this to identify the version of your app, if they choose.
-Attribute: Parameter apiVersion The Vulkan API version to use. This must be an encoded API number (see "ConvertToAPIVersionID" in VulkanUtilities).
-Attribute: Parameter useValidationLayers Whether or not the instance should use Validation Layers, if they are available. If this is true and they aren't available, the instance will be made without them.*/
-    action Create(text applicationName, integer applicationVersion, integer apiVersion, boolean useValidationLayers)
+    Attribute: Parameter applicationName The title of the application that is using this instance. Hardware agents can use this to identify your app, if they choose.
+    Attribute: Parameter applicationVersion The version number of your application. Hardware agents can use this to identify the version of your app, if they choose.
+    Attribute: Parameter apiVersion The Vulkan API version to use. This must be an encoded API number (see "ConvertToAPIVersionID" in VulkanUtilities).
+    Attribute: Parameter useValidationLayers Whether or not the instance should use Validation Layers, if they are available. If this is true and they aren't available, the instance will be made without them.
+    Attribute: Returns True if the instance is successfully created, or false if it could not be created.
+    */
+    action Create(text applicationName, integer applicationVersion, integer apiVersion, boolean useValidationLayers) returns boolean
         VulkanUtilities utility
         if utility:AreValidationLayersSupported() = false
             useValidationLayers = false
         end
         
+        utility:GetRequiredDisplayExtensions(undefined)
+
         if logger = undefined and useValidationLayers = true
             ConsoleLogger consoleLogger
             logger = consoleLogger
         end
 
-        CreateNative(applicationName, applicationVersion, apiVersion, useValidationLayers)
-        initialized = true
-end
+        boolean result = CreateNative(applicationName, applicationVersion, apiVersion, useValidationLayers)
+
+        if result
+            initialized = true
+        end
+
+        return result
+    end
     
-    private system action CreateNative(text applicationName, integer applicationVersion, integer apiVersion, boolean useValidationLayers)
+    private system action CreateNative(text applicationName, integer applicationVersion, integer apiVersion, boolean useValidationLayers) returns boolean
     
     action IsInitialized returns boolean
         return initialized

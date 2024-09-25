@@ -16,38 +16,47 @@ class VulkanGraphics is GraphicsManager
     number blueClearComponent = 0.85
     number alphaClearComponent = 1.0
     
-    action Initialize(VulkanOptions options)
+    /*
+    This action constructs the necessary Vulkan resources to render using this VulkanGraphics.
+    */
+    action Initialize(VulkanOptions options) returns boolean
         VulkanInstance instance
         me:instance = instance
         
         instance:SetLogger(options:logger)
+        instance:Create(options:applicationName, options:applicationVersion, options:apiVersion, options:useValidationLayers)
+
+        return true
     end
     
-/*This action sets the background color of the window. This is the color used to clear
-the screen between each frame of animation. The alpha component (transparency) isn't 
-supported for OpenGL rendering, but Vulkan rendering can draw a transparent window 
-background if the feature is enabled.
-Attribute: Parameter red The red component of the color, as a number between 0.0 (no red) and 1.0 (full red).
-Attribute: Parameter green The green component of the color, as a number between 0.0 (no green) and 1.0 (full green).
-Attribute: Parameter blue The blue component of the color, as a number between 0.0 (no blue) and 1.0 (full blue).
-Attribute: Parameter alpha The alpha component of the color, as a number between 0.0 (completely transparent) and 1.0 (completely opaque).*/
+    /*
+    This action sets the background color of the window. This is the color used to clear
+    the screen between each frame of animation. The alpha component (transparency) isn't 
+    supported for OpenGL rendering, but Vulkan rendering can draw a transparent window 
+    background if the feature is enabled.
+
+    Attribute: Parameter red The red component of the color, as a number between 0.0 (no red) and 1.0 (full red).
+    Attribute: Parameter green The green component of the color, as a number between 0.0 (no green) and 1.0 (full green).
+    Attribute: Parameter blue The blue component of the color, as a number between 0.0 (no blue) and 1.0 (full blue).
+    Attribute: Parameter alpha The alpha component of the color, as a number between 0.0 (completely transparent) and 1.0 (completely opaque).
+    */
     action SetClearScreenColor(number red, number green, number blue, number alpha)
         redClearComponent = red
         greenClearComponent = green
         blueClearComponent = blue
         alphaClearComponent = alpha
-end
+    end
     
-/*
+    /*
     This action returns the maximum number of textures that can be supported on the system. This number depends
     on the local hardware being used.
     */
     action GetMaximumTextureCount returns integer
         alert("NYI")
         return -1
-end
+    end
     
-/*
+    /*
     This action makes a new shader of the requested type (e.g., FRAGMENT_SHADER or VERTEX_SHADER from the Shader class)
     using the given source code. If the shader code successfully compiles, this action will return an integer ID
     representing that shader. If the shader can't be created or it does not successfully compile, this will alert an error.
@@ -55,27 +64,28 @@ end
     action CreateShader(integer shaderType, text sourceCode, text shaderName) returns integer
         alert("NYI")
         return -1
-end
+    end
     
     /*
     This action instructs the rendering system to delete the native resources allocated to a shader. After deleting
     a shader, it can't be used by the rendering system unless it's recompiled.
     */
     action DeleteShader(integer shaderID)
-alert("NYI")
-end
+        alert("NYI")
+    end
     
-    /**/
-action CreateShaderProgram(ShaderProgram program) returns integer
-alert("NYI")
-end
+    /*
+    */
+    action CreateShaderProgram(ShaderProgram program) returns integer
+        alert("NYI")
+    end
 
     /*
     This action tells the graphics system to render content using the shader program indicated by the provided ID.
     */
     action UseShaderProgram(integer programID)
-alert("NYI")
-end
+        alert("NYI")
+    end
 
     /*
     This action instructs the rendering system to delete the native resources allocated to a shader program. After deleting
@@ -83,17 +93,17 @@ end
     delete the shaders attached to it -- those must also be deleted manually.
     */
     action DeleteShaderProgram(integer programID)
-alert("NYI")
-end
+        alert("NYI")
+    end
     
-/*
+    /*
     This action sets the value of a shader "uniform" variable to the given input values.
     The uniform is identified by a unique ID that is generated when a shader program using
     that uniform is compiled and linked.
     */
     action SetShaderInput(integer uniformID, integer value)
-alert("NYI")
-end
+        alert("NYI")
+    end
     
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
@@ -101,8 +111,8 @@ end
     that uniform is compiled and linked.
     */
     action SetShaderInput(integer uniformID, integer value1, integer value2)
-alert("NYI")
-end
+        alert("NYI")
+    end
 
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
@@ -110,8 +120,8 @@ end
     that uniform is compiled and linked.
     */
     action SetShaderInput(integer uniformID, integer value1, integer value2, integer value3)
-alert("NYI")
-end
+        alert("NYI")
+    end
 
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
@@ -119,8 +129,8 @@ end
     that uniform is compiled and linked.
     */
     action SetShaderInput(integer uniformID, integer value1, integer value2, integer value3, integer value4)
-alert("NYI")
-end
+        alert("NYI")
+    end
 
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
@@ -128,8 +138,8 @@ end
     that uniform is compiled and linked.
     */
     action SetShaderInput(integer uniformID, number value)
-alert("NYI")
-end
+        alert("NYI")
+    end
 
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
@@ -137,8 +147,8 @@ end
     that uniform is compiled and linked.
     */
     action SetShaderInput(integer uniformID, number value1, number value2)
-alert("NYI")
-end
+        alert("NYI")
+    end
 
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
@@ -146,8 +156,8 @@ end
     that uniform is compiled and linked.
     */
     action SetShaderInput(integer uniformID, number value1, number value2, number value3)
-alert("NYI")
-end
+        alert("NYI")
+    end
 
     /*
     This action sets the value of a shader "uniform" variable to the given input values.
@@ -155,8 +165,8 @@ end
     that uniform is compiled and linked.
     */
     action SetShaderInput(integer uniformID, number value1, number value2, number value3, number value4)
-alert("NYI")
-end
+        alert("NYI")
+    end
     
     /*
     This action sets the values of a shader "uniform" array variable. The uniform is identified by a unique ID
@@ -168,8 +178,8 @@ end
     Attribute: Parameter length How many elements should be copied from the input array to the uniform array.
     */
     action SetShaderInputArray(integer uniformID, Number32BitArray array, integer startIndex, integer length)
-alert("NYI")
-end
+        alert("NYI")
+    end
 
     /*
     This action sets the values of an array of Vector2's in a shader "uniform" array variable. The uniform is identified by a unique ID
@@ -181,8 +191,8 @@ end
     Attribute: Parameter length How many elements should be copied from the input array to the uniform array.
     */
     action SetShaderInputVector2Array(integer uniformID, Number32BitArray array, integer startIndex, integer length)
-alert("NYI")
-end
+        alert("NYI")
+    end
 
     /*
     This action sets the values of an array of Vector3's in a shader "uniform" array variable. The uniform is identified by a unique ID
@@ -194,8 +204,8 @@ end
     Attribute: Parameter length How many elements should be copied from the input array to the uniform array.
     */
     action SetShaderInputVector3Array(integer uniformID, Number32BitArray array, integer startIndex, integer length)
-alert("NYI")
-end
+        alert("NYI")
+    end
 
     /*
     This action sets the values of an array of Vector4's in a shader "uniform" array variable. The uniform is identified by a unique ID
@@ -207,8 +217,8 @@ end
     Attribute: Parameter length How many elements should be copied from the input array to the uniform array.
     */
     action SetShaderInputVector4Array(integer uniformID, Number32BitArray array, integer startIndex, integer length)
-alert("NYI")
-end
+        alert("NYI")
+    end
 
     /*
     This action sets the value of an array of Matrix4's in a shader "uniform" variable. The uniform is identified by a unique ID
@@ -223,8 +233,8 @@ end
     Attribute: Parameter transpose If set to true, the uniform will be set to the transpose of the Matrix.
     */
     action SetShaderInputMatrix4Array(integer uniformID, integer matrixCount, Number32BitArray array, integer startIndex, boolean transpose)
-alert("NYI")
-end
+        alert("NYI")
+    end
 
     /*
     This action sets the value of an array of Matrix3's in a shader "uniform" variable. The uniform is identified by a unique ID
@@ -239,8 +249,8 @@ end
     Attribute: Parameter transpose If set to true, the uniform will be set to the transpose of the Matrix.
     */
     action SetShaderInputMatrix3Array(integer uniformID, integer matrixCount, Number32BitArray array, integer startIndex, boolean transpose)
-alert("NYI")
-end
+        alert("NYI")
+    end
 
     /*
     This action informs the rendering system of how to interpret elements of vertex input data for a particular input.
@@ -253,7 +263,7 @@ end
     Attribute: Parameter offset The index of the first element of this input's data in the input buffer, or in other words, how many bytes of data appear before the first instance of input data for this input.
     */
     action SetVertexInputInformation(integer inputID, integer size, integer type, boolean normalize, integer stride, integer offset)
-alert("NYI")
-end
+        alert("NYI")
+    end
 
 end

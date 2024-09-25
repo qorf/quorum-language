@@ -7,21 +7,12 @@ package plugins.quorum.Libraries.Game;
 
 import java.nio.ByteBuffer;
 
+import org.lwjgl.glfw.*;
 import org.lwjgl.system.MemoryUtil;
 import quorum.Libraries.Game.ScreenResolution_;
 import quorum.Libraries.Containers.Array_;
 
 import org.lwjgl.opengl.GL;
-import org.lwjgl.glfw.GLFW;
-import org.lwjgl.glfw.GLFWCursorPosCallback;
-import org.lwjgl.glfw.GLFWErrorCallback;
-import org.lwjgl.glfw.GLFWWindowSizeCallback;
-import org.lwjgl.glfw.GLFWKeyCallback;
-import org.lwjgl.glfw.GLFWMouseButtonCallback;
-import org.lwjgl.glfw.GLFWScrollCallback;
-import org.lwjgl.glfw.GLFWCharCallback;
-import org.lwjgl.glfw.GLFWVidMode;
-import org.lwjgl.glfw.GLFWWindowFocusCallback;
 import org.lwjgl.opengl.GLCapabilities;
 import plugins.quorum.Libraries.Interface.Events.KeyboardProcessor;
 import plugins.quorum.Libraries.Interface.Events.MouseProcessor;
@@ -155,7 +146,8 @@ public class DesktopDisplay {
     int fps;
     long lastTime = System.nanoTime();
     String extensions = null;
-    private boolean initialized = false;
+
+    private static boolean initialized = false;
     
     static int major = 4;
     static int minor = 1;
@@ -628,7 +620,7 @@ public class DesktopDisplay {
     }
     
     // Initialize GLFW, if it hasn't been initialized already.
-    private void Initialize()
+    private static void Initialize()
     {
         if (!initialized)
         {
@@ -704,5 +696,16 @@ public class DesktopDisplay {
     public void PauseEventPolling()
     {
         pauseEventPolling = true;
+    }
+
+    /*
+    Returns true if GLFW detects Vulkan drivers. This is only a preliminary check -- even if we do have Vulkan drivers,
+    we won't know for sure if they support the full suite of things we care about until we try to use it. If this is
+    false, though, we definitely can't use Vulkan.
+    */
+    public static boolean IsVulkanSupported()
+    {
+        Initialize();
+        return GLFWVulkan.glfwVulkanSupported();
     }
 }

@@ -45,6 +45,7 @@ use Libraries.Language.Errors.ConcurrencyError
 use Libraries.Interface.Events.GestureListener
 use Libraries.Interface.Events.GestureEvent
 use Libraries.Game.Graphics.OpenGL.OpenGLManager
+use Libraries.Game.Graphics.Vulkan.VulkanPainter3D
 
 /*
 The Layer3D class is used to manage a number of 3D objects, as well as manage
@@ -3321,7 +3322,8 @@ action GetPainter returns Painter3D
                 OpenGLPainter3D painter3D
                 painter = painter3D
             else
-                alert("Vulkan support NYI")
+                VulkanPainter3D painter3D
+                painter = painter3D
             end
         end
         return painter

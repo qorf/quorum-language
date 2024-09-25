@@ -8,6 +8,11 @@ shared class VulkanConstants
     public constant integer API_VERSION_1_0_0 = utilities:ConvertToAPIVersionID(1, 0, 0)
     public constant integer API_VERSION_1_1_0 = utilities:ConvertToAPIVersionID(1, 1, 0)
     public constant integer DEFAULT_API_VERSION = API_VERSION_1_1_0
+
+    // Values representing the engine information provided to Vulkan Instances when they're created under the hood.
+    // These can be used to identify what engine is implementing Vulkan for hardware providers, such as driver manufacturers, if they choose to check.
+    public constant text VULKAN_ENGINE_NAME = "Quorum"
+    public constant integer VULKAN_ENGINE_VERSION = 1
     
     // Validation layer names. A platform might support some of these layers. If it does, it can use them for validation and error checking.
     public constant text KHRONOS_VALIDATION_LAYER = "VK_LAYER_KHRONOS_validation"
@@ -15,7 +20,12 @@ shared class VulkanConstants
     public constant text LUNARG_PARAMETER_VALIDATION_LAYER = "VK_LAYER_LUNARG_parameter_validation"
     public constant text LUNARG_OBJECT_TRACKER_VALIDATION_LAYER = "VK_LAYER_LUNARG_object_tracker"
     public constant text LUNARG_CORE_VALIDATION_LAYER = "VK_LAYER_LUNARG_core_validation"
-public constant text GOOGLE_THREADING_VALIDATION_LAYER = "VK_LAYER_GOOGLE_threading"
+    public constant text GOOGLE_THREADING_VALIDATION_LAYER = "VK_LAYER_GOOGLE_threading"
     public constant text GOOGLE_UNIQUE_OBJECTS_VALIDATION_LAYER = "VK_LAYER_GOOGLE_unique_objects"
+
+    // Extension names. Used during the creation of VulkanInstances.
+    public constant text DEBUG_UTILITIES_EXTENSION = "VK_EXT_debug_utils"
+    public constant text MAC_PORTABILITY_EXTENSION = "VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME"
+    public constant text MAC_PORTABILITY_SUBSET_EXTENSION = "VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME"
     
 end

@@ -2,42 +2,54 @@ package Libraries.Game.Graphics.Vulkan
 
 use Libraries.System.Logging.Logger
 
-/*The VulkanOptions class contains data that is used to create Vulkan environments. It includes information
-needed during setup, such as the target API version and whether or not to use validation layers.*/
+/*
+The VulkanOptions class contains data that is used to create Vulkan environments. It includes information
+needed during setup, such as the target API version and whether or not to use validation layers.
+*/
 class VulkanOptions
     
-// Used to get the default Vulkan API version.
+    // Used to get the default Vulkan API version.
     private VulkanConstants vulkanConstants
     
-/*Whether or not the Vulkan library should use validation layers, extra safeguards that
-can produce warnings or errors when there are problems. Validation layers are useful for
-debugging problems in the Vulkan system, but slow down the system, so they are usually only
-used while developing or debugging. By default, this value is false.*/
+    /*
+    Whether or not the Vulkan library should use validation layers, extra safeguards that
+    can produce warnings or errors when there are problems. Validation layers are useful for
+    debugging problems in the Vulkan system, but slow down the system, so they are usually only
+    used while developing or debugging. By default, this value is false.
+    */
     public boolean useValidationLayers = false
     
-    /*What Logger the system should use to record Vulkan warnings and errors. If validation
-layers aren't being used, the system can record a few messages, but most warnings and
-errors require validation layers to be enabled. By default, this value is undefined. If
-this value is undefined and validation layers are enabled, a ConsoleLogger is provided by
-the system by default. Otherwise, if no logger is set, messages will be silently ignored.
-Must be set before starting the game.*/
+    /*
+    What Logger the system should use to record Vulkan warnings and errors. If validation
+    layers aren't being used, the system can record a few messages, but most warnings and
+    errors require validation layers to be enabled. By default, this value is undefined. If
+    this value is undefined and validation layers are enabled, a ConsoleLogger is provided by
+    the system by default. Otherwise, if no logger is set, messages will be silently ignored.
+    Must be set before starting the game.
+    */
     public Logger logger = undefined
     
-    /*Which version of the Vulkan API to target. This value should be set using the value of the 
-ConvertToAPIVersionID action in the VulkanUtilities class. By default, this matches the 
-DEFAULT_API_VERSION value in the VulkanConstants class.*/
+    /*
+    Which version of the Vulkan API to target. This value should be set using the value of the 
+    ConvertToAPIVersionID action in the VulkanUtilities class. By default, this matches the 
+    DEFAULT_API_VERSION value in the VulkanConstants class.
+    */
     public integer apiVersion = vulkanConstants:DEFAULT_API_VERSION
     
-    /*This is the application name associated with the Vulkan instance. Note that this is only used
-to internally refer to the application name at the Vulkan level. This can be used by external
-programs (e.g., hardware drivers)to identify your application, if they choose. This value
-defaults to "Quorum Application".*/
+    /*
+    This is the application name associated with the Vulkan instance. Note that this is only used
+    to internally refer to the application name at the Vulkan level. This can be used by external
+    programs (e.g., hardware drivers)to identify your application, if they choose. This value
+    defaults to "Quorum Application".
+    */
     public text applicationName = "Quorum Application"
     
-    /*The version number of your app associated with the Vulkan instance. Similar to the application
-name, this is only used to refer to your application at the Vulkan level. Hardware agents such as
-drivers can use this to identify what version of your program is running, if they choose. This value
-defaults to 1.*/
+    /*
+    The version number of your app associated with the Vulkan instance. Similar to the application
+    name, this is only used to refer to your application at the Vulkan level. Hardware agents such as
+    drivers can use this to identify what version of your program is running, if they choose. This value
+    defaults to 1.
+    */
     public integer applicationVersion = 1
     
 end

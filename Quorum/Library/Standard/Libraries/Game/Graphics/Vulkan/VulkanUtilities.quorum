@@ -2,10 +2,11 @@ package Libraries.Game.Graphics.Vulkan
 
 use Libraries.Compute.BitwiseOperations
 use Libraries.Containers.Array
+use Libraries.System.Properties
 
 shared class VulkanUtilities
     
-BitwiseOperations bits
+    BitwiseOperations bits
     
     /*This action converts a Vulkan API version number from traditional "major.minor.patch" format
 (e.g., "1.1.0") to a single integer code. This can be used anywhere that a Vulkan API version
@@ -30,14 +31,27 @@ Attribute: Returns An array containing the names of all layers available on this
     end
     
 /*This action fetches all of the names of all the layers that are available on this platform,
-and stores them inside the provided text array.
+and adds them to the end of the provided text array.
 Attribute: Parameter returnedLayers A text array that will contain the names of the available layers when the action finishes.*/
     system action GetSupportedLayers(Array<text> returnedLayers)
     
+    /*
+    This action finds the optimal set of validation layers that are available on this system and returns them
+    as names in an array.
+    */
     action GetSupportedValidationLayers returns Array<text>
-        Array<text> layerNames = GetSupportedLayers()
         Array<text> resultLayers
-VulkanConstants constants
+        GetSupportedValidationLayers(resultLayers)
+        return resultLayers
+    end
+
+    /*
+    This action finds the optimal set of validation layers that are available on this system and adds them
+    to the end of the provided text array.
+    */
+    action GetSupportedValidationLayers(Array<text> resultLayers)
+        Array<text> layerNames = GetSupportedLayers()
+        VulkanConstants constants
         
         // Try to find the optimal validation layers and only return those. 
         // Begin with the standard Khronos validation layer. If it's not available, try to use the LunarG validation layer instead.
@@ -50,30 +64,77 @@ VulkanConstants constants
             if layerNames:Has(constants:GOOGLE_THREADING_VALIDATION_LAYER)
                 resultLayers:Add(constants:GOOGLE_THREADING_VALIDATION_LAYER)
             end
-if layerNames:Has(constants:LUNARG_PARAMETER_VALIDATION_LAYER)
+            if layerNames:Has(constants:LUNARG_PARAMETER_VALIDATION_LAYER)
                 resultLayers:Add(constants:LUNARG_PARAMETER_VALIDATION_LAYER)
             end
-if layerNames:Has(constants:LUNARG_OBJECT_TRACKER_VALIDATION_LAYER)
+            if layerNames:Has(constants:LUNARG_OBJECT_TRACKER_VALIDATION_LAYER)
                 resultLayers:Add(constants:LUNARG_OBJECT_TRACKER_VALIDATION_LAYER)
             end
-if layerNames:Has(constants:LUNARG_CORE_VALIDATION_LAYER)
+            if layerNames:Has(constants:LUNARG_CORE_VALIDATION_LAYER)
                 resultLayers:Add(constants:LUNARG_CORE_VALIDATION_LAYER)
             end
-if layerNames:Has(constants:GOOGLE_UNIQUE_OBJECTS_VALIDATION_LAYER)
+            if layerNames:Has(constants:GOOGLE_UNIQUE_OBJECTS_VALIDATION_LAYER)
                 resultLayers:Add(constants:GOOGLE_UNIQUE_OBJECTS_VALIDATION_LAYER)
             end
         end
-        
-        return resultLayers
     end
     
     /*This action returns true if this platform has available validation layers for Vulkan, or false otherwise.
-Validation layers can be enabled to check for Vulkan errors and warnings, but they slow performance, so they
-typically should only be used while debugging.
-
-Attribute: Returns True if there are available validation layers to use, or false otherwise. */
+    Validation layers can be enabled to check for Vulkan errors and warnings, but they slow performance, so they
+    typically should only be used while debugging.
+    
+    Attribute: Returns True if there are available validation layers to use, or false otherwise. */
     action AreValidationLayersSupported returns boolean
-return GetSupportedValidationLayers():IsEmpty() = false
-end
+        return GetSupportedValidationLayers():IsEmpty() = false
+    end
+
+    /*This action returns an array containing the names of all the extensions that are available on
+this platform. 
+Attribute: Returns An array containing the names of all extensions available on this platform.*/
+    action GetSupportedExtensions returns Array<text>
+        Array<text> extensionNames
+        GetSupportedExtensions(extensionNames)
+        return extensionNames
+    end
+
+/*This action fetches all of the names of all the extensions that are available on this platform,
+and stores them inside the provided text array.
+Attribute: Parameter returnedExtensions A text array that will contain the names of the available extensions when the action finishes.*/
+    system action GetSupportedExtensions(Array<text> returnedExtensions)
+
+    /*
+    This action finds any extensions that are required for Vulkan to render to the display on this platform. The found
+    extensions will be added to the end of the provided array.
+
+    Attribute: Parameter returnedExtensions An array of text to store results. The names of the found extensions will be added to the end of this array.
+    */
+    system action GetRequiredDisplayExtensions(Array<text> returnedExtensions)
+
+    /*
+    This action finds any extensions that are required for Vulkan to operate on the current platform and adds them to the
+    end of the provided array. The required extensions are different depending on whether or not validation layers will be
+    used for a VulkanInstance. To get extensions for use with validation layers, the boolean value should be true. To get
+    extensions for use without validation layers, the value should be false instead.
+
+    Attribute: Parameter returnedExtensions An array of text to store results. The names of the found extensions will be added to the end of this array.
+    Attribute: Parameter useValidationLayers True if the extensions are to be used with validation layers enabled, or false otherwise.
+    */
+    action GetRequiredPlatformExtensions(Array<text> returnedExtensions, boolean useValidationLayers)
+        VulkanConstants constants
+
+        if useValidationLayers
+            returnedExtensions:Add(constants:DEBUG_UTILITIES_EXTENSION)
+        end
+
+        Array<text> availableExtensions = GetSupportedExtensions()
+        Properties properties
+        if properties:IsMac()
+            if useValidationLayers = true and availableExtensions:Has(constants:MAC_PORTABILITY_SUBSET_EXTENSION)
+                returnedExtensions:Add(constants:MAC_PORTABILITY_SUBSET_EXTENSION)
+            elseif useValidationLayers = false and availableExtensions:Has(constants:MAC_PORTABILITY_EXTENSION)
+                returnedExtensions:Add(constants:MAC_PORTABILITY_EXTENSION)
+            end
+        end
+    end
     
 end

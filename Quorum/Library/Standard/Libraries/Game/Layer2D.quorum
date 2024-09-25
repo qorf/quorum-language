@@ -42,6 +42,7 @@ use Libraries.Language.Errors.ConcurrencyError
 use Libraries.Interface.Events.GestureListener
 use Libraries.Interface.Events.GestureEvent
 use Libraries.Game.Graphics.OpenGL.OpenGLManager
+use Libraries.Game.Graphics.Vulkan.VulkanPainter2D
 
 /*
 The Layer2D class is used to manage a number of 2D objects, as well as manage
@@ -3084,7 +3085,8 @@ if (GetViewportX() not= openGL:GetViewportX() or GetViewportY() not= openGL:GetV
                 OpenGLPainter2D painter2D
                 painter = painter2D
             else
-                alert("Vulkan support NYI")
+                VulkanPainter2D painter2D
+                painter = painter2D
             end
         end
         return painter

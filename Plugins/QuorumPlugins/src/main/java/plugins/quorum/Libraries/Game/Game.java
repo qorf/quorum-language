@@ -11,10 +11,12 @@ import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import android.util.Log;
+import quorum.Libraries.Game.Game_;
 import quorum.Libraries.Game.Graphics.GraphicsManager_;
 import quorum.Libraries.Game.Graphics.OpenGL.AndroidOpenGL;
 import quorum.Libraries.Game.Graphics.OpenGL.DesktopOpenGL;
 import quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanGraphics;
 //import org.robovm.apple.foundation.Foundation;
 //import org.robovm.apple.foundation.NSString;
 //import org.robovm.apple.uikit.UIDevice;
@@ -144,11 +146,24 @@ public class Game
             }
             else
             {
-                if (GameStateManager.IsVulkanRendering())
+                boolean supportsVulkan = DesktopDisplay.IsVulkanSupported();
+
+                // If the Display can support Vulkan, try to create Vulkan graphics.
+                // This might fail at some point along the way. If it does, we'll fall back to OpenGL after.
+                if (supportsVulkan)
                 {
-                    throw new RuntimeException("NYI");
+                    System.out.println("Creating Vulkan graphics...");
+                    VulkanGraphics vulkanGraphics = new VulkanGraphics();
+
+                    Game_ quorumGame = (Game_)me_;
+                    vulkanGraphics.Initialize(quorumGame.Get_Libraries_Game_Game__desktopConfig_().Get_Libraries_Game_DesktopConfiguration__vulkanOptions_());
+
+                    System.out.println("Created graphics.");
+
+                    graphics = vulkanGraphics;
                 }
-                else
+
+                if (supportsVulkan == false)
                 {
                     graphics = new DesktopOpenGL();
                     GameStateManager.nativeGraphics = ((DesktopOpenGL) graphics).plugin_;

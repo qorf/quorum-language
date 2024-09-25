@@ -98,24 +98,24 @@ public class GameStateManager
         return graphics;
     }
 
-    public void SetGameGraphics(GraphicsManager_ aGameGraphics) 
+    public void SetGameGraphics(GraphicsManager_ gameGraphics)
     {
-        graphics = aGameGraphics;
+        graphics = gameGraphics;
         if (IsVulkanRendering())
         {
             throw new RuntimeException("NYI");
         }
         else
         {
-            if (operatingSystem.contains("Android"))
+            if (graphics instanceof AndroidOpenGL)
             {
                 nativeGraphics = ((AndroidOpenGL) graphics).plugin_;
             }
-            else if (operatingSystem.contains("Mac OS X") || operatingSystem.contains("Windows") || operatingSystem.contains("Linux"))
+            else if (graphics instanceof DesktopOpenGL)
             {
                 nativeGraphics = ((DesktopOpenGL) graphics).plugin_;
             }
-            else if (operatingSystem.contains("iOS"))
+            else if (graphics instanceof IOSOpenGL)
             {
                 nativeGraphics = ((IOSOpenGL) graphics).plugin_;
             }

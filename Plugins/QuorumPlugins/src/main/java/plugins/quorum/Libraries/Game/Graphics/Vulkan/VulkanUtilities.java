@@ -1,6 +1,9 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
+import org.lwjgl.PointerBuffer;
+import org.lwjgl.glfw.GLFWVulkan;
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.vulkan.VkExtensionProperties;
 import org.lwjgl.vulkan.VkLayerProperties;
 import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Language.Types.Text;
@@ -13,7 +16,7 @@ public class VulkanUtilities
 {
     public java.lang.Object me_ = null;
 
-    public void GetSupportedLayers$quorum_Libraries_Containers_Array(Array_ resultArray)
+    public void GetSupportedLayers(Array_ resultArray)
     {
         try (MemoryStack stack = MemoryStack.stackPush())
         {
@@ -40,6 +43,51 @@ public class VulkanUtilities
 
             // Our array now contains the names of each available layer.
             // When we exit the "try", any memory allocated onto the MemoryStack is automatically freed.
+        }
+    }
+
+    public void GetSupportedExtensions(Array_ resultArray)
+    {
+        try (MemoryStack stack = MemoryStack.stackPush())
+        {
+            // Begin by checking how many extensions there are.
+            IntBuffer sizeBuffer = stack.callocInt(1);
+            vkEnumerateInstanceExtensionProperties((String)null, sizeBuffer, null);
+            int extensionCount = sizeBuffer.get(0);
+
+            // Now allocate space for that many extension properties and fetch them.
+            VkExtensionProperties.Buffer extensionProperties = VkExtensionProperties.calloc(extensionCount, stack);
+            vkEnumerateInstanceExtensionProperties((String) null, sizeBuffer, extensionProperties);
+
+            // Iterate through the properties and add each extension's name to the array.
+            for (int i = 0; i < extensionCount; i++)
+            {
+                VkExtensionProperties properties = extensionProperties.get(i);
+                String extensionName = properties.extensionNameString();
+
+                // Convert from Java String to Quorum Text, since that's what our Array uses.
+                Text quorumText = new Text();
+                quorumText.SetValue(extensionName);
+                resultArray.Add(quorumText);
+            }
+
+            // Our array now contains the names of each available extension.
+            // When we exit the "try", any memory allocated onto the MemoryStack is automatically freed.
+        }
+    }
+
+    public void GetRequiredDisplayExtensions(Array_ resultArray)
+    {
+        // GLFW provides us the names via pointers to UTF-8 encoded strings.
+        PointerBuffer pointers = GLFWVulkan.glfwGetRequiredInstanceExtensions();
+        for (int i = 0; i < pointers.capacity(); i++)
+        {
+            String extensionName = pointers.getStringUTF8(i);
+
+            // Convert the Strings to Quorum Text and add them to the array.
+            Text quorumText = new Text();
+            quorumText.SetValue(extensionName);
+            resultArray.Add(quorumText);
         }
     }
 }
