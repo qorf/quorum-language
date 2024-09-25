@@ -48,6 +48,15 @@ public class Spike {
                 b64Substring = b64Substring + B64_PADDING_LOOKUP[remainder];
             }
             WritePython(String.format("w(d('%s'))", b64Substring));
+
+            //This solutions feels really dumb, but it does seem to prevent the interpreter from
+            //getting overwhelmed. Again, some kind of futures or checking whether or not the
+            //system is finished processing the last chunk?
+            try {
+                Thread.sleep(2);  // Adjust the sleep duration as necessary
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
         WritePython("f.close()");
     }
