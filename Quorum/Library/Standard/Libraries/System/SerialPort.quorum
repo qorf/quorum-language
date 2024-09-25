@@ -60,9 +60,16 @@ end
     /* Opens the port. */
     system action Open returns boolean
 
-    /* Opens the port with a timeout. */
-    system action Open(integer timeout) returns boolean
     
 /* Returns whether or not the port has accepted a connection. */
     system action IsOpen returns boolean
+    
+    system action SetBaudRate(integer rate)
+    system action GetBaudRate returns integer
+    
+    system action SetTimeouts(integer timeout, integer read, integer write)
+    system action GetTimeoutWriteBlocking returns integer
+    system action GetTimeoutReadSemiBlocking returns integer
+    system action GetTimeoutNonBlocking returns integer
+    system action GetDefaultTimeout returns integer
 end

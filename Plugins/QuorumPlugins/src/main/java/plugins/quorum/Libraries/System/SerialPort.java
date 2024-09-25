@@ -12,6 +12,29 @@ import java.util.Arrays;
 public class SerialPort implements SerialPortDataListener {
     public java.lang.Object me_ = null;
     private com.fazecast.jSerialComm.SerialPort port = null;
+    private int readTimeout = 250;
+    private int writeTimeout = 0;
+    private int baudRate = 115200;
+
+    public int GetTimeoutWriteBlocking() {
+        return com.fazecast.jSerialComm.SerialPort.TIMEOUT_WRITE_BLOCKING;
+    }
+
+    public int GetTimeoutReadSemiBlocking() {
+        return com.fazecast.jSerialComm.SerialPort.TIMEOUT_READ_SEMI_BLOCKING;
+    }
+
+    public int GetTimeoutNonBlocking() {
+        return com.fazecast.jSerialComm.SerialPort.TIMEOUT_NONBLOCKING;
+    }
+
+    public int GetDefaultTimeout() {
+        return com.fazecast.jSerialComm.SerialPort.TIMEOUT_WRITE_BLOCKING | com.fazecast.jSerialComm.SerialPort.TIMEOUT_READ_SEMI_BLOCKING;
+    }
+
+    public void SetTimeouts(int timeout, int read, int write) {
+        port.setComPortTimeouts(timeout, read, write);
+    }
 
     public String GetName() {
         return getPort().getSystemPortName();
@@ -30,11 +53,7 @@ public class SerialPort implements SerialPortDataListener {
     }
 
     public boolean Open() {
-        return getPort().openPort();
-    }
-
-    public boolean Open(int timeout) {
-        return getPort().openPort(timeout);
+        return port.openPort();
     }
 
     public boolean IsOpen() {
@@ -102,5 +121,13 @@ public class SerialPort implements SerialPortDataListener {
         } else if(type == com.fazecast.jSerialComm.SerialPort.LISTENING_EVENT_PORT_DISCONNECTED) {
             port.Close();
         }
+    }
+
+    public void SetBaudRate(int rate) {
+        port.setBaudRate(rate);
+    }
+
+    public int GetBaudRate() {
+        return port.getBaudRate();
     }
 }
