@@ -1,0 +1,126 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Item2D
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Font
+use Libraries.Interface.Controls.Tab
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Controls.Icon
+
+class LargeTabLayout is Layout
+action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
+        
+        // Always ensure any necessary scaling is applied to the font size.
+Font font = container:GetFont()
+            if font:GetSize() not= cast(integer, container:GetFontSize() * container:GetInterfaceScale())
+                font:SetSize(cast(integer, container:GetFontSize() * container:GetInterfaceScale()))
+            end
+        
+        if container:GetDefaultLayoutProperties():NeedsRendering()
+            container:LoadGraphics(container:GetDefaultLayoutProperties())
+        end
+        
+        number targetContainerHeight = 0
+        if container:GetVerticalLayoutMode() = container:FIT_FONT
+            number fontLines = 2
+            
+            // We allow for percentage height to indicate the number of font lines, or assume the height is 2 lines if no info is given.
+            if container:GetPercentageHeight() > 0
+                fontLines = container:GetPercentageHeight()
+            end
+            
+            targetContainerHeight = font:GetLineHeight() * fontLines
+        end
+        
+        // Cast the container to a tab so we can grab components (especially the Label) directly.
+        Tab tab = cast(Tab, container)
+        Label label = tab:GetLabel()
+        Button closeButton = tab:GetCloseButton()
+        Icon icon = tab:GetTabIcon()
+        
+        // If we're fitting the width to contents, the label will most likely be what we set it by.
+        // Even if not, we need the width in order to center the label.
+        number labelWidth = label:GetWidth() + (label:GetLeftMargin() + label:GetRightMargin()) * label:GetInterfaceScale()
+        
+        number targetContainerWidth = 0
+        if container:GetHorizontalLayoutMode() = container:MAINTAIN_ASPECT_RATIO
+            number ratio = 1.0
+            
+            // Get the ratio from the percentage width, or default to 1 if it wasn't set.
+            if container:GetPercentageWidth() > 0
+                ratio = container:GetPercentageWidth()
+            end
+            
+            // If we have a target height we've calculated, use that as the basis. Otherwise, use the previously given height.
+            if targetContainerHeight > 0
+                targetContainerWidth = targetContainerHeight * ratio
+            else
+                targetContainerWidth = containerHeight * ratio
+            end
+        elseif container:GetHorizontalLayoutMode() = container:FIT_CONTENTS
+            targetContainerWidth = labelWidth
+        end
+        
+        if container:GetVerticalLayoutMode() = container:MAINTAIN_ASPECT_RATIO
+            number ratio = 1.0
+            
+            // Get the ratio from the percentage height, or default to 1 if it wasn't set.
+            if container:GetPercentageHeight() > 0
+                ratio = container:GetPercentageHeight()
+            end
+            
+            targetContainerHeight = containerWidth * ratio
+        end
+        
+        // Set the Tab to the calculated dimensions, if any changes were needed.
+        if targetContainerWidth > 0
+            if targetContainerHeight > 0
+                container:SetSize(targetContainerWidth, targetContainerHeight)
+            else
+                container:SetWidth(targetContainerWidth)
+            end
+        elseif targetContainerHeight > 0
+            container:SetHeight(targetContainerHeight)
+        end
+        
+        // These might've changed due to setting the container sizes above, or these might be the same value as the original containerWidth/Height.
+        // (Remember that the container and the Tab are the same thing, just different variables pointing at the same object.)
+        number tabWidth = tab:GetWidth()
+        number tabHeight = tab:GetHeight()
+        
+        label:SetPosition((tabWidth - label:GetWidth()) / 2.0, tab:GetBottomPadding())
+        
+        number middleGap = label:GetTopMargin()
+        if icon:GetBottomMargin() > middleGap
+            middleGap = icon:GetBottomMargin()
+        end
+        middleGap = middleGap * icon:GetInterfaceScale()
+        
+        number maxIconHeight = tabHeight - label:GetHeight() - label:GetY() - middleGap - icon:GetTopMargin() * icon:GetInterfaceScale()
+        number maxIconWidth = tabWidth - (icon:GetLeftMargin() + icon:GetRightMargin()) * icon:GetInterfaceScale()
+        
+        // Icons are set by the Tab to always use the following layout modes: Vertical = STANDARD, Horizontal = MAINTAIN_ASPECT_RATIO
+        // Based off this, calculate height, then try to match the width. If the width exceeds the allowed value, reduce both dimensions to compensate.
+        number targetIconHeight = maxIconHeight * icon:GetPercentageHeight() + icon:GetPixelHeight() * icon:GetInterfaceScale()
+        if targetIconHeight > maxIconHeight
+            targetIconHeight = maxIconHeight
+        end
+        
+        number targetIconWidth = targetIconHeight * icon:GetPercentageWidth()
+        if targetIconWidth > maxIconWidth
+            targetIconWidth = maxIconWidth
+            targetIconHeight = targetIconWidth / icon:GetPercentageWidth()
+        end
+        
+        icon:SetSize(targetIconWidth, targetIconHeight)
+        icon:SetPosition((tabWidth - icon:GetWidth()) / 2.0, tabHeight - icon:GetHeight() - icon:GetTopMargin() * icon:GetInterfaceScale() - (maxIconHeight - icon:GetHeight()) / 2.0 - tab:GetTopPadding())
+        
+        // The Close button is fixed by the Tab to be equal to font line height in both width and height, minus its margin.
+        number buttonSize = font:GetLineHeight() - closeButton:GetTopMargin() - closeButton:GetBottomMargin()
+        closeButton:SetSize(buttonSize, buttonSize)
+        closeButton:SetPosition(tabWidth - closeButton:GetWidth() - closeButton:GetRightMargin(), tabHeight - closeButton:GetHeight() - closeButton:GetTopMargin())
+        
+end
+end

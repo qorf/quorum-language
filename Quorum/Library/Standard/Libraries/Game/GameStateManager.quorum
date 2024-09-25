@@ -9,6 +9,8 @@ use Libraries.Game.Graphics.Fonts.FontManager
 use Libraries.Interface.Item
 use Libraries.Interface.Accessibility
 use Libraries.Interface.Options.InterfaceOptions
+use Libraries.Game.Graphics.SharedTextureManager
+use Libraries.Game.Graphics.Shaders.ShaderManager
 
 /*
     The GameStateManager is an internal class, used by the game engine to
@@ -203,6 +205,30 @@ shared class GameStateManager
     action SetInterfaceOptions(InterfaceOptions options)
         if GetGame() not= undefined
             GetGame():SetInterfaceOptions(options)
+        end
+    end
+
+    /*
+    This action returns the SharedTextureManager which is being used across the Game.
+    */
+    action GetSharedTextureManager returns SharedTextureManager
+        Game game = GetGame()
+        if game not= undefined
+            return game:GetSharedTextureManager()
+        else
+            return undefined
+        end
+    end
+
+    /*
+    This action returns the ShaderManager which is being used across the Game.
+    */
+    action GetShaderManager returns ShaderManager
+        Game game = GetGame()
+        if game not= undefined
+            return game:GetShaderManager()
+        else
+            return undefined
         end
     end
 end

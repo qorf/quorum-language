@@ -29,6 +29,14 @@ class OutputBlock is SingleLineBlock
         // This should be the entire text read by the screen reader when focused, not just the "output" portion
         SetName("output")
     end
+    
+    action GetBlockName returns text
+        return "Output Block"
+    end
+    
+    action GetBlockDescription returns text
+        return "The output block is used to get a message or data to the screen. In most cases what you put in the block will go to the console."
+    end
 
     action SetupElements
         BlockEnvironment editor = GetBlockEnvironment()
@@ -38,7 +46,7 @@ class OutputBlock is SingleLineBlock
 
         BlockLabel bl
         me:outputLabel = bl
-        outputLabel:SetFont(editor:GetFont())
+        outputLabel:SetFont(GetLabelFont())
         outputLabel:SetFontSize(editor:GetFontSize())
         outputLabel:SetText("output")
         outputLabel:SetRightPadding(spacing)

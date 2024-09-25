@@ -18,6 +18,7 @@ use Libraries.Interface.Controls.Blocks.FreeformBlock
 use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
 use Libraries.Interface.Controls.Control
 use Libraries.Containers.MultipleLineText
+use Libraries.Interface.Events.TextChangeEvent
 
 class CodeEditorRenderer is Control
 
@@ -180,6 +181,7 @@ class CodeEditorRenderer is Control
 
         integer expected = 0
         Block current = rootBlock:GetNextNavigableBlock()
+        Block lastBlock = undefined
         repeat until current = undefined
             integer lineIndex = current:GetStartLine()
             if lineIndex > expected
@@ -239,7 +241,38 @@ class CodeEditorRenderer is Control
 
             // Increment the line index by the number of lines the current block took up
             expected = lineIndex + (current:GetLocalEndLine() - current:GetLocalStartLine() + 1)
+            lastBlock = current
             current = current:GetNextNavigableBlock()
+        end
+
+        // Check if the last block we processed reached the end of the text. If not, we'll need to insert trailing whitespace.
+        if lastBlock not= undefined
+            integer i = lastBlock:GetEndLine() + 1
+            integer lastTextLine = editor:GetRawTextLineCount() - 1
+            
+            // Because we're at the end of the file, all whitespace must be outside of any multiple line blocks.
+            // Therefore everything must attach to the root block at scope level 0.
+            repeat while i <= lastTextLine
+                integer lineStart = editor:GetIndexOfLineStart(i)
+                integer lineEnd = editor:GetIndexOfLineEnd(i)
+
+                // Double check that the indented line start doesn't go past the line end in case indentation is wrong or missing
+                if lineStart > lineEnd
+                    lineStart = lineEnd
+                end
+
+                FreeformBlock newBlock
+                newBlock:SetLocalStartLine(i)
+                newBlock:SetLocalEndLine(newBlock:GetLocalStartLine())
+                newBlock:SetLocalStartIndex(lineStart)
+                newBlock:SetLocalEndIndex(lineEnd)
+                newBlock:SetScopeDepth(0)
+
+                rootBlock:InsertAtLine(newBlock, i)
+                i = i + 1
+
+                newBlock:Setup()
+            end
         end
     end
 
@@ -631,12 +664,17 @@ class CodeEditorRenderer is Control
             end
         end
         
-integer i = 0
+        integer i = 0
         integer placeholderIndex = 0
         if followingBlock not= undefined
             placeholderIndex = followingBlock:GetStartIndex()
         else
             placeholderIndex = GetEditor():GetCode():GetSize()
+        end
+        
+        integer scopeOffset = parentBlock:GetScopeDepth() - firstPlaceholder:GetScopeDepth()
+        if parentBlock:IsEnteringScope()
+            scopeOffset = scopeOffset + 1
         end
             
             Block currentBlock = undefined
@@ -644,13 +682,17 @@ integer i = 0
                 currentBlock = placeholders:Get(i)
                 parentBlock:Add(addIndex + i, currentBlock)
                 currentBlock:SetNavigationIndex(currentNavigationIndex)
-            currentBlock:SetLocalStartIndex(placeholderIndex - parentBlock:GetStartIndex())
-            currentBlock:SetLocalEndIndex(currentBlock:GetLocalStartIndex())
-            
-            // During movements, we're already using the placeholderBlocks as our input.
-            if placeholders not= placeholderBlocks
-placeholderBlocks:Add(currentBlock)
-            end
+                currentBlock:SetLocalStartIndex(placeholderIndex - parentBlock:GetStartIndex())
+                currentBlock:SetLocalEndIndex(currentBlock:GetLocalStartIndex())
+                
+                if scopeOffset not= 0
+                    currentBlock:SetScopeDepth(currentBlock:GetScopeDepth() + scopeOffset)
+                end
+                
+                // During movements, we're already using the placeholderBlocks as our input.
+                if placeholders not= placeholderBlocks
+                    placeholderBlocks:Add(currentBlock)
+                end
                 
                 currentNavigationIndex = currentNavigationIndex + currentBlock:GetNavigationSize()
                 i = i + 1
@@ -659,7 +701,7 @@ placeholderBlocks:Add(currentBlock)
             currentBlock = currentBlock:GetNextNavigableBlock()
             repeat until currentBlock = undefined
                 currentBlock:SetNavigationIndex(currentNavigationIndex)
-currentNavigationIndex = currentNavigationIndex + currentBlock:GetNavigationSize()
+                currentNavigationIndex = currentNavigationIndex + currentBlock:GetNavigationSize()
                 currentBlock = currentBlock:GetNextNavigableBlock()
             end
         
@@ -676,21 +718,25 @@ currentNavigationIndex = currentNavigationIndex + currentBlock:GetNavigationSize
     action RemovePlaceholders
         InternalRemovePlaceholders()
         
-placeholderBlocks:Empty()
+        placeholderBlocks:Empty()
         
-            RefreshBlockView()
+        RefreshBlockView()
     end
     
     private action InternalRemovePlaceholders
-integer i = 0
+        integer i = 0
         repeat while i < placeholderBlocks:GetSize()
-Block block = placeholderBlocks:Get(i)
-            Block parentBlock = block:GetParentBlock()
-            parentBlock:Remove(block)
+            Block block = placeholderBlocks:Get(i)
+            if block not= undefined
+                Block parentBlock = block:GetParentBlock()
+                if parentBlock not= undefined
+                    parentBlock:Remove(block)
+                end
+            end
             i = i + 1
         end
         
-RefreshNavigationIndices()
+        RefreshNavigationIndices()
     end
     
     action HasPlaceholders returns boolean
@@ -737,16 +783,48 @@ RefreshNavigationIndices()
         
     end
     
-action ConvertPlaceholdersToBlocks(text toInsert)
+    action ConvertPlaceholdersToBlocks
+        text toInsert = ""
+        text lineFeed = toInsert:GetLineFeed()
+        integer i = 0
+        
+        repeat while i < placeholderBlocks:GetSize()
+            toInsert = toInsert + placeholderBlocks:Get(i):GetPlaceholderText() + lineFeed
+            i = i + 1
+        end
+        
+        ConvertPlaceholdersToBlocks(toInsert)
+    end
+    
+    action ConvertPlaceholdersToBlocks(text toInsert)
+        if placeholderBlocks:IsEmpty()
+            return now
+        end
+
         CodeEditor editor = GetEditor()
         integer destination = placeholderBlocks:GetFromFront():GetStartIndex()
 
+        text eventInsertion = ""
+        text eventDeletion = ""
+        integer eventInsertIndex = destination
+        integer eventDeletionIndex = -1
+        boolean eventDeleteFirst = true
+        
         MultipleLineText code = editor:GetCode()
+        if code:GetSize() > 0 and destination = code:GetSize()
+            text lastCharacter = code:GetCharacter(code:GetSize() -1 )
+            if lastCharacter not= lastCharacter:GetLineFeed()
+                toInsert = toInsert:GetLineFeed() + toInsert
+            end
+        end
         if not movingBlocks:IsEmpty()
             text toMove = editor:GetCodeBetween(movingStartIndex, movingEndIndex)
+            eventDeletion = toMove
+            eventDeletionIndex = movingStartIndex
             if movingStartIndex < destination
                 code = code:Insert(destination, toMove)
                 code = code:Delete(movingStartIndex, movingEndIndex)
+                eventDeleteFirst = false
             else
                 code = code:Delete(movingStartIndex, movingEndIndex)
                 code = code:Insert(destination, toMove)
@@ -754,7 +832,7 @@ action ConvertPlaceholdersToBlocks(text toInsert)
         else
             code = code:Insert(destination, toInsert)
         end
-placeholderBlocks:Empty()
+        placeholderBlocks:Empty()
         
         integer i = 0
         repeat while i < movingBlocks:GetSize()
@@ -764,6 +842,36 @@ placeholderBlocks:Empty()
         movingBlocks:Empty()
         
         editor:SetCode(code)
+        
+        eventInsertion = toInsert
+        if eventDeletionIndex >= -1 and eventDeleteFirst
+            NotifyTextChangeListeners(eventDeletionIndex, "", eventDeletion)
+        end
+        
+        NotifyTextChangeListeners(eventInsertIndex, eventInsertion, "")
+        
+        if eventDeletionIndex >= -1 and eventDeleteFirst = false
+            NotifyTextChangeListeners(eventDeletionIndex, "", eventDeletion)
+        end
+    end
+    
+    private action NotifyTextChangeListeners(integer index, text added, text deleted)
+        CodeEditor editor = GetEditor()
+        if editor = undefined
+            return now
+        end
+
+        TextChangeEvent event
+        event:Initialize(editor, added, deleted, index)
+        editor:NotifyTextChangeListeners(event)
+    end
+    
+    action GetPlaceholderStartIndex returns integer
+        if placeholderBlocks:IsEmpty()
+            return -2
+        end
+        
+        return placeholderBlocks:GetFromFront():GetNavigationIndex()
     end
     
 end

@@ -25,8 +25,8 @@ use Libraries.Sound.Audio
 use Libraries.System.File
 
 /*
-    Form is a helper class that allows us to create forms for a user interface without 
-    the full complexity of the game class. 
+    A form is a sheet on the screen that can display things. Examples of the 
+    kinds of things it can display are buttons, lists, images, and other items. 
 
     Attribute: Author William Allee, Andreas Stefik
 
@@ -48,6 +48,8 @@ class Form is Game, FormPrimitiveContainer
     constant text DEFAULT_PAGE_NAME = "Main"
     InterfaceOptions options = undefined
     text media = undefined
+
+    FormDelayedAssetLoader delayedLoader
 
     on create
         DesktopConfiguration desktop = GetDesktopConfiguration()
@@ -328,7 +330,6 @@ class Form is Game, FormPrimitiveContainer
         Add(mainPage)
         manager:SetInterfaceOptions(options)
 
-        FormDelayedAssetLoader delayedLoader
         delayedLoader:LoadAssets()
 
         if not currentPage:HasDefaultFocusOrdering()
@@ -445,4 +446,9 @@ class Form is Game, FormPrimitiveContainer
     action SetMediaLocation(text media)
         me:media = media
     end
+
+    action GetDelayedAssetLoader returns FormDelayedAssetLoader
+        return delayedLoader
+    end
+
 end

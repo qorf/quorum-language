@@ -19,13 +19,13 @@ use Libraries.Game.Graphics.Drawable
     Attribute: Author William Allee
 
 */
-shared class FormDelayedAssetLoader
+class FormDelayedAssetLoader
 
     Array<FormAssetLoadRequest> pendingRequests
     GameStateManager manager
     
     action IsGameAvailable returns boolean
-        return manager:GetGame() not= undefined
+        return manager:GetGame() not= undefined and manager:IsDisplayAvailable()
     end
 
     action AddRequest(Control control, text fileName, File file)

@@ -75,12 +75,14 @@ public:
 				retVal->vt = VT_I4;
 				break;
 
+			/* This case is currently disabled due to a crash. The implementation of GetRoleDescription in Item.cpp is also currently commented out.
 			case UIA_LocalizedControlTypePropertyId:
 			{
 				auto roleDescription = m_control->GetRoleDescription();
 				SetBstrPropertyValueIfNotEmpty(retVal, roleDescription.c_str());
 				break;
 			}
+			*/
 
 			case UIA_HasKeyboardFocusPropertyId:
 				retVal->boolVal = m_control->HasUiaFocus() ? VARIANT_TRUE : VARIANT_FALSE;

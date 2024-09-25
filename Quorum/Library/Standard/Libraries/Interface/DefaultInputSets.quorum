@@ -23,6 +23,7 @@ use Libraries.Interface.Events.GestureEvent
 
 
 
+
 shared class DefaultInputSets
 
     GameStateManager manager
@@ -208,7 +209,7 @@ shared class DefaultInputSets
         TabPaneBackwardTabBehavior backward
         TabPaneCloseTabBehavior closeTab
 
-        if manager:GetOperatingSystem():Contains("OS X")
+        if manager:GetOperatingSystem():Contains("OS X") or manager:GetOperatingSystem():Contains("Web Browser")
             InputSet forwardTab
             forwardTab:SetKeyboardInput(keys:RIGHT_BRACKET)
             forwardTab:AddModifier(forwardTab:CONTROL)
@@ -244,6 +245,17 @@ shared class DefaultInputSets
         end
         
         gameInput:AddInputTable(tabPaneTable)
+        
+        // The table for the TabViewArea makes it possible to escape from TabPane content to focus on the TabBar.
+        InputTable tabViewTable
+        tabViewTable:SetIdentifier("TabViewArea")
+        
+        InputSet escapeSet
+        escapeSet:SetKeyboardInput(keys:ESCAPE)
+        TabViewAreaEscapeBehavior escapeBehavior
+        tabViewTable:Add(escapeSet, escapeBehavior)
+        
+        gameInput:AddInputTable(tabViewTable)
     end
 
     action SetupMenuInput(GameInput gameInput)
@@ -719,7 +731,19 @@ shared class DefaultInputSets
             textBoxAltLeft:AddModifier(textBoxAltLeft:ALT)
             TextBoxCaretToTokenStartBehavior textBoxCaretToTokenStartBehavior
             textBoxTable:Add(textBoxAltLeft, textBoxCaretToTokenStartBehavior)
+            
+            InputSet textBoxOptionBackspace
+            textBoxOptionBackspace:SetKeyboardInput(keys:BACKSPACE)
+            textBoxOptionBackspace:AddModifier(textBoxOptionBackspace:ALT)
+            TextBoxDeleteToTokenStartBehavior textBoxDeleteToTokenStartBehavior
+            textBoxTable:Add(textBoxOptionBackspace, textBoxDeleteToTokenStartBehavior)
 
+InputSet textBoxOptionDelete
+            textBoxOptionDelete:SetKeyboardInput(keys:FORWARD_DELETE)
+            textBoxOptionDelete:AddModifier(textBoxOptionBackspace:ALT)
+            TextBoxDeleteToTokenEndBehavior textBoxDeleteToTokenEndBehavior
+            textBoxTable:Add(textBoxOptionDelete, textBoxDeleteToTokenEndBehavior)
+            
         else
             InputSet textBoxControlC
             textBoxControlC:SetKeyboardInput(keys:C)
@@ -796,6 +820,18 @@ shared class DefaultInputSets
             textBoxControlLeft:AddModifier(textBoxControlLeft:CONTROL)
             TextBoxCaretToTokenStartBehavior textBoxCaretToTokenStartBehavior
             textBoxTable:Add(textBoxControlLeft, textBoxCaretToTokenStartBehavior)
+            
+InputSet textBoxControlBackspace
+            textBoxControlBackspace:SetKeyboardInput(keys:BACKSPACE)
+            textBoxControlBackspace:AddModifier(textBoxControlBackspace:CONTROL)
+            TextBoxDeleteToTokenStartBehavior textBoxDeleteToTokenStartBehavior
+            textBoxTable:Add(textBoxControlBackspace, textBoxDeleteToTokenStartBehavior)
+
+InputSet textBoxControlDelete
+            textBoxControlDelete:SetKeyboardInput(keys:FORWARD_DELETE)
+            textBoxControlDelete:AddModifier(textBoxControlDelete:CONTROL)
+            TextBoxDeleteToTokenEndBehavior textBoxDeleteToTokenEndBehavior
+            textBoxTable:Add(textBoxControlDelete, textBoxDeleteToTokenEndBehavior)
         end
         
         TextBoxCaretStartMoveBehavior textBoxLeftBehavior
@@ -1286,6 +1322,18 @@ shared class DefaultInputSets
             textFieldSelectAltLeft:AddModifier(textFieldSelectAltLeft:SHIFT)
             TextFieldSelectTokenStartBehavior textFieldSelectTokenStartBehavior
             textFieldTable:Add(textFieldSelectAltLeft, textFieldSelectTokenStartBehavior)
+            
+InputSet textFieldControlBackspace
+            textFieldControlBackspace:SetKeyboardInput(keys:BACKSPACE)
+            textFieldControlBackspace:AddModifier(textFieldControlBackspace:ALT)
+            TextFieldDeleteToTokenStartBehavior textFieldDeleteToTokenStartBehavior
+            textFieldTable:Add(textFieldControlBackspace, textFieldDeleteToTokenStartBehavior)
+
+InputSet textFieldControlDelete
+            textFieldControlDelete:SetKeyboardInput(keys:FORWARD_DELETE)
+            textFieldControlDelete:AddModifier(textFieldControlDelete:ALT)
+            TextFieldDeleteToTokenEndBehavior textFieldDeleteToTokenEndBehavior
+            textFieldTable:Add(textFieldControlDelete, textFieldDeleteToTokenEndBehavior)
         else
             InputSet textFieldControlC
             textFieldControlC:SetKeyboardInput(keys:C)
@@ -1350,6 +1398,18 @@ shared class DefaultInputSets
             textFieldSelectCtrlLeft:AddModifier(textFieldSelectCtrlLeft:SHIFT)
             TextFieldSelectTokenStartBehavior textFieldSelectTokenStartBehavior
             textFieldTable:Add(textFieldSelectCtrlLeft, textFieldSelectTokenStartBehavior)
+            
+InputSet textFieldControlBackspace
+            textFieldControlBackspace:SetKeyboardInput(keys:BACKSPACE)
+            textFieldControlBackspace:AddModifier(textFieldControlBackspace:CONTROL)
+            TextFieldDeleteToTokenStartBehavior textFieldDeleteToTokenStartBehavior
+            textFieldTable:Add(textFieldControlBackspace, textFieldDeleteToTokenStartBehavior)
+
+InputSet textFieldControlDelete
+            textFieldControlDelete:SetKeyboardInput(keys:FORWARD_DELETE)
+            textFieldControlDelete:AddModifier(textFieldControlDelete:CONTROL)
+            TextFieldDeleteToTokenEndBehavior textFieldDeleteToTokenEndBehavior
+            textFieldTable:Add(textFieldControlDelete, textFieldDeleteToTokenEndBehavior)
         end
         gameInput:AddInputTable(textFieldTable)
     end
@@ -2068,39 +2128,12 @@ shared class DefaultInputSets
     end
 
     action SetupChartInput(GameInput gameInput)
+        //General Chart Nav
         InputTable chartTable
         chartTable:SetIdentifier("Chart")
 
         InputSet numpadEnterSet
         numpadEnterSet:SetKeyboardInput(keys:NUMPAD_ENTER)
-
-        InputSet swipeSet
-        GestureEvent gestures
-        swipeSet:SetGestureInput(gestures:SWIPE)
-
-        InputSet tapSet
-        tapSet:SetGestureInput(gestures:SINGLE_TAP)
-
-        InputSet doubleTapSet
-        doubleTapSet:SetGestureInput(gestures:DOUBLE_TAP)
-
-        InputSet pinchSet
-        pinchSet:SetGestureInput(gestures:PINCH)
-
-        InputSet pinchContinue
-        pinchContinue:SetGestureInput(gestures:PINCH)
-        pinchContinue:SetInputTrigger(pinchContinue:CONTINUE)
-
-        InputSet pinchEnd
-        pinchEnd:SetGestureInput(gestures:PINCH)
-        pinchEnd:SetInputTrigger(pinchEnd:FINISH)
-
-
-        InputSet panSet
-        panSet:SetGestureInput(gestures:PAN)
-        
-        InputSet longPressSet
-        longPressSet:SetGestureInput(gestures:LONG_PRESS)
 
         InputSet escapeSet
         escapeSet:SetKeyboardInput(keys:ESCAPE)
@@ -2113,17 +2146,30 @@ shared class DefaultInputSets
         shiftNumpadEnterSet:SetKeyboardInput(keys:NUMPAD_ENTER)
         shiftNumpadEnterSet:AddModifier(shiftNumpadEnterSet:SHIFT)
 
-        InputSet tab
-        tab:SetKeyboardInput(keys:TAB)
-
-        InputSet shiftTab
-        shiftTab:SetKeyboardInput(keys:TAB)
-
         InputSet pageDown
         pageDown:SetKeyboardInput(keys:PAGE_DOWN)
 
         InputSet pageUp
         pageUp:SetKeyboardInput(keys:PAGE_UP)
+
+        InputSet swipeSet
+        GestureEvent gestures
+        swipeSet:SetGestureInput(gestures:SWIPE)
+
+        InputSet tapSet
+        tapSet:SetGestureInput(gestures:SINGLE_TAP)
+
+        InputSet doubleTapSet
+        doubleTapSet:SetGestureInput(gestures:DOUBLE_TAP)
+
+        InputSet panSet
+        panSet:SetGestureInput(gestures:PAN)
+
+        InputSet longPressSet
+        longPressSet:SetGestureInput(gestures:LONG_PRESS)
+
+        InputSet pinchSet
+        pinchSet:SetGestureInput(gestures:PINCH)
 
         ChartNavigateBehavior chartNavigateBehavior
         chartTable:Add(GetLeftArrowKey(), chartNavigateBehavior)
@@ -2134,20 +2180,35 @@ shared class DefaultInputSets
         chartTable:Add(numpadEnterSet, chartNavigateBehavior)
         chartTable:Add(shiftEnterSet, chartNavigateBehavior)
         chartTable:Add(shiftNumpadEnterSet, chartNavigateBehavior)
+        chartTable:Add(pageUp, chartNavigateBehavior)
+        chartTable:Add(pageDown, chartNavigateBehavior)
         chartTable:Add(swipeSet, chartNavigateBehavior)
         chartTable:Add(tapSet, chartNavigateBehavior)
         chartTable:Add(doubleTapSet, chartNavigateBehavior)
-        chartTable:Add(pinchSet, chartNavigateBehavior)
-        chartTable:Add(pinchContinue, chartNavigateBehavior)
-        chartTable:Add(pinchEnd, chartNavigateBehavior)
         chartTable:Add(panSet, chartNavigateBehavior)
         chartTable:Add(longPressSet, chartNavigateBehavior)
-        chartTable:Add(tab, chartNavigateBehavior)
-        chartTable:Add(shiftTab, chartNavigateBehavior)
-        chartTable:Add(pageUp, chartNavigateBehavior)
-        chartTable:Add(pageDown, chartNavigateBehavior)
-        gameInput:AddInputTable(chartTable)
+        chartTable:Add(pinchSet, chartNavigateBehavior)
 
+        InputSet chartTouchStart
+        chartTouchStart:SetInputType(chartTouchStart:TOUCH_INPUT)
+        chartTouchStart:SetInputTrigger(chartTouchStart:BEGIN)
+        ChartTouchStartBehavior chartTouchStartBehavior
+        chartTable:Add(chartTouchStart, chartTouchStartBehavior)
+
+        InputSet chartTouchContinue
+        chartTouchContinue:SetInputType(chartTouchContinue:TOUCH_MOVEMENT_INPUT)
+        chartTouchContinue:SetInputTrigger(chartTouchContinue:CONTINUE)
+        ChartTouchContinueBehavior chartTouchContinueBehavior
+        chartTable:Add(chartTouchContinue, chartTouchContinueBehavior)
+
+        InputSet chartTouchEnd
+        chartTouchEnd:SetInputType(chartTouchEnd:TOUCH_INPUT)
+        chartTouchEnd:SetInputTrigger(chartTouchEnd:FINISH)
+        ChartTouchEndBehavior chartTouchEndBehavior
+        chartTable:Add(chartTouchEnd, chartTouchEndBehavior)
+        gameInput:AddInputTable(chartTable)
+    
+        //Regression Line
         InputTable regressionLineTable
         regressionLineTable:SetIdentifier("RegressionLine")
         ChartMovableRegressionDragBehavior chartDragBehavior
@@ -2422,6 +2483,11 @@ controlShiftHomeSet:AddModifier(controlHomeSet:CONTROL)
         table:Add(dragIntoContinueSet, draggedIntoBehavior)
         table:Add(dragIntoFinishSet, draggedIntoBehavior)
         
+InputSet dragOffSet
+        dragOffSet:SetDropItemInput()
+        dragOffSet:SetInputTrigger(dragOffSet:FINISH_UNCAUGHT)
+        table:Add(dragOffSet,draggedIntoBehavior)
+        
         gameInput:AddInputTable(table)
 
         
@@ -2474,6 +2540,19 @@ editFieldTable:RemoveKey(blockCommandZ)
         blockTable:Add(continueDrag, dragBehavior)
         blockTable:Add(endDrag, dragBehavior)
         gameInput:AddInputTable(blockTable)
+        
+        InputTable blockPaletteItemTable = blockTable:Copy()
+        blockPaletteItemTable:SetIdentifier("BlockPaletteItem")
+        
+InputSet spaceSet
+        spaceSet:SetKeyboardInput(keys:SPACE)
+        numpadEnterSet:SetKeyboardInput(keys:NUMPAD_ENTER)
+        ControlActivationBehavior activateBehavior
+        blockPaletteItemTable:Add(spaceSet, activateBehavior)
+        blockPaletteItemTable:Add(GetEnterKey(), activateBehavior)
+        blockPaletteItemTable:Add(numpadEnterSet, activateBehavior)
+        
+        gameInput:AddInputTable(blockPaletteItemTable)
         
         // Make sure the CodeEditor's drag receiving behavior has a needed reference to the starting drag behavior.
         draggedIntoBehavior:SetSourceDragBehavior(dragBehavior)

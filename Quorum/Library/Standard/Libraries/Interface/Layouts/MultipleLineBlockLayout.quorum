@@ -17,6 +17,9 @@ class MultipleLineBlockLayout is Layout
         MultipleLineBlock block = cast(MultipleLineBlock, container)
         //CodeEditor editor = block:GetEditor()
         BlockEnvironment editor = block:GetBlockEnvironment()
+        if editor = undefined
+            return now
+        end
 
         integer lineRange = block:GetTotalNavigationSize()
         integer blockIndex = block:GetNavigationIndex()

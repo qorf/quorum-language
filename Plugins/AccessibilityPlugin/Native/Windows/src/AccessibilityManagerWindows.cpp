@@ -196,10 +196,8 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	WCHAR* wTextboxName = CreateWideStringFromUTF8Win32(nativeTextboxName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
 
-	jobject nativeSelf = env->NewGlobalRef(self);
-
 	const auto parentItem = GetItemFromLong(parent);
-	const auto pTextboxControl = Create<TextBoxControl>(env, parentItem, wTextboxName, wDescription, nativeSelf);
+	const auto pTextboxControl = Create<TextBoxControl>(env, parentItem, wTextboxName, wDescription, self);
 
 	env->ReleaseStringUTFChars(textboxName, nativeTextboxName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
@@ -217,10 +215,8 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	WCHAR* wTextboxName = CreateWideStringFromUTF8Win32(nativeTextFieldName);
 	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
 
-	jobject nativeSelf = env->NewGlobalRef(self);
-
 	const auto parentItem = GetItemFromLong(parent);
-	const auto textFieldControl = Create<TextFieldControl>(env, parentItem, wTextboxName, wDescription, nativeSelf);
+	const auto textFieldControl = Create<TextFieldControl>(env, parentItem, wTextboxName, wDescription, self);
 
 	env->ReleaseStringUTFChars(textFieldName, nativeTextFieldName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
@@ -492,10 +488,11 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_RemoveNative(JNIEnv * env, jobject obj, jlong item)
 {
 	Item* itemToRemove = GetItemFromLong(item);
-
+	
 	itemToRemove->Disconnect();
+	/*
 	delete itemToRemove;
-
+	*/
 	return true;
 }
 

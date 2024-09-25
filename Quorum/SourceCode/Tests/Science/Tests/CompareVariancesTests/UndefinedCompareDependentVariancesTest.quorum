@@ -1,0 +1,51 @@
+package Science.Tests
+
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.CompareVariances
+use Libraries.Compute.Statistics.Reporting.CompareVariancesResult
+
+/*
+    This class tests a mauchly's sphericity test
+*/
+class UndefinedCompareDependentVariancesTest is Test
+
+    on create
+        SetName("Calculate UndefinedCompareDependentVariancesTest")
+    end
+
+    action Run
+        ColumnCalculationTest framer
+        DataFrame frame 
+        frame:LoadFromCommaSeparatedValue("y,x1,x2,x3
+        2.0,4.0,-9.0,9
+        6.0,7,-19.0,19
+        3.0,4.0,-18.0,18
+        9.0,8.0,-16.0,16
+        15.0,17.0,-2.0,2
+        1.0,,-4.0,4")
+        frame:SelectAllColumns()
+
+        CompareVariances compare
+        compare:RepeatedMeasures(true)
+        frame:Calculate(compare)
+        
+        CompareVariancesResult result = compare:GetResult()
+        text source = result:GetSources():Get(0)
+        number w = result:GetInformation():GetValue(source):GetValue("W")
+        number df = result:GetInformation():GetValue(source):GetValue("df")
+        number pval = result:GetInformation():GetValue(source):GetValue("p")
+        number gg = result:GetInformation():GetValue(source):GetValue("gg")
+        number hf = result:GetInformation():GetValue(source):GetValue("hf")
+        Check(w, 0.006934288484693558)
+        Check(df, 5.0)
+        Check(pval, 0.02636587911920792)
+        Check(gg, 0.4153367930579716)
+        Check(hf, 0.511990781650166)
+
+        text summary = result:GetSummary()
+        text formalsummary = result:GetFormalSummary()
+        Check(true, summary not= "")
+        Check(true, formalsummary not= "")
+    end
+end

@@ -1,0 +1,56 @@
+package Science.Tests
+
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.CorrelateGroups
+use Libraries.Compute.Statistics.Reporting.CorrelateGroupsResult
+
+/*
+    This class tests a pearson correlation coefficient test
+*/
+class UndefinedCorrelate2GroupsTest is Test
+
+    on create
+        SetName("Calculate UndefinedCorrelate2Groups")
+    end
+
+    action Run
+        ColumnCalculationTest framer
+        DataFrame frame 
+        frame:LoadFromCommaSeparatedValue("y,x1,x2,x3
+        2.0,4.0,-9.0,9
+        6.0,,-19.0,19
+        3.0,4.0,-18.0,18
+        9.0,8.0,-16.0,16
+        15.0,17.0,-2.0,2
+        1.0,3.0,-4.0,4")
+        frame:AddSelectedColumnRange(0,2)
+
+        CorrelateGroups compare
+        compare:AddColumn(0)
+        compare:AddColumn(1)
+        compare:AddColumn(2)
+        frame:Calculate(compare)
+        
+        // Compare 0-1
+        CorrelateGroupsResult result0 = compare:GetResults():Get(0)
+        Check(result0:GetTestStatistic(), 7.668628316850995)
+        Check(result0:GetDegreesOfFreedom(), 3.0)
+        Check(result0:GetProbabilityValue(), 0.004606284743607739)
+        Check(result0:GetCorrelation(), 0.9754293844781557)
+
+        // Compare 0-2
+        CorrelateGroupsResult result1 = compare:GetResults():Get(1)
+        Check(result1:GetTestStatistic(), 0.47104420237043265)
+        Check(result1:GetDegreesOfFreedom(), 3.0)
+        Check(result1:GetProbabilityValue(), 0.6697446310836161)
+        Check(result1:GetCorrelation(), 0.2624259659265584)
+
+        // Compare 1-2
+        CorrelateGroupsResult result2 = compare:GetResults():Get(2)
+        Check(result2:GetTestStatistic(), 0.8257306111029903)
+        Check(result2:GetDegreesOfFreedom(), 3.0)
+        Check(result2:GetProbabilityValue(), 0.46949604693384284)
+        Check(result2:GetCorrelation(), 0.4303347897367331)
+    end
+end

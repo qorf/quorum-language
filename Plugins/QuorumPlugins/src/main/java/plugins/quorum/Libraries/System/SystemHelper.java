@@ -5,6 +5,8 @@
  */
 package plugins.quorum.Libraries.System;
 
+import quorum.Libraries.System.File_;
+
 /**
  *
  * @author alleew
@@ -48,5 +50,21 @@ public class SystemHelper
     
     public String GetThreadName() {
         return "" + Thread.currentThread().getId();
+    }
+
+    public void OpenInDefaultTextEditor(File_ file) {
+        try {
+            String path = file.GetAbsolutePath();
+            String os = System.getProperty("os.name").toLowerCase();
+
+            if (os.contains("win")) {
+                new ProcessBuilder("notepad.exe", path).start();
+            } else if (os.contains("mac")) {
+                new ProcessBuilder("open", path).start();
+            } else if (os.contains("nix") || os.contains("nux")) {
+                new ProcessBuilder("xdg-open", path).start();
+            }
+        } catch(Exception e) { //fail silently
+        }
     }
 }

@@ -147,23 +147,26 @@ class ChartLayout is Layout
                     integer tilePadding = 25
                     integer height = cast(integer, (chartAreaContainer:GetHeight()-tilePadding*(verticalSections-1))/verticalSections)
                     integer width = cast(integer, (chartAreaContainer:GetWidth()-tilePadding*(horizontalSections-1))/horizontalSections)
-                    integer labelArea = cast(integer, height*0.10)
+                    integer labelArea = 0
                     
                     // Calculate the maximum font size for the sub chart labels.
                     // This way they can be uniformly sized.
                     integer fontSize = 0
-                    integer i = 0
-                    repeat while i < chart:GetSubChartAreas():GetSize()
-                        ChartLabel label = chart:GetSubChartAreas():Get(i):GetLabel()
-                        if label not= undefined
-                            label:SetFontSize(cast(integer, labelArea*0.75))
-                            if label:GetWidth() > width
-                                integer newSize = cast(integer, label:GetFontSize() * (width/label:GetWidth()))
-                                label:SetFontSize(newSize)
+                    if chart:IsShowingSubChartAreaTitles()
+                        labelArea = cast(integer, height*0.10)
+                        integer i = 0
+                        repeat while i < chart:GetSubChartAreas():GetSize()
+                            ChartLabel label = chart:GetSubChartAreas():Get(i):GetLabel()
+                            if label not= undefined
+                                label:SetFontSize(cast(integer, labelArea*0.75))
+                                if label:GetWidth() > width
+                                    integer newSize = cast(integer, label:GetFontSize() * (width/label:GetWidth()))
+                                    label:SetFontSize(newSize)
+                                end
+                                fontSize = label:GetFontSize()
                             end
-                            fontSize = label:GetFontSize()
+                            i = i + 1
                         end
-                        i = i + 1
                     end
 
                     // Layout the sub chart areas
@@ -398,7 +401,7 @@ class ChartLayout is Layout
         end
        
         //This is the actual rotated label on the Y axis.      
-        if verticalContainer:GetTitleLabel() not= undefined
+        if verticalContainer:GetTitleLabel() not= undefined and verticalContainer:GetTitleLabel():IsShowing()
             number labelMinimumX = mainVerticalContainer:GetLongestLabel():GetX()
 
             ChartLabel axisLabel = verticalContainer:GetTitleLabel()
@@ -672,7 +675,7 @@ class ChartLayout is Layout
             mainHorizontalContainer:SetLabelMinimum(labelMinimumY)
         end
         
-        if horizontalContainer:GetTitleLabel() not= undefined
+        if horizontalContainer:GetTitleLabel() not= undefined and horizontalContainer:GetTitleLabel():IsShowing()
             number labelMinY = mainHorizontalContainer:GetLabelMinimum()
             ChartLabel axisLabel = horizontalContainer:GetTitleLabel()
             Item2D labelAnchor = axisLabel:GetParent()

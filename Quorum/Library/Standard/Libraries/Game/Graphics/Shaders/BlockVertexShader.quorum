@@ -12,7 +12,14 @@ class BlockVertexShader is Shader
         SetCode(GetOpenGLVersion() +
 "
 " +
-"in vec4 " + attributes:POSITION + ";
+"#ifdef GL_ES
+    #define LOWP lowp
+    precision mediump float;
+#else
+    #define LOWP 
+#endif
+
+in vec4 " + attributes:POSITION + ";
 in vec4 " + attributes:COLOR + ";
 in vec2 " + attributes:TEXTURE_COORDINATES + "0;
 in vec4 a_borderColor;

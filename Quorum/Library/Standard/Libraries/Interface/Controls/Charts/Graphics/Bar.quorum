@@ -20,6 +20,7 @@ use Libraries.Game.Graphics.Shaders.SolidBoxPatternControlShaderProgram
 use Libraries.Game.Graphics.Shaders.DashedLinePatternControlShaderProgram
 use Libraries.Game.Graphics.Shaders.HollowTrianglePatternControlShaderProgram
 use Libraries.Game.Graphics.Shaders.SolidTrianglePatternControlShaderProgram
+use Libraries.Game.GameStateManager
 
 /*
 The Bar class is a ChartDrawable that stores information for each 
@@ -81,7 +82,8 @@ class Bar is ChartDrawable
     action LoadGraphics(LayoutProperties properties)
         // Render this Drawable with the Control Shader.
         if GetShaderProgram() = undefined
-            ShaderManager manager
+            GameStateManager gameState
+            ShaderManager manager = gameState:GetShaderManager()
             ShaderProgram program = undefined
             
             if HasPattern()

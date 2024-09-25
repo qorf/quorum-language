@@ -1,12 +1,15 @@
-package Libraries.Interface.Controls.Blocks
+package Libraries.Interface.Controls.Blocks.Palette
 
 use Libraries.Interface.Forms.Page
 use Libraries.Interface.Controls.Button
-use Libraries.Interface.Behaviors.Blocks.BlockPaletteInsertBehavior
 use Libraries.Interface.Pages.StackedRowPage
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.ScrollPaneRenderer
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Interface.Controls.Blocks.MultipleLineBlock
+use Libraries.Interface.Controls.Blocks.CodeEditor
+use Libraries.Interface.Behaviors.Blocks.BlockPaletteItemInsertBehavior
 
 class BlockPalettePage is StackedRowPage
 
@@ -16,6 +19,13 @@ class BlockPalettePage is StackedRowPage
     Array<Block> renderArray
     Array<MultipleLineBlock> currentMultiBlocks
     
+    
+    public constant integer HEADER_SIZE = 24
+    public constant integer HEADER2_SIZE = 18
+public constant integer LABEL_SIZE = 12
+    
+    // A behavior assigned to each BlockPalettetItem that is added to this page.
+BlockPaletteItemInsertBehavior itemInsertBehavior
     
 on create
 SetCustomDrawing(true)
@@ -109,20 +119,65 @@ end
         BlockPaletteItem button
         button:SetPalette(palette)
 
-        //BlockPaletteInsertBehavior behave
-
         button:SetName(name)
         button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
         button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
         button:SetToDefaultFontSize()
-        //button:SetBehavior(behave)
+        button:SetBehavior(itemInsertBehavior)
         button:SetBlocks(button:ParseToBlocks(name))
         button:SetFontSize(palette:GetFontSize())
 
         Add(button)
         return button
     end
+    
+    action AddBasicBlocks
+        text dq = ""
+        dq = dq:GetDoubleQuote()
+        AddBlockPaletteItem("")
+        AddBlockPaletteItem("integer a = 0")
+        AddBlockPaletteItem("number b = 0.0")
+        AddBlockPaletteItem("boolean bool = true")
+        AddBlockPaletteItem("text string = "+dq+"words"+dq+"")
+        AddBlockPaletteItem("output "+dq+"words"+dq+"")
+        AddBlockPaletteItem("say "+dq+"words"+dq+"")
+        AddBlockPaletteItem("text string = input()")
+        AddBlockPaletteItem("// my comment")
+    end
+    
+    action AddControlBlocks
+text dq = ""
+        dq = dq:GetDoubleQuote()
+        lf = dq:GetLineFeed()
+        AddBlockPaletteItem("if true" + lf + "end")
+        AddBlockPaletteItem("elseif true")
+        AddBlockPaletteItem("if true"+lf+"else"+lf+"end")
+        AddBlockPaletteItem("else")
+        AddBlockPaletteItem("repeat 1 times" + lf + "end")
+        AddBlockPaletteItem("repeat until true" + lf + "end")
+        AddBlockPaletteItem("repeat while false" + lf + "end")
+    end
+    
+    action AddActionBlocks
+text dq = ""
+        dq = dq:GetDoubleQuote()
+        lf = dq:GetLineFeed()
+        AddBlockPaletteItem("action myAction" + lf + "end")
+        AddBlockPaletteItem("action myAction(type name)" + lf + "end")
+        AddBlockPaletteItem("action myAction returns integer" + lf + "return 0" + lf + "end")
+        AddBlockPaletteItem("return value")
+        AddBlockPaletteItem("class MyClass" + lf + "end")
+        AddBlockPaletteItem("use myLibrary")
+    end
 
+    action AddVariableList returns BlockPaletteVariableList
+        BlockPaletteVariableList varList
+        varList:SetPalette(GetPalette())
+        varList:SetIconFont(me:palette:GetIconFont())
+        varList:LoadIcons()
+        Add(varList)
+        return varList
+    end
 
     action GetEditor returns CodeEditor
         return palette:GetEditor()

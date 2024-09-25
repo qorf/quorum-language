@@ -319,8 +319,9 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
     end
 
     private action GetSelectionTexture returns Texture
-        SharedTextureManager manager
-        return manager:GetUnitTexture()
+        GameStateManager manager
+        SharedTextureManager textureManager = manager:GetSharedTextureManager()
+        return textureManager:GetUnitTexture()
     end
 
     /*
@@ -656,8 +657,7 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
 
         number lineHeight = GetLineHeight()
         integer firstLineInteger = cast(integer, firstLine)
-        number yPosition = background:GetHeight() + (firstLine - firstLineInteger) * lineHeight 
-        yPosition = yPosition - lineHeight * (lineIndex + 1 - firstLine) + GetTotalLineHeightPadding() / 2 - maxDescent
+        yPosition = GetLineY(lineIndex)
 
         number xPosition = 0
 
@@ -986,7 +986,12 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         // Remove current font highlight colors from the text drawables.
         integer oldStart = selection:GetStartIndex()
         integer oldEnd = selection:GetEndIndex()
-        if selection:IsEmpty() = false
+        boolean hadSelection = selection:IsEmpty() = false
+
+        selection:Set(startIndex, endIndex, caretAtEnd, textChanged)
+        UpdateVisualSelection()
+
+        if hadSelection
             if startIndex = endIndex
                 ResetFontColors(oldStart, oldEnd)
             else
@@ -994,9 +999,6 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
                 ResetFontColors(endIndex, oldEnd)
             end
         end
-
-        selection:Set(startIndex, endIndex, caretAtEnd, textChanged)
-        UpdateVisualSelection()
     end
 
     private action ResetFontColors(integer startIndex, integer endIndex)
@@ -1004,17 +1006,7 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
             return now
         end
 
-        ColorGroup fontColor = GetFontColor()
-        integer i = startIndex
-        repeat while i < endIndex
-            integer lineIndex = textValue:LineIndexFromCharacterIndex(i)
-            integer localIndex = i - textValue:CharacterIndexFromLineIndex(lineIndex)
-            Array<Drawable> drawables = background:GetLine(lineIndex)
-            if drawables not= undefined and localIndex < drawables:GetSize()
-                drawables:Get(localIndex):SetColor(fontColor)
-            end
-            i = i + 1
-        end
+        UpdateTextStylesAt(startIndex, endIndex - startIndex)
     end
 
     /*
@@ -1064,12 +1056,7 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
             background:AddSelectionDrawable(highlight)
 
             // Update font color for the characters in the selection.
-            ColorGroup fontColor = GetSelectionFontColor()
-            integer i = firstLineIndex
-            repeat while i < lastLineIndex
-                lineDrawables:Get(i):SetColor(fontColor)
-                i = i + 1
-            end
+            UpdateTextStylesAt(selection:GetStartIndex(), selection:GetEndIndex() - selection:GetStartIndex())
             
         else
             // For now, pass off more complex cases to the full initialization case.
@@ -2456,9 +2443,176 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
             styleTable:Add(name, style)
         end
 
-        // Request re-layout in order to recalculate dimensions of text (as the
-        // new styling might change font size) and redraw text.
-        RequestLayout()
+        // Layout will recalculate all of the styles anyway. If we aren't laying out, add the effects of the single new style.
+        if NeedsLayout() = false
+            AddTextStyleHighlight(style)
+            UpdateTextStylesAt(style:GetIndex(), style:GetSize())
+        end
+    end
+
+    private action AddTextStyleHighlight(TextStyle style)
+        TextHighlight highlight = style:GetHighlight()
+                
+        if highlight not= undefined
+            integer styleStart = style:GetIndex()
+            integer styleEnd = styleStart + style:GetSize()
+            integer styleStartLine = GetLineIndexOfCharacter(styleStart)
+            integer styleEndLine = GetLineIndexOfCharacter(styleEnd)
+
+            integer firstVisibleIndex = GetIndexOfLine(cast(integer, firstLine))
+            integer lastVisibleIndex = 0
+
+            // Use the line that's immediately off the screen and go back by the line separator, or use the end of the text if there isn't an extra line.
+            integer lastLine = cast(integer, firstLine) + GetVisibleLines() + 1
+            if lastLine >= GetLineCount()
+                lastVisibleIndex = GetSize()
+            else
+                lastVisibleIndex = GetIndexOfLine(lastLine) - textValue:GetDefaultLineSeparator():GetSize()
+            end
+
+            if style:GetIndex() > lastVisibleIndex or style:GetIndex() + style:GetSize() < firstVisibleIndex
+                return now
+            end
+
+            integer maxDescent = 0
+            if IsPositioningOnBaseLine() = false
+                maxDescent = font:GetMaximumDescent()
+            end
+
+            number targetY = GetLineY(styleEndLine) - maxDescent - GetSelectionYOffset()
+            number highlightHeight = GetLineHeight() * (styleEndLine - styleStartLine + 1)
+
+            Drawable draw = undefined
+            if highlight:IsLineHighlight()
+                draw = highlight:GetDrawable(GetTotalContentWidth(), highlightHeight)
+                draw:SetPosition(leftCharacterPadding, targetY)
+            else
+                integer characterCounter = 0
+                number width = 0
+                number x = leftCharacterPadding
+                text line = textValue:GetLine(styleStartLine):GetText()
+                integer size = line:GetSize()
+                integer lineStart = GetIndexOfLine(styleStartLine)
+
+                repeat while characterCounter < size
+                    Glyph glyph = font:GetGlyph(line:GetCharacter(characterCounter))
+
+                    /*
+                    If we haven't reached the styled portion of the
+                    text, advance the x position that we'll place
+                    the highlight at.
+                    */
+                    if (lineStart + characterCounter < styleStart)
+                        x = x + glyph:horizontalAdvance
+
+                    /*
+                    If we've reached the styled portion and we
+                    aren't past the end, increase the width of the
+                    eventual highlight.
+                    */
+                    elseif (lineStart + characterCounter < styleEnd)
+                        width = width + glyph:horizontalAdvance
+                    
+                    /*
+                    If we're past the style's end point, then we're
+                    done. Exit the loop and generate the highlight.
+                    */
+                    else
+                        characterCounter = size
+                    end
+                    characterCounter = characterCounter + 1
+                end
+
+                draw = highlight:GetDrawable(width, highlightHeight)
+                draw:SetPosition(x, targetY)
+            end
+
+            if draw not= undefined
+                if highlight:IsVisibleWhileSelected()
+                    background:AddPostSelectionHighlight(highlight, draw)
+                else
+                    background:AddPreSelectionHighlight(highlight, draw)
+                end
+            end
+        end
+    end
+
+    // Update the characters starting at the given index. Sets them to correct colors / styling.
+    private action UpdateTextStylesAt(integer index, integer length)
+        integer endIndex = index + length
+        integer currentGlobalIndex = index
+
+        integer selectionStart = selection:GetStartIndex()
+        integer selectionEnd = selection:GetEndIndex()
+        integer currentLine = GetLineIndexOfCharacter(index)
+        if currentLine < cast(integer, firstLine)
+            currentLine = cast(integer, firstLine)
+            integer startOfLine = GetIndexOfLine(currentLine)
+            if index < startOfLine
+                index = startOfLine
+            end
+        end
+
+        // Because styles are sorted from lowest starting index to highest, there's never any need to check styles earlier than the last one we successfully applied.
+        // On the first pass of the loop, we haven't checked any of them yet, so start from the beginning.
+        integer firstStyleIndex = 0
+
+        ColorGroup defaultFontColor = GetFontColor()
+        ColorGroup defaultSelectedColor = GetSelectionFontColor()
+
+        Array<Drawable> lineDrawables = background:GetLine(currentLine)
+        integer i = index - GetIndexOfLine(currentLine)
+        repeat while lineDrawables not= undefined and currentGlobalIndex <= endIndex
+            if i < lineDrawables:GetSize()
+                Drawable glyph = lineDrawables:Get(i)
+                // False if no text styles were applied to the character, true if we did apply something.
+                boolean applied = false
+    
+                ColorGroup fontColor = defaultFontColor
+                ColorGroup selectedColor = defaultSelectedColor
+    
+                integer styleIndex = firstStyleIndex
+                repeat while styleIndex < textStyles:GetSize()
+                    TextStyle style = textStyles:Get(styleIndex)
+                    // Because the array is sorted from lowest to highest index,
+                    // if this style's index is too large, all of the remainder
+                    // will be as well.
+                    if currentGlobalIndex < style:GetIndex()
+                        styleIndex = textStyles:GetSize()
+                    elseif currentGlobalIndex >= style:GetIndex() and currentGlobalIndex < style:GetIndex() + style:GetSize()
+                        if style:GetColor() not= undefined
+                            fontColor = style:GetColor()
+                        end
+                        if style:GetSelectionColor() not= undefined
+                            selectedColor = style:GetSelectionColor()
+                        end
+                    end
+                    styleIndex = styleIndex + 1
+                end
+    
+                // Set the glyph's color, based on whether or not it is part of the selected area.
+                if currentGlobalIndex >= selectionStart and currentGlobalIndex < selectionEnd
+                    glyph:SetColor(selectedColor)
+                else
+                    glyph:SetColor(fontColor)
+                end
+            end
+
+            i = i + 1
+            currentGlobalIndex = currentGlobalIndex + 1
+
+            // Check if we need to advance to the next line of Drawables.
+            if i >= lineDrawables:GetSize()
+                currentLine = currentLine + 1
+                if currentLine >= GetLineCount()
+                    currentGlobalIndex = endIndex + 1
+                else
+                    i = 0
+                    currentGlobalIndex = GetIndexOfLine(currentLine)
+                    lineDrawables = background:GetLine(currentLine)
+                end
+            end
+        end
     end
 
     action RemoveTextStyle(text name) returns boolean
@@ -2466,9 +2620,10 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
             TextStyle style = styleTable:RemoveKey(name)
             textStyles:Remove(style)
             
-            // Request re-layout in order to recalculate dimensions of text (as the
-            // new styling might change font size) and redraw text.
-            RequestLayout()
+            // If layout is going to happen, it will handle the styles anyway. If not, manually deal with the single style.
+            if NeedsLayout() = false
+                ClearTextStyle(style)
+            end
 
             return true
         else
@@ -2501,11 +2656,27 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
 
         styleTable:RemoveValue(style)
 
-        // Request re-layout in order to recalculate dimensions of text (as the
-        // new styling might change font size) and redraw text.
-        RequestLayout()
+        // If layout is going to happen, it will handle the styles anyway. If not, manually deal with the single style.
+        if NeedsLayout() = false
+            ClearTextStyle(style)
+        end
 
         return true
+    end
+
+    // Removes any effects this text style is currently having on the text by deleting its highlight and updating the font at the style's indices.
+    // To be used internally after the style is removed from the table via RemoveTextStyle.
+    private action ClearTextStyle(TextStyle style)
+        TextHighlight highlight = style:GetHighlight()
+        if highlight not= undefined
+            if highlight:IsVisibleWhileSelected()
+                background:RemovePostSelectionHighlight(highlight)
+            else
+                background:RemovePreSelectionHighlight(highlight)
+            end
+        end
+
+        UpdateTextStylesAt(style:GetIndex(), style:GetSize())
     end
 
     action GetTextStylesAtIndex(integer index) returns Array<TextStyle>
@@ -2559,9 +2730,13 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         textStyles:Empty()
         styleTable:Empty()
 
-        // Request re-layout in order to recalculate dimensions of text (as the
-        // new styling might change font size) and redraw text.
-        RequestLayout()
+        // If layout is going to happen, it'll automatically recalculate highlight info anyway.
+        // Otherwise, remove highlights and set all of the drawables back to default colors.
+        if NeedsLayout() = false
+            background:EmptyPreSelectionHighlights()
+            background:EmptyPostSelectionHighlights()
+            UpdateTextStylesAt(GetIndexOfLine(cast(integer, firstLine)), GetSize())
+        end
     end
     
     /*

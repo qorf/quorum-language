@@ -1,6 +1,161 @@
 package Libraries.Robots.Spike
 
+/*
+    The light matrix controls a 5 x5 set of pixels on the Spike robot. The 
+    first pixel in the top left is 0,0 and the bottom right pixel is 4,4. 
+    You can get and set the pixels manually, clear the display, or write words to it.
+    
+    Attribute: Example
+    use Libraries.Robots.Spike.LightMatrix
+    LightMatrix lights
+    lights:Write("Hi!")
+*/
 class LightMatrix
+    public constant integer HEART = 1
+    public constant integer HEART_SMALL = 2
+    public constant integer HAPPY = 3
+    public constant integer SMILE = 4
+    public constant integer SAD = 5
+    public constant integer CONFUSED = 6
+    public constant integer ANGRY = 7
+    public constant integer ASLEEP = 8
+    public constant integer SURPRISED = 9
+    public constant integer SILLY = 10
+    public constant integer FABULOUS = 11
+    public constant integer MEH = 12
+    public constant integer YES = 13
+    public constant integer NO = 14
+    public constant integer CLOCK12 = 15
+    public constant integer CLOCK1 = 16
+    public constant integer CLOCK2 = 17
+    public constant integer CLOCK3 = 18
+    public constant integer CLOCK4 = 19
+    public constant integer CLOCK5 = 20
+    public constant integer CLOCK6 = 21
+    public constant integer CLOCK7 = 22
+    public constant integer CLOCK8 = 23
+    public constant integer CLOCK9 = 24
+    public constant integer CLOCK10 = 25
+    public constant integer CLOCK11 = 26
+    public constant integer ARROW_N = 27
+    public constant integer ARROW_NE = 28
+    public constant integer ARROW_E = 29
+    public constant integer ARROW_SE = 30
+    public constant integer ARROW_S = 31
+    public constant integer ARROW_SW = 32
+    public constant integer ARROW_W = 33
+    public constant integer ARROW_NW = 34
+    public constant integer GO_RIGHT = 35
+    public constant integer GO_LEFT = 36
+    public constant integer GO_UP = 37
+    public constant integer GO_DOWN = 38
+    public constant integer TRIANGLE = 39
+    public constant integer TRIANGLE_LEFT = 40
+    public constant integer CHESSBOARD = 41
+    public constant integer DIAMOND = 42
+    public constant integer DIAMOND_SMALL = 43
+    public constant integer SQUARE = 44
+    public constant integer SQUARE_SMALL = 45
+    public constant integer RABBIT = 46
+    public constant integer COW = 47
+    public constant integer MUSIC_CROTCHET = 48
+    public constant integer MUSIC_QUAVER = 49
+    public constant integer MUSIC_QUAVERS = 50
+    public constant integer PITCHFORK = 51
+    public constant integer XMAS = 52
+    public constant integer PACMAN = 53
+    public constant integer TARGET = 54
+    public constant integer TSHIRT = 55
+    public constant integer ROLLERSKATE = 56
+    public constant integer DUCK = 57
+    public constant integer HOUSE = 58
+    public constant integer TORTOISE = 59
+    public constant integer BUTTERFLY = 60
+    public constant integer STICKFIGURE = 61
+    public constant integer GHOST = 62
+    public constant integer SWORD = 63
+    public constant integer GIRAFFE = 64
+    public constant integer SKULL = 65
+    public constant integer UMBRELLA = 66
+    public constant integer SNAKE = 67    
+
+    /*
+        Writes text to the display.
+        
+        Attribute: Parameter value the text to display
+        Attribute: Example
+        use Libraries.Robots.Spike.LightMatrix
+        LightMatrix lights
+        lights:Write("Hi!")
+    */
     system action Write(text value)
-    system action GetPixelIntensity returns number
+
+    /*
+        Gets the intensity, between 0 and 100, of a particular pixel on the display. 
+        
+        Attribute: Parameter x the x coordinate from 0 to 4
+        Attribute: Parameter y the y coordinate from 0 to 4
+        Attribute: Returns The intensity, which is a value between 0 and 100
+        Attribute: Example
+
+        use Libraries.Robots.Spike.LightMatrix
+        LightMatrix lights
+        output lights:GetPixel(0,0)
+    */
+    action GetPixel(integer x, integer y) returns integer
+        return GetPixelNative(x, y)
+    end
+
+    private system action GetPixelNative(integer x, integer y) returns integer
+
+    /*
+        Sets the intensity, between 0 and 100, of a particular pixel on the display.
+        
+        Attribute: Parameter x the x coordinate from 0 to 4
+        Attribute: Parameter y the y coordinate from 0 to 4
+        Attribute: Parameter intensity A value between 0 and 100
+        Attribute: Example
+
+        use Libraries.Robots.Spike.LightMatrix
+        LightMatrix lights
+        lights:SetPixel(0,0,100)
+        lights:SetPixel(4,4,100)
+    */
+    action SetPixel(integer x, integer y, integer intensity)
+        SetPixelNative(x, y, intensity)
+    end
+
+    private system action SetPixelNative(integer x, integer y, integer intensity)
+
+    /*
+        Displays a built in image. Constants are in the class and the values go
+        from 1 to 67
+        
+        Attribute: Parameter image The built in image to display
+        Attribute: Example
+
+        use Libraries.Robots.Spike.LightMatrix
+        LightMatrix lights
+        lights:ShowImage(1)
+    */
+    action ShowImage(integer image)
+        ShowImageNative(image)
+    end
+
+    private system action ShowImageNative(integer image)
+
+    /*
+        Sets the intensity of all pixels to 0
+        
+        Attribute: Example
+
+        use Libraries.Robots.Spike.LightMatrix
+        LightMatrix lights
+        lights:Clear()
+    */
+    action Clear
+        ClearNative()
+    end
+
+    private system action ClearNative
 end

@@ -13,7 +13,12 @@ function plugins_quorum_Libraries_Game_WebApplication_()
     var loopCall = null;
  
     var manager = new quorum_Libraries_Game_GameStateManager_();
-    
+
+    this.SetCurrentlyActiveGame = function(targetGame)
+    {
+        plugins_quorum_Libraries_Game_WebApplication_.activeGame = targetGame;
+    }
+
     this.SetGame$quorum_Libraries_Game_Game = function(g)
     {
         game = g;
@@ -27,6 +32,25 @@ function plugins_quorum_Libraries_Game_WebApplication_()
     this.GetConfiguration = function()
     {
         return configuration;
+    };
+
+    this.GetWebOperatingSystem = function() {
+	    let userAgent = window.navigator.userAgent;
+	    let platform = window.navigator.platform;
+        let os = 'Unknown';
+        if(typeof platform !== 'undefined') {
+            if(platform.indexOf('Mac') != -1) return 'Mac';
+            if(platform.indexOf('Win') != -1) return 'Windows';
+            if(platform.indexOf('Linux') != -1) return 'Linux';
+        }
+        if (userAgent.indexOf('Win') != -1) {
+            return 'Windows';
+        } else if (userAgent.indexOf('Mac') != -1) {
+            return 'Mac';
+        } else if (userAgent.indexOf('Linux') != -1) {
+            return 'Linux';
+        }
+        return os;
     };
     
     this.SetupNative = function()
@@ -61,17 +85,30 @@ function plugins_quorum_Libraries_Game_WebApplication_()
         game.CreateGame();
         
         loopCall = this.MainLoop;
+        let gameTitle = game.GetWebConfiguration().Get_Libraries_Game_WebConfiguration__title_();
+        const event = new CustomEvent('GameStarted', {
+            detail: {
+                title: gameTitle,
+            },
+        });
+        document.dispatchEvent(event);
         this.MainLoop(startTime);
     };
     
     this.MainLoop = function(timeStamp)
     {
+        // Note that because of how this is called via Javascript, we can't use "this.SetCurrentlyActiveGame()" because
+        // the meaning of "this" will be different once this is called later by the requested animation frame call.
+        plugins_quorum_Libraries_Game_WebApplication_.activeGame = game;
+
         if (game.Get_Libraries_Game_Game__exitRequested_())
         {
             var exitRequested = game.OnExit();
             
             if (exitRequested)
             {
+
+                let gameTitle = game.GetWebConfiguration().Get_Libraries_Game_WebConfiguration__title_();
                 var accessibility = game.GetAccessibility();
                 if (accessibility != null)
                 {
@@ -117,12 +154,16 @@ function plugins_quorum_Libraries_Game_WebApplication_()
 
                 // The GameStateManager needs to reinitialized when another application is ran
                 // NOTE other static initializers might need to be reset but these at least ensure that the FontManager is reloaded every time
-                if (plugins_quorum_Libraries_Game_GameStateManager_.initialized_plugins_quorum_Libraries_Game_GameStateManager_) {
-                    delete plugins_quorum_Libraries_Game_GameStateManager_.initialized_plugins_quorum_Libraries_Game_GameStateManager_;
-                }
+                // NOTE: Due to changes in how GameStateManager works (managing each Game separately) the manager plugin should no longer be reinitialized.
+//                if (plugins_quorum_Libraries_Game_GameStateManager_.initialized_plugins_quorum_Libraries_Game_GameStateManager_) {
+//                    delete plugins_quorum_Libraries_Game_GameStateManager_.initialized_plugins_quorum_Libraries_Game_GameStateManager_;
+//                }
                 if (plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_.initialized_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_) {
                     delete plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_.initialized_plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_;
                 }
+
+                // Remove the game from list of active games
+                manager.plugin_.UnregisterGame(game);
 
                 // Reset values to their null defaults when the game ends.
                 // If a new game starts on the same page, we don't want left over data.
@@ -137,6 +178,13 @@ function plugins_quorum_Libraries_Game_WebApplication_()
                 game = null;
                 display = null;
                 loopCall = null;
+
+                const event = new CustomEvent('GameClosed', {
+                    detail: {
+                        title: gameTitle,
+                    },
+                });
+                document.dispatchEvent(event);
                 return;
             }
             else

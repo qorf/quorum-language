@@ -39,7 +39,8 @@ class AndroidDisplay is GameDisplay
     This is called automatically by the engine when needed.
     */
     action ReloadResources
-        ShaderManager manager
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
         manager:ReloadMeshes()
         manager:ReloadShaders()
     end

@@ -2,6 +2,7 @@ package Libraries.Game.Graphics
 use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.Shaders.ShaderProgram
 use Libraries.Game.Graphics.Shaders.BorderedFontShaderProgram
+use Libraries.Game.GameStateManager
 
 /*
 This class represents a Drawable containing a glyph (that is, a character from a font)
@@ -15,7 +16,7 @@ class GlyphDrawable is Drawable
     Glyph glyph = undefined
     number outlineThickness = 0
 
-    ShaderManager manager
+    GameStateManager manager
 
     ColorGroup outlineColor = undefined
 
@@ -29,7 +30,8 @@ class GlyphDrawable is Drawable
         me:outlineColor = outlineColor
 
         if outlineThickness > 0
-            ShaderProgram program = manager:GetShaderProgram(PROGRAM_NAME)
+            ShaderManager shaderManager = manager:GetShaderManager()
+            ShaderProgram program = shaderManager:GetShaderProgram(PROGRAM_NAME)
             if program = undefined
                 BorderedFontShaderProgram newProgram
                 newProgram:Compile()

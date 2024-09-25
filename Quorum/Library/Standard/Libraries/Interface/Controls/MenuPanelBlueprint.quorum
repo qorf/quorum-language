@@ -8,6 +8,7 @@ use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.Shaders.ShaderProgram
 use Libraries.Game.Graphics.Shaders.ControlShaderProgram
 use Libraries.Interface.Views.DropShadowView
+use Libraries.Game.GameStateManager
 
 class MenuPanelBlueprint is Icon
     
@@ -102,7 +103,8 @@ class MenuPanelBlueprint is Icon
             color:SetColor(1, 1, 1, 1)
             LoadFilledRectangle(2, 2, color)
     
-            ShaderManager manager
+            GameStateManager gameState
+            ShaderManager manager = gameState:GetShaderManager()
             ShaderProgram program = undefined
             if manager:HasShaderProgram("Control Shader Program")
                 program = manager:GetShaderProgram("Control Shader Program")

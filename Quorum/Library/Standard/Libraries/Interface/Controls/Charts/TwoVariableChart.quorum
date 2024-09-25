@@ -129,6 +129,7 @@ class TwoVariableChart is Chart
                     chartArea = GetChartArea()
                 end
 
+                cline:SetInputGroup("Chart")
                 cline:SetFocusable(true)
                 cline:SetAccessibilityCode(parent:Item:CHART_ITEM)
                 cline:SetNextFocus(GetNextFocus())
@@ -149,6 +150,7 @@ class TwoVariableChart is Chart
                 j = 0
                 repeat while j < cline:GetPoints():GetSize()
                     ChartPoint point = cline:GetPoints():Get(j)
+                    point:SetInputGroup("Chart")
                     point:SetFocusable(true)
                     point:SetAccessibilityCode(parent:Item:CHART_ITEM)
                     point:SetNextFocus(GetNextFocus())
@@ -242,6 +244,7 @@ class TwoVariableChart is Chart
 
             repeat while i < points:GetSize()
                 ChartPoint point = points:Get(i)
+                point:SetInputGroup("Chart")
                 point:SetFocusable(true)
                 point:SetAccessibilityCode(parent:Item:CHART_ITEM)
                 point:SetNextFocus(GetNextFocus())
@@ -697,10 +700,14 @@ class TwoVariableChart is Chart
 
         ChartItem summary = me
         // The chart area is the child unless y-axis is showing.
-        summary:SetDisplayName(GenerateSummary())
+        
+        //summary:SetDisplayName(GenerateSummary())
         summary:SetContainer(me)
-
+        
+        chartArea:SetName(summary:GetName())
+        //chartArea:SetDisplayName(GenerateSummary())
         chartArea:SetContainer(me)
+        summary = chartArea
         
         text lineText = "lines"
         text pointText = "points"
@@ -716,23 +723,63 @@ class TwoVariableChart is Chart
             chartArea:SetDisplayName("This is the chart area with " + lines:GetSize() + " " + lineText + ".")
             AddChartAreaInstructions(" with " + lines:GetSize() + " " + lineText + ".")
         elseif points:GetSize() > 0
-            chartArea:SetDisplayName("This is the chart area with " + points:GetSize() + " " + pointText + ".")
+            chartArea:SetDisplayName("This is the chart area with " + points:GetSize() + " " + pointText)
             text description = ""
             if GetSeriesList():GetSize() > 0
-                description = description + " with " + GetSeriesList():GetSize() + " series and " + points:GetSize() + " " + pointText + "."
+                description = description + " with " + GetSeriesList():GetSize() + " series and " + points:GetSize() + " " + pointText
             end
+
+            ChartPointComparison comparison
+            comparison:SetAscending(true)
+            if GetHorizontalFlag()
+                comparison:SetSortByX(true)
+            else
+                comparison:SetSortByY(true)
+            end
+            Array<ChartPoint> sortLRPoints = GetChartPoints():CopyToArray()
+            sortLRPoints:Sort(comparison)
+
+            text xMinimum = GeneratePointDescriptionX(sortLRPoints:Get(0))
+            text xMaximum = GeneratePointDescriptionX(sortLRPoints:Get(sortLRPoints:GetSize()-1))
+
+            comparison:SetAscending(true)
+            if GetHorizontalFlag()
+                comparison:SetSortByY(true)
+            else
+                comparison:SetSortByX(true)
+            end
+            Array<ChartPoint> sortUDPoints = GetChartPoints():CopyToArray()
+            sortUDPoints:Sort(comparison)
+
+            text yMinimum = GeneratePointDescriptionY(sortUDPoints:Get(0))
+            text yMaximum = GeneratePointDescriptionY(sortUDPoints:Get(sortUDPoints:GetSize()-1))
+
+            if xMinimum not= ""
+                description = description + ", overall minimum X " + xMinimum 
+            end
+            if xMaximum not= ""
+                description = description + ", overall maximum X " + xMaximum
+            end
+            if yMinimum not= ""
+                description = description + ", overall minimum Y " + yMinimum
+            end
+            if yMaximum not= ""
+                description = description + ", overall maximum Y " + yMaximum 
+            end
+
+            description = description + "."
             AddChartAreaInstructions(description)
         end
     
         // If any of these are not showing the tree will skip them in the navigation   
         if IsShowingXAxis()
-            GetHorizontalPanel():GenerateInfoTree(me, summary, yAxis, xAxis)
+            GetHorizontalPanel():GenerateInfoTree(me, chartArea, yAxis, xAxis)
         end     
         if IsShowingYAxis()
-            GetVerticalPanel():GenerateInfoTree(me, summary, yAxis, xAxis)
+            GetVerticalPanel():GenerateInfoTree(me, chartArea, yAxis, xAxis)
         end
         //if IsShowingLegend()
-            GetLegend():GenerateInfoTree(me, summary, yAxis, xAxis)
+            GetLegend():GenerateInfoTree(me, chartArea, yAxis, xAxis)
         //end
 
         // Generate Line Chart Info
@@ -740,7 +787,7 @@ class TwoVariableChart is Chart
             if IsSeparated()
                 integer subAreaCount = GetNumberOfVisibleChartAreas()
                 if GetNumberOfChartAreas() > 0
-                    ChartItem firstArea = GetSubChartAreas():Get(0)
+                    ChartAreaPanel firstArea = GetSubChartAreas():Get(0)
                     firstArea:SetContainer(me)
 
                     GetChartArea():SetDescription(" with " + subAreaCount + " sub charts.")
@@ -757,7 +804,7 @@ class TwoVariableChart is Chart
                     if chartAreaItems:GetSize() > 0 and chartAreaItems:Get(0) is ChartLine
                         // Add LEFT/RIGHT/ENTER/ESCAPE navigation
                         ChartLine chartLine = cast(ChartLine, chartAreaItems:Get(0))
-                        AddPoints(summary, firstArea, chartLine:GetPoints())
+                        AddPoints(summary, firstArea, chartLine:GetPoints(), firstArea:GetSeries())
                     end
 
                     integer i = 1
@@ -765,7 +812,7 @@ class TwoVariableChart is Chart
                     repeat while i < GetNumberOfChartAreas()
                         ChartAreaPanel chartSubArea = GetSubChartAreas():Get(i)
                         if chartSubArea:IsShowing()
-                            ChartItem nextArea = chartSubArea
+                            ChartAreaPanel nextArea = chartSubArea
                             nextArea:SetContainer(me)
                             nextArea:SetParent(summary)
                             previousArea:SetRightItem(nextArea)
@@ -778,7 +825,7 @@ class TwoVariableChart is Chart
                             if chartAreaItems:GetSize() > 0 and chartAreaItems:Get(0) is ChartLine
                                 // Add LEFT/RIGHT/ENTER/ESCAPE navigation
                                 ChartLine chartLine = cast(ChartLine, chartAreaItems:Get(0))
-                                AddPoints(summary, nextArea, chartLine:GetPoints())
+                                AddPoints(summary, nextArea, chartLine:GetPoints(), nextArea:GetSeries())
                             end
                         end
                         i = i + 1
@@ -795,7 +842,7 @@ class TwoVariableChart is Chart
                 summary:SetEnterItem(firstChartLineItem)
                 firstChartLineItem:SetEscapeItem(summary)
 
-                AddPoints(summary, firstChartLineItem, firstChartLine:GetPoints())
+                AddPoints(summary, firstChartLineItem, firstChartLine:GetPoints(), firstChartLine:GetSeries())
                 AddGroupPanelInstructions(firstChartLine, firstChartLine:GetDescription())
     
                 integer i = 1
@@ -806,7 +853,7 @@ class TwoVariableChart is Chart
                     ChartItem chartLineItem = chartLine
                     chartLineItem:SetContainer(me)
                     chartLineItem:SetEscapeItem(summary)
-                    AddPoints(summary, chartLineItem, chartLine:GetPoints())
+                    AddPoints(summary, chartLineItem, chartLine:GetPoints(), chartLine:GetSeries())
 
                     chartLineItem:SetLeftItem(previousChartLineItem)
                     previousChartLineItem:SetRightItem(chartLineItem)
@@ -828,24 +875,83 @@ class TwoVariableChart is Chart
             if IsSeparated()
                 integer subAreaCount = GetNumberOfVisibleChartAreas()
                 if GetNumberOfChartAreas() > 0
-                    ChartItem firstArea = GetSubChartAreas():Get(0)
+                    ChartAreaPanel firstArea = GetSubChartAreas():Get(0)
                     firstArea:SetContainer(me)
 
-                    AddChartAreaInstructions(" with " + subAreaCount + " sub charts")
+                    text description = ""
+                    if GetSeriesList():GetSize() > 0
+                        description = description + " with " + subAreaCount + " sub charts and " + points:GetSize() + " " + pointText
+                    end
+
+                    comparison:SetAscending(true)
+                    if GetHorizontalFlag()
+                        comparison:SetSortByX(true)
+                    else
+                        comparison:SetSortByY(true)
+                    end
+                    Array<ChartPoint> sortLRPoints = GetChartPoints():CopyToArray()
+                    sortLRPoints:Sort(comparison)
+        
+                    text xMinimum = GeneratePointDescriptionX(sortLRPoints:Get(0))
+                    text xMaximum = GeneratePointDescriptionX(sortLRPoints:Get(sortLRPoints:GetSize()-1))
+        
+                    comparison:SetAscending(true)
+                    if GetHorizontalFlag()
+                        comparison:SetSortByY(true)
+                    else
+                        comparison:SetSortByX(true)
+                    end
+                    Array<ChartPoint> sortUDPoints = GetChartPoints():CopyToArray()
+                    sortUDPoints:Sort(comparison)
+        
+                    text yMinimum = GeneratePointDescriptionY(sortUDPoints:Get(0))
+                    text yMaximum = GeneratePointDescriptionY(sortUDPoints:Get(sortUDPoints:GetSize()-1))
+        
+                    if xMinimum not= ""
+                        description = description + ", overall minimum X " + xMinimum 
+                    end
+                    if xMaximum not= ""
+                        description = description + ", overall maximum X " + xMaximum
+                    end
+                    if yMinimum not= ""
+                        description = description + ", overall minimum Y " + yMinimum
+                    end
+                    if yMaximum not= ""
+                        description = description + ", overall maximum Y " + yMaximum 
+                    end
+
+                    description = description + "."
+
+                    AddChartAreaInstructions(description)
+
                     summary:SetEnterItem(firstArea)
                     firstArea:SetEscapeItem(summary)
                     firstArea:SetDisplayName(GetSubChartAreas():Get(0):GetName())
                     Array<ChartItem> chartAreaItems = GetSubChartAreas():Get(0):GetChartAreaItems()
-                    text description = " chart area with " + chartAreaItems:GetSize() + " points"
+
+                    Array<ChartPoint> firstAreaPoints = CastToPoints(chartAreaItems)
+                    firstAreaPoints:Sort(comparison)
+                    AddPoints(summary, firstArea, firstAreaPoints, firstArea:GetSeries())
+
+                    description = " chart area with " + chartAreaItems:GetSize() + " points"
+                    if GetSubChartAreas():Get(0):GetSeries():GetXMinimum() not= ""
+                        description = description + ", minimum X " + GetSubChartAreas():Get(0):GetSeries():GetXMinimum()
+                    end
+                    if GetSubChartAreas():Get(0):GetSeries():GetXMaximum() not= ""
+                        description = description + ", maximum X " + GetSubChartAreas():Get(0):GetSeries():GetXMaximum()
+                    end
+                    if GetSubChartAreas():Get(0):GetSeries():GetYMinimum() not= ""
+                        description = description + ", minimum Y " + GetSubChartAreas():Get(0):GetSeries():GetYMinimum()
+                    end
+                    if GetSubChartAreas():Get(0):GetSeries():GetYMaximum() not= ""
+                        description = description + ", maximum Y " + GetSubChartAreas():Get(0):GetSeries():GetYMaximum() 
+                    end
                     if GetSubChartAreas():Get(0):GetSeries() not= undefined and GetSubChartAreas():Get(0):GetSeries():GetRegressionLine() not= undefined and GetLegend():IsShowingRegression()
                         description = description + ", " + GetSubChartAreas():Get(0):GetSeries():GetRegressionLine():GetName() + GetSubChartAreas():Get(0):GetSeries():GetRegressionLine():GetDescription() 
                         description = description + ", " + GetSubChartAreas():Get(0):GetSeries():GetRegressionLine():GetRSquaredLabel():GetName() + GetSubChartAreas():Get(0):GetSeries():GetRegressionLine():GetRSquaredLabel():GetDescription()
                     end
                     description = description + ", 1 of " + subAreaCount + " sub charts."
                     AddSubChartAreaInstructions(GetSubChartAreas():Get(0),description)
-                    Array<ChartPoint> firstAreaPoints = CastToPoints(chartAreaItems)
-                    firstAreaPoints:Sort(comparison)
-                    AddPoints(summary, firstArea, firstAreaPoints)
 
 
                     integer i = 1
@@ -853,7 +959,7 @@ class TwoVariableChart is Chart
                     repeat while i < GetNumberOfChartAreas()
                         ChartAreaPanel chartSubArea = GetSubChartAreas():Get(i)
                         if chartSubArea:IsShowing()
-                            ChartItem nextArea = chartSubArea
+                            ChartAreaPanel nextArea = chartSubArea
                             nextArea:SetContainer(me)
                             nextArea:SetEscapeItem(summary)
                             previousArea:SetRightItem(nextArea)
@@ -861,16 +967,30 @@ class TwoVariableChart is Chart
                             previousArea = nextArea
                             nextArea:SetDisplayName(chartSubArea:GetName())
                             chartAreaItems = chartSubArea:GetChartAreaItems()
+                            
+                            Array <ChartPoint> nextAreaPoints = CastToPoints(chartAreaItems)
+                            nextAreaPoints:Sort(comparison)
+                            AddPoints(summary, nextArea, nextAreaPoints, nextArea:GetSeries())
+
                             description = " chart area with " + chartAreaItems:GetSize() + " points"
+                            if nextArea:GetSeries():GetXMinimum() not= ""
+                                description = description + ", minimum X " + nextArea:GetSeries():GetXMinimum()
+                            end
+                            if nextArea:GetSeries():GetXMaximum() not= ""
+                                description = description + ", maximum X " + nextArea:GetSeries():GetXMaximum()
+                            end
+                            if nextArea:GetSeries():GetYMinimum() not= ""
+                                description = description + ", minimum Y " + nextArea:GetSeries():GetYMinimum()
+                            end
+                            if nextArea:GetSeries():GetYMaximum() not= ""
+                                description = description + ", maximum Y " + nextArea:GetSeries():GetYMaximum() 
+                            end
                             if chartSubArea:GetSeries() not= undefined and chartSubArea:GetSeries():GetRegressionLine() not= undefined and GetLegend():IsShowingRegression()
                                 description = description + ", " + chartSubArea:GetSeries():GetRegressionLine():GetName() + chartSubArea:GetSeries():GetRegressionLine():GetDescription() 
                                 description = description + ", " + chartSubArea:GetSeries():GetRegressionLine():GetRSquaredLabel():GetName() + chartSubArea:GetSeries():GetRegressionLine():GetRSquaredLabel():GetDescription()
                             end
                             description = description + ", " + (i+1) + " of " + subAreaCount + " sub charts."
                             chartSubArea:SetDescription(description)
-                            Array <ChartPoint> nextAreaPoints = CastToPoints(chartAreaItems)
-                            nextAreaPoints:Sort(comparison)
-                            AddPoints(summary, nextArea, nextAreaPoints)
                         end
                         i = i + 1
                     end
@@ -882,7 +1002,7 @@ class TwoVariableChart is Chart
                 // TO-DO: Handle movable regression lines for this case.
             else
                 if GetSeriesList():GetSize() > 0
-                    ChartItem firstSeries = GetSeriesList():Get(0)
+                    Series firstSeries = GetSeriesList():Get(0)
                     firstSeries:SetContainer(me)
 
                     summary:SetEnterItem(firstSeries)
@@ -893,9 +1013,9 @@ class TwoVariableChart is Chart
                     AddGroupPanelInstructions(GetSeriesList():Get(0),GetSeriesList():Get(0):GetDescription())
                     Array<ChartPoint> firstSeriesPoints = CastToPoints(chartAreaItems)
                     if GetSeriesList():GetSize() = 1
-                        AddPoints(summary, summary, firstSeriesPoints)
+                        AddPoints(summary, summary, firstSeriesPoints, firstSeries)
                     else
-                        AddPoints(summary, firstSeries, firstSeriesPoints)
+                        AddPoints(summary, firstSeries, firstSeriesPoints, firstSeries)
                     end
 
                     integer i = 1
@@ -913,7 +1033,7 @@ class TwoVariableChart is Chart
                         chartAreaItems:Sort(comparison)
                         Array<ChartPoint> nextSeriesPoints = CastToPoints(chartAreaItems)
                         nextSeriesPoints:Sort(comparison)
-                        AddPoints(summary, series, nextSeriesPoints)
+                        AddPoints(summary, series, nextSeriesPoints, series)
                         i = i + 1
                     end
                     previousSeries:SetDescription(previousSeries:GetDescription() + " End of list order.")
@@ -1007,7 +1127,7 @@ class TwoVariableChart is Chart
         end
         chartAreaItem = chartArea
         ChartSelection selection = GetSelection()
-        selection:Set(summary)
+        selection:Set(chartArea)
     end
 
     action CastToPoints(Array <Item> chartAreaItems) returns Array <ChartPoint>
@@ -1097,6 +1217,54 @@ class TwoVariableChart is Chart
     end
 
     /*
+        This is called to find the proper X text output based on the various ScatterPlot label overrides. 
+    */
+    action GeneratePointDescriptionX(ChartPoint point) returns text
+        boolean numericalX = (GetHorizontalPanel():NumericalOverrideLabels() or not GetHorizontalPanel():UseTextLabelOverride())
+        text pointX = ""
+        if numericalX
+            pointX = cast(text, math:Round(point:GetValueX(), 5))
+            if CheckIfInteger(point:GetValueX())
+                pointX = cast(text, cast(integer, point:GetValueX()))
+            end
+        else
+            if point:GetValueX() < GetHorizontalPanel():GetTextLabels():GetSize()
+                pointX = GetHorizontalPanel():GetTextLabels():Get(cast(integer, point:GetValueX()))
+            end
+        end
+            
+        if point:GetXNameOverride() not= undefined
+            pointX = point:GetXNameOverride()
+        end
+
+        return pointX
+    end
+
+    /*
+        This is called to find the proper Y text output based on the various ScatterPlot label overrides. 
+    */
+    action GeneratePointDescriptionY(ChartPoint point) returns text
+        boolean numericalY = (GetVerticalPanel():NumericalOverrideLabels() or not GetVerticalPanel():UseTextLabelOverride())
+        text pointY = ""
+        if numericalY
+            pointY = cast(text, math:Round(point:GetValueY(), 5))
+            if CheckIfInteger(point:GetValueY())
+                pointY = cast(text, cast(integer, point:GetValueY()))
+            end
+        else
+            if point:GetValueY() < GetVerticalPanel():GetTextLabels():GetSize()
+                pointY = GetVerticalPanel():GetTextLabels():Get(cast(integer, point:GetValueY()))
+            end
+        end
+
+        if point:GetYNameOverride() not= undefined
+            pointY = point:GetYNameOverride()
+        end
+        
+        return pointY
+    end
+
+    /*
         Create a new region on the chart for accessbility.
     */
     private action NewRegionIcon(number percentX, number percentY, number percentWidth, number percentHeight) returns ChartDrawable
@@ -1108,6 +1276,7 @@ class TwoVariableChart is Chart
         region:SetPercentageY(percentY)
         region:SetPercentageWidth(percentWidth)
         region:SetPercentageHeight(percentHeight)
+        region:SetInputGroup("Chart")
         region:SetFocusable(true)
         region:SetAccessibilityCode(region:parent:Item:CHART_SECTION)
         LayoutProperties properties = region:GetDefaultLayoutProperties()
@@ -1448,7 +1617,7 @@ class TwoVariableChart is Chart
         Atrribute: Parameter parentItem the chart point parent.
         Atrribute: Parameter points the chart point, Array<ChartPoint>.
     */
-    action AddPoints(ChartItem summary, ChartItem parentItem, Array<ChartPoint> points)
+    action AddPoints(ChartItem summary, ChartItem parentItem, Array<ChartPoint> points, Series currentSeries)
         if points:IsEmpty() = false
             // Add LEFT/RIGHT navigation
             ChartPointComparison comparison
@@ -1460,6 +1629,9 @@ class TwoVariableChart is Chart
             end
             Array<ChartPoint> sortLRPoints = points:CopyToArray()
             sortLRPoints:Sort(comparison)
+
+            currentSeries:SetXMinimum(GeneratePointDescriptionX(sortLRPoints:Get(0)))
+            currentSeries:SetXMaximum(GeneratePointDescriptionX(sortLRPoints:Get(sortLRPoints:GetSize()-1)))
 
             Math math
             Mean mean
@@ -1640,6 +1812,10 @@ class TwoVariableChart is Chart
             end
             Array<ChartPoint> sortUDPoints = points:CopyToArray()
             sortUDPoints:Sort(comparison)
+
+            currentSeries:SetYMinimum(GeneratePointDescriptionY(sortUDPoints:Get(0)))
+            currentSeries:SetYMaximum(GeneratePointDescriptionY(sortUDPoints:Get(sortUDPoints:GetSize()-1)))
+
             firstPoint = sortUDPoints:Get(0)
             firstPointItem = firstPoint
             i = 1
@@ -1658,7 +1834,7 @@ class TwoVariableChart is Chart
                 previousPointItem = pointItem
                 i = i + 1
             end
-            previousPointItem:SetDescription(firstPointItem:GetDescription() + " End of Y value order.")
+            previousPointItem:SetDescription(previousPointItem:GetDescription() + " End of Y value order.")
 
         end
     end

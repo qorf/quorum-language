@@ -29,10 +29,7 @@ class CodeEditorExecuteHintBehavior is Behavior
         end
         integer start = hint:GetStartOffset()
         text insert = hint:GetInsertionText()
-        TextChangeEvent textEvent
-        textEvent:Initialize(editor, insert, "", start)
-        editor:OnTextChange(textEvent, 0)
-        editor:RegenerateBlocks()
+        editor:InsertText(start, insert)
     end
 
     action GetHint returns Hint

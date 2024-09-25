@@ -2,6 +2,7 @@ package Libraries.Language.Errors
 
 use Libraries.Containers.Array
 use Libraries.System.StackTraceItem
+use Libraries.System.Logging.SharedLogger
 
 /*
 The Error class is a general error or exception that has been thrown. All
@@ -107,7 +108,10 @@ class Error
         end
     */
     action OutputStackTrace()
-        output GetStackTraceMessage()
+        text value = GetStackTraceMessage()
+        SharedLogger logger
+        logger:Log(value)
+        output value
     end
 
     /*

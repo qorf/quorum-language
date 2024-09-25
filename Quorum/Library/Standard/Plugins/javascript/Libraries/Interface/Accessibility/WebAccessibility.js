@@ -11,6 +11,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     let focusButton = null;
     let blurDelayedCall = null;
     let removedFocusedElement = false;
+    let thisGame = null;
 
     const addBlurListener = function(element) {
         element.addEventListener("blur", () => {
@@ -30,10 +31,10 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     };
 
     this.Setup = function() {
-        let container = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetContainer();
-        let canvas = plugins_quorum_Libraries_Game_GameStateManager_.display.plugin_.GetCanvas();
-        let config = plugins_quorum_Libraries_Game_GameStateManager_.application.plugin_.GetConfiguration();
-
+        let container = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().display.plugin_.GetContainer();
+        let canvas = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().display.plugin_.GetCanvas();
+        let config = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().application.plugin_.GetConfiguration();
+        thisGame = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().game;
         let title = config.Get_Libraries_Game_WebConfiguration__title_();
         if (title == null) {
             title = container.dataset.title;
@@ -61,11 +62,11 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         root.style.position = "absolute";
         root.style.left = 0;
         root.style.bottom = 0;
-        root.style.width = "100%";
-        root.style.height = "100%";
+        root.style.width = "1px";
+        root.style.height = "1px";
         // Ensure that bugs in the positioning of shadow elements
         // don't affect the visible layout.
-        root.style.overflow = "hidden";
+        // root.style.overflow = "hidden";
 
         // The following style settings come from Flutter Web.
         // Make all semantics transparent. We use `filter` instead of `opacity`
@@ -91,15 +92,15 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
         focusButton.style.position = "absolute";
         focusButton.style.left = 0;
         focusButton.style.bottom = 0;
-        focusButton.style.width = "100%";
-        focusButton.style.height = "100%";
+        focusButton.style.width = "1px";
+        focusButton.style.height = "1px";
 
         // The rationales for the following styles are the same as for the root.
         focusButton.style.filter = "opacity(0%)";
         focusButton.style.color = "rgba(0,0,0,0)";
 
         focusButton.addEventListener("click", (event) => {
-            plugins_quorum_Libraries_Game_WebInput_.TakeFocus();
+            plugins_quorum_Libraries_Game_WebInput_.TakeFocus(thisGame);
         });
 
         // Like the accessibility root, this element must be inserted before
@@ -320,7 +321,6 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
     
 //    system action FocusChanged(FocusEvent event)
     this.FocusChanged$quorum_Libraries_Interface_Events_FocusEvent = function(event) {
-        //console.log("Focus Changed");
         var item = event.GetNewFocus();
         if(item == null) {
             //console.log("Tried to focus nothing");
@@ -343,7 +343,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             return;
         }
         currentFocus = item;
-        if (plugins_quorum_Libraries_Game_WebInput_.IsFocused() || removedFocusedElement) {
+        if (plugins_quorum_Libraries_Game_WebInput_.IsFocused(plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().game) || removedFocusedElement) {
             removedFocusedElement = false;
             let element = document.getElementById(id);
             element.focus();
@@ -443,6 +443,13 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 para.setAttribute('aria-multiline','true');
                 para.id = id;
                 sendInputEvents = true;
+
+                if (global_InstanceOf(item, "Libraries.Interface.Controls.TextBox"))
+                {
+                    let textBox = global_CheckCast(item, "Libraries.Interface.Controls.TextBox")
+                    para.value = textBox.GetText();
+                }
+
                 break;
             //MENU_BAR
             case 7:
@@ -570,8 +577,13 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 para.id = id;
                 para.type = "text"
                 sendInputEvents = true;
-                //role = "textbox";
-                //para.setAttribute("contenteditable",true);
+
+                if (global_InstanceOf(item, "Libraries.Interface.Controls.TextField"))
+                {
+                    let textField = global_CheckCast(item, "Libraries.Interface.Controls.TextField")
+                    para.value = textField.GetText();
+                }
+
                 break;
             //LIST
             case 18:
@@ -759,6 +771,15 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         // Set the element's bounds after we've added it, so setBounds can assume
         // the element's parent is already set.
         setBounds(para, item);
+
+        // Under rare circumstances, the item that is being added is supposed to already be focused by Quorum,
+        // or it was previously focused, but then was removed and re-added.
+        // If so, make sure it gets the focus.
+        if (item.IsFocused() && (plugins_quorum_Libraries_Game_WebInput_.IsFocused(plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().game) || removedFocusedElement)) {
+            removedFocusedElement = false;
+            para.focus();
+        }
+
         return true;
 };
 //    system action NativeRemove(Item item)

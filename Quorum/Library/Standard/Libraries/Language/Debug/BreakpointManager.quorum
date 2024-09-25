@@ -10,10 +10,16 @@ class BreakpointManager
     Array<Breakpoint> bpCache
 
     action Add(BreakpointListener listener)
+        if listener = undefined
+            return now
+        end
         breakpointListeners:Add(listener)
     end
 
     action Remove(BreakpointListener listener)
+        if listener = undefined
+            return now
+        end
         breakpointListeners:Remove(listener)
     end
 

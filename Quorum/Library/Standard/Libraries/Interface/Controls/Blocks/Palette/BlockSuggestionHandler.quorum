@@ -1,4 +1,4 @@
-package Libraries.Interface.Controls.Blocks
+package Libraries.Interface.Controls.Blocks.Palette
 use Libraries.Language.Compile.CompilerResult
 use Libraries.Language.Compile.Symbol.SymbolTable
 use Libraries.Language.Compile.Symbol.Class
@@ -14,6 +14,10 @@ use Libraries.Language.Compile.Parsing.Token
 use Libraries.Language.Compile.Parsing.QuorumLexerConstants
 use Libraries.Language.Compile.Symbol.Variable
 use Libraries.Language.Compile.Symbol.Type
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Interface.Controls.Blocks.AssignmentBlock
+use Libraries.Interface.Controls.Blocks.UseBlock
+use Libraries.Interface.Controls.Blocks.FreeformBlock
 
 
 class BlockSuggestionHandler
@@ -23,6 +27,8 @@ class BlockSuggestionHandler
     QuorumLexerConstants constants
 ActionIndexSort actionSorter
 Type primitiveCheck
+    
+    SymbolTable currentTable = undefined
     
     action Request(Block block, CodeCompletionRequest request, BlockPalette palette)
         me:palette = palette
@@ -36,11 +42,11 @@ Type primitiveCheck
         SymbolTable last = undefined
         SymbolTable compiled = undefined
         if compilerResult not= undefined
-            last = compilerResult:symbolTable
+            compiled = compilerResult:symbolTable
         end
 
         if lastCompiledResult not= undefined
-            compiled = lastCompiledResult:symbolTable
+            last = lastCompiledResult:symbolTable
         end
 
         if last not= undefined 
@@ -72,9 +78,10 @@ if className:Contains("<")
         end
         Class clazz = GetBestChoiceClass(request:result, lastCompiledResult, request:fileKey, className, variableName)
         SymbolTable table = GetBestChoiceSymbolTable(request:result, lastCompiledResult)
-
+currentTable = table
         if primitiveCheck:IsPrimitive()
             request:isPrimitiveConversion = true
+            result:isPrimitive = true
         end
 QuorumLexer luthor
         luthor:Read(source)
@@ -105,13 +112,52 @@ AddParentVariables(request, vars)
             result:parentVariables = vars
         end
         result:actions = actions
-        result:clazz = request:clazz
+        if request:variableClass not= undefined
+            result:clazz = request:variableClass
+        else
+                    result:clazz = request:clazz
+        end
         result:variableName = variableName
         result:requestingBlock = block
         
         palette:SetSuggestionResult(result)
     end
 
+    action RequestVariableActions(Variable variable) returns Array<Action>
+        if currentTable = undefined
+            return undefined
+        end
+        Type varType = variable:GetType()
+        text staticKey = ""
+        if varType:IsPrimitive()
+            staticKey = varType:ConvertToNonPrimitiveStaticKey()
+        else
+                    staticKey = varType:GetStaticKey()
+        end
+        Class clazz = currentTable:GetClass(staticKey)
+        if clazz not= undefined
+Iterator<Action> actions = clazz:GetVirtualTable()
+        Array<Action> actionsToReturn
+        repeat while actions:HasNext()
+            Action act = actions:Next()
+            if varType:IsPrimitive()
+                text value = act:GetName()
+                if value not= "GetValue" and value not= "SetValue"
+                        if not act:IsPrivate()
+                            actionsToReturn:Add(act)
+                        end
+                end
+            else
+                    if not act:IsPrivate()
+                        actionsToReturn:Add(act)
+                    end
+            end
+        end
+        return actionsToReturn
+        end
+        return undefined
+    end
+    
     private action GetBestChoiceClass(CompilerResult last, CompilerResult compiled, text file, text className, text variableName) returns Class
         CompilerResult best = compiled
         if best = undefined or best:symbolTable = undefined
@@ -178,11 +224,10 @@ if className not= "" and className:Contains(".")
 
     private action AddActions(CodeCompletionRequest request) returns Array<Action>
         Class clazzToProcess = request:clazz
-
-        if request:variableClass not= undefined
-            clazzToProcess = request:variableClass
-            if clazzToProcess not= undefined and request:clazz not= undefined
-               and clazzToProcess:GetStaticKey() not= request:clazz:GetStaticKey()
+        if request:clazzCurrentParse not= undefined
+            Class myself = request:clazzCurrentParse
+            if clazzToProcess not= undefined and myself not= undefined
+               and clazzToProcess:GetStaticKey() not= myself:GetStaticKey()
                 request:isRequestInClass = false
             end
         end
@@ -197,10 +242,6 @@ if className not= "" and className:Contains(".")
         Array<Action> actionsToReturn
         repeat while actions:HasNext()
             Action act = actions:Next()
-//            text filter = result:filter
-//            integer size = filter:GetSize()
-//            item:dotOffset = request:caretLocation - size// + additionalDotOffset
-
             //is this action in the base class or the v-table?
             if request:clazz:HasAction(act:GetStaticKey())
 //                item:isBaseClassAction = true

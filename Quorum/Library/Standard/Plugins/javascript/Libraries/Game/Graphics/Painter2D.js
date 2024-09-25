@@ -18,8 +18,8 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
     //var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
     
     var blendingDisabled = false;
-    var blendSourceFunction = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics.gl.SRC_ALPHA;
-    var blendDestFunction = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics.gl.ONE_MINUS_SRC_ALPHA;
+    var blendSourceFunction = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics.gl.SRC_ALPHA;
+    var blendDestFunction = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics.gl.ONE_MINUS_SRC_ALPHA;
     
     var shader;
     var customShader = null;
@@ -54,7 +54,7 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
         
         mesh = quorumMesh;
         
-        var display = plugins_quorum_Libraries_Game_GameStateManager_.display;
+        var display = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().display;
         
         if (display === null || display === undefined)
         {
@@ -185,7 +185,7 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
             throw exceptionInstance_;
         }
         
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics;
         
         graphics.glDepthMask(true);
         graphics.glEnable(graphics.gl.DEPTH_TEST);
@@ -227,7 +227,7 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
         this.me_.lastTexture = null;
         this.me_.drawing = false;
         
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics;
         graphics.glDepthMask(true);
         if (this.IsBlendingEnabled())
             graphics.glDisable(graphics.gl.BLEND);
@@ -307,7 +307,7 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
         mesh.GetIndexData().plugin_.SetPosition$quorum_integer(0);
         mesh.GetIndexData().plugin_.SetLength(count);
         
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics;
         
         if (blendingDisabled)
             graphics.glDisable(graphics.gl.BLEND);
@@ -461,7 +461,7 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
         {
             this.UpdateClipping();
             
-            var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+            var graphics = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics;
             
             if (clip)
             {
@@ -484,7 +484,7 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
         
         this.Flush();
         
-        var display = plugins_quorum_Libraries_Game_GameStateManager_.display;
+        var display = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().display;
         
         clipPoint.Set$quorum_number$quorum_number$quorum_number(me_.GetClipX(), me_.GetClipY(), 0);
         clipPoint.Multiply$quorum_Libraries_Compute_Matrix4(combinedMatrix);
@@ -519,7 +519,7 @@ function plugins_quorum_Libraries_Game_Graphics_Painter2D_(quorumPainter)
             y = y2;
         }
         
-        plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics.glScissor(x, y, width, height);
+        plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics.glScissor(x, y, width, height);
     };
     
     this.IsClipping = function()

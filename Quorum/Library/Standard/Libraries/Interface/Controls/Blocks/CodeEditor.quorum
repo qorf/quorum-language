@@ -73,6 +73,7 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
 
     GameStateManager manager
     Accessibility accessibility = undefined
+    Item2D dummyItem = undefined
 
 
     boolean shouldCalculateWidth = true
@@ -103,6 +104,9 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
     Calculated while calculating total content height.
     */
     Array<number> cachedLinePositions
+    
+    // A flag indicating that the CodeEditor is moving blocks using the keyboard (e.g. block insertion via the palette)
+    boolean keyboardMovingBlocks = false
 
     on create
         /*
@@ -111,6 +115,7 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
         "on create" of ScrollableControl.
         */
         renderer:SetName("Code Editor Background")
+        SetName("Code Editor")
 
         SetInterfaceOptionsKey("CodeEditor")
         SetInputGroup(CODE_EDITOR_INPUT_GROUP)
@@ -127,7 +132,12 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
         AddTextChangeListener(editManager)
         rawCode:Initialize("")
 
-        SetFocusable(true)
+                Item2D temp
+        dummyItem = temp
+        dummyItem:SetAccessibilityCode(dummyItem:parent:Item:ITEM)
+        dummyItem:SetFocusable(true)
+        dummyItem:SetName("Top of File")
+        Add(dummyItem)
 
         
         lineGutter:SetPositionOnBaseLine(false)
@@ -139,6 +149,7 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
         popup:SetCodeEditor(me)
         SetPopupMenu(popup)
         SetAccessibilityCode(parent:Item:PANE)
+        SetFocusable(true)
     end
 
     action NotifyAccessibility(Item item, text message)
@@ -224,7 +235,8 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
     action GutterClicked(GutterEvent event)
         Gutter gutter = event:GetGutter()
         if gutter is LineNumberGutter
-            integer line = event:GetLine()
+            Block block = GetBlockAtNavigationIndex(event:GetLine())
+            integer line = block:GetStartLine()
             if line >= GetLineCount()
                 return now
             end
@@ -424,14 +436,19 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
     This action scrolls the scrolling area vertically to center on the start line of the Block.
     */
     action GoToBlock(Block block)
+        if block not= undefined
         GoToLine(block:GetNavigationIndex())
-    end
+            end
+end
 
     /*
     This action attempts to center the scrolling area vertically on the provided navigation line index.
     Note that in most cases, but not all, this will match the line of text.
     */
     action GoToLine(integer line)
+        if line < 0 or line >= rawCode:GetLineCount()
+            return now
+        end
         // This equation was derived by algebraicly reverse-engineering the GetLineY action for a fixed y and an unknown scroll percentage.
         number targetY = renderer:GetHeight() / 2.0
         number viewPercent = (targetY - (renderer:GetHeight() + cachedLinePositions:Get(line))) / GetTotalContentHeight()
@@ -453,12 +470,11 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
     end
 
     action SetInterfaceScale(number scale)
-        if scale = GetInterfaceScale()
-            return now
+        if scale not= GetInterfaceScale()
+shouldCalculateWidth = true
+        shouldCalculateHeight = true
         end
 
-        shouldCalculateWidth = true
-        shouldCalculateHeight = true
         parent:Control:SetInterfaceScale(scale)
     end
 
@@ -469,6 +485,7 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
         if failState
             blockListener:SetStartContext(undefined)
         end
+        
         shouldCalculateWidth = true
         shouldCalculateHeight = true
         shouldRegenerateBlocks = true
@@ -484,6 +501,7 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
         if failState
             blockListener:SetStartContext(undefined)
         end
+        
         shouldCalculateWidth = true
         shouldCalculateHeight = true
         shouldRegenerateBlocks = true
@@ -741,6 +759,15 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
         return GetDefaultLineHeight() / GetTotalContentHeight()
     end
 
+    /*
+    Returns the number of lines used for the blocks in the CodeEditor. This also corresponds to the total navigation indices of the blocks in the code.
+    Note that this is different from GetRawTextLineCount, which returns how many lines are in the
+    the raw text that represent the blocks under the hood. These two values can be different if the
+    raw text splits up a single block's code on to multiple lines, e.g. if 
+    a long if statement has its contents split onto multiple lines of text, but still only takes 1 block to represent.
+
+    Attribute: Returns the number of lines used for blocks in the CodeEditor.
+    */
     action GetLineCount returns integer
         if shouldCalculateNavigationIndices
             RefreshNavigationIndices()
@@ -751,6 +778,18 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
         else
             return 0
         end
+    end
+
+    /*
+    Returns the number of lines in the raw text that the blocks represent.
+    Note that this is different from GetLineCount, which returns how many lines it takes to represent the blocks.
+    These two values can be different if the raw text splits up a single block's code on to multiple lines, e.g. if 
+    a long if statement has its contents split onto multiple lines of text, but still only takes 1 block to represent.
+
+    Attribute: Returns the number of lines in the raw text of the code.
+    */
+    action GetRawTextLineCount returns integer
+        return rawCode:GetLineCount()
     end
 
     /*
@@ -915,7 +954,7 @@ and usually shouldn't be called directly by users.
         return textChangeListeners
     end
 
-    action OnTextChange(TextChangeEvent event, integer indexOffset)
+action OnTextChange(TextChangeEvent event, integer indexOffset)
         text deleted = event:GetDeletedText()
         text added = event:GetAddedText()
         integer index = event:GetIndex() + indexOffset
@@ -949,7 +988,7 @@ and usually shouldn't be called directly by users.
         end
     end
 
-    private action NotifyTextChangeListeners(TextChangeEvent event)
+    action NotifyTextChangeListeners(TextChangeEvent event)
         integer counter = 0
         repeat while counter < textChangeListeners:GetSize()
             textChangeListeners:Get(counter):TextChanged(event)
@@ -1033,6 +1072,10 @@ and usually shouldn't be called directly by users.
                 SelectBlockOrItem(selection:GetBlockItem())
             elseif selection:GetBlock() not= undefined
                 SelectBlockOrItem(selection:GetBlockItem())
+            elseif selection:GetLine() = -1
+                if dummyItem not= undefined
+                    dummyItem:Focus()
+                end
             end
         end
         
@@ -1073,6 +1116,20 @@ and usually shouldn't be called directly by users.
             UpdateSelectionCursor()
         else
             GoToBlock(newBlock)
+        end
+        
+        if keyboardMovingBlocks
+            // Move the placeholders to go just under the selected block, if they're not in the right spot.
+            if renderer:GetPlaceholderStartIndex() not= selection:GetLine() + 1
+                MovePlaceholdersToNavigationIndex(selection:GetLine() + 1)
+            end
+            
+            Block currentSelection = selection:GetBlock()
+            // It's possible that the selected block is one of the placeholders we've just moved (especially if the selection moved down into the placeholders).
+            // If this happens, we need to re-sync the selected block and the selected index.
+            if currentSelection not= undefined and currentSelection:IsPlaceholder() and GetBlockAtNavigationIndex(selection:GetLine()) not= currentSelection
+                GetBlockAtNavigationIndex(selection:GetLine()):Focus()
+            end
         end
     end
 
@@ -1133,6 +1190,9 @@ and usually shouldn't be called directly by users.
                 SelectBlockOrItem(next)
             else
                 selection:SetToTopOfFile()
+                if dummyItem not= undefined
+                    dummyItem:Focus()
+                end
             end
         elseif selection:IsEmpty()
             SelectBlockAtLine(0)
@@ -1227,6 +1287,12 @@ and usually shouldn't be called directly by users.
 
     action ClearDebuggerLine
         lineGutter:SetDebuggerLine(-1)
+    end
+    
+    /*This action returns the active line in the debugger, or -1 if the debugger is
+not currently active in the file.*/
+    action GetDebuggerLine returns integer
+        return lineGutter:GetDebuggerLine()
     end
 
     action SelectBlockAtTextLine(integer line) returns Block
@@ -1358,8 +1424,8 @@ and usually shouldn't be called directly by users.
 " + GetIndentationText(scopeDepth)
         if sharesLine
             newLine = "
-
-" + GetIndentationText(scopeDepth)
+"+ GetIndentationText(scopeDepth)+"
+"
         end
 
         /*
@@ -1385,12 +1451,17 @@ and usually shouldn't be called directly by users.
 
         if currentLine >= 0
             targetIndex = targetIndex + newLine:GetSize()
+            if sharesLine
+                targetIndex = targetIndex - rawCode:GetLineSeparator():GetSize()
+            end
 
             newBlock:SetLocalStartLine(currentLine + 1 - parentBlock:GetStartLine())
             newBlock:SetLocalStartIndex(targetIndex - parentBlock:GetStartIndex())
+            newBlock:SetLocalEndIndex(targetIndex - parentBlock:GetStartIndex())
         else
             newBlock:SetLocalStartLine(0)
             newBlock:SetLocalStartIndex(0)
+            newBlock:SetLocalEndIndex(0)
         end
 
         newBlock:SetLocalEndIndex(newBlock:GetLocalStartIndex())
@@ -1515,10 +1586,10 @@ and usually shouldn't be called directly by users.
         integer line = selection:GetLine()
         
 if selection:GetBlock() not= undefined
-            currentLine = selection:GetBlock():GetEndLine()
+            line = selection:GetBlock():GetEndLine()
         end
         
-        InsertTextAfterLine(selection:GetLine(), value)
+        InsertTextAfterLine(line, value)
     end
     
     action InsertTextAfterLine(integer line, text value)
@@ -1530,22 +1601,51 @@ if selection:GetBlock() not= undefined
             targetIndex = rawCode:GetSize()
         elseif currentLine >= 0
             // Get the start of the next line, then go back one to reach the end of the current line.
-            targetIndex = rawCode:CharacterIndexFromLineIndex(currentLine + 1) - rawCode:GetLineSeparator():GetSize()
+            targetIndex = rawCode:CharacterIndexFromLineIndex(currentLine + 1)
         end
 
-        text newLine = rawCode:GetLineSeparator() + value
+        text newLine = value + value:GetLineFeed()
 
-        MultipleLineText oldCode = GetCode()
+        MultipleLineText oldCode = rawCode
         // Process a text change event. This will automatically update the MultipleLineText.
         TextChangeEvent event
         event:Initialize(me, newLine, "", targetIndex)
         OnTextChange(event, 0)
 
         BlockChangeEvent blockEvent
-        blockEvent:Set(me, oldCode, GetCode())
+        blockEvent:Set(me, oldCode, rawCode)
 
         NotifyBlockChangeListeners(blockEvent)
 
+        shouldCalculateWidth = true
+        shouldCalculateHeight = true
+        shouldRegenerateBlocks = true
+        shouldCalculateNavigationIndices = true
+        RequestLayout()
+    end
+    
+    action InsertText(integer index, text value)
+        
+integer targetIndex = index
+        value = SanitizeNewLines(value)
+        editManager:SetSpecialAction(true)
+
+        if targetIndex >= rawCode:GetSize()
+            targetIndex = rawCode:GetSize() - 1
+        end
+
+
+        MultipleLineText oldCode = GetCode()
+        // Process a text change event. This will automatically update the MultipleLineText.
+        TextChangeEvent event
+        event:Initialize(me, value, "", targetIndex)
+        OnTextChange(event, 0)
+
+        BlockChangeEvent blockEvent
+        blockEvent:Set(me, oldCode, GetCode())
+
+        NotifyBlockChangeListeners(blockEvent)
+editManager:SetSpecialAction(false)
         shouldCalculateWidth = true
         shouldCalculateHeight = true
         shouldRegenerateBlocks = true
@@ -1800,6 +1900,7 @@ if selection:GetBlock() not= undefined
             SelectBlockOrItem(targetSelection)
         else
             selection:SetToTopOfFile()
+            dummyItem:Focus()
         end
 
         if parentBlock is RootBlock and parentBlock:GetChildCount() = 0
@@ -2020,7 +2121,10 @@ if selection:GetBlock() not= undefined
         repeat while i <= endLine
             integer startIndex = updatedText:CharacterIndexFromLineIndex(i)
             if startIndex + 4 < updatedText:GetSize() 
-            updatedText = updatedText:Delete(startIndex, startIndex + 4)
+                text whitespaceCheck = updatedText:GetText(startIndex, startIndex + 4)
+                if whitespaceCheck:Trim() = ""
+                                updatedText = updatedText:Delete(startIndex, startIndex + 4)
+                end
             end
             i = i + 1
         end
@@ -2098,10 +2202,16 @@ if selection:GetBlock() not= undefined
         Item focus = manager:GetFocus()
         if focus is Block
             Block block = cast(Block, focus)
-            return block:GetBlockEnvironment():Equals(me)
+            BlockEnvironment envir = block:GetBlockEnvironment()
+            if envir not= undefined
+                return envir:Equals(me)
+            end
         elseif focus is BlockItem
             BlockItem item = cast(BlockItem, focus)
-            return item:GetBlockEnvironment():Equals(me)
+            BlockEnvironment envir = item:GetBlockEnvironment()
+            if envir not= undefined
+                return envir:Equals(me)
+            end
         end
 
         return false
@@ -2547,6 +2657,9 @@ Block toNavigate = block
     action GetEditRegionAtTextIndex(integer index) returns EditRegion
         integer line = GetLineIndex(index)
         Block block = renderer:GetNavigableBlockAtTextLine(line)
+        if block = undefined
+            return undefined
+        end
         Array<Item2D> children = block:GetChildren()
         integer i = 0
         repeat while i < children:GetSize()
@@ -2607,9 +2720,7 @@ Block lastBlock = GetLastBlock()
         return current
     end
     
-    
-    
-action IsAccessibleParent returns boolean
+    action IsAccessibleParent returns boolean
         return true
     end
     
@@ -2620,7 +2731,7 @@ action IsAccessibleParent returns boolean
     end
     
     action MovePlaceholdersToNavigationIndex(integer index)
-renderer:MovePlaceholdersToNavigationIndex(index)
+        renderer:MovePlaceholdersToNavigationIndex(index)
     end
     
     action HasPlaceholders returns boolean
@@ -2629,17 +2740,119 @@ renderer:MovePlaceholdersToNavigationIndex(index)
     
     action ConvertPlaceholdersToBlocks(text toInsert)
         renderer:ConvertPlaceholdersToBlocks(toInsert)
+        // If the editor has been manually instructed to convert placeholders to blocks,
+        // there's no longer anything to move with the keyboard, if we were doing so.
+        keyboardMovingBlocks = false
     end
     
     action RemovePlaceholders
         renderer:RemovePlaceholders()
     end
     
-action SetMovingBlocks(Array<Block> blocks)
+    action SetMovingBlocks(Array<Block> blocks)
         renderer:SetMovingBlocks(blocks)
-end
+    end
 
-action CanAcceptPlaceholdersAtNavigationIndex(integer navigationIndex) returns boolean
+    action CanAcceptPlaceholdersAtNavigationIndex(integer navigationIndex) returns boolean
         return renderer:CanAcceptPlaceholdersAtNavigationIndex(navigationIndex)
-end
+    end
+    
+    /*This action inserts the array of given blocks as placeholders at the given navigation index.
+The user can then move the blocks up or down within the editor before confirming or cancelling
+the placement.*/
+    action KeyboardInsertBlocksAtIndex(integer navigationIndex, Array<Block> newBlocks)
+        if IsKeyboardMovingBlocks()
+            CancelKeyboardMovingBlocks()
+        end
+        keyboardMovingBlocks = true
+            InsertPlaceholdersAtNavigationIndex(navigationIndex, newBlocks)
+        if selection:GetBlock() not= undefined
+            selection:GetBlock():Focus()
+        else
+            Focus()
+        end
+    end
+    
+    /*This action indicates whether the editor is currently moving blocks using the keyboard.
+This includes when placing blocks via keyboard commands from a block palette.*/
+    action IsKeyboardMovingBlocks returns boolean
+        return keyboardMovingBlocks
+    end
+    
+    /*This action confirms the placement of blocks being moved with the keyboard. The editor
+will convert the placeholders to "real" blocks and exit the keyboard moving mode.*/
+    action ConfirmKeyboardMovingBlocks
+        renderer:ConvertPlaceholdersToBlocks()
+        keyboardMovingBlocks = false
+    end
+    
+    /*This action cancels the placement of blocks being moved with the keyboard. The editor
+will remove the placeholders and revert the blocks to their prior state before exiting
+keyboard moving mode.*/
+    action CancelKeyboardMovingBlocks
+        RemovePlaceholders()
+        keyboardMovingBlocks = false
+    end
+    
+    /*This action will return the navigation index that most closely matches with the given
+line number in the raw text. */
+    action GetNavigationIndexFromLine(integer line) returns integer
+        if GetLineCount() <= 0
+            return -1
+        end
+        
+        if line < 0
+            line = 0
+        end
+        if line >= GetLineCount()
+            line = GetLineCount() - 1
+        end
+        
+        // Once we start searching, we'll need to either to iterate forward or backwards through the blocks to find the correct line. 
+        // Assume at first we need to iterate forward, but we'll check if this makes sense before using it.
+        boolean moveForward = true
+        
+        // Start by trying to grab the block where (navigationIndex = lineNumber). Most of the time, these two will be the same.
+        Block block = GetBlockAtNavigationIndex(line)
+        if block not= undefined and line < block:GetStartLine()
+            moveForward = false
+        end
+        
+        // Return the block's index if it contains the line. Otherwise, check the next/previous block.
+        // This is technically O(n), but in practice, the navigation index and line numbers will rarely diverge very far.
+        repeat until block = undefined
+            if block:GetStartLine() >= line and block:GetEndLine() <= line
+                return block:GetNavigationIndex()
+            end
+            if moveForward
+                block = block:GetNextNavigableBlock()
+            else
+                block = block:GetPreviousNavigableBlock()
+            end
+        end
+        
+        return -1
+    end
+    
+/*This action will return the text line number that most closely matches with the given
+navigation index. */
+    action GetLineFromNavigationIndex(integer index) returns integer
+if GetLineCount() <= 0
+            return -1
+        end
+        
+        if index < 0
+            index = 0
+        end
+        if index >= GetLineCount()
+            index = GetLineCount() - 1
+        end
+        
+        Block block = GetBlockAtNavigationIndex(index)
+        if block not= undefined
+            return block:GetStartLine()
+        end
+        
+        return -1
+    end
 end

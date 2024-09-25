@@ -1,0 +1,9 @@
+package Libraries.Interface.Forms
+use Libraries.Containers.Array
+use Libraries.Interface.Item2D
+
+class FormPanel is FormContainerControl
+    action GetFormChildren returns Array<Item2D>
+        return GetChildren()
+    end
+end

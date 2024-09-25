@@ -37,14 +37,10 @@ class Motor
     private system action SetRelativePositionNative(integer position)
 
     action Run(integer velocity)
-        RunNative(velocity, 1000)
+        RunNative(velocity)
     end
 
-    action Run(integer velocity, integer acceleration)
-        RunNative(velocity, acceleration)
-    end
-
-    private system action RunNative(integer velocity, integer acceleration)
+    private system action RunNative(integer velocity)
 
     system action RunToDegrees(integer degrees, integer velocity)
 
@@ -55,7 +51,7 @@ class Motor
     system action RunToRelativePosition(integer position, integer velocity)
 
     action SetDutyCycle(integer pulseWidthModulation)
-        SetDutyCycle(pulseWidthModulation)
+        SetDutyCycleNative(pulseWidthModulation)
     end
     private system action SetDutyCycleNative(integer pulseWidthModulation)
 

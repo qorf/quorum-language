@@ -1,0 +1,59 @@
+package Science.Tests
+
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.PrincipalComponentAnalysis
+use Libraries.Compute.Statistics.Reporting.PrincipalComponentAnalysisResult
+
+/*
+    This class tests a pca with varimax rotation
+*/
+class UndefinedPrincipalComponentAnalysisVarimaxRotationTest is Test
+
+    on create
+        SetName("Calculate Undefined PCA with orthogonal uncorrelated (varimax) rotation")
+    end
+
+    action Run
+        DataFrame frame 
+        frame:LoadFromCommaSeparatedValue(
+        "Q01,Q02,Q03,Q04,Q05,Q06,Q07
+        4,5,2,4,4,4,3
+        5,5,2,3,4,4,4
+        4,3,4,4,2,5,4
+        3,5,5,2,3,3,2
+        4,5,3,4,4,3,3
+        4,5,3,4,2,2,2
+        4,3,3,4,4,4,4
+        4,4,3,4,4,4,4
+        3,3,5,2,1,3,1
+        4,2,2,3,4,5,4
+        4,5,1,4,4,5,4
+        4,5,3,3,2,3,3
+        3,5,3,2,3,4,3
+        4,4,5,4,4,4,3
+        4,4,3,2,4,4,3
+        3,5,4,4,4,4,4
+        5,4,1,4,5,5,5
+        4,4,3,3,3,2,3
+        4,3,2,4,3,5,5
+        4,5,5,4,3,2,2
+        5,4,3,4,2,5,4
+        3,,4,2,2,1,1")
+        frame:SelectAllColumns()
+
+        PrincipalComponentAnalysis test
+        test:UseUncorrelatedRotation()
+        test:Calculate(frame, 3)
+        
+        PrincipalComponentAnalysisResult result = test:GetResult()
+        Check(result:GetVarianceAccountedFor():Get(0), 2.2736333862323863)
+        Check(result:GetVarianceAccountedFor():Get(1), 1.5439324925061908)
+        Check(result:GetVarianceAccountedFor():Get(2), 1.673124949217192)
+        Check(result:GetRootMeanSquareOfResiduals(), 0.09240690484377691)
+        Check(result:GetTestStatistic(), 7.531429807395632)
+        Check(result:GetDegreesOfFreedom(), 3.0)
+        Check(result:GetProbabilityValue(), 0.05675636145961194)
+        Check(result:GetModelFit(), 0.950317411826676)
+    end
+end

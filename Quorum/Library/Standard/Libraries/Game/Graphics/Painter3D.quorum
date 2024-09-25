@@ -39,9 +39,10 @@ class Painter3D is Disposable
     end
 
     private action GetDefaultShaders returns ShaderProgram
-        ShaderManager manager
-        if manager:HasShaderProgram(manager:DEFAULT_3D_SHADER_PROGRAM)
-            return manager:GetShaderProgram(manager:DEFAULT_3D_SHADER_PROGRAM)
+        GameStateManager manager
+        ShaderManager shaderManager = manager:GetShaderManager()
+        if shaderManager:HasShaderProgram(shaderManager:DEFAULT_3D_SHADER_PROGRAM)
+            return shaderManager:GetShaderProgram(shaderManager:DEFAULT_3D_SHADER_PROGRAM)
         else
             DefaultShaderProgram3D default3D
             // Compiling this program will automatically register it with the manager.

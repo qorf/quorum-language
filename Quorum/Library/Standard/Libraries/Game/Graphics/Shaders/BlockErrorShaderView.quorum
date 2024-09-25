@@ -5,6 +5,7 @@ use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.Shaders.ShaderProgram
 use Libraries.Game.Graphics.Shaders.ControlShaderProgram
 use Libraries.Game.Graphics.Shaders.BlockErrorShaderProgram
+use Libraries.Game.GameStateManager
 
 /*
 The ControlShaderView is used to render many standard kinds of Controls. It automatically
@@ -60,7 +61,8 @@ class BlockErrorShaderView is DrawableView
         color:SetColor(1, 1, 1, 1)
         LoadFilledRectangle(2, 2, color)
 
-        ShaderManager manager
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
         ShaderProgram program = undefined
         if manager:HasShaderProgram("Block Error Shader Program")
             program = manager:GetShaderProgram("Block Error Shader Program")

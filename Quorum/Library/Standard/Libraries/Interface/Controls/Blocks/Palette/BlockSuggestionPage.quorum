@@ -1,0 +1,498 @@
+package Libraries.Interface.Controls.Blocks.Palette
+
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Events.SelectionListener
+use Libraries.Interface.Selections.Selection
+use Libraries.Interface.Selections.CodeEditorSelection
+use Libraries.Containers.Iterator
+use Libraries.Language.Compile.CodeCompletionItem
+use Libraries.Language.Compile.CodeCompletionResult
+use Libraries.Containers.Array
+use Libraries.Language.Compile.Symbol.Class
+use Libraries.Language.Compile.Symbol.Action
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Events.TextChangeListener
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Language.Compile.Symbol.Documentation
+use Libraries.Language.Compile.Symbol.Variable
+use Libraries.Interface.Controls.List
+use Libraries.Containers.HashTable
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
+use Libraries.Interface.Forms.Grouping
+use Libraries.Interface.Controls.TextBox
+use Libraries.Game.Graphics.Label
+use Libraries.Language.Compile.CompilerError
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Controls.Blocks.ActionBlock
+use Libraries.Interface.Controls.Blocks.ClassBlock
+use Libraries.Interface.Controls.Blocks.FreeformBlock
+use Libraries.Interface.Forms.Banner
+use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Hints.Hint
+use Libraries.Interface.Behaviors.Blocks.BlockPaletteHintBehavior
+use Libraries.Interface.Forms.FormPanel
+use Libraries.Game.Graphics.Color
+
+class BlockSuggestionPage is BlockPalettePage, SelectionListener, TextChangeListener
+
+    TextField filterField = undefined
+    Array<Button> suggestedActionItems
+    Array<Action> suggestedActions
+    text variableName = ""
+    integer HEADER_SIZE = 24
+    integer HEADER2_SIZE = 18
+integer LABEL_SIZE = 12
+    Label variableNameLabel = undefined
+    Label variableTypeLabel = undefined
+    BlockPaletteVariableList variableList = undefined
+    boolean isImplicitClass = false
+    
+    on create
+        LeftAlignContent()
+    end
+    
+    action SelectionChanged(SelectionEvent event)
+//        GetFormChildren():Empty()
+//        Selection selection = event:GetSelection()
+//        if selection not= undefined
+//            CodeEditorSelection blockSelection = cast(CodeEditorSelection, selection)
+//            Block block = blockSelection:GetBlock()
+//            if block not= undefined
+//                output block:GetName()
+//                SetTitle(block:GetName())
+//            end
+//        end
+    end
+    
+    action SetFromList(Array<text> list)
+        EmptyPage()
+        integer i = 0
+        repeat while i < list:GetSize()
+            AddBlockPaletteItem(list:Get(i))
+            i = i + 1
+        end
+    end
+
+    private action GetDescriptionFromResultClass(BlockSuggestionResult result, Class clazz, 
+Documentation clazzDocs) returns text
+        if result:isPrimitive and clazz not= undefined
+            Type type
+            type:SetToObject(clazz)
+            if type:IsIntegerObject()
+                return "A whole number between -2,147,483,648 and 2,147,483,647."
+            elseif type:IsNumberObject()
+                return "A number with a decimal point between roughly -1.79769e308 and 1.79769e308." 
+            elseif type:IsBooleanObject()
+                return "A value that can only be true or false."
+            elseif type:IsTextObject()
+                return "A set of characters in a sequence"
+            end
+        elseif clazzDocs not= undefined
+            return clazzDocs:RemoveInternalWhitespace(clazzDocs:GetShortDescription())
+        end
+        return ""
+    end
+    action SetFromResult(BlockSuggestionResult result)
+EmptyPage()
+        suggestedActionItems:Empty()
+        suggestedActions:Empty()
+        Class clazz = result:clazz
+        if clazz = undefined
+            SetupDefaultSuggestions()
+            return now
+        end
+        text className = clazz:GetName()
+        me:isImplicitClass = clazz:IsImplicitClass()
+        Block currentBlock = undefined
+        if result:requestingBlock not= undefined
+            currentBlock = result:requestingBlock
+if not currentBlock:IsErrorsEmpty()
+                CompilerError error = currentBlock:GetFirstError()
+                AddBanner("Errors: ", error:GetErrorMessage())
+                //AddLabel("Errors: "):SetFontSize(HEADER2_SIZE)
+                ///AddLabel(error:GetErrorMessage()):SetFontSize(LABEL_SIZE)
+                SetupDefaultSuggestions()
+                return now
+            end
+        end
+        Array<Action> actions = result:actions
+        if actions not= undefined
+            actions:Sort()
+        end
+        suggestedActions = actions
+        text variableName = result:variableName
+        me:variableName = variableName
+        
+        Array<Variable> blockVariables = result:blockVariables
+Array<Variable> classVariables = result:classVariables
+Array<Variable> parentVariables = result:parentVariables
+        
+    //AddLabel(className):SetFontSize(HEADER_SIZE)
+        Documentation clazzDocs = undefined
+        clazzDocs = clazz:GetDocumentation()
+    text blockName = ""
+        text blockDescription = ""
+if currentBlock not= undefined
+            Block block = currentBlock
+if block is MultipleLineBlockPart
+                block = block:GetParentBlock()
+            end
+if block:GetBlockName() not= ""
+                        blockName = block:GetBlockName()
+end
+            if block:GetBlockDescription() not= ""
+                //TextBox box = AddTextBox("Block Description")
+                //box:SetFontSize(LABEL_SIZE)
+                        blockDescription = block:GetBlockDescription()
+end
+        end
+        if blockName not= ""
+            if blockDescription not= ""
+                Banner banner = AddBanner(blockName, blockDescription)
+                banner:GetLabel():SetFontSize(LABEL_SIZE)
+            else
+                AddBanner(blockName)
+            end
+            AddFilterTextField()
+            AddLabel(className + " Class"):SetFontSize(HEADER_SIZE)
+if clazzDocs not= undefined 
+                text description = GetDescriptionFromResultClass(result, clazz, clazzDocs)
+//clazzDocs:RemoveInternalWhitespace(clazzDocs:GetShortDescription())
+                if description not= ""
+                    AddLabel(description):SetFontSize(LABEL_SIZE)
+                end
+        end
+        else
+            if clazzDocs not= undefined
+text description = GetDescriptionFromResultClass(result, clazz, clazzDocs)
+//clazzDocs:RemoveInternalWhitespace(clazzDocs:GetShortDescription())
+                Banner banner = AddBanner(className, description)
+                Label bannerLabel = banner:GetLabel()
+                if bannerLabel not= undefined
+                    bannerLabel:SetFontSize(LABEL_SIZE)
+                end
+            else
+                AddBanner(className + " Class")
+            end
+            AddFilterTextField()
+        end
+        AddHints(result:requestingBlock)
+        BlockPaletteVariableList varList = undefined
+        boolean showVariables = false
+        if blockVariables not= undefined and blockVariables:GetSize() > 0
+            showVariables = true
+        elseif classVariables not= undefined and classVariables:GetSize() > 0
+            showVariables = true
+        elseif parentVariables not= undefined and parentVariables:GetSize() > 0
+            showVariables = true
+        end
+        if showVariables
+            Label varListLabel = AddLabel("Variables for " + className)
+            varListLabel:SetFontSize(HEADER2_SIZE)
+            varListLabel:SetFocusable(false)
+            varList = AddVariableList()
+            text listName = "Variable List for class " + clazz:GetName()
+            varList:SetName(listName)
+            integer size = varList:GetSize()
+            varList:SetDescription(size + " items")
+            varList:SetFontSize(LABEL_SIZE)
+            me:variableList = varList
+        end
+        
+if blockVariables not= undefined and blockVariables:GetSize() > 0
+            integer i = 0
+            Array<text> vars
+            repeat while i < blockVariables:GetSize()
+                Variable variable = blockVariables:Get(i)
+                if variable not= undefined and variable:GetType() not= undefined
+text name = variable:GetDisplayName()+" "+variable:GetType():GetName()
+                vars:Add(name)
+                varList:AddLocalVariable(variable)
+                end
+                i = i + 1
+            end
+            vars:Sort()
+        end
+if classVariables not= undefined and classVariables:GetSize() > 0
+            integer i = 0
+            Array<text> vars
+            repeat while i < classVariables:GetSize()
+                Variable variable = classVariables:Get(i)
+                vars:Add(variable:GetDisplayName()+" "+variable:GetType():GetName())
+varList:AddClassVariable(variable)
+                i = i + 1
+            end
+            vars:Sort()
+        end
+if parentVariables not= undefined and parentVariables:GetSize() > 0
+            integer i = 0
+            Array<text> vars
+            repeat while i < parentVariables:GetSize()
+                Variable variable = parentVariables:Get(i)
+                vars:Add(variable:GetDisplayName()+" "+variable:GetType():GetName())
+varList:AddParentVariable(variable)
+                i = i + 1
+            end
+            vars:Sort()
+        end
+        
+        boolean showActions = true
+if currentBlock not= undefined
+            if currentBlock is FreeformBlock
+                if IsBlockInAction(currentBlock)
+                    AddBasicBlocks()
+                    AddControlBlocks()
+                elseif IsBlockInClass(currentBlock)
+                                        AddActionBlocks()
+AddBasicBlocks()
+                elseif not IsBlockInClass(currentBlock) and not me:isImplicitClass
+                    AddActionBlocks()
+                    showActions = false
+                elseif me:isImplicitClass
+                    AddBasicBlocks()
+                    AddControlBlocks()
+                    AddActionBlocks()
+                    showActions = false
+                end
+            end
+        end
+        
+if not showActions
+            CalculateDefaultFocusOrdering()
+            return now
+        end
+        if actions not= undefined
+            AddLabel("Actions for " + className):SetFontSize(HEADER_SIZE)
+
+        integer i = 0
+        repeat while i < actions:GetSize()
+            text call = MakeFullActionCall(actions:Get(i), variableName)
+if call not= ""
+suggestedActionItems:Add(AddBlockPaletteItem(call))
+            end
+            i = i + 1
+        end
+        end
+        CalculateDefaultFocusOrdering()
+    end
+    
+    action SetupDefaultSuggestions
+        AddLabel("Basic"):SetFontSize(HEADER2_SIZE)
+        AddBasicBlocks()
+AddLabel("Control"):SetFontSize(HEADER2_SIZE)
+        AddControlBlocks()
+AddLabel("Action"):SetFontSize(HEADER2_SIZE)
+        AddActionBlocks()
+    end
+
+    action AddFilterTextField
+        if filterField not= undefined
+            filterField:RemoveTextChangeListener(me)
+        end
+        FormPanel panel
+        FlowLayout layout
+        layout:SetSingleLine(true)
+        panel:SetLayout(layout)
+        Color color
+        panel:SetBorderColor(color:Blue())
+        panel:SetBackgroundColor(color:White())
+        Label filterLabel = panel:AddLabel("Filter:")
+        filterLabel:SetFontSize(HEADER2_SIZE)
+        filterLabel:SetBottomMargin(2)
+        filterLabel:SetPositionOnBaseLine(false)
+        filterLabel:SetRightMargin(5)
+        filterLabel:SetFocusable(false)
+        filterField = panel:AddTextField("Filter Text Field")
+        filterField:AddTextChangeListener(me)
+        filterField:SetVerticalLayoutMode(filterField:parent:Control:FIT_FONT)
+filterField:SetHorizontalLayoutMode(filterField:parent:Control:FILL)
+        Add(panel)
+    end
+    
+    action AddHints(Block block)
+        if block = undefined
+            return now
+        end
+        if not block:IsHintsEmpty()
+            AddLabel("Hints"):SetFontSize(HEADER_SIZE)
+            integer i = 0
+            Iterator<Hint> hints = block:GetHintIterator()
+            repeat while hints:HasNext()
+                Hint hint = hints:Next()
+                BlockPaletteHintBehavior behave
+                behave:SetEditor(GetEditor())
+                behave:SetHint(hint)
+                AddLabel(hint:GetHintMessage()):SetFontSize(LABEL_SIZE)
+                Button butt = AddButton("Execute Hint")
+                butt:SetBehavior(behave)
+            end
+        end
+    end
+    
+    action SetActionsFromVariable(Variable variable)
+        BlockSuggestionHandler handler = GetPalette():GetBlockSuggestionHandler()
+        if handler = undefined
+            return now
+        end
+        Array<Action> actions = handler:RequestVariableActions(variable)
+        if actions = undefined
+            return now
+        end
+        ClearSuggestions()
+        if variableNameLabel not= undefined
+            Remove(variableNameLabel)
+            variableNameLabel = undefined
+        end
+        if variableTypeLabel not= undefined
+            Remove(variableTypeLabel)
+            variableTypeLabel = undefined
+        end
+        variableNameLabel = AddLabel(variable:GetName())
+        variableNameLabel:SetFontSize(HEADER2_SIZE)
+        variableTypeLabel = AddLabel(variable:GetType():GetStaticKey())
+        variableTypeLabel:SetFontSize(LABEL_SIZE)
+integer i = 0
+            repeat while i < actions:GetSize()
+                Action act = actions:Get(i)
+                text actionName = act:GetName()
+                actionName = actionName:ToLowerCase()
+            text call = ""
+            if me:variableName = ""
+                                call = MakeFullActionCall(act, variable:GetName())
+            else
+call = MakeFullActionCall(act, me:variableName+":"+variable:GetName())
+end
+                    if call not= ""
+suggestedActionItems:Add(AddBlockPaletteItem(call))
+                    end
+                i = i + 1
+            end
+        CalculateDefaultFocusOrdering()
+    end
+    
+    action IsBlockInAction(Block block) returns boolean
+        Block enclosing = block:GetEnclosingBlock()
+        repeat while enclosing not= undefined
+            if enclosing is ActionBlock
+                return true
+            end
+            enclosing = enclosing:GetEnclosingBlock()
+        end
+        return false
+    end
+
+action IsBlockInClass(Block block) returns boolean
+Block enclosing = block:GetEnclosingBlock()
+        repeat while enclosing not= undefined
+            if enclosing is ClassBlock
+                return true
+            end
+            enclosing = enclosing:GetEnclosingBlock()
+        end
+        return false
+    end
+    
+action IsBlockAtRootLevel(Block block) returns boolean
+        return false
+    end
+    
+    action TextChanged(TextChangeEvent event)
+        if filterField = undefined
+            return now
+        end
+text filter = filterField:GetText()
+        if variableList not= undefined
+            variableList:Filter(filter:ToLowerCase())
+        end
+        if suggestedActions = undefined
+            return now
+        end
+            filter = filter:ToLowerCase():Trim()
+            ClearSuggestions()
+            integer i = 0
+            repeat while i < suggestedActions:GetSize()
+                Action act = suggestedActions:Get(i)
+                text actionName = act:GetName()
+                actionName = actionName:ToLowerCase()
+                if actionName:Contains(filter) or filter = ""
+                    text call = MakeFullActionCall(act, variableName)
+                    if call not= ""
+suggestedActionItems:Add(AddBlockPaletteItem(call))
+                    end
+                end
+                i = i + 1
+            end
+        CalculateDefaultFocusOrdering()
+    end
+
+    action ClearSuggestions
+        integer i = 0
+        repeat while i < suggestedActionItems:GetSize()
+            Button button = suggestedActionItems:Get(i)
+            button:GetParent():Remove(button)
+            i = i + 1
+        end
+        suggestedActionItems:Empty()
+    end
+
+    action MakeFullActionCall(Action act, text variableName) returns text
+        if act = undefined
+            return ""
+        end
+        text call = ""
+        if variableName:Trim() not= ""
+            call = variableName:Trim() + ":"
+        end
+        call = call + act:GetName() + "("
+        Iterator<Variable> params = act:GetParameterIterator()
+        if params not= undefined
+            repeat while params:HasNext()
+                Variable param = params:Next()
+                call = call + param:GetName()
+                if params:HasNext()
+                    call = call + ", "
+                end
+            end
+        end
+        call = call + ")"
+        return call
+        
+    end
+    
+    action SetCodeCompletionResult(CodeCompletionResult result)
+        
+        //the system is telling us we're between parses. Just ignore this request
+        if result = undefined
+            return now
+        elseif not result:IsValidCodeCompletion()
+            return now
+        else //seems like a valid request
+        end
+        
+        Iterator<CodeCompletionItem> iterator = result:GetIterator()
+        //Empty()
+        resultSize = 0
+        if not iterator:HasNext()
+            return now
+        end
+
+        
+
+        repeat while iterator:HasNext()
+            CodeCompletionItem code = iterator:Next()
+            if (code:displayText:StartsWith(result:filter)) or (((not code:displayText:IsEmpty()) and result:filter:IsEmpty()))
+                resultSize = resultSize + 1
+                //item:SetShortcut(code:rightDisplayText)
+                AddLabel(code:documentationText)
+                
+                BlockPaletteItem item = cast(BlockPaletteItem, AddBlockPaletteItem(code:displayText))
+
+            end
+        end
+    end
+
+end

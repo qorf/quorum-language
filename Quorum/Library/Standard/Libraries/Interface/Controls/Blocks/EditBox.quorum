@@ -12,6 +12,9 @@ use Libraries.Interface.Controls.Blocks.Block
 use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
 use Libraries.Containers.MultipleLineText
 use Libraries.Interface.Selections.TextBoxSelection
+use Libraries.Interface.Controls.Blocks.Palette.BlockPalette
+use Libraries.Interface.Controls.Blocks.Palette.BlockPaletteItem
+use Libraries.Containers.Array
 
 class EditBox is TextBox, EditRegion
 
@@ -79,18 +82,38 @@ class EditBox is TextBox, EditRegion
         number height = 10
         BlockEnvironment editor = GetBlockEnvironment()
         Block block = GetBlock()
+        
+        // If this is in a BlockPaletteItem, we want to grab the editor attached to it, not the item itself.
+        // This is because the item and the editor most likely have different fonts, but the one we care about is what's being used in the editor.
+        if editor is BlockPaletteItem
+            BlockPaletteItem item = cast(BlockPaletteItem, editor)
+            editor = item:GetEditor()
+        end
 
         if editor not= undefined
             glyphWidth = editor:GetDefaultGlyphWidth()
-
-            height = editor:GetDefaultUnpaddedLineHeight() * (block:GetLocalEndLine() - block:GetLocalStartLine() + 1)     
+            height = editor:GetDefaultUnpaddedLineHeight() * (block:GetLocalEndLine() - block:GetLocalStartLine() + 1)
+        elseif GetFont() not= undefined
+            height = GetFont():GetLineHeight() * (block:GetLocalEndLine() - block:GetLocalStartLine() + 1)
         end
 
         number minimumLength = 0
         number length = 0
 
-        if block:GetLastBlockItem():Equals(me)
-            minimumLength = block:GetMinimumWidth() - GetX() - block:GetRightPadding()
+        // We need to check if this is the last BlockItem attached to the Block. If it is, we need to consider the block's minimum length.
+        Array<Item2D> blockChildren = block:GetChildren()
+        integer counter = blockChildren:GetSize()
+        repeat while counter > 0
+            counter = counter - 1
+            Item2D item = blockChildren:Get(counter)
+            if item is BlockItem
+                if item:Equals(me)
+                    minimumLength = block:GetMinimumWidth() - GetX() - block:GetRightPadding()
+                else
+                    // If we found a different block item, abort.
+                    counter = 0
+                end
+            end
         end
 
         if GetLineCount() > 1

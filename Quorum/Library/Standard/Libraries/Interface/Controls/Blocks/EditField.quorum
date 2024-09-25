@@ -11,6 +11,8 @@ use Libraries.Interface.Events.TextChangeEvent
 use Libraries.Interface.Controls.Blocks.Block
 use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
 use Libraries.Interface.Selections.TextFieldSelection
+use Libraries.Interface.Controls.Blocks.Palette.BlockPaletteItem
+use Libraries.Containers.Array
 
 class EditField is TextField, EditRegion
 
@@ -77,9 +79,19 @@ class EditField is TextField, EditRegion
         number glyphWidth = 10
         number height = 10
         BlockEnvironment editor = GetBlockEnvironment()
+        
+if editor is BlockPaletteItem
+            BlockPaletteItem item = cast(BlockPaletteItem, editor)
+            editor = item:GetEditor()
+        end
+        
+// If this is in a BlockPaletteItem, we want to grab the editor attached to it, not the item itself.
+        // This is because the item and the editor most likely have different fonts, but the one we care about is what's being used in the editor.
         if editor not= undefined
             glyphWidth = editor:GetDefaultGlyphWidth()
             height = editor:GetUnpaddedLineHeight(GetBlock():GetStartLine())
+        elseif GetFont() not= undefined
+            height = GetFont():GetLineHeight()
         end
 
         integer characterCount = 0
@@ -93,8 +105,21 @@ class EditField is TextField, EditRegion
         number length = 0
 
         Block block = GetBlock()
-        if block not= undefined and block:GetLastBlockItem():Equals(me)
-            minimumLength = block:GetMinimumWidth() - GetX() - block:GetRightPadding()
+        
+// We need to check if this is the last BlockItem attached to the Block. If it is, we need to consider the block's minimum length.
+        Array<Item2D> blockChildren = block:GetChildren()
+        integer counter = blockChildren:GetSize()
+        repeat while counter > 0
+            counter = counter - 1
+            Item2D item = blockChildren:Get(counter)
+            if item is BlockItem
+                if item:Equals(me)
+minimumLength = block:GetMinimumWidth() - GetX() - block:GetRightPadding()
+                else
+                    // If we found a different block item, abort.
+                    counter = 0
+                end
+            end
         end
 
         if characterCount <= 1
@@ -102,7 +127,7 @@ class EditField is TextField, EditRegion
         else
             length = characterCount * glyphWidth + GetLeftCharacterPadding() * 2
         end
-
+        
         if length < minimumLength
             length = minimumLength
         end

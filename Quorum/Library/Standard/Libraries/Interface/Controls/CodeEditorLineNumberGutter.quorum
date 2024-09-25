@@ -108,15 +108,14 @@ class CodeEditorLineNumberGutter is LineNumberGutter, BreakpointListener
                 
                 background:SetPosition(width - background:GetWidth() - rightMargin, y + myHeight)
 
-                Breakpoint point = breakpoints:GetBreakpoint(file:GetAbsolutePath(), currentLine - 1)
-                if (point not= undefined) or (currentLine - 1 = parent:LineNumberGutter:debuggerLine and parent:LineNumberGutter:debuggerLine not= -1)
-                    if currentLine - 1 = parent:LineNumberGutter:debuggerLine
+                integer textLine = editor:GetLineFromNavigationIndex(currentLine)
+                Breakpoint point = breakpoints:GetBreakpoint(file:GetAbsolutePath(), textLine - 1)
+                if (point not= undefined) or (textLine - 1 = parent:LineNumberGutter:debuggerLine and parent:LineNumberGutter:debuggerLine not= -1)
+                    if textLine - 1 = parent:LineNumberGutter:debuggerLine
                         background:SetColor(GetSelectionColor())
-                    elseif point not= undefined and point:GetLine() = currentLine - 1
+                    elseif point not= undefined and point:GetLine() = textLine - 1
                         background:SetColor(GetAccentColor())
                     end
-                    //label:SetColor(GetFocusFontColor())
-                    //label:SetShadowColor(GetFontOutlineColor())
                     fillBackground = true
                 end
             end

@@ -1,0 +1,133 @@
+package Science.Tests
+
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.CompareMeansPairwise
+use Libraries.Compute.Statistics.Reporting.CompareMeansResult
+
+/*
+    This class tests a bonferroni procedure on pairwise comparisons with bonferroni corrections
+*/
+class UndefinedCompareMeansPairwiseUnfittedStrictCorrectionTest is Test
+
+    on create
+        SetName("Calculate UndefinedCompareMeansPairwiseUnfittedStrictCorrectionTest")
+    end
+
+    action Run
+        DataFrame frame 
+        frame:LoadFromCommaSeparatedValue("y,x1,x2,x3
+        2.0,4.0,-9.0,9
+        6.0,7,-19.0,19
+        3.0,4.0,-18.0,18
+        9.0,8.0,-16.0,16
+        15.0,17.0,-2.0,2
+        1.0,,-4.0,4")
+        frame:AddSelectedColumnRange(0,2)
+
+        // T-test (pooled SD)
+        CompareMeansPairwise compare
+        compare:AssumeEqualVariances(true)
+        compare:UseUnfittedApproach(true)
+        compare:UseStrictCorrection(true)
+        frame:Calculate(compare)
+        // Compare y-x1
+        CompareMeansResult result0 = compare:GetResults():Get(0)
+        Check(result0:GetTestStatistic(), -0.539188746101468)
+        Check(result0:GetDegreesOfFreedom(), 14.0)
+        Check(result0:GetProbabilityValue(), 1.0)
+        // Compare y-x2
+        CompareMeansResult result1 = compare:GetResults():Get(1)
+        Check(result1:GetTestStatistic(), 4.9010513737899055)
+        Check(result1:GetDegreesOfFreedom(), 14.0)
+        Check(result1:GetProbabilityValue(), 7.015108460773164e-4)
+        // Compare x1-x2
+        CompareMeansResult result2 = compare:GetResults():Get(2)
+        Check(result2:GetTestStatistic(), 5.212157878980858)
+        Check(result2:GetDegreesOfFreedom(), 14.0)
+        Check(result2:GetProbabilityValue(), 3.948838204758773e-4)
+
+        // Welch T-test 
+        CompareMeansPairwise compare2
+        compare2:AssumeEqualVariances(false)
+        compare2:UseUnfittedApproach(true)
+        compare2:UseStrictCorrection(true)
+        frame:Calculate(compare2)
+        // Compare y-x1
+        CompareMeansResult result3 = compare2:GetResults():Get(0)
+        Check(result3:GetTestStatistic(), -0.6211699365166945)
+        Check(result3:GetDegreesOfFreedom(), 8.612542018209746)
+        Check(result3:GetProbabilityValue(), 1.0)
+        // Compare y-x2
+        CompareMeansResult result4 = compare2:GetResults():Get(1)
+        Check(result4:GetTestStatistic(), -4.681076771500411)
+        Check(result4:GetDegreesOfFreedom(), 9.074870440383508)
+        Check(result4:GetProbabilityValue(), 0.0033751540917961566)
+        // Compare x1-x2
+        CompareMeansResult result5 = compare2:GetResults():Get(2)
+        Check(result5:GetTestStatistic(), -5.0349195096571755)
+        Check(result5:GetDegreesOfFreedom(), 8.879613355658485)
+        Check(result5:GetProbabilityValue(), 0.002202581082799627)
+
+        // Paired T-test 
+        CompareMeansPairwise compare3
+        compare3:Paired(true)
+        compare3:UseUnfittedApproach(true)
+        compare3:UseStrictCorrection(true)
+        frame:Calculate(compare3)
+        // Compare y-x1
+        CompareMeansResult result6 = compare3:GetResults():Get(0)
+        Check(result6:GetTestStatistic(), -1.8257418583505538)
+        Check(result6:GetDegreesOfFreedom(), 4.0)
+        Check(result6:GetProbabilityValue(), 0.42578234332216613)
+        // Compare y-x2
+        CompareMeansResult result7 = compare3:GetResults():Get(1)
+        Check(result7:GetTestStatistic(), -7.462405778299647)
+        Check(result7:GetDegreesOfFreedom(), 4.0)
+        Check(result7:GetProbabilityValue(), 0.005169813037995326)
+        // Compare x1-x2
+        CompareMeansResult result8 = compare3:GetResults():Get(2)
+        Check(result8:GetTestStatistic(), -9.174486700937603)
+        Check(result8:GetDegreesOfFreedom(), 4.0)
+        Check(result8:GetProbabilityValue(), 0.002351296769437996)
+
+        // Mann Whitney Wilcox Test (not exact)
+        CompareMeansPairwise compare4
+        compare4:Ranked(true)
+        compare4:UseUnfittedApproach(true)
+        compare4:UseStrictCorrection(true)
+        frame:Calculate(compare4)
+        // Compare y-x1
+        CompareMeansResult result9 = compare4:GetResults():Get(0)
+        Check(result9:GetTestStatistic(), 10.0)
+        Check(result9:GetProbabilityValue(), 1.0)
+        // Compare y-x2
+        CompareMeansResult result10 = compare4:GetResults():Get(1)
+        Check(result10:GetTestStatistic(), 0.0)
+        Check(result10:GetProbabilityValue(), 0.015224604293820665)
+        // Compare x1-x2
+        CompareMeansResult result11 = compare4:GetResults():Get(2)
+        Check(result11:GetTestStatistic(), 0.0)
+        Check(result11:GetProbabilityValue(), 0.023908239072365056)
+
+        // Paired Wilcox Test (not exact)
+        CompareMeansPairwise compare5
+        compare5:Ranked(true)
+        compare5:Paired(true)
+        compare5:UseUnfittedApproach(true)
+        compare5:UseStrictCorrection(true)
+        frame:Calculate(compare5)
+        // Compare y-x1
+        CompareMeansResult result12 = compare5:GetResults():Get(0)
+        Check(result12:GetTestStatistic(), 1.3801311186847085)
+        Check(result12:GetProbabilityValue(), 0.5026388324658528)
+        // Compare y-x2
+        CompareMeansResult result13 = compare5:GetResults():Get(1)
+        Check(result13:GetTestStatistic(), 1.8963992921400699)
+        Check(result13:GetProbabilityValue(), 0.17372179625188888)
+        // Compare x1-x2
+        CompareMeansResult result14 = compare5:GetResults():Get(2)
+        Check(result14:GetTestStatistic(), 1.8877596148970779)
+        Check(result14:GetProbabilityValue(), 0.17717468727160712)
+    end
+end

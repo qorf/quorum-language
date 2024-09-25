@@ -8,6 +8,7 @@ use Libraries.Interface.Views.View2D
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.TabFlowLayout
+use Libraries.Interface.Layouts.HorizontalTabFlowLayout
 use Libraries.Interface.Events.TabChangeEvent
 use Libraries.Interface.Events.TabChangeListener
 use Libraries.Interface.Selections.TabPaneSelection
@@ -16,26 +17,58 @@ use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Font
 use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Layouts.VerticalTabFlowLayout
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.LargeTabLayout
 
 class TabBar is Control
     
     Array<Tab> tabs
-    TabFlowLayout layout
+    TabFlowLayout layout = undefined
     TabPane pane = undefined
+    boolean useLargeTabs = false
 
     Array<TabChangeListener> listeners
 
     on create
+        SetToHorizontal()
+
+        SetClipping(true)
+        SetName("Tab Bar")
+        SetInterfaceOptionsKey("TabBar")
+    end
+    
+    action SetToHorizontal
+HorizontalTabFlowLayout horizontalLayout
+        layout = horizontalLayout
+        
         LayoutProperties layoutProperties = GetDefaultLayoutProperties()
         layoutProperties:SetHorizontalLayoutMode(layoutProperties:STANDARD)
         layoutProperties:SetVerticalLayoutMode(layoutProperties:FIT_CONTENTS)
         layoutProperties:SetPercentageWidth(1.0)
 
         SetLayout(layout)
+    end
+    
+    action SetToVertical
+VerticalTabFlowLayout verticalLayout
+        layout = verticalLayout
+        
+        LayoutProperties layoutProperties = GetDefaultLayoutProperties()
+        layoutProperties:SetHorizontalLayoutMode(layoutProperties:FIT_CONTENTS)
+        layoutProperties:SetVerticalLayoutMode(layoutProperties:STANDARD)
+        layoutProperties:SetPercentageWidth(0.2)
+        layoutProperties:SetPercentageHeight(1.0)
 
-        SetClipping(true)
-        SetName("Tab Bar")
-        SetInterfaceOptionsKey("TabBar")
+        SetLayout(layout)
+    end
+    
+    action IsHorizontal returns boolean
+        return GetLayout() is HorizontalTabFlowLayout
+    end
+    
+    action IsVertical returns boolean
+        return GetLayout() is VerticalTabFlowLayout
     end
 
     action Add(Array<Tab> array)
@@ -47,14 +80,76 @@ class TabBar is Control
     end
 
     action Add(Tab tab)
+        if tabs:IsEmpty() = false
+Tab firstTab = tabs:GetFromFront()
+        Tab lastTab = tabs:GetFromEnd()
+            
+            firstTab:SetPreviousFocus(tab)
+            lastTab:SetNextFocus(tab)
+            tab:SetPreviousFocus(lastTab)
+            tab:SetNextFocus(firstTab)
+        end
+        
+        SetTabProperties(tab)
+        
         tabs:Add(tab)
         parent:Item2D:Add(tab)
         tab:SetTabBar(me)
+        
         Resize()
 
         TabChangeEvent event
         event:Set(tab, pane, event:OPENED)
         NotifyTabChangeListeners(event)
+    end
+    
+    // Used when tab size or bar orientation changes. Updates all tabs with correct layouts and properties.
+    private action UpdateAllTabProperties
+        integer i = 0
+        repeat while i < tabs:GetSize()
+            SetTabProperties(tabs:Get(i))
+            i = i + 1
+        end
+    end
+    
+    private action SetTabProperties(Tab tab)
+        if IsUsingLargeTabs()
+            LargeTabLayout largeLayout
+            tab:SetLayout(largeLayout)
+            tab:SetPercentageHeight(4.0)
+        else
+FlowLayout flow
+flow:SetIgnoreHidden(true)
+        tab:SetLayout(flow)
+        end
+        
+        if IsVertical()
+tab:SetPercentageWidth(1.0)
+            tab:SetTopLeftRounding(0)
+            tab:SetTopRightRounding(0)
+        tab:SetHorizontalLayoutMode(tab:parent:Control:STANDARD)
+        else
+tab:SetHorizontalLayoutMode(tab:parent:Control:FIT_CONTENTS)
+        end
+    end
+    
+    /* This action sets the TabBar to use large tabs if the given value is true, or to use
+the default smaller tabs if the value is false. Default tabs place the icon, label, and
+close button all together on a single horizontal line. Large tabs place the label at
+the bottom of the tab, with a larger icon on top of it. */
+    action SetLargeTabs(boolean enable)
+        if enable = useLargeTabs
+            return now
+        end
+        
+        useLargeTabs = enable
+        UpdateAllTabProperties()
+    end
+    
+    /* This action returns whether or not the TabBar is using large tabs. By default,
+this is false. */
+    action IsUsingLargeTabs returns boolean
+        return useLargeTabs
     end
 
     action Remove(Tab tab)
@@ -124,15 +219,24 @@ class TabBar is Control
 
     action FitTab(Tab tab)
         integer index = GetChildren():GetFirstLocation(tab)
-        if index = -1
+        if index = -1 or GetWidth() <= 0 or GetHeight() <= 0
             return now
         end
 
-        if tab:GetX() <= 0
+        if IsHorizontal()
+if tab:GetX() <= 0
             LeftFitTab(index - 1.15)
         elseif tab:GetX() + tab:GetWidth() >= GetWidth()
             RightFitTab(index + 1.15)
         end
+        else
+            if tab:GetY() <= 0
+                BottomFitTab(index + 1.15)
+            elseif tab:GetY() + tab:GetHeight() >= GetHeight()
+                TopFitTab(index - 1.15)
+            end
+        end
+        
     end
 
     action LeftFitTab(number index)
@@ -190,6 +294,64 @@ class TabBar is Control
         end
 
         layout:SetOffset(offset - GetWidth())
+        Resize()
+    end
+    
+action TopFitTab(number index)
+        Array<Item2D> children = GetChildren()
+        if index < 0
+            index = 0
+        elseif index >= children:GetSize()
+            index = children:GetSize() - 1
+        end
+
+        integer counter = 0
+        number offset = 0
+        integer intIndex = cast(integer, index)
+        repeat while counter < intIndex
+            Item2D item = children:Get(counter)
+            offset = offset + item:GetHeight()
+            counter = counter + 1
+        end
+
+        // Include a percentage of the height of the next item, if we have any remainder.
+        if counter < children:GetSize()
+            offset = offset + (index - intIndex) * children:Get(counter):GetHeight()
+        // If there's no next item, offset it by the last item, if there is one.
+        elseif counter - 1 < children:GetSize()
+            offset = offset + (index - intIndex) * children:Get(counter - 1):GetHeight()
+        end
+
+        layout:SetOffset(offset)
+        Resize()
+    end
+
+    action BottomFitTab(number index)
+        Array<Item2D> children = GetChildren()
+        if index < 0
+            index = 0
+        elseif index >= children:GetSize()
+            index = children:GetSize() - 1
+        end
+
+        integer counter = 0
+        number offset = 0
+        integer intIndex = cast(integer, index)
+        repeat while counter <= intIndex
+            Item2D item = children:Get(counter)
+            offset = offset + item:GetHeight()
+            counter = counter + 1
+        end
+
+        // Include a percentage of the height of the next item, if we have any remainder.
+        if counter < children:GetSize()
+            offset = offset + (index - intIndex) * children:Get(counter):GetHeight()
+        // If there's no next item, offset it by the last item, if there is one.
+        elseif counter - 1 < children:GetSize()
+            offset = offset + (index - intIndex) * children:Get(counter - 1):GetHeight()
+        end
+
+        layout:SetOffset(offset - GetHeight())
         Resize()
     end
 

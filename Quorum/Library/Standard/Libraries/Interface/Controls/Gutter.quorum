@@ -37,17 +37,12 @@ class Gutter is Control
 
     action ClickedMouse(MouseEvent mouseEvent)
         integer clickedLine = firstLine
-        number y = mouseEvent:GetY() - GetGlobalY()
-        number threshold = GetHeight()
-
-        repeat while threshold >= 0
-            threshold = threshold - control:GetLineHeight(clickedLine)
-            if y > threshold
-                // We've found the clicked line, exit the loop.
-                threshold = -1
-            else
-                clickedLine = clickedLine + 1
-            end
+        number y = mouseEvent:GetY() - control:GetScrollableRegion():GetGlobalY()
+        number threshold = control:GetLineY(firstLine)
+        
+        repeat while y < threshold
+clickedLine = clickedLine + 1
+threshold = control:GetLineY(clickedLine)
         end
 
         GutterEvent event

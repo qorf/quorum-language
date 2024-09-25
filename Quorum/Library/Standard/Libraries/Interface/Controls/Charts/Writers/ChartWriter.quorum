@@ -607,7 +607,7 @@ class ChartWriter
             if chart:IsShowingSubtitle()
                 chartTitle = chartTitle + ", " + chart:GetSubtitle()
             end
-            chart:GenerateSummary()
+            //chart:GenerateSummary()
             //background:SetAriaLabel(chartTitle + chart:GenerateSummary())
             background:SetAriaHidden("true")
         end
@@ -789,7 +789,7 @@ class ChartWriter
             end
 
             ChartLabel xAxisTitle = chart:GetHorizontalPanel():GetTitleLabel()
-            if xAxisTitle not= undefined xAxisTitle:IsShowing()
+            if xAxisTitle not= undefined and xAxisTitle:IsShowing()
                 xAxisLabel:SetText(chart:GetXAxisTitle())
                 xAxisLabel:SetTextAnchor("left")
                 xAxisLabel:SetPosition(xAxisTitle:GetGlobalX(), TranslatePositionY(xAxisTitle))

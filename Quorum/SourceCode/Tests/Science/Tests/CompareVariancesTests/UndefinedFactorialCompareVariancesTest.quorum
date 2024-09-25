@@ -1,0 +1,63 @@
+package Science.Tests
+
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.CompareVariances
+use Libraries.Compute.Statistics.Reporting.CompareVariancesResult
+
+/*
+    This class tests a levene's homogeneity test with factors
+*/
+class UndefinedFactorialCompareVariancesTest is Test
+
+    on create
+        SetName("Calculate UndefinedFactorialCompareVariancesTest")
+    end
+
+    action Run
+        DataFrame frame 
+        frame:LoadFromCommaSeparatedValue("y,x1,x2,x3,factor1,factor2
+        1,3,-4,4,a,c
+        2,4,-9,9,a,c
+        3,4,-18,18,a,c
+        6,,-19,19,a,d
+        9,8,-16,16,a,d
+        15,17,-2,2,b,c
+        10,2,1,12,b,c
+        3,4,2,13,b,d
+        5,6,3,15,b,d")
+        frame:AddSelectedColumns("y")
+        frame:AddSelectedFactors("factor1,factor2")
+
+        // Median as center
+        CompareVariances compare
+        frame:Calculate(compare)
+        
+        CompareVariancesResult result = compare:GetResult()
+        Check(result:GetTestStatistic(), 10.83333333333333)
+        Check(result:GetDegreesOfFreedomTable():GetValue(result:GetSources():Get(0)):GetValue("numerator"), 3.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue(result:GetSources():Get(0)):GetValue("denominator"), 5.0)
+        Check(result:GetProbabilityValue(), 0.012577409319629917)
+
+        text summary = result:GetSummary()
+        text formalsummary = result:GetFormalSummary()
+        Check(true, summary not= "")
+        Check(true, formalsummary not= "")
+
+        // Mean as center
+        CompareVariances compare2
+        compare2:UseMeanAsCenter()
+        frame:Calculate(compare2)
+        
+        CompareVariancesResult result2 = compare2:GetResult()
+        Check(result2:GetTestStatistic(), 10.83333333333333)
+        Check(result2:GetDegreesOfFreedomTable():GetValue(result:GetSources():Get(0)):GetValue("numerator"), 3.0)
+        Check(result2:GetDegreesOfFreedomTable():GetValue(result:GetSources():Get(0)):GetValue("denominator"), 5.0)
+        Check(result2:GetProbabilityValue(), 0.012577409319629917)
+
+        text summary2 = result2:GetSummary()
+        text formalsummary2 = result2:GetFormalSummary()
+        Check(true, summary2 not= "")
+        Check(true, formalsummary2 not= "")
+    end
+end

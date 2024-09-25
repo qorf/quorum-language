@@ -7,6 +7,7 @@ use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Location
 use Libraries.Language.Compile.QuorumSourceListener
 use Libraries.Containers.Array
+use Libraries.Language.Compile.Parsing.Token
 
 class ActionContext is ParseContext
     public List<Variable> parameters
@@ -16,7 +17,9 @@ class ActionContext is ParseContext
     public Type returnType = undefined
     public boolean isPublic = true
     public boolean isPrivate = false
-
+    public Token leftParen = undefined
+    public Token rightParen = undefined
+    
     public boolean isBlueprint = false
     public boolean isSystem = false
 
@@ -25,6 +28,14 @@ class ActionContext is ParseContext
     public AccessModifierContext access = undefined
     public BlockContext block = undefined
 
+    action HasParentheses returns boolean
+        if leftParen not= undefined and rightParen not= undefined
+            return true
+        else
+            return false
+        end
+    end
+    
     action GetStaticKey returns text
         text key = ""
         key = key + actionName

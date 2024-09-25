@@ -1,0 +1,31 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.TabViewArea
+use Libraries.Interface.Controls.TabPane
+use Libraries.Interface.Controls.Tab
+
+class TabViewAreaEscapeBehavior is Behavior
+    action Run(BehaviorEvent event)
+        TabViewArea viewArea = undefined 
+        TabPane tabPane = undefined
+        check
+            viewArea = cast(TabViewArea, event:GetItem())
+            tabPane = cast(TabPane, viewArea:GetParent())
+        detect error
+            // If any casting fails, abort here.
+            return now
+        end
+        
+        // Get the TabBar from the TabPane, and focus the selected tab (if there is one) or the first tab (if none are selected).
+        Tab tab = tabPane:GetSelectedTab()
+        if tab = undefined and tabPane:GetSize() > 0
+            tab = tabPane:Get(0)
+        end
+        
+        if tab not= undefined
+            tab:Focus()
+        end
+    end
+end

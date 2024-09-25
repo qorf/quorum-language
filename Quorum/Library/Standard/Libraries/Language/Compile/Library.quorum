@@ -34,6 +34,7 @@ class Library is ProcessListener
     File pluginJar
     File nativeFolder
     File graphicsFolder
+    File pythonFolder
     File robotsFolder
     File pluginsFolder = undefined
     constant text STANDARD = "Standard"
@@ -47,6 +48,7 @@ class Library is ProcessListener
     constant text NATIVE_FOLDER = "jni"
     constant text GRAPHICS_FOLDER = "Graphics"
     constant text ROBOTS_FOLDER = "Robots"
+constant text PYTHON_FOLDER = "python"
     constant text DEFAULT_PLUGINS_FOLDER = "/Plugins/QuorumPlugins"
     boolean regeneratePlugins = true
 
@@ -58,6 +60,7 @@ class Library is ProcessListener
     Array<CompilerListener> listeners
     //This flag says whether or not to output the standard library as JavaScript
     boolean outputJavaScript = true
+    boolean outputPython = true
     boolean scanningFromPrecompute = false
     text javascriptOutput = ""
     text javascriptPlugins = ""
@@ -137,6 +140,12 @@ class Library is ProcessListener
     action GetOutputFolder returns File
         return outputFolder
     end
+    
+    /*This action returns the raw text to prevent the user from changing this, 
+which they should not.*/
+    action GetPythonPath returns text
+        return pythonFolder:GetAbsolutePath()
+    end
 
     action SetOutputFolder(File file)
         outputFolder = file
@@ -211,7 +220,7 @@ class Library is ProcessListener
             nativeFolder:SetWorkingDirectory(outputFolder:GetAbsolutePath())
             graphicsFolder:SetWorkingDirectory(outputFolder:GetAbsolutePath())
             robotsFolder:SetWorkingDirectory(outputFolder:GetAbsolutePath())
-
+pythonFolder:SetWorkingDirectory(outputFolder:GetAbsolutePath())
             buildFolder:SetPath("/Build")
             runJar:SetPath("/Run/" + STANDARD_LIBRARY_JAR)
             runJavaScript:SetPath("/Run/" + STANDARD_LIBRARY_JAVASCRIPT)
@@ -221,6 +230,7 @@ class Library is ProcessListener
             fontLoadingData:SetPath("/Run/" + STANDARD_LIBRARY_LOAD_FONTS_DATA)
             pluginJar:SetPath("/Run/" + STANDARD_PLUGINS_JAR)
             nativeFolder:SetPath("/Run/" + NATIVE_FOLDER)
+pythonFolder:SetPath("/Run/" + PYTHON_FOLDER)
             graphicsFolder:SetPath("/Run/" + GRAPHICS_FOLDER)
             robotsFolder:SetPath("/Run/" + ROBOTS_FOLDER)
         end
@@ -316,17 +326,6 @@ class Library is ProcessListener
         nativeDeployment:SetWorkingDirectory(location:GetAbsolutePath() + "/Native/")
         nativeDeployment:SetPath("Deploy")
 
-//        File lwjglFolder
-//        lwjglFolder:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
-//        lwjglFolder:SetPath("LWJGL")
-//
-//        File dbus
-//        File ev3
-//        dbus:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
-//        dbus:SetPath("dbusjava.jar")
-//
-//        ev3:SetWorkingDirectory(location:GetAbsolutePath() + "/AdditionalJars/")
-//        ev3:SetPath("ev3classes.jar")
 
         speechNative:Copy(nativeFolder, true)
         gameNative:Copy(nativeFolder, true)
@@ -338,20 +337,6 @@ class Library is ProcessListener
         if nativeDeployment:Exists()
             nativeDeployment:Copy(nativeFolder, true)
         end
-//        lwjglFolder:Copy(graphicsFolder, true)
-        
-
-//        File copier
-//        copier:SetWorkingDirectory(robotsFolder:GetAbsolutePath())
-//        copier:SetPath("dbusjava.jar")
-//        if not copier:GetParentDirectory():Exists()
-//            copier:GetParentDirectory():CreateDirectories()
-//        end
-
-//        dbus:Copy(copier, true)
-
-//        copier:SetPath("ev3classes.jar")
-//        ev3:Copy(copier, true)
 
         File fontWeb
         fontWeb:SetWorkingDirectory(location:GetAbsolutePath() + "/Plugins/javascript")
@@ -404,6 +389,17 @@ class Library is ProcessListener
             if outputJavaScript
                 builder:Append(WriteJavaScriptOpcode(code))
             end
+            if outputPython
+                text pythonPath = key:Replace(".", "/") + ".py"
+                File pythonWritePath
+                pythonWritePath:SetWorkingDirectory(pythonFolder:GetAbsolutePath())
+                pythonWritePath:SetPath(pythonPath)
+                File mom = pythonWritePath:GetParentDirectory()
+                if not mom:Exists()
+                    mom:CreateDirectories()
+                end
+                pythonWritePath:Write(WritePythonOpcode(code))
+            end
         end
 
         text libraryText = notation:ToText()
@@ -414,6 +410,39 @@ class Library is ProcessListener
         //end
 
         generator:Close()
+    end
+    
+    action WritePythonOpcode(ClassOpcode code) returns text
+text result = ""
+        result = result + code:WritePython()
+        Class clazz = code:GetClass()
+
+        //check if this class has a plugin. If it does, include it.
+        if clazz:HasSystemAction()
+            File folder = GetLocation() 
+            path = folder:GetPath() + "/Plugins/python/"
+
+            key = clazz:GetStaticKey()
+            Array<text> keys = key:Split("\.")
+            i = 0
+            repeat keys:GetSize() times
+                newKey = keys:Get(i)
+                if i = keys:GetSize() - 1
+                    path = path + newKey + ".py"
+                else
+                    path = path + newKey + "/"
+                end
+                i = i + 1
+            end
+            File location
+            location:SetWorkingDirectory(folder:GetWorkingDirectory())
+            location:SetPath(path)
+            if location:Exists() 
+                value = location:Read()
+                result = result + value:GetCarriageReturn() + value:GetLineFeed() + value
+            end
+        end
+        return result
     end
 
     action WriteJavaScriptOpcode(ClassOpcode code) returns text

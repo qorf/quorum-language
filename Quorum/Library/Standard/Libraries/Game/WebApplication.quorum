@@ -13,6 +13,7 @@ class WebApplication is Application
     Sets up the application and starts the main application loop.
     */
     action Setup(Game game)
+
         GameStateManager manager
         // The code below initializes accessibility for the web.
         // As it's not yet finished, it's commented out for now.
@@ -40,7 +41,12 @@ class WebApplication is Application
     Returns the WebConfiguration in use by the application.
     */
     system action GetConfiguration returns WebConfiguration
-
+    
+    /* 
+    Returns the operating system the web application is running on.
+*/
+system action GetWebOperatingSystem returns text
+    
     /*
     Sets the fpsInterval, lastTime, and currentTime values, then starts the main
     loop (in JavaScript).

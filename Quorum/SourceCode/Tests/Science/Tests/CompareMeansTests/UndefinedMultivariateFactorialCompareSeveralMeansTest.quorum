@@ -1,0 +1,114 @@
+package Science.Tests
+
+use Libraries.Testing.Test
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Tests.CompareMeans
+use Libraries.Compute.Statistics.Reporting.CompareMeansResult
+
+/*
+    This class tests a undefined factorial manova
+*/
+class UndefinedMultivariateFactorialCompareSeveralMeansTest is Test
+
+    on create
+        SetName("Calculate UndefinedMultivariateFactorialCompareSeveralMeansTest")
+    end
+
+    action Run
+        DataFrame frame 
+        frame:LoadFromCommaSeparatedValue("y,x1,x2,x3,factor1,factor2
+        1,3,-4,4,a,c
+        2,4,-9,9,a,c
+        3,4,-18,18,a,c
+        6,7,-19,19,a,d
+        9,8,-16,16,a,d
+        15,17,-2,2,b,c
+        10,2,1,12,b,c
+        3,4,2,13,b,d
+        5,,3,15,b,d") // last row missing value
+        frame:AddSelectedColumns("y,x1,x2,x3")
+        frame:AddSelectedFactors("factor1,factor2")
+
+        CompareMeans compare
+        frame:Calculate(compare)
+        
+
+        // Wilks Lambda
+        CompareMeansResult result = compare:GetResult()
+        text stat = "Wilks Lambda"
+        Check(result:GetTestStatisticsTable():GetValue("factor1"):GetValue(stat), 9.04850637377176e-4)
+        Check(result:GetTestStatisticsTable():GetValue("factor2"):GetValue(stat), 0.008336951964861533)
+        Check(result:GetTestStatisticsTable():GetValue("factor1:factor2"):GetValue(stat), 0.015561912323159077)
+        Check(result:GetTestStatisticsTable():GetValue("factor1"+stat):GetValueIterator():Next(), 276.0386930429276)
+        Check(result:GetTestStatisticsTable():GetValue("factor2"+stat):GetValueIterator():Next(), 29.73697858086462)
+        Check(result:GetTestStatisticsTable():GetValue("factor1:factor2"+stat):GetValueIterator():Next(), 15.814863675394996)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor1"):GetValue("factor1"), 1.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor2"):GetValue("factor2"), 1.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor1:factor2"):GetValue("factor1:factor2"), 1.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor1"+stat):GetValue("numerator"), 4.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor1"+stat):GetValue("denominator"), 1.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor2"+stat):GetValue("numerator"), 4.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor2"+stat):GetValue("denominator"), 1.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor1:factor2"+stat):GetValue("numerator"), 4.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor1:factor2"+stat):GetValue("denominator"), 1.0)
+        Check(result:GetProbabilityValuesTable():GetValue("factor1"+stat):GetValueIterator():Next(), 0.04510749369337064)
+        Check(result:GetProbabilityValuesTable():GetValue("factor2"+stat):GetValueIterator():Next(), 0.13657975557643942)
+        Check(result:GetProbabilityValuesTable():GetValue("factor1:factor2"+stat):GetValueIterator():Next(), 0.18615043707596723)
+        Check(result:GetEffectSizesTable():GetValue("factor1"+stat):GetValue("partial-eta-squared"), 0.9990951493626228)
+        Check(result:GetEffectSizesTable():GetValue("factor2"+stat):GetValue("partial-eta-squared"), 0.9916630480351385)
+        Check(result:GetEffectSizesTable():GetValue("factor1:factor2"+stat):GetValue("partial-eta-squared"), 0.9844380876768409)
+
+        // Hotelling Trace
+        stat = "Hotelling Trace"
+        Check(result:GetTestStatisticsTable():GetValue("factor1"):GetValue(stat), 1104.154772158471)
+        Check(result:GetTestStatisticsTable():GetValue("factor2"):GetValue(stat), 118.94791432205737)
+        Check(result:GetTestStatisticsTable():GetValue("factor1:factor2"):GetValue(stat), 63.259454700964056)
+        Check(result:GetTestStatisticsTable():GetValue("factor1"+stat):GetValueIterator():Next(), 276.0386930396177)
+        Check(result:GetTestStatisticsTable():GetValue("factor2"+stat):GetValueIterator():Next(), 29.736978580514343)
+        Check(result:GetTestStatisticsTable():GetValue("factor1:factor2"+stat):GetValueIterator():Next(), 15.814863675241014)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor1"):GetValue("factor1"), 1.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor2"):GetValue("factor2"), 1.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor1:factor2"):GetValue("factor1:factor2"), 1.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor1"+stat):GetValue("numerator"), 4.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor1"+stat):GetValue("denominator"), 1.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor2"+stat):GetValue("numerator"), 4.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor2"+stat):GetValue("denominator"), 1.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor1:factor2"+stat):GetValue("numerator"), 4.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor1:factor2"+stat):GetValue("denominator"), 1.0)
+        Check(result:GetProbabilityValuesTable():GetValue("factor1"+stat):GetValueIterator():Next(), 0.04510749369363887)
+        Check(result:GetProbabilityValuesTable():GetValue("factor2"+stat):GetValueIterator():Next(), 0.13657975557723256)
+        Check(result:GetProbabilityValuesTable():GetValue("factor1:factor2"+stat):GetValueIterator():Next(), 0.1861504370768503)
+        Check(result:GetEffectSizesTable():GetValue("factor1"+stat):GetValue("partial-eta-squared"), 0.999095149362612)
+        Check(result:GetEffectSizesTable():GetValue("factor2"+stat):GetValue("partial-eta-squared"), 0.9916630480350411)
+        Check(result:GetEffectSizesTable():GetValue("factor1:factor2"+stat):GetValue("partial-eta-squared"), 0.9844380876766917)
+
+        // Pillai Trace
+        stat = "Pillai Trace"
+        Check(result:GetTestStatisticsTable():GetValue("factor1"):GetValue(stat), 0.9990951493626192)
+        Check(result:GetTestStatisticsTable():GetValue("factor2"):GetValue(stat), 0.9916630480350459)
+        Check(result:GetTestStatisticsTable():GetValue("factor1:factor2"):GetValue(stat), 0.984438087676634)
+        Check(result:GetTestStatisticsTable():GetValue("factor1"+stat):GetValueIterator():Next(), 276.0386930418297)
+        Check(result:GetTestStatisticsTable():GetValue("factor2"+stat):GetValueIterator():Next(), 29.736978580531677)
+        Check(result:GetTestStatisticsTable():GetValue("factor1:factor2"+stat):GetValueIterator():Next(), 15.814863675181373)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor1"):GetValue("factor1"), 1.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor2"):GetValue("factor2"), 1.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor1:factor2"):GetValue("factor1:factor2"), 1.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor1"+stat):GetValue("numerator"), 4.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor1"+stat):GetValue("denominator"), 1.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor2"+stat):GetValue("numerator"), 4.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor2"+stat):GetValue("denominator"), 1.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor1:factor2"+stat):GetValue("numerator"), 4.0)
+        Check(result:GetDegreesOfFreedomTable():GetValue("factor1:factor2"+stat):GetValue("denominator"), 1.0)
+        Check(result:GetProbabilityValuesTable():GetValue("factor1"+stat):GetValueIterator():Next(), 0.04510749369345912)
+        Check(result:GetProbabilityValuesTable():GetValue("factor2"+stat):GetValueIterator():Next(), 0.13657975557719382)
+        Check(result:GetProbabilityValuesTable():GetValue("factor1:factor2"+stat):GetValueIterator():Next(), 0.18615043707719137)
+        Check(result:GetEffectSizesTable():GetValue("factor1"+stat):GetValue("partial-eta-squared"), 0.9990951493626192)
+        Check(result:GetEffectSizesTable():GetValue("factor2"+stat):GetValue("partial-eta-squared"), 0.9916630480350459)
+        Check(result:GetEffectSizesTable():GetValue("factor1:factor2"+stat):GetValue("partial-eta-squared"), 0.984438087676634)
+
+        text summary = result:GetSummary()
+        text formalsummary = result:GetFormalSummary()
+        Check(true, summary not= "")
+        Check(true, formalsummary not= "")
+    end
+end

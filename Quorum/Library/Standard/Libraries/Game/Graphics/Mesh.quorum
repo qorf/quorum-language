@@ -248,7 +248,7 @@ class Mesh is Disposable
     maintained so that they can be reloaded in case of context loss.
     */
     private action AddReloadableMesh
-        ShaderManager shaderManager
+        ShaderManager shaderManager = manager:GetShaderManager()
         shaderManager:AddReloadableMesh(me)
     end
 
@@ -257,7 +257,7 @@ class Mesh is Disposable
     are maintained so that they can be reloaded in case of context loss.
     */
     private action RemoveReloadableMesh
-        ShaderManager shaderManager
+        ShaderManager shaderManager = manager:GetShaderManager()
         shaderManager:RemoveReloadableMesh(me)
     end
 

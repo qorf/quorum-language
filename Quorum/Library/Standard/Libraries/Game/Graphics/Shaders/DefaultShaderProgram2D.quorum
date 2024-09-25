@@ -6,7 +6,8 @@ use Libraries.Game.Graphics.GraphicsManager
 class DefaultShaderProgram2D is ShaderProgram
 
     on create
-        ShaderManager manager
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
         SetName(manager:DEFAULT_2D_SHADER_PROGRAM)
 
         DefaultVertexShader2D vertex

@@ -37,6 +37,27 @@ class ActionBlock is MultipleLineBlock
         SetLayout(layout)
         SetName("Action Block")
     end
+    
+    action GetBlockName returns text
+        if nameField not= undefined
+            return nameField:GetText() + " Action Block"
+        end
+        return "Action Block"
+    end
+    
+    action GetBlockDescription returns text
+        text actionDesc = ""
+        if paramField not= undefined
+            actionDesc = "Parameters: " + paramField:GetText() + actionDesc:GetLineFeed()
+        end
+        if returnField not= undefined
+            actionDesc = actionDesc + "Returns: " + returnField:GetText()
+        end
+        if actionDesc not= ""
+            return actionDesc
+        end
+        return "This Action Block is used to define actions which are behaviors that a program can take. They are useful for many reasons, including at least that they 1) allow us to reuse code, 2) can sometimes make it easier to separate out functionality in complex software, and they 3) allow us to break up a program's functionaity between different people on a team."
+    end
 
     action IsSystemAction returns boolean
         return actionContext:isSystem
@@ -74,7 +95,7 @@ class ActionBlock is MultipleLineBlock
         if actionContext:access not= undefined
             BlockLabel accessModifierLabel
             me:accessModifierLabel = accessModifierLabel
-            accessModifierLabel:SetFont(editor:GetFont())
+            accessModifierLabel:SetFont(GetLabelFont())
             accessModifierLabel:SetFontSize(editor:GetFontSize())
             if actionContext:access:isPrivate
                 accessModifierLabel:SetText("private")
@@ -89,7 +110,7 @@ class ActionBlock is MultipleLineBlock
             part:UseNeutralScopeStyling()
             BlockLabel systemLabel
             me:systemLabel = systemLabel
-            systemLabel:SetFont(editor:GetFont())
+            systemLabel:SetFont(GetLabelFont())
             systemLabel:SetFontSize(editor:GetFontSize())
             systemLabel:SetText("system")
             systemLabel:SetRightPadding(spacing)
@@ -99,7 +120,7 @@ class ActionBlock is MultipleLineBlock
             part:UseNeutralScopeStyling()
             BlockLabel blueprintLabel
             me:blueprintLabel = blueprintLabel
-            blueprintLabel:SetFont(editor:GetFont())
+            blueprintLabel:SetFont(GetLabelFont())
             blueprintLabel:SetFontSize(editor:GetFontSize())
             blueprintLabel:SetText("blueprint")
             blueprintLabel:SetRightPadding(spacing)
@@ -108,7 +129,7 @@ class ActionBlock is MultipleLineBlock
 
         BlockLabel actionLabel
         me:actionLabel = actionLabel
-        actionLabel:SetFont(editor:GetFont())
+        actionLabel:SetFont(GetLabelFont())
         actionLabel:SetFontSize(editor:GetFontSize())
         actionLabel:SetText("action")
         actionLabel:SetRightPadding(spacing)
@@ -125,41 +146,38 @@ class ActionBlock is MultipleLineBlock
         // Assume the block ends with the name. This will be replaced with a more appropriate value if needed in the if sections below.
         integer localEnd = nameField:GetEndIndex()
 
-        if actionContext:parameterContexts not= undefined
-            Array<FormalParameterContext> paramList = actionContext:parameterContexts
-
-            BlockLabel leftParen
+        if actionContext:HasParentheses()
+         BlockLabel leftParen
             me:leftParen = leftParen
-            leftParen:SetFont(editor:GetFont())
+            leftParen:SetFont(GetLabelFont())
             leftParen:SetFontSize(editor:GetFontSize())
             leftParen:SetText("(")
             part:Add(leftParen)
 
             EditBox paramField
             me:paramField = paramField
-            Location firstParam = paramList:Get(0):GetLocation()
-            Location lastParam = paramList:Get(paramList:GetSize() - 1):GetLocation()
             part:Add(paramField)
+            
 
-            paramField:Setup("Parameters", firstParam:GetIndex() - GetStartIndex(), lastParam:GetIndexEnd() + 1 - GetStartIndex())
+            paramField:Setup("Parameters", actionContext:leftParen:endIndex + 1 - GetStartIndex(), actionContext:rightParen:startIndex - GetStartIndex())
 
             BlockLabel rightParen
             me:rightParen = rightParen
-            rightParen:SetFont(editor:GetFont())
+            rightParen:SetFont(GetLabelFont())
             rightParen:SetFontSize(editor:GetFontSize())
             rightParen:SetText(")")
             part:Add(rightParen)
 
             // Place the end of the block one character after the last parameter (to account for the right parenthesis).
-            localEnd = paramField:GetEndIndex() + 1
+            localEnd = paramField:GetEndIndex()+1
             
-            localEndLine = lastParam:GetLineNumberEnd() - actionContext:GetLocation():GetLineNumber()
+            localEndLine = actionContext:rightParen:endLine - actionContext:GetLocation():GetLineNumber()
         end
 
         if actionContext:returnLocation not= undefined
             BlockLabel returnsLabel
             me:returnsLabel = returnsLabel
-            returnsLabel:SetFont(editor:GetFont())
+            returnsLabel:SetFont(GetLabelFont())
             returnsLabel:SetFontSize(editor:GetFontSize())
             returnsLabel:SetText("returns")
             returnsLabel:SetLeftPadding(spacing * 0.5)

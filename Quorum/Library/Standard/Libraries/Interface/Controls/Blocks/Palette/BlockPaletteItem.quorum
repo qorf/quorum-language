@@ -1,12 +1,8 @@
-package Libraries.Interface.Controls.Blocks
+package Libraries.Interface.Controls.Blocks.Palette
 
 use Libraries.Interface.Controls.Button
-use Libraries.Interface.Behaviors.Blocks.BlockPaletteInsertBehavior
 use Libraries.Game.InputTable
 use Libraries.Game.InputSet
-use Libraries.Interface.Behaviors.Blocks.BlockPaletteItemStartDragBehavior
-use Libraries.Interface.Behaviors.Blocks.BlockPaletteItemContinueDragBehavior
-use Libraries.Interface.Behaviors.Blocks.BlockPaletteItemDropBehavior
 use Libraries.Containers.Array
 use Libraries.Language.Compile.CompilerErrorManager
 use Libraries.Language.Compile.Parsing.QuorumLexer
@@ -15,6 +11,15 @@ use Libraries.Language.Compile.Context.StartContext
 use Libraries.Language.Compile.Blocks.ParserToBlockListener
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Language.Compile.Context.StatementContext
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Interface.Controls.Blocks.RootBlock
+use Libraries.Interface.Controls.Blocks.ActionCallBlock
+use Libraries.Interface.Controls.Blocks.EditBox
+use Libraries.Interface.Controls.Blocks.CodeEditor
+use Libraries.Interface.Controls.Blocks.BlockEnvironment
+use Libraries.Interface.Controls.Blocks.FreeformBlock
+use Libraries.Interface.Controls.Blocks.SingleLineBlock
+use Libraries.Interface.Events.FocusEvent
 
 
 class BlockPaletteItem is Button, BlockEnvironment
@@ -28,7 +33,7 @@ class BlockPaletteItem is Button, BlockEnvironment
     
     on create
         SetVerticalLayoutMode(parent:Control:STANDARD)
-        SetInputGroup("Block")
+        SetInputGroup("BlockPaletteItem")
     end
 
     action LoadGraphics(LayoutProperties properties)
@@ -43,7 +48,7 @@ class BlockPaletteItem is Button, BlockEnvironment
             parser:SetLexer(lexer)
             StartContext start = parser:Start()
             
-ParserToBlockListener blockListener
+            ParserToBlockListener blockListener
             blockListener:SetBlockEnvironment(me)
             blockListener:SetQuorumLexer(lexer)
             
@@ -51,12 +56,12 @@ ParserToBlockListener blockListener
             blockListener:SetStartContext(start)
             root = blockListener:Update(0, code:GetSize())
             elseif code = "" or code = "Blank"
-FreeformBlock newBlock
-                    newBlock:SetLocalStartLine(0)
-                    newBlock:SetLocalEndLine(0)
-                    newBlock:SetLocalStartIndex(0)
-                    newBlock:SetLocalEndIndex(0)
-                    newBlock:SetScopeDepth(0)
+                FreeformBlock newBlock
+                newBlock:SetLocalStartLine(0)
+                newBlock:SetLocalEndLine(0)
+                newBlock:SetLocalStartIndex(0)
+                newBlock:SetLocalEndIndex(0)
+                newBlock:SetScopeDepth(0)
                 
                 RootBlock newRoot
                 root = newRoot
@@ -71,35 +76,36 @@ FreeformBlock newBlock
                 parser:Statement()
                 
                 if statement = undefined
-FreeformBlock newBlock
+                    FreeformBlock newBlock
                     newBlock:SetLocalStartLine(0)
                     newBlock:SetLocalEndLine(0)
                     newBlock:SetLocalStartIndex(0)
                     newBlock:SetLocalEndIndex(code:GetSize())
                     newBlock:SetScopeDepth(0)
                 
-                RootBlock newRoot
-                root = newRoot
-                root:SetBlockEnvironment(me)
-                root:Add(cast(Block, newBlock))
-                
-                newBlock:Setup()
+                    RootBlock newRoot
+                    root = newRoot
+                    root:SetBlockEnvironment(me)
+                    root:Add(cast(Block, newBlock))
+                    
+                    newBlock:Setup()
                 else
-blockListener:SetStartContext(undefined)
-            root = blockListener:ParseStatement(statement)
+                    blockListener:SetStartContext(undefined)
+                    root = blockListener:ParseStatement(statement)
                 end
             end
             
-    
             number height = 0        
             Block block = root
             repeat until block = undefined
+                block:SetInterfaceScale(GetInterfaceScale()) 
                 block:SetFontSize(GetFontSize())
                 if block is SingleLineBlock
                     Block copy = block:CopyToPlaceholder()
                     copy:LoadGraphics(copy:GetDefaultLayoutProperties())
                     copy:SetInputGroup("")
                     copy:SetInterfaceScale(GetInterfaceScale())
+                    copy:SetFocusable(false)
                     Add(copy)
                     visualBlocks:Add(copy)
                     
@@ -108,7 +114,7 @@ blockListener:SetStartContext(undefined)
     
                 block = block:GetNextBlock()
             end
-    
+        
             SetPixelHeight(height)
             SetHeight(height)
             RequestLayout()
@@ -119,6 +125,38 @@ blockListener:SetStartContext(undefined)
                 Block child = visualBlocks:Get(i)
                 current = current - GetLineHeight(i)
                 child:Resize()
+                child:SetPosition(0, current)
+                i = i + 1
+            end
+        end
+    end
+    
+    action SetInterfaceScale(number scale)
+        parent:Control:SetInterfaceScale(scale)
+        
+        // If we're using pixel height to match block contents, update that info.
+        if root not= undefined and GetPixelHeight() > 0
+number height = 0        
+            Block block = root
+            repeat until block = undefined
+                block:SetFontSize(GetFontSize())
+                if block is SingleLineBlock
+                    height = height + GetLineHeight(0)
+                end
+    
+                block = block:GetNextBlock()
+            end
+        
+SetPixelHeight(height)
+            SetHeight(height)
+            RequestLayout()
+    
+            integer i = 0
+            number current = height
+            repeat while i < visualBlocks:GetSize()
+                Block child = visualBlocks:Get(i)
+                current = current - GetLineHeight(i)
+                child:RequestLayout()
                 child:SetPosition(0, current)
                 i = i + 1
             end
@@ -176,7 +214,6 @@ blockListener:SetStartContext(undefined)
         box:SetText(GetName())
         Array<Item2D> children
         children:Add(box)
-//        placeholder:SetEditor(GetEditor())
         placeholder:SetBlockEnvironment(GetEditor())
         placeholder:SetScopeDepth(1)
         placeholder:SetAsPlaceholder(GetName(), children)
@@ -201,9 +238,6 @@ blockListener:SetStartContext(undefined)
         lexer:Read(code)
         
         if not manager:IsCompilationErrorFree()
-//            text value = manager:GetCompilerErrorsAsText()
-//            output "WARNING: Couldn't generate start context due to the following error:
-//" + value
             return undefined
         end
         QuorumParser parser
@@ -211,9 +245,6 @@ blockListener:SetStartContext(undefined)
         parser:SetLexer(lexer)
         StartContext start = parser:Start()
         if not manager:IsCompilationErrorFree()
-//            text value = manager:GetCompilerErrorsAsText()
-//            output "WARNING: Couldn't generate start context due to the following error:
-//" + value
             return undefined
         end
         ParserToBlockListener blockListener
@@ -228,4 +259,35 @@ blockListener:SetStartContext(undefined)
         end
         return blocks
     end
+    
+    action GainedFocus(FocusEvent event)
+        // Any child blocks we have need their vertices updated, in order to correctly show focus colors.
+        Array<Item2D> children = GetChildren()
+        integer counter = 0
+        repeat while counter < children:GetSize()
+            Item2D child = children:Get(counter)
+            if child is Block
+                child:RequestVerticesUpdate()
+            end
+            counter = counter + 1
+        end
+        
+        parent:Control:GainedFocus(event)
+    end
+    
+action LostFocus(FocusEvent event)
+        // Any child blocks we have need their vertices updated, in order to correctly show focus colors.
+        Array<Item2D> children = GetChildren()
+        integer counter = 0
+        repeat while counter < children:GetSize()
+            Item2D child = children:Get(counter)
+            if child is Block
+                child:RequestVerticesUpdate()
+            end
+            counter = counter + 1
+        end
+        
+        parent:Control:LostFocus(event)
+    end
+    
 end

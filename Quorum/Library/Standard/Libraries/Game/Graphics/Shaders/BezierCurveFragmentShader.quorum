@@ -2,12 +2,14 @@ package Libraries.Game.Graphics.Shaders
 
 use Libraries.Game.Graphics.Shaders.Shader
 use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.GameStateManager
 
 class BezierCurveFragmentShader is Shader
 
     on create
         SetType(parent:Shader:FRAGMENT_SHADER)
-        ShaderManager manager
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
         SetName("BezierCurveFragmentShader")
 
         /*

@@ -1,0 +1,525 @@
+package Libraries.Robots.BirdBrain
+
+/*
+The Finch class allows the user to control a single Finch robot from BirdBrain Technologies. 
+Use of this class requires a Finch which is running BirdBrain Technologies' firmware and is 
+connected to the computer over bluetooth via the BlueBird Connector app (firmware and 
+software available at https://learn.birdbraintechnologies.com/install-shortcuts/).
+
+Attribute: Example
+
+use Libraries.Robots.BirdBrain.Finch
+class Main
+   action Main
+      
+      Finch finch
+
+      //draw a square with the finch
+      repeat 4 times
+        finch:SetMove("forward", 10, 50)
+        finch:SetTurn("right", 90, 50)
+      end
+
+      finch:Disconnect()
+
+   end
+end
+*/
+class Finch
+    system action Finch
+
+    /*
+        This action sends a request for the finch to move forward or backward a given distance at a given speed. 
+
+        Attribute: Parameter direction The direction of movement ("forward" or "backward").
+
+        Attribute: Parameter distance The distance to travel in centimeters (Range: 0 to 500).
+
+        Attribute: Parameter speed The speed as a percent (Range: 0 to 100).
+        
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        //move the finch forward 10 centimeters at 50% speed
+        finch:SetMove("forward", 10, 50)
+        finch:Disconnect()
+
+    */
+    system action SetMove(text direction, number distance, number speed)
+
+    /*
+        This action sends a request for the finch to turn right or left to the given 
+        angle at the given speed.
+
+        Attribute: Parameter direction The direction of the turn ("right" or "left").
+
+        Attribute: Parameter angle The angle of the turn in degrees (Range: 0 to 360).
+
+        Attribute: Parameter speed The speed of the turn as a percent (Range: 0 to 100).
+        
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        //turn the finch to the right 90 degrees at 50% speed
+        finch:SetTurn("right", 90, 50)
+        finch:Disconnect()
+
+    */
+    system action SetTurn(text direction, number angle, number speed)
+
+    /*
+        This action sets the right and left motors of the finch to the speeds given.
+
+        Attribute: Parameter leftSpeed The speed of the left motor as a percent (Range: -100 to 100).
+
+        Attribute: Parameter rightSpeed The speed of the right motor as a percent (Range: -100 to 100).
+        
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        //cause the finch to spin in place
+        finch:SetMotors(-20, 20)
+        finch:Pause(1)
+        //draw a small circle with the finch
+        finch:SetMotors(0, 30)
+        finch:Pause(5)
+        finch:Stop()
+        finch:Disconnect()
+
+    */
+    system action SetMotors(number leftSpeed, number rightSpeed)
+
+    /*
+        This action stops the finch motors.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        //cause the finch to spin in place
+        finch:SetMotors(-20, 20)
+        finch:Pause(1)
+        finch:Stop()
+        finch:Disconnect()
+
+    */
+    system action Stop
+
+    /*
+        This action sets the finch beak to the given rgb color.
+
+        Attribute: Parameter red Red intensity (Range: 0 to 100).
+
+        Attribute: Parameter green Green intensity (Range: 0 to 100).
+
+        Attribute: Parameter blue Blue intensity (Range: 0 to 100).
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        //Set the finch beak to bright white
+        finch:SetBeak(100, 100, 100)
+        finch:Disconnect()
+
+    */
+    system action SetBeak(integer red, integer green, integer blue)
+
+    /*
+        This action sets the specified tail LED to the specified rgb color.
+
+        Attribute: Parameter ledNum LED to set (Range: 1 to 4).
+
+        Attribute: Parameter red Red intensity (Range: 0 to 100).
+
+        Attribute: Parameter green Green intensity (Range: 0 to 100).
+
+        Attribute: Parameter blue Blue intensity (Range: 0 to 100)
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        //Set tail LED 1 to cyan
+        finch:SetTail(1, 0, 100, 100)
+        finch:Disconnect()
+
+    */
+    system action SetTail(integer ledNum, integer red, integer green, integer blue)
+
+    /*
+        This action sets all tail LEDs to the specified rgb color.
+
+        Attribute: Parameter ledNum Text which must be specified as 'all'.
+
+        Attribute: Parameter red Red intensity (Range: 0 to 100).
+
+        Attribute: Parameter green Green intensity (Range: 0 to 100).
+
+        Attribute: Parameter blue Blue intensity (Range: 0 to 100).
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        //Set all tail LEDs to red
+        finch:SetTail("all", 100, 0, 0)
+        finch:Disconnect()
+
+    */
+    system action SetTail(text ledNum, integer red, integer green, integer blue)
+
+    /*
+        This action resets the finch encoder values to 0.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        finch:ResetEncoders()
+        finch:Disconnect()
+
+    */
+    system action ResetEncoders
+
+    /*
+        This action gets the current value of the right or left encoder.
+
+        Attribute: Parameter direction Encoder value to return ("right" or "left").
+
+        Attribute: Returns The encoder value in rotations.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        output "Right Encoder: " + finch:GetEncoder("right")
+        finch:Disconnect()
+
+    */
+    system action GetEncoder(text direction) returns number
+
+    /*
+        This action gets the current value of the finch distance sensor in centimeters.
+
+        Attribute: Returns The distance to the closest obstacle in centimeters.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        output "Distance Sensor: " + finch:GetDistance()
+        finch:Disconnect()
+
+    */
+    system action GetDistance returns integer
+
+    /*
+        This action gets the current value of the specified finch light sensor.
+
+        Attribute: Parameter direction Light sensor value to return ("right" or "left").
+
+        Attribute: Returns Brightness as a value (Range: 0 to 100).
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        output "Right Light Sensor: " + finch:GetLight("right")
+        finch:Disconnect()
+
+    */
+    system action GetLight(text direction) returns integer
+
+    /*
+        This action gets the current value of the specified finch line sensor. 
+        The return value is inverted (100 - value) so that more reflected 
+        light = bigger number.
+
+        Attribute: Parameter direction Line sensor value to return ("right" or "left").
+
+        Attribute: Returns Brightness as a value (Range: 0 to 100).
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        output "Left Line Sensor: " + finch:GetLine("left")
+        finch:Disconnect()
+
+    */
+    system action GetLine(text direction) returns integer
+
+    /*
+        This action provides information about the finch's current orientation 
+        in the finch reference frame. Options include Beak up, Beak down, Tilt left, 
+        Tilt right, Level, and Upside down.
+
+        Attribute: Returns The orientation of the finch (Beak up, Beak down, Tilt left, 
+        Tilt right, Level, or Upside down).
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        output "Finch Orientation: " + finch:GetOrientation()
+        finch:Disconnect()
+
+    */
+    system action GetOrientation returns text
+
+
+    /*
+        This action lets the LED Array display a given message.
+
+        Attribute: Parameter message The message that will be displayed on the LED Array.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        finch:Print("Hello world")
+        finch:Disconnect()
+
+    */
+    system action Print(text message)
+
+    /*
+        This action lets the LED Array display a given message.
+
+        Attribute: Parameter message The message that will be displayed on the LED Array.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        finch:Output("Hello world")
+        finch:Disconnect()
+
+    */
+    system action Output(text message)
+
+    /*
+        This action lets the LED Array display a pattern based on an array of 1s and 0s.
+
+        Attribute: Parameter ledValues The list of integers that the function takes in to 
+        set the LED Array. 1 means on and 0 means off.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        //Display a smiley face on the micro:bit LED array
+        finch:SetDisplay("0000001010000001000101110")
+        finch:Disconnect()
+
+    */
+    system action SetDisplay(text ledValues)
+
+    /*
+        This action turns on or off a single LED on the micro:bit LED array. 
+
+        Attribute: Parameter x The column of the LED (Range: 1 to 5).
+
+        Attribute: Parameter y The row of the LED (Range: 1 to 5).
+
+        Attribute: Parameter value The value of the LED (0 for off, 1 for on).
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        // Turn on the middle LED of the LED array.
+        finch:SetPoint(3, 3, 1)
+        finch:Disconnect()
+
+    */
+    system action SetPoint(integer row, integer column, integer value)
+
+    /*
+        This action sets the micro:bit buzzer to play the given note for 
+        the given duration.
+
+        Attribute: Parameter note Midi note number to play (Range: 32 to 135).
+
+        Attribute: Parameter beats Duration in beats (Range: 0 to 16); each 
+        beat is one second.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        //Play middle C for 1 beat.
+        finch:PlayNote(60, 1)
+        finch:Disconnect()
+
+    */
+    system action PlayNote(integer note, number beats)
+
+    /*
+        This action returns the acceleration in the given direction 
+        (X, Y, or Z) in meters per second squared.
+
+        Attribute: Parameter axis The direction of which the acceleration will 
+        be returned.
+
+        Attribute: Returns Acceleration in meters per second squared.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        output "X Acceleration: " + finch:GetAcceleration("x")
+        finch:Disconnect()
+
+    */
+    system action GetAcceleration(text axis) returns number
+
+    /*
+        This action returns the magnetometer value in the given direction 
+        (X, Y, or Z) in microtesla.
+
+        Attribute: Parameter axis The direction of which the magnetometer value 
+        will be returned.
+
+        Attribute: Returns Magnetometer value in microtesla.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        output "Z Magnetometer: " + finch:GetMagnetometer("z")
+        finch:Disconnect()
+
+    */
+    system action GetMagnetometer(text axis) returns integer
+
+    /*
+        This action returns the direction in degrees from north. 
+
+        Attribute: Returns The direction in degrees (Range: 0 to 360).
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        output "Compass: " + finch:GetCompass()
+        finch:Disconnect()
+
+    */
+    system action GetCompass returns integer
+
+    /*
+        This action checks whether the specified micro:bit button is pressed. 
+        The function prints an error if the inputs are not in the specified range.
+
+        Attribute: Parameter button The button that will be checked 
+        (Range: "A", "B", "LOGO").
+
+        Attribute: Returns true if the button is pressed and false otherwise.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        output "Button A: " + finch:GetButton("A")
+        finch:Disconnect()
+
+    */
+    system action GetButton(text button) returns boolean
+
+    /*
+        This action returns the current sound level from the micro:bit sound sensor.
+
+        Attribute: Returns Sound level.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        output "Sound: " + finch:GetSound()
+        finch:Disconnect()
+
+    */
+    system action GetSound returns integer
+
+    /*
+        This action returns the current temperature in degrees Celsius from the 
+        micro:bit temperature sensor.
+
+        Attribute: Returns Temperature in degrees Celsius.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        output "Temperature: " + finch:GetTemperature()
+        finch:Disconnect()
+
+    */
+    system action GetTemperature returns integer
+
+    /*
+        This action tells you whether the micro:bit is being shaken. 
+
+        Attribute: Returns A boolean value telling you the shake state.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        output "Is Shaking?: " + finch:IsShaking()
+        finch:Disconnect()
+
+    */
+    system action IsShaking returns boolean
+
+    /*
+        This action turns off all the outputs. 
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        finch:StopAll()
+        finch:Disconnect()
+
+    */
+    system action StopAll
+
+    /*
+        This action pauses the program for a time in seconds.
+
+        Attribute: Parameter seconds Amount of time the program should pause
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        //Display a smiley face for 1 second
+        finch:SetDisplay("0000001010000001000101110")
+        finch:Pause(1)
+        finch:SetDisplay("0000000000000000000000000")
+        finch:Disconnect()
+
+    */
+    system action Pause(number seconds)
+
+    /*
+        This action closes the http connection to save memory. It should be used 
+        at the end of every program.
+
+        Attribute: Example
+
+        use Libraries.Robots.BirdBrain.Finch
+        Finch finch
+        finch:Disconnect()
+
+    */
+    system action Disconnect
+
+
+end

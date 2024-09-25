@@ -16,7 +16,7 @@ function plugins_quorum_Libraries_Game_Graphics_Skybox_(quorumBox)
     
     this.InitializeCubeMap$quorum_Libraries_Game_Graphics_Texture = function(texture)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics;
         var texturePlugin = texture.plugin_;
         texturePlugin.SetGraphicsInfo$quorum_integer$quorum_integer(graphics.gl.TEXTURE_CUBE_MAP, texturePlugin.CreateGLHandle());
         texturePlugin.Bind();
@@ -30,7 +30,7 @@ function plugins_quorum_Libraries_Game_Graphics_Skybox_(quorumBox)
     
     this.LoadSide$quorum_Libraries_System_File$quorum_Libraries_Game_Graphics_Texture$quorum_integer = function(file, texture, side)
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics;
         switch(side)
         {
             case graphics.gl.TEXTURE_CUBE_MAP_POSITIVE_X:

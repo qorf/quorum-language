@@ -10,7 +10,7 @@ class plugins_quorum_Libraries_Language_Types_Boolean_:
 	def SetValueNative__quorum_boolean(self, bool):
 		myBoolean = bool;
     
-	def GetHashCode():
+	def GetHashCode(self):
 		if self.myBoolean:
 			return 1231
 		else:

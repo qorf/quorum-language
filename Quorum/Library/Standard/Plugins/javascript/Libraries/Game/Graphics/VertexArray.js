@@ -11,7 +11,7 @@ function plugins_quorum_Libraries_Game_Graphics_VertexArray_()
     
     this.Load$quorum_integer$quorum_Libraries_Game_Graphics_VertexAttributes = function(numVertices, attributes) 
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics;
         
         this.attributes = attributes;
         buffer = graphics.glGenBuffer();
@@ -20,7 +20,7 @@ function plugins_quorum_Libraries_Game_Graphics_VertexArray_()
     
     this.Dispose = function() 
     {
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics;
         graphics.glBindBuffer(graphics.gl.ARRAY_BUFFER, null);
         graphics.glDeleteBuffer(buffer);
         buffer = null;
@@ -97,7 +97,7 @@ function plugins_quorum_Libraries_Game_Graphics_VertexArray_()
     this.Bind = function(shader, locations)
     {
         var numAttributes = this.attributes.GetSize();
-        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+        var graphics = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics;
         
         graphics.glBindBuffer(graphics.gl.ARRAY_BUFFER, buffer);
         

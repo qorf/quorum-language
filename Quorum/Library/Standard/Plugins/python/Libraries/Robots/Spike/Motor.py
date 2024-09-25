@@ -20,15 +20,15 @@ class plugins_quorum_Libraries_Robots_Spike_Motor_:
 		return motor.absolute_position(self.port)
 		
 	def SetRelativePositionNative__quorum_integer(self, position):
-		return motor.reset_relative_position(self.port)
+		return motor.reset_relative_position(self.port, position)
 		
-	def Run__quorum_integer__quorum_integer(self, velocity, acceleration):
-		motor.run(self.port, velocity, acceleration)
+	def RunNative__quorum_integer(self, velocity):
+		motor.run(self.port, velocity)
 		
 	async def RunForTime__quorum_integer__quorum_integer(self, time, velocity):
 		await motor.run_for_time(self.port, time, velocity)
 		
-	async def RunForDegrees__quorum_integer__quorum_integer(self, degrees, velocity):
+	async def RunToDegrees__quorum_integer__quorum_integer(self, degrees, velocity):
 		await motor.run_for_degrees(self.port, degrees, velocity)
 	
 	async def RunToAbsolutePosition__quorum_integer__quorum_integer(self, position, velocity):
@@ -38,7 +38,7 @@ class plugins_quorum_Libraries_Robots_Spike_Motor_:
 		await motor.run_to_relative_position(self.port, position, velocity)
 		
 	def SetDutyCycleNative__quorum_integer(self, position):
-		return motor.set_duty_cycle(self.port)
+		return motor.set_duty_cycle(self.port, position)
 		
 	def StopNative(self):
 		return motor.stop(self.port)

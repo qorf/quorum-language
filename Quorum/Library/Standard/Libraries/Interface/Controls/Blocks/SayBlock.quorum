@@ -28,6 +28,14 @@ class SayBlock is SingleLineBlock
         // This should be the entire text read by the screen reader when focused, not just the "say" portion
         SetName("say")
     end
+    
+    action GetBlockName returns text
+        return "Say Block"
+    end
+    
+    action GetBlockDescription returns text
+        return "The say block is used to get the program to speak. Like the output block this block takes a message or data and instead of printing to a console the message will be spoken by the computer."
+    end
 
     action SetupElements
         BlockEnvironment editor = GetBlockEnvironment()

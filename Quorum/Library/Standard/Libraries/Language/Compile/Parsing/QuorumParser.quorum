@@ -1225,7 +1225,7 @@ next = tokenIterator:Next()
             context:SetLastToken(next)
             SetLocation(context)
             context:SetDocumentation(CheckForDocumentation())
-            context:isPublic = false
+            context:isPrivate = true
             tokenIterator:Next()
             return context
         end
@@ -2122,7 +2122,7 @@ next = tokenIterator:Next()
         end
         Token next = tokenIterator:GetCurrent()
         
-        if next:category = constants:OUTPUT
+        if next not= undefined and next:category = constants:OUTPUT
             OutputContext context
             context:SetFirstToken(next)
             context:SetDocumentation(CheckForDocumentation())
@@ -2153,7 +2153,7 @@ next = tokenIterator:Next()
             return undefined 
         end
         Token next = tokenIterator:GetCurrent()
-        if next:category = constants:SAY
+        if next not= undefined and next:category = constants:SAY
             SayContext context
             context:SetFirstToken(next)
             context:SetDocumentation(CheckForDocumentation())
@@ -2192,7 +2192,7 @@ next = tokenIterator:Next()
             current = tokenIterator:Next() //skip the output token
             
             //check if it's left and right paren or if it has an expression
-            if current:category = constants:LEFT_PAREN
+            if current not= undefined and current:category = constants:LEFT_PAREN
                 Token next = tokenIterator:LookAhead(1) //if this is a right paren, there is no expression
                 if next not= undefined and next:category = constants:RIGHT_PAREN
                     tokenIterator:Next()
@@ -2222,7 +2222,13 @@ next = tokenIterator:Next()
                     end
                 end
             else //this is an error
-                SendDefaultError("Expected ( (left paren), received " + current:value + "." + moreInformationAlert, codes:PARSER_ALERT_STATEMENT_BAD_LEFT_PAREN)
+                text val = ""
+                if current not= undefined
+                    val = current:value
+                else
+                    val = " no additional text"
+                end
+                SendDefaultError("Expected ( (left paren), received " + val + "." + moreInformationAlert, codes:PARSER_ALERT_STATEMENT_BAD_LEFT_PAREN)
                 return undefined 
             end
         end
@@ -2275,12 +2281,17 @@ next = tokenIterator:Next()
         //now process any parameters, if there are any
         if next not= undefined and next:category = constants:LEFT_PAREN
             if not IsValid() return undefined end
+            context:leftParen= next
             next = tokenIterator:Next()
             //they are just using parens even though they aren't necessary
-            if next:category = constants:RIGHT_PAREN
+            if next not= undefined and next:category = constants:RIGHT_PAREN
+                context:rightParen = next
                 context:SetLastToken(next)
                 next = tokenIterator:Next()
             else //if it's not a paren, it has to be a formal parameter. 
+                if next = undefined
+                    return undefined
+                end
                 List<Variable> variables = context:parameters
                 Array<FormalParameterContext> parameters
                 context:parameterContexts = parameters
@@ -2323,6 +2334,7 @@ next = tokenIterator:Next()
                 end
 
                 if next not= undefined next:category = constants:RIGHT_PAREN
+                    context:rightParen= next
                     context:SetLastToken(next)
                     next = tokenIterator:Next()
                 else //this is an error
@@ -2593,7 +2605,12 @@ next = tokenIterator:Next()
                     //guarantee that this will parse, but it does mean all other options are off the table
                     if next not= undefined and next:category = constants:ID
                         next = copy:Next()
-                        if next:category = constants:EQUALITY
+                        if next = undefined
+                            statementError = CreateCompilerError("Expected identifier after parent name. " + moreInformationParent)
+                            statementError:SetCode(codes:PARSER_GET_STATEMENT_TYPE_BAD_PARENT_ID_UNDEFINED)
+                            SetCompilerErrorLocation(statementError, next, undefined)
+                            return NONE
+                        elseif next:category = constants:EQUALITY
                             return PARENT_ASSIGNMENT
                         else
                             return PARENT_VARIABLE_SOLO_ACTION_CALL
@@ -3920,7 +3937,9 @@ next = tokenIterator:Next()
             end
         elseif current not= undefined and current:category = constants:PARENT
             ParentVariableFunctionCallContext call = ParentVariableActionCall()
-            call:hasMe = hasMe
+            if call not= undefined
+                call:hasMe = hasMe
+            end
             return call
         end
         return undefined

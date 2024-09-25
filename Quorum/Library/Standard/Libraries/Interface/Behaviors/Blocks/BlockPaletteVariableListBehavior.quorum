@@ -1,0 +1,33 @@
+package Libraries.Interface.Behaviors.Block
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Language.Compile.Symbol.Variable
+use Libraries.Interface.Controls.Blocks.Palette.BlockSuggestionPage
+
+class BlockPaletteVariableListBehavior is Behavior
+    Variable variable = undefined
+    BlockSuggestionPage page = undefined
+    action Run(BehaviorEvent event)
+        if variable not= undefined and page not= undefined
+            page:SetActionsFromVariable(variable)
+        end
+    end
+    
+    action SetVariable(Variable variable)
+        me:variable = variable
+    end
+
+    action GetVariable returns Variable
+        return variable
+    end
+
+    action SetPage(BlockSuggestionPage page)
+        me:page = page
+    end
+
+    action GetPage returns BlockSuggestionPage
+        return page
+    end
+
+end

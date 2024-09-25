@@ -1,0 +1,51 @@
+package Libraries.System.Logging
+/*The SharedLogger class represents a system wide logger. To use it, 
+some place within a particular application, you need to instantiate
+a logger and pass it to the shared logger. This allows applications
+outside of the standard library to cause any internal classes within
+the standard library to have a shared logging interface.*/
+
+shared class SharedLogger is Logger
+    Logger logger = undefined
+
+    action IsLoggingTime returns boolean
+        if logger not= undefined
+            return logger:IsLoggingTime()
+        end
+        return IsLoggingTime()
+    end
+
+    action SetLoggingTime(boolean time)
+        if logger not= undefined
+            logger:SetLoggingTime(time)
+        end
+        parent:Logger:SetLoggingTime(time)
+    end
+
+    action Log(text value)
+        //Do nothing unless the system has declared a shared logger
+        if logger not= undefined
+            logger:Log(value)
+        end
+    end
+
+    action Close
+        if logger not= undefined
+            logger:Close()
+        end
+    end
+    
+    action GetLogger returns Logger
+        return logger
+    end
+
+    action SetLogger(Logger logger)
+        Logger myself = me
+        //just to avoid whacky edge cases
+        if logger not= myself
+            me:logger = logger
+        else
+            alert("Cannot set the Shared Logger to use itself as its own logger.")
+        end
+    end
+end

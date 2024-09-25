@@ -35,18 +35,13 @@ class TabPane is Control
             SetFontSize(font:GetSize())
         end
         
-        LayoutProperties paneProperties = GetDefaultLayoutProperties()
+LayoutProperties paneProperties = GetDefaultLayoutProperties()
         paneProperties:SetHorizontalLayoutMode(paneProperties:STANDARD)
         paneProperties:SetVerticalLayoutMode(paneProperties:STANDARD)
         paneProperties:SetPercentageWidth(1)
         paneProperties:SetPercentageHeight(1)
-
-        LayoutProperties viewLayoutProperties = viewArea:GetDefaultLayoutProperties()
-        viewLayoutProperties:SetHorizontalLayoutMode(viewLayoutProperties:STANDARD)
-        viewLayoutProperties:SetVerticalLayoutMode(viewLayoutProperties:FILL)
-        viewLayoutProperties:SetPercentageX(0)
-        viewLayoutProperties:SetPercentageWidth(1)
-        viewArea:SetClipping(true)
+        
+        TopAlignTabBar()
 
         Add(bar)
         Add(viewArea)
@@ -58,6 +53,56 @@ class TabPane is Control
 
         FlowLayout flow
         viewArea:SetLayout(flow)
+    end
+    
+    /*This action sets the TabBar to be a horizontal bar across the top of the TabPane.
+This is the default setting for the TabBar.*/
+    action TopAlignTabBar
+        LayoutProperties viewLayoutProperties = viewArea:GetDefaultLayoutProperties()
+        viewLayoutProperties:SetHorizontalLayoutMode(viewLayoutProperties:STANDARD)
+        viewLayoutProperties:SetVerticalLayoutMode(viewLayoutProperties:FILL)
+        viewLayoutProperties:SetPercentageX(0)
+        viewLayoutProperties:SetPercentageWidth(1)
+        viewArea:SetClipping(true)
+        
+        bar:SetToHorizontal()
+    end
+    
+    /*This action sets the TabBar to be a vertical bar placed on the left side of the TabPane.*/
+    action LeftAlignTabBar
+        LayoutProperties viewLayoutProperties = viewArea:GetDefaultLayoutProperties()
+        viewLayoutProperties:SetHorizontalLayoutMode(viewLayoutProperties:FILL)
+        viewLayoutProperties:SetVerticalLayoutMode(viewLayoutProperties:STANDARD)
+        viewLayoutProperties:SetPercentageHeight(1.0)
+        viewArea:SetClipping(true)
+        
+        bar:SetToVertical()
+    end
+    
+    /* This action returns true if the TabBar is aligned across the top of the TabPane, 
+or false otherwise. By default, this is true. */
+    action IsBarTopAligned returns boolean
+        return bar:IsVertical() = false
+    end
+    
+    /* This action returns true if the TabBar is aligned on the left side of the TabPane,
+or false otherwise. By default, this is false. */
+    action IsBarLeftAligned returns boolean
+        return bar:IsVertical()
+    end
+    
+    /* This action sets the TabBar to use large tabs if the given value is true, or to use
+the default smaller tabs if the value is false. Default tabs place the icon, label, and
+close button all together on a single horizontal line. Large tabs place the label at
+the bottom of the tab, with a larger icon on top of it. */
+    action SetLargeTabs(boolean enable)
+        bar:SetLargeTabs(enable)
+    end
+    
+/* This action returns whether or not the TabBar is using large tabs. By default,
+this is false. */
+    action IsUsingLargeTabs returns boolean
+        return bar:IsUsingLargeTabs()
     end
 
     action IsAccessibleParent returns boolean
@@ -287,7 +332,10 @@ class TabPane is Control
     end
 
     /*
-
+TabPanes don't usually accept focus on themselves. Instead, they redirect focus to their contents.
+If the current tab has a focus target, that will receive the focus. If there isn't a target, the
+TabPane will try to focus the tab's related item. If the related item isn't focusable, it'll focus
+the first focusable item within the first generation of children of the related item instead.
     */
     action GainedFocus(FocusEvent event)
         if selection:IsEmpty() = true
@@ -298,10 +346,35 @@ class TabPane is Control
             Tab tab = selection:GetTab()
             if tab:GetFocusTarget() not= undefined
                 tab:GetFocusTarget():Focus()
-            elseif tab:GetRelatedItem():IsFocusable()
-                tab:GetRelatedItem():Focus()
+            else
+                Item2D relatedItem = tab:GetRelatedItem()
+                Item2D focusable = GetFirstFocusableChild(relatedItem)
+                if focusable not= undefined
+                    focusable:Focus()
+                end
             end
         end
         parent:Control:GainedFocus(event)
     end
+    
+    // Recursively depth-first searches an item's child hierarchy looking for a focusable Item. Will return the parameter if it's focusable.
+    private action GetFirstFocusableChild(Item2D item) returns Item2D
+        if item:IsFocusable()
+            return item
+        end
+        
+        Array<Item2D> children = item:GetChildren()
+        integer i = 0
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            Item2D target = GetFirstFocusableChild(child)
+            if target not= undefined
+                return target
+            end
+            i = i + 1
+        end
+        
+        return undefined
+    end
+    
 end

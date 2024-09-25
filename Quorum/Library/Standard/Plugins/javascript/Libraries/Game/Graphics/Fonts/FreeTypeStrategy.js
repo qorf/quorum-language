@@ -22,8 +22,12 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 		var loadFontNativeC = Module.cwrap('LoadFontC', 'number', ['string']);
 		var loadFontNativeResult = loadFontNativeC("fonts/" + fontName + ".ttf");
 		if (loadFontNativeResult == 1) {
-			// error loading font
-			console.log('Error loading font:' + fontName);
+			// error loading font as ttf try otf
+		    loadFontNativeResult = loadFontNativeC("fonts/" + fontName + ".otf");
+			// no ttf or otf loading failed
+			if (loadFontNativeResult == 1) {
+				console.log('Error loading font:' + fontName);
+			}
 		}
 
 		this.SetSizeNative$quorum_integer(this.me_.GetSize());
@@ -318,7 +322,7 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 		// How much padding there should be between symbols on the ImageSheet.
 		var padding = 1;
 
-		var graphics = plugins_quorum_Libraries_Game_GameStateManager_.nativeGraphics;
+		var graphics = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().nativeGraphics;
 		var maxSize = graphics.glGetIntegerv(graphics.gl.MAX_TEXTURE_SIZE);
 
 		var rowHeight = padding;
