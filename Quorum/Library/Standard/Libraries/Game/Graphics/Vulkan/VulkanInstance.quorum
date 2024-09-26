@@ -2,6 +2,7 @@ package Libraries.Game.Graphics.Vulkan
 
 use Libraries.System.Logging.Logger
 use Libraries.System.Logging.ConsoleLogger
+use Libraries.Containers.Array
 
 /*This class is a Quorum representation of a Vulkan instance.
 
@@ -21,7 +22,9 @@ class VulkanInstance
     boolean initialized = false
     
     /*
-    This action initializes the Vulkan instance so it can be used with other Vulkan objects. If the instance is successfully created, this function returns true.
+    This action initializes the Vulkan instance with the proper extensions needed for basic rendering and screen display. 
+    For fine control over which extensions and layers are used, use the Create action instead.
+    If the instance is successfully created, this function returns true.
     If the instance cannot be created, this action returns false instead.
 
     Attribute: Parameter applicationName The title of the application that is using this instance. Hardware agents can use this to identify your app, if they choose.
@@ -30,20 +33,53 @@ class VulkanInstance
     Attribute: Parameter useValidationLayers Whether or not the instance should use Validation Layers, if they are available. If this is true and they aren't available, the instance will be made without them.
     Attribute: Returns True if the instance is successfully created, or false if it could not be created.
     */
-    action Create(text applicationName, integer applicationVersion, integer apiVersion, boolean useValidationLayers) returns boolean
+    action CreateGraphicsInstance(text applicationName, integer applicationVersion, integer apiVersion, boolean useValidationLayers) returns boolean
         VulkanUtilities utility
         if utility:AreValidationLayersSupported() = false
             useValidationLayers = false
         end
         
-        utility:GetRequiredDisplayExtensions(undefined)
+        Array<text> requiredLayers
+        if useValidationLayers
+            utility:GetSupportedValidationLayers(requiredLayers)
+        end
 
+        Array<text> requiredExtensions
+        utility:GetRequiredDisplayExtensions(requiredExtensions)
+
+        // If no extensions were returned, then there aren't any available for displaying Vulkan graphics to a screen.
+        // Since it won't meet our needs, abort early and report failure.
+        if requiredExtensions:IsEmpty()
+            return false
+        end
+
+        // Get platform specific extensions, such as the Mac-specific extensions for MoltenVK support.
+        utility:GetRequiredPlatformExtensions(requiredExtensions, useValidationLayers)
+
+        // If validation is being used and we don't have a logger, provide a basic logger to output to the console.
         if logger = undefined and useValidationLayers = true
             ConsoleLogger consoleLogger
             logger = consoleLogger
         end
 
-        boolean result = CreateNative(applicationName, applicationVersion, apiVersion, useValidationLayers)
+        return Create(applicationName, applicationVersion, apiVersion, requiredLayers, requiredExtensions)
+    end
+
+    /*
+    This action initializes the Vulkan instance using the provided layers and extensions. The layers and extensions available
+    on this device can be found using the VulkanUtilities class.
+    If the instance is successfully created, this function returns true.
+    If the instance cannot be created, this action returns false instead.
+
+    Attribute: Parameter applicationName The title of the application that is using this instance. Hardware agents can use this to identify your app, if they choose.
+    Attribute: Parameter applicationVersion The version number of your application. Hardware agents can use this to identify the version of your app, if they choose.
+    Attribute: Parameter apiVersion The Vulkan API version to use. This must be an encoded API number (see "ConvertToAPIVersionID" in VulkanUtilities).
+    Attribute: Parameter layerNames An array containing the names of each of the layers to be used by the Vulkan instance.
+    Attribute: Parameter extensionNames An array containing the names of each of the extensions to be used by the Vulkan instance.
+    Attribute: Returns True if the instance is successfully created, or false if it could not be created.
+    */
+    action Create(text applicationName, integer applicationVersion, integer apiVersion, Array<text> layerNames, Array<text> extensionNames) returns boolean
+        boolean result = CreateNative(applicationName, applicationVersion, apiVersion, layerNames, extensionNames)
 
         if result
             initialized = true
@@ -52,7 +88,7 @@ class VulkanInstance
         return result
     end
     
-    private system action CreateNative(text applicationName, integer applicationVersion, integer apiVersion, boolean useValidationLayers) returns boolean
+    private system action CreateNative(text applicationName, integer applicationVersion, integer apiVersion, Array<text> layerNames, Array<text> extensionNames) returns boolean
     
     action IsInitialized returns boolean
         return initialized
