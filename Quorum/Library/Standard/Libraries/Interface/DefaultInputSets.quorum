@@ -2250,7 +2250,7 @@ InputSet swipeSet
         pinchSet:SetGestureInput(gestures:PINCH)
         
         CodeEditorSwipeBehavior swipeBehavior
-        table:Add(swipeSet, swipeBehavior)
+        //table:Add(swipeSet, swipeBehavior)
 
         InputSet downSet
         downSet:SetKeyboardInput(keys:DOWN)
@@ -2302,7 +2302,6 @@ InputSet swipeSet
         CodeEditorNewLineBehavior newLineBehavior
         table:Add(enterSet, newLineBehavior)
         table:Add(numpadEnterSet, newLineBehavior)
-        table:Add(doubleTapSet, newLineBehavior)
 
         //Editor Hint Application
         InputSet altEnterSet

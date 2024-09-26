@@ -30,6 +30,10 @@ function plugins_quorum_Libraries_Interface_Events_GestureProcessor_() {
         mc.add(new Hammer.Tap({event: 'twoFingerTap', pointers:2 }));
         mc.add(twoFingerSwipe);
         mc.get('pinch').recognizeWith(twoFingerSwipe);
+        let threeFingerSwipe = new Hammer.Swipe({event: 'threeFingerSwipe', direction: Hammer.DIRECTION_ALL, pointers:3 });
+        mc.add(new Hammer.Tap({event: 'threeFingerTap', pointers:3 }));
+        mc.add(threeFingerSwipe);
+        mc.get('pinch').recognizeWith(threeFingerSwipe);
         gestureListener = mc;
         gestureListener.on("panstart panmove panend pancancel", function(ev) {
             if(ev.pointerType !== "mouse") {
@@ -78,7 +82,7 @@ function plugins_quorum_Libraries_Interface_Events_GestureProcessor_() {
                 }
             }
         });
-        gestureListener.on("tap twoFingerTap", function(ev) {
+        gestureListener.on("tap twoFingerTap threeFingerTap", function(ev) {
             if(ev.pointerType !== "mouse") {
                 let gestureEvent = new quorum_Libraries_Interface_Events_GestureEvent_();
                 gestureEvent.eventType = gestureEvent.SINGLE_TAP;
@@ -87,6 +91,8 @@ function plugins_quorum_Libraries_Interface_Events_GestureProcessor_() {
                 gestureEvent.y = ev.center.y - boundingRect.top;
                 if(ev.type === 'twoFingerTap') {
                     gestureEvent.maxFingerCount = 2;
+                } else if(ev.type === 'threeFingerTap') {
+                    gestureEvent.maxFingerCount = 3
                 } else {
                     gestureEvent.maxFingerCount = 1;
                 }
@@ -128,7 +134,7 @@ function plugins_quorum_Libraries_Interface_Events_GestureProcessor_() {
                 }
             }
         });
-        gestureListener.on("swipe twoFingerSwipe", function(ev) {
+        gestureListener.on("swipe twoFingerSwipe threeFingerSwipe", function(ev) {
             if(ev.pointerType !== "mouse") {
                 let gestureEvent = new quorum_Libraries_Interface_Events_GestureEvent_();
                 gestureEvent.eventType = gestureEvent.SWIPE;
@@ -137,6 +143,8 @@ function plugins_quorum_Libraries_Interface_Events_GestureProcessor_() {
                 gestureEvent.y = ev.center.y - boundingRect.top;
                 if(ev.type === 'twoFingerSwipe') {
                     gestureEvent.maxFingerCount = 2;
+                } else if(ev.type === 'threeFingerSwipe') {
+                    gestureEvent.maxFingerCount = 3
                 } else {
                     gestureEvent.maxFingerCount = 1;
                 }
