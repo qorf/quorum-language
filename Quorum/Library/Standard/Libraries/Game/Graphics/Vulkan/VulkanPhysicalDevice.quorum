@@ -1,10 +1,45 @@
 package Libraries.Game.Graphics.Vulkan
 
+use Libraries.Containers.Array
+
 class VulkanPhysicalDevice
     
+    boolean initialized = false
+
+    /*
+    This action creates a physical device optimized for rendering graphics and displaying them to the screen.
+    If the device was successfully created, this action returns true. Otherwise, it returns false.    
+
+    Attribute: Returns True if the physical device was successfully created, or false otherwise.
+    */
+    action CreateGraphicsDevice returns boolean
+        VulkanConstants constants
+
+        integer flags = constants:QUEUE_GRAPHICS_BIT
+        Array<text> extensions
+        extensions:Add(constants:SWAPCHAIN_EXTENSION)
+
+        return Create(flags, extensions)
+    end
+
+    action Create(integer featuresBitmask, Array<text> extensionNames) returns boolean
+        boolean success = CreateNative(featuresBitmask, extensionNames)
+
+        if success
+            initialized = true
+        end
+
+        return success
+    end
+
+    private system action CreateNative(integer featuresBitmask, Array<text> extensionNames) returns boolean
     
 /*This action destroys this device and releases all system resources related to it. Once the device is disposed, it can't
 be used anymore, so this should only be done to clean up resources when the device is no longer needed.*/
     system action Dispose
     
+    action IsInitialized returns boolean
+        return initialized
+    end
+
 end

@@ -140,10 +140,11 @@ public class VulkanInstance
 
 
             VkInstanceCreateInfo instanceInfo = VkInstanceCreateInfo.calloc(stack);
+            instanceInfo.sType$Default();
             instanceInfo.pNext(debugUtilitiesPointer);
             instanceInfo.pApplicationInfo(appInfo);
             instanceInfo.ppEnabledLayerNames(requiredLayers);
-            instanceInfo.ppEnabledLayerNames(requiredExtensions);
+            instanceInfo.ppEnabledExtensionNames(requiredExtensions);
 
             // If we have the portability extension, set the required flag.
             if (hasPortabilityExtension)

@@ -50,6 +50,7 @@ class VulkanInstance
         // If no extensions were returned, then there aren't any available for displaying Vulkan graphics to a screen.
         // Since it won't meet our needs, abort early and report failure.
         if requiredExtensions:IsEmpty()
+            output "Extensions was empty!"
             return false
         end
 

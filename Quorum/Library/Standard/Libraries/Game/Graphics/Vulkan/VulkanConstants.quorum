@@ -28,4 +28,16 @@ shared class VulkanConstants
     public constant text MAC_PORTABILITY_EXTENSION = "VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME"
     public constant text MAC_PORTABILITY_SUBSET_EXTENSION = "VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME"
     
+    // Flag bit values for defining the features of queue families. Needed while creating a physical device (to check which features it supports).
+    public constant integer QUEUE_GRAPHICS_BIT = 1
+    public constant integer QUEUE_COMPUTE_BIT = 2
+    public constant integer QUEUE_TRANSFER_BIT = 4
+    public constant integer QUEUE_SPARSE_BINDING_BIT = 8
+    public constant integer QUEUE_PROTECTED_BIT = 16
+    public constant integer QUEUE_VIDEO_DECODE_BIT = 32
+    public constant integer QUEUE_VIDEO_ENCODE_BIT = 64
+    public constant integer QUEUE_OPTICAL_FLOW_BIT = 256
+
+    // An extension for physical devices. Used to take graphics rendered to a swapchain and display them on the screen.
+    public constant text SWAPCHAIN_EXTENSION = "VK_KHR_swapchain"
 end

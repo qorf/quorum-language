@@ -27,8 +27,13 @@ class VulkanGraphics is GraphicsManager
         boolean success = instance:CreateGraphicsInstance(options:applicationName, options:applicationVersion, options:apiVersion, options:useValidationLayers)
 
         output "Instance created, success = " + success
+        if not success
+            return false
+        end
 
-        return success
+        
+
+        return true
     end
     
     /*
