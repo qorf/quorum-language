@@ -113,6 +113,8 @@ class CommaSeparatedSaver is DataFrameSaver
                     if value not= undefined
                         if not value:IsEmpty() and value:Contains(",")
                             currentRow = currentRow + dq + value + dq
+                        elseif not value:IsEmpty() and value:Contains(lf)
+                            currentRow = currentRow + dq + value + dq
                         else
                             currentRow = currentRow + value
                         end
