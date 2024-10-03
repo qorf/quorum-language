@@ -36,7 +36,7 @@ function plugins_quorum_Libraries_Interface_Events_GestureProcessor_() {
         mc.get('pinch').recognizeWith(threeFingerSwipe);
         gestureListener = mc;
         gestureListener.on("panstart panmove panend pancancel", function(ev) {
-            if(ev.pointerType !== "mouse") {
+            if(ev.pointerType === "touch") {
                 let gestureEvent = new quorum_Libraries_Interface_Events_GestureEvent_();
                 gestureEvent.eventType = gestureEvent.PAN;
                 if(ev.type === "panstart") {
@@ -48,7 +48,7 @@ function plugins_quorum_Libraries_Interface_Events_GestureProcessor_() {
                 }
                 let boundingRect = ev.target.getBoundingClientRect();
                 gestureEvent.x = ev.center.x - boundingRect.left;
-                gestureEvent.y = ev.center.y - boundingRect.top;
+                gestureEvent.y = boundingRect.bottom - ev.center.y;
                 gestureEvent.panDistanceX = ev.deltaX;
                 gestureEvent.panDistanceX = ev.deltaY;
                 gestureEvent.maxFingerCount = ev.pointers.length;
@@ -56,11 +56,12 @@ function plugins_quorum_Libraries_Interface_Events_GestureProcessor_() {
                 if (gameInfo !== null)
                 {
                     gameInfo.plugins_quorum_Libraries_Game_WebInput_.gestureEvents.push(gestureEvent);
+                    plugins_quorum_Libraries_Game_WebInput_.TakeFocus(gameInfo.game);
                 }
             }
         });
         gestureListener.on("pinchstart pinchmove pinchend pinchcancel", function(ev) {
-            if(ev.pointerType !== "mouse") {
+            if(ev.pointerType === "touch") {
                 let gestureEvent = new quorum_Libraries_Interface_Events_GestureEvent_();
                 gestureEvent.eventType = gestureEvent.PINCH;
                 gestureEvent.scaleFactor = ev.scale;
@@ -73,22 +74,23 @@ function plugins_quorum_Libraries_Interface_Events_GestureProcessor_() {
                 }
                 let boundingRect = ev.target.getBoundingClientRect();
                 gestureEvent.x = ev.center.x - boundingRect.left;
-                gestureEvent.y = ev.center.y - boundingRect.top;
+                gestureEvent.y = boundingRect.bottom - ev.center.y;
                 gestureEvent.maxFingerCount = ev.pointers.length;
                 let gameInfo = plugins_quorum_Libraries_Game_WebInput_.GetGestureGameInfo(ev);
                 if (gameInfo !== null)
                 {
                     gameInfo.plugins_quorum_Libraries_Game_WebInput_.gestureEvents.push(gestureEvent);
+                    plugins_quorum_Libraries_Game_WebInput_.TakeFocus(gameInfo.game);
                 }
             }
         });
         gestureListener.on("tap twoFingerTap threeFingerTap", function(ev) {
-            if(ev.pointerType !== "mouse") {
+            if(ev.pointerType === "touch") {
                 let gestureEvent = new quorum_Libraries_Interface_Events_GestureEvent_();
                 gestureEvent.eventType = gestureEvent.SINGLE_TAP;
                 let boundingRect = ev.target.getBoundingClientRect();
                 gestureEvent.x = ev.center.x - boundingRect.left;
-                gestureEvent.y = ev.center.y - boundingRect.top;
+                gestureEvent.y = boundingRect.bottom - ev.center.y;
                 if(ev.type === 'twoFingerTap') {
                     gestureEvent.maxFingerCount = 2;
                 } else if(ev.type === 'threeFingerTap') {
@@ -100,30 +102,32 @@ function plugins_quorum_Libraries_Interface_Events_GestureProcessor_() {
                 if (gameInfo !== null)
                 {
                     gameInfo.plugins_quorum_Libraries_Game_WebInput_.gestureEvents.push(gestureEvent);
+                    plugins_quorum_Libraries_Game_WebInput_.TakeFocus(gameInfo.game);
                 }
             }
         });
         gestureListener.on("doubletap", function(ev) {
-            if(ev.pointerType !== "mouse") {
+            if(ev.pointerType === "touch") {
                 let gestureEvent = new quorum_Libraries_Interface_Events_GestureEvent_();
                 gestureEvent.eventType = gestureEvent.DOUBLE_TAP;
                 let boundingRect = ev.target.getBoundingClientRect();
                 gestureEvent.x = ev.center.x - boundingRect.left;
-                gestureEvent.y = ev.center.y - boundingRect.top;
+                gestureEvent.y = boundingRect.bottom - ev.center.y;
                 let gameInfo = plugins_quorum_Libraries_Game_WebInput_.GetGestureGameInfo(ev);
                 if (gameInfo !== null)
                 {
                     gameInfo.plugins_quorum_Libraries_Game_WebInput_.gestureEvents.push(gestureEvent);
+                    plugins_quorum_Libraries_Game_WebInput_.TakeFocus(gameInfo.game);
                 }
             }
         });
         gestureListener.on("press pressup", function(ev) {
-            if(ev.pointerType !== "mouse") {
+            if(ev.pointerType === "touch") {
                 let gestureEvent = new quorum_Libraries_Interface_Events_GestureEvent_();
                 gestureEvent.eventType = gestureEvent.LONG_PRESS;
                 let boundingRect = ev.target.getBoundingClientRect();
                 gestureEvent.x = ev.center.x - boundingRect.left;
-                gestureEvent.y = ev.center.y - boundingRect.top;
+                gestureEvent.y = boundingRect.bottom - ev.center.y;
                 if(ev.type === "pressup") {
                     gestureEvent.timingCode = gestureEvent.Get_Libraries_Interface_Events_GestureEvent__FINISH_();
                 }
@@ -131,16 +135,17 @@ function plugins_quorum_Libraries_Interface_Events_GestureProcessor_() {
                 if (gameInfo !== null)
                 {
                     gameInfo.plugins_quorum_Libraries_Game_WebInput_.gestureEvents.push(gestureEvent);
+                    plugins_quorum_Libraries_Game_WebInput_.TakeFocus(gameInfo.game);
                 }
             }
         });
         gestureListener.on("swipe twoFingerSwipe threeFingerSwipe", function(ev) {
-            if(ev.pointerType !== "mouse") {
+            if(ev.pointerType === "touch") {
                 let gestureEvent = new quorum_Libraries_Interface_Events_GestureEvent_();
                 gestureEvent.eventType = gestureEvent.SWIPE;
                 let boundingRect = ev.target.getBoundingClientRect();
                 gestureEvent.x = ev.center.x - boundingRect.left;
-                gestureEvent.y = ev.center.y - boundingRect.top;
+                gestureEvent.y = boundingRect.bottom - ev.center.y;
                 if(ev.type === 'twoFingerSwipe') {
                     gestureEvent.maxFingerCount = 2;
                 } else if(ev.type === 'threeFingerSwipe') {
@@ -164,6 +169,7 @@ function plugins_quorum_Libraries_Interface_Events_GestureProcessor_() {
                 if (gameInfo !== null)
                 {
                     gameInfo.plugins_quorum_Libraries_Game_WebInput_.gestureEvents.push(gestureEvent);
+                    plugins_quorum_Libraries_Game_WebInput_.TakeFocus(gameInfo.game);
                 }
             }
         });
