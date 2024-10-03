@@ -180,6 +180,9 @@ public class DesktopDisplay {
     // Describes the features available in the OpenGL context used by the
     // primary window.
     GLCapabilities glCapabilities;
+
+    // Whether this Display is rendering via Vulkan or not.
+    boolean usingVulkan = true;
     
     public String GetClipboard() {
         String string = GLFW.glfwGetClipboardString(window);
@@ -202,6 +205,7 @@ public class DesktopDisplay {
             return false;
         }
 
+        usingVulkan = useVulkan;
 
         if (window != 0)
         {
@@ -281,10 +285,12 @@ public class DesktopDisplay {
         {
             throw new GameRuntimeError("The Game display couldn't be initialized.");
         }
-        
-        GLFW.glfwMakeContextCurrent(window);
-        
-        glCapabilities = GL.createCapabilities();
+
+        if (!useVulkan)
+        {
+            GLFW.glfwMakeContextCurrent(window);
+            glCapabilities = GL.createCapabilities();
+        }
         
         SetVSync(config.Get_Libraries_Game_DesktopConfiguration__vSyncEnabled_());
         
@@ -324,7 +330,10 @@ public class DesktopDisplay {
         // Applies to the current context. This is fine for the current system
         // (one window with one context) but will need to be revised for a
         // multiple window system.
-        GLFW.glfwSwapInterval(vsync ? 1 : 0);
+        if (!usingVulkan)
+        {
+            GLFW.glfwSwapInterval(vsync ? 1 : 0);
+        }
     }
 
     public void RequestRendering() {

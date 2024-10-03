@@ -12,6 +12,7 @@ class VulkanGraphics is GraphicsManager
     VulkanInstance instance = undefined
     VulkanPhysicalDevice physicalDevice = undefined
     VulkanDevice device = undefined
+    VulkanSurface surface = undefined
     
     // Color components used to clear the screen when a frame of animation begins.
     number redClearComponent = 0.85
@@ -69,6 +70,15 @@ class VulkanGraphics is GraphicsManager
             end
         else
             output "Display was already defined: " + (manager:GetGameDisplay() not= undefined)
+        end
+
+        VulkanSurface surface
+        me:surface = surface
+        success = surface:Create(instance, manager:GetGameDisplay())
+       
+        output "Created Vulkan Surface, success = " + success
+        if not success
+            return false
         end
 
         return true
@@ -309,6 +319,10 @@ class VulkanGraphics is GraphicsManager
     */
     action SetVertexInputInformation(integer inputID, integer size, integer type, boolean normalize, integer stride, integer offset)
         alert("NYI")
+    end
+
+    action GetSurface returns VulkanSurface
+        return surface
     end
 
 end

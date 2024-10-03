@@ -1,0 +1,27 @@
+package Libraries.Game.Graphics.Vulkan
+
+use Libraries.Game.GameDisplay
+
+class VulkanSurface
+
+    VulkanInstance instance = undefined
+    boolean initialized = false
+
+    action Create(VulkanInstance instance, GameDisplay display) returns boolean
+        me:instance = instance
+        boolean result = CreateNative(instance, display)
+
+        if result
+            initialized = true
+        end
+
+        return result
+    end
+
+    private system action CreateNative(VulkanInstance instance, GameDisplay display) returns boolean
+
+    action GetInstance returns VulkanInstance
+        return instance
+    end
+
+end
