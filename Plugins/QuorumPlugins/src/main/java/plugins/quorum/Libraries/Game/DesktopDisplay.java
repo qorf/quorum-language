@@ -195,8 +195,14 @@ public class DesktopDisplay {
         }
     }
     
-    public void SetupDisplay() 
+    public boolean SetupDisplay(boolean useVulkan)
     {
+        if (useVulkan && IsVulkanSupported() == false)
+        {
+            return false;
+        }
+
+
         if (window != 0)
         {
             throw new GameRuntimeError("A display has already been set up. Multiple displays are not supported yet.");
@@ -216,12 +222,20 @@ public class DesktopDisplay {
         
         // For ease of compatability with the LWJGL 2 release, we request OpenGL 2.1.
         // This may change to a more modern release in the future.
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, major);
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, minor);
-        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE);
-        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, 1);
+        if (useVulkan)
+        {
+            // Indicate we aren't using OpenGL.
+            GLFW.glfwWindowHint(GLFW.GLFW_CLIENT_API, GLFW.GLFW_NO_API);
+        }
+        else
+        {
+            GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, major);
+            GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, minor);
+            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE);
+            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, 1);
+        }
         
-        if (GameStateManager.operatingSystem.contains("Windows 10") && config.Get_Libraries_Game_DesktopConfiguration__enableAccessibility_())
+        if (GameStateManager.operatingSystem.contains("Windows") && config.Get_Libraries_Game_DesktopConfiguration__enableAccessibility_())
         {
             GLFW.glfwWindowHint(GLFW.GLFW_FOCUSED, GLFW.GLFW_FALSE);
             GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
@@ -284,6 +298,8 @@ public class DesktopDisplay {
         GLFW.glfwSetScrollCallback(window, scrollCallback);
         GLFW.glfwSetCharCallback(window, textCallback);
         GLFW.glfwSetWindowFocusCallback(window, windowFocusCallback);
+
+        return true;
     }
     
     public void FirstTimeShowWindow()

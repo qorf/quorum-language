@@ -3,6 +3,9 @@ package Libraries.Game.Graphics.Vulkan
 use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Containers.Number32BitArray
 use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.GameStateManager
+use Libraries.Game.DesktopApplication
+use Libraries.Game.DesktopDisplay
 
 class VulkanGraphics is GraphicsManager
     
@@ -17,7 +20,8 @@ class VulkanGraphics is GraphicsManager
     number alphaClearComponent = 1.0
     
     /*
-    This action constructs the necessary Vulkan resources to render using this VulkanGraphics.
+    This action constructs the necessary Vulkan resources to render using this VulkanGraphics. This will also create and setup the GameDisplay for the Game class,
+    if there isn't already one setup, because access to the screen is needed for full VulkanGraphics setup.
     */
     action Initialize(VulkanOptions options) returns boolean
         VulkanInstance instance
@@ -31,7 +35,41 @@ class VulkanGraphics is GraphicsManager
             return false
         end
 
+        VulkanPhysicalDevice physicalDevice
+        me:physicalDevice = physicalDevice
         
+        success = physicalDevice:CreateGraphicsDevice(instance)
+
+        output "Physical device created, success = " + success
+        if not success
+            return false
+        end
+
+        VulkanDevice device
+        me:device = device
+
+        success = device:CreateGraphicsDevice(physicalDevice)
+
+        output "Device created, success = " + success
+        if not success
+            return false
+        end
+
+        // Create a DesktopDisplay initialized for use with Vulkan, if we don't have one already.
+        GameStateManager manager
+        if manager:GetApplication() is DesktopApplication and manager:GetGameDisplay() = undefined
+            DesktopDisplay display
+            manager:SetGameDisplay(display)
+            display:SetConfiguration(manager:GetGame():GetDesktopConfiguration())
+            success = display:SetupDisplay(true)
+
+            output "Created Vulkan Display, success = " + success
+            if not success
+                return false
+            end
+        else
+            output "Display was already defined: " + (manager:GetGameDisplay() not= undefined)
+        end
 
         return true
     end

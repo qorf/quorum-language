@@ -1,10 +1,42 @@
 package Libraries.Game.Graphics.Vulkan
+use Libraries.Containers.Array
 
 class VulkanDevice
-    
-    
-/*This action destroys this device and releases all system resources related to it. Once the device is disposed, it can't
-be used anymore, so this should only be done to clean up resources when the device is no longer needed.*/
-    system action Dispose
-    
+
+    VulkanPhysicalDevice physicalDevice = undefined
+    boolean initialized = false
+
+    action CreateGraphicsDevice(VulkanPhysicalDevice physicalDevice) returns boolean
+        VulkanInstance instance = physicalDevice:GetInstance()
+        VulkanUtilities utilities
+
+        Array<text> extensionNames
+        utilities:GetRequiredPlatformExtensions(extensionNames, instance:HasValidationLayers())
+        
+        VulkanConstants constants
+        extensionNames:Add(constants:SWAPCHAIN_EXTENSION)
+        output "CREATING WITH EXTENSIONS:"
+        integer i = 0
+        repeat while i < extensionNames:GetSize()
+            output i + ": " + extensionNames:Get(i)
+            i = i + 1
+        end
+
+        return Create(physicalDevice, extensionNames)
+    end
+
+    action Create(VulkanPhysicalDevice physicalDevice, Array<text> extensionNames) returns boolean
+        me:physicalDevice = physicalDevice
+
+        boolean success = CreateNative(physicalDevice, extensionNames)
+
+        if success
+            initialized = true
+        end
+
+        return success
+    end
+
+    private system action CreateNative(VulkanPhysicalDevice physicalDevice, Array<text> extensionNames) returns boolean
+
 end

@@ -19,6 +19,7 @@ class VulkanInstance
     // but the user can replace this with any logger of their choosing.
     Logger logger = undefined
     
+    boolean hasValidationLayers = false
     boolean initialized = false
     
     /*
@@ -80,8 +81,9 @@ class VulkanInstance
     Attribute: Returns True if the instance is successfully created, or false if it could not be created.
     */
     action Create(text applicationName, integer applicationVersion, integer apiVersion, Array<text> layerNames, Array<text> extensionNames) returns boolean
-        boolean result = CreateNative(applicationName, applicationVersion, apiVersion, layerNames, extensionNames)
+        hasValidationLayers = ContainsValidationName(layerNames)
 
+        boolean result = CreateNative(applicationName, applicationVersion, apiVersion, layerNames, extensionNames)
         if result
             initialized = true
         end
@@ -95,6 +97,19 @@ class VulkanInstance
         return initialized
     end
     
+    private action ContainsValidationName(Array<text> names) returns boolean
+        VulkanConstants constants
+        boolean result = names:Has(constants:KHRONOS_VALIDATION_LAYER)
+            or names:Has(constants:LUNARG_STANDARD_VALIDATION_LAYER)
+            or names:Has(constants:LUNARG_PARAMETER_VALIDATION_LAYER)
+            or names:Has(constants:LUNARG_OBJECT_TRACKER_VALIDATION_LAYER)
+            or names:Has(constants:LUNARG_CORE_VALIDATION_LAYER)
+            or names:Has(constants:GOOGLE_THREADING_VALIDATION_LAYER)
+            or names:Has(constants:GOOGLE_UNIQUE_OBJECTS_VALIDATION_LAYER)
+        
+        return result
+    end
+
     /*This action sets the Logger that should be used by this Vulkan instance. All Vulkan errors and warnings (including any that
 would be produced by validation layers, if there are any) will be reported to the logger. By default, no logger is provided
 if validation layers are not used, and a ConsoleLogger is provided if validation layers are on.
@@ -116,5 +131,9 @@ Attribute: Returns The Logger being used to handle errors and warnings from the 
     /*This action destroys the instance and releases all system resources related to it. Once the instance is disposed, it can't
 be used anymore, so this should only be done to clean up resources when the instance is no longer needed.*/
     system action Dispose
+
+    action HasValidationLayers returns boolean
+        return hasValidationLayers
+    end
     
 end

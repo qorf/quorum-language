@@ -274,6 +274,7 @@ class Game
         if application = undefined
             alert("I could not identify what type of application to use for this operating system!")
         end
+        manager:SetApplication(application)
         
         GraphicsManager graphics = CreateGraphicsManager()
         manager:SetGameGraphics(graphics)
@@ -289,13 +290,14 @@ class Game
             gameInput = newInput
             manager:SetInput(gameInput)
 
-            DesktopDisplay display
-            manager:SetGameDisplay(display)
-
-            display:SetConfiguration(desktopConfig)
-            display:SetupDisplay()
+            // The game display might already have been setup by the creation of Vulkan graphics. If not, setup the Display for use with OpenGL.
+            if manager:GetGameDisplay() = undefined
+                DesktopDisplay display
+                manager:SetGameDisplay(display)
+                display:SetConfiguration(desktopConfig)
+                display:SetupDisplay(false)
+            end
         elseif application is AndroidApplication
-            manager:SetApplication(application)
             StartAndroidGame()
             return now
 

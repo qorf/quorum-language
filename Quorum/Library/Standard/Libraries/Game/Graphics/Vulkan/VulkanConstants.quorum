@@ -38,6 +38,13 @@ shared class VulkanConstants
     public constant integer QUEUE_VIDEO_ENCODE_BIT = 64
     public constant integer QUEUE_OPTICAL_FLOW_BIT = 256
 
-    // An extension for physical devices. Used to take graphics rendered to a swapchain and display them on the screen.
+    // An extension for devices and physical devices. Used to take graphics rendered to a swapchain and display them on the screen.
     public constant text SWAPCHAIN_EXTENSION = "VK_KHR_swapchain"
+
+    // Constants representing types of physical devices. 
+    public constant integer PHYSICAL_DEVICE_TYPE_OTHER = 0
+    public constant integer PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU = 1
+    public constant integer PHYSICAL_DEVICE_TYPE_DISCRETE_GPU = 2
+    public constant integer PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU = 3
+    public constant integer PHYSICAL_DEVICE_TYPE_CPU = 4
 end

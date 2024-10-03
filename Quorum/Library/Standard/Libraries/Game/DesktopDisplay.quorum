@@ -52,9 +52,11 @@ class DesktopDisplay is GameDisplay
     system action SetClipboard(text value)
 
     /*
-    This action initializes the DesktopDisplay.
+    This action initializes the DesktopDisplay If the passed value is true, the display will be setup for use with Vulkan rendering
+    If the value is false, the display will be setup for use with OpenGL instead. If the display was setup successfully, this returns
+    true. If setup isn't successful, this will return false instead.
     */
-    system action SetupDisplay()
+    system action SetupDisplay(boolean useVulkan) returns boolean
 
     /*
     This action sets the width and height of the DesktopDisplay, and optionally

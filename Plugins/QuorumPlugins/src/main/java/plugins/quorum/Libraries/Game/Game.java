@@ -156,11 +156,12 @@ public class Game
                     VulkanGraphics vulkanGraphics = new VulkanGraphics();
 
                     Game_ quorumGame = (Game_)me_;
-                    vulkanGraphics.Initialize(quorumGame.Get_Libraries_Game_Game__desktopConfig_().Get_Libraries_Game_DesktopConfiguration__vulkanOptions_());
+                    supportsVulkan = vulkanGraphics.Initialize(quorumGame.Get_Libraries_Game_Game__desktopConfig_().Get_Libraries_Game_DesktopConfiguration__vulkanOptions_());
 
                     System.out.println("Created graphics.");
 
-                    graphics = vulkanGraphics;
+                    if (supportsVulkan)
+                        graphics = vulkanGraphics;
                 }
 
                 if (supportsVulkan == false)

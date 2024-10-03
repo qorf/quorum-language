@@ -4,6 +4,7 @@ use Libraries.Containers.Array
 
 class VulkanPhysicalDevice
     
+    VulkanInstance instance = undefined
     boolean initialized = false
 
     /*
@@ -12,17 +13,19 @@ class VulkanPhysicalDevice
 
     Attribute: Returns True if the physical device was successfully created, or false otherwise.
     */
-    action CreateGraphicsDevice returns boolean
+    action CreateGraphicsDevice(VulkanInstance instance) returns boolean
         VulkanConstants constants
 
         integer flags = constants:QUEUE_GRAPHICS_BIT
         Array<text> extensions
         extensions:Add(constants:SWAPCHAIN_EXTENSION)
 
-        return Create(flags, extensions)
+        return Create(instance, flags, extensions)
     end
 
-    action Create(integer featuresBitmask, Array<text> extensionNames) returns boolean
+    action Create(VulkanInstance instance, integer featuresBitmask, Array<text> extensionNames) returns boolean
+        me:instance = instance
+
         boolean success = CreateNative(featuresBitmask, extensionNames)
 
         if success
@@ -40,6 +43,10 @@ be used anymore, so this should only be done to clean up resources when the devi
     
     action IsInitialized returns boolean
         return initialized
+    end
+
+    action GetInstance returns VulkanInstance
+        return instance
     end
 
 end
