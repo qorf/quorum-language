@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-public class SerialPort implements SerialPortDataListener {
+public class SerialPort {
     public java.lang.Object me_ = null;
     private com.fazecast.jSerialComm.SerialPort port = null;
     private int readTimeout = 250;
@@ -100,27 +100,31 @@ public class SerialPort implements SerialPortDataListener {
 
     public void setPort(com.fazecast.jSerialComm.SerialPort port) {
         this.port = port;
-        port.addDataListener(this);
     }
 
-    @Override
-    public int getListeningEvents() {
-        return com.fazecast.jSerialComm.SerialPort.LISTENING_EVENT_DATA_RECEIVED |
-                com.fazecast.jSerialComm.SerialPort.LISTENING_EVENT_PORT_DISCONNECTED;
-    }
+    public void InitializeListener() {
+        port.removeDataListener();
+        port.addDataListener(new SerialPortDataListener() {
+            @Override
+            public int getListeningEvents() {
+                return com.fazecast.jSerialComm.SerialPort.LISTENING_EVENT_DATA_RECEIVED |
+                        com.fazecast.jSerialComm.SerialPort.LISTENING_EVENT_PORT_DISCONNECTED;
+            }
 
-    @Override
-    public void serialEvent(SerialPortEvent event) {
-        SerialPort_ port = (SerialPort_) me_;
-        int type = event.getEventType();
-        if (type == com.fazecast.jSerialComm.SerialPort.LISTENING_EVENT_DATA_RECEIVED) {
-            byte[] data = event.getReceivedData();
-            ByteBuffer buffer = ByteBuffer.wrap(data);
-            String result = StandardCharsets.UTF_8.decode(buffer).toString();
-            port.SendReceievedEventToListeners(result);
-        } else if(type == com.fazecast.jSerialComm.SerialPort.LISTENING_EVENT_PORT_DISCONNECTED) {
-            port.Close();
-        }
+            @Override
+            public void serialEvent(SerialPortEvent event) {
+                SerialPort_ port = (SerialPort_) me_;
+                int type = event.getEventType();
+                if (type == com.fazecast.jSerialComm.SerialPort.LISTENING_EVENT_DATA_RECEIVED) {
+                    byte[] data = event.getReceivedData();
+                    ByteBuffer buffer = ByteBuffer.wrap(data);
+                    String result = StandardCharsets.UTF_8.decode(buffer).toString();
+                    port.SendReceievedEventToListeners(result);
+                } else if(type == com.fazecast.jSerialComm.SerialPort.LISTENING_EVENT_PORT_DISCONNECTED) {
+                    port.Close();
+                }
+                }
+        });
     }
 
     public void SetBaudRate(int rate) {

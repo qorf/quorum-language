@@ -6,7 +6,7 @@ use Libraries.System.File
 class Spike
 constant text SPIKE_WIRED_NAME = "SPIKE Prime VCP"
     integer baudRate = 115200
-    integer readTimeout = 250
+    integer readTimeout = 10
     integer writeTimeout = 0
 Serial serial
     SerialPort port = undefined
