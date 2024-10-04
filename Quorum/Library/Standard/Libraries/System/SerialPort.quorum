@@ -40,6 +40,10 @@ end
             i = i + 1
         end
     end
+
+    /* Must be called for any added listeners to receive events. No manual read calls should be done after calling. */
+    system action InitializeListener
+
     /* Returns the system's name for the port. */
     system action GetName returns text
 

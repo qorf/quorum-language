@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Base64;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -22,13 +23,15 @@ public class Spike {
     private static final byte[] CTRL_B = new byte[]{'\u0002'};
     private static final byte[] CTRL_C = new byte[]{'\u0003'};
     private static final byte[] CTRL_D = new byte[]{'\u0004'};
-    private static final byte[] OK = new byte[]{'>', 'O', 'K'};
+    private static final byte[] OK = new byte[]{'O', 'K'};
+    private static final byte[] REPL_READY = new byte[]{'\u0004', '\u0004', '>'};
     private static final int MAX_READ_BYTES = 1024 * 1024;
+    private static final int MAX_EMPTY_READS = 200;
+    private static final int MAX_SLACK_READS = 10;
     private boolean isInREPL = false;
     private StringBuilder programOutput = new StringBuilder();
 
     public void CopyBytesToFile(byte[] data, String outputFilename) {
-        EnterREPL();
         String b64Contents = Base64.getEncoder().encodeToString(data);
         WritePython(
             String.format(
@@ -40,7 +43,7 @@ public class Spike {
         );
 
         // blockSize MUST be a multiple of 4
-        final int blockSize = 256;
+        final int blockSize = 1280;
         for (int i = 0; i < b64Contents.length(); i += blockSize) {
             String b64Substring = b64Contents.substring(i, Math.min(i + blockSize, b64Contents.length()));
             int remainder = b64Substring.length() % 4;
@@ -48,15 +51,6 @@ public class Spike {
                 b64Substring = b64Substring + B64_PADDING_LOOKUP[remainder];
             }
             WritePython(String.format("w(d('%s'))", b64Substring));
-
-            //This solutions feels really dumb, but it does seem to prevent the interpreter from
-            //getting overwhelmed. Again, some kind of futures or checking whether or not the
-            //system is finished processing the last chunk?
-            try {
-                Thread.sleep(2);  // Adjust the sleep duration as necessary
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
         }
         WritePython("f.close()");
     }
@@ -80,7 +74,6 @@ public class Spike {
             slot = Math.max(0, Math.min(SLOT_MAX, slot));
             String slotPath = String.format("/flash/program/%s", (slot >= 10 ? "" : "0") + slot);
 
-            EnterREPL();
             WritePython(
             "import os\n" +
                 "try:\n" +
@@ -113,7 +106,6 @@ public class Spike {
     }
 
     public void RemoveDirectory(String directoryToRemove) {
-        EnterREPL();
         final String rmSetup =
                 "import os\n" +
                 "def rm(directory):\n" +
@@ -161,20 +153,19 @@ public class Spike {
             return;
         }
 
+        // clear the read buffer of anything previous
+        byte[] temp = new byte[512];
+        while (port.readBytes(temp, temp.length) > 0) {
+            // wait until there is nothing more to read
+        }
+
         isInREPL = true;
         port.writeBytes(CTRL_C, CTRL_C.length);
         port.writeBytes(CTRL_C, CTRL_C.length);  // cancel any running code
         port.writeBytes(CTRL_A, CTRL_A.length);  // enter raw mode: ctrl-d to submit code, ctrl-b to exit
-        port.flushIOBuffers();
 
-
-        //Not sure about this. Is there a way to detect when it's finished. Maybe a future, instead of a hard
-        //sleep call?
-        try {
-            Thread.sleep(200);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        // wait until the > prompt is read signifying the REPL is ready
+        ReadUntilMatchAndEmpty(new byte[]{'>'});
     }
 
     public void WritePython(String str) {
@@ -187,41 +178,113 @@ public class Spike {
         port.writeBytes(bytesToSend, bytesToSend.length);
         port.writeBytes(CTRL_D, CTRL_D.length);  // have the raw REPL run the command
 
-        // Read until ">OK" then consume all remaining bytes: at that point, it is assumed the next write can be done.
-        //  A potential problem here might occur if the REPL takes too long to finish executing and therefore the read times out
-        //  after reading 0 bytes.
-        int matchLength = OK.length;
-        int curMatch = 0;
-        byte[] lastChar = new byte[1];
-        boolean success = false;
+        // Once the OK bytes have been read, all printed output from the code follows, if any, then "\u0004\u0004>" to
+        //  signify the REPL is ready again. Reading until "\u0004\u0004>" is slightly dangerous since it could technically be
+        //  printed as output, but there isn't really a better way.
+        // Note: The "OK" string is printed immediately and any program output during execution is printed as it is received.
+        boolean success = ReadUntil(OK);
+        if (!success) {
+            throw new RuntimeException("Could not read OK string after writing Python");
+        }
+        programOutput.append(ReadUntilMatchAndEmpty(REPL_READY));
+    }
+
+    // Reads input until a sequence of bytes are found followed by an empty read, or until there is nothing more to read.
+    // The data read is returned as a string, with the byte sequence removed from the right if it was found.
+    private String ReadUntilMatchAndEmpty(byte[] stripFromRight) {
+        com.fazecast.jSerialComm.SerialPort port = GetPort();
+
+        ArrayList<Byte> bytes = new ArrayList<>();
+        int matchLength = stripFromRight.length;
+        int currentMatch = 0;
+        boolean rightStripFound = false;
         int bytesRead = 0;
-        while (bytesRead < MAX_READ_BYTES) {
+        int emptyReads = 0;
+        byte[] lastChar = new byte[1];
+        while (bytesRead < MAX_READ_BYTES && emptyReads < MAX_EMPTY_READS) {
             int readNow = port.readBytes(lastChar, 1);
             if (readNow == 0) {
-                break;
+                if (rightStripFound) {
+                    // an empty read with the last bytes being those to be stripped - success
+                    break;
+                }
+                emptyReads += 1;
+                continue;
+            } else {
+                bytes.add(lastChar[0]);
             }
 
             bytesRead += readNow;
-            if (lastChar[0] == OK[curMatch]) {
-                ++curMatch;
-                if (curMatch == matchLength) {
+            if (lastChar[0] == stripFromRight[currentMatch]) {
+                ++currentMatch;
+                if (currentMatch == matchLength) {
+                    rightStripFound = true;
+                    currentMatch = 0;
+                }
+            } else {
+                currentMatch = 0;
+                rightStripFound = false;
+            }
+        }
+
+        if (bytes.isEmpty()) {
+            return "";
+        } else {
+            byte[] byteArray = new byte[bytes.size()];
+            for (int i = 0; i < bytes.size(); i++) {
+                byteArray[i] = bytes.get(i);
+            }
+
+            String str = new String(byteArray, StandardCharsets.UTF_8);
+            String stripFromRightStr = new String(stripFromRight, StandardCharsets.UTF_8);
+            if (str.endsWith(stripFromRightStr)) {
+                str = str.substring(0, str.length() - stripFromRightStr.length());
+            }
+
+            return str;
+        }
+    }
+
+    // Reads from the serial port until the given sequence is found.
+    // If the given sequence is found, reading is stopped after the sequence and true is returned.
+    // If the maximum number of bytes are read or too many empty reads have been done, false is returned.
+    private boolean ReadUntil(byte[] sequence) {
+        com.fazecast.jSerialComm.SerialPort port = GetPort();
+
+        int lenientEmptyReads = 0;
+        int matchLength = sequence.length;
+        int currentMatch = 0;
+        byte[] lastChar = new byte[1];
+        boolean success = false;
+        int bytesRead = 0;
+        int emptyReads = 0;
+        boolean hasRead = false;
+        while (bytesRead < MAX_READ_BYTES && emptyReads < MAX_EMPTY_READS) {
+            int readNow = port.readBytes(lastChar, 1);
+            if (readNow == 0) {
+                if (hasRead && ++lenientEmptyReads > MAX_SLACK_READS) {
+                    // Max number of empty reads after a non-empty read reached.
+                    // This likely means there is nothing more to read, but that isn't guaranteed.
+                    break;
+                }
+                emptyReads += 1;
+                continue;
+            } else {
+                hasRead = true;
+            }
+
+            bytesRead += readNow;
+            if (lastChar[0] == sequence[currentMatch]) {
+                ++currentMatch;
+                if (currentMatch == matchLength) {
                     success = true;
                     break;
                 }
             } else {
-                curMatch = 0;
+                currentMatch = 0;
             }
         }
 
-        // Once ">OK" has been read, all remaining output from the code follows, so consume it to avoid filling the buffer
-        if (success) {
-            byte[] printedOutput = new byte[1024];
-            int readAmount;
-            while ((readAmount = port.readBytes(printedOutput, printedOutput.length)) != 0) {
-                programOutput.append(StandardCharsets.UTF_8.decode(ByteBuffer.wrap(printedOutput, 0, readAmount)));
-            }
-        }
-
-        port.flushIOBuffers();
+        return success;
     }
 }
