@@ -1,0 +1,44 @@
+package Libraries.Robots.Spike
+
+class DistanceSensor
+    action GetPort returns integer
+        return GetPortNative()
+    end
+
+    action SetPort(integer port)
+        SetPortNative(port)
+    end
+
+    private system action GetPortNative returns integer
+    private system action SetPortNative(integer port)
+
+    action GetDistance returns integer
+        return GetDistanceNative()
+    end
+
+    private system action GetDistanceNative returns integer
+
+    action GetPixel(integer x, integer y) returns integer
+        return GetPixelNative(x, y)
+    end
+
+    private system action GetPixelNative(integer x, integer y) returns integer
+
+    action SetPixel(integer x, integer y, integer intensity)
+        SetPixelNative(x, y, intensity)
+    end
+
+    private system action SetPixelNative(integer x, integer y, integer intensity)
+
+    action ClearLights
+        ClearLightsNative()
+    end
+
+    private system action ClearLightsNative
+
+    action SetAllLights(integer intensity)
+        SetAllLightsNative(intensity)
+    end
+
+    private system action SetAllLightsNative(integer intensity)
+end
