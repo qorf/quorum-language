@@ -1,0 +1,36 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanQueueFamily
+
+    VulkanPhysicalDevice device = undefined
+    integer queueCount = 0
+    integer queueFlags = 0
+    integer queueFamilyIndex = -1
+
+    action GetPhysicalDevice returns VulkanPhysicalDevice
+        return device
+    end
+
+    action GetQueueCount returns integer
+        return queueCount
+    end
+
+    action GetQueueFlags returns integer
+        return queueFlags
+    end
+
+    action GetQueueFamilyIndex returns integer
+        return queueFamilyIndex
+    end
+
+    system action CanPresentToSurface(VulkanSurface surface) returns boolean
+
+    // Even though this is private, the plugin layer can access this, because it doesn't respect access flags.
+    private action Initialize(VulkanPhysicalDevice device, integer queueCount, integer queueFlags, integer queueFamilyIndex)
+        me:device = device
+        me:queueCount = queueCount
+        me:queueFlags = queueFlags
+        me:queueFamilyIndex = queueFamilyIndex
+    end
+
+end

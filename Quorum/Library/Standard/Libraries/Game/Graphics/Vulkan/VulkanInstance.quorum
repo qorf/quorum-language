@@ -56,7 +56,7 @@ class VulkanInstance
         end
 
         // Get platform specific extensions, such as the Mac-specific extensions for MoltenVK support.
-        utility:GetRequiredPlatformExtensions(requiredExtensions, useValidationLayers)
+        utility:GetRequiredPlatformInstanceExtensions(requiredExtensions, useValidationLayers)
 
         // If validation is being used and we don't have a logger, provide a basic logger to output to the console.
         if logger = undefined and useValidationLayers = true

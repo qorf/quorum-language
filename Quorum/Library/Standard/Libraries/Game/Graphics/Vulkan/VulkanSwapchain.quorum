@@ -1,0 +1,81 @@
+package Libraries.Game.Graphics.Vulkan
+use Libraries.Containers.Array
+
+class VulkanSwapchain
+
+    VulkanDevice device = undefined
+    VulkanSurface surface = undefined
+    boolean initialized = false
+
+    // The info is set during the Create action.
+    VulkanSwapchainInfo info = undefined
+
+    action Create(VulkanDevice device, VulkanSurface surface, VulkanSwapchainInfo swapchainInfo) returns boolean
+        info = swapchainInfo:Copy()
+
+        if info:GetImageSharingMode() < 0
+            VulkanConstants constants
+            if info:GetQueueFamilyIndices() not= undefined and info:GetQueueFamilyIndices():GetSize() > 0
+               info:SetImageSharingMode(constants:SHARING_MODE_CONCURRENT)
+            else
+                info:SetImageSharingMode(constants:SHARING_MODE_EXCLUSIVE)
+            end
+        end
+
+        boolean result = CreateNative(device, surface, info)
+        if result
+            me:device = device
+            me:surface = surface
+            initialized = true
+        end
+
+        return result
+    end
+
+    private system action CreateNative(VulkanDevice device, VulkanSurface surface, VulkanSwapchainInfo info) returns boolean
+
+    action GetImageCount returns integer
+        return info:GetImageCount()
+    end
+
+    action GetImageWidth returns integer
+        return info:GetImageWidth()
+    end
+
+    action GetImageHeight returns integer
+        return info:GetImageHeight()
+    end
+
+    action GetImageFormat returns integer
+        return info:GetImageFormat()
+    end
+
+    action GetColorSpace returns integer
+        return info:GetColorSpace()
+    end
+
+    action GetImageUsage returns integer
+        return info:GetImageUsage()
+    end
+
+    action GetImageSharingMode returns integer
+        return info:GetImageSharingMode()
+    end
+
+    action GetCompositeAlpha returns integer
+        return info:GetCompositeAlpha()
+    end
+
+    action GetPresentMode returns integer
+        return info:GetPresentMode()
+    end
+
+    action GetImageArrayLayers returns integer
+        return info:GetImageArrayLayers()
+    end
+
+    action GetQueueFamilyIndices returns Array<integer>
+        return info:GetQueueFamilyIndices()
+    end
+
+end

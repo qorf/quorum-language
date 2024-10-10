@@ -6,6 +6,8 @@ use Libraries.Game.Graphics.Shaders.ShaderProgram
 use Libraries.Game.GameStateManager
 use Libraries.Game.DesktopApplication
 use Libraries.Game.DesktopDisplay
+use Libraries.Compute.BitwiseOperations
+use Libraries.Containers.Array
 
 class VulkanGraphics is GraphicsManager
     
@@ -13,6 +15,9 @@ class VulkanGraphics is GraphicsManager
     VulkanPhysicalDevice physicalDevice = undefined
     VulkanDevice device = undefined
     VulkanSurface surface = undefined
+    VulkanQueue graphicsQueue = undefined
+    VulkanQueue presentationQueue = undefined
+    VulkanSwapchain swapchain = undefined
     
     // Color components used to clear the screen when a frame of animation begins.
     number redClearComponent = 0.85
@@ -80,6 +85,75 @@ class VulkanGraphics is GraphicsManager
         if not success
             return false
         end
+
+        // Create the graphics queue. We need to check the device's queue families to see which one will do the work we want.
+        // We'll need to compare against a bitmask for this.
+        BitwiseOperations bits
+        VulkanConstants constants
+
+        integer i = 0
+        repeat while i < device:GetQueueFamilyCount()
+            VulkanQueueFamily family = device:GetQueueFamily(i)
+            if bits:And(family:GetQueueFlags(), constants:QUEUE_GRAPHICS_BIT) not= 0
+                VulkanQueue queue
+                graphicsQueue = queue
+                output "Selected queue " + i + " with flags = " + family:GetQueueFlags() + ", creating graphics queue..."
+                // Create the queue using the device, the queue family, and indicate the first (or zero-th) queue in the family
+                queue:Create(device, family, 0)
+                i = device:GetQueueFamilyCount()
+            end
+
+            i = i + 1
+        end
+
+        output "Made graphics queue, success = " + (graphicsQueue not= undefined)
+        if graphicsQueue = undefined
+            return false
+        end
+
+        i = 0
+        repeat while i < device:GetQueueFamilyCount()
+            VulkanQueueFamily family = device:GetQueueFamily(i)
+            if family:CanPresentToSurface(surface)
+                // If the graphics queue we already have can also support presentation, use the same queue for both.
+                if graphicsQueue:GetQueueFamily():GetQueueFamilyIndex() = i
+                    output "Using already selected graphics queue at " + i + " for presentation."
+                    presentationQueue = graphicsQueue
+                else
+                    VulkanQueue queue
+                    presentationQueue = queue
+                    output "Selected queue " + i + " with flags = " + family:GetQueueFlags() + ", creating presentation queue..."
+                    // Create the queue using the device, the queue family, and indicate the first (or zero-th) queue in the family
+                    queue:Create(device, family, 0)
+                end
+                i = device:GetQueueFamilyCount()
+            end
+            i = i + 1
+        end
+
+        output "Made presentation queue, success = " + (presentationQueue not= undefined)
+        if presentationQueue = undefined
+            return false
+        end
+
+        output "Creating Swapchain..."
+        VulkanSwapchain swapchain
+        me:swapchain = swapchain
+
+        VulkanSwapchainInfo swapchainInfo = options:swapchainInfo
+        if graphicsQueue not= presentationQueue
+            Array<integer> queueFamilyIndices
+            queueFamilyIndices:Add(graphicsQueue:GetQueueFamily():GetQueueFamilyIndex())
+            queueFamilyIndices:Add(presentationQueue:GetQueueFamily():GetQueueFamilyIndex())
+            swapchainInfo:SetQueueFamilyIndices(queueFamilyIndices)
+        end
+
+        success = swapchain:Create(device, surface, swapchainInfo)
+        output "Made swapchain, success = " + success
+        if not success
+            return false
+        end
+
 
         return true
     end

@@ -25,6 +25,12 @@ public class VulkanSurface
             vulkanSurfacePointer = pointerBuffer.get(0);
         }
 
+        System.out.println("Created surface, pointer is " + vulkanSurfacePointer);
         return (vulkanSurfacePointer != 0L);
+    }
+
+    public long GetSurfacePointer()
+    {
+        return vulkanSurfacePointer;
     }
 }

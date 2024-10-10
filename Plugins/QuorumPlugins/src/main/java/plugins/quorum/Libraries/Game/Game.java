@@ -166,8 +166,13 @@ public class Game
 
                 if (supportsVulkan == false)
                 {
+                    System.out.println("GAME INIT -- FALLBACK: Creating OpenGL graphics.");
                     graphics = new DesktopOpenGL();
                     GameStateManager.nativeGraphics = ((DesktopOpenGL) graphics).plugin_;
+                }
+                else
+                {
+                    System.out.println("GAME INIT: Using Vulkan!");
                 }
             }
         }

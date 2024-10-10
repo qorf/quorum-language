@@ -47,4 +47,57 @@ shared class VulkanConstants
     public constant integer PHYSICAL_DEVICE_TYPE_DISCRETE_GPU = 2
     public constant integer PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU = 3
     public constant integer PHYSICAL_DEVICE_TYPE_CPU = 4
+
+    
+    // Color formats. Used for Swapchain creation, among other things.
+    public constant integer FORMAT_R8G8B8A8_SRGB = 43
+
+    /*
+    Constants for the color space, which describes the format the monitor expects colors in. This primarily comes in the form of SRGB or UNORM values.
+    "UNORM" is normalized linear color space. Setting the value as UNORM means no transformation will be done. Monitors almost exclusively work in 
+    the SRGB color space, though. This boils down to a concept known as "Gamma Correction." Using UNORM will typically result in aberrantly bright,
+    uncorrected colors, so for most display applications, SRGB space is preferred.
+    */
+    public constant integer COLOR_SPACE_SRGB_NONLINEAR = 0
+
+    // Constants used to describe how Vulkan Images will be used. These are bit flags, so they can be combined in a bitmask.
+    public constant integer IMAGE_USAGE_COLOR_ATTACHMENT_BIT = 16
+
+    // Constants used to describe how images in a swapchain can be shared across multiple swapchains.
+    public constant integer SHARING_MODE_EXCLUSIVE = 0
+    public constant integer SHARING_MODE_CONCURRENT = 1
+
+    // Presentation modes for Swapchains. These control the timing of when rendered images are presented and how additional incoming images are stored.
+    // These match the Vulkan present mode constants from Khronos. More info can be found here: https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkPresentModeKHR.html
+    /*
+    The FIFO (or First In, First Out) presentation mode will present the next available image when the monitor refreshes. This is the only mode required to be supported 
+    by hardware according to the Vulkan spec. Because it aligns with the refresh rate of the monitor, the FIFO mode implies the use of vSync. Note that if the queue of 
+    images is full, the application will block!
+    */
+    public constant integer PRESENT_MODE_FIFO = 2
+    /*
+    The Immediate presentation mode will display each image as soon as it's ready. This doesn't match the monitor refresh rate, so this can cause screen tearing. This
+    mode implies vSync is off.
+    */
+    public constant integer PRESENT_MODE_IMMEDIATE = 0
+    /*
+    The Mailbox presentation mode is similar to FIFO in that it displays images during monitor refreshes, but unlike FIFO it will only queue 1 image at a time.
+    If an image is already queued when a new one comes in, it'll overwrite the previous image in the queue, and no blocking occurs. This means Mailbox can provide
+    vSync-like effects (display on monitor refresh and no screen tearing), but we don't have to block if the GPU is working faster than the display.
+    */
+    public constant integer PRESENT_MODE_MAILBOX = 1
+    /*
+    The FIFO Relaxed mode is an adjustment to the FIFO mode. Like FIFO, this mode stores images in a queue, which are presented during monitor refreshes. However, if
+    a monitor refresh occurs and there's no available image, then the next image will be presented as soon as it becomes available. Essentially, this mode is FIFO that
+    will try to play catch-up if it's needed -- FIFO if rendering is fast, and IMMEDIATE if it's slow.
+    */
+    public constant integer PRESENT_MODE_FIFO_RELAXED = 3
+
+    /*
+    Composite alpha values for the Swapchain dictate how transparency is calculated for the window. This does NOT impact transparency calculated inside the application,
+    e.g. a sprite with transparency drawn on top of another sprite. Instead, a composite alpha value can be used to show things behind the window. For most applications,
+    using the OPAQUE value is best, because it is the fastest option and we don't usually want to show the content behind the window.
+    */
+    public constant integer COMPOSITE_ALPHA_OPAQUE_BIT = 1
+    
 end

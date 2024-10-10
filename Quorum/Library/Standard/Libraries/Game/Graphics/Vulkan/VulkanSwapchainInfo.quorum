@@ -1,0 +1,166 @@
+package Libraries.Game.Graphics.Vulkan
+
+use Libraries.Containers.Array
+
+/*
+This class represents the many different parameters that are used when
+creating a Swapchain in Vulkan. If a value defaults to -1, then that value
+will be automatically set to an appropriate default value by the Swapchain.
+*/
+class VulkanSwapchainInfo
+
+    integer imageCount = 3
+    integer imageWidth = 0
+    integer imageHeight = 0
+    integer imageFormat = 0
+    integer colorSpace = 0
+    integer imageUsage = 0
+    integer imageSharingMode = -1
+    integer compositeAlpha = 0
+    integer presentMode = 0
+    integer imageArrayLayers = 1
+    integer preTransform = -1
+    boolean clipped = true
+    Array<integer> queueFamilyIndices = undefined
+
+    on create
+        VulkanConstants constants
+        imageFormat = constants:FORMAT_R8G8B8A8_SRGB
+        colorSpace = constants:COLOR_SPACE_SRGB_NONLINEAR
+        imageUsage = constants:IMAGE_USAGE_COLOR_ATTACHMENT_BIT
+        compositeAlpha = constants:COMPOSITE_ALPHA_OPAQUE_BIT
+        presentMode = constants:PRESENT_MODE_FIFO
+    end
+
+    action Copy returns VulkanSwapchainInfo
+        VulkanSwapchainInfo copy
+        copy:imageCount = imageCount
+        copy:imageWidth = imageWidth
+        copy:imageHeight = imageHeight
+        copy:imageFormat = imageFormat
+        copy:colorSpace = colorSpace
+        copy:imageUsage = imageUsage
+        copy:imageSharingMode = imageSharingMode
+        copy:compositeAlpha = compositeAlpha
+        copy:presentMode = presentMode
+        copy:imageArrayLayers = imageArrayLayers
+        copy:preTransform = preTransform
+        copy:clipped = clipped
+
+        if queueFamilyIndices not= undefined
+            copy:queueFamilyIndices = queueFamilyIndices:CopyToArray()
+        end
+        
+        return copy
+    end
+
+    action SetImageSize(integer width, integer height)
+        imageWidth = width
+        imageHeight = height
+    end
+
+    action GetImageCount returns integer
+        return imageCount
+    end
+
+    action SetImageCount(integer imageCount)
+        me:imageCount = imageCount
+    end
+
+    action GetImageWidth returns integer
+        return imageWidth
+    end
+
+    action SetImageWidth(integer imageWidth)
+        me:imageWidth = imageWidth
+    end
+
+    action GetImageHeight returns integer
+        return imageHeight
+    end
+
+    action SetImageHeight(integer imageHeight)
+        me:imageHeight = imageHeight
+    end
+
+    action GetImageFormat returns integer
+        return imageFormat
+    end
+
+    action SetImageFormat(integer imageFormat)
+        me:imageFormat = imageFormat
+    end
+
+    action GetColorSpace returns integer
+        return colorSpace
+    end
+
+    action SetColorSpace(integer colorSpace)
+        me:colorSpace = colorSpace
+    end
+
+    action GetImageUsage returns integer
+        return imageUsage
+    end
+
+    action SetImageUsage(integer imageUsage)
+        me:imageUsage = imageUsage
+    end
+
+    action GetImageSharingMode returns integer
+        return imageSharingMode
+    end
+
+    action SetImageSharingMode(integer imageSharingMode)
+        me:imageSharingMode = imageSharingMode
+    end
+
+    action GetCompositeAlpha returns integer
+        return compositeAlpha
+    end
+
+    action SetCompositeAlpha(integer compositeAlpha)
+        me:compositeAlpha = compositeAlpha
+    end
+
+    action GetPresentMode returns integer
+        return presentMode
+    end
+
+    action SetPresentMode(integer presentMode)
+        me:presentMode = presentMode
+    end
+
+    action GetImageArrayLayers returns integer
+        return imageArrayLayers
+    end
+
+    action SetImageArrayLayers(integer imageArrayLayers)
+        me:imageArrayLayers = imageArrayLayers
+    end
+
+    action GetQueueFamilyIndices returns Array<integer>
+        return queueFamilyIndices
+    end
+
+    action SetQueueFamilyIndices(Array<integer> queueFamilyIndices)
+        me:queueFamilyIndices = queueFamilyIndices
+    end
+
+    action GetClipped returns boolean
+        return clipped
+    end
+
+    action SetClipped(boolean clipped)
+        me:clipped = clipped
+    end
+
+    action GetPreTransform returns integer
+        return preTransform
+    end
+
+    action SetPreTransform(integer preTransform)
+        me:preTransform = preTransform
+    end
+
+end

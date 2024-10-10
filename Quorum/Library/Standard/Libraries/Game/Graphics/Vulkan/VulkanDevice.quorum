@@ -4,6 +4,7 @@ use Libraries.Containers.Array
 class VulkanDevice
 
     VulkanPhysicalDevice physicalDevice = undefined
+    Array<VulkanQueueFamily> queueFamilies
     boolean initialized = false
 
     action CreateGraphicsDevice(VulkanPhysicalDevice physicalDevice) returns boolean
@@ -11,7 +12,7 @@ class VulkanDevice
         VulkanUtilities utilities
 
         Array<text> extensionNames
-        utilities:GetRequiredPlatformExtensions(extensionNames, instance:HasValidationLayers())
+        utilities:GetRequiredPlatformDeviceExtensions(extensionNames, instance:HasValidationLayers())
         
         VulkanConstants constants
         extensionNames:Add(constants:SWAPCHAIN_EXTENSION)
@@ -28,7 +29,7 @@ class VulkanDevice
     action Create(VulkanPhysicalDevice physicalDevice, Array<text> extensionNames) returns boolean
         me:physicalDevice = physicalDevice
 
-        boolean success = CreateNative(physicalDevice, extensionNames)
+        boolean success = CreateNative(physicalDevice, extensionNames, queueFamilies)
 
         if success
             initialized = true
@@ -37,6 +38,20 @@ class VulkanDevice
         return success
     end
 
-    private system action CreateNative(VulkanPhysicalDevice physicalDevice, Array<text> extensionNames) returns boolean
+    private system action CreateNative(VulkanPhysicalDevice physicalDevice, Array<text> extensionNames, Array<VulkanQueueFamily> queueFamilies) returns boolean
+
+    //system action GetQueue(integer supportedFeaturesMask)
+
+    action GetPhysicalDevice returns VulkanPhysicalDevice
+        return physicalDevice
+    end
+
+    action GetQueueFamilyCount returns integer
+        return queueFamilies:GetSize()
+    end
+
+    action GetQueueFamily(integer index) returns VulkanQueueFamily
+        return queueFamilies:Get(index)
+    end
 
 end

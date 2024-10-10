@@ -1,0 +1,26 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanQueue
+
+    VulkanDevice device = undefined
+    VulkanQueueFamily family = undefined
+    integer queueIndex = -1
+    
+    action GetDevice returns VulkanDevice
+        return device
+    end
+
+    action GetQueueFamily returns VulkanQueueFamily
+        return family
+    end
+
+    action Create(VulkanDevice device, VulkanQueueFamily family, integer queueIndex)
+        me:device = device
+        me:family = family
+        me:queueIndex = queueIndex
+
+        CreateNative(device, family, queueIndex)
+    end
+
+    private system action CreateNative(VulkanDevice device, VulkanQueueFamily family, integer queueIndex)
+end

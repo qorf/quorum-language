@@ -8,6 +8,7 @@ import org.lwjgl.vulkan.VkDeviceQueueCreateInfo;
 import org.lwjgl.vulkan.VkQueueFamilyProperties;
 import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice_;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanQueueFamily;
 
 import java.nio.FloatBuffer;
 
@@ -18,9 +19,9 @@ public class VulkanDevice
 {
     public Object me_;
 
-    public VkDevice vulkanDevice;
+    private VkDevice vulkanDevice;
 
-    public boolean CreateNative(VulkanPhysicalDevice_ quorumPhysicalDevice, Array_ extensionNames)
+    public boolean CreateNative(VulkanPhysicalDevice_ quorumPhysicalDevice, Array_ extensionNames, Array_ queueFamilies)
     {
         try (MemoryStack stack = MemoryStack.stackPush())
         {
@@ -60,15 +61,18 @@ public class VulkanDevice
                 FloatBuffer priorities = stack.callocFloat(familyProperties.get(i).queueCount());
 
                 /*
-                We decide how many queues we will instantiate for each of the families. In this case, we're creating
-                just 1 queue per family.
-                Here we initialize the info struct for our new queue. Set the type, what index it is within
+                Here we initialize the info struct for our queue(s). Set the type, what index it is within
                 the physical device's internal array structure, and set our (all zero) priorities.
                 */
                 VkDeviceQueueCreateInfo currentFamilyInfo = queueCreationInfoBuffer.get(i);
                 currentFamilyInfo.sType$Default();
                 currentFamilyInfo.queueFamilyIndex(i);
                 currentFamilyInfo.pQueuePriorities(priorities);
+
+                // We also create a Quorum data structure for each queue family.
+                VulkanQueueFamily quorumFamily = new VulkanQueueFamily();
+                quorumFamily.Initialize(quorumPhysicalDevice, familyProperties.get(i).queueCount(), familyProperties.get(i).queueFlags(), i);
+                queueFamilies.Add(quorumFamily);
             }
 
             // We'll need an info struct for creating the logical device itself as well. We'll use all the queue info structs as part of this.
@@ -91,5 +95,10 @@ public class VulkanDevice
         }
 
         return true;
+    }
+
+    public VkDevice GetDevice()
+    {
+        return vulkanDevice;
     }
 }

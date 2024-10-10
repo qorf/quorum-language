@@ -119,12 +119,35 @@ Attribute: Parameter returnedExtensions A text array that will contain the names
     Attribute: Parameter returnedExtensions An array of text to store results. The names of the found extensions will be added to the end of this array.
     Attribute: Parameter useValidationLayers True if the extensions are to be used with validation layers enabled, or false otherwise.
     */
-    action GetRequiredPlatformExtensions(Array<text> returnedExtensions, boolean useValidationLayers)
+    action GetRequiredPlatformInstanceExtensions(Array<text> returnedExtensions, boolean useValidationLayers)
         VulkanConstants constants
 
         if useValidationLayers
             returnedExtensions:Add(constants:DEBUG_UTILITIES_EXTENSION)
         end
+
+        Array<text> availableExtensions = GetSupportedExtensions()
+        Properties properties
+        if properties:IsMac()
+            if useValidationLayers = true and availableExtensions:Has(constants:MAC_PORTABILITY_SUBSET_EXTENSION)
+                returnedExtensions:Add(constants:MAC_PORTABILITY_SUBSET_EXTENSION)
+            elseif useValidationLayers = false and availableExtensions:Has(constants:MAC_PORTABILITY_EXTENSION)
+                returnedExtensions:Add(constants:MAC_PORTABILITY_EXTENSION)
+            end
+        end
+    end
+
+    /*
+    This action finds any extensions that are required for VulkanDevices to operate on the current platform and adds them to the
+    end of the provided array. The required extensions are different depending on whether or not validation layers will be
+    used for a VulkanInstance. To get extensions for use with validation layers, the boolean value should be true. To get
+    extensions for use without validation layers, the value should be false instead.
+
+    Attribute: Parameter returnedExtensions An array of text to store results. The names of the found extensions will be added to the end of this array.
+    Attribute: Parameter useValidationLayers True if the extensions are to be used with validation layers enabled, or false otherwise.
+    */
+    action GetRequiredPlatformDeviceExtensions(Array<text> returnedExtensions, boolean useValidationLayers)
+        VulkanConstants constants
 
         Array<text> availableExtensions = GetSupportedExtensions()
         Properties properties
