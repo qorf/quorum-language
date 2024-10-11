@@ -1,0 +1,24 @@
+package Libraries.Robots.Spike
+
+class Sound
+    public constant integer ANY = -2
+    public constant integer DEFAULT = -1
+    public constant integer WAVEFORM_SINE = 1
+    public constant integer WAVEFORM_SAWTOOTH = 3
+    public constant integer WAVEFORM_SQUARE = 2
+    public constant integer WAVEFORM_TRIANGLE = 1
+
+    system action Beep(integer frequency, integer duration, integer volume)
+
+    action StopSound()
+        StopSoundNative()
+    end
+
+    private system action StopSoundNative()
+
+    action SetVolume(integer vol)
+        SetVolumeNative(vol)
+    end
+
+    private system action SetVolumeNative(integer vol)
+end
