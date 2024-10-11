@@ -2,4 +2,28 @@ package Libraries.Robots.Spike
 
 class Hub
     system action Sleep(integer value)
+
+    action GetDeviceUUID() returns text
+        return GetDeviceUUIDNative()
+    end
+
+    private system action GetDeviceUUIDNative returns text
+
+    action GetHardwareID() returns text
+        return GetHardwareIDNative()
+    end
+
+    private system action GetHardwareIDNative returns text
+
+    action PowerOff() returns integer
+        return PowerOffNative()
+    end
+
+    private system action PowerOffNative returns integer
+
+    action GetTemperature() returns integer
+        return GetTemperatureNative()
+    end
+
+    private system action GetTemperatureNative returns integer
 end
