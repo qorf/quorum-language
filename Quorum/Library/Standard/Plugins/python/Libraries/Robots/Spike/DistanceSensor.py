@@ -25,4 +25,12 @@ class plugins_quorum_Libraries_Robots_Spike_DistanceSensor_:
     def SetAllLightsNative__quorum_integer(self, intensity):
         pixels = [intensity] * 4
         distance_sensor.show(self.port, pixels)
+
+    
+    def ShowNative__quorum_Libraries_Containers_Array(self, pixels):
+        pyPixels = []
+        for i in range(pixels.GetSize()):
+            pyPixels.append(Global_GetValue_(pixels.Get__quorum_integer(i), "integer"))
+        distance_sensor.show(self.port, pyPixels)
+        
     

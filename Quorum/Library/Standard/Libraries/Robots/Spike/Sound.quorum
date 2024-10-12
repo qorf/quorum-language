@@ -1,5 +1,15 @@
 package Libraries.Robots.Spike
 
+/*
+    The sound library is capable of playing sounds from the speaker embedded in the 
+    Spike hub. It's basic functionalities include playing a sound, stopping sound, and 
+    changing the volume of a sound.
+
+    Attribute: Example
+    use Libraries.Robots.Spike.Sound
+    Sound noise
+    noise:Beep(440, 500, 100)
+*/
 class Sound
     public constant integer ANY = -2
     public constant integer DEFAULT = -1
@@ -8,14 +18,51 @@ class Sound
     public constant integer WAVEFORM_SQUARE = 2
     public constant integer WAVEFORM_TRIANGLE = 1
 
+    /*
+        Plays a sound from the hub utilizing frequency, duration, and the volume provided.
+        Currently only capable of playing a sine wave with the provided parameters.
+
+        Attribute: Parameter frequency the frequency in hertz of the sound
+        Attribute: Parameter duration the duration in milliseconds of the sound
+        Attribute: Parameter volume the volume intensity of the sound from 0 to 100
+        Attribtue: Example
+
+        use Libraries.Robots.Spike.Sound
+        Sound noise
+        noise:Beep(440, 500, 100)
+    */
     system action Beep(integer frequency, integer duration, integer volume)
 
+    /*
+        Stops all sound coming from the hub
+
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Sound
+        Sound noise
+        noise:Beep(440, 5000, 100)
+        noise:Stop()
+    */
     action StopSound()
         StopSoundNative()
     end
 
     private system action StopSoundNative()
 
+    /*
+        Sets the volume of the noise coming from the hub
+
+        Attribute: Parameter vol the volume intensity of the sound from 0 to 100
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Sound
+        use Libraries.Robots.Spike.Hub
+        Sound noise
+        Hub hb
+        noise:Beep(440, 5000, 100)
+        hb:Sleep(1000)
+        noise:SetVolume(25)
+    */
     action SetVolume(integer vol)
         SetVolumeNative(vol)
     end

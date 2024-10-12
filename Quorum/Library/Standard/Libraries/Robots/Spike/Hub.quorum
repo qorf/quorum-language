@@ -1,26 +1,87 @@
 package Libraries.Robots.Spike
 
+/*
+    The hub library provides basic functionalities to get information about the hub
+    as well as pause the hub's actions for a specified time in milliseconds. The information
+    available includes the device UUID number, the Hardware ID number, and the temperature
+    of the hub.
+
+    Attribute: Example
+    use Libraries.Robots.Spike.Hub
+    Hub hb
+    hb:Sleep(1000)
+*/
 class Hub
+    /*
+        Pauses the hub from executing instructions for a given time in milliseconds.
+
+        Attribute: Parameter value, the time in milliseconds to Sleep
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Hub
+        Hub hb
+        hb:Sleep(1000)
+    */
     system action Sleep(integer value)
 
+    /*
+        Returns a string of the device id.
+
+        Attribute: Returns Device ID
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Hub
+        Hub hb
+        text deviceID = hb:GetDeviceUUID()
+    */
     action GetDeviceUUID() returns text
         return GetDeviceUUIDNative()
     end
 
     private system action GetDeviceUUIDNative returns text
 
+    /*
+        Returns a string of the hardware id.
+
+        Attribute: Returns Hardware ID
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Hub
+        Hub hb
+        text hardwareID = hb:GetHardwareID()
+    */
     action GetHardwareID() returns text
         return GetHardwareIDNative()
     end
 
     private system action GetHardwareIDNative returns text
 
+    /*
+        Turns off the Spike hub.
+
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Hub
+        Hub hb
+        hb:PowerOff()
+    */
     action PowerOff() returns integer
         return PowerOffNative()
     end
 
     private system action PowerOffNative returns integer
 
+    /*
+        Retrieves the temperature of the hub in decidegrees Celsius
+
+        Attribute: Returns Temperature, the temperature in decidegrees Celsius
+        which is 1/10 of a degree Celsius
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Hub
+        Hub hb
+        integer currentTemperature = hb:GetTemperature()
+    */
     action GetTemperature() returns integer
         return GetTemperatureNative()
     end
