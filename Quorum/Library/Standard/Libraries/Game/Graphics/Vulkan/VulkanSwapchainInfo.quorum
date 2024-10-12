@@ -22,6 +22,7 @@ class VulkanSwapchainInfo
     integer preTransform = -1
     boolean clipped = true
     Array<integer> queueFamilyIndices = undefined
+    VulkanImageViewInfo imageViewInfo
 
     on create
         VulkanConstants constants
@@ -46,6 +47,7 @@ class VulkanSwapchainInfo
         copy:imageArrayLayers = imageArrayLayers
         copy:preTransform = preTransform
         copy:clipped = clipped
+        copy:imageViewInfo = imageViewInfo:Copy()
 
         if queueFamilyIndices not= undefined
             copy:queueFamilyIndices = queueFamilyIndices:CopyToArray()
@@ -161,6 +163,14 @@ class VulkanSwapchainInfo
 
     action SetPreTransform(integer preTransform)
         me:preTransform = preTransform
+    end
+
+    action GetImageViewInfo returns VulkanImageViewInfo
+        return imageViewInfo
+    end
+
+    action SetImageViewInfo(VulkanImageViewInfo imageViewInfo)
+        me:imageViewInfo = imageViewInfo
     end
 
 end

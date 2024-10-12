@@ -1,0 +1,90 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanImageViewInfo
+
+    integer format = 0
+    integer aspectMask = 0
+    integer viewType = 0
+    integer baseMipLevel = 0
+    integer levelCount = 1
+    integer layerCount = 1
+    integer baseArrayLayer = 0
+
+    on create
+        VulkanConstants constants
+        aspectMask = constants:IMAGE_ASPECT_COLOR_BIT
+        viewType = constants:VK_IMAGE_VIEW_TYPE_2D
+        format = constants:FORMAT_R8G8B8A8_SRGB
+    end
+
+    action Copy returns VulkanImageViewInfo
+        VulkanImageViewInfo info
+
+        info:format = format
+        info:aspectMask = aspectMask
+        info:viewType = viewType
+        info:baseMipLevel = baseMipLevel
+        info:levelCount = levelCount
+        info:layerCount = layerCount
+        info:baseArrayLayer = baseArrayLayer
+
+        return info
+    end
+
+    action GetFormat returns integer
+        return format
+    end
+
+    action SetFormat(integer format)
+        me:format = format
+    end
+
+    action GetAspectMask returns integer
+        return aspectMask
+    end
+
+    action SetAspectMask(integer aspectMask)
+        me:aspectMask = aspectMask
+    end
+
+    action GetViewType returns integer
+        return viewType
+    end
+
+    action SetViewType(integer viewType)
+        me:viewType = viewType
+    end
+
+    action GetBaseMipLevel returns integer
+        return baseMipLevel
+    end
+
+    action SetBaseMipLevel(integer baseMipLevel)
+        me:baseMipLevel = baseMipLevel
+    end
+
+    action SetLevelCount(integer levelCount)
+        me:levelCount = levelCount
+    end
+
+    action GetLevelCount returns integer
+        return levelCount
+    end
+
+    action GetLayerCount returns integer
+        return layerCount
+    end
+
+    action SetLayerCount(integer layerCount)
+        me:layerCount = layerCount
+    end
+
+    action GetBaseArrayLayer returns integer
+        return baseArrayLayer
+    end
+
+    action SetBaseArrayLayer(integer baseArrayLayer)
+        me:baseArrayLayer = baseArrayLayer
+    end
+
+end

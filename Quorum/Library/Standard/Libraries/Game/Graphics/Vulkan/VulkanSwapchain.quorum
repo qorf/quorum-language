@@ -5,6 +5,7 @@ class VulkanSwapchain
 
     VulkanDevice device = undefined
     VulkanSurface surface = undefined
+    Array<VulkanImageView> imageViews = undefined
     boolean initialized = false
 
     // The info is set during the Create action.
@@ -23,6 +24,20 @@ class VulkanSwapchain
         end
 
         boolean result = CreateNative(device, surface, info)
+        if not result
+            return false
+        end
+        
+        Array<VulkanImage> images
+        result = GetSwapchainImages(images, device)
+        if not result
+            return false
+        end
+
+        Array<VulkanImageView> imageViews
+        me:imageViews = imageViews
+        // TO-DO: Use the retrieved VulkanImages to load the ImageViews.
+
         if result
             me:device = device
             me:surface = surface
@@ -33,6 +48,12 @@ class VulkanSwapchain
     end
 
     private system action CreateNative(VulkanDevice device, VulkanSurface surface, VulkanSwapchainInfo info) returns boolean
+
+    private system action GetSwapchainImages(Array<VulkanImage> images, VulkanDevice device) returns boolean
+
+    action GetImageView(integer index) returns VulkanImageView
+        return imageViews:Get(index)
+    end
 
     action GetImageCount returns integer
         return info:GetImageCount()
@@ -76,6 +97,14 @@ class VulkanSwapchain
 
     action GetQueueFamilyIndices returns Array<integer>
         return info:GetQueueFamilyIndices()
+    end
+
+    action GetSurface returns VulkanSurface
+        return surface
+    end
+
+    action GetDevice returns VulkanDevice
+        return device
     end
 
 end

@@ -1,0 +1,20 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanImageView
+
+    VulkanImageViewInfo info
+    boolean initialized = false
+
+    action Create(VulkanImage image, VulkanImageViewInfo viewInfo) returns boolean
+        info = viewInfo:Copy()
+        boolean success = CreateNative(image, info)
+        if success
+            initialized = true
+        end
+
+        return success
+    end
+
+    private system action CreateNative(VulkanImage image, VulkanImageViewInfo info) returns boolean
+
+end

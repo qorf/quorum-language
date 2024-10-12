@@ -99,5 +99,15 @@ shared class VulkanConstants
     using the OPAQUE value is best, because it is the fastest option and we don't usually want to show the content behind the window.
     */
     public constant integer COMPOSITE_ALPHA_OPAQUE_BIT = 1
+
+    /*
+    Bitmask values used to indicate which aspects of an image are being accessed as part of an ImageView.
+    */
+    public constant integer IMAGE_ASPECT_COLOR_BIT = 1
+
+    /*
+    Type values for defining the structure and use of Images.
+    */
+    public constant integer VK_IMAGE_VIEW_TYPE_2D = 1
     
 end
