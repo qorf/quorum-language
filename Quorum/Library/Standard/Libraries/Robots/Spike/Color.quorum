@@ -1,62 +1,16 @@
 package Libraries.Robots.Spike
-package Libraries.Game.Graphics.Color
 
 class Color
-    private constant integer BLACK = 0
-    private constant integer MAGENTA  = 1
-    private constant integer PURPLE = 2
-    private constant integer BLUE = 3
-    private constant integer AZURE = 4
-    private constant integer TURQUOISE = 5
-    private constant integer GREEN = 6
-    private constant integer YELLOW = 7
-    private constant integer ORANGE = 8
-    private constant integer RED = 9
-    private constant integer WHITE = 10
-    private constant integer UNKNOWN = -1
-    
-    action GetColorName(integer colorValue) returns Color
-    	Color color
-    	
-    	select colorValue
-    		case BLACK
-    			return color = color:Black()
-    		case MAGENTA
-    			return color = color:Magenta()
-    		case PURPLE
-    			return color = color:Purple()
-    		case BLUE
-    			return color = color:Blue()
-    		case AZURE
-    			return color = color:Teal()
-    		case TURQUOISE
-    			return color = color:Cyan()
-    		case GREEN
-    			return color = color:Green()
-    		case YELLOW
-    			return color = color:Yellow()
-    		case ORANGE
-    			return color = color:Orange()
-    		case RED
-    			return color = color:Red()
-    		case WHITE
-    			return color = color:White()
-    		default
-    			return color = color:Black()
-    	end
-    end
-    
-    
-    private system action color returns Color
-    
-    
-    /*
-    Or...
-    
-    select...
-    	setColorValuesIntoPassedColorNative(color)
-    ...
-    
-    private system action SetColorValuesIntoPassedColorNative(Color color)
-    */
+    constant integer BLACK = 0
+    constant integer MAGENTA  = 1
+    constant integer PURPLE = 2
+    constant integer BLUE = 3
+    constant integer AZURE = 4
+    constant integer TURQUOISE = 5
+    constant integer GREEN = 6
+    constant integer YELLOW = 7
+    constant integer ORANGE = 8
+    constant integer RED = 9
+    constant integer WHITE = 10
+    constant integer UNKNOWN = -1
 end
