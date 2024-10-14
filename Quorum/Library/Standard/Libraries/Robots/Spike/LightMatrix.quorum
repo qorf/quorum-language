@@ -1,4 +1,5 @@
 package Libraries.Robots.Spike
+use Libraries.Containers.Array
 
 /*
     The light matrix controls a 5 x5 set of pixels on the Spike robot. The 
@@ -11,6 +12,11 @@ package Libraries.Robots.Spike
     lights:Write("Hi!")
 */
 class LightMatrix
+    public constant integer UP = 0
+    public constant integer DOWN = 2
+    public constant integer LEFT = 3
+    public constant integer RIGHT = 1
+
     public constant integer HEART = 1
     public constant integer HEART_SMALL = 2
     public constant integer HAPPY = 3
@@ -128,6 +134,31 @@ class LightMatrix
     private system action SetPixelNative(integer x, integer y, integer intensity)
 
     /*
+        Displays a configured image using an array of length 25. The order is left to right
+        top to bottom on a 5x5 grid
+
+        Attribute: Parameter Pixels An integer array of pixels to display, where each index
+        represents the intensity from 0 to 100 of the corresponding pixel
+        Attribute: Example
+
+        use Libraries.Robots.Spike.LightMatrix
+        use Libraries.Containers.Array
+        Array pixels
+        LightMatrix lights
+        integer i = 0
+        repeat 25 times
+            pixels:Add(i)
+            i = i + 4
+        end
+        lights:Show(pixels)
+    */
+    action Show(Array<integer> pixels)
+        ShowNative(pixels)
+    end
+
+    private system action ShowNative(Array<integer> pixels)
+
+    /*
         Displays a built in image. Constants are in the class and the values go
         from 1 to 67
         
@@ -158,4 +189,38 @@ class LightMatrix
     end
 
     private system action ClearNative
+
+    /*
+        Sets the orientation of the light matrix
+
+        Attribute: Parameter orientation The direction to orient the light matrix
+        Attribute: Returns Orientation, a value from 0 to 3 (UP, RIGHT, DOWN, LEFT) which
+        can be accessed from the class constants
+        Attribute: Example
+
+        use Libraries.Robots.Spike.LightMatrix
+        LightMatrix lights
+        lights:SetOrientation(lights:UP)
+    /*
+    action SetOrientation(integer orientation) returns integer
+        return SetOrientationNative(orientation)
+    end
+
+    private system action SetOrientationNative(integer orientation) returns integer
+
+    /*
+        Gets the orientation of the light matrix
+
+        Attribute: Returns Orientation, a value from 0 to 3 (UP, RIGHT, DOWN, LEFT)
+        Attribute: Example
+
+        use Libraries.Robots.Spike.LightMatrix
+        LighMatrix lights
+        integer orientation = lights:GetOrientation()
+    */
+    action GetOrientation returns integer
+        return GetOrientationNative()
+    end
+
+    private system action GetOrientationNative() returns integer
 end

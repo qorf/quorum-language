@@ -1,11 +1,41 @@
 package Libraries.Robots.Spike
 
-class Motor
+/*
+    The motor is an external device that is connected to the hub through a port.
+    It is a rotational device that can be attached to other objects to provide force.
 
+    Attribute: Example
+    use Libraries.Robots.Spike.Motor
+    Motor wheel
+    wheel:Run(360)
+*/
+class Motor
+    
+    /*
+        Returns the port number of the motor
+
+        Attribute: Returns Port number
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        integer wheelPort = wheel:GetPort()
+    */
     action GetPort returns integer
         return GetPortNative()
     end
 
+    /*
+        Sets the port number of the motor object
+
+        Attribute: Parameter port The port (0 through 5) the motor
+        is attached to
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        wheel:SetPort(0)
+    */
     action SetPort(integer port)
         SetPortNative(port)
     end
@@ -13,53 +43,203 @@ class Motor
     private system action GetPortNative returns integer
     private system action SetPortNative(integer port) returns integer
 
+    /*
+        Returns the absolute position of a motor
+
+        Attribute: Returns Position, the absolute position of the Motor
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        integer currentAbsoluteWheelPosition = wheel:GetAbsolutePosition()
+    */
     action GetAbsolutePosition returns integer
         return GetAbsolutePositionNative()
     end
 
     private system action GetAbsolutePositionNative returns integer
 
+    /*
+        Returns the current duty cycle (pwm) of the motor
+
+        Attribute: Returns PWM, the pwm of the motor
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        integer currentPWM = wheel:GetDutyCyle()
+    */
     action GetDutyCycle returns integer
         return GetDutyCycleNative()
     end
 
     private system action GetDutyCycleNative returns integer
 
+    /*
+        Returns the relative position of a motor
+
+        Attribute: Returns Position, the relative position of the motor
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        integer currentRelativeWheelPosition = wheel:GetRelativePosition()
+    */
     action GetRelativePosition returns integer
         return GetRelativePositionNative()
     end
 
     private system action GetRelativePositionNative returns integer
 
+    /*
+        Changes the position used as an offset for RunToRelativePosition()
+
+        Attribute: Parameter Position, the relative position to use
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        wheel:SetRelativePosition(90)
+    */
     action SetRelativePosition(integer position)
         SetRelativePositionNative(position)
     end
     private system action SetRelativePositionNative(integer position)
 
+    /*
+        Sets the velocity of the motor in degrees.
+        Ranges vary per motor size as follows:
+            Small motor: -660 to 660
+            Medium motor: -1110 to 1110
+            Large motor: -1050 to 1050
+        
+        Attribute: Parameter Velocity, the velocity to set the motor in
+        degrees/second
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        wheel:Run(90)
+    */
     action Run(integer velocity)
         RunNative(velocity)
     end
 
     private system action RunNative(integer velocity)
 
+    /*
+        Runs the motor for a certain number of degrees at the provided velocity.
+        Ranges for velocity vary per motor size as follows:
+            Small motor: -660 to 660
+            Medium motor: -1110 to 1110
+            Large motor: -1050 to 1050
+
+        Attribute: Parameter Degrees, the amount of degrees to run for
+        Attribute: Parameter Velocity, the velocity in degrees/second
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        wheel:RunToDegrees(720, 90)
+    */
     system action RunToDegrees(integer degrees, integer velocity)
 
+    /*
+        Runs the motor for a set amount of time at the provided velocity.
+        Ranges for velocity vary per motor size as follows:
+            Small motor: -660 to 660
+            Medium motor: -1110 to 1110
+            Large motor: -1050 to 1050
+
+        Attribute: Parameter Time, the amount of time to run for in
+        milliseconds
+        Attribute: Parameter Velocity, the velocity in degrees/second
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        wheel:RunForTime(2000, 360)
+    */
     system action RunForTime(integer time, integer velocity)
 
+    /*
+        Turns the motor to a provided absolute position at the provided velocity.
+        Ranges for velocity vary per motor size as follows:
+            Small motor: -660 to 660
+            Medium motor: -1110 to 1110
+            Large motor: -1050 to 1050
+        
+        Attribute: Parameter Position, the absolute position to run to
+        Attribute: Parameter Velocity, the velocity in degrees/second
+        Attribute: Example
+        
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        wheel:RunToAbsolutePosition(1200, 360)
+    */
     system action RunToAbsolutePosition(integer position, integer velocity)
 
+    /*
+        Turns the motor to a position relative to current position.
+        Ranges for velocity vary per motor size as follows:
+            Small motor: -660 to 660
+            Medium motor: -1110 to 1110
+            Large motor: -1050 to 1050
+
+        Attribute: Parameter Position, the relative position to run to
+        Attribute: Parameter Velocity, the velocity in degrees/second
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        wheel:RunToRelativePosition(360, 360)
+    */
     system action RunToRelativePosition(integer position, integer velocity)
 
+    /*
+        Starts a motor using a specific pulse width modulation 
+
+        Attribute: Parameter pulseWidthModulation, the pwm from -10000 - 10000
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        wheel:SetDutyCycle(5000)
+    */
     action SetDutyCycle(integer pulseWidthModulation)
         SetDutyCycleNative(pulseWidthModulation)
     end
     private system action SetDutyCycleNative(integer pulseWidthModulation)
 
+    /*
+        Stops the motor from running
+
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        use Libraries.Robots.Spike.Hub
+        Motor wheel
+        Hub hb
+        wheel:Run(360)
+        hb:Sleep(1000)
+        wheel:Stop()
+    */
     action Stop
         StopNative()
     end
     private system action StopNative
 
+    /*
+        Returns the velocity in degrees/second of the motor
+
+        Attribute: Returns Velocity, the velocity in degrees/second of the motor
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        wheel:Run(360)
+        integer currentVelocity = wheel:GetVelocity()
+    */
     action GetVelocity returns integer
         return GetVelocityNative()
     end
