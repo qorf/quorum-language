@@ -1,0 +1,20 @@
+package Libraries.Robots.Spike
+
+class Button
+    public constant integer LEFT = 0
+    public constant integer RIGHT = 1
+
+    action IsLeftPressed() returns boolean
+        return IsLeftPressedNative()
+    end
+
+    private system action IsLeftPressedNative() returns boolean
+
+    action IsRightPressed() returns boolean
+        return IsRightPressedNative()
+    end
+
+    private system action IsRightPressedNative() returns boolean
+
+    system action ButtonPressDuration(integer btn) returns integer
+end
