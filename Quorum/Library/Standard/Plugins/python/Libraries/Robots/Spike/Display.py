@@ -7,11 +7,11 @@ class plugins_quorum_Libraries_Robots_Spike_Display_:
 	def HideNative(self):
 		display.hide()
 
-	def ImageNative(self, image):
+	def ImageNative__quorum_integer(self, image):
 		display.image(image)
 
-	def ShowNative(self, fullscreen):
+	def ShowNative__quorum_boolean(self, fullscreen):
 		display.show(fullscreen)
 	
-	def TextNative(self, text_value):
+	def TextNative__quorum_text(self, text_value):
 		display.text(text_value)
