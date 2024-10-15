@@ -1,20 +1,91 @@
 package Libraries.Robots.Spike
 
+/*
+    The button library allows for detection of button presses from the left and
+    right arrow keys located on the top face of the hub.
+
+    Example:
+    use Libraries.Robots.Spike.Button
+    use Libraries.Robots.Spike.LightMatrix
+    use Libraries.Robots.Spike.Hub
+    Hub hb
+    LightMatrix lights
+    Button btn
+    repeat until btn:IsLeftPressed()
+        hb:Sleep(1)
+    end
+    lights:Write("Left Button Pressed!)
+*/
 class Button
     public constant integer LEFT = 0
     public constant integer RIGHT = 1
 
+    /*
+        Returns true if left arrow is pressed, false if not
+
+        Attribute: Returns Pressed, true if left arrow is pressed, false if not
+        Attribute: Example
+
+        Example:
+        use Libraries.Robots.Spike.Button
+        use Libraries.Robots.Spike.LightMatrix
+        use Libraries.Robots.Spike.Hub
+        Hub hb
+        LightMatrix lights
+        Button btn
+        repeat until btn:IsLeftPressed()
+            hb:Sleep(1)
+        end
+        lights:Write("Left Button Pressed!)
+    */
     action IsLeftPressed() returns boolean
         return IsLeftPressedNative()
     end
 
     private system action IsLeftPressedNative() returns boolean
 
+    /*
+        Returns true if right arrow is pressed, false if not
+
+        Attribute: Returns Pressed, true if right arrow is pressed, false if not
+        Attribute: Example
+
+        Example:
+        use Libraries.Robots.Spike.Button
+        use Libraries.Robots.Spike.LightMatrix
+        use Libraries.Robots.Spike.Hub
+        Hub hb
+        LightMatrix lights
+        Button btn
+        repeat until btn:IsRightPressed()
+            hb:Sleep(1)
+        end
+        lights:Write("Right Button Pressed!)
+    */
     action IsRightPressed() returns boolean
         return IsRightPressedNative()
     end
 
     private system action IsRightPressedNative() returns boolean
 
+    /*
+        Returns the duration in milliseconds that provided button has been
+        held down for. Class constants LEFT and RIGHT will access this value
+        for the left and right arrow buttons respectively.
+
+        Attribute: Parameter btn, the button to be checked
+        Attribute: Returns Duration, the amount of time in milliseconds the
+        provided button has been held down for
+        Attribute: Example
+        use Libraries.Robots.Spike.Button
+        use Libraries.Robots.Spike.LightMatrix
+        Button btn
+        LightMatrix lights
+        integer left_button_duration = 0
+        repeat until (left_button_duration > 1000)
+            left_button_duration = btn:ButtonPressDuration(btn:LEFT)
+        end
+        lights:Write("Button held for 1 second")
+    */
     system action ButtonPressDuration(integer btn) returns integer
 end
