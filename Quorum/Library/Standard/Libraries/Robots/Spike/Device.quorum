@@ -1,0 +1,116 @@
+package Libraries.Robots.Spike
+use Libraries.Containers.Array
+
+/*
+    The device library allows you to gather information about the devices connected
+    to each of the hubs ports, as well as set the duty cycle of a device at a specific
+    port.
+
+    Example:
+    use Libraries.Robots.Spike.Device
+    Device dv
+    integer raw_data_of_port_A = dv:GetDataFromPort(0)
+*/
+class Device
+    /*
+        Retrieves raw LPF-2 data from the device connected to the provided port. The
+        data is returned in an integer array of size 8
+
+        Attribute: Parameter port, the port (ranging from 0 to 5) with the device to 
+        collect data from
+        Attribute: Returns Data, the raw LPF-2 data from the device in Array<integer> form
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Device
+        Device dv
+        integer raw_data_of_port_A = dv:GetDataFromPort(0)
+    */
+    action GetDataFromPort(integer port) returns Array<integer>
+        return GetDataFromPortNative(port)
+    end
+
+    private system action GetDataFromPortNative(integer port) returns Array<integer>
+
+    /*
+        Retrieves the ID of the device connected to the provided port
+
+        Attribute: Parameter port, the port (ranging from 0 to 5) with the device to 
+        get the ID of
+        Attribute: Returns ID, the integer ID of the device at the provided port
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Device
+        Device dv
+        integer port_A_device_ID = dv:GetIDOfPort(0)
+    */
+    action GetIDOfPort(integer port) returns integer
+        return GetIDOfPortNative(port)
+    end
+
+    private system action GetIDOfPortNative(integer port) returns integer
+
+    /*
+        Retrieves the duty cycle (PWM) of the device connected to the provided port
+
+        Attribute: Parameter port, the port (ranging from 0 to 5) with the device to 
+        get the duty cycle of
+        Attribute: Returns PWM, the duty cycle (from 0 to 10000) of the device at
+        the provided port
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Device
+        Device dv
+        integer port_A_duty_cycle = dv:GetDutyCycle(0)
+    */
+    action GetDutyCycle(integer port) returns integer
+        return GetDutyCycleNative(port)
+    end
+
+    private system action GetDutyCycleNative(integer port) returns integer
+
+    /*
+        Returns true if the device is ready for requests, false if not
+
+        Attribute: Parameter port, the port (ranging from 0 to 5) with the device to 
+        check the ready state of
+        Attribute: Returns Ready, a boolean that's true if the device is ready for requests,
+        false if it isn't ready
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Device
+        use Libraries.Robots.Spike.Hub
+        use Libraries.Robots.Spike.LightMatrix
+        Device dv
+        Hub hb
+        LightMatrix lights
+        repeat until IsPortReady(0)
+            hb:Sleep(1)
+        end
+        lights:Write("Device at Port A is READY!!!")
+    */
+    action IsPortReady(integer port) returns boolean
+        return IsPortReadyNative(port)
+    end
+
+    private system action IsPortReadyNative(integer port) returns boolean
+
+    /*
+        Sets the duty cycle (PWM) of a device at the provided port. Duty cycle value
+        can range from 0 to 10000.
+
+        Attribute: Parameter port, the port (ranging from 0 to 5) with the device to 
+        set the duty cycle of
+        Attribute: Parameter duty_cycle, the integer value from 0 to 10000 to set the
+        duty cycle of the device to
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Device
+        Device dv
+        dv:SetDutyCycle(0, 5000)
+    */
+    action SetDutyCycle(integer port, integer duty_cycle)
+        SetDutyCycleNative(port, duty_cycle)
+    end
+
+    private system action SetDutyCycleNative(integer port, integer duty_cycle)
+end
