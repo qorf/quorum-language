@@ -9,11 +9,12 @@ use Libraries.Game.Graphics.Glyph
 use Libraries.Game.Graphics.Texture
 use Libraries.System.File
 use Libraries.System.Properties
-
+use Libraries.Containers.Iterator
+use Libraries.Game.Graphics.Fonts.FontFamily
 
 class FontManager 
-    
-    
+    HashTable<text, FontFamily> families
+    FontFileNameComparison compare
     /*
     The goal of the design is to make each Font object nothing more than a
     container to describe details of the requested font, and stringify these
@@ -63,6 +64,7 @@ class FontManager
     text lastRequestedKey = ""
     FontStrategy typicallyRequestedStrategy = undefined
     text overrideFontLocation = undefined
+    boolean hasCalculatedFontFamilies = false
 
     on create
         availableWebFonts:Add("Lato")
@@ -179,6 +181,7 @@ class FontManager
     */
     action OverrideFontLocation(text value)
         me:overrideFontLocation = value
+        hasCalculatedFontFamilies = false
     end
 
     /*
@@ -187,7 +190,7 @@ class FontManager
         where fonts are loaded.
     */
     action OverrideFontLocation(File file)
-        me:overrideFontLocation = file:GetAbsolutePath()
+        OverrideFontLocation(file:GetAbsolutePath())
     end
 
     /*
@@ -408,6 +411,75 @@ class FontManager
             lastRequestedKey = key
             typicallyRequestedStrategy = strategy
             return strategy
+        end
+    end
+    
+    /*This action returns a font family, with bold and italic information, if the system 
+was able to find such a family. It is often the case that no bold or italic option exists and 
+this algorithm imperfectly predicts what is available based on the operating system.*/
+    action GetFontFamily(text name) returns FontFamily
+        if not hasCalculatedFontFamilies
+            CalculateFontFamilies()
+            
+        end
+        return families:GetValue(name)
+    end
+    
+    /*
+This algorithm is quite imperfect, especially without the family name from FreeType. However
+, while imperfect, it does provide some basic guidance for many fonts.
+*/
+action CalculateFontFamilies
+        hasCalculatedFontFamilies = true
+                Array<File> fonts = GetAvailableFonts()
+        fonts:Sort(compare)
+        
+            
+        HashTable<integer, boolean> used
+        i = 0
+repeat while i < fonts:GetSize()
+            File fontFile = fonts:Get(i)
+            text name = fontFile:GetNameNoExtension()
+            
+FontFamily family = undefined
+            if not used:HasKey(i)
+FontFamily fam
+family = fam
+family:SetName(fontFile:GetFileName())
+            families:Add(name, family)
+used:Add(i, true)
+            end
+            
+            j = i + 1
+            repeat while j < fonts:GetSize() and not used:HasKey(j)
+                File nextFile = fonts:Get(j)
+text nextName = nextFile:GetNameNoExtension()
+                     //it's the family name
+if nextName:StartsWith(name)
+//skip past any spaces or dashes
+                    text newName = nextName:GetSubtext(name:GetSize())
+newName = newName:Replace("-", " ")
+                    newName = newName:Trim():ToLowerCase()
+                    //it's in the same family, even if the formatting is funky
+                    if newName:StartsWith("bold") or newName:StartsWith("italic")
+                        //mark it as finished with.
+used:Add(j, true)
+                        if newName:Contains("bold") and newName:Contains("italic")
+                            family:SetBoldItalic(nextFile)
+                        elseif newName:Contains("bold")
+family:SetBold(nextFile)
+                        elseif newName:Contains("italic")
+family:SetItalic(nextFile)
+                        end
+                        //If not, it's not in the same family
+                    else
+                        
+                    end
+                end
+                
+                j = j + 1
+            end
+            i = i + 1
         end
     end
 

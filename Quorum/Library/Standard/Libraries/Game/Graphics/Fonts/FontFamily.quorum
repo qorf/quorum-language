@@ -1,0 +1,74 @@
+package Libraries.Game.Graphics.Fonts
+use Libraries.System.File
+use Libraries.Game.Graphics.Font
+
+class FontFamily
+    text name = ""
+    File default = undefined
+    File bold = undefined
+    File italic = undefined
+    File boldItalic = undefined
+    
+    action GetName returns text
+        return name
+    end
+
+    action SetName(text name)
+        me:name = name
+    end
+
+    action GetDefault returns File
+        return default
+    end
+
+    action SetDefault(File default)
+        me:default = default
+    end
+
+    action GetBold returns File
+        return bold
+    end
+
+    action SetBold(File bold)
+        me:bold = bold
+    end
+    
+    private action LoadFont(File file) returns Font
+if file = undefined
+    return undefined
+  end
+
+  Font font
+  font:LoadFont(file)
+  return font
+    end
+    
+    action LoadBoldFont returns Font
+return LoadFont(GetBold())
+    end
+    
+action LoadItalicFont returns Font
+return LoadFont(GetItalic())
+    end
+    
+action LoadBoldItalicFont returns Font
+return LoadFont(GetBoldItalic())
+    end
+    
+    action GetItalic returns File
+        return italic
+    end
+
+    action SetItalic(File italic)
+        me:italic = italic
+    end
+
+    action GetBoldItalic returns File
+        return boldItalic
+    end
+
+    action SetBoldItalic(File boldItalic)
+        me:boldItalic = boldItalic
+    end
+
+end

@@ -402,6 +402,41 @@ class File
         output file:GetFileName() // will output  "sodbeans.exe". (on any system)
      */
     system action GetFileName returns text
+    
+/*
+        Obtain the last part of the path name for this File object. This will
+        be the last file or directory in the path. For example, if we had a File
+        object that represented the path
+
+        C:\Users\jeff\My Documents
+
+        this action would return "My Documents." Similarly, if we had a File object
+        that represented the path
+
+        C:\Users\jeff\My Documents\homework.doc
+
+        this action would return "homework" as this version lacks the extension. This action always returns the
+        last thing in the path, so if our path is simply "C:\", this action will
+        return "C:\". If our path is "/", this action will return an empty
+        string ("").
+
+        Attribute: Returns The last portion of the path name. This may be a file name, directory name, or drive letter.
+
+        Attribute: Example
+        use Libraries.System.File
+
+        // Get the file name from this path.
+        text path = "C:\Program Files\Sodbeans\bin\sodbeans.exe"
+        File file
+        file:SetWorkingDirectory("C:\Program Files\Sodbeans\bin\")
+        file:SetPath("sodbeans.exe")
+        output file:GetGetNameNoExtension() // will output  "sodbeans". (on any system)
+     */
+action GetNameNoExtension returns text
+text name = GetFileName()
+text nameNoExtension = name:GetSubtext(0, name:GetSize()- GetFileExtension():GetSize() - 1)
+        return nameNoExtension
+    end
 
     /*
         Obtain the file extension of the path this File object represents.
