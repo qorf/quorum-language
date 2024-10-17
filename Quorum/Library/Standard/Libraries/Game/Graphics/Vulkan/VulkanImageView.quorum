@@ -2,19 +2,24 @@ package Libraries.Game.Graphics.Vulkan
 
 class VulkanImageView
 
-    VulkanImageViewInfo info
+    VulkanDevice device = undefined
+    VulkanImage image = undefined
+    VulkanImageViewInfo info = undefined
     boolean initialized = false
 
-    action Create(VulkanImage image, VulkanImageViewInfo viewInfo) returns boolean
+    action Create(VulkanDevice device, VulkanImage image, VulkanImageViewInfo viewInfo) returns boolean
         info = viewInfo:Copy()
-        boolean success = CreateNative(image, info)
+        boolean success = CreateNative(device, image, info)
+
         if success
+            me:device = device
+            me:image = image
             initialized = true
         end
 
         return success
     end
 
-    private system action CreateNative(VulkanImage image, VulkanImageViewInfo info) returns boolean
+    private system action CreateNative(VulkanDevice device, VulkanImage image, VulkanImageViewInfo info) returns boolean
 
 end

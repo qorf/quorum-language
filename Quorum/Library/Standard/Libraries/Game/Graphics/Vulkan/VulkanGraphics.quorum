@@ -18,6 +18,7 @@ class VulkanGraphics is GraphicsManager
     VulkanQueue graphicsQueue = undefined
     VulkanQueue presentationQueue = undefined
     VulkanSwapchain swapchain = undefined
+    VulkanCommandPool commandPool = undefined
     
     // Color components used to clear the screen when a frame of animation begins.
     number redClearComponent = 0.85
@@ -154,6 +155,63 @@ class VulkanGraphics is GraphicsManager
             return false
         end
 
+        VulkanCommandPool commandPool
+        me:commandPool = commandPool
+
+        output "Creating command pool..."
+        success = commandPool:Create(device, constants:COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, graphicsQueue:GetQueueFamily():GetQueueFamilyIndex())
+        output "Created command pool, success = " + success
+        if not success
+            return false
+        end
+
+        // Create the RenderPass that will be used for the pipeline. This work will likely be moved into a Painter later.
+        VulkanAttachmentDescription outputColorAttachment
+        outputColorAttachment:SetFormat(swapchainInfo:GetImageViewInfo():GetFormat())
+        outputColorAttachment:SetSamples(constants:SAMPLE_COUNT_1_BIT)
+        outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
+        outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
+        outputColorAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_PRESENT_SRC)
+
+        Array<VulkanAttachmentDescription> attachmentDescriptions
+        attachmentDescriptions:Add(outputColorAttachment)
+
+
+        VulkanAttachmentReference outputColorReference
+        outputColorReference:SetAttachmentIndex(0)
+        outputColorReference:SetLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+
+        Array<VulkanAttachmentReference> attachmentReferences
+        attachmentReferences:Add(outputColorReference)
+
+
+        VulkanSubpassDescription subpass
+        subpass:SetPipelineBindPoint(constants:PIPELINE_BIND_POINT_GRAPHICS)
+        subpass:SetColorAttachments(attachmentReferences)
+
+        Array<VulkanSubpassDescription> subpassDescriptions
+        subpassDescriptions:Add(subpass)
+
+        
+        VulkanSubpassDependency dependency
+        dependency:SetSourceSubpass(constants:SUBPASS_EXTERNAL)
+        dependency:SetDestinationSubpass(0)
+        dependency:SetSourceStageMask(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
+        dependency:SetDestinationStageMask(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
+        dependency:SetSourceAccessMask(0)
+        dependency:SetDestinationAccessMask(constants:ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
+
+        Array<VulkanSubpassDependency> subpassDependencies
+        subpassDependencies:Add(dependency)
+
+
+        output "Creating RenderPass..."
+        VulkanRenderPass renderPass
+        success = renderPass:Create(device, attachmentDescriptions, attachmentReferences, subpassDependencies)
+        output "Created RenderPass, success = " + success
+        if not success
+            return false
+        end
 
         return true
     end

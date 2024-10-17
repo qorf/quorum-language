@@ -1,0 +1,24 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanAttachmentReference
+
+    integer attachmentIndex = 0
+    integer layout = 0
+
+    action GetAttachmentIndex returns integer
+        return attachmentIndex
+    end
+
+    action SetAttachmentIndex(integer attachmentIndex)
+        me:attachmentIndex = attachmentIndex
+    end
+
+    action GetLayout returns integer
+        return layout
+    end
+
+    action SetLayout(integer layout)
+        me:layout = layout
+    end
+
+end

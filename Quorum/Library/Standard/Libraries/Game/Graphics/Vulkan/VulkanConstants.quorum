@@ -108,6 +108,52 @@ shared class VulkanConstants
     /*
     Type values for defining the structure and use of Images.
     */
-    public constant integer VK_IMAGE_VIEW_TYPE_2D = 1
+    public constant integer IMAGE_VIEW_TYPE_2D = 1
+
+    /*
+    Flags used during the creation of Command Pools.
+    */
+    public constant integer COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT = 2
+
+    /*
+    Sampling flags, used when defining color attachments. 1 bit of sampling is the most direct and simple way to sample color.
+    Multiple bits are used for multisampling, which is typically used to perform anti-aliasing. 
+    */
+    public constant integer SAMPLE_COUNT_1_BIT = 1
+
+    /*
+    Constants for load and store operations for attachments. Load operations indicate what operations, if any, should be performed on the data in an attachment when it's loaded
+    (i.e. first time using the attachment during a pass). Store operations indicate what operations should be done on the data once the pass is finished with the attachment.
+    */
+    public constant integer ATTACHMENT_STORE_OP_STORE = 0
+    public constant integer ATTACHMENT_LOAD_OP_CLEAR = 1
+    
+    /*
+    Constants representing image layouts. These describe the format of stored image data. 
+    */
+    public constant integer IMAGE_LAYOUT_UNDEFINED = 0
+    public constant integer IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL = 2
+    public constant integer IMAGE_LAYOUT_PRESENT_SRC = 1000001002
+
+    /*
+    Constants used to bind to pipeline stages.
+    */
+    public constant integer PIPELINE_BIND_POINT_GRAPHICS = 0
+
+    /*
+    A constant value indicating that part of a subpass occurs outside of the regular Vulkan pipeline, such as work with the swapchain
+    (because presentation occurs outside of the regular pipeline).
+    */
+    public constant integer SUBPASS_EXTERNAL = -1
+
+    /*
+    Bitmask constants for pipeline stages. Used in subpass dependencies to indicate what stages work begins and finishes in.
+    */
+    public constant integer PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT = 1024
+
+    /*
+    Bitmask constants for access masks. Used for subpass dependencies.
+    */
+    public constant integer ACCESS_COLOR_ATTACHMENT_WRITE_BIT = 256
     
 end

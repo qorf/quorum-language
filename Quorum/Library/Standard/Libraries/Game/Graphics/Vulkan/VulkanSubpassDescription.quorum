@@ -1,0 +1,73 @@
+package Libraries.Game.Graphics.Vulkan
+
+use Libraries.Containers.Array
+
+class VulkanSubpassDescription
+
+    integer flags = 0
+    integer pipelineBindPoint = 0
+    
+    Array<VulkanAttachmentReference> inputAttachments = undefined
+    Array<VulkanAttachmentReference> colorAttachments = undefined
+    Array<VulkanAttachmentReference> resolveAttachments = undefined
+    Array<integer> preserveAttachmentIndices = undefined
+
+    VulkanAttachmentReference depthStencilAttachment = undefined
+
+    action GetFlags returns integer
+        return flags
+    end
+
+    action SetFlags(integer flags)
+        me:flags = flags
+    end
+
+    action GetInputAttachments returns Array<VulkanAttachmentReference>
+        return inputAttachments
+    end
+
+    action SetInputAttachments(Array<VulkanAttachmentReference> inputAttachments)
+        me:inputAttachments = inputAttachments
+    end
+
+    action GetColorAttachments returns Array<VulkanAttachmentReference>
+        return colorAttachments
+    end
+
+    action SetColorAttachments(Array<VulkanAttachmentReference> colorAttachments)
+        me:colorAttachments = colorAttachments
+    end
+
+    action GetResolveAttachments returns Array<VulkanAttachmentReference>
+        return resolveAttachments
+    end
+
+    action SetResolveAttachments(Array<VulkanAttachmentReference> resolveAttachments)
+        me:resolveAttachments = resolveAttachments
+    end
+
+    action GetPreserveAttachmentIndices returns Array<integer>
+        return preserveAttachmentIndices
+    end
+
+    action SetPreserveAttachmentIndices(Array<integer> preserveAttachmentIndices)
+        me:preserveAttachmentIndices = preserveAttachmentIndices
+    end
+
+    action GetDepthStencilAttachment returns VulkanAttachmentReference
+        return depthStencilAttachment
+    end
+
+    action SetDepthStencilAttachment(VulkanAttachmentReference depthStencilAttachment)
+        me:depthStencilAttachment = depthStencilAttachment
+    end
+
+    action GetPipelineBindPoint returns integer
+        return pipelineBindPoint
+    end
+
+    action SetPipelineBindPoint(integer pipelineBindPoint)
+        me:pipelineBindPoint = pipelineBindPoint
+    end
+
+end

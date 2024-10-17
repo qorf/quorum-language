@@ -1,0 +1,87 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanAttachmentDescription
+
+    integer flags = -1
+    integer format = -1
+    integer samples = -1
+    integer loadOp = -1
+    integer storeOp = -1
+    integer stencilLoadOp = -1
+    integer stencilStoreOp = -1
+    integer initialLayout = -1
+    integer finalLayout = -1
+
+    action GetFlags returns integer
+        return flags
+    end
+
+    action SetFlags(integer flags)
+        me:flags = flags
+    end
+
+    action GetFormat returns integer
+        return format
+    end
+
+    action SetFormat(integer format)
+        me:format = format
+    end
+
+    action GetSamples returns integer
+        return samples
+    end
+
+    action SetSamples(integer samples)
+        me:samples = samples
+    end
+
+    action GetLoadOp returns integer
+        return loadOp
+    end
+
+    action SetLoadOp(integer loadOp)
+        me:loadOp = loadOp
+    end
+
+    action GetStoreOp returns integer
+        return storeOp
+    end
+
+    action SetStoreOp(integer storeOp)
+        me:storeOp = storeOp
+    end
+
+    action GetStencilLoadOp returns integer
+        return stencilLoadOp
+    end
+
+    action SetStencilLoadOp(integer stencilLoadOp)
+        me:stencilLoadOp = stencilLoadOp
+    end
+
+    action GetStencilStoreOp returns integer
+        return stencilStoreOp
+    end
+
+    action SetStencilStoreOp(integer stencilStoreOp)
+        me:stencilStoreOp = stencilStoreOp
+    end
+
+    action GetInitialLayout returns integer
+        return initialLayout
+    end
+
+    action SetInitialLayout(integer initialLayout)
+        me:initialLayout = initialLayout
+    end
+
+    action GetFinalLayout returns integer
+        return finalLayout
+    end
+
+    action SetFinalLayout(integer finalLayout)
+        me:finalLayout = finalLayout
+    end
+
+end

@@ -120,6 +120,7 @@ public class VulkanSwapchain
             swapchainCreateInfo.imageColorSpace(colorSpace);
             swapchainCreateInfo.imageExtent(dimensions);
             swapchainCreateInfo.imageArrayLayers(createInfo.GetImageArrayLayers());
+            swapchainCreateInfo.imageUsage(createInfo.GetImageUsage());
             swapchainCreateInfo.imageSharingMode(createInfo.GetImageSharingMode());
             swapchainCreateInfo.compositeAlpha(createInfo.GetCompositeAlpha());
             swapchainCreateInfo.clipped(createInfo.GetClipped());

@@ -6,6 +6,9 @@ class VulkanSwapchain
     VulkanDevice device = undefined
     VulkanSurface surface = undefined
     Array<VulkanImageView> imageViews = undefined
+    Array<VulkanSemaphore> imageAcquiredSemaphores = undefined
+    Array<VulkanSemaphore> imageRenderCompleteSemaphores = undefined
+
     boolean initialized = false
 
     // The info is set during the Create action.
@@ -23,11 +26,13 @@ class VulkanSwapchain
             end
         end
 
+        output "Creating Swapchain..."
         boolean result = CreateNative(device, surface, info)
         if not result
             return false
         end
         
+        output "Getting Swapchain images..."
         Array<VulkanImage> images
         result = GetSwapchainImages(images, device)
         if not result
@@ -36,8 +41,35 @@ class VulkanSwapchain
 
         Array<VulkanImageView> imageViews
         me:imageViews = imageViews
-        // TO-DO: Use the retrieved VulkanImages to load the ImageViews.
+        
+        output "Creating image views and semaphores in the Swapchain..."
+        // For each image in the Swapchain, wrap it in an ImageView and create semaphores for fetching and rendering to the image.
+        integer i = 0
+        repeat while i < images:GetSize()
+            VulkanImageView view
+            result = view:Create(device, images:Get(i), info:GetImageViewInfo())
+            if not result
+                return false
+            end
 
+            imageViews:Add(view)
+
+            VulkanSemaphore acquireSemaphore
+            result = acquireSemaphore:Create(device)
+            if not result
+                return false
+            end
+
+            VulkanSemaphore renderSemaphore
+            result = renderSemaphore:Create(device)
+            if not result
+                return false
+            end
+
+            i = i + 1
+        end
+
+        output "Finished swapchain creation, success = " + result
         if result
             me:device = device
             me:surface = surface

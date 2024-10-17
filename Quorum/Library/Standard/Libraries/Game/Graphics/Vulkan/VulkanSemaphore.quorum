@@ -1,0 +1,21 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanSemaphore
+
+    VulkanDevice device = undefined
+    boolean initialized = false
+
+    action Create(VulkanDevice device) returns boolean
+        boolean result = CreateNative(device)
+
+        if result
+            me:device = device
+            initialized = true
+        end
+
+        return result
+    end
+
+    private system action CreateNative(VulkanDevice device) returns boolean
+
+end

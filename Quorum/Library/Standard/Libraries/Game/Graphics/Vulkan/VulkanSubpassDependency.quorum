@@ -1,0 +1,69 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanSubpassDependency
+
+    integer sourceSubpass = 0
+    integer destinationSubpass = 0
+    integer sourceStageMask = 0
+    integer destinationStageMask = 0
+    integer sourceAccessMask = 0
+    integer destinationAccessMask = 0
+    integer dependencyFlags = 0
+
+    action GetSourceSubpass returns integer
+        return sourceSubpass
+    end
+
+    action SetSourceSubpass(integer sourceSubpass)
+        me:sourceSubpass = sourceSubpass
+    end
+
+    action GetDestinationSubpass returns integer
+        return destinationSubpass
+    end
+
+    action SetDestinationSubpass(integer destinationSubpass)
+        me:destinationSubpass = destinationSubpass
+    end
+
+    action GetSourceStageMask returns integer
+        return sourceStageMask
+    end
+
+    action SetSourceStageMask(integer sourceStageMask)
+        me:sourceStageMask = sourceStageMask
+    end
+
+    action GetDestinationStageMask returns integer
+        return destinationStageMask
+    end
+
+    action SetDestinationStageMask(integer destinationStageMask)
+        me:destinationStageMask = destinationStageMask
+    end
+
+    action GetSourceAccessMask returns integer
+        return sourceAccessMask
+    end
+
+    action SetSourceAccessMask(integer sourceAccessMask)
+        me:sourceAccessMask = sourceAccessMask
+    end
+
+    action GetDestinationAccessMask returns integer
+        return destinationAccessMask
+    end
+
+    action SetDestinationAccessMask(integer destinationAccessMask)
+        me:destinationAccessMask = destinationAccessMask
+    end
+
+    action GetDependencyFlags returns integer
+        return dependencyFlags
+    end
+
+    action SetDependencyFlags(integer dependencyFlags)
+        me:dependencyFlags = dependencyFlags
+    end
+
+end

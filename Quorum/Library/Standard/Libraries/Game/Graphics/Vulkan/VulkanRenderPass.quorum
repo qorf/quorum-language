@@ -1,0 +1,21 @@
+package Libraries.Game.Graphics.Vulkan
+use Libraries.Containers.Array
+
+class VulkanRenderPass
+
+    VulkanDevice device = undefined
+    boolean initialized = false
+
+    action Create(VulkanDevice device, Array<VulkanAttachmentDescription> attachments, Array<VulkanSubpassDescription> subpasses, Array<VulkanSubpassDependency> subpassDependencies) returns boolean
+        boolean success = CreateNative(device, attachments, subpasses, subpassDependencies)
+        if success
+            me:device = device
+            initialized = true
+        end
+
+        return success
+    end
+
+    private system action CreateNative(VulkanDevice device, Array<VulkanAttachmentDescription> attachments, Array<VulkanSubpassDescription> subpasses, Array<VulkanSubpassDependency> subpassDependencies) returns boolean
+
+end
