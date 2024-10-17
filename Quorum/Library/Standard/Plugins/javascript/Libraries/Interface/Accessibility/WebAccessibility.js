@@ -989,7 +989,22 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
     };
 
     this.AddHiddenSlider$quorum_text$quorum_integer$quorum_integer$quorum_integer = function(name, min, max, step) {
+        let element = document.createElement("input");
 
+        element.style.position = "absolute";
+        element.style.left = 0;
+        element.style.top = 0;
+        element.style.width = "1px";
+        element.style.height = "1px";
+
+        element.type = "range";
+        element.min = min;
+        element.max = max;
+        element.step = step;
+        element.ariaValueNow = 0;
+        element.ariaValueText = "Blank";
+        controlElementRoot.appendChild(element);
+        controlElementList[name] = element;
     };
 
 
