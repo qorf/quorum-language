@@ -34,7 +34,9 @@ public class VulkanSwapchain
             VkSurfaceCapabilitiesKHR surfaceCapabilities = VkSurfaceCapabilitiesKHR.calloc(stack);
             int vulkanResult = KHRSurface.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vulkanPhysicalDevice, vulkanSurfacePointer, surfaceCapabilities);
             if (vulkanResult != VK_SUCCESS)
+            {
                 return false;
+            }
 
             // Determine how many images we will use in the SwapChain.
             int maxImages = surfaceCapabilities.maxImageCount();
@@ -55,18 +57,24 @@ public class VulkanSwapchain
             IntBuffer sizeBuffer = stack.mallocInt(1);
             vulkanResult = KHRSurface.vkGetPhysicalDeviceSurfaceFormatsKHR(vulkanPhysicalDevice, vulkanSurfacePointer, sizeBuffer, null);
             if (vulkanResult != VK_SUCCESS)
+            {
                 return false;
+            }
 
             int formatsCount = sizeBuffer.get(0);
             if (formatsCount <= 0)
+            {
                 return false;
+            }
 
             // The first call to vkGetPhysicalDeviceSurfaceFormatsKHR just gets us the count of how many formats there are.
             // We need to call it again with a buffer to store the results to get the formats themselves.
             VkSurfaceFormatKHR.Buffer surfaceFormats = VkSurfaceFormatKHR.calloc(formatsCount, stack);
             vulkanResult = KHRSurface.vkGetPhysicalDeviceSurfaceFormatsKHR(vulkanPhysicalDevice, vulkanSurfacePointer, sizeBuffer, surfaceFormats);
             if (vulkanResult != VK_SUCCESS)
+            {
                 return false;
+            }
 
             int imageFormat = createInfo.GetImageFormat();
             int colorSpace = createInfo.GetColorSpace();
@@ -86,7 +94,9 @@ public class VulkanSwapchain
             }
 
             if (!parametersSupported)
+            {
                 return false;
+            }
 
 
             int imageWidth = createInfo.GetImageWidth();
@@ -156,7 +166,9 @@ public class VulkanSwapchain
             LongBuffer handleBuffer = stack.mallocLong(1);
             vulkanResult = KHRSwapchain.vkCreateSwapchainKHR(vulkanDevice, swapchainCreateInfo, null, handleBuffer);
             if (vulkanResult != VK_SUCCESS)
+            {
                 return false;
+            }
 
             vulkanSwapchainHandle = handleBuffer.get(0);
 
@@ -164,16 +176,18 @@ public class VulkanSwapchain
             // We shouldn't assume the chain has actually given us the number we asked for.
             vulkanResult = KHRSwapchain.vkGetSwapchainImagesKHR(vulkanDevice, vulkanSwapchainHandle, sizeBuffer, null);
             if (vulkanResult != VK_SUCCESS)
+            {
                 return false;
+            }
 
             createInfo.SetImageCount(sizeBuffer.get(0));
         }
+
         return true;
     }
 
     public boolean GetSwapchainImages(Array_ imageViewArray, VulkanDevice_ quorumDevice)
     {
-        //quorum.Libraries.Game.Graphics.Vulkan.VulkanSwapchain_ quorumSwapchain = (quorum.Libraries.Game.Graphics.Vulkan.VulkanSwapchain_)me_;
         try (MemoryStack stack = MemoryStack.stackPush())
         {
             VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
@@ -191,11 +205,17 @@ public class VulkanSwapchain
             if (vulkanResult != VK_SUCCESS)
                 return false;
 
+            // Get a reference to the swapchain info from the Quorum side. We need the image width/height so we can
+            // assign that value to the images, so their dimensions are known later.
+            quorum.Libraries.Game.Graphics.Vulkan.VulkanSwapchain_ quorumSwapchain = (quorum.Libraries.Game.Graphics.Vulkan.VulkanSwapchain_)me_;
+            int imageWidth = quorumSwapchain.GetImageWidth();
+            int imageHeight = quorumSwapchain.GetImageHeight();
+
             for (int i = 0; i < imageCount; i++)
             {
                 quorum.Libraries.Game.Graphics.Vulkan.VulkanImage image = new quorum.Libraries.Game.Graphics.Vulkan.VulkanImage();
                 VulkanImage imagePlugin = image.plugin_;
-                imagePlugin.LoadFromHandle(swapChainImageHandles.get(i));
+                imagePlugin.LoadFromHandle(swapChainImageHandles.get(i), imageWidth, imageHeight);
                 imageViewArray.Add(image);
             }
         }

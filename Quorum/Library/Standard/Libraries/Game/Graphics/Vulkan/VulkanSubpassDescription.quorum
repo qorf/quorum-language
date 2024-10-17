@@ -4,8 +4,8 @@ use Libraries.Containers.Array
 
 class VulkanSubpassDescription
 
-    integer flags = 0
-    integer pipelineBindPoint = 0
+    integer flags = -1
+    integer pipelineBindPoint = -1
     
     Array<VulkanAttachmentReference> inputAttachments = undefined
     Array<VulkanAttachmentReference> colorAttachments = undefined

@@ -22,4 +22,12 @@ class VulkanImageView
 
     private system action CreateNative(VulkanDevice device, VulkanImage image, VulkanImageViewInfo info) returns boolean
 
+    action GetImage returns VulkanImage
+        return image
+    end
+
+    action GetInfo returns VulkanImageViewInfo
+        return info
+    end
+
 end

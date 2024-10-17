@@ -2,9 +2,19 @@ package Libraries.Game.Graphics.Vulkan
 
 class VulkanImage
 
+    integer width = 0
+    integer height = 0
     boolean initialized = false
 
     // This system action has no purpose except to force the library to create a plugin that is associated with this class.
     private system action ForcePluginCreation
+
+    action GetWidth returns integer
+        return width
+    end
+
+    action GetHeight returns integer
+        return height
+    end
 
 end

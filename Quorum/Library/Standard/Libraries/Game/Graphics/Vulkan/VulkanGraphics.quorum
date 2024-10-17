@@ -207,11 +207,29 @@ class VulkanGraphics is GraphicsManager
 
         output "Creating RenderPass..."
         VulkanRenderPass renderPass
-        success = renderPass:Create(device, attachmentDescriptions, attachmentReferences, subpassDependencies)
+        success = renderPass:Create(device, attachmentDescriptions, subpassDescriptions, subpassDependencies)
         output "Created RenderPass, success = " + success
         if not success
             return false
         end
+
+
+        output "Creating FrameBuffers..."
+        i = 0
+        repeat while i < swapchain:GetImageCount()
+            VulkanImageView imageView = swapchain:GetImageView(i)
+            Array<VulkanImageView> imageViewArray
+            imageViewArray:Add(imageView)
+
+            VulkanFramebuffer framebuffer
+            success = framebuffer:Create(device, imageViewArray, renderPass)
+            if not success
+                return false
+            end
+
+            i = i + 1
+        end
+        output "Created FrameBuffers, success = " + success
 
         return true
     end

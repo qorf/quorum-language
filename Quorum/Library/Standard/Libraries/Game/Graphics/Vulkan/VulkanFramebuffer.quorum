@@ -1,0 +1,26 @@
+package Libraries.Game.Graphics.Vulkan
+use Libraries.Containers.Array
+
+class VulkanFramebuffer
+
+    VulkanDevice device = undefined
+    Array<VulkanImageView> imageViews = undefined
+    VulkanRenderPass renderPass = undefined
+
+    boolean initialized = false
+
+    action Create(VulkanDevice device, Array<VulkanImageView> imageViews, VulkanRenderPass renderPass) returns boolean
+        boolean success = CreateNative(device, imageViews, renderPass)
+        if success
+            initialized = true
+            me:device = device
+            me:imageViews = imageViews
+            me:renderPass = renderPass
+        end
+
+        return success
+    end
+
+    private system action CreateNative(VulkanDevice device, Array<VulkanImageView> imageViews, VulkanRenderPass renderPass) returns boolean
+
+end
