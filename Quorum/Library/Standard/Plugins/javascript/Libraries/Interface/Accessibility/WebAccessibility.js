@@ -71,6 +71,15 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
         // don't affect the visible layout.
         // root.style.overflow = "hidden";
 
+        controlElementRoot = document.createElement("article");root.style.position = "sticky";
+        controlElementRoot.style.left = 0;
+        controlElementRoot.style.top = 0;
+        controlElementRoot.style.width = "1px";
+        controlElementRoot.style.height = "1px";
+        controlElementRoot.style.pointerEvents = "none";
+
+        root.appendChild(controlElementRoot);
+
         // The following style settings come from Flutter Web.
         // Make all semantics transparent. We use `filter` instead of `opacity`
         // attribute because `filter` is stronger. `opacity` does not apply to
@@ -929,7 +938,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
     }
 
     this.AddHiddenHeader$quorum_text$quorum_text = function(name, title) {
-        element = document.createElement("h2");
+        let element = document.createElement("h2");
 
         element.style.position = "absolute";
         element.style.left = 0;
@@ -937,28 +946,36 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         element.style.width = "1px";
         element.style.height = "1px";
         element.innerHTML = title;
-        root.appendChild(element);
+        controlElementRoot.appendChild(element);
         controlElementList[name] = element;
     };
 
     this.AddHiddenButton$quorum_text = function(name) {
-        element = document.createElement("button");
+        let element = document.createElement("input");
 
+        element.type = "button";
         element.style.position = "absolute";
         element.style.left = 0;
         element.style.top = 0;
         element.style.width = "1px";
         element.style.height = "1px";
-        element.innerHTML = name;
+        element.name = name;
+        element.style.pointerEvents = "none";
         element.addEventListener("click", (event) => {  
-            me_.NotifyListeners$quorum_Libraries_Interface_Events_WebAccessibilityEvent_(null);
+            me_.NotifyListeners$quorum_Libraries_Interface_Events_WebAccessibilityEvent(null);
         });
-        root.appendChild(element);
+        element.addEventListener("focus", (event) => {
+            if (blurDelayedCall !== null) {
+                clearTimeout(blurDelayedCall);
+                blurDelayedCall = null;
+            }
+        });
+        controlElementRoot.appendChild(element);
         controlElementList[name] = element;
     };
 
     this.AddHiddenLabel$quorum_text$quorum_text = function(name, words) {
-        element = document.createElement("label");
+        let element = document.createElement("label");
 
         element.style.position = "absolute";
         element.style.left = 0;
@@ -967,7 +984,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         element.style.height = "1px";
         element.innerHTML = words;
         element.onclick = this.OnHiddenButtonClick;
-        root.appendChild(element);
+        controlElementRoot.appendChild(element);
         controlElementList[name] = element;
     };
 
