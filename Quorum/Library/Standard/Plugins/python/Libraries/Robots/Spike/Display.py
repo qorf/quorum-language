@@ -13,5 +13,5 @@ class plugins_quorum_Libraries_Robots_Spike_Display_:
 	def ShowNative__quorum_boolean(self, fullscreen):
 		display.show(fullscreen)
 	
-	def TextNative__quorum_text(self, text_value):
-		display.text(text_value)
+	def TextNative__quorum_text(self, value):
+		display.text(value)
