@@ -1,4 +1,5 @@
-function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
+function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(accessibility) {
+    var me_ = accessibility;
     /*
      * These variables are old and may not be relevant. I'm leaving them in for now, 
      * but presume they will be modified or go away as we develop the library.
@@ -6,8 +7,10 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_() {
     var type = "";      //specifies the input type of the element
     var elementType = "DIV";   //specifies the type of element DEFAULT is DIV right now for testing
     var elementList = [];   // array using the item's hashCode value as an index and the item as the value 
+    var controlElementList = {};
     var currentFocus = null;
     let root = null;
+    let controlElementRoot = null;
     let focusButton = null;
     let blurDelayedCall = null;
     let removedFocusedElement = false;
@@ -920,7 +923,57 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         elementList.length = 0;
         currentFocus = null;
     };
-    
+
+    this.OnHiddenButtonClick = function() {
+        me_.NotifyListeners$quorum_Libraries_Interface_Events_WebAccessibilityEvent_(null);
+    }
+
+    this.AddHiddenHeader$quorum_text$quorum_text = function(name, title) {
+        element = document.createElement("h2");
+
+        element.style.position = "absolute";
+        element.style.left = 0;
+        element.style.top = 0;
+        element.style.width = "1px";
+        element.style.height = "1px";
+        element.innerHTML = title;
+        root.appendChild(element);
+        controlElementList[name] = element;
+    };
+
+    this.AddHiddenButton$quorum_text = function(name) {
+        element = document.createElement("button");
+
+        element.style.position = "absolute";
+        element.style.left = 0;
+        element.style.top = 0;
+        element.style.width = "1px";
+        element.style.height = "1px";
+        element.innerHTML = name;
+        element.addEventListener("click", (event) => {  
+            me_.NotifyListeners$quorum_Libraries_Interface_Events_WebAccessibilityEvent_(null);
+        });
+        root.appendChild(element);
+        controlElementList[name] = element;
+    };
+
+    this.AddHiddenLabel$quorum_text$quorum_text = function(name, words) {
+        element = document.createElement("label");
+
+        element.style.position = "absolute";
+        element.style.left = 0;
+        element.style.top = 0;
+        element.style.width = "1px";
+        element.style.height = "1px";
+        element.innerHTML = words;
+        element.onclick = this.OnHiddenButtonClick;
+        root.appendChild(element);
+        controlElementList[name] = element;
+    };
+
+    this.AddHiddenSlider$quorum_text$quorum_integer$quorum_integer$quorum_integer = function(name, min, max, step) {
+
+    };
 
 
 /*

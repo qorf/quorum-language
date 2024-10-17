@@ -36,8 +36,13 @@ use Libraries.Interface.Controls.TreeTableCell
 use Libraries.Interface.Selections.ButtonGroupSelection
 use Libraries.Interface.Controls.RadioButton
 use Libraries.Interface.Selections.TabPaneSelection
+use Libraries.Interface.Events.WebAccessibilityListener
+use Libraries.Interface.Events.WebAccessibilityEvent
 
 class WebAccessibility is Accessibility
+    
+    Array<WebAccessibilityListener> listeners
+    
     system action NameChanged(Item item)
 
     system action DescriptionChanged(Item item)
@@ -81,6 +86,15 @@ class WebAccessibility is Accessibility
     system action Notify(Item item, text value, integer notificationType)
 
     system action Shutdown
+    
+    action NotifyListeners(WebAccessibilityEvent event)
+        output "SOMETHING HAPPENED"
+    end
+    
+    system action AddHiddenHeader(text name, text title)
+    system action AddHiddenButton(text name)
+    system action AddHiddenLabel(text name, text words)
+    system action AddHiddenSlider(text name, integer min, integer max, integer step)
 
     action IsScreenReaderListening returns boolean return false end
 end
