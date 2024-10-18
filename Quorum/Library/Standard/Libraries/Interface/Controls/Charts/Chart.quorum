@@ -348,7 +348,7 @@ class Chart is ChartItem
             subtitleAreaHeightPercent = 0.05
             if GetSubtitleLabel() = undefined
                 ChartLabel newLabel
-                ColorGroup border = GetBorderColor()
+                ColorGroup border = GetIconColor()
                 newLabel:SetFontColor(border)
                 SetSubtitleLabel(newLabel)
                 newLabel:SetText(subtitleText)
