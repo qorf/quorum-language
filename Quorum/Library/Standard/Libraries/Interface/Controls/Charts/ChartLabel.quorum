@@ -34,6 +34,10 @@ class ChartLabel is ControlLabel, ChartItem
         Attribute: Returns ColorGroup or color of the font on a label.
     */
     action GetFontColor returns ColorGroup
+if HasColorPropertyOverride("fontColor")
+            return parent:Control:GetFontColor()
+        end
+        
         Chart chart = GetParentChart()
         if chart not= undefined
             return chart:GetFontColor()
