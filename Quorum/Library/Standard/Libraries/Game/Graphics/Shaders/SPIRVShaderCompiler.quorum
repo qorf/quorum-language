@@ -1,0 +1,27 @@
+package Libraries.Game.Graphics.Shaders
+
+use Libraries.Containers.ByteArray
+use Libraries.System.File
+use Libraries.System.FileReader
+
+/*
+This class compiles GLSL shader code into the SPIRV shader format. This format is usable across several different rendering systems,
+but importantly it is the shader format used by Vulkan.
+*/
+class SPIRVShaderCompiler
+
+    system action Compile(text shaderName, text shaderCode, integer shaderType) returns ByteArray
+
+    action Compile(File file, integer shaderType) returns ByteArray
+        return Compile(file:GetFileName(), file, shaderType)
+    end
+
+    action Compile(text shaderName, File file, integer shaderType) returns ByteArray
+        FileReader reader
+        reader:OpenForRead(file)        
+        text code = reader:Read()
+        reader:Close()
+        return Compile(shaderName, code, shaderType)
+    end
+
+end

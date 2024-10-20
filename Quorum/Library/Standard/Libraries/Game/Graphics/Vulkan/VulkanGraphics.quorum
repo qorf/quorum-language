@@ -215,6 +215,7 @@ class VulkanGraphics is GraphicsManager
 
 
         output "Creating FrameBuffers..."
+        Array<VulkanFramebuffer> swapchainFramebuffers
         i = 0
         repeat while i < swapchain:GetImageCount()
             VulkanImageView imageView = swapchain:GetImageView(i)
@@ -227,6 +228,7 @@ class VulkanGraphics is GraphicsManager
                 return false
             end
 
+            swapchainFramebuffers:Add(framebuffer)
             i = i + 1
         end
         output "Created FrameBuffers, success = " + success

@@ -1,6 +1,7 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.vulkan.VkDevice;
 import org.lwjgl.vulkan.VkFramebufferCreateInfo;
 import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
@@ -9,9 +10,14 @@ import quorum.Libraries.Game.Graphics.Vulkan.VulkanRenderPass_;
 
 import java.nio.LongBuffer;
 
+import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
+import static org.lwjgl.vulkan.VK10.vkCreateFramebuffer;
+
 public class VulkanFramebuffer
 {
     public Object me_;
+
+    private long framebufferHandle = 0L;
 
     public boolean CreateNative(VulkanDevice_ quorumDevice, Array_ imageViewArray, VulkanRenderPass_ quorumRenderPass)
     {
@@ -37,7 +43,7 @@ public class VulkanFramebuffer
                 imageViewHandles.put(i, imageViewHandle);
             }
 
-//            long renderPassHandle = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanRenderPass)quorumRenderPass).plugin_.
+            long renderPassHandle = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanRenderPass)quorumRenderPass).plugin_.GetRenderPassHandle();
 
             VkFramebufferCreateInfo createInfo = VkFramebufferCreateInfo.calloc(stack);
             createInfo.sType$Default();
@@ -45,11 +51,23 @@ public class VulkanFramebuffer
             createInfo.width(width);
             createInfo.height(height);
             createInfo.layers(layers);
-            createInfo.renderPass();
+            createInfo.renderPass(renderPassHandle);
+
+            VkDevice vulkanDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_.GetDevice();
+
+            LongBuffer resultHandle = stack.mallocLong(1);
+            int vulkanResult = vkCreateFramebuffer(vulkanDevice, createInfo, null, resultHandle);
+            if (vulkanResult != VK_SUCCESS)
+                return false;
+
+            framebufferHandle = resultHandle.get(0);
         }
-        if (true) // This isn't actually done yet
-            return false;
 
         return true;
+    }
+
+
+    public long GetFramebufferHandle() {
+        return framebufferHandle;
     }
 }
