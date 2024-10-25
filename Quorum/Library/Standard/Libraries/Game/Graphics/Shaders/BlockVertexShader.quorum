@@ -9,7 +9,7 @@ class BlockVertexShader is Shader
         SetName(SHADER_NAME)
 
         DefaultAttributeNames attributes
-        SetCode(GetOpenGLVersion() +
+        SetCode(GetVersionHeader() +
 "
 " +
 "#ifdef GL_ES

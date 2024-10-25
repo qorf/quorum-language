@@ -10,7 +10,7 @@ class DefaultVertexShader2D is Shader
         SetName(manager:DEFAULT_2D_VERTEX_SHADER)
 
         DefaultAttributeNames attributes
-        SetCode(GetOpenGLVersion() +
+        SetCode(GetVersionHeader() +
 "
 " +
 "in vec4 " + attributes:POSITION + ";

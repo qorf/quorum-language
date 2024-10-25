@@ -16,7 +16,7 @@ class BezierCurveFragmentShader is Shader
         This code is adapted from a shader by Inigo Quilez under the MIT License.
         https://www.shadertoy.com/view/MlKcDD
         */
-        SetCode(GetOpenGLVersion() +
+        SetCode(GetVersionHeader() +
 "
 " +
 "#ifdef GL_ES

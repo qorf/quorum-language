@@ -1,0 +1,109 @@
+package Libraries.Game.Graphics.Shaders.OpenGL
+
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.OpenGL.OpenGLConstants
+use Libraries.System.Properties
+
+class OpenGLShader is Shader
+
+//    OpenGLConstants constants
+//
+//    // This type constant is used to indicate that the shader is a fragment shader. Every shader program must have a fragment shader as its final shader step.
+//    public constant integer GL_FRAGMENT_SHADER = constants:GL_FRAGMENT_SHADER
+//
+//    // This type constant is used to indicate that the shader is a vertex shader. Every shader program must have a vertex shader as its first shader step.
+//    public constant integer GL_VERTEX_SHADER = constants:GL_VERTEX_SHADER
+//    
+//    // This type constant is used to indicate that the shader is a geometry shader. This shader step is optional.
+//    public constant integer GL_GEOMETRY_SHADER = constants:GL_GEOMETRY_SHADER
+//
+//    // This type constant is used to indicate that the shader is a tessellation control shader. This shader step is optional. If used, this should precede a tessellation evaluation shader in a shader program.
+//    public constant integer GL_TESSELLATION_CONTROL_SHADER = constants:GL_TESS_CONTROL_SHADER
+//
+//    // This type constant is used to indicate that the shader is a tessellation evaluation shader. This shader step is optional. If used, this should follow after a tessellation control shader in a shader program.
+//    public constant integer GL_TESSELLATION_EVALUATION_SHADER = constants:GL_TESS_EVALUATION_SHADER
+//
+//    
+//
+//    action Dispose
+//        GraphicsManager graphics = manager:GetGameGraphics()
+//        graphics:DeleteShader(GetID())
+//        ShaderManager shaderManager = manager:GetShaderManager()
+//        shaderManager:RemoveShader(GetName())
+//    end
+//
+//    action GetOpenGLType returns integer
+//        integer type = GetShaderType()
+//        if type = parent:Shader:FRAGMENT_SHADER
+//            return GL_FRAGMENT_SHADER
+//        elseif type = parent:Shader:VERTEX_SHADER
+//            return GL_VERTEX_SHADER
+//        elseif type = parent:Shader:GEOMETRY_SHADER
+//            return GL_GEOMETRY_SHADER
+//        elseif type = parent:Shader:TESSELLATION_CONTROL_SHADER
+//            return GL_TESSELLATION_CONTROL_SHADER
+//        elseif type = parent:Shader:TESSELLATION_EVALUATION_SHADER
+//            return GL_TESSELLATION_EVALUATION_SHADER
+//        end
+//
+//        return -1
+//    end
+//
+//    action Compile
+//        if IsCompiled()
+//            return now
+//        end
+//
+//        text name = GetName()
+//        if name = ""
+//            alert("I couldn't compile this shader because its name hasn't been set. Use the SetName action before compiling this shader.")
+//        end
+//
+//        ShaderManager shaderManager = manager:GetShaderManager()
+//        shaderManager:Register(name, me)
+//
+//        GraphicsManager graphics = manager:GetGameGraphics()
+//        shaderID = graphics:CreateShader(GetOpenGLType(), GetCode(), name)
+//
+//        compiled = true
+//    end
+//
+//    action IsCompiled returns boolean
+//        return compiled
+//    end
+//
+//    action Reload
+//        if not IsInvalidated()
+//            return now
+//        end
+//
+//        GraphicsManager graphics = manager:GetGameGraphics()
+//        parent:Shader:shaderID = graphics:CreateShader(GetOpenGLType(), GetCode(), GetName())
+//
+//        parent:Shader:invalidated = false
+//    end
+//
+//    /*
+//        This action takes platform into account and returns a default version of OpenGL's number to be placed at the top of a shader. For shaders
+//        not using OpenGL, this action does not provide useful information. The version number is calculated by Quorum, not the graphics hardware.
+//    */
+//    action GetVersionHeader returns text
+//        Properties prop
+//        if prop:IsWindows()
+//            return "#version 410"
+//        elseif prop:IsMac()
+//            return "#version 410"
+//        elseif prop:IsAndroid()
+//            return "#version 300 es"
+//        elseif prop:IsWebBrowser()
+//            return "#version 300 es"
+//        else
+//            return "#version 300 es"
+//        end
+//        return ""
+//    end
+
+end

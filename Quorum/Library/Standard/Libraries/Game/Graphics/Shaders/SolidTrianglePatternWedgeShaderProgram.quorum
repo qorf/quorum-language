@@ -1,5 +1,7 @@
 package Libraries.Game.Graphics.Shaders
 
+use Libraries.Game.GameStateManager
+
 class SolidTrianglePatternWedgeShaderProgram is ShaderProgram
 
     public constant text DEFAULT_NAME = "Solid Triangle Pattern Wedge Shader Program"
@@ -8,7 +10,8 @@ class SolidTrianglePatternWedgeShaderProgram is ShaderProgram
 
     on create
         SetName(DEFAULT_NAME)
-        ShaderManager manager
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
         
         if manager:HasShader(VERTEX_NAME)
             Shader vertex = manager:GetShader(VERTEX_NAME)

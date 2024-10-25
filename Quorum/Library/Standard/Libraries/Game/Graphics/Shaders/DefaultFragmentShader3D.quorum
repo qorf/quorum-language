@@ -15,7 +15,7 @@ class DefaultFragmentShader3D is Shader
     Default values: u_diffuseColor = vec4(1.0), v_color = vec4(1.0), u_specularColor = vec4(1.0)
 */
         DefaultAttributeNames attributes
-        SetCode( GetOpenGLVersion() +
+        SetCode(GetVersionHeader() +
 "
 " +
 "#ifdef GL_ES 

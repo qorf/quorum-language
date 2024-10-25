@@ -10,7 +10,7 @@ class BorderedFontFragmentShader is Shader
 
         // TO-DO: Possibly adjust variable names to use constants instead?
         DefaultAttributeNames attributes
-        SetCode(GetOpenGLVersion() +
+        SetCode(GetVersionHeader() +
 "
 " +
 "#ifdef GL_ES

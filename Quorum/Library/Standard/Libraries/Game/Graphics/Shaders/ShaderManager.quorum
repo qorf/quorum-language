@@ -15,6 +15,21 @@ class ShaderManager
     public constant text DEFAULT_3D_VERTEX_SHADER = "Default 3D Vertex Shader"
     public constant text DEFAULT_3D_FRAGMENT_SHADER = "Default 3D Fragment Shader"
 
+    // This type constant is used to indicate that the shader is a vertex shader. Every shader program must have a vertex shader as its first shader step.
+    public constant integer VERTEX_SHADER = 1
+
+    // This type constant is used to indicate that the shader is a fragment shader. Every shader program must have a fragment shader as its final shader step.
+    public constant integer FRAGMENT_SHADER = 2
+    
+    // This type constant is used to indicate that the shader is a geometry shader. This shader step is optional.
+    public constant integer GEOMETRY_SHADER = 3
+
+    // This type constant is used to indicate that the shader is a tessellation control shader. This shader step is optional. If used, this should precede a tessellation evaluation shader in a shader program.
+    public constant integer TESSELLATION_CONTROL_SHADER = 4
+
+    // This type constant is used to indicate that the shader is a tessellation evaluation shader. This shader step is optional. If used, this should follow after a tessellation control shader in a shader program.
+    public constant integer TESSELLATION_EVALUATION_SHADER = 5
+
     HashTable<text, Shader> registeredShaders
     HashTable<text, ShaderProgram> registeredPrograms
     
@@ -154,5 +169,18 @@ class ShaderManager
             i = i + 1
         end
     end
+
+    blueprint action DisposeShader(Shader shader)
+
+    blueprint action CompileShader(Shader shader) returns integer
+    
+
+    blueprint action ReloadShader(Shader shader) returns integer
+
+    /*
+        This action takes platform into account and returns a default version of OpenGL's number to be placed at the top of a shader. For shaders
+        not using OpenGL, this action does not provide useful information. The version number is calculated by Quorum, not the graphics hardware.
+    */
+    blueprint action GetVersionHeader returns text
     
 end

@@ -8,7 +8,7 @@ class WedgeFragmentShader is Shader
         SetType(parent:Shader:FRAGMENT_SHADER)
         SetName("Wedge Fragment Shader")      
 
-        SetCode(GetOpenGLVersion() + "
+        SetCode(GetVersionHeader() + "
 " + GetPreprocessorDefinitions() +
 "
 #ifdef GL_ES

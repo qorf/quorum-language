@@ -1,0 +1,29 @@
+package Libraries.Game.Graphics.Shaders.Vulkan
+
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.Shader
+
+class VulkanShaderManager is ShaderManager
+
+    action DisposeShader(Shader shader)
+        alert("NYI")
+    end
+
+    action CompileShader(Shader shader) returns integer
+        alert("NYI")
+    end
+    
+
+    action ReloadShader(Shader shader) returns integer
+        alert("NYI")
+    end
+
+    /*
+        This action takes platform into account and returns a default version of OpenGL's number to be placed at the top of a shader. For shaders
+        not using OpenGL, this action does not provide useful information. The version number is calculated by Quorum, not the graphics hardware.
+    */
+    action GetVersionHeader returns text
+        alert("NYI")
+    end
+
+end

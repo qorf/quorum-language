@@ -7,7 +7,7 @@ class BlockErrorFragmentShader is Shader
     on create
         SetName(SHADER_NAME)
         SetType(parent:Shader:FRAGMENT_SHADER)
-        SetCode(GetOpenGLVersion() +
+        SetCode(GetVersionHeader() +
 "
 " +
 "#ifdef GL_ES

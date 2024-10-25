@@ -9,7 +9,7 @@ class ControlVertexShader is Shader
         SetName(SHADER_NAME)
 
         DefaultAttributeNames attributes
-        SetCode(GetOpenGLVersion() +
+        SetCode(GetVersionHeader() +
 "
 " + GetPreprocessorDefinitions() + "
 " +

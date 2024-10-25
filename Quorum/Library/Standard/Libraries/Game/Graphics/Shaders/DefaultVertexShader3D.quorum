@@ -11,7 +11,7 @@ class DefaultVertexShader3D is Shader
         SetName(shaderManager:DEFAULT_3D_VERTEX_SHADER)
         
         DefaultAttributeNames attributes
-        SetCode(GetOpenGLVersion() +
+        SetCode(GetVersionHeader() +
 "
 " +
 "// True if item has a diffuse texture, false otherwise

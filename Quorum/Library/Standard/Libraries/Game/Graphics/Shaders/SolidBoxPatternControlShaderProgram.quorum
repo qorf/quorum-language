@@ -1,4 +1,5 @@
 package Libraries.Game.Graphics.Shaders
+use Libraries.Game.GameStateManager
 
 class SolidBoxPatternControlShaderProgram is ShaderProgram
 
@@ -8,7 +9,8 @@ class SolidBoxPatternControlShaderProgram is ShaderProgram
 
     on create
         SetName(DEFAULT_NAME)
-        ShaderManager manager
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
         
         if manager:HasShader(VERTEX_NAME)
             Shader vertex = manager:GetShader(VERTEX_NAME)

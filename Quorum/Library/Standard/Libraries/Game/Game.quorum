@@ -147,6 +147,9 @@ use Libraries.Game.Graphics.PixelMap
 use Libraries.Game.Graphics.SharedTextureManager
 use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.OpenGL.OpenGLManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Shaders.OpenGL.OpenGLShaderManager
+use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderManager
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -185,7 +188,7 @@ class Game
     InterfaceOptions interfaceOptions = undefined
 
     SharedTextureManager sharedTextureManager
-    ShaderManager shaderManager
+    ShaderManager shaderManager = undefined
 
     public boolean exitRequested = false
 
@@ -278,6 +281,14 @@ class Game
         
         GraphicsManager graphics = CreateGraphicsManager()
         manager:SetGameGraphics(graphics)
+
+        if graphics is OpenGLManager
+            OpenGLShaderManager shaderManager
+            me:shaderManager = shaderManager
+        elseif graphics is VulkanGraphics
+            VulkanShaderManager shaderManager
+            me:shaderManager = shaderManager
+        end
 
         if application is DesktopApplication
             if desktopConfig:title = ""

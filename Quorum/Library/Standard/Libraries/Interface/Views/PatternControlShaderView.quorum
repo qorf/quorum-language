@@ -14,6 +14,7 @@ use Libraries.Game.Graphics.Shaders.DashedLinePatternControlShaderProgram
 use Libraries.Game.Graphics.Shaders.HollowTrianglePatternControlShaderProgram
 use Libraries.Game.Graphics.Shaders.SolidTrianglePatternControlShaderProgram
 use Libraries.Interface.Controls.Charts.ChartOptions
+use Libraries.Game.GameStateManager
 
 /*
 The PatternControlShaderView is used to render a pattern onto Controls. It takes one of the
@@ -76,7 +77,6 @@ class PatternControlShaderView is DrawableView
         color:SetColor(1, 1, 1, 1)
         LoadFilledRectangle(2, 2, color)
 
-        ShaderManager manager
         ShaderProgram program = GetShaderProgram(patternType)
         SetShaderProgram(program)
     end
@@ -86,7 +86,8 @@ class PatternControlShaderView is DrawableView
         ShaderProgram program = undefined
 
         ChartOptions options
-        ShaderManager manager
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
 
         if pattern = options:VERTICAL_LINES or pattern = options:HORIZONTAL_LINES or pattern = options:DIAGONAL_DOWN_LINES or pattern = options:DIAGONAL_UP_LINES
             if manager:HasShaderProgram("Line Pattern Control Shader Program")
