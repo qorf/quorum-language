@@ -477,4 +477,32 @@ class VulkanGraphics is GraphicsManager
         return surface
     end
 
+    action GetInstance returns VulkanInstance
+        return instance
+    end
+
+    action GetPhysicalDevice returns VulkanPhysicalDevice
+        return physicalDevice
+    end
+
+    action GetDevice returns VulkanDevice
+        return device
+    end
+
+    action GetGraphicsQueue returns VulkanQueue
+        return graphicsQueue
+    end
+
+    action GetPresentationQueue returns VulkanQueue
+        return presentationQueue
+    end
+
+    action GetSwapchain returns VulkanSwapchain
+        return swapchain
+    end
+
+    action GetCommandPool returns VulkanCommandPool
+        return commandPool
+    end
+
 end

@@ -7,22 +7,22 @@ use Libraries.Game.Graphics.OpenGL.OpenGLConstants
 
 class Shader
 
-    OpenGLConstants constants
+    ShaderConstants constants
 
     // This type constant is used to indicate that the shader is a vertex shader. Every shader program must have a vertex shader as its first shader step.
-    public constant integer VERTEX_SHADER = 1
+    public constant integer VERTEX_SHADER = constants:VERTEX_SHADER
 
     // This type constant is used to indicate that the shader is a fragment shader. Every shader program must have a fragment shader as its final shader step.
-    public constant integer FRAGMENT_SHADER = 2
+    public constant integer FRAGMENT_SHADER = constants:FRAGMENT_SHADER
     
     // This type constant is used to indicate that the shader is a geometry shader. This shader step is optional.
-    public constant integer GEOMETRY_SHADER = 3
+    public constant integer GEOMETRY_SHADER = constants:GEOMETRY_SHADER
 
     // This type constant is used to indicate that the shader is a tessellation control shader. This shader step is optional. If used, this should precede a tessellation evaluation shader in a shader program.
-    public constant integer TESSELLATION_CONTROL_SHADER = 4
+    public constant integer TESSELLATION_CONTROL_SHADER = constants:TESSELLATION_CONTROL_SHADER
 
     // This type constant is used to indicate that the shader is a tessellation evaluation shader. This shader step is optional. If used, this should follow after a tessellation control shader in a shader program.
-    public constant integer TESSELLATION_EVALUATION_SHADER = 5
+    public constant integer TESSELLATION_EVALUATION_SHADER = constants:TESSELLATION_EVALUATION_SHADER
 
     GameStateManager manager
 
@@ -37,7 +37,7 @@ class Shader
     // Most commonly a concern on mobile platforms when the user minimizes/reopens an application.
     boolean invalidated = false
 
-    action GetShaderType returns integer
+    action GetType returns integer
         return type
     end
 
@@ -125,5 +125,12 @@ class Shader
         ShaderManager shaderManager = manager:GetShaderManager()
         return shaderManager:GetVersionHeader()
     end
+
+    /*
+    This action only exists to force plugin creation for this class. Since the class has a system action, even if it's
+    never used, the Shader class will now have a corresponding plugin. We do this because Vulkan shaders need to
+    store a 64-bit integer handle, which we need the plugins for.
+    */
+    private system action ForcePluginCreation
 
 end

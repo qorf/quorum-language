@@ -10,7 +10,18 @@ but importantly it is the shader format used by Vulkan.
 */
 class SPIRVShaderCompiler
 
-    system action Compile(text shaderName, text shaderCode, integer shaderType) returns ByteArray
+    // These values match Shaderc's specific constants for shader types. Used during Shaderc compilation to SPIRV.
+    private constant integer SHADERC_VERTEX_SHADER = 0
+    private constant integer SHADERC_FRAGMENT_SHADER = 1
+    private constant integer SHADERC_COMPUTE_SHADER = 2
+    private constant integer SHADERC_GEOMETRY_SHADER = 3
+    private constant integer SHADERC_TESS_CONTROL_SHADER = 4
+    private constant integer SHADERC_TESS_EVALUATION_SHADER = 5
+    private constant integer SHADERC_INFER_FROM_SOURCE = 6
+
+    action Compile(text shaderName, text shaderCode, integer shaderType) returns ByteArray
+        return CompileNative(shaderName, shaderCode, ConvertToShadercType(shaderType))
+    end
 
     action Compile(File file, integer shaderType) returns ByteArray
         return Compile(file:GetFileName(), file, shaderType)
@@ -23,5 +34,26 @@ class SPIRVShaderCompiler
         reader:Close()
         return Compile(shaderName, code, shaderType)
     end
+
+    private action ConvertToShadercType(integer type) returns integer
+        ShaderConstants constants
+        if type = constants:VERTEX_SHADER
+            return SHADERC_VERTEX_SHADER
+        elseif type = constants:FRAGMENT_SHADER
+            return SHADERC_FRAGMENT_SHADER
+        elseif type = constants:GEOMETRY_SHADER
+            return SHADERC_GEOMETRY_SHADER
+        elseif type = constants:TESSELLATION_CONTROL_SHADER
+            return SHADERC_TESS_CONTROL_SHADER
+        elseif type = constants:TESSELLATION_EVALUATION_SHADER
+            return SHADERC_TESS_EVALUATION_SHADER
+        elseif type = constants:COMPUTE_SHADER
+            return SHADERC_COMPUTE_SHADER
+        end
+
+        return SHADERC_INFER_FROM_SOURCE
+    end
+
+    private system action CompileNative(text shaderName, text shaderCode, integer shaderType) returns ByteArray
 
 end

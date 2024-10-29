@@ -2,16 +2,87 @@ package Libraries.Game.Graphics.Shaders.Vulkan
 
 use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.SPIRVShaderCompiler
+use Libraries.Containers.ByteArray
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
 
 class VulkanShaderManager is ShaderManager
+
+    SPIRVShaderCompiler compiler = undefined
+
+    // A value given to each shader as an ID. Currently doesn't correspond to anything,
+    // but it can be stored to a hash with something that more accurately reflects the
+    // Shader if needed.
+    // The "actual" handle to the shader is stored as 64-bit integer, which currently requires a plugin layer.
+    integer currentShaderID = 1
+
+    action GetCompiler returns SPIRVShaderCompiler
+        if compiler = undefined
+            SPIRVShaderCompiler compiler
+            me:compiler = compiler
+        end
+
+        return compiler
+    end
 
     action DisposeShader(Shader shader)
         alert("NYI")
     end
 
+    /*
     action CompileShader(Shader shader) returns integer
-        alert("NYI")
+        if shader:IsCompiled()
+            return shader:GetID()
+        end
+
+        text name = shader:GetName()
+        if name = ""
+            alert("I couldn't compile this shader because its name hasn't been set. Use the SetName action before compiling this shader.")
+        end
+
+        Register(name, shader)
+
+        GraphicsManager graphics = gameState:GetGameGraphics()
+        return graphics:CreateShader(GetOpenGLType(shader:GetShaderType()), shader:GetCode(), name)
     end
+    */
+
+    action CompileShader(Shader shader) returns integer
+        if shader:IsCompiled()
+            return shader:GetID()
+        end
+
+        text name = shader:GetName()
+        if name = ""
+            alert("I couldn't compile this shader because its name hasn't been set. Use the SetName action before compiling this shader.")
+        end
+
+        SPIRVShaderCompiler compiler = GetCompiler()
+        ByteArray bytes = compiler:Compile(name, shader:GetCode(), shader:GetType())
+
+        GameStateManager manager
+        GraphicsManager graphics = manager:GetGameGraphics()
+        if graphics is VulkanGraphics
+            VulkanGraphics vulkan = cast(VulkanGraphics, graphics)
+            boolean success = CompileShaderNative(shader, vulkan:GetDevice(), bytes)
+            if not success
+                alert("An error occurred while compiling the shader '" + name + "'")
+            end
+        else
+            alert("I can't compile the shader '" + name + "' because VulkanGraphics wasn't available!")
+        end
+
+        Register(name, shader)
+        integer id = currentShaderID
+        currentShaderID = currentShaderID + 1
+
+        return id
+    end
+
+    private system action CompileShaderNative(Shader shader, VulkanDevice device, ByteArray shaderCode) returns boolean
     
 
     action ReloadShader(Shader shader) returns integer
@@ -23,7 +94,34 @@ class VulkanShaderManager is ShaderManager
         not using OpenGL, this action does not provide useful information. The version number is calculated by Quorum, not the graphics hardware.
     */
     action GetVersionHeader returns text
-        alert("NYI")
+        return "#version 450"
     end
+
+    /*
+    action ReloadShader(Shader shader) returns integer
+        if not shader:IsInvalidated()
+            return shader:GetID()
+        end
+
+        GraphicsManager graphics = gameState:GetGameGraphics()
+        return graphics:CreateShader(GetOpenGLType(shader:GetShaderType()), shader:GetCode(), shader:GetName())
+    end
+
+    action GetVersionHeader returns text
+        Properties prop
+        if prop:IsWindows()
+            return "#version 410"
+        elseif prop:IsMac()
+            return "#version 410"
+        elseif prop:IsAndroid()
+            return "#version 300 es"
+        elseif prop:IsWebBrowser()
+            return "#version 300 es"
+        else
+            return "#version 300 es"
+        end
+        return ""
+    end
+    */
 
 end

@@ -63,7 +63,7 @@ class OpenGLShaderManager is ShaderManager
         Register(name, shader)
 
         GraphicsManager graphics = gameState:GetGameGraphics()
-        return graphics:CreateShader(GetOpenGLType(shader:GetShaderType()), shader:GetCode(), name)
+        return graphics:CreateShader(GetOpenGLType(shader:GetType()), shader:GetCode(), name)
     end
 
     action ReloadShader(Shader shader) returns integer
@@ -72,7 +72,7 @@ class OpenGLShaderManager is ShaderManager
         end
 
         GraphicsManager graphics = gameState:GetGameGraphics()
-        return graphics:CreateShader(GetOpenGLType(shader:GetShaderType()), shader:GetCode(), shader:GetName())
+        return graphics:CreateShader(GetOpenGLType(shader:GetType()), shader:GetCode(), shader:GetName())
     end
 
     /*

@@ -1,0 +1,23 @@
+package Libraries.Game.Graphics.Shaders
+
+shared class ShaderConstants
+
+    // This code represents a vertex shader. Every shader program must have a vertex shader as its first shader step.
+    public constant integer VERTEX_SHADER = 1
+
+    // This code represents a fragment shader. Every shader program must have a fragment shader as its final shader step.
+    public constant integer FRAGMENT_SHADER = 2
+    
+    // This code represents a geometry shader. This shader step is optional.
+    public constant integer GEOMETRY_SHADER = 3
+
+    // This code represents a tessellation control shader. This shader step is optional. If used, this should precede a tessellation evaluation shader in a shader program.
+    public constant integer TESSELLATION_CONTROL_SHADER = 4
+
+    // This code represents a tessellation evaluation shader. This shader step is optional. If used, this should follow after a tessellation control shader in a shader program.
+    public constant integer TESSELLATION_EVALUATION_SHADER = 5
+
+    // This code represents a compute shader. Compute shaders are used to perform calculations on the GPU, which can be returned or used for other shader stages.
+    public constant integer COMPUTE_SHADER = 6
+
+end

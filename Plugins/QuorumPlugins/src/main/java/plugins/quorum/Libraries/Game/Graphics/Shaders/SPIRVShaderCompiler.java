@@ -1,6 +1,7 @@
 package plugins.quorum.Libraries.Game.Graphics.Shaders;
 
 import org.lwjgl.util.shaderc.Shaderc;
+import plugins.quorum.Libraries.Language.SharedClass;
 import quorum.Libraries.Containers.ByteArray;
 import quorum.Libraries.Containers.ByteArray_;
 
@@ -10,7 +11,7 @@ public class SPIRVShaderCompiler
 {
     public Object me_;
 
-    public ByteArray_ Compile(String shaderName, String code, int shaderType)
+    public ByteArray_ CompileNative(String shaderName, String code, int shaderType)
     {
         ByteArray resultArray = null;
 
