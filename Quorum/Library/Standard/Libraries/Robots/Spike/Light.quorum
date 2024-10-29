@@ -1,12 +1,12 @@
 package Libraries.Robots.Spike
 
 class Light
-	public constant integer POWER = 0
-	public constant integer CONNECT = 1
+    public constant integer POWER = 0
+    public constant integer CONNECT = 1
 
-	action Color(integer light, integer color)
-		ColorNative(light, color)
-	end
+    action Color(integer light, integer color)
+        ColorNative(light, color)
+    end
 
-	private system action ColorNative(integer light, integer color)
+    private system action ColorNative(integer light, integer color)
 end

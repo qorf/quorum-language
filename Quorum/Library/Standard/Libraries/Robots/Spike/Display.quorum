@@ -1,49 +1,49 @@
 package Libraries.Robots.Spike
 
 class Display
-	public constant integer IMAGE_ROBOT_1 = 1
-	public constant integer IMAGE_ROBOT_2 = 2
-	public constant integer IMAGE_ROBOT_3 = 3
-	public constant integer IMAGE_ROBOT_4 = 4
-	public constant integer IMAGE_ROBOT_5 = 5
-	public constant integer IMAGE_HUB_1 = 6
-	public constant integer IMAGE_HUB_2 = 7
-	public constant integer IMAGE_HUB_3 = 8
-	public constant integer IMAGE_HUB_4 = 9
-	public constant integer IMAGE_AMUSEMENT_PARK = 10
-	public constant integer IMAGE_BEACH = 11
-	public constant integer IMAGE_HAUNTED_HOUSE = 12
-	public constant integer IMAGE_CARNIVAL = 13
-	public constant integer IMAGE_BOOKSHELF = 14
-	public constant integer IMAGE_PLAYGROUND = 15
-	public constant integer IMAGE_MOON = 16
-	public constant integer IMAGE_CAVE = 17
-	public constant integer IMAGE_OCEAN = 18
-	public constant integer IMAGE_POLAR_BEAR = 19
-	public constant integer IMAGE_PARK = 20
-	public constant integer IMAGE_RANDOM = 21
+    public constant integer IMAGE_ROBOT_1 = 1
+    public constant integer IMAGE_ROBOT_2 = 2
+    public constant integer IMAGE_ROBOT_3 = 3
+    public constant integer IMAGE_ROBOT_4 = 4
+    public constant integer IMAGE_ROBOT_5 = 5
+    public constant integer IMAGE_HUB_1 = 6
+    public constant integer IMAGE_HUB_2 = 7
+    public constant integer IMAGE_HUB_3 = 8
+    public constant integer IMAGE_HUB_4 = 9
+    public constant integer IMAGE_AMUSEMENT_PARK = 10
+    public constant integer IMAGE_BEACH = 11
+    public constant integer IMAGE_HAUNTED_HOUSE = 12
+    public constant integer IMAGE_CARNIVAL = 13
+    public constant integer IMAGE_BOOKSHELF = 14
+    public constant integer IMAGE_PLAYGROUND = 15
+    public constant integer IMAGE_MOON = 16
+    public constant integer IMAGE_CAVE = 17
+    public constant integer IMAGE_OCEAN = 18
+    public constant integer IMAGE_POLAR_BEAR = 19
+    public constant integer IMAGE_PARK = 20
+    public constant integer IMAGE_RANDOM = 21
 
-	action Hide
-		return HideNative()
-	end
+    action Hide
+        return HideNative()
+    end
 
-	private system action HideNative
+    private system action HideNative
 
-	action Image(integer image)
-		return ImageNative(image)
-	end
+    action Image(integer image)
+        return ImageNative(image)
+    end
 
-	private system action ImageNative(integer image)
+    private system action ImageNative(integer image)
 
-	action Show(boolean fullscreen)
-		return ShowNative(fullscreen)
-	end
+    action Show(boolean fullscreen)
+        return ShowNative(fullscreen)
+    end
 
-	private system action ShowNative(boolean fullscreen)
+    private system action ShowNative(boolean fullscreen)
 
-	action Text(text value)
-		return TextNative(value)
-	end
+    action Text(text value)
+        return TextNative(value)
+    end
 
-	private system action TextNative(text value)
+    private system action TextNative(text value)
 end
