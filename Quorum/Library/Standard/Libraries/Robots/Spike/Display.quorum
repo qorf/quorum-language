@@ -24,25 +24,25 @@ class Display
     public constant integer IMAGE_RANDOM = 21
 
     action Hide
-        return HideNative()
+        HideNative()
     end
 
     private system action HideNative
 
     action Image(integer image)
-        return ImageNative(image)
+        ImageNative(image)
     end
 
     private system action ImageNative(integer image)
 
     action Show(boolean fullscreen)
-        return ShowNative(fullscreen)
+        ShowNative(fullscreen)
     end
 
     private system action ShowNative(boolean fullscreen)
 
     action Text(text value)
-        return TextNative(value)
+        TextNative(value)
     end
 
     private system action TextNative(text value)
