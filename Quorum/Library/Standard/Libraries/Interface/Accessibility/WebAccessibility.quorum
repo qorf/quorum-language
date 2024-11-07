@@ -88,13 +88,29 @@ class WebAccessibility is Accessibility
     system action Shutdown
     
     action NotifyListeners(WebAccessibilityEvent event)
-        output "SOMETHING HAPPENED"
+        integer eventType = event:GetEventType()
+        integer i = 0
+        repeat while i < listeners:GetSize()
+            if eventType = event:FOCUSED
+                        listeners:Get(i):FocusChanged(event)
+            elseif eventType = event:SHADOW_DOM_FOCUSED
+listeners:Get(i):HiddenElementClicked(event)
+end
+            i = i + 1
+        end
+    end
+    
+    action AddWebAccessibilityListener(WebAccessibilityListener listener)
+        listeners:Add(listener)
     end
     
     system action AddHiddenHeader(text name, text title)
     system action AddHiddenButton(text name)
     system action AddHiddenLabel(text name, text words)
     system action AddHiddenSlider(text name, integer min, integer max, integer step)
+    
+    system action FocusHiddenElement(text name)
+    system action ForceReleaseFocus
 
     action IsScreenReaderListening returns boolean return false end
 end

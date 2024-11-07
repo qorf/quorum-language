@@ -27,11 +27,9 @@ function plugins_quorum_Libraries_Interface_Events_GestureProcessor_() {
         mc.get('pan').set({direction: Hammer.DIRECTION_ALL});
         mc.get('swipe').set({direction: Hammer.DIRECTION_ALL});
         let twoFingerSwipe = new Hammer.Swipe({event: 'twoFingerSwipe', direction: Hammer.DIRECTION_ALL, pointers:2 });
-        mc.add(new Hammer.Tap({event: 'twoFingerTap', pointers:2 }));
         mc.add(twoFingerSwipe);
         mc.get('pinch').recognizeWith(twoFingerSwipe);
         let threeFingerSwipe = new Hammer.Swipe({event: 'threeFingerSwipe', direction: Hammer.DIRECTION_ALL, pointers:3 });
-        mc.add(new Hammer.Tap({event: 'threeFingerTap', pointers:3 }));
         mc.add(threeFingerSwipe);
         mc.get('pinch').recognizeWith(threeFingerSwipe);
         gestureListener = mc;

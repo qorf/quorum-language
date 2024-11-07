@@ -15,6 +15,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
     let blurDelayedCall = null;
     let removedFocusedElement = false;
     let thisGame = null;
+    var textInputElements = [];
 
     const addBlurListener = function(element) {
         element.addEventListener("blur", () => {
@@ -22,7 +23,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
             // in case focus is being moved to another accessibility element.
             if (blurDelayedCall === null) {
                 blurDelayedCall = setTimeout(() => {
-                    if (plugins_quorum_Libraries_Game_WebInput_.IsFocused()) {
+                    if (plugins_quorum_Libraries_Game_WebInput_.IsFocused(plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().game)) {
                         return;
                     }
                     blurDelayedCall = null;
@@ -67,18 +68,14 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
         root.style.bottom = 0;
         root.style.width = "1px";
         root.style.height = "1px";
+
         // Ensure that bugs in the positioning of shadow elements
         // don't affect the visible layout.
         // root.style.overflow = "hidden";
 
-        controlElementRoot = document.createElement("article");root.style.position = "sticky";
-        controlElementRoot.style.left = 0;
-        controlElementRoot.style.top = 0;
-        controlElementRoot.style.width = "1px";
-        controlElementRoot.style.height = "1px";
-        controlElementRoot.style.pointerEvents = "none";
-
+        controlElementRoot = document.createElement("article");
         root.appendChild(controlElementRoot);
+        addBlurListener(controlElementRoot);
 
         // The following style settings come from Flutter Web.
         // Make all semantics transparent. We use `filter` instead of `opacity`
@@ -118,6 +115,55 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
         // Like the accessibility root, this element must be inserted before
         // the canvas.
         container.insertBefore(focusButton, canvas);
+        document.addEventListener("selectionchange", () => {
+            for (let i = 0; i < textInputElements.length; i++) {
+                let textElementID = textInputElements[i];
+                let textElement = document.getElementById(textElementID);
+                if (textElement.quorumItem && textElement.quorumItem.SetText$quorum_text)
+                    {
+                        let quorumItem = textElement.quorumItem;
+                        let selection = textElement.quorumItem.GetSelection();
+        
+                        let startIndex = textElement.selectionStart;
+                        let endIndex = textElement.selectionEnd;
+        
+                        if (quorumItem.GetText() !== textElement.value)
+                        {
+                            quorumItem.SetText$quorum_text(textElement.value);
+        
+                            // Update the selection indices, if possible.
+                            if (selection && selection.Set$quorum_integer$quorum_integer$quorum_boolean$quorum_boolean)
+                            {
+                                selection.Set$quorum_integer$quorum_integer$quorum_boolean$quorum_boolean(startIndex, endIndex, true, false);
+                            }
+        
+                            // Ensure the caret is in the right spot.
+                            if (quorumItem.SetCaretPosition$quorum_integer)
+                            {
+                                quorumItem.SetCaretPosition$quorum_integer(endIndex);
+                            }
+        
+                            // Changing the Quorum text updates the position of the selection in shadow DOM. Make sure it's set back to correct values.
+                            textElement.selectionStart = startIndex;
+                            textElement.selectionEnd = endIndex;
+        
+                            return;
+                        } else {
+                            // Update the selection indices, if possible.
+                            if (selection && selection.Set$quorum_integer$quorum_integer$quorum_boolean$quorum_boolean)
+                            {
+                                selection.Set$quorum_integer$quorum_integer$quorum_boolean$quorum_boolean(startIndex, endIndex, true, false);
+                            }
+        
+                            // Ensure the caret is in the right spot.
+                            if (quorumItem.SetCaretPosition$quorum_integer)
+                            {
+                                quorumItem.SetCaretPosition$quorum_integer(endIndex);
+                            }
+                        }
+                    }
+            }
+        });
     };
 
     this.GetRoot = function() {
@@ -461,7 +507,8 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                     let textBox = global_CheckCast(item, "Libraries.Interface.Controls.TextBox")
                     para.value = textBox.GetText();
                 }
-
+                para.quorumItem = item;
+                textInputElements.push(para.id);
                 break;
             //MENU_BAR
             case 7:
@@ -596,6 +643,8 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                     para.value = textField.GetText();
                 }
 
+                para.quorumItem = item;
+                textInputElements.push(para.id);
                 break;
             //LIST
             case 18:
@@ -733,6 +782,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
 
         if (item.IsFocusable()) {
             para.setAttribute("tabindex", "-1");
+            para.addEventListener.onclick = this.OnHiddenElementClick(item);
             para.addEventListener("focus", (event) => {
                 if (blurDelayedCall !== null) {
                     clearTimeout(blurDelayedCall);
@@ -802,6 +852,9 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             return false;
         }
         let element = document.getElementById(id);
+        if (textInputElements.indexOf(id) !== -1) {
+            textInputElements.splice(textInputElements.indexOf(id), 1);
+        }
         if (element != null) { //if the parent was removed then this would come up null
             if (element === document.activeElement)
             {
@@ -933,12 +986,15 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         currentFocus = null;
     };
 
-    this.OnHiddenButtonClick = function() {
-        me_.NotifyListeners$quorum_Libraries_Interface_Events_WebAccessibilityEvent_(null);
+    this.OnHiddenElementClick = function(item) {
+        let event = new quorum_Libraries_Interface_Events_WebAccessibilityEvent_();
+        event.type = 4
+        event.focusedItem = item;
+        me_.NotifyListeners$quorum_Libraries_Interface_Events_WebAccessibilityEvent(event);
     }
 
     this.AddHiddenHeader$quorum_text$quorum_text = function(name, title) {
-        let element = document.createElement("h2");
+        element = document.createElement("h2");
 
         element.style.position = "absolute";
         element.style.left = 0;
@@ -948,34 +1004,31 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         element.innerHTML = title;
         controlElementRoot.appendChild(element);
         controlElementList[name] = element;
+        addBlurListener(element);
     };
 
     this.AddHiddenButton$quorum_text = function(name) {
-        let element = document.createElement("input");
+        element = document.createElement("button");
 
-        element.type = "button";
         element.style.position = "absolute";
         element.style.left = 0;
         element.style.top = 0;
         element.style.width = "1px";
         element.style.height = "1px";
-        element.name = name;
-        element.style.pointerEvents = "none";
+        element.innerHTML = name;
         element.addEventListener("click", (event) => {  
-            me_.NotifyListeners$quorum_Libraries_Interface_Events_WebAccessibilityEvent(null);
-        });
-        element.addEventListener("focus", (event) => {
-            if (blurDelayedCall !== null) {
-                clearTimeout(blurDelayedCall);
-                blurDelayedCall = null;
-            }
+            let webEvent = new quorum_Libraries_Interface_Events_WebAccessibilityEvent_();
+            webEvent.eventType = webEvent.FOCUSED;
+            webEvent.elementName = name;
+            me_.NotifyListeners$quorum_Libraries_Interface_Events_WebAccessibilityEvent(webEvent);
         });
         controlElementRoot.appendChild(element);
         controlElementList[name] = element;
+        addBlurListener(element);
     };
 
     this.AddHiddenLabel$quorum_text$quorum_text = function(name, words) {
-        let element = document.createElement("label");
+        element = document.createElement("label");
 
         element.style.position = "absolute";
         element.style.left = 0;
@@ -983,30 +1036,25 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         element.style.width = "1px";
         element.style.height = "1px";
         element.innerHTML = words;
-        element.onclick = this.OnHiddenButtonClick;
         controlElementRoot.appendChild(element);
         controlElementList[name] = element;
+        addBlurListener(element);
     };
 
     this.AddHiddenSlider$quorum_text$quorum_integer$quorum_integer$quorum_integer = function(name, min, max, step) {
-        let element = document.createElement("input");
 
-        element.style.position = "absolute";
-        element.style.left = 0;
-        element.style.top = 0;
-        element.style.width = "1px";
-        element.style.height = "1px";
-
-        element.type = "range";
-        element.min = min;
-        element.max = max;
-        element.step = step;
-        element.ariaValueNow = 0;
-        element.ariaValueText = "Blank";
-        controlElementRoot.appendChild(element);
-        controlElementList[name] = element;
     };
 
+    this.FocusHiddenElement$quorum_text = function(name) {
+        if (controlElementList[name] !== null) {
+            controlElementList[name].focus();
+        }
+    };
+
+    this.ForceReleaseFocus = function() {
+        focusButton.hidden = false;
+        root.hidden = true;
+    };
 
 /*
  * This implementation is old, but I am leaving it in as an exemplar. 
