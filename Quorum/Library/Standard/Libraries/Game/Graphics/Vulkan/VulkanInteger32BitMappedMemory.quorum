@@ -1,0 +1,100 @@
+package Libraries.Game.Graphics.Vulkan
+use Libraries.Containers.Integer32BitArray
+
+/*
+This class represents a buffer of mapped memory used by a VulkanBuffer with the MEMORY_PROPERTY_HOST_VISIBLE_BIT property.
+This particular buffer stores and accesses the data as 32-bit integers.
+*/
+class VulkanInteger32BitMappedMemory
+
+    VulkanBuffer parentBuffer = undefined
+    boolean initialized = false
+
+    action Create(VulkanBuffer buffer)
+        if initialized
+            alert("I couldn't create the mapped memory because it's already created! Use the Dispose() action before reusing it, or make a new object instead.")
+        end
+        if not buffer:SupportsMapping()
+            alert("I can't create mapped memory using this VulkanBuffer because it wasn't created with the MEMORY_PROPERTY_HOST_VISIBLE_BIT memory property.")
+        end
+        if not buffer:IsMapping()
+            boolean success = buffer:BeginMapping()
+            if not success
+                alert("Failed to begin mapping to memory with the VulkanBuffer!")
+            end
+        end
+
+        parentBuffer = buffer
+        CreateNative(buffer)
+        initialized = true
+    end
+
+    private system action CreateNative(VulkanBuffer buffer)
+
+    action Dispose
+        alert("NYI")
+    end
+
+    action Set(integer index, integer value)
+        if not initialized
+            alert("I can't use this memory because it hasn't been initialized! Use Create(VulkanBuffer) first.")
+        end
+
+        SetNative(index, value)
+    end
+
+    private system action SetNative(integer index, integer value)
+
+    action Set(Integer32BitArray array)
+        if not initialized
+            alert("I can't use this memory because it hasn't been initialized! Use Create(VulkanBuffer) first.")
+        end
+
+        SetNative(0, array, 0, array:GetSize())
+    end
+
+    action Set(integer index, Integer32BitArray array)
+        if not initialized
+            alert("I can't use this memory because it hasn't been initialized! Use Create(VulkanBuffer) first.")
+        end
+
+        SetNative(index, array, 0, array:GetSize())
+    end
+
+    action Set(integer index, Integer32BitArray array, integer arrayOffset, integer arrayItems)
+        if not initialized
+            alert("I can't use this memory because it hasn't been initialized! Use Create(VulkanBuffer) first.")
+        end
+
+        SetNative(index, array, arrayOffset, arrayItems)
+    end
+
+    private system action SetNative(integer index, Integer32BitArray array, integer arrayOffset, integer arrayItems)
+
+    action Get(integer index) returns integer
+        if not initialized
+            alert("I can't use this memory because it hasn't been initialized! Use Create(VulkanBuffer) first.")
+        end
+
+        return GetNative(index)
+    end
+
+    private system action GetNative(integer index) returns integer
+
+    action GetSize returns integer
+        if not initialized
+            alert("I can't use this memory because it hasn't been initialized! Use Create(VulkanBuffer) first.")
+        end
+
+        return parentBuffer:GetSize() / 4
+    end
+
+    action GetByteSize returns integer
+        if not initialized
+            alert("I can't use this memory because it hasn't been initialized! Use Create(VulkanBuffer) first.")
+        end
+
+        return parentBuffer:GetSize()
+    end
+
+end

@@ -1,0 +1,33 @@
+package Libraries.Game.Graphics.Vulkan
+
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Shaders.Shader
+
+class VulkanPipeline
+
+    VulkanDevice device = undefined
+    VulkanRenderPass renderPass = undefined
+    VulkanPipelineCache cache = undefined
+
+    boolean initialized = false
+
+    action Create(VulkanDevice device, VulkanRenderPass renderPass, VulkanPipelineCache cache, Array<Shader> shaders, VulkanPipelineInfo info) returns boolean
+        boolean result = CreateNative(device, renderPass, cache, shaders, info)
+
+        if result
+            me:device = device
+            me:renderPass = renderPass
+            me:cache = cache
+            initialized = true
+        end
+        
+        return result
+    end
+
+    private system action CreateNative(VulkanDevice device, VulkanRenderPass renderPass, VulkanPipelineCache cache, Array<Shader> shaders, VulkanPipelineInfo info) returns boolean
+
+    action Dispose
+        alert("NYI")
+    end
+
+end

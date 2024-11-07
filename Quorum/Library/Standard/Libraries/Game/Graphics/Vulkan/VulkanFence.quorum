@@ -1,0 +1,24 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanFence
+
+    VulkanDevice device = undefined
+
+    boolean initialized = false
+
+
+    action Create(VulkanDevice device, boolean fenceOpen) returns boolean
+        boolean result = CreateNative(device, fenceOpen)
+
+        if result
+            me:device = device
+
+            initialized = true
+        end
+
+        return result
+    end
+
+    private system action CreateNative(VulkanDevice device, boolean fenceOpen) returns boolean
+
+end

@@ -64,7 +64,7 @@ shared class VulkanConstants
     // Constants used to describe how Vulkan Images will be used. These are bit flags, so they can be combined in a bitmask.
     public constant integer IMAGE_USAGE_COLOR_ATTACHMENT_BIT = 16
 
-    // Constants used to describe how images in a swapchain can be shared across multiple swapchains.
+    // Constants used to describe whether or not resources can be accessed simultaneously by multiple queue families or swapchains.
     public constant integer SHARING_MODE_EXCLUSIVE = 0
     public constant integer SHARING_MODE_CONCURRENT = 1
 
@@ -117,10 +117,17 @@ shared class VulkanConstants
     public constant integer COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT = 2
 
     /*
-    Sampling flags, used when defining color attachments. 1 bit of sampling is the most direct and simple way to sample color.
+    Sampling flags, used when defining color attachments, and also used for the Rasterization Sampling value of
+    VulkanPipelineInfo. 1 bit of sampling is the most direct and simple way to sample color.
     Multiple bits are used for multisampling, which is typically used to perform anti-aliasing. 
     */
     public constant integer SAMPLE_COUNT_1_BIT = 1
+    public constant integer SAMPLE_COUNT_2_BIT = 2
+    public constant integer SAMPLE_COUNT_4_BIT = 4
+    public constant integer SAMPLE_COUNT_8_BIT = 8
+    public constant integer SAMPLE_COUNT_16_BIT = 16
+    public constant integer SAMPLE_COUNT_32_BIT = 32
+    public constant integer SAMPLE_COUNT_64_BIT = 64
 
     /*
     Constants for load and store operations for attachments. Load operations indicate what operations, if any, should be performed on the data in an attachment when it's loaded
@@ -156,5 +163,136 @@ shared class VulkanConstants
     Bitmask constants for access masks. Used for subpass dependencies.
     */
     public constant integer ACCESS_COLOR_ATTACHMENT_WRITE_BIT = 256
+
+    /*
+    Constants used for the Input Rate value of VulkanVertexInputBindingDescription. These indicate that values are provided
+    either per-vertex or per-instance while using a particular Pipeline.
+    */
+    public constant integer VERTEX_INPUT_RATE_VERTEX = 0
+    public constant integer VERTEX_INPUT_RATE_INSTANCE = 1
+
+    /*
+    Constants for the Topology value of VulkanPipelineInfo. These represent different ways for vertices
+    to be combined together into geometry.
+    */
+    public constant integer PRIMITIVE_TOPOLOGY_POINT_LIST = 0
+    public constant integer PRIMITIVE_TOPOLOGY_LINE_LIST = 1
+    public constant integer PRIMITIVE_TOPOLOGY_LINE_STRIP = 2
+    public constant integer PRIMITIVE_TOPOLOGY_TRIANGLE_LIST = 3
+    public constant integer PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP = 4
+    public constant integer PRIMITIVE_TOPOLOGY_TRIANGLE_FAN = 5
+    public constant integer PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY = 6
+    public constant integer PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY = 7
+    public constant integer PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY = 8
+    public constant integer PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY = 9
+    public constant integer PRIMITIVE_TOPOLOGY_PATCH_LIST = 10
+
+    /*
+    Constants for the Polygon Mode value of VulkanPipelineInfo. These describe how polygons should be filled in,
+    sketched, or otherwise rendered.
+    */
+    public constant integer POLYGON_MODE_FILL = 0
+    public constant integer POLYGON_MODE_LINE = 1
+    public constant integer POLYGON_MODE_POINT = 2
+    public constant integer POLYGON_MODE_FILL_RECTANGLE_NV = 1000153000
+
+    /*
+    Constants used for the Cull Mode value of VulkanPipelineInfo. These describe which polygons are culled during
+    rendering based on their orientation, or in other words, which side(s) of a rendered model should be ignored.
+    */
+    public constant integer CULL_MODE_NONE = 0
+    public constant integer CULL_MODE_FRONT_BIT = 1
+    public constant integer CULL_MODE_BACK_BIT = 2
+    public constant integer CULL_MODE_FRONT_AND_BACK = 3
+
+    /*
+    Constants used for the Front Face value of VulkanPipelineInfo. These are used to determine which way a polygon
+    is facing, based on the order of the provided vertices, and which way they rotate about their center point.
+    */
+    public constant integer FRONT_FACE_COUNTER_CLOCKWISE = 0
+    public constant integer FRONT_FACE_CLOCKWISE = 1
+
+    /*
+    Constants for color components.
+    */
+    public constant integer COLOR_COMPONENT_R_BIT = 1
+    public constant integer COLOR_COMPONENT_G_BIT = 2
+    public constant integer COLOR_COMPONENT_B_BIT = 4
+    public constant integer COLOR_COMPONENT_A_BIT = 8
+
+    /*
+    Constants representing Shader stages. These are different the shader type values in the ShaderConstants, but they can be
+    converted to and from using VulkanUtilities' "ShaderTypeToVulkanShaderStage" and "VulkanShaderStageToShaderType" actions.
+    */
+    public constant integer SHADER_STAGE_VERTEX_BIT = 1
+    public constant integer SHADER_STAGE_TESSELLATION_CONTROL_BIT = 2
+    public constant integer SHADER_STAGE_TESSELLATION_EVALUATION_BIT = 4
+    public constant integer SHADER_STAGE_GEOMETRY_BIT = 8
+    public constant integer SHADER_STAGE_FRAGMENT_BIT = 16
+    public constant integer SHADER_STAGE_COMPUTE_BIT = 32
+    public constant integer SHADER_STAGE_ALL_GRAPHICS = 31
+    public constant integer SHADER_STAGE_ALL = 2147483647
+
+    /*
+    These constants are used to indicate the "level" of a command buffer. Buffers can be either primary or secondary buffers.
+    According to the Vulkan documentation, primary command buffers can execute secondary command buffers and are submitted to queues,
+    while secondary command buffers can be executed by primary command buffers and are not directly submitted to queues.
+    */
+    public constant integer COMMAND_BUFFER_LEVEL_PRIMARY = 0
+    public constant integer COMMAND_BUFFER_LEVEL_SECONDARY = 1
+
+    /*
+    Values indicating how a command buffer will be used.
+    */
+    public constant integer COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT = 1
+    public constant integer COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT = 2
+    public constant integer COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT = 4
+
+    /*
+    Memory property bits, used when allocating memory (e.g. for VulkanBuffers).
+    */
+    public constant integer MEMORY_PROPERTY_DEVICE_LOCAL_BIT = 1
+    public constant integer MEMORY_PROPERTY_HOST_VISIBLE_BIT = 2
+    public constant integer MEMORY_PROPERTY_HOST_COHERENT_BIT = 4
+    public constant integer MEMORY_PROPERTY_HOST_CACHED_BIT = 8
+    public constant integer MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT = 16
+    public constant integer MEMORY_PROPERTY_PROTECTED_BIT = 32
+    public constant integer MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD = 64
+    public constant integer MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD = 128
+    public constant integer MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV = 256
+
+    /*
+    These constants indicate how VulkanBuffers are intended to be used. These can be combined with BitwiseOperations and sent
+    as the "usageFlags" parameter when using VulkanBuffer's Create action.
+    */    
+    public constant integer BUFFER_USAGE_TRANSFER_SRC_BIT = 1
+    public constant integer BUFFER_USAGE_TRANSFER_DST_BIT = 2
+    public constant integer BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT = 4
+    public constant integer BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT = 8
+    public constant integer BUFFER_USAGE_UNIFORM_BUFFER_BIT = 16
+    public constant integer BUFFER_USAGE_STORAGE_BUFFER_BIT = 32
+    public constant integer BUFFER_USAGE_INDEX_BUFFER_BIT = 64
+    public constant integer BUFFER_USAGE_VERTEX_BUFFER_BIT = 128
+    public constant integer BUFFER_USAGE_INDIRECT_BUFFER_BIT = 256
+    public constant integer BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT = 131072
+    public constant integer BUFFER_USAGE_VIDEO_DECODE_SRC_BIT_KHR = 8192
+    public constant integer BUFFER_USAGE_VIDEO_DECODE_DST_BIT_KHR = 16384
+    public constant integer BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT = 2048
+    public constant integer BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT = 4096
+    public constant integer BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT = 512
+    public constant integer BUFFER_USAGE_EXECUTION_GRAPH_SCRATCH_BIT_AMDX = 33554432
+    public constant integer BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR = 524288
+    public constant integer BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR = 1048576
+    public constant integer BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR = 1024
+    public constant integer BUFFER_USAGE_VIDEO_ENCODE_DST_BIT_KHR = 32768
+    public constant integer BUFFER_USAGE_VIDEO_ENCODE_SRC_BIT_KHR = 65536
+    public constant integer BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT = 2097152
+    public constant integer BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT = 4194304
+    public constant integer BUFFER_USAGE_PUSH_DESCRIPTORS_DESCRIPTOR_BUFFER_BIT_EXT = 67108864
+    public constant integer BUFFER_USAGE_MICROMAP_BUILD_INPUT_READ_ONLY_BIT_EXT = 8388608
+    public constant integer BUFFER_USAGE_MICROMAP_STORAGE_BIT_EXT = 16777216
+    public constant integer BUFFER_USAGE_RAY_TRACING_BIT_NV = BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR
+    public constant integer BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_EXT = BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT
+    public constant integer BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_KHR = BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT
     
 end

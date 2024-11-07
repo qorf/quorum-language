@@ -1,0 +1,30 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanCommandBuffer
+
+    VulkanDevice device = undefined
+    VulkanCommandPool commandPool = undefined
+
+    boolean initialized = false
+
+    action Create(VulkanDevice device, VulkanCommandPool commandPool) returns boolean
+        VulkanConstants constants
+        return Create(device, commandPool, constants:COMMAND_BUFFER_LEVEL_PRIMARY)
+    end
+
+    action Create(VulkanDevice device, VulkanCommandPool commandPool, integer level) returns boolean
+        boolean result = CreateNative(device, commandPool, level)
+        
+        if result
+            me:device = device
+            me:commandPool = commandPool
+
+            initialized = true
+        end
+
+        return result
+    end
+
+    private system action CreateNative(VulkanDevice device, VulkanCommandPool commandPool, integer level) returns boolean
+
+end

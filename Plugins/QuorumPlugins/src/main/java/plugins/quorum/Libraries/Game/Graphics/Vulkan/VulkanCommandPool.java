@@ -38,4 +38,9 @@ public class VulkanCommandPool
 
         return true;
     }
+
+    public long GetCommandPoolHandle()
+    {
+        return commandPoolHandle;
+    }
 }

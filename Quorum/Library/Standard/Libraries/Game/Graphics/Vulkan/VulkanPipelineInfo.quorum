@@ -1,0 +1,164 @@
+package Libraries.Game.Graphics.Vulkan
+use Libraries.Containers.Array
+
+class VulkanPipelineInfo
+
+    integer topology = 0
+    integer polygonMode = 0
+    integer cullMode = 0
+    integer frontFace = 0
+    integer rasterizationSamples = 0
+    integer viewportCount = 1
+    integer scissorCount = 1
+    number lineWidth = 1.0
+    Array<integer> dynamicStates
+    Array<VulkanVertexInputAttributeDescription> vertexInputAttributeDescriptions
+    Array<VulkanVertexInputBindingDescription> vertexInputBindingDescriptions
+    Array<VulkanPipelineColorBlendAttachmentState> pipelineColorBlendAttachmentStates
+
+    on create
+        VulkanConstants constants
+        topology = constants:PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
+        polygonMode = constants:POLYGON_MODE_FILL
+        cullMode = constants:CULL_MODE_NONE
+        frontFace = constants:FRONT_FACE_CLOCKWISE
+        rasterizationSamples = constants:SAMPLE_COUNT_1_BIT
+    end
+
+    action Copy returns VulkanPipelineInfo
+        VulkanPipelineInfo copy
+
+        copy:topology = topology
+        copy:viewportCount = viewportCount
+        copy:scissorCount = scissorCount
+        copy:polygonMode = polygonMode
+        copy:cullMode = cullMode
+        copy:frontFace = frontFace
+        copy:lineWidth = lineWidth
+        copy:rasterizationSamples = rasterizationSamples
+        copy:dynamicStates = dynamicStates:CopyToArray()
+
+        integer i = 0
+        Array<VulkanVertexInputAttributeDescription> attributes
+        repeat while i < vertexInputAttributeDescriptions:GetSize()
+            attributes:Add(vertexInputAttributeDescriptions:Get(i):Copy())
+            i = i + 1
+        end
+        copy:vertexInputAttributeDescriptions = attributes
+
+        i = 0
+        Array<VulkanVertexInputBindingDescription> bindings
+        repeat while i < vertexInputBindingDescriptions:GetSize()
+            bindings:Add(vertexInputBindingDescriptions:Get(i):Copy())
+            i = i + 1
+        end
+        copy:vertexInputBindingDescriptions = bindings
+
+        i = 0
+        Array<VulkanPipelineColorBlendAttachmentState> attachments
+        repeat while i < pipelineColorBlendAttachmentStates:GetSize()
+            attachments:Add(pipelineColorBlendAttachmentStates:Get(i):Copy())
+            i = i + 1
+        end
+        copy:pipelineColorBlendAttachmentStates = attachments
+
+        return copy
+    end
+
+    action GetTopology returns integer
+        return topology
+    end
+
+    action SetTopology(integer topology)
+        me:topology = topology
+    end
+
+    action GetViewportCount returns integer
+        return viewportCount
+    end
+
+    action SetViewportCount(integer viewportCount)
+        me:viewportCount = viewportCount
+    end
+
+    action GetScissorCount returns integer
+        return scissorCount
+    end
+
+    action SetScissorCount(integer scissorCount)
+        me:scissorCount = scissorCount
+    end
+
+    action GetPolygonMode returns integer
+        return polygonMode
+    end
+
+    action SetPolygonMode(integer polygonMode)
+        me:polygonMode = polygonMode
+    end
+
+    action GetCullMode returns integer
+        return cullMode
+    end
+
+    action SetCullMode(integer cullMode)
+        me:cullMode = cullMode
+    end
+
+    action GetFrontFace returns integer
+        return frontFace
+    end
+
+    action SetFrontFace(integer frontFace)
+        me:frontFace = frontFace
+    end
+
+    action GetLineWidth returns number
+        return lineWidth
+    end
+
+    action SetLineWidth(number lineWidth)
+        me:lineWidth = lineWidth
+    end
+
+    action GetRasterizationSamples returns integer
+        return rasterizationSamples
+    end
+
+    action SetRasterizationSamples(integer rasterizationSamples)
+        me:rasterizationSamples = rasterizationSamples
+    end
+
+    action GetDynamicStates returns Array<integer>
+        return dynamicStates
+    end
+
+    action SetDynamicStates(Array<integer> dynamicStates)
+        me:dynamicStates = dynamicStates
+    end
+
+    action GetVertexInputAttributeDescriptions returns Array<VulkanVertexInputAttributeDescription>
+        return vertexInputAttributeDescriptions
+    end
+
+    action SetVertexInputAttributeDescriptions(Array<VulkanVertexInputAttributeDescription> vertexInputAttributeDescriptions)
+        me:vertexInputAttributeDescriptions = vertexInputAttributeDescriptions
+    end
+
+    action GetVertexInputBindingDescriptions returns Array<VulkanVertexInputBindingDescription>
+        return vertexInputBindingDescriptions
+    end
+
+    action SetVertexInputBindingDescriptions(Array<VulkanVertexInputBindingDescription> vertexInputBindingDescriptions)
+        me:vertexInputBindingDescriptions = vertexInputBindingDescriptions
+    end
+
+    action GetPipelineColorBlendAttachmentStates returns Array<VulkanPipelineColorBlendAttachmentState>
+        return pipelineColorBlendAttachmentStates
+    end
+
+    action SetPipelineColorBlendAttachmentStates(Array<VulkanPipelineColorBlendAttachmentState> pipelineColorBlendAttachmentStates)
+        me:pipelineColorBlendAttachmentStates = pipelineColorBlendAttachmentStates
+    end
+
+end

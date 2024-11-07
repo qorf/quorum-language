@@ -1,0 +1,103 @@
+package Libraries.Game.Graphics.Vulkan
+
+use Libraries.Compute.BitwiseOperations
+
+class VulkanPipelineColorBlendAttachmentState
+
+    boolean blendEnable = false
+    integer sourceColorBlendFactor = -1
+    integer destinationColorBlendFactor = -1
+    integer colorBlendOp = -1
+    integer sourceAlphaBlendFactor = -1
+    integer destinationAlphaBlendFactor = -1
+    integer alphaBlendOp = -1
+    integer colorWriteMask = -1
+
+    on create
+        VulkanConstants constants
+        BitwiseOperations bits
+
+        colorWriteMask = bits:Or(constants:COLOR_COMPONENT_R_BIT, bits:Or(constants:COLOR_COMPONENT_G_BIT, bits:Or(constants:COLOR_COMPONENT_B_BIT, constants:COLOR_COMPONENT_A_BIT)))
+    end
+
+
+    action Copy returns VulkanPipelineColorBlendAttachmentState
+        VulkanPipelineColorBlendAttachmentState copy
+
+        copy:blendEnable = blendEnable
+        copy:sourceColorBlendFactor = sourceColorBlendFactor
+        copy:destinationColorBlendFactor = destinationColorBlendFactor
+        copy:colorBlendOp = colorBlendOp
+        copy:sourceAlphaBlendFactor = sourceAlphaBlendFactor
+        copy:destinationAlphaBlendFactor = destinationAlphaBlendFactor
+        copy:alphaBlendOp = alphaBlendOp
+        copy:colorWriteMask = colorWriteMask
+
+        return copy
+    end
+
+    action GetBlendEnable returns boolean
+        return blendEnable
+    end
+
+    action SetBlendEnable(boolean blendEnable)
+        me:blendEnable = blendEnable
+    end
+
+    action GetSourceColorBlendFactor returns integer
+        return sourceColorBlendFactor
+    end
+
+    action SetSourceColorBlendFactor(integer sourceColorBlendFactor)
+        me:sourceColorBlendFactor = sourceColorBlendFactor
+    end
+
+    action GetDestinationColorBlendFactor returns integer
+        return destinationColorBlendFactor
+    end
+
+    action SetDestinationColorBlendFactor(integer destinationColorBlendFactor)
+        me:destinationColorBlendFactor = destinationColorBlendFactor
+    end
+
+    action GetColorBlendOp returns integer
+        return colorBlendOp
+    end
+
+    action SetColorBlendOp(integer colorBlendOp)
+        me:colorBlendOp = colorBlendOp
+    end
+
+    action GetSourceAlphaBlendFactor returns integer
+        return sourceAlphaBlendFactor
+    end
+
+    action SetSourceAlphaBlendFactor(integer sourceAlphaBlendFactor)
+        me:sourceAlphaBlendFactor = sourceAlphaBlendFactor
+    end
+
+    action GetDestinationAlphaBlendFactor returns integer
+        return destinationAlphaBlendFactor
+    end
+
+    action SetDestinationAlphaBlendFactor(integer destinationAlphaBlendFactor)
+        me:destinationAlphaBlendFactor = destinationAlphaBlendFactor
+    end
+
+    action GetAlphaBlendOp returns integer
+        return alphaBlendOp
+    end
+
+    action SetAlphaBlendOp(integer alphaBlendOp)
+        me:alphaBlendOp = alphaBlendOp
+    end
+
+    action GetColorWriteMask returns integer
+        return colorWriteMask
+    end
+
+    action SetColorWriteMask(integer colorWriteMask)
+        me:colorWriteMask = colorWriteMask
+    end
+
+end

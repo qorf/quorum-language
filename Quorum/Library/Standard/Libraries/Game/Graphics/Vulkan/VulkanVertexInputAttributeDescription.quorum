@@ -1,0 +1,60 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanVertexInputAttributeDescription
+
+    integer binding = 0
+    integer location = -1
+    integer format = -1
+    integer offset = -1
+
+    action Set(integer binding, integer location, integer format, integer offset)
+        me:binding = binding
+        me:location = location
+        me:format = format
+        me:offset = offset
+    end
+
+    action Copy returns VulkanVertexInputAttributeDescription
+        VulkanVertexInputAttributeDescription copy
+        
+        copy:binding = binding
+        copy:location = location
+        copy:format = format
+        copy:offset = offset
+
+        return copy
+    end
+
+    action GetBinding returns integer
+        return binding
+    end
+
+    action SetBinding(integer binding)
+        me:binding = binding
+    end
+
+    action GetLocation returns integer
+        return location
+    end
+
+    action SetLocation(integer location)
+        me:location = location
+    end
+
+    action GetFormat returns integer
+        return format
+    end
+
+    action SetFormat(integer format)
+        me:format = format
+    end
+
+    action GetOffset returns integer
+        return offset
+    end
+
+    action SetOffset(integer offset)
+        me:offset = offset
+    end
+
+end

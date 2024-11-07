@@ -3,6 +3,7 @@ package Libraries.Game.Graphics.Vulkan
 use Libraries.Compute.BitwiseOperations
 use Libraries.Containers.Array
 use Libraries.System.Properties
+use Libraries.Game.Graphics.Shaders.ShaderConstants
 
 shared class VulkanUtilities
     
@@ -158,6 +159,50 @@ Attribute: Parameter returnedExtensions A text array that will contain the names
                 returnedExtensions:Add(constants:MAC_PORTABILITY_EXTENSION)
             end
         end
+    end
+
+    /*
+    This action converts a shader type from the ShaderConstants class to its corresponding
+    Vulkan shader stage constant.
+    */
+    action ShaderTypeToVulkanShaderStage(integer shaderType) returns integer
+        ShaderConstants shaders
+        VulkanConstants constants
+        if shaderType = shaders:FRAGMENT_SHADER
+            return constants:SHADER_STAGE_FRAGMENT_BIT
+        elseif shaderType = shaders:VERTEX_SHADER
+            return constants:SHADER_STAGE_VERTEX_BIT
+        elseif shaderType = shaders:GEOMETRY_SHADER
+            return constants:SHADER_STAGE_GEOMETRY_BIT
+        elseif shaderType = shaders:TESSELLATION_CONTROL_SHADER
+            return constants:SHADER_STAGE_TESSELLATION_CONTROL_BIT
+        elseif shaderType = shaders:TESSELLATION_EVALUATION_SHADER
+            return constants:SHADER_STAGE_TESSELLATION_EVALUATION_BIT
+        end
+
+        return -1
+    end
+
+    /*
+    This action converts a shader stage from the VulkanConstants to its corresponding type
+    in the ShaderConstants.
+    */
+    action VulkanShaderStageToShaderType(integer shaderStage) returns integer
+        ShaderConstants shaders
+        VulkanConstants constants
+        if shaderStage = constants:SHADER_STAGE_FRAGMENT_BIT
+            return shaders:FRAGMENT_SHADER
+        elseif shaderStage = constants:SHADER_STAGE_VERTEX_BIT
+            return shaders:VERTEX_SHADER
+        elseif shaderStage = constants:SHADER_STAGE_GEOMETRY_BIT
+            return shaders:GEOMETRY_SHADER
+        elseif shaderStage = constants:SHADER_STAGE_TESSELLATION_CONTROL_BIT
+            return shaders:TESSELLATION_CONTROL_SHADER
+        elseif shaderStage = constants:SHADER_STAGE_TESSELLATION_EVALUATION_BIT
+            return shaders:TESSELLATION_EVALUATION_SHADER
+        end
+
+        return -1
     end
     
 end

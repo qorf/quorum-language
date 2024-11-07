@@ -1,0 +1,54 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanVertexInputBindingDescription
+
+    integer binding = 0
+    integer stride = -1
+    integer inputRate = -1
+
+    on create
+        VulkanConstants constants
+        inputRate = constants:VERTEX_INPUT_RATE_VERTEX
+    end
+
+    action Set(integer binding, integer stride, integer inputRate)
+        me:binding = binding
+        me:stride = stride
+        me:inputRate = inputRate
+    end
+
+    action Copy returns VulkanVertexInputBindingDescription
+        VulkanVertexInputBindingDescription copy
+
+        copy:binding = binding
+        copy:stride = stride
+        copy:inputRate = inputRate
+
+        return copy
+    end
+
+    action GetBinding returns integer
+        return binding
+    end
+
+    action SetBinding(integer binding)
+        me:binding = binding
+    end
+
+    action GetStride returns integer
+        return stride
+    end
+
+    action SetStride(integer stride)
+        me:stride = stride
+    end
+
+    action GetInputRate returns integer
+        return inputRate
+    end
+
+    action SetInputRate(integer inputRate)
+        me:inputRate = inputRate
+    end
+
+end
