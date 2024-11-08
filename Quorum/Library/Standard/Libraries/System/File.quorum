@@ -479,12 +479,15 @@ text nameNoExtension = name:GetSubtext(0, name:GetSize()- GetFileExtension():Get
 
         i = value:GetSize() - 1
         repeat while i >= 0
-            text ch = value:GetCharacter(i)
-            //we found it
-            if ch = "."
-                return extension
-            else
-                extension = ch + extension
+            integer ch = value:GetUnicodeInteger(i)
+            //text ch = value:GetCharacter(i)
+            //The ASCII value for the period, which is a small memory optimization.
+            if ch = 46
+                if i + 1 < value:GetSize()
+                                    return value:GetSubtext(i + 1)
+                else
+                    return ""
+                end
             end
             i = i - 1
         end
