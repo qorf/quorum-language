@@ -1,0 +1,73 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanClearValue
+
+    number red = -1
+    number green = -1
+    number blue = -1
+    number alpha = -1
+
+    number depth = -1
+    
+    integer stencil = -1
+
+    action SetColor(number red, number green, number blue)
+        SetColor(red, green, blue, 1.0)
+    end
+
+    action SetColor(number red, number green, number blue, number alpha)
+        me:red = red
+        me:green = green
+        me:blue = blue
+        me:alpha = alpha
+    end
+
+    action GetRed returns number
+        return red
+    end
+
+    action SetRed(number red)
+        me:red = red
+    end
+
+    action GetGreen returns number
+        return green
+    end
+
+    action SetGreen(number green)
+        me:green = green
+    end
+
+    action GetBlue returns number
+        return blue
+    end
+
+    action SetBlue(number blue)
+        me:blue = blue
+    end
+
+    action GetAlpha returns number
+        return alpha
+    end
+
+    action SetAlpha(number alpha)
+        me:alpha = alpha
+    end
+
+    action GetDepth returns number
+        return depth
+    end
+
+    action SetDepth(number depth)
+        me:depth = depth
+    end
+
+    action GetStencil returns integer
+        return stencil
+    end
+
+    action SetStencil(integer stencil)
+        me:stencil = stencil
+    end
+
+end

@@ -7,8 +7,7 @@ import org.lwjgl.vulkan.VkCommandBufferAllocateInfo;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanCommandPool_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
 
-import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
-import static org.lwjgl.vulkan.VK10.vkAllocateCommandBuffers;
+import static org.lwjgl.vulkan.VK10.*;
 
 public class VulkanCommandBuffer
 {
@@ -38,6 +37,11 @@ public class VulkanCommandBuffer
         }
 
         return true;
+    }
+
+    public void Reset(boolean releaseResources)
+    {
+        vkResetCommandBuffer(commandBuffer, releaseResources ? VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT : 0);
     }
 
     public VkCommandBuffer GetCommandBuffer()

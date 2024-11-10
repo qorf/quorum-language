@@ -108,4 +108,30 @@ class VulkanBuffer
         return result
     end
 
+    action MapToNumber32BitMemory returns VulkanNumber32BitMappedMemory
+        if not initialized
+            alert("I couldn't map to memory because this VulkanBuffer hasn't been initialized! Use Create() first.")
+        end
+        if not SupportsMapping()
+            alert("I couldn't map to memory because this VulkanBuffer doesn't support mapping! Create it using the 'MEMORY_PROPERTY_HOST_VISIBLE_BIT' property.")
+        end
+
+        VulkanNumber32BitMappedMemory result
+        result:Create(me)
+        return result
+    end
+
+    action MapToInteger32BitMemory returns VulkanInteger32BitMappedMemory
+        if not initialized
+            alert("I couldn't map to memory because this VulkanBuffer hasn't been initialized! Use Create() first.")
+        end
+        if not SupportsMapping()
+            alert("I couldn't map to memory because this VulkanBuffer doesn't support mapping! Create it using the 'MEMORY_PROPERTY_HOST_VISIBLE_BIT' property.")
+        end
+
+        VulkanInteger32BitMappedMemory result
+        result:Create(me)
+        return result
+    end
+
 end

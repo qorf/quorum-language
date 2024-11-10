@@ -36,4 +36,9 @@ public class VulkanSemaphore
 
         return true;
     }
+
+    public long GetSemaphoreHandle()
+    {
+        return semaphoreHandle;
+    }
 }

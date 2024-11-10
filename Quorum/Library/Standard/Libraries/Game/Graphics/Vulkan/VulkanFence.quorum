@@ -21,4 +21,20 @@ class VulkanFence
 
     private system action CreateNative(VulkanDevice device, boolean fenceOpen) returns boolean
 
+    system action Wait
+
+    system action Reset
+
+    action Dispose
+        DisposeNative()
+        device = undefined
+        initialized = false
+    end
+
+    private system action DisposeNative
+
+    action GetDevice returns VulkanDevice
+        return device
+    end
+
 end

@@ -34,4 +34,27 @@ public class VulkanFence
 
         return true;
     }
+
+    public void DisposeNative()
+    {
+        VulkanDevice_ quorumDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanFence)me_).GetDevice();
+        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
+        vkDestroyFence(pluginDevice.GetDevice(), fenceHandle, null);
+    }
+
+    public void Wait()
+    {
+        VulkanDevice_ quorumDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanFence)me_).GetDevice();
+        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
+        vkWaitForFences(pluginDevice.GetDevice(), fenceHandle, true, Long.MAX_VALUE);
+    }
+
+    public void Reset()
+    {
+        VulkanDevice_ quorumDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanFence)me_).GetDevice();
+        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
+        vkResetFences(pluginDevice.GetDevice(), fenceHandle);
+    }
+
+
 }
