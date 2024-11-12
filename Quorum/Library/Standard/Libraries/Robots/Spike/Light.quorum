@@ -1,9 +1,37 @@
 package Libraries.Robots.Spike
 
+/*
+    The light class is used to change the color of the
+    light of the Bluetooth connection button and the
+    central hub button (the power button).
+
+    Attribute: Example
+
+    use Libraries.Robots.Spike.Light
+    use Libraries.Robots.Spike.Color
+    Color color
+    Light light
+    light:Color(light:POWER, color:BLUE)
+    light:Color(light:CONNECT, color:RED)
+*/
 class Light
     public constant integer POWER = 0
     public constant integer CONNECT = 1
 
+    /*
+        Sets the color of the provided button.
+
+        Attribute: Parameter light Which light to change the color of (POWER or CONNECT)
+        Attribute: Parameter color The color to change the light to (from the Spike Color class)
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Light
+        use Libraries.Robots.Spike.Color
+        Color color
+        Light light
+        light:Color(light:POWER, color:BLUE)
+        light:Color(light:CONNECT, color:RED)
+    */
     action Color(integer light, integer color)
         ColorNative(light, color)
     end
