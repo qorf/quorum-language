@@ -2,7 +2,7 @@ import motor_pair
 
 class plugins_quorum_Libraries_Robots_Spike_MotorPair_:
 	def __init__(self):
-		# automatically creating a pair (MakePair) may overwrite a users existing pair, so the user must do that themself
+		# automatically creating a pair may overwrite a users existing pair, so the user must do that themself
 		self.pair = 0
 
 	def GetPairNative(self):
@@ -11,11 +11,11 @@ class plugins_quorum_Libraries_Robots_Spike_MotorPair_:
 	def SetPairNative__quorum_integer(self, pair):
 		self.pair = pair
 
-	def MakePairNative__quorum_integer__quorum_integer__quorum_integer(self, pair, left_motor_port, right_motor_port):
-		motor_pair.pair(pair, left_motor_port, right_motor_port)
+	def SetPortsNative__quorum_integer__quorum_integer(self, left_motor_port, right_motor_port):
+		motor_pair.pair(self.pair, left_motor_port, right_motor_port)
 
-	def RemovePairNative__quorum_integer(self, pair):
-		motor_pair.unpair(pair)
+	def RemovePortsNative__quorum_integer(self):
+		motor_pair.unpair(self.pair)
 
 	def RunNative__quorum_integer(self, steering):
 		motor_pair.move(self.pair, steering)

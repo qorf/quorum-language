@@ -11,8 +11,8 @@ package Libraries.Robots.Spike
     use Libraries.Robots.Spike.MotorPair
     Port port
     MotorPair wheels
-    wheels:MakePair(wheels:PAIR_1, port:A, port:B)
     wheels:SetPair(wheels:PAIR_1)
+    wheels:SetPorts(port:A, port:B)
     wheels:Run(0, 360, 5400)
 */
 class MotorPair
@@ -30,8 +30,8 @@ class MotorPair
         use Libraries.Robots.Spike.Port
         Port port
         MotorPair wheels
-        wheels:MakePair(wheels:PAIR_1, port:A, port:B)
         wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
         integer wheelsPair = wheels:GetPair()
     */
     action GetPair returns integer
@@ -55,9 +55,8 @@ class MotorPair
     private system action SetPairNative(integer pair)
 
     /*
-        Registers the provided pair to two motor ports
+        Registers the currently set pair to two motor ports
 
-        Attribute: Parameter pair The pair to register the two ports with (either PAIR_1, PAIR_2, or PAIR_3)
         Attribute: Parameter leftMotorPort The port (A-F) to use for the left motor
         Attribute: Parameter rightMotorPort The port (A-F) to use for the right motor
         Attribute: Example
@@ -66,28 +65,30 @@ class MotorPair
         use Libraries.Robots.Spike.Port
         Port port
         MotorPair wheels
-        wheels:MakePair(wheels:PAIR_1, port:A, port:B)
         wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
     */
-    action MakePair(integer pair, integer leftMotorPort, integer rightMotorPort)
-        MakePairNative(pair, leftMotorPort, rightMotorPort)
+    action SetPorts(integer leftMotorPort, integer rightMotorPort)
+        SetPortsNative(leftMotorPort, rightMotorPort)
     end
-    private system action MakePairNative(integer pair, integer leftMotorPort, integer rightMotorPort)
+    private system action SetPortsNative(integer leftMotorPort, integer rightMotorPort)
 
     /*
-        Removes a pairing for two motor ports
+        Removes a pairing for the two currently assigned motor ports
 
-        Attribute: Parameter pair The pair to unregister the two motor ports from (either PAIR_1, PAIR_2, or PAIR_3)
         Attribute: Example
 
         use Libraries.Robots.Spike.MotorPair
         MotorPair wheels
-        wheels:RemovePair(wheels:PAIR_1)
+        wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
+        wheels:RemovePorts()
+        wheels:SetPorts(port:C, port:D)
     */
-    action RemovePair(integer pair)
-        RemovePairNative(pair)
+    action RemovePorts()
+        RemovePortsNative()
     end
-    private system action RemovePairNative(integer pair)
+    private system action RemovePortsNative()
 
     /*
         Runs the motors for this motor pair with the provided steering amount
@@ -99,8 +100,8 @@ class MotorPair
         use Libraries.Robots.Spike.Port
         Port port
         MotorPair wheels
-        wheels:MakePair(wheels:PAIR_1, port:A, port:B)
         wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
         wheels:Run(0)
     */
     action Run(integer steering)
@@ -125,8 +126,8 @@ class MotorPair
         use Libraries.Robots.Spike.Port
         Port port
         MotorPair wheels
-        wheels:MakePair(wheels:PAIR_1, port:A, port:B)
         wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
         wheels:Run(0, 360, 5400)
     */
     action Run(integer steering, integer velocity, integer acceleration)
@@ -145,8 +146,8 @@ class MotorPair
         use Libraries.Robots.Spike.Port
         Port port
         MotorPair wheels
-        wheels:MakePair(wheels:PAIR_1, port:A, port:B)
         wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
         wheels:RunForDegrees(0, 720)
     */
     action RunForDegrees(integer steering, integer degrees)
@@ -177,8 +178,8 @@ class MotorPair
         Port port
         Motor motor
         MotorPair wheels
-        wheels:MakePair(wheels:PAIR_1, port:A, port:B)
         wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
         wheels:RunForDegrees(0, 720, 360, motor:BRAKE, 5400, 5400)
     */
     action RunForDegrees(integer steering, integer degrees, integer velocity, integer brakingMode, integer acceleration, integer deceleration)
@@ -197,8 +198,8 @@ class MotorPair
         use Libraries.Robots.Spike.Port
         Port port
         MotorPair wheels
-        wheels:MakePair(wheels:PAIR_1, port:A, port:B)
         wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
         wheels:RunForTime(0, 2000)
     */
     action RunForTime(integer steering, integer duration)
@@ -229,8 +230,8 @@ class MotorPair
         Port port
         Motor motor
         MotorPair wheels
-        wheels:MakePair(wheels:PAIR_1, port:A, port:B)
         wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
         wheels:RunForTime(0, 2000, 360, motor:BRAKE, 5400, 5400)
     */
     action RunForTime(integer steering, integer duration, integer velocity, integer brakingMode, integer acceleration, integer deceleration)
@@ -255,8 +256,8 @@ class MotorPair
         use Libraries.Robots.Spike.Port
         Port port
         MotorPair wheels
-        wheels:MakePair(wheels:PAIR_1, port:A, port:B)
         wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
         wheels:RunTank(360, 360, 5400)
     */
     action RunTank(integer leftVelocity, integer rightVelocity, integer acceleration)
@@ -280,8 +281,8 @@ class MotorPair
         use Libraries.Robots.Spike.Port
         Port port
         MotorPair wheels
-        wheels:MakePair(wheels:PAIR_1, port:A, port:B)
         wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
         wheels:RunTankForDegrees(360, 360, 720)
     */
     action RunTankForDegrees(integer leftVelocity, integer rightVelocity, integer degrees)
@@ -312,8 +313,8 @@ class MotorPair
         Port port
         Motor motor
         MotorPair wheels
-        wheels:MakePair(wheels:PAIR_1, port:A, port:B)
         wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
         wheels:RunTankForDegrees(360, 360, 720, motor:BRAKE, 5400, 5400)
     */
     action RunTankForDegrees(integer leftVelocity, integer rightVelocity, integer degrees, integer brakingMode, integer acceleration, integer deceleration)
@@ -337,8 +338,8 @@ class MotorPair
         use Libraries.Robots.Spike.Port
         Port port
         MotorPair wheels
-        wheels:MakePair(wheels:PAIR_1, port:A, port:B)
         wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
         wheels:RunTankForTime(360, 360, 2000)
     */
     action RunTankForTime(integer leftVelocity, integer rightVelocity, integer duration)
@@ -369,8 +370,8 @@ class MotorPair
         Port port
         Motor motor
         MotorPair wheels
-        wheels:MakePair(wheels:PAIR_1, port:A, port:B)
         wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
         wheels:RunTankForTime(360, 360, 2000, motor:BRAKE, 5400, 5400)
     */
     action RunTankForTime(integer leftVelocity, integer rightVelocity, integer duration, integer brakingMode, integer acceleration, integer deceleration)
@@ -392,8 +393,8 @@ class MotorPair
         Port port
         Motor motor
         MotorPair wheels
-        wheels:MakePair(wheels:PAIR_1, port:A, port:B)
         wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
         wheels:Run(0)
         hb:Sleep(1000)
         wheels:Stop()
@@ -418,8 +419,8 @@ class MotorPair
         Port port
         Motor motor
         MotorPair wheels
-        wheels:MakePair(wheels:PAIR_1, port:A, port:B)
         wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
         wheels:Run(0)
         hb:Sleep(1000)
         wheels:Stop(motor:BRAKE)
