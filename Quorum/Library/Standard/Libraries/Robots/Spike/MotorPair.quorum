@@ -381,17 +381,15 @@ class MotorPair
 
 
     /*
-        Stops the motor from running
+        Stops the motor pair from running with the default braking mode
 
         Attribute: Example
 
         use Libraries.Robots.Spike.Hub
         use Libraries.Robots.Spike.MotorPair
-        use Libraries.Robots.Spike.Motor
         use Libraries.Robots.Spike.Port
         Hub hb
         Port port
-        Motor motor
         MotorPair wheels
         wheels:SetPair(wheels:PAIR_1)
         wheels:SetPorts(port:A, port:B)
@@ -405,7 +403,7 @@ class MotorPair
     private system action StopNative
 
     /*
-        Stops the motor from running with the provided braking mode
+        Stops the motor pair from running with the provided braking mode
         Available braking modes, as Motor constants, are: COAST, BRAKE, HOLD, CONTINUE, SMART_COAST, or SMART_BRAKE
 
         Attribute: Parameter brakingMode The braking mode to use when stopping the motor
