@@ -10,7 +10,14 @@ package Libraries.Robots.Spike
     wheel:Run(360)
 */
 class Motor
-    
+    // Constants for different braking modes
+    public constant integer COAST = 0
+    public constant integer BRAKE = 1
+    public constant integer HOLD = 2
+    public constant integer CONTINUE = 3
+    public constant integer SMART_COAST = 4
+    public constant integer SMART_BRAKE = 5
+
     /*
         Returns the port number of the motor
 
@@ -228,6 +235,26 @@ class Motor
         StopNative()
     end
     private system action StopNative
+
+    /*
+        Stops the motor from running with the provided braking mode
+        Available braking modes are: COAST, BRAKE, HOLD, CONTINUE, SMART_COAST, or SMART_BRAKE
+
+        Attribute: Parameter brakingMode The braking mode to use when stopping the motor
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        use Libraries.Robots.Spike.Hub
+        Motor wheel
+        Hub hb
+        wheel:Run(360)
+        hb:Sleep(1000)
+        wheel:Stop(wheel:BRAKE)
+    */
+    action Stop(integer brakingMode)
+        StopNative(brakingMode)
+    end
+    private system action StopNative(integer brakingMode)
 
     /*
         Returns the velocity in degrees/second of the motor

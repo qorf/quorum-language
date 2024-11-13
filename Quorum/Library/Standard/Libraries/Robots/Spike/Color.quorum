@@ -1,0 +1,30 @@
+package Libraries.Robots.Spike
+
+
+/*
+    The color class holds preset color values for use with the Spike, such as
+    with the Light and ColorSensor libraries.
+
+    Attribute: Example
+
+    use Libraries.Robots.Spike.Light
+    use Libraries.Robots.Spike.Color
+    Color color
+    Light light
+    light:Color(light:POWER, color:BLUE)
+    light:Color(light:CONNECT, color:RED)
+*/
+class Color
+    public constant integer BLACK = 0
+    public constant integer MAGENTA  = 1
+    public constant integer PURPLE = 2
+    public constant integer BLUE = 3
+    public constant integer AZURE = 4
+    public constant integer TURQUOISE = 5
+    public constant integer GREEN = 6
+    public constant integer YELLOW = 7
+    public constant integer ORANGE = 8
+    public constant integer RED = 9
+    public constant integer WHITE = 10
+    public constant integer UNKNOWN = -1
+end
