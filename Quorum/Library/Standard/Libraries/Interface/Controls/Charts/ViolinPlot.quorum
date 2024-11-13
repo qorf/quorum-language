@@ -183,7 +183,6 @@ class ViolinPlot is Chart
                     if CheckIfInteger(minimum)
                         minimumLine:SetDescription(" " + cast(integer, minimum))
                     end 
-                    chartArea:Add(minimumLine:GetSelectionArrow())
 
                     // Interquartile Range Region Area
                     interQuartileRange:SetInputGroup("Chart")
@@ -195,17 +194,7 @@ class ViolinPlot is Chart
                     interQuartileRange:SetDescription(" " + iqr)
                     if CheckIfInteger(iqr)
                         interQuartileRange:SetDescription(" " + cast(integer, iqr))
-                    end
-                    chartArea:Add(interQuartileRange:GetSelectionArrow())
-                    Drawable topBrack
-                    interQuartileRange:GetSelectionBracket():Add(topBrack)
-                    chartArea:Add(topBrack)
-                    Drawable sideBrack
-                    interQuartileRange:GetSelectionBracket():Add(sideBrack) 
-                    chartArea:Add(sideBrack)
-                    Drawable bottomBrack
-                    interQuartileRange:GetSelectionBracket():Add(bottomBrack) 
-                    chartArea:Add(bottomBrack)   
+                    end 
     
                     // Lower Quartile Line Q1
                     firstQuartileLine:SetInputGroup("Chart")
@@ -217,8 +206,7 @@ class ViolinPlot is Chart
                     firstQuartileLine:SetDescription(" " + firstQ)
                     if CheckIfInteger(firstQ)
                         firstQuartileLine:SetDescription(" " + cast(integer, firstQ))
-                    end
-                    chartArea:Add(firstQuartileLine:GetSelectionArrow())                    
+                    end                  
     
                     // Median dot (denser) 
                     medianDot:SetInputGroup("Chart")
@@ -231,7 +219,6 @@ class ViolinPlot is Chart
                     if CheckIfInteger(median)
                         medianDot:SetDescription(" " + cast(integer, median))
                     end
-                    chartArea:Add(medianDot:GetSelectionArrow())
     
                     // Upper Quartile Line Q3
                     thirdQuartileLine:SetInputGroup("Chart")
@@ -244,7 +231,6 @@ class ViolinPlot is Chart
                     if CheckIfInteger(thirdQ)
                         thirdQuartileLine:SetDescription(" " + cast(integer, thirdQ))
                     end
-                    chartArea:Add(thirdQuartileLine:GetSelectionArrow())
     
                     // Maximum Line
                     maximumLine:SetInputGroup("Chart")
@@ -257,7 +243,6 @@ class ViolinPlot is Chart
                     if CheckIfInteger(maximum)
                         maximumLine:SetDescription(" " + cast(integer, maximum))
                     end
-                    chartArea:Add(maximumLine:GetSelectionArrow())
                 end
     
                 // Add to chart
@@ -352,9 +337,6 @@ class ViolinPlot is Chart
                     end
                 end
 
-                // Set selection arrow for plot
-                chartArea:Add(plot:GetSelectionArrow())
-
                 // Set Navigation Instruction for first plot item (minimum)
                 AddPlotItemInstructions(minimumLine, minimumLine:GetDescription())
                 k = k + 1
@@ -372,19 +354,6 @@ class ViolinPlot is Chart
             if i = 0
                 AddGroupPanelInstructions(group, group:GetDescription())
             end
-            chartArea:Add(group:GetSelectionArrow())
-
-            Drawable top
-            group:GetSelectionBracket():Add(top)
-            chartArea:Add(top)
-
-            Drawable side
-            group:GetSelectionBracket():Add(side) 
-            chartArea:Add(side)
-
-            Drawable bottom
-            group:GetSelectionBracket():Add(bottom) 
-            chartArea:Add(bottom)  
 
             GetGroupPanels():Add(group)
             i = i + 1

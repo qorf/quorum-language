@@ -238,8 +238,11 @@ class BarChartLayout is SharedBarChartLayout
                     end 
 
                     // Load and place the bar selection arrow
-                    integer arrowSize = cast(integer, barWidth/4)
-                    LoadChartDrawableSelectionArrow(chart, currentBar, arrowSize, false)
+                    if horizontal
+                        SetChartDrawableSelectionArrow(currentBar, cast(integer, barWidth/4), false)
+                    else
+                        SetChartDrawableSelectionArrow(currentBar, cast(integer, barWidth/4), true)
+                    end
                     j = j + 1
                 end
                 
@@ -269,7 +272,19 @@ class BarChartLayout is SharedBarChartLayout
                     end
                 end
                 // Load and place the group selection bracket/arrow
-                LoadGroupSelectionBracketAndArrow(chart, currentGroup)
+                integer arrowSize = cast(integer, currentGroup:GetHeight()/8)
+                if horizontal
+                    arrowSize = cast(integer, currentGroup:GetHeight()/8)
+                    if arrowSize < tickHeight*2
+                        arrowSize = tickHeight*2
+                    end
+                else
+                    arrowSize = cast(integer, currentGroup:GetWidth()/8)
+                    if arrowSize < tickWidth*2
+                        arrowSize = tickWidth*2
+                    end
+                end
+                SetChartDrawableSelectionBracketAndArrow(currentGroup, arrowSize, false)
 
                 currentYPosition = resetYPosition
                 negativeYPosition = resetYPosition

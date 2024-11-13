@@ -206,6 +206,12 @@ class Chart is ChartItem
     // Toggle Touch Exploration versus Gesture-based Structured Chart Navigation
     boolean touchExplorationEnabled = false
 
+    // Single set of brackets and arrows reused for all selectable elements that would need them
+    Array <Drawable> selectionBracket //may or may not be used
+    Drawable selectionArrow //may or may not be used
+    integer currentArrowSize = -1
+    boolean currentSideArrow = false
+
     on create
         CheckPlatformInstructions()
         chartArea:SetName("Chart Area")
@@ -268,6 +274,48 @@ class Chart is ChartItem
             verticalPanel:ShowGroupBrackets(true)
             horizontalPanel:ShowGroupBrackets(true)
         end
+
+        // Load the arrow and brackets
+        //initially hidden and resized, arbitrary triangle
+        Array<number> vertices
+        integer tempArrowSize = 65
+        vertices:Add(tempArrowSize)
+        vertices:Add(0)
+        vertices:Add(tempArrowSize*2)
+        vertices:Add(tempArrowSize)
+        vertices:Add(0)
+        vertices:Add(tempArrowSize)
+        selectionArrow:LoadShape(vertices, GetSelectionColor())
+        selectionArrow:Hide()
+        selectionArrow:SetZ(-1)
+        Add(selectionArrow)
+
+        //initially hidden and resized when new focus is found, arbitrary 3 rectangles
+        Drawable top
+        top:LoadFilledRectangle(0, 0, GetSelectionColor())
+        top:SetPosition(0, 0)
+        top:Hide()
+        top:SetZ(-1)
+        Add(top)
+
+        Drawable side
+        side:LoadFilledRectangle(0, 0, GetSelectionColor())
+        side:SetPosition(0, 0)
+        side:Hide()
+        side:SetZ(-1)
+        Add(side)
+
+        Drawable bottom
+        bottom:LoadFilledRectangle(0, 0, GetSelectionColor())
+        bottom:SetPosition(0, 0)
+        bottom:Hide()
+        bottom:SetZ(-1)
+        Add(bottom)
+
+        selectionBracket:Add(top)
+        selectionBracket:Add(side)
+        selectionBracket:Add(bottom)
+
 
         // Load sub chart areas and sub axis panels
         if numberOfChartAreas > 1
@@ -3374,14 +3422,14 @@ class Chart is ChartItem
                 target:Hide()
             elseif target is GroupPanel
                 GroupPanel temp = cast(GroupPanel, target)  
-                if temp:GetSelectionArrow() not= undefined          
-                    temp:GetSelectionArrow():Hide()
-                end
-                if temp:GetSelectionBracket():GetSize() = 3          
-                    temp:GetSelectionBracket():Get(0):Hide()
-                    temp:GetSelectionBracket():Get(1):Hide()
-                    temp:GetSelectionBracket():Get(2):Hide()
-                end
+//                if temp:GetSelectionArrow() not= undefined          
+//                    temp:GetSelectionArrow():Hide()
+//                end
+//                if temp:GetSelectionBracket():GetSize() = 3          
+//                    temp:GetSelectionBracket():Get(0):Hide()
+//                    temp:GetSelectionBracket():Get(1):Hide()
+//                    temp:GetSelectionBracket():Get(2):Hide()
+//                end
             elseif target is ChartDrawable
                 // Do nothing. Let the ChartDrawable handle itself.
             elseif target is Drawable
@@ -3451,15 +3499,7 @@ class Chart is ChartItem
             elseif target is RegressionLinePointMarker
                 target:Show()
             elseif target is GroupPanel
-                GroupPanel temp = cast(GroupPanel, target)  
-                if temp:GetSelectionArrow() not= undefined          
-                    temp:GetSelectionArrow():Show()
-                end
-                if temp:GetSelectionBracket():GetSize() = 3          
-                    temp:GetSelectionBracket():Get(0):Show()
-                    temp:GetSelectionBracket():Get(1):Show()
-                    temp:GetSelectionBracket():Get(2):Show()
-                end
+                // Removed
             elseif target is ChartDrawable
                 // Do nothing by default. The ChartDrawable handles its own selection event.
             elseif target is Drawable
@@ -4263,6 +4303,60 @@ class Chart is ChartItem
             selectionColor:SetAlpha(0)
         end
         SetSelectionColor(selectionColor)
+    end
+
+    /*
+        This action gets the selection bracket (Array<Drawable>).
+
+        Attribute: Returns the Array<Dawable> of the selection bracket.
+    */
+    action GetSelectionBracket returns Array<Drawable> 
+        return selectionBracket
+    end
+
+    /*
+        This action gets chart drawables selection arrow drawable object.
+
+        Attribute: Returns the charts slection arrow object.
+    */
+    action GetSelectionArrow returns Drawable
+        return selectionArrow
+    end
+
+    /*
+        This action gets the current size of the selection arrow.
+
+        Attribute: Returns the current size of the selection arrow.
+    */
+    action GetCurrentArrowSize returns integer
+        return currentArrowSize
+    end
+
+    /*
+        This action sets the current size of the selection arrow.
+
+        Attribute: Parameter currentArrowSize The current size of the selection arrow.
+    */
+    action SetCurrentArrowSize(integer currentArrowSize)
+        me:currentArrowSize = currentArrowSize
+    end
+
+    /*
+        This action gets the current arrow's flag for direction.
+
+        Attribute: Returns the current arrow's flag for direction.
+    */
+    action GetCurrentSideArrow returns boolean
+        return currentSideArrow
+    end
+
+    /*
+        This action sets the current arrow's flag for direction.
+
+        Attribute: Parameter currentSideArrow The current arrow's flag for direction.
+    */
+    action SetCurrentSideArrow(boolean currentSideArrow)
+        me:currentSideArrow = currentSideArrow
     end
 
 end
