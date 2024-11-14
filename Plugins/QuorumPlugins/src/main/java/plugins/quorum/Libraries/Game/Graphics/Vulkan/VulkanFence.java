@@ -56,5 +56,9 @@ public class VulkanFence
         vkResetFences(pluginDevice.GetDevice(), fenceHandle);
     }
 
+    public long GetFenceHandle()
+    {
+        return fenceHandle;
+    }
 
 }

@@ -784,6 +784,9 @@ class Game
         if gl20 is OpenGLManager
             OpenGLManager openGL = cast(OpenGLManager, gl20)
             openGL:ClearScreen(16640)
+        elseif gl20 is VulkanGraphics
+            VulkanGraphics vulkan = cast(VulkanGraphics, gl20)
+            vulkan:BeginNextFrame()
         end
     end
 
@@ -821,7 +824,7 @@ if gl20 is OpenGLManager
         end
 
         ClearScreen()
-        DrawAll()
+//        DrawAll()
 
         // Process pending screenshots, if there are any (which most of the time, there won't be).
         ProcessScreenshots()
@@ -2382,9 +2385,6 @@ if gl20 is OpenGLManager
         // TO-DO: Consider moving this elsewhere. This needs to happen as a first step in initializing graphics before Painters are made, which occurs when creating layers.
         GraphicsManager graphics = manager:GetGameGraphics()
         // It's not clear yet if Vulkan will use the default vertex array in the same way OpenGL does for performance gain.
-        if true
-            alert("Stopped in InitializeLayers")
-        end
         if graphics is OpenGLManager
             OpenGLManager openGL = cast(OpenGLManager, graphics)
             openGL:UseDefaultVertexArray()

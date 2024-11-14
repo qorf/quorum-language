@@ -202,6 +202,7 @@ public class DesktopDisplay {
     {
         if (useVulkan && IsVulkanSupported() == false)
         {
+            System.out.println("Couldn't start display! useVulkan = " + useVulkan + ", is supported = " + IsVulkanSupported());
             return false;
         }
 

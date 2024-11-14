@@ -11,6 +11,9 @@ class VulkanClearValue
     
     integer stencil = -1
 
+    // Indicates if the Vulkan layer needs to update its values to match this.
+    boolean isDirty = true
+
     action SetColor(number red, number green, number blue)
         SetColor(red, green, blue, 1.0)
     end
@@ -20,6 +23,8 @@ class VulkanClearValue
         me:green = green
         me:blue = blue
         me:alpha = alpha
+
+        isDirty = true
     end
 
     action GetRed returns number
@@ -28,6 +33,8 @@ class VulkanClearValue
 
     action SetRed(number red)
         me:red = red
+
+        isDirty = true
     end
 
     action GetGreen returns number
@@ -36,6 +43,8 @@ class VulkanClearValue
 
     action SetGreen(number green)
         me:green = green
+
+        isDirty = true
     end
 
     action GetBlue returns number
@@ -44,6 +53,8 @@ class VulkanClearValue
 
     action SetBlue(number blue)
         me:blue = blue
+
+        isDirty = true
     end
 
     action GetAlpha returns number
@@ -52,6 +63,8 @@ class VulkanClearValue
 
     action SetAlpha(number alpha)
         me:alpha = alpha
+
+        isDirty = true
     end
 
     action GetDepth returns number
@@ -60,6 +73,8 @@ class VulkanClearValue
 
     action SetDepth(number depth)
         me:depth = depth
+
+        isDirty = true
     end
 
     action GetStencil returns integer
@@ -68,6 +83,33 @@ class VulkanClearValue
 
     action SetStencil(integer stencil)
         me:stencil = stencil
+
+        isDirty = true
     end
+
+    action IsDirty returns boolean
+        return isDirty
+    end
+
+    action ResetDirtyFlag
+        SetNativeValues()
+        isDirty = false
+    end
+
+    private system action SetNativeValues
+
+    action Dispose
+        red = -1
+        green = -1
+        blue = -1
+        alpha = -1
+        depth = -1
+        stencil = -1
+        isDirty = true
+
+        DisposeNative()
+    end
+
+    private system action DisposeNative
 
 end

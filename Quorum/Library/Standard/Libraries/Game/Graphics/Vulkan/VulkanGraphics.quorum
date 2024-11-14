@@ -2,6 +2,7 @@ package Libraries.Game.Graphics.Vulkan
 
 use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Containers.Number32BitArray
+use Libraries.Game.Graphics.Vulkan.Commands.all
 use Libraries.Game.Graphics.Shaders.ShaderProgram
 use Libraries.Game.GameStateManager
 use Libraries.Game.DesktopApplication
@@ -19,10 +20,12 @@ class VulkanGraphics is GraphicsManager
     VulkanQueue presentationQueue = undefined
     VulkanSwapchain swapchain = undefined
     VulkanCommandPool commandPool = undefined
+    VulkanRenderPass renderPass = undefined
 
     // Resources used to control rendering for each of the images of the swapchain.
     Array<VulkanCommandBuffer> renderCommandBuffers
     Array<VulkanFence> renderFences
+    Array<VulkanFramebuffer> swapchainFramebuffers
 
     // Resources used for managing the timing of image usage from the swapchain.
     Array<VulkanSemaphore> imageAcquiredSemaphores
@@ -32,12 +35,14 @@ class VulkanGraphics is GraphicsManager
     integer currentSwapchainIndex = -1
     VulkanCommandBuffer currentRenderCommandBuffer = undefined
     VulkanFence currentRenderFence = undefined
+    VulkanFramebuffer currentFramebuffer
     
     // The clear color, or in otherwords, the background color of the screen.
     VulkanClearValue clearValue
 
     on create
-        clearValue:SetColor(0.85, 0.85, 0.85, 1.0)
+//        clearValue:SetColor(0.85, 0.85, 0.85, 1.0)
+        clearValue:SetColor(0.85, 1.0, 0.85, 1.0)
     end
     
     /*
@@ -227,6 +232,7 @@ class VulkanGraphics is GraphicsManager
 
         output "Creating RenderPass..."
         VulkanRenderPass renderPass
+        me:renderPass = renderPass
         success = renderPass:Create(device, attachmentDescriptions, subpassDescriptions, subpassDependencies)
         output "Created RenderPass, success = " + success
         if not success
@@ -236,6 +242,7 @@ class VulkanGraphics is GraphicsManager
 
         output "Creating FrameBuffers..."
         Array<VulkanFramebuffer> swapchainFramebuffers
+        me:swapchainFramebuffers = swapchainFramebuffers
         i = 0
         repeat while i < swapchain:GetImageCount()
             VulkanImageView imageView = swapchain:GetImageView(i)
@@ -245,6 +252,7 @@ class VulkanGraphics is GraphicsManager
             VulkanFramebuffer framebuffer
             success = framebuffer:Create(device, imageViewArray, renderPass)
             if not success
+                output "Failed to create framebuffer!"
                 return false
             end
 
@@ -260,6 +268,7 @@ class VulkanGraphics is GraphicsManager
             VulkanCommandBuffer renderCommandBuffer
             success = renderCommandBuffer:Create(device, commandPool)
             if not success
+                output "Failed to create render command buffer!"
                 return false
             end
             renderCommandBuffers:Add(renderCommandBuffer)
@@ -267,6 +276,7 @@ class VulkanGraphics is GraphicsManager
             VulkanFence renderFence
             success = renderFence:Create(device, true)
             if not success
+                output "Failed to create render fence!"
                 return false
             end
             renderFences:Add(renderFence)
@@ -281,6 +291,7 @@ class VulkanGraphics is GraphicsManager
             VulkanSemaphore imageRenderCompleteSemaphore
             success = imageRenderCompleteSemaphore:Create(device)
             if not success
+                output "Failed to create image rendering semaphore!"
                 return false
             end
             imageRenderCompleteSemaphores:Add(imageRenderCompleteSemaphore)
@@ -288,6 +299,7 @@ class VulkanGraphics is GraphicsManager
             i = i + 1
         end
 
+        output "Successfully created VulkanGraphics!"
         return true
     end
 
@@ -298,7 +310,8 @@ class VulkanGraphics is GraphicsManager
     action BeginNextFrame
         currentSwapchainIndex = (currentSwapchainIndex + 1) mod swapchain:GetImageCount()
         currentRenderCommandBuffer = renderCommandBuffers:Get(currentSwapchainIndex)
-        currentRenderFence = renderFences:Get(currentSwapchainIndex)        
+        currentRenderFence = renderFences:Get(currentSwapchainIndex)     
+        currentFramebuffer = swapchainFramebuffers:Get(currentSwapchainIndex)   
 
         // Ensure that all work associated with this image has previously finished.
         currentRenderFence:Wait()
@@ -313,9 +326,82 @@ class VulkanGraphics is GraphicsManager
 
         // Reset the render command buffer. In this case, we'll instruct the command buffer not to release memory (it might reuse it, depending on local implementation, or just ditch it anyway)
         currentRenderCommandBuffer:Reset()
+
+
+        // Ensure the screen clearing value is ready for use.
+        if clearValue:IsDirty()
+            clearValue:ResetDirtyFlag()
+        end
+
+        
+        // Begin recording commands for our chosen command buffer.
+        currentRenderCommandBuffer:BeginRecording()
+
+
+        // Create the command to begin the render pass.
+        BeginRenderPassCommand beginRenderPass
+        beginRenderPass:SetRenderPass(renderPass)
+        beginRenderPass:SetClearValue(clearValue)
+        beginRenderPass:SetFramebuffer(currentFramebuffer)
+        beginRenderPass:SetRenderArea(swapchain:GetImageWidth(), swapchain:GetImageHeight())
+        currentRenderCommandBuffer:Record(beginRenderPass)
+
+        // NEXT STEP: Bind pipeline command
+//        BindPipelineCommand bindPipeline
+//        bindPipeline:SetPipeline(pipeline)
+
+        // Set viewport command
+        // Setting the position to the height and the height to the negated height flips the Y axis of our viewport.
+        SetViewportCommand setViewport
+        setViewport:SetPosition(0, swapchain:GetImageHeight())
+        setViewport:SetSize(swapchain:GetImageWidth(), -swapchain:GetImageHeight())
+        currentRenderCommandBuffer:Record(setViewport)
+
+        // Set scissor command
+        SetScissorCommand setScissor
+        setScissor:SetPosition(0, 0)
+        setScissor:SetSize(swapchain:GetImageWidth(), swapchain:GetImageHeight())
+        currentRenderCommandBuffer:Record(setScissor)
+
+        // End the render pass.
+        EndRenderPassCommand endRenderPass
+        currentRenderCommandBuffer:Record(endRenderPass)
+
+        // Stop recording commands.
+        currentRenderCommandBuffer:EndRecording()
+
+
+        // TO-DO: Recreating these arrays every frame is going to be an issue. Consider reusing them or making a pool for the SubmitInfo.
+        VulkanSubmitInfo submitInfo
+        Array<VulkanCommandBuffer> commandBuffers
+        Array<VulkanSemaphore> signalSemaphores
+        Array<VulkanSemaphore> waitSemaphores
+        Array<integer> waitDestinationStageMasks
+
+        VulkanConstants constants
+        commandBuffers:Add(currentRenderCommandBuffer)
+        signalSemaphores:Add(imageRenderCompleteSemaphores:Get(currentSwapchainIndex))
+        waitSemaphores:Add(imageAcquiredSemaphores:Get(currentSwapchainIndex))
+        waitDestinationStageMasks:Add(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
+        
+        submitInfo:SetCommandBuffers(commandBuffers)
+        submitInfo:SetSignalSemaphores(signalSemaphores)
+        submitInfo:SetWaitSemaphores(waitSemaphores)
+        submitInfo:SetWaitDestinationStageMasks(waitDestinationStageMasks)
+        submitInfo:SetFence(currentRenderFence)
+
+        graphicsQueue:SubmitCommands(submitInfo)
+
+        // This will need to move in the future, but this can be here while testing initial screen clearing.
     end
 
     private system action PrepareNextSwapchainImage(VulkanDevice device, VulkanSwapchain swapchain, VulkanSemaphore semaphore) returns boolean
+
+    action DisplayCurrentImage
+        DisplayCurrentImageNative(presentationQueue, swapchain, imageRenderCompleteSemaphores:Get(currentSwapchainIndex), currentSwapchainIndex)
+    end
+
+    private system action DisplayCurrentImageNative(VulkanQueue presentQueue, VulkanSwapchain swapchain, VulkanSemaphore waitSemaphore, integer imageIndex) returns boolean
 
     private action RegenerateSwapchain
         alert("NYI")

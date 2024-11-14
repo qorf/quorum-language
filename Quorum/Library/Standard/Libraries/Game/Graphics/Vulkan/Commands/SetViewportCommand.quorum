@@ -1,0 +1,85 @@
+package Libraries.Game.Graphics.Vulkan.Commands
+
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+
+class SetViewportCommand is VulkanCommand
+
+    integer x = 0
+    integer y = 0
+    integer height = 0
+    integer width = 0
+    
+    number minimumDepth = 0.0
+    number maximumDepth = 1.0
+
+    /*
+    This action records this command into the provided command buffer.
+    The command buffer must already be open for recording using the
+    buffer's "BeginRecording" action.
+    */
+    system action Record(VulkanCommandBuffer buffer)
+
+    action SetPosition(integer x, integer y)
+        SetX(x)
+        SetY(y)
+    end
+
+    action SetSize(integer width, integer height)
+        SetWidth(width)
+        SetHeight(height)
+    end
+
+    action SetDepthRange(number minimum, number maximum)
+        SetMinimumDepth(minimum)
+        SetMaximumDepth(maximum)
+    end
+
+    action GetX returns integer
+        return x
+    end
+
+    action SetX(integer x)
+        me:x = x
+    end
+
+    action GetY returns integer
+        return y
+    end
+
+    action SetY(integer y)
+        me:y = y
+    end
+
+    action GetHeight returns integer
+        return height
+    end
+
+    action SetHeight(integer height)
+        me:height = height
+    end
+
+    action GetWidth returns integer
+        return width
+    end
+
+    action SetWidth(integer width)
+        me:width = width
+    end
+
+    action GetMinimumDepth returns number
+        return minimumDepth
+    end
+
+    action SetMinimumDepth(number minimumDepth)
+        me:minimumDepth = minimumDepth
+    end
+
+    action GetMaximumDepth returns number
+        return maximumDepth
+    end
+
+    action SetMaximumDepth(number maximumDepth)
+        me:maximumDepth = maximumDepth
+    end
+
+end

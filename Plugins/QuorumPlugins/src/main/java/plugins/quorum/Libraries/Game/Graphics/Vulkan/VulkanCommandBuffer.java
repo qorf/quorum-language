@@ -4,8 +4,10 @@ import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkCommandBuffer;
 import org.lwjgl.vulkan.VkCommandBufferAllocateInfo;
+import org.lwjgl.vulkan.VkCommandBufferBeginInfo;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanCommandPool_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanRenderPass_;
 
 import static org.lwjgl.vulkan.VK10.*;
 
@@ -37,6 +39,28 @@ public class VulkanCommandBuffer
         }
 
         return true;
+    }
+
+    public boolean BeginRecording()
+    {
+
+        try (MemoryStack stack = MemoryStack.stackPush())
+        {
+            VkCommandBufferBeginInfo beginInfo = VkCommandBufferBeginInfo.calloc(stack);
+            beginInfo.sType$Default();
+
+            int vulkanResult = vkBeginCommandBuffer(commandBuffer, beginInfo);
+            if (vulkanResult != VK_SUCCESS)
+                return false;
+        }
+
+        return true;
+    }
+
+    public boolean EndRecording()
+    {
+        int vulkanResult = vkEndCommandBuffer(commandBuffer);
+        return vulkanResult == VK_SUCCESS;
     }
 
     public void Reset(boolean releaseResources)

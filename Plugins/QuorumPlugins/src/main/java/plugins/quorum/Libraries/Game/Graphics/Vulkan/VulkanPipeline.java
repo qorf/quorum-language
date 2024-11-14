@@ -195,4 +195,9 @@ public class VulkanPipeline
 
         return true;
     }
+
+    public long GetPipelineHandle()
+    {
+        return vulkanPipelineHandle;
+    }
 }

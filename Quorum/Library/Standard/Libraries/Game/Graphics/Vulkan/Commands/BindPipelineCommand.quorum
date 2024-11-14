@@ -1,0 +1,35 @@
+package Libraries.Game.Graphics.Vulkan.Commands
+
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
+use Libraries.Game.Graphics.Vulkan.VulkanPipeline
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+
+class BindPipelineCommand is VulkanCommand
+
+    VulkanPipeline pipeline = undefined
+    integer bindPoint = 0
+
+    on create
+        VulkanConstants constants
+        bindPoint = constants:PIPELINE_BIND_POINT_GRAPHICS
+    end
+
+    system action Record(VulkanCommandBuffer buffer)
+
+    action GetPipeline returns VulkanPipeline
+        return pipeline
+    end
+
+    action SetPipeline(VulkanPipeline pipeline)
+        me:pipeline = pipeline
+    end
+
+    action GetBindPoint returns integer
+        return bindPoint
+    end
+
+    action SetBindPoint(integer bindPoint)
+        me:bindPoint = bindPoint
+    end
+
+end

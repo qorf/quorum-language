@@ -1,0 +1,76 @@
+package Libraries.Game.Graphics.Vulkan.Commands
+
+use Libraries.Game.Graphics.Vulkan.all
+
+class BeginRenderPassCommand is VulkanCommand
+
+    VulkanRenderPass renderPass = undefined
+    VulkanClearValue clearValue = undefined
+    VulkanFramebuffer framebuffer = undefined
+    
+    integer renderAreaWidth = -1
+    integer renderAreaHeight = -1
+
+    integer commandType = 0
+
+    on create
+        VulkanConstants constants
+        commandTypes = constants:SUBPASS_CONTENTS_INLINE
+    end
+    
+    system action Record(VulkanCommandBuffer buffer)
+
+    action GetRenderPass returns VulkanRenderPass
+        return renderPass
+    end
+
+    action SetRenderPass(VulkanRenderPass renderPass)
+        me:renderPass = renderPass
+    end
+
+    action GetClearValue returns VulkanClearValue
+        return clearValue
+    end
+
+    action SetClearValue(VulkanClearValue clearValue)
+        me:clearValue = clearValue
+    end
+
+    action GetFramebuffer returns VulkanFramebuffer
+        return framebuffer
+    end
+
+    action SetFramebuffer(VulkanFramebuffer framebuffer)
+        me:framebuffer = framebuffer
+    end
+
+    action GetRenderAreaWidth returns integer
+        return renderAreaWidth
+    end
+
+    action GetRenderAreaHeight returns integer
+        return renderAreaHeight
+    end
+
+    action SetRenderArea(integer width, integer height)
+        renderAreaWidth = width
+        renderAreaHeight = height
+    end
+
+    action SetCommandType(integer type)
+        commandType = type
+    end
+
+    action GetCommandType returns integer
+        return commandType
+    end
+
+    action SetRenderAreaWidth(integer renderAreaWidth)
+        me:renderAreaWidth = renderAreaWidth
+    end
+
+    action SetRenderAreaHeight(integer renderAreaHeight)
+        me:renderAreaHeight = renderAreaHeight
+    end
+
+end

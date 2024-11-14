@@ -1,5 +1,7 @@
 package Libraries.Game.Graphics.Vulkan
 
+use Libraries.Game.Graphics.Vulkan.Commands.VulkanCommand
+
 class VulkanCommandBuffer
 
     VulkanDevice device = undefined
@@ -27,10 +29,43 @@ class VulkanCommandBuffer
 
     private system action CreateNative(VulkanDevice device, VulkanCommandPool commandPool, integer level) returns boolean
 
+    action Dispose
+        alert("NYI")
+    end
+
+    /*
+    This action resets the command buffer, removing any recorded commands from the buffer. This will also instruct the
+    system to release any internal resources it's using for the commands (but not the buffer itself -- for that, use the
+    Dispose action instead).
+    */
     action Reset
         Reset(true)
     end
 
+    /*
+    This action resets the command buffer, removing any recorded commands from the buffer. If the boolean value is true,
+    the system will also be instructed to release any internal resources it's using for the commands (but not the buffer itself -- for that, use the
+    Dispose action instead). If the value is false, the system may preserve some resources for future use, depending on
+    the graphics hardware's implementation.
+    */
     system action Reset(boolean releaseResources)
+
+    /*
+    This action instructs the buffer to begin recording commands. Commands are recorded using classes that inherit from the "VulkanCommand" class.
+    */
+    system action BeginRecording returns boolean
+
+    /*
+    This action closes the buffer, indicating the end of recorded commands.
+    */
+    system action EndRecording returns boolean
+
+    /*
+    This action will record a command into the command buffer. The command buffer must have already been set using the
+    BeginRecording command.
+    */
+    action Record(VulkanCommand command)
+        command:Record(me)
+    end
 
 end

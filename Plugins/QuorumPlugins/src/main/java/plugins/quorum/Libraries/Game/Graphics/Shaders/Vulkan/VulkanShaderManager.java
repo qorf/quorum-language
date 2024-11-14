@@ -1,8 +1,9 @@
-package plugins.quorum.Libraries.Game.Graphics.Shaders;
+package plugins.quorum.Libraries.Game.Graphics.Shaders.Vulkan;
 
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkDevice;
 import org.lwjgl.vulkan.VkShaderModuleCreateInfo;
+import plugins.quorum.Libraries.Game.Graphics.Shaders.Shader;
 import quorum.Libraries.Containers.ByteArray;
 import quorum.Libraries.Containers.ByteArray_;
 import quorum.Libraries.Game.Graphics.Shaders.Shader_;

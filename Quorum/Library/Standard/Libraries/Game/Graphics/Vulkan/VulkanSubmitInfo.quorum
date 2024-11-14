@@ -1,0 +1,64 @@
+package Libraries.Game.Graphics.Vulkan
+
+use Libraries.Containers.Array
+
+/*
+The VulkanSubmitInfo class contains all of the information needed by the Vulkan
+system to submit commands to a VulkanQueue. The class contains these parameters:
+1. An array of VulkanCommandBuffers. These are the lists of recorded commands that will be executed on this queue.
+2. An array of "signal" VulkanSemaphores. These semaphores will be set to signalled once the queued work is completed.
+3. An array of "wait" VulkanSemaphores. The work in this queue will not proceed past a wait semaphore until it has been signalled elsewhere.
+4. An array of pipeline destination stages, each one corresponding to one of the the wait semaphores. This indicates which stage a semaphore
+controls. For example, if the value at index 0 of this array is PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, then the queued commands cannot
+proceed into that stage of the Vulkan pipeline until the 0th-indexed wait semaphore has been signalled.
+5. A fence, which will be signalled once the submitted commands have finished.
+*/
+class VulkanSubmitInfo
+
+    Array<VulkanCommandBuffer> commandBuffers = undefined
+    Array<VulkanSemaphore> signalSemaphores = undefined
+    Array<VulkanSemaphore> waitSemaphores = undefined
+    Array<integer> waitDestinationStageMasks = undefined
+    VulkanFence fence = undefined
+
+    action GetCommandBuffers returns Array<VulkanCommandBuffer>
+        return commandBuffers
+    end
+
+    action SetCommandBuffers(Array<VulkanCommandBuffer> commandBuffers)
+        me:commandBuffers = commandBuffers
+    end
+
+    action GetSignalSemaphores returns Array<VulkanSemaphore>
+        return signalSemaphores
+    end
+
+    action SetSignalSemaphores(Array<VulkanSemaphore> signalSemaphores)
+        me:signalSemaphores = signalSemaphores
+    end
+
+    action GetWaitSemaphores returns Array<VulkanSemaphore>
+        return waitSemaphores
+    end
+
+    action SetWaitSemaphores(Array<VulkanSemaphore> waitSemaphores)
+        me:waitSemaphores = waitSemaphores
+    end
+
+    action GetWaitDestinationStageMasks returns Array<integer>
+        return waitDestinationStageMasks
+    end
+
+    action SetWaitDestinationStageMasks(Array<integer> waitDestinationStageMasks)
+        me:waitDestinationStageMasks = waitDestinationStageMasks
+    end
+
+    action GetFence returns VulkanFence
+        return fence
+    end
+
+    action SetFence(VulkanFence fence)
+        me:fence = fence
+    end
+
+end

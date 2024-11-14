@@ -24,4 +24,6 @@ class VulkanQueue
 
     private system action CreateNative(VulkanDevice device, VulkanQueueFamily family, integer queueIndex)
 
+    system action SubmitCommands(VulkanSubmitInfo info) returns boolean
+
 end

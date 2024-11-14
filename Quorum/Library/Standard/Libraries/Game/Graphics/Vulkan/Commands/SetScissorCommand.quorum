@@ -1,0 +1,61 @@
+package Libraries.Game.Graphics.Vulkan.Commands
+
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+
+class SetScissorCommand is VulkanCommand
+
+    integer x = 0
+    integer y = 0
+    integer width = 0
+    integer height = 0
+
+    /*
+    This action records this command into the provided command buffer.
+    The command buffer must already be open for recording using the
+    buffer's "BeginRecording" action.
+    */
+    system action Record(VulkanCommandBuffer buffer)
+
+    action SetPosition(integer x, integer y)
+        SetX(x)
+        SetY(y)
+    end
+
+    action SetSize(integer width, integer height)
+        SetWidth(width)
+        SetHeight(height)
+    end
+
+    action GetX returns integer
+        return x
+    end
+
+    action SetX(integer x)
+        me:x = x
+    end
+
+    action GetY returns integer
+        return y
+    end
+
+    action SetY(integer y)
+        me:y = y
+    end
+
+    action GetWidth returns integer
+        return width
+    end
+
+    action SetWidth(integer width)
+        me:width = width
+    end
+
+    action GetHeight returns integer
+        return height
+    end
+
+    action SetHeight(integer height)
+        me:height = height
+    end
+
+end

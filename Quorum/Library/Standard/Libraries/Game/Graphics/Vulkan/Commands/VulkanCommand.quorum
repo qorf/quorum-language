@@ -1,0 +1,14 @@
+package Libraries.Game.Graphics.Vulkan.Commands
+
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+
+class VulkanCommand
+
+    /*
+    This action records this command into the provided command buffer.
+    The command buffer must already be open for recording using the
+    buffer's "BeginRecording" action.
+    */
+    blueprint action Record(VulkanCommandBuffer buffer)
+
+end

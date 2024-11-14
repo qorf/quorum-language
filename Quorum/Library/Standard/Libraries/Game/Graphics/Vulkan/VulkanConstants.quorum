@@ -295,4 +295,11 @@ shared class VulkanConstants
     public constant integer BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_EXT = BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT
     public constant integer BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_KHR = BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT
     
+    /*
+    These constants represent how commands will be submitted to a VulkanCommandBuffer during a render pass.
+    */
+    public constant integer SUBPASS_CONTENTS_INLINE = 0
+    public constant integer SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS = 1
+    public constant integer SUBPASS_CONTENTS_INLINE_AND_SECONDARY_COMMAND_BUFFERS = 1000451000
+
 end
