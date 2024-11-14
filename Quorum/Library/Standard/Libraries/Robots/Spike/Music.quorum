@@ -1,0 +1,68 @@
+package Libraries.Robots.Spike
+
+class Music
+    // Constants for drums
+    public constant integer DRUM_SNARE = 1
+    public constant integer DRUM_BASS = 2
+    public constant integer DRUM_SIDE_STICK = 3
+    public constant integer DRUM_CRASH_CYMBAL = 4
+    public constant integer DRUM_OPEN_HI_HAT = 5
+    public constant integer DRUM_CLOSED_HI_HAT = 6
+    public constant integer DRUM_TAMBOURINE = 7
+    public constant integer DRUM_HAND_CLAP = 8
+    public constant integer DRUM_CLAVES = 9
+    public constant integer DRUM_WOOD_BLOCK = 10
+    public constant integer DRUM_COWBELL = 11
+    public constant integer DRUM_TRIANGLE = 12
+    public constant integer DRUM_BONGO = 13
+    public constant integer DRUM_CONGA = 14
+    public constant integer DRUM_CABASA = 15
+    public constant integer DRUM_GUIRO = 16
+    public constant integer DRUM_VIBRASLAP = 17
+    public constant integer DRUM_CUICA = 18
+
+    // Constants for instruments
+    public constant integer INSTRUMENT_PIANO = 1
+    public constant integer INSTRUMENT_ELECTRIC_PIANO = 2
+    public constant integer INSTRUMENT_ORGAN = 3
+    public constant integer INSTRUMENT_GUITAR = 4
+    public constant integer INSTRUMENT_ELECTRIC_GUITAR = 5
+    public constant integer INSTRUMENT_BASS = 6
+    public constant integer INSTRUMENT_PIZZICATO = 7
+    public constant integer INSTRUMENT_CELLO = 8
+    public constant integer INSTRUMENT_TROMBONE = 9
+    public constant integer INSTRUMENT_CLARINET = 10
+    public constant integer INSTRUMENT_SAXOPHONE = 11
+    public constant integer INSTRUMENT_FLUTE = 12
+    public constant integer INSTRUMENT_WOODEN_FLUTE = 13
+    public constant integer INSTRUMENT_BASSOON = 14
+    public constant integer INSTRUMENT_CHOIR = 15
+    public constant integer INSTRUMENT_VIBRAPHONE = 16
+    public constant integer INSTRUMENT_MUSIC_BOX = 17
+    public constant integer INSTRUMENT_STEEL_DRUM = 18
+    public constant integer INSTRUMENT_MARIMBA = 19
+    public constant integer INSTRUMENT_SYNTH_LEAD = 20
+    public constant integer INSTRUMENT_SYNTH_PAD = 21
+    
+    // The drum's value
+    action PlayDrum(int drum)
+        return PlayDrumNative(drum)
+    end
+    
+    private system action PlayDrumNative(drum)
+
+    /*
+        The instrument's value
+
+        note: int
+        The midi note to play (0-130)
+
+        duration: int
+        The duration in milliseconds
+    */
+    action PlayInstrument(int instrument, int note, int duration)
+        return PlayInstrumentNative(instrument, note, duration)
+    end
+    
+    private system action PlayInstrumentNative(instrument, note, duration)
+end
