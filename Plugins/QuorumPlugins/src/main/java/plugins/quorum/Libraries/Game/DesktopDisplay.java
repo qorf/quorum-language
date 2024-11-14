@@ -488,9 +488,12 @@ public class DesktopDisplay {
                     GLFW.glfwWaitEventsTimeout(minimum - interval);
                 interval = (System.nanoTime() - lastTime) / 1000000000.0;
             }
-        
-        
-        GLFW.glfwSwapBuffers(window);
+
+        // Only use the swap buffers command for OpenGL. Vulkan has its own separate way of presenting the images.
+        if (!usingVulkan)
+        {
+            GLFW.glfwSwapBuffers(window);
+        }
     }
 
     public ScreenResolution_ GetDesktopResolution()

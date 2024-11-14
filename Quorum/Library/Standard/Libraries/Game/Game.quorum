@@ -785,8 +785,10 @@ class Game
             OpenGLManager openGL = cast(OpenGLManager, gl20)
             openGL:ClearScreen(16640)
         elseif gl20 is VulkanGraphics
+            output "Beginning frame..."
             VulkanGraphics vulkan = cast(VulkanGraphics, gl20)
             vulkan:BeginNextFrame()
+            output "Frame started."
         end
     end
 
