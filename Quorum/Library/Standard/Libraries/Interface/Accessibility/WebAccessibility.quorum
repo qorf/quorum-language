@@ -95,6 +95,8 @@ class WebAccessibility is Accessibility
                         listeners:Get(i):FocusChanged(event)
             elseif eventType = event:SHADOW_DOM_FOCUSED
 listeners:Get(i):HiddenElementClicked(event)
+            elseif eventType = event:SLIDER_CHANGED
+                listeners:Get(i):SliderChanged(event)
 end
             i = i + 1
         end
@@ -104,13 +106,25 @@ end
         listeners:Add(listener)
     end
     
-    system action AddHiddenHeader(text name, text title)
+    action AddHiddenHeader(text name, text title)
+        AddHiddenHeader(name, title, false)
+    end
+    system action AddHiddenHeader(text name, text title, boolean attachToRoot)
     system action AddHiddenButton(text name)
-    system action AddHiddenLabel(text name, text words)
+    action AddHiddenLabel(text name, text words)
+        AddHiddenLabel(name, words, false)
+    end
+    system action AddHiddenLabel(text name, text words, boolean attachToRoot)
+    system action ModifyHiddenLabel(text name, text words)
     system action AddHiddenSlider(text name, integer min, integer max, integer step)
+    system action ModifyHiddenSlider(text name, integer min, integer max, integer step)
+    system action SetHiddenSliderValueText(text name, text value)
+    system action SetHiddenSliderCurrentValue(text name, integer value)
     
     system action FocusHiddenElement(text name)
+    system action SetHiddenOnElement(text id, boolean hide)
     system action ForceReleaseFocus
+    
 
     action IsScreenReaderListening returns boolean return false end
 end

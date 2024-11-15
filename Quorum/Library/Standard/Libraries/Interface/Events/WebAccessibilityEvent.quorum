@@ -8,8 +8,9 @@ public integer eventType = 0
     public Item focusedItem = undefined
     public constant integer BLUR = 1
     public constant integer FOCUSED = 2
-public constant integer SLIDER_UPDATED = 3
+public constant integer SLIDER_CHANGED = 3
     public constant integer SHADOW_DOM_FOCUSED = 4
+    public integer sliderValue = 0
     
     action GetEventType returns integer
         return eventType
@@ -21,6 +22,10 @@ public constant integer SLIDER_UPDATED = 3
     
     action GetItem returns Item
         return focusedItem
+    end
+    
+    action GetSliderValue returns integer
+        return sliderValue
     end
 
 end
