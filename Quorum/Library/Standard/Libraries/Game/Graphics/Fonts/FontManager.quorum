@@ -70,6 +70,7 @@ class FontManager
         availableWebFonts:Add("Lato")
         availableWebFonts:Add("FiraCode-Retina")
         availableWebFonts:Add("FiraCode-Regular")
+        
     end
 
 
@@ -420,7 +421,6 @@ this algorithm imperfectly predicts what is available based on the operating sys
     action GetFontFamily(text name) returns FontFamily
         if not hasCalculatedFontFamilies
             CalculateFontFamilies()
-            
         end
         return families:GetValue(name)
     end
@@ -431,6 +431,14 @@ This algorithm is quite imperfect, especially without the family name from FreeT
 */
 action CalculateFontFamilies
         hasCalculatedFontFamilies = true
+        Properties prop
+        if prop:IsWebBrowser()
+            FontFamily family
+            family:SetName("")
+            return now
+        end
+        
+        
                 Array<File> fonts = GetAvailableFonts()
         fonts:Sort(compare)
         
@@ -465,11 +473,11 @@ newName = newName:Replace("-", " ")
                         //mark it as finished with.
 used:Add(j, true)
                         if newName:Contains("bold") and newName:Contains("italic")
-                            family:SetBoldItalic(nextFile)
+                            family:SetBoldItalic(nextName)
                         elseif newName:Contains("bold")
-family:SetBold(nextFile)
+family:SetBold(nextName)
                         elseif newName:Contains("italic")
-family:SetItalic(nextFile)
+family:SetItalic(nextName)
                         end
                         //If not, it's not in the same family
                     else

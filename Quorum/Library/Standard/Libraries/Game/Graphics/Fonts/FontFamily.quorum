@@ -4,10 +4,10 @@ use Libraries.Game.Graphics.Font
 
 class FontFamily
     text name = ""
-    File default = undefined
-    File bold = undefined
-    File italic = undefined
-    File boldItalic = undefined
+    text default = undefined
+    text bold = undefined
+    text italic = undefined
+    text boldItalic = undefined
     
     action GetName returns text
         return name
@@ -17,23 +17,23 @@ class FontFamily
         me:name = name
     end
 
-    action GetDefault returns File
+    action GetDefault returns text
         return default
     end
 
-    action SetDefault(File default)
+    action SetDefault(text default)
         me:default = default
     end
 
-    action GetBold returns File
+    action GetBold returns text
         return bold
     end
 
-    action SetBold(File bold)
+    action SetBold(text bold)
         me:bold = bold
     end
     
-    private action LoadFont(File file) returns Font
+    private action LoadFont(text file) returns Font
 if file = undefined
     return undefined
   end
@@ -55,19 +55,19 @@ action LoadBoldItalicFont returns Font
 return LoadFont(GetBoldItalic())
     end
     
-    action GetItalic returns File
+    action GetItalic returns text
         return italic
     end
 
-    action SetItalic(File italic)
+    action SetItalic(text italic)
         me:italic = italic
     end
 
-    action GetBoldItalic returns File
+    action GetBoldItalic returns text
         return boldItalic
     end
 
-    action SetBoldItalic(File boldItalic)
+    action SetBoldItalic(text boldItalic)
         me:boldItalic = boldItalic
     end
 

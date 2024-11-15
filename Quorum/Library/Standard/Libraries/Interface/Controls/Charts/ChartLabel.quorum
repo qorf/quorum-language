@@ -100,11 +100,11 @@ integer size = font:GetSize()
             FontManager manager
             FontFamily family = manager:GetFontFamily(name)
             if family not= undefined
-                File file = family:GetBold()
-                if file not= undefined
+                text boldName = family:GetBold()
+                if boldName not= undefined
                     Font bold
                         bold:SetSize(100)
-                    bold:LoadFont(file)
+                    bold:LoadFont(boldName)
                     SetFont(bold)
                 end
             end
