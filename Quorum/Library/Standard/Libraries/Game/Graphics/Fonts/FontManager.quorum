@@ -67,10 +67,15 @@ class FontManager
     boolean hasCalculatedFontFamilies = false
 
     on create
-        availableWebFonts:Add("Lato")
-        availableWebFonts:Add("FiraCode-Retina")
-        availableWebFonts:Add("FiraCode-Regular")
+        availableWebFonts:Add("FiraMono-Regular")
+availableWebFonts:Add("FiraMono-Bold")
+availableWebFonts:Add("FiraMono-Italic")
+availableWebFonts:Add("FiraMono-BoldItalic")
         
+availableWebFonts:Add("FiraSans-Regular")
+        availableWebFonts:Add("FiraSans-Bold")
+        availableWebFonts:Add("FiraSans-Italic")
+availableWebFonts:Add("FiraSans-BoldItalic")
     end
 
 
@@ -433,8 +438,22 @@ action CalculateFontFamilies
         hasCalculatedFontFamilies = true
         Properties prop
         if prop:IsWebBrowser()
-            FontFamily family
-            family:SetName("")
+            FontFamily fira
+            text firaName = "FiraMono-Regular"
+            fira:SetName(firaName)
+            fira:SetBold("FiraMono-Bold")
+            fira:SetItalic("FiraMono-Italic")
+            fira:SetBoldItalic("FiraMono-BoldItalic")
+            
+            FontFamily firaSans
+            text firaSansName = "FiraSans-Regular"
+firaSans:SetBold("FiraSans-Bold")
+            firaSans:SetItalic("FiraSans-Italic")
+            firaSans:SetBoldItalic("FiraSans-BoldItalic")
+            
+            me:families:Add(firaName, fira)
+me:families:Add(firaSansName, firaSans)
+            
             return now
         end
         
