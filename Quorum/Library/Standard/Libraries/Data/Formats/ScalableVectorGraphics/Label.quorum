@@ -33,6 +33,7 @@ class Label is ScalableVectorGraphicsObject
     private text fontFamily = ""
     private text textAnchor = ""
     private text transform = ""
+    private boolean isBold = false
 
     on create
         SetIsContainer(true)
@@ -66,8 +67,8 @@ class Label is ScalableVectorGraphicsObject
         if rotate not= 0
             result = result + " rotate=" +dq+ rotate +dq
         end
-        if textLength not= ""
-            result = result + " textLength=" +dq+ textLength +dq
+        if isBold
+            result = result + " font-weight=" +dq+ "bold" +dq
         end
         if fontSize not= ""
             result = result + " font-size=" +dq+ fontSize +dq
@@ -568,4 +569,11 @@ class Label is ScalableVectorGraphicsObject
         return transform
     end
 
+    action IsBold returns boolean
+        return isBold
+    end
+
+    action SetBold(boolean isBold)
+        me:isBold = isBold
+    end
 end

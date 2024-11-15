@@ -1,0 +1,236 @@
+package Libraries.Interface.Controls.Charts.Displays
+
+use Libraries.Containers.HashTable
+use Libraries.Interface.Controls.Charts.Chart
+use Libraries.Game.Game
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Game.DesktopConfiguration
+use Libraries.Game.WebConfiguration
+use Libraries.Game.Layer2D
+use Libraries.Game.Layer3D
+use Libraries.Containers.Iterator
+use Libraries.Containers.Array
+use Libraries.Interface.Events.KeyboardListener
+use Libraries.Interface.Events.KeyboardEvent
+use Libraries.Game.InputMonitor
+use Libraries.System.File
+
+/*
+    This class is used as a default display region for multiple charts. It allows basic
+    charts to be shown on the screen and navigation between them using TAB or SHIFT + TAB.
+
+    Attribute: Author Andreas Stefik
+    Attribute: Example
+
+use Libraries.Interface.Controls.Charts.BarChart
+use Libraries.Interface.Controls.Charts.Displays.ChartDisplayer
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Interface.Controls.Charts.BoxPlot
+use Libraries.Interface.Controls.Charts.Chart
+ChartDisplayer displayer
+DataFrame frame
+frame:LoadFromCommaSeparatedValue("A,B,C
+1,2,8
+1,4,9
+2,6,10
+2,8,12
+")
+frame:SelectAllColumns()
+displayer:Add("BarChart", frame:BarChart())
+
+frame:EmptySelectedColumns()
+frame:AddSelectedColumnRange(1,2)
+frame:AddSelectedFactor(0)
+displayer:Add("Factor", frame:BarChart())
+displayer:Add("Pie", frame:PieChart())
+displayer:Add("Scatter", frame:ScatterPlot())
+displayer:Display()
+displayer:Save()*/
+class ChartDisplayer is Game, KeyboardListener
+    HashTable<text, Chart> charts
+    Array<Chart> chartsArray
+    integer index = 0
+    
+    boolean oneTimeUpdate = false
+boolean exitOnStart = false
+    integer exitFrame = 3
+    integer frame = 0
+on create
+        DesktopConfiguration desktop = GetDesktopConfiguration()
+        desktop:targetFramesPerSecond = 10
+        WebConfiguration web = GetWebConfiguration()
+        web:framesPerSecondLimit = 10
+    end
+    
+action CreateGame
+        ManualLayout layout
+        SetLayout(layout)
+
+        Layer2D layer = GetCurrentLayer2D()
+        layer:EnablePhysics(false)
+        
+        
+//This is weird, but the 3D layer probably isn't needed here, 
+        //so get rid of it to save memory. The user can always make their own display.
+        RemoveLayer(1)
+        RemoveLayer(0)
+        AddLayer(layer)
+        SetCurrentLayer3D(undefined)
+        
+        //first Add them all to trigger getting their graphics in order
+        integer i = chartsArray:GetSize() - 1
+        repeat while i >= 0
+            Chart chart = chartsArray:Get(i)
+            Add(chart)
+            i = i - 1
+        end
+        
+        AddKeyboardListener(me)
+    end
+    
+action ReleasedKey(KeyboardEvent event)
+        boolean isShifty = false
+InputMonitor monitor
+  if monitor:IsKeyPressed(event:SHIFT_LEFT) or monitor:IsKeyPressed(event:SHIFT_RIGHT)
+            isShifty = true
+  end
+   if event:keyCode = event:TAB
+Chart previous = chartsArray:Get(index)
+            if not isShifty
+index = index + 1
+if index > chartsArray:GetSize() - 1
+                index = 0
+            end
+            else
+index = index - 1
+if index < 0
+                index = chartsArray:GetSize() - 1
+            end
+            end
+            
+            Remove(previous)
+Chart next = chartsArray:Get(index)
+            Add(next)
+            next:Focus()
+            
+   end
+end
+    
+    /*This action adds a chart to the ChartDisplayer. If a file is saved, the raw name is used, alone with .svg, to save files. 
+So, for example, Chart1 would become Chart1.svg. */
+    action Add(text path, Chart chart)
+        charts:Add(path, chart)
+        chartsArray:Add(chart)
+    end
+    
+    /*This action removes a chart from the system*/
+    action Remove(text path)
+        Chart chart = charts:RemoveKey(path)
+        if chart not= undefined
+chartsArray:Remove(chart)
+        end
+    end
+    
+    /*This action removes all charts from this displayer.*/
+    action Empty
+        charts:Empty()
+        chartsArray:Empty()
+    end
+    
+action Update(number seconds)
+        if frame >= exitFrame and not oneTimeUpdate
+Layer2D layer = GetCurrentLayer2D()
+            layer:Empty()
+            
+if not chartsArray:IsEmpty()
+Chart chart = chartsArray:Get(0)
+            Add(chart)
+            chart:Focus()
+        end
+            oneTimeUpdate = true
+        elseif frame >= exitFrame and exitOnStart
+            Exit()
+        end
+
+        frame = frame + 1
+    end
+    
+    /* Saves all charts into the default folder for the program, giving all of them file names plus .svg at the end. */
+    action Save
+File directory
+        Save(directory)
+    end
+    
+/* Saves all charts into the default folder for the program, giving all of them file names plus .svg at the end. This version 
+places the files at a particular path relative to the runtime folder.*/
+    action Save(text path)
+        File directory
+        directory:SetPath(path)
+        Save(directory)
+    end
+    
+/* Saves all charts into the default folder for the program, giving all of them file names plus .svg at the end. This version 
+places the files at a particular directory.*/
+action Save(File directory)
+        text path = directory:GetAbsolutePath()
+        Iterator<text> keys = charts:GetKeyIterator()
+        repeat while keys:HasNext()
+            text key = keys:Next()
+            Chart chart = charts:GetValue(key)
+            File file
+            file:SetWorkingDirectory(path)
+            file:SetPath(key + ".svg")
+            chart:Save(file)
+        end
+    end
+    
+/*  This action creates a default Game object for displaying charts and sets this chart
+        as the sole display. It is useful for interacting with charts without creating
+        a complex game setup.
+    */
+    action Display(integer width, integer height)
+SetScreenSize(width,height)
+StartGame()
+    end
+    
+/*  This action creates a default Game object for displaying charts and sets this chart
+        as the sole display. It is useful for interacting with charts without creating
+        a complex game setup. The exit flag tells the system, if true, to close the pre-built display
+        right after completing layout, which can be useful for writing to disk.
+    */
+action Display(integer width, integer height, boolean exit)
+SetExitOnStart(exit)
+    SetScreenSize(width,height)
+        StartGame()
+end
+    
+/*  This action creates a default Game object for displaying charts and sets this chart
+        as the sole display. It is useful for interacting with charts without creating
+        a complex game setup. The exit flag tells the system, if true, to close the pre-built display
+        right after completing layout, which can be useful for writing to disk.
+    */
+action Display(boolean exit)
+SetExitOnStart(exit)
+        SetScreenSize(1200,1000)
+StartGame()
+    end
+    
+/*  This action creates a default Game object for displaying charts and sets this chart
+        as the sole display. It is useful for interacting with charts without creating
+        a complex game setup.
+    */
+    action Display
+        SetScreenSize(1200,1000)
+StartGame()
+    end
+    
+/* If true is returned, this displayer only displays long enough to trigger a layout, which is then used to save files. */
+action GetExitOnStart returns boolean
+        return exitOnStart
+    end
+
+    /* If true is passed, this displayer only displays long enough to trigger a layout, which is then used to save files. */
+    action SetExitOnStart(boolean exitOnStart)
+        me:exitOnStart = exitOnStart
+    end
+end

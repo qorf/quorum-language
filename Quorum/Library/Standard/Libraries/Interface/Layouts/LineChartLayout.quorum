@@ -89,9 +89,9 @@ class LineChartLayout is TwoVariableChartLayout
                 end
 
                 if chart:GetHorizontalFlag()
-                    LoadChartDrawableSelectionArrow(chart, point, pointRadius, true)
+                    SetChartDrawableSelectionArrow(point, pointRadius, true)
                 else
-                    LoadChartDrawableSelectionArrow(chart, point, pointRadius, false)
+                    SetChartDrawableSelectionArrow(point, pointRadius, false)
                 end
                 j = j + 1
             end
@@ -134,33 +134,19 @@ class LineChartLayout is TwoVariableChartLayout
                 j = j + 1
             end
 
-            LoadLineSelectionArrowVertices(chart, lines:Get(i))
+            ChartLine line
+            line = lines:Get(i)
+            if chart:GetHorizontalFlag()
+                SetChartDrawableSelectionArrow(line, cast(integer, line:GetLineStart():GetHeight()), true)
+            else
+                SetChartDrawableSelectionArrow(line, cast(integer, line:GetLineStart():GetWidth()), false)
+            end
+
             i = i + 1
         end
 
         if chart:IsShowingLinearRegression()
             LayoutRegressionLines(chart, chartAreaContainer)
         end
-    end
-
-    /*
-        Interface action for setting the selection arrow for the line using the first point 
-    */
-    private action LoadLineSelectionArrowVertices(Chart chart, ChartLine line)
-        ChartDrawable lineArea
-        lineArea:SetSize(line:GetLineStart():GetWidth(), line:GetLineStart():GetHeight())
-        lineArea:SetPosition(line:GetLineStart():GetX(), line:GetLineStart():GetY())
-
-        if chart:GetHorizontalFlag()
-            LoadChartDrawableSelectionArrow(chart, lineArea, cast(integer, line:GetLineStart():GetWidth()), true)
-        else
-            LoadChartDrawableSelectionArrow(chart, lineArea, cast(integer, line:GetLineStart():GetWidth()), false)
-        end
-        Array<number> vertices = lineArea:GetSelectionArrowVertices()
-        Drawable arrow = line:GetSelectionArrow()
-        arrow:LoadShape(vertices, line:GetSelectionColor())
-        arrow:Hide()
-        arrow:SetZ(-1)
-        line:SetSelectionArrowVertices(vertices) 
     end
 end

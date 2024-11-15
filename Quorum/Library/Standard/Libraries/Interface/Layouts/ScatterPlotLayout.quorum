@@ -11,6 +11,7 @@ use Libraries.Interface.Controls.Charts.Graphics.ResidualSquare
 use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
 use Libraries.Interface.Controls.Charts.MovableRegressionSeries
 use Libraries.Interface.Controls.Charts.ChartAreaPanel
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 
 class ScatterPlotLayout is TwoVariableChartLayout
     action LayoutChartContent(Chart control, Control chartAreaContainer)
@@ -90,9 +91,9 @@ class ScatterPlotLayout is TwoVariableChartLayout
             end
 
             if chart:GetHorizontalFlag()
-                LoadChartDrawableSelectionArrow(chart, point, pointRadius, true)
+                SetChartDrawableSelectionArrow(point, pointRadius, true)
             else
-                LoadChartDrawableSelectionArrow(chart, point, pointRadius, false)
+                SetChartDrawableSelectionArrow(point, pointRadius, false)
             end
 
             if squares not= undefined
@@ -167,6 +168,15 @@ class ScatterPlotLayout is TwoVariableChartLayout
 
         if chart:IsShowingLinearRegression()
             LayoutRegressionLines(chart, chartAreaContainer)
+        end
+
+        if chart:GetSelection():GetItem() not= undefined and chart:GetSelection():GetItem() is ChartDrawable
+            ChartDrawable item = cast(ChartDrawable, chart:GetSelection():GetItem())
+            if item:HasSelectionArrow() and item:HasSelectionBracket()
+                item:AdjustSelectionBracketAndArrow()
+            elseif item:HasSelectionArrow()
+                item:AdjustSelectionArrow()
+            end
         end
     end
 end

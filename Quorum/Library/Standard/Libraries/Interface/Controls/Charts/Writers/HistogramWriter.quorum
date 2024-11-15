@@ -188,51 +188,51 @@ class HistogramWriter is ChartWriter
                     end
                     barGroupSVG:Add(barGroup)
     
-                    if currentBarGroup:GetSelectionBracket():GetSize() = 3
-                        integer k = 0
-                        repeat while k < currentBarGroup:GetSelectionBracket():GetSize()
-                            Rectangle bracket
-                            bracket:SetWidth(currentBarGroup:GetSelectionBracket():Get(k):GetWidth())
-                            bracket:SetHeight(currentBarGroup:GetSelectionBracket():Get(k):GetHeight())
-                            bracket:SetPosition(currentBarGroup:GetSelectionBracket():Get(k):GetGlobalX(), TranslatePositionY(currentBarGroup:GetSelectionBracket():Get(k)) - currentBarGroup:GetSelectionBracket():Get(k):GetHeight()) 
-                            bracket:SetFill(transparent) // Should be transparent until selected
-                            bracket:SetFillOpacity(transparent)
-                            if HasAccessibility()
-                                bracket:SetStyleClass("quorum-chart-selection-bracket")
-                                bracket:SetTabIndex(-1)
-                                bracket:SetID(barGroupSVG:GetID() + "_bracket" + k)
-                                bracket:SetAriaHidden("true")
-                                barGroupFocus = barGroupFocus + "gainFocus('" + bracket:GetID() + "'); "
-                                barGroupBlur = barGroupBlur + "loseFocus('" + bracket:GetID() + "'); "
-                            end
-                            canvas:Add(bracket)    
-                            k = k + 1
-                        end
-                    end
+//                    if currentBarGroup:GetSelectionBracket():GetSize() = 3
+//                        integer k = 0
+//                        repeat while k < currentBarGroup:GetSelectionBracket():GetSize()
+//                            Rectangle bracket
+//                            bracket:SetWidth(currentBarGroup:GetSelectionBracket():Get(k):GetWidth())
+//                            bracket:SetHeight(currentBarGroup:GetSelectionBracket():Get(k):GetHeight())
+//                            bracket:SetPosition(currentBarGroup:GetSelectionBracket():Get(k):GetGlobalX(), TranslatePositionY(currentBarGroup:GetSelectionBracket():Get(k)) - currentBarGroup:GetSelectionBracket():Get(k):GetHeight()) 
+//                            bracket:SetFill(transparent) // Should be transparent until selected
+//                            bracket:SetFillOpacity(transparent)
+//                            if HasAccessibility()
+//                                bracket:SetStyleClass("quorum-chart-selection-bracket")
+//                                bracket:SetTabIndex(-1)
+//                                bracket:SetID(barGroupSVG:GetID() + "_bracket" + k)
+//                                bracket:SetAriaHidden("true")
+//                                barGroupFocus = barGroupFocus + "gainFocus('" + bracket:GetID() + "'); "
+//                                barGroupBlur = barGroupBlur + "loseFocus('" + bracket:GetID() + "'); "
+//                            end
+//                            canvas:Add(bracket)    
+//                            k = k + 1
+//                        end
+//                    end
 
-                    if currentBarGroup:GetSelectionArrow() not= undefined
-                        Array <number> vertices = currentBarGroup:GetSelectionArrowVertices()
-                        number Yoffset = TranslatePositionY(currentBarGroup:GetSelectionArrow())
-                        number Xoffset = currentBarGroup:GetSelectionArrow():GetGlobalX()
-                        
-                        Polygon arrow
-                        integer k = 0
-                        repeat while k < vertices:GetSize()
-                            arrow:AddPoint(vertices:Get(k)+Xoffset, Yoffset+(currentBarGroup:GetSelectionArrow():GetY()-vertices:Get(k+1)))
-                            k = k + 2
-                        end
-                        arrow:SetFill(transparent) // Should be transparent until selected
-                        arrow:SetFillOpacity(transparent)
-                        if HasAccessibility()
-                            arrow:SetStyleClass("quorum-chart-selection-arrow")
-                            arrow:SetID(barGroupSVG:GetID() + "_arrow")
-                            arrow:SetTabIndex(-1)
-                            arrow:SetAriaHidden("true")
-                            barGroupFocus = barGroupFocus + "gainFocus('" + arrow:GetID() + "'); "
-                            barGroupBlur = barGroupBlur + "loseFocus('" + arrow:GetID() + "'); "
-                        end
-                        canvas:Add(arrow)
-                    end
+//                    if currentBarGroup:GetSelectionArrow() not= undefined
+//                        Array <number> vertices = currentBarGroup:GetSelectionArrowVertices()
+//                        number Yoffset = TranslatePositionY(currentBarGroup:GetSelectionArrow())
+//                        number Xoffset = currentBarGroup:GetSelectionArrow():GetGlobalX()
+//                        
+//                        Polygon arrow
+//                        integer k = 0
+//                        repeat while k < vertices:GetSize()
+//                            arrow:AddPoint(vertices:Get(k)+Xoffset, Yoffset+(currentBarGroup:GetSelectionArrow():GetY()-vertices:Get(k+1)))
+//                            k = k + 2
+//                        end
+//                        arrow:SetFill(transparent) // Should be transparent until selected
+//                        arrow:SetFillOpacity(transparent)
+//                        if HasAccessibility()
+//                            arrow:SetStyleClass("quorum-chart-selection-arrow")
+//                            arrow:SetID(barGroupSVG:GetID() + "_arrow")
+//                            arrow:SetTabIndex(-1)
+//                            arrow:SetAriaHidden("true")
+//                            barGroupFocus = barGroupFocus + "gainFocus('" + arrow:GetID() + "'); "
+//                            barGroupBlur = barGroupBlur + "loseFocus('" + arrow:GetID() + "'); "
+//                        end
+//                        canvas:Add(arrow)
+//                    end
                     
                     if HasAccessibility()
                         if barGroupFocus not= ""
@@ -328,29 +328,29 @@ class HistogramWriter is ChartWriter
                         end
                     end 
 
-                    if currentBar:GetSelectionArrow() not= undefined
-                        Array <number> vertices = currentBar:GetSelectionArrowVertices()
-                        number Yoffset = TranslatePositionY(currentBar:GetSelectionArrow())
-                        number Xoffset = currentBar:GetSelectionArrow():GetGlobalX()
-
-                        Polygon arrow
-                        integer k = 0
-                        repeat while k < vertices:GetSize()
-                            arrow:AddPoint(vertices:Get(k)+Xoffset, Yoffset+(currentBar:GetSelectionArrow():GetY()-vertices:Get(k+1)))
-                            k = k + 2
-                        end
-                        arrow:SetFill(transparent) // Should be transparent until selected 
-                        arrow:SetFillOpacity(transparent)
-                        if HasAccessibility()
-                            arrow:SetStyleClass("quorum-chart-selection-arrow")
-                            arrow:SetTabIndex(-1)
-                            arrow:SetID(barSVG:GetID() + "_arrow")
-                            arrow:SetAriaHidden("true")
-                            barFocus = barFocus + "gainFocus('" + arrow:GetID() + "'); "
-                            barBlur = barBlur + "loseFocus('" + arrow:GetID() + "'); "
-                        end
-                        canvas:Add(arrow)
-                    end
+//                    if currentBar:GetSelectionArrow() not= undefined
+//                        Array <number> vertices = currentBar:GetSelectionArrowVertices()
+//                        number Yoffset = TranslatePositionY(currentBar:GetSelectionArrow())
+//                        number Xoffset = currentBar:GetSelectionArrow():GetGlobalX()
+//
+//                        Polygon arrow
+//                        integer k = 0
+//                        repeat while k < vertices:GetSize()
+//                            arrow:AddPoint(vertices:Get(k)+Xoffset, Yoffset+(currentBar:GetSelectionArrow():GetY()-vertices:Get(k+1)))
+//                            k = k + 2
+//                        end
+//                        arrow:SetFill(transparent) // Should be transparent until selected 
+//                        arrow:SetFillOpacity(transparent)
+//                        if HasAccessibility()
+//                            arrow:SetStyleClass("quorum-chart-selection-arrow")
+//                            arrow:SetTabIndex(-1)
+//                            arrow:SetID(barSVG:GetID() + "_arrow")
+//                            arrow:SetAriaHidden("true")
+//                            barFocus = barFocus + "gainFocus('" + arrow:GetID() + "'); "
+//                            barBlur = barBlur + "loseFocus('" + arrow:GetID() + "'); "
+//                        end
+//                        canvas:Add(arrow)
+//                    end
 
                     if HasAccessibility()
 
@@ -507,29 +507,30 @@ class HistogramWriter is ChartWriter
                             end
                         end 
 
-                        if currentBar:GetSelectionArrow() not= undefined
-                            Array <number> vertices = currentBar:GetSelectionArrowVertices()
-                            number Yoffset = TranslatePositionY(currentBar:GetSelectionArrow())
-                            number Xoffset = currentBar:GetSelectionArrow():GetGlobalX()
-    
-                            Polygon arrow
-                            integer k = 0
-                            repeat while k < vertices:GetSize()
-                                arrow:AddPoint(vertices:Get(k)+Xoffset, Yoffset+(currentBar:GetSelectionArrow():GetY()-vertices:Get(k+1)))
-                                k = k + 2
-                            end
-                            arrow:SetFill(transparent) // Should be transparent until selected
-                            arrow:SetFillOpacity(transparent)
-                            if HasAccessibility()
-                                arrow:SetStyleClass("quorum-chart-selection-arrow")
-                                arrow:SetTabIndex(-1)
-                                arrow:SetID(barSVG:GetID() + "_arrow")
-                                arrow:SetAriaHidden("true")
-                                barFocus = barFocus + "gainFocus('" + arrow:GetID() + "'); "
-                                barBlur = barBlur + "loseFocus('" + arrow:GetID() + "'); "
-                            end
-                            canvas:Add(arrow)
-                        end
+//                        if currentBar:GetSelectionArrow() not= undefined
+//                            Array <number> vertices = currentBar:GetSelectionArrowVertices()
+//                            number Yoffset = TranslatePositionY(currentBar:GetSelectionArrow())
+//                            number Xoffset = currentBar:GetSelectionArrow():GetGlobalX()
+//    
+//                            Polygon arrow
+//                            integer k = 0
+//                            repeat while k < vertices:GetSize()
+//                                arrow:AddPoint(vertices:Get(k)+Xoffset, Yoffset+(currentBar:GetSelectionArrow():GetY()-vertices:Get(k+1)))
+//                                k = k + 2
+//                            end
+//                            arrow:SetFill(transparent) // Should be transparent until selected
+//                            arrow:SetFillOpacity(transparent)
+//                            if HasAccessibility()
+//                                arrow:SetStyleClass("quorum-chart-selection-arrow")
+//                                arrow:SetTabIndex(-1)
+//                                arrow:SetID(barSVG:GetID() + "_arrow")
+//                                arrow:SetAriaHidden("true")
+//                                barFocus = barFocus + "gainFocus('" + arrow:GetID() + "'); "
+//                                barBlur = barBlur + "loseFocus('" + arrow:GetID() + "'); "
+//                            end
+//                            canvas:Add(arrow)
+//                        end
+
                         if HasAccessibility()
                             if barFocus not= ""
                                 scriptText = scriptText + "document.getElementById('" + barSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + barFocus + "});" + newLine

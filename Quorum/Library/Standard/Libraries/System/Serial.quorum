@@ -48,9 +48,25 @@ class Main
 */
 class Serial
 
-    /* Returns a single port, not opened, for use. */
+    /*This action returns a port from the raw name, which you need to know ahead of time. These names can be esoteric, like long lists of numbers. 
+To obtain them, you can get all the ports and iterate over them, for your particular system.*/
     system action GetPort(text name) returns SerialPort
-
+/* This action searches through all available ports via the name provided and compares it to the description. These descrptions
+are often more human readable, mentioning words like bluetooth, spike, or other product names directly. If the port
+could not be found, this returns undefined.*/
+    action FindPort(text name) returns SerialPort
+        Array<SerialPort> ports = GetPorts()
+        i = 0
+        repeat while i < ports:GetSize()
+            SerialPort port = ports:Get(i)
+            if port:GetDescription() = name
+                return port
+            end
+            i = i + 1
+        end
+        return undefined
+    end
+    
     /* Returns an array of the available ports on the system. */
     system action GetPorts returns Array<SerialPort>
 

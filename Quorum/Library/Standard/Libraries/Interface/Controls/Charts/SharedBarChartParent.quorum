@@ -125,19 +125,6 @@ class SharedBarChartParent is Chart
                 barGroupIcon:SetPreviousFocus(GetPreviousFocus())
                 GetChartArea():Add(barGroupIcon)
             end
-            GetChartArea():Add(barGroups:Get(i):GetSelectionArrow())
-
-            Drawable top
-            barGroups:Get(i):GetSelectionBracket():Add(top)
-            GetChartArea():Add(top)
-
-            Drawable side
-            barGroups:Get(i):GetSelectionBracket():Add(side) 
-            GetChartArea():Add(side)
-
-            Drawable bottom
-            barGroups:Get(i):GetSelectionBracket():Add(bottom) 
-            GetChartArea():Add(bottom)  
 
             GetGroupPanels():Add(barGroups:Get(i))
 
@@ -197,7 +184,6 @@ class SharedBarChartParent is Chart
                     chartArea:Add(barLabel)
                 end
                 chartArea:Add(temp)
-                chartArea:Add(temp:GetSelectionArrow())
                 j = j + 1
             end
             i = i + 1

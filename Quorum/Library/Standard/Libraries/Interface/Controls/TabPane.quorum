@@ -109,15 +109,6 @@ this is false. */
         return true
     end
 
-    action GetDefaultFontName returns text
-        Font font
-        if font:IsFontAvailable("Arial")
-            return "Arial"
-        else
-            return parent:Control:GetDefaultFontName()
-        end
-    end
-
     action GetDefaultFontSize returns integer
         return 22
     end

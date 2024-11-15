@@ -1,0 +1,62 @@
+package Libraries.Robots.Spike
+
+use Libraries.System.SerialPort
+use Libraries.System.Serial
+use Libraries.System.File
+class Spike
+constant text SPIKE_WIRED_NAME = "SPIKE Prime VCP"
+    integer baudRate = 115200
+    integer readTimeout = 10
+    integer writeTimeout = 0
+Serial serial
+    SerialPort port = undefined
+    
+    /*This action returns undefined if there is no active port. A connection must be made before
+getting this value. */
+    action GetOpenPort returns SerialPort
+        return port
+    end
+    
+action FindWiredPort returns SerialPort
+        return serial:FindPort(SPIKE_WIRED_NAME)
+    end
+    
+system action CopyToFile(File file, text path)
+    system action CopyToSlot(File file, integer slot)
+    system action WritePython(text source)
+    system action GetOutput returns text
+    
+action SetDefaultPortSettings
+        if port not= undefined
+port:SetTimeouts(port:GetDefaultTimeout(), readTimeout, writeTimeout)
+            port:SetBaudRate(baudRate)
+        end
+    end
+    
+    action Close
+        CloseNative()
+        port:Close()
+        port = undefined
+end
+    
+    private system action CloseNative
+    
+    action Connect returns boolean
+        if port not= undefined
+            port:Close()
+            port = undefined
+        end
+        port = FindWiredPort()
+        if port not= undefined
+            SetDefaultPortSettings()
+            boolean success = port:Open()
+            if not success
+                port = undefined
+                return false
+            else
+                return true
+            end
+        end
+        return false
+    end
+end

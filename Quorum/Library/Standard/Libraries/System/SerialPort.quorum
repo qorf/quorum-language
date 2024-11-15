@@ -1,4 +1,6 @@
 package Libraries.System
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
 
 /*
     This is an implementation of a Serial Port in Quorum. 
@@ -6,17 +8,52 @@ package Libraries.System
     More information about Serial Ports can be found on Wikipedia: https://en.wikipedia.org/wiki/Serial_port
 */
 class SerialPort
+    Array<SerialPortListener> listeners
+
+    action AddListener(SerialPortListener listener)
+        listeners:Add(listener)
+    end
+
+    action RemoveListener(SerialPortListener listener)
+        listeners:Remove(listener)
+    end
+
+    action GetListenerIterator returns Iterator<SerialPortListener>
+        return listeners:GetIterator()
+    end
+
+    action SendCloseEventToListeners
+        
+i = 0
+        repeat while i < listeners:GetSize()
+            SerialPortListener listener = listeners:Get(i)
+            listener:Closed()
+            i = i + 1
+        end
+end
+
+    action SendReceievedEventToListeners(text data)
+        i = 0
+        repeat while i < listeners:GetSize()
+            SerialPortListener listener = listeners:Get(i)
+            listener:ReceivedData(data)
+            i = i + 1
+        end
+    end
+
+    /* Must be called for any added listeners to receive events. No manual read calls should be done after calling. */
+    system action InitializeListener
+
     /* Returns the system's name for the port. */
     system action GetName returns text
 
     /* Returns a description of the port. */
     system action GetDescription returns text
 
-    /* Returns a potentially more descriptive name for the port. */
-    system action GetDescriptiveName returns text
-
     /* Writes to the port. */
     system action Write(text value)
+
+    system action Write(integer value)
 
     /* Reads from the port. */
     system action Read returns text
@@ -27,6 +64,16 @@ class SerialPort
     /* Opens the port. */
     system action Open returns boolean
 
-    /* Opens the port with a timeout. */
-    system action Open(integer timeout) returns boolean
+    
+/* Returns whether or not the port has accepted a connection. */
+    system action IsOpen returns boolean
+    
+    system action SetBaudRate(integer rate)
+    system action GetBaudRate returns integer
+    
+    system action SetTimeouts(integer timeout, integer read, integer write)
+    system action GetTimeoutWriteBlocking returns integer
+    system action GetTimeoutReadSemiBlocking returns integer
+    system action GetTimeoutNonBlocking returns integer
+    system action GetDefaultTimeout returns integer
 end
