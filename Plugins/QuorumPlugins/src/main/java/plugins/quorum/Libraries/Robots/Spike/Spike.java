@@ -91,7 +91,19 @@ public class Spike {
                     slotPath
                 )
             );
-            CopyBytesToFile(data, slotPath + "/program.py");
+            String extension = file.GetFileExtension();
+            boolean python = true;
+            if(extension != null) {
+                extension = extension.toLowerCase();
+                if(extension.endsWith("mpy")) {
+                    python = false;
+                }
+            }
+            if(python) {
+                CopyBytesToFile(data, slotPath + "/program.py");
+            } else {
+                CopyBytesToFile(data, slotPath + "/program.mpy");
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

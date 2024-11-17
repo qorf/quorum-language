@@ -42,6 +42,9 @@ class plugins_quorum_Libraries_Robots_Spike_Motor_:
 		
 	def StopNative(self):
 		return motor.stop(self.port)
+
+	def StopNative__quorum_integer(self, braking_mode):
+		return motor.stop(self.port, stop=braking_mode)
 		
 	def GetVelocityNative(self):
 		return motor.velocity(self.port)

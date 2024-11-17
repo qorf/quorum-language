@@ -1,0 +1,430 @@
+package Libraries.Robots.Spike
+
+/*
+    A motor pair represents a grouping of two motors, which are external devices that connect to the hub on separate ports.
+    Using a motor pair makes it easy to synchronize movements between two motors at the same time, such as the wheels on a car.
+    Up to 3 different motor pairs are supported at one time (PAIR_1, PAIR_2, and PAIR_3).
+
+    Attribute: Example
+
+    use Libraries.Robots.Spike.Port
+    use Libraries.Robots.Spike.MotorPair
+    Port port
+    MotorPair wheels
+    wheels:SetPair(wheels:PAIR_1)
+    wheels:SetPorts(port:A, port:B)
+    wheels:Run(0, 360, 5400)
+*/
+class MotorPair
+    public constant integer PAIR_1 = 0
+    public constant integer PAIR_2 = 1
+    public constant integer PAIR_3 = 2
+
+    /*
+        Returns the pair of this MotorPair, either PAIR_1, PAIR_2, or PAIR_3
+
+        Attribute: Returns pair number
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotorPair
+        use Libraries.Robots.Spike.Port
+        Port port
+        MotorPair wheels
+        wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
+        integer wheelsPair = wheels:GetPair()
+    */
+    action GetPair returns integer
+        return GetPairNative()
+    end
+    private system action GetPairNative returns integer
+
+    /*
+        Set the pair for this MotorPair to either PAIR_1, PAIR_2, or PAIR_3
+
+        Attribute: Parameter pair The pair to set this MotorPair to (either PAIR_1, PAIR_2, or PAIR_3)
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotorPair
+        MotorPair wheels
+        wheels:SetPair(wheels:PAIR_1)
+    */
+    action SetPair(integer pair)
+        SetPairNative(pair)
+    end
+    private system action SetPairNative(integer pair)
+
+    /*
+        Registers the currently set pair to two motor ports
+
+        Attribute: Parameter leftMotorPort The port (A-F) to use for the left motor
+        Attribute: Parameter rightMotorPort The port (A-F) to use for the right motor
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotorPair
+        use Libraries.Robots.Spike.Port
+        Port port
+        MotorPair wheels
+        wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
+    */
+    action SetPorts(integer leftMotorPort, integer rightMotorPort)
+        SetPortsNative(leftMotorPort, rightMotorPort)
+    end
+    private system action SetPortsNative(integer leftMotorPort, integer rightMotorPort)
+
+    /*
+        Removes a pairing for the two currently assigned motor ports
+
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotorPair
+        MotorPair wheels
+        wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
+        wheels:RemovePorts()
+        wheels:SetPorts(port:C, port:D)
+    */
+    action RemovePorts()
+        RemovePortsNative()
+    end
+    private system action RemovePortsNative()
+
+    /*
+        Runs the motors for this motor pair with the provided steering amount
+
+        Attribute: Parameter steering The steering value for the motor pair, in the range -100 to 100
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotorPair
+        use Libraries.Robots.Spike.Port
+        Port port
+        MotorPair wheels
+        wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
+        wheels:Run(0)
+    */
+    action Run(integer steering)
+        RunNative(steering)
+    end
+    private system action RunNative(integer steering)
+
+    /*
+        Runs the motors for this motor pair with the provided steering, velocity, and acceleration values
+        Velocity ranges vary per motor size as follows:
+            Small motor: -660 to 660
+            Medium motor: -1110 to 1110
+            Large motor: -1050 to 1050
+        Acceleration ranges from 0 to 10000
+
+        Attribute: Parameter steering The steering value for the motor pair, in the range -100 to 100
+        Attribute: Parameter velocity The velocity of the motors in degrees/sec
+        Attribute: Parameter acceleration The acceleration of the motors in degrees/sec^2
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotorPair
+        use Libraries.Robots.Spike.Port
+        Port port
+        MotorPair wheels
+        wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
+        wheels:Run(0, 360, 5400)
+    */
+    action Run(integer steering, integer velocity, integer acceleration)
+        RunNative(steering, velocity, acceleration)
+    end
+    private system action RunNative(integer steering, integer velocity, integer acceleration)
+
+    /*
+        Runs the motors for this motor pair with the provided steering value for the provided rotation, in degrees
+
+        Attribute: Parameter steering The steering value for the motor pair, in the range -100 to 100
+        Attribute: Parameter degrees The number of degrees to rotate the motors
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotorPair
+        use Libraries.Robots.Spike.Port
+        Port port
+        MotorPair wheels
+        wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
+        wheels:RunForDegrees(0, 720)
+    */
+    action RunForDegrees(integer steering, integer degrees)
+        RunForDegreesNative(steering, degrees)
+    end
+    private system action RunForDegreesNative(integer steering, integer degrees)
+
+    /*
+        Runs the motors for this motor pair a provided number of degrees with the provided values
+        Velocity ranges vary per motor size as follows:
+            Small motor: -660 to 660
+            Medium motor: -1110 to 1110
+            Large motor: -1050 to 1050
+        Acceleration and deceleration range from 0 to 10000
+        Available braking modes, as Motor constants, are: COAST, BRAKE, HOLD, CONTINUE, SMART_COAST, or SMART_BRAKE
+
+        Attribute: Parameter steering The steering value for the motor pair, in the range -100 to 100
+        Attribute: Parameter degrees The number of degrees to rotate the motors
+        Attribute: Parameter velocity The velocity of the motors in degrees/sec
+        Attribute: Parameter brakingMode The braking mode to use when stopping the motor
+        Attribute: Parameter acceleration The acceleration of the motors in degrees/sec^2
+        Attribute: Parameter deceleration The deceleration of the motors in degrees/sec^2
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotorPair
+        use Libraries.Robots.Spike.Motor
+        use Libraries.Robots.Spike.Port
+        Port port
+        Motor motor
+        MotorPair wheels
+        wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
+        wheels:RunForDegrees(0, 720, 360, motor:BRAKE, 5400, 5400)
+    */
+    action RunForDegrees(integer steering, integer degrees, integer velocity, integer brakingMode, integer acceleration, integer deceleration)
+        RunForDegreesNative(steering, degrees, velocity, brakingMode, acceleration, deceleration)
+    end
+    private system action RunForDegreesNative(integer steering, integer degrees, integer velocity, integer brakingMode, integer acceleration, integer deceleration)
+
+    /*
+        Runs the motors for this motor pair with the provided steering value for the provided duration, in milliseconds
+
+        Attribute: Parameter steering The steering value for the motor pair, in the range -100 to 100
+        Attribute: Parameter duration The number of milliseconds to run the motors for
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotorPair
+        use Libraries.Robots.Spike.Port
+        Port port
+        MotorPair wheels
+        wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
+        wheels:RunForTime(0, 2000)
+    */
+    action RunForTime(integer steering, integer duration)
+        RunForTimeNative(steering, duration)
+    end
+    private system action RunForTimeNative(integer steering, integer duration)
+
+    /*
+        Runs the motors for this motor pair for a given time, in milliseconds, with the provided values
+        Velocity ranges vary per motor size as follows:
+            Small motor: -660 to 660
+            Medium motor: -1110 to 1110
+            Large motor: -1050 to 1050
+        Acceleration and deceleration range from 0 to 10000
+        Available braking modes, as Motor constants, are: COAST, BRAKE, HOLD, CONTINUE, SMART_COAST, or SMART_BRAKE
+
+        Attribute: Parameter steering The steering value for the motor pair, in the range -100 to 100
+        Attribute: Parameter duration The number of milliseconds to run the motors for
+        Attribute: Parameter velocity The velocity of the motors in degrees/sec
+        Attribute: Parameter brakingMode The braking mode to use when stopping the motor
+        Attribute: Parameter acceleration The acceleration of the motors in degrees/sec^2
+        Attribute: Parameter deceleration The deceleration of the motors in degrees/sec^2
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotorPair
+        use Libraries.Robots.Spike.Motor
+        use Libraries.Robots.Spike.Port
+        Port port
+        Motor motor
+        MotorPair wheels
+        wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
+        wheels:RunForTime(0, 2000, 360, motor:BRAKE, 5400, 5400)
+    */
+    action RunForTime(integer steering, integer duration, integer velocity, integer brakingMode, integer acceleration, integer deceleration)
+        RunForTimeNative(steering, duration, velocity, brakingMode, acceleration, deceleration)
+    end
+    private system action RunForTimeNative(integer steering, integer duration, integer velocity, integer brakingMode, integer acceleration, integer deceleration)
+
+    /*
+        Runs the left and right motors with the provided velocities and acceleration
+        Velocity ranges vary per motor size as follows:
+            Small motor: -660 to 660
+            Medium motor: -1110 to 1110
+            Large motor: -1050 to 1050
+        Acceleration and deceleration range from 0 to 10000
+
+        Attribute: Parameter leftVelocity The velocity of the left motor in degrees/sec
+        Attribute: Parameter rightVelocity The velocity of the left motor in degrees/sec
+        Attribute: Parameter acceleration The acceleration of the motors in degrees/sec^2
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotorPair
+        use Libraries.Robots.Spike.Port
+        Port port
+        MotorPair wheels
+        wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
+        wheels:RunTank(360, 360, 5400)
+    */
+    action RunTank(integer leftVelocity, integer rightVelocity, integer acceleration)
+        RunTankNative(leftVelocity, rightVelocity, acceleration)
+    end
+    private system action RunTankNative(integer leftVelocity, integer rightVelocity, integer acceleration)
+
+    /*
+        Runs the left and right motors for the given degrees with the provided velocities
+        Velocity ranges vary per motor size as follows:
+            Small motor: -660 to 660
+            Medium motor: -1110 to 1110
+            Large motor: -1050 to 1050
+
+        Attribute: Parameter leftVelocity The velocity of the left motor in degrees/sec
+        Attribute: Parameter rightVelocity The velocity of the left motor in degrees/sec
+        Attribute: Parameter degrees The number of degrees to turn each motor
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotorPair
+        use Libraries.Robots.Spike.Port
+        Port port
+        MotorPair wheels
+        wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
+        wheels:RunTankForDegrees(360, 360, 720)
+    */
+    action RunTankForDegrees(integer leftVelocity, integer rightVelocity, integer degrees)
+        RunTankForDegreesNative(leftVelocity, rightVelocity, degrees)
+    end
+    private system action RunTankForDegreesNative(integer leftVelocity, integer rightVelocity, integer degrees)
+
+    /*
+        Runs the left and right motors for the given degrees with the provided values
+        Velocity ranges vary per motor size as follows:
+            Small motor: -660 to 660
+            Medium motor: -1110 to 1110
+            Large motor: -1050 to 1050
+        Acceleration and deceleration range from 0 to 10000
+        Available braking modes, as Motor constants, are: COAST, BRAKE, HOLD, CONTINUE, SMART_COAST, or SMART_BRAKE
+
+        Attribute: Parameter leftVelocity The velocity of the left motor in degrees/sec
+        Attribute: Parameter rightVelocity The velocity of the left motor in degrees/sec
+        Attribute: Parameter degrees The number of degrees to turn each motor
+        Attribute: Parameter brakingMode The braking mode to use when stopping the motor
+        Attribute: Parameter acceleration The acceleration of the motors in degrees/sec^2
+        Attribute: Parameter deceleration The deceleration of the motors in degrees/sec^2
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotorPair
+        use Libraries.Robots.Spike.Motor
+        use Libraries.Robots.Spike.Port
+        Port port
+        Motor motor
+        MotorPair wheels
+        wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
+        wheels:RunTankForDegrees(360, 360, 720, motor:BRAKE, 5400, 5400)
+    */
+    action RunTankForDegrees(integer leftVelocity, integer rightVelocity, integer degrees, integer brakingMode, integer acceleration, integer deceleration)
+        RunTankForDegreesNative(leftVelocity, rightVelocity, degrees, brakingMode, acceleration, deceleration)
+    end
+    private system action RunTankForDegreesNative(integer leftVelocity, integer rightVelocity, integer degrees, integer brakingMode, integer acceleration, integer deceleration)
+
+    /*
+        Runs the left and right motors for the given time, in milliseconds, with the provided velocities
+        Velocity ranges vary per motor size as follows:
+            Small motor: -660 to 660
+            Medium motor: -1110 to 1110
+            Large motor: -1050 to 1050
+
+        Attribute: Parameter leftVelocity The velocity of the left motor in degrees/sec
+        Attribute: Parameter rightVelocity The velocity of the left motor in degrees/sec
+        Attribute: Parameter duration The number of milliseconds to run the motors for
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotorPair
+        use Libraries.Robots.Spike.Port
+        Port port
+        MotorPair wheels
+        wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
+        wheels:RunTankForTime(360, 360, 2000)
+    */
+    action RunTankForTime(integer leftVelocity, integer rightVelocity, integer duration)
+        RunTankForTimeNative(leftVelocity, rightVelocity, duration)
+    end
+    private system action RunTankForTimeNative(integer leftVelocity, integer rightVelocity, integer duration)
+
+    /*
+        Runs the left and right motors for the given time, in milliseconds, with the provided values
+        Velocity ranges vary per motor size as follows:
+            Small motor: -660 to 660
+            Medium motor: -1110 to 1110
+            Large motor: -1050 to 1050
+        Acceleration and deceleration range from 0 to 10000
+        Available braking modes, as Motor constants, are: COAST, BRAKE, HOLD, CONTINUE, SMART_COAST, or SMART_BRAKE
+
+        Attribute: Parameter leftVelocity The velocity of the left motor in degrees/sec
+        Attribute: Parameter rightVelocity The velocity of the left motor in degrees/sec
+        Attribute: Parameter duration The number of milliseconds to run the motors for
+        Attribute: Parameter brakingMode The braking mode to use when stopping the motor
+        Attribute: Parameter acceleration The acceleration of the motors in degrees/sec^2
+        Attribute: Parameter deceleration The deceleration of the motors in degrees/sec^2
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotorPair
+        use Libraries.Robots.Spike.Motor
+        use Libraries.Robots.Spike.Port
+        Port port
+        Motor motor
+        MotorPair wheels
+        wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
+        wheels:RunTankForTime(360, 360, 2000, motor:BRAKE, 5400, 5400)
+    */
+    action RunTankForTime(integer leftVelocity, integer rightVelocity, integer duration, integer brakingMode, integer acceleration, integer deceleration)
+        RunTankForTimeNative(leftVelocity, rightVelocity, duration, brakingMode, acceleration, deceleration)
+    end
+    private system action RunTankForTimeNative(integer leftVelocity, integer rightVelocity, integer duration, integer brakingMode, integer acceleration, integer deceleration)
+
+
+    /*
+        Stops the motor pair from running with the default braking mode
+
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Hub
+        use Libraries.Robots.Spike.MotorPair
+        use Libraries.Robots.Spike.Port
+        Hub hb
+        Port port
+        MotorPair wheels
+        wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
+        wheels:Run(0)
+        hb:Sleep(1000)
+        wheels:Stop()
+    */
+    action Stop
+        StopNative()
+    end
+    private system action StopNative
+
+    /*
+        Stops the motor pair from running with the provided braking mode
+        Available braking modes, as Motor constants, are: COAST, BRAKE, HOLD, CONTINUE, SMART_COAST, or SMART_BRAKE
+
+        Attribute: Parameter brakingMode The braking mode to use when stopping the motor
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Hub
+        use Libraries.Robots.Spike.MotorPair
+        use Libraries.Robots.Spike.Motor
+        use Libraries.Robots.Spike.Port
+        Hub hb
+        Port port
+        Motor motor
+        MotorPair wheels
+        wheels:SetPair(wheels:PAIR_1)
+        wheels:SetPorts(port:A, port:B)
+        wheels:Run(0)
+        hb:Sleep(1000)
+        wheels:Stop(motor:BRAKE)
+    */
+    action Stop(integer brakingMode)
+        StopNative(brakingMode)
+    end
+    private system action StopNative(integer brakingMode)
+end
