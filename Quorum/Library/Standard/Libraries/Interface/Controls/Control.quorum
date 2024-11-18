@@ -1461,8 +1461,8 @@ action GetDefaultMonospaceFontName returns text
         text name = undefined
         Font font
 
-        if font:IsFontAvailable("FiraMono-Bold")
-            name = "FiraMono-Bold"
+        if font:IsFontAvailable("FiraMono-Regular")
+            name = "FiraMono-Regular"
                 elseif font:IsFontAvailable("Courier New Bold")
             name = "Courier New Bold"
 elseif font:IsFontAvailable("courbd")
