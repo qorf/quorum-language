@@ -91,6 +91,17 @@ class Layer2D is Layer
     Array<Item2D> depthSortedArray
     Camera camera = undefined
     Painter2D painter
+CollisionGroup2D island
+    Stack<Item2D> stack
+CollisionGroup2D toiIsland
+    TimeOfImpactInput2D toiInput
+    TimeOfImpactOutput2D toiOutput
+    TimeStep substep
+    Item2D tempBody0
+    Item2D tempBody1
+    Sweep2D backup1
+    Sweep2D backup2
+    TimeOfImpact2D toi
 
     GameStateManager manager
     SystemHelper systemHelper
@@ -171,6 +182,48 @@ class Layer2D is Layer
 
     /* This allows us to turn collisions on or off for the layer. */
     action SetColliding(boolean collide)
+        if not collide
+            island = undefined
+            joints = undefined
+            collisionManager = undefined
+            
+toiIsland = undefined
+            toiInput = undefined
+            toiOutput = undefined
+            substep = undefined
+            tempBody0 = undefined
+            tempBody1 = undefined
+            backup1 = undefined
+            backup2 = undefined
+            toi = undefined
+        else
+Array<Joint2D> joints2
+CollisionManager2D collisionManager2
+CollisionGroup2D island2
+island = island2
+            joints = joints2
+            collisionManager = collisionManager2
+            
+CollisionGroup2D toiIsland2
+    TimeOfImpactInput2D toiInput2
+    TimeOfImpactOutput2D toiOutput2
+    TimeStep substep2
+    Item2D tempBody02
+    Item2D tempBody12
+    Sweep2D backup12
+    Sweep2D backup22
+    TimeOfImpact2D toi2
+            
+toiIsland = toiIsland2
+            toiInput = toiInput2
+            toiOutput = toiOutput2
+            substep = substep2
+            tempBody0 = tempBody02
+            tempBody1 = tempBody12
+            backup1 = backup12
+            backup2 = backup22
+            toi = toi2
+        end
         me:collide = collide
     end
 
@@ -2503,9 +2556,6 @@ class Layer2D is Layer
         return automaticallyClearForces
     end
 
-    CollisionGroup2D island
-    Stack<Item2D> stack
-
     private action SolvePhysics(TimeStep step)
         CollisionEvent2D collision = collisionManager:GetCollisionList()
         repeat until collision = undefined
@@ -2657,16 +2707,6 @@ class Layer2D is Layer
 
         collisionManager:FindNewCollisions()
     end
-
-    CollisionGroup2D toiIsland
-    TimeOfImpactInput2D toiInput
-    TimeOfImpactOutput2D toiOutput
-    TimeStep substep
-    Item2D tempBody0
-    Item2D tempBody1
-    Sweep2D backup1
-    Sweep2D backup2
-    TimeOfImpact2D toi
 
     private action SolveTimeOfImpact(TimeStep timeStep)
         CollisionGroup2D island = toiIsland
@@ -2910,6 +2950,45 @@ class Layer2D is Layer
     end
 
     action EnablePhysics(boolean flag)
+if not flag
+            island = undefined
+            joints = undefined
+            
+            toiIsland = undefined
+            toiInput = undefined
+            toiOutput = undefined
+            substep = undefined
+            tempBody0 = undefined
+            tempBody1 = undefined
+            backup1 = undefined
+            backup2 = undefined
+            toi = undefined
+        else
+Array<Joint2D> joints2
+CollisionGroup2D island2
+island = island2
+            joints = joints2
+            
+CollisionGroup2D toiIsland2
+    TimeOfImpactInput2D toiInput2
+    TimeOfImpactOutput2D toiOutput2
+    TimeStep substep2
+    Item2D tempBody02
+    Item2D tempBody12
+    Sweep2D backup12
+    Sweep2D backup22
+    TimeOfImpact2D toi2
+            
+toiIsland = toiIsland2
+            toiInput = toiInput2
+            toiOutput = toiOutput2
+            substep = substep2
+            tempBody0 = tempBody02
+            tempBody1 = tempBody12
+            backup1 = backup12
+            backup2 = backup22
+            toi = toi2
+        end
         physicsEnabled = flag
     end
 
