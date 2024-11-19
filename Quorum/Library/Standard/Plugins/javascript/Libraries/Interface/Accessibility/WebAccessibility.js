@@ -117,7 +117,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
         container.insertBefore(focusButton, canvas);
         document.addEventListener("selectionchange", (event) => {
             const activeElement = document.activeElement;
-            if(activeElement && textInputElements.has(activeElement.id)) {
+            if(activeElement && textInputElements.has(parseInt(activeElement.id))) {
                 let textElement = activeElement;
                 if (!('quorumItem' in textElement)) {
                     return;
@@ -503,7 +503,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                     para.value = textBox.GetText();
                 }
                 para.quorumItem = item;
-                textInputElements.set(para.id, para);
+                textInputElements.set(id, para);
                 break;
             //MENU_BAR
             case 7:
@@ -637,7 +637,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 }
 
                 para.quorumItem = item;
-                textInputElements.set(para.id, para);
+                textInputElements.set(id, para);
                 break;
             //LIST
             case 18:
@@ -858,7 +858,13 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         }
         let element = document.getElementById(id);
         if (textInputElements.has(id)) {
-            textInputElements.delete(id);
+            let textElement = textInputElements.get(id);
+            if (!('quorumItem' in textElement)) {
+                textElement.quorumItem = null;
+            }
+            if(textInputElements.delete(id)) {
+                console.log("removed text input element");
+            }
         }
         if (element != null) { //if the parent was removed then this would come up null
             if (element === document.activeElement)
@@ -979,10 +985,17 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
     this.Shutdown = function() {
         //console.log("Shutdown");
         //dispose of the shadow DOM tree
+        if(controlElementRoot) {
+            controlElementRoot.remove();
+            controlElementRoot = null;
+            for (var member in controlElementList) delete controlElementList[member];
+            controlElementList = null;
+        }
         if (root) {
             root.remove();
             root = null;
         }
+        
         if (focusButton) {
             focusButton.remove();
             focusButton = null;
