@@ -509,8 +509,9 @@ CollisionManager2D collisionManager2
         if item is Control
             RemoveControl(cast(Control, item))
         end
-
-        JointEdge2D jointEdge = item:GetJointList()
+        
+        if PhysicsEnabled()
+JointEdge2D jointEdge = item:GetJointList()
         repeat while jointEdge not= undefined
             JointEdge2D jointEdge0 = jointEdge
             jointEdge = jointEdge:GetNext()
@@ -520,17 +521,20 @@ CollisionManager2D collisionManager2
             item:SetJointList(jointEdge)
         end
         item:SetJointList(undefined)
+        end
 
-        CollisionEdge2D edge = item:GetCollisionList()
+if IsColliding()
+CollisionEdge2D edge = item:GetCollisionList()
         repeat while edge not= undefined
             CollisionEdge2D edge0 = edge
             edge = edge:GetNext()
             collisionManager:Destroy(edge0:GetCollision())
         end
         item:SetCollisionList(undefined)
-
-        item:DestroyNodes(collisionManager:GetBroadphase())
+            
+item:DestroyNodes(collisionManager:GetBroadphase())
         item:SetCollidable(false)
+        end
 
         item:SetLayer(undefined)
 
@@ -589,7 +593,8 @@ CollisionManager2D collisionManager2
             RemoveControl(cast(Control, item))
         end
 
-        JointEdge2D jointEdge = item:GetJointList()
+        if PhysicsEnabled()
+JointEdge2D jointEdge = item:GetJointList()
         repeat while jointEdge not= undefined
             JointEdge2D jointEdge0 = jointEdge
             jointEdge = jointEdge:GetNext()
@@ -599,8 +604,10 @@ CollisionManager2D collisionManager2
             item:SetJointList(jointEdge)
         end
         item:SetJointList(undefined)
-
-        CollisionEdge2D edge = item:GetCollisionList()
+        end
+        
+        if IsColliding()
+CollisionEdge2D edge = item:GetCollisionList()
         repeat while edge not= undefined
             CollisionEdge2D edge0 = edge
             edge = edge:GetNext()
@@ -610,6 +617,7 @@ CollisionManager2D collisionManager2
 
         item:DestroyNodes(collisionManager:GetBroadphase())
         item:SetCollidable(false)
+        end
 
         item:SetLayer(undefined)
 
@@ -667,7 +675,8 @@ CollisionManager2D collisionManager2
             RemoveControl(cast(Control, item))
         end
 
-        JointEdge2D jointEdge = item:GetJointList()
+        if PhysicsEnabled()
+JointEdge2D jointEdge = item:GetJointList()
         repeat while jointEdge not= undefined
             JointEdge2D jointEdge0 = jointEdge
             jointEdge = jointEdge:GetNext()
@@ -677,8 +686,10 @@ CollisionManager2D collisionManager2
             item:SetJointList(jointEdge)
         end
         item:SetJointList(undefined)
-
-        CollisionEdge2D edge = item:GetCollisionList()
+        end
+        
+if IsColliding()
+CollisionEdge2D edge = item:GetCollisionList()
         repeat while edge not= undefined
             CollisionEdge2D edge0 = edge
             edge = edge:GetNext()
@@ -688,6 +699,7 @@ CollisionManager2D collisionManager2
 
         item:DestroyNodes(collisionManager:GetBroadphase())
         item:SetCollidable(false)
+        end
 
         item:SetLayer(undefined)
 
@@ -744,7 +756,8 @@ CollisionManager2D collisionManager2
             RemoveControl(cast(Control, item))
         end
 
-        JointEdge2D jointEdge = item:GetJointList()
+        if PhysicsEnabled()
+JointEdge2D jointEdge = item:GetJointList()
         repeat while jointEdge not= undefined
             JointEdge2D jointEdge0 = jointEdge
             jointEdge = jointEdge:GetNext()
@@ -754,8 +767,10 @@ CollisionManager2D collisionManager2
             item:SetJointList(jointEdge)
         end
         item:SetJointList(undefined)
+        end
 
-        CollisionEdge2D edge = item:GetCollisionList()
+        if IsColliding()
+CollisionEdge2D edge = item:GetCollisionList()
         repeat while edge not= undefined
             CollisionEdge2D edge0 = edge
             edge = edge:GetNext()
@@ -765,6 +780,7 @@ CollisionManager2D collisionManager2
 
         item:DestroyNodes(collisionManager:GetBroadphase())
         item:SetCollidable(false)
+        end
 
         item:SetLayer(undefined)
 
