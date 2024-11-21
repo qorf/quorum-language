@@ -1499,6 +1499,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
                     buttons: 0,
                     wheel: 0,
                 },
+                gestureProcessor: null,
             }
         }
 
@@ -1540,5 +1541,33 @@ function plugins_quorum_Libraries_Game_WebInput_()
         gameInfo.plugins_quorum_Libraries_Game_WebInput_.mouseEvents = [];
         gameInfo.plugins_quorum_Libraries_Game_WebInput_.textEvents = [];
         gameInfo.plugins_quorum_Libraries_Game_WebInput_.gestureEvents = [];
+    };
+
+    this.SetGestureProcessor$quorum_Libraries_Interface_Events_GestureProcessor = function(gestures) {
+        var gameInfo = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo();
+
+        // Ensure the game info has been initialized for input.
+        if (gameInfo.plugins_quorum_Libraries_Game_WebInput_ == undefined)
+        {
+            gameInfo.plugins_quorum_Libraries_Game_WebInput_ =
+            {
+                mouseEvents: [],
+                keyboardEvents: [],
+                textEvents: [],
+                resizeEvents: [],
+                gestureEvents: [],
+                pressedKeys: {},
+                pressedKeysCount: 0,
+                mouseInfo:
+                {
+                    x: 0,
+                    y: 0,
+                    buttons: 0,
+                    wheel: 0,
+                },
+                gestureProcessor: null,
+            }
+        }
+        gameInfo.plugins_quorum_Libraries_Game_WebInput_.gestureProcessor = gestures;
     };
 }

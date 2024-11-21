@@ -82,7 +82,7 @@ function plugins_quorum_Libraries_Interface_Events_GestureProcessor_() {
                 }
             }
         });
-        gestureListener.on("tap twoFingerTap threeFingerTap", function(ev) {
+        gestureListener.on("tap", function(ev) {
             if(ev.pointerType === "touch") {
                 let gestureEvent = new quorum_Libraries_Interface_Events_GestureEvent_();
                 gestureEvent.eventType = gestureEvent.SINGLE_TAP;
@@ -172,5 +172,15 @@ function plugins_quorum_Libraries_Interface_Events_GestureProcessor_() {
             }
         });
         
+    };
+
+    this.Shutdown = function() {
+        gestureListener.off("panstart panmove panend pancancel");
+        gestureListener.off("pinchstart pinchmove pinchend pinchcancel");
+        gestureListener.off("tap");
+        gestureListener.off("doubletap");
+        gestureListener.off("press pressup");
+        gestureListener.off("swipe twoFingerSwipe threeFingerSwipe");
+        gestureListener = null;
     };
 }

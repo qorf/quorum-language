@@ -22,6 +22,11 @@ class WebInput is StandardInput
     action InitializeGestureProcessor(text containerID)
 GestureProcessor gestures
         gestures:InitializeGestureProcessor(containerID)
+        SetGestureProcessor(gestures)
     end
+    
+    private system action SetGestureProcessor(GestureProcessor gestures)
+    
+    
 
 end

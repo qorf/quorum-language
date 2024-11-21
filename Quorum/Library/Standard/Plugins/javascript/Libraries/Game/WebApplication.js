@@ -114,7 +114,9 @@ function plugins_quorum_Libraries_Game_WebApplication_()
                 {
                     accessibility.Shutdown();
                 }
-
+                // shutdown the gesture processor
+                let gameInfo = plugins_quorum_Libraries_Game_GameStateManager_.registeredGames.get(game);
+                gameInfo.plugins_quorum_Libraries_Game_WebInput_.gestureProcessor.plugin_.Shutdown();
                 // Wipe the screen clean.
                 var graphics = manager.GetGameGraphics();
                 // 16640 is the result of binary OR on GL_COLOR_BUFFER_BIT and GL_DEPTH_BUFFER_BIT.

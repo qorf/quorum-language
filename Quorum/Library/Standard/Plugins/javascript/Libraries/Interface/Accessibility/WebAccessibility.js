@@ -7,7 +7,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
     var type = "";      //specifies the input type of the element
     var elementType = "DIV";   //specifies the type of element DEFAULT is DIV right now for testing
     var elementList = [];   // array using the item's hashCode value as an index and the item as the value 
-    var controlElementList = {};
+    var controlElementList = new Map();
     var currentFocus = null;
     let root = null;
     let controlElementRoot = null;
@@ -15,7 +15,8 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
     let blurDelayedCall = null;
     let removedFocusedElement = false;
     let thisGame = null;
-    var textInputElements = new Map();
+    let textInputElements = null;
+    let selectionListener = null;
 
     const addBlurListener = function(element) {
         element.addEventListener("blur", () => {
@@ -76,6 +77,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
         controlElementRoot = document.createElement("article");
         root.appendChild(controlElementRoot);
         addBlurListener(controlElementRoot);
+        textInputElements = new Map();
 
         // The following style settings come from Flutter Web.
         // Make all semantics transparent. We use `filter` instead of `opacity`
@@ -115,9 +117,9 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
         // Like the accessibility root, this element must be inserted before
         // the canvas.
         container.insertBefore(focusButton, canvas);
-        document.addEventListener("selectionchange", (event) => {
+        selectionListener = function(event) {
             const activeElement = document.activeElement;
-            if(activeElement && textInputElements.has(parseInt(activeElement.id))) {
+            if(activeElement) {
                 let textElement = activeElement;
                 if (!('quorumItem' in textElement)) {
                     return;
@@ -129,35 +131,14 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
                         let documentSelection = document.getSelection();
                         let startIndex = textElement.selectionStart;
                         let endIndex = textElement.selectionEnd;
-                        console.log(endIndex);
-                            // quorumItem.SetText$quorum_text(textElement.value);
-        
-                            // // Update the selection indices, if possible.
-                            // if (selection && selection.Set$quorum_integer$quorum_integer$quorum_boolean$quorum_boolean)
-                            // {
-                            //     selection.Set$quorum_integer$quorum_integer$quorum_boolean$quorum_boolean(startIndex, endIndex, true, false);
-                            // }
-        
-                            // // Ensure the caret is in the right spot.
-                            // if (quorumItem.SetCaretPosition$quorum_integer)
-                            // {
-                            //     quorumItem.SetCaretPosition$quorum_integer(endIndex);
-                            // }
-        
-                            // // Changing the Quorum text updates the position of the selection in shadow DOM. Make sure it's set back to correct values.
-                            // textElement.selectionStart = startIndex;
-                            // textElement.selectionEnd = endIndex;
-        
-                            // return;
-    
-                        // Ensure the caret is in the right spot.
                         if (quorumItem.SetCaretPosition$quorum_integer)
                         {
                             quorumItem.SetCaretPosition$quorum_integer(endIndex);
                         }
                     }
             }
-        });
+        };
+        document.addEventListener("selectionchange", selectionListener);
     };
 
     this.GetRoot = function() {
@@ -778,7 +759,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             para.addEventListener("click", (event) => {
                 let webEvent = new quorum_Libraries_Interface_Events_WebAccessibilityEvent_();
                 webEvent.type = 4
-                webEvent.focusedItem = item;
+                webEvent.focusedItem = elementList[parseInt(event.target.id)];
                 me_.NotifyListeners$quorum_Libraries_Interface_Events_WebAccessibilityEvent(webEvent);
             });
             para.addEventListener("focus", (event) => {
@@ -786,8 +767,8 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                     clearTimeout(blurDelayedCall);
                     blurDelayedCall = null;
                 }
-                if (currentFocus !== para) {
-                    item.Focus();
+                if (currentFocus !== elementList[parseInt(event.target.id)]) {
+                    elementList[parseInt(event.target.id)].Focus();
                 }
             });
             addBlurListener(para);
@@ -796,7 +777,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         if (global_InstanceOf(item,"Libraries.Interface.Controls.ListItem")) {
             let listItem = global_CheckCast(item, "Libraries.Interface.Controls.ListItem");
             para.addEventListener("click", (event) => {
-                if (event.target !== para) {
+                if (event.target !== this) {
                     return; // ignore bubbled events
                 }
                 listItem.Select();
@@ -804,7 +785,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         } else if (global_InstanceOf(item,"Libraries.Interface.Controls.Control")) {
             let control = global_CheckCast(item, "Libraries.Interface.Controls.Control");
             para.addEventListener("click", (event) => {
-                if (event.target !== para) {
+                if (event.target !== this) {
                     return; // ignore bubbled events
                 }
                 control.Activate();
@@ -862,9 +843,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             if (!('quorumItem' in textElement)) {
                 textElement.quorumItem = null;
             }
-            if(textInputElements.delete(id)) {
-                console.log("removed text input element");
-            }
+            textInputElements.delete(id);
         }
         if (element != null) { //if the parent was removed then this would come up null
             if (element === document.activeElement)
@@ -988,8 +967,12 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         if(controlElementRoot) {
             controlElementRoot.remove();
             controlElementRoot = null;
-            for (var member in controlElementList) delete controlElementList[member];
+            controlElementList.clear();
             controlElementList = null;
+        }
+        if(textInputElements) {
+            textInputElements.clear();
+            textInputElements = null;
         }
         if (root) {
             root.remove();
@@ -1000,8 +983,10 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             focusButton.remove();
             focusButton = null;
         }
+        document.removeEventListener("selectionchange", selectionListener);
         elementList.length = 0;
         currentFocus = null;
+        thisGame = null;
     };
 
     this.OnHiddenElementClick = function(item) {
@@ -1026,7 +1011,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         } else {
             controlElementRoot.appendChild(element);
         }
-        controlElementList[name] = element;
+        controlElementList.set(name,element);
         addBlurListener(element);
     };
 
@@ -1047,7 +1032,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             me_.NotifyListeners$quorum_Libraries_Interface_Events_WebAccessibilityEvent(webEvent);
         });
         controlElementRoot.appendChild(element);
-        controlElementList[name] = element;
+        controlElementList.set(name,element);
         addBlurListener(element);
     };
 
@@ -1066,7 +1051,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         } else {
             controlElementRoot.appendChild(element);
         }
-        controlElementList[name] = element;
+        controlElementList.set(name,element);
         addBlurListener(element);
     };
 
@@ -1098,7 +1083,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             me_.NotifyListeners$quorum_Libraries_Interface_Events_WebAccessibilityEvent(webEvent);
         });
         controlElementRoot.appendChild(element);
-        controlElementList[name] = element;
+        controlElementList.set(name,element);
         addBlurListener(element);
     };
 
@@ -1123,8 +1108,8 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
     };
 
     this.FocusHiddenElement$quorum_text = function(name) {
-        if (controlElementList[name] !== null) {
-            controlElementList[name].focus();
+        if (controlElementList.has(name)) {
+            controlElementList.get(name).focus();
         }
     };
 
