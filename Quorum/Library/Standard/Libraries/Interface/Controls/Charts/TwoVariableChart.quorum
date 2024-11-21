@@ -229,13 +229,15 @@ class TwoVariableChart is Chart
 
             if me is ScatterPlot
                 ScatterPlot scatter = cast(ScatterPlot, me)
-                squares = scatter:GetResidualSquares()
-                
-                if scatter:HasMovableRegressionLine()
-                    if IsSeparated()
-                        hasSeparatedMovableLines = true
-                    else
-                        movableSquares = GetChartArea():GetMovableRegressionSeries():GetResidualSquares()
+                if scatter:IsShowingSquaresOfResiduals()
+                    squares = scatter:GetResidualSquares()
+                    
+                    if scatter:HasMovableRegressionLine()
+                        if IsSeparated()
+                            hasSeparatedMovableLines = true
+                        else
+                            movableSquares = GetChartArea():GetMovableRegressionSeries():GetResidualSquares()
+                        end
                     end
                 end
             end
