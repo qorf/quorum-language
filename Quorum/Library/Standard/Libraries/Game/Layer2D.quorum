@@ -82,7 +82,7 @@ end
 class Layer2D is Layer
 
     Array<Item2D> items
-    Array<Joint2D> joints
+    Array<Joint2D> joints = undefined
     Array<MouseListener> mouseListeners
     Array<MouseMovementListener> mouseMovementListeners
     Array<MouseWheelListener> mouseWheelListeners
@@ -91,17 +91,17 @@ class Layer2D is Layer
     Array<Item2D> depthSortedArray
     Camera camera = undefined
     Painter2D painter
-CollisionGroup2D island
+    CollisionGroup2D island = undefined
     Stack<Item2D> stack
-CollisionGroup2D toiIsland
-    TimeOfImpactInput2D toiInput
-    TimeOfImpactOutput2D toiOutput
-    TimeStep substep
-    Item2D tempBody0
-    Item2D tempBody1
-    Sweep2D backup1
-    Sweep2D backup2
-    TimeOfImpact2D toi
+    CollisionGroup2D toiIsland = undefined
+    TimeOfImpactInput2D toiInput = undefined
+    TimeOfImpactOutput2D toiOutput = undefined
+    TimeStep substep = undefined
+    Item2D tempBody0 = undefined
+    Item2D tempBody1 = undefined
+    Sweep2D backup1 = undefined
+    Sweep2D backup2 = undefined
+    TimeOfImpact2D toi = undefined
 
     GameStateManager manager
     SystemHelper systemHelper
@@ -186,7 +186,7 @@ CollisionGroup2D toiIsland
             collisionManager = undefined
             EnablePhysics(false)
         else
-CollisionManager2D collisionManager2
+            CollisionManager2D collisionManager2
             EnablePhysics(true)
             collisionManager = collisionManager2
         end
@@ -2932,7 +2932,7 @@ CollisionEdge2D edge = item:GetCollisionList()
     end
 
     action EnablePhysics(boolean flag)
-if not flag
+        if not flag
             island = undefined
             joints = undefined
             
@@ -2946,22 +2946,22 @@ if not flag
             backup2 = undefined
             toi = undefined
         else
-Array<Joint2D> joints2
-CollisionGroup2D island2
-island = island2
+            Array<Joint2D> joints2
+            CollisionGroup2D island2
+            island = island2
             joints = joints2
             
-CollisionGroup2D toiIsland2
-    TimeOfImpactInput2D toiInput2
-    TimeOfImpactOutput2D toiOutput2
-    TimeStep substep2
-    Item2D tempBody02
-    Item2D tempBody12
-    Sweep2D backup12
-    Sweep2D backup22
-    TimeOfImpact2D toi2
+            CollisionGroup2D toiIsland2
+            TimeOfImpactInput2D toiInput2
+            TimeOfImpactOutput2D toiOutput2
+            TimeStep substep2
+            Item2D tempBody02
+            Item2D tempBody12
+            Sweep2D backup12
+            Sweep2D backup22
+            TimeOfImpact2D toi2
             
-toiIsland = toiIsland2
+            toiIsland = toiIsland2
             toiInput = toiInput2
             toiOutput = toiOutput2
             substep = substep2
