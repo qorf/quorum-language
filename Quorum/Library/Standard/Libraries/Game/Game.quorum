@@ -743,6 +743,11 @@ class Game
             counter = counter + 1
             ResetDepthBuffer()
         end
+
+        if gl20 is VulkanGraphics
+            VulkanGraphics vulkan = cast(VulkanGraphics, gl20)
+            vulkan:DisplayCurrentImage()
+        end
     end
 
     /*
@@ -785,10 +790,8 @@ class Game
             OpenGLManager openGL = cast(OpenGLManager, gl20)
             openGL:ClearScreen(16640)
         elseif gl20 is VulkanGraphics
-            output "Beginning frame..."
             VulkanGraphics vulkan = cast(VulkanGraphics, gl20)
             vulkan:BeginNextFrame()
-            output "Frame started."
         end
     end
 
@@ -826,7 +829,7 @@ if gl20 is OpenGLManager
         end
 
         ClearScreen()
-//        DrawAll()
+        DrawAll()
 
         // Process pending screenshots, if there are any (which most of the time, there won't be).
         ProcessScreenshots()

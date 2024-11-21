@@ -5,11 +5,95 @@ use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Color
+use Libraries.Containers.Array
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Vulkan.Commands.all
+use Libraries.Game.Game
+use Libraries.Containers.Iterator
+use Libraries.Game.Layer
+use Libraries.Game.Layer2D
 
 class VulkanPainter2D is Painter2D
 
+    GameStateManager gameState
+    VulkanRenderPass renderPass = undefined
+
     on create
         LoadDefaultPainter()
+    end
+
+    action IsRenderPassValid returns boolean
+        return renderPass not= undefined
+    end
+
+    action RegenerateRenderPass(boolean isFirstPass) returns boolean
+        if renderPass not= undefined
+            renderPass:Dispose()
+        end
+
+        VulkanRenderPass pass
+        renderPass = pass
+
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        VulkanConstants constants
+
+        /*
+        Create the RenderPass that will be used for this painter. 
+        This must be compatible with the render pass used for the swapchain Framebuffers.
+        The RenderPass provided to the Framebuffers will indicate how rendering to the buffers will be performed. Pipelines using the
+        Framebuffers must either exactly match the RenderPass, or be compatible with it. More details here:
+        https://registry.khronos.org/vulkan/specs/1.3-extensions/html/chap8.html#renderpass-compatibility
+        */
+        VulkanAttachmentDescription outputColorAttachment
+        outputColorAttachment:SetFormat(graphics:GetSwapchain():GetImageViewInfo():GetFormat())
+        outputColorAttachment:SetSamples(constants:SAMPLE_COUNT_1_BIT)
+        outputColorAttachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
+        outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
+        outputColorAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_PRESENT_SRC)
+
+        if isFirstPass
+            outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
+        else
+//            outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_LOAD)
+            output "NOTE: Hard-setting attachment load op to CLEAR during testing..."
+            outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
+        end
+
+        Array<VulkanAttachmentDescription> attachmentDescriptions
+        attachmentDescriptions:Add(outputColorAttachment)
+
+
+        VulkanAttachmentReference outputColorReference
+        outputColorReference:SetAttachmentIndex(0)
+        outputColorReference:SetLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+
+        Array<VulkanAttachmentReference> attachmentReferences
+        attachmentReferences:Add(outputColorReference)
+
+
+        VulkanSubpassDescription subpass
+        subpass:SetPipelineBindPoint(constants:PIPELINE_BIND_POINT_GRAPHICS)
+        subpass:SetColorAttachments(attachmentReferences)
+
+        Array<VulkanSubpassDescription> subpassDescriptions
+        subpassDescriptions:Add(subpass)
+
+        
+        VulkanSubpassDependency dependency
+        dependency:SetSourceSubpass(constants:SUBPASS_EXTERNAL)
+        dependency:SetDestinationSubpass(0)
+        dependency:SetSourceStageMask(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
+        dependency:SetDestinationStageMask(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
+        dependency:SetSourceAccessMask(0)
+        dependency:SetDestinationAccessMask(constants:ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
+
+        Array<VulkanSubpassDependency> subpassDependencies
+        subpassDependencies:Add(dependency)
+
+
+        boolean success = renderPass:Create(graphics:GetDevice(), attachmentDescriptions, subpassDescriptions, subpassDependencies)
+        output "Painter: Created RenderPass, success = " + success
+        return success
     end
 
     private action LoadDefaultPainter
@@ -24,47 +108,105 @@ class VulkanPainter2D is Painter2D
 
     action SetCamera(Camera camera)
 //        output "NYI: VulkanPainter2D SetCamera"
-        alert("NYI")
+//        alert("NYI")
     end
     
     action Begin
-//        output "NYI: VulkanPainter2D Begin"
-        alert("NYI")
+        // If the render pass isn't defined and valid, regenerate it.
+        // We'll have to determine if this is the first painter in the Game as part of this.
+        if not IsRenderPassValid()
+            boolean isFirstLayer = false
+
+            Game game = gameState:GetGame()
+            Iterator<Layer> layers = game:GetLayerIterator()
+            if layers:HasNext()
+                Layer layer = layers:Next()
+                if layer is Layer2D
+                    Layer2D layer2D = cast(Layer2D, layer)
+                    isFirstLayer = layer2D:GetPainter():Equals(me)
+                end
+            end
+
+            RegenerateRenderPass(isFirstLayer)
+        end
+
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        VulkanConstants constants
+
+        VulkanCommandBuffer commandBuffer = graphics:GetCurrentRenderCommandBuffer()
+        VulkanFramebuffer framebuffer = graphics:GetCurrentFramebuffer()
+        VulkanSwapchain swapchain = graphics:GetSwapchain()
+        VulkanClearValue clearValue = graphics:GetClearValue()
+        
+
+
+        // Create the command to begin the render pass.
+        BeginRenderPassCommand beginRenderPass
+        beginRenderPass:SetRenderPass(renderPass)
+        beginRenderPass:SetClearValue(clearValue)
+        beginRenderPass:SetFramebuffer(framebuffer)
+        beginRenderPass:SetRenderArea(swapchain:GetImageWidth(), swapchain:GetImageHeight())
+        commandBuffer:Record(beginRenderPass)
+
+//        // NEXT STEP: Bind pipeline command
+////        BindPipelineCommand bindPipeline
+////        bindPipeline:SetPipeline(pipeline)
+
+        // TO-DO: CHANGE THIS DYNAMICALLY FOR RENDERED CONTENT
+        // Set viewport command
+        // Setting the position to the height and the height to the negated height flips the Y axis of our viewport.
+        SetViewportCommand setViewport
+        setViewport:SetPosition(0, swapchain:GetImageHeight())
+        setViewport:SetSize(swapchain:GetImageWidth(), -swapchain:GetImageHeight())
+        commandBuffer:Record(setViewport)
+
+        // TO-DO: CHANGE THIS DYNAMICALLY FOR RENDERED CONTENT
+        // Set scissor command
+        SetScissorCommand setScissor
+        setScissor:SetPosition(0, 0)
+        setScissor:SetSize(swapchain:GetImageWidth(), swapchain:GetImageHeight())
+        commandBuffer:Record(setScissor)
+
+        
     end
     
     action End
-//        output "NYI: VulkanPainter2D End"
-        alert("NYI")
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        VulkanCommandBuffer commandBuffer = graphics:GetCurrentRenderCommandBuffer()
+
+        // End the render pass.
+        EndRenderPassCommand endRenderPass
+        commandBuffer:Record(endRenderPass)
     end
     
     action SetClipping(boolean clippingEnabled)
 //        output "NYI: VulkanPainter2D SetClipping"
-        alert("NYI")
+//        alert("NYI")
     end
     
     action SetColor(Color color)
 //        output "NYI: VulkanPainter2D SetColor"
-        alert("NYI")
+//        alert("NYI")
     end
     
     action SetColor(number red, number green, number blue, number alpha)
 //        output "NYI: VulkanPainter2D SetColor(2)"
-        alert("NYI")
+//        alert("NYI")
     end
     
     action QueueForDrawing(Item2D item)
 //        output "NYI: VulkanPainter2D QueueForDrawing"
-        alert("NYI")
+//        alert("NYI")
     end
     
     action Draw(Drawable drawable)
 //        output "NYI: VulkanPainter2D Draw"
-        alert("NYI")
+//        alert("NYI")
     end
     
     action SetClipCoordinates(number x, number y, number width, number height)
 //        output "NYI: VulkanPainter2D SetClipCoordinates"
-        alert("NYI")
+//        alert("NYI")
     end
 
 end

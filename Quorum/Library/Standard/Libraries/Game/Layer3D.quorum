@@ -1051,6 +1051,10 @@ class Layer3D is Layer
     needed. Most users will never need to use this action directly.
     */
     action Draw
+        if true
+            return now
+        end
+
         if not IsShowing()
             return now
         end

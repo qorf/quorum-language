@@ -131,6 +131,10 @@ class VulkanSwapchain
         return info:GetQueueFamilyIndices()
     end
 
+    action GetImageViewInfo returns VulkanImageViewInfo
+        return info:GetImageViewInfo()
+    end
+
     action GetSurface returns VulkanSurface
         return surface
     end

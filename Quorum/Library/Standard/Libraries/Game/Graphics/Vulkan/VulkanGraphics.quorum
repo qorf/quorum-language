@@ -32,17 +32,24 @@ class VulkanGraphics is GraphicsManager
     Array<VulkanSemaphore> imageRenderCompleteSemaphores
 
     // Values used to indicate the current resources for the current frame of animation.
-    integer currentSwapchainIndex = -1
+//    integer currentFrameIndex = -1
     VulkanCommandBuffer currentRenderCommandBuffer = undefined
-    VulkanFence currentRenderFence = undefined
-    VulkanFramebuffer currentFramebuffer
+    VulkanFence currentRenderFence = undefined    
+
+    /*
+    Note that the swapchain index can de-sync from the current frame index sometimes.
+    Many devices will reliably give us the images of the swapchain in order (e.g., 0, 1, 2, 0, 1, 2, etc.)
+    but it's not guaranteed. However, we can't know if we'll get one out of order until it happens, so we
+    can't rely on using the same value for both the current frame index and the swapchain index.
+    */
+    integer currentSwapchainIndex = -1
+    VulkanFramebuffer currentFramebuffer = undefined
     
     // The clear color, or in otherwords, the background color of the screen.
     VulkanClearValue clearValue
 
     on create
-//        clearValue:SetColor(0.85, 0.85, 0.85, 1.0)
-        clearValue:SetColor(0.85, 1.0, 0.85, 1.0)
+        clearValue:SetColor(0.85, 0.85, 0.85, 1.0)
     end
     
     /*
@@ -185,7 +192,7 @@ class VulkanGraphics is GraphicsManager
         end
 
         /*
-        Create the RenderPass that will be used for the Framebuffers and Pipeline. This work will likely be moved into a Painter later.
+        Create the RenderPass that will be used for the Framebuffers. The actual RenderPasses used during rendering are held by the Painters.
         The RenderPass provided to the Framebuffers will indicate how rendering to the buffers will be performed. Pipelines using the
         Framebuffers must either exactly match the RenderPass, or be compatible with it. More details here:
         https://registry.khronos.org/vulkan/specs/1.3-extensions/html/chap8.html#renderpass-compatibility
@@ -284,6 +291,7 @@ class VulkanGraphics is GraphicsManager
             VulkanSemaphore imageAcquiredSemaphore
             success = imageAcquiredSemaphore:Create(device)
             if not success
+                output "Failed to craete image acquired semaphore!"
                 return false
             end
             imageAcquiredSemaphores:Add(imageAcquiredSemaphore)
@@ -321,6 +329,25 @@ class VulkanGraphics is GraphicsManager
             RegenerateSwapchain()
         end
 
+//        currentFrameIndex = (currentFrameIndex + 1) mod swapchain:GetImageCount()
+//        currentRenderCommandBuffer = renderCommandBuffers:Get(currentFrameIndex)
+//        currentRenderFence = renderFences:Get(currentFrameIndex)
+//
+//        currentRenderFence:Wait()
+//        
+//        // Make sure the next image in the swapchain is valid. Window resizing in particular can make the swapchain "out of date", in which case we'll need to regenerate it.
+//        if PrepareNextSwapchainImage(device, swapchain, imageAcquiredSemaphores:Get(currentFrameIndex)) = false
+//            RegenerateSwapchain()
+//        end
+//
+//        currentSwapchainIndex = GetCurrentSwapchainIndexNative()
+//        currentFramebuffer = swapchainFramebuffers:Get(currentSwapchainIndex)
+
+        // Ensure that all work associated with this image has previously finished.
+//        currentRenderFence:Wait()
+
+        
+
         // Reset the fence associated with this frame.
         currentRenderFence:Reset()
 
@@ -329,9 +356,9 @@ class VulkanGraphics is GraphicsManager
 
 
         // Ensure the screen clearing value is ready for use.
-        if clearValue:IsDirty()
-            clearValue:ResetDirtyFlag()
-        end
+//        if clearValue:IsDirty()
+//            clearValue:ResetDirtyFlag()
+//        end
 
         
         // Begin recording commands for our chosen command buffer.
@@ -339,34 +366,72 @@ class VulkanGraphics is GraphicsManager
 
 
         // Create the command to begin the render pass.
-        BeginRenderPassCommand beginRenderPass
-        beginRenderPass:SetRenderPass(renderPass)
-        beginRenderPass:SetClearValue(clearValue)
-        beginRenderPass:SetFramebuffer(currentFramebuffer)
-        beginRenderPass:SetRenderArea(swapchain:GetImageWidth(), swapchain:GetImageHeight())
-        currentRenderCommandBuffer:Record(beginRenderPass)
+//        BeginRenderPassCommand beginRenderPass
+//        beginRenderPass:SetRenderPass(renderPass)
+//        beginRenderPass:SetClearValue(clearValue)
+//        beginRenderPass:SetFramebuffer(currentFramebuffer)
+//        beginRenderPass:SetRenderArea(swapchain:GetImageWidth(), swapchain:GetImageHeight())
+//        currentRenderCommandBuffer:Record(beginRenderPass)
+//
+//        // NEXT STEP: Bind pipeline command
+////        BindPipelineCommand bindPipeline
+////        bindPipeline:SetPipeline(pipeline)
+//
+//        // Set viewport command
+//        // Setting the position to the height and the height to the negated height flips the Y axis of our viewport.
+//        SetViewportCommand setViewport
+//        setViewport:SetPosition(0, swapchain:GetImageHeight())
+//        setViewport:SetSize(swapchain:GetImageWidth(), -swapchain:GetImageHeight())
+//        currentRenderCommandBuffer:Record(setViewport)
+//
+//        // Set scissor command
+//        SetScissorCommand setScissor
+//        setScissor:SetPosition(0, 0)
+//        setScissor:SetSize(swapchain:GetImageWidth(), swapchain:GetImageHeight())
+//        currentRenderCommandBuffer:Record(setScissor)
+//
+//        // End the render pass.
+//        EndRenderPassCommand endRenderPass
+//        currentRenderCommandBuffer:Record(endRenderPass)
 
-        // NEXT STEP: Bind pipeline command
-//        BindPipelineCommand bindPipeline
-//        bindPipeline:SetPipeline(pipeline)
+//        // Stop recording commands.
+//        currentRenderCommandBuffer:EndRecording()
+//
+//
+//        // TO-DO: Recreating these arrays every frame is going to be an issue. Consider reusing them or making a pool for the SubmitInfo.
+//        VulkanSubmitInfo submitInfo
+//        Array<VulkanCommandBuffer> commandBuffers
+//        Array<VulkanSemaphore> signalSemaphores
+//        Array<VulkanSemaphore> waitSemaphores
+//        Array<integer> waitDestinationStageMasks
+//
+//
+//        VulkanConstants constants
+//        commandBuffers:Add(currentRenderCommandBuffer)
+//        signalSemaphores:Add(imageRenderCompleteSemaphores:Get(currentSwapchainIndex))
+//        waitSemaphores:Add(imageAcquiredSemaphores:Get(currentSwapchainIndex))
+//        waitDestinationStageMasks:Add(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
+//        
+//        submitInfo:SetCommandBuffers(commandBuffers)
+//        submitInfo:SetSignalSemaphores(signalSemaphores)
+//        submitInfo:SetWaitSemaphores(waitSemaphores)
+//        submitInfo:SetWaitDestinationStageMasks(waitDestinationStageMasks)
+//        submitInfo:SetFence(currentRenderFence)
+//
+//        graphicsQueue:SubmitCommands(submitInfo)
 
-        // Set viewport command
-        // Setting the position to the height and the height to the negated height flips the Y axis of our viewport.
-        SetViewportCommand setViewport
-        setViewport:SetPosition(0, swapchain:GetImageHeight())
-        setViewport:SetSize(swapchain:GetImageWidth(), -swapchain:GetImageHeight())
-        currentRenderCommandBuffer:Record(setViewport)
+        // This will need to move in the future, but this can be here while testing initial screen clearing.
+//        DisplayCurrentImage()
+    end
 
-        // Set scissor command
-        SetScissorCommand setScissor
-        setScissor:SetPosition(0, 0)
-        setScissor:SetSize(swapchain:GetImageWidth(), swapchain:GetImageHeight())
-        currentRenderCommandBuffer:Record(setScissor)
+    // Asks the system to get the index of the next image in the Swapchain, and returns a boolean indicating if the operation was successful or not.
+    // Use GetCurrentSwapchainIndex after using this to get the actual index.
+    private system action PrepareNextSwapchainImage(VulkanDevice device, VulkanSwapchain swapchain, VulkanSemaphore semaphore) returns boolean
 
-        // End the render pass.
-        EndRenderPassCommand endRenderPass
-        currentRenderCommandBuffer:Record(endRenderPass)
+    // Returns the index of the next image that the Swapchain has indicated is ready for use. Use PrepareNextSwapchainImage before calling this.
+    private system action GetCurrentSwapchainIndexNative returns integer
 
+    action DisplayCurrentImage
         // Stop recording commands.
         currentRenderCommandBuffer:EndRecording()
 
@@ -377,6 +442,7 @@ class VulkanGraphics is GraphicsManager
         Array<VulkanSemaphore> signalSemaphores
         Array<VulkanSemaphore> waitSemaphores
         Array<integer> waitDestinationStageMasks
+
 
         VulkanConstants constants
         commandBuffers:Add(currentRenderCommandBuffer)
@@ -392,12 +458,6 @@ class VulkanGraphics is GraphicsManager
 
         graphicsQueue:SubmitCommands(submitInfo)
 
-        // This will need to move in the future, but this can be here while testing initial screen clearing.
-    end
-
-    private system action PrepareNextSwapchainImage(VulkanDevice device, VulkanSwapchain swapchain, VulkanSemaphore semaphore) returns boolean
-
-    action DisplayCurrentImage
         DisplayCurrentImageNative(presentationQueue, swapchain, imageRenderCompleteSemaphores:Get(currentSwapchainIndex), currentSwapchainIndex)
     end
 
@@ -683,6 +743,21 @@ class VulkanGraphics is GraphicsManager
 
     action GetCommandPool returns VulkanCommandPool
         return commandPool
+    end
+
+    action GetCurrentRenderCommandBuffer returns VulkanCommandBuffer
+        return currentRenderCommandBuffer
+    end
+
+    action GetCurrentFramebuffer returns VulkanFramebuffer
+        return currentFramebuffer
+    end
+
+    action GetClearValue returns VulkanClearValue
+        if clearValue:IsDirty()
+            clearValue:ResetDirtyFlag()
+        end
+        return clearValue
     end
 
 end

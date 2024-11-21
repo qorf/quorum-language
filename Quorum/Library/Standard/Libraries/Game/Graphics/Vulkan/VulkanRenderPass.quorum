@@ -20,4 +20,8 @@ class VulkanRenderPass
     private system action CreateNative(VulkanDevice device, Array<VulkanAttachmentDescription> attachments,
         Array<VulkanSubpassDescription> subpasses, Array<VulkanSubpassDependency> subpassDependencies) returns boolean
 
+    action Dispose
+        alert("NYI")
+    end
+
 end

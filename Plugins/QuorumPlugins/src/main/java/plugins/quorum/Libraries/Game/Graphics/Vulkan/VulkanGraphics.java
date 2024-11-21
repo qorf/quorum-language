@@ -17,6 +17,8 @@ public class VulkanGraphics
 {
     public Object me_;
 
+    int currentSwapchainIndex = 0;
+
     public boolean PrepareNextSwapchainImage(VulkanDevice_ quorumDevice, VulkanSwapchain_ quorumSwapchain, VulkanSemaphore_ quorumSemaphore)
     {
         VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
@@ -35,11 +37,14 @@ public class VulkanGraphics
                 ; // Do nothing. Despite the warning message, the Swapchain is still usable in this state.
             else if (vulkanResult != VK_SUCCESS)
                 throw new RuntimeException("Could not acquire the next swapchain image! Error code: " + vulkanResult);
-
-            int imageIndex = imageIndexBuffer.get(0);
         }
 
         return true;
+    }
+
+    public int GetCurrentSwapchainIndexNative()
+    {
+        return currentSwapchainIndex;
     }
 
     public boolean DisplayCurrentImageNative(VulkanQueue_ quorumQueue, VulkanSwapchain_ quorumSwapchain, VulkanSemaphore_ quorumSemaphore, int imageIndex)

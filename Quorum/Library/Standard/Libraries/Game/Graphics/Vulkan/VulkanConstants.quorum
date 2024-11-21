@@ -134,7 +134,10 @@ shared class VulkanConstants
     (i.e. first time using the attachment during a pass). Store operations indicate what operations should be done on the data once the pass is finished with the attachment.
     */
     public constant integer ATTACHMENT_STORE_OP_STORE = 0
+    public constant integer ATTACHMENT_STORE_OP_DONT_CARE = 1
+    public constant integer ATTACHMENT_LOAD_OP_LOAD = 0
     public constant integer ATTACHMENT_LOAD_OP_CLEAR = 1
+    public constant integer ATTACHMENT_LOAD_OP_DONT_CARE = 2
     
     /*
     Constants representing image layouts. These describe the format of stored image data. 
