@@ -52,7 +52,7 @@ class NavigationBar is NavigationDivision
         quorumTitle:SetTitle("Quroum")
         quorumTitle:AddText("Quorum")
         quorumTitle:SetIdentifier("quorum-nav-title")
-        quorumTitle:SetClassAttribute("text-neutral-white font-bold text-lg")
+        quorumTitle:SetClassAttribute("text-neutral-white font-bold text-lg block sm:hidden md:block")
         quorumHomeLink:Add(quorumIcon)
         quorumHomeLink:Add(quorumTitle)
         div2:Add(quorumHomeLink)
@@ -97,14 +97,14 @@ class NavigationBar is NavigationDivision
         UnorderedList ul
 listBurger = ul
         ul:SetIdentifier("navigation-items")
-        ul:AddClassAttribute("text-gray-700 w-4/5 justify-center items-center sm:flex sm:space-x-6 sm:space-y-0 sm:text-gray-600 sm:font-medium sm:w-full")
+        ul:AddClassAttribute("w-4/5 justify-center items-center sm:flex sm:space-x-6 sm:space-y-0 sm:font-medium sm:w-full pr-2 sm:pr-4")
         
         Link learnLink
         ListItem li1
         learnLink:SetAddress("/learn" + extension)
         learnLink:AddText("Learn")
         learnLink:SetIdentifier("learnNavLink")
-        learnLink:AddClassAttribute("w-full py-3 block sm:w-fit") 
+        learnLink:AddClassAttribute("w-full py-3 block sm:w-fit text-base") 
         li1:Add(learnLink)
         
         Span rightArrow
@@ -120,7 +120,7 @@ listBurger = ul
         refLink:SetAddress("/reference" + extension)
         refLink:AddText("Reference")
         refLink:SetIdentifier("refNavLink")
-        refLink:AddClassAttribute("w-full py-3 block sm:w-fit group") 
+        refLink:AddClassAttribute("w-full py-3 block sm:w-fit group text-base") 
         li2:Add(refLink)
         
         Span rightArrow2
@@ -136,7 +136,7 @@ listBurger = ul
         libLink:SetAddress("/libraries" + extension)
         libLink:AddText("Libraries")
         libLink:SetIdentifier("libNavLink")
-        libLink:AddClassAttribute("w-full py-3 block sm:w-fit group")
+        libLink:AddClassAttribute("w-full py-3 block sm:w-fit group text-base")
         li3:Add(libLink)
         
         Span rightArrow3
@@ -147,13 +147,14 @@ listBurger = ul
         li3:AddClassAttribute("h-full group flex items-center flex-row rounded-2xl pl-3 duration-150 hover:bg-neutral-grey-40 sm:w-fit sm:hover:bg-neutral-grey-95 relative")
         ul:Add(li3)
         
-        Link helpLink
+        Link communityLink
         ListItem li4
-        helpLink:SetAddress("/bugs" + extension)
-        helpLink:AddText("Help")
-        helpLink:SetIdentifier("helpNavLink")
-        helpLink:AddClassAttribute("w-full py-3 block sm:w-fit group")  
-        li4:Add(helpLink)
+        communityLink:SetAddress("/community" + extension)
+        communityLink:AddText("Community")
+        communityLink:AddAttribute("data-test", "communityNavLink")
+        communityLink:SetIdentifier("communityNavLink")
+        communityLink:AddClassAttribute("w-full py-3 block sm:w-fit group text-base")  
+        li4:Add(communityLink)
         
         Span rightArrow4
         rightArrow4:AddText(carrot)
@@ -163,13 +164,34 @@ listBurger = ul
         li4:AddClassAttribute("h-full group flex items-center flex-row rounded-2xl pl-3 duration-150 hover:bg-neutral-grey-40 sm:w-fit sm:hover:bg-neutral-grey-95 relative")
         ul:Add(li4)
 
+
+        ListItem profileButton
+        Link profileLink
+        profileLink:SetAddress("Profile.quorum")
+        profileLink:AddText("Projects")
+        profileLink:AddAttribute("data-test", "communityNavLink")
+        profileLink:SetIdentifier("profileButton")
+        profileLink:AddClassAttribute("w-full py-3 block sm:w-fit group text-base")  
+        profileButton:Add(profileLink)
+        
+        Span rightArrowProfile
+        rightArrow4:AddText(carrot)
+        rightArrow4:AddClassAttribute("hidden mr-3 group-hover:inline-block sm:group-hover:hidden")
+        profileButton:Add(rightArrowProfile)  // Add the arrow to the list item
+
+        profileButton:AddClassAttribute("h-full group hidden items-center flex-row rounded-2xl pl-3 duration-150 hover:bg-neutral-grey-40 sm:w-fit sm:hover:bg-neutral-grey-95 relative")
+        ul:Add(profileButton)
+
         ListItem li5
-        Link link
-        link:SetIdentifier("loginNavLink")
-        link:SetAddress("#")
-        link:AddText("Login")
-        link:AddClassAttribute("w-full py-3 block sm:w-fit group")  
-        li5:Add(link)
+                //opens the modal created in SourceCode/Support/LoginForm.quorum
+        Button loginButton
+        loginButton:SetIdentifier("loginButton")
+        loginButton:AddAttribute("data-test", "loginNavLink")
+        loginButton:AddText("Login")
+        loginButton:SetIdentifier("loginButton")
+        loginButton:SetOnClick("loginButtonPressed()")
+        loginButton:AddClassAttribute("w-full py-3 block sm:w-fit group text-left sm:text-center text-base")  
+        li5:Add(loginButton)
         
         Span rightArrow5
         rightArrow5:AddText(carrot)
@@ -185,7 +207,7 @@ listBurger = ul
         li6:SetIdentifier("searchListItem")
         Division searchContainer
         searchContainer:SetIdentifier("search-container")
-        searchContainer:AddClassAttribute("relative flex items-center my-4 bg-neutral-grey-65 rounded-2xl w-64 hidden") // Add order-[2]
+        searchContainer:AddClassAttribute("relative hidden items-center my-4 bg-neutral-grey-65 rounded-2xl w-64") // Add order-[2]
 
         Span searchIcon
         text searchIconText = "<svg width='18' height='18' viewBox='0 0 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'>
@@ -204,8 +226,15 @@ listBurger = ul
         searchInput:SetType("text")
         searchInput:SetIdentifier("nav-search")
         searchInput:AddClassAttribute("rounded-2xl py-2 pl-10 pr-10 w-full bg-neutral-grey-65 text-neutral-white focus:ring-0 focus:border-transparent")
-        searchInput:SetPlaceHolder("Try `Hotkeys`")
+        searchInput:SetPlaceHolder("Search `Hotkeys`")
         searchInput:SetName("search-query")
+
+        Label searchLabel
+        searchLabel:SetIdentifier("search-label")
+        searchLabel:AddText("Search Quorum Documentation")
+        searchLabel:AddClassAttribute("sr-only")
+        searchLabel:AddAttribute("for", "nav-search")
+        form:Add(searchLabel)
         
         form:Add(searchInput)
 
@@ -218,16 +247,49 @@ listBurger = ul
         searchContainer:Add(form)
         searchContainer:Add(closeButton)
         li6:Add(searchContainer)
+
+        closeButton:AddAttribute("aria-label", "Close Search Form")
         
         // Search Button
         Button searchButton
         searchButton:SetIdentifier("search-button")
         searchButton:AddClassAttribute("w-fit h-full block")
+        searchButton:AddAttribute("data-test", "searchNavLink")
         searchButton:AddText(searchIconText)
         searchButton:AddAttribute("aria-label", "Open Search Form")
         li6:Add(searchButton)
 
         ul:Add(li6)
+
+        Span discordIconSVG
+
+        text discordIconText = "<svg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
+<path d='M20.3303 4.22781C18.7767 3.50093 17.1156 2.97267 15.3789 2.67188C15.1656 3.05749 14.9164 3.57614 14.7446 3.98873C12.8985 3.71109 11.0693 3.71109 9.25716 3.98873C9.08539 3.57614 8.83055 3.05749 8.61536 2.67188C6.87681 2.97267 5.21376 3.50287 3.66019 4.23166C0.526643 8.96686 -0.322811 13.5845 0.101917 18.1365C2.18025 19.6885 4.19441 20.6313 6.17457 21.2483C6.66349 20.5754 7.09953 19.8601 7.47518 19.1063C6.75975 18.8344 6.07453 18.499 5.42707 18.1095C5.59884 17.9822 5.76686 17.8492 5.92918 17.7123C9.87819 19.5594 14.1689 19.5594 18.0707 17.7123C18.235 17.8492 18.403 17.9822 18.5728 18.1095C17.9235 18.5009 17.2364 18.8363 16.521 19.1082C16.8966 19.8601 17.3308 20.5774 17.8216 21.2502C19.8036 20.6333 21.8197 19.6905 23.898 18.1365C24.3964 12.8595 23.0467 8.28434 20.3303 4.22781ZM8.01318 15.337C6.82772 15.337 5.85555 14.2303 5.85555 12.8826C5.85555 11.535 6.80696 10.4264 8.01318 10.4264C9.21942 10.4264 10.1916 11.533 10.1708 12.8826C10.1727 14.2303 9.21942 15.337 8.01318 15.337ZM15.9867 15.337C14.8013 15.337 13.8291 14.2303 13.8291 12.8826C13.8291 11.535 14.7805 10.4264 15.9867 10.4264C17.193 10.4264 18.1651 11.533 18.1444 12.8826C18.1444 14.2303 17.193 15.337 15.9867 15.337Z'
+fill='#F6F6F7'/>
+</svg>"
+        discordIconSVG:AddText(discordIconText)
+        discordIconSVG:AddClassAttribute("inset-y-0 left-0 pl-3 flex items-center")
+
+        Image discordIcon
+        discordIcon:SetAddress("/media/userInterface/quorumAssets/discord-icon 1.png")
+        //discordIcon:AddClassAttribute("inset-y-0 left-0 flex items-center")
+        discordIcon:SetWidth("24")
+        discordIcon:SetHeight("24")
+        discordIcon:SetAlternate("Discord Icon that links to the community Server")
+
+        Link discordLink
+        ListItem li8
+        discordLink:SetAddress("https://discord.gg/6yTVQq4")
+        discordLink:Add(discordIconSVG)
+        discordLink:AddText(" ")
+        discordLink:AddAttribute("data-test", "discordNavLink")
+        discordLink:SetIdentifier("discordNavLink")
+        discordLink:AddClassAttribute("w-full py-3 block sm:w-fit group text-base")  
+        li8:Add(discordLink)
+
+        li8:AddClassAttribute("h-full group flex items-center flex-row rounded-2xl duration-150 hover:bg-neutral-grey-40 sm:w-fit sm:hover:bg-neutral-grey-95 relative")
+        ul:Add(li8)
+        
 
         Link downloadLink
         ListItem li7
@@ -235,7 +297,7 @@ listBurger = ul
         downloadLink:SetAddress("/download" + extension)
         downloadLink:AddText("Download")
         downloadLink:SetIdentifier("downloadNavLink")
-        downloadLink:AddClassAttribute("h-full py-3 block w-full group")  // Add 'group' here
+        downloadLink:AddClassAttribute("h-full py-2 block w-full group font-normal sm:font-bold px-0 sm:px-2")  // Add 'group' here
         li7:Add(downloadLink)
         
         Span rightArrow7
@@ -243,7 +305,7 @@ listBurger = ul
         rightArrow7:AddClassAttribute("hidden mr-3 group-hover:inline-block sm:group-hover:hidden")
         li7:Add(rightArrow7)  // Add the arrow to the list item
         
-        li7:AddClassAttribute("h-full group flex items-center flex-row block rounded-2xl pl-3 hover:bg-neutral-grey-40 sm:px-4 sm:duration-150 sm:text-center sm:rounded-3xl sm:block sm:font-medium sm:text-sm sm:text-neutral-black sm:bg-quorum-blue-100 sm:inline relative")  // Added 'relative' for positioning
+        li7:AddClassAttribute("h-full group flex items-center flex-row rounded-2xl pl-3 hover:bg-neutral-grey-40 sm:px-4 sm:duration-150 sm:text-center sm:rounded-3xl sm:font-medium sm:text-sm sm:text-neutral-black sm:bg-quorum-blue-100 sm:inline relative")  // Added 'relative' for positioning
         ul:Add(li7)
 
         div_menuList:Add(ul)        
@@ -264,9 +326,9 @@ listBurger = ul
                   const learnLink = document.getElementById(`learnNavLink`);
                   const refLink = document.getElementById(`refNavLink`);
                   const libLink = document.getElementById(`libNavLink`);
-                  const helpLink = document.getElementById(`helpNavLink`);
+                  const communityLink = document.getElementById(`communityNavLink`);
                   const searchListItem = document.getElementById(`searchListItem`)
-                  const loginListItem = document.getElementById(`loginNavLink`)
+                  const loginListItem = document.getElementById(`loginButton`)
                   const downloadLink = document.getElementById(`downloadNavLink`);
   
                   const mobileContainer = document.getElementById(`mobile-nav-container`)
@@ -291,7 +353,7 @@ listBurger = ul
                             learnLink.classList.add(`hidden`)
                             refLink.classList.add(`hidden`)
                             libLink.classList.add(`hidden`)
-                            helpLink.classList.add(`hidden`)
+                            communityLink.classList.add(`hidden`)
                             loginListItem.classList.add(`hidden`)
                             
                             if (smallScreenQuery.matches) {
@@ -305,7 +367,7 @@ listBurger = ul
                             learnLink.classList.remove(`hidden`)
                             refLink.classList.remove(`hidden`)
                             libLink.classList.remove(`hidden`)
-                            helpLink.classList.remove(`hidden`)
+                            communityLink.classList.remove(`hidden`)
                             loginListItem.classList.remove(`hidden`)
                             downloadLink.classList.remove(`hidden`)
                             if (smallScreenQuery.matches) {
@@ -335,7 +397,7 @@ listBurger = ul
                             learnLink.classList.remove('hidden');
                             refLink.classList.remove('hidden');
                             libLink.classList.remove('hidden');
-                            helpLink.classList.remove('hidden');
+                            communityLink.classList.remove('hidden');
                             loginListItem.classList.remove(`hidden`)
                             downloadLink.classList.remove(`hidden`)
                         } else{
@@ -344,7 +406,7 @@ listBurger = ul
                         }   
                     };
                 
-                let placeholders = [`Try \`Button\``, `Try \`Behavior\``, `Try \`Hotkeys\``];
+                let placeholders = [`Search \`Button\``, `Search \`Behavior\``, `Search \`Hotkeys\``];
                 let currentIndex = 0;
                 
                 function cyclePlaceholder() {
@@ -354,8 +416,6 @@ listBurger = ul
                         currentIndex = (currentIndex + 1) % placeholders.length;
                     }
                 }
-
-                    setInterval(cyclePlaceholder, 3000);  // Change every 3 seconds
     
                   // Execute once at the start
                     updateVisibility();
