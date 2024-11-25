@@ -45,11 +45,11 @@ class Music
     public constant integer INSTRUMENT_SYNTH_PAD = 21
     
     // The drum's value
-    action PlayDrum(int drum)
-        return PlayDrumNative(drum)
+    action PlayDrum(integer drum)
+        PlayDrumNative(drum)
     end
     
-    private system action PlayDrumNative(drum)
+    private system action PlayDrumNative(integer drum)
 
     /*
         The instrument's value
@@ -60,9 +60,10 @@ class Music
         duration: int
         The duration in milliseconds
     */
-    action PlayInstrument(int instrument, int note, int duration)
-        return PlayInstrumentNative(instrument, note, duration)
+    action PlayInstrument(integer instrument, integer note, integer duration)
+        PlayInstrumentNative(instrument, note, duration)
     end
     
-    private system action PlayInstrumentNative(instrument, note, duration)
+    private system action PlayInstrumentNative(integer instrument, integer note, integer duration)
+
 end
