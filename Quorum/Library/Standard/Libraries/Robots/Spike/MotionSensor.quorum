@@ -1,0 +1,91 @@
+package Libraries.Robots.Spike
+use Libraries.Containers.Array
+
+class MotionSensor
+
+    public constant integer TAPPED = 0
+    public constant integer DOUBLE_TAPPED = 1
+    public constant integer SHAKEN = 2
+    public constant integer FALLING = 3
+    public constant integer UNKOWN = -1
+
+    public constant integer TOP = 0
+    public constant integer FRONT = 1
+    public constant integer RIGHT = 2
+    public constant integer BOTTOM = 3
+    public constant integer BACK = 4
+    public constant integer LEFT = 5
+
+    action GetAcceleration(boolean raw_data) returns Array<integer>
+        return GetAccelerationNative(raw_data)
+    end
+
+    private system action GetAccelerationNative(boolean raw_data) returns Array<integer>
+
+    action GetAngularVelocity(boolean raw_data) returns Array<integer>
+        return GetAngularVelocityNative(raw_data)
+    end
+
+    private system action GetAngularVelocityNative(boolean raw_data) returns Array<integer>
+
+    action GetGesture() returns integer
+        return GetGestureNative()
+    end
+
+    private system action GetGestureNative() returns integer
+
+    action GetYawFace() returns integer
+        return GetYawFaceNative()
+    end
+    
+    private system action GetYawFaceNative() returns integer
+
+    action GetQuaternion() returns Array<number>
+        return GetQuaternionNative()
+    end
+
+    private system action GetQuaternionNative() returns Array<number>
+
+    action ResetTapCount()
+        ResetTapCountNative()
+    end
+
+    private system action ResetTapCountNative()
+
+    action ChangeYawOffset(integer angle)
+        ChangeYawOffsetNative(angle)
+    end
+
+    private system action ChangeYawOffsetNative(integer angle)
+
+    action SetYawFace(integer upface) returns boolean
+        return SetYawFaceNative(upface)
+    end
+
+    private system action SetYawFaceNative(integer upface) returns boolean
+
+    action IsHubStable() returns boolean
+        return IsHubStableNative()
+    end
+
+    private system action IsHubStableNative() returns boolean
+
+    action GetTapCount() returns integer
+        return GetTapCountNative()
+    end
+
+    private system action GetTapCountNative() returns integer
+
+    action GetTiltAngles() returns Array<integer>
+        return GetTiltAnglesNative()
+    end
+
+    private system action GetTiltAnglesNative() returns Array<integer>
+
+    action GetCurrentUpFace() returns integer
+        return GetCurrentUpFaceNative()
+    end
+
+    private system action GetCurrentUpFaceNative() returns integer
+
+end
