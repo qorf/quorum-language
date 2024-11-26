@@ -38,7 +38,7 @@ function plugins_quorum_Libraries_Game_WebApplication_()
         let userAgent = window.navigator.userAgent;
 	    let platform = window.navigator.platform;
         let os = 'Unknown';
-        if (/android/i.test(userAgent) || (userAgent)) {
+        if (/android/i.test(userAgent)) {
             return "Android";
         } else if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
             return "iOS";

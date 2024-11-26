@@ -23,7 +23,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
         let userAgent = window.navigator.userAgent;
 	    let platform = window.navigator.platform;
         let os = 'Unknown';
-        if (/android/i.test(userAgent) || (userAgent)) {
+        if (/android/i.test(userAgent)) {
             return "Android";
         } else if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
             return "iOS";
