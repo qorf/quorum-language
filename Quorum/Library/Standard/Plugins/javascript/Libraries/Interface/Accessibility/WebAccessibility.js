@@ -18,7 +18,40 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
     let textInputElements = null;
     let selectionListener = null;
 
+
+    const GetWebOperatingSystem = function() {
+        let userAgent = window.navigator.userAgent;
+	    let platform = window.navigator.platform;
+        let os = 'Unknown';
+        if (/android/i.test(userAgent) || (userAgent)) {
+            return "Android";
+        } else if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+            return "iOS";
+        } else if ((('ontouchstart' in window) ||
+                (navigator.maxTouchPoints > 0) ||
+                (navigator.msMaxTouchPoints > 0))
+                && (userAgent.indexOf("Linux") !== -1 || userAgent.indexOf("Mac") !== -1) ) {
+                    return "Mobile";
+        } else if (userAgent.indexOf('Win') != -1) {
+            return 'Windows';
+        } else if (userAgent.indexOf('Mac') != -1) {
+            return 'Mac';
+        } else if (userAgent.indexOf('Linux') != -1) {
+            return 'Linux';
+        } 
+        if(typeof platform !== 'undefined') {
+            if(platform.indexOf('Mac') != -1) return 'Mac';
+            if(platform.indexOf('Win') != -1) return 'Windows';
+            if(platform.indexOf('Linux') != -1) return 'Linux';
+        }
+        
+        return os;
+    };
+
     const addBlurListener = function(element) {
+        if (GetWebOperatingSystem() === "Android" || GetWebOperatingSystem() === "iOS" ||GetWebOperatingSystem() === "Mobile") {
+            return;
+        }
         element.addEventListener("blur", () => {
             // Delay processing of this event until the next event cycle,
             // in case focus is being moved to another accessibility element.
@@ -34,6 +67,8 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
             }
         });
     };
+
+    
 
     this.Setup = function() {
         let container = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().display.plugin_.GetContainer();
