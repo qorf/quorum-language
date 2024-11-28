@@ -23,32 +23,32 @@ class plugins_quorum_Libraries_Robots_Spike_MotorPair_:
 	def RunNative__quorum_integer__quorum_integer__quorum_integer(self, steering, velocity, acceleration):
 		motor_pair.move(self.pair, steering, velocity=velocity, acceleration=acceleration)
 
-	async def RunForDegreesNative__quorum_integer__quorum_integer(self, steering, degrees):
+	async def RunForDegrees__quorum_integer__quorum_integer(self, steering, degrees):
 		await motor_pair.move_for_degrees(self.pair, degrees, steering)
 
-	async def RunForDegreesNative__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer(self, steering, degrees, velocity, braking_mode, acceleration, deceleration):
+	async def RunForDegrees__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer(self, steering, degrees, velocity, braking_mode, acceleration, deceleration):
 		await motor_pair.move_for_degrees(self.pair, degrees, steering, velocity=velocity, stop=braking_mode, acceleration=acceleration, deceleration=deceleration)
 
-	async def RunForTimeNative__quorum_integer__quorum_integer(self, steering, duration):
+	async def RunForTime__quorum_integer__quorum_integer(self, steering, duration):
 		await motor_pair.move_for_time(self.pair, duration, steering)
 
-	async def RunForTimeNative__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer(self, steering, duration, velocity, braking_mode, acceleration, deceleration):
+	async def RunForTime__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer(self, steering, duration, velocity, braking_mode, acceleration, deceleration):
 		await motor_pair.move_for_time(self.pair, duration, steering, velocity=velocity, stop=braking_mode, acceleration=acceleration, deceleration=deceleration)
 
 	def RunTankNative__quorum_integer__quorum_integer__quorum_integer(self, left_velocity, right_velocity, acceleration):
 		motor_pair.move_tank(self.pair, left_velocity, right_velocity, acceleration=acceleration)
 
-	async def RunTankForDegreesNative__quorum_integer__quorum_integer__quorum_integer(self, left_velocity, right_velocity, degrees):
+	async def RunTankForDegrees__quorum_integer__quorum_integer__quorum_integer(self, left_velocity, right_velocity, degrees):
 		await motor_pair.move_tank_for_degrees(self.pair, degrees, left_velocity, right_velocity)
 
-	async def RunTankForDegreesNative__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer(self, left_velocity, right_velocity, degrees, braking_mode, acceleration, deceleration):
+	async def RunTankForDegrees__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer(self, left_velocity, right_velocity, degrees, braking_mode, acceleration, deceleration):
 		await motor_pair.move_tank_for_degrees(self.pair, degrees, left_velocity, right_velocity, stop=braking_mode, acceleration=acceleration, deceleration=deceleration)
 
-	async def RunTankForTimeNative__quorum_integer__quorum_integer__quorum_integer(self, left_velocity, right_velocity, duration):
-		await motor_pair.move_tank_for_time(self.pair, duration, left_velocity, right_velocity)
+	async def RunTankForTime__quorum_integer__quorum_integer__quorum_integer(self, left_velocity, right_velocity, duration):
+		await motor_pair.move_tank_for_time(self.pair, left_velocity, right_velocity, duration)
 
-	async def RunTankForTimeNative__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer(self, left_velocity, right_velocity, duration, braking_mode, acceleration, deceleration):
-		await motor_pair.move_tank_for_time(self.pair, duration, left_velocity, right_velocity, stop=braking_mode, acceleration=acceleration, deceleration=deceleration)
+	async def RunTankForTime__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer(self, left_velocity, right_velocity, duration, braking_mode, acceleration, deceleration):
+		await motor_pair.move_tank_for_time(self.pair, left_velocity, right_velocity, duration, stop=braking_mode, acceleration=acceleration, deceleration=deceleration)
 
 	def StopNative(self):
 		motor_pair.stop(self.pair)
