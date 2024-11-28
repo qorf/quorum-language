@@ -44,26 +44,39 @@ class Music
     public constant integer INSTRUMENT_SYNTH_LEAD = 20
     public constant integer INSTRUMENT_SYNTH_PAD = 21
     
-    // The drum's value
-    action PlayDrum(integer drum)
-        PlayDrumNative(drum)
+    /* 
+        Set the drum's value
+        
+        Attribute: Example
+        
+        use Libraries.Robots.Spike.Music
+        Music ms
+        ms:PlayDrum(1)
+    */
+    action PlayDrum(int drum)
+        return PlayDrumNative(drum)
     end
     
-    private system action PlayDrumNative(integer drum)
+    private system action PlayDrumNative(drum)
 
     /*
-        The instrument's value
-
+        Set the instrument's value
+        
         note: int
         The midi note to play (0-130)
 
         duration: int
         The duration in milliseconds
+        
+        Attribute: Example
+        
+        use Libraries.Robots.Spike.Music
+        Music ms
+        ms:PlayInstrument(1, 50, 30000)         // Play for 30 seconds
     */
-    action PlayInstrument(integer instrument, integer note, integer duration)
-        PlayInstrumentNative(instrument, note, duration)
+    action PlayInstrument(int instrument, int note, int duration)
+        return PlayInstrumentNative(instrument, note, duration)
     end
     
-    private system action PlayInstrumentNative(integer instrument, integer note, integer duration)
-
+    private system action PlayInstrumentNative(instrument, note, duration)
 end
