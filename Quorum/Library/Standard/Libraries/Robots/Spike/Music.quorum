@@ -57,7 +57,7 @@ class Music
         return PlayDrumNative(drum)
     end
     
-    private system action PlayDrumNative(drum)
+    private system action PlayDrumNative(integer drum)
 
     /*
         Set the instrument's value
@@ -78,5 +78,5 @@ class Music
         return PlayInstrumentNative(instrument, note, duration)
     end
     
-    private system action PlayInstrumentNative(instrument, note, duration)
+    private system action PlayInstrumentNative(integer instrument, integer note, integer duration)
 end
