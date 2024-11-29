@@ -147,9 +147,9 @@ class Motor
 
         use Libraries.Robots.Spike.Motor
         Motor wheel
-        wheel:RunToDegrees(720, 90)
+        wheel:RunForDegrees(720, 90)
     */
-    system action RunToDegrees(integer degrees, integer velocity)
+    system action RunForDegrees(integer degrees, integer velocity)
 
     /*
         Runs the motor for a set amount of time at the provided velocity.

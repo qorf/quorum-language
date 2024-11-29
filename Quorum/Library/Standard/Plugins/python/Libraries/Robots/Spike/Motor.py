@@ -28,7 +28,7 @@ class plugins_quorum_Libraries_Robots_Spike_Motor_:
 	async def RunForTime__quorum_integer__quorum_integer(self, time, velocity):
 		await motor.run_for_time(self.port, time, velocity)
 		
-	async def RunToDegrees__quorum_integer__quorum_integer(self, degrees, velocity):
+	async def RunForDegrees__quorum_integer__quorum_integer(self, degrees, velocity):
 		await motor.run_for_degrees(self.port, degrees, velocity)
 	
 	async def RunToAbsolutePosition__quorum_integer__quorum_integer(self, position, velocity):
