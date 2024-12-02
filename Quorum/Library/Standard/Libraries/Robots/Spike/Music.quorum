@@ -54,7 +54,7 @@ class Music
         ms:PlayDrum(1)
     */
     action PlayDrum(integer drum)
-        return PlayDrumNative(drum)
+        PlayDrumNative(drum)
     end
     
     private system action PlayDrumNative(integer drum)
@@ -75,7 +75,7 @@ class Music
         ms:PlayInstrument(1, 50, 30000)         // Play for 30 seconds
     */
     action PlayInstrument(integer instrument, integer note, integer duration)
-        return PlayInstrumentNative(instrument, note, duration)
+        PlayInstrumentNative(instrument, note, duration)
     end
     
     private system action PlayInstrumentNative(integer instrument, integer note, integer duration)
