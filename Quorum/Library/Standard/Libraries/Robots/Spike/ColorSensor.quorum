@@ -1,4 +1,5 @@
 package Libraries.Robots.Spike
+use Libraries.Containers.Array
 
 class ColorSensor
     
@@ -25,16 +26,10 @@ class ColorSensor
 
     private system action GetReflectionNative returns integer
 
-    /*
-    action GetColor returns Color
-        Color color
-        SetColorValuesIntoPassedColorNative(color)
-        return color
-    end
-    */
 
-    /* 
-        This action sets the passed color to the current color RGB values. 
-    */
-    //private system action SetColorValuesIntoPassedColorNative(Color color)
+    action GetRGBI() returns Array<integer>
+        return GetRGBINative()
+    end
+
+    private system action GetRGBINative() returns Array<integer>
 end
