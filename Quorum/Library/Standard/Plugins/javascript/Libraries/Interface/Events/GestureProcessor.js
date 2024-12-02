@@ -22,6 +22,12 @@ function plugins_quorum_Libraries_Interface_Events_GestureProcessor_() {
 
     this.InitializeHammer = function(containerID) {
         let display = document.getElementById(containerID);
+        if (display === null) {
+            display = document.getElementById(currentUIContainer_$Global_);
+        }
+        if (display === null) {
+            throw new Error("Gestures couldn't find Game Container.");
+        }
         let mc = new Hammer(display);
         mc.get('pinch').set({ enable: true });
         mc.get('pan').set({direction: Hammer.DIRECTION_ALL});
