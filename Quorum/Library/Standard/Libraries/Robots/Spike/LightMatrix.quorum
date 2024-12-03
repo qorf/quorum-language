@@ -143,7 +143,7 @@ class LightMatrix
 
         use Libraries.Robots.Spike.LightMatrix
         use Libraries.Containers.Array
-        Array pixels
+        Array<integer> pixels
         LightMatrix lights
         integer i = 0
         repeat 25 times
@@ -201,7 +201,7 @@ class LightMatrix
         use Libraries.Robots.Spike.LightMatrix
         LightMatrix lights
         lights:SetOrientation(lights:UP)
-    /*
+    */
     action SetOrientation(integer orientation) returns integer
         return SetOrientationNative(orientation)
     end
