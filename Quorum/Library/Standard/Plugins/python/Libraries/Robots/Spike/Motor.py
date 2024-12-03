@@ -47,5 +47,5 @@ class plugins_quorum_Libraries_Robots_Spike_Motor_:
 		return motor.stop(self.port, stop=braking_mode)
 		
 	def GetVelocityNative(self):
-		return motor.velocity(self.port)
+		return motor.velocity(self.port) * 10
 	
