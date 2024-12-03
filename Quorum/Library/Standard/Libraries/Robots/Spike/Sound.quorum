@@ -34,6 +34,28 @@ class Sound
     system action Beep(integer frequency, integer duration, integer volume)
 
     /*
+        Plays a sound from the hub utilizing frequency, duration, volume, attack, decay, 
+        sustain, release, transition, waveform, and channel arguments.
+
+        Attribute: Parameter frequency the frequency in hertz of the sound
+        Attribute: Parameter duration the duration in milliseconds of the sound
+        Attribute: Parameter volume the volume intensity of the sound from 0 to 100
+        Attribute: Parameter attack the time in milliseconds between the start of the sound to the peak
+        Attribute: Parameter decay the time in milliseconds between the peak volume to sustain volume
+        Attribute: Parameter sustain the volume intensity of the sustain of the sound between 0 and 100 until the sound is released
+        Attribute: Parameter release the time in milliseconds for the volume intensity to decay to 0 from release time
+        Attribute: Parameter transition the time in milliseconds for the sound to transition from the currently playing sound
+        Attribute: Parameter waveform the waveform to use to play the sound, using one of the constants defined in the Sound class
+        Attribute: Parameter channel the channel to play on, either DEFAULT or ANY from the constants defined in the Sound class
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Sound
+        Sound noise
+        noise:Beep(440, 500, 100, 120, 50, 50, 60, 10, noise:WAVEFORM_SQUARE, noise:DEFAULT)
+    */
+    system action Beep(integer frequency, integer duration, integer volume, integer attack, integer decay, integer sustain, integer release, integer transition, integer waveform, integer channel)
+
+    /*
         Stops all sound coming from the hub
 
         Attribute: Example
