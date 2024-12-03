@@ -452,7 +452,8 @@ class Layer3D is Layer
     action Remove(Item3D item)
         EnsureCorrectThread()
 
-        CollisionEdge3D edge = item:GetCollisionList()
+        if IsColliding()
+CollisionEdge3D edge = item:GetCollisionList()
         repeat while edge not= undefined
             CollisionEdge3D edge0 = edge
             edge = edge:GetNext()
@@ -462,6 +463,7 @@ class Layer3D is Layer
 
         item:DestroyNodes(collisionManager:GetBroadphase())
         item:SetCollidable(false)
+        end
 
         item:SetLayer(undefined)
         items:Remove(item)
@@ -517,7 +519,8 @@ class Layer3D is Layer
 
         Item3D item = items:RemoveAt(index)
 
-        CollisionEdge3D edge = item:GetCollisionList()
+        if IsColliding()
+CollisionEdge3D edge = item:GetCollisionList()
         repeat while edge not= undefined
             CollisionEdge3D edge0 = edge
             edge = edge:GetNext()
@@ -527,7 +530,9 @@ class Layer3D is Layer
 
         item:DestroyNodes(collisionManager:GetBroadphase())
         item:SetCollidable(false)
-
+            
+        end
+        
         item:SetLayer(undefined)
 
         Accessibility accessibility = manager:GetAccessibility()
@@ -581,7 +586,8 @@ class Layer3D is Layer
 
         Item3D item = items:RemoveFromFront()
 
-        CollisionEdge3D edge = item:GetCollisionList()
+        if IsColliding()
+CollisionEdge3D edge = item:GetCollisionList()
         repeat while edge not= undefined
             CollisionEdge3D edge0 = edge
             edge = edge:GetNext()
@@ -591,6 +597,8 @@ class Layer3D is Layer
 
         item:DestroyNodes(collisionManager:GetBroadphase())
         item:SetCollidable(false)
+        end
+        
 
         item:SetLayer(undefined)
 
@@ -644,7 +652,8 @@ class Layer3D is Layer
 
         Item3D item = items:RemoveFromEnd()
 
-        CollisionEdge3D edge = item:GetCollisionList()
+        if IsColliding()
+CollisionEdge3D edge = item:GetCollisionList()
         repeat while edge not= undefined
             CollisionEdge3D edge0 = edge
             edge = edge:GetNext()
@@ -654,6 +663,7 @@ class Layer3D is Layer
 
         item:DestroyNodes(collisionManager:GetBroadphase())
         item:SetCollidable(false)
+        end
 
         item:SetLayer(undefined)
 

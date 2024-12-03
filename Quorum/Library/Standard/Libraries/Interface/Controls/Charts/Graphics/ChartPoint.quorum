@@ -29,10 +29,9 @@ class ChartPoint is ChartDrawable
     text yNameOverride = undefined
     
     ChartDrawable parentRegion = undefined
-    Icon icon
 
     on create
-        SetCornerRounding(1, 1, 1, 1)
+        SetInterfaceOptionsKey("ChartPoint")
     end
     /*
         Get the name of the chart point.

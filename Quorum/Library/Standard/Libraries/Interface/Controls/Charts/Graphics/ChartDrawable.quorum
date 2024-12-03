@@ -11,6 +11,9 @@ use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Controls.Charts.ChartItem
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Charts.ChartOptions
+use Libraries.Interface.Controls.Charts.TwoVariableChart
+use Libraries.Interface.Controls.Charts.ChartLine
+use Libraries.Game.Graphics.Label
 
 
 /*
@@ -38,9 +41,10 @@ class ChartDrawable is ChartItem, Drawable
     boolean displayOnTop = true
     boolean displayOnBottom = false
 
-    Array <Drawable> selectionBracket //may or may not be used
-    Drawable selectionArrow //may or may not be used
-    Array<number> vertices
+    integer arrowSize = 0
+    boolean sideArrow = false
+    boolean selectionArrow = false
+    boolean selectionBracket = false
 
     on create
         // Color the item as gray in case it never gets added to a series.
@@ -51,39 +55,7 @@ class ChartDrawable is ChartItem, Drawable
         color:SetAlpha(1)
         SetColor(color)
     end
-    /*
-        This action gets chart drawables selection arrow drawable object.
-
-        Attribute: Returns the charts slection arrow object.
-    */
-    action GetSelectionArrow returns Drawable
-        return selectionArrow
-    end
-    /*
-        This action sets the selection arrow verticies (Array<number>) drawable object.
-
-        Attribute: Parameter vertices the arrow vertices.
-    */
-    action SetSelectionArrowVertices(Array <number> vertices)
-        me:vertices = vertices
-    end
-    /*
-        This action gets the selection arrow verticies (Array<number>) drawable object.
-
-        Attribute: Returns the Array<number> of the selection arrow vertices.
-    */
-    action GetSelectionArrowVertices returns Array<number>
-        return vertices
-    end
-    /*
-        This action gets the selection bracket (Array<Drawable>).
-
-        Attribute: Returns the Array<Dawable> of the selection bracket.
-    */
-    action GetSelectionBracket returns Array<Drawable> 
-        return selectionBracket
-    end
-
+    
     action HasPattern returns boolean
         if pattern not= 0
             return true
@@ -313,13 +285,15 @@ class ChartDrawable is ChartItem, Drawable
         elements are then shown.
     */
     action GainedSelection()
-        if GetSelectionArrow() not= undefined          
-            GetSelectionArrow():Show()
-        end
-        if GetSelectionBracket():GetSize() = 3          
-            GetSelectionBracket():Get(0):Show()
-            GetSelectionBracket():Get(1):Show()
-            GetSelectionBracket():Get(2):Show()
+        if HasSelectionBracket() and GetParentChart():GetSelectionBracket():GetSize() = 3 and HasSelectionArrow()
+            AdjustSelectionBracketAndArrow()          
+            GetParentChart():GetSelectionBracket():Get(0):Show()
+            GetParentChart():GetSelectionBracket():Get(1):Show()
+            GetParentChart():GetSelectionBracket():Get(2):Show()
+            GetParentChart():GetSelectionArrow():Show()
+        elseif HasSelectionArrow()
+            AdjustSelectionArrow()          
+            GetParentChart():GetSelectionArrow():Show()
         end
         parent:ChartItem:GainedSelection()
     end
@@ -328,13 +302,13 @@ class ChartDrawable is ChartItem, Drawable
         elements are then hidden.
     */
     action LostSelection()
-        if GetSelectionArrow() not= undefined          
-            GetSelectionArrow():Hide()
+        if HasSelectionArrow()         
+            GetParentChart():GetSelectionArrow():Hide()
         end
-        if GetSelectionBracket():GetSize() = 3          
-            GetSelectionBracket():Get(0):Hide()
-            GetSelectionBracket():Get(1):Hide()
-            GetSelectionBracket():Get(2):Hide()
+        if HasSelectionBracket() and GetParentChart():GetSelectionBracket():GetSize() = 3          
+            GetParentChart():GetSelectionBracket():Get(0):Hide()
+            GetParentChart():GetSelectionBracket():Get(1):Hide()
+            GetParentChart():GetSelectionBracket():Get(2):Hide()
         end
         parent:ChartItem:LostSelection()
     end
@@ -414,4 +388,251 @@ class ChartDrawable is ChartItem, Drawable
     action IsAnnotationLocationRight() returns boolean
         return displayOnRight
     end
+
+    /*
+        This action is used to load and place an arrow for selection for a single chart drawable item.
+    */
+    action AdjustSelectionArrow()
+        //initialize position and size
+        integer x = cast(integer, GetGlobalX())
+        integer y = cast(integer, GetGlobalY())
+        integer width = cast(integer, GetWidth())
+        integer height = cast(integer, GetHeight())
+        Label annotation = GetAnnotation()
+
+        //some chart elements make use of child elements for their selection position and size
+        ChartDrawable item = me
+        if item is ChartLine
+            ChartLine temp = cast(ChartLine, item)
+            x = cast(integer, temp:GetLineStart():GetGlobalX())
+            y = cast(integer, temp:GetLineStart():GetGlobalY())
+            width = cast(integer, temp:GetLineStart():GetWidth())
+            height = cast(integer, temp:GetLineStart():GetHeight())
+            annotation = temp:GetLineStart():GetAnnotation()
+        elseif item is Plot
+            Plot temp = cast(Plot, item)
+            
+            x = cast(integer, temp:GetPlotItems():Get(10):GetGlobalX())
+            y = cast(integer, temp:GetPlotItems():Get(10):GetGlobalY())
+            width = cast(integer, temp:GetPlotItems():Get(10):GetWidth())
+            height = cast(integer, temp:GetPlotItems():Get(10):GetHeight())
+            annotation = undefined
+        end
+
+        //if the arrow size doesn't match this element, update the size of the arrow
+        if GetParentChart():GetCurrentArrowSize() not= arrowSize or GetParentChart():GetCurrentSideArrow() not= sideArrow
+            Array<number> vertices
+            if (GetParentChart():GetHorizontalFlag() and sideArrow = false) or (GetParentChart():GetHorizontalFlag() = false and sideArrow)
+                vertices:Add(0)
+                vertices:Add(arrowSize)
+                vertices:Add(arrowSize)
+                vertices:Add(arrowSize*2)
+                vertices:Add(arrowSize)
+                vertices:Add(0)
+            else
+                vertices:Add(arrowSize)
+                vertices:Add(0)
+                vertices:Add(arrowSize*2)
+                vertices:Add(arrowSize)
+                vertices:Add(0)
+                vertices:Add(arrowSize)
+            end
+            
+            GetParentChart():GetSelectionArrow():LoadShape(vertices, GetParentChart():GetSelectionColor())
+            GetParentChart():GetSelectionArrow():SetZ(-1)
+            GetParentChart():SetCurrentArrowSize(arrowSize)
+            GetParentChart():SetCurrentSideArrow(sideArrow)
+        end
+
+        //reposition the arrow
+        if GetParentChart():GetHorizontalFlag()
+            if sideArrow
+                integer tickHeight = GetParentChart():GetVerticalPanel():GetTickHeight()
+                integer tickWidth = GetParentChart():GetVerticalPanel():GetTickWidth()
+                GetParentChart():GetSelectionArrow():SetPosition(x + width/2 - arrowSize, y + height + tickHeight/2)
+                if GetParentChart() is TwoVariableChart and GetParentChart():ShowAnnotations() and annotation not= undefined
+                    GetParentChart():GetSelectionArrow():SetY(GetParentChart():GetSelectionArrow():GetY() + cast(integer, annotation:GetHeight()))
+                end
+            else
+                integer tickHeight = GetParentChart():GetHorizontalPanel():GetTickHeight()
+                integer tickWidth = GetParentChart():GetHorizontalPanel():GetTickWidth()
+                GetParentChart():GetSelectionArrow():SetPosition(x + width + tickHeight/2, y + height/2 - arrowSize)
+                if GetParentChart():ShowAnnotations() and annotation not= undefined
+                    GetParentChart():GetSelectionArrow():SetX(GetParentChart():GetSelectionArrow():GetX() + cast(integer, annotation:GetWidth()))
+                end
+            end
+        else
+            if sideArrow
+                integer tickHeight = GetParentChart():GetVerticalPanel():GetTickHeight()
+                integer tickWidth = GetParentChart():GetVerticalPanel():GetTickWidth()
+                GetParentChart():GetSelectionArrow():SetPosition(x + width + tickWidth/2,y + height/2 - arrowSize)
+                if GetParentChart():ShowAnnotations() and annotation not= undefined
+                    GetParentChart():GetSelectionArrow():SetX(GetParentChart():GetSelectionArrow():GetX() + cast(integer, annotation:GetWidth()))
+                end
+            else
+                integer tickHeight = GetParentChart():GetHorizontalPanel():GetTickHeight()
+                integer tickWidth = GetParentChart():GetHorizontalPanel():GetTickWidth()
+                GetParentChart():GetSelectionArrow():SetPosition(x + width/2 - arrowSize, y + height + tickWidth/2)
+                if GetParentChart():ShowAnnotations() and annotation not= undefined
+                    GetParentChart():GetSelectionArrow():SetX(GetParentChart():GetSelectionArrow():GetX() + cast(integer, annotation:GetHeight()))
+                end
+            end
+        end
+    end
+
+    /*
+        This action is used to load and place a bracket and arrow for selection for a single chart drawable item.
+    */
+    action AdjustSelectionBracketAndArrow()
+        integer x = cast(integer, GetGlobalX())
+        integer y = cast(integer, GetGlobalY())
+        integer width = cast(integer, GetWidth())
+        integer height = cast(integer, GetHeight())
+
+        //if the arrow size doesn't match this element, update the size of the arrow
+        if GetParentChart():GetCurrentArrowSize() not= arrowSize or GetParentChart():GetCurrentSideArrow() not= sideArrow
+            Array<number> vertices
+            if (GetParentChart():GetHorizontalFlag() and sideArrow = false) or (GetParentChart():GetHorizontalFlag() = false and sideArrow)
+                vertices:Add(0)
+                vertices:Add(arrowSize)
+                vertices:Add(arrowSize)
+                vertices:Add(arrowSize*2)
+                vertices:Add(arrowSize)
+                vertices:Add(0)
+            else
+                vertices:Add(arrowSize)
+                vertices:Add(0)
+                vertices:Add(arrowSize*2)
+                vertices:Add(arrowSize)
+                vertices:Add(0)
+                vertices:Add(arrowSize)
+            end
+            
+            GetParentChart():GetSelectionArrow():LoadShape(vertices, GetParentChart():GetSelectionColor())
+            GetParentChart():GetSelectionArrow():SetZ(-1)
+            GetParentChart():SetCurrentArrowSize(arrowSize)
+            GetParentChart():SetCurrentSideArrow(sideArrow)
+        end
+
+        //reposition the arrow and resize/position the brackets
+        if GetParentChart():GetHorizontalFlag()
+            if sideArrow
+                integer tickHeight = GetParentChart():GetHorizontalPanel():GetTickHeight()
+                integer tickWidth = GetParentChart():GetHorizontalPanel():GetTickWidth()
+                if GetParentChart():GetSelectionBracket():GetSize() = 3
+                    Drawable top = GetParentChart():GetSelectionBracket():Get(0)
+                    top:SetSize(tickWidth, tickHeight)
+                    top:SetPosition(x, y + height - tickHeight + tickWidth)
+
+                    Drawable side = GetParentChart():GetSelectionBracket():Get(1)
+                    side:SetSize(width, tickWidth)
+                    side:SetPosition(x, y + height + tickWidth)
+
+                    Drawable bottom = GetParentChart():GetSelectionBracket():Get(2)
+                    bottom:SetSize(tickWidth, tickHeight)
+                    bottom:SetPosition(x + width - tickWidth, y + height - tickHeight + tickWidth)
+
+                    GetParentChart():GetSelectionArrow():SetPosition(side:GetX() + side:GetWidth()/2 - arrowSize, side:GetY() + tickWidth*2)
+                else
+                    GetParentChart():GetSelectionArrow():SetPosition(x + width/2 - arrowSize, y + height + tickHeight)
+                end
+            else
+                integer tickHeight = GetParentChart():GetVerticalPanel():GetTickHeight()
+                integer tickWidth = GetParentChart():GetVerticalPanel():GetTickWidth()
+                if GetParentChart():GetSelectionBracket():GetSize() = 3
+                    Drawable top = GetParentChart():GetSelectionBracket():Get(0)
+                    top:SetSize(tickWidth, tickHeight)
+                    top:SetPosition(x + width - tickWidth + tickHeight, y + height - tickHeight)
+    
+                    Drawable side = GetParentChart():GetSelectionBracket():Get(1)
+                    side:SetSize(tickHeight, height)
+                    side:SetPosition(x + width + tickHeight, y)
+    
+                    Drawable bottom = GetParentChart():GetSelectionBracket():Get(2)
+                    bottom:SetSize(tickWidth, tickHeight)
+                    bottom:SetPosition(x + width - tickWidth + tickHeight, y)
+    
+                    GetParentChart():GetSelectionArrow():SetPosition(side:GetX() + tickHeight*2, side:GetY() + side:GetHeight()/2 - arrowSize)
+                else
+                    GetParentChart():GetSelectionArrow():SetPosition(x + width + tickHeight, y + height/2 - arrowSize)
+                end
+            end
+        else
+            if sideArrow
+                integer tickHeight = GetParentChart():GetVerticalPanel():GetTickHeight()
+                integer tickWidth = GetParentChart():GetVerticalPanel():GetTickWidth()
+                if GetParentChart():GetSelectionBracket():GetSize() = 3
+                    Drawable top = GetParentChart():GetSelectionBracket():Get(0)
+                    top:SetSize(tickWidth, tickHeight)
+                    top:SetPosition(x + width - tickWidth + tickHeight, y + height - tickHeight)
+        
+                    Drawable side = GetParentChart():GetSelectionBracket():Get(1)
+                    side:SetSize(tickHeight, height)
+                    side:SetPosition(x + width + tickHeight, y)
+        
+                    Drawable bottom = GetParentChart():GetSelectionBracket():Get(2)
+                    bottom:SetSize(tickWidth, tickHeight)
+                    bottom:SetPosition(x + width - tickWidth + tickHeight, y)
+    
+                    
+                    GetParentChart():GetSelectionArrow():SetPosition(side:GetX() + tickHeight*2, side:GetY() + side:GetHeight()/2 - arrowSize)
+                else
+                    GetParentChart():GetSelectionArrow():SetPosition(x + width + tickWidth, y + height/2 - arrowSize)
+                end
+            else
+                integer tickHeight = GetParentChart():GetHorizontalPanel():GetTickHeight()
+                integer tickWidth = GetParentChart():GetHorizontalPanel():GetTickWidth()
+                if GetParentChart():GetSelectionBracket():GetSize() = 3
+                    Drawable top = GetParentChart():GetSelectionBracket():Get(0)
+                    top:SetSize(tickWidth, tickHeight)
+                    top:SetPosition(x + tickWidth, y + height - tickHeight + tickWidth)
+    
+                    Drawable side = GetParentChart():GetSelectionBracket():Get(1)
+                    side:SetSize(width - tickWidth*2, tickWidth)
+                    side:SetPosition(x + tickWidth, y + height + tickWidth)
+    
+                    Drawable bottom = GetParentChart():GetSelectionBracket():Get(2)
+                    bottom:SetSize(tickWidth, tickHeight)
+                    bottom:SetPosition(x + width - tickWidth*2, y + height - tickHeight + tickWidth)
+    
+                    GetParentChart():GetSelectionArrow():SetPosition(side:GetX() + side:GetWidth()/2 - arrowSize, side:GetY() + tickWidth*2)
+                else
+                    GetParentChart():GetSelectionArrow():SetPosition(x + width/2 - arrowSize, y + height + tickWidth)
+                end
+            end
+        end
+    end
+
+    action GetArrowSize() returns integer
+        return arrowSize
+    end
+
+    action SetArrowSize(integer arrowSize)
+        me:arrowSize = arrowSize
+    end
+
+    action HasSideArrow() returns boolean
+        return sideArrow
+    end
+
+    action SetSideArrow(boolean sideArrow)
+        me:sideArrow = sideArrow
+    end
+
+    action HasSelectionArrow() returns boolean
+        return selectionArrow
+    end
+
+    action SetSelectionArrow(boolean selectionArrow)
+        me:selectionArrow = selectionArrow
+    end
+
+    action HasSelectionBracket() returns boolean
+        return selectionBracket
+    end
+
+    action SetSelectionBracket(boolean selectionBracket)
+        me:selectionBracket = selectionBracket
+    end
+
 end
