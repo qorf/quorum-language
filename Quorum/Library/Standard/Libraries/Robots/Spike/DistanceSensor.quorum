@@ -65,8 +65,8 @@ class DistanceSensor
         Retrieves the intensity of a specific pixel on the distance sensor's
         light display
 
-        Attribute: Parameter x the x coordinate from 0 to 3
-        Attribute: Parameter y the y coordinate from 0 to 3
+        Attribute: Parameter x the x coordinate from 0 to 1
+        Attribute: Parameter y the y coordinate from 0 to 1
         Attribute: Returns Intensity, a value between 0 and 100 for the requested pixel
         Attribute: Example
 
@@ -84,8 +84,8 @@ class DistanceSensor
         Sets the intensity of a specific pixel on the distance sensor's
         light display
 
-        Attribute: Parameter x the x coordinate from 0 to 3
-        Attribute: Parameter y the y coordinate from 0 to 3
+        Attribute: Parameter x the x coordinate from 0 to 1
+        Attribute: Parameter y the y coordinate from 0 to 1
         Attribute: Parameter intensity, the intensity of the provided pixel from 0 to 100
         Attribute: Example
 
@@ -141,7 +141,7 @@ class DistanceSensor
         use Libraries.Robots.Spike.DistanceSensor
         use Libraries.Containers.Array
         DistanceSensor ds
-        Array pixels
+        Array<integer> pixels
         pixels:Add(0)
         pixels:Add(25)
         pixels:Add(50)
