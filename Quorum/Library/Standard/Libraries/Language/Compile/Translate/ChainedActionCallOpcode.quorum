@@ -174,7 +174,7 @@ class ChainedActionCallOpcode is QuorumOpcode
             i = i + 1
         end
         if isSoloCall
-            if async and userCode and containsSpikeSystemCall
+            if async and userCode// and containsSpikeSystemCall
                 result = tabs + "await " + result + EOL
             else
                 result = tabs + result + EOL// + ";" + result:GetCarriageReturn() + result:GetLineFeed()
