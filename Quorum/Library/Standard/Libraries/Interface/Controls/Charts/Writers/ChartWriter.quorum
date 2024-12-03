@@ -937,8 +937,11 @@ class ChartWriter
         if chart:GetTitleLabel() not= undefined
             chartTitle:SetText(chart:GetTitle())
             chartTitle:SetTextAnchor("left")
-            chartTitle:SetPosition(chart:GetTitleLabel():GetGlobalX(), TranslatePositionY(chart:GetTitleLabel()))// - chart:GetTitleLabel():GetHeight()/2)
+            chartTitle:SetPosition(chart:GetTitleLabel():GetGlobalX(), TranslatePositionY(chart:GetTitleLabel()))
+            chartTitle:SetBold(true)
+// - chart:GetTitleLabel():GetHeight()/2)
             chartTitle:SetFontSize(chart:GetTitleLabel():GetFontSize() + "px")
+            
             chartTitle:SetFontFamily("Arial")
             chartTitle:SetFill(cast(Color, chart:GetTitleLabel():GetFontColor()))
             chartTitle:SetFillOpacity(cast(Color, chart:GetTitleLabel():GetFontColor()))

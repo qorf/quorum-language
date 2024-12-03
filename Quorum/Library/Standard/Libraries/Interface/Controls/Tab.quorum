@@ -134,15 +134,6 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         return true
     end
 
-    action GetDefaultFontName returns text
-        Font font
-        if font:IsFontAvailable("Arial")
-            return "Arial"
-        else
-            return parent:Control:GetDefaultFontName()
-        end
-    end
-
     action GetDefaultFontSize returns integer
         return 14
     end

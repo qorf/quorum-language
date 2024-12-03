@@ -184,51 +184,51 @@ class ViolinPlotWriter is ChartWriter
                     end
                     plotGroupSVG:Add(plotGroup)
     
-                    if group:GetSelectionBracket():GetSize() = 3
-                        integer k = 0
-                        repeat while k < group:GetSelectionBracket():GetSize()
-                            Rectangle bracket
-                            bracket:SetWidth(group:GetSelectionBracket():Get(k):GetWidth())
-                            bracket:SetHeight(group:GetSelectionBracket():Get(k):GetHeight())
-                            bracket:SetPosition(group:GetSelectionBracket():Get(k):GetGlobalX(), TranslatePositionY(group:GetSelectionBracket():Get(k)) - group:GetSelectionBracket():Get(k):GetHeight()) 
-                            bracket:SetFill(transparent) // Should be transparent until selected
-                            bracket:SetFillOpacity(transparent)
-                            if HasAccessibility()
-                                bracket:SetStyleClass("quorum-chart-selection-bracket")
-                                bracket:SetTabIndex(-1)
-                                bracket:SetID(plotGroupSVG:GetID() + "_bracket" + k)
-                                bracket:SetAriaHidden("true")
-                                plotGroupFocus = plotGroupFocus + "gainFocus('" + bracket:GetID() + "'); "
-                                plotGroupBlur = plotGroupBlur + "loseFocus('" + bracket:GetID() + "'); "
-                            end
-                            canvas:Add(bracket)    
-                            k = k + 1
-                        end
-                    end
+//                    if group:GetSelectionBracket():GetSize() = 3
+//                        integer k = 0
+//                        repeat while k < group:GetSelectionBracket():GetSize()
+//                            Rectangle bracket
+//                            bracket:SetWidth(group:GetSelectionBracket():Get(k):GetWidth())
+//                            bracket:SetHeight(group:GetSelectionBracket():Get(k):GetHeight())
+//                            bracket:SetPosition(group:GetSelectionBracket():Get(k):GetGlobalX(), TranslatePositionY(group:GetSelectionBracket():Get(k)) - group:GetSelectionBracket():Get(k):GetHeight()) 
+//                            bracket:SetFill(transparent) // Should be transparent until selected
+//                            bracket:SetFillOpacity(transparent)
+//                            if HasAccessibility()
+//                                bracket:SetStyleClass("quorum-chart-selection-bracket")
+//                                bracket:SetTabIndex(-1)
+//                                bracket:SetID(plotGroupSVG:GetID() + "_bracket" + k)
+//                                bracket:SetAriaHidden("true")
+//                                plotGroupFocus = plotGroupFocus + "gainFocus('" + bracket:GetID() + "'); "
+//                                plotGroupBlur = plotGroupBlur + "loseFocus('" + bracket:GetID() + "'); "
+//                            end
+//                            canvas:Add(bracket)    
+//                            k = k + 1
+//                        end
+//                    end
 
-                    if group:GetSelectionArrow() not= undefined
-                        Array <number> vertices = group:GetSelectionArrowVertices()
-                        number Yoffset = TranslatePositionY(group:GetSelectionArrow())
-                        number Xoffset = group:GetSelectionArrow():GetGlobalX()
-                        
-                        Polygon arrow
-                        integer k = 0
-                        repeat while k < vertices:GetSize()
-                            arrow:AddPoint(vertices:Get(k)+Xoffset, Yoffset+(group:GetSelectionArrow():GetY()-vertices:Get(k+1)))
-                            k = k + 2
-                        end
-                        arrow:SetFill(transparent) // Should be transparent until selected
-                        arrow:SetFillOpacity(transparent)
-                        if HasAccessibility()
-                            arrow:SetStyleClass("quorum-chart-selection-arrow")
-                            arrow:SetID(plotGroupSVG:GetID() + "_arrow")
-                            arrow:SetTabIndex(-1)
-                            arrow:SetAriaHidden("true")
-                            plotGroupFocus = plotGroupFocus + "gainFocus('" + arrow:GetID() + "'); "
-                            plotGroupBlur = plotGroupBlur + "loseFocus('" + arrow:GetID() + "'); "
-                        end
-                        canvas:Add(arrow)
-                    end
+//                    if group:GetSelectionArrow() not= undefined
+//                        Array <number> vertices = group:GetSelectionArrowVertices()
+//                        number Yoffset = TranslatePositionY(group:GetSelectionArrow())
+//                        number Xoffset = group:GetSelectionArrow():GetGlobalX()
+//                        
+//                        Polygon arrow
+//                        integer k = 0
+//                        repeat while k < vertices:GetSize()
+//                            arrow:AddPoint(vertices:Get(k)+Xoffset, Yoffset+(group:GetSelectionArrow():GetY()-vertices:Get(k+1)))
+//                            k = k + 2
+//                        end
+//                        arrow:SetFill(transparent) // Should be transparent until selected
+//                        arrow:SetFillOpacity(transparent)
+//                        if HasAccessibility()
+//                            arrow:SetStyleClass("quorum-chart-selection-arrow")
+//                            arrow:SetID(plotGroupSVG:GetID() + "_arrow")
+//                            arrow:SetTabIndex(-1)
+//                            arrow:SetAriaHidden("true")
+//                            plotGroupFocus = plotGroupFocus + "gainFocus('" + arrow:GetID() + "'); "
+//                            plotGroupBlur = plotGroupBlur + "loseFocus('" + arrow:GetID() + "'); "
+//                        end
+//                        canvas:Add(arrow)
+//                    end
     
                     if HasAccessibility()
                         if plotGroupFocus not= ""
@@ -279,51 +279,51 @@ class ViolinPlotWriter is ChartWriter
                     end
                     plotSVG:Add(plotArea)
     
-                    if plot:GetSelectionBracket():GetSize() = 3
-                        integer k = 0
-                        repeat while k < plot:GetSelectionBracket():GetSize()
-                            Rectangle bracket
-                            bracket:SetWidth(plot:GetSelectionBracket():Get(k):GetWidth())
-                            bracket:SetHeight(plot:GetSelectionBracket():Get(k):GetHeight())
-                            bracket:SetPosition(plot:GetSelectionBracket():Get(k):GetGlobalX(), TranslatePositionY(plot:GetSelectionBracket():Get(k)) - plot:GetSelectionBracket():Get(k):GetHeight()) 
-                            bracket:SetFill(transparent) // Should be transparent until selected
-                            bracket:SetFillOpacity(transparent)
-                            if HasAccessibility()
-                                bracket:SetStyleClass("quorum-chart-selection-bracket")
-                                bracket:SetTabIndex(-1)
-                                bracket:SetID(plotSVG:GetID() + "_bracket" + k)
-                                bracket:SetAriaHidden("true")
-                                plotFocus = plotFocus + "gainFocus('" + bracket:GetID() + "'); "
-                                plotBlur = plotBlur + "loseFocus('" + bracket:GetID() + "'); "
-                            end
-                            canvas:Add(bracket)    
-                            k = k + 1
-                        end
-                    end
+//                    if plot:GetSelectionBracket():GetSize() = 3
+//                        integer k = 0
+//                        repeat while k < plot:GetSelectionBracket():GetSize()
+//                            Rectangle bracket
+//                            bracket:SetWidth(plot:GetSelectionBracket():Get(k):GetWidth())
+//                            bracket:SetHeight(plot:GetSelectionBracket():Get(k):GetHeight())
+//                            bracket:SetPosition(plot:GetSelectionBracket():Get(k):GetGlobalX(), TranslatePositionY(plot:GetSelectionBracket():Get(k)) - plot:GetSelectionBracket():Get(k):GetHeight()) 
+//                            bracket:SetFill(transparent) // Should be transparent until selected
+//                            bracket:SetFillOpacity(transparent)
+//                            if HasAccessibility()
+//                                bracket:SetStyleClass("quorum-chart-selection-bracket")
+//                                bracket:SetTabIndex(-1)
+//                                bracket:SetID(plotSVG:GetID() + "_bracket" + k)
+//                                bracket:SetAriaHidden("true")
+//                                plotFocus = plotFocus + "gainFocus('" + bracket:GetID() + "'); "
+//                                plotBlur = plotBlur + "loseFocus('" + bracket:GetID() + "'); "
+//                            end
+//                            canvas:Add(bracket)    
+//                            k = k + 1
+//                        end
+//                    end
 
-                    if plot:GetSelectionArrow() not= undefined
-                        Array <number> vertices = plot:GetSelectionArrowVertices()
-                        number Yoffset = TranslatePositionY(plot:GetSelectionArrow())
-                        number Xoffset = plot:GetSelectionArrow():GetGlobalX()
-                        
-                        Polygon arrow
-                        integer k = 0
-                        repeat while k < vertices:GetSize()
-                            arrow:AddPoint(vertices:Get(k)+Xoffset, Yoffset+(plot:GetSelectionArrow():GetY()-vertices:Get(k+1)))
-                            k = k + 2
-                        end
-                        arrow:SetFill(transparent) // Should be transparent until selected
-                        arrow:SetFillOpacity(transparent)
-                        if HasAccessibility()
-                            arrow:SetStyleClass("quorum-chart-selection-arrow")
-                            arrow:SetID(plotSVG:GetID() + "_arrow")
-                            arrow:SetTabIndex(-1)
-                            arrow:SetAriaHidden("true")
-                            plotFocus = plotFocus + "gainFocus('" + arrow:GetID() + "'); "
-                            plotBlur = plotBlur + "loseFocus('" + arrow:GetID() + "'); "
-                        end
-                        canvas:Add(arrow)
-                    end
+//                    if plot:GetSelectionArrow() not= undefined
+//                        Array <number> vertices = plot:GetSelectionArrowVertices()
+//                        number Yoffset = TranslatePositionY(plot:GetSelectionArrow())
+//                        number Xoffset = plot:GetSelectionArrow():GetGlobalX()
+//                        
+//                        Polygon arrow
+//                        integer k = 0
+//                        repeat while k < vertices:GetSize()
+//                            arrow:AddPoint(vertices:Get(k)+Xoffset, Yoffset+(plot:GetSelectionArrow():GetY()-vertices:Get(k+1)))
+//                            k = k + 2
+//                        end
+//                        arrow:SetFill(transparent) // Should be transparent until selected
+//                        arrow:SetFillOpacity(transparent)
+//                        if HasAccessibility()
+//                            arrow:SetStyleClass("quorum-chart-selection-arrow")
+//                            arrow:SetID(plotSVG:GetID() + "_arrow")
+//                            arrow:SetTabIndex(-1)
+//                            arrow:SetAriaHidden("true")
+//                            plotFocus = plotFocus + "gainFocus('" + arrow:GetID() + "'); "
+//                            plotBlur = plotBlur + "loseFocus('" + arrow:GetID() + "'); "
+//                        end
+//                        canvas:Add(arrow)
+//                    end
 
                     if HasAccessibility()
                         if plotFocus not= ""
@@ -466,51 +466,51 @@ class ViolinPlotWriter is ChartWriter
                                 end 
 
                                 // Add item selection symbols here!
-                                if currentItem:GetSelectionBracket():GetSize() = 3
-                                    integer m = 0
-                                    repeat while m < currentItem:GetSelectionBracket():GetSize()
-                                        Rectangle bracket
-                                        bracket:SetWidth(currentItem:GetSelectionBracket():Get(m):GetWidth())
-                                        bracket:SetHeight(currentItem:GetSelectionBracket():Get(m):GetHeight())
-                                        bracket:SetPosition(currentItem:GetSelectionBracket():Get(m):GetGlobalX(), TranslatePositionY(currentItem:GetSelectionBracket():Get(m)) - currentItem:GetSelectionBracket():Get(m):GetHeight()) 
-                                        bracket:SetFill(transparent) // Should be transparent until selected
-                                        bracket:SetFillOpacity(transparent)
-                                        if HasAccessibility()
-                                            bracket:SetStyleClass("quorum-chart-selection-bracket")
-                                            bracket:SetTabIndex(-1)
-                                            bracket:SetID(itemSVG:GetID() + "_bracket" + m)
-                                            bracket:SetAriaHidden("true")
-                                            itemFocus = itemFocus + "gainFocus('" + bracket:GetID() + "'); "
-                                            itemBlur = itemBlur + "loseFocus('" + bracket:GetID() + "'); "
-                                        end
-                                        canvas:Add(bracket)    
-                                        m = m + 1
-                                    end
-                                end
+//                                if currentItem:GetSelectionBracket():GetSize() = 3
+//                                    integer m = 0
+//                                    repeat while m < currentItem:GetSelectionBracket():GetSize()
+//                                        Rectangle bracket
+//                                        bracket:SetWidth(currentItem:GetSelectionBracket():Get(m):GetWidth())
+//                                        bracket:SetHeight(currentItem:GetSelectionBracket():Get(m):GetHeight())
+//                                        bracket:SetPosition(currentItem:GetSelectionBracket():Get(m):GetGlobalX(), TranslatePositionY(currentItem:GetSelectionBracket():Get(m)) - currentItem:GetSelectionBracket():Get(m):GetHeight()) 
+//                                        bracket:SetFill(transparent) // Should be transparent until selected
+//                                        bracket:SetFillOpacity(transparent)
+//                                        if HasAccessibility()
+//                                            bracket:SetStyleClass("quorum-chart-selection-bracket")
+//                                            bracket:SetTabIndex(-1)
+//                                            bracket:SetID(itemSVG:GetID() + "_bracket" + m)
+//                                            bracket:SetAriaHidden("true")
+//                                            itemFocus = itemFocus + "gainFocus('" + bracket:GetID() + "'); "
+//                                            itemBlur = itemBlur + "loseFocus('" + bracket:GetID() + "'); "
+//                                        end
+//                                        canvas:Add(bracket)    
+//                                        m = m + 1
+//                                    end
+//                                end
 
-                                if currentItem:GetSelectionArrow() not= undefined
-                                    Array <number> vertices = currentItem:GetSelectionArrowVertices()
-                                    number Yoffset = TranslatePositionY(currentItem:GetSelectionArrow())
-                                    number Xoffset = currentItem:GetSelectionArrow():GetGlobalX()
-            
-                                    Polygon arrow
-                                    integer m = 0
-                                    repeat while m < vertices:GetSize()
-                                        arrow:AddPoint(vertices:Get(m)+Xoffset, Yoffset+(currentItem:GetSelectionArrow():GetY()-vertices:Get(m+1)))
-                                        m = m + 2
-                                    end
-                                    arrow:SetFill(transparent) // Should be transparent until selected 
-                                    arrow:SetFillOpacity(transparent)
-                                    if HasAccessibility()
-                                        arrow:SetStyleClass("quorum-chart-selection-arrow")
-                                        arrow:SetTabIndex(-1)
-                                        arrow:SetID(itemSVG:GetID() + "_arrow")
-                                        arrow:SetAriaHidden("true")
-                                        itemFocus = itemFocus + "gainFocus('" + arrow:GetID() + "'); "
-                                        itemBlur = itemBlur + "loseFocus('" + arrow:GetID() + "'); "
-                                    end
-                                    canvas:Add(arrow)
-                                end
+//                                if currentItem:GetSelectionArrow() not= undefined
+//                                    Array <number> vertices = currentItem:GetSelectionArrowVertices()
+//                                    number Yoffset = TranslatePositionY(currentItem:GetSelectionArrow())
+//                                    number Xoffset = currentItem:GetSelectionArrow():GetGlobalX()
+//            
+//                                    Polygon arrow
+//                                    integer m = 0
+//                                    repeat while m < vertices:GetSize()
+//                                        arrow:AddPoint(vertices:Get(m)+Xoffset, Yoffset+(currentItem:GetSelectionArrow():GetY()-vertices:Get(m+1)))
+//                                        m = m + 2
+//                                    end
+//                                    arrow:SetFill(transparent) // Should be transparent until selected 
+//                                    arrow:SetFillOpacity(transparent)
+//                                    if HasAccessibility()
+//                                        arrow:SetStyleClass("quorum-chart-selection-arrow")
+//                                        arrow:SetTabIndex(-1)
+//                                        arrow:SetID(itemSVG:GetID() + "_arrow")
+//                                        arrow:SetAriaHidden("true")
+//                                        itemFocus = itemFocus + "gainFocus('" + arrow:GetID() + "'); "
+//                                        itemBlur = itemBlur + "loseFocus('" + arrow:GetID() + "'); "
+//                                    end
+//                                    canvas:Add(arrow)
+//                                end
                             end
         
                             if HasAccessibility()
@@ -621,51 +621,51 @@ class ViolinPlotWriter is ChartWriter
                         end
                         plotSVG:Add(plotArea)
         
-                        if plot:GetSelectionBracket():GetSize() = 3
-                            integer k = 0
-                            repeat while k < plot:GetSelectionBracket():GetSize()
-                                Rectangle bracket
-                                bracket:SetWidth(plot:GetSelectionBracket():Get(k):GetWidth())
-                                bracket:SetHeight(plot:GetSelectionBracket():Get(k):GetHeight())
-                                bracket:SetPosition(plot:GetSelectionBracket():Get(k):GetGlobalX(), TranslatePositionY(plot:GetSelectionBracket():Get(k)) - plot:GetSelectionBracket():Get(k):GetHeight()) 
-                                bracket:SetFill(transparent) // Should be transparent until selected
-                                bracket:SetFillOpacity(transparent)
-                                if HasAccessibility()
-                                    bracket:SetStyleClass("quorum-chart-selection-bracket")
-                                    bracket:SetTabIndex(-1)
-                                    bracket:SetID(plotSVG:GetID() + "_bracket" + k)
-                                    bracket:SetAriaHidden("true")
-                                    plotFocus = plotFocus + "gainFocus('" + bracket:GetID() + "'); "
-                                    plotBlur = plotBlur + "loseFocus('" + bracket:GetID() + "'); "
-                                end
-                                canvas:Add(bracket)    
-                                k = k + 1
-                            end
-                        end
+//                        if plot:GetSelectionBracket():GetSize() = 3
+//                            integer k = 0
+//                            repeat while k < plot:GetSelectionBracket():GetSize()
+//                                Rectangle bracket
+//                                bracket:SetWidth(plot:GetSelectionBracket():Get(k):GetWidth())
+//                                bracket:SetHeight(plot:GetSelectionBracket():Get(k):GetHeight())
+//                                bracket:SetPosition(plot:GetSelectionBracket():Get(k):GetGlobalX(), TranslatePositionY(plot:GetSelectionBracket():Get(k)) - plot:GetSelectionBracket():Get(k):GetHeight()) 
+//                                bracket:SetFill(transparent) // Should be transparent until selected
+//                                bracket:SetFillOpacity(transparent)
+//                                if HasAccessibility()
+//                                    bracket:SetStyleClass("quorum-chart-selection-bracket")
+//                                    bracket:SetTabIndex(-1)
+//                                    bracket:SetID(plotSVG:GetID() + "_bracket" + k)
+//                                    bracket:SetAriaHidden("true")
+//                                    plotFocus = plotFocus + "gainFocus('" + bracket:GetID() + "'); "
+//                                    plotBlur = plotBlur + "loseFocus('" + bracket:GetID() + "'); "
+//                                end
+//                                canvas:Add(bracket)    
+//                                k = k + 1
+//                            end
+//                        end
 
-                        if plot:GetSelectionArrow() not= undefined
-                            Array <number> vertices = plot:GetSelectionArrowVertices()
-                            number Yoffset = TranslatePositionY(plot:GetSelectionArrow())
-                            number Xoffset = plot:GetSelectionArrow():GetGlobalX()
-                            
-                            Polygon arrow
-                            integer k = 0
-                            repeat while k < vertices:GetSize()
-                                arrow:AddPoint(vertices:Get(k)+Xoffset, Yoffset+(plot:GetSelectionArrow():GetY()-vertices:Get(k+1)))
-                                k = k + 2
-                            end
-                            arrow:SetFill(transparent) // Should be transparent until selected
-                            arrow:SetFillOpacity(transparent)
-                            if HasAccessibility()
-                                arrow:SetStyleClass("quorum-chart-selection-arrow")
-                                arrow:SetID(plotSVG:GetID() + "_arrow")
-                                arrow:SetTabIndex(-1)
-                                arrow:SetAriaHidden("true")
-                                plotFocus = plotFocus + "gainFocus('" + arrow:GetID() + "'); "
-                                plotBlur = plotBlur + "loseFocus('" + arrow:GetID() + "'); "
-                            end
-                            canvas:Add(arrow)
-                        end
+//                        if plot:GetSelectionArrow() not= undefined
+//                            Array <number> vertices = plot:GetSelectionArrowVertices()
+//                            number Yoffset = TranslatePositionY(plot:GetSelectionArrow())
+//                            number Xoffset = plot:GetSelectionArrow():GetGlobalX()
+//                            
+//                            Polygon arrow
+//                            integer k = 0
+//                            repeat while k < vertices:GetSize()
+//                                arrow:AddPoint(vertices:Get(k)+Xoffset, Yoffset+(plot:GetSelectionArrow():GetY()-vertices:Get(k+1)))
+//                                k = k + 2
+//                            end
+//                            arrow:SetFill(transparent) // Should be transparent until selected
+//                            arrow:SetFillOpacity(transparent)
+//                            if HasAccessibility()
+//                                arrow:SetStyleClass("quorum-chart-selection-arrow")
+//                                arrow:SetID(plotSVG:GetID() + "_arrow")
+//                                arrow:SetTabIndex(-1)
+//                                arrow:SetAriaHidden("true")
+//                                plotFocus = plotFocus + "gainFocus('" + arrow:GetID() + "'); "
+//                                plotBlur = plotBlur + "loseFocus('" + arrow:GetID() + "'); "
+//                            end
+//                            canvas:Add(arrow)
+//                        end
 
                         if HasAccessibility()
                             if plotFocus not= ""
@@ -808,51 +808,51 @@ class ViolinPlotWriter is ChartWriter
                                     end 
 
                                     // Add item selection symbols here!
-                                    if currentItem:GetSelectionBracket():GetSize() = 3
-                                        integer m = 0
-                                        repeat while m < currentItem:GetSelectionBracket():GetSize()
-                                            Rectangle bracket
-                                            bracket:SetWidth(currentItem:GetSelectionBracket():Get(m):GetWidth())
-                                            bracket:SetHeight(currentItem:GetSelectionBracket():Get(m):GetHeight())
-                                            bracket:SetPosition(currentItem:GetSelectionBracket():Get(m):GetGlobalX(), TranslatePositionY(currentItem:GetSelectionBracket():Get(m)) - currentItem:GetSelectionBracket():Get(m):GetHeight()) 
-                                            bracket:SetFill(transparent) // Should be transparent until selected
-                                            bracket:SetFillOpacity(transparent)
-                                            if HasAccessibility()
-                                                bracket:SetStyleClass("quorum-chart-selection-bracket")
-                                                bracket:SetTabIndex(-1)
-                                                bracket:SetID(itemSVG:GetID() + "_bracket" + m)
-                                                bracket:SetAriaHidden("true")
-                                                itemFocus = itemFocus + "gainFocus('" + bracket:GetID() + "'); "
-                                                itemBlur = itemBlur + "loseFocus('" + bracket:GetID() + "'); "
-                                            end
-                                            canvas:Add(bracket)    
-                                            m = m + 1
-                                        end
-                                    end
+//                                    if currentItem:GetSelectionBracket():GetSize() = 3
+//                                        integer m = 0
+//                                        repeat while m < currentItem:GetSelectionBracket():GetSize()
+//                                            Rectangle bracket
+//                                            bracket:SetWidth(currentItem:GetSelectionBracket():Get(m):GetWidth())
+//                                            bracket:SetHeight(currentItem:GetSelectionBracket():Get(m):GetHeight())
+//                                            bracket:SetPosition(currentItem:GetSelectionBracket():Get(m):GetGlobalX(), TranslatePositionY(currentItem:GetSelectionBracket():Get(m)) - currentItem:GetSelectionBracket():Get(m):GetHeight()) 
+//                                            bracket:SetFill(transparent) // Should be transparent until selected
+//                                            bracket:SetFillOpacity(transparent)
+//                                            if HasAccessibility()
+//                                                bracket:SetStyleClass("quorum-chart-selection-bracket")
+//                                                bracket:SetTabIndex(-1)
+//                                                bracket:SetID(itemSVG:GetID() + "_bracket" + m)
+//                                                bracket:SetAriaHidden("true")
+//                                                itemFocus = itemFocus + "gainFocus('" + bracket:GetID() + "'); "
+//                                                itemBlur = itemBlur + "loseFocus('" + bracket:GetID() + "'); "
+//                                            end
+//                                            canvas:Add(bracket)    
+//                                            m = m + 1
+//                                        end
+//                                    end
 
-                                    if currentItem:GetSelectionArrow() not= undefined
-                                        Array <number> vertices = currentItem:GetSelectionArrowVertices()
-                                        number Yoffset = TranslatePositionY(currentItem:GetSelectionArrow())
-                                        number Xoffset = currentItem:GetSelectionArrow():GetGlobalX()
-                
-                                        Polygon arrow
-                                        integer m = 0
-                                        repeat while m < vertices:GetSize()
-                                            arrow:AddPoint(vertices:Get(m)+Xoffset, Yoffset+(currentItem:GetSelectionArrow():GetY()-vertices:Get(m+1)))
-                                            m = m + 2
-                                        end
-                                        arrow:SetFill(transparent) // Should be transparent until selected 
-                                        arrow:SetFillOpacity(transparent)
-                                        if HasAccessibility()
-                                            arrow:SetStyleClass("quorum-chart-selection-arrow")
-                                            arrow:SetTabIndex(-1)
-                                            arrow:SetID(itemSVG:GetID() + "_arrow")
-                                            arrow:SetAriaHidden("true")
-                                            itemFocus = itemFocus + "gainFocus('" + arrow:GetID() + "'); "
-                                            itemBlur = itemBlur + "loseFocus('" + arrow:GetID() + "'); "
-                                        end
-                                        canvas:Add(arrow)
-                                    end
+//                                    if currentItem:GetSelectionArrow() not= undefined
+//                                        Array <number> vertices = currentItem:GetSelectionArrowVertices()
+//                                        number Yoffset = TranslatePositionY(currentItem:GetSelectionArrow())
+//                                        number Xoffset = currentItem:GetSelectionArrow():GetGlobalX()
+//                
+//                                        Polygon arrow
+//                                        integer m = 0
+//                                        repeat while m < vertices:GetSize()
+//                                            arrow:AddPoint(vertices:Get(m)+Xoffset, Yoffset+(currentItem:GetSelectionArrow():GetY()-vertices:Get(m+1)))
+//                                            m = m + 2
+//                                        end
+//                                        arrow:SetFill(transparent) // Should be transparent until selected 
+//                                        arrow:SetFillOpacity(transparent)
+//                                        if HasAccessibility()
+//                                            arrow:SetStyleClass("quorum-chart-selection-arrow")
+//                                            arrow:SetTabIndex(-1)
+//                                            arrow:SetID(itemSVG:GetID() + "_arrow")
+//                                            arrow:SetAriaHidden("true")
+//                                            itemFocus = itemFocus + "gainFocus('" + arrow:GetID() + "'); "
+//                                            itemBlur = itemBlur + "loseFocus('" + arrow:GetID() + "'); "
+//                                        end
+//                                        canvas:Add(arrow)
+//                                    end
                                 end
         
                                 if HasAccessibility()

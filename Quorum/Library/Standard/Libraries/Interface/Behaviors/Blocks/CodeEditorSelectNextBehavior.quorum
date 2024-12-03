@@ -5,11 +5,18 @@ use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Controls.Blocks.CodeEditor
 use Libraries.Interface.Controls.Blocks.BlockItem
 use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Interface.Events.GestureEvent
 
 class CodeEditorSelectNextBehavior is Behavior
 
     action Run(BehaviorEvent event)
         CodeEditor editor = undefined
+if event:GetGestureEvent() not= undefined
+GestureEvent gesture = event:GetGestureEvent()
+                if not (gesture:eventType = gesture:SWIPE and gesture:GetDirection() = gesture:RIGHT)
+                    return now
+                end
+        end
         if event:GetItem() is CodeEditor
             editor = cast(CodeEditor, event:GetItem())
         elseif event:GetItem() is Block

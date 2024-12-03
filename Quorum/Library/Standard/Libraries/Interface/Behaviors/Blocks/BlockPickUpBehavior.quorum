@@ -1,0 +1,42 @@
+package Libraries.Interface.Behaviors.Blocks
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Blocks.Palette.BlockPaletteItem
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Interface.Controls.Blocks.CodeEditor
+
+
+class BlockPickUpBehavior is Behavior
+    action Run(BehaviorEvent event)
+        Block block = undefined
+        CodeEditor editor = undefined
+        if event:GetItem() is Block
+            block = cast(Block, event:GetItem())
+            editor = block:GetEditor()
+        else
+            return now
+        end
+        
+        // If there is no editor, or the editor we have isn't part of the Game any more, abort here.
+        if editor = undefined or editor:GetLayer() = undefined
+            return now
+        end
+Array<Block> sourceBlocks = editor:GetSelectedBlocks()
+        integer line = editor:GetSelection():GetLine()
+        
+        Array<Block> placeholders
+        integer i = 0
+        repeat while i < sourceBlocks:GetSize()
+            if sourceBlocks:Get(i):IsPlaceholder()
+                placeholders:Add(sourceBlocks:Get(i))
+            else
+                placeholders:Add(sourceBlocks:Get(i):CopyToPlaceholder())
+            end
+            i = i + 1
+        end
+        editor:DeleteSelectedBlock(false)
+        editor:KeyboardInsertBlocksAtIndex(line, placeholders)
+    end
+end
