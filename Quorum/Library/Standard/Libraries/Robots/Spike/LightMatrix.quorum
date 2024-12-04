@@ -194,13 +194,13 @@ class LightMatrix
         Sets the orientation of the light matrix
 
         Attribute: Parameter orientation The direction to orient the light matrix
-        Attribute: Returns Orientation, a value from 0 to 3 (UP, RIGHT, DOWN, LEFT) which
+        Attribute: Returns Orientation, a value from 0 to 3 (ORIENTATION_UP, ORIENTATION_RIGHT, ORIENTATION_DOWN, ORIENTATION_LEFT) which
         can be accessed from the class constants
         Attribute: Example
 
         use Libraries.Robots.Spike.LightMatrix
         LightMatrix lights
-        lights:SetOrientation(lights:UP)
+        lights:SetOrientation(lights:ORIENTATION_UP)
     */
     action SetOrientation(integer orientation) returns integer
         return SetOrientationNative(orientation)
@@ -211,7 +211,7 @@ class LightMatrix
     /*
         Gets the orientation of the light matrix
 
-        Attribute: Returns Orientation, a value from 0 to 3 (UP, RIGHT, DOWN, LEFT)
+        Attribute: Returns Orientation, a value from 0 to 3 (ORIENTATION_UP, ORIENTATION_RIGHT, ORIENTATION_DOWN, ORIENTATION_LEFT)
         Attribute: Example
 
         use Libraries.Robots.Spike.LightMatrix
