@@ -28,7 +28,7 @@ class plugins_quorum_Libraries_Robots_Spike_MotionSensor_:
         quorum_quaternion = quorum_Libraries_Containers_Array_()
         quaternion = motion_sensor.quaternion()
         for item in quaternion:
-            quorum_quaternion.Add_quorum_Libraries_Language_Object(quorum_Libraries_Language_Types_Number_(0, float(item)))
+            quorum_quaternion.Add__quorum_Libraries_Language_Object(quorum_Libraries_Language_Types_Number_(0, float(item)))
         return quorum_quaternion
     
     def ResetTapCountNative(self):
