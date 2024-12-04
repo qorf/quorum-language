@@ -28,13 +28,15 @@ class ForceSensor
     /*
         Sets the port number of the distance sensor object
 
-        Attribute: Parameter port The port (0 through 5) the force sensor
+        Attribute: Parameter port The port (A through F, or 0 through 5) the force sensor
         is attached to
         Attribute: Example
 
         use Libraries.Robots.Spike.ForceSensor
+        use Libraries.Robots.Spike.Port
         ForceSensor fs
-        fs:SetPort(0)
+        Port port
+        fs:SetPort(port:A)
     */
     action SetPort(integer port)
         SetPortNative(port)

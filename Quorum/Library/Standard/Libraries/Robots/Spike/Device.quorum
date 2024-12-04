@@ -8,8 +8,10 @@ use Libraries.Containers.Array
 
     Example:
     use Libraries.Robots.Spike.Device
+    use Libraries.Robots.Spike.Port
     Device dv
-    integer raw_data_of_port_A = dv:GetDataFromPort(0)
+    Port port
+    integer raw_data_of_port_A = dv:GetDataFromPort(port:A)
 */
 class Device
     public constant integer MOTOR_MEDIUM_ID = 48

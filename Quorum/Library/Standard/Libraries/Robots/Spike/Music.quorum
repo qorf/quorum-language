@@ -43,40 +43,38 @@ class Music
     public constant integer INSTRUMENT_MARIMBA = 19
     public constant integer INSTRUMENT_SYNTH_LEAD = 20
     public constant integer INSTRUMENT_SYNTH_PAD = 21
-    
+
     /* 
-        Set the drum's value
-        
+        Play the provided drum sound
+
+        Attribute: Parameter drum Which drum to play, out of the DRUM constants
         Attribute: Example
-        
+
         use Libraries.Robots.Spike.Music
         Music ms
-        ms:PlayDrum(1)
+        ms:PlayDrum(ms:DRUM_SNARE)
     */
     action PlayDrum(integer drum)
         PlayDrumNative(drum)
     end
-    
+
     private system action PlayDrumNative(integer drum)
 
     /*
-        Set the instrument's value
-        
-        note: integer
-        The midi note to play (0-130)
+        Play the provided instrument sound with a given tone and duration
 
-        duration: integer
-        The duration in milliseconds
-        
+        Attribute: Parameter instrument Which instrument to play, out of the INSTRUMENT constants
+        Attribute: Parameter note The midi note to play (0-130)
+        Attribute: Parameter duration How long to play the instrument/note for, in milliseconds
         Attribute: Example
-        
+
         use Libraries.Robots.Spike.Music
         Music ms
-        ms:PlayInstrument(1, 50, 30000)         // Play for 30 seconds
+        ms:PlayInstrument(ms:INSTRUMENT_PIANO, 50, 3000)   // Play for 3 seconds
     */
     action PlayInstrument(integer instrument, integer note, integer duration)
         PlayInstrumentNative(instrument, note, duration)
     end
-    
+
     private system action PlayInstrumentNative(integer instrument, integer note, integer duration)
 end

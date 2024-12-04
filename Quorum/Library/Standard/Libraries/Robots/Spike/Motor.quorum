@@ -6,7 +6,10 @@ package Libraries.Robots.Spike
 
     Attribute: Example
     use Libraries.Robots.Spike.Motor
+    use Libraries.Robots.Spike.Port
     Motor wheel
+    Port port
+    wheel:SetPort(port:A)
     wheel:Run(360)
 */
 class Motor
@@ -35,13 +38,15 @@ class Motor
     /*
         Sets the port number of the motor object
 
-        Attribute: Parameter port The port (0 through 5) the motor
+        Attribute: Parameter port The port (A through F, or 0 through 5) the motor
         is attached to
         Attribute: Example
 
         use Libraries.Robots.Spike.Motor
+        use Libraries.Robots.Spike.Port
         Motor wheel
-        wheel:SetPort(0)
+        Port port
+        wheel:SetPort(port:A)
     */
     action SetPort(integer port)
         SetPortNative(port)

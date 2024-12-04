@@ -1,11 +1,48 @@
 package Libraries.Robots.Spike
 use Libraries.Containers.Array
 
+/*
+    The color matrix is an external device that is connected to the hub through a port.
+    The color matrix is a 3x3 matrix of lights where the color and brightness of each pixel can be changed
+    to display things.
+
+    Attribute: Example
+    use Libraries.Robots.Spike.ColorMatrix
+    use Libraries.Robots.Spike.Color
+    use Libraries.Robots.Spike.Port
+    ColorMatrix cm
+    Color color
+    Port port
+    cm:SetPort(port:A)
+    cm:SetPixelColor(0, 0, color:RED, 100)
+*/
 class ColorMatrix
+    /*
+        Returns the currently assigned port for this color matrix
+
+        Attribute: Returns The current port number
+        Attribute: Example
+
+        use Libraries.Robots.Spike.ColorMatrix
+        ColorMatrix cm
+        integer port = cm:GetPort(port:A)
+    */
     action GetPort returns integer
         return GetPortNative()
     end
 
+    /*
+        Sets the port for this color matrix
+
+        Attribute: Parameter port The port to assign
+        Attribute: Example
+
+        use Libraries.Robots.Spike.ColorMatrix
+        use Libraries.Robots.Spike.Port
+        ColorMatrix cm
+        Port port
+        cm:SetPort(port:A)
+    */
     action SetPort(integer port)
         SetPortNative(port)
     end
@@ -13,27 +50,96 @@ class ColorMatrix
     private system action GetPortNative returns integer
     private system action SetPortNative(integer port) returns integer
 
+    /*
+        Clears all pixels on the color matrix
+
+        Attribute: Example
+
+        use Libraries.Robots.Spike.ColorMatrix
+        use Libraries.Robots.Spike.Port
+        ColorMatrix cm
+        Port port
+        cm:SetPort(port:A)
+        cm:Clear()
+    */
     action Clear()
         ClearNative()
     end
 
     private system action ClearNative()
 
+    /*
+        Returns the current color and intensity of the pixel at the provided x and y location
+
+        Attribute: Returns An array of size 2 with the color and intensity of the pixel
+        Attribute: Parameter x The x location of the pixel, 0 to 2
+        Attribute: Parameter y The y location of the pixel, 0 to 2
+        Attribute: Example
+
+        use Libraries.Robots.Spike.ColorMatrix
+        use Libraries.Robots.Spike.Port
+        use Libraries.Containers.Array
+        ColorMatrix cm
+        Port port
+        cm:SetPort(port:A)
+        Array<integer> colorIntensity = cm:GetPixelColor(0, 0)
+    */
     action GetPixelColor(integer x, integer y) returns Array<integer>
         return GetPixelColorNative(x, y)
     end
 
     private system action GetPixelColorNative(integer x, integer y) returns Array<integer>
 
+    /*
+        Sets the color and intensity of the pixel at the provided x and y location
+
+        Attribute: Parameter x The x location of the pixel, 0 to 2
+        Attribute: Parameter y The y location of the pixel, 0 to 2
+        Attribute: Parameter color The color constant to set the pixel to (see Color)
+        Attribute: Parameter intensity The intensity (brightness) to set the pixel to
+        Attribute: Example
+
+        use Libraries.Robots.Spike.ColorMatrix
+        use Libraries.Robots.Spike.Color
+        use Libraries.Robots.Spike.Port
+        ColorMatrix cm
+        Color color
+        Port port
+        cm:SetPort(port:A)
+        cm:SetPixelColor(0, 0, color:RED, 100)
+    */
     action SetPixelColor(integer x, integer y, integer color, integer intensity)
         SetPixelColorNative(x, y, color, intensity)
     end
 
     private system action SetPixelColorNative(integer x, integer y, integer color, integer intensity)
 
-    action ShowColors(Array<integer> color_values, Array<integer> intensity_values)
-        ShowColorsNative(color_values, intensity_values)
+    /*
+        Changes the color and intensity (brightness) of all pixels from the provided color and intensity arrays
+
+        Attribute: Parameter colorValues An integer array of size 9 containing the color for each pixel
+        Attribute: Parameter intensityValues An integer array of size 9 containing the intensity for each pixel
+        Attribute: Example
+
+        use Libraries.Robots.Spike.ColorMatrix
+        use Libraries.Robots.Spike.Color
+        use Libraries.Robots.Spike.Port
+        use Libraries.Containers.Array
+        ColorMatrix cm
+        Color color
+        Port port
+        Array<integer> colors
+        Array<integer> intensities
+        repeat 9 times
+            colors:Add(color:RED)
+            intensities:Add(100)
+        end
+        cm:SetPort(port:A)
+        cm:ShowColors(colors, intensities)
+    */
+    action ShowColors(Array<integer> colorValues, Array<integer> intensityValues)
+        ShowColorsNative(colorValues, intensityValues)
     end
 
-    private system action ShowColorsNative(Array<integer> color_values, Array<integer> intensity_values)
+    private system action ShowColorsNative(Array<integer> colorValues, Array<integer> intensityValues)
 end
