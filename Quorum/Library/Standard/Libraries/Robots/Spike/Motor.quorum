@@ -6,10 +6,7 @@ package Libraries.Robots.Spike
 
     Attribute: Example
     use Libraries.Robots.Spike.Motor
-    use Libraries.Robots.Spike.Port
     Motor wheel
-    Port port
-    wheel:SetPort(port:A)
     wheel:Run(360)
 */
 class Motor
@@ -38,15 +35,13 @@ class Motor
     /*
         Sets the port number of the motor object
 
-        Attribute: Parameter port The port (A through F, or 0 through 5) the motor
+        Attribute: Parameter port The port (0 through 5) the motor
         is attached to
         Attribute: Example
 
         use Libraries.Robots.Spike.Motor
-        use Libraries.Robots.Spike.Port
         Motor wheel
-        Port port
-        wheel:SetPort(port:A)
+        wheel:SetPort(0)
     */
     action SetPort(integer port)
         SetPortNative(port)
@@ -106,7 +101,7 @@ class Motor
     /*
         Changes the position used as an offset for RunToRelativePosition()
 
-        Attribute: Parameter position The relative position to use
+        Attribute: Parameter Position, the relative position to use
         Attribute: Example
 
         use Libraries.Robots.Spike.Motor
@@ -125,7 +120,7 @@ class Motor
             Medium motor: -1110 to 1110
             Large motor: -1050 to 1050
         
-        Attribute: Parameter velocity The velocity to set the motor in
+        Attribute: Parameter Velocity, the velocity to set the motor in
         degrees/second
         Attribute: Example
 
@@ -139,6 +134,13 @@ class Motor
 
     private system action RunNative(integer velocity)
 
+    action Run(integer velocity, integer acceleration)
+        RunNative(velocity, acceleration)
+    end
+
+    private system action RunNative(integer velocity, integer acceleration)
+
+
     /*
         Runs the motor for a certain number of degrees at the provided velocity.
         Ranges for velocity vary per motor size as follows:
@@ -146,8 +148,8 @@ class Motor
             Medium motor: -1110 to 1110
             Large motor: -1050 to 1050
 
-        Attribute: Parameter degrees The amount of degrees to run for
-        Attribute: Parameter velocity The velocity in degrees/second
+        Attribute: Parameter Degrees, the amount of degrees to run for
+        Attribute: Parameter Velocity, the velocity in degrees/second
         Attribute: Example
 
         use Libraries.Robots.Spike.Motor
@@ -156,6 +158,8 @@ class Motor
     */
     system action RunForDegrees(integer degrees, integer velocity)
 
+    system action RunForDegrees(integer degrees, integer velocity, integer stop, integer acceleration, integer deceleration)
+
     /*
         Runs the motor for a set amount of time at the provided velocity.
         Ranges for velocity vary per motor size as follows:
@@ -163,9 +167,9 @@ class Motor
             Medium motor: -1110 to 1110
             Large motor: -1050 to 1050
 
-        Attribute: Parameter time The amount of time to run for in
+        Attribute: Parameter Time, the amount of time to run for in
         milliseconds
-        Attribute: Parameter velocity The velocity in degrees/second
+        Attribute: Parameter Velocity, the velocity in degrees/second
         Attribute: Example
 
         use Libraries.Robots.Spike.Motor
@@ -174,6 +178,8 @@ class Motor
     */
     system action RunForTime(integer time, integer velocity)
 
+    system action RunForTime(integer time, integer velocity, integer stop, integer acceleration, integer deceleration)
+
     /*
         Turns the motor to a provided absolute position at the provided velocity.
         Ranges for velocity vary per motor size as follows:
@@ -181,8 +187,8 @@ class Motor
             Medium motor: -1110 to 1110
             Large motor: -1050 to 1050
         
-        Attribute: Parameter position The absolute position to run to
-        Attribute: Parameter velocity The velocity in degrees/second
+        Attribute: Parameter Position, the absolute position to run to
+        Attribute: Parameter Velocity, the velocity in degrees/second
         Attribute: Example
         
         use Libraries.Robots.Spike.Motor
@@ -191,6 +197,9 @@ class Motor
     */
     system action RunToAbsolutePosition(integer position, integer velocity)
 
+    system action RunToAbsolutePosition(integer position, integer velocity, integer direction, integer stop, integer acceleration, integer deceleration)
+
+
     /*
         Turns the motor to a position relative to current position.
         Ranges for velocity vary per motor size as follows:
@@ -198,8 +207,8 @@ class Motor
             Medium motor: -1110 to 1110
             Large motor: -1050 to 1050
 
-        Attribute: Parameter position The relative position to run to
-        Attribute: Parameter velocity The velocity in degrees/second
+        Attribute: Parameter Position, the relative position to run to
+        Attribute: Parameter Velocity, the velocity in degrees/second
         Attribute: Example
 
         use Libraries.Robots.Spike.Motor
@@ -208,10 +217,13 @@ class Motor
     */
     system action RunToRelativePosition(integer position, integer velocity)
 
+    system action RunToRelativePosition(integer position, integer velocity, integer stop, integer acceleration, integer deceleration)
+
+
     /*
         Starts a motor using a specific pulse width modulation 
 
-        Attribute: Parameter pulseWidthModulation The pwm from -10000 - 10000
+        Attribute: Parameter pulseWidthModulation, the pwm from -10000 - 10000
         Attribute: Example
 
         use Libraries.Robots.Spike.Motor

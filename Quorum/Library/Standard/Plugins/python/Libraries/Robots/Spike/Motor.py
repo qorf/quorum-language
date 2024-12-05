@@ -24,18 +24,33 @@ class plugins_quorum_Libraries_Robots_Spike_Motor_:
 		
 	def RunNative__quorum_integer(self, velocity):
 		motor.run(self.port, velocity)
+
+	def RunNative__quorum_integer__quorum_integer(self, velocity, acceleration):
+		motor.run(self.port, velocity, acceleration=acceleration)
 		
 	async def RunForTime__quorum_integer__quorum_integer(self, time, velocity):
 		await motor.run_for_time(self.port, time, velocity)
-		
+
+	async def RunForTime__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer(self, degrees, velocity, stop, acceleration, deceleration):
+		await motor.run_for_time(self.port, degrees, velocity, stop=stop, acceleration=acceleration, deceleration=deceleration)	
+
 	async def RunForDegrees__quorum_integer__quorum_integer(self, degrees, velocity):
 		await motor.run_for_degrees(self.port, degrees, velocity)
 	
+	async def RunForDegrees__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer(self, degrees, velocity, stop, acceleration, deceleration):
+		await motor.run_for_degrees(self.port, degrees, velocity, stop=stop, acceleration=acceleration, deceleration=deceleration)
+
 	async def RunToAbsolutePosition__quorum_integer__quorum_integer(self, position, velocity):
 		await motor.run_to_absolute_position(self.port, position, velocity)
 		
+	async def RunToAbsolutePosition__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer(self, position, velocity, direction, stop, acceleration, deceleration):
+		await motor.run_to_absolute_position(self.port, position, velocity, direction=direction, stop=stop, acceleration=acceleration, deceleration=deceleration)
+
 	async def RunToRelativePosition__quorum_integer__quorum_integer(self, position, velocity):
 		await motor.run_to_relative_position(self.port, position, velocity)
+
+	async def RunToRelativePosition__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer(self, position, velocity, stop, acceleration, deceleration):
+		await motor.run_to_relative_position(self.port, position, velocity, stop=stop, acceleration=acceleration, deceleration=deceleration)
 		
 	def SetDutyCycleNative__quorum_integer(self, position):
 		return motor.set_duty_cycle(self.port, position)
@@ -47,5 +62,5 @@ class plugins_quorum_Libraries_Robots_Spike_Motor_:
 		return motor.stop(self.port, stop=braking_mode)
 		
 	def GetVelocityNative(self):
-		return motor.velocity(self.port) * 10
+		return motor.velocity(self.port)
 	
