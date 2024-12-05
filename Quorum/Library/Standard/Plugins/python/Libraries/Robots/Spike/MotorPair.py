@@ -14,7 +14,7 @@ class plugins_quorum_Libraries_Robots_Spike_MotorPair_:
 	def SetPortsNative__quorum_integer__quorum_integer(self, left_motor_port, right_motor_port):
 		motor_pair.pair(self.pair, left_motor_port, right_motor_port)
 
-	def RemovePortsNative__quorum_integer(self):
+	def RemovePortsNative(self):
 		motor_pair.unpair(self.pair)
 
 	def RunNative__quorum_integer(self, steering):
