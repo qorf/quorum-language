@@ -1,0 +1,40 @@
+package Libraries.Robots.Spike
+
+/*
+
+*/
+class Bargraph
+
+action Change(integer color, number value)
+    ChangeNative(color, value)
+end
+
+private system action ChangeNative(integer color, number value)
+
+action ClearAll()
+    ClearAllNative()
+end
+
+private system action ClearAllNative()
+
+system action GetValue(integer color) returns number
+
+action Hide()
+    HideNative()
+end
+
+private system action HideNative()
+
+action SetValue(integer color, number value)
+    SetValueNative(color, value)
+end
+
+private system action SetValueNative(integer color, number value)
+
+action Show(boolean fullscreen)
+    ShowNative(fullscreen)
+end
+
+private system action ShowNative(boolean fullscreen)
+
+end
