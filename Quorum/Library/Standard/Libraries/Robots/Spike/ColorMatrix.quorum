@@ -7,6 +7,7 @@ use Libraries.Containers.Array
     to display things.
 
     Attribute: Example
+    
     use Libraries.Robots.Spike.ColorMatrix
     use Libraries.Robots.Spike.Color
     use Libraries.Robots.Spike.Port
@@ -25,7 +26,7 @@ class ColorMatrix
 
         use Libraries.Robots.Spike.ColorMatrix
         ColorMatrix cm
-        integer port = cm:GetPort(port:A)
+        integer port = cm:GetPort()
     */
     action GetPort returns integer
         return GetPortNative()
