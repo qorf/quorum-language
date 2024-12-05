@@ -1,0 +1,49 @@
+package Libraries.Robots.Spike
+
+/*
+
+*/
+class Linegraph
+
+
+action Clear(integer color)
+    ClearNative(color)
+end
+
+private system action ClearNative(integer color)
+
+action ClearAll()
+    ClearAllNative()
+end
+
+private system action ClearAllNative()
+
+
+system action GetAverage(integer color) returns number
+
+system action GetLast(integer color) returns number
+
+system action GetMax(integer color) returns number
+
+
+system action GetMin(integer color) returns number
+
+action Hide()
+    HideNative()
+end
+
+private system action HideNative()
+
+action Plot(integer color, number x, number y)
+    PlotNative(color, x, y)
+end
+
+private system action PlotNative(integer color, number x, number y)
+
+action Show(boolean fullscreen)
+    ShowNative(fullscreen)
+end
+
+private system action ShowNative(boolean fullscreen)
+
+end
