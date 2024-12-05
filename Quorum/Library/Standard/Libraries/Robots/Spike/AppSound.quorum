@@ -1,0 +1,24 @@
+package Libraries.Robots.Spike
+
+/*
+
+*/
+class AppSound
+
+system action Play(text soundName)
+
+system action Play(text soundName, integer volume, integer pitch, integer pan)
+
+action SetAttributes(integer volume, integer pitch, integer pan)
+    SetAttributesNative(volume, pitch, pan)
+end
+
+private system action SetAttributesNative(integer volume, integer pitch, integer pan)
+
+action Stop()
+    StopNative()
+end
+
+private system action StopNative()
+
+end
