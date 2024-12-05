@@ -1,0 +1,20 @@
+package Libraries.Game.Graphics.Vulkan.Commands
+
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+use Libraries.Game.Graphics.Vulkan.VulkanMemoryBarrier
+
+class PipelineBarrierCommand
+
+    VulkanMemoryBarrier memoryBarrier = undefined
+
+    system action Record(VulkanCommandBuffer buffer)
+
+    action GetMemoryBarrier returns VulkanMemoryBarrier
+        return memoryBarrier
+    end
+
+    action SetMemoryBarrier(VulkanMemoryBarrier memoryBarrier)
+        me:memoryBarrier = memoryBarrier
+    end
+
+end

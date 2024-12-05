@@ -1,0 +1,153 @@
+package Libraries.Game.Graphics.Vulkan
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Game.Graphics.Integer32BitBuffer
+use Libraries.Game.Graphics.DrawableShape
+
+/*
+This class encapsulates a series of buffers and arrays used to batch a large number of drawn elements all at once.
+This class is used by the VulkanPainter2D to organize resources used by different pipelines, or to handle overflow
+elements if there are too many to be stored in a single buffer.
+*/
+class VulkanPainterResources2D
+
+    public constant integer DEFAULT_VERTEX_BUFFER_SIZE = 120000
+    public constant integer DEFAULT_INDEX_BUFFER_SIZE = 30000
+    public constant integer DEFAULT_VERTEX_BUFFER_BYTE_SIZE = DEFAULT_VERTEX_BUFFER_SIZE * 4
+    public constant integer DEFAULT_INDEX_BUFFER_BYTE_SIZE = DEFAULT_INDEX_BUFFER_SIZE * 4
+
+    // Arrays of information that will be bulk-copied into the staging buffers later.
+    Number32BitArray vertexData = undefined
+    Integer32BitArray indexData = undefined
+
+    // Staging buffers are visible from the host (i.e. they're mapped to memory we can access from this code).
+    // We use these to put our vertex and index data into, then copy them to the output buffers before drawing.
+    VulkanBuffer vertexStagingBuffer = undefined
+    VulkanBuffer indexStagingBuffer = undefined
+
+    // The mapped memory is the allocated space that the staging buffers encapsulate. This is where the vertex/index data are copied
+    // to send the information where the staging buffers can use them.
+    VulkanNumber32BitMappedMemory vertexMappedMemory = undefined
+    VulkanInteger32BitMappedMemory indexMappedMemory = undefined
+
+    // Output buffers that are allocated onto GPU-exclusive memory. Used for final drawing.
+    VulkanBuffer vertexOutputBuffer = undefined
+    VulkanBuffer indexOutputBuffer = undefined
+
+    // The position that the next chunk of data will be written to the vertex/input data arrays.
+    // Set to 0 at the beginning of a frame of animation, and incremented as data is written.
+    // Also indicates the size of the content that's already been written (i.e., if the position is 6, then index
+    // 6 is the next to be written, and it also means 6 pieces of data have already been written into slots 0 - 5)
+    integer vertexWritePosition = 0
+    integer indexWritePosition = 0
+
+    // The count of how many vertices have been inserted, and also an index representing the next vertex to be inserted.
+    integer verticesCount = 0
+
+    boolean isFull = false
+
+    action Create(VulkanDevice device)
+        Create(device, DEFAULT_VERTEX_BUFFER_SIZE, DEFAULT_INDEX_BUFFER_SIZE)
+    end
+
+    action Create(VulkanDevice device, integer vertexBufferSize, integer indexBufferSize)
+        Number32BitArray vertexData
+        Integer32BitArray indexData
+        VulkanBuffer vertexStagingBuffer
+        VulkanBuffer indexStagingBuffer
+        VulkanBuffer vertexOutputBuffer
+        VulkanBuffer indexOutputBuffer
+
+        me:vertexData = vertexData
+        me:indexData = indexData
+        me:vertexStagingBuffer = vertexStagingBuffer
+        me:indexStagingBuffer = indexStagingBuffer
+        me:vertexOutputBuffer = vertexOutputBuffer
+        me:indexOutputBuffer = indexOutputBuffer
+
+        VulkanConstants constants
+
+        vertexData:SetSize(vertexBufferSize)
+        indexData:SetSize(indexBufferSize)
+        vertexStagingBuffer:CreateTransferSourceBuffer(device, vertexBufferSize * 4)
+        indexStagingBuffer:CreateTransferSourceBuffer(device, indexBufferSize * 4)
+        vertexOutputBuffer:CreateTransferDestinationBuffer(device, vertexBufferSize * 4, constants:BUFFER_USAGE_VERTEX_BUFFER_BIT)
+        indexOutputBuffer:CreateTransferDestinationBuffer(device, indexBufferSize * 4, constants:BUFFER_USAGE_INDEX_BUFFER_BIT)
+
+        vertexMappedMemory = vertexStagingBuffer:MapToNumber32BitMemory()
+        indexMappedMemory = indexStagingBuffer:MapToInteger32BitMemory()
+    end
+
+    action PrepareForNextFrame
+        vertexWritePosition = 0
+        indexWritePosition = 0
+        verticesCount = 0
+        isFull = false
+    end
+
+    action IsFull returns boolean
+        return isFull
+    end
+
+    action GetVertexBufferSize returns integer
+        return vertexData:GetSize()
+    end
+
+    action GetIndexBufferSize returns integer
+        return indexData:GetSize()
+    end
+
+    action Add(DrawableShape shape) returns boolean
+        Number32BitArray vertices = shape:GetVertexData()
+        Integer32BitBuffer indices = undefined
+        if shape:GetMesh() not= undefined and shape:GetMesh():GetIndexData() not= undefined
+            indices = shape:GetMesh():GetIndexData():GetBuffer()
+        end
+
+        if vertices:GetSize() + vertexWritePosition > GetVertexBufferSize() or (indices not= undefined and indices:GetSize() + indexWritePosition > GetIndexBufferSize())
+            isFull = true
+            return false
+        end
+
+        integer i = 0
+        repeat while i < vertices:GetSize()
+            vertexData:Set(vertexWritePosition + i, vertices:Get(i))
+            i = i + 1
+        end
+        vertexWritePosition = vertexWritePosition + vertices:GetSize()
+
+        // Most commonly, no custom indices are provided. In this case, set the default indices for a quad.
+        if indices = undefined
+            indexData:Set(indexWritePosition, verticesCount)
+            indexData:Set(indexWritePosition + 1, verticesCount + 1)
+            indexData:Set(indexWritePosition + 2, verticesCount + 2)
+            indexData:Set(indexWritePosition + 3, verticesCount + 2)
+            indexData:Set(indexWritePosition + 4, verticesCount + 3)
+            indexData:Set(indexWritePosition + 5, verticesCount)
+
+            indexWritePosition = indexWritePosition + 6
+        else
+            i = 0
+            repeat while i < indices:GetSize()
+                indexData:Set(indexWritePosition + i, indices:Get(i))
+                i = i + 1
+            end
+
+            indexWritePosition = indexWritePosition + indices:GetSize()
+        end
+
+        verticesCount = verticesCount + shape:GetVertexCount()
+
+        return true
+    end
+
+    action CanFit(integer newVertices, integer newIndices) returns boolean
+        if newVertices + vertexWritePosition > GetVertexBufferSize() or newIndices + indexWritePosition > GetIndexBufferSize()
+            isFull = true
+            return false
+        end
+
+        return true
+    end
+    
+end

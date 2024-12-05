@@ -203,7 +203,7 @@ class VulkanGraphics is GraphicsManager
         outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
         outputColorAttachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
         outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
-        outputColorAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_PRESENT_SRC)
+        outputColorAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
 
         Array<VulkanAttachmentDescription> attachmentDescriptions
         attachmentDescriptions:Add(outputColorAttachment)

@@ -14,12 +14,12 @@ class VulkanBuffer
 
     Attribute: Parameter device The VulkanDevice that the buffer will be allocated with.
     Attribute: Parameter size The number of bytes that this buffer should store.
-    Attribute: Parameter usageFlags A bitmask of flags indicating how this buffer will be used. Flags from the VulkanConstants can be combined using bitwise "or" operations.
-    Attribute: Parameter memoryFlags A bitmask of flags indicating what kind of memory is required for this buffer. Flags from the VulkanConstants can be combined using bitwise "or" operations.
+    Attribute: Parameter bufferUsage A bitmask of flags indicating how this buffer will be used. Flags from the VulkanConstants can be combined using bitwise "or" operations, such as BUFFER_USAGE_UNIFORM_BUFFER_BIT or BUFFER_USAGE_TRANSFER_DST_BIT
+    Attribute: Parameter requiredFlags A bitmask of flags indicating what kind of features are required for this buffer. Flags from the VulkanConstants can be combined using bitwise "or" operations, such as .
     */
-    action Create(VulkanDevice device, integer size, integer usageFlags, integer memoryFlags) returns boolean
-        return Create(device, size, usageFlags, memoryFlags, false)
-    end
+//    action Create(VulkanDevice device, integer size, integer bufferUsage, integer requiredFlags) returns boolean
+//        return Create(device, size, bufferUsage, requiredFlags, 0, false)
+//    end
 
     /*
     This action will create a Vulkan buffer and allocate the requested amount of memory. 
@@ -30,21 +30,65 @@ class VulkanBuffer
     Attribute: Parameter memoryFlags A bitmask of flags indicating what kind of memory is required for this buffer. Flags from the VulkanConstants can be combined using bitwise "or" operations.
     Attribute: Parameter allowConcurrentAccess True to allow multiple queue families to access the buffer at once, or false to only allow one at a time. If this flag isn't provided, the default value is false.
     */
-    action Create(VulkanDevice device, integer size, integer usageFlags, integer memoryFlags, boolean allowConcurrentAccess) returns boolean
+//    action Create(VulkanDevice device, integer size, integer bufferUsage, integer requiredFlags, integer memoryUsage, boolean allowConcurrentAccess) returns boolean
+//        VulkanConstants constants
+//        integer sharingMode = constants:SHARING_MODE_EXCLUSIVE
+//        if allowConcurrentAccess
+//            sharingMode = constants:SHARING_MODE_CONCURRENT
+//        end
+//
+//        boolean success = CreateNative(device, size, usageFlags, memoryFlags, sharingMode)
+//        if success
+//            me:device = device
+//            me:size = size
+//            initialized = true
+//
+//            BitwiseOperations bits
+//            if (bits:And(memoryFlags, constants:MEMORY_PROPERTY_HOST_VISIBLE_BIT) not= 0)
+//                isMemoryAccessible = true
+//            end
+//        end
+//
+//        return success
+//    end
+
+    action CreateTransferSourceBuffer(VulkanDevice device, integer size) returns boolean
+        VulkanConstants constants
+        // Create a buffer that will be used as a transfer source, using automatic memory type detection, and allocated so the host (i.e. the program) can access the memory for mapped sequential writing.
+        return Create(device, size, constants:BUFFER_USAGE_TRANSFER_SOURCE_BIT, constants:MEMORY_USAGE_AUTO, constants:ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT, 0, 0, false)
+    end
+
+    action CreateTransferDestinationBuffer(VulkanDevice device, integer size, integer bufferUsage) returns boolean
+        VulkanConstants constants
+        BitwiseOperations bits
+        integer usage = bits:Or(bufferUsage, constants:BUFFER_USAGE_TRANSFER_DESTINATION_BIT)
+
+        return Create(device, size, usage, constants:MEMORY_USAGE_AUTO, 0, 0, 0, false)
+    end
+
+    action CreateReadbackBuffer(VulkanDevice device, integer size) returns boolean
+        VulkanConstants constants
+        // Create a buffer that can be transferred into and that can be read at arbitrary times and places.
+        return Create(device, size, constants:BUFFER_USAGE_TRANSFER_DESTINATION_BIT, constants:MEMORY_USAGE_AUTO, constants:ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT, 0, 0, false)
+    end
+
+    action Create(VulkanDevice device, integer size, integer bufferUsage, integer memoryUsage, integer allocationFlags, integer requiredMemoryFlags, integer preferredMemoryFlags, boolean allowConcurrentAccess) returns boolean
         VulkanConstants constants
         integer sharingMode = constants:SHARING_MODE_EXCLUSIVE
         if allowConcurrentAccess
             sharingMode = constants:SHARING_MODE_CONCURRENT
         end
 
-        boolean success = CreateNative(device, size, usageFlags, memoryFlags, sharingMode)
+        boolean success = CreateNative(device, size, bufferUsage, memoryUsage, allocationFlags, requiredMemoryFlags, preferredMemoryFlags, sharingMode)
         if success
             me:device = device
             me:size = size
             initialized = true
 
             BitwiseOperations bits
-            if (bits:And(memoryFlags, constants:MEMORY_PROPERTY_HOST_VISIBLE_BIT) not= 0)
+            if ( (bits:And(requiredMemoryFlags, constants:MEMORY_PROPERTY_HOST_VISIBLE_BIT) not= 0) or 
+                 (bits:And(allocationFlags, bits:Or(constants:ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT, constants:ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT)) not= 0) )
+
                 isMemoryAccessible = true
             end
         end
@@ -53,6 +97,8 @@ class VulkanBuffer
     end
 
     private system action CreateNative(VulkanDevice device, integer size, integer usageFlags, integer memoryFlags, integer sharingMode) returns boolean
+
+    private system action CreateNative(VulkanDevice device, integer size, integer bufferUsage, integer memoryUsage, integer allocationFlags, integer requiredMemoryFlags, integer preferredMemoryFlags, integer sharingMode) returns boolean
 
     action Dispose
         alert("NYI")

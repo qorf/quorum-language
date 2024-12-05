@@ -8,10 +8,15 @@ use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.Vulkan.VulkanGraphics
 use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanPipeline
+use Libraries.Containers.HashTable
+use Libraries.Game.Graphics.Vulkan.VulkanRenderPass
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineCache
 
 class VulkanShaderManager is ShaderManager
 
     SPIRVShaderCompiler compiler = undefined
+    VulkanPipelineCache pipelineCache = undefined
 
     // A value given to each shader as an ID. Currently doesn't correspond to anything,
     // but it can be stored to a hash with something that more accurately reflects the
@@ -31,24 +36,6 @@ class VulkanShaderManager is ShaderManager
     action DisposeShader(Shader shader)
         alert("NYI")
     end
-
-    /*
-    action CompileShader(Shader shader) returns integer
-        if shader:IsCompiled()
-            return shader:GetID()
-        end
-
-        text name = shader:GetName()
-        if name = ""
-            alert("I couldn't compile this shader because its name hasn't been set. Use the SetName action before compiling this shader.")
-        end
-
-        Register(name, shader)
-
-        GraphicsManager graphics = gameState:GetGameGraphics()
-        return graphics:CreateShader(GetOpenGLType(shader:GetShaderType()), shader:GetCode(), name)
-    end
-    */
 
     action CompileShader(Shader shader) returns integer
         if shader:IsCompiled()
@@ -98,30 +85,29 @@ class VulkanShaderManager is ShaderManager
     end
 
     /*
-    action ReloadShader(Shader shader) returns integer
-        if not shader:IsInvalidated()
-            return shader:GetID()
-        end
-
-        GraphicsManager graphics = gameState:GetGameGraphics()
-        return graphics:CreateShader(GetOpenGLType(shader:GetShaderType()), shader:GetCode(), shader:GetName())
-    end
-
-    action GetVersionHeader returns text
-        Properties prop
-        if prop:IsWindows()
-            return "#version 410"
-        elseif prop:IsMac()
-            return "#version 410"
-        elseif prop:IsAndroid()
-            return "#version 300 es"
-        elseif prop:IsWebBrowser()
-            return "#version 300 es"
-        else
-            return "#version 300 es"
-        end
-        return ""
-    end
+    This action returns the default VulkanPipeline used for rendering 2D graphics.
     */
+    action GetDefaultPipeline2D returns VulkanPipeline
+        // TO-DO: This acts in a similar, but incompatible, way as GetDefaultShaderProgram2D.
+        // This should be refactored so the ShaderManager can handle OpeGL ShaderPrograms and VulkanPipelines in a consistent way.
+
+        
+        return undefined
+    end
+
+    action GetPipelineCache returns VulkanPipelineCache
+        if pipelineCache = undefined
+            GameStateManager gameState
+            VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+            
+            VulkanPipelineCache cache
+            boolean success = cache:Create(graphics:GetDevice())
+            if success
+                pipelineCache = cache
+            end
+        end
+
+        return pipelineCache
+    end
 
 end

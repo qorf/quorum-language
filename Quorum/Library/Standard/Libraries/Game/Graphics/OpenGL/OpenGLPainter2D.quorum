@@ -718,7 +718,7 @@ OpenGLManager graphics = GetGraphics()
                 currentProgram:Draw(currentDrawable)
             else
                 mesh:SetVertices(GetVertices())
-                currentDrawable:SetMesh(mesh)
+                currentDrawable:SetMesh(mesh)       
                 currentProgram:Draw(currentDrawable, 0, shape:GetIndexCount())
             end
         end

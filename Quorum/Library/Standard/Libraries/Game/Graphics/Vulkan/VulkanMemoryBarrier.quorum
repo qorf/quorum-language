@@ -1,0 +1,42 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanMemoryBarrier
+
+    integer sourceStageMask = 0
+    integer sourceAccessMask = 0
+    integer destinationStageMask = 0
+    integer destinationAccessMask = 0
+
+    action GetSourceStageMask returns integer
+        return sourceStageMask
+    end
+
+    action SetSourceStageMask(integer sourceStageMask)
+        me:sourceStageMask = sourceStageMask
+    end
+
+    action GetSourceAccessMask returns integer
+        return sourceAccessMask
+    end
+
+    action SetSourceAccessMask(integer sourceAccessMask)
+        me:sourceAccessMask = sourceAccessMask
+    end
+
+    action GetDestinationStageMask returns integer
+        return destinationStageMask
+    end
+
+    action SetDestinationStageMask(integer destinationStageMask)
+        me:destinationStageMask = destinationStageMask
+    end
+
+    action SetDestinationAccessMask(integer destinationAccessMask)
+        me:destinationAccessMask = destinationAccessMask
+    end
+
+    action GetDestinationAccessMask returns integer
+        return destinationAccessMask
+    end
+
+end

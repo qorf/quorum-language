@@ -4,7 +4,9 @@ use Libraries.Containers.Array
 class VulkanDevice
 
     VulkanPhysicalDevice physicalDevice = undefined
+    VulkanMemoryAllocator memoryAllocator = undefined
     Array<VulkanQueueFamily> queueFamilies
+
     boolean initialized = false
 
     action CreateGraphicsDevice(VulkanPhysicalDevice physicalDevice) returns boolean
@@ -31,7 +33,15 @@ class VulkanDevice
 
         boolean success = CreateNative(physicalDevice, extensionNames, queueFamilies)
 
+        if not success
+            return false
+        end
+
+        VulkanMemoryAllocator memoryAllocator
+        success = memoryAllocator:Create(me)
+
         if success
+            me:memoryAllocator = memoryAllocator
             initialized = true
         end
 
@@ -44,6 +54,14 @@ class VulkanDevice
 
     action GetPhysicalDevice returns VulkanPhysicalDevice
         return physicalDevice
+    end
+
+    action GetInstance returns VulkanInstance
+        return GetPhysicalDevice():GetInstance()
+    end
+
+    action GetMemoryAllocator returns VulkanMemoryAllocator
+        return memoryAllocator
     end
 
     action GetQueueFamilyCount returns integer

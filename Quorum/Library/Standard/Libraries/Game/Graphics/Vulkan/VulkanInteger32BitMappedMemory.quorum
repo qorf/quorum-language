@@ -81,6 +81,10 @@ class VulkanInteger32BitMappedMemory
 
     private system action GetNative(integer index) returns integer
 
+    /*
+    This action returns the size of the mapped memory as a count of 32-bit integers. For example, if the memory
+    is 20 bytes, then this would return size = 5 (because 4 32-bit integers fit inside the memory).
+    */
     action GetSize returns integer
         if not initialized
             alert("I can't use this memory because it hasn't been initialized! Use Create(VulkanBuffer) first.")
@@ -89,6 +93,9 @@ class VulkanInteger32BitMappedMemory
         return parentBuffer:GetSize() / 4
     end
 
+    /*
+    This action returns the size of the mapped memory in bytes.
+    */
     action GetByteSize returns integer
         if not initialized
             alert("I can't use this memory because it hasn't been initialized! Use Create(VulkanBuffer) first.")

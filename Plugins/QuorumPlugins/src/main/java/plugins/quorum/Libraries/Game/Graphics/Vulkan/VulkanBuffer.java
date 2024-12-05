@@ -2,22 +2,79 @@ package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.util.vma.VmaAllocationCreateInfo;
+import org.lwjgl.util.vma.VmaAllocatorCreateInfo;
 import org.lwjgl.vulkan.*;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
 
 import java.nio.LongBuffer;
 
+import static org.lwjgl.util.vma.Vma.*;
 import static org.lwjgl.vulkan.VK10.*;
 
 public class VulkanBuffer
 {
     public Object me_;
 
+    // A handle to the VulkanBuffer's internal data structure.
     private long bufferHandle = 0L;
+
+    // A handle to the chunk of allocated memory for this buffer. Used to find a region to map memory to.
     private long memoryHandle = 0L;
+
+    // A pointer to the actual, raw memory after mapping has been performed.
     private long mappedMemoryPointer = 0L;
 
+    public boolean CreateNative(VulkanDevice_ quorumDevice, int size, int bufferUsage, int memoryUsage,
+                                int allocationFlags, int requiredMemoryFlags, int preferredMemoryFlags, int sharingMode)
+    {
+        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
+        VulkanPhysicalDevice pluginPhysicalDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice)quorumDevice.GetPhysicalDevice()).plugin_;
+        VulkanMemoryAllocator pluginMemoryAllocator = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanMemoryAllocator)quorumDevice.GetMemoryAllocator()).plugin_;
+
+        try (MemoryStack stack = MemoryStack.stackPush())
+        {
+            VkBufferCreateInfo bufferCreateInfo = VkBufferCreateInfo.calloc(stack);
+            bufferCreateInfo.sType$Default();
+            bufferCreateInfo.size(size);
+            bufferCreateInfo.usage(bufferUsage);
+            bufferCreateInfo.sharingMode(sharingMode);
+
+            VmaAllocationCreateInfo allocationCreateInfo = VmaAllocationCreateInfo.calloc(stack);
+            if (memoryUsage == 0)
+                allocationCreateInfo.usage(VMA_MEMORY_USAGE_AUTO);
+            else
+                allocationCreateInfo.usage(memoryUsage);
+
+            if (allocationFlags != 0)
+                allocationCreateInfo.flags(allocationFlags);
+            if (requiredMemoryFlags != 0)
+                allocationCreateInfo.requiredFlags(requiredMemoryFlags);
+            if (preferredMemoryFlags != 0)
+                allocationCreateInfo.preferredFlags(preferredMemoryFlags);
+
+            PointerBuffer pointerBuffer = stack.callocPointer(1);
+            LongBuffer handleBuffer = stack.callocLong(1);
+
+            int vulkanResult = vmaCreateBuffer(pluginMemoryAllocator.GetAllocatorPointer(), bufferCreateInfo, allocationCreateInfo,
+                    handleBuffer, pointerBuffer, null);
+
+            if (vulkanResult != VK_SUCCESS)
+                return false;
+
+            bufferHandle = handleBuffer.get(0);
+            memoryHandle = pointerBuffer.get(0);
+        }
+
+        return true;
+    }
+
+    /*
+    Commented out below is the original implementation for CreateNative. This version is obsolete with
+    the introduction of the VulkanMemoryAllocator (VMA) library, but the code is kept here for posterity while the
+    system is being developed.
+    -------------------------
     public boolean CreateNative(VulkanDevice_ quorumDevice, int size, int usageFlags, int memoryFlags, int sharingMode)
     {
         VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
@@ -65,6 +122,7 @@ public class VulkanBuffer
 
         return true;
     }
+    */
 
 
     /*
@@ -112,12 +170,12 @@ public class VulkanBuffer
 
         VulkanBuffer_ quorumBuffer = (VulkanBuffer_)me_;
         VulkanDevice_ quorumDevice = quorumBuffer.GetDevice();
-        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
+        VulkanMemoryAllocator pluginMemoryAllocator = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanMemoryAllocator)quorumDevice.GetMemoryAllocator()).plugin_;
 
         try (MemoryStack stack = MemoryStack.stackPush())
         {
             PointerBuffer pointerBuffer = stack.mallocPointer(1);
-            int vulkanResult = vkMapMemory(pluginDevice.GetDevice(), memoryHandle, 0, quorumBuffer.GetSize(), 0, pointerBuffer);
+            int vulkanResult = vmaMapMemory(pluginMemoryAllocator.GetAllocatorPointer(), memoryHandle, pointerBuffer);
             if (vulkanResult != VK_SUCCESS)
                 return false;
 
@@ -134,9 +192,9 @@ public class VulkanBuffer
 
         VulkanBuffer_ quorumBuffer = (VulkanBuffer_)me_;
         VulkanDevice_ quorumDevice = quorumBuffer.GetDevice();
-        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
+        VulkanMemoryAllocator pluginMemoryAllocator = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanMemoryAllocator)quorumDevice.GetMemoryAllocator()).plugin_;
 
-        vkUnmapMemory(pluginDevice.GetDevice(), mappedMemoryPointer);
+        vmaUnmapMemory(pluginMemoryAllocator.GetAllocatorPointer(), mappedMemoryPointer);
     }
 
     public long GetMappedMemoryPointer()

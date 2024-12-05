@@ -12,11 +12,40 @@ use Libraries.Game.Game
 use Libraries.Containers.Iterator
 use Libraries.Game.Layer
 use Libraries.Game.Layer2D
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderManager
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
 
 class VulkanPainter2D is Painter2D
 
     GameStateManager gameState
     VulkanRenderPass renderPass = undefined
+
+    VulkanPipeline defaultPipeline = undefined
+    VulkanPipeline boundPipeline = undefined
+
+    // The default index buffer size is enough for 
+    public constant integer INDEX_BUFFER_SIZE = 2000 * 6
+
+    // Arrays containing pending vertex and index data. To be copied into the staging buffers before drawing.
+    Number32BitArray vertexData
+    Integer32BitArray indexData
+
+    // Staging buffers. These are accessible from the host (i.e., directly from this code) and will be copied into GPU-exclusive memory.
+    VulkanBuffer vertexStagingBuffer
+    VulkanBuffer indexStagingBuffer
+
+    // Output buffers, only accessible to GPU memory. These hold the final information to be rendered.
+    VulkanBuffer vertexOutputBuffer
+    VulkanBuffer indexOutputBuffer
+
+    // The current range of indices containing vertex/index information to be drawn.
+    integer verticesStartIndex = 0
+    integer verticesEndIndex = 0
+    integer indexStartIndex = 0
+    integer indexEndIndex = 0
 
     on create
         LoadDefaultPainter()
@@ -49,7 +78,7 @@ class VulkanPainter2D is Painter2D
         outputColorAttachment:SetSamples(constants:SAMPLE_COUNT_1_BIT)
         outputColorAttachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
         outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
-        outputColorAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_PRESENT_SRC)
+        outputColorAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
 
         if isFirstPass
             outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
@@ -102,8 +131,83 @@ class VulkanPainter2D is Painter2D
         
     end
 
-    private action GetDefaultPipeline
+    private action GetDefaultPipeline returns VulkanPipeline
+        if defaultPipeline = undefined
+            VulkanPipeline pipeline
 
+            VulkanShaderManager shaderManager = cast(VulkanShaderManager, gameState:GetShaderManager())
+            Shader vertexShader = shaderManager:GetDefaultVertexShader2D()
+            Shader fragmentShader = shaderManager:GetDefaultFragmentShader2D()
+
+            Array<Shader> shaders
+            shaders:Add(vertexShader)
+            shaders:Add(fragmentShader)
+
+            VulkanDevice device = renderPass:GetDevice()
+            VulkanPipelineCache cache = shaderManager:GetPipelineCache()
+            VulkanConstants constants
+
+
+
+            VulkanPipelineInfo info
+            Array<VulkanVertexInputAttributeDescription> vertexAttributes = info:GetVertexInputAttributeDescriptions()
+            Array<VulkanVertexInputBindingDescription> vertexBindings = info:GetVertexInputBindingDescriptions()
+            Array<VulkanPipelineColorBlendAttachmentState> colorBlendAttachments = info:GetPipelineColorBlendAttachmentStates()
+
+            // Create the vertex attribute descriptions, and the binding that will indicate how far apart each vertex's data is in the buffers.
+    
+            // How far into the data structure the current piece of data is.
+            integer offset = 0
+
+            // Position attribute
+            VulkanVertexInputAttributeDescription positionAttribute
+            positionAttribute:Set(0, 0, constants:FORMAT_R32G32B32_SFLOAT, offset)
+            vertexAttributes:Add(positionAttribute)
+
+            // Position is stored as 3 floats of 4 bytes each.
+            offset = offset + (3 * 4)
+
+
+            /*
+            // Texture coordinate attribute
+            VulkanVertexInputAttributeDescription textureCoordinatesAttribute
+            textureCoordinatesAttribute:Set(0, 1, constants:FORMAT_R32G32_SFLOAT, 3 * 4)
+            vertexAttributes:Add(textureCoordinatesAttribute)
+
+            // Texture coordinates are stored as 2 floats of 4 bytes each.
+            offset = offset + (2 * 4)
+            */
+            
+            // Binding description, indicates how far apart each vertex's data is
+            VulkanVertexInputBindingDescription bindingDescription
+            bindingDescription:Set(0, offset, constants:VERTEX_INPUT_RATE_VERTEX)
+            vertexBindings:Add(bindingDescription)
+
+
+
+            // Define the color blend attachment states. Just creating and adding it is enough, the default values work for us.
+            VulkanPipelineColorBlendAttachmentState colorBlend
+            colorBlendAttachments:Add(colorBlend)
+
+
+            // Define the dynamic states permitted by the pipeline. For our case, we want to be able to dynamically adjust viewport and scissor values.
+            Array<integer> dynamicStates = info:GetDynamicStates()
+            dynamicStates:Add(constants:DYNAMIC_STATE_VIEWPORT)
+            dynamicStates:Add(constants:DYNAMIC_STATE_SCISSOR)
+
+
+            // The info structure has lots of other values we could customize, but all of the default values will work well for us here.
+            // We can now create the Pipeline itself.
+            boolean success = pipeline:Create(device, renderPass, cache, shaders, info)
+            
+            if success
+                defaultPipeline = pipeline
+            else
+                pipeline:Dispose()
+            end
+        end
+
+        return defaultPipeline
     end
 
     action SetCamera(Camera camera)
@@ -166,8 +270,6 @@ class VulkanPainter2D is Painter2D
         setScissor:SetPosition(0, 0)
         setScissor:SetSize(swapchain:GetImageWidth(), swapchain:GetImageHeight())
         commandBuffer:Record(setScissor)
-
-        
     end
     
     action End
@@ -195,6 +297,15 @@ class VulkanPainter2D is Painter2D
     end
     
     action QueueForDrawing(Item2D item)
+        /*
+        NEXT STEPS:
+        Queued items are checked for which Pipeline to use (currently, always default)
+        If different than previous, flush, bind pipeline
+        Add vertex/index values to end of buffers
+        In "End" call, flush, unbind pipeline
+        Flush: Draw commands
+        */
+
 //        output "NYI: VulkanPainter2D QueueForDrawing"
 //        alert("NYI")
     end

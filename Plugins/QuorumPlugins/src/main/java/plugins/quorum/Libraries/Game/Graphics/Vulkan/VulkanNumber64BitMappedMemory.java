@@ -27,9 +27,12 @@ public class VulkanNumber64BitMappedMemory
     public void SetNative(int index, Number64BitArray_ quorumArray, int arrayOffset, int arrayItems)
     {
         double[] array = ((Number64BitArray)quorumArray).plugin_.doubles;
-        doubleBuffer.position(index);
+        // Only update the position if it doesn't match the index.
+        // We want to maintain uninterrupted sequential insertion whenever possible.
+        if (doubleBuffer.position() != index)
+            doubleBuffer.position(index);
+
         doubleBuffer.put(array, arrayOffset, arrayItems);
-        doubleBuffer.position(0);
     }
 
     public double GetNative(int index)

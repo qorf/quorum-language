@@ -27,9 +27,12 @@ public class VulkanNumber32BitMappedMemory
     public void SetNative(int index, Number32BitArray_ quorumArray, int arrayOffset, int arrayItems)
     {
         float[] array = ((Number32BitArray)quorumArray).plugin_.floats;
-        floatBuffer.position(index);
+        // Only update the position if it doesn't match the index.
+        // We want to maintain uninterrupted sequential insertion whenever possible.
+        if (floatBuffer.position() != index)
+            floatBuffer.position(index);
+
         floatBuffer.put(array, arrayOffset, arrayItems);
-        floatBuffer.position(0);
     }
 
     public double GetNative(int index)
