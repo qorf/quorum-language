@@ -1,15 +1,52 @@
 package Libraries.Robots.Spike
 
 /*
+    The Bargraph library is used to graph and display bargraphs in the SPIKE App. 
+    The categories in the bargraph are the different color values from the Color library.
 
+    Attribute: Example
+    
+    use Libraries.Robots.Spike.Bargraph
+    Bargraph bg
+    Color color
+    bg:SetValue(color:RED, 0.5)
+    bg:Show(true)
 */
 class Bargraph
 
+ /*
+        Adds the provided value to the value that corresponds to the selected color
+
+        Attribute: Parameter color The color constant whose value will be changed (see Color)
+        Attribute: Parameter value The value to be added
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Bargraph
+        Bargraph bg
+        Color color
+        bg:SetValue(color:RED, 0.5)
+        bg:Change(color:RED, 1.0)
+        bg:Change(color:RED, -2) //Red bar is at -0.5
+*/
 action Change(integer color, number value)
     ChangeNative(color, value)
 end
 
 private system action ChangeNative(integer color, number value)
+
+
+    /*
+        Set the corresponding values for each color back to 0
+
+        Attribute: Example
+        use Libraries.Robots.Spike.Bargraph
+        Bargraph bg
+        Color color
+        bg:SetValue(color:RED, 0.5)
+        bg:SetValue(color:BLACK, 1.5)
+        bg:SetValue(color:BLUE, 2.5)
+        bg:ClearAll() //values for all colors is 0 now
+    */
 
 action ClearAll()
     ClearAllNative()
@@ -17,7 +54,36 @@ end
 
 private system action ClearAllNative()
 
+    /*
+        Get the corresponding values for the provided color
+
+        Attribute: Returns The corresponding value for the provided color
+        Attribute: Parameter color The color constant whose value will be returned (see Color)
+
+        Attribute: Example
+        use Libraries.Robots.Spike.Bargraph
+        Bargraph bg
+        Color color
+        bg:SetValue(color:RED, 0.5)
+        number redValue = bg:GetValue(color:RED)
+    */
+
 system action GetValue(integer color) returns number
+
+
+    /*
+        Hides the currently displayed bargraph in the App.
+
+        Attribute: Example
+        use Libraries.Robots.Spike.Bargraph
+        use Libraries.Robots.Spike.Hub
+        Bargraph bg
+        Hub hb
+        Color color
+        bg:SetValue(color:RED, 0.5)
+        hb:Sleep(1000)
+        bg:Hide()
+    */
 
 action Hide()
     HideNative()
@@ -25,12 +91,37 @@ end
 
 private system action HideNative()
 
+    /*
+        Sets the value corresponding to the color in the bargraph
+
+        Attribute: Parameter color The color constant whose value will set (see Color)
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Bargraph
+        Bargraph bg
+        Color color
+        bg:SetValue(color:RED, 0.5)
+    */
+
 action SetValue(integer color, number value)
     SetValueNative(color, value)
 end
 
 private system action SetValueNative(integer color, number value)
 
+    /*
+        Shows the bargraph to the App display.
+
+        Attribute: Parameter fullscreen A boolean which will show the bargraph in fullscreen if true, and 
+        as a pop-up if not.
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Bargraph
+        Bargraph bg
+        Color color
+        bg:SetValue(color:RED, 0.5)
+        bg:Show(true)
+    */
 action Show(boolean fullscreen)
     ShowNative(fullscreen)
 end
