@@ -21,4 +21,4 @@ class plugins_quorum_Libraries_Robots_Spike_Device_:
         return device.ready(port)
     
     def SetDutyCycleNative__quorum_integer__quorum_integer(self, port, duty_cycle):
-        device.set_duty_cyle(port, duty_cycle)
+        device.set_duty_cycle(port, duty_cycle)

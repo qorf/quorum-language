@@ -88,7 +88,7 @@ class LightMatrix
     /*
         Writes text to the display.
         
-        Attribute: Parameter value the text to display
+        Attribute: Parameter value The text to display
         Attribute: Example
         use Libraries.Robots.Spike.LightMatrix
         LightMatrix lights
@@ -99,8 +99,8 @@ class LightMatrix
     /*
         Gets the intensity, between 0 and 100, of a particular pixel on the display. 
         
-        Attribute: Parameter x the x coordinate from 0 to 4
-        Attribute: Parameter y the y coordinate from 0 to 4
+        Attribute: Parameter x The x coordinate from 0 to 4
+        Attribute: Parameter y The y coordinate from 0 to 4
         Attribute: Returns The intensity, which is a value between 0 and 100
         Attribute: Example
 
@@ -117,8 +117,8 @@ class LightMatrix
     /*
         Sets the intensity, between 0 and 100, of a particular pixel on the display.
         
-        Attribute: Parameter x the x coordinate from 0 to 4
-        Attribute: Parameter y the y coordinate from 0 to 4
+        Attribute: Parameter x The x coordinate from 0 to 4
+        Attribute: Parameter y The y coordinate from 0 to 4
         Attribute: Parameter intensity A value between 0 and 100
         Attribute: Example
 
@@ -137,13 +137,13 @@ class LightMatrix
         Displays a configured image using an array of length 25. The order is left to right
         top to bottom on a 5x5 grid
 
-        Attribute: Parameter Pixels An integer array of pixels to display, where each index
+        Attribute: Parameter pixels An integer array of pixels to display, where each index
         represents the intensity from 0 to 100 of the corresponding pixel
         Attribute: Example
 
         use Libraries.Robots.Spike.LightMatrix
         use Libraries.Containers.Array
-        Array pixels
+        Array<integer> pixels
         LightMatrix lights
         integer i = 0
         repeat 25 times
@@ -194,14 +194,14 @@ class LightMatrix
         Sets the orientation of the light matrix
 
         Attribute: Parameter orientation The direction to orient the light matrix
-        Attribute: Returns Orientation, a value from 0 to 3 (UP, RIGHT, DOWN, LEFT) which
+        Attribute: Returns Orientation, a value from 0 to 3 (ORIENTATION_UP, ORIENTATION_RIGHT, ORIENTATION_DOWN, ORIENTATION_LEFT) which
         can be accessed from the class constants
         Attribute: Example
 
         use Libraries.Robots.Spike.LightMatrix
         LightMatrix lights
-        lights:SetOrientation(lights:UP)
-    /*
+        lights:SetOrientation(lights:ORIENTATION_UP)
+    */
     action SetOrientation(integer orientation) returns integer
         return SetOrientationNative(orientation)
     end
@@ -211,7 +211,7 @@ class LightMatrix
     /*
         Gets the orientation of the light matrix
 
-        Attribute: Returns Orientation, a value from 0 to 3 (UP, RIGHT, DOWN, LEFT)
+        Attribute: Returns Orientation, a value from 0 to 3 (ORIENTATION_UP, ORIENTATION_RIGHT, ORIENTATION_DOWN, ORIENTATION_LEFT)
         Attribute: Example
 
         use Libraries.Robots.Spike.LightMatrix

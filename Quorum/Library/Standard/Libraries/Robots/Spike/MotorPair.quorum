@@ -150,10 +150,7 @@ class MotorPair
         wheels:SetPorts(port:A, port:B)
         wheels:RunForDegrees(0, 720)
     */
-    action RunForDegrees(integer steering, integer degrees)
-        RunForDegreesNative(steering, degrees)
-    end
-    private system action RunForDegreesNative(integer steering, integer degrees)
+    system action RunForDegrees(integer steering, integer degrees)
 
     /*
         Runs the motors for this motor pair a provided number of degrees with the provided values
@@ -182,10 +179,7 @@ class MotorPair
         wheels:SetPorts(port:A, port:B)
         wheels:RunForDegrees(0, 720, 360, motor:BRAKE, 5400, 5400)
     */
-    action RunForDegrees(integer steering, integer degrees, integer velocity, integer brakingMode, integer acceleration, integer deceleration)
-        RunForDegreesNative(steering, degrees, velocity, brakingMode, acceleration, deceleration)
-    end
-    private system action RunForDegreesNative(integer steering, integer degrees, integer velocity, integer brakingMode, integer acceleration, integer deceleration)
+    system action RunForDegrees(integer steering, integer degrees, integer velocity, integer brakingMode, integer acceleration, integer deceleration)
 
     /*
         Runs the motors for this motor pair with the provided steering value for the provided duration, in milliseconds
@@ -202,10 +196,7 @@ class MotorPair
         wheels:SetPorts(port:A, port:B)
         wheels:RunForTime(0, 2000)
     */
-    action RunForTime(integer steering, integer duration)
-        RunForTimeNative(steering, duration)
-    end
-    private system action RunForTimeNative(integer steering, integer duration)
+    system action RunForTime(integer steering, integer duration)
 
     /*
         Runs the motors for this motor pair for a given time, in milliseconds, with the provided values
@@ -234,10 +225,7 @@ class MotorPair
         wheels:SetPorts(port:A, port:B)
         wheels:RunForTime(0, 2000, 360, motor:BRAKE, 5400, 5400)
     */
-    action RunForTime(integer steering, integer duration, integer velocity, integer brakingMode, integer acceleration, integer deceleration)
-        RunForTimeNative(steering, duration, velocity, brakingMode, acceleration, deceleration)
-    end
-    private system action RunForTimeNative(integer steering, integer duration, integer velocity, integer brakingMode, integer acceleration, integer deceleration)
+    system action RunForTime(integer steering, integer duration, integer velocity, integer brakingMode, integer acceleration, integer deceleration)
 
     /*
         Runs the left and right motors with the provided velocities and acceleration
@@ -285,10 +273,7 @@ class MotorPair
         wheels:SetPorts(port:A, port:B)
         wheels:RunTankForDegrees(360, 360, 720)
     */
-    action RunTankForDegrees(integer leftVelocity, integer rightVelocity, integer degrees)
-        RunTankForDegreesNative(leftVelocity, rightVelocity, degrees)
-    end
-    private system action RunTankForDegreesNative(integer leftVelocity, integer rightVelocity, integer degrees)
+    system action RunTankForDegrees(integer leftVelocity, integer rightVelocity, integer degrees)
 
     /*
         Runs the left and right motors for the given degrees with the provided values
@@ -317,10 +302,7 @@ class MotorPair
         wheels:SetPorts(port:A, port:B)
         wheels:RunTankForDegrees(360, 360, 720, motor:BRAKE, 5400, 5400)
     */
-    action RunTankForDegrees(integer leftVelocity, integer rightVelocity, integer degrees, integer brakingMode, integer acceleration, integer deceleration)
-        RunTankForDegreesNative(leftVelocity, rightVelocity, degrees, brakingMode, acceleration, deceleration)
-    end
-    private system action RunTankForDegreesNative(integer leftVelocity, integer rightVelocity, integer degrees, integer brakingMode, integer acceleration, integer deceleration)
+    system action RunTankForDegrees(integer leftVelocity, integer rightVelocity, integer degrees, integer brakingMode, integer acceleration, integer deceleration)
 
     /*
         Runs the left and right motors for the given time, in milliseconds, with the provided velocities
@@ -342,10 +324,7 @@ class MotorPair
         wheels:SetPorts(port:A, port:B)
         wheels:RunTankForTime(360, 360, 2000)
     */
-    action RunTankForTime(integer leftVelocity, integer rightVelocity, integer duration)
-        RunTankForTimeNative(leftVelocity, rightVelocity, duration)
-    end
-    private system action RunTankForTimeNative(integer leftVelocity, integer rightVelocity, integer duration)
+    system action RunTankForTime(integer leftVelocity, integer rightVelocity, integer duration)
 
     /*
         Runs the left and right motors for the given time, in milliseconds, with the provided values
@@ -374,10 +353,7 @@ class MotorPair
         wheels:SetPorts(port:A, port:B)
         wheels:RunTankForTime(360, 360, 2000, motor:BRAKE, 5400, 5400)
     */
-    action RunTankForTime(integer leftVelocity, integer rightVelocity, integer duration, integer brakingMode, integer acceleration, integer deceleration)
-        RunTankForTimeNative(leftVelocity, rightVelocity, duration, brakingMode, acceleration, deceleration)
-    end
-    private system action RunTankForTimeNative(integer leftVelocity, integer rightVelocity, integer duration, integer brakingMode, integer acceleration, integer deceleration)
+    system action RunTankForTime(integer leftVelocity, integer rightVelocity, integer duration, integer brakingMode, integer acceleration, integer deceleration)
 
 
     /*

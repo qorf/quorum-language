@@ -22,9 +22,9 @@ class Sound
         Plays a sound from the hub utilizing frequency, duration, and the volume provided.
         Currently only capable of playing a sine wave with the provided parameters.
 
-        Attribute: Parameter frequency the frequency in hertz of the sound
-        Attribute: Parameter duration the duration in milliseconds of the sound
-        Attribute: Parameter volume the volume intensity of the sound from 0 to 100
+        Attribute: Parameter frequency The frequency in hertz of the sound
+        Attribute: Parameter duration The duration in milliseconds of the sound
+        Attribute: Parameter volume The volume intensity of the sound from 0 to 100
         Attribtue: Example
 
         use Libraries.Robots.Spike.Sound
@@ -32,6 +32,28 @@ class Sound
         noise:Beep(440, 500, 100)
     */
     system action Beep(integer frequency, integer duration, integer volume)
+
+    /*
+        Plays a sound from the hub utilizing frequency, duration, volume, attack, decay, 
+        sustain, release, transition, waveform, and channel arguments.
+
+        Attribute: Parameter frequency The frequency in hertz of the sound
+        Attribute: Parameter duration The duration in milliseconds of the sound
+        Attribute: Parameter volume The volume intensity of the sound from 0 to 100
+        Attribute: Parameter attack The time in milliseconds between the start of the sound to the peak
+        Attribute: Parameter decay The time in milliseconds between the peak volume to sustain volume
+        Attribute: Parameter sustain The volume intensity of the sustain of the sound between 0 and 100 until the sound is released
+        Attribute: Parameter release The time in milliseconds for the volume intensity to decay to 0 from release time
+        Attribute: Parameter transition The time in milliseconds for the sound to transition from the currently playing sound
+        Attribute: Parameter waveform The waveform to use to play the sound, using one of the constants defined in the Sound class
+        Attribute: Parameter channel The channel to play on, either DEFAULT or ANY from the constants defined in the Sound class
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Sound
+        Sound noise
+        noise:Beep(440, 500, 100, 120, 50, 50, 60, 10, noise:WAVEFORM_SQUARE, noise:DEFAULT)
+    */
+    system action Beep(integer frequency, integer duration, integer volume, integer attack, integer decay, integer sustain, integer release, integer transition, integer waveform, integer channel)
 
     /*
         Stops all sound coming from the hub
@@ -52,7 +74,7 @@ class Sound
     /*
         Sets the volume of the noise coming from the hub
 
-        Attribute: Parameter vol the volume intensity of the sound from 0 to 100
+        Attribute: Parameter vol The volume intensity of the sound from 0 to 100
         Attribute: Example
 
         use Libraries.Robots.Spike.Sound
