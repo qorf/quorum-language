@@ -1,19 +1,80 @@
 package Libraries.Robots.Spike
 
 /*
+    The AppSound library is used to play sounds in the SPIKE App.
 
+    use Libraries.Robots.Spike.AppSound
+    AppSound aSound
+    aSound:Play("Alert", 100, 2, -100)
 */
 class AppSound
 
+    /*
+        Plays a sound from the SPIKE App (found in Word Blocks sound extension in SPIKE App)
+
+        Attribute: Parameter textname Name of sound from SPIKE App
+        Attribtue: Example
+
+        use Libraries.Robots.Spike.AppSound
+        AppSound aSound
+        aSound:Play("Alert")
+    */
 system action Play(text soundName)
 
+
+    /*
+        Plays a sound from the SPIKE App (found in Word Blocks sound extension in SPIKE App) using
+        the provided volume, pitch, and pan arguments
+
+        Attribute: Parameter textname Name of sound from SPIKE App
+        Attribute: Parameter volume The volume intensity of the sound from 0 to 100
+        Attribute: Parameter pitch The pitch of the sound
+        Attribute: Parameter pan Value that determines which speaker is emitting the sound, with "-100" 
+        being only the left speaker, "0" being normal, and "100" being only the right speaker.
+        
+        Attribute: Example
+
+        use Libraries.Robots.Spike.AppSound
+        AppSound aSound
+        aSound:Play("Alert", 100, 2, -100)
+    */
 system action Play(text soundName, integer volume, integer pitch, integer pan)
 
+
+    /*
+        Sets the volume, pitch and pan attributes of the noise coming from the SPIKE App
+
+        Attribute: Parameter volume The volume intensity of the sound from 0 to 100
+        Attribute: Parameter pitch The pitch of the sound
+        Attribute: Parameter pan Value that determines which speaker is emitting the sound, with "-100" 
+        being only the left speaker, "0" being normal, and "100" being only the right speaker.
+
+        Attribute: Example
+
+        use Libraries.Robots.Spike.AppSound
+        use Libraries.Robots.Spike.Hub
+        AppSound aSound
+        Hub hb
+        aSound:Play("Campfire Music")
+        hb:Sleep(1000)
+        aSound:SetAttributes(100, 2, 100)
+    */
 action SetAttributes(integer volume, integer pitch, integer pan)
     SetAttributesNative(volume, pitch, pan)
 end
 
 private system action SetAttributesNative(integer volume, integer pitch, integer pan)
+
+    /*
+        Stops all sound coming from the App
+
+        Attribute: Example
+
+        use Libraries.Robots.Spike.AppSound
+        AppSound aSound
+        aSound:Play("Bird", 100, 2, -100)
+        aSound:Stop()
+    */
 
 action Stop()
     StopNative()
