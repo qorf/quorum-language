@@ -1,17 +1,54 @@
 package Libraries.Robots.Spike
 
 /*
+    The Linegraph library is used to graph and display linegraphs in the SPIKE App. 
+    The linegraph is graphed by plotting points using x and y coordinates, and different lines
+    are differntiated by color.
 
+    Attribute: Example
+    
+    use Libraries.Robots.Spike.Linegraph
+    Linegraph lg
+    Color color
+    lg:Plot(color:RED, 0, 0)
+    lg:Plot(color:RED, 2, 4)
+    lg:Show(true)
 */
 class Linegraph
 
+    /*
+        Clears the line for the corresponding color
 
+        Attribute: Parameter color The color constant whose line will be cleared (see Color)
+
+        Attribute: Example
+        use Libraries.Robots.Spike.Linegraph
+        Linegraph lg
+        Color color
+        lg:Plot(color:RED, 0, 0)
+        lg:Plot(color:RED, 2, 4)
+        lg:Clear(color:RED)
+    */
 action Clear(integer color)
     ClearNative(color)
 end
 
 private system action ClearNative(integer color)
 
+
+    /*
+        Clears all of the lines in the linegraph
+
+        Attribute: Example
+        use Libraries.Robots.Spike.Linegraph
+        Linegraph lg
+        Color color
+        lg:Plot(color:RED, 0, 0)
+        lg:Plot(color:RED, 2, 4)
+        lg:Plot(color:BLACK, 0, 0)
+        lg:Plot(color:BLACK, 2, 1)
+        lg:ClearAll()
+    */
 action ClearAll()
     ClearAllNative()
 end
@@ -19,14 +56,110 @@ end
 private system action ClearAllNative()
 
 
+    /*
+        Gets the average of the plotted values in the linegraph
+
+        Attribute: Returns The average of the plotted values in the linegraph
+        Attribute: Parameter color The color constant whose average will be calculated (see Color)
+
+        Attribute: Example
+        use Libraries.Robots.Spike.Linegraph
+        Linegraph lg
+        Color color
+        Hub hb
+        lg:Plot(color:RED, 0, 0)
+        lg:Plot(color:RED, 2, 4)
+        lg:Plot(color:RED, 4, 4)
+        lg:Plot(color:RED, 6, 5)
+        hb:Sleep(1000)
+        number averageValue = lg:GetAverage(color:RED)
+    */
+
 system action GetAverage(integer color) returns number
+
+
+    /*
+        Gets the last of the plotted values in the linegraph
+
+        Attribute: Returns The last of the plotted values in the linegraph
+        Attribute: Parameter color The color constant whose last value will be determined (see Color)
+
+        Attribute: Example
+        use Libraries.Robots.Spike.Linegraph
+        Linegraph lg
+        Color color
+        Hub hb
+        lg:Plot(color:RED, 0, -1)
+        lg:Plot(color:RED, 2, 4)
+        lg:Plot(color:RED, 4, 4)
+        lg:Plot(color:RED, 6, 5)
+        lg:Plot(color:RED, 8, 4)
+        hb:Sleep(1000)
+        number lastValue = lg:GetLast(color:RED)
+    */
 
 system action GetLast(integer color) returns number
 
+    /*
+        Gets the maximum of the plotted values in the linegraph
+
+        Attribute: Returns The maximum of the plotted values in the linegraph
+        Attribute: Parameter color The color constant whose maximum will be calculated (see Color)
+
+        Attribute: Example
+        use Libraries.Robots.Spike.Linegraph
+        Linegraph lg
+        Color color
+        Hub hb
+        lg:Plot(color:RED, 0, 0)
+        lg:Plot(color:RED, 2, 4)
+        lg:Plot(color:RED, 4, 4)
+        lg:Plot(color:RED, 6, 5)
+        lg:Plot(color:RED, 8, 4)
+        hb:Sleep(1000)
+        number maxValue = lg:GetMax(color:RED)
+    */
+
 system action GetMax(integer color) returns number
 
+    /*
+        Gets the minimum of the plotted values in the linegraph
 
+        Attribute: Returns The minimum of the plotted values in the linegraph
+        Attribute: Parameter color The color constant whose minimum will be calculated (see Color)
+
+        Attribute: Example
+        use Libraries.Robots.Spike.Linegraph
+        Linegraph lg
+        Color color
+        Hub hb
+        lg:Plot(color:RED, 0, -1)
+        lg:Plot(color:RED, 2, 4)
+        lg:Plot(color:RED, 4, 4)
+        lg:Plot(color:RED, 6, 5)
+        lg:Plot(color:RED, 8, 4)
+        hb:Sleep(1000)
+        number minValue = lg:GetMin(color:RED)
+    */
 system action GetMin(integer color) returns number
+
+    /*
+        Hides the currently displayed linegraph in the App.
+
+        Attribute: Example
+        use Libraries.Robots.Spike.Linegraph
+        use Libraries.Robots.Spike.Hub
+        Hub hb
+        Color color
+        Linegraph lg
+        Color color
+        lg:Plot(color:RED, 0, 0)
+        lg:Plot(color:RED, 2, 4)
+        lg:Plot(color:RED, 4, 4)
+        lg:Plot(color:RED, 6, 5)
+        hb:Sleep(1000)
+        lg:Hide()
+    */
 
 action Hide()
     HideNative()
@@ -34,11 +167,44 @@ end
 
 private system action HideNative()
 
+/*
+        Plots the x and y values with the provided color in the linegraph
+
+        Attribute: Parameter color The color constant that will used to plot the x and y coordinates (see Color)
+        Attribute: Parameter x The x coordinate of the new point tp be plotted
+        Attribute: Parameter y The y coordinate of the new point to be plotted
+
+        Attribute: Example
+        use Libraries.Robots.Spike.Linegraph
+        Linegraph lg
+        Color color
+        lg:Plot(color:RED, 0, 0)
+        lg:Plot(color:RED, 2, 4)
+    */
+
 action Plot(integer color, number x, number y)
     PlotNative(color, x, y)
 end
 
 private system action PlotNative(integer color, number x, number y)
+
+
+    /*
+        Shows the linegraph to the App display.
+
+        Attribute: Parameter fullscreen A boolean which will show the linegraph in fullscreen if true, and 
+        as a pop-up if not.
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Linegraph
+        Linegraph lg
+        Color color
+        lg:Plot(color:RED, 0, 0)
+        lg:Plot(color:RED, 2, 4)
+        lg:Plot(color:RED, 4, 4)
+        lg:Plot(color:RED, 6, 5)
+        lg:Show(true)
+    */
 
 action Show(boolean fullscreen)
     ShowNative(fullscreen)
