@@ -8,7 +8,10 @@ use Libraries.Containers.Array
 
     Attribute: Example
     use Libraries.Robots.Spike.DistanceSensor
+    use Libraries.Robots.Spike.Port
+    Port port
     DistanceSensor ds
+    ds:SetPort(port:A)
     integer currentDistance = ds:GetDistance
 */
 class DistanceSensor
@@ -19,7 +22,10 @@ class DistanceSensor
         Attribute: Example
 
         use Libraries.Robots.Spike.DistanceSensor
+        use Libraries.Robots.Spike.Port
+        Port port
         DistanceSensor ds
+        ds:SetPort(port:A)
         integer distanceSensorPort = ds:GetPort()
     */
     action GetPort returns integer
@@ -34,7 +40,10 @@ class DistanceSensor
         Attribute: Example
 
         use Libraries.Robots.Spike.DistanceSensor
+        use Libraries.Robots.Spike.Port
+        Port port
         DistanceSensor ds
+        ds:SetPort(port:A)
         ds:SetPort(0)
     */
     action SetPort(integer port)
@@ -52,7 +61,10 @@ class DistanceSensor
         Attribute: Example
 
         use Libraries.Robots.Spike.DistanceSensor
+        use Libraries.Robots.Spike.Port
+        Port port
         DistanceSensor ds
+        ds:SetPort(port:A)
         integer currentDistance = ds:GetDistance
     */
     action GetDistance returns integer
@@ -65,13 +77,16 @@ class DistanceSensor
         Retrieves the intensity of a specific pixel on the distance sensor's
         light display
 
-        Attribute: Parameter x the x coordinate from 0 to 3
-        Attribute: Parameter y the y coordinate from 0 to 3
+        Attribute: Parameter x the x coordinate from 0 to 1
+        Attribute: Parameter y the y coordinate from 0 to 1
         Attribute: Returns Intensity, a value between 0 and 100 for the requested pixel
         Attribute: Example
 
         use Libraries.Robots.Spike.DistanceSensor
+        use Libraries.Robots.Spike.Port
+        Port port
         DistanceSensor ds
+        ds:SetPort(port:A)
         integer firstPixel = ds:GetPixel(0, 0)
     */
     action GetPixel(integer x, integer y) returns integer
@@ -84,13 +99,16 @@ class DistanceSensor
         Sets the intensity of a specific pixel on the distance sensor's
         light display
 
-        Attribute: Parameter x the x coordinate from 0 to 3
-        Attribute: Parameter y the y coordinate from 0 to 3
-        Attribute: Parameter intensity, the intensity of the provided pixel from 0 to 100
+        Attribute: Parameter x The x coordinate from 0 to 1
+        Attribute: Parameter y The y coordinate from 0 to 1
+        Attribute: Parameter intensity The intensity of the provided pixel from 0 to 100
         Attribute: Example
 
         use Libraries.Robots.Spike.DistanceSensor
+        use Libraries.Robots.Spike.Port
+        Port port
         DistanceSensor ds
+        ds:SetPort(port:A)
         ds:SetPixel(0, 0, 100)
     */
     action SetPixel(integer x, integer y, integer intensity)
@@ -105,7 +123,10 @@ class DistanceSensor
         Attribute: Example
 
         use Libraries.Robots.Spike.DistanceSensor
+        use Libraries.Robots.Spike.Port
+        Port port
         DistanceSensor ds
+        ds:SetPort(port:A)
         ds:ClearLights()
     */
     action ClearLights
@@ -117,11 +138,14 @@ class DistanceSensor
     /*
         Sets all lights on the display to the provided intensity
 
-        Attribute: Parameter intensity, the intensity of the lights from 0 to 100
+        Attribute: Parameter intensity The intensity of the lights from 0 to 100
         Attribute: Example
 
         use Libraries.Robots.Spike.DistanceSensor
+        use Libraries.Robots.Spike.Port
+        Port port
         DistanceSensor ds
+        ds:SetPort(port:A)
         ds:SetAllLights(50)
     */
     action SetAllLights(integer intensity)
@@ -134,14 +158,17 @@ class DistanceSensor
         Sets the light intensity of the display pixel by pixel based on the values
         in a length 4 array of integers from 0 to 100
 
-        Attribute: Parameter pixels, a length 4 array containing intensity values for each
-        pixel
+        Attribute: Parameter pixels An Array<integer> of length 4 containing intensity 
+        values for each pixel
         Attribute: Example
 
         use Libraries.Robots.Spike.DistanceSensor
         use Libraries.Containers.Array
+        use Libraries.Robots.Spike.Port
+        Port port
         DistanceSensor ds
-        Array pixels
+        ds:SetPort(port:A)
+        Array<integer> pixels
         pixels:Add(0)
         pixels:Add(25)
         pixels:Add(50)

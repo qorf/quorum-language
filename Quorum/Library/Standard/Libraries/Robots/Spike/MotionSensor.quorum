@@ -1,0 +1,249 @@
+package Libraries.Robots.Spike
+use Libraries.Containers.Array
+
+/*
+    The motion sensor is a function of the SPIKE Hub which allows for the detection of movements, 
+    orientaion, and environmental interactions.
+
+    Attribute: Example
+    use Libraries.Robots.Spike.MotionSensor
+    MotionSensor ms
+    integer taps = ms:GetTapCount()
+*/
+class MotionSensor
+
+    public constant integer TAPPED = 0
+    public constant integer DOUBLE_TAPPED = 1
+    public constant integer SHAKEN = 2
+    public constant integer FALLING = 3
+    public constant integer UNKOWN = -1
+
+    public constant integer TOP = 0     // The face with the Light Matrix
+    public constant integer FRONT = 1   // The side of the hub where the speaker is
+    public constant integer RIGHT = 2   // The right side of the hub when facing the front face
+    public constant integer BOTTOM = 3  // The side of the hub where the battery is
+    public constant integer BACK = 4    // The face with the USB charging port
+    public constant integer LEFT = 5    // The left side of the hub when facing the front face
+
+    /*
+        Returns the acceleration in all 3 directions in units of mili G (1/1000 G)
+
+        Attribute: Parameter raw_data A boolean value which determines if the function will return 
+        the acceleration as raw unfiltered data (true) or not (false)
+        Attribute: Returns An Array<integer> of length three, containing information for the 
+        x (index 0), y (index 1), and z (index 2) accelerations
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotionSensor
+        use Libraries.Containers.Array
+        MotionSensor ms
+        Array<integer> acceleration
+        acceleration = ms:GetAcceleration(false)
+    */
+    action GetAcceleration(boolean raw_data) returns Array<integer>
+        return GetAccelerationNative(raw_data)
+    end
+
+    private system action GetAccelerationNative(boolean raw_data) returns Array<integer>
+
+    /*
+        Returns the angular velocity in all 3 directions in units of decidegrees per second
+
+        Attribute: Parameter raw_data A boolean value which determines if the function will return 
+        the angular velocity as raw unfiltered data (true) or not (false)
+        Attribute: Returns An Array<integer> of length three, containing information for the 
+        x (index 0), y (index 1), and z (index 2) angular velocity
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotionSensor
+        use Libraries.Containers.Array
+        MotionSensor ms
+        Array<integer> angular_velocity
+        angular_velocity = ms:GetAngularVelocity(false)
+    */
+    action GetAngularVelocity(boolean raw_data) returns Array<integer>
+        return GetAngularVelocityNative(raw_data)
+    end
+
+    private system action GetAngularVelocityNative(boolean raw_data) returns Array<integer>
+
+    /*
+        Retrieves the recognized gesture from 1 of 5 possible values listed as constants in the 
+        MotionSensor class (TAPPED, DOUBLE_TAPPED, SHAKEN, FALLING, UNKNOWN)
+
+        Attribute: Returns The recognized gesture from 1 of 5 possible values listed as constants in the 
+        MotionSensor class (TAPPED, DOUBLE_TAPPED, SHAKEN, FALLING, UNKNOWN)
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotionSensor
+        MotionSensor ms
+        integer gesture = ms:GetGesture()
+    */
+    action GetGesture() returns integer
+        return GetGestureNative()
+    end
+
+    private system action GetGestureNative() returns integer
+
+    /*
+        Retrieves the face of the hub that yaw is relative to from 1 of 6 possible faces listed 
+        as constants in the MotionSensor class (TOP, FRONT, RIGHT, BOTTOM, BACK, LEFT)
+
+        Attribute: Returns The recognized yaw_face from 1 of  possible faces listed as constants in the 
+        MotionSensor class (TOP, FRONT, RIGHT, BOTTOM, BACK, LEFT)
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotionSensor
+        MotionSensor ms
+        integer yaw_face = ms:GetYawFace()
+    */
+    action GetYawFace() returns integer
+        return GetYawFaceNative()
+    end
+    
+    private system action GetYawFaceNative() returns integer
+
+    /*
+        Used to get the hub's orientation quaternion
+
+        Attribute: Returns An Array<number> of length 4 containing the hub orientation quaternion with 
+        w at index 0, x at index 1, y at index 2, and z at index 3
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotionSensor
+        use Libraries.Containers.Array
+        MotionSensor ms
+        Array<number> quaternion
+        quaternion = ms:GetQuaternion()
+    */
+    action GetQuaternion() returns Array<number>
+        return GetQuaternionNative()
+    end
+
+    private system action GetQuaternionNative() returns Array<number>
+
+    /*
+        Resets the Hub's tap counter to 0
+
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotionSensor
+        MotionSensor ms
+        ms:ResetTapCount()
+    */
+    action ResetTapCount()
+        ResetTapCountNative()
+    end
+
+    private system action ResetTapCountNative()
+
+    /*
+        Changes the Hub's yaw angle offset to the angle specified.
+
+        Attribute: Parameter angle The angle to set as the Hub's yaw offset
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotionSensor
+        MotionSensor ms
+        ms:ChangeYawOffset(30)
+    */
+    action ChangeYawOffset(integer angle)
+        ChangeYawOffsetNative(angle)
+    end
+
+    private system action ChangeYawOffsetNative(integer angle)
+
+    /*
+        Sets the face of the hub that yaw is relative to from 1 of 6 possible faces listed 
+        as constants in the MotionSensor class (TOP, FRONT, RIGHT, BOTTOM, BACK, LEFT)
+
+        Attribute: Parameter upface The desired yaw face from 1 of  possible faces listed as constants in the 
+        MotionSensor class (TOP, FRONT, RIGHT, BOTTOM, BACK, LEFT)
+        Attribute: Returns A boolean
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotionSensor
+        MotionSensor ms
+        integer yaw_face = ms:SetYawFace(ms:FRONT)
+    */
+    action SetYawFace(integer upface) returns boolean
+        return SetYawFaceNative(upface)
+    end
+
+    private system action SetYawFaceNative(integer upface) returns boolean
+
+    /*
+        Checks if the hub is in stable, returns true if it is, false if it's not.
+
+        Attribute: Returns A boolean value that returns true if the hub is stable, and 
+        false if it isn't.
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotionSensor
+        MotionSensor ms
+        if ms:IsHubStable()
+            // The Hub is stable!
+        else
+            // The Hub isn't stable
+        end
+    */
+    action IsHubStable() returns boolean
+        return IsHubStableNative()
+    end
+
+    private system action IsHubStableNative() returns boolean
+
+    /*
+        Retrieves the amount of taps recognized since the last time ResetTapCount() 
+        was called.
+
+        Attribute: Returns An integer stating the amount of taps detected since the count 
+        was last reset.
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotionSensor
+        MotionSensor ms
+        integer taps = ms:GetTapCount()
+    */
+    action GetTapCount() returns integer
+        return GetTapCountNative()
+    end
+
+    private system action GetTapCountNative() returns integer
+
+    /*
+        Retrieves the angle in all 3 axes of the current orientation of the SPIKE Hub.
+
+        Attribute: Returns An Array<integer> of length 3 containing the yaw (index 0), 
+        pitch (index 1), and roll (index 2) of the hub.
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotionSensor
+        Array<integer> angles
+        MotionSensor ms
+        angles = ms:GetTiltAngles()
+    */
+    action GetTiltAngles() returns Array<integer>
+        return GetTiltAnglesNative()
+    end
+
+    private system action GetTiltAnglesNative() returns Array<integer>
+
+    /*
+        Returns the hub face that is currently facing up.
+
+        Attribute: Returns An integer for the Hub face which is currently facing up, which 
+        corresponds to one of the constants in the MotionSensor class (TOP, FRONT, RIGHT, BOTTOM, BACK, LEFT)
+        Attribute: Example
+
+        use Libraries.Robots.Spike.MotionSensor
+        MotionSensor ms
+        integer up_face = ms:GetCurrentUpFace()
+    */
+    action GetCurrentUpFace() returns integer
+        return GetCurrentUpFaceNative()
+    end
+
+    private system action GetCurrentUpFaceNative() returns integer
+
+end
