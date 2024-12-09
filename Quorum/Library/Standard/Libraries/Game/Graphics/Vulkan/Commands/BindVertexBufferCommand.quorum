@@ -2,18 +2,12 @@ package Libraries.Game.Graphics.Vulkan.Commands
 
 use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
 use Libraries.Game.Graphics.Vulkan.VulkanBuffer
-use Libraries.Game.Graphics.Vulkan.VulkanConstants
 
-class BindIndexBufferCommand is VulkanCommand
+class BindVertexBufferCommand is VulkanCommand
 
     VulkanBuffer buffer = undefined
+    integer firstBinding = 0
     integer offset = 0
-    integer indexType = 0
-
-    on create
-        VulkanConstants constants
-        indexType = constants:INDEX_TYPE_UINT32
-    end
 
     /*
     This action records this command into the provided command buffer.
@@ -30,20 +24,20 @@ class BindIndexBufferCommand is VulkanCommand
         me:buffer = buffer
     end
 
+    action GetFirstBinding returns integer
+        return firstBinding
+    end
+
+    action SetFirstBinding(integer firstBinding)
+        me:firstBinding = firstBinding
+    end
+
     action GetOffset returns integer
         return offset
     end
 
     action SetOffset(integer offset)
         me:offset = offset
-    end
-
-    action GetIndexType returns integer
-        return indexType
-    end
-
-    action SetIndexType(integer indexType)
-        me:indexType = indexType
     end
 
 end

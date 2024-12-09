@@ -1,0 +1,55 @@
+package Libraries.Game.Graphics.Vulkan.Commands
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+use Libraries.Game.Graphics.Vulkan.VulkanBuffer
+
+class CopyBufferCommand is VulkanCommand
+
+    VulkanBuffer sourceBuffer = undefined
+    VulkanBuffer destinationBuffer = undefined
+    integer sourceOffset = 0
+    integer destinationOffset = 0
+    integer size = 0
+
+    system action Record(VulkanCommandBuffer buffer)
+
+    action GetSourceOffset returns integer
+        return sourceOffset
+    end
+
+    action SetSourceOffset(integer sourceOffset)
+        me:sourceOffset = sourceOffset
+    end
+
+    action GetDestinationOffset returns integer
+        return destinationOffset
+    end
+
+    action SetDestinationOffset(integer destinationOffset)
+        me:destinationOffset = destinationOffset
+    end
+
+    action GetSize returns integer
+        return size
+    end
+
+    action SetSize(integer size)
+        me:size = size
+    end
+
+    action GetSourceBuffer returns VulkanBuffer
+        return sourceBuffer
+    end
+
+    action SetSourceBuffer(VulkanBuffer sourceBuffer)
+        me:sourceBuffer = sourceBuffer
+    end
+
+    action GetDestinationBuffer returns VulkanBuffer
+        return destinationBuffer
+    end
+
+    action SetDestinationBuffer(VulkanBuffer destinationBuffer)
+        me:destinationBuffer = destinationBuffer
+    end
+
+end

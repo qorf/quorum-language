@@ -21,20 +21,26 @@ public class PipelineBarrierCommand
         PipelineBarrierCommand_ quorumCommand = (PipelineBarrierCommand_)me_;
         VulkanMemoryBarrier_ quorumBarrier = quorumCommand.GetMemoryBarrier();
 
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            VkMemoryBarrier2KHR.Buffer memoryBarrier = VkMemoryBarrier2KHR.calloc(1, stack);
+//        try (MemoryStack stack = MemoryStack.stackPush())
+//        {
+//            VkMemoryBarrier2KHR.Buffer memoryBarrier = VkMemoryBarrier2KHR.calloc(1, stack);
+        VkMemoryBarrier2KHR.Buffer memoryBarrier = VkMemoryBarrier2KHR.calloc(1);
             memoryBarrier.sType$Default();
             memoryBarrier.srcStageMask(quorumBarrier.GetSourceStageMask());
             memoryBarrier.srcAccessMask(quorumBarrier.GetSourceAccessMask());
             memoryBarrier.dstStageMask(quorumBarrier.GetDestinationStageMask());
             memoryBarrier.dstAccessMask(quorumBarrier.GetDestinationAccessMask());
 
-            VkDependencyInfoKHR dependencyInfo = VkDependencyInfoKHR.calloc(stack);
+//            VkDependencyInfoKHR dependencyInfo = VkDependencyInfoKHR.calloc(stack);
+        VkDependencyInfoKHR dependencyInfo = VkDependencyInfoKHR.calloc();
             dependencyInfo.sType$Default();
             dependencyInfo.pMemoryBarriers(memoryBarrier);
 
+            System.out.println("BARRIER COMMAND: Barrier info: " + memoryBarrier.srcStageMask() + ", " + memoryBarrier.srcAccessMask() + ", " + memoryBarrier.dstStageMask() + ", " + memoryBarrier.dstAccessMask());
+            System.out.println("BARRIER COMMAND: Plugin? " + (pluginBuffer != null));
+            System.out.println("BARRIER COMMAND: Plugin command buffer? " + (pluginBuffer.GetCommandBuffer() != null));
+
             vkCmdPipelineBarrier2KHR(pluginBuffer.GetCommandBuffer(), dependencyInfo);
-        }
+//        }
     }
 }

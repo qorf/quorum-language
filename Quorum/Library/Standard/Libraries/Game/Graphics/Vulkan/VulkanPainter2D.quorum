@@ -17,35 +17,37 @@ use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderManager
 use Libraries.Containers.Number32BitArray
 use Libraries.Containers.Integer32BitArray
+use Libraries.Containers.HashTable
+use Libraries.Game.Graphics.DrawableShape
 
 class VulkanPainter2D is Painter2D
 
     GameStateManager gameState
     VulkanRenderPass renderPass = undefined
-
     VulkanPipeline defaultPipeline = undefined
-    VulkanPipeline boundPipeline = undefined
 
-    // The default index buffer size is enough for 
-    public constant integer INDEX_BUFFER_SIZE = 2000 * 6
+    /*
+    A hash table storing the batch(es) associated with a particular pipeline.
+    Each pipeline uses its own buffers for vertices and indices. Each array will
+    likely only have one element, but it's possible that there will be multiple
+    if more elements need to be rendered with one pipeline than can fit in a single batch.
+    */
+    HashTable<VulkanPipeline, Array<VulkanPainter2DBatch>> batches
 
-    // Arrays containing pending vertex and index data. To be copied into the staging buffers before drawing.
-    Number32BitArray vertexData
-    Integer32BitArray indexData
+    // The current batch being used.
+    VulkanPainter2DBatch currentBatch = undefined
+    // The first index from the IndexData to be drawn for the currentBatch. Used when recording upcoming draw commands.
+    integer currentStartIndex = 0
 
-    // Staging buffers. These are accessible from the host (i.e., directly from this code) and will be copied into GPU-exclusive memory.
-    VulkanBuffer vertexStagingBuffer
-    VulkanBuffer indexStagingBuffer
+    // The maximum number of frames to allow a batch to remain without being used before it should be disposed to free up memory.
+    integer maximumAge = 180
 
-    // Output buffers, only accessible to GPU memory. These hold the final information to be rendered.
-    VulkanBuffer vertexOutputBuffer
-    VulkanBuffer indexOutputBuffer
-
-    // The current range of indices containing vertex/index information to be drawn.
-    integer verticesStartIndex = 0
-    integer verticesEndIndex = 0
-    integer indexStartIndex = 0
-    integer indexEndIndex = 0
+    // Draw commands that will be queued into a buffer.
+    // These are stored to be used later because buffer transfer commands need to be processed before these, but we won't know
+    // how much data needs to be transferred until we're done looking at all the data. 
+    Array<DrawIndexedCommand> pendingDrawCommands
+    // A parallel array of batches. The n-th draw command uses the vertex and index buffers from the n-th pending batch.
+    Array<VulkanPainter2DBatch> pendingBatches
 
     on create
         LoadDefaultPainter()
@@ -210,6 +212,68 @@ class VulkanPainter2D is Painter2D
         return defaultPipeline
     end
 
+    private action GetBatch(VulkanPipeline pipeline) returns VulkanPainter2DBatch
+        if batches:HasKey(pipeline)
+            // Try to find an existing batch that's available. This will be the most common case.
+            Array<VulkanPainter2DBatch> array = batches:GetValue(pipeline)
+            integer i = 0
+            repeat while i < array:GetSize()
+                VulkanPainter2DBatch batch = array:Get(i)
+                if not batch:IsFull()
+                    return batch
+                end
+
+                i = i + 1
+            end
+
+            // If there wasn't an available batch, make a new one and add it to the array.
+            VulkanPainter2DBatch batch = NewBatch(pipeline)
+            array:Add(batch)
+            return batch
+        else
+            // This is our first time using this pipeline. Make an array and a batch for it.
+            Array<VulkanPainter2DBatch> array
+            VulkanPainter2DBatch batch = NewBatch(pipeline)
+            array:Add(batch)
+            batches:Add(pipeline, array)
+            return batch
+        end
+    end
+
+    private action NewBatch(VulkanPipeline pipeline) returns VulkanPainter2DBatch
+        VulkanPainter2DBatch batch
+        batch:Create(pipeline)
+        return batch
+    end
+
+    private action EndBatches(VulkanCommandBuffer commandBuffer)
+        Iterator<Array<VulkanPainter2DBatch>> arrays = batches:GetValueIterator()
+        repeat while arrays:HasNext()
+            Array<VulkanPainter2DBatch> array
+            integer i = array:GetSize()
+            repeat while i > 0
+                i = i - 1
+
+                VulkanPainter2DBatch batch = array:Get(i)
+                // If the age is 0, it has been used this frame. Allow it to record any transfer commands it needs.
+                if batch:GetAge() = 0
+                    batch:TransferBuffers(commandBuffer)
+                end
+                
+                // If the batch hasn't been used, and it isn't the default one, dispose of it to free up memory.
+                if batch:GetAge() > maximumAge and (batch:GetPipeline() not= defaultPipeline or i not= 0)
+                    batch:Dispose()
+                    array:Remove(batch)
+                    if array:IsEmpty()
+                        batches:RemoveValue(array)
+                    end
+                else
+                    batch:PrepareForNextFrame()
+                end
+            end
+        end
+    end
+
     action SetCamera(Camera camera)
 //        output "NYI: VulkanPainter2D SetCamera"
 //        alert("NYI")
@@ -234,15 +298,73 @@ class VulkanPainter2D is Painter2D
             RegenerateRenderPass(isFirstLayer)
         end
 
-        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
-        VulkanConstants constants
+//        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+//        VulkanConstants constants
+//
+//        VulkanCommandBuffer commandBuffer = graphics:GetCurrentRenderCommandBuffer()
+//        VulkanFramebuffer framebuffer = graphics:GetCurrentFramebuffer()
+//        VulkanSwapchain swapchain = graphics:GetSwapchain()
+//        VulkanClearValue clearValue = graphics:GetClearValue()
+//        
+//
+//
+//        // Create the command to begin the render pass.
+//        BeginRenderPassCommand beginRenderPass
+//        beginRenderPass:SetRenderPass(renderPass)
+//        beginRenderPass:SetClearValue(clearValue)
+//        beginRenderPass:SetFramebuffer(framebuffer)
+//        beginRenderPass:SetRenderArea(swapchain:GetImageWidth(), swapchain:GetImageHeight())
+//        commandBuffer:Record(beginRenderPass)
+//
+////        // NEXT STEP: Bind pipeline command
+//////        BindPipelineCommand bindPipeline
+//////        bindPipeline:SetPipeline(pipeline)
+//
+//        // TO-DO: CHANGE THIS DYNAMICALLY FOR RENDERED CONTENT
+//        // Set viewport command
+//        // Setting the position to the height and the height to the negated height flips the Y axis of our viewport.
+//        SetViewportCommand setViewport
+//        setViewport:SetPosition(0, swapchain:GetImageHeight())
+//        setViewport:SetSize(swapchain:GetImageWidth(), -swapchain:GetImageHeight())
+//        commandBuffer:Record(setViewport)
+//
+//        // TO-DO: CHANGE THIS DYNAMICALLY FOR RENDERED CONTENT
+//        // Set scissor command
+//        SetScissorCommand setScissor
+//        setScissor:SetPosition(0, 0)
+//        setScissor:SetSize(swapchain:GetImageWidth(), swapchain:GetImageHeight())
+//        commandBuffer:Record(setScissor)
+    end
+    
+    action End
+        Flush()
 
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
         VulkanCommandBuffer commandBuffer = graphics:GetCurrentRenderCommandBuffer()
         VulkanFramebuffer framebuffer = graphics:GetCurrentFramebuffer()
         VulkanSwapchain swapchain = graphics:GetSwapchain()
         VulkanClearValue clearValue = graphics:GetClearValue()
+        VulkanConstants constants
         
+        /*
+        End the batches. This will reset information from the last pass, dispose of any batches that 
+        haven't been used in a long time, and record transfer commands from staging buffers to output buffers.
+        */
+        EndBatches(commandBuffer)
 
+        // After ending the batches, we need to wait for data transfers to complete before any drawing can occur.
+        // Create a memory barrier that ensures that all commands after this must wait for the transfer stage of
+        // the pipeline to complete before operations in the vertex input stage can begin.
+        VulkanMemoryBarrier memoryBarrier
+        memoryBarrier:SetSourceStageMask(constants:PIPELINE_STAGE_TRANSFER_BIT)
+        memoryBarrier:SetSourceAccessMask(constants:ACCESS_MEMORY_WRITE_BIT)
+        memoryBarrier:SetDestinationStageMask(constants:PIPELINE_STAGE_VERTEX_INPUT_BIT)
+        memoryBarrier:SetDestinationAccessMask(constants:ACCESS_MEMORY_READ_BIT)
+
+        PipelineBarrierCommand barrierCommand
+        barrierCommand:SetMemoryBarrier(memoryBarrier)
+        commandBuffer:Record(barrierCommand)
+        
 
         // Create the command to begin the render pass.
         BeginRenderPassCommand beginRenderPass
@@ -270,15 +392,40 @@ class VulkanPainter2D is Painter2D
         setScissor:SetPosition(0, 0)
         setScissor:SetSize(swapchain:GetImageWidth(), swapchain:GetImageHeight())
         commandBuffer:Record(setScissor)
-    end
-    
-    action End
-        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
-        VulkanCommandBuffer commandBuffer = graphics:GetCurrentRenderCommandBuffer()
+
+        // Set the pipelines and send the corresponding draw calls.
+        integer i = 0
+        repeat while i < pendingBatches:GetSize()
+            VulkanPainter2DBatch batch = pendingBatches:Get(i)
+            DrawIndexedCommand drawCommand = pendingDrawCommands:Get(i)
+
+            BindPipelineCommand bindPipeline
+            bindPipeline:SetPipeline(batch:GetPipeline())
+            commandBuffer:Record(bindPipeline)
+
+            BindVertexBufferCommand vertexBind
+            vertexBind:SetBuffer(batch:GetVertexOutputBuffer())
+            commandBuffer:Record(vertexBind)
+
+            BindIndexBufferCommand indexBind
+            indexBind:SetBuffer(batch:GetIndexOutputBuffer())
+            commandBuffer:Record(indexBind)
+
+            commandBuffer:Record(drawCommand)
+
+            i = i + 1
+        end
 
         // End the render pass.
         EndRenderPassCommand endRenderPass
         commandBuffer:Record(endRenderPass)
+
+        // Set the current batch to undefined, to ensure we're starting with a clean slate again next time.
+        currentBatch = undefined
+
+        // Empty the pending arrays.
+        pendingDrawCommands:Empty(false)
+        pendingBatches:Empty(false)
     end
     
     action SetClipping(boolean clippingEnabled)
@@ -297,17 +444,44 @@ class VulkanPainter2D is Painter2D
     end
     
     action QueueForDrawing(Item2D item)
-        /*
-        NEXT STEPS:
-        Queued items are checked for which Pipeline to use (currently, always default)
-        If different than previous, flush, bind pipeline
-        Add vertex/index values to end of buffers
-        In "End" call, flush, unbind pipeline
-        Flush: Draw commands
-        */
+        if not (item is Drawable)
+            return now
+        end
 
-//        output "NYI: VulkanPainter2D QueueForDrawing"
-//        alert("NYI")
+        Drawable drawable = cast(Drawable, item)
+        DrawableShape shape = drawable:GetDrawableShape()
+
+        if not shape:IsRenderable()
+            return now
+        end
+
+        // TO-DO: Check if the Item has a specific pipeline it needs for rendering.
+        VulkanPipeline requestedPipeline = undefined
+
+        if requestedPipeline = undefined
+            requestedPipeline = defaultPipeline
+        end
+
+        if currentBatch = undefined or currentBatch:GetPipeline() not= requestedPipeline
+            Flush()
+            currentBatch = GetBatch(requestedPipeline)
+            currentBatch:ResetAge()
+            currentStartIndex = currentBatch:GetIndexWritePosition()
+        end
+
+        currentBatch:Add(drawable:GetDrawableShape())
+    end
+
+    private action Flush
+        if currentBatch = undefined
+            return now
+        end
+
+        DrawIndexedCommand drawCommand
+        drawCommand:SetFirstIndex(currentStartIndex)
+        drawCommand:SetIndexCount(currentBatch:GetIndexWritePosition() - currentStartIndex)
+        pendingDrawCommands:Add(drawCommand)
+        pendingBatches:Add(currentBatch)
     end
     
     action Draw(Drawable drawable)

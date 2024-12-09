@@ -4,11 +4,57 @@ use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
 
 class DrawIndexedCommand is VulkanCommand
 
+    integer indexCount = 0
+    integer firstIndex = 0
+    integer vertexOffset = 0
+    integer instanceCount = 1
+    integer firstInstance = 0
+
     /*
     This action records this command into the provided command buffer.
     The command buffer must already be open for recording using the
     buffer's "BeginRecording" action.
     */
     system action Record(VulkanCommandBuffer buffer)
+
+    action GetIndexCount returns integer
+        return indexCount
+    end
+
+    action SetIndexCount(integer indexCount)
+        me:indexCount = indexCount
+    end
+
+    action GetFirstIndex returns integer
+        return firstIndex
+    end
+
+    action SetFirstIndex(integer firstIndex)
+        me:firstIndex = firstIndex
+    end
+
+    action GetVertexOffset returns integer
+        return vertexOffset
+    end
+
+    action SetVertexOffset(integer vertexOffset)
+        me:vertexOffset = vertexOffset
+    end
+
+    action GetInstanceCount returns integer
+        return instanceCount
+    end
+
+    action SetInstanceCount(integer instanceCount)
+        me:instanceCount = instanceCount
+    end
+
+    action GetFirstInstance returns integer
+        return firstInstance
+    end
+
+    action SetFirstInstance(integer firstInstance)
+        me:firstInstance = firstInstance
+    end
 
 end

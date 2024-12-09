@@ -30,4 +30,16 @@ class VulkanPipeline
         alert("NYI")
     end
 
+    action GetDevice returns VulkanDevice
+        return device
+    end
+
+    action GetRenderPass returns VulkanRenderPass
+        return renderPass
+    end
+
+    action GetCache returns VulkanPipelineCache
+        return cache
+    end
+
 end

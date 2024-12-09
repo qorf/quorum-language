@@ -3,13 +3,14 @@ use Libraries.Containers.Number32BitArray
 use Libraries.Containers.Integer32BitArray
 use Libraries.Game.Graphics.Integer32BitBuffer
 use Libraries.Game.Graphics.DrawableShape
+use Libraries.Game.Graphics.Vulkan.Commands.CopyBufferCommand
 
 /*
 This class encapsulates a series of buffers and arrays used to batch a large number of drawn elements all at once.
 This class is used by the VulkanPainter2D to organize resources used by different pipelines, or to handle overflow
 elements if there are too many to be stored in a single buffer.
 */
-class VulkanPainterResources2D
+class VulkanPainter2DBatch
 
     public constant integer DEFAULT_VERTEX_BUFFER_SIZE = 120000
     public constant integer DEFAULT_INDEX_BUFFER_SIZE = 30000
@@ -46,11 +47,20 @@ class VulkanPainterResources2D
 
     boolean isFull = false
 
-    action Create(VulkanDevice device)
-        Create(device, DEFAULT_VERTEX_BUFFER_SIZE, DEFAULT_INDEX_BUFFER_SIZE)
+    // The VulkanPipeline associated with this batch.
+    VulkanPipeline pipeline = undefined
+
+    // How many frames have passed without using this batch. Can be used to determine if a batch hasn't been used in a long time and can be disposed.
+    integer age = 0
+
+    action Create(VulkanPipeline pipeline)
+        Create(pipeline, DEFAULT_VERTEX_BUFFER_SIZE, DEFAULT_INDEX_BUFFER_SIZE)
     end
 
-    action Create(VulkanDevice device, integer vertexBufferSize, integer indexBufferSize)
+    action Create(VulkanPipeline pipeline, integer vertexBufferSize, integer indexBufferSize)
+        me:pipeline = pipeline
+        VulkanDevice device = pipeline:GetDevice()
+
         Number32BitArray vertexData
         Integer32BitArray indexData
         VulkanBuffer vertexStagingBuffer
@@ -83,6 +93,16 @@ class VulkanPainterResources2D
         indexWritePosition = 0
         verticesCount = 0
         isFull = false
+
+        age = age + 1
+    end
+
+    action ResetAge
+        age = 0
+    end
+
+    action GetAge returns integer
+        return age
     end
 
     action IsFull returns boolean
@@ -141,6 +161,24 @@ class VulkanPainterResources2D
         return true
     end
 
+    action TransferBuffers(VulkanCommandBuffer buffer)
+        vertexMappedMemory:Set(0, vertexData, 0, vertexWritePosition)
+        indexMappedMemory:Set(0, indexData, 0, indexWritePosition)
+        
+        CopyBufferCommand vertexCopyCommand
+        vertexCopyCommand:SetSourceBuffer(vertexStagingBuffer)
+        vertexCopyCommand:SetDestinationBuffer(vertexOutputBuffer)
+        vertexCopyCommand:SetSize(vertexWritePosition)        
+
+        CopyBufferCommand indexCopyCommand
+        indexCopyCommand:SetSourceBuffer(indexStagingBuffer)
+        indexCopyCommand:SetDestinationBuffer(indexOutputBuffer)
+        indexCopyCommand:SetSize(indexWritePosition)
+
+        buffer:Record(vertexCopyCommand)
+        buffer:Record(indexCopyCommand)
+    end
+
     action CanFit(integer newVertices, integer newIndices) returns boolean
         if newVertices + vertexWritePosition > GetVertexBufferSize() or newIndices + indexWritePosition > GetIndexBufferSize()
             isFull = true
@@ -149,5 +187,29 @@ class VulkanPainterResources2D
 
         return true
     end
+
+    action Dispose
+        alert("NYI")
+    end
     
+    action GetPipeline returns VulkanPipeline
+        return pipeline
+    end
+
+    action GetVertexWritePosition returns integer
+        return vertexWritePosition
+    end
+
+    action GetIndexWritePosition returns integer
+        return indexWritePosition
+    end
+
+    action GetVertexOutputBuffer returns VulkanBuffer
+        return vertexOutputBuffer
+    end
+
+    action GetIndexOutputBuffer returns VulkanBuffer
+        return indexOutputBuffer
+    end
+
 end

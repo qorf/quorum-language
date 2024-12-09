@@ -160,14 +160,46 @@ shared class VulkanConstants
     public constant integer SUBPASS_EXTERNAL = -1
 
     /*
-    Bitmask constants for pipeline stages. Used in subpass dependencies to indicate what stages work begins and finishes in.
+    Bitmask constants for pipeline stages. Used in subpass dependencies and barriers to indicate what stages work begins and finishes in.
     */
+    public constant integer PIPELINE_STAGE_TOP_OF_PIPE_BIT = 1
+    public constant integer PIPELINE_STAGE_DRAW_INDIRECT_BIT = 2
+    public constant integer PIPELINE_STAGE_VERTEX_INPUT_BIT = 4
+    public constant integer PIPELINE_STAGE_VERTEX_SHADER_BIT = 8
+    public constant integer PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT = 16
+    public constant integer PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT = 32
+    public constant integer PIPELINE_STAGE_GEOMETRY_SHADER_BIT = 64
+    public constant integer PIPELINE_STAGE_FRAGMENT_SHADER_BIT = 128
+    public constant integer PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT = 245
+    public constant integer PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT = 512
     public constant integer PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT = 1024
+    public constant integer PIPELINE_STAGE_COMPUTE_SHADER_BIT = 2048
+    public constant integer PIPELINE_STAGE_TRANSFER_BIT = 4096
+    public constant integer PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT = 8192
+    public constant integer PIPELINE_STAGE_HOST_BIT = 16384
+    public constant integer PIPELINE_STAGE_ALL_GRAPHICS_BIT = 32768
+    public constant integer PIPELINE_STAGE_ALL_COMMANDS_BIT = 65536
 
     /*
-    Bitmask constants for access masks. Used for subpass dependencies.
+    Bitmask constants for access masks. Used for subpass dependencies, barriers, and broadly for identifying what elements can be accessed at certain times.
     */
+    public constant integer ACCESS_INDIRECT_COMMAND_READ_BIT = 1
+    public constant integer ACCESS_INDEX_READ_BIT = 2
+    public constant integer ACCESS_VERTEX_ATTRIBUTE_READ_BIT = 4
+    public constant integer ACCESS_UNIFORM_READ_BIT = 8
+    public constant integer ACCESS_INPUT_ATTACHMENT_READ_BIT  = 16
+    public constant integer ACCESS_SHADER_READ_BIT = 32
+    public constant integer ACCESS_SHADER_WRITE_BIT = 64
+    public constant integer ACCESS_COLOR_ATTACHMENT_READ_BIT = 128
     public constant integer ACCESS_COLOR_ATTACHMENT_WRITE_BIT = 256
+    public constant integer ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT = 512
+    public constant integer ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT = 1024
+    public constant integer ACCESS_TRANSFER_READ_BIT = 2048
+    public constant integer ACCESS_TRANSFER_WRITE_BIT = 4096
+    public constant integer ACCESS_HOST_READ_BIT = 8192
+    public constant integer ACCESS_HOST_WRITE_BIT = 16384
+    public constant integer ACCESS_MEMORY_READ_BIT = 32768
+    public constant integer ACCESS_MEMORY_WRITE_BIT = 65536
 
     /*
     Constants used for the Input Rate value of VulkanVertexInputBindingDescription. These indicate that values are provided
@@ -348,5 +380,11 @@ shared class VulkanConstants
     */
     public constant integer DYNAMIC_STATE_SCISSOR = 1
     public constant integer DYNAMIC_STATE_VIEWPORT = 0
+
+    /*
+    Data types for index buffers. Used with the BindIndexBufferCommand class.
+    */
+    public constant integer INDEX_TYPE_UINT16 = 0
+    public constant integer INDEX_TYPE_UINT32 = 1
 
 end
