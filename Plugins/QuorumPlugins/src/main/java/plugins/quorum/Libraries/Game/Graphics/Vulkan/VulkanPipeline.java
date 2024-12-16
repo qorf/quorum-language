@@ -2,7 +2,7 @@ package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
-import plugins.quorum.Libraries.Game.Graphics.Shaders.Shader;
+import plugins.quorum.Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderManager;
 import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Game.Graphics.Shaders.Shader_;
 import quorum.Libraries.Game.Graphics.Vulkan.*;
@@ -77,12 +77,12 @@ public class VulkanPipeline
             for (int i = 0; i < quorumShaders.GetSize(); i++)
             {
                 Shader_ quorumShader = (Shader_)quorumShaders.Get(i);
-                Shader shaderPlugin = ((quorum.Libraries.Game.Graphics.Shaders.Shader)quorumShader).plugin_;
 
                 VkPipelineShaderStageCreateInfo shaderStage = shaderStages.get(i);
                 shaderStage.sType$Default();
-                shaderStage.stage(quorumShader.GetType());
-                shaderStage.module(shaderPlugin.GetVulkanHandle());
+                System.out.println("SHADER STAGE: " + quorumShader.GetType());
+                shaderStage.stage(VulkanShaderManager.GetVulkanShaderType(quorumShader.GetType()));
+                shaderStage.module(VulkanShaderManager.GetVulkanShaderHandle(quorumShader));
                 shaderStage.pName(shaderEntryPointName);
             }
 
@@ -200,4 +200,6 @@ public class VulkanPipeline
     {
         return vulkanPipelineHandle;
     }
+
+
 }

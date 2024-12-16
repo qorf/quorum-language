@@ -30,6 +30,9 @@ class ShaderManager
     // This type constant is used to indicate that the shader is a tessellation evaluation shader. This shader step is optional. If used, this should follow after a tessellation control shader in a shader program.
     public constant integer TESSELLATION_EVALUATION_SHADER = 5
 
+    // This type constant indicates that the shader is a compute shader. This isn't required for graphics, but can be used in conjunction with graphics or independently to perform computations on the GPU.
+    public constant integer COMPUTE_SHADER = 6
+
     HashTable<text, Shader> registeredShaders
     HashTable<text, ShaderProgram> registeredPrograms
     

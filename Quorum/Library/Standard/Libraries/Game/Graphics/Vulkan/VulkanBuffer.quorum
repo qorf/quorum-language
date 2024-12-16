@@ -89,7 +89,7 @@ class VulkanBuffer
             if ( (bits:And(requiredMemoryFlags, constants:MEMORY_PROPERTY_HOST_VISIBLE_BIT) not= 0) or 
                  (bits:And(allocationFlags, bits:Or(constants:ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT, constants:ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT)) not= 0) )
 
-                isMemoryAccessible = true
+                supportsMapping = true
             end
         end
 

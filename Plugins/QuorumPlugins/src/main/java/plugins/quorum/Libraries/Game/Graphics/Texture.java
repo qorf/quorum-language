@@ -42,23 +42,47 @@ public class Texture
 
     public void Bind() 
     {
+        if (GameStateManager.nativeGraphics == null)
+        {
+            // TO-DO: NYI, need to handle this the Vulkan appropriate way
+            return;
+        }
+
         GameStateManager.nativeGraphics.glBindTexture(glTarget, glHandle);
     }
     
     public void Bind(int unit)
     {
+        if (GameStateManager.nativeGraphics == null)
+        {
+            // TO-DO: NYI, need to handle this the Vulkan appropriate way
+            return;
+        }
+
         GameStateManager.nativeGraphics.glActiveTexture(GameStateManager.nativeGraphics.GL_TEXTURE0 + unit);
         GameStateManager.nativeGraphics.glBindTexture(glTarget, glHandle);
     }
     
     public void BindToDefault()
     {
+        if (GameStateManager.nativeGraphics == null)
+        {
+            // TO-DO: NYI, need to handle this the Vulkan appropriate way
+            return;
+        }
+
         GameStateManager.nativeGraphics.glBindTexture(glTarget, 0);
     }
 
     public int CreateGLHandle()
     {
-      return GameStateManager.nativeGraphics.glGenTexture();
+        if (GameStateManager.nativeGraphics == null)
+        {
+            // TO-DO: NYI, need to handle this the Vulkan appropriate way
+            return 0;
+        }
+
+        return GameStateManager.nativeGraphics.glGenTexture();
     }
 
     public void SetGraphicsInfo(int target, int handle)

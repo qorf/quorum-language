@@ -84,6 +84,9 @@ class VulkanPainter2DBatch
         vertexOutputBuffer:CreateTransferDestinationBuffer(device, vertexBufferSize * 4, constants:BUFFER_USAGE_VERTEX_BUFFER_BIT)
         indexOutputBuffer:CreateTransferDestinationBuffer(device, indexBufferSize * 4, constants:BUFFER_USAGE_INDEX_BUFFER_BIT)
 
+//        vertexStagingBuffer:Create(device, vertexBufferSize * 4, constants:BUFFER_USAGE_VERTEX_BUFFER_BIT, constants:MEMORY_USAGE_AUTO, constants:ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT, 0, 0, false)
+//        indexStagingBuffer:Create(device, indexBufferSize * 4, constants:BUFFER_USAGE_INDEX_BUFFER_BIT, constants:MEMORY_USAGE_AUTO, constants:ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT, 0, 0, false)
+
         vertexMappedMemory = vertexStagingBuffer:MapToNumber32BitMemory()
         indexMappedMemory = indexStagingBuffer:MapToInteger32BitMemory()
     end
@@ -129,12 +132,60 @@ class VulkanPainter2DBatch
             return false
         end
 
-        integer i = 0
-        repeat while i < vertices:GetSize()
-            vertexData:Set(vertexWritePosition + i, vertices:Get(i))
-            i = i + 1
-        end
-        vertexWritePosition = vertexWritePosition + vertices:GetSize()
+//        integer i = 0
+//        repeat while i < vertices:GetSize()
+//            vertexData:Set(vertexWritePosition + i, vertices:Get(i))
+//            i = i + 1
+//        end
+//        vertexWritePosition = vertexWritePosition + vertices:GetSize()
+
+//        vertexData:Set(0, 0.25)
+//        vertexData:Set(1, 0.25)
+//        vertexData:Set(2, 0)
+//        vertexData:Set(3, 0)
+//        vertexData:Set(4, 0)
+//        vertexData:Set(5, 0)
+//
+//        vertexData:Set(6, 0.75)
+//        vertexData:Set(7, 0.25)
+//        vertexData:Set(8, 0)
+//        vertexData:Set(9, 0)
+//        vertexData:Set(10, 0)
+//        vertexData:Set(11, 0)
+//
+//        vertexData:Set(12, 0.75)
+//        vertexData:Set(13, 0.75)
+//        vertexData:Set(14, 0)
+//        vertexData:Set(15, 0)
+//        vertexData:Set(16, 0)
+//        vertexData:Set(17, 0)
+//        
+//        vertexData:Set(18, 0.25)
+//        vertexData:Set(19, 0.75)
+//        vertexData:Set(20, 0)
+//        vertexData:Set(21, 0)
+//        vertexData:Set(22, 0)
+//        vertexData:Set(23, 0)
+//
+//        vertexWritePosition = 24
+
+        vertexData:Set(0, -0.5)
+        vertexData:Set(1, -0.5)
+        vertexData:Set(2, 0)
+
+        vertexData:Set(3, 0.5)
+        vertexData:Set(4, -0.5)
+        vertexData:Set(5, 0)
+
+        vertexData:Set(6, 0.5)
+        vertexData:Set(7, 0.5)
+        vertexData:Set(8, 0)
+        
+        vertexData:Set(9, -0.5)
+        vertexData:Set(10, 0.5)
+        vertexData:Set(11, 0)
+
+        vertexWritePosition = 12
 
         // Most commonly, no custom indices are provided. In this case, set the default indices for a quad.
         if indices = undefined
@@ -162,18 +213,33 @@ class VulkanPainter2DBatch
     end
 
     action TransferBuffers(VulkanCommandBuffer buffer)
+        output "Vertices:"
+        integer i = 0
+        repeat while i < vertexWritePosition
+            output i + ": " + vertexData:Get(i)
+            i = i + 1
+        end
+
+        output ""
+        output "Indices:"
+        i = 0
+        repeat while i < indexWritePosition
+            output i + ": " + indexData:Get(i)
+            i = i + 1
+        end
+
         vertexMappedMemory:Set(0, vertexData, 0, vertexWritePosition)
         indexMappedMemory:Set(0, indexData, 0, indexWritePosition)
         
         CopyBufferCommand vertexCopyCommand
         vertexCopyCommand:SetSourceBuffer(vertexStagingBuffer)
         vertexCopyCommand:SetDestinationBuffer(vertexOutputBuffer)
-        vertexCopyCommand:SetSize(vertexWritePosition)        
+        vertexCopyCommand:SetSize(vertexWritePosition * 4)        
 
         CopyBufferCommand indexCopyCommand
         indexCopyCommand:SetSourceBuffer(indexStagingBuffer)
         indexCopyCommand:SetDestinationBuffer(indexOutputBuffer)
-        indexCopyCommand:SetSize(indexWritePosition)
+        indexCopyCommand:SetSize(indexWritePosition * 4)
 
         buffer:Record(vertexCopyCommand)
         buffer:Record(indexCopyCommand)
@@ -206,10 +272,12 @@ class VulkanPainter2DBatch
 
     action GetVertexOutputBuffer returns VulkanBuffer
         return vertexOutputBuffer
+//        return vertexStagingBuffer
     end
 
     action GetIndexOutputBuffer returns VulkanBuffer
         return indexOutputBuffer
+//        return indexStagingBuffer
     end
 
 end

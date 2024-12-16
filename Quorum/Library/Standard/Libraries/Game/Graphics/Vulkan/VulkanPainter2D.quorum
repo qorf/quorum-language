@@ -182,7 +182,10 @@ class VulkanPainter2D is Painter2D
             
             // Binding description, indicates how far apart each vertex's data is
             VulkanVertexInputBindingDescription bindingDescription
+  
             bindingDescription:Set(0, offset, constants:VERTEX_INPUT_RATE_VERTEX)
+//            output "WARNING: HARD-SETTING PAINTER2D DEFAULT PIPELINE STRIDE TO 24"
+//            bindingDescription:Set(0, 24, constants:VERTEX_INPUT_RATE_VERTEX)
             vertexBindings:Add(bindingDescription)
 
 
@@ -213,6 +216,11 @@ class VulkanPainter2D is Painter2D
     end
 
     private action GetBatch(VulkanPipeline pipeline) returns VulkanPainter2DBatch
+        if pipeline = undefined
+            output "Getting default pipeline..."
+            pipeline = GetDefaultPipeline()
+        end
+
         if batches:HasKey(pipeline)
             // Try to find an existing batch that's available. This will be the most common case.
             Array<VulkanPainter2DBatch> array = batches:GetValue(pipeline)
@@ -249,7 +257,7 @@ class VulkanPainter2D is Painter2D
     private action EndBatches(VulkanCommandBuffer commandBuffer)
         Iterator<Array<VulkanPainter2DBatch>> arrays = batches:GetValueIterator()
         repeat while arrays:HasNext()
-            Array<VulkanPainter2DBatch> array
+            Array<VulkanPainter2DBatch> array = arrays:Next()
             integer i = array:GetSize()
             repeat while i > 0
                 i = i - 1
@@ -352,18 +360,22 @@ class VulkanPainter2D is Painter2D
         */
         EndBatches(commandBuffer)
 
-        // After ending the batches, we need to wait for data transfers to complete before any drawing can occur.
-        // Create a memory barrier that ensures that all commands after this must wait for the transfer stage of
-        // the pipeline to complete before operations in the vertex input stage can begin.
-        VulkanMemoryBarrier memoryBarrier
-        memoryBarrier:SetSourceStageMask(constants:PIPELINE_STAGE_TRANSFER_BIT)
-        memoryBarrier:SetSourceAccessMask(constants:ACCESS_MEMORY_WRITE_BIT)
-        memoryBarrier:SetDestinationStageMask(constants:PIPELINE_STAGE_VERTEX_INPUT_BIT)
-        memoryBarrier:SetDestinationAccessMask(constants:ACCESS_MEMORY_READ_BIT)
+//        output "WARNING: SKIPPING MEMORY BARRIER IN PAINTER 2D"
+//        if false and not pendingDrawCommands:IsEmpty()
+        if not pendingDrawCommands:IsEmpty()
+            // After ending the batches, we need to wait for data transfers to complete before any drawing can occur.
+            // Create a memory barrier that ensures that all commands after this must wait for the transfer stage of
+            // the pipeline to complete before operations in the vertex input stage can begin.
+            VulkanMemoryBarrier memoryBarrier
+            memoryBarrier:SetSourceStageMask(constants:PIPELINE_STAGE_TRANSFER_BIT)
+            memoryBarrier:SetSourceAccessMask(constants:ACCESS_MEMORY_WRITE_BIT)
+            memoryBarrier:SetDestinationStageMask(constants:PIPELINE_STAGE_VERTEX_INPUT_BIT)
+            memoryBarrier:SetDestinationAccessMask(constants:ACCESS_MEMORY_READ_BIT)
 
-        PipelineBarrierCommand barrierCommand
-        barrierCommand:SetMemoryBarrier(memoryBarrier)
-        commandBuffer:Record(barrierCommand)
+            PipelineBarrierCommand barrierCommand
+            barrierCommand:SetMemoryBarrier(memoryBarrier)
+            commandBuffer:Record(barrierCommand)
+        end
         
 
         // Create the command to begin the render pass.
@@ -381,18 +393,18 @@ class VulkanPainter2D is Painter2D
         // TO-DO: CHANGE THIS DYNAMICALLY FOR RENDERED CONTENT
         // Set viewport command
         // Setting the position to the height and the height to the negated height flips the Y axis of our viewport.
-        SetViewportCommand setViewport
-        setViewport:SetPosition(0, swapchain:GetImageHeight())
-        setViewport:SetSize(swapchain:GetImageWidth(), -swapchain:GetImageHeight())
-        commandBuffer:Record(setViewport)
-
-        // TO-DO: CHANGE THIS DYNAMICALLY FOR RENDERED CONTENT
-        // Set scissor command
-        SetScissorCommand setScissor
-        setScissor:SetPosition(0, 0)
-        setScissor:SetSize(swapchain:GetImageWidth(), swapchain:GetImageHeight())
-        commandBuffer:Record(setScissor)
-
+//        SetViewportCommand setViewport
+//        setViewport:SetPosition(0, swapchain:GetImageHeight())
+//        setViewport:SetSize(swapchain:GetImageWidth(), -swapchain:GetImageHeight())
+//        commandBuffer:Record(setViewport)
+//
+//        // TO-DO: CHANGE THIS DYNAMICALLY FOR RENDERED CONTENT
+//        // Set scissor command
+//        SetScissorCommand setScissor
+//        setScissor:SetPosition(0, 0)
+//        setScissor:SetSize(swapchain:GetImageWidth(), swapchain:GetImageHeight())
+//        commandBuffer:Record(setScissor)
+    
         // Set the pipelines and send the corresponding draw calls.
         integer i = 0
         repeat while i < pendingBatches:GetSize()
@@ -402,6 +414,19 @@ class VulkanPainter2D is Painter2D
             BindPipelineCommand bindPipeline
             bindPipeline:SetPipeline(batch:GetPipeline())
             commandBuffer:Record(bindPipeline)
+
+            // TO-DO: CHANGE THIS DYNAMICALLY FOR RENDERED CONTENT
+            SetViewportCommand setViewport
+            setViewport:SetPosition(0, swapchain:GetImageHeight())
+            setViewport:SetSize(swapchain:GetImageWidth(), -swapchain:GetImageHeight())
+            commandBuffer:Record(setViewport)
+    
+            // TO-DO: CHANGE THIS DYNAMICALLY FOR RENDERED CONTENT
+            // Set scissor command
+            SetScissorCommand setScissor
+            setScissor:SetPosition(0, 0)
+            setScissor:SetSize(swapchain:GetImageWidth(), swapchain:GetImageHeight())
+            commandBuffer:Record(setScissor)
 
             BindVertexBufferCommand vertexBind
             vertexBind:SetBuffer(batch:GetVertexOutputBuffer())

@@ -211,6 +211,12 @@ public class PixelMap {
     
     public void Define2DImage(int target, int mipLevel, int border)
     {
+        if (gl20 == null)
+        {
+            // TO-DO: NYI, need to handle this the Vulkan appropriate way
+            return;
+        }
+
         gl20.glTexImage2D(target, mipLevel, GetGLInternalFormat(), GetWidth(), GetHeight(), border, GetGLInternalFormat(), GetGLType(), GetPixels());
     }
     

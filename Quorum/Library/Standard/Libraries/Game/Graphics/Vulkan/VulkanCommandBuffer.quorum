@@ -1,6 +1,8 @@
 package Libraries.Game.Graphics.Vulkan
 
 use Libraries.Game.Graphics.Vulkan.Commands.VulkanCommand
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Vulkan.Commands.all
 
 class VulkanCommandBuffer
 
@@ -8,6 +10,9 @@ class VulkanCommandBuffer
     VulkanCommandPool commandPool = undefined
 
     boolean initialized = false
+
+    // TO-DO: REMOVE THIS. For debugging only.
+    Array<text> commandNames
 
     action Create(VulkanDevice device, VulkanCommandPool commandPool) returns boolean
         VulkanConstants constants
@@ -65,7 +70,45 @@ class VulkanCommandBuffer
     BeginRecording command.
     */
     action Record(VulkanCommand command)
+        if command is BeginRenderPassCommand
+            commandNames:Add("BeginRenderPassCommand")
+        elseif command is BindIndexBufferCommand
+            commandNames:Add("BindIndexBufferCommand")
+        elseif command is BindPipelineCommand
+            commandNames:Add("BindPipelineCommand")
+        elseif command is BindVertexBufferCommand
+            commandNames:Add("BindVertexBufferCommand")
+        elseif command is CopyBufferCommand
+            commandNames:Add("CopyBufferCommand")
+        elseif command is DrawIndexedCommand
+            commandNames:Add("DrawIndexedCommand")
+        elseif command is EndRenderPassCommand
+            commandNames:Add("EndRenderPassCommand")
+        elseif command is PipelineBarrierCommand
+            commandNames:Add("PipelineBarrierCommand")
+        elseif command is SetScissorCommand
+            commandNames:Add("SetScissorCommand")
+        elseif command is SetViewportCommand
+            commandNames:Add("SetViewportCommand")
+        else
+            commandNames:Add("Unknown")
+        end
+
         command:Record(me)
+    end
+
+    // TO-DO: Remove this
+    action DebugOutputNames
+        if true
+            return now
+        end
+
+        integer i = 0
+        repeat while i < commandNames:GetSize()
+            output i + ": " + commandNames:Get(i)
+            i = i + 1
+        end
+        commandNames:Empty()
     end
 
 end

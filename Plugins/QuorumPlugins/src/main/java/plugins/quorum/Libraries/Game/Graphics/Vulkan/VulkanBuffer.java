@@ -201,4 +201,9 @@ public class VulkanBuffer
     {
         return mappedMemoryPointer;
     }
+
+    public long GetBufferHandle()
+    {
+        return bufferHandle;
+    }
 }

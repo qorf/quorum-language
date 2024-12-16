@@ -12,6 +12,7 @@ use Libraries.Game.Graphics.Vulkan.VulkanPipeline
 use Libraries.Containers.HashTable
 use Libraries.Game.Graphics.Vulkan.VulkanRenderPass
 use Libraries.Game.Graphics.Vulkan.VulkanPipelineCache
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
 
 class VulkanShaderManager is ShaderManager
 
@@ -71,6 +72,27 @@ class VulkanShaderManager is ShaderManager
 
     private system action CompileShaderNative(Shader shader, VulkanDevice device, ByteArray shaderCode) returns boolean
     
+    /*
+    This action takes a Quorum shader type and converts it to the equivalent Vulkan shader stage value from the VulkanConstants class.
+    */
+    action GetVulkanType(integer shaderType) returns integer
+        VulkanConstants constants
+        if shaderType = parent:ShaderManager:FRAGMENT_SHADER
+            return constants:SHADER_STAGE_FRAGMENT_BIT
+        elseif shaderType = parent:ShaderManager:VERTEX_SHADER
+            return constants:SHADER_STAGE_VERTEX_BIT
+        elseif shaderType = parent:ShaderManager:GEOMETRY_SHADER
+            return constants:SHADER_STAGE_GEOMETRY_BIT
+        elseif shaderType = parent:ShaderManager:TESSELLATION_CONTROL_SHADER
+            return constants:SHADER_STAGE_TESSELLATION_CONTROL_BIT
+        elseif shaderType = parent:ShaderManager:TESSELLATION_EVALUATION_SHADER
+            return constants:SHADER_STAGE_TESSELLATION_EVALUATION_BIT
+        elseif shaderType = parent:ShaderManager:COMPUTE_SHADER
+            return constants:SHADER_STAGE_COMPUTE_BIT
+        end
+
+        return -1
+    end
 
     action ReloadShader(Shader shader) returns integer
         alert("NYI")

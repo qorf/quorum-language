@@ -24,6 +24,9 @@ class Shader
     // This type constant is used to indicate that the shader is a tessellation evaluation shader. This shader step is optional. If used, this should follow after a tessellation control shader in a shader program.
     public constant integer TESSELLATION_EVALUATION_SHADER = constants:TESSELLATION_EVALUATION_SHADER
 
+    // This type constant indicates that the shader is a compute shader. This isn't required for graphics, but can be used in conjunction with graphics or independently to perform computations on the GPU.
+    public constant integer COMPUTE_SHADER = constants:COMPUTE_SHADER
+
     GameStateManager manager
 
     integer type = 0
@@ -125,12 +128,5 @@ class Shader
         ShaderManager shaderManager = manager:GetShaderManager()
         return shaderManager:GetVersionHeader()
     end
-
-    /*
-    This action only exists to force plugin creation for this class. Since the class has a system action, even if it's
-    never used, the Shader class will now have a corresponding plugin. We do this because Vulkan shaders need to
-    store a 64-bit integer handle, which we need the plugins for.
-    */
-    private system action ForcePluginCreation
 
 end
