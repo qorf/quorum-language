@@ -17,6 +17,7 @@ use Libraries.Interface.Events.TextureLoadEvent
 use Libraries.Interface.Controls.Control
 use Libraries.Game.Graphics.OpenGL.OpenGLConstants
 use Libraries.Game.Graphics.OpenGL.OpenGLManager
+use Libraries.Game.Graphics.Vulkan.VulkanImageView
 
 /*
 The Texture class represents an image that can be drawn on the screen. Once
@@ -67,6 +68,9 @@ class Texture is Disposable
     boolean isLoadingAsync = false
 
     Array<TextureLoadListener> loadListeners
+
+    // A Vulkan ImageView representing this texture's resources. Only present if the engine is using Vulkan, this remains undefined otherwise.
+    VulkanImageView vulkanImageView = undefined
 
     on create
         minimizeFilter:ConstructTextureFilter(minimizeFilter:NEAREST)
@@ -1486,4 +1490,25 @@ class Texture is Disposable
     action EmptyTextureLoadListeners
         loadListeners:Empty()
     end
+
+    /*
+    This action returns the VulkanImageView associated with this Texture, if there is one.
+    The image view represents resources used by this texture in the Vulkan system, if the
+    Game engine is using the Vulkan graphics library. If not, this is undefined.
+    This is a Vulkan internal component, and will never be needed by most users.
+    */
+    action GetVulkanImageView returns VulkanImageView
+        return vulkanImageView
+    end
+
+    /*
+    This action sets the VulkanImageView associated with this Texture.
+    The image view represents resources used by this texture in the Vulkan system, if the
+    Game engine is using the Vulkan graphics library. If not, this is undefined.
+    This is a Vulkan internal component, and will never be needed by most users.
+    */
+    action SetVulkanImageView(VulkanImageView vulkanImageView)
+        me:vulkanImageView = vulkanImageView
+    end
+
 end

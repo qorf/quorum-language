@@ -34,7 +34,7 @@ class VulkanGraphics is GraphicsManager
     // Values used to indicate the current resources for the current frame of animation.
 //    integer currentFrameIndex = -1
     VulkanCommandBuffer currentRenderCommandBuffer = undefined
-    VulkanFence currentRenderFence = undefined    
+    VulkanFence currentRenderFence = undefined
 
     /*
     Note that the swapchain index can de-sync from the current frame index sometimes.
@@ -47,6 +47,9 @@ class VulkanGraphics is GraphicsManager
     
     // The clear color, or in otherwords, the background color of the screen.
     VulkanClearValue clearValue
+
+    // A resource used to centralize the creation of DescriptorSets.
+    VulkanDescriptorSetManager descriptorSetManager
 
     on create
         clearValue:SetColor(0.85, 0.85, 0.85, 1.0)
@@ -307,6 +310,9 @@ class VulkanGraphics is GraphicsManager
             i = i + 1
         end
 
+        output "Initializing DescriptorSetManager..."
+        descriptorSetManager:Initialize(device)
+
         output "Successfully created VulkanGraphics!"
         return true
     end
@@ -319,7 +325,7 @@ class VulkanGraphics is GraphicsManager
         currentSwapchainIndex = (currentSwapchainIndex + 1) mod swapchain:GetImageCount()
         currentRenderCommandBuffer = renderCommandBuffers:Get(currentSwapchainIndex)
         currentRenderFence = renderFences:Get(currentSwapchainIndex)     
-        currentFramebuffer = swapchainFramebuffers:Get(currentSwapchainIndex)   
+        currentFramebuffer = swapchainFramebuffers:Get(currentSwapchainIndex)
 
         // Ensure that all work associated with this image has previously finished.
         currentRenderFence:Wait()
@@ -758,6 +764,14 @@ class VulkanGraphics is GraphicsManager
             clearValue:ResetDirtyFlag()
         end
         return clearValue
+    end
+
+    action GetCurrentSwapchainIndex returns integer
+        return currentSwapchainIndex
+    end
+
+    action GetDescriptorSetManager returns VulkanDescriptorSetManager
+        return descriptorSetManager
     end
 
 end

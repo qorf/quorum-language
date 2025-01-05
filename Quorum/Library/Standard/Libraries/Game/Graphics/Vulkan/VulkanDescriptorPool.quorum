@@ -1,0 +1,46 @@
+package Libraries.Game.Graphics.Vulkan
+use Libraries.Containers.Array
+
+class VulkanDescriptorPool
+
+    public constant integer DEFAULT_DESCRIPTOR_COUNT = 256
+    public constant integer DEFAULT_MAX_SETS = 128
+
+    VulkanDevice device = undefined
+    boolean initialized = false
+
+    action Create(VulkanDevice device, integer descriptorType) returns boolean
+        return Create(device, descriptorType, DEFAULT_DESCRIPTOR_COUNT, DEFAULT_MAX_SETS)
+    end
+
+    action Create(VulkanDevice device, integer descriptorType, integer descriptorCount, integer maxSets) returns boolean
+        boolean success = CreateNative(device, descriptorType, descriptorCount, maxSets)
+
+        if success
+            me:device = device
+            initialized = true
+        end
+
+        return success
+    end
+
+    action Create(VulkanDevice device, Array<integer> descriptorTypes, Array<integer> descriptorCounts, integer maxSets) returns boolean
+        boolean success = CreateNative(device, descriptorTypes, descriptorCounts, maxSets)
+
+        if success
+            me:device = device
+            initialized = true
+        end
+
+        return success
+    end
+
+    private system action CreateNative(VulkanDevice device, integer descriptorType, integer descriptorCount, integer maxSets) returns boolean
+
+    private system action CreateNative(VulkanDevice device, Array<integer> descriptorTypes, Array<integer> descriptorCounts, integer maxSets) returns boolean
+
+    action Dispose
+        alert("NYI")
+    end
+
+end

@@ -1,0 +1,46 @@
+package Libraries.Game.Graphics.Vulkan.Commands
+
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineLayout
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSet
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
+
+class BindDescriptorSetCommand is VulkanCommand
+
+    VulkanPipelineLayout pipelineLayout = undefined
+    VulkanDescriptorSet descriptorSet = undefined
+    integer bindPoint = 0
+
+    on create
+        VulkanConstants constants
+        bindPoint = constants:PIPELINE_BIND_POINT_GRAPHICS
+    end
+
+
+    system action Record(VulkanCommandBuffer buffer)
+
+    action GetPipelineLayout returns VulkanPipelineLayout
+        return pipelineLayout
+    end
+
+    action SetPipelineLayout(VulkanPipelineLayout pipelineLayout)
+        me:pipelineLayout = pipelineLayout
+    end
+
+    action GetBindPoint returns integer
+        return bindPoint
+    end
+
+    action SetBindPoint(integer bindPoint)
+        me:bindPoint = bindPoint
+    end
+
+    action GetDescriptorSet returns VulkanDescriptorSet
+        return descriptorSet
+    end
+
+    action SetDescriptorSet(VulkanDescriptorSet descriptorSet)
+        me:descriptorSet = descriptorSet
+    end
+
+end

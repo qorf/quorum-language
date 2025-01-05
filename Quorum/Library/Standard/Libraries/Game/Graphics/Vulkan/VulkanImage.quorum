@@ -1,13 +1,48 @@
 package Libraries.Game.Graphics.Vulkan
+use Libraries.Compute.BitwiseOperations
 
 class VulkanImage
 
+    VulkanDevice device = undefined
     integer width = 0
     integer height = 0
     boolean initialized = false
 
-    // This system action has no purpose except to force the library to create a plugin that is associated with this class.
-    private system action ForcePluginCreation
+    /*
+    This action creates a VulkanImage 
+    */
+    action Create(VulkanDevice device, integer width, integer height, integer usage) returns boolean
+        VulkanConstants constants
+        BitwiseOperations bits
+        integer allocationFlags = 0
+        if bits:And(usage, constants:IMAGE_USAGE_TRANSFER_SOURCE_BIT) not= 0
+            allocationFlags = constants:ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
+        end
+
+        return Create(device, width, height, usage, 0)
+    end
+
+    action Create(VulkanDevice device, integer width, integer height, integer usage, integer allocationFlags) returns boolean
+        VulkanImageInfo info
+        info:SetWidth(width)
+        info:SetHeight(height)
+        info:SetUsage(usage)
+        info:SetAllocationFlags(allocationFlags)
+        return Create(device, info)
+    end
+
+    action Create(VulkanDevice device, VulkanImageInfo info) returns boolean
+        boolean success = CreateNative(device, info)
+        if success
+            me:device = device
+            width = info:GetWidth()
+            height = info:GetHeight()
+            initialized = true
+        end
+        return success
+    end
+
+    private system action CreateNative(VulkanDevice device, VulkanImageInfo info) returns boolean
 
     action GetWidth returns integer
         return width
@@ -15,6 +50,10 @@ class VulkanImage
 
     action GetHeight returns integer
         return height
+    end
+
+    action GetDevice returns VulkanDevice
+        return device
     end
 
 end

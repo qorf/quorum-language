@@ -19,6 +19,7 @@ use Libraries.Containers.Number32BitArray
 use Libraries.Containers.Integer32BitArray
 use Libraries.Containers.HashTable
 use Libraries.Game.Graphics.DrawableShape
+use Libraries.Compute.Matrix4
 
 class VulkanPainter2D is Painter2D
 
@@ -49,8 +50,20 @@ class VulkanPainter2D is Painter2D
     // A parallel array of batches. The n-th draw command uses the vertex and index buffers from the n-th pending batch.
     Array<VulkanPainter2DBatch> pendingBatches
 
+    // TO-DO: Move these into structures that more closely associate these resources with a VulkanPipeline, or wherever else they make sense.
+    VulkanDescriptorSetLayout descriptorSetLayout = undefined
+    VulkanPipelineLayout pipelineLayout = undefined
+    Array<VulkanBuffer> uniformBuffers
+    Array<VulkanNumber32BitMappedMemory> uniformMappings
+    Array<VulkanDescriptorSet> uniformDescriptors
+
+    Camera camera = undefined
+
+    // An internal array used to transfer data from Matrix4 objects to mapped memory.
+    Number32BitArray matrix4Array
+
     on create
-        LoadDefaultPainter()
+        matrix4Array:SetSize(16)
     end
 
     action IsRenderPassValid returns boolean
@@ -127,12 +140,6 @@ class VulkanPainter2D is Painter2D
         return success
     end
 
-    private action LoadDefaultPainter
-        // Load a default structure for vertices or other GPU info here?
-
-        
-    end
-
     private action GetDefaultPipeline returns VulkanPipeline
         if defaultPipeline = undefined
             VulkanPipeline pipeline
@@ -148,7 +155,6 @@ class VulkanPainter2D is Painter2D
             VulkanDevice device = renderPass:GetDevice()
             VulkanPipelineCache cache = shaderManager:GetPipelineCache()
             VulkanConstants constants
-
 
 
             VulkanPipelineInfo info
@@ -169,11 +175,18 @@ class VulkanPainter2D is Painter2D
             // Position is stored as 3 floats of 4 bytes each.
             offset = offset + (3 * 4)
 
+            VulkanVertexInputAttributeDescription colorAttribute
+            colorAttribute:Set(0, 1, constants:FORMAT_R8G8B8A8_UNORM, offset)
+            vertexAttributes:Add(colorAttribute)
+
+            // The color attribute is made of 4 components of 1 byte each.
+            offset = offset + 4
+
 
             /*
             // Texture coordinate attribute
             VulkanVertexInputAttributeDescription textureCoordinatesAttribute
-            textureCoordinatesAttribute:Set(0, 1, constants:FORMAT_R32G32_SFLOAT, 3 * 4)
+            textureCoordinatesAttribute:Set(0, 2, constants:FORMAT_R32G32_SFLOAT, 3 * 4)
             vertexAttributes:Add(textureCoordinatesAttribute)
 
             // Texture coordinates are stored as 2 floats of 4 bytes each.
@@ -183,9 +196,9 @@ class VulkanPainter2D is Painter2D
             // Binding description, indicates how far apart each vertex's data is
             VulkanVertexInputBindingDescription bindingDescription
   
-            bindingDescription:Set(0, offset, constants:VERTEX_INPUT_RATE_VERTEX)
-//            output "WARNING: HARD-SETTING PAINTER2D DEFAULT PIPELINE STRIDE TO 24"
-//            bindingDescription:Set(0, 24, constants:VERTEX_INPUT_RATE_VERTEX)
+//            bindingDescription:Set(0, offset, constants:VERTEX_INPUT_RATE_VERTEX)
+            output "WARNING: HARD-SETTING PAINTER2D DEFAULT PIPELINE STRIDE TO 24"
+            bindingDescription:Set(0, 24, constants:VERTEX_INPUT_RATE_VERTEX)
             vertexBindings:Add(bindingDescription)
 
 
@@ -201,6 +214,28 @@ class VulkanPainter2D is Painter2D
             dynamicStates:Add(constants:DYNAMIC_STATE_SCISSOR)
 
 
+            // Create a structure for the uniforms. We'll need this for the projection matrix (i.e. the camera).
+            // Define how our uniforms will be laid out.
+            VulkanDescriptorSetLayout descriptorLayout
+            Array<VulkanDescriptorSetLayoutBinding> descriptorBindings            
+
+            VulkanDescriptorSetLayoutBinding uniformsBinding
+            uniformsBinding:SetBinding(0)
+            uniformsBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+            uniformsBinding:SetDescriptorCount(1)
+            uniformsBinding:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT)
+            descriptorBindings:Add(uniformsBinding)
+
+            descriptorLayout:Create(device, descriptorBindings)
+            descriptorSetLayout = descriptorLayout
+            
+            Array<VulkanDescriptorSetLayout> descriptorLayouts
+            descriptorLayouts:Add(descriptorLayout)
+
+            VulkanPipelineLayout pipelineLayout = info:GetLayout()
+            pipelineLayout:Create(device, descriptorLayouts)
+            me:pipelineLayout = pipelineLayout
+
             // The info structure has lots of other values we could customize, but all of the default values will work well for us here.
             // We can now create the Pipeline itself.
             boolean success = pipeline:Create(device, renderPass, cache, shaders, info)
@@ -209,6 +244,30 @@ class VulkanPainter2D is Painter2D
                 defaultPipeline = pipeline
             else
                 pipeline:Dispose()
+            end
+
+            // Create the buffers for the uniforms. We'll need to know how many images the swapchain has for this.
+            // This is because we'll need separate buffers for each swapchain image, so each image can be done in parallel.
+            // Once the buffers are made, we can also combine them together with the layouts to create our final DescriptorSets.
+            GameStateManager manager
+            VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+            VulkanDescriptorSetManager descriptorSetManager = graphics:GetDescriptorSetManager()
+
+            integer counter = 0
+            repeat while counter < graphics:GetSwapchain():GetImageCount()
+                // These buffers are for a 4x4 matrix of floats, so 4 bytes * 16 values.
+                VulkanBuffer buffer
+                buffer:CreateMappableBuffer(device, 4 * 16, constants:BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+                uniformBuffers:Add(buffer)
+
+                VulkanNumber32BitMappedMemory mapping = buffer:MapToNumber32BitMemory()
+                uniformMappings:Add(mapping)
+
+                // layout, buffer, binding, type
+                VulkanDescriptorSet set = descriptorSetManager:CreateDescriptorSet(descriptorSetLayout, uniformBuffers:Get(counter), 0, constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+                uniformDescriptors:Add(set)
+
+                counter = counter + 1
             end
         end
 
@@ -283,8 +342,7 @@ class VulkanPainter2D is Painter2D
     end
 
     action SetCamera(Camera camera)
-//        output "NYI: VulkanPainter2D SetCamera"
-//        alert("NYI")
+        me:camera = camera
     end
     
     action Begin
@@ -376,6 +434,14 @@ class VulkanPainter2D is Painter2D
             barrierCommand:SetMemoryBarrier(memoryBarrier)
             commandBuffer:Record(barrierCommand)
         end
+
+        integer currentSwapchainIndex = graphics:GetCurrentSwapchainIndex()
+        VulkanNumber32BitMappedMemory currentUniformMapping = uniformMappings:Get(currentSwapchainIndex)
+        VulkanDescriptorSet currentUniformDescriptor = uniformDescriptors:Get(currentSwapchainIndex)
+        
+        camera:Update()
+        Number32BitArray projectionViewMatrix = MatrixToArray(camera:GetCombinedMatrix())
+        currentUniformMapping:Set(projectionViewMatrix)
         
 
         // Create the command to begin the render pass.
@@ -435,6 +501,11 @@ class VulkanPainter2D is Painter2D
             BindIndexBufferCommand indexBind
             indexBind:SetBuffer(batch:GetIndexOutputBuffer())
             commandBuffer:Record(indexBind)
+
+            BindDescriptorSetCommand descriptorBind
+            descriptorBind:SetPipelineLayout(pipelineLayout)
+            descriptorBind:SetDescriptorSet(currentUniformDescriptor)
+            commandBuffer:Record(descriptorBind)
 
             commandBuffer:Record(drawCommand)
 
@@ -517,6 +588,26 @@ class VulkanPainter2D is Painter2D
     action SetClipCoordinates(number x, number y, number width, number height)
 //        output "NYI: VulkanPainter2D SetClipCoordinates"
 //        alert("NYI")
+    end
+
+    private action MatrixToArray(Matrix4 matrix) returns Number32BitArray
+        matrix4Array:Set(0, matrix:row0column0)
+        matrix4Array:Set(1, matrix:row1column0)
+        matrix4Array:Set(2, matrix:row2column0)
+        matrix4Array:Set(3, matrix:row3column0)
+        matrix4Array:Set(4, matrix:row0column1)
+        matrix4Array:Set(5, matrix:row1column1)
+        matrix4Array:Set(6, matrix:row2column1)
+        matrix4Array:Set(7, matrix:row3column1)
+        matrix4Array:Set(8, matrix:row0column2)
+        matrix4Array:Set(9, matrix:row1column2)
+        matrix4Array:Set(10, matrix:row2column2)
+        matrix4Array:Set(11, matrix:row3column2)
+        matrix4Array:Set(12, matrix:row0column3)
+        matrix4Array:Set(13, matrix:row1column3)
+        matrix4Array:Set(14, matrix:row2column3)
+        matrix4Array:Set(15, matrix:row3column3)
+        return matrix4Array
     end
 
 end

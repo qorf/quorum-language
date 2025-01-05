@@ -1,0 +1,46 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanDescriptorSet
+
+    VulkanDevice device = undefined
+    boolean initialized = false
+
+    failureCode = 0
+
+    action Create(VulkanDevice device, VulkanDescriptorPool pool, VulkanDescriptorSetLayout layout, VulkanBuffer buffer, integer binding, integer type) returns boolean
+        boolean success = CreateNative(device, pool, layout, buffer, binding, type)
+
+        if success
+            me:device = device
+            initialized = true
+            failureCode = 0
+        end
+
+        return success
+    end
+
+    private system action CreateNative(VulkanDevice device, VulkanDescriptorPool pool, VulkanDescriptorSetLayout layout, VulkanBuffer buffer, integer binding, integer type) returns boolean
+
+    action Create(VulkanDevice device, VulkanDescriptorPool pool, VulkanDescriptorSetLayout layout, VulkanDescriptorBufferInfo bufferInfo) returns boolean
+        boolean success = CreateNative(device, pool, layout, bufferInfo)
+
+        if success
+            me:device = device
+            initialized = true
+            failureCode = 0
+        end
+
+        return success
+    end
+
+    private system action CreateNative(VulkanDevice device, VulkanDescriptorPool pool, VulkanDescriptorSetLayout layout, VulkanDescriptorBufferInfo bufferInfo) returns boolean
+
+    /*
+    If the "Create" action fails, this action will return a code representing the failure reason. If no failure has occurred,
+    this will return 0 (corresponding to the VK_SUCCESS value in the Vulkan spec).
+    */
+    action GetFailureCode returns integer
+        return failureCode
+    end
+
+end

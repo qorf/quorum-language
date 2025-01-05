@@ -1,0 +1,148 @@
+package Libraries.Game.Graphics.Vulkan.Commands
+use Libraries.Game.Graphics.Vulkan.VulkanBuffer
+use Libraries.Game.Graphics.Vulkan.VulkanImage
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+
+class CopyBufferToImageCommand is VulkanCommand
+
+    VulkanBuffer sourceBuffer = undefined
+    VulkanImage destinationImage = undefined
+
+    integer bufferOffset = 0
+    integer bufferRowLength = 0
+    integer bufferImageHeight = 0
+    integer imageOffsetX = 0
+    integer imageOffsetY = 0
+    integer imageOffsetZ = 0
+    integer imageWidth = 0
+    integer imageHeight = 0
+    integer imageDepth = 1
+
+    integer aspectMask = 0
+    integer mipLevel = 0
+    integer baseArrayLayer = 0
+    integer layerCount = 1
+
+    system action Record(VulkanCommandBuffer buffer)
+
+    action GetSourceBuffer returns VulkanBuffer
+        return sourceBuffer
+    end
+
+    action SetSourceBuffer(VulkanBuffer sourceBuffer)
+        me:sourceBuffer = sourceBuffer
+    end
+
+    action GetDestinationImage returns VulkanImage
+        return destinationImage
+    end
+
+    action SetDestinationImage(VulkanImage destinationImage)
+        me:destinationImage = destinationImage
+    end
+
+    action GetBufferOffset returns integer
+        return bufferOffset
+    end
+
+    action SetBufferOffset(integer bufferOffset)
+        me:bufferOffset = bufferOffset
+    end
+
+    action GetBufferRowLength returns integer
+        return bufferRowLength
+    end
+
+    action SetBufferRowLength(integer bufferRowLength)
+        me:bufferRowLength = bufferRowLength
+    end
+
+    action GetBufferImageHeight returns integer
+        return bufferImageHeight
+    end
+
+    action SetBufferImageHeight(integer bufferImageHeight)
+        me:bufferImageHeight = bufferImageHeight
+    end
+
+    action GetImageWidth returns integer
+        return imageWidth
+    end
+
+    action SetImageWidth(integer imageWidth)
+        me:imageWidth = imageWidth
+    end
+
+    action GetImageHeight returns integer
+        return imageHeight
+    end
+
+    action SetImageHeight(integer imageHeight)
+        me:imageHeight = imageHeight
+    end
+
+    action GetImageDepth returns integer
+        return imageDepth
+    end
+
+    action SetImageDepth(integer imageDepth)
+        me:imageDepth = imageDepth
+    end
+
+    action GetAspectMask returns integer
+        return aspectMask
+    end
+
+    action SetAspectMask(integer aspectMask)
+        me:aspectMask = aspectMask
+    end
+
+    action GetMipLevel returns integer
+        return mipLevel
+    end
+
+    action SetMipLevel(integer mipLevel)
+        me:mipLevel = mipLevel
+    end
+
+    action GetBaseArrayLayer returns integer
+        return baseArrayLayer
+    end
+
+    action SetBaseArrayLayer(integer baseArrayLayer)
+        me:baseArrayLayer = baseArrayLayer
+    end
+
+    action GetLayerCount returns integer
+        return layerCount
+    end
+
+    action SetLayerCount(integer layerCount)
+        me:layerCount = layerCount
+    end
+
+    action GetImageOffsetX returns integer
+        return imageOffsetX
+    end
+
+    action SetImageOffsetX(integer imageOffsetX)
+        me:imageOffsetX = imageOffsetX
+    end
+
+    action GetImageOffsetY returns integer
+        return imageOffsetY
+    end
+
+    action SetImageOffsetY(integer imageOffsetY)
+        me:imageOffsetY = imageOffsetY
+    end
+
+    action GetImageOffsetZ returns integer
+        return imageOffsetZ
+    end
+
+    action SetImageOffsetZ(integer imageOffsetZ)
+        me:imageOffsetZ = imageOffsetZ
+    end
+
+end

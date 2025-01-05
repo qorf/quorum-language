@@ -50,10 +50,191 @@ shared class VulkanConstants
 
     
     // Data formats. Used for representing colors, inputs, attachments, and during Swapchain creation, among other things.
+    public constant integer FORMAT_UNDEFINED = 0
+    public constant integer FORMAT_R4G4_UNORM_PACK8 = 1
+    public constant integer FORMAT_R4G4B4A4_UNORM_PACK16 = 2
+    public constant integer FORMAT_B4G4R4A4_UNORM_PACK16 = 3
+    public constant integer FORMAT_R5G6B5_UNORM_PACK16 = 4
+    public constant integer FORMAT_B5G6R5_UNORM_PACK16 = 5
+    public constant integer FORMAT_R5G5B5A1_UNORM_PACK16 = 6
+    public constant integer FORMAT_B5G5R5A1_UNORM_PACK16 = 7
+    public constant integer FORMAT_A1R5G5B5_UNORM_PACK16 = 8
+    public constant integer FORMAT_R8_UNORM = 9
+    public constant integer FORMAT_R8_SNORM = 10
+    public constant integer FORMAT_R8_USCALED = 11
+    public constant integer FORMAT_R8_SSCALED = 12
+    public constant integer FORMAT_R8_UINT = 13
+    public constant integer FORMAT_R8_SINT = 14
+    public constant integer FORMAT_R8_SRGB = 15
+    public constant integer FORMAT_R8G8_UNORM = 16
+    public constant integer FORMAT_R8G8_SNORM = 17
+    public constant integer FORMAT_R8G8_USCALED = 18
+    public constant integer FORMAT_R8G8_SSCALED = 19
+    public constant integer FORMAT_R8G8_UINT = 20
+    public constant integer FORMAT_R8G8_SINT = 21
+    public constant integer FORMAT_R8G8_SRGB = 22
+    public constant integer FORMAT_R8G8B8_UNORM = 23
+    public constant integer FORMAT_R8G8B8_SNORM = 24
+    public constant integer FORMAT_R8G8B8_USCALED = 25
+    public constant integer FORMAT_R8G8B8_SSCALED = 26
+    public constant integer FORMAT_R8G8B8_UINT = 27
+    public constant integer FORMAT_R8G8B8_SINT = 28
+    public constant integer FORMAT_R8G8B8_SRGB = 29
+    public constant integer FORMAT_B8G8R8_UNORM = 30
+    public constant integer FORMAT_B8G8R8_SNORM = 31
+    public constant integer FORMAT_B8G8R8_USCALED = 32
+    public constant integer FORMAT_B8G8R8_SSCALED = 33
+    public constant integer FORMAT_B8G8R8_UINT = 34
+    public constant integer FORMAT_B8G8R8_SINT = 35
+    public constant integer FORMAT_B8G8R8_SRGB = 36
+    public constant integer FORMAT_R8G8B8A8_UNORM = 37
+    public constant integer FORMAT_R8G8B8A8_SNORM = 38
+    public constant integer FORMAT_R8G8B8A8_USCALED = 39
+    public constant integer FORMAT_R8G8B8A8_SSCALED = 40
+    public constant integer FORMAT_R8G8B8A8_UINT = 41
+    public constant integer FORMAT_R8G8B8A8_SINT = 42
     public constant integer FORMAT_R8G8B8A8_SRGB = 43
+    public constant integer FORMAT_B8G8R8A8_UNORM = 44
+    public constant integer FORMAT_B8G8R8A8_SNORM = 45
+    public constant integer FORMAT_B8G8R8A8_USCALED = 46
+    public constant integer FORMAT_B8G8R8A8_SSCALED = 47
+    public constant integer FORMAT_B8G8R8A8_UINT = 48
+    public constant integer FORMAT_B8G8R8A8_SINT = 49
     public constant integer FORMAT_B8G8R8A8_SRGB = 50
+    public constant integer FORMAT_A8B8G8R8_UNORM_PACK32 = 51
+    public constant integer FORMAT_A8B8G8R8_SNORM_PACK32 = 52
+    public constant integer FORMAT_A8B8G8R8_USCALED_PACK32 = 53
+    public constant integer FORMAT_A8B8G8R8_SSCALED_PACK32 = 54
+    public constant integer FORMAT_A8B8G8R8_UINT_PACK32 = 55
+    public constant integer FORMAT_A8B8G8R8_SINT_PACK32 = 56
+    public constant integer FORMAT_A8B8G8R8_SRGB_PACK32 = 57
+    public constant integer FORMAT_A2R10G10B10_UNORM_PACK32 = 58
+    public constant integer FORMAT_A2R10G10B10_SNORM_PACK32 = 59
+    public constant integer FORMAT_A2R10G10B10_USCALED_PACK32 = 60
+    public constant integer FORMAT_A2R10G10B10_SSCALED_PACK32 = 61
+    public constant integer FORMAT_A2R10G10B10_UINT_PACK32 = 62
+    public constant integer FORMAT_A2R10G10B10_SINT_PACK32 = 63
+    public constant integer FORMAT_A2B10G10R10_UNORM_PACK32 = 64
+    public constant integer FORMAT_A2B10G10R10_SNORM_PACK32 = 65
+    public constant integer FORMAT_A2B10G10R10_USCALED_PACK32 = 66
+    public constant integer FORMAT_A2B10G10R10_SSCALED_PACK32 = 67
+    public constant integer FORMAT_A2B10G10R10_UINT_PACK32 = 68
+    public constant integer FORMAT_A2B10G10R10_SINT_PACK32 = 69
+    public constant integer FORMAT_R16_UNORM = 70
+    public constant integer FORMAT_R16_SNORM = 71
+    public constant integer FORMAT_R16_USCALED = 72
+    public constant integer FORMAT_R16_SSCALED = 73
+    public constant integer FORMAT_R16_UINT = 74
+    public constant integer FORMAT_R16_SINT = 75
+    public constant integer FORMAT_R16_SFLOAT = 76
+    public constant integer FORMAT_R16G16_UNORM = 77
+    public constant integer FORMAT_R16G16_SNORM = 78
+    public constant integer FORMAT_R16G16_USCALED = 79
+    public constant integer FORMAT_R16G16_SSCALED = 80
+    public constant integer FORMAT_R16G16_UINT = 81
+    public constant integer FORMAT_R16G16_SINT = 82
+    public constant integer FORMAT_R16G16_SFLOAT = 83
+    public constant integer FORMAT_R16G16B16_UNORM = 84
+    public constant integer FORMAT_R16G16B16_SNORM = 85
+    public constant integer FORMAT_R16G16B16_USCALED = 86
+    public constant integer FORMAT_R16G16B16_SSCALED = 87
+    public constant integer FORMAT_R16G16B16_UINT = 88
+    public constant integer FORMAT_R16G16B16_SINT = 89
+    public constant integer FORMAT_R16G16B16_SFLOAT = 90
+    public constant integer FORMAT_R16G16B16A16_UNORM = 91
+    public constant integer FORMAT_R16G16B16A16_SNORM = 92
+    public constant integer FORMAT_R16G16B16A16_USCALED = 93
+    public constant integer FORMAT_R16G16B16A16_SSCALED = 94
+    public constant integer FORMAT_R16G16B16A16_UINT = 95
+    public constant integer FORMAT_R16G16B16A16_SINT = 96
+    public constant integer FORMAT_R16G16B16A16_SFLOAT = 97
+    public constant integer FORMAT_R32_UINT = 98
+    public constant integer FORMAT_R32_SINT = 99
+    public constant integer FORMAT_R32_SFLOAT = 100
+    public constant integer FORMAT_R32G32_UINT = 101
+    public constant integer FORMAT_R32G32_SINT = 102
     public constant integer FORMAT_R32G32_SFLOAT = 103
+    public constant integer FORMAT_R32G32B32_UINT = 104
+    public constant integer FORMAT_R32G32B32_SINT = 105
     public constant integer FORMAT_R32G32B32_SFLOAT = 106
+    public constant integer FORMAT_R32G32B32A32_UINT = 107
+    public constant integer FORMAT_R32G32B32A32_SINT = 108
+    public constant integer FORMAT_R32G32B32A32_SFLOAT = 109
+    public constant integer FORMAT_R64_UINT = 110
+    public constant integer FORMAT_R64_SINT = 111
+    public constant integer FORMAT_R64_SFLOAT = 112
+    public constant integer FORMAT_R64G64_UINT = 113
+    public constant integer FORMAT_R64G64_SINT = 114
+    public constant integer FORMAT_R64G64_SFLOAT = 115
+    public constant integer FORMAT_R64G64B64_UINT = 116
+    public constant integer FORMAT_R64G64B64_SINT = 117
+    public constant integer FORMAT_R64G64B64_SFLOAT = 118
+    public constant integer FORMAT_R64G64B64A64_UINT = 119
+    public constant integer FORMAT_R64G64B64A64_SINT = 120
+    public constant integer FORMAT_R64G64B64A64_SFLOAT = 121
+    public constant integer FORMAT_B10G11R11_UFLOAT_PACK32 = 122
+    public constant integer FORMAT_E5B9G9R9_UFLOAT_PACK32 = 123
+    public constant integer FORMAT_D16_UNORM = 124
+    public constant integer FORMAT_X8_D24_UNORM_PACK32 = 125
+    public constant integer FORMAT_D32_SFLOAT = 126
+    public constant integer FORMAT_S8_UINT = 127
+    public constant integer FORMAT_D16_UNORM_S8_UINT = 128
+    public constant integer FORMAT_D24_UNORM_S8_UINT = 129
+    public constant integer FORMAT_D32_SFLOAT_S8_UINT = 130
+    public constant integer FORMAT_BC1_RGB_UNORM_BLOCK = 131
+    public constant integer FORMAT_BC1_RGB_SRGB_BLOCK = 132
+    public constant integer FORMAT_BC1_RGBA_UNORM_BLOCK = 133
+    public constant integer FORMAT_BC1_RGBA_SRGB_BLOCK = 134
+    public constant integer FORMAT_BC2_UNORM_BLOCK = 135
+    public constant integer FORMAT_BC2_SRGB_BLOCK = 136
+    public constant integer FORMAT_BC3_UNORM_BLOCK = 137
+    public constant integer FORMAT_BC3_SRGB_BLOCK = 138
+    public constant integer FORMAT_BC4_UNORM_BLOCK = 139
+    public constant integer FORMAT_BC4_SNORM_BLOCK = 140
+    public constant integer FORMAT_BC5_UNORM_BLOCK = 141
+    public constant integer FORMAT_BC5_SNORM_BLOCK = 142
+    public constant integer FORMAT_BC6H_UFLOAT_BLOCK = 143
+    public constant integer FORMAT_BC6H_SFLOAT_BLOCK = 144
+    public constant integer FORMAT_BC7_UNORM_BLOCK = 145
+    public constant integer FORMAT_BC7_SRGB_BLOCK = 146
+    public constant integer FORMAT_ETC2_R8G8B8_UNORM_BLOCK = 147
+    public constant integer FORMAT_ETC2_R8G8B8_SRGB_BLOCK = 148
+    public constant integer FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK = 149
+    public constant integer FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK = 150
+    public constant integer FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK = 151
+    public constant integer FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK = 152
+    public constant integer FORMAT_EAC_R11_UNORM_BLOCK = 153
+    public constant integer FORMAT_EAC_R11_SNORM_BLOCK = 154
+    public constant integer FORMAT_EAC_R11G11_UNORM_BLOCK = 155
+    public constant integer FORMAT_EAC_R11G11_SNORM_BLOCK = 156
+    public constant integer FORMAT_ASTC_4x4_UNORM_BLOCK = 157
+    public constant integer FORMAT_ASTC_4x4_SRGB_BLOCK = 158
+    public constant integer FORMAT_ASTC_5x4_UNORM_BLOCK = 159
+    public constant integer FORMAT_ASTC_5x4_SRGB_BLOCK = 160
+    public constant integer FORMAT_ASTC_5x5_UNORM_BLOCK = 161
+    public constant integer FORMAT_ASTC_5x5_SRGB_BLOCK = 162
+    public constant integer FORMAT_ASTC_6x5_UNORM_BLOCK = 163
+    public constant integer FORMAT_ASTC_6x5_SRGB_BLOCK = 164
+    public constant integer FORMAT_ASTC_6x6_UNORM_BLOCK = 165
+    public constant integer FORMAT_ASTC_6x6_SRGB_BLOCK = 166
+    public constant integer FORMAT_ASTC_8x5_UNORM_BLOCK = 167
+    public constant integer FORMAT_ASTC_8x5_SRGB_BLOCK = 168
+    public constant integer FORMAT_ASTC_8x6_UNORM_BLOCK = 169
+    public constant integer FORMAT_ASTC_8x6_SRGB_BLOCK = 170
+    public constant integer FORMAT_ASTC_8x8_UNORM_BLOCK = 171
+    public constant integer FORMAT_ASTC_8x8_SRGB_BLOCK = 172
+    public constant integer FORMAT_ASTC_10x5_UNORM_BLOCK = 173
+    public constant integer FORMAT_ASTC_10x5_SRGB_BLOCK = 174
+    public constant integer FORMAT_ASTC_10x6_UNORM_BLOCK = 175
+    public constant integer FORMAT_ASTC_10x6_SRGB_BLOCK = 176
+    public constant integer FORMAT_ASTC_10x8_UNORM_BLOCK = 177
+    public constant integer FORMAT_ASTC_10x8_SRGB_BLOCK = 178
+    public constant integer FORMAT_ASTC_10x10_UNORM_BLOCK = 179
+    public constant integer FORMAT_ASTC_10x10_SRGB_BLOCK = 180
+    public constant integer FORMAT_ASTC_12x10_UNORM_BLOCK = 181
+    public constant integer FORMAT_ASTC_12x10_SRGB_BLOCK = 182
+    public constant integer FORMAT_ASTC_12x12_UNORM_BLOCK = 183
+    public constant integer FORMAT_ASTC_12x12_SRGB_BLOCK = 184
 
     /*
     Constants for the color space, which describes the format the monitor expects colors in. This primarily comes in the form of SRGB or UNORM values.
@@ -63,8 +244,6 @@ shared class VulkanConstants
     */
     public constant integer COLOR_SPACE_SRGB_NONLINEAR = 0
 
-    // Constants used to describe how Vulkan Images will be used. These are bit flags, so they can be combined in a bitmask.
-    public constant integer IMAGE_USAGE_COLOR_ATTACHMENT_BIT = 16
 
     // Constants used to describe whether or not resources can be accessed simultaneously by multiple queue families or swapchains.
     public constant integer SHARING_MODE_EXCLUSIVE = 0
@@ -145,7 +324,14 @@ shared class VulkanConstants
     Constants representing image layouts. These describe the format of stored image data. 
     */
     public constant integer IMAGE_LAYOUT_UNDEFINED = 0
+    public constant integer IMAGE_LAYOUT_GENERAL = 1
     public constant integer IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL = 2
+    public constant integer IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL = 3
+    public constant integer IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL = 4
+    public constant integer IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL = 5
+    public constant integer IMAGE_LAYOUT_TRANSFER_SOURCE_OPTIMAL = 6
+    public constant integer IMAGE_LAYOUT_TRANSFER_DESTINATION_OPTIMAL = 7
+    public constant integer IMAGE_LAYOUT_PREINITIALIZED = 8
     public constant integer IMAGE_LAYOUT_PRESENT_SOURCE = 1000001002
 
     /*
@@ -366,6 +552,25 @@ shared class VulkanConstants
     public constant integer BUFFER_USAGE_RAY_TRACING_BIT_NV = BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR
     public constant integer BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_EXT = BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT
     public constant integer BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_KHR = BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT
+
+    // Constants used to describe how Vulkan Images will be used. These are bit flags, so they can be combined in a bitmask.
+    public constant integer IMAGE_USAGE_TRANSFER_SOURCE_BIT = 1
+    public constant integer IMAGE_USAGE_TRANSFER_DESTINATION_BIT = 2
+    public constant integer IMAGE_USAGE_SAMPLED_BIT = 4
+    public constant integer IMAGE_USAGE_STORAGE_BIT = 8
+    public constant integer IMAGE_USAGE_COLOR_ATTACHMENT_BIT = 16
+    public constant integer IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT = 32
+    public constant integer IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT = 64
+    public constant integer IMAGE_USAGE_INPUT_ATTACHMENT_BIT = 128
+    public constant integer IMAGE_USAGE_HOST_TRANSFER_BIT = 4194304
+    public constant integer IMAGE_USAGE_VIDEO_DECODE_DESTINATION_BIT_KHR = 1024
+    public constant integer IMAGE_USAGE_VIDEO_DECODE_SOURCE_BIT_KHR = 2048
+    public constant integer IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR = 4096
+    public constant integer IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT = 512
+    public constant integer IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR = 256
+    public constant integer IMAGE_USAGE_VIDEO_ENCODE_DESTINATION_BIT_KHR = 8192
+    public constant integer IMAGE_USAGE_VIDEO_ENCODE_SOURCE_BIT_KHR = 16384
+    public constant integer IMAGE_USAGE_VIDEO_ENCODE_DPB_BIT_KHR = 32768
     
     /*
     These constants represent how commands will be submitted to a VulkanCommandBuffer during a render pass.
@@ -386,5 +591,94 @@ shared class VulkanConstants
     */
     public constant integer INDEX_TYPE_UINT16 = 0
     public constant integer INDEX_TYPE_UINT32 = 1
+
+    /*
+    Data types for descriptors. Used to access data from shaders for things like uniforms.
+    */
+    public constant integer DESCRIPTOR_TYPE_SAMPLER = 0
+    public constant integer DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER = 1
+    public constant integer DESCRIPTOR_TYPE_SAMPLED_IMAGE = 2
+    public constant integer DESCRIPTOR_TYPE_STORAGE_IMAGE = 3
+    public constant integer DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER = 4
+    public constant integer DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER = 5
+    public constant integer DESCRIPTOR_TYPE_UNIFORM_BUFFER = 6
+    public constant integer DESCRIPTOR_TYPE_STORAGE_BUFFER = 7
+    public constant integer DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC = 8
+    public constant integer DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC = 9
+    public constant integer DESCRIPTOR_TYPE_INPUT_ATTACHMENT = 10
+
+    /*
+    Vulkan error codes.
+    */
+    public constant integer SUCCESS = 0
+    public constant integer ERROR_OUT_OF_POOL_MEMORY = -1000069000
+
+    /*
+    Image types, used to indicate how many dimensions a VulkanImage has. IMAGE_TYPE_2D is suitable for most cases.
+    */
+    public constant integer IMAGE_TYPE_1D = 0
+    public constant integer IMAGE_TYPE_2D = 1
+    public constant integer IMAGE_TYPE_3D = 2
+
+    /*
+    Image tiling values, used during image creation. IMAGE_TILING_OPTIMAL is suitable for most cases.
+    */
+    public constant integer IMAGE_TILING_OPTIMAL = 0
+    public constant integer IMAGE_TILING_LINEAR = 1
+
+    /*
+    This value indicates that the queue family is not used for an operation. Used in VulkanImageMemoryBarrier, among other possible places.
+    */
+    public constant integer QUEUE_FAMILY_IGNORED = -1
+
+    /*
+    Filter values used by image samplers, defining how values are retrieved while performing texture lookups.
+    Impacts how textures are sampled when they're rendered to the screen bigger or smaller than the original texture.
+    */
+    public constant integer FILTER_NEAREST = 0
+    public constant integer FILTER_LINEAR = 1
+
+    /*
+    Mipmap modes, used by image samplers to specify how texture lookups should be performed for mipmapped textures.
+    */
+    public constant integer SAMPLER_MIPMAP_MODE_NEAREST = 0
+    public constant integer SAMPLER_MIPMAP_MODE_LINEAR = 1
+
+    /*
+    Address modes, or wrap modes, dictate how an image sampler should act when asked to lookup a texture outside of its defined coordinates.
+    */
+    public constant integer SAMPLER_ADDRESS_MODE_REPEAT = 0
+    public constant integer SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT = 1
+    public constant integer SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE = 2
+    public constant integer SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER = 3
+    public constant integer SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE = 4
+
+    /*
+    Comparison operators are used by depth, stencil, and sampler operations to compare values. The exact results depend on what context the operations are being used in.
+    */
+    public constant integer COMPARE_OP_NEVER = 0
+    public constant integer COMPARE_OP_LESS = 1
+    public constant integer COMPARE_OP_EQUAL = 2
+    public constant integer COMPARE_OP_LESS_OR_EQUAL = 3
+    public constant integer COMPARE_OP_GREATER = 4
+    public constant integer COMPARE_OP_NOT_EQUAL = 5
+    public constant integer COMPARE_OP_GREATER_OR_EQUAL = 6
+    public constant integer COMPARE_OP_ALWAYS = 7
+
+    /*
+    A special value used in VulkanSamplerInfo for the "maxLod" property, indicating that maximum LoD clamping should not be performed.
+    */
+    public constant number LOD_CLAMP_NONE = 1000.0
+
+    /*
+    Values used by VulkanSamplerInfo's "borderColor" property. Used in conjunction with "SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER" wrap mode to provide a default color
+    when sampling outside of the texture's defined bounds.
+    */
+    public constant integer BORDER_COLOR_FLOAT_TRANSPARENT_BLACK = 0
+    public constant integer BORDER_COLOR_INT_TRANSPARENT_BLACK = 1
+    public constant integer BORDER_COLOR_FLOAT_OPAQUE_BLACK = 2
+    public constant integer BORDER_COLOR_INT_OPAQUE_BLACK = 3
+    public constant integer BORDER_COLOR_FLOAT_OPAQUE_WHITE = 4
+    public constant integer BORDER_COLOR_INT_OPAQUE_WHITE = 5
 
 end

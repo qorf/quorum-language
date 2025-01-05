@@ -1,0 +1,22 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanSampler
+
+    VulkanDevice device = undefined
+    VulkanSamplerInfo info = undefined
+    boolean initialized = false
+
+    action Create(VulkanDevice device, VulkanSamplerInfo info) returns boolean
+        boolean success = CreateNative(device, info)
+        if success
+            me:device = device
+            me:info = info:Copy()
+            initialized = true
+        end
+
+        return success
+    end
+
+    private system action CreateNative(VulkanDevice device, VulkanSamplerInfo info) returns boolean
+
+end

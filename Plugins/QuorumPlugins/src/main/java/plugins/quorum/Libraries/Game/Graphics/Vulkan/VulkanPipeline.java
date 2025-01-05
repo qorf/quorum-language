@@ -159,18 +159,28 @@ public class VulkanPipeline
             dynamicStateInfo.sType$Default();
             dynamicStateInfo.pDynamicStates(dynamicStateBuffer);
 
-
-            // Create a layout object for the pipeline.
-            VkPipelineLayoutCreateInfo layoutInfo = VkPipelineLayoutCreateInfo.calloc(stack);
-            layoutInfo.sType$Default();
             LongBuffer handleBuffer = stack.mallocLong(1);
 
-            int vulkanResult = vkCreatePipelineLayout(devicePlugin.GetDevice(), layoutInfo, null, handleBuffer);
-            if (vulkanResult != VK_SUCCESS)
-                return false;
+            // Create a layout object for the pipeline.
+            if (info.GetLayout() == null)
+            {
+                VkPipelineLayoutCreateInfo layoutInfo = VkPipelineLayoutCreateInfo.calloc(stack);
+                layoutInfo.sType$Default();
 
-            vulkanPipelineLayoutHandle = handleBuffer.get(0);
+                int vulkanResult = vkCreatePipelineLayout(devicePlugin.GetDevice(), layoutInfo, null, handleBuffer);
+                if (vulkanResult != VK_SUCCESS)
+                {
+                    System.out.println("Failed to create layout: code = " + vulkanResult);
+                    return false;
+                }
 
+                vulkanPipelineLayoutHandle = handleBuffer.get(0);
+            }
+            else
+            {
+                VulkanPipelineLayout pluginLayout = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanPipelineLayout)info.GetLayout()).plugin_;
+                vulkanPipelineLayoutHandle = pluginLayout.GetLayoutHandle();
+            }
 
             // Now we finally have all the necessary info to put together pipeline itself.
             VkGraphicsPipelineCreateInfo.Buffer pipelineCreateInfo = VkGraphicsPipelineCreateInfo.calloc(1, stack);
@@ -186,9 +196,12 @@ public class VulkanPipeline
             pipelineCreateInfo.layout(vulkanPipelineLayoutHandle);
             pipelineCreateInfo.renderPass(renderPassPlugin.GetRenderPassHandle());
 
-            vulkanResult = vkCreateGraphicsPipelines(devicePlugin.GetDevice(), pipelineCacheHandle, pipelineCreateInfo, null, handleBuffer);
+            int vulkanResult = vkCreateGraphicsPipelines(devicePlugin.GetDevice(), pipelineCacheHandle, pipelineCreateInfo, null, handleBuffer);
             if (vulkanResult != VK_SUCCESS)
+            {
+                System.out.println("Failed to create pipeline: code = " + vulkanResult);
                 return false;
+            }
 
             vulkanPipelineHandle = handleBuffer.get(0);
         }

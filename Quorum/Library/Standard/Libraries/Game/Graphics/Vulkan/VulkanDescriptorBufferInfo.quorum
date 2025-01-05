@@ -1,0 +1,65 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanDescriptorBufferInfo
+
+    VulkanBuffer buffer = undefined
+    integer bufferOffset = 0
+    integer bufferRange = 0
+    integer binding = 0
+    integer descriptorType = 0
+    integer descriptorCount = 1
+
+    on create
+        VulkanConstants constants
+        descriptorType = constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER
+    end
+
+    action GetBuffer returns VulkanBuffer
+        return buffer
+    end
+
+    action SetBuffer(VulkanBuffer buffer)
+        me:buffer = buffer
+    end
+
+    action GetBufferOffset returns integer
+        return bufferOffset
+    end
+
+    action SetBufferOffset(integer bufferOffset)
+        me:bufferOffset = bufferOffset
+    end
+
+    action GetBufferRange returns integer
+        return bufferRange
+    end
+
+    action SetBufferRange(integer bufferRange)
+        me:bufferRange = bufferRange
+    end
+
+    action GetBinding returns integer
+        return binding
+    end
+
+    action SetBinding(integer binding)
+        me:binding = binding
+    end
+
+    action GetDescriptorType returns integer
+        return descriptorType
+    end
+
+    action SetDescriptorType(integer descriptorType)
+        me:descriptorType = descriptorType
+    end
+
+    action GetDescriptorCount returns integer
+        return descriptorCount
+    end
+
+    action SetDescriptorCount(integer descriptorCount)
+        me:descriptorCount = descriptorCount
+    end
+
+end

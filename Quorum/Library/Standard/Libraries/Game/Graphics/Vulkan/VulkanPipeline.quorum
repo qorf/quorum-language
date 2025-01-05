@@ -8,6 +8,7 @@ class VulkanPipeline
     VulkanDevice device = undefined
     VulkanRenderPass renderPass = undefined
     VulkanPipelineCache cache = undefined
+    VulkanPipelineInfo info = undefined
 
     boolean initialized = false
 
@@ -18,6 +19,7 @@ class VulkanPipeline
             me:device = device
             me:renderPass = renderPass
             me:cache = cache
+            
             initialized = true
         end
         

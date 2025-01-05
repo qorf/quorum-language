@@ -1,0 +1,42 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanDescriptorSetLayoutBinding
+
+    integer binding = 0
+    integer descriptorType = 0
+    integer descriptorCount = 1
+    integer stageFlags = 0
+
+    action GetBinding returns integer
+        return binding
+    end
+
+    action SetBinding(integer binding)
+        me:binding = binding
+    end
+
+    action GetDescriptorType returns integer
+        return descriptorType
+    end
+
+    action SetDescriptorType(integer descriptorType)
+        me:descriptorType = descriptorType
+    end
+
+    action GetDescriptorCount returns integer
+        return descriptorCount
+    end
+
+    action SetDescriptorCount(integer descriptorCount)
+        me:descriptorCount = descriptorCount
+    end
+
+    action GetStageFlags returns integer
+        return stageFlags
+    end
+
+    action SetStageFlags(integer stageFlags)
+        me:stageFlags = stageFlags
+    end
+
+end

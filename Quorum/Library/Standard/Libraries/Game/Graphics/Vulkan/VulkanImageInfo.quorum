@@ -1,0 +1,197 @@
+package Libraries.Game.Graphics.Vulkan
+
+/*
+This class represents the information needed to create a VulkanImage.
+Some fields are mandatory and must be set before use.
+The other fields have default values and can optionally be set for specific use cases, but can be ignored for basic uses.
+
+Mandatory fields:
+width: The width of the image.
+height: The height of the image.
+usage: How the image will be used, described by a combination of IMAGE_USAGE flags from VulkanConstants.
+
+Optional fields:
+imageType: An IMAGE_TYPE value from VulkanConstants. Defaults to IMAGE_TYPE_2D.
+depth: The depth of the image. Default value is 1, and this should only be changed if the imageType is IMAGE_TYPE_3D.
+mipLevels: The number of levels of detail available for minified sampling of the image (i.e., how many levels are available for mipmapping). The default value is 1 (no mipmapping).
+arrayLayers: The number of layers in the image. The default value is 1.
+format: The format of the texels (pixels in the image), using a FORMAT value from VulkanConstants. The default value is FORMAT_R8G8B8A8_SRGB (8 bits each of Red, Green, Blue, and Alpha values, stored with sRGB encoding).
+tiling: The arrangement (or "tiling") of the internal data, using an IMAGE_TILING value from VulkanConstants. The default value is IMAGE_TILING_OPTIMAL.
+initialLayout: An IMAGE_LAYOUT value from VulkanConstants that describes the starting layout of all image subresources of this image. The default value is IMAGE_LAYOUT_UNDEFINED.
+samples: The number of samples per texel (pixel in the image), using a SAMPLE_COUNT value from VulkanConstants. The default value is SAMPLE_COUNT_1_BIT (no multisampling).
+sharingMode: A SHARING_MODE value from VulkanConstants describing how to handle multiple queue families accessing this image. The default value is SHARING_MODE_EXCLUSIVE.
+flags: A bitmask of additional flags during image creation, using IMAGE_CREATE constants. The default value is 0 (no flags).
+memoryUsage: A MEMORY_USAGE value from VulkanConstants describing how the image should be stored in memory. The default value is MEMORY_USAGE_AUTO, so the memory will be allocated to the best available type based on the "usage" flag.
+allocationFlags: A ALLOCATION_CREATE value from VulkanConstants describing details about the memory allocated for this image. The default value is 0. If the image needs to be mapped to host-accessible memory, then this should be set to ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT or ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT.                  
+requiredMemoryFlags: When used in conjunction with preferredMemoryFlags, this indicates which flags for the allocation are required. The default value is 0. Most use cases can ignore this field.
+preferredMemoryFlags: When used in conjunction with requiredMemoryFlags, this indicates flags that we would like the system to respect, but can be ignored if they're not supported. The default value is 0. Most use cases can ignore this field.
+*/
+class VulkanImageInfo
+
+    integer imageType = 0
+    integer width = -1
+    integer height = -1
+    integer depth = 1
+    integer mipLevels = 1
+    integer arrayLayers = 1
+    integer format = 0
+    integer tiling = 0
+    integer initialLayout = 0
+    integer usage = 0
+    integer samples = 0
+    integer sharingMode = 0
+    integer flags = 0
+
+    integer memoryUsage = 0
+    integer allocationFlags = 0
+    integer requiredMemoryFlags = 0
+    integer preferredMemoryFlags = 0
+
+    on create
+        VulkanConstants constants
+        imageType = constants:IMAGE_TYPE_2D
+        format = constants:FORMAT_R8G8B8A8_SRGB
+        tiling = constants:IMAGE_TILING_OPTIMAL
+        initialLayout = constants:IMAGE_LAYOUT_UNDEFINED
+        samples = constants:SAMPLE_COUNT_1_BIT
+        sharingMode = constants:SHARING_MODE_EXCLUSIVE
+        memoryUsage = constants:MEMORY_USAGE_AUTO
+    end
+
+    action GetImageType returns integer
+        return imageType
+    end
+
+    action SetImageType(integer imageType)
+        me:imageType = imageType
+    end
+
+    action GetWidth returns integer
+        return width
+    end
+
+    action SetWidth(integer width)
+        me:width = width
+    end
+
+    action GetHeight returns integer
+        return height
+    end
+
+    action SetHeight(integer height)
+        me:height = height
+    end
+
+    action GetDepth returns integer
+        return depth
+    end
+
+    action SetDepth(integer depth)
+        me:depth = depth
+    end
+
+    action GetMipLevels returns integer
+        return mipLevels
+    end
+
+    action SetMipLevels(integer mipLevels)
+        me:mipLevels = mipLevels
+    end
+
+    action GetArrayLayers returns integer
+        return arrayLayers
+    end
+
+    action SetArrayLayers(integer arrayLayers)
+        me:arrayLayers = arrayLayers
+    end
+
+    action GetFormat returns integer
+        return format
+    end
+
+    action SetFormat(integer format)
+        me:format = format
+    end
+
+    action GetTiling returns integer
+        return tiling
+    end
+
+    action SetTiling(integer tiling)
+        me:tiling = tiling
+    end
+
+    action GetInitialLayout returns integer
+        return initialLayout
+    end
+
+    action SetInitialLayout(integer initialLayout)
+        me:initialLayout = initialLayout
+    end
+
+    action GetUsage returns integer
+        return usage
+    end
+
+    action SetUsage(integer usage)
+        me:usage = usage
+    end
+
+    action GetSamples returns integer
+        return samples
+    end
+
+    action SetSamples(integer samples)
+        me:samples = samples
+    end
+
+    action GetSharingMode returns integer
+        return sharingMode
+    end
+
+    action SetSharingMode(integer sharingMode)
+        me:sharingMode = sharingMode
+    end
+
+    action GetFlags returns integer
+        return flags
+    end
+
+    action SetFlags(integer flags)
+        me:flags = flags
+    end
+
+    action GetMemoryUsage returns integer
+        return memoryUsage
+    end
+
+    action SetMemoryUsage(integer memoryUsage)
+        me:memoryUsage = memoryUsage
+    end
+
+    action GetAllocationFlags returns integer
+        return allocationFlags
+    end
+
+    action SetAllocationFlags(integer allocationFlags)
+        me:allocationFlags = allocationFlags
+    end
+
+    action GetRequiredMemoryFlags returns integer
+        return requiredMemoryFlags
+    end
+
+    action SetRequiredMemoryFlags(integer requiredMemoryFlags)
+        me:requiredMemoryFlags = requiredMemoryFlags
+    end
+
+    action GetPreferredMemoryFlags returns integer
+        return preferredMemoryFlags
+    end
+
+    action SetPreferredMemoryFlags(integer preferredMemoryFlags)
+        me:preferredMemoryFlags = preferredMemoryFlags
+    end
+
+end

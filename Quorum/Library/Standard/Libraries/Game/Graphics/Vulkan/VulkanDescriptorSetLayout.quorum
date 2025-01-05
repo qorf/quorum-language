@@ -1,0 +1,30 @@
+package Libraries.Game.Graphics.Vulkan
+use Libraries.Containers.Array
+
+class VulkanDescriptorSetLayout
+
+    VulkanDevice device = undefined
+    boolean initialized = false
+
+    action Create(VulkanDevice device, Array<VulkanDescriptorSetLayoutBinding> bindings) returns boolean
+        boolean success = CreateNative(device, bindings)
+
+        if success
+            me:device = device
+            initialized = true
+        end
+
+        return success
+    end
+
+    private system action CreateNative(VulkanDevice device, Array<VulkanDescriptorSetLayoutBinding> bindings) returns boolean
+
+    action GetDevice returns VulkanDevice
+        return device
+    end
+
+    action Dispose
+        alert("NYI")
+    end
+
+end

@@ -215,7 +215,7 @@ public class VulkanSwapchain
             {
                 quorum.Libraries.Game.Graphics.Vulkan.VulkanImage image = new quorum.Libraries.Game.Graphics.Vulkan.VulkanImage();
                 VulkanImage imagePlugin = image.plugin_;
-                imagePlugin.LoadFromHandle(swapChainImageHandles.get(i), imageWidth, imageHeight);
+                imagePlugin.LoadFromHandle(swapChainImageHandles.get(i), quorumDevice, imageWidth, imageHeight);
                 imageViewArray.Add(image);
             }
         }

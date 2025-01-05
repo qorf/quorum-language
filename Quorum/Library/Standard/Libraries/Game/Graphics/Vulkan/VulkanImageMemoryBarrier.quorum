@@ -1,0 +1,106 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanImageMemoryBarrier is VulkanMemoryBarrier
+
+    integer oldLayout = 0
+    integer newLayout = 0
+    integer sourceQueueFamilyIndex = 0
+    integer destinationQueueFamilyIndex = 0
+    
+    integer aspectMask = 0
+    integer baseMipLevel = 0
+    integer levelCount = 1
+    integer baseArrayLayer = 0
+    integer layerCount = 1
+
+    VulkanImage image = undefined
+
+    on create
+        VulkanConstants constants
+        oldLayout = constants:IMAGE_LAYOUT_UNDEFINED
+        newLayout = constants:IMAGE_LAYOUT_UNDEFINED
+        sourceQueueFamilyIndex = constants:QUEUE_FAMILY_IGNORED
+        destinationQueueFamilyIndex = constants:QUEUE_FAMILY_IGNORED
+    end
+
+    action GetOldLayout returns integer
+        return oldLayout
+    end
+
+    action SetOldLayout(integer oldLayout)
+        me:oldLayout = oldLayout
+    end
+
+    action GetNewLayout returns integer
+        return newLayout
+    end
+
+    action SetNewLayout(integer newLayout)
+        me:newLayout = newLayout
+    end
+
+    action GetSourceQueueFamilyIndex returns integer
+        return sourceQueueFamilyIndex
+    end
+
+    action SetSourceQueueFamilyIndex(integer sourceQueueFamilyIndex)
+        me:sourceQueueFamilyIndex = sourceQueueFamilyIndex
+    end
+
+    action GetDestinationQueueFamilyIndex returns integer
+        return destinationQueueFamilyIndex
+    end
+
+    action SetDestinationQueueFamilyIndex(integer destinationQueueFamilyIndex)
+        me:destinationQueueFamilyIndex = destinationQueueFamilyIndex
+    end
+
+    action GetAspectMask returns integer
+        return aspectMask
+    end
+
+    action SetAspectMask(integer aspectMask)
+        me:aspectMask = aspectMask
+    end
+
+    action GetBaseMipLevel returns integer
+        return baseMipLevel
+    end
+
+    action SetBaseMipLevel(integer baseMipLevel)
+        me:baseMipLevel = baseMipLevel
+    end
+
+    action GetLevelCount returns integer
+        return levelCount
+    end
+
+    action SetLevelCount(integer levelCount)
+        me:levelCount = levelCount
+    end
+
+    action GetBaseArrayLayer returns integer
+        return baseArrayLayer
+    end
+
+    action SetBaseArrayLayer(integer baseArrayLayer)
+        me:baseArrayLayer = baseArrayLayer
+    end
+
+    action GetLayerCount returns integer
+        return layerCount
+    end
+
+    action SetLayerCount(integer layerCount)
+        me:layerCount = layerCount
+    end
+
+    action GetImage returns VulkanImage
+        return image
+    end
+
+    action SetImage(VulkanImage image)
+        me:image = image
+    end
+
+end

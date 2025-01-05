@@ -50,8 +50,6 @@ class VulkanDevice
 
     private system action CreateNative(VulkanPhysicalDevice physicalDevice, Array<text> extensionNames, Array<VulkanQueueFamily> queueFamilies) returns boolean
 
-    //system action GetQueue(integer supportedFeaturesMask)
-
     action GetPhysicalDevice returns VulkanPhysicalDevice
         return physicalDevice
     end

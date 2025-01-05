@@ -70,60 +70,6 @@ public class VulkanBuffer
         return true;
     }
 
-    /*
-    Commented out below is the original implementation for CreateNative. This version is obsolete with
-    the introduction of the VulkanMemoryAllocator (VMA) library, but the code is kept here for posterity while the
-    system is being developed.
-    -------------------------
-    public boolean CreateNative(VulkanDevice_ quorumDevice, int size, int usageFlags, int memoryFlags, int sharingMode)
-    {
-        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
-        VulkanPhysicalDevice pluginPhysicalDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice)quorumDevice.GetPhysicalDevice()).plugin_;
-
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            // Start by making the descriptor for the buffer. This won't allocate memory yet, but gives us a handle to the object.
-            VkBufferCreateInfo bufferCreateInfo = VkBufferCreateInfo.calloc(stack);
-            bufferCreateInfo.sType$Default();
-            bufferCreateInfo.size(size);
-            bufferCreateInfo.usage(usageFlags);
-            bufferCreateInfo.sharingMode(sharingMode);
-
-            LongBuffer handleBuffer = stack.mallocLong(1);
-            int vulkanResult = vkCreateBuffer(pluginDevice.GetDevice(), bufferCreateInfo, null, handleBuffer);
-            if (vulkanResult != VK_SUCCESS)
-                return false;
-
-            bufferHandle = handleBuffer.get(0);
-
-
-            // Determine where the memory will be reserved, out of the different resources made available by the physical device.
-            VkMemoryRequirements memoryRequirements = VkMemoryRequirements.calloc(stack);
-            vkGetBufferMemoryRequirements(pluginDevice.GetDevice(), bufferHandle, memoryRequirements);
-
-            VkMemoryAllocateInfo memoryAllocateInfo = VkMemoryAllocateInfo.calloc(stack);
-            memoryAllocateInfo.sType$Default();
-            memoryAllocateInfo.allocationSize(memoryRequirements.size());
-            // Use our helper to figure out which index is associated with our preferred memory type. The helper contains
-            // more details on what this is and why it's needed.
-            memoryAllocateInfo.memoryTypeIndex(memoryTypeFromProperties(pluginPhysicalDevice.GetDevice(), memoryRequirements.memoryTypeBits(), memoryFlags));
-
-            vulkanResult = vkAllocateMemory(pluginDevice.GetDevice(), memoryAllocateInfo, null, handleBuffer);
-            if (vulkanResult != VK_SUCCESS)
-                return false;
-
-            memoryHandle = handleBuffer.get(0);
-
-            // Now that we've created both the buffer data structure and allocated a chunk of memory, associate the two with each other.
-            vulkanResult = vkBindBufferMemory(pluginDevice.GetDevice(), bufferHandle, memoryHandle, 0);
-            if (vulkanResult != VK_SUCCESS)
-                return false;
-        }
-
-        return true;
-    }
-    */
-
 
     /*
     The physical device has several different ways it can organize memory. The way that this is exposed to Vulkan is

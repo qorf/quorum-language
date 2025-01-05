@@ -53,7 +53,6 @@ public class VulkanQueue
             for (int i = 0; i < quorumBuffers.GetSize(); i++)
             {
                 quorum.Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer quorumBuffer = (quorum.Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer) quorumBuffers.Get(i);
-                quorumBuffer.DebugOutputNames();
                 commandBuffers.put(quorumBuffer.plugin_.GetCommandBuffer());
             }
             commandBuffers.flip();

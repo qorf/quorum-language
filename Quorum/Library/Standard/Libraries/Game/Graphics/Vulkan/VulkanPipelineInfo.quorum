@@ -11,6 +11,7 @@ class VulkanPipelineInfo
     integer viewportCount = 1
     integer scissorCount = 1
     number lineWidth = 1.0
+    VulkanPipelineLayout layout
     Array<integer> dynamicStates
     Array<VulkanVertexInputAttributeDescription> vertexInputAttributeDescriptions
     Array<VulkanVertexInputBindingDescription> vertexInputBindingDescriptions
@@ -37,6 +38,7 @@ class VulkanPipelineInfo
         copy:lineWidth = lineWidth
         copy:rasterizationSamples = rasterizationSamples
         copy:dynamicStates = dynamicStates:CopyToArray()
+        copy:layout = layout
 
         integer i = 0
         Array<VulkanVertexInputAttributeDescription> attributes
@@ -159,6 +161,14 @@ class VulkanPipelineInfo
 
     action SetPipelineColorBlendAttachmentStates(Array<VulkanPipelineColorBlendAttachmentState> pipelineColorBlendAttachmentStates)
         me:pipelineColorBlendAttachmentStates = pipelineColorBlendAttachmentStates
+    end
+
+    action GetLayout returns VulkanPipelineLayout
+        return layout
+    end
+
+    action SetLayout(VulkanPipelineLayout layout)
+        me:layout = layout
     end
 
 end

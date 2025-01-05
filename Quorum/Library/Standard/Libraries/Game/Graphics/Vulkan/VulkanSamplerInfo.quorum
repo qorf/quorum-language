@@ -1,0 +1,186 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanSamplerInfo
+
+    integer flags = 0
+    integer magnifyFilter = 0
+    integer minifyFilter = 0
+    integer mipMapMode = 0
+    integer horizontalWrapMode = 0
+    integer verticalWrapMode = 0
+    integer depthWrapMode = 0
+    number mipLodBias = 0
+    boolean anisotropyEnable = false
+    number maxAnisotropy = 0
+    boolean compareEnable = false
+    integer compareOp = 0
+    number minLod = 0
+    number maxLod = 0
+    integer borderColor = 0
+    boolean unnormalizedCoordinates = false
+
+    on create
+        VulkanConstants constants
+        magnifyFilter = constants:FILTER_LINEAR
+        minifyFilter = constants:FILTER_LINEAR
+        mipMapMode = constants:SAMPLER_MIPMAP_MODE_NEAREST
+        horizontalWrapMode = constants:SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
+        verticalWrapMode = constants:SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
+        depthWrapMode = constants:SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
+        compareOp = constants:COMPARE_OP_ALWAYS
+        maxLod = constants:LOD_CLAMP_NONE
+        borderColor = constants:BORDER_COLOR_INT_OPAQUE_BLACK
+    end
+
+    action Copy returns VulkanSamplerInfo
+        VulkanSamplerInfo copy
+
+        copy:flags = flags
+        copy:magnifyFilter = magnifyFilter
+        copy:minifyFilter = minifyFilter
+        copy:mipMapMode = mipMapMode
+        copy:horizontalWrapMode = horizontalWrapMode
+        copy:verticalWrapMode = verticalWrapMode
+        copy:depthWrapMode = depthWrapMode
+        copy:mipLodBias = mipLodBias
+        copy:anisotropyEnable = anisotropyEnable
+        copy:maxAnisotropy = maxAnisotropy
+        copy:compareEnable = compareEnable
+        copy:compareOp = compareOp
+        copy:minLod = minLod
+        copy:maxLod = maxLod
+        copy:borderColor = borderColor
+        copy:unnormalizedCoordinates = false
+
+        return copy
+    end
+
+    action GetFlags returns integer
+        return flags
+    end
+
+    action SetFlags(integer flags)
+        me:flags = flags
+    end
+
+    action GetMagnifyFilter returns integer
+        return magnifyFilter
+    end
+
+    action SetMagnifyFilter(integer magnifyFilter)
+        me:magnifyFilter = magnifyFilter
+    end
+
+    action GetMinifyFilter returns integer
+        return minifyFilter
+    end
+
+    action SetMinifyFilter(integer minifyFilter)
+        me:minifyFilter = minifyFilter
+    end
+
+    action GetMipMapMode returns integer
+        return mipMapMode
+    end
+
+    action SetMipMapMode(integer mipMapMode)
+        me:mipMapMode = mipMapMode
+    end
+
+    action GetHorizontalWrapMode returns integer
+        return horizontalWrapMode
+    end
+
+    action SetHorizontalWrapMode(integer horizontalWrapMode)
+        me:horizontalWrapMode = horizontalWrapMode
+    end
+
+    action GetVerticalWrapMode returns integer
+        return verticalWrapMode
+    end
+
+    action SetVerticalWrapMode(integer verticalWrapMode)
+        me:verticalWrapMode = verticalWrapMode
+    end
+
+    action GetDepthWrapMode returns integer
+        return depthWrapMode
+    end
+
+    action SetDepthWrapMode(integer depthWrapMode)
+        me:depthWrapMode = depthWrapMode
+    end
+
+    action GetMipLodBias returns number
+        return mipLodBias
+    end
+
+    action SetMipLodBias(number mipLodBias)
+        me:mipLodBias = mipLodBias
+    end
+
+    action GetAnisotropyEnable returns boolean
+        return anisotropyEnable
+    end
+
+    action SetAnisotropyEnable(boolean anisotropyEnable)
+        me:anisotropyEnable = anisotropyEnable
+    end
+
+    action GetMaxAnisotropy returns number
+        return maxAnisotropy
+    end
+
+    action SetMaxAnisotropy(number maxAnisotropy)
+        me:maxAnisotropy = maxAnisotropy
+    end
+
+    action GetCompareEnable returns boolean
+        return compareEnable
+    end
+
+    action SetCompareEnable(boolean compareEnable)
+        me:compareEnable = compareEnable
+    end
+
+    action GetCompareOp returns integer
+        return compareOp
+    end
+
+    action SetCompareOp(integer compareOp)
+        me:compareOp = compareOp
+    end
+
+    action GetMinLod returns number
+        return minLod
+    end
+
+    action SetMinLod(number minLod)
+        me:minLod = minLod
+    end
+
+    action GetMaxLod returns number
+        return maxLod
+    end
+
+    action SetMaxLod(number maxLod)
+        me:maxLod = maxLod
+    end
+
+    action GetBorderColor returns integer
+        return borderColor
+    end
+
+    action SetBorderColor(integer borderColor)
+        me:borderColor = borderColor
+    end
+
+    action GetUnnormalizedCoordinates returns boolean
+        return unnormalizedCoordinates
+    end
+
+    action SetUnnormalizedCoordinates(boolean unnormalizedCoordinates)
+        me:unnormalizedCoordinates = unnormalizedCoordinates
+    end
+
+end

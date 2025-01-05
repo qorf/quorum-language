@@ -1,0 +1,156 @@
+package Libraries.Game.Graphics.Vulkan
+
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+
+class VulkanDescriptorSetManager
+
+    // A HashTable that associates types of descriptors with an array of available pools.
+    HashTable<integer, Array<VulkanDescriptorPool>> descriptorPools
+
+    VulkanDevice device = undefined
+
+    action Initialize(VulkanDevice device)
+        me:device = device
+    end
+
+    action CreateDescriptorSet(VulkanDescriptorSetLayout layout, VulkanBuffer buffer, integer binding, integer type) returns VulkanDescriptorSet
+        Array<VulkanDescriptorPool> availablePools = undefined
+
+        if not descriptorPools:HasKey(type)
+            Array<VulkanDescriptorPool> newArray
+            descriptorPools:Add(type, newArray)
+            availablePools = newArray
+        else
+            availablePools = descriptorPools:GetValue(type)
+        end
+
+        VulkanDescriptorSet descriptorSet
+        VulkanConstants constants
+
+        if not availablePools:IsEmpty()
+            // Start by checking the last pool in the array. It's the most likely to have free space.
+            VulkanDescriptorPool pool = availablePools:GetFromEnd()
+            boolean success = descriptorSet:Create(device, pool, layout, buffer, binding, type)
+            if success
+                return descriptorSet
+            elseif descriptorSet:GetFailureCode() not= constants:ERROR_OUT_OF_POOL_MEMORY
+                return undefined
+            end
+
+            // If our selected pool was out of memory, iterate through the available pools from the beginning.
+            // These pools were full at some point, but space might have been freed up sense.
+            integer i = 0
+            repeat while i < availablePools:GetSize() - 1
+                pool = availablePools:Get(i)
+                success = descriptorSet:Create(device, pool, layout, buffer, binding, type)
+                if success
+                    return descriptorSet
+                elseif descriptorSet:GetFailureCode() not= constants:ERROR_OUT_OF_POOL_MEMORY
+                    return undefined
+                end
+
+                i = i + 1
+            end
+        end
+
+        // If we've reached this point, there are no available pools that can successfully allocate the descriptor set.
+        // Make a new pool and try to use that.
+        VulkanDescriptorPool newPool
+        newPool:Create(device, type)
+        
+        boolean success = descriptorSet:Create(device, newPool, layout, buffer, binding, type)
+        if success
+            availablePools:Add(newPool)
+            return descriptorSet
+        else
+            newPool:Dispose()
+            return undefined
+        end
+    end
+
+    action CreateDescriptorSet(VulkanDescriptorSetLayout layout, VulkanDescriptorBufferInfo bufferInfo) returns VulkanDescriptorSet
+        Array<VulkanDescriptorPool> availablePools = undefined
+        integer type = bufferInfo:GetDescriptorType()
+
+        if not descriptorPools:HasKey(type)
+            Array<VulkanDescriptorPool> newArray
+            descriptorPools:Add(type, newArray)
+            availablePools = newArray
+        else
+            availablePools = descriptorPools:GetValue(type)
+        end
+
+        VulkanDescriptorSet descriptorSet
+        VulkanConstants constants
+
+        if not availablePools:IsEmpty()
+            // Start by checking the last pool in the array. It's the most likely to have free space.
+            VulkanDescriptorPool pool = availablePools:GetFromEnd()
+            boolean success = descriptorSet:Create(device, pool, layout, bufferInfo)
+            if success
+                return descriptorSet
+            elseif descriptorSet:GetFailureCode() not= constants:ERROR_OUT_OF_POOL_MEMORY
+                return undefined
+            end
+
+            // If our selected pool was out of memory, iterate through the available pools from the beginning.
+            // These pools were full at some point, but space might have been freed up sense.
+            integer i = 0
+            repeat while i < availablePools:GetSize() - 1
+                pool = availablePools:Get(i)
+                success = descriptorSet:Create(device, pool, layout, bufferInfo)
+                if success
+                    return descriptorSet
+                elseif descriptorSet:GetFailureCode() not= constants:ERROR_OUT_OF_POOL_MEMORY
+                    return undefined
+                end
+
+                i = i + 1
+            end
+        end
+
+        // If we've reached this point, there are no available pools that can successfully allocate the descriptor set.
+        // Make a new pool and try to use that.
+        VulkanDescriptorPool newPool
+        newPool:Create(device, type)
+        
+        boolean success = descriptorSet:Create(device, newPool, layout, bufferInfo)
+        if success
+            availablePools:Add(newPool)
+            return descriptorSet
+        else
+            newPool:Dispose()
+            return undefined
+        end
+    end
+
+/*
+action Create(VulkanDevice device, VulkanDescriptorPool pool, VulkanDescriptorSetLayout layout, VulkanBuffer buffer, integer binding, integer type) returns boolean
+        boolean success = CreateNative(device, pool, layout, buffer, binding, type)
+
+        if success
+            me:device = device
+            initialized = true
+            failureCode = 0
+        end
+
+        return success
+    end
+
+    private system action CreateNative(VulkanDevice device, VulkanDescriptorPool pool, VulkanDescriptorSetLayout layout, VulkanBuffer buffer, integer binding, integer type) returns boolean
+
+    action Create(VulkanDevice device, VulkanDescriptorPool pool, VulkanDescriptorSetLayout layout, VulkanDescriptorBufferInfo bufferInfo) returns boolean
+        boolean success = CreateNative(device, pool, layout, bufferInfo)
+
+        if success
+            me:device = device
+            initialized = true
+            failureCode = 0
+        end
+
+        return success
+    end
+*/
+    
+end
