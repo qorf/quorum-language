@@ -33,9 +33,12 @@ class DefaultVertexShader2D is Shader
 " +
 "layout(location = 0) in vec4 " + attributes:POSITION + ";
 layout(location = 1) in vec4 " + attributes:COLOR + ";
-//layout(location = 2) in vec2 " + attributes:TEXTURE_COORDINATES + "0;
+layout(location = 2) in vec2 " + attributes:TEXTURE_COORDINATES + "0;
+layout(location = 3) in uint a_textureIndex;
 
 layout(location = 0) out vec4 v_color;
+layout(location = 1) out vec2 v_textureCoords;
+layout(location = 2) flat out uint v_textureIndex;
 
 layout(set = 0, binding = 0) uniform Camera
 {
@@ -45,6 +48,8 @@ layout(set = 0, binding = 0) uniform Camera
 void main()
 {
     v_color = " + attributes:COLOR + ";
+    v_textureCoords = " + attributes:TEXTURE_COORDINATES + "0;
+    v_textureIndex = a_textureIndex;
     gl_Position =  camera.projectionViewMatrix * " + attributes:POSITION + ";
 }"
 )

@@ -53,9 +53,17 @@ class VulkanPainter2D is Painter2D
     // TO-DO: Move these into structures that more closely associate these resources with a VulkanPipeline, or wherever else they make sense.
     VulkanDescriptorSetLayout descriptorSetLayout = undefined
     VulkanPipelineLayout pipelineLayout = undefined
-    Array<VulkanBuffer> uniformBuffers
-    Array<VulkanNumber32BitMappedMemory> uniformMappings
-    Array<VulkanDescriptorSet> uniformDescriptors
+
+    // Each array below holds 1 object per frame in the swapchain, e.g. the uniformBuffers holds 1 buffer per swapchain image.
+    // We do this so each image in-flight has independent resources to work on in parallel.
+
+    // Resources for the Camera uniform.
+    Array<VulkanBuffer> cameraBuffers
+    Array<VulkanNumber32BitMappedMemory> cameraMappings
+    Array<VulkanDescriptorSet> cameraDescriptors
+
+    // The sampler used to access 2D textures.
+    VulkanSampler immutableSampler = undefined
 
     Camera camera = undefined
 
@@ -183,22 +191,30 @@ class VulkanPainter2D is Painter2D
             offset = offset + 4
 
 
-            /*
+
             // Texture coordinate attribute
             VulkanVertexInputAttributeDescription textureCoordinatesAttribute
-            textureCoordinatesAttribute:Set(0, 2, constants:FORMAT_R32G32_SFLOAT, 3 * 4)
+            textureCoordinatesAttribute:Set(0, 2, constants:FORMAT_R32G32_SFLOAT, offset)
             vertexAttributes:Add(textureCoordinatesAttribute)
 
             // Texture coordinates are stored as 2 floats of 4 bytes each.
             offset = offset + (2 * 4)
-            */
+
+
+            // Texture index attribute. Used to access the right texture from the global texture array in the 2D fragment shader.
+            VulkanVertexInputAttributeDescription textureIndexAttribute
+            textureIndexAttribute:Set(0, 3, constants:FORMAT_R32_UINT, offset)
+            vertexAttributes:Add(textureIndexAttribute)
+
+            // Texture index is stored as a 32-bit (4 byte) integer.
+            offset = offset + 4
             
             // Binding description, indicates how far apart each vertex's data is
             VulkanVertexInputBindingDescription bindingDescription
   
-//            bindingDescription:Set(0, offset, constants:VERTEX_INPUT_RATE_VERTEX)
-            output "WARNING: HARD-SETTING PAINTER2D DEFAULT PIPELINE STRIDE TO 24"
-            bindingDescription:Set(0, 24, constants:VERTEX_INPUT_RATE_VERTEX)
+            bindingDescription:Set(0, offset, constants:VERTEX_INPUT_RATE_VERTEX)
+//            output "WARNING: HARD-SETTING PAINTER2D DEFAULT PIPELINE STRIDE TO 24"
+//            bindingDescription:Set(0, 24, constants:VERTEX_INPUT_RATE_VERTEX)
             vertexBindings:Add(bindingDescription)
 
 
@@ -214,17 +230,37 @@ class VulkanPainter2D is Painter2D
             dynamicStates:Add(constants:DYNAMIC_STATE_SCISSOR)
 
 
+            // Create a sampler. We'll use this to access texture information in the shaders.
+            VulkanSampler immutableSampler
+            VulkanSamplerInfo defaultSamplerInfo
+            immutableSampler:Create(device, defaultSamplerInfo)
+            me:immutableSampler = immutableSampler
+
+
             // Create a structure for the uniforms. We'll need this for the projection matrix (i.e. the camera).
             // Define how our uniforms will be laid out.
             VulkanDescriptorSetLayout descriptorLayout
             Array<VulkanDescriptorSetLayoutBinding> descriptorBindings            
 
+            // Describe the binding of the uniform buffers.
             VulkanDescriptorSetLayoutBinding uniformsBinding
             uniformsBinding:SetBinding(0)
             uniformsBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
             uniformsBinding:SetDescriptorCount(1)
             uniformsBinding:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT)
             descriptorBindings:Add(uniformsBinding)
+
+            // Describe the binding of the image sampler
+            VulkanDescriptorSetLayoutBinding samplerBinding
+            samplerBinding:SetBinding(1)
+            samplerBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_SAMPLER)
+            samplerBinding:SetDescriptorCount(1)
+            samplerBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+            Array<VulkanSampler> immutableSamplers
+            immutableSamplers:Add(immutableSampler)
+            samplerBinding:SetImmutableSamplers(immutableSamplers)
+            descriptorBindings:Add(samplerBinding)
+
 
             descriptorLayout:Create(device, descriptorBindings)
             descriptorSetLayout = descriptorLayout
@@ -258,14 +294,18 @@ class VulkanPainter2D is Painter2D
                 // These buffers are for a 4x4 matrix of floats, so 4 bytes * 16 values.
                 VulkanBuffer buffer
                 buffer:CreateMappableBuffer(device, 4 * 16, constants:BUFFER_USAGE_UNIFORM_BUFFER_BIT)
-                uniformBuffers:Add(buffer)
+                cameraBuffers:Add(buffer)
 
                 VulkanNumber32BitMappedMemory mapping = buffer:MapToNumber32BitMemory()
-                uniformMappings:Add(mapping)
+                cameraMappings:Add(mapping)
 
-                // layout, buffer, binding, type
-                VulkanDescriptorSet set = descriptorSetManager:CreateDescriptorSet(descriptorSetLayout, uniformBuffers:Get(counter), 0, constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-                uniformDescriptors:Add(set)
+                VulkanDescriptorResourcesInfo cameraResourcesInfo
+                cameraResourcesInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+                cameraResourcesInfo:AddBufferInfo(cameraBuffers:Get(counter), 0, cameraBuffers:Get(counter):GetSize())
+                
+
+                VulkanDescriptorSet set = descriptorSetManager:CreateDescriptorSet(descriptorSetLayout, cameraResourcesInfo)
+                cameraDescriptors:Add(set)
 
                 counter = counter + 1
             end
@@ -436,12 +476,12 @@ class VulkanPainter2D is Painter2D
         end
 
         integer currentSwapchainIndex = graphics:GetCurrentSwapchainIndex()
-        VulkanNumber32BitMappedMemory currentUniformMapping = uniformMappings:Get(currentSwapchainIndex)
-        VulkanDescriptorSet currentUniformDescriptor = uniformDescriptors:Get(currentSwapchainIndex)
+        VulkanNumber32BitMappedMemory currentCameraMapping = cameraMappings:Get(currentSwapchainIndex)
+        VulkanDescriptorSet currentCameraDescriptor = cameraDescriptors:Get(currentSwapchainIndex)
         
         camera:Update()
         Number32BitArray projectionViewMatrix = MatrixToArray(camera:GetCombinedMatrix())
-        currentUniformMapping:Set(projectionViewMatrix)
+        currentCameraMapping:Set(projectionViewMatrix)
         
 
         // Create the command to begin the render pass.
@@ -504,7 +544,7 @@ class VulkanPainter2D is Painter2D
 
             BindDescriptorSetCommand descriptorBind
             descriptorBind:SetPipelineLayout(pipelineLayout)
-            descriptorBind:SetDescriptorSet(currentUniformDescriptor)
+            descriptorBind:SetDescriptorSet(currentCameraDescriptor)
             commandBuffer:Record(descriptorBind)
 
             commandBuffer:Record(drawCommand)
@@ -548,6 +588,17 @@ class VulkanPainter2D is Painter2D
         DrawableShape shape = drawable:GetDrawableShape()
 
         if not shape:IsRenderable()
+            return now
+        end
+
+        if shape:NeedsUpdate()
+            shape:UpdateVertices()
+        elseif shape:AreTextureVerticesValid() = false
+            shape:UpdateTextureVertices()
+        end
+
+        if shape:AreTextureVerticesValid() = false
+            output "Invalid texture vertices for " + item:GetName() + "!"
             return now
         end
 

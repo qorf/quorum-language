@@ -7,6 +7,9 @@ use Libraries.Game.Shapes.Rectangle
 use Libraries.Containers.Integer32BitArray
 use Libraries.Game.Graphics.Triangulation.Triangulation
 use Libraries.Game.Graphics.Shaders.ShaderMapping
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.NumberUtilities
 
 class DrawableShape
 
@@ -28,11 +31,15 @@ class DrawableShape
     // The vertex index of the first "v" coordinate. When applying a texture to the shape, this is the y-coordinate on the texture where sampling will occur for this point.
     public constant integer V_OFFSET = 5
 
+    // The vertex index of the texture ID value. Only used on Vulkan systems.
+    public constant integer TEXTURE_OFFSET = 6
+
     // The minimum legal size a vertex can be and still be usable for a standard Drawable.
     public constant integer MINIMUM_VERTEX_SIZE = 6
 
     // How many number components are stored for each vertex.
     integer vertexSize = MINIMUM_VERTEX_SIZE
+
 
     Number32BitArray vertices
 
@@ -83,6 +90,22 @@ class DrawableShape
     boolean hasClipping = false
     Vector2 clippingX
     Vector2 clippingY
+
+    // A boolean indicating if vertex values should be used for storing texture IDs.
+    boolean hasTextureVertices = false
+    boolean areTextureVerticesValid = false
+
+    NumberUtilities utilities
+
+    on create
+        GameStateManager manager
+        if manager:GetGameGraphics() is VulkanGraphics
+            hasTextureVertices = true
+            vertexSize = MINIMUM_VERTEX_SIZE + 1
+        end
+    end
+
+
 
     action LoadRectangle(number width, number height)
         LoadRectangle(width, height, 0, 1, 0, 1)
@@ -646,6 +669,18 @@ class DrawableShape
             return now
         end
 
+        integer textureID = -1
+        if drawable:GetTexture() not= undefined
+            textureID = drawable:GetTexture():GetVulkanTextureIndex()
+        end
+
+        if textureID >= 0
+            areTextureVerticesValid = true
+        else
+            areTextureVerticesValid = false
+        end
+        number convertedTextureID = utilities:EncodeIntegerAsNumber(textureID)
+
         // Vertices are set to negative Z to reverse draw order.
         number negatedZ = -drawable:GetGlobalZ()
         number globalX = drawable:GetGlobalX()
@@ -659,6 +694,7 @@ class DrawableShape
                 SetVertexData(i + X_OFFSET, cast(integer, basePositions:Get(baseIndex) + globalX + PIXEL_SNAP_THRESHOLD))
                 SetVertexData(i + Y_OFFSET, cast(integer, basePositions:Get(baseIndex + 1) + globalY + PIXEL_SNAP_THRESHOLD))
                 SetVertexData(i + Z_OFFSET, negatedZ)
+                SetVertexData(i + TEXTURE_OFFSET, convertedTextureID)
 
                 baseIndex = baseIndex + 2
                 i = i + vertexSize
@@ -692,6 +728,7 @@ class DrawableShape
                 SetVertexData(i + X_OFFSET, localX + worldOriginX)
                 SetVertexData(i + Y_OFFSET, localY + worldOriginY)
                 SetVertexData(i + Z_OFFSET, negatedZ)
+                SetVertexData(i + TEXTURE_OFFSET, convertedTextureID)
 
                 baseIndex = baseIndex + 2
                 i = i + vertexSize
@@ -888,4 +925,33 @@ class DrawableShape
     action GetClippingY2 returns number
         return clippingY:GetY()
     end
+
+    action AreTextureVerticesValid returns boolean
+        return areTextureVerticesValid
+    end
+
+    action HasTextureVertices returns boolean
+        return hasTextureVertices
+    end
+
+    action UpdateTextureVertices
+        if not HasTextureVertices() or drawable = undefined or drawable:GetTexture() = undefined
+            return now
+        end
+
+        integer textureID = drawable:GetTexture():GetVulkanTextureIndex()
+        if textureID >= 0
+            areTextureVerticesValid = true
+        else
+            areTextureVerticesValid = false
+        end
+
+        number convertedTextureID = utilities:EncodeIntegerAsNumber(textureID)
+        integer i = TEXTURE_OFFSET
+        repeat while i < vertices:GetSize()
+            vertices:Set(i, convertedTextureID)
+            i = i + vertexSize
+        end
+    end
+
 end

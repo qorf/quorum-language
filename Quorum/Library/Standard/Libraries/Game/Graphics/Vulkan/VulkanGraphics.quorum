@@ -36,6 +36,8 @@ class VulkanGraphics is GraphicsManager
     VulkanCommandBuffer currentRenderCommandBuffer = undefined
     VulkanFence currentRenderFence = undefined
 
+    VulkanTextureManager textureManager
+
     /*
     Note that the swapchain index can de-sync from the current frame index sometimes.
     Many devices will reliably give us the images of the swapchain in order (e.g., 0, 1, 2, 0, 1, 2, etc.)
@@ -312,6 +314,9 @@ class VulkanGraphics is GraphicsManager
 
         output "Initializing DescriptorSetManager..."
         descriptorSetManager:Initialize(device)
+
+        output "Initializing TextureManager..."
+        textureManager:Create(device)
 
         output "Successfully created VulkanGraphics!"
         return true
@@ -772,6 +777,10 @@ class VulkanGraphics is GraphicsManager
 
     action GetDescriptorSetManager returns VulkanDescriptorSetManager
         return descriptorSetManager
+    end
+
+    action GetTextureManager returns VulkanTextureManager
+        return textureManager
     end
 
 end

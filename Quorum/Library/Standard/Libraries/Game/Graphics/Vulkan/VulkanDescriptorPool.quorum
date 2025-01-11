@@ -10,11 +10,15 @@ class VulkanDescriptorPool
     boolean initialized = false
 
     action Create(VulkanDevice device, integer descriptorType) returns boolean
-        return Create(device, descriptorType, DEFAULT_DESCRIPTOR_COUNT, DEFAULT_MAX_SETS)
+        return Create(device, descriptorType, 0, DEFAULT_DESCRIPTOR_COUNT, DEFAULT_MAX_SETS)
     end
 
-    action Create(VulkanDevice device, integer descriptorType, integer descriptorCount, integer maxSets) returns boolean
-        boolean success = CreateNative(device, descriptorType, descriptorCount, maxSets)
+    action Create(VulkanDevice device, integer descriptorType, integer poolFlags) returns boolean
+        return Create(device, descriptorType, poolFlags, DEFAULT_DESCRIPTOR_COUNT, DEFAULT_MAX_SETS)
+    end
+
+    action Create(VulkanDevice device, integer descriptorType, integer poolFlags, integer descriptorCount, integer maxSets) returns boolean
+        boolean success = CreateNative(device, descriptorType, poolFlags, descriptorCount, maxSets)
 
         if success
             me:device = device
@@ -24,8 +28,8 @@ class VulkanDescriptorPool
         return success
     end
 
-    action Create(VulkanDevice device, Array<integer> descriptorTypes, Array<integer> descriptorCounts, integer maxSets) returns boolean
-        boolean success = CreateNative(device, descriptorTypes, descriptorCounts, maxSets)
+    action Create(VulkanDevice device, Array<integer> descriptorTypes, integer poolFlags) returns boolean
+        boolean success = CreateNative(device, descriptorTypes, poolFlags, DEFAULT_DESCRIPTOR_COUNT, DEFAULT_MAX_SETS)
 
         if success
             me:device = device
@@ -35,9 +39,22 @@ class VulkanDescriptorPool
         return success
     end
 
-    private system action CreateNative(VulkanDevice device, integer descriptorType, integer descriptorCount, integer maxSets) returns boolean
+    action Create(VulkanDevice device, Array<integer> descriptorTypes, integer poolFlags, Array<integer> descriptorCounts, integer maxSets) returns boolean
+        boolean success = CreateNative(device, descriptorTypes, poolFlags, descriptorCounts, maxSets)
 
-    private system action CreateNative(VulkanDevice device, Array<integer> descriptorTypes, Array<integer> descriptorCounts, integer maxSets) returns boolean
+        if success
+            me:device = device
+            initialized = true
+        end
+
+        return success
+    end
+
+    private system action CreateNative(VulkanDevice device, integer descriptorType, integer poolFlags, integer descriptorCount, integer maxSets) returns boolean
+
+    private system action CreateNative(VulkanDevice device, Array<integer> descriptorTypes, integer poolFlags, integer descriptorCount, integer maxSets) returns boolean
+
+    private system action CreateNative(VulkanDevice device, Array<integer> descriptorTypes, integer poolFlags, Array<integer> descriptorCounts, integer maxSets) returns boolean
 
     action Dispose
         alert("NYI")

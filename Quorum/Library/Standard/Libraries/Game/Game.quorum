@@ -150,6 +150,7 @@ use Libraries.Game.Graphics.OpenGL.OpenGLManager
 use Libraries.Game.Graphics.Vulkan.VulkanGraphics
 use Libraries.Game.Graphics.Shaders.OpenGL.OpenGLShaderManager
 use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderManager
+use Libraries.Game.Graphics.Vulkan.VulkanTextureManager
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -792,6 +793,9 @@ class Game
         elseif gl20 is VulkanGraphics
             VulkanGraphics vulkan = cast(VulkanGraphics, gl20)
             vulkan:BeginNextFrame()
+
+            VulkanTextureManager textures = vulkan:GetTextureManager()
+            textures:ProcessPendingTextures()
         end
     end
 

@@ -1,4 +1,5 @@
 package Libraries.Game.Graphics.Vulkan
+
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.PixelMap
 use Libraries.Game.Graphics.Texture
@@ -7,8 +8,10 @@ use Libraries.Game.Graphics.Format
 use Libraries.Compute.BitwiseOperations
 use Libraries.Game.Graphics.Vulkan.Commands.PipelineBarrierCommand
 use Libraries.Game.Graphics.Vulkan.Commands.CopyBufferToImageCommand
+use Libraries.Containers.HashTable
+use Libraries.Containers.Queue
 
-class VulkanTextureLoader
+class VulkanTextureManager
 
     // A pair of parallel arrays. The pending textures are all textures that received Load commands since the last frame of animation.
     // The pending pixel maps are the sets of pixel data associated with the load commands.
@@ -18,6 +21,46 @@ class VulkanTextureLoader
     // An array of staging buffers used for transferring texture data from host memory to GPU memory.
     // Disposed of after the transfers have finished.
     Array<VulkanBuffer> stagingBuffers
+
+    VulkanDevice device = undefined
+
+    // A host-accessible mirror of the global texture resource that is presented to the GPU.
+    Array<Texture> globalTextureArray
+    // A hash table for converting textures back to their index in the global texture array.
+    HashTable<Texture, integer> textureToIndexTable
+    // The next index to store a texture at in the global array.
+    integer nextTextureID = 0
+    // TO-DO: NYI, whenever a Texture is disposed, store its index here. New textures reuse previously freed IDs before using a new index.
+    Queue<integer> recycledTextureIDs
+
+    /*
+    A descriptor set that can be dynamically added to and updated (UPDATE_AFTER_BIND_BIT) that
+    contains all valid textures in the system. Changes only when textures are loaded/disposed.
+    */
+    VulkanDescriptorSet globalTextureDescriptorSet = undefined
+
+    action Create(VulkanDevice device)
+        GameStateManager gameState
+        VulkanConstants constants
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        VulkanDescriptorSetManager setManager = graphics:GetDescriptorSetManager()
+
+        // NYI: Currently using a hardcoded value for the maximum number of textures, but this should be drawn from the PhysicalDevice properties instead.
+        output "Creating VulkanTextureManager. Using testing value of 256 max descriptors for textures..."
+        integer maxDescriptors = 256
+        Array<VulkanDescriptorSetLayoutBinding> bindings
+
+        VulkanDescriptorSetLayoutBinding texturesBinding
+        texturesBinding:SetBinding(0)
+        texturesBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_SAMPLED_IMAGE)
+        texturesBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+        texturesBinding:SetDescriptorCount(maxDescriptors)
+        texturesBinding:SetBindingFlags(constants:DESCRIPTOR_BINDING_DYNAMIC)
+        bindings:Add(texturesBinding)
+
+        VulkanDescriptorSetLayout globalTextureLayout
+        globalTextureLayout:CreateUpdateAfterBind(device, bindings)
+    end
 
     action RequestLoad(Texture texture, PixelMap pixelMap)
         pendingTextures:Add(texture)
@@ -116,6 +159,31 @@ class VulkanTextureLoader
 
                 // Finally, associate the image view with the texture.
                 texture:SetVulkanImageView(view)
+
+                // Also store the texture in our global array and associate our resources.
+                if not recycledTextureIDs:IsEmpty()
+                    // TO-DO: Handle this case. This gets complicated slightly by the question of releasing texture IDs that might be in use for previous frames.
+                else
+                    globalTextureArray:Add(texture)
+                    texture:SetVulkanTextureIndex(nextTextureID)
+                    nextTextureID = nextTextureID + 1
+                end
+
+                VulkanDescriptorResourcesInfo resourcesInfo
+                resourcesInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_SAMPLED_IMAGE)
+                resourcesInfo:SetDestinationArrayElement(texture:GetVulkanTextureIndex())
+                resourcesInfo:AddImageInfo(undefined, view, constants:IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+                globalTextureDescriptorSet:LinkResources(resourcesInfo)
+  
+                // NOTE: Currently not assigning a sampler, because 2D is using the images with a shared common sampler from the Painter2D instead.      
+                // We'll use a combined image sampler to access the texture. Create a sampler and associate it with the texture.
+//                VulkanSampler sampler
+//                VulkanSamplerInfo samplerInfo
+//                // TO-DO: NYI, Update the samplerInfo to more accurately match the information given for a Texture, especially its wrap and min/mag modes.
+//                // For now, just use the default sampler values.
+//                sampler:Create(device, samplerInfo)
+//                texture:SetVulkanSampler(sampler)
+
 
                 i = i + 1
             end

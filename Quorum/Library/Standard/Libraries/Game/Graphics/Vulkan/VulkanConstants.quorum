@@ -681,4 +681,26 @@ shared class VulkanConstants
     public constant integer BORDER_COLOR_FLOAT_OPAQUE_WHITE = 4
     public constant integer BORDER_COLOR_INT_OPAQUE_WHITE = 5
 
+    /*
+    This value indicates that a descriptor set can accept bindings that will be updated after the set has been bound.
+    */
+    public constant integer DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT = 2
+
+    /*
+    This value indicates that a descriptor pool will be used to manage descriptors that can be updated after their set has been bound.
+    */
+    public constant integer DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT = 2
+
+    /*
+    These flags are used to indicate special behavior for DescriptorSetLayoutBindings via the bindingFlag value.
+    The last value, DESCRIPTOR_BINDING_DYNAMIC, is an extra flag added here to conveniently include the other four
+    options together (it is not a value present in the original Vulkan spec).
+    */
+    public constant integer DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT = 1
+    public constant integer DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT = 2
+    public constant integer DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT = 4
+    public constant integer DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT = 8
+    public constant integer DESCRIPTOR_BINDING_DYNAMIC = 15
+
+    
 end

@@ -1,4 +1,5 @@
 package Libraries.Game.Graphics.Vulkan
+use Libraries.Containers.Array
 
 class VulkanDescriptorSet
 
@@ -7,8 +8,8 @@ class VulkanDescriptorSet
 
     failureCode = 0
 
-    action Create(VulkanDevice device, VulkanDescriptorPool pool, VulkanDescriptorSetLayout layout, VulkanBuffer buffer, integer binding, integer type) returns boolean
-        boolean success = CreateNative(device, pool, layout, buffer, binding, type)
+    action Create(VulkanDevice device, VulkanDescriptorPool pool, VulkanDescriptorSetLayout layout) returns boolean
+        boolean success = CreateNative(device, pool, layout)
 
         if success
             me:device = device
@@ -19,21 +20,25 @@ class VulkanDescriptorSet
         return success
     end
 
-    private system action CreateNative(VulkanDevice device, VulkanDescriptorPool pool, VulkanDescriptorSetLayout layout, VulkanBuffer buffer, integer binding, integer type) returns boolean
+    private system action CreateNative(VulkanDevice device, VulkanDescriptorPool pool, VulkanDescriptorSetLayout layout) returns boolean
 
-    action Create(VulkanDevice device, VulkanDescriptorPool pool, VulkanDescriptorSetLayout layout, VulkanDescriptorBufferInfo bufferInfo) returns boolean
-        boolean success = CreateNative(device, pool, layout, bufferInfo)
-
-        if success
-            me:device = device
-            initialized = true
-            failureCode = 0
-        end
-
-        return success
+    /*
+    After creating the descriptor set, resources must be linked to the individual descriptors using LinkResources.
+    */
+    action LinkResources(VulkanDescriptorResourcesInfo info)
+        LinkResources(device, info)
     end
 
-    private system action CreateNative(VulkanDevice device, VulkanDescriptorPool pool, VulkanDescriptorSetLayout layout, VulkanDescriptorBufferInfo bufferInfo) returns boolean
+    /*
+    After creating the descriptor set, resources must be linked to the individual descriptors using LinkResources.
+    */
+    action LinkResources(Array<VulkanDescriptorResourcesInfo> infoArray)
+        LinkResources(device, infoArray)
+    end
+
+    private system action LinkResources(VulkanDevice device, VulkanDescriptorResourcesInfo info)
+
+    private system action LinkResources(VulkanDevice device, Array<VulkanDescriptorResourcesInfo> infoArray)
 
     /*
     If the "Create" action fails, this action will return a code representing the failure reason. If no failure has occurred,

@@ -1,0 +1,33 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanDescriptorImageInfo
+
+    VulkanSampler sampler = undefined
+    VulkanImageView imageView = undefined
+    integer imageLayout = 0
+
+    action GetSampler returns VulkanSampler
+        return sampler
+    end
+
+    action SetSampler(VulkanSampler sampler)
+        me:sampler = sampler
+    end
+
+    action GetImageView returns VulkanImageView
+        return imageView
+    end
+
+    action SetImageView(VulkanImageView imageView)
+        me:imageView = imageView
+    end
+
+    action GetImageLayout returns integer
+        return imageLayout
+    end
+
+    action SetImageLayout(integer imageLayout)
+        me:imageLayout = imageLayout
+    end
+
+end

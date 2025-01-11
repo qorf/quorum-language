@@ -1,11 +1,15 @@
 package Libraries.Game.Graphics.Vulkan
 
+use Libraries.Containers.Array
+
 class VulkanDescriptorSetLayoutBinding
 
     integer binding = 0
     integer descriptorType = 0
     integer descriptorCount = 1
     integer stageFlags = 0
+    integer bindingFlags = 0
+    Array<VulkanSampler> immutableSamplers = undefined
 
     action GetBinding returns integer
         return binding
@@ -37,6 +41,22 @@ class VulkanDescriptorSetLayoutBinding
 
     action SetStageFlags(integer stageFlags)
         me:stageFlags = stageFlags
+    end
+
+    action GetBindingFlags returns integer
+        return bindingFlags
+    end
+
+    action SetBindingFlags(integer bindingFlags)
+        me:bindingFlags = bindingFlags
+    end
+
+    action GetImmutableSamplers returns Array
+        return immutableSamplers
+    end
+
+    action SetImmutableSamplers(Array<VulkanSampler> immutableSamplers)
+        me:immutableSamplers = immutableSamplers
     end
 
 end

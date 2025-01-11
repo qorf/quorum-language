@@ -18,6 +18,9 @@ use Libraries.Interface.Controls.Control
 use Libraries.Game.Graphics.OpenGL.OpenGLConstants
 use Libraries.Game.Graphics.OpenGL.OpenGLManager
 use Libraries.Game.Graphics.Vulkan.VulkanImageView
+use Libraries.Game.Graphics.Vulkan.VulkanSampler
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Vulkan.VulkanTextureManager
 
 /*
 The Texture class represents an image that can be drawn on the screen. Once
@@ -71,6 +74,12 @@ class Texture is Disposable
 
     // A Vulkan ImageView representing this texture's resources. Only present if the engine is using Vulkan, this remains undefined otherwise.
     VulkanImageView vulkanImageView = undefined
+
+    // A Vulkan Sampler used to access the resources of the ImageView. Only present if the engine is using Vulkan, and may still be undefined if the Vulkan system is using a common sampler (e.g. for 3D).
+    VulkanSampler vulkanSampler = undefined
+
+    // An index associated with the global array of textures stored by the VulkanTextureManager, if Vulkan is being used for the engine.
+    integer vulkanTextureIndex = -1
 
     on create
         minimizeFilter:ConstructTextureFilter(minimizeFilter:NEAREST)
@@ -315,9 +324,16 @@ class Texture is Disposable
     end
     */
     action LoadFromPixelMap(PixelMap pixelMap)
-        FileTextureData data
-        data:InitializeFileTextureData(undefined, pixelMap, pixelMap:GetFormat(), false)
-        LoadFromTextureData(data)
+        if manager:GetGameGraphics() is VulkanGraphics
+            output "Loading texture from pixel map, sending request to VulkanTextureManager."
+            VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+            VulkanTextureManager textureManager = graphics:GetTextureManager()
+            textureManager:RequestLoad(me, pixelMap)
+        else
+            FileTextureData data
+            data:InitializeFileTextureData(undefined, pixelMap, pixelMap:GetFormat(), false)
+            LoadFromTextureData(data)
+        end
     end
 
     /*
@@ -376,9 +392,16 @@ class Texture is Disposable
     end
     */
     action LoadFromPixelMap(PixelMap pixelMap, Format format, boolean useMipMaps)
-        FileTextureData data
-        data:InitializeFileTextureData(undefined, pixelMap, format, useMipMaps)
-        LoadFromTextureData(data)
+        if manager:GetGameGraphics() is VulkanGraphics
+            output "Loading texture from pixel map, sending request to VulkanTextureManager."
+            VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+            VulkanTextureManager textureManager = graphics:GetTextureManager()
+            textureManager:RequestLoad(me, pixelMap)
+        else
+            FileTextureData data
+            data:InitializeFileTextureData(undefined, pixelMap, format, useMipMaps)
+            LoadFromTextureData(data)
+        end
     end
 
     /*
@@ -1509,6 +1532,48 @@ class Texture is Disposable
     */
     action SetVulkanImageView(VulkanImageView vulkanImageView)
         me:vulkanImageView = vulkanImageView
+    end
+
+    /*
+    This action returns the VulkanSampler associated with this Texture, if there is one.
+    The sampler is used to access the resources of the VulkanImageView. This will be
+    undefined if the system isn't using the Vulkan graphics library, and even if it is,
+    this still might be undefined if this texture is being used with an external sampler
+    (e.g., for 3D rendering). This is a Vulkan internal component, and will never be needed
+    by most users.
+    */
+    action GetVulkanSampler returns VulkanSampler
+        return vulkanSampler
+    end
+
+    /*
+    This action sets the VulkanSampler associated with this Texture.
+    The sampler is used to access the resources of the VulkanImageView. This will be
+    undefined if the system isn't using the Vulkan graphics library, and even if it is,
+    this still might be undefined if this texture is being used with an external sampler
+    (e.g., for 3D rendering). This is a Vulkan internal component, and will never be needed
+    by most users.
+    */
+    action SetVulkanSampler(VulkanSampler vulkanSampler)
+        me:vulkanSampler = vulkanSampler
+    end
+
+    /*
+    This action returns the index used by the VulkanTextureManager to store this texture in the
+    global array of textures, if Vulkan is being used for the engine. This value defaults to -1.
+    This is an internal component used by the Vulkan system, and will never be needed by most users.
+    */
+    action GetVulkanTextureIndex returns integer
+        return vulkanTextureIndex
+    end
+
+    /*
+    This action sets the index used by the VulkanTextureManager to store this texture in the
+    global array of textures, if Vulkan is being used for the engine. This value defaults to -1.
+    This is an internal component used by the Vulkan system, and will never be needed by most users.
+    */
+    action SetVulkanTextureIndex(integer vulkanTextureIndex)
+        me:vulkanTextureIndex = vulkanTextureIndex
     end
 
 end

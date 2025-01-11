@@ -23,6 +23,7 @@ public class VulkanSampler
         try (MemoryStack stack = MemoryStack.stackPush())
         {
             VkSamplerCreateInfo createInfo = VkSamplerCreateInfo.calloc(stack);
+            createInfo.sType$Default();
             createInfo.magFilter(info.GetMagnifyFilter());
             createInfo.minFilter(info.GetMinifyFilter());
             createInfo.mipmapMode(info.GetMipMapMode());

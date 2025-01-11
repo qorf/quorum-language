@@ -2,27 +2,77 @@ package Libraries.Game.Graphics.Vulkan
 
 use Libraries.Containers.HashTable
 use Libraries.Containers.Array
+use Libraries.Compute.BitwiseOperations
 
 class VulkanDescriptorSetManager
 
     // A HashTable that associates types of descriptors with an array of available pools.
-    HashTable<integer, Array<VulkanDescriptorPool>> descriptorPools
+//    HashTable<integer, Array<VulkanDescriptorPool>> descriptorPools
+    /*
+    A nested set of HashTables and arrays holding the descriptor pools.
 
+    The first key is for the pool flags. Typically, this is either 0 (no flags) or DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT
+    (pools for descriptors that can be changed after being bound, used for 2D textures for example).
+
+    The second key is a bitmask derived by left-shifting 1 by the value of the types. For example, the bitmask for DESCRIPTOR_TYPE_UNIFORM_BUFFER
+    would be 1 left-shifted by the value of the constant (in this case, 1 << 6 = 64).
+    We do this so we can use bitwise-or to combine different types into a single integer mask we use as a key into the table, in case we
+    need to support pools with multiple types of values.
+    */
+    HashTable<integer, HashTable<integer, Array<VulkanDescriptorPool>>> descriptorPools
+
+    BitwiseOperations bits
     VulkanDevice device = undefined
 
     action Initialize(VulkanDevice device)
         me:device = device
     end
 
-    action CreateDescriptorSet(VulkanDescriptorSetLayout layout, VulkanBuffer buffer, integer binding, integer type) returns VulkanDescriptorSet
+    action CreateDescriptorSet(VulkanDescriptorSetLayout layout) returns VulkanDescriptorSet
+        return CreateDescriptorSet(layout, 0)
+    end
+
+    action CreateDescriptorSet(VulkanDescriptorSetLayout layout, integer poolFlags) returns VulkanDescriptorSet
         Array<VulkanDescriptorPool> availablePools = undefined
 
-        if not descriptorPools:HasKey(type)
+        HashTable<integer, Array<VulkanDescriptorPool>> poolTable = undefined
+        if not descriptorPools:HasKey(poolFlags)
+            HashTable<integer, Array<VulkanDescriptorPool>> newTable
+            descriptorPools:Add(poolFlags, newTable)
+            poolTable = newTable
+        else
+            poolTable = descriptorPools:GetValue(poolFlags)
+        end
+
+        /*
+        Calculate a bitmask for the needed types from the bindings.
+
+        Each binding has a unique integer code from 0 to 10, but the bindings might have different types.
+        We need to get a DescriptorPool that matches the needed collection of types, and we'd like a single
+        integer value to act as the key to the HashTable. To do this, we convert the types to bit flags by
+        left-shifting 1 by the value of the type. For example, DESCRIPTOR_TYPE_UNIFORM_BUFFER = 6,
+        so we can uniquely identify that type as 1 << 6 = 64. We can combine this with other types using
+        bitwise OR.
+        */
+        integer typeMask = 0
+        Array<VulkanDescriptorSetLayoutBinding> bindings = layout:GetBindings()
+        integer counter = 0
+        repeat while counter < bindings:GetSize()
+            VulkanDescriptorSetLayoutBinding currentBinding = bindings:Get(counter)
+            
+            integer bitshiftedValue = bits:ShiftLeft(1, currentBinding:GetDescriptorType())
+            typeMask = bits:Or(typeMask, bitshiftedValue)
+
+            counter = counter + 1
+        end
+
+
+        if not poolTable:HasKey(typeMask)
             Array<VulkanDescriptorPool> newArray
-            descriptorPools:Add(type, newArray)
+            poolTable:Add(typeMask, newArray)
             availablePools = newArray
         else
-            availablePools = descriptorPools:GetValue(type)
+            availablePools = poolTable:GetValue(typeMask)
         end
 
         VulkanDescriptorSet descriptorSet
@@ -31,7 +81,7 @@ class VulkanDescriptorSetManager
         if not availablePools:IsEmpty()
             // Start by checking the last pool in the array. It's the most likely to have free space.
             VulkanDescriptorPool pool = availablePools:GetFromEnd()
-            boolean success = descriptorSet:Create(device, pool, layout, buffer, binding, type)
+            boolean success = descriptorSet:Create(device, pool, layout)
             if success
                 return descriptorSet
             elseif descriptorSet:GetFailureCode() not= constants:ERROR_OUT_OF_POOL_MEMORY
@@ -43,7 +93,7 @@ class VulkanDescriptorSetManager
             integer i = 0
             repeat while i < availablePools:GetSize() - 1
                 pool = availablePools:Get(i)
-                success = descriptorSet:Create(device, pool, layout, buffer, binding, type)
+                success = descriptorSet:Create(device, pool, layout)
                 if success
                     return descriptorSet
                 elseif descriptorSet:GetFailureCode() not= constants:ERROR_OUT_OF_POOL_MEMORY
@@ -54,12 +104,29 @@ class VulkanDescriptorSetManager
             end
         end
 
-        // If we've reached this point, there are no available pools that can successfully allocate the descriptor set.
-        // Make a new pool and try to use that.
+        /*
+        If we've reached this point, there are no available pools that can successfully allocate the descriptor set.
+        Make a new pool and try to use that.
+
+        Our type mask from before won't work here because, while it does uniquely identify the types needed, it doesn't
+        match the format of how the pool needs the type information. The pools need the values as an array of integer types.
+        Our lazy implementation here iterates through the bindings again, checking for duplicates before insertion. This is
+        O(n^2), which is not ideal, but this case should occur infrequently, so the impact will be negligible.
+        */
+        counter = 0
+        Array<integer> typeFlags
+        repeat while counter < bindings:GetSize()
+            integer currentFlag = bindings:Get(counter):GetDescriptorType()
+            if typeFlags:Has(currentFlag) = false
+                typeFlags:Add(currentFlag)
+            end
+            counter = counter + 1
+        end
+
         VulkanDescriptorPool newPool
-        newPool:Create(device, type)
+        newPool:Create(device, typeFlags, poolFlags)
         
-        boolean success = descriptorSet:Create(device, newPool, layout, buffer, binding, type)
+        boolean success = descriptorSet:Create(device, newPool, layout)
         if success
             availablePools:Add(newPool)
             return descriptorSet
@@ -69,88 +136,52 @@ class VulkanDescriptorSetManager
         end
     end
 
-    action CreateDescriptorSet(VulkanDescriptorSetLayout layout, VulkanDescriptorBufferInfo bufferInfo) returns VulkanDescriptorSet
-        Array<VulkanDescriptorPool> availablePools = undefined
-        integer type = bufferInfo:GetDescriptorType()
-
-        if not descriptorPools:HasKey(type)
-            Array<VulkanDescriptorPool> newArray
-            descriptorPools:Add(type, newArray)
-            availablePools = newArray
-        else
-            availablePools = descriptorPools:GetValue(type)
+    /*
+    This method creates the descriptor set and automatically links the associated resources with it.
+    This is equivalent to creating the set manually and using the VulkanDescriptorSet:LinkResources() action.
+    */
+    action CreateDescriptorSet(VulkanDescriptorSetLayout layout, VulkanDescriptorResourcesInfo resourcesInfo) returns VulkanDescriptorSet
+        VulkanDescriptorSet set = CreateDescriptorSet(layout)
+        if set not= undefined
+            set:LinkResources(resourcesInfo)
         end
-
-        VulkanDescriptorSet descriptorSet
-        VulkanConstants constants
-
-        if not availablePools:IsEmpty()
-            // Start by checking the last pool in the array. It's the most likely to have free space.
-            VulkanDescriptorPool pool = availablePools:GetFromEnd()
-            boolean success = descriptorSet:Create(device, pool, layout, bufferInfo)
-            if success
-                return descriptorSet
-            elseif descriptorSet:GetFailureCode() not= constants:ERROR_OUT_OF_POOL_MEMORY
-                return undefined
-            end
-
-            // If our selected pool was out of memory, iterate through the available pools from the beginning.
-            // These pools were full at some point, but space might have been freed up sense.
-            integer i = 0
-            repeat while i < availablePools:GetSize() - 1
-                pool = availablePools:Get(i)
-                success = descriptorSet:Create(device, pool, layout, bufferInfo)
-                if success
-                    return descriptorSet
-                elseif descriptorSet:GetFailureCode() not= constants:ERROR_OUT_OF_POOL_MEMORY
-                    return undefined
-                end
-
-                i = i + 1
-            end
-        end
-
-        // If we've reached this point, there are no available pools that can successfully allocate the descriptor set.
-        // Make a new pool and try to use that.
-        VulkanDescriptorPool newPool
-        newPool:Create(device, type)
-        
-        boolean success = descriptorSet:Create(device, newPool, layout, bufferInfo)
-        if success
-            availablePools:Add(newPool)
-            return descriptorSet
-        else
-            newPool:Dispose()
-            return undefined
-        end
+        return set
     end
 
-/*
-action Create(VulkanDevice device, VulkanDescriptorPool pool, VulkanDescriptorSetLayout layout, VulkanBuffer buffer, integer binding, integer type) returns boolean
-        boolean success = CreateNative(device, pool, layout, buffer, binding, type)
-
-        if success
-            me:device = device
-            initialized = true
-            failureCode = 0
+    /*
+    This method creates the descriptor set and automatically links the associated resources with it.
+    This is equivalent to creating the set manually and using the VulkanDescriptorSet:LinkResources() action.
+    */
+    action CreateDescriptorSet(VulkanDescriptorSetLayout layout, integer poolFlags, VulkanDescriptorResourcesInfo resourcesInfo) returns VulkanDescriptorSet
+        VulkanDescriptorSet set = CreateDescriptorSet(layout, poolFlags)
+        if set not= undefined
+            set:LinkResources(resourcesInfo)
         end
-
-        return success
+        return set
     end
 
-    private system action CreateNative(VulkanDevice device, VulkanDescriptorPool pool, VulkanDescriptorSetLayout layout, VulkanBuffer buffer, integer binding, integer type) returns boolean
-
-    action Create(VulkanDevice device, VulkanDescriptorPool pool, VulkanDescriptorSetLayout layout, VulkanDescriptorBufferInfo bufferInfo) returns boolean
-        boolean success = CreateNative(device, pool, layout, bufferInfo)
-
-        if success
-            me:device = device
-            initialized = true
-            failureCode = 0
+    /*
+    This method creates the descriptor set and automatically links the associated resources with it.
+    This is equivalent to creating the set manually and using the VulkanDescriptorSet:LinkResources() action.
+    */
+    action CreateDescriptorSet(VulkanDescriptorSetLayout layout, Array<VulkanDescriptorResourcesInfo> resourcesInfo) returns VulkanDescriptorSet
+        VulkanDescriptorSet set = CreateDescriptorSet(layout)
+        if set not= undefined
+            set:LinkResources(resourcesInfo)
         end
-
-        return success
+        return set
     end
-*/
+
+    /*
+    This method creates the descriptor set and automatically links the associated resources with it.
+    This is equivalent to creating the set manually and using the VulkanDescriptorSet:LinkResources() action.
+    */
+    action CreateDescriptorSet(VulkanDescriptorSetLayout layout, integer poolFlags, Array<VulkanDescriptorResourcesInfo> resourcesInfo) returns VulkanDescriptorSet
+        VulkanDescriptorSet set = CreateDescriptorSet(layout, poolFlags)
+        if set not= undefined
+            set:LinkResources(resourcesInfo)
+        end
+        return set
+    end
     
 end

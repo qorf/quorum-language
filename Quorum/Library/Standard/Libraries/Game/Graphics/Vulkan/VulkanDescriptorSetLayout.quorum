@@ -4,20 +4,43 @@ use Libraries.Containers.Array
 class VulkanDescriptorSetLayout
 
     VulkanDevice device = undefined
+    Array<VulkanDescriptorSetLayoutBinding> bindings = undefined
     boolean initialized = false
 
+    /*
+    This action creates a VulkanDescriptorSetLayout for the given bindings with no flags set for the layout (layoutFlags = 0).
+    This is sufficient for most typical use cases of descriptor set layouts.
+    */
     action Create(VulkanDevice device, Array<VulkanDescriptorSetLayoutBinding> bindings) returns boolean
-        boolean success = CreateNative(device, bindings)
+        return Create(device, bindings, 0)
+    end
+
+    /*
+    This action creates a VulkanDescriptorSetLayout for the given bindings, and sets the layout flags to 
+    DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT from the Vulkan constants. The descriptors in
+    this set can be changed after binding, and the set can be used with nonuniform indexing inside of shaders.
+    */
+    action CreateUpdateAfterBind(VulkanDevice device, Array<VulkanDescriptorSetLayoutBinding> bindings) returns boolean
+        VulkanConstants constants
+        return Create(device, bindings, constants:DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT)
+    end
+
+    /*
+    This action creates a VulkanDescriptorSetLayout for the given bindings and with the provided layout flags.
+    */
+    action Create(VulkanDevice device, Array<VulkanDescriptorSetLayoutBinding> bindings, integer layoutFlags) returns boolean
+        boolean success = CreateNative(device, bindings, layoutFlags)
 
         if success
             me:device = device
+            me:bindings = bindings
             initialized = true
         end
 
         return success
     end
 
-    private system action CreateNative(VulkanDevice device, Array<VulkanDescriptorSetLayoutBinding> bindings) returns boolean
+    private system action CreateNative(VulkanDevice device, Array<VulkanDescriptorSetLayoutBinding> bindings, integer layoutFlags) returns boolean
 
     action GetDevice returns VulkanDevice
         return device
@@ -25,6 +48,10 @@ class VulkanDescriptorSetLayout
 
     action Dispose
         alert("NYI")
+    end
+
+    action GetBindings returns Array<VulkanDescriptorSetLayoutBinding>
+        return bindings
     end
 
 end

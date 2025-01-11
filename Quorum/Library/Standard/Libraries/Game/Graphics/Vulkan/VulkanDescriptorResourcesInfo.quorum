@@ -1,0 +1,148 @@
+package Libraries.Game.Graphics.Vulkan
+use Libraries.Containers.Array
+
+/*
+This class is a blueprint that holds information used to set and update the data stored by descriptors sets. 
+Classes inheriting from this, such as VulkanDescriptorBufferInfo, can be used with the LinkResources action
+in VulkanDescriptorSet to indicate what memory is associated with descriptor.
+
+This class represents part of the information present in VkWriteDescriptorSet. See: https://registry.khronos.org/vulkan/specs/latest/man/html/VkWriteDescriptorSet.html
+*/
+class VulkanDescriptorResourcesInfo
+
+    integer destinationBinding = 0
+    integer destinationArrayElement = 0
+    integer descriptorCount = 1
+    integer descriptorType = 0
+    
+    Array<VulkanDescriptorBufferInfo> bufferInfo = undefined
+    Array<VulkanDescriptorImageInfo> imageInfo = undefined
+
+
+    /*
+    This action returns the binding of an individual descriptor in the descriptor set that points to the data
+    that will be updated by this write info.
+    */
+    action GetDestinationBinding returns integer
+        return destinationBinding
+    end
+
+    /*
+    This action sets the binding of an individual descriptor in the descriptor set that points to the data
+    that will be updated by this write info.
+    */
+    action SetDestinationBinding(integer destinationBinding)
+        me:destinationBinding = destinationBinding
+    end
+
+    /*
+    If the target descriptor within the descriptor set is an array, this indicates which element of the array
+    should be the starting point for data writing. By default, this value is 0.
+    */
+    action GetDestinationArrayElement returns integer
+        return destinationArrayElement
+    end
+
+    /*
+    If the target descriptor within the descriptor set is an array, this indicates which element of the array
+    should be the starting point for data writing. By default, this value is 0.
+    */
+    action SetDestinationArrayElement(integer destinationArrayElement)
+        me:destinationArrayElement = destinationArrayElement
+    end
+
+    /*
+    This indicates how many descriptors should be updated, which is usually used to write to multiple parts of an array.
+    By default, this value is 1.
+    */
+    action GetDescriptorCount returns integer
+        return descriptorCount
+    end
+
+    /*
+    This indicates how many descriptors should be updated, which is usually used to write to multiple parts of an array.
+    By default, this value is 1.
+    */
+    action SetDescriptorCount(integer descriptorCount)
+        me:descriptorCount = descriptorCount
+    end
+
+    /*
+    This is a value from the VulkanConstants describing the type of data stored by the descriptor that will be updated.
+    For example, if the descriptors are uniform buffers, this must be DESCRIPTOR_TYPE_UNIFORM_BUFFER.
+    */
+    action GetDescriptorType returns integer
+        return descriptorType
+    end
+
+    /*
+    This is a value from the VulkanConstants describing the type of data stored by the descriptor that will be updated.
+    For example, if the descriptors are uniform buffers, this must be DESCRIPTOR_TYPE_UNIFORM_BUFFER.
+    */
+    action SetDescriptorType(integer descriptorType)
+        me:descriptorType = descriptorType
+    end
+
+    /*
+    This action returns the array of BufferInfo objects describing which buffers will be linked to descriptors.
+    This array is undefined by default, but it will be added to the info automatically if the AddBufferInfo action
+    is used.
+    */
+    action GetBufferInfo returns Array<VulkanDescriptorBufferInfo>
+        return bufferInfo
+    end
+
+    /*
+    This action sets the array of BufferInfo objects describing which buffers will be linked to descriptors.
+    This array is undefined by default, but it will be added to the info automatically if the AddBufferInfo action
+    is used.
+    */
+    action SetBufferInfo(Array<VulkanDescriptorBufferInfo> bufferInfo)
+        me:bufferInfo = bufferInfo
+    end
+
+    /*
+    This is a helper action to quickly add info about a buffer to the ResourcesInfo.
+    The provided buffer, starting offset, and range (or size) will be stored in the BufferInfo array.
+    If the BufferInfo array is undefined, a new array will be provided here.
+    */
+    action AddBufferInfo(VulkanBuffer buffer, integer offset, integer range)
+        if bufferInfo = undefined
+            Array<VulkanDescriptorBufferInfo> array
+            bufferInfo = array
+        end
+
+        VulkanDescriptorBufferInfo info
+        info:SetBuffer(buffer)
+        info:SetOffset(offset)
+        info:SetRange(range)
+        bufferInfo:Add(info)
+    end
+
+    action GetImageInfo returns Array<VulkanDescriptorImageInfo>
+        return imageInfo
+    end
+
+    action SetImageInfo(Array<VulkanDescriptorImageInfo> imageInfo)
+        me:imageInfo = imageInfo
+    end
+
+    /*
+    This is a helper action to quickly add image info to the ResourcesInfo.
+    The provided sampler, image view, and image layout will be stored in the ImageInfo array.
+    If the ImageInfo array is undefined, a new array will be provided here.
+    */
+    action AddImageInfo(VulkanSampler sampler, VulkanImageView imageView, integer imageLayout)
+        if imageInfo = undefined
+            Array<VulkanDescriptorImageInfo> array
+            imageInfo = array
+        end
+
+        VulkanDescriptorImageInfo info
+        info:SetSampler(sampler)
+        info:SetImageView(imageView)
+        info:SetImageLayout(imageLayout)
+        imageInfo:Add(info)
+    end
+
+end
