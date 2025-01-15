@@ -41,6 +41,9 @@ shared class VulkanConstants
     // An extension for devices and physical devices. Used to take graphics rendered to a swapchain and display them on the screen.
     public constant text SWAPCHAIN_EXTENSION = "VK_KHR_swapchain"
 
+    // An extension for devices. Used to allow for more dynamic indexing of descriptors.
+    public constant text DESCRIPTOR_INDEXING_EXTENSION = "VK_EXT_descriptor_indexing"
+
     // Constants representing types of physical devices. 
     public constant integer PHYSICAL_DEVICE_TYPE_OTHER = 0
     public constant integer PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU = 1

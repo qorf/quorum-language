@@ -694,7 +694,9 @@ class DrawableShape
                 SetVertexData(i + X_OFFSET, cast(integer, basePositions:Get(baseIndex) + globalX + PIXEL_SNAP_THRESHOLD))
                 SetVertexData(i + Y_OFFSET, cast(integer, basePositions:Get(baseIndex + 1) + globalY + PIXEL_SNAP_THRESHOLD))
                 SetVertexData(i + Z_OFFSET, negatedZ)
-                SetVertexData(i + TEXTURE_OFFSET, convertedTextureID)
+                if areTextureVerticesValid
+                    SetVertexData(i + TEXTURE_OFFSET, convertedTextureID)
+                end
 
                 baseIndex = baseIndex + 2
                 i = i + vertexSize
@@ -728,7 +730,9 @@ class DrawableShape
                 SetVertexData(i + X_OFFSET, localX + worldOriginX)
                 SetVertexData(i + Y_OFFSET, localY + worldOriginY)
                 SetVertexData(i + Z_OFFSET, negatedZ)
-                SetVertexData(i + TEXTURE_OFFSET, convertedTextureID)
+                if areTextureVerticesValid
+                    SetVertexData(i + TEXTURE_OFFSET, convertedTextureID)
+                end
 
                 baseIndex = baseIndex + 2
                 i = i + vertexSize

@@ -10,6 +10,7 @@ class BindDescriptorSetCommand is VulkanCommand
     VulkanPipelineLayout pipelineLayout = undefined
     VulkanDescriptorSet descriptorSet = undefined
     integer bindPoint = 0
+    integer setIndex = 0
 
     on create
         VulkanConstants constants
@@ -41,6 +42,14 @@ class BindDescriptorSetCommand is VulkanCommand
 
     action SetDescriptorSet(VulkanDescriptorSet descriptorSet)
         me:descriptorSet = descriptorSet
+    end
+
+    action GetSetIndex returns integer
+        return setIndex
+    end
+
+    action SetSetIndex(integer setIndex)
+        me:setIndex = setIndex
     end
 
 end

@@ -150,6 +150,7 @@ class VulkanPainter2D is Painter2D
 
     private action GetDefaultPipeline returns VulkanPipeline
         if defaultPipeline = undefined
+            output "CREATING DEFAULT PIPELINE!"
             VulkanPipeline pipeline
 
             VulkanShaderManager shaderManager = cast(VulkanShaderManager, gameState:GetShaderManager())
@@ -268,6 +269,13 @@ class VulkanPainter2D is Painter2D
             Array<VulkanDescriptorSetLayout> descriptorLayouts
             descriptorLayouts:Add(descriptorLayout)
 
+            // We also need the descriptor set layout for the global textures. The texture manager holds onto that layout, so go fetch it.
+            GameStateManager manager
+            VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+            VulkanTextureManager textureManager = graphics:GetTextureManager()
+            descriptorLayouts:Add(textureManager:GetGlobalTextureDescriptorSetLayout())
+            
+
             VulkanPipelineLayout pipelineLayout = info:GetLayout()
             pipelineLayout:Create(device, descriptorLayouts)
             me:pipelineLayout = pipelineLayout
@@ -285,8 +293,6 @@ class VulkanPainter2D is Painter2D
             // Create the buffers for the uniforms. We'll need to know how many images the swapchain has for this.
             // This is because we'll need separate buffers for each swapchain image, so each image can be done in parallel.
             // Once the buffers are made, we can also combine them together with the layouts to create our final DescriptorSets.
-            GameStateManager manager
-            VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
             VulkanDescriptorSetManager descriptorSetManager = graphics:GetDescriptorSetManager()
 
             integer counter = 0
@@ -298,6 +304,7 @@ class VulkanPainter2D is Painter2D
 
                 VulkanNumber32BitMappedMemory mapping = buffer:MapToNumber32BitMemory()
                 cameraMappings:Add(mapping)
+                output "Added Camera Mapping, size is now " + cameraMappings:GetSize()
 
                 VulkanDescriptorResourcesInfo cameraResourcesInfo
                 cameraResourcesInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
@@ -402,6 +409,11 @@ class VulkanPainter2D is Painter2D
             end
 
             RegenerateRenderPass(isFirstLayer)
+
+            // If the default pipeline hasn't been loaded, do so now.
+            if defaultPipeline = undefined
+                GetDefaultPipeline()
+            end
         end
 
 //        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
@@ -482,6 +494,8 @@ class VulkanPainter2D is Painter2D
         camera:Update()
         Number32BitArray projectionViewMatrix = MatrixToArray(camera:GetCombinedMatrix())
         currentCameraMapping:Set(projectionViewMatrix)
+
+        VulkanDescriptorSet texturesDescriptorSet = graphics:GetTextureManager():GetGlobalTextureDescriptorSet()
         
 
         // Create the command to begin the render pass.
@@ -547,6 +561,12 @@ class VulkanPainter2D is Painter2D
             descriptorBind:SetDescriptorSet(currentCameraDescriptor)
             commandBuffer:Record(descriptorBind)
 
+            BindDescriptorSetCommand texturesBind
+            texturesBind:SetPipelineLayout(pipelineLayout)
+            texturesBind:SetDescriptorSet(texturesDescriptorSet)
+            texturesBind:SetSetIndex(1)
+            commandBuffer:Record(texturesBind)
+
             commandBuffer:Record(drawCommand)
 
             i = i + 1
@@ -598,7 +618,7 @@ class VulkanPainter2D is Painter2D
         end
 
         if shape:AreTextureVerticesValid() = false
-            output "Invalid texture vertices for " + item:GetName() + "!"
+//            output "Invalid texture vertices for " + item:GetName() + "!"
             return now
         end
 

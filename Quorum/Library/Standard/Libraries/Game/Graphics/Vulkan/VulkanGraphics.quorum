@@ -316,7 +316,7 @@ class VulkanGraphics is GraphicsManager
         descriptorSetManager:Initialize(device)
 
         output "Initializing TextureManager..."
-        textureManager:Create(device)
+        textureManager:Create(device, me)
 
         output "Successfully created VulkanGraphics!"
         return true

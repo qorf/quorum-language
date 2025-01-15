@@ -18,6 +18,7 @@ class VulkanDevice
         
         VulkanConstants constants
         extensionNames:Add(constants:SWAPCHAIN_EXTENSION)
+        extensionNames:Add(constants:DESCRIPTOR_INDEXING_EXTENSION)
         output "CREATING WITH EXTENSIONS:"
         integer i = 0
         repeat while i < extensionNames:GetSize()

@@ -40,12 +40,17 @@ public class VulkanDescriptorSetLayout
             for (int i = 0; i < quorumBindings.GetSize(); i++)
             {
                 VulkanDescriptorSetLayoutBinding_ quorumBinding = (VulkanDescriptorSetLayoutBinding_)quorumBindings.Get(i);
-                VkDescriptorSetLayoutBinding vulkanBinding = bindings.get(0);
-                vulkanBinding.binding(quorumBinding.GetBinding());
+                VkDescriptorSetLayoutBinding vulkanBinding = bindings.get(i);
 
+                System.out.println("Creating binding:");
+                vulkanBinding.binding(quorumBinding.GetBinding());
                 vulkanBinding.descriptorCount(quorumBinding.GetDescriptorCount());
                 vulkanBinding.descriptorType(quorumBinding.GetDescriptorType());
                 vulkanBinding.stageFlags(quorumBinding.GetStageFlags());
+                System.out.println("Binding: " + vulkanBinding.binding() + "\n" +
+                                    "Descriptor Count: " + vulkanBinding.descriptorCount() + "\n" +
+                                    "Descriptor Type: " + vulkanBinding.descriptorType() + "\n" +
+                                    "Stage Flags: " + vulkanBinding.stageFlags());
 
                 if (quorumBinding.GetImmutableSamplers() != null)
                 {
@@ -100,6 +105,7 @@ public class VulkanDescriptorSetLayout
                 return false;
 
             layoutHandle = handleBuffer.get(0);
+            System.out.println("Created Layout, handle = " + Long.toHexString(layoutHandle));
         }
 
         return true;

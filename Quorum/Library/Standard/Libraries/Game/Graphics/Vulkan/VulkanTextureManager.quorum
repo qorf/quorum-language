@@ -38,11 +38,11 @@ class VulkanTextureManager
     contains all valid textures in the system. Changes only when textures are loaded/disposed.
     */
     VulkanDescriptorSet globalTextureDescriptorSet = undefined
+    VulkanDescriptorSetLayout globalTextureDescriptorSetLayout = undefined
 
-    action Create(VulkanDevice device)
+    action Create(VulkanDevice device, VulkanGraphics graphics)
         GameStateManager gameState
         VulkanConstants constants
-        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
         VulkanDescriptorSetManager setManager = graphics:GetDescriptorSetManager()
 
         // NYI: Currently using a hardcoded value for the maximum number of textures, but this should be drawn from the PhysicalDevice properties instead.
@@ -60,15 +60,21 @@ class VulkanTextureManager
 
         VulkanDescriptorSetLayout globalTextureLayout
         globalTextureLayout:CreateUpdateAfterBind(device, bindings)
+        globalTextureDescriptorSetLayout = globalTextureLayout
+
+        VulkanDescriptorSetManager descriptorSetManager = graphics:GetDescriptorSetManager()
+        globalTextureDescriptorSet = descriptorSetManager:CreateDescriptorSet(globalTextureLayout, constants:DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT)
     end
 
     action RequestLoad(Texture texture, PixelMap pixelMap)
+        output "Requesting Texture load..."
         pendingTextures:Add(texture)
         pendingPixelMaps:Add(pixelMap)
     end
 
     action ProcessPendingTextures
         if pendingTextures:IsEmpty() = false
+            output "Processing pending textures."
             GameStateManager manager
             VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
             VulkanDevice device = graphics:GetDevice()
@@ -87,6 +93,7 @@ class VulkanTextureManager
                 integer pixelSize = 1
                 Format format = pixelMap:GetFormat()
                 integer formatValue = format:GetValue()
+                output "Format = " + formatValue
 
                 if formatValue = format:RGBA8888
                     pixelSize = 4
@@ -101,12 +108,13 @@ class VulkanTextureManager
 
                 VulkanBuffer buffer
                 buffer:CreateTransferSourceBuffer(device, width * height * pixelSize)
+                output "Created buffer with size = " + (width * height * pixelSize) + ", from image " + width + "x" + height + " with pixel size = " + pixelSize
                 buffer:BeginMapping()
                 TransferPixelData(pixelMap, buffer)
                 buffer:StopMapping()
 
                 VulkanImage image
-                image:Create(device, width, height, bits:And(constants:IMAGE_USAGE_TRANSFER_DESTINATION_BIT, constants:IMAGE_USAGE_SAMPLED_BIT))
+                image:Create(device, width, height, bits:Or(constants:IMAGE_USAGE_TRANSFER_DESTINATION_BIT, constants:IMAGE_USAGE_SAMPLED_BIT))
 
                 // We'll need this as part of the buffer-to-image copy, in order to ensure the image is in the right format to accept the 
                 // buffer data before we send it.
@@ -128,6 +136,8 @@ class VulkanTextureManager
                 copyCommand:SetImageWidth(width)
                 copyCommand:SetImageHeight(height)
                 copyCommand:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
+//                copyCommand:SetBufferRowLength(width)
+//                copyCommand:SetBufferImageHeight(height)
                 copyCommand:SetSourceBuffer(buffer)
                 copyCommand:SetDestinationImage(image)
                 commandBuffer:Record(copyCommand)
@@ -166,6 +176,7 @@ class VulkanTextureManager
                 else
                     globalTextureArray:Add(texture)
                     texture:SetVulkanTextureIndex(nextTextureID)
+                    output "Texture set to ID = " + nextTextureID
                     nextTextureID = nextTextureID + 1
                 end
 
@@ -187,9 +198,19 @@ class VulkanTextureManager
 
                 i = i + 1
             end
+
+            pendingTextures:Empty()
         end
     end
 
     private system action TransferPixelData(PixelMap pixelMap, VulkanBuffer buffer)
+
+    action GetGlobalTextureDescriptorSetLayout returns VulkanDescriptorSetLayout
+        return globalTextureDescriptorSetLayout
+    end
+
+    action GetGlobalTextureDescriptorSet returns VulkanDescriptorSet
+        return globalTextureDescriptorSet
+    end
 
 end

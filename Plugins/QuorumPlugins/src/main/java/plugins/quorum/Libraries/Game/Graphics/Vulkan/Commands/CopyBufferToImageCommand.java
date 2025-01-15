@@ -37,6 +37,13 @@ public class CopyBufferToImageCommand
             copyInfo.imageOffset(VkOffset3D.calloc(stack).set(quorumCommand.GetImageOffsetX(), quorumCommand.GetImageOffsetY(), quorumCommand.GetImageOffsetZ()));
             copyInfo.imageExtent(VkExtent3D.calloc(stack).set(quorumCommand.GetImageWidth(), quorumCommand.GetImageHeight(), quorumCommand.GetImageDepth()));
 
+            System.out.println("Offset = " + copyInfo.bufferOffset());
+            System.out.println("Row Length = " + copyInfo.bufferRowLength());
+            System.out.println("Buffer Image Height = " + copyInfo.bufferImageHeight());
+            System.out.println("baseArrayLayer = " + copyInfo.imageSubresource().baseArrayLayer());
+            System.out.println("layerCount = " + copyInfo.imageSubresource().layerCount());
+            System.out.println("extent = " + copyInfo.imageExtent().width() + ", " + copyInfo.imageExtent().height() + ", " + copyInfo.imageExtent().depth());
+
             VulkanCommandBuffer pluginCommandBuffer = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer) quorumCommandBuffer).plugin_;
             vkCmdCopyBufferToImage(pluginCommandBuffer.GetCommandBuffer(), pluginSourceBuffer.GetBufferHandle(), pluginDestinationImage.GetVulkanImageHandle(),
                     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, copyInfo);

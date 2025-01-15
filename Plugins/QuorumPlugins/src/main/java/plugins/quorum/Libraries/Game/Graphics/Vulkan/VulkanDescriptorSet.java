@@ -5,6 +5,7 @@ import org.lwjgl.vulkan.*;
 import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Game.Graphics.Vulkan.*;
 
+import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 
 import static org.lwjgl.vulkan.VK10.*;
@@ -43,7 +44,10 @@ public class VulkanDescriptorSet
                 // We'll need a special structure to indicate how much space to be allocated for the descriptor of variable size.
                 VkDescriptorSetVariableDescriptorCountAllocateInfo variableCountInfo = VkDescriptorSetVariableDescriptorCountAllocateInfo.calloc(stack);
                 variableCountInfo.sType$Default();
-                variableCountInfo.pDescriptorCounts(stack.callocInt(lastBinding.GetDescriptorCount()));
+                variableCountInfo.pDescriptorCounts(stack.ints(lastBinding.GetDescriptorCount()));
+                System.out.println("Setting variable counts. Total counts was " + quorumBindings.GetSize() + ", lastBinding count = " + lastBinding.GetDescriptorCount());
+                System.out.println("Allocate info: counts = " + allocateInfo.descriptorSetCount() + ", variableCountInfo: counts = " + variableCountInfo.descriptorSetCount());
+                System.out.println("Associated layout handle = " + Long.toHexString(pluginLayout.GetLayoutHandle()));
                 allocateInfo.pNext(variableCountInfo);
             }
 
@@ -75,6 +79,7 @@ public class VulkanDescriptorSet
             writeDescriptorSets.get(0).dstBinding(quorumResources.GetDestinationBinding());
             writeDescriptorSets.get(0).descriptorType(quorumResources.GetDescriptorType());
             writeDescriptorSets.get(0).descriptorCount(quorumResources.GetDescriptorCount());
+            System.out.println("In LinkResources, binding = " + writeDescriptorSets.get(0).dstBinding() + ", descriptor count = " + writeDescriptorSets.get(0).descriptorCount());
 
             if (quorumBuffers != null && quorumBuffers.IsEmpty() == false)
             {

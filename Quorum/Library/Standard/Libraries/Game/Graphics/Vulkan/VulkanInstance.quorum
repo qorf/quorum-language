@@ -36,6 +36,7 @@ class VulkanInstance
     */
     action CreateGraphicsInstance(text applicationName, integer applicationVersion, integer apiVersion, boolean useValidationLayers) returns boolean
         VulkanUtilities utility
+        VulkanConstants constants
         if utility:AreValidationLayersSupported() = false
             useValidationLayers = false
         end

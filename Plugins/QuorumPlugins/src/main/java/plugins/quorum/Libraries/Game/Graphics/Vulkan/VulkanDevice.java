@@ -2,10 +2,7 @@ package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.vulkan.VkDevice;
-import org.lwjgl.vulkan.VkDeviceCreateInfo;
-import org.lwjgl.vulkan.VkDeviceQueueCreateInfo;
-import org.lwjgl.vulkan.VkQueueFamilyProperties;
+import org.lwjgl.vulkan.*;
 import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanQueueFamily;
@@ -33,11 +30,17 @@ public class VulkanDevice
             else
                 requiredExtensions = null;
 
+            // If we're using the descriptor indexing extension, we'll need to enable some extra features manually.
+            boolean hasDescriptorIndexing = false;
+
             // Put the required extensions into our buffer of ASCII pointers.
             for (int i = 0; i < extensionCount; i++)
             {
                 quorum.Libraries.Language.Types.Text_ quorumText = (quorum.Libraries.Language.Types.Text_) extensionNames.Get(i);
                 requiredExtensions.put(stack.ASCII(quorumText.GetValue()));
+
+                if (quorumText.GetValue() == "VK_EXT_descriptor_indexing")
+                    hasDescriptorIndexing = true;
             }
 
             // After putting in our extensions, flip the buffer so it's ready to be read. This will set the capacity to match the number of elements put in it.
@@ -81,6 +84,24 @@ public class VulkanDevice
             deviceCreateInfo.ppEnabledExtensionNames(requiredExtensions);
             deviceCreateInfo.pEnabledFeatures(physicalDevice.GetDeviceFeatures());
             deviceCreateInfo.pQueueCreateInfos(queueCreationInfoBuffer);
+
+            // If we're using descriptor indexing, enable the extended features for it.
+            if (hasDescriptorIndexing)
+            {
+                System.out.println("ENABLING INDEXING FEATURES!");
+                VkPhysicalDeviceDescriptorIndexingFeatures indexingFeatures = VkPhysicalDeviceDescriptorIndexingFeatures.calloc(stack);
+                indexingFeatures.sType$Default();
+                indexingFeatures.descriptorBindingPartiallyBound(true);
+                indexingFeatures.descriptorBindingSampledImageUpdateAfterBind(true);
+                indexingFeatures.descriptorBindingUpdateUnusedWhilePending(true);
+                indexingFeatures.descriptorBindingVariableDescriptorCount(true);
+                indexingFeatures.runtimeDescriptorArray(true);
+                deviceCreateInfo.pNext(indexingFeatures);
+            }
+            else
+            {
+                System.out.println("DIDN'T ENABLE INDEXING FEATURES!");
+            }
 
             // Finally, we're ready to create the logical device object. Start by getting a pointer that we can use as a handle once the memory is allocated for it.
             PointerBuffer devicePointer = stack.mallocPointer(1);

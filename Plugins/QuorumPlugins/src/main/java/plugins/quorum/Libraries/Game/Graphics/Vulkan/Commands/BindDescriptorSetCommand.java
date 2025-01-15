@@ -21,12 +21,13 @@ public class BindDescriptorSetCommand
         VulkanPipelineLayout pluginLayout = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanPipelineLayout)quorumCommand.GetPipelineLayout()).plugin_;
         VulkanDescriptorSet pluginDescriptorSet = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDescriptorSet)quorumCommand.GetDescriptorSet()).plugin_;
         int bindPoint = quorumCommand.GetBindPoint();
+        int setIndex = quorumCommand.GetSetIndex();
 
         try (MemoryStack stack = MemoryStack.stackPush())
         {
             LongBuffer descriptorHandles = stack.mallocLong(1);
             descriptorHandles.put(0, pluginDescriptorSet.GetDescriptorSetHandle());
-            vkCmdBindDescriptorSets(pluginCommandBuffer.GetCommandBuffer(), bindPoint, pluginLayout.GetLayoutHandle(), 0, descriptorHandles, null);
+            vkCmdBindDescriptorSets(pluginCommandBuffer.GetCommandBuffer(), bindPoint, pluginLayout.GetLayoutHandle(), setIndex, descriptorHandles, null);
         }
     }
 }

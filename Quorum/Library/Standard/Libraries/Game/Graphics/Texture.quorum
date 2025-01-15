@@ -324,16 +324,9 @@ class Texture is Disposable
     end
     */
     action LoadFromPixelMap(PixelMap pixelMap)
-        if manager:GetGameGraphics() is VulkanGraphics
-            output "Loading texture from pixel map, sending request to VulkanTextureManager."
-            VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
-            VulkanTextureManager textureManager = graphics:GetTextureManager()
-            textureManager:RequestLoad(me, pixelMap)
-        else
-            FileTextureData data
-            data:InitializeFileTextureData(undefined, pixelMap, pixelMap:GetFormat(), false)
-            LoadFromTextureData(data)
-        end
+        FileTextureData data
+        data:InitializeFileTextureData(undefined, pixelMap, pixelMap:GetFormat(), false)
+        LoadFromTextureData(data)
     end
 
     /*
@@ -392,16 +385,9 @@ class Texture is Disposable
     end
     */
     action LoadFromPixelMap(PixelMap pixelMap, Format format, boolean useMipMaps)
-        if manager:GetGameGraphics() is VulkanGraphics
-            output "Loading texture from pixel map, sending request to VulkanTextureManager."
-            VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
-            VulkanTextureManager textureManager = graphics:GetTextureManager()
-            textureManager:RequestLoad(me, pixelMap)
-        else
-            FileTextureData data
-            data:InitializeFileTextureData(undefined, pixelMap, format, useMipMaps)
-            LoadFromTextureData(data)
-        end
+        FileTextureData data
+        data:InitializeFileTextureData(undefined, pixelMap, format, useMipMaps)
+        LoadFromTextureData(data)
     end
 
     /*
@@ -620,6 +606,21 @@ class Texture is Disposable
     use, and most users will never need to use this action. 
     */
     private action LoadFromTextureData(TextureData data)
+        if manager:GetGameGraphics() is VulkanGraphics
+            VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+            VulkanTextureManager textureManager = graphics:GetTextureManager()
+            
+            me:data = data
+
+            if data:IsPrepared() not= true
+                data:Prepare()
+            end
+
+            textureManager:RequestLoad(me, data:ConsumePixelMap())
+
+            return now
+        end
+
         SetGraphicsInfo(constants:GL_TEXTURE_2D, CreateGLHandle())
         Load(data)
         AddReloadableTexture()
@@ -814,28 +815,6 @@ class Texture is Disposable
 
         Format pixelFormat = pixelMap:GetFormat()
         Format dataFormat = data:GetFormat()
-
-        if pixelFormat:GetValue() not= dataFormat:GetValue()
-            /*      Need to determine if this is really needed. In the meantime,
-                    this will throw an error (to help determine when this would
-                    occur during execution).
-
-                    Pixmap tmp = new Pixmap(pixmap.getWidth(), pixmap.getHeight(), data.getFormat());
-                    Blending blend = Pixmap.getBlending();
-                    Pixmap.setBlending(Blending.None);
-                    tmp.drawPixmap(pixmap, 0, 0, 0, 0, pixmap.getWidth(), pixmap.getHeight());
-                    Pixmap.setBlending(blend);
-                    if (data.disposePixmap()) {
-                            pixmap.dispose();
-                    }
-                    pixmap = tmp;
-                    disposePixmap = true;
-            */
-            output "PixMap: " + pixelFormat:GetValue() + ", data: " + dataFormat:GetValue()
-            Error error
-            error:SetErrorMessage("PixelMap format and data format mismatch!")
-            alert(error)
-        end
 
         OpenGLManager openGL = GetOpenGL()
         if openGL not= undefined
