@@ -1,0 +1,56 @@
+package Libraries.Interface.Controls
+
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Glyph
+use Libraries.Interface.Layouts.LayoutProperties
+
+class CharacterIcon is Icon
+    text character = ""
+    
+    //The ID for the last loaded font. Used to determine if reloading is needed.
+    text lastFontID = ""
+    
+    action LoadCharacter(text character)
+        LoadCharacter(character, GetFont())
+    end
+    
+    action LoadCharacter(text character, Font font)
+        me:character = character
+        if font not= undefined
+            SetFont(font)
+        elseif GetFont() not= undefined
+            font = GetFont()
+        end
+        
+        Glyph glyph = font:GetGlyph(character) 
+        Load(glyph:texture)
+        
+        lastFontID = font:GetIdentifier()
+        
+        LayoutProperties currentProperties = GetCurrentLayoutProperties()
+        if currentProperties = undefined
+            currentProperties = GetDefaultLayoutProperties()
+        end
+if currentProperties not= undefined
+            currentProperties:SetRenderingFlag(false)
+        end
+    end
+    
+    action GetCharacter returns text
+        return character
+    end
+    
+action LoadGraphics(LayoutProperties properties)
+        if properties = undefined
+            return now
+        end
+        
+        Font font = properties:GetFont()
+        if font not= undefined and font:GetIdentifier() not= lastFontID and character not= ""
+            LoadCharacter(character, font)
+        end
+    
+        parent:Control:LoadGraphics(properties)
+end
+
+end

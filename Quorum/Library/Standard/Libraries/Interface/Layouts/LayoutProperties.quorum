@@ -155,6 +155,16 @@ class LayoutProperties
     boolean setY = false
     boolean setWidth = false
     boolean setHeight = false
+    
+boolean setLeftMargin = false
+    boolean setRightMargin = false
+    boolean setTopMargin = false
+    boolean setBottomMargin = false
+    
+boolean setLeftPadding = false
+    boolean setRightPadding = false
+    boolean setTopPadding = false
+    boolean setBottomPadding = false
 
     /*
     Values indicating where a Control should be located in a grid.
@@ -428,18 +438,22 @@ class LayoutProperties
 
     action SetLeftMargin(number margin)
         leftMargin = margin
+        setLeftMargin = true
     end
 
     action SetRightMargin(number margin)
         rightMargin = margin
+        setRightMargin = true
     end
 
     action SetBottomMargin(number margin)
         bottomMargin = margin
+        setBottomMargin = true
     end
 
     action SetTopMargin(number margin)
         topMargin = margin
+        setTopMargin = true
     end
 
     action GetLeftMargin returns number
@@ -460,18 +474,22 @@ class LayoutProperties
 
     action SetLeftPadding(number padding)
         leftPadding = padding
+        setLeftPadding = true
     end
 
     action SetRightPadding(number padding)
         rightPadding = padding
+        setRightPadding = true
     end
 
     action SetBottomPadding(number padding)
         bottomPadding = padding
+        setBottomPadding = true
     end
 
     action SetTopPadding(number padding)
         topPadding = padding
+        setTopPadding = true
     end
 
     action GetLeftPadding returns number
@@ -488,6 +506,70 @@ class LayoutProperties
 
     action GetTopPadding returns number
         return topPadding
+    end
+    
+action IsSettingLeftMargin returns boolean
+        return setLeftMargin
+    end
+
+    action IsSettingRightMargin returns boolean
+        return setRightMargin
+    end
+
+    action IsSettingTopMargin returns boolean
+        return setTopMargin
+    end
+
+    action IsSettingBottomMargin returns boolean
+        return setBottomMargin
+    end
+
+    action SetLeftMarginSetting(boolean enable)
+        setLeftMargin = enable
+    end
+
+    action SetRightMarginSetting(boolean enable)
+        setRightMargin = enable
+    end
+
+    action SetTopMarginSetting(boolean enable)
+        setTopMargin = enable
+    end
+
+    action SetBottomMarginSetting(boolean enable)
+        setBottomMargin = enable
+    end
+    
+action IsSettingLeftPadding returns boolean
+        return setLeftPadding
+    end
+
+    action IsSettingRightPadding returns boolean
+        return setRightPadding
+    end
+
+    action IsSettingTopPadding returns boolean
+        return setTopPadding
+    end
+
+    action IsSettingBottomPadding returns boolean
+        return setBottomPadding
+    end
+
+    action SetLeftPaddingSetting(boolean enable)
+        setLeftPadding = enable
+    end
+
+    action SetRightPaddingSetting(boolean enable)
+        setRightPadding = enable
+    end
+
+    action SetTopPaddingSetting(boolean enable)
+        setTopPadding = enable
+    end
+
+    action SetBottomPaddingSetting(boolean enable)
+        setBottomMargin = enable
     end
 
     action SetBorderStyle(integer style)

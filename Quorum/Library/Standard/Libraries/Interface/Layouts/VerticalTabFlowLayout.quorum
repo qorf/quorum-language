@@ -6,6 +6,8 @@ use Libraries.Interface.Item2D
 use Libraries.Game.Graphics.Font
 use Libraries.Interface.Controls.Tab
 use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.TabBar
+use Libraries.Interface.Controls.Icon
 
 class VerticalTabFlowLayout is TabFlowLayout
     
@@ -21,11 +23,28 @@ class VerticalTabFlowLayout is TabFlowLayout
         
         // The smallest width allowed based on the Tab labels. Sets the container's width if it's too small or if it's using FIT_CONTENTS for width.
 number minimumContainerWidth = 0
+        
+        number containerLeftPadding = 0
+        number containerRightPadding = 0
+        number containerTopPadding = 0
+        
+        number defaultTabSpacing = 0
+        boolean useLargeTabs = false
 
         if container not= undefined
             containerProperties = container:GetLayoutProperties(containerWidth, containerHeight)
             if containerProperties not= undefined and containerProperties:NeedsRendering()
                     container:LoadGraphics(containerProperties)
+            end
+            
+containerLeftPadding = container:GetLeftPadding()
+            containerRightPadding = container:GetRightPadding()
+            containerTopPadding = container:GetTopPadding()
+            
+            if container is TabBar
+                TabBar bar = cast(TabBar, container)
+                defaultTabSpacing = bar:GetTabSpacing() * bar:GetInterfaceScale()
+                useLargeTabs = bar:IsUsingLargeTabs()
             end
             
 // Adjust the container width to fit the labels if the container is using FIT_CONTENTS.
@@ -36,7 +55,22 @@ number minimumContainerWidth = 0
                     if item is Tab
                         Tab tab = cast(Tab, item)
                         Label label = tab:GetLabel()
-                        number labelWidth = label:GetWidth() + (label:GetLeftMargin() + label:GetRightMargin()) * label:GetInterfaceScale()
+                    number leftSpacing = tab:GetLeftMargin()
+                    number rightSpacing = tab:GetRightMargin()
+                    if leftSpacing < containerLeftPadding
+                        leftSpacing = containerLeftPadding
+                    end
+                    if rightSpacing < containerRightPadding
+                        rightSpacing = containerRightPadding
+                    end
+                        number labelWidth = leftSpacing + label:GetWidth() + (label:GetLeftMargin() + label:GetRightMargin()) * label:GetInterfaceScale() + rightSpacing
+                    if useLargeTabs = false
+                        Icon icon = tab:GetTabIcon()
+                        if icon:IsShowing()
+                            labelWidth = labelWidth + icon:GetWidth() + icon:GetLeftMargin()
+                        end
+                    end
+                
                         if labelWidth > minimumContainerWidth
                             minimumContainerWidth = labelWidth
                         end
@@ -59,6 +93,8 @@ number minimumContainerWidth = 0
 
         // Objects are placed such that their top edge is at the currentY.
         number currentY = containerHeight - topContainerBorder + yOffset
+        number topSpacing = containerTopPadding
+        boolean firstControl = true
 
         i = 0
         repeat while i < items:GetSize()
@@ -73,6 +109,13 @@ number minimumContainerWidth = 0
                 end
 
                 if properties not= undefined and (IsIgnoringHidden() = false or control:IsShowing())
+                    if firstControl
+                        if properties:GetTopMargin() > topSpacing
+                            topSpacing = properties:GetTopMargin()
+                        end
+                        currentY = currentY - topSpacing
+                        firstControl = false
+                    end
                     number width = 0
                     number height = 0
                     number leftMargin = properties:GetLeftMargin()
@@ -85,6 +128,14 @@ number leftPadding = properties:GetLeftPadding()
                     number bottomPadding = properties:GetBottomPadding()
                     
                     number x = leftMargin
+                    if x < containerLeftPadding
+                        x = containerLeftPadding
+                    end
+                    
+                    number rightSpacing = rightMargin
+                    if rightMargin < containerRightPadding
+                        rightSpacing = containerRightPadding
+                    end
                     
                     // Indicates the width must be calculated by the Item, or is calculated via means we don't support.
                     boolean unknownWidth = false
@@ -92,9 +143,9 @@ number leftPadding = properties:GetLeftPadding()
                     boolean unknownHeight = false
                     
                     if properties:GetHorizontalLayoutMode() = properties:STANDARD
-                        width = properties:GetPercentageWidth() * containerWidth + (properties:GetPixelWidth() * properties:GetInterfaceScale()) - leftMargin - rightMargin
+                        width = properties:GetPercentageWidth() * containerWidth + (properties:GetPixelWidth() * properties:GetInterfaceScale()) - x - rightSpacing
                     elseif properties:GetHorizontalLayoutMode() = properties:FILL
-                        width = containerWidth - x - rightMargin
+                        width = containerWidth - x - rightSpacing
                     else
                         unknownWidth = true
                     end
@@ -153,8 +204,24 @@ if font:GetSize() not= cast(integer, control:GetFontSize() * control:GetInterfac
                         control:SetSize(width, height)
                     end
                     
+                    // Determine how much space to place between this Tab and the next.
+                    number marginSpace = -1
+                    if properties:IsSettingBottomMargin()
+                        marginSpace = bottomMargin * control:GetInterfaceScale()
+                    end
+                    if (i + 1) < items:GetSize() and items:Get(i + 1) is Control
+                        Control nextControl = cast(Control, items:Get(i + 1))
+                        LayoutProperties nextProperties = nextControl:GetDefaultLayoutProperties()
+                        if nextProperties:IsSettingTopMargin() and nextProperties:GetTopMargin() > marginSpace
+                            marginSpace = nextProperties:GetTopMargin() * nextControl:GetInterfaceScale()
+                        end
+                    end
+                    if marginSpace < 0
+                        marginSpace = defaultTabSpacing
+                    end
+                    
                     control:SetPosition(x, currentY - control:GetHeight())
-                    currentY = currentY - control:GetHeight() - bottomMargin
+                    currentY = currentY - control:GetHeight() - marginSpace
                 end
             end
 

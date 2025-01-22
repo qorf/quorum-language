@@ -55,6 +55,13 @@ class BlockPalette is TabPane
     Drawable circleTexture
     Array<File> customPages
     
+    on create
+SetTabSpacing(16)
+        GetTabBar():SetLeftPadding(16)
+        GetTabBar():SetRightPadding(16)
+        GetTabBar():SetTopPadding(40)
+    end
+    
     action Setup
         SetName("Block Palette")
         
@@ -87,7 +94,7 @@ class BlockPalette is TabPane
         properties:SetVerticalLayoutMode(properties:STANDARD)
         
         LeftAlignTabBar()
-        SetLargeTabs(true)
+        //SetLargeTabs(true)
 
         if includeDefaultTabs
             basicTab:SetName("Basic")
@@ -374,6 +381,14 @@ action SetBlockSuggestionHandler(BlockSuggestionHandler suggestionHandler)
 
     action IncludeDefaultTabs(boolean includeDefaultTabs)
         me:includeDefaultTabs = includeDefaultTabs
+    end
+    
+    action Add(Tab tab)
+        if tab:GetInterfaceOptionsKey() = "Tab"
+            BlockOptionConstants constants
+            tab:SetInterfaceOptionsKey(constants:BLOCK_PALETTE_TAB_KEY)
+        end
+        parent:TabPane:Add(tab)
     end
 
 end
