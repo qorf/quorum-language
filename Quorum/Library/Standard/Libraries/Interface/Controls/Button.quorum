@@ -100,17 +100,6 @@ class Button is Control, TextureLoadListener
     end
 
     /*
-        This action gets the default font name.
-        Attribute: Returns the font name in text format.
-    */
-    action GetDefaultFontName returns text
-        Font font
-        if font:IsFontAvailable("Arial")
-            return "Arial"
-        end
-        return parent:Control:GetDefaultFontName()
-    end
-    /*
         This action gets the default font size.
         Attribute: Returns the font size in integer format.
     */

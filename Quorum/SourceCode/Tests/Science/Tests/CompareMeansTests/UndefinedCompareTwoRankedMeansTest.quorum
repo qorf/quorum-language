@@ -33,7 +33,7 @@ class UndefinedCompareTwoRankedMeansTest is Test
         CompareMeansResult result = compare:GetResult()
         Check(result:GetTestStatistic(), 6.5) 
         Check(result:GetProbabilityValue(), 0.24915263858192693)      
-        Check(result:GetEffectSize(), -0.3644240360469936)        
+        Check(result:GetEffectSize(), 0.3644240360469936)        
         text summary = result:GetSummary()
         text formalsummary = result:GetFormalSummary()
         Check(true, summary not= "")

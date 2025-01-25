@@ -50,8 +50,12 @@ class ChartDisplay is Game
         Layer2D layer = GetCurrentLayer2D()
         layer:EnablePhysics(false)
 
-        Layer3D layer3D = GetCurrentLayer3D()
-        layer3D:EnablePhysics(false)
+        //This is weird, but the 3D layer probably isn't needed here, 
+        //so get rid of it to save memory. The user can always make their own display.
+        RemoveLayer(1)
+        RemoveLayer(0)
+        AddLayer(layer)
+        SetCurrentLayer3D(undefined)
 
         chart:SetPercentageWidth(1)
         chart:SetPercentageHeight(1)

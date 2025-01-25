@@ -20,10 +20,10 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 	this.LoadFontNative$quorum_text = function (fontName) {
 
 		var loadFontNativeC = Module.cwrap('LoadFontC', 'number', ['string']);
-		var loadFontNativeResult = loadFontNativeC("fonts/" + fontName + ".ttf");
+		var loadFontNativeResult = loadFontNativeC("fonts/" + fontName + ".otf");
 		if (loadFontNativeResult == 1) {
 			// error loading font as ttf try otf
-		    loadFontNativeResult = loadFontNativeC("fonts/" + fontName + ".otf");
+		    loadFontNativeResult = loadFontNativeC("fonts/" + fontName + ".ttf");
 			// no ttf or otf loading failed
 			if (loadFontNativeResult == 1) {
 				console.log('Error loading font:' + fontName);

@@ -282,6 +282,27 @@ function plugins_quorum_Libraries_Game_WebInput_()
             return null;
         };
 
+        plugins_quorum_Libraries_Game_WebInput_.GetGestureGameInfo = function(event)
+        {
+            var map = plugins_quorum_Libraries_Game_GameStateManager_.registeredGames;
+            for (let [key, value] of map)
+            {
+                var gameInfo = value;
+
+                let target = event.target;
+                let canvas = null;
+                if (gameInfo.display != null && gameInfo.display.plugin_.GetCanvas())
+                    canvas = gameInfo.display.plugin_.GetCanvas();
+
+                if (target && canvas && (target === canvas))
+                {
+                    return gameInfo;
+                }
+            }
+
+            return null;
+        };
+
         plugins_quorum_Libraries_Game_WebInput_.GetFocusedGameInfo = function()
         {
             var map = plugins_quorum_Libraries_Game_GameStateManager_.registeredGames;
@@ -297,49 +318,58 @@ function plugins_quorum_Libraries_Game_WebInput_()
 
         plugins_quorum_Libraries_Game_WebInput_.MouseDown = function(event)
         {
-            var gameInfo = plugins_quorum_Libraries_Game_WebInput_.GetMousedGameInfo(event);
-
-            if (gameInfo !== null)
+            if (event.pointerType !== 'touch') 
             {
-                event.stopPropagation();
-                event.preventDefault();
-                plugins_quorum_Libraries_Game_WebInput_.TakeFocus(gameInfo.game);
-                var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, 1, gameInfo);
-                gameInfo.plugins_quorum_Libraries_Game_WebInput_.mouseEvents.push(quorumEvent);
+                var gameInfo = plugins_quorum_Libraries_Game_WebInput_.GetMousedGameInfo(event);
+
+                if (gameInfo !== null)
+                {
+                    event.stopPropagation();
+                    event.preventDefault();
+                    plugins_quorum_Libraries_Game_WebInput_.TakeFocus(gameInfo.game);
+                    var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, 1, gameInfo);
+                    gameInfo.plugins_quorum_Libraries_Game_WebInput_.mouseEvents.push(quorumEvent);
+                }
             }
         };
         
         plugins_quorum_Libraries_Game_WebInput_.MouseUp = function(event)
         {
-            var gameInfo = plugins_quorum_Libraries_Game_WebInput_.GetMousedGameInfo(event);
-
-            if (gameInfo !== null)
+            if (event.pointerType !== 'touch') 
             {
-                event.stopPropagation();
-                event.preventDefault();
+                var gameInfo = plugins_quorum_Libraries_Game_WebInput_.GetMousedGameInfo(event);
 
-                if (plugins_quorum_Libraries_Game_WebInput_.IsFocused(gameInfo.game))
+                if (gameInfo !== null)
                 {
-                    var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, 4, gameInfo);
-                    gameInfo.plugins_quorum_Libraries_Game_WebInput_.mouseEvents.push(quorumEvent);
+                    event.stopPropagation();
+                    event.preventDefault();
+
+                    if (plugins_quorum_Libraries_Game_WebInput_.IsFocused(gameInfo.game))
+                    {
+                        var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, 4, gameInfo);
+                        gameInfo.plugins_quorum_Libraries_Game_WebInput_.mouseEvents.push(quorumEvent);
+                    }
                 }
             }
         };
         
         plugins_quorum_Libraries_Game_WebInput_.MouseMove = function(event)
         {
-            var gameInfo = plugins_quorum_Libraries_Game_WebInput_.GetMousedGameInfo(event);
-
-            if (gameInfo !== null)
+            if (event.pointerType !== 'touch') 
             {
-                event.stopPropagation();
-                event.preventDefault();
+                var gameInfo = plugins_quorum_Libraries_Game_WebInput_.GetMousedGameInfo(event);
 
-                if (plugins_quorum_Libraries_Game_WebInput_.IsFocused(gameInfo.game))
+                if (gameInfo !== null)
                 {
-                    // If no mouse buttons pressed, send code for MOVED_MOUSE. Otherwise, send DRAGGED_MOUSE.
-                    var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, event.buttons > 0 ? 3 : 2, gameInfo);
-                    gameInfo.plugins_quorum_Libraries_Game_WebInput_.mouseEvents.push(quorumEvent);
+                    event.stopPropagation();
+                    event.preventDefault();
+
+                    if (plugins_quorum_Libraries_Game_WebInput_.IsFocused(gameInfo.game))
+                    {
+                        // If no mouse buttons pressed, send code for MOVED_MOUSE. Otherwise, send DRAGGED_MOUSE.
+                        var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, event.buttons > 0 ? 3 : 2, gameInfo);
+                        gameInfo.plugins_quorum_Libraries_Game_WebInput_.mouseEvents.push(quorumEvent);
+                    }
                 }
             }
         };
@@ -1446,7 +1476,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
     var lastWidth = 0;
     var lastHeight = 0;
     
-    this.CheckForEvents$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array = function(mouseEvents, keyEvents, textEvents, resizeEvents)
+    this.CheckForEvents$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array = function(mouseEvents, keyEvents, textEvents, resizeEvents, gestureEvents)
     {
         var gameInfo = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo();
 
@@ -1459,6 +1489,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
                 keyboardEvents: [],
                 textEvents: [],
                 resizeEvents: [],
+                gestureEvents: [],
                 pressedKeys: {},
                 pressedKeysCount: 0,
                 mouseInfo:
@@ -1468,6 +1499,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
                     buttons: 0,
                     wheel: 0,
                 },
+                gestureProcessor: null,
             }
         }
 
@@ -1500,9 +1532,42 @@ function plugins_quorum_Libraries_Game_WebInput_()
         {
             textEvents.Add$quorum_Libraries_Language_Object(gameInfo.plugins_quorum_Libraries_Game_WebInput_.textEvents[i]);
         }
+        for (var i = 0; i < gameInfo.plugins_quorum_Libraries_Game_WebInput_.gestureEvents.length; i++)
+        {
+            gestureEvents.Add$quorum_Libraries_Language_Object(gameInfo.plugins_quorum_Libraries_Game_WebInput_.gestureEvents[i]);
+        }
         
         gameInfo.plugins_quorum_Libraries_Game_WebInput_.keyboardEvents = [];
         gameInfo.plugins_quorum_Libraries_Game_WebInput_.mouseEvents = [];
         gameInfo.plugins_quorum_Libraries_Game_WebInput_.textEvents = [];
+        gameInfo.plugins_quorum_Libraries_Game_WebInput_.gestureEvents = [];
+    };
+
+    this.SetGestureProcessor$quorum_Libraries_Interface_Events_GestureProcessor = function(gestures) {
+        var gameInfo = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo();
+
+        // Ensure the game info has been initialized for input.
+        if (gameInfo.plugins_quorum_Libraries_Game_WebInput_ == undefined)
+        {
+            gameInfo.plugins_quorum_Libraries_Game_WebInput_ =
+            {
+                mouseEvents: [],
+                keyboardEvents: [],
+                textEvents: [],
+                resizeEvents: [],
+                gestureEvents: [],
+                pressedKeys: {},
+                pressedKeysCount: 0,
+                mouseInfo:
+                {
+                    x: 0,
+                    y: 0,
+                    buttons: 0,
+                    wheel: 0,
+                },
+                gestureProcessor: null,
+            }
+        }
+        gameInfo.plugins_quorum_Libraries_Game_WebInput_.gestureProcessor = gestures;
     };
 }

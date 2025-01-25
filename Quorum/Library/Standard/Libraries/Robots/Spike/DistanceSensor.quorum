@@ -1,0 +1,183 @@
+package Libraries.Robots.Spike
+use Libraries.Containers.Array
+
+/*
+    The distance sensor is an external device that is connected to the hub through a port.
+    The distance sensor is capable of providing light via the front facing LEDs on the device,
+    and can retrieve the distance in millimeters of a nearby object it is pointed towards.
+
+    Attribute: Example
+    use Libraries.Robots.Spike.DistanceSensor
+    use Libraries.Robots.Spike.Port
+    Port port
+    DistanceSensor ds
+    ds:SetPort(port:A)
+    integer currentDistance = ds:GetDistance
+*/
+class DistanceSensor
+    /*
+        Returns the port number of the distance sensor
+
+        Attribute: Returns Port number
+        Attribute: Example
+
+        use Libraries.Robots.Spike.DistanceSensor
+        use Libraries.Robots.Spike.Port
+        Port port
+        DistanceSensor ds
+        ds:SetPort(port:A)
+        integer distanceSensorPort = ds:GetPort()
+    */
+    action GetPort returns integer
+        return GetPortNative()
+    end
+
+    /*
+        Sets the port number of the distance sensor object
+
+        Attribute: Parameter port The port (0 through 5) the distance sensor
+        is attached to
+        Attribute: Example
+
+        use Libraries.Robots.Spike.DistanceSensor
+        use Libraries.Robots.Spike.Port
+        Port port
+        DistanceSensor ds
+        ds:SetPort(port:A)
+        ds:SetPort(0)
+    */
+    action SetPort(integer port)
+        SetPortNative(port)
+    end
+
+    private system action GetPortNative returns integer
+    private system action SetPortNative(integer port)
+
+    /*
+        Returns the distance in millimeters captured from the distance sensor
+
+        Attribute: Returns The distance in millimeters from the distance
+        sensor, returns -1 if the sensor cannot read a valid distance
+        Attribute: Example
+
+        use Libraries.Robots.Spike.DistanceSensor
+        use Libraries.Robots.Spike.Port
+        Port port
+        DistanceSensor ds
+        ds:SetPort(port:A)
+        integer currentDistance = ds:GetDistance
+    */
+    action GetDistance returns integer
+        return GetDistanceNative()
+    end
+
+    private system action GetDistanceNative returns integer
+
+    /*
+        Retrieves the intensity of a specific pixel on the distance sensor's
+        light display
+
+        Attribute: Parameter x the x coordinate from 0 to 1
+        Attribute: Parameter y the y coordinate from 0 to 1
+        Attribute: Returns Intensity, a value between 0 and 100 for the requested pixel
+        Attribute: Example
+
+        use Libraries.Robots.Spike.DistanceSensor
+        use Libraries.Robots.Spike.Port
+        Port port
+        DistanceSensor ds
+        ds:SetPort(port:A)
+        integer firstPixel = ds:GetPixel(0, 0)
+    */
+    action GetPixel(integer x, integer y) returns integer
+        return GetPixelNative(x, y)
+    end
+
+    private system action GetPixelNative(integer x, integer y) returns integer
+
+    /* 
+        Sets the intensity of a specific pixel on the distance sensor's
+        light display
+
+        Attribute: Parameter x The x coordinate from 0 to 1
+        Attribute: Parameter y The y coordinate from 0 to 1
+        Attribute: Parameter intensity The intensity of the provided pixel from 0 to 100
+        Attribute: Example
+
+        use Libraries.Robots.Spike.DistanceSensor
+        use Libraries.Robots.Spike.Port
+        Port port
+        DistanceSensor ds
+        ds:SetPort(port:A)
+        ds:SetPixel(0, 0, 100)
+    */
+    action SetPixel(integer x, integer y, integer intensity)
+        SetPixelNative(x, y, intensity)
+    end
+
+    private system action SetPixelNative(integer x, integer y, integer intensity)
+
+    /*
+        Shuts off all lights on the distance sensor's light display
+
+        Attribute: Example
+
+        use Libraries.Robots.Spike.DistanceSensor
+        use Libraries.Robots.Spike.Port
+        Port port
+        DistanceSensor ds
+        ds:SetPort(port:A)
+        ds:ClearLights()
+    */
+    action ClearLights
+        ClearLightsNative()
+    end
+
+    private system action ClearLightsNative
+
+    /*
+        Sets all lights on the display to the provided intensity
+
+        Attribute: Parameter intensity The intensity of the lights from 0 to 100
+        Attribute: Example
+
+        use Libraries.Robots.Spike.DistanceSensor
+        use Libraries.Robots.Spike.Port
+        Port port
+        DistanceSensor ds
+        ds:SetPort(port:A)
+        ds:SetAllLights(50)
+    */
+    action SetAllLights(integer intensity)
+        SetAllLightsNative(intensity)
+    end
+
+    private system action SetAllLightsNative(integer intensity)
+
+    /*
+        Sets the light intensity of the display pixel by pixel based on the values
+        in a length 4 array of integers from 0 to 100
+
+        Attribute: Parameter pixels An Array<integer> of length 4 containing intensity 
+        values for each pixel
+        Attribute: Example
+
+        use Libraries.Robots.Spike.DistanceSensor
+        use Libraries.Containers.Array
+        use Libraries.Robots.Spike.Port
+        Port port
+        DistanceSensor ds
+        ds:SetPort(port:A)
+        Array<integer> pixels
+        pixels:Add(0)
+        pixels:Add(25)
+        pixels:Add(50)
+        pixels:Add(100)
+        ds:Show(pixels)
+    */
+    action Show(Array<integer> pixels)
+        ShowNative(pixels)
+    end
+
+    private system action ShowNative(Array<integer> pixels)
+end

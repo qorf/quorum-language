@@ -36,8 +36,13 @@ use Libraries.Interface.Controls.TreeTableCell
 use Libraries.Interface.Selections.ButtonGroupSelection
 use Libraries.Interface.Controls.RadioButton
 use Libraries.Interface.Selections.TabPaneSelection
+use Libraries.Interface.Events.WebAccessibilityListener
+use Libraries.Interface.Events.WebAccessibilityEvent
 
 class WebAccessibility is Accessibility
+    
+    Array<WebAccessibilityListener> listeners
+    
     system action NameChanged(Item item)
 
     system action DescriptionChanged(Item item)
@@ -81,6 +86,45 @@ class WebAccessibility is Accessibility
     system action Notify(Item item, text value, integer notificationType)
 
     system action Shutdown
+    
+    action NotifyListeners(WebAccessibilityEvent event)
+        integer eventType = event:GetEventType()
+        integer i = 0
+        repeat while i < listeners:GetSize()
+            if eventType = event:FOCUSED
+                        listeners:Get(i):FocusChanged(event)
+            elseif eventType = event:SHADOW_DOM_FOCUSED
+listeners:Get(i):HiddenElementClicked(event)
+            elseif eventType = event:SLIDER_CHANGED
+                listeners:Get(i):SliderChanged(event)
+end
+            i = i + 1
+        end
+    end
+    
+    action AddWebAccessibilityListener(WebAccessibilityListener listener)
+        listeners:Add(listener)
+    end
+    
+    action AddHiddenHeader(text name, text title)
+        AddHiddenHeader(name, title, false)
+    end
+    system action AddHiddenHeader(text name, text title, boolean attachToRoot)
+    system action AddHiddenButton(text name)
+    action AddHiddenLabel(text name, text words)
+        AddHiddenLabel(name, words, false)
+    end
+    system action AddHiddenLabel(text name, text words, boolean attachToRoot)
+    system action ModifyHiddenLabel(text name, text words)
+    system action AddHiddenSlider(text name, integer min, integer max, integer step)
+    system action ModifyHiddenSlider(text name, integer min, integer max, integer step)
+    system action SetHiddenSliderValueText(text name, text value)
+    system action SetHiddenSliderCurrentValue(text name, integer value)
+    
+    system action FocusHiddenElement(text name)
+    system action SetHiddenOnElement(text id, boolean hide)
+    system action ForceReleaseFocus
+    
 
     action IsScreenReaderListening returns boolean return false end
 end

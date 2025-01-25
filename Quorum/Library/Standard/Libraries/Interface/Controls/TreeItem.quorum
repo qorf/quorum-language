@@ -59,15 +59,6 @@ class TreeItem is Control
         end
     end
 
-    action GetDefaultFontName returns text
-        Font font
-        if font:IsFontAvailable("Arial")
-            return "Arial"
-        else
-            return parent:Control:GetDefaultFontName()
-        end
-    end
-
     action GetDefaultFontSize returns integer
         return 14
     end

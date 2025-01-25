@@ -2,6 +2,10 @@ package Libraries.Interface.Controls.Charts
 
 use Libraries.Interface.Controls.ControlLabel
 use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Fonts.FontManager
+use Libraries.Game.Graphics.Fonts.FontFamily
+use Libraries.System.File
 
 /*
     This class represents labels on chart items. 
@@ -9,7 +13,7 @@ use Libraries.Game.Graphics.ColorGroup
     Attribute: Author William Allee
 */
 class ChartLabel is ControlLabel, ChartItem
-    
+    boolean isBold = false
     on create
         SetInputGroup("Chart")
         SetFocusable(true)
@@ -30,6 +34,10 @@ class ChartLabel is ControlLabel, ChartItem
         Attribute: Returns ColorGroup or color of the font on a label.
     */
     action GetFontColor returns ColorGroup
+if HasColorPropertyOverride("fontColor")
+            return parent:Control:GetFontColor()
+        end
+        
         Chart chart = GetParentChart()
         if chart not= undefined
             return chart:GetFontColor()
@@ -76,5 +84,31 @@ class ChartLabel is ControlLabel, ChartItem
     action LostSelection
         parent:ChartItem:LostSelection()
         parent:ControlLabel:LostSelection()
+    end
+    
+    action IsBold returns boolean
+        return isBold
+    end
+
+    action SetBold(boolean isBold)
+        if true
+me:isBold = isBold
+        Font font = GetFont()
+        if font not= undefined
+integer size = font:GetSize()
+            text name = font:GetName()
+            FontManager manager
+            FontFamily family = manager:GetFontFamily(name)
+            if family not= undefined
+                text boldName = family:GetBold()
+                if boldName not= undefined
+                    Font bold
+                        bold:SetSize(100)
+                    bold:LoadFont(boldName)
+                    SetFont(bold)
+                end
+            end
+        end
+        end
     end
 end

@@ -42,7 +42,10 @@ class Font
     GameStateManager gameStateManager
     
     boolean isSystemFont = true
+    //This is the full path of the font, including the name
     text fontName = ""
+    //This field is the raw name of the font
+    text name = ""
     integer fontSize = 14
     number angle = 0
 
@@ -153,6 +156,32 @@ class Font
         needToRecalculateID = true
         isSystemFont = false
         fontName = fontFile:GetAbsolutePath()
+        name = fontFile:GetNameNoExtension()
+    end
+    
+    /*This action gets the name of the font, including the file extension.
+
+Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.System.File
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                File file
+                file:SetPath("CustomFont.ttf")
+                font:LoadFont(file)
+                output font:GetName()
+            end
+        end*/
+    action GetName returns text
+        return name
     end
 
     /*
@@ -186,6 +215,7 @@ class Font
         needToRecalculateID = true
         isSystemFont = true
         me:fontName = fontName
+        name = fontName
     end
 
     /*

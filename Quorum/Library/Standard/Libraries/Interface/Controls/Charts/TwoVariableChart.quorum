@@ -135,7 +135,6 @@ class TwoVariableChart is Chart
                 cline:SetNextFocus(GetNextFocus())
                 cline:SetPreviousFocus(GetPreviousFocus())
                 chartArea:Add(cline)
-                //chartArea:Add(cline:GetSelectionArrow()) 
 
                 integer j = 0
                 repeat while j < cline:GetLines():GetSize()
@@ -156,7 +155,6 @@ class TwoVariableChart is Chart
                     point:SetNextFocus(GetNextFocus())
                     point:SetPreviousFocus(GetPreviousFocus())
                     chartArea:Add(point)
-                    chartArea:Add(point:GetSelectionArrow())
                     point:SetSeries(cline:GetSeries())
                     GeneratePointSummary(point)
 
@@ -231,13 +229,15 @@ class TwoVariableChart is Chart
 
             if me is ScatterPlot
                 ScatterPlot scatter = cast(ScatterPlot, me)
-                squares = scatter:GetResidualSquares()
-                
-                if scatter:HasMovableRegressionLine()
-                    if IsSeparated()
-                        hasSeparatedMovableLines = true
-                    else
-                        movableSquares = GetChartArea():GetMovableRegressionSeries():GetResidualSquares()
+                if scatter:IsShowingSquaresOfResiduals()
+                    squares = scatter:GetResidualSquares()
+                    
+                    if scatter:HasMovableRegressionLine()
+                        if IsSeparated()
+                            hasSeparatedMovableLines = true
+                        else
+                            movableSquares = GetChartArea():GetMovableRegressionSeries():GetResidualSquares()
+                        end
                     end
                 end
             end
@@ -289,7 +289,6 @@ class TwoVariableChart is Chart
                 end
 
                 chartArea:Add(point)
-                chartArea:Add(point:GetSelectionArrow())
                 if point:ShowAnnotation() or ShowAnnotations()
                     ChartLabel pointLabel   
                     text nameText = ""

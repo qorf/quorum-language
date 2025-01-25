@@ -28,6 +28,7 @@ use Libraries.Game.Graphics.Format
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Texture
 use Libraries.Data.Formats.ExtensibleMarkupReader
+use Libraries.Interface.Controls.TabBar
 
 class BlockPalette is TabPane
 
@@ -374,6 +375,22 @@ action SetBlockSuggestionHandler(BlockSuggestionHandler suggestionHandler)
 
     action IncludeDefaultTabs(boolean includeDefaultTabs)
         me:includeDefaultTabs = includeDefaultTabs
+    end
+    
+    action Resize
+        if GetSize() = 1
+            Item item = GetChildAsItem(0)
+            if item is TabBar
+                item:Hide()
+                RequestLayout()
+            end
+        else
+Item item = GetChildAsItem(0)
+            if item is TabBar and not item:IsShowing()
+                item:Show()
+            end
+        end
+        parent:Item2D:Resize()
     end
 
 end

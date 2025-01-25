@@ -86,10 +86,12 @@ class ChainedActionCallOpcode is QuorumOpcode
         TranslateConstants constants
         boolean async = constants:IsUserCodeAsynchronous()
         boolean userCode = false
+        boolean callingClassUserCode = false
+        boolean isUserSpecialAction = false
         text tabs = constants:GetTabText()
         Array<text> values
         Iterator<ActionCallOpcode> it = ops:GetIterator()
-        boolean containsSpikeSystemCall = false
+        boolean containsSystemSpikeCall = false
         integer i = 0
         repeat while it:HasNext()
             ActionCallOpcode op = it:Next()
@@ -120,12 +122,36 @@ class ChainedActionCallOpcode is QuorumOpcode
                 Class callOnClass = res:classToMakeCallOn
                 if callOnClass not= undefined
                     text pack = callOnClass:GetPackageKey()
-                    if pack = "Libraries.Robots.Spike"
+                    callingClassUserCode = callOnClass:IsUserCode()
+                    //if pack = "Libraries.Robots.Spike"
                         Action act = res:resolvedAction
-                        if act not= undefined and act:IsSystem()
-                            containsSpikeSystemCall = true
+                        /*
+                        This is quirky. We're trying to detect if we need to call an async action. By default, user code has to be async and spike code
+                        does. So, user code and system actions need to be awaited. It's plausible there could be some kind of funky
+                        issues with inheritance here as well. 
+                        */
+                        if act not= undefined and act:IsSystem() and pack = "Libraries.Robots.Spike"
+                            containsSystemSpikeCall = true
                         end
-                    end
+
+                        if act:GetName() = "GetHashCode" and act:GetParametersSize() = 0
+                            isUserSpecialAction = true
+                        elseif act:GetName() = "Compare" and act:GetParametersSize() = 1 
+                                and act:GetParameter("object") not= undefined
+                            isUserSpecialAction = true
+                        elseif act:GetName() = "Equals" and act:GetParametersSize() = 1
+                                and act:GetParameter("object") not= undefined
+                            isUserSpecialAction = true
+                        end
+                        //also make sure we're not calling a parent action
+                        //if we are, it's fine, unless that parent is also in user code. Then we await.
+                        Class mom = act:GetParentClass()
+                        if mom not= undefined and mom:GetStaticKey() not= callOnClass:GetStaticKey()
+                            if not callOnClass:IsUserCode() //it's not user code, so use those assumptions.
+                                isUserSpecialAction = true
+                            end
+                        end
+                    //end
                 end
             end
 
@@ -174,10 +200,16 @@ class ChainedActionCallOpcode is QuorumOpcode
             i = i + 1
         end
         if isSoloCall
-            if async and userCode and containsSpikeSystemCall
+            //if it's a solo call and we're calling a system action and it's async, wait on it
+            if async and userCode and not isUserSpecialAction and (containsSystemSpikeCall or callingClassUserCode)
                 result = tabs + "await " + result + EOL
             else
                 result = tabs + result + EOL// + ";" + result:GetCarriageReturn() + result:GetLineFeed()
+            end
+        else
+            //if it's not a solo call, but we're calling an action in user code, assume it's async and we need to wait.
+            if async and userCode and not isUserSpecialAction and (containsSystemSpikeCall or callingClassUserCode)
+                result = "await " + result
             end
         end
 

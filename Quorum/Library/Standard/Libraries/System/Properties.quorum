@@ -25,6 +25,9 @@ shared class Properties
     This is a public constant for the operating system property name.
     */
     public constant text operatingSystem = "os.name"
+    
+    /* This is a public constant for the architecture property name. */
+    public constant text architecture = "os.arch"
 
     /* This is a public property that is set to true if we are running on an ios simulator. */
     public constant text iosSimulator = "IOS-Simulator"
@@ -125,7 +128,21 @@ shared class Properties
     action GetOperatingSystemName returns text
         return GetProperty(operatingSystem)
     end
+    
+/*
+    This property returns the name of the architecture currently running
+    the program. Depending on how Quorum is run, this property may return undefined.
 
+    Attribute: Example
+    use Libraries.System.Properties
+
+    Properties properties
+    text value = properties:GetArchitecture()
+    output value
+    */
+    action GetArchitecture returns text
+        return GetProperty(architecture)
+    end
     /*
     This property returns the name of the operating system version currently running
     the program.

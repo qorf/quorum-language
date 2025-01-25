@@ -150,6 +150,7 @@ class InterfaceOptions
     public constant text START_BUTTON_GROUPING = "StartButtonGrouping"
     public constant text BANNER = "Banner"
     public constant text CODE_EDITOR = "CodeEditor"
+    public constant text CHART_POINT = "ChartPoint"
 
     // HashTables for color & number properties and interface options.
     HashTable<text, ColorGroup> colorProperties
@@ -13738,6 +13739,390 @@ class InterfaceOptions
 
     action CopyCodeEditorInterfaceOptions returns InterfaceOptions
         return CopyInterfaceOptions(CODE_EDITOR)
+    end
+
+    action SetChartPointBackgroundColor(ColorGroup value)
+        SetBackgroundColor(CHART_POINT, value)
+    end
+
+    action GetChartPointBackgroundColor returns ColorGroup
+        return GetBackgroundColor(CHART_POINT)
+    end
+
+    action SetChartPointForegroundColor(ColorGroup value)
+        SetForegroundColor(CHART_POINT, value)
+    end
+
+    action GetChartPointForegroundColor returns ColorGroup
+        return GetForegroundColor(CHART_POINT)
+    end
+
+    action SetChartPointForegroundSelectionColor(ColorGroup value)
+        SetForegroundSelectionColor(CHART_POINT, value)
+    end
+
+    action GetChartPointForegroundSelectionColor returns ColorGroup
+        return GetForegroundSelectionColor(CHART_POINT)
+    end
+
+    action SetChartPointFontColor(ColorGroup value)
+        SetFontColor(CHART_POINT, value)
+    end
+
+    action GetChartPointFontColor returns ColorGroup
+        return GetFontColor(CHART_POINT)
+    end
+
+    action SetChartPointFontOutlineColor(ColorGroup value)
+        SetFontOutlineColor(CHART_POINT, value)
+    end
+
+    action GetChartPointFontOutlineColor returns ColorGroup
+        return GetFontOutlineColor(CHART_POINT)
+    end
+
+    action SetChartPointBorderColor(ColorGroup value)
+        SetBorderColor(CHART_POINT, value)
+    end
+
+    action GetChartPointBorderColor returns ColorGroup
+        return GetBorderColor(CHART_POINT)
+    end
+
+    action SetChartPointFocusColor(ColorGroup value)
+        SetFocusColor(CHART_POINT, value)
+    end
+
+    action GetChartPointFocusColor returns ColorGroup
+        return GetFocusColor(CHART_POINT)
+    end
+
+    action SetChartPointFocusFontColor(ColorGroup value)
+        SetFocusFontColor(CHART_POINT, value)
+    end
+
+    action GetChartPointFocusFontColor returns ColorGroup
+        return GetFocusFontColor(CHART_POINT)
+    end
+
+    action SetChartPointFocusBorderColor(ColorGroup value)
+        SetFocusBorderColor(CHART_POINT, value)
+    end
+
+    action GetChartPointFocusBorderColor returns ColorGroup
+        return GetFocusBorderColor(CHART_POINT)
+    end
+
+    action SetChartPointMouseOverColor(ColorGroup value)
+        SetMouseOverColor(CHART_POINT, value)
+    end
+
+    action GetChartPointMouseOverColor returns ColorGroup
+        return GetMouseOverColor(CHART_POINT)
+    end
+
+    action SetChartPointMouseOverFontColor(ColorGroup value)
+        SetMouseOverFontColor(CHART_POINT, value)
+    end
+
+    action GetChartPointMouseOverFontColor returns ColorGroup
+        return GetMouseOverFontColor(CHART_POINT)
+    end
+
+    action SetChartPointMouseDownColor(ColorGroup value)
+        SetMouseDownColor(CHART_POINT, value)
+    end
+
+    action GetChartPointMouseDownColor returns ColorGroup
+        return GetMouseDownColor(CHART_POINT)
+    end
+
+    action SetChartPointMouseDownFontColor(ColorGroup value)
+        SetMouseDownFontColor(CHART_POINT, value)
+    end
+
+    action GetChartPointMouseDownFontColor returns ColorGroup
+        return GetMouseDownFontColor(CHART_POINT)
+    end
+
+    action SetChartPointSelectionColor(ColorGroup value)
+        SetSelectionColor(CHART_POINT, value)
+    end
+
+    action GetChartPointSelectionColor returns ColorGroup
+        return GetSelectionColor(CHART_POINT)
+    end
+
+    action SetChartPointSelectionBorderColor(ColorGroup value)
+        SetSelectionBorderColor(CHART_POINT, value)
+    end
+
+    action GetChartPointSelectionBorderColor returns ColorGroup
+        return GetSelectionBorderColor(CHART_POINT)
+    end
+
+    action SetChartPointUnfocusedSelectionColor(ColorGroup value)
+        SetUnfocusedSelectionColor(CHART_POINT, value)
+    end
+
+    action GetChartPointUnfocusedSelectionColor returns ColorGroup
+        return GetUnfocusedSelectionColor(CHART_POINT)
+    end
+
+    action SetChartPointUnfocusedSelectionBorderColor(ColorGroup value)
+        SetUnfocusedSelectionBorderColor(CHART_POINT, value)
+    end
+
+    action GetChartPointUnfocusedSelectionBorderColor returns ColorGroup
+        return GetUnfocusedSelectionBorderColor(CHART_POINT)
+    end
+
+    action SetChartPointSelectionFontColor(ColorGroup value)
+        SetSelectionFontColor(CHART_POINT, value)
+    end
+
+    action GetChartPointSelectionFontColor returns ColorGroup
+        return GetSelectionFontColor(CHART_POINT)
+    end
+
+    action SetChartPointUnfocusedSelectionFontColor(ColorGroup value)
+        SetUnfocusedSelectionFontColor(CHART_POINT, value)
+    end
+
+    action GetChartPointUnfocusedSelectionFontColor returns ColorGroup
+        return GetUnfocusedSelectionFontColor(CHART_POINT)
+    end
+
+    action SetChartPointGlowColor(ColorGroup value)
+        SetGlowColor(CHART_POINT, value)
+    end
+
+    action GetChartPointGlowColor returns ColorGroup
+        return GetGlowColor(CHART_POINT)
+    end
+
+    action SetChartPointMouseOverGlowColor(ColorGroup value)
+        SetMouseOverGlowColor(CHART_POINT, value)
+    end
+
+    action GetChartPointMouseOverGlowColor returns ColorGroup
+        return GetMouseOverGlowColor(CHART_POINT)
+    end
+
+    action SetChartPointMouseDownGlowColor(ColorGroup value)
+        SetMouseDownGlowColor(CHART_POINT, value)
+    end
+
+    action GetChartPointMouseDownGlowColor returns ColorGroup
+        return GetMouseDownGlowColor(CHART_POINT)
+    end
+
+    action SetChartPointIconColor(ColorGroup value)
+        SetIconColor(CHART_POINT, value)
+    end
+
+    action GetChartPointIconColor returns ColorGroup
+        return GetIconColor(CHART_POINT)
+    end
+
+    action SetChartPointAccentColor(ColorGroup value)
+        SetAccentColor(CHART_POINT, value)
+    end
+
+    action GetChartPointAccentColor returns ColorGroup
+        return GetAccentColor(CHART_POINT)
+    end
+
+    action SetChartPointShadowColor(ColorGroup value)
+        SetShadowColor(CHART_POINT, value)
+    end
+
+    action GetChartPointShadowColor returns ColorGroup
+        return GetShadowColor(CHART_POINT)
+    end
+
+    action SetChartPointBorderThickness(number value)
+        SetBorderThickness(CHART_POINT, value)
+    end
+
+    action GetChartPointBorderThickness returns number
+        return GetBorderThickness(CHART_POINT)
+    end
+
+    action HasChartPointBorderThickness returns boolean
+        return GetBorderThickness(CHART_POINT):IsNotANumber() = false
+    end
+
+    action SetChartPointFontOutlineThickness(number value)
+        SetFontOutlineThickness(CHART_POINT, value)
+    end
+
+    action GetChartPointFontOutlineThickness returns number
+        return GetFontOutlineThickness(CHART_POINT)
+    end
+
+    action HasChartPointFontOutlineThickness returns boolean
+        return GetFontOutlineThickness(CHART_POINT):IsNotANumber() = false
+    end
+
+    action SetChartPointTopLeftRounding(number value)
+        SetTopLeftRounding(CHART_POINT, value)
+    end
+
+    action GetChartPointTopLeftRounding returns number
+        return GetTopLeftRounding(CHART_POINT)
+    end
+
+    action HasChartPointTopLeftRounding returns boolean
+        return GetTopLeftRounding(CHART_POINT):IsNotANumber() = false
+    end
+
+    action SetChartPointTopRightRounding(number value)
+        SetTopRightRounding(CHART_POINT, value)
+    end
+
+    action GetChartPointTopRightRounding returns number
+        return GetTopRightRounding(CHART_POINT)
+    end
+
+    action HasChartPointTopRightRounding returns boolean
+        return GetTopRightRounding(CHART_POINT):IsNotANumber() = false
+    end
+
+    action SetChartPointBottomLeftRounding(number value)
+        SetBottomLeftRounding(CHART_POINT, value)
+    end
+
+    action GetChartPointBottomLeftRounding returns number
+        return GetBottomLeftRounding(CHART_POINT)
+    end
+
+    action HasChartPointBottomLeftRounding returns boolean
+        return GetBottomLeftRounding(CHART_POINT):IsNotANumber() = false
+    end
+
+    action SetChartPointBottomRightRounding(number value)
+        SetBottomRightRounding(CHART_POINT, value)
+    end
+
+    action GetChartPointBottomRightRounding returns number
+        return GetBottomRightRounding(CHART_POINT)
+    end
+
+    action HasChartPointBottomRightRounding returns boolean
+        return GetBottomRightRounding(CHART_POINT):IsNotANumber() = false
+    end
+
+    action SetChartPointTopLeftPixelRounding(number value)
+        SetTopLeftPixelRounding(CHART_POINT, value)
+    end
+
+    action GetChartPointTopLeftPixelRounding returns number
+        return GetTopLeftPixelRounding(CHART_POINT)
+    end
+
+    action HasChartPointTopLeftPixelRounding returns boolean
+        return GetTopLeftPixelRounding(CHART_POINT):IsNotANumber() = false
+    end
+
+    action SetChartPointTopRightPixelRounding(number value)
+        SetTopRightPixelRounding(CHART_POINT, value)
+    end
+
+    action GetChartPointTopRightPixelRounding returns number
+        return GetTopRightPixelRounding(CHART_POINT)
+    end
+
+    action HasChartPointTopRightPixelRounding returns boolean
+        return GetTopRightPixelRounding(CHART_POINT):IsNotANumber() = false
+    end
+
+    action SetChartPointBottomLeftPixelRounding(number value)
+        SetBottomLeftPixelRounding(CHART_POINT, value)
+    end
+
+    action GetChartPointBottomLeftPixelRounding returns number
+        return GetBottomLeftPixelRounding(CHART_POINT)
+    end
+
+    action HasChartPointBottomLeftPixelRounding returns boolean
+        return GetBottomLeftPixelRounding(CHART_POINT):IsNotANumber() = false
+    end
+
+    action SetChartPointBottomRightPixelRounding(number value)
+        SetBottomRightPixelRounding(CHART_POINT, value)
+    end
+
+    action GetChartPointBottomRightPixelRounding returns number
+        return GetBottomRightPixelRounding(CHART_POINT)
+    end
+
+    action HasChartPointBottomRightPixelRounding returns boolean
+        return GetBottomRightPixelRounding(CHART_POINT):IsNotANumber() = false
+    end
+
+    action SetChartPointShadowX(number value)
+        SetShadowX(CHART_POINT, value)
+    end
+
+    action GetChartPointShadowX returns number
+        return GetShadowX(CHART_POINT)
+    end
+
+    action HasChartPointShadowX returns boolean
+        return GetShadowX(CHART_POINT):IsNotANumber() = false
+    end
+
+    action SetChartPointShadowY(number value)
+        SetShadowY(CHART_POINT, value)
+    end
+
+    action GetChartPointShadowY returns number
+        return GetShadowY(CHART_POINT)
+    end
+
+    action HasChartPointShadowY returns boolean
+        return GetShadowY(CHART_POINT):IsNotANumber() = false
+    end
+
+    action SetChartPointShadowWidth(number value)
+        SetShadowWidth(CHART_POINT, value)
+    end
+
+    action GetChartPointShadowWidth returns number
+        return GetShadowWidth(CHART_POINT)
+    end
+
+    action HasChartPointShadowWidth returns boolean
+        return GetShadowWidth(CHART_POINT):IsNotANumber() = false
+    end
+
+    action SetChartPointShadowHeight(number value)
+        SetShadowHeight(CHART_POINT, value)
+    end
+
+    action GetChartPointShadowHeight returns number
+        return GetShadowHeight(CHART_POINT)
+    end
+
+    action HasChartPointShadowHeight returns boolean
+        return GetShadowHeight(CHART_POINT):IsNotANumber() = false
+    end
+
+    action SetChartPointShadowEdgeFade(number value)
+        SetShadowEdgeFade(CHART_POINT, value)
+    end
+
+    action GetChartPointShadowEdgeFade returns number
+        return GetShadowEdgeFade(CHART_POINT)
+    end
+
+    action HasChartPointShadowEdgeFade returns boolean
+        return GetShadowEdgeFade(CHART_POINT):IsNotANumber() = false
+    end
+
+    action CopyChartPointInterfaceOptions returns InterfaceOptions
+        return CopyInterfaceOptions(CHART_POINT)
     end
 
 end

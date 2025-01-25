@@ -1,11 +1,53 @@
 package Libraries.Robots.Spike
+use Libraries.Containers.Array
 
+/*
+    The color sensor is an external device that is connected to the hub through a port.
+    The color sensor is a unidirectional sensor that measures the intensity and rgb value of 
+    reflected light.
+
+    Attribute: Example
+
+    use Libraries.Robots.Spike.ColorSensor
+    use Libraries.Robots.Spike.Color
+    use Libraries.Robots.Spike.Port
+    use Libraries.Robots.Spike.LightMatrix
+    ColorSensor cs
+    Color color
+    LighMatrix lights
+    Port port
+    cs:SetPort(port:A)
+    if cs:GetColorInteger = color:RED
+        lights:Write("Red Detected!")
+    end
+*/
 class ColorSensor
-    
+    /*
+        Returns the currently assigned port for this color sensor
+
+        Attribute: Returns The current port number
+        Attribute: Example
+
+        use Libraries.Robots.Spike.ColorSensor
+        ColorSensor cs
+        integer port = cs:GetPort()
+    */
     action GetPort returns integer
         return GetPortNative()
     end
 
+    /*
+        Sets the port for this color sensor
+
+        Attribute: Parameter port The port to assign
+        Attribute: Example
+
+        use Libraries.Robots.Spike.ColorSensor
+        use Libraries.Robots.Spike.Port
+        ColorSensor cs
+        Port port
+        cs:SetPort(port:A)
+    */
     action SetPort(integer port)
         SetPortNative(port)
     end
@@ -13,12 +55,45 @@ class ColorSensor
     private system action GetPortNative returns integer
     private system action SetPortNative(integer port) returns integer
 
+
+    /*
+        Returns the detected color as an integer corresponding to a color from the Color module
+
+        Attribute: Returns The color, which is an integer corresponding to a color from the Color module
+        Attribute: Example
+
+        use Libraries.Robots.Spike.ColorSensor
+        use Libraries.Robots.Spike.Color
+        use Libraries.Robots.Spike.Port
+        use Libraries.Robots.Spike.LightMatrix
+        ColorSensor cs
+        Color color
+        LighMatrix lights
+        Port port
+        cs:SetPort(port:A)
+        if cs:GetColorInteger = color:RED
+            lights:Write("Red Detected!")
+        end
+    */
     action GetColorInteger returns integer
         return GetColorIntegerNative()
     end
 
     private system action GetColorIntegerNative returns integer
 
+    /*
+        Returns the intensity of the reflected light detected by the sensor
+
+        Attribute: Returns The intensity of reflected light detected by the color sensor from 0 to 100
+        Attribute: Example
+
+        use Libraries.Robots.Spike.ColorSensor
+        use Libraries.Robots.Spike.Port
+        ColorSensor cs
+        Port port
+        cs:SetPort(port:A)
+        integer intensity = cs:GetReflection()
+    */
     action GetReflection returns integer
         return GetReflectionNative()
     end
@@ -26,15 +101,26 @@ class ColorSensor
     private system action GetReflectionNative returns integer
 
     /*
-    action GetColor returns Color
-        Color color
-        SetColorValuesIntoPassedColorNative(color)
-        return color
-    end
-    */
+        Returns the red, green, blue, and intensity values of the reflected light detected by the color 
+        sensor in an array of 4 integers.
 
-    /* 
-        This action sets the passed color to the current color RGB values. 
+        Attribute: Returns An Array<integer> of length 4, red (from 0 to 1024) is at index 0, 
+        blue (from 0 to 1024) is at index 1, green (from 0 to 1024) is at index 2, and the intensity 
+        (from 0 to 1024) is at index 3
+        Attribute: Example
+
+        use Libraries.Robots.Spike.ColorSensor
+        use Libraries.Robots.Spike.Port
+        use Libraries.Containers.Array
+        ColorSensor cs
+        Port port
+        Array<integer> rgbi
+        cs:SetPort(port:A)
+        rgbi = cs:GetRGBI()
     */
-    //private system action SetColorValuesIntoPassedColorNative(Color color)
+    action GetRGBI() returns Array<integer>
+        return GetRGBINative()
+    end
+
+    private system action GetRGBINative() returns Array<integer>
 end

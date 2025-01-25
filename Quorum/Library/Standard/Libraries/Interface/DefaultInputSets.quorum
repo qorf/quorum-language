@@ -2229,16 +2229,40 @@ InputSet textFieldControlDelete
 
         GameStateManager manager
 
+        
+InputSet swipeSet
+        GestureEvent gestures
+        swipeSet:SetGestureInput(gestures:SWIPE)
+
+        InputSet tapSet
+        tapSet:SetGestureInput(gestures:SINGLE_TAP)
+
+        InputSet doubleTapSet
+        doubleTapSet:SetGestureInput(gestures:DOUBLE_TAP)
+
+        InputSet panSet
+        panSet:SetGestureInput(gestures:PAN)
+
+        InputSet longPressSet
+        longPressSet:SetGestureInput(gestures:LONG_PRESS)
+
+        InputSet pinchSet
+        pinchSet:SetGestureInput(gestures:PINCH)
+        
+        CodeEditorSwipeBehavior swipeBehavior
+        //table:Add(swipeSet, swipeBehavior)
 
         InputSet downSet
         downSet:SetKeyboardInput(keys:DOWN)
         CodeEditorSelectionDownBehavior downBehavior
         table:Add(downSet, downBehavior)
+        
 
         InputSet upSet
         upSet:SetKeyboardInput(keys:UP)
         CodeEditorSelectionUpBehavior upBehavior
         table:Add(upSet, upBehavior)
+        
 
         InputSet shiftDownSet = downSet:Copy()
         shiftDownSet:AddModifier(shiftDownSet:SHIFT)
