@@ -7,10 +7,10 @@ import java.util.concurrent.Callable;
 public class QuorumCallable implements Callable {
     private FutureBehavior_ behavior = null;
     @Override
-    public Object call() throws Exception {
+    public quorum.Libraries.Language.Object_ call() throws Exception {
         behavior.Run(null);
         behavior.Then();
-        return null;
+        return behavior.GetResult();
     }
 
     public FutureBehavior_ getFutureBehavior() {
