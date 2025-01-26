@@ -8,7 +8,7 @@ import java.util.concurrent.*;
 
 public class Tasks {
     public java.lang.Object me_ = null;
-    ExecutorService executor = Executors.newFixedThreadPool(5);
+    ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public void SetToSingleThread() {
         executor = Executors.newSingleThreadExecutor();
