@@ -1,14 +1,14 @@
 package plugins.quorum.Libraries.Concurrency;
 
-import quorum.Libraries.Concurrency.FutureBehavior_;
+import quorum.Libraries.Concurrency.Task_;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class Future {
+public class TaskStatus {
     public java.lang.Object me_ = null;
-    private FutureBehavior_ behavior = null;
+    private Task_ behavior = null;
     private java.util.concurrent.Future<quorum.Libraries.Language.Object> javaFuture = null;
     public quorum.Libraries.Language.Object_ Get() throws ExecutionException, InterruptedException {
         return javaFuture.get();
@@ -26,11 +26,11 @@ public class Future {
         this.javaFuture = javaFuture;
     }
 
-    public FutureBehavior_ getBehavior() {
+    public Task_ getTask() {
         return behavior;
     }
 
-    public void setBehavior(FutureBehavior_ behavior) {
+    public void setTask(Task_ behavior) {
         this.behavior = behavior;
     }
 }

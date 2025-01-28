@@ -1,23 +1,23 @@
 package plugins.quorum.Libraries.Concurrency;
 
-import quorum.Libraries.Concurrency.FutureBehavior_;
+import quorum.Libraries.Concurrency.Task_;
 
 import java.util.concurrent.Callable;
 
 public class QuorumCallable implements Callable {
-    private FutureBehavior_ behavior = null;
+    private Task_ behavior = null;
     @Override
     public quorum.Libraries.Language.Object_ call() throws Exception {
-        behavior.Run(null);
+        behavior.Run();
         behavior.Then();
         return behavior.GetResult();
     }
 
-    public FutureBehavior_ getFutureBehavior() {
+    public Task_ getFutureBehavior() {
         return behavior;
     }
 
-    public void setFutureBehavior(FutureBehavior_ behavior) {
+    public void setFutureBehavior(Task_ behavior) {
         this.behavior = behavior;
     }
 }

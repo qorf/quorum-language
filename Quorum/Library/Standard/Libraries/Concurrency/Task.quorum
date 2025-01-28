@@ -1,8 +1,12 @@
 package Libraries.Concurrency
 
 use Libraries.Interface.Behaviors.Behavior
-class FutureBehavior is Behavior
+class Task
     Object result = undefined
+    action Run
+        
+    end
+    
     action Then
         
     end
@@ -10,6 +14,7 @@ class FutureBehavior is Behavior
     action GetResult returns Object
         return result
     end
+    
     action SetResult(Object result)
         me:result = result
     end

@@ -1,8 +1,7 @@
 package plugins.quorum.Libraries.Concurrency;
 
-import quorum.Libraries.Concurrency.FutureBehavior_;
-import quorum.Libraries.Concurrency.Future_;
-import quorum.Libraries.Interface.Behaviors.Behavior_;
+import quorum.Libraries.Concurrency.Task_;
+import quorum.Libraries.Concurrency.TaskStatus_;
 
 import java.util.concurrent.*;
 
@@ -21,14 +20,14 @@ public class Tasks {
             executor = Executors.newFixedThreadPool(size);
         }
     }
-    public Future_ Do(FutureBehavior_ behave) {
+    public TaskStatus_ Do(Task_ behave) {
         QuorumCallable callable = new QuorumCallable();
         callable.setFutureBehavior(behave);
         java.util.concurrent.Future future = executor.submit(callable);
 
-        quorum.Libraries.Concurrency.Future quorumFuture = new quorum.Libraries.Concurrency.Future();
-        plugins.quorum.Libraries.Concurrency.Future plugin = quorumFuture.plugin_;
-        plugin.setBehavior(behave);
+        quorum.Libraries.Concurrency.TaskStatus quorumFuture = new quorum.Libraries.Concurrency.TaskStatus();
+        TaskStatus plugin = quorumFuture.plugin_;
+        plugin.setTask(behave);
         plugin.setJavaFuture(future);
         return quorumFuture;
     }

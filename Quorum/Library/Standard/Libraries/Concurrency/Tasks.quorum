@@ -3,7 +3,7 @@ use Libraries.Interface.Controls.List
 use Libraries.Interface.Behaviors.Behavior
 
 class Tasks
-    system action Do(FutureBehavior behave) returns Future
+    system action Do(Task task) returns TaskStatus
     system action Wait returns boolean
     system action Wait(number seconds) returns boolean
     system action SetThreadPoolSize(integer size)
