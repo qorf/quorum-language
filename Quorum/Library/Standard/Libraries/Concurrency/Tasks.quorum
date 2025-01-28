@@ -4,7 +4,11 @@ use Libraries.Interface.Behaviors.Behavior
 
 class Tasks
     system action Do(Task task) returns TaskStatus
+    system action Shutdown
+    system action ShutdownNow
+    system action IsFinished returns boolean
     system action Wait returns boolean
-    system action Wait(number seconds) returns boolean
+    system action Wait(number milliseconds) returns boolean
     system action SetThreadPoolSize(integer size)
+    system action GetThreadPoolSize returns integer
 end

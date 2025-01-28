@@ -18,6 +18,9 @@ public class TaskStatus {
         return javaFuture.get((long)milliseconds, TimeUnit.MILLISECONDS);
     }
 
+    public boolean IsFinished() {
+        return behavior.IsFinished();
+    }
     public java.util.concurrent.Future getJavaFuture() {
         return javaFuture;
     }

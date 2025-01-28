@@ -1,7 +1,7 @@
 package Libraries.Concurrency
 
-use Libraries.Interface.Behaviors.Behavior
 class Task
+boolean finished = false
     Object result = undefined
     action Run
         
@@ -18,5 +18,12 @@ class Task
     action SetResult(Object result)
         me:result = result
     end
-
+    
+    action IsFinished returns boolean
+        return finished
+    end
+    
+    private action SetFinished(boolean finished)
+        me:finished = finished
+    end
 end

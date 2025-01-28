@@ -8,6 +8,7 @@ import java.util.concurrent.*;
 public class Tasks {
     public java.lang.Object me_ = null;
     ExecutorService executor = Executors.newSingleThreadExecutor();
+    int poolSize = 1;
 
     public void SetToSingleThread() {
         executor = Executors.newSingleThreadExecutor();
@@ -16,9 +17,15 @@ public class Tasks {
     public void SetThreadPoolSize(int size) {
         if(size <= 1) {
             executor = Executors.newSingleThreadExecutor();
+            poolSize = 1;
         } else {
             executor = Executors.newFixedThreadPool(size);
+            poolSize = size;
         }
+    }
+
+    public int GetThreadPoolSize() {
+        return poolSize;
     }
     public TaskStatus_ Do(Task_ behave) {
         QuorumCallable callable = new QuorumCallable();
@@ -32,9 +39,23 @@ public class Tasks {
         return quorumFuture;
     }
 
-    public boolean Wait() {
+    public void Shutdown() {
         executor.shutdown();
+    }
 
+    public void ShutdownNow() {
+        executor.shutdownNow();
+    }
+
+    public boolean IsShutdown() {
+        return executor.isShutdown();
+    }
+
+    public boolean IsFinished() {
+        return executor.isTerminated();
+    }
+
+    public boolean Wait() {
         try {
             // Wait forever until all tasks are completed
             return executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
@@ -45,7 +66,6 @@ public class Tasks {
     }
 
     public boolean Wait(double milliseconds) {
-        executor.shutdown();
 
         try {
             // Wait forever until all tasks are completed

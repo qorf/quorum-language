@@ -10,6 +10,7 @@ public class QuorumCallable implements Callable {
     public quorum.Libraries.Language.Object_ call() throws Exception {
         behavior.Run();
         behavior.Then();
+        behavior.SetFinished(true);
         return behavior.GetResult();
     }
 
