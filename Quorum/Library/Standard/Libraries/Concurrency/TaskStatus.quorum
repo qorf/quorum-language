@@ -1,7 +1,22 @@
 package Libraries.Concurrency
 
 class TaskStatus
+    Task task = undefined
     system action Get returns Object
     system action Get(number milliseconds) returns Object
-    system action IsFinished returns boolean
+    
+    action IsFinished returns boolean
+        if task = undefined
+            return false
+        end
+        return task:IsFinished()
+end
+    
+    private action GetTask returns Task
+        return task
+    end
+
+    private action SetTask(Task task)
+        me:task = task
+    end
 end

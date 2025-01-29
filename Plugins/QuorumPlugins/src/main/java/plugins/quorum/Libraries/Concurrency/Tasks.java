@@ -33,8 +33,9 @@ public class Tasks {
         java.util.concurrent.Future future = executor.submit(callable);
 
         quorum.Libraries.Concurrency.TaskStatus quorumFuture = new quorum.Libraries.Concurrency.TaskStatus();
+        quorumFuture.SetTask(behave);
+
         TaskStatus plugin = quorumFuture.plugin_;
-        plugin.setTask(behave);
         plugin.setJavaFuture(future);
         return quorumFuture;
     }
