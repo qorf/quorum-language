@@ -3,12 +3,22 @@ package Libraries.Interface.Controls
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Glyph
 use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Game.Graphics.TextureFilter
+use Libraries.Game.Graphics.Texture
 
 class CharacterIcon is Icon
     text character = ""
     
     //The ID for the last loaded font. Used to determine if reloading is needed.
     text lastFontID = ""
+    
+    action LoadCharacter(integer unicodeValue)
+        LoadCharacter(character:GetUnicodeValue(unicodeValue))
+    end
+    
+    action LoadCharacter(integer unicodeValue, Font font)
+LoadCharacter(character:GetUnicodeValue(unicodeValue), font)
+    end
     
     action LoadCharacter(text character)
         LoadCharacter(character, GetFont())
@@ -20,11 +30,28 @@ class CharacterIcon is Icon
             SetFont(font)
         elseif GetFont() not= undefined
             font = GetFont()
+        else
+            // Try to get a Font from a parent control.
+            Item2D parentItem = me
+            repeat while parentItem not= undefined
+                parentItem = parentItem:GetParent()
+                if parentItem is Control
+                    Control control = cast(Control, parentItem)
+                    if control:GetFont() not= undefined
+                        font = control:GetFont()
+                        SetFont(font)
+                        parentItem = undefined
+                    end
+                end
+            end
         end
         
         Glyph glyph = font:GetGlyph(character) 
+        TextureFilter textureFilter
+        textureFilter:ConstructTextureFilter(textureFilter:LINEAR)
+        Texture texture = glyph:texture:GetTextureField()
+        texture:SetFilter(textureFilter, textureFilter)
         Load(glyph:texture)
-        
         lastFontID = font:GetIdentifier()
         
         LayoutProperties currentProperties = GetCurrentLayoutProperties()

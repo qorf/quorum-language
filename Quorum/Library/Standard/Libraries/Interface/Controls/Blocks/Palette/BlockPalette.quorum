@@ -37,6 +37,11 @@ class BlockPalette is TabPane
     Tab actionTab
     Tab suggestionTab
     
+    integer basicIconUnicode = 0
+    integer controlIconUnicode = 0
+    integer actionIconUnicode = 0
+    integer suggestionIconUnicode = 0
+    
     SelectionListener suggestPage
     BlockSuggestionHandler suggestionHandler = undefined
     
@@ -48,8 +53,9 @@ class BlockPalette is TabPane
     Layer2D draggedItemLayer = undefined
     boolean dragLayerInUse = false
     Drawable draggedItem = undefined
-    Font fontAwesome
-    text fontPath = ""
+    
+    //The font used to provides glyphs as icons for the Tabs.
+    Font iconFont = undefined
     
     // The drawable used for the default circle icon applied to the tabs.
     Drawable circleTexture
@@ -94,38 +100,33 @@ SetTabSpacing(16)
         properties:SetVerticalLayoutMode(properties:STANDARD)
         
         LeftAlignTabBar()
-        //SetLargeTabs(true)
 
         if includeDefaultTabs
             basicTab:SetName("Basic")
             basicTab:DisplayCloseButton(false)
             basicTab:SetRelatedItem(MakeBasicPage())
-            basicTab:SetIcon(circleTexture)
     
             controlTab:SetName("Control")
             controlTab:DisplayCloseButton(false)
             controlTab:SetRelatedItem(MakeControlPage())
-            controlTab:SetIcon(circleTexture)
     
             actionTab:SetName("Action")
             actionTab:DisplayCloseButton(false)
             actionTab:SetRelatedItem(MakeActionPage())
-            actionTab:SetIcon(circleTexture)
         end
 
         if includeSuggestions
             suggestionTab:SetName("Advice")
             suggestionTab:DisplayCloseButton(false)
             suggestionTab:SetRelatedItem(MakeSuggestionPage())
-            suggestionTab:SetIcon(circleTexture)
         end
 
         if blockOptions not= undefined
             BlockOptionConstants constants
-            basicTab:SetIconColor(blockOptions:GetBackgroundColor(constants:ASSIGNMENT_KEY))
-            controlTab:SetIconColor(blockOptions:GetBackgroundColor(constants:IF_KEY))
-            actionTab:SetIconColor(blockOptions:GetBackgroundColor(constants:ACTION_KEY))
-            suggestionTab:SetIconColor(blockOptions:GetBackgroundColor(constants:PACKAGE_KEY))
+            basicTab:SetIconColor(GetFontColor())
+controlTab:SetIconColor(GetFontColor())
+actionTab:SetIconColor(GetFontColor())
+suggestionTab:SetIconColor(GetFontColor())
         end
         Array<BlockPalettePage> allReadPages
         boolean showBasic = true
@@ -135,6 +136,12 @@ SetTabSpacing(16)
         if not customPages:IsEmpty()
             BlockPaletteMarkupListener markupListener
             markupListener:SetPalette(me)
+            
+boolean hasBasicIcon = false
+        boolean hasControlIcon = false
+            boolean hasActionIcon = false
+            boolean hasSuggestionIcon = false
+            
             integer i = 0
             repeat while i < customPages:GetSize()
                 markupListener:Setup()
@@ -153,16 +160,136 @@ SetTabSpacing(16)
                     showControl = markupListener:GetShowControl()
                     showAction = markupListener:GetShowAction()
                     selectedPage = markupListener:GetSelectedPage()
+                    hasBasicIcon = markupListener:HasBasicIcon()
+                    hasControlIcon = markupListener:HasControlIcon()
+                    hasActionIcon = markupListener:HasActionIcon()
+                    hasSuggestionIcon = markupListener:HasSuggestionIcon()
+                    
                     Array<BlockPalettePage> readPages = markupListener:GetCustomPages()
                     integer j = 0
                     repeat while j < readPages:GetSize()
                         allReadPages:Add(readPages:Get(j))
                         j = j + 1
                     end
+                    
+                    if iconFont = undefined
+                        text iconFontPath = markupListener:GetIconFontPath()
+                        text iconFontName = markupListener:GetIconFontName()
+                        if iconFontPath not= ""
+                            File file
+                            file:SetPath(iconFontPath)
+                            if file:Exists()
+                                Font font
+                                font:LoadFont(file)
+                                iconFont = font
+                            end
+                        end
+                        // Check if the icon font is still undefined. If so, there was not font path, or it was there but it was invalid.
+                        if iconFont = undefined and iconFontName not= ""
+                            Font font
+                            font:LoadFont(iconFontName)
+                            iconFont = font
+                        end
+                    end
                 end
                 i = i + 1
             end
             
+if includeDefaultTabs
+                if hasBasicIcon
+                    text filePath = markupListener:GetBasicIconFilePath()
+                    text character = markupListener:GetBasicIconCharacter()
+                    integer unicode = markupListener:GetBasicIconUnicode()
+                    if filePath not= ""
+                        Drawable icon
+                        icon:Load(filePath)
+                        basicTab:SetIcon(icon)
+                    elseif iconFont not= undefined and (character not= "" or unicode not= 0)
+                        if unicode not= 0
+                            basicTab:SetIcon(unicode, iconFont)
+                        else
+                            basicTab:SetIcon(character, iconFont)
+                        end
+                    else
+basicTab:SetIcon(circleTexture)
+                    end
+elseif iconFont not= undefined and basicIconUnicode not= 0
+                        basicTab:SetIcon(basicIconUnicode, iconFont)
+                elseif basicTab:GetTabIcon():IsLoaded() = false
+basicTab:SetIcon(circleTexture)
+                end
+                
+if hasControlIcon
+                    text filePath = markupListener:GetControlIconFilePath()
+                    text character = markupListener:GetControlIconCharacter()
+                    integer unicode = markupListener:GetControlIconUnicode()
+                    if filePath not= ""
+                        Drawable icon
+                        icon:Load(filePath)
+                        controlTab:SetIcon(icon)
+                    elseif iconFont not= undefined and (character not= "" or unicode not= 0)
+                        if unicode not= 0
+                            controlTab:SetIcon(unicode, iconFont)
+                        else
+                            controlTab:SetIcon(character, iconFont)
+                        end
+                    else
+controlTab:SetIcon(circleTexture)
+                    end
+elseif iconFont not= undefined and controlIconUnicode not= 0
+                        controlTab:SetIcon(controlIconUnicode, iconFont)
+                elseif controlTab:GetTabIcon():IsLoaded() = false
+controlTab:SetIcon(circleTexture)
+                end
+                
+if hasActionIcon
+                    text filePath = markupListener:GetActionIconFilePath()
+                    text character = markupListener:GetActionIconCharacter()
+                    integer unicode = markupListener:GetActionIconUnicode()
+                    if filePath not= ""
+                        Drawable icon
+                        icon:Load(filePath)
+                        actionTab:SetIcon(icon)
+                    elseif iconFont not= undefined and (character not= "" or unicode not= 0)
+                        if unicode not= 0
+                            actionTab:SetIcon(unicode, iconFont)
+                        else
+                            actionTab:SetIcon(character, iconFont)
+                        end
+                    else
+actionTab:SetIcon(circleTexture)
+                    end
+elseif iconFont not= undefined and actionIconUnicode not= 0
+                        actionTab:SetIcon(actionIconUnicode, iconFont)
+                elseif actionTab:GetTabIcon():IsLoaded() = false
+actionTab:SetIcon(circleTexture)
+                end
+        end
+
+        if includeSuggestions
+if hasSuggestionIcon
+                    text filePath = markupListener:GetSuggestionIconFilePath()
+                    text character = markupListener:GetSuggestionIconCharacter()
+                    integer unicode = markupListener:GetSuggestionIconUnicode()
+                    if filePath not= ""
+                        Drawable icon
+                        icon:Load(filePath)
+                        suggestionTab:SetIcon(icon)
+                    elseif iconFont not= undefined and (character not= "" or unicode not= 0)
+                        if unicode not= 0
+                            suggestionTab:SetIcon(unicode, iconFont)
+                        else
+                            suggestionTab:SetIcon(character, iconFont)
+                        end
+                    else
+suggestionTab:SetIcon(circleTexture)
+                    end
+elseif iconFont not= undefined and suggestionIconUnicode not= 0
+                        suggestionTab:SetIcon(suggestionIconUnicode, iconFont)
+                elseif suggestionTab:GetTabIcon():IsLoaded() = false
+suggestionTab:SetIcon(circleTexture)
+                end
+        end
         end
 
         if includeSuggestions
@@ -183,10 +310,19 @@ if not allReadPages:IsEmpty()
             integer i = 0
             repeat while i < allReadPages:GetSize()
                 Tab customTab
-                customTab:SetName(allReadPages:Get(i):GetName())
+                BlockPalettePage currentPage = allReadPages:Get(i)
+                customTab:SetName(currentPage:GetName())
 customTab:DisplayCloseButton(false)
-        customTab:SetRelatedItem(allReadPages:Get(i))
-        customTab:SetIcon(circleTexture)
+        customTab:SetRelatedItem(currentPage)
+                if currentPage:GetIconFilePath() not= ""
+                    Drawable icon
+                    icon:Load(currentPage:GetIconFilePath())
+                    customTab:SetIcon(icon)
+                elseif currentPage:GetIconUnicode() not= 0 and iconFont not= undefined
+                    customTab:SetIcon(currentPage:GetIconUnicode(), iconFont)
+                else
+customTab:SetIcon(circleTexture)
+                end
                 Add(customTab)
                 i = i + 1
             end
@@ -223,18 +359,7 @@ end
     end
     
     action GetIconFont returns Font
-        return fontAwesome
-    end
-    
-    action SetFontPath(text path)
-        me:fontPath = path
-    end
-    
-    action LoadIconFont
-File file
-        file:SetPath(fontPath)
-        fontAwesome:LoadFont(file)
-        fontAwesome:SetSize(40)
+        return iconFont
     end
 
     action GetEditor returns CodeEditor
@@ -389,6 +514,70 @@ action SetBlockSuggestionHandler(BlockSuggestionHandler suggestionHandler)
             tab:SetInterfaceOptionsKey(constants:BLOCK_PALETTE_TAB_KEY)
         end
         parent:TabPane:Add(tab)
+    end
+
+    action SetIconFont(Font iconFont)
+        me:iconFont = iconFont
+    end
+
+    /* This action returns the unicode value used for the icon of the Basic tab,
+if the default tabs are enabled and an icon font has been provided to the BlockPalette. 
+Attribute: Returns The unicode value of the icon for the Basic tab. */
+    action GetBasicIconUnicode returns integer
+        return basicIconUnicode
+    end
+
+/* This action sets the unicode value used for the icon of the Basic tab,
+if the default tabs are enabled and an icon font has been provided to the BlockPalette.
+This must be set before using the Setup action to create the block palette. 
+Attribute: Parameter basicIconUnicode The unicode value of the icon for the Basic tab. */
+    action SetBasicIconUnicode(integer basicIconUnicode)
+        me:basicIconUnicode = basicIconUnicode
+    end
+
+/* This action returns the unicode value used for the icon of the Control tab,
+if the default tabs are enabled and an icon font has been provided to the BlockPalette. 
+Attribute: Returns The unicode value of the icon for the Control tab. */
+    action GetControlIconUnicode returns integer
+        return controlIconUnicode
+    end
+
+/* This action sets the unicode value used for the icon of the Control tab,
+if the default tabs are enabled and an icon font has been provided to the BlockPalette.
+This must be set before using the Setup action to create the block palette. 
+Attribute: Parameter basicIconUnicode The unicode value of the icon for the Control tab. */
+    action SetControlIconUnicode(integer controlIconUnicode)
+        me:controlIconUnicode = controlIconUnicode
+    end
+
+/* This action returns the unicode value used for the icon of the Action tab,
+if the default tabs are enabled and an icon font has been provided to the BlockPalette. 
+Attribute: Returns The unicode value of the icon for the Action tab. */
+    action GetActionIconUnicode returns integer
+        return actionIconUnicode
+    end
+
+/* This action sets the unicode value used for the icon of the Action tab,
+if the default tabs are enabled and an icon font has been provided to the BlockPalette.
+This must be set before using the Setup action to create the block palette. 
+Attribute: Parameter basicIconUnicode The unicode value of the icon for the Action tab. */
+    action SetActionIconUnicode(integer actionIconUnicode)
+        me:actionIconUnicode = actionIconUnicode
+    end
+
+/* This action returns the unicode value used for the icon of the Suggestion tab,
+if the default tabs are enabled and an icon font has been provided to the BlockPalette. 
+Attribute: Returns The unicode value of the icon for the Suggestion tab. */
+    action GetSuggestionIconUnicode returns integer
+        return suggestionIconUnicode
+    end
+
+/* This action sets the unicode value used for the icon of the Suggestion tab,
+if the default tabs are enabled and an icon font has been provided to the BlockPalette.
+This must be set before using the Setup action to create the block palette. 
+Attribute: Parameter basicIconUnicode The unicode value of the icon for the Suggestion tab. */
+    action SetSuggestionIconUnicode(integer suggestionIconUnicode)
+        me:suggestionIconUnicode = suggestionIconUnicode
     end
 
 end

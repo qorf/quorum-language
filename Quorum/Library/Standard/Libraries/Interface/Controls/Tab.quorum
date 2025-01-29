@@ -155,6 +155,20 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         return relatedItem
     end
     
+    action SetIcon(integer unicodeValue, Font font)
+        if unicodeValue = -1
+            parent:Control:SetIcon(undefined)
+            icon:Hide()
+            return now
+        end
+        
+icon:LoadCharacter(unicodeValue, font)
+number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
+            iconLayoutProperties:SetPercentageWidth(aspectRatio)
+            icon:Show()
+        parent:Control:SetIcon(icon)
+    end
+    
     action SetIcon(text character, Font font)
         if character = ""
             parent:Control:SetIcon(undefined)
