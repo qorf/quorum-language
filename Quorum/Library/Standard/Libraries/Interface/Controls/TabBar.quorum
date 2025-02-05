@@ -7,8 +7,8 @@ use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Views.View2D
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.LayoutProperties
-use Libraries.Interface.Layouts.TabFlowLayout
-use Libraries.Interface.Layouts.HorizontalTabFlowLayout
+use Libraries.Interface.Layouts.TabBarFlowLayout
+use Libraries.Interface.Layouts.HorizontalTabBarFlowLayout
 use Libraries.Interface.Events.TabChangeEvent
 use Libraries.Interface.Events.TabChangeListener
 use Libraries.Interface.Selections.TabPaneSelection
@@ -17,14 +17,15 @@ use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Font
 use Libraries.Interface.Views.ControlShaderView
-use Libraries.Interface.Layouts.VerticalTabFlowLayout
+use Libraries.Interface.Layouts.VerticalTabBarFlowLayout
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Layouts.LargeTabLayout
+use Libraries.Interface.Layouts.AlignedTabFlowLayout
 
 class TabBar is Control
     
     Array<Tab> tabs
-    TabFlowLayout layout = undefined
+    TabBarFlowLayout layout = undefined
     TabPane pane = undefined
     boolean useLargeTabs = false
 
@@ -43,7 +44,7 @@ class TabBar is Control
     end
     
     action SetToHorizontal
-HorizontalTabFlowLayout horizontalLayout
+HorizontalTabBarFlowLayout horizontalLayout
         layout = horizontalLayout
         
         LayoutProperties layoutProperties = GetDefaultLayoutProperties()
@@ -55,7 +56,7 @@ HorizontalTabFlowLayout horizontalLayout
     end
     
     action SetToVertical
-VerticalTabFlowLayout verticalLayout
+VerticalTabBarFlowLayout verticalLayout
         layout = verticalLayout
         
         LayoutProperties layoutProperties = GetDefaultLayoutProperties()
@@ -68,11 +69,11 @@ VerticalTabFlowLayout verticalLayout
     end
     
     action IsHorizontal returns boolean
-        return GetLayout() is HorizontalTabFlowLayout
+        return GetLayout() is HorizontalTabBarFlowLayout
     end
     
     action IsVertical returns boolean
-        return GetLayout() is VerticalTabFlowLayout
+        return GetLayout() is VerticalTabBarFlowLayout
     end
 
     action Add(Array<Tab> array)
@@ -117,10 +118,16 @@ Tab firstTab = tabs:GetFromFront()
     end
     
     private action SetTabProperties(Tab tab)
+        tab:SetFontSize(GetFontSize())
+        
         if IsUsingLargeTabs()
             LargeTabLayout largeLayout
             tab:SetLayout(largeLayout)
             tab:SetPercentageHeight(4.0)
+        elseif IsVertical()
+            AlignedTabFlowLayout alignedLayout
+            tab:SetLayout(alignedLayout)
+            tab:GetLabel():SetPositionOnBaseLine(false)
         else
 FlowLayout flow
 flow:SetIgnoreHidden(true)

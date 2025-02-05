@@ -66,6 +66,7 @@ SetTabSpacing(16)
         GetTabBar():SetLeftPadding(16)
         GetTabBar():SetRightPadding(16)
         GetTabBar():SetTopPadding(40)
+        GetTabBar():SetFontSize(16)
     end
     
     action Setup
@@ -290,6 +291,35 @@ elseif iconFont not= undefined and suggestionIconUnicode not= 0
 suggestionTab:SetIcon(circleTexture)
                 end
         end
+        elseif includeDefaultTabs
+            if showBasic
+                if iconFont not= undefined and basicIconUnicode not= 0
+                    basicTab:SetIcon(basicIconUnicode, iconFont)
+                elseif basicTab:GetTabIcon():IsLoaded() = false
+                    basicTab:SetIcon(circleTexture)
+                end
+            end
+if showControl
+if iconFont not= undefined and controlIconUnicode not= 0
+                    controlTab:SetIcon(controlIconUnicode, iconFont)
+                elseif controlTab:GetTabIcon():IsLoaded() = false
+                    controlTab:SetIcon(circleTexture)
+                end
+            end
+            if showAction
+if iconFont not= undefined and actionIconUnicode not= 0
+                    actionTab:SetIcon(actionIconUnicode, iconFont)
+                elseif actionTab:GetTabIcon():IsLoaded() = false
+                    actionTab:SetIcon(circleTexture)
+                end
+            end
+            if includeSuggestions
+if iconFont not= undefined and suggestionIconUnicode not= 0
+                    suggestionTab:SetIcon(suggestionIconUnicode, iconFont)
+                elseif suggestionTab:GetTabIcon():IsLoaded() = false
+                    suggestionTab:SetIcon(circleTexture)
+                end
+            end
         end
 
         if includeSuggestions
@@ -354,7 +384,6 @@ end
         me:editor = editor
         if editor not= undefined
             editor:AddSelectionListener(suggestPage)
-            SetFontSize(editor:GetFontSize())
         end
     end
     

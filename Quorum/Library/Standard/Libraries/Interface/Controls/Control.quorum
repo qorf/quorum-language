@@ -109,6 +109,7 @@ class Control is Item2D
     next Update loop.
     */
     boolean needsLayout = false
+    boolean wasLayoutReset = true
 
     PopupMenu contextMenu = undefined
 
@@ -1582,6 +1583,7 @@ defaultProperties:SetInterfaceScale(scale)
             Item item = GetChildAsItem(counter)
             if item is Control and haveResized = false
                 Control control = cast(Control, item)
+                
                 if control:NeedsLayout()
                     Resize()
                     haveResized = true

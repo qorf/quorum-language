@@ -8,8 +8,9 @@ use Libraries.Interface.Controls.Tab
 use Libraries.Game.Graphics.Label
 use Libraries.Interface.Controls.TabBar
 use Libraries.Interface.Controls.Icon
+use Libraries.Interface.Controls.Button
 
-class VerticalTabFlowLayout is TabFlowLayout
+class VerticalTabBarFlowLayout is TabBarFlowLayout
     
     action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
 
@@ -47,6 +48,11 @@ containerLeftPadding = container:GetLeftPadding()
                 useLargeTabs = bar:IsUsingLargeTabs()
             end
             
+            // These values are used to inform Tabs with the AlignedTabFlowLayout how much space they should reserve for each of their elements.
+            number maxIconAreaWidth = 0
+            number maxLabelAreaWidth = 0
+            number maxCloseAreaWidth = 0
+            
 // Adjust the container width to fit the labels if the container is using FIT_CONTENTS.
                 // Find the tab with the longest label. Use that to set the width.
                 integer counter = 0
@@ -63,17 +69,40 @@ containerLeftPadding = container:GetLeftPadding()
                     if rightSpacing < containerRightPadding
                         rightSpacing = containerRightPadding
                     end
-                        number labelWidth = leftSpacing + label:GetWidth() + (label:GetLeftMargin() + label:GetRightMargin()) * label:GetInterfaceScale() + rightSpacing
+                    number iconAreaWidth = 0
+                    number labelAreaWidth = 0
+                    number closeAreaWidth = 0
+                    
+                        number totalWidth = leftSpacing + label:GetWidth() + (label:GetLeftMargin() + label:GetRightMargin()) * label:GetInterfaceScale() + rightSpacing
+                    labelAreaWidth = totalWidth
                     if useLargeTabs = false
                         Icon icon = tab:GetTabIcon()
                         if icon:IsShowing()
-                            labelWidth = labelWidth + icon:GetWidth() + icon:GetLeftMargin()
+                            iconAreaWidth = icon:GetWidth() + icon:GetLeftMargin()
+                            totalWidth = totalWidth + iconAreaWidth
                         end
                     end
+                    
+                    Button closeButton = tab:GetCloseButton()
+                    if closeButton not= undefined and closeButton:IsShowing()
+                        closeAreaWidth = closeButton:GetWidth() + closeButton:GetLeftMargin()
+                        totalWidth = totalWidth + closeAreaWidth
+                    else
+                        totalWidth = totalWidth + rightSpacing
+                    end
                 
-                        if labelWidth > minimumContainerWidth
-                            minimumContainerWidth = labelWidth
+                        if totalWidth > minimumContainerWidth
+                            minimumContainerWidth = totalWidth
                         end
+                    if iconAreaWidth > maxIconAreaWidth
+                        maxIconAreaWidth = iconAreaWidth
+                    end
+                    if labelAreaWidth > maxLabelAreaWidth
+                        maxLabelAreaWidth = labelAreaWidth
+                    end
+                    if closeAreaWidth > maxCloseAreaWidth
+                        maxCloseAreaWidth = closeAreaWidth
+                    end
                     end
                     counter = counter + 1
                 end
@@ -89,6 +118,23 @@ containerLeftPadding = container:GetLeftPadding()
             if container:HasBottomBorder()
                 bottomContainerBorder = container:GetBorderThickness() * container:GetInterfaceScale()
             end
+            
+            // Go back through the Tabs. If any are using a AlignedTabFlowLayout, give them the necessary values.
+            counter = 0
+            repeat while counter < items:GetSize()
+Item2D item = items:Get(counter)
+                if item is Tab
+                    Tab tab = cast(Tab, item)
+                    if tab:GetLayout() is AlignedTabFlowLayout
+                        AlignedTabFlowLayout layout = cast(AlignedTabFlowLayout, tab:GetLayout())
+                        layout:SetIconAreaWidth(maxIconAreaWidth)
+                        layout:SetLabelAreaWidth(maxLabelAreaWidth)
+                        layout:SetCloseAreaWidth(maxCloseAreaWidth)
+                    end
+                end
+                counter = counter + 1
+            end
+            
         end
 
         // Objects are placed such that their top edge is at the currentY.
@@ -103,6 +149,9 @@ containerLeftPadding = container:GetLeftPadding()
             if item is Control
                 Control control = cast(Control, item)
                 LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+                if properties = undefined
+                    properties = control:GetDefaultLayoutProperties()
+                end
 
                 if properties:NeedsRendering()
                     control:LoadGraphics(properties)

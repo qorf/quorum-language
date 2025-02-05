@@ -462,12 +462,21 @@ number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
 
         SetView2D(view)
 
-        Color foreground = GetForegroundColor():GetBottomLeft()
-        Color accent = GetAccentColor():GetBottomLeft()
+        Color foreground = undefined
+        if GetForegroundColor() not= undefined
+            foreground = GetForegroundColor():GetBottomLeft()
+        end
+        
+        Color accent = undefined
+        if GetAccentColor() not= undefined
+            accent = GetAccentColor():GetBottomLeft()
+        end
+        
         // Only regenerate the close texture if needed due to color changes
-        if closeForeground = undefined or closeAccent = undefined
+        if (foreground not= undefined and accent not= undefined) and
+(closeForeground = undefined or closeAccent = undefined
                 or foreground:GetRed() not= closeForeground:GetRed() or foreground:GetGreen() not= closeForeground:GetGreen() or foreground:GetGreen() not= closeForeground:GetGreen() or foreground:GetAlpha() not= closeForeground:GetAlpha()
-                or accent:GetRed() not= closeAccent:GetRed() or accent:GetGreen() not= closeAccent:GetGreen() or accent:GetGreen() not= closeAccent:GetGreen() or accent:GetAlpha() not= closeAccent:GetAlpha()
+                or accent:GetRed() not= closeAccent:GetRed() or accent:GetGreen() not= closeAccent:GetGreen() or accent:GetGreen() not= closeAccent:GetGreen() or accent:GetAlpha() not= closeAccent:GetAlpha())
 
             closeForeground = foreground
             closeAccent = accent
