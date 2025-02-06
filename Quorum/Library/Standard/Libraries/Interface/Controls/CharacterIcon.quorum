@@ -55,6 +55,11 @@ LoadCharacter(character:GetUnicodeValue(unicodeValue), font)
         Load(glyph:texture)
         lastFontID = font:GetIdentifier()
         
+        // Reset the color after loading the texture. Loading a texture causes color information to be cleared.
+                if GetIconColor() not= undefined
+            SetColor(GetIconColor())
+        end
+        
         LayoutProperties currentProperties = GetCurrentLayoutProperties()
         if currentProperties = undefined
             currentProperties = GetDefaultLayoutProperties()

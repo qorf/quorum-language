@@ -56,6 +56,7 @@ class BlockPalette is TabPane
     
     //The font used to provides glyphs as icons for the Tabs.
     Font iconFont = undefined
+    integer iconFontSize = 16
     
     // The drawable used for the default circle icon applied to the tabs.
     Drawable circleTexture
@@ -362,6 +363,16 @@ customTab:SetIcon(circleTexture)
         else
             Select(0)
         end
+        
+        // Finally, iterate through the tabs and make sure they're all using the right size for the icon.
+        Array<Tab> tabs = GetTabs()
+        integer counter = 0
+        repeat while counter < tabs:GetSize()
+            Tab tab = tabs:Get(counter)
+            tab:GetTabIcon():SetFontSize(iconFontSize)
+            counter = counter + 1
+        end
+        
 end
     
     action SelectPageByName(text name)
@@ -607,6 +618,14 @@ This must be set before using the Setup action to create the block palette.
 Attribute: Parameter basicIconUnicode The unicode value of the icon for the Suggestion tab. */
     action SetSuggestionIconUnicode(integer suggestionIconUnicode)
         me:suggestionIconUnicode = suggestionIconUnicode
+    end
+
+    action GetIconFontSize returns integer
+        return iconFontSize
+    end
+
+    action SetIconFontSize(integer iconFontSize)
+        me:iconFontSize = iconFontSize
     end
 
 end
