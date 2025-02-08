@@ -301,6 +301,18 @@ candidateFontSize = cast(integer, candidateFontSize * widthRatio)
 
             label:SetPosition(labelX, labelY)
         end
+        
+// Finally, ensure all items attached to this have their layout flag reset.
+        // We don't want any unexpected extra items to be left requesting layout on every frame.
+        integer i = 0
+        repeat while i < items:GetSize()
+            Item2D item = items:Get(i)
+            if item is Control
+                Control control = cast(Control, item)
+                control:ResetLayoutFlag()
+            end
+            i = i + 1
+        end
     end
     
     private action CalculateTextLength(Font font, text value) returns number

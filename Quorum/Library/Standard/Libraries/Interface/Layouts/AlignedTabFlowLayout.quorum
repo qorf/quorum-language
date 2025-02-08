@@ -18,8 +18,6 @@ These are set by the VerticalTabBarFlowLayout of the container when performing i
     number closeAreaWidth = 0
     
 action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
-        //output "AlignedTabFlowLayout: Layout()"
-        
         // This layout is only meant for tabs, so we assume the container must be a Tab.
         Tab tab = cast(Tab, container)
         CharacterIcon icon = tab:GetTabIcon()
@@ -232,6 +230,19 @@ if font:GetSize() not= cast(integer, closeButton:GetFontSize() * closeButton:Get
             end
             
             closeButton:SetPosition(containerWidth - (closeAreaWidth - width) / 2.0, bottomSpacing)
+        end
+        
+        // Finally, ensure all items attached to this have their layout flag reset.
+        // Some components, like hidden icons, might not have been explicitly set. We also don't want any unexpected
+        // extra items to be left requesting layout on every frame.
+        integer i = 0
+        repeat while i < items:GetSize()
+            Item2D item = items:Get(i)
+            if item is Control
+                Control control = cast(Control, item)
+                control:ResetLayoutFlag()
+            end
+            i = i + 1
         end
         
 end

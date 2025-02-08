@@ -43,19 +43,8 @@ class DarkBlockOptions is DarkModeOptions, BlockOptions
     
     number blockPaletteTabBorderThickness = 0
     number blockPaletteTabPixelRounding = 8
-    /*SetTabBackgroundColor(color:CustomColor(229.0 / MAX, 229.0 / MAX, 229.0 / MAX, 1))
-        SetTabFontColor(color:Black())
-        SetTabSelectionColor(defaultSelectionColor)
-        SetTabSelectionFontColor(color:White())
-        SetTabFocusColor(color:CustomColor(126.0 / MAX, 167.0 / MAX, 191.0 / MAX, 1))
-        SetTabForegroundColor(color:CustomColor(237.0 / MAX, 113.0 / MAX, 107.0 / MAX, 1))
-        SetTabAccentColor(color:White())
-        SetTabUnfocusedSelectionColor(color:CustomColor(205.0 / MAX, 205.0 / MAX, 205.0 / MAX, 1))
-        SetTabUnfocusedSelectionFontColor(color:Black())
-
-        SetTabBorderThickness(1)
-        SetTabTopLeftRounding(0.5)
-        SetTabTopRightRounding(0.5)*/
+    
+Color blockPaletteTabBarBackground = color:CustomColor(79.0 / MAX, 83.0 / MAX, 85.0 / MAX, 1.0)
 
     action SetStartingOptions
         SetBackgroundColor(constants:ASSIGNMENT_KEY, defaultStatementColor)
@@ -87,17 +76,6 @@ class DarkBlockOptions is DarkModeOptions, BlockOptions
         SetHintBorderColor("CodeEditor", color:Orange())
         SetHintBorderThickness("CodeEditor", 3)
         
-        /*Color blockPaletteTabBackground = color:CustomColor(1, 1, 1, 0)
-    Color blockPaletteTabSelection = color:CustomColor(1, 1, 1, 0.35)
-    Color blockPaletteTabSelectionFont = undefined
-    Color blockPaletteTabFocusColor = undefined
-    Color blockPaletteTabForegroundColor = color:CustomColor(237.0 / MAX, 113.0 / MAX, 107.0 / MAX, 1)
-    Color blockPaletteTabAccentColor = color:White()
-    Color blockPaletteTabUnfocusedSelection = undefined
-    Color blockPaletteTabUnfocusedSelectionFont = undefined
-    
-    number blockPaletteTabBorderThickness = 0
-    number blockPaletteTabPixelRounding = 8*/
         SetBackgroundColor(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabBackground)
         SetFontColor(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabFont)
         SetSelectionColor(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabSelection)
@@ -114,6 +92,7 @@ class DarkBlockOptions is DarkModeOptions, BlockOptions
 SetBottomLeftPixelRounding(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabPixelRounding)
 SetBottomRightPixelRounding(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabPixelRounding)
         
+SetBackgroundColor(constants:BLOCK_PALETTE_TAB_BAR_KEY, blockPaletteTabBarBackground)
     end
 
     action SetDefaultBlockOptions(text key)
