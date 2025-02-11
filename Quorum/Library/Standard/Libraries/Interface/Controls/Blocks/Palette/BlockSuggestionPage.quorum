@@ -150,95 +150,39 @@ end
                         blockDescription = block:GetBlockDescription()
 end
         end
+        
+AddFilterTextField()
+        
         if blockName not= ""
+AddLabel(blockName):SetFontSize(HEADER_SIZE)
             if blockDescription not= ""
-                Banner banner = AddBanner(blockName, blockDescription)
-                banner:GetLabel():SetFontSize(LABEL_SIZE)
+                AddLabel(blockDescription):SetFontSize(LABEL_SIZE)
             else
-                AddBanner(blockName)
+                AddLabel("No documentation available.")
             end
-            AddFilterTextField()
-            AddLabel(className + " Class"):SetFontSize(HEADER_SIZE)
+            AddLabel(className):SetFontSize(HEADER_SIZE)
 if clazzDocs not= undefined 
                 text description = GetDescriptionFromResultClass(result, clazz, clazzDocs)
-//clazzDocs:RemoveInternalWhitespace(clazzDocs:GetShortDescription())
                 if description not= ""
                     AddLabel(description):SetFontSize(LABEL_SIZE)
                 end
+            else
+AddLabel("No documentation available."):SetFontSize(LABEL_SIZE)
         end
         else
+AddLabel(className):SetFontSize(HEADER_SIZE)
             if clazzDocs not= undefined
 text description = GetDescriptionFromResultClass(result, clazz, clazzDocs)
-//clazzDocs:RemoveInternalWhitespace(clazzDocs:GetShortDescription())
-                Banner banner = AddBanner(className, description)
-                Label bannerLabel = banner:GetLabel()
-                if bannerLabel not= undefined
-                    bannerLabel:SetFontSize(LABEL_SIZE)
+                if description not= undefined and description not= ""
+                    AddLabel(description):SetFontSize(LABEL_SIZE)
+                else
+                    AddLabel("No documentation available."):SetFontSize(LABEL_SIZE)
                 end
             else
-                AddBanner(className + " Class")
+AddLabel("No documentation available."):SetFontSize(LABEL_SIZE)
             end
-            AddFilterTextField()
         end
         AddHints(result:requestingBlock)
-        BlockPaletteVariableList varList = undefined
-        boolean showVariables = false
-        if blockVariables not= undefined and blockVariables:GetSize() > 0
-            showVariables = true
-        elseif classVariables not= undefined and classVariables:GetSize() > 0
-            showVariables = true
-        elseif parentVariables not= undefined and parentVariables:GetSize() > 0
-            showVariables = true
-        end
-        if showVariables
-            Label varListLabel = AddLabel("Variables for " + className)
-            varListLabel:SetFontSize(HEADER2_SIZE)
-            varListLabel:SetFocusable(false)
-            varList = AddVariableList()
-            text listName = "Variable List for class " + clazz:GetName()
-            varList:SetName(listName)
-            integer size = varList:GetSize()
-            varList:SetDescription(size + " items")
-            varList:SetFontSize(LABEL_SIZE)
-            me:variableList = varList
-        end
-        
-if blockVariables not= undefined and blockVariables:GetSize() > 0
-            integer i = 0
-            Array<text> vars
-            repeat while i < blockVariables:GetSize()
-                Variable variable = blockVariables:Get(i)
-                if variable not= undefined and variable:GetType() not= undefined
-text name = variable:GetDisplayName()+" "+variable:GetType():GetName()
-                vars:Add(name)
-                varList:AddLocalVariable(variable)
-                end
-                i = i + 1
-            end
-            vars:Sort()
-        end
-if classVariables not= undefined and classVariables:GetSize() > 0
-            integer i = 0
-            Array<text> vars
-            repeat while i < classVariables:GetSize()
-                Variable variable = classVariables:Get(i)
-                vars:Add(variable:GetDisplayName()+" "+variable:GetType():GetName())
-varList:AddClassVariable(variable)
-                i = i + 1
-            end
-            vars:Sort()
-        end
-if parentVariables not= undefined and parentVariables:GetSize() > 0
-            integer i = 0
-            Array<text> vars
-            repeat while i < parentVariables:GetSize()
-                Variable variable = parentVariables:Get(i)
-                vars:Add(variable:GetDisplayName()+" "+variable:GetType():GetName())
-varList:AddParentVariable(variable)
-                i = i + 1
-            end
-            vars:Sort()
-        end
         
         boolean showActions = true
 if currentBlock not= undefined
@@ -266,7 +210,7 @@ if not showActions
             return now
         end
         if actions not= undefined
-            AddLabel("Actions for " + className):SetFontSize(HEADER_SIZE)
+            AddLabel("Actions"):SetFontSize(HEADER_SIZE)
 
         integer i = 0
         repeat while i < actions:GetSize()
@@ -300,13 +244,13 @@ AddLabel("Action"):SetFontSize(HEADER2_SIZE)
         Color color
         panel:SetBorderColor(color:Blue())
         panel:SetBackgroundColor(color:White())
-        Label filterLabel = panel:AddLabel("Filter:")
-        filterLabel:SetFontSize(HEADER2_SIZE)
-        filterLabel:SetBottomMargin(2)
-        filterLabel:SetPositionOnBaseLine(false)
-        filterLabel:SetRightMargin(5)
-        filterLabel:SetFocusable(false)
-        filterField = panel:AddTextField("Filter Text Field")
+        //Label filterLabel = panel:AddLabel("Filter:")
+        //filterLabel:SetFontSize(HEADER2_SIZE)
+        //filterLabel:SetBottomMargin(2)
+        //filterLabel:SetPositionOnBaseLine(false)
+        //filterLabel:SetRightMargin(5)
+        //filterLabel:SetFocusable(false)
+        filterField = panel:AddTextField("Filter")
         filterField:AddTextChangeListener(me)
         filterField:SetVerticalLayoutMode(filterField:parent:Control:FIT_FONT)
 filterField:SetHorizontalLayoutMode(filterField:parent:Control:FILL)
