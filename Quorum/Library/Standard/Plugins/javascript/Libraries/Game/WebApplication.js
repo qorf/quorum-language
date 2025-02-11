@@ -164,6 +164,9 @@ function plugins_quorum_Libraries_Game_WebApplication_()
                 // The canvas is created when running a Game so destroy this one so a new one can be created by another program
                 display.Destroy();
 
+                // Attempt to release any WebGL resources held by the graphics.
+                graphics.Dispose();
+
                 // The GameStateManager needs to reinitialized when another application is ran
                 // NOTE other static initializers might need to be reset but these at least ensure that the FontManager is reloaded every time
                 // NOTE: Due to changes in how GameStateManager works (managing each Game separately) the manager plugin should no longer be reinitialized.
