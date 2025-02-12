@@ -2176,7 +2176,7 @@ actLink:SetClassAttribute("hover:underline text-sm")
         
         
         //Not sure if I need to do this in this version yet
-        //convertedSource:Append("this.prototype = this;" + EOL)
+        fakeConstructor:Append("this.prototype = this;" + EOL)
 
         //write the parents
         fakeConstructor:Append("this.parentNames_ = [")
