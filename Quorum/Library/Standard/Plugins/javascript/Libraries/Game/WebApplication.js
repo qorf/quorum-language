@@ -35,21 +35,31 @@ function plugins_quorum_Libraries_Game_WebApplication_()
     };
 
     this.GetWebOperatingSystem = function() {
-	    let userAgent = window.navigator.userAgent;
+        let userAgent = window.navigator.userAgent;
 	    let platform = window.navigator.platform;
         let os = 'Unknown';
-        if(typeof platform !== 'undefined') {
-            if(platform.indexOf('Mac') != -1) return 'Mac';
-            if(platform.indexOf('Win') != -1) return 'Windows';
-            if(platform.indexOf('Linux') != -1) return 'Linux';
-        }
-        if (userAgent.indexOf('Win') != -1) {
+        if (/android/i.test(userAgent)) {
+            return "Android";
+        } else if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+            return "iOS";
+        } else if ((('ontouchstart' in window) ||
+                (navigator.maxTouchPoints > 0) ||
+                (navigator.msMaxTouchPoints > 0))
+                && (userAgent.indexOf("Linux") !== -1 || userAgent.indexOf("Mac") !== -1) ) {
+                    return "Mobile";
+        } else if (userAgent.indexOf('Win') != -1) {
             return 'Windows';
         } else if (userAgent.indexOf('Mac') != -1) {
             return 'Mac';
         } else if (userAgent.indexOf('Linux') != -1) {
             return 'Linux';
+        } 
+        if(typeof platform !== 'undefined') {
+            if(platform.indexOf('Mac') != -1) return 'Mac';
+            if(platform.indexOf('Win') != -1) return 'Windows';
+            if(platform.indexOf('Linux') != -1) return 'Linux';
         }
+        
         return os;
     };
     
@@ -114,7 +124,9 @@ function plugins_quorum_Libraries_Game_WebApplication_()
                 {
                     accessibility.Shutdown();
                 }
-
+                // shutdown the gesture processor
+                let gameInfo = plugins_quorum_Libraries_Game_GameStateManager_.registeredGames.get(game);
+                gameInfo.plugins_quorum_Libraries_Game_WebInput_.gestureProcessor.plugin_.Shutdown();
                 // Wipe the screen clean.
                 var graphics = manager.GetGameGraphics();
                 // 16640 is the result of binary OR on GL_COLOR_BUFFER_BIT and GL_DEPTH_BUFFER_BIT.

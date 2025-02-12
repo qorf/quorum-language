@@ -1,0 +1,136 @@
+package Libraries.Robots.Spike
+use Libraries.Containers.Array
+
+/*
+    The device library allows you to gather information about the devices connected
+    to each of the hubs ports, as well as set the duty cycle of a device at a specific
+    port.
+
+    Attribute: Example
+    use Libraries.Robots.Spike.Device
+    use Libraries.Robots.Spike.Port
+    Device dv
+    Port port
+    integer raw_data_of_port_A = dv:GetDataFromPort(port:A)
+*/
+class Device
+    public constant integer MOTOR_MEDIUM_ID = 48
+    public constant integer MOTOR_LARGE_ID = 49
+    public constant integer COLOR_SENSOR_ID = 61
+    public constant integer DISTANCE_SENSOR_ID = 62
+    public constant integer FORCE_SENSOR_ID = 63
+
+    /*
+        Retrieves raw LPF-2 data from the device connected to the provided port. The
+        data is returned in an integer array of size 8
+
+        Attribute: Parameter port The port (ranging from A to F or 0 to 5) with the device to
+        collect data from
+        Attribute: Returns An Array<integer> containing the raw LPF-2 data from the device
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Device
+        use Libraries.Robots.Spike.Port
+        use Libraries.Containers.Array
+        Device dv
+        Port port
+        Array<integer> raw_data_of_port_A
+        raw_data_of_port_A = dv:GetDataFromPort(port:A)
+    */
+    action GetDataFromPort(integer port) returns Array<integer>
+        return GetDataFromPortNative(port)
+    end
+
+    private system action GetDataFromPortNative(integer port) returns Array<integer>
+
+    /*
+        Retrieves the ID of the device connected to the provided port
+
+        Attribute: Parameter port The port (ranging from A to F or 0 to 5) with the device to
+        get the ID of
+        Attribute: Returns ID, the integer ID of the device at the provided port
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Device
+        use Libraries.Robots.Spike.Port
+        Device dv
+        Port port
+        integer port_A_device_ID = dv:GetIDOfPort(port:A)
+    */
+    action GetIDOfPort(integer port) returns integer
+        return GetIDOfPortNative(port)
+    end
+
+    private system action GetIDOfPortNative(integer port) returns integer
+
+    /*
+        Retrieves the duty cycle (PWM) of the device connected to the provided port
+
+        Attribute: Parameter port The port (ranging from A to F or 0 to 5) with the device to
+        get the duty cycle of
+        Attribute: Returns PWM, the duty cycle (from 0 to 10000) of the device at
+        the provided port
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Device
+        use Libraries.Robots.Spike.Port
+        Device dv
+        Port port
+        integer port_A_duty_cycle = dv:GetDutyCycle(port:A)
+    */
+    action GetDutyCycle(integer port) returns integer
+        return GetDutyCycleNative(port)
+    end
+
+    private system action GetDutyCycleNative(integer port) returns integer
+
+    /*
+        Returns true if the device is ready for requests, false if not
+
+        Attribute: Parameter port The port (ranging from A to F or 0 to 5) with the device to
+        check the ready state of
+        Attribute: Returns A boolean that's true if the device is ready for requests,
+        false if it isn't ready
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Device
+        use Libraries.Robots.Spike.Hub
+        use Libraries.Robots.Spike.LightMatrix
+        use Libraries.Robots.Spike.Port
+        Port port
+        Device dv
+        Hub hb
+        LightMatrix lights
+        repeat until IsPortReady(port:A)
+            hb:Sleep(1)
+        end
+        lights:Write("Device at Port A is READY!!!")
+    */
+    action IsPortReady(integer port) returns boolean
+        return IsPortReadyNative(port)
+    end
+
+    private system action IsPortReadyNative(integer port) returns boolean
+
+    /*
+        Sets the duty cycle (PWM) of a device at the provided port. Duty cycle value
+        can range from 0 to 10000.
+
+        Attribute: Parameter port The port (ranging from A to F or 0 to 5) with the device to
+        set the duty cycle of
+        Attribute: Parameter duty_cycle The integer value from 0 to 10000 to set the
+        duty cycle of the device to
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Device
+        use Libraries.Robots.Spike.Port
+        Device dv
+        Port port
+        dv:SetDutyCycle(port:A, 5000)
+    */
+    action SetDutyCycle(integer port, integer duty_cycle)
+        SetDutyCycleNative(port, duty_cycle)
+    end
+
+    private system action SetDutyCycleNative(integer port, integer duty_cycle)
+end

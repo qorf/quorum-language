@@ -1294,16 +1294,21 @@ class Item2D is Item
     action Remove(Item2D removed) returns boolean
         boolean success = children:Remove(removed)
         removed:SetOffset(0, 0)
-        CollisionEdge2D edge = removed:collisionList
-        repeat while edge not= undefined and layer not= undefined
-            CollisionEdge2D edge0 = edge
-            edge = edge:GetNext()
-            layer:GetCollisionManager():Destroy(edge0:GetCollision())
+        
+        if layer not= undefined and layer:IsColliding()
+            CollisionEdge2D edge = removed:collisionList
+            repeat while edge not= undefined and layer not= undefined
+                CollisionEdge2D edge0 = edge
+                edge = edge:GetNext()
+                layer:GetCollisionManager():Destroy(edge0:GetCollision())
+            end
+            removed:collisionList = undefined
         end
-        removed:collisionList = undefined
 
         if layer not= undefined
-            removed:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
+            if layer:PhysicsEnabled()
+                removed:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
+            end
 
             Accessibility accessibility = manager:GetAccessibility()
             if accessibility not= undefined
@@ -1337,16 +1342,21 @@ class Item2D is Item
     action Remove(integer index) returns Item2D
         Item2D temp = children:RemoveAt(index)
         temp:SetOffset(0, 0)
-        CollisionEdge2D edge = temp:collisionList
-        repeat while edge not= undefined
-            CollisionEdge2D edge0 = edge
-            edge = edge:GetNext()
-            layer:GetCollisionManager():Destroy(edge0:GetCollision())
+
+        if layer not= undefined and layer:IsColliding()
+            CollisionEdge2D edge = temp:collisionList
+            repeat while edge not= undefined
+                CollisionEdge2D edge0 = edge
+                edge = edge:GetNext()
+                layer:GetCollisionManager():Destroy(edge0:GetCollision())
+            end
+            temp:collisionList = undefined
         end
-        temp:collisionList = undefined
 
         if layer not= undefined
-            temp:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
+            if layer:PhysicsEnabled()
+                temp:DestroyNodes(layer:GetCollisionManager():GetBroadphase())
+            end
 
             Accessibility accessibility = manager:GetAccessibility()
             if accessibility not= undefined

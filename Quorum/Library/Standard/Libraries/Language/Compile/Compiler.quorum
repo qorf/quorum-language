@@ -18,7 +18,7 @@ use Libraries.Language.Compile.CompilerErrorCodes
 use Libraries.Language.Support.TextBuilder
 
 class Compiler
-    public constant number VERSION = 12.2
+    public constant number VERSION = 12.3
     File main = undefined
     File outputFolder = undefined
     File pluginFolder = undefined
@@ -600,44 +600,15 @@ class Compiler
                     WriteJavaScript(convertedJavaScript, request)
                 end
             elseif request:GetOutputType() = PYTHON
-                /* This is not general purpose, but tries to minimize
-                    using the code for spike.
-                */
-                HashTable<text, boolean> spikeMiniList
-                spikeMiniList:Add("Libraries.Robots.Spike.ColorSensor",false)
-                spikeMiniList:Add("Libraries.Robots.Spike.ForceSensor",false)
-                spikeMiniList:Add("Libraries.Robots.Spike.Hub",false)
-                spikeMiniList:Add("Libraries.Robots.Spike.LightMatrix",false)
-                spikeMiniList:Add("Libraries.Robots.Spike.Motor",false)
-
-                //essential classes
-                spikeMiniList:Add("Libraries.Language.Object",false)
-                spikeMiniList:Add("Libraries.Language.Types.Boolean",false)
-                spikeMiniList:Add("Libraries.Language.Types.Integer",false)
-                spikeMiniList:Add("Libraries.Language.Types.Number",false)
-                spikeMiniList:Add("Libraries.Language.Types.Text",false)
-
-                spikeMiniList:Add("Libraries.Compute.Math",false)
-                spikeMiniList:Add("Libraries.Compute.Random",false)
-                spikeMiniList:Add("Libraries.Containers.Array",false)
-                spikeMiniList:Add("Libraries.Containers.Iterator",false)
-                spikeMiniList:Add("Libraries.Containers.Support.ArrayIterator",false)
-                spikeMiniList:Add("Libraries.Game.Graphics.Color",false)
-                
+                //This is now general purpose and calculates the transitive dependencies                
                 //first copy all of the standard library opcodes into the array
                 Array<ClassOpcode> classOpcodes = theOpcodes:CopyToValueArray()
+
                 //set that it's user code
                 i = 0
                 repeat while i < classOpcodes:GetSize()
                     ClassOpcode co = classOpcodes:Get(i)
                     Class c = co:GetClass()
-                    Iterator<Class> uses = c:GetValidUses()
-                    repeat while uses:HasNext()
-                        text key = uses:Next():GetStaticKey()
-                        if spikeMiniList:HasKey(key)
-                            spikeMiniList:Add(key, true)
-                        end
-                    end
                     c:SetUserCode(true)
                     i = i + 1
                 end
@@ -661,19 +632,14 @@ class Compiler
                     end
                 end
              
-                Iterator<Class> iterator = table:GetClasses()
+                HashTable<text, Class> transitiveDependencies = MiniTransitiveDependency(classOpcodes)
+                Iterator<Class> iterator = transitiveDependencies:GetValueIterator()
                 repeat while iterator:HasNext()
                     Class cl = iterator:Next()
                     ClassOpcode op = library:GetOpcode(cl:GetStaticKey())
-                    boolean includeClass = false
+                    boolean includeClass = true
                     if cl:GetStaticKey() = "Libraries.Language.Errors.Error"
-                        includeClass = false //just so nothing else goes
-                    elseif cl:IsUserCode()
-                        includeClass = true
-                    elseif spikeMiniList:HasKey(cl:GetStaticKey()) //the key is there, include it?
-                        if spikeMiniList:GetValue(cl:GetStaticKey())
-                            includeClass = true
-                        end
+                        includeClass = false //error has to go first
                     end
 
                     if op not= undefined and includeClass
@@ -698,6 +664,34 @@ class Compiler
         end
         
         return result
+    end
+
+    private action MiniTransitiveDependency(Array<ClassOpcode> codes) returns HashTable<text, Class>
+        HashTable<text, Class> ops
+        i = 0
+        repeat while i < codes:GetSize()
+            ClassOpcode op = codes:Get(i)
+            Class clazz = op:GetClass()
+            
+            MiniTransitiveDependency(clazz, ops)
+            i = i + 1
+        end
+
+        return ops
+    end
+
+    private action MiniTransitiveDependency(Class clazz, HashTable<text, Class> ops)
+        if not ops:HasKey(clazz:GetStaticKey())
+            ops:Add(clazz:GetStaticKey(), clazz)
+        end
+
+        Iterator<Class> uses = clazz:GetValidUses()
+        repeat while uses:HasNext()
+            Class dependency = uses:Next()
+            if not ops:HasKey(dependency:GetStaticKey())
+                MiniTransitiveDependency(dependency, ops)
+            end
+        end
     end
 
     private action ReadPythonFile(Library library, Class cl, TextBuilder builder)

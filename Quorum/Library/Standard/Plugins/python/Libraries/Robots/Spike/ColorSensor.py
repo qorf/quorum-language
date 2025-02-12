@@ -16,12 +16,11 @@ class plugins_quorum_Libraries_Robots_Spike_ColorSensor_:
 	def GetReflectionNative(self):
 		return color_sensor.reflection(self.port)
 		
-	def SetColorValuesIntoPassedColorNative__quorum_Libraries_Game_Graphics_Color(self, color):
-		tuple = color_sensor.rgbi(self.port)
-		red = float(tuple[0])
-		green = float(tuple[1])
-		blue = float(tuple[2])
-		intensity = float(tuple[3])
-		color.SetColor__quorum_number__quorum_number__quorum_number__quorum_number(red, green, blue, intensity)
+	def GetRGBINative(self):
+		quorum_rgbi = quorum_Libraries_Containers_Array_()
+		rgbi = color_sensor.rgbi(self.port)
+		for item in rgbi:
+			quorum_rgbi.Add__quorum_Libraries_Language_Object(quorum_Libraries_Language_Types_Integer_(0, int(item)))
+		return  quorum_rgbi
 	
 		

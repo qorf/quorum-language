@@ -77,15 +77,6 @@ class Label is Control
     end
 
 
-    action GetDefaultFontName returns text
-        Font font
-        if font:IsFontAvailable("Arial")
-            return "Arial"
-        else
-            return parent:Control:GetDefaultFontName()
-        end
-    end
-
     private action LoadDefaultSettings
         isDefaultLoaded = true
         Font font
