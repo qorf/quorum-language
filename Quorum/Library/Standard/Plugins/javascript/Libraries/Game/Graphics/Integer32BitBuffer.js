@@ -1,27 +1,29 @@
-function plugins_quorum_Libraries_Game_Graphics_Integer32BitBuffer_() 
+class plugins_quorum_Libraries_Game_Graphics_Integer32BitBuffer_
 {
-    var intArray;
-    var size;
-    var writePosition;
-    
-    this.SetSize$quorum_integer = function(newSize)
+    constructor() {
+        this.intArray;
+        this.size;
+        this.writePosition;
+    }
+
+    SetSize$quorum_integer(newSize)
     {
         intArray = new Int32Array(newSize);
         size = newSize;
         writePosition = 0;
     };
     
-    this.GetSize = function()
+    GetSize()
     {
         return size;
     };
     
-    this.GetMaxSize = function()
+    GetMaxSize()
     {
         return intArray.length;
     };
     
-    this.Set$quorum_Libraries_Containers_Integer32BitArray = function(array)
+    Set$quorum_Libraries_Containers_Integer32BitArray(array)
     {
         for (var i = 0; i < array.GetSize(); i++)
         {
@@ -31,7 +33,7 @@ function plugins_quorum_Libraries_Game_Graphics_Integer32BitBuffer_()
         size = array.GetSize();
     };
     
-    this.Set$quorum_integer$quorum_Libraries_Containers_Integer32BitArray$quorum_integer$quorum_integer = function(targetOffset, array, sourceOffset, count)
+    Set$quorum_integer$quorum_Libraries_Containers_Integer32BitArray$quorum_integer$quorum_integer(targetOffset, array, sourceOffset, count)
     {
         var source = sourceOffset, target = targetOffset;
         for (var i = 0; i < count; i++, source++, target++)
@@ -40,32 +42,32 @@ function plugins_quorum_Libraries_Game_Graphics_Integer32BitBuffer_()
         }
     };
     
-    this.Dispose = function()
+    Dispose()
     {
         intArray = null;
     };
     
-    this.GetArray = function()
+    GetArray()
     {
         return intArray;
     };
     
-    this.ResetWritePosition = function()
+    ResetWritePosition()
     {
         writePosition = 0;
     };
 
-    this.GetWritePosition = function()
+    GetWritePosition()
     {
         return writePosition;
     };
 
-    this.SetWritePosition = function(newPosition)
+    SetWritePosition(newPosition)
     {
         writePosition = newPosition;
     };
 
-    this.Write = function(array)
+    Write(array)
     {
         for (var i = 0; i < array.length; i++, writePosition++)
         {
@@ -73,7 +75,7 @@ function plugins_quorum_Libraries_Game_Graphics_Integer32BitBuffer_()
         }
     };
     
-    this.Get$quorum_integer = function(index)
+    Get$quorum_integer(index)
     {
         return intArray[index];
     };
