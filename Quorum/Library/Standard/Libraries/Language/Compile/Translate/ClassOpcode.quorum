@@ -2156,10 +2156,15 @@ actLink:SetClassAttribute("hover:underline text-sm")
         if clazz:IsProgramStartingClass()
             convertedSource:Append("var " + OUTPUT_VARIABLE + " = " + quote + quote + ";" + EOL)
         end
-        convertedSource:Append(EOL + "class "
-            + clazz:ConvertStaticKeyToUnderScore()) 
 
-        
+        boolean user = clazz:IsUserCode()
+        if not user
+            convertedSource:Append(EOL + "class "
+                + clazz:ConvertStaticKeyToUnderScore()) 
+        else
+            convertedSource:Append(EOL + "var " + clazz:ConvertStaticKeyToUnderScore() + 
+                " = class") 
+        end
 
         convertedSource:Append(" {" + EOL)
         fakeConstructor:Append("constructor(parents")
