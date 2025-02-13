@@ -15,12 +15,12 @@ class plugins_quorum_Libraries_Game_Graphics_Integer32BitBuffer_
     
     GetSize()
     {
-        return size;
+        return this.size;
     };
     
     GetMaxSize()
     {
-        return intArray.length;
+        return this.intArray.length;
     };
     
     Set$quorum_Libraries_Containers_Integer32BitArray(array)
