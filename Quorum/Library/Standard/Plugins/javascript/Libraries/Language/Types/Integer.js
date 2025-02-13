@@ -1,61 +1,63 @@
-function plugins_quorum_Libraries_Language_Types_Integer_(optional) {
-    this.integer = 0;
-    
-    if(optional === undefined) {
-    } else {
-        this.integer = optional;
+class plugins_quorum_Libraries_Language_Types_Integer_ {
+    constructor(optional) {
+        this.integer = 0;
+        
+        if(optional === undefined) {
+        } else {
+            this.integer = optional;
+        }
     }
-    
+
     //private system action SetValueNative(integer i)
-    this.SetValueNative$quorum_integer = function (value) {
+    SetValueNative$quorum_integer(value) {
         this.integer = value;
     };
     //system action GetHashCode() returns integer
-    this.GetHashCode = function() {
+    GetHashCode() {
         return this.integer.GetHashCode$IntegerPrimitive();
     };
     //system action BitCount returns integer
-    this.BitCount = function() {
+    BitCount() {
         return this.integer.BitCount$IntegerPrimitive();
     };
     //system action HighestOneBit returns integer
-    this.HighestOneBit = function() {
+    HighestOneBit() {
         return this.integer.HighestOneBit$IntegerPrimitive();
     };
     //system action LowestOneBit returns integer
-    this.LowestOneBit = function() {
+    LowestOneBit() {
         return this.integer.LowestOneBit$IntegerPrimitive();
     };
     //system action LeadingZeros returns integer
-    this.LeadingZeros = function() {
+    LeadingZeros() {
         return this.integer.LeadingZeros$IntegerPrimitive();
     };
     //system action TrailingZeros returns integer
-    this.TrailingZeros = function() {
+    TrailingZeros() {
         return this.integer.TrailingZeros$IntegerPrimitive();
     };
     //system action Reverse returns integer
-    this.Reverse = function() {
+    Reverse() {
         return this.integer.Reverse$IntegerPrimitive();
     };
     //system action RotateLeft(integer value) returns integer
-    this.RotateLeft$quorum_integer = function(value) {
+    RotateLeft$quorum_integer(value) {
         return this.integer.RotateLeft$quorum_integer$IntegerPrimitive(value);
     };
     //system action RotateRight(integer value) returns integer
-    this.RotateRight$quorum_integer = function(value) {
+    RotateRight$quorum_integer(value) {
         return this.integer.RotateRight$quorum_integer$IntegerPrimitive(value);
     };
     //system action GetBinary returns text
-    this.GetBinary = function() {
+    GetBinary() {
         return this.integer.GetBinary$IntegerPrimitive();
     };
     //system action GetHex returns text
-    this.GetHex = function() {
+    GetHex() {
         return this.integer.GetHex$IntegerPrimitive();
     };
     //system action GetOctal returns text
-    this.GetOctal = function() {
+    GetOctal() {
         return this.integer.GetOctal$IntegerPrimitive();
     };
 }
