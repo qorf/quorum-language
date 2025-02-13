@@ -19,13 +19,13 @@ class plugins_quorum_Libraries_Containers_Array_ {
     SetSizeNative$quorum_integer(size) {
         if(this.array_.length > size) {
             var array2_ = [];
-            for(i = 0; i < size; i++) {
+            for(var i = 0; i < size; i++) {
                 array2_.push(this.array_[i]);
             }
             this.array_ = array2_;
         } else if(this.array_.length < size) {
             var array2_ = [];
-            for(i = 0; i < size; i++) {
+            for(var i = 0; i < size; i++) {
                 if(i < this.array_.length) {
                     array2_.push(this.array_[i]);
                 } else {
@@ -82,7 +82,7 @@ class plugins_quorum_Libraries_Containers_Array_ {
             if(this.size > size) {
                 this.size = size;
             }
-            for(i = 0; i < this.size; i++) {
+            for(var i = 0; i < this.size; i++) {
                 array2_.push(this.array_[i]);
             }
             this.array_ = array2_;
