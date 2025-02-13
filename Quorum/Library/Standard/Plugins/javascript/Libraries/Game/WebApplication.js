@@ -167,6 +167,11 @@ function plugins_quorum_Libraries_Game_WebApplication_()
                 // Attempt to release any WebGL resources held by the graphics.
                 graphics.Dispose();
 
+                // Get the FontManager and tell it to release all resources attached to loaded fonts.
+                var fontManager = manager.GetFontManager();
+                fontManager.Dispose();
+
+
                 // The GameStateManager needs to reinitialized when another application is ran
                 // NOTE other static initializers might need to be reset but these at least ensure that the FontManager is reloaded every time
                 // NOTE: Due to changes in how GameStateManager works (managing each Game separately) the manager plugin should no longer be reinitialized.
