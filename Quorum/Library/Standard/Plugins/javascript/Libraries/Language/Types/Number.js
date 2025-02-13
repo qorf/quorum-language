@@ -10,7 +10,7 @@ class plugins_quorum_Libraries_Language_Types_Number_ {
     
     
     SetValueNative$quorum_number(value) {
-        number = value;
+        this.number = value;
     };
     //system action GetMaximumValue returns number
     GetMaximumValue() {
