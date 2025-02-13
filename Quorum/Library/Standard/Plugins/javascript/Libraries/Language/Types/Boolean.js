@@ -9,7 +9,7 @@ class plugins_quorum_Libraries_Language_Types_Boolean_ {
     }
     
     SetValueNative$quorum_boolean(bool) {
-        myBoolean = bool;
+        this.myBoolean = bool;
     };
     
     GetHashCode() {
