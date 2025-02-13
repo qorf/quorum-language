@@ -8,9 +8,9 @@ class plugins_quorum_Libraries_Game_Graphics_Integer32BitBuffer_
 
     SetSize$quorum_integer(newSize)
     {
-        intArray = new Int32Array(newSize);
-        size = newSize;
-        writePosition = 0;
+        this.intArray = new Int32Array(newSize);
+        this.size = newSize;
+        this.writePosition = 0;
     };
     
     GetSize()
@@ -27,10 +27,10 @@ class plugins_quorum_Libraries_Game_Graphics_Integer32BitBuffer_
     {
         for (var i = 0; i < array.GetSize(); i++)
         {
-            intArray[i] = array.Get$quorum_integer(i);
+            this.intArray[i] = array.Get$quorum_integer(i);
         }
         
-        size = array.GetSize();
+        this.size = array.GetSize();
     };
     
     Set$quorum_integer$quorum_Libraries_Containers_Integer32BitArray$quorum_integer$quorum_integer(targetOffset, array, sourceOffset, count)
@@ -38,45 +38,45 @@ class plugins_quorum_Libraries_Game_Graphics_Integer32BitBuffer_
         var source = sourceOffset, target = targetOffset;
         for (var i = 0; i < count; i++, source++, target++)
         {
-            intArray[target] = array.Get$quorum_integer(source);
+            this.intArray[target] = array.Get$quorum_integer(source);
         }
     };
     
     Dispose()
     {
-        intArray = null;
+        this.intArray = null;
     };
     
     GetArray()
     {
-        return intArray;
+        return this.intArray;
     };
     
     ResetWritePosition()
     {
-        writePosition = 0;
+        this.writePosition = 0;
     };
 
     GetWritePosition()
     {
-        return writePosition;
+        return this.writePosition;
     };
 
     SetWritePosition(newPosition)
     {
-        writePosition = newPosition;
+        this.writePosition = newPosition;
     };
 
     Write(array)
     {
         for (var i = 0; i < array.length; i++, writePosition++)
         {
-            intArray[writePosition] = array.Get$quorum_integer(i);
+            this.intArray[writePosition] = array.Get$quorum_integer(i);
         }
     };
     
     Get$quorum_integer(index)
     {
-        return intArray[index];
+        return this.intArray[index];
     };
 }
