@@ -4,7 +4,7 @@ class plugins_quorum_Libraries_Language_Types_Number_ {
 
       if(optional === undefined) {
       } else {
-          number = optional;
+          this.number = optional;
       }
     };
     
