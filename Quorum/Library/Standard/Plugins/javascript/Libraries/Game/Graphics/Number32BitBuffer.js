@@ -1,55 +1,57 @@
-function plugins_quorum_Libraries_Game_Graphics_Number32BitBuffer_() 
+class plugins_quorum_Libraries_Game_Graphics_Number32BitBuffer_ 
 {
-    var floatArray;
-    var size;
+    constructor() {
+        this.floatArray;
+        this.size;
+    }
     
-    this.SetSize$quorum_integer = function(newSize)
+    SetSize$quorum_integer(newSize)
     {
-        floatArray = new Float32Array(newSize);
-        size = newSize;
+        this.floatArray = new Float32Array(newSize);
+        this.size = newSize;
     };
     
-    this.GetSize = function()
+    GetSize()
     {
-        return size;
+        return this.size;
     };
     
-    this.GetMaxSize = function()
+    GetMaxSize()
     {
-        return floatArray.length;
+        return this.floatArray.length;
     };
     
-    this.Set$quorum_Libraries_Containers_Number32BitArray = function(array)
+    Set$quorum_Libraries_Containers_Number32BitArray(array)
     {
         for (var i = 0; i < array.GetSize(); i++)
         {
-            floatArray[i] = array.Get$quorum_integer(i);
+            this.floatArray[i] = array.Get$quorum_integer(i);
         }
         
-        size = array.GetSize();
+        this.size = array.GetSize();
     };
     
-    this.Set$quorum_integer$quorum_Libraries_Containers_Number32BitArray$quorum_integer$quorum_integer = function(targetOffset, array, sourceOffset, count)
+    Set$quorum_integer$quorum_Libraries_Containers_Number32BitArray$quorum_integer$quorum_integer(targetOffset, array, sourceOffset, count)
     {
         var source = sourceOffset, target = targetOffset;
         for (var i = 0; i < count; i++, source++, target++)
         {
-            floatArray[target] = array.Get$quorum_integer(source);
+            this.floatArray[target] = array.Get$quorum_integer(source);
         }
     };
     
-    this.Dispose = function()
+    Dispose()
     {
-        floatArray = null;
+        this.floatArray = null;
     };
     
-    this.GetArray = function()
+    GetArray()
     {
-        return floatArray;
+        return this.floatArray;
     };
     
-    this.Get$quorum_integer = function(index)
+    Get$quorum_integer(index)
     {
-        return floatArray[index];
+        return this.floatArray[index];
     };
 }
