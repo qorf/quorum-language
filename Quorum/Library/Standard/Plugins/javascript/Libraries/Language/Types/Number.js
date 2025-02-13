@@ -1,55 +1,59 @@
-function plugins_quorum_Libraries_Language_Types_Number_(optional) {
-    this.number = 0.0;
+class plugins_quorum_Libraries_Language_Types_Number_ {
+    constructor(optional) {
+      this.number = 0.0;
+
+      if(optional === undefined) {
+      } else {
+          number = optional;
+      }
+    };
     
-    if(optional === undefined) {
-    } else {
-        number = optional;
-    }
-    this.SetValueNative$quorum_number = function (value) {
+    
+    SetValueNative$quorum_number(value) {
         number = value;
     };
     //system action GetMaximumValue returns number
-    this.GetMaximumValue = function () {
+    GetMaximumValue() {
         return this.number.GetMaximumValue$NumberPrimitive();
     };
     //system action GetMinimumValue returns number
-    this.GetMinimumValue = function () {
+    GetMinimumValue() {
         return this.number.GetMinimumValue$NumberPrimitive();
     };
     //system action GetMinimumPositiveValue returns number
-    this.GetMinimumPositiveValue = function () {
+    GetMinimumPositiveValue() {
         return this.number.GetMinimumPositiveValue$NumberPrimitive();
     };
     //system action GetPositiveInfinityValue returns number
-    this.GetPositiveInfinityValue = function () {
+    GetPositiveInfinityValue() {
         return this.number.GetPositiveInfinityValue$NumberPrimitive();
     };
     //system action GetNumberOfBits returns integer
-    this.GetNumberOfBits = function () {
+    GetNumberOfBits() {
         return this.number.GetNumberOfBits$NumberPrimitive();
     };
     //system action GetNegativeInfinityValue returns number
-    this.GetNegativeInfinityValue = function () {
+    GetNegativeInfinityValue() {
         return this.number.GetNegativeInfinityValue$NumberPrimitive();
     };
     //system action GetNotANumberValue returns number
-    this.GetNotANumberValue = function () {
+    GetNotANumberValue() {
         return this.number.GetNotANumberValue$NumberPrimitive();
     };
     //system action IsInfinite() returns boolean
-    this.IsInfinite = function () {
+    IsInfinite() {
         return this.number.IsInfinite$NumberPrimitive();
     };
     //system action IsNotANumber() returns boolean
-    this.IsNotANumber = function () {
+    IsNotANumber() {
         return this.number.IsNotANumber$NumberPrimitive();
     };
     //system action GetHex() returns text
-    this.GetHex = function () {
+    GetHex() {
         return this.number.GetHex$NumberPrimitive();
     };
     //system action GetHashCode() returns integer
-    this.GetHashCode = function () {
+    GetHashCode() {
         return this.number.GetHashCode$NumberPrimitive();
     };
 }
