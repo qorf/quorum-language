@@ -40,9 +40,9 @@ class ActionBlock is MultipleLineBlock
     
     action GetBlockName returns text
         if nameField not= undefined
-            return nameField:GetText() + " Action Block"
+            return nameField:GetText() + " Action"
         end
-        return "Action Block"
+        return "Action"
     end
     
     action GetBlockDescription returns text
