@@ -156,30 +156,44 @@ AddFilterTextField()
         if blockName not= ""
 AddLabel(blockName):SetFontSize(HEADER_SIZE)
             if blockDescription not= ""
-                AddLabel(blockDescription):SetFontSize(LABEL_SIZE)
+                Label label = AddLabel(blockDescription)
+                label:SetFontSize(LABEL_SIZE)
+                label:SetJustifyAlignment()
             else
-                AddLabel("No documentation available.")
+Label label = AddLabel("No documentation available.")
+                label:SetFontSize(LABEL_SIZE)
+                label:SetJustifyAlignment()
             end
             AddLabel(className):SetFontSize(HEADER_SIZE)
 if clazzDocs not= undefined 
                 text description = GetDescriptionFromResultClass(result, clazz, clazzDocs)
                 if description not= ""
-                    AddLabel(description):SetFontSize(LABEL_SIZE)
+Label label = AddLabel(description)
+                label:SetFontSize(LABEL_SIZE)
+                label:SetJustifyAlignment()
                 end
             else
-AddLabel("No documentation available."):SetFontSize(LABEL_SIZE)
+Label label = AddLabel("No documentation available.")
+                label:SetFontSize(LABEL_SIZE)
+                label:SetJustifyAlignment()
         end
         else
 AddLabel(className):SetFontSize(HEADER_SIZE)
             if clazzDocs not= undefined
 text description = GetDescriptionFromResultClass(result, clazz, clazzDocs)
                 if description not= undefined and description not= ""
-                    AddLabel(description):SetFontSize(LABEL_SIZE)
+Label label = AddLabel(description)
+                label:SetFontSize(LABEL_SIZE)
+                label:SetJustifyAlignment()
                 else
-                    AddLabel("No documentation available."):SetFontSize(LABEL_SIZE)
+Label label = AddLabel("No documentation available.")
+                label:SetFontSize(LABEL_SIZE)
+                label:SetJustifyAlignment()
                 end
             else
-AddLabel("No documentation available."):SetFontSize(LABEL_SIZE)
+Label label = AddLabel("No documentation available.")
+                label:SetFontSize(LABEL_SIZE)
+                label:SetJustifyAlignment()
             end
         end
         AddHints(result:requestingBlock)

@@ -34,6 +34,13 @@ Attribute: Example
 */
 class Label is Control
     
+    public constant integer LEFT_ALIGN = 0
+    public constant integer RIGHT_ALIGN = 1
+    public constant integer CENTER_ALIGN = 2
+    public constant integer JUSTIFY_ALIGN = 3
+    
+    integer alignment = LEFT_ALIGN
+    
     boolean isDefaultLoaded = false
 
     integer horizontalMargins = 0
@@ -723,6 +730,13 @@ class Label is Control
             Array<Glyph> glyphs
 
             glyphs:SetSize(targetText:GetSize())
+            
+            // Arrays representing the placements of glyphs and spaces after initial, left-aligned layout is done.
+            // Used to adjust final positions to respect text alignment.
+            Array<Array<GlyphDrawable>> finalLineGlyphs
+            Array<Array<integer>> finalLineSpaceIndices
+            Array<Drawable> currentLineGlyphs
+            Array<integer> currentLineSpaceIndices
 
             number originX = x + horizontalMargins
             number originY = y - verticalMargins
@@ -730,8 +744,13 @@ class Label is Control
             x = originX
             y = originY
 
+            // Index of the line we're working on.
             integer lineIndex = 0
+            //Index of the current word we're working on.
             integer wordsIndex = 0
+            // Index of the current character within the current line.
+            integer lineGlyphIndex = 0
+            // Index of a glyph within the current word.
             integer glyphIndex = 0
             text currentWord = ""
             integer currentWordLength = 0
@@ -761,6 +780,7 @@ class Label is Control
             repeat lines:GetSize() times
                 words = Split(lines:Get(lineIndex), " ")
                 wordsIndex = 0
+                lineGlyphIndex = 0
                 currentLineLength = 0
 
                 repeat words:GetSize() times
@@ -768,8 +788,10 @@ class Label is Control
                     currentWordLength = 0
                     glyphIndex = 0
 
+                    boolean hasSpace = false
                     if wordsIndex + 1 not= words:GetSize() or endsWithSpace
                         currentWord = currentWord + " "
+                        hasSpace = true
                     end
 
                     repeat currentWord:GetSize() times
@@ -788,6 +810,18 @@ class Label is Control
                         y = originY - font:GetLineHeight()
                         originY = y
                         lineCount = lineCount + 1
+                        
+lineGlyphIndex = 0
+                        finalLineGlyphs:Add(currentLineGlyphs)
+                        finalLineSpaceIndices:Add(currentLineSpaceIndices)
+                        Array<Drawable> newLineGlyphs
+                        currentLineGlyphs = newLineGlyphs
+                        Array<integer> newLineSpaceIndices
+                        currentLineSpaceIndices = newLineSpaceIndices
+                    end
+                    
+                    if hasSpace
+                        currentLineSpaceIndices:Add(lineGlyphIndex + currentWord:GetSize() - 1)
                     end
 
                     glyphIndex = 0
@@ -811,15 +845,18 @@ class Label is Control
                         if drawable not= undefined
                             drawable:SetPosition(x + glyph:lengthToGlyph, y + glyph:heightFromBaseLine - drawable:GetHeight() - maxDescent)
                             Add(drawable)
+                            currentLineGlyphs:Add(drawable)
                         else
                             Drawable space = GetDrawable()
                             space:SetTexture(undefined)
                             space:SetPosition(x + glyph:lengthToGlyph, y + glyph:heightFromBaseLine - maxDescent)
                             space:SetSize(glyph:horizontalAdvance, glyph:verticalAdvance)
                             Add(space)
+                            currentLineGlyphs:Add(drawable)
                         end
 
                         glyphIndex = glyphIndex + 1
+                        lineGlyphIndex = lineGlyphIndex + 1
                         x = x + glyph:horizontalAdvance
                         y = y + glyph:verticalAdvance
                         if wordsIndex > 0 and availableWidth > 0 and x - originX > availableWidth
@@ -829,6 +866,14 @@ class Label is Control
                             y = originY - font:GetLineHeight()
                             originY = y
                             lineCount = lineCount + 1
+                            
+lineGlyphIndex = 0
+                        finalLineGlyphs:Add(currentLineGlyphs)
+                        finalLineSpaceIndices:Add(currentLineSpaceIndices)
+                        Array<Drawable> newLineGlyphs
+                        currentLineGlyphs = newLineGlyphs
+                        Array<integer> newLineSpaceIndices
+                        currentLineSpaceIndices = newLineSpaceIndices
                         end
                     end
 
@@ -848,7 +893,18 @@ class Label is Control
                 y = originY - font:GetLineHeight()
                 originY = y
                 lineCount = lineCount + 1
+                
+lineGlyphIndex = 0
+                        finalLineGlyphs:Add(currentLineGlyphs)
+                        finalLineSpaceIndices:Add(currentLineSpaceIndices)
+                        Array<Drawable> newLineGlyphs
+                        currentLineGlyphs = newLineGlyphs
+                        Array<integer> newLineSpaceIndices
+                        currentLineSpaceIndices = newLineSpaceIndices
             end
+            
+            finalLineGlyphs:Add(currentLineGlyphs)
+            finalLineSpaceIndices:Add(currentLineSpaceIndices)
 
             if descendingLines = false and lineCount > 1
                 number offset = (lineCount - 1) * font:GetLineHeight()
@@ -868,6 +924,95 @@ class Label is Control
             end
             
             parent:Item2D:SetSize(newWidth, startingOriginY - originY)
+            
+            // Remove any trailing lines that are empty.
+            repeat while finalLineGlyphs:IsEmpty() = false and finalLineGlyphs:GetFromEnd():IsEmpty()
+                finalLineGlyphs:RemoveFromEnd()
+                finalLineSpaceIndices:RemoveFromEnd()
+            end
+            
+            // All characters have been laid out so far assuming left alignment. Correct them to match the actual alignment.
+            if alignment = RIGHT_ALIGN or alignment = CENTER_ALIGN
+                integer lineCounter = 0
+                repeat while lineCounter < finalLineGlyphs:GetSize()
+                    Array<GlyphDrawable> lineGlyphs = finalLineGlyphs:Get(lineCounter)
+                    Array<integer> spaceIndices = finalLineSpaceIndices:Get(lineCounter)
+                    integer lastGlyphIndex = lineGlyphs:GetSize() - 1
+                    repeat until spaceIndices:Has(lastGlyphIndex) = false
+                        lastGlyphIndex = lastGlyphIndex - 1
+                    end
+                    
+                    if lastGlyphIndex >= 0
+                        number leftBound = originX
+                        number rightBound = leftBound + availableWidth
+                        GlyphDrawable lastGlyphDrawable = lineGlyphs:Get(lastGlyphIndex)
+                        
+                        number glyphEndX = lastGlyphDrawable:GetX() + lastGlyphDrawable:GetWidth()
+                        number adjustX = 0
+                        if alignment = RIGHT_ALIGN
+                            adjustX = rightBound - glyphEndX
+                        elseif alignment = CENTER_ALIGN
+                            adjustX = (rightBound - glyphEndX) / 2.0
+                        end
+                        
+                        integer counter = 0
+                        repeat while counter < lineGlyphs:GetSize()
+                            GlyphDrawable currentDrawable = lineGlyphs:Get(counter)
+                            currentDrawable:MoveX(adjustX)
+                            counter = counter + 1
+                        end
+                    end
+                    
+                    lineCounter = lineCounter + 1
+                end
+            elseif alignment = JUSTIFY_ALIGN
+integer lineCounter = 0
+                // Justify every line except for the last one.
+repeat while lineCounter < finalLineGlyphs:GetSize() - 1
+Array<GlyphDrawable> lineGlyphs = finalLineGlyphs:Get(lineCounter)
+                    Array<integer> spaceIndices = finalLineSpaceIndices:Get(lineCounter)
+                    integer lastGlyphIndex = lineGlyphs:GetSize() - 1
+                    repeat until spaceIndices:Has(lastGlyphIndex) = false
+spaceIndices:Remove(lastGlyphIndex)
+                        lastGlyphIndex = lastGlyphIndex - 1
+                    end
+                    
+                    if lastGlyphIndex >= 0
+number leftBound = originX
+                        number rightBound = leftBound + availableWidth
+                        GlyphDrawable lastGlyphDrawable = lineGlyphs:Get(lastGlyphIndex)
+                        
+                        number glyphEndX = lastGlyphDrawable:GetX() + lastGlyphDrawable:GetWidth()
+                        number excessSpace = rightBound - glyphEndX
+                        if spaceIndices:GetSize() > 1
+                            integer pixelPadding = cast(integer, excessSpace) / spaceIndices:GetSize()
+                            integer pixelPaddingRemainder = cast(integer, excessSpace) mod spaceIndices:GetSize()
+                            
+                            integer adjustX = 0
+                            integer counter = 0
+                            repeat while counter < lineGlyphs:GetSize()
+                                GlyphDrawable currentGlyph = lineGlyphs:Get(counter)
+                                currentGlyph:MoveX(adjustX)
+                                if spaceIndices:Has(counter)
+                                    integer currentPadding = pixelPadding
+                                    if pixelPaddingRemainder > 0
+                                        currentPadding = currentPadding + 1
+                                        pixelPaddingRemainder = pixelPaddingRemainder - 1
+                                    end
+                                    currentGlyph:SetWidth(currentGlyph:GetWidth() + currentPadding)
+                                    adjustX = adjustX + currentPadding
+                                end
+                                
+                                counter = counter + 1
+                            end
+                        end
+                    end
+                    
+                    lineCounter = lineCounter + 1
+end
+                
+            end
+            
         end
 
     end
@@ -1255,6 +1400,46 @@ class Label is Control
     */
     action HasDescendingLines returns boolean
         return descendingLines
+    end
+
+    action GetAlignment returns integer
+        return alignment
+    end
+
+    action SetAlignment(integer alignment)
+        me:alignment = alignment
+    end
+    
+    action SetLeftAlignment
+        SetAlignment(LEFT_ALIGN)
+    end
+    
+    action SetRightAlignment
+        SetAlignment(RIGHT_ALIGN)
+    end
+    
+    action SetCenterAlignment
+        SetAlignment(CENTER_ALIGN)
+    end
+    
+    action SetJustifyAlignment
+        SetAlignment(JUSTIFY_ALIGN)
+    end
+    
+    action IsLeftAligned returns boolean
+        return alignment = LEFT_ALIGN
+    end
+    
+    action IsRightAligned returns boolean
+        return alignment = RIGHT_ALIGN
+    end
+    
+    action IsCenterAligned returns boolean
+        return alignment = CENTER_ALIGN
+    end
+    
+    action IsJustifyAligned returns boolean
+        return alignment = JUSTIFY_ALIGN
     end
 
 end
