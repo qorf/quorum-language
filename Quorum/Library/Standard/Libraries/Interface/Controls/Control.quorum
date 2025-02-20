@@ -1603,6 +1603,7 @@ elseif font:IsFontAvailable("courbd")
             Item item = GetChildAsItem(counter)
             if item is Control and haveResized = false
                 Control control = cast(Control, item)
+                
                 if control:NeedsLayout()
                     Resize()
                     haveResized = true

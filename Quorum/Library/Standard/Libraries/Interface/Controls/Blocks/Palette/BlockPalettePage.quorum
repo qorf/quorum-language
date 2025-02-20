@@ -10,6 +10,7 @@ use Libraries.Interface.Controls.Blocks.Block
 use Libraries.Interface.Controls.Blocks.MultipleLineBlock
 use Libraries.Interface.Controls.Blocks.CodeEditor
 use Libraries.Interface.Behaviors.Blocks.BlockPaletteItemInsertBehavior
+use Libraries.Game.Graphics.Color
 
 class BlockPalettePage is StackedRowPage
 
@@ -26,6 +27,10 @@ public constant integer LABEL_SIZE = 12
     
     // A behavior assigned to each BlockPalettetItem that is added to this page.
 BlockPaletteItemInsertBehavior itemInsertBehavior
+    
+    // Values containing details for the Icon that will be associated with this page once it's added to a BlockPalette.
+    integer iconUnicode = 0
+    text iconFilePath = ""
     
 on create
 SetCustomDrawing(true)
@@ -189,6 +194,22 @@ text dq = ""
 
     action GetPalette returns BlockPalette
         return palette
+    end
+
+    action GetIconUnicode returns integer
+        return iconUnicode
+    end
+
+    action SetIconUnicode(integer iconUnicode)
+        me:iconUnicode = iconUnicode
+    end
+
+    action GetIconFilePath returns text
+        return iconFilePath
+    end
+
+    action SetIconFilePath(text iconFilePath)
+        me:iconFilePath = iconFilePath
     end
 
 end
