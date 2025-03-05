@@ -517,9 +517,6 @@ shouldCalculateWidth = true
         lexer:Read(code)
         
         if not manager:IsCompilationErrorFree()
-//            text value = manager:GetCompilerErrorsAsText()
-//            output "WARNING: Couldn't generate start context due to the following error:
-//" + value
             return false
         end
         QuorumParser parser
@@ -527,9 +524,6 @@ shouldCalculateWidth = true
         parser:SetLexer(lexer)
         StartContext start = parser:Start()
         if not manager:IsCompilationErrorFree()
-//            text value = manager:GetCompilerErrorsAsText()
-//            output "WARNING: Couldn't generate start context due to the following error:
-//" + value
             return false
         end
         blockListener:SetQuorumLexer(lexer)
@@ -652,15 +646,45 @@ shouldCalculateWidth = true
     action GetLineHeight(integer line) returns number
         Block block = renderer:GetBlockAtLine(line)
         if block is SingleLineBlock
+            SingleLineBlock singleBlock = cast(SingleLineBlock, block)
+            number detailsHeight = singleBlock:GetVisibleDetailLabelsHeight()
+            
             integer startLine = block:GetNavigationIndex()
             integer endLine = block:GetNavigationEndIndex()
             if startLine not= endLine
                 if line = startLine or line = endLine
-                    return GetDefaultUnpaddedLineHeight() + GetLineHeightPadding(line) / 2.0
+                    return GetDefaultUnpaddedLineHeight() + GetLineHeightPadding(line) / 2.0 + detailsHeight
                 else
-                    return GetDefaultUnpaddedLineHeight()
+                    return GetDefaultUnpaddedLineHeight() + detailsHeight
                 end
             end
+            
+            return GetDefaultLineHeight() + detailsHeight
+        end
+        
+        return GetDefaultLineHeight()
+    end
+    
+action GetStaticLineHeight(integer line) returns number
+        Block block = renderer:GetBlockAtLine(line)
+        if block is SingleLineBlock
+            SingleLineBlock singleBlock = cast(SingleLineBlock, block)
+            number detailsHeight = 0
+            if singleBlock:AlwaysShowDetailLabels()
+detailsHeight = singleBlock:GetVisibleDetailLabelsHeight()
+            end
+            
+            integer startLine = block:GetNavigationIndex()
+            integer endLine = block:GetNavigationEndIndex()
+            if startLine not= endLine
+                if line = startLine or line = endLine
+                    return GetDefaultUnpaddedLineHeight() + GetLineHeightPadding(line) / 2.0 + detailsHeight
+                else
+                    return GetDefaultUnpaddedLineHeight() + detailsHeight
+                end
+            end
+            
+            return GetDefaultLineHeight() + detailsHeight
         end
         
         return GetDefaultLineHeight()
@@ -691,7 +715,7 @@ shouldCalculateWidth = true
             integer lines = GetLineCount()
             number total = 0
             repeat while counter < lines
-                number currentHeight = GetLineHeight(counter)
+                number currentHeight = GetStaticLineHeight(counter)
                 currentY = currentY - currentHeight
                 
                 cachedLinePositions:Add(currentY)
@@ -810,7 +834,27 @@ shouldCalculateWidth = true
             return 0
         end
         
-        return (renderer:GetHeight() + cachedLinePositions:Get(line)) + (GetScrollPercentageY() * GetTotalContentHeight())
+        // Determine if any selected blocks before this line's index are showing dynamic labels, increasing their height and thus pushing this line down
+        number dynamicHeightOffset = 0
+        Array<Block> selectedBlocks = GetSelectedBlocks()
+        if selectedBlocks not= undefined
+integer i = 0
+        repeat while i < selectedBlocks:GetSize()
+            Block block = selectedBlocks:Get(i)
+                if block not= undefined and block:GetStartLine() > line
+                    // Exit early if a block is beyond the line we're interested in.
+                    i = selectedBlocks:GetSize()
+                elseif block is SingleLineBlock
+                    SingleLineBlock singleBlock = cast(SingleLineBlock, block)
+                    if singleBlock:AlwaysShowDetailLabels() = false
+                        dynamicHeightOffset = dynamicHeightOffset + singleBlock:GetVisibleDetailLabelsHeight()
+                    end
+                end
+                i = i + 1
+        end
+        end
+        
+        return (renderer:GetHeight() + cachedLinePositions:Get(line) - dynamicHeightOffset) + (GetScrollPercentageY() * GetTotalContentHeight())
     end
     
     /*This action returns the navigation index of a line located at the given pixel y-coordinate.

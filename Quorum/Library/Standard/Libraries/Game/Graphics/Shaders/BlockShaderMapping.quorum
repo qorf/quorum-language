@@ -203,6 +203,12 @@ number halfSize = width / 2.0
 
             if control not= undefined
                 borderThickness = (1.0 / height) * (control:GetBorderThickness() * control:GetInterfaceScale())
+                
+if control:IsRenderingSelection() or selected
+                    if control:HasSelectionBorderThickness()
+                        borderThickness = (1.0 / height) * (control:GetSelectionBorderThickness() * control:GetInterfaceScale())
+                    end
+end
 
                 if borderThickness > 0
                     if control:HasLeftBorder()

@@ -15,6 +15,10 @@ use Libraries.Interface.Controls.Support.GutterAnnotation
 
 class SingleLineBlock is Block
     
+    // If this is true, detail labels (such as "top labels" for EditRegions) are always visible on this block.
+    // If false, they're only shown when contextually relevant (usually because the block or field is selected)
+    boolean alwaysShowDetailLabels = false
+    
     on create
         SetInputGroup("Block")
     end
@@ -217,4 +221,123 @@ result = result + " " + annotation:GetName() + "."
         // For now, always return true.
         return true
     end
+    
+    action AlwaysShowDetailLabels returns boolean
+        return alwaysShowDetailLabels
+    end
+
+    action SetAlwaysShowDetailLabels(boolean alwaysShowDetailLabels)
+        me:alwaysShowDetailLabels = alwaysShowDetailLabels
+    end
+    
+    action GainedSelection
+        if AlwaysShowDetailLabels() = false
+            ShowDetailLabels()
+        end
+        
+        parent:Block:GainedSelection()
+    end
+    
+    action LostSelection
+        if AlwaysShowDetailLabels() = false
+            HideDetailLabels()
+        end
+        
+        parent:Block:LostSelection()
+    end
+    
+    action ShowDetailLabels
+        integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                edit:ShowTopLabels()
+            end
+            i = i + 1
+        end
+    end
+    
+    action HideDetailLabels
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                edit:HideTopLabels()
+            end
+            i = i + 1
+        end
+    end
+    
+    action HasDetailLabels returns boolean
+        integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                if edit:HasTopLabels()
+                    return true
+                end
+            end
+            i = i + 1
+        end
+        return false
+    end
+    
+    action HasVisibleDetailLabels returns boolean
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                if edit:HasVisibleTopLabels()
+                    return true
+                end
+            end
+            i = i + 1
+        end
+        return false
+    end
+    
+    action GetDetailLabelsHeight returns number
+        number maxHeight = 0
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                number height = edit:GetTopLabelsHeight()
+                if height > maxHeight
+                    maxHeight = height
+                end
+            end
+            i = i + 1
+        end
+        return maxHeight
+    end
+    
+action GetVisibleDetailLabelsHeight returns number
+        number maxHeight = 0
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                number height = edit:GetVisibleTopLabelsHeight()
+                if height > maxHeight
+                    maxHeight = height
+                end
+            end
+            i = i + 1
+        end
+        return maxHeight
+    end
+
 end

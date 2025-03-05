@@ -13,6 +13,7 @@ use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
 use Libraries.Interface.Selections.TextFieldSelection
 use Libraries.Interface.Controls.Blocks.Palette.BlockPaletteItem
 use Libraries.Containers.Array
+use Libraries.Game.Graphics.Label
 
 class EditField is TextField, EditRegion
 
@@ -119,6 +120,19 @@ minimumLength = block:GetMinimumWidth() - GetX() - block:GetRightPadding()
                     // If we found a different block item, abort.
                     counter = 0
                 end
+            end
+        end
+        
+        // Also consider if a minimum length is needed to match up with any top labels associated with this field.
+        Array<Label> topLabels = GetTopLabels()
+        counter = 0
+        if topLabels not= undefined
+            repeat while counter < topLabels:GetSize()
+                Label label = topLabels:Get(counter)
+                if label:IsShowing() and label:GetWidth() > minimumLength
+                    minimumLength = label:GetWidth()
+                end
+                counter = counter + 1
             end
         end
 

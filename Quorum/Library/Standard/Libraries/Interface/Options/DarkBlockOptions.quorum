@@ -93,6 +93,7 @@ SetBottomLeftPixelRounding(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabPixel
 SetBottomRightPixelRounding(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabPixelRounding)
         
 SetBackgroundColor(constants:BLOCK_PALETTE_TAB_BAR_KEY, blockPaletteTabBarBackground)
+SetPrimaryErrorColor(constants:BLOCK_PALETTE_KEY, color:CustomColor(0.55, 0.25, 0.25, 1))
     end
 
     action SetDefaultBlockOptions(text key)
@@ -130,6 +131,8 @@ newMovingColor:SetColor(0.75, 0.75, 0.75, 1)
             newPlaceholderColor:SetColor(0.4, 0.8, 0.45, 1)
             SetPlaceholderBackgroundColor(key, newPlaceholderColor)
             
+SetSelectionBorderColor(key, color:CustomColor(0.9, 0.9, 0.8, 1))
+            SetSelectionBorderThickness(key, 2)
         end
     end
 end

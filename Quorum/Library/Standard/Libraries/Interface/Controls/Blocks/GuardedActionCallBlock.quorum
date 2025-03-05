@@ -5,15 +5,18 @@ use Libraries.Interface.Controls.Blocks.BlockLabel
 use Libraries.Interface.Options.BlockOptionConstants
 use Libraries.Language.Compile.Context.all
 use Libraries.Language.Compile.Location
+use Libraries.Language.Compile.Symbol.Action
 use Libraries.Interface.Controls.Layouts.ScopeBlockLayout
 use Libraries.Interface.Controls.Layouts.SingleLineBlockLayout
 
-class ActionCallBlock is SingleLineBlock
+class GuardedActionCallBlock is SingleLineBlock
 
     EditBox actionCallBox = undefined
-
-    VariableFunctionCallContext variableActionCall = undefined
-    ParentVariableFunctionCallContext parentActionCall = undefined
+    
+    // Because the GuardedActionCallBlock is generated manually without passing through the compiler,
+    // We need an Action that describes what's being called and a location of the text for manual parsing.
+    Action templateAction = undefined
+    Location location = undefined
 
     on create
         BlockOptionConstants constants
@@ -23,6 +26,8 @@ class ActionCallBlock is SingleLineBlock
         SetLayout(layout)
 
         SetName("Action Call Block")
+        Libraries.Game.Graphics.Color color
+        SetBackgroundColor(color:Purple())
     end
 
     action UpdateName(integer selectedLine)
@@ -36,12 +41,19 @@ class ActionCallBlock is SingleLineBlock
         number spacing = editor:GetDefaultGlyphWidth()
         SetLeftPadding(spacing * 0.5)
         SetRightPadding(spacing * 0.5)
-
-        Location location
-        if variableActionCall not= undefined
-            location = variableActionCall:GetLocation()
-        elseif parentActionCall not= undefined
-            location = parentActionCall:GetLocation()
+        
+text code = ""
+check
+            code = GetBlockEnvironment():GetCodeBetween(location:GetIndex(), 1 + location:GetIndexEnd())
+        detect error
+            code = undefined
+        end
+        if code not= undefined
+            text symbols = ":(),"
+            symbols = symbols + symbols:GetDoubleQuote()
+            output "In Action, code = '" + code + "'"
+        else
+            output "Couldn't get action call text!"
         end
 
         EditBox actionCallBox
@@ -49,27 +61,25 @@ class ActionCallBlock is SingleLineBlock
         Add(actionCallBox)
 
         actionCallBox:Setup("Expression", location:GetIndex() - GetStartIndex(), 1 + location:GetIndexEnd() - GetStartIndex())
-        actionCallBox:AddTopLabel("Action Call")
+        actionCallBox:AddTopLabel("Guarded Action Call")
     end
 
-    action GetVariableFunctionCallContext returns VariableFunctionCallContext
-        return me:variableActionCall
+
+    action GetTemplateAction returns Action
+        return templateAction
     end
 
-    action GetParentVariableFunctionCallContext returns ParentVariableFunctionCallContext
-        return me:parentActionCall
+    action SetTemplateAction(Action templateAction)
+        me:templateAction = templateAction
     end
 
-    action SetContext(VariableFunctionCallContext context)
-        me:variableActionCall = context
-        me:parentActionCall = undefined
-        SetContext(cast(ParseContext, context))
+
+    action GetLocation returns Location
+        return location
     end
 
-    action SetContext(ParentVariableFunctionCallContext context)
-        me:variableActionCall = undefined
-        me:parentActionCall = context
-        SetContext(cast(ParseContext, context))
+    action SetLocation(Location location)
+        me:location = location
     end
 
 end

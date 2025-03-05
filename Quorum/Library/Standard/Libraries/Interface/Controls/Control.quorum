@@ -2163,6 +2163,19 @@ defaultProperties:SetInterfaceScale(scale)
     action HasBorderThickness returns boolean
         return defaultProperties:HasBorderThickness()
     end
+
+    action SetSelectionBorderThickness(number value)
+        defaultProperties:SetSelectionBorderThickness(value)
+    end
+
+    action GetSelectionBorderThickness returns number
+        return defaultProperties:GetSelectionBorderThickness()
+    end
+
+    action HasSelectionBorderThickness returns boolean
+        return defaultProperties:HasSelectionBorderThickness()
+    end
+
     /*  
         This action sets the font outline thickness value.
 

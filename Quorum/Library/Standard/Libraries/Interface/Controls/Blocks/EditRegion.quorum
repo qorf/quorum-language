@@ -13,6 +13,7 @@ use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
 use Libraries.Containers.Array
 use Libraries.System.File
 use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Label
 
 class EditRegion is BlockItem
 
@@ -26,6 +27,10 @@ class EditRegion is BlockItem
     // This indicates if this EditRegion is being used as part of a placeholder block.
     // Placeholder edit regions don't take text from the code editor and don't accept standard field/text box input.
     boolean placeholder = false
+    
+    // EditRegions can have associated labels that are displayed above the regions.
+    // While the labels are associated with the regions, they aren't added directly. They're added to the parent block instead.
+    Array<Label> topLabels = undefined
 
     on create
         SetCornerPixelRounding(4, 4, 4, 4)
@@ -204,6 +209,161 @@ class EditRegion is BlockItem
     
 action IsPlaceholder returns boolean
         return placeholder
+    end
+    
+    /*This action returns an array of the descriptive labels that are placed above this region
+on a block. These labels aren't added directly to the region, but are added to the region's
+parent block. By default, this is undefined, but an array is automatically created as part of
+the AddTopLabel action.
+
+Attribute: Returns An array of the labels placed above this region on the block, or undefined.*/
+    action GetTopLabels returns Array<Label>
+        return topLabels
+    end
+
+    /*This action sets the array of descriptive labels that are placed above this region on a block.
+These labels aren't added directly to the region, but are added to the region's
+parent block. By default, this is undefined, but an array is automatically created as part of
+the AddTopLabel action.
+
+Attribute: Parameter topLabels The labels to associate with this region.*/
+    action SetTopLabels(Array<Label> topLabels)
+        me:topLabels = topLabels
+    end
+    
+    /*This action returns true if this region has associated labels to go above it, or
+false otherwise. This doesn't indicate whether or not any labels are visible -- to
+check that, use HasVisibleTopLabels instead.
+
+Attribute: Returns True if this region has associated top labels, or false otherwise.*/
+    action HasTopLabels returns boolean
+        return topLabels not= undefined and topLabels:IsEmpty() = false
+    end
+    
+/*This action returns true if this region has associated labels to go above it and they
+are currently visible. If this region has associated labels but they are hidden, or
+if it doesn't have any labels, this will return false.
+
+Attribute: Returns True if this region has visible top labels, or false otherwise.*/
+    action HasVisibleTopLabels returns boolean
+        if topLabels not= undefined
+            integer i = 0
+            repeat while i < topLabels:GetSize()
+                if topLabels:Get(i):IsShowing()
+                    return true
+                end
+                i = i + 1
+            end
+        end
+        
+        return false
+    end
+    
+    /*This action adds a label to the list of labels that can be displayed above this EditRegion.
+If this EditRegion is already part of a block, the label will also be added to the block
+for rendering. 
+
+Attribute: Parameter label The label to be associated with this EditRegion.*/
+    action AddTopLabel(Label label)
+        if topLabels = undefined
+            Array<Label> array
+            topLabels = array
+        end
+        topLabels:Add(label)
+        Block block = GetBlock()
+        if block not= undefined
+            if block is SingleLineBlock
+                SingleLineBlock singleBlock = cast(SingleLineBlock, block)
+if singleBlock:AlwaysShowDetailLabels() = false and singleBlock:IsSelected() = false
+                label:Hide()
+            end
+            end
+            
+            block:Add(label)
+        end
+    end
+    
+    /*This action adds a label to the list of labels that can be displayed above this EditRegion.
+If this EditRegion is already part of a block, the label will also be added to the block
+for rendering. 
+
+Attribute: Parameter labelText The text for the label to be associated with this EditRegion.*/
+    action AddTopLabel(text labelText)
+Label label
+            label:SetName(GetName() + " Label")
+            label:SetText(labelText)
+            label:SetPositionOnBaseLine(false)
+            label:SetBottomMargin(1)
+        AddTopLabel(label)
+    end
+    
+    /*This action shows all of the top labels associated with this EditRegion.*/
+    action ShowTopLabels
+        if topLabels not= undefined
+            integer i = 0
+            repeat while i < topLabels:GetSize()
+                topLabels:Get(i):Show()
+                i = i + 1
+            end
+            Block block = GetBlock()
+            if block not= undefined
+                block:RequestLayout()
+            end
+        end
+        
+        BlockEnvironment environment = GetBlockEnvironment()
+        if environment is CodeEditor
+            CodeEditor editor = cast(CodeEditor, environment)
+            editor:RequestViewRefresh()
+        end
+    end
+    
+    /*This action hides all of the top labels associated with this EditRegion.*/
+    action HideTopLabels
+if topLabels not= undefined
+            integer i = 0
+            repeat while i < topLabels:GetSize()
+                topLabels:Get(i):Hide()
+                i = i + 1
+            end
+Block block = GetBlock()
+            if block not= undefined
+                block:RequestLayout()
+            end
+        end
+        
+BlockEnvironment environment = GetBlockEnvironment()
+        if environment is CodeEditor
+            CodeEditor editor = cast(CodeEditor, environment)
+            editor:RequestViewRefresh()
+        end
+    end
+    
+    action GetTopLabelsHeight returns number
+        number totalHeight = 0
+        if topLabels not= undefined
+            integer i = 0
+            repeat while i < topLabels:GetSize()
+                totalHeight = totalHeight + topLabels:Get(i):GetHeight()
+                i = i + 1
+            end
+        end
+        return totalHeight
+    end
+
+action GetVisibleTopLabelsHeight returns number
+        number totalHeight = 0
+        if topLabels not= undefined
+            integer i = 0
+            repeat while i < topLabels:GetSize()
+                Label label = topLabels:Get(i)
+                if label:IsShowing()
+totalHeight = totalHeight + topLabels:Get(i):GetHeight()
+                end
+                i = i + 1
+            end
+        end
+        return totalHeight
     end
     
 end
