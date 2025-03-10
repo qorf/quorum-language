@@ -2142,6 +2142,49 @@ actLink:SetClassAttribute("hover:underline text-sm")
         
         return convertedSource:ToText()
     end
+    
+    action GetRelativeImportPathJavaScript(text staticKey, text useKey) returns text
+        Array<text> keySplit = staticKey:Split(".")
+Array<text> useSplit = staticKey:Split(".")
+        boolean keyBigger = keySplit:GetSize() > useSplit:GetSize()
+        
+        //Libraries.Games.Game
+        //Libraries.Games.Bob
+        //Libraries.Blurft
+        //Libraries.Games.Monkey.Barg
+        text relativePath = ""
+        integer noMatch = -1
+        i = 0
+        repeat while i < keySplit:GetSize()
+                            text keyPart = keySplit:Get(i)
+            if i < useSplit:GetSize()
+text usePart = useSplit:Get(i)
+                if usePart not= keyPart
+noMatch = i
+                    i = keySplit:GetSize() + 1
+                end
+            else
+                noMatch = i
+i = keySplit:GetSize() + 1
+            end
+        end
+        
+integer diff = keySplit:GetSize() - useSplit:GetSize()
+        //key bigger
+        if keySplit:GetSize() > useSplit:GetSize()
+            i = noMatch
+            
+            //key smaller
+        elseif useSplit:GetSize() > keySplit:GetSize()
+            
+            
+            //key equal
+        else
+            
+        end
+        
+        return ""
+    end
 
     action WriteJavaScript returns text
         constant text OUTPUT_VARIABLE = "OuTpUt_$tRiNg_"
@@ -2152,6 +2195,14 @@ actLink:SetClassAttribute("hover:underline text-sm")
         
         TextBuilder convertedSource
         TextBuilder fakeConstructor
+        
+        Iterator<Class> validUses = clazz:GetValidUses()
+        repeat while validUses:HasNext()
+            Class theUse = validUses:Next()
+            text useKey = theUse:GetStaticKey()
+            text path = GetRelativeImportPathJavaScript(clazz:GetStaticKey(), useKey)
+        end
+        
         //text convertedSource = ""
         if clazz:IsProgramStartingClass()
             convertedSource:Append("var " + OUTPUT_VARIABLE + " = " + quote + quote + ";" + EOL)

@@ -34,6 +34,7 @@ class Library is ProcessListener
     File pluginJar
     File nativeFolder
     File graphicsFolder
+    File javascriptFolder
     File pythonFolder
     File robotsFolder
     File pluginsFolder = undefined
@@ -48,6 +49,7 @@ class Library is ProcessListener
     constant text NATIVE_FOLDER = "jni"
     constant text GRAPHICS_FOLDER = "Graphics"
     constant text ROBOTS_FOLDER = "Robots"
+constant text JAVASCRIPT_FOLDER = "javascript"
 constant text PYTHON_FOLDER = "python"
     constant text DEFAULT_PLUGINS_FOLDER = "/Plugins/QuorumPlugins"
     boolean regeneratePlugins = true
@@ -220,6 +222,7 @@ which they should not.*/
             nativeFolder:SetWorkingDirectory(outputFolder:GetAbsolutePath())
             graphicsFolder:SetWorkingDirectory(outputFolder:GetAbsolutePath())
             robotsFolder:SetWorkingDirectory(outputFolder:GetAbsolutePath())
+javascriptFolder:SetWorkingDirectory(outputFolder:GetAbsolutePath())
 pythonFolder:SetWorkingDirectory(outputFolder:GetAbsolutePath())
             buildFolder:SetPath("/Build")
             runJar:SetPath("/Run/" + STANDARD_LIBRARY_JAR)
@@ -230,6 +233,7 @@ pythonFolder:SetWorkingDirectory(outputFolder:GetAbsolutePath())
             fontLoadingData:SetPath("/Run/" + STANDARD_LIBRARY_LOAD_FONTS_DATA)
             pluginJar:SetPath("/Run/" + STANDARD_PLUGINS_JAR)
             nativeFolder:SetPath("/Run/" + NATIVE_FOLDER)
+javascriptFolder:SetPath("/Run/" + JAVASCRIPT_FOLDER)
 pythonFolder:SetPath("/Run/" + PYTHON_FOLDER)
             graphicsFolder:SetPath("/Run/" + GRAPHICS_FOLDER)
             robotsFolder:SetPath("/Run/" + ROBOTS_FOLDER)
@@ -387,7 +391,20 @@ pythonFolder:SetPath("/Run/" + PYTHON_FOLDER)
             text keyPath = key:Replace(".", "/") + ".quorum"
             notation:Add(code:GetStaticKey(), keyPath)
             if outputJavaScript
-                builder:Append(WriteJavaScriptOpcode(code))
+                //write the entire thing to a single file
+                //the old way before the module change
+                //builder:Append(WriteJavaScriptOpcode(code))
+                
+text javascriptPath = key:Replace(".", "/") + ".js"
+                File javascriptWritePath
+                javascriptWritePath:SetWorkingDirectory(javascriptFolder:GetAbsolutePath())
+                javascriptWritePath:SetPath(javascriptPath)
+                File mom = javascriptWritePath:GetParentDirectory()
+                if not mom:Exists()
+                    mom:CreateDirectories()
+                end
+                javascriptWritePath:Write(WriteJavaScriptOpcode(code))
+                
             end
             if outputPython
                 text pythonPath = key:Replace(".", "/") + ".py"
@@ -444,7 +461,7 @@ text result = ""
         end
         return result
     end
-
+    
     action WriteJavaScriptOpcode(ClassOpcode code) returns text
         text result = ""
         result = result + code:WriteJavaScript()
