@@ -14,6 +14,7 @@ use Libraries.Containers.Array
 use Libraries.System.File
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.Color
 
 class EditRegion is BlockItem
 
@@ -177,6 +178,19 @@ class EditRegion is BlockItem
             return parent:Control:GetColorProperty(constants:EDIT_FONT_COLOR)
         end
     end
+    
+    action GetDetailFontColor returns ColorGroup
+if HasColorPropertyOverride(constants:DETAIL_FONT_COLOR)
+            return parent:Control:GetColorProperty(constants:DETAIL_FONT_COLOR)
+        end
+
+        Block block = GetBlock()
+        if block not= undefined
+            return block:GetColorProperty(constants:DETAIL_FONT_COLOR)
+        else
+            return parent:Control:GetColorProperty(constants:DETAIL_FONT_COLOR)
+        end
+    end
 
     action GetBorderThickness returns number
         if HasNumberPropertyOverride("borderThickness")
@@ -293,7 +307,12 @@ Label label
             label:SetName(GetName() + " Label")
             label:SetText(labelText)
             label:SetPositionOnBaseLine(false)
-            label:SetBottomMargin(1)
+        label:SetFontSize(GetFontSize() - 2)
+            label:SetBottomMargin(2)
+        ColorGroup color = GetDetailFontColor()
+        if color not= undefined
+            label:SetFontColor(color)
+        end
         AddTopLabel(label)
     end
     
@@ -365,5 +384,7 @@ totalHeight = totalHeight + topLabels:Get(i):GetHeight()
         end
         return totalHeight
     end
+    
+    blueprint action GetLeftCharacterPadding returns integer
     
 end

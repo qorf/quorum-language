@@ -95,6 +95,7 @@ class CheckBlock is MultipleLineBlock
 
         nameField:Setup("Name", detectContext:nameLocation:GetIndex() - part:GetStartIndex(), detectContext:nameLocation:GetIndexEnd() + 1 - part:GetStartIndex())
         nameField:SetRightPadding(spacing)
+        nameField:AddTopLabel("Variable Name")
 
 
         Location finalName = undefined
@@ -119,6 +120,7 @@ class CheckBlock is MultipleLineBlock
             part:Add(expressionField)
 
             expressionField:Setup("Expression", firstName:GetIndex() - part:GetStartIndex(), lastName:GetIndexEnd() + 1 - part:GetStartIndex())
+            expressionField:AddTopLabel("Expression")
         end
         
         if finalName not= undefined

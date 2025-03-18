@@ -57,6 +57,7 @@ class AlertBlock is SingleLineBlock
         Add(messageField)
 
         messageField:Setup("Message", location:GetIndex() - GetStartIndex(), 1 + location:GetIndexEnd() - GetStartIndex())
+        messageField:AddTopLabel("Message")
     end
 
     action GetAlertContext returns AlertContext

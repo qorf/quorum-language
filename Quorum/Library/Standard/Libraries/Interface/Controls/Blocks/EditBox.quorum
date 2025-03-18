@@ -89,6 +89,11 @@ class EditBox is TextBox, EditRegion
         if editor is BlockPaletteItem
             BlockPaletteItem item = cast(BlockPaletteItem, editor)
             editor = item:GetEditor()
+// Make sure the textbox is using the correct font if it had to pass through a BlockPaletteItem.
+            if GetFont() not= editor:GetFont()
+SetFont(editor:GetFont())
+            SetFontSize(editor:GetFontSize())
+            end
         end
 
         if editor not= undefined
@@ -124,7 +129,7 @@ class EditBox is TextBox, EditRegion
             repeat while counter < topLabels:GetSize()
                 Label label = topLabels:Get(counter)
                 if label:IsShowing() and label:GetWidth() > minimumLength
-                    minimumLength = label:GetWidth()
+                    minimumLength = label:GetWidth() + GetLeftCharacterPadding()
                 end
                 counter = counter + 1
             end
@@ -165,11 +170,25 @@ class EditBox is TextBox, EditRegion
     action GainedFocus(FocusEvent event)
         parent:TextBox:GainedFocus(event)
         parent:BlockItem:GainedFocus(event)
+        
+if GetBlock() is SingleLineBlock
+            SingleLineBlock single = cast(SingleLineBlock, GetBlock())
+            if single:HasDetailLabels() and single:AlwaysShowDetailLabels() = false
+                single:ShowDetailLabels()
+            end
+        end
     end
 
     action LostFocus(FocusEvent event)
         parent:TextBox:LostFocus(event)
         parent:BlockItem:LostFocus(event)
+        
+if GetBlock() is SingleLineBlock
+            SingleLineBlock single = cast(SingleLineBlock, GetBlock())
+            if single:HasDetailLabels() and single:AlwaysShowDetailLabels() = false
+                single:HideDetailLabels()
+            end
+        end
     end
 
     action ShowCaret
@@ -255,4 +274,9 @@ class EditBox is TextBox, EditRegion
     action GetText returns text
         return parent:TextBox:GetText()
     end
+    
+action GetLeftCharacterPadding returns integer
+        return parent:TextBox:GetLeftCharacterPadding()
+    end
+    
 end

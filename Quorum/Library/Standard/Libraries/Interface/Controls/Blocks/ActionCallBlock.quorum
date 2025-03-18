@@ -7,10 +7,17 @@ use Libraries.Language.Compile.Context.all
 use Libraries.Language.Compile.Location
 use Libraries.Interface.Controls.Layouts.ScopeBlockLayout
 use Libraries.Interface.Controls.Layouts.SingleLineBlockLayout
+use Libraries.Language.Compile.Symbol.Action
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+use Libraries.Language.Compile.Symbol.Variable
+use Libraries.Language.Compile.Symbol.Type
 
 class ActionCallBlock is SingleLineBlock
 
     EditBox actionCallBox = undefined
+    
+    Action templateAction = undefined
 
     VariableFunctionCallContext variableActionCall = undefined
     ParentVariableFunctionCallContext parentActionCall = undefined
@@ -43,13 +50,114 @@ class ActionCallBlock is SingleLineBlock
         elseif parentActionCall not= undefined
             location = parentActionCall:GetLocation()
         end
+        
+        if templateAction not= undefined
+            if variableActionCall not= undefined
+                if variableActionCall:objectName not= undefined and variableActionCall:objectLocation not= undefined
+                    Location objectLocation = variableActionCall:objectLocation
+EditField objectField
+        Add(objectField)
 
-        EditBox actionCallBox
+        objectField:Setup("Variable", objectLocation:GetIndex() - GetStartIndex(), 1 + objectLocation:GetIndexEnd() - GetStartIndex())
+                    
+                    BlockLabel label
+label:SetFont(editor:GetFont())
+                label:SetFontSize(editor:GetFontSize())
+                label:SetText(":")
+                Add(label)
+                    
+                end
+                
+                if variableActionCall:calls not= undefined
+                    integer i = 0
+                    repeat while i < variableActionCall:calls:GetSize()
+                        ActionCallContext actionCallContext = variableActionCall:calls:Get(i)
+                        Location callLocation = actionCallContext:nameLocation
+                        
+EditField actionField
+        Add(actionField)
+        actionField:Setup("Action", callLocation:GetIndex() - GetStartIndex(), 1 + callLocation:GetIndexEnd() - GetStartIndex())
+                        
+                        ActionExpressionListContext list = actionCallContext:expressionList
+                        if list not= undefined
+                            // Add the left parenthesis label
+BlockLabel leftLabel
+leftLabel:SetFont(editor:GetFont())
+                leftLabel:SetFontSize(editor:GetFontSize())
+                leftLabel:SetText("(")
+                Add(leftLabel)
+                            
+                            // Get the parameters from the template action.
+                            Iterator<Variable> parametersIterator = templateAction:GetParameterIterator()
+                            
+                            // These, if we have any, correspond to the parameters
+                            Array<ParseContext> contexts = list:contexts
+                            integer j = 0
+                            repeat while contexts not= undefined and j < contexts:GetSize()
+                                ParseContext context = contexts:Get(j)
+                                Location paramLocation = context:GetLocation()
+                                
+                                // Add a box for the parameter.
+                                EditBox parameterBox
+                                Add(parameterBox)
+                                parameterBox:Setup("Parameter", paramLocation:GetIndex() - GetStartIndex(), 1 + paramLocation:GetIndexEnd() - GetStartIndex())
+                                
+                                if parametersIterator not= undefined and parametersIterator:HasNext()
+                                    Variable parameterInfo = parametersIterator:Next()
+                                    Type type = parameterInfo:GetType()
+                                    text typeName = type:GetNameWithGenerics()
+                                    parameterBox:AddTopLabel(typeName)
+                                else
+                                    output "No parameters available!"
+                                end
+                                
+                                // If there's more parameters, separate them with a comma label.
+                                if j < contexts:GetSize() - 1
+BlockLabel comma
+                                comma:SetFont(editor:GetFont())
+                                comma:SetFontSize(editor:GetFontSize())
+                                    comma:SetText(",")
+                                    Add(comma)
+                                end
+                                
+                                j = j + 1
+                            end
+                            
+                            // Add the right paren, and if there's chained action calls, also add a colon
+BlockLabel rightLabel
+rightLabel:SetFont(editor:GetFont())
+                rightLabel:SetFontSize(editor:GetFontSize())
+                rightLabel:SetText(")")
+                            if i < variableActionCall:calls:GetSize() - 1
+                                rightLabel:SetText("):")
+                            end
+                Add(rightLabel)
+                        else
+                            // Add parenthesis with no fields in between, and a colon if there's more chained calls
+BlockLabel label
+label:SetFont(editor:GetFont())
+                label:SetFontSize(editor:GetFontSize())
+                label:SetText("()")
+                            if i < variableActionCall:calls:GetSize() - 1
+                                label:SetText("():")
+                            end
+                Add(label)
+                        end
+                        i = i + 1
+                    end
+                end
+            elseif parentActionCall not= undefined
+                output "ParentActionCall NYI"
+            end
+        else
+EditBox actionCallBox
         me:actionCallBox = actionCallBox
         Add(actionCallBox)
 
         actionCallBox:Setup("Expression", location:GetIndex() - GetStartIndex(), 1 + location:GetIndexEnd() - GetStartIndex())
         actionCallBox:AddTopLabel("Action Call")
+        end
+        
     end
 
     action GetVariableFunctionCallContext returns VariableFunctionCallContext
@@ -70,6 +178,14 @@ class ActionCallBlock is SingleLineBlock
         me:variableActionCall = undefined
         me:parentActionCall = context
         SetContext(cast(ParseContext, context))
+    end
+
+    action GetTemplateAction returns Action
+        return templateAction
+    end
+
+    action SetTemplateAction(Action templateAction)
+        me:templateAction = templateAction
     end
 
 end

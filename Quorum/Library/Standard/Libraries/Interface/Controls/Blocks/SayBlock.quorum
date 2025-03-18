@@ -62,6 +62,7 @@ class SayBlock is SingleLineBlock
         Add(expressionField)
 
         expressionField:Setup( "Expression", location:GetIndex() - GetStartIndex(), 1 + location:GetIndexEnd() - GetStartIndex())
+        expressionField:AddTopLabel("Expression")
     end
 
     action GetSayContext returns SayContext

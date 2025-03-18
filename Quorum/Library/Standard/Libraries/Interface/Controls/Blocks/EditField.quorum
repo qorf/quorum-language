@@ -84,6 +84,11 @@ class EditField is TextField, EditRegion
 if editor is BlockPaletteItem
             BlockPaletteItem item = cast(BlockPaletteItem, editor)
             editor = item:GetEditor()
+            // Make sure the field is using the correct font if it had to pass through a BlockPaletteItem.
+            if GetFont() not= editor:GetFont()
+SetFont(editor:GetFont())
+            SetFontSize(editor:GetFontSize())
+            end
         end
         
 // If this is in a BlockPaletteItem, we want to grab the editor attached to it, not the item itself.
@@ -130,7 +135,7 @@ minimumLength = block:GetMinimumWidth() - GetX() - block:GetRightPadding()
             repeat while counter < topLabels:GetSize()
                 Label label = topLabels:Get(counter)
                 if label:IsShowing() and label:GetWidth() > minimumLength
-                    minimumLength = label:GetWidth()
+                    minimumLength = label:GetWidth() + GetLeftCharacterPadding()
                 end
                 counter = counter + 1
             end
@@ -152,6 +157,13 @@ minimumLength = block:GetMinimumWidth() - GetX() - block:GetRightPadding()
     action GainedFocus(FocusEvent event)
         parent:TextField:GainedFocus(event)
         parent:BlockItem:GainedFocus(event)
+        
+        if GetBlock() is SingleLineBlock
+            SingleLineBlock single = cast(SingleLineBlock, GetBlock())
+            if single:HasDetailLabels() and single:AlwaysShowDetailLabels() = false
+                single:ShowDetailLabels()
+            end
+        end
     end
 
     action ShowCaret
@@ -165,6 +177,13 @@ minimumLength = block:GetMinimumWidth() - GetX() - block:GetRightPadding()
     action LostFocus(FocusEvent event)
         parent:TextField:LostFocus(event)
         parent:BlockItem:LostFocus(event)
+        
+if GetBlock() is SingleLineBlock
+            SingleLineBlock single = cast(SingleLineBlock, GetBlock())
+            if single:HasDetailLabels() and single:AlwaysShowDetailLabels() = false
+                single:HideDetailLabels()
+            end
+        end
     end
 
     private action FitCharacterOnScreen(integer character)
@@ -238,4 +257,9 @@ minimumLength = block:GetMinimumWidth() - GetX() - block:GetRightPadding()
     action GetText returns text
         return parent:TextField:GetText()
     end
+    
+    action GetLeftCharacterPadding returns integer
+        return parent:TextField:GetLeftCharacterPadding()
+    end
+    
 end

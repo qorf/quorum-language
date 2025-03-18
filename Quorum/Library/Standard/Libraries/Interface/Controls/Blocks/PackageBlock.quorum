@@ -57,6 +57,7 @@ class PackageBlock is SingleLineBlock
         Add(nameField)
 
         nameField:Setup("Name", location:GetIndex() - GetStartIndex(), 1 + location:GetIndexEnd() - GetStartIndex())
+        nameField:AddTopLabel("Name")
     end
 
     action GetPackageContext returns PackageContext

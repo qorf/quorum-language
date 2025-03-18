@@ -78,6 +78,7 @@ class IfBlock is MultipleLineBlock
 
         Location expressionLoc = ifContext:ifExpression:GetLocation()
         expressionField:Setup("Expression", expressionLoc:GetIndex() - GetStartIndex(), expressionLoc:GetIndexEnd() + 1 - GetStartIndex())
+        expressionField:AddTopLabel("boolean")
 
         part:SetLocalEndIndex(expressionField:GetEndIndex())
         part:SetLocalEndLine(expressionLoc:GetLineNumberEnd() - expressionLoc:GetLineNumber())
@@ -115,6 +116,7 @@ class IfBlock is MultipleLineBlock
         part:SetLocalStartLine(expressionLoc:GetLineNumber() - GetStartLine() - 1)
         part:SetLocalEndLine(part:GetLocalStartLine() + (expressionLoc:GetLineNumberEnd() - expressionLoc:GetLineNumber()))
         expressionField:Setup("Expression", expressionLoc:GetIndex() - (GetStartIndex() + part:GetLocalStartIndex()), expressionLoc:GetIndexEnd() + 1 - (GetStartIndex() + part:GetLocalStartIndex()))
+expressionField:AddTopLabel("boolean")
 
         part:SetLocalEndIndex(part:GetLocalStartIndex() + expressionField:GetEndIndex())
 

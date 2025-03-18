@@ -20,13 +20,12 @@ class SingleLineBlockLayout is Layout
             return now
         end
 
-        //CodeEditor editor = block:GetEditor()
         BlockEnvironment editor = block:GetBlockEnvironment()
         
         if editor = undefined
             return now
         end
-
+        
         number height = editor:GetLineHeight(block:GetNavigationIndex())
         integer i = block:GetNavigationIndex() + 1
         repeat while i <= block:GetNavigationEndIndex()
@@ -58,7 +57,9 @@ Label label = undefined
                 if label not= undefined and currentTopLabels not= undefined and currentTopLabels:Has(label)
                     if label:IsShowing()
 number regionWidth = lastEditRegion:GetWidth()
-                    number labelX = lastEditRegion:GetX() + (regionWidth - label:GetWidth()) / 2.0
+                        // The commented code below will center-align the label with the field.
+                    //number labelX = lastEditRegion:GetX() + (regionWidth - label:GetWidth()) / 2.0
+                        number labelX = lastEditRegion:GetX() + lastEditRegion:GetLeftCharacterPadding()
                     number yOffset = label:GetBottomMargin()
                     if yOffset < previousControlInStack:GetTopMargin()
                         yOffset = previousControlInStack:GetTopMargin()

@@ -232,7 +232,7 @@ result = result + " " + annotation:GetName() + "."
     
     action GainedSelection
         if AlwaysShowDetailLabels() = false
-            ShowDetailLabels()
+            //ShowDetailLabels()
         end
         
         parent:Block:GainedSelection()
@@ -240,7 +240,7 @@ result = result + " " + annotation:GetName() + "."
     
     action LostSelection
         if AlwaysShowDetailLabels() = false
-            HideDetailLabels()
+            //HideDetailLabels()
         end
         
         parent:Block:LostSelection()

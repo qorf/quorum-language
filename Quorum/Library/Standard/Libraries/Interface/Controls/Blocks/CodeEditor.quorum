@@ -652,10 +652,12 @@ shouldCalculateWidth = true
             integer startLine = block:GetNavigationIndex()
             integer endLine = block:GetNavigationEndIndex()
             if startLine not= endLine
-                if line = startLine or line = endLine
+                if line = startLine
                     return GetDefaultUnpaddedLineHeight() + GetLineHeightPadding(line) / 2.0 + detailsHeight
+                elseif line = endLine
+                    return GetDefaultUnpaddedLineHeight() + GetLineHeightPadding(line) / 2.0
                 else
-                    return GetDefaultUnpaddedLineHeight() + detailsHeight
+                    return GetDefaultUnpaddedLineHeight()
                 end
             end
             
