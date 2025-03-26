@@ -11,6 +11,7 @@ use Libraries.Language.Debug.Breakpoint
 use Libraries.Interface.Controls.AnnotationLineGutter
 use Libraries.Containers.HashTable
 use Libraries.Interface.Controls.Support.GutterAnnotation
+use Libraries.Interface.Controls.TextStyles.TextStyle
 
 
 class SingleLineBlock is Block
@@ -339,5 +340,44 @@ integer i = 0
         end
         return maxHeight
     end
+    
+    /*This action adds a TextStyle to this Block. The style's index will be applied with
+consideration to the global index (that is, not the local index) that the block is
+located at. The TextStyle will be applied to relevant EditRegions in the block.
+
+Attribute: Parameter name A name identifying the TextStyle. Used to retrieve or remove the style from EditRegions later.
+Attribute: TextStyle style The TextStyle to apply to the elements of this Block.*/
+    action AddTextStyle(text name, TextStyle style)
+        integer blockIndex = GetStartIndex()
+        integer styleStart = style:GetIndex()
+        integer styleEnd = style:GetIndex() + style:GetSize() - 1
+        // Iterate through the children and find the appropriate EditRegion for this style.
+        Array<Item2D> children = GetChildren()
+        integer i = 0
+        repeat while i < children:GetSize()
+            Item2D item = children:Get(i)
+            if item is EditField
+                EditField field = cast(EditField, item)
+                if styleStart <= (blockIndex + field:GetStartIndex()) and styleEnd >= (blockIndex + field:GetEndIndex())
+                    TextStyle copy = style:Copy()
+                    copy:SetIndex(styleStart - blockIndex)
+                    field:AddTextStyle(name, style)
+                    // Set i = children size, so we exit the loop. We only want to apply the style to one region.
+                    i = children:GetSize()
+                end
+            elseif item is EditBox
+EditBox box = cast(EditBox, item)
+                if styleStart <= (blockIndex + box:GetStartIndex()) and styleEnd >= (blockIndex + box:GetEndIndex())
+                    TextStyle copy = style:Copy()
+                    copy:SetIndex(styleStart - blockIndex)
+                    box:AddTextStyle(name, style)
+                    // Set i = children size, so we exit the loop. We only want to apply the style to one region.
+                    i = children:GetSize()
+                end
+            end
+            i = i + 1
+        end
+    end
+    
 
 end
