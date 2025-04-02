@@ -241,7 +241,7 @@ result = result + " " + annotation:GetName() + "."
     
     action LostSelection
         if AlwaysShowDetailLabels() = false
-            //HideDetailLabels()
+            HideDetailLabels()
         end
         
         parent:Block:LostSelection()
@@ -358,19 +358,19 @@ Attribute: TextStyle style The TextStyle to apply to the elements of this Block.
             Item2D item = children:Get(i)
             if item is EditField
                 EditField field = cast(EditField, item)
-                if styleStart <= (blockIndex + field:GetStartIndex()) and styleEnd >= (blockIndex + field:GetEndIndex())
+                if styleStart >= (blockIndex + field:GetStartIndex()) and styleEnd <= (blockIndex + field:GetEndIndex())
                     TextStyle copy = style:Copy()
-                    copy:SetIndex(styleStart - blockIndex)
-                    field:AddTextStyle(name, style)
+                    copy:SetIndex(styleStart - blockIndex - field:GetStartIndex())
+                    field:AddTextStyle(name, copy)
                     // Set i = children size, so we exit the loop. We only want to apply the style to one region.
                     i = children:GetSize()
                 end
             elseif item is EditBox
 EditBox box = cast(EditBox, item)
-                if styleStart <= (blockIndex + box:GetStartIndex()) and styleEnd >= (blockIndex + box:GetEndIndex())
+                if styleStart >= (blockIndex + box:GetStartIndex()) and styleEnd <= (blockIndex + box:GetEndIndex())
                     TextStyle copy = style:Copy()
-                    copy:SetIndex(styleStart - blockIndex)
-                    box:AddTextStyle(name, style)
+                    copy:SetIndex(styleStart - blockIndex - box:GetStartIndex())
+                    box:AddTextStyle(name, copy)
                     // Set i = children size, so we exit the loop. We only want to apply the style to one region.
                     i = children:GetSize()
                 end
@@ -379,5 +379,22 @@ EditBox box = cast(EditBox, item)
         end
     end
     
+    /*This action removes all text styles applied to the EditRegions of this block.*/
+    action EmptyTextStyles
+Array<Item2D> children = GetChildren()
+        integer i = 0
+        repeat while i < children:GetSize()
+            Item2D item = children:Get(i)
+            if item is EditField
+                EditField field = cast(EditField, item)
+                field:EmptyTextStyles()
+            elseif item is EditBox
+                EditBox box = cast(EditBox, item)
+                box:EmptyTextStyles()
+            end
+            i = i + 1
+        end
+        
+    end
 
 end

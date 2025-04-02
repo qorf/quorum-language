@@ -288,7 +288,7 @@ Attribute: Parameter label The label to be associated with this EditRegion.*/
         if block not= undefined
             if block is SingleLineBlock
                 SingleLineBlock singleBlock = cast(SingleLineBlock, block)
-if singleBlock:AlwaysShowDetailLabels() = false and singleBlock:IsSelected() = false
+if singleBlock:AlwaysShowDetailLabels() = false and IsSelected() = false
                 label:Hide()
             end
             end

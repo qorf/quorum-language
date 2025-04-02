@@ -46,6 +46,7 @@ use Libraries.Language.Compile.Hints.Hint
 use Libraries.Language.Compile.CompilerError
 use Libraries.Interface.Controls.CodeEditorLineNumberGutter
 use Libraries.Interface.Accessibility
+use Libraries.Interface.Controls.TextStyles.TextStyle
 
 /*
     This is a class representing a code editor that contains source code and blocks. The design is 
@@ -972,11 +973,15 @@ and usually shouldn't be called directly by users.
 
         shouldRegenerateBlocks = false
 
+// If there was an old selection, it will be wrong now. Attempt to select in the same position as before after we regenerate the blocks.
+        integer selectionLine = selection:GetLine()
+        if selection:GetRangeEndLine() < selectionLine and selection:GetRangeEndLine() >= 0
+            selectionLine = selection:GetRangeEndLine()
+        end
+        
         RootBlock root = blockListener:Update(0, rawCode:GetSize())
         renderer:RegenerateBlocks(root)
 
-        // If there was an old selection, it will be wrong now. Attempt to select in the same position as before.
-        integer selectionLine = selection:GetLine()
         if selectionLine >= 0
             integer count = GetLineCount()
             if selectionLine >= count
@@ -1307,10 +1312,10 @@ action OnTextChange(TextChangeEvent event, integer indexOffset)
     
     action SelectBlockRange(Block firstBlock, Block secondBlock, boolean selectionAtEnd)
         if firstBlock:GetNavigationIndex() < secondBlock:GetNavigationIndex()
-        end
-            Block temp = firstBlock
+Block temp = firstBlock
             firstBlock = secondBlock
             secondBlock = temp
+        end
         
         if selectionAtEnd
             selection:Set(firstBlock, firstBlock:GetNavigationIndex(), secondBlock:GetNavigationIndex(), undefined)
@@ -2900,5 +2905,51 @@ if GetLineCount() <= 0
         end
         
         return -1
+    end
+    
+    /**/
+    action AddTextStyle(text name, TextStyle style) returns SingleLineBlock
+        return AddTextStyle(name, style, GetRootBlock())
+    end
+    
+    /**/
+    action AddTextStyle(text name, TextStyle style, Block startBlock) returns SingleLineBlock
+        SingleLineBlock result = undefined
+        Block current = startBlock
+        if current:IsNavigable() = false
+            current = current:GetNextNavigableBlock()
+        end
+        
+        repeat until current = undefined
+            if current:GetStartIndex() <= style:GetIndex() and current:GetEndIndex() >= (style:GetIndex() + style:GetSize()) and current is SingleLineBlock
+                result = cast(SingleLineBlock, current)
+                current = undefined
+                
+                //Since we're iterating through the blocks in order from start to end, if we reach a block that starts after the style,
+                // then there can't be any valid blocks beyond this point.
+            elseif current:GetStartIndex() > style:GetIndex()
+                current = undefined
+            else
+                current = current:GetNextNavigableBlock()
+            end
+        end
+        
+        if result not= undefined
+            result:AddTextStyle(name, style)
+        end
+        
+        return result
+    end
+    
+    /*This action removes all text styles from the blocks in the CodeEditor.*/
+    action EmptyTextStyles
+        Block current = GetRootBlock()
+        repeat until current = undefined
+            if current is SingleLineBlock
+                SingleLineBlock block = cast(SingleLineBlock, current)
+                block:EmptyTextStyles()
+            end
+            current = current:GetNextBlock()
+        end
     end
 end

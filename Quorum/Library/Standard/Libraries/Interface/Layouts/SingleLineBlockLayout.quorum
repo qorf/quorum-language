@@ -75,8 +75,8 @@ x = x + control:GetLeftPadding()
 if control is EditRegion
                     // EditRegions can reliably determine their size via the UpdateLength action.
                     EditRegion region = cast(EditRegion, control)
+region:UpdateLength()
                     control:SetPosition(cast(integer, x), cast(integer, y - control:GetHeight() / 2.0))
-                    region:UpdateLength()
                     
 lastEditRegion = region
                         previousControlInStack = region

@@ -381,6 +381,11 @@ class CodeEditorRenderer is Control
     end
 
     action UpdateSelectionCursor(CodeEditorSelection selection)
+        // If there's no available root block (e.g. during block regeneration) jump out early.
+        if rootBlock = undefined
+            return now
+        end
+        
         CodeEditor editor = GetEditor()
         number x = 0
         number y = 0
