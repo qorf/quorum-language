@@ -1278,6 +1278,7 @@ spacing = editor:GetDefaultGlyphWidth()
 placeholderControls:Add(newField)
                     
                     Array<Label> topLabels = field:GetTopLabels()
+                    Array<Label> bottomLabels = field:GetBottomLabels()
                     if topLabels not= undefined
                         integer counter = 0
                         repeat while counter < topLabels:GetSize()
@@ -1301,6 +1302,29 @@ newLabel:SetPositionOnBaseLine(label:IsPositioningOnBaseLine())
                             counter = counter + 1
                         end
                     end
+if bottomLabels not= undefined
+                        integer counter = 0
+                        repeat while counter < bottomLabels:GetSize()
+                            Label label = bottomLabels:Get(counter)
+                            Label newLabel
+                            newLabel:SetName(label:GetName())
+                            newLabel:SetText(label:GetText())
+                            newLabel:SetFont(label:GetFont())
+                            newLabel:SetFontSize(label:GetFontSize())
+                            newLabel:SetInterfaceOptionsKey(label:GetInterfaceOptionsKey())
+                            newLabel:SetFontColor(label:GetFontColor())
+                            newLabel:SetInterfaceScale(label:GetInterfaceScale())
+newLabel:SetPositionOnBaseLine(label:IsPositioningOnBaseLine())
+            newLabel:SetTopMargin(label:GetTopMargin())
+                            if label:IsShowing() = false
+                                newLabel:Hide()
+                            end
+                            newField:AddBottomLabel(newLabel)
+                            placeholderControls:Add(newLabel)
+                            
+                            counter = counter + 1
+                        end
+                    end
                 elseif child is EditBox
                     EditBox box = cast(EditBox, child)
                     EditBox newBox
@@ -1313,6 +1337,7 @@ newLabel:SetPositionOnBaseLine(label:IsPositioningOnBaseLine())
 placeholderControls:Add(newBox)
                     
 Array<Label> topLabels = box:GetTopLabels()
+                    Array<Label> bottomLabels = box:GetBottomLabels()
                     if topLabels not= undefined
                         integer counter = 0
                         repeat while counter < topLabels:GetSize()
@@ -1331,6 +1356,29 @@ if label:IsShowing() = false
                                 newLabel:Hide()
                             end
                             newBox:AddTopLabel(newLabel)
+placeholderControls:Add(newLabel)
+                            
+                            counter = counter + 1
+                        end
+                    end
+if bottomLabels not= undefined
+                        integer counter = 0
+                        repeat while counter < bottomLabels:GetSize()
+                            Label label = bottomLabels:Get(counter)
+                            Label newLabel
+                            newLabel:SetName(label:GetName())
+                            newLabel:SetText(label:GetText())
+                            newLabel:SetFont(label:GetFont())
+                            newLabel:SetFontSize(label:GetFontSize())
+                            newLabel:SetInterfaceOptionsKey(label:GetInterfaceOptionsKey())
+                            newLabel:SetFontColor(label:GetFontColor())
+                            newLabel:SetInterfaceScale(label:GetInterfaceScale())
+newLabel:SetPositionOnBaseLine(label:IsPositioningOnBaseLine())
+            newLabel:SetTopMargin(label:GetTopMargin())
+if label:IsShowing() = false
+                                newLabel:Hide()
+                            end
+                            newBox:AddBottomLabel(newLabel)
 placeholderControls:Add(newLabel)
                             
                             counter = counter + 1

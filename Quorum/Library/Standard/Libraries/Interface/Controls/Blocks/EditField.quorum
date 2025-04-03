@@ -140,6 +140,18 @@ minimumLength = block:GetMinimumWidth() - GetX() - block:GetRightPadding()
                 counter = counter + 1
             end
         end
+        
+Array<Label> bottomLabels = GetBottomLabels()
+        counter = 0
+        if bottomLabels not= undefined
+            repeat while counter < bottomLabels:GetSize()
+                Label label = bottomLabels:Get(counter)
+                if label:IsShowing() and label:GetWidth() > minimumLength
+                    minimumLength = label:GetWidth() + GetLeftCharacterPadding()
+                end
+                counter = counter + 1
+            end
+        end
 
         if characterCount <= 1
             length = glyphWidth + GetLeftCharacterPadding() * 2
