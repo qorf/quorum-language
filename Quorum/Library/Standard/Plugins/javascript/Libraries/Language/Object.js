@@ -184,6 +184,11 @@ function global_Output_(value) {
     }
 }
 
+function global_Say_(value) {
+    let $utterance = new SpeechSynthesisUtterance(value);
+    speechSynthesis.speak($utterance);
+}
+
 function global_Get_Display_Console_() {
     if(typeof window != 'undefined' && typeof document != 'undefined') {
         if(typeof window.currentIDEOutput_$Global_ !== 'undefined') {

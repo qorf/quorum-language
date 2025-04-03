@@ -71,8 +71,7 @@ class SayOpcode is QuorumOpcode
 
     action WriteJavaScript returns text
         text rhs = opcode:WriteJavaScript()
-        text utterance = "$utterance = new SpeechSynthesisUtterance(" + rhs + ");"
-        JSOutput = utterance + "speechSynthesis.speak($utterance);"
+        JSOutput = "global_Say_(" + rhs + ");"
         return JSOutput
     end
 
