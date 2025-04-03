@@ -23,6 +23,7 @@ use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Color
 use Libraries.Interface.Controls.Blocks.Palette.BlockPaletteItem
 use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Label
 
 class Block is Control
     integer scopeDepth = 0
@@ -762,6 +763,10 @@ be dropped. Placeholder blocks have special rules around their text values and h
     private action SetupPlaceholderElements(text code)
         
         BlockEnvironment editor = GetBlockEnvironment()
+        if editor is BlockPaletteItem
+            BlockPaletteItem item = cast(BlockPaletteItem, editor)
+            editor = item:GetEditor()
+        end
         number spacing = editor:GetDefaultGlyphWidth()
         SetLeftPadding(spacing * 0.5)
         SetRightPadding(spacing * 0.5)
@@ -782,6 +787,8 @@ be dropped. Placeholder blocks have special rules around their text values and h
                     label:SetFont(GetLabelFont())
                     label:SetFontSize(editor:GetFontSize())
                     Add(label)
+                elseif child is Label
+                    Add(child)
                 end
                 i = i + 1
             end
@@ -1267,8 +1274,33 @@ spacing = editor:GetDefaultGlyphWidth()
                     newField:SetLeftPadding(field:GetLeftPadding())
                     newField:SetRightPadding(field:GetRightPadding())
                     newField:SetInputGroup("")
-    
-                    placeholderControls:Add(newField)
+                    
+placeholderControls:Add(newField)
+                    
+                    Array<Label> topLabels = field:GetTopLabels()
+                    if topLabels not= undefined
+                        integer counter = 0
+                        repeat while counter < topLabels:GetSize()
+                            Label label = topLabels:Get(counter)
+                            Label newLabel
+                            newLabel:SetName(label:GetName())
+                            newLabel:SetText(label:GetText())
+                            newLabel:SetFont(label:GetFont())
+                            newLabel:SetFontSize(label:GetFontSize())
+                            newLabel:SetInterfaceOptionsKey(label:GetInterfaceOptionsKey())
+                            newLabel:SetFontColor(label:GetFontColor())
+                            newLabel:SetInterfaceScale(label:GetInterfaceScale())
+newLabel:SetPositionOnBaseLine(label:IsPositioningOnBaseLine())
+            newLabel:SetBottomMargin(label:GetBottomMargin())
+                            if label:IsShowing() = false
+                                newLabel:Hide()
+                            end
+                            newField:AddTopLabel(newLabel)
+                            placeholderControls:Add(newLabel)
+                            
+                            counter = counter + 1
+                        end
+                    end
                 elseif child is EditBox
                     EditBox box = cast(EditBox, child)
                     EditBox newBox
@@ -1278,7 +1310,32 @@ spacing = editor:GetDefaultGlyphWidth()
                     newBox:SetRightPadding(box:GetRightPadding())
                     newBox:SetInputGroup("")
                     
-                    placeholderControls:Add(newBox)
+placeholderControls:Add(newBox)
+                    
+Array<Label> topLabels = box:GetTopLabels()
+                    if topLabels not= undefined
+                        integer counter = 0
+                        repeat while counter < topLabels:GetSize()
+                            Label label = topLabels:Get(counter)
+                            Label newLabel
+                            newLabel:SetName(label:GetName())
+                            newLabel:SetText(label:GetText())
+                            newLabel:SetFont(label:GetFont())
+                            newLabel:SetFontSize(label:GetFontSize())
+                            newLabel:SetInterfaceOptionsKey(label:GetInterfaceOptionsKey())
+                            newLabel:SetFontColor(label:GetFontColor())
+                            newLabel:SetInterfaceScale(label:GetInterfaceScale())
+newLabel:SetPositionOnBaseLine(label:IsPositioningOnBaseLine())
+            newLabel:SetBottomMargin(label:GetBottomMargin())
+if label:IsShowing() = false
+                                newLabel:Hide()
+                            end
+                            newBox:AddTopLabel(newLabel)
+placeholderControls:Add(newLabel)
+                            
+                            counter = counter + 1
+                        end
+                    end
                 elseif child is BlockLabel
                     BlockLabel label = cast(BlockLabel, child)
                     BlockLabel newLabel
@@ -1314,6 +1371,11 @@ spacing = editor:GetDefaultGlyphWidth()
         placeholder:SetBlockEnvironment(GetBlockEnvironment())
         placeholder:SetAsPlaceholder(GetText(), children)
         placeholder:SetScopeDepth(GetScopeDepth())
+        if me is SingleLineBlock
+            SingleLineBlock singleBlock = cast(SingleLineBlock, me)
+            placeholder:SetAlwaysShowDetailLabels(singleBlock:AlwaysShowDetailLabels())
+        end
+        
         placeholder:Setup()
         return placeholder
     end

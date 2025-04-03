@@ -65,6 +65,7 @@ class CommentBlock is SingleLineBlock
             else
                 messageField:Setup("Message", token:startIndex + 2 - GetStartIndex(), 1 + token:endIndex - GetStartIndex())
             end
+            messageField:AddBottomLabel("Comment")
         else
             BlockLabel bl
             me:commentLabel = bl
@@ -79,6 +80,8 @@ class CommentBlock is SingleLineBlock
             Add(messageBox) 
     
             messageBox:Setup("Message", token:startIndex + 2 - GetStartIndex(), 1 + token:endIndex - 2 - GetStartIndex())
+            messageBox:AddBottomLabel("Comment")
+            messageBox:SetRightPadding(spacing)
 
             BlockLabel bl2
             me:secondLabel = bl2

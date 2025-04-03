@@ -15,6 +15,7 @@ use Libraries.Interface.Selections.TextBoxSelection
 use Libraries.Interface.Controls.Blocks.Palette.BlockPalette
 use Libraries.Interface.Controls.Blocks.Palette.BlockPaletteItem
 use Libraries.Containers.Array
+use Libraries.Game.Graphics.Label
 
 class EditBox is TextBox, EditRegion
 
@@ -88,6 +89,11 @@ class EditBox is TextBox, EditRegion
         if editor is BlockPaletteItem
             BlockPaletteItem item = cast(BlockPaletteItem, editor)
             editor = item:GetEditor()
+// Make sure the textbox is using the correct font if it had to pass through a BlockPaletteItem.
+            if GetFont() not= editor:GetFont()
+SetFont(editor:GetFont())
+            SetFontSize(editor:GetFontSize())
+            end
         end
 
         if editor not= undefined
@@ -113,6 +119,19 @@ class EditBox is TextBox, EditRegion
                     // If we found a different block item, abort.
                     counter = 0
                 end
+            end
+        end
+        
+// Also consider if a minimum length is needed to match up with any top labels associated with this field.
+        Array<Label> topLabels = GetTopLabels()
+        counter = 0
+        if topLabels not= undefined
+            repeat while counter < topLabels:GetSize()
+                Label label = topLabels:Get(counter)
+                if label:IsShowing() and label:GetWidth() > minimumLength
+                    minimumLength = label:GetWidth() + GetLeftCharacterPadding()
+                end
+                counter = counter + 1
             end
         end
 
@@ -151,11 +170,25 @@ class EditBox is TextBox, EditRegion
     action GainedFocus(FocusEvent event)
         parent:TextBox:GainedFocus(event)
         parent:BlockItem:GainedFocus(event)
+        
+if GetBlock() is SingleLineBlock
+            SingleLineBlock single = cast(SingleLineBlock, GetBlock())
+            if single:HasDetailLabels() and single:AlwaysShowDetailLabels() = false
+                single:ShowDetailLabels()
+            end
+        end
     end
 
     action LostFocus(FocusEvent event)
         parent:TextBox:LostFocus(event)
         parent:BlockItem:LostFocus(event)
+        
+if GetBlock() is SingleLineBlock
+            SingleLineBlock single = cast(SingleLineBlock, GetBlock())
+            if single:HasDetailLabels() and single:AlwaysShowDetailLabels() = false
+                single:HideDetailLabels()
+            end
+        end
     end
 
     action ShowCaret
@@ -241,4 +274,9 @@ class EditBox is TextBox, EditRegion
     action GetText returns text
         return parent:TextBox:GetText()
     end
+    
+action GetLeftCharacterPadding returns integer
+        return parent:TextBox:GetLeftCharacterPadding()
+    end
+    
 end

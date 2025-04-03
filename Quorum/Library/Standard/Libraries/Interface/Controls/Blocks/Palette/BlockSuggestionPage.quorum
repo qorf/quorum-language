@@ -36,6 +36,12 @@ use Libraries.Language.Compile.Hints.Hint
 use Libraries.Interface.Behaviors.Blocks.BlockPaletteHintBehavior
 use Libraries.Interface.Forms.FormPanel
 use Libraries.Game.Graphics.Color
+use Libraries.Interface.Layouts.FormRowLayout
+use Libraries.Game.GameStateManager
+use Libraries.Interface.Options.InterfaceOptions
+use Libraries.Interface.Options.BlockOptions
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Interface.Options.BlockOptionConstants
 
 class BlockSuggestionPage is BlockPalettePage, SelectionListener, TextChangeListener
 
@@ -112,9 +118,25 @@ EmptyPage()
             currentBlock = result:requestingBlock
 if not currentBlock:IsErrorsEmpty()
                 CompilerError error = currentBlock:GetFirstError()
-                AddBanner("Errors: ", error:GetErrorMessage())
-                //AddLabel("Errors: "):SetFontSize(HEADER2_SIZE)
-                ///AddLabel(error:GetErrorMessage()):SetFontSize(LABEL_SIZE)
+                
+                Banner errorBanner = AddBanner("Errors", error:GetErrorMessage())
+                errorBanner:LeftAlignTitle()
+                errorBanner:LeftAlignContent()
+                errorBanner:SetTitleFontSize(HEADER_SIZE)
+                errorBanner:GetLabel():SetFontSize(LABEL_SIZE)
+                
+                // Set background color to an appropriate error color, based on the block options.
+                GameStateManager manager
+                InterfaceOptions options = manager:GetInterfaceOptions()
+                if options is BlockOptions
+                    BlockOptions blockOptions = cast(BlockOptions, options)
+                    BlockOptionConstants constants
+                    ColorGroup color = blockOptions:GetPrimaryErrorColor(constants:BLOCK_PALETTE_KEY)
+errorBanner:SetBackgroundColor(color)
+                end
+                // Justify the text in the label.
+                errorBanner:GetLabel():SetJustifyAlignment()
+                
                 SetupDefaultSuggestions()
                 return now
             end
@@ -230,7 +252,7 @@ if not showActions
         repeat while i < actions:GetSize()
             text call = MakeFullActionCall(actions:Get(i), variableName)
 if call not= ""
-suggestedActionItems:Add(AddBlockPaletteItem(call))
+suggestedActionItems:Add(AddBlockPaletteItem(call, actions:Get(i)))
             end
             i = i + 1
         end

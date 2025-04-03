@@ -974,9 +974,6 @@ action IsSettingLeftPadding returns boolean
         end
 
         InterfaceOptions default = manager:GetInterfaceOptions()
-        if default = undefined
-            return undefined
-        end
         InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetFontColor() not= undefined
             return controlPalette:GetFontColor()
@@ -1299,9 +1296,6 @@ action IsSettingLeftPadding returns boolean
         end
 
         InterfaceOptions default = manager:GetInterfaceOptions()
-        if default = undefined
-            return undefined
-        end
         InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetSelectionFontColor() not= undefined
             return controlPalette:GetSelectionFontColor()
@@ -1509,6 +1503,46 @@ action IsSettingLeftPadding returns boolean
         end
 
         return default:HasBorderThickness()
+    end
+
+    action SetSelectionBorderThickness(number value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetSelectionBorderThickness(value)
+        needsRendering = true
+    end
+
+    action GetSelectionBorderThickness returns number
+        if options not= undefined and options:GetSelectionBorderThickness():IsNotANumber() = false
+            return options:GetSelectionBorderThickness()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasSelectionBorderThickness()
+            return controlPalette:GetSelectionBorderThickness()
+        end
+
+        if default:HasSelectionBorderThickness()
+            return default:GetSelectionBorderThickness()
+        end
+        return 0
+    end
+
+    action HasSelectionBorderThickness returns boolean
+        if options not= undefined and options:HasSelectionBorderThickness()
+            return true
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasSelectionBorderThickness()
+            return true
+        end
+
+        return default:HasSelectionBorderThickness()
     end
 
     action SetFontOutlineThickness(number value)

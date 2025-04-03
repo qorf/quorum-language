@@ -102,6 +102,7 @@ class InterfaceOptions
 
     // Key values for number properties.
     public constant text BORDER_THICKNESS = "borderThickness"
+    public constant text SELECTION_BORDER_THICKNESS = "selectionBorderThickness"
     public constant text FONT_OUTLINE_THICKNESS = "fontOutlineThickness"
     public constant text TOP_LEFT_ROUNDING = "topLeftRounding"
     public constant text TOP_RIGHT_ROUNDING = "topRightRounding"
@@ -963,6 +964,41 @@ class InterfaceOptions
         return GetBorderThickness(controlType):IsNotANumber() = false
     end
 
+    action SetSelectionBorderThickness(number value)
+        SetNumberProperty(SELECTION_BORDER_THICKNESS, value)
+    end
+
+    action GetSelectionBorderThickness returns number
+        return GetNumberProperty(SELECTION_BORDER_THICKNESS)
+    end
+
+    action HasSelectionBorderThickness returns boolean
+        return GetNumberProperty(SELECTION_BORDER_THICKNESS):IsNotANumber() = false
+    end
+
+    action SetSelectionBorderThickness(text controlType, number value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetSelectionBorderThickness(value)
+    end
+
+    action GetSelectionBorderThickness(text controlType) returns number
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return NOT_A_NUMBER
+        else
+            return palette:GetSelectionBorderThickness()
+        end
+    end
+
+    action HasSelectionBorderThickness(text controlType) returns boolean
+        return GetSelectionBorderThickness(controlType):IsNotANumber() = false
+    end
+
     action SetFontOutlineThickness(number value)
         SetNumberProperty(FONT_OUTLINE_THICKNESS, value)
     end
@@ -1665,6 +1701,18 @@ class InterfaceOptions
         return GetBorderThickness(BUTTON):IsNotANumber() = false
     end
 
+    action SetButtonSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(BUTTON, value)
+    end
+
+    action GetButtonSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(BUTTON)
+    end
+
+    action HasButtonSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(BUTTON):IsNotANumber() = false
+    end
+
     action SetButtonFontOutlineThickness(number value)
         SetFontOutlineThickness(BUTTON, value)
     end
@@ -2047,6 +2095,18 @@ class InterfaceOptions
 
     action HasCellBorderThickness returns boolean
         return GetBorderThickness(CELL):IsNotANumber() = false
+    end
+
+    action SetCellSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(CELL, value)
+    end
+
+    action GetCellSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(CELL)
+    end
+
+    action HasCellSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(CELL):IsNotANumber() = false
     end
 
     action SetCellFontOutlineThickness(number value)
@@ -2433,6 +2493,18 @@ class InterfaceOptions
         return GetBorderThickness(CHART):IsNotANumber() = false
     end
 
+    action SetChartSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(CHART, value)
+    end
+
+    action GetChartSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(CHART)
+    end
+
+    action HasChartSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(CHART):IsNotANumber() = false
+    end
+
     action SetChartFontOutlineThickness(number value)
         SetFontOutlineThickness(CHART, value)
     end
@@ -2815,6 +2887,18 @@ class InterfaceOptions
 
     action HasCheckboxBorderThickness returns boolean
         return GetBorderThickness(CHECKBOX):IsNotANumber() = false
+    end
+
+    action SetCheckboxSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(CHECKBOX, value)
+    end
+
+    action GetCheckboxSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(CHECKBOX)
+    end
+
+    action HasCheckboxSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(CHECKBOX):IsNotANumber() = false
     end
 
     action SetCheckboxFontOutlineThickness(number value)
@@ -3201,6 +3285,18 @@ class InterfaceOptions
         return GetBorderThickness(DIALOG):IsNotANumber() = false
     end
 
+    action SetDialogSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(DIALOG, value)
+    end
+
+    action GetDialogSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(DIALOG)
+    end
+
+    action HasDialogSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(DIALOG):IsNotANumber() = false
+    end
+
     action SetDialogFontOutlineThickness(number value)
         SetFontOutlineThickness(DIALOG, value)
     end
@@ -3583,6 +3679,18 @@ class InterfaceOptions
 
     action HasDialogBarBorderThickness returns boolean
         return GetBorderThickness(DIALOG_BAR):IsNotANumber() = false
+    end
+
+    action SetDialogBarSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(DIALOG_BAR)
+    end
+
+    action HasDialogBarSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(DIALOG_BAR):IsNotANumber() = false
     end
 
     action SetDialogBarFontOutlineThickness(number value)
@@ -3969,6 +4077,18 @@ class InterfaceOptions
         return GetBorderThickness(DIALOG_ACCEPT_BUTTON):IsNotANumber() = false
     end
 
+    action SetDialogAcceptButtonSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action HasDialogAcceptButtonSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(DIALOG_ACCEPT_BUTTON):IsNotANumber() = false
+    end
+
     action SetDialogAcceptButtonFontOutlineThickness(number value)
         SetFontOutlineThickness(DIALOG_ACCEPT_BUTTON, value)
     end
@@ -4351,6 +4471,18 @@ class InterfaceOptions
 
     action HasFlowchartBorderThickness returns boolean
         return GetBorderThickness(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(FLOWCHART, value)
+    end
+
+    action GetFlowchartSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(FLOWCHART)
+    end
+
+    action HasFlowchartSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(FLOWCHART):IsNotANumber() = false
     end
 
     action SetFlowchartFontOutlineThickness(number value)
@@ -4737,6 +4869,18 @@ class InterfaceOptions
         return GetBorderThickness(FLOWCHART_ARROW):IsNotANumber() = false
     end
 
+    action SetFlowchartArrowSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
     action SetFlowchartArrowFontOutlineThickness(number value)
         SetFontOutlineThickness(FLOWCHART_ARROW, value)
     end
@@ -5119,6 +5263,18 @@ class InterfaceOptions
 
     action HasFlowchartNodeBorderThickness returns boolean
         return GetBorderThickness(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(FLOWCHART_NODE):IsNotANumber() = false
     end
 
     action SetFlowchartNodeFontOutlineThickness(number value)
@@ -5505,6 +5661,18 @@ class InterfaceOptions
         return GetBorderThickness(GUTTER):IsNotANumber() = false
     end
 
+    action SetGutterSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(GUTTER, value)
+    end
+
+    action GetGutterSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(GUTTER)
+    end
+
+    action HasGutterSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(GUTTER):IsNotANumber() = false
+    end
+
     action SetGutterFontOutlineThickness(number value)
         SetFontOutlineThickness(GUTTER, value)
     end
@@ -5887,6 +6055,18 @@ class InterfaceOptions
 
     action HasLabelBorderThickness returns boolean
         return GetBorderThickness(LABEL):IsNotANumber() = false
+    end
+
+    action SetLabelSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(LABEL, value)
+    end
+
+    action GetLabelSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(LABEL)
+    end
+
+    action HasLabelSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(LABEL):IsNotANumber() = false
     end
 
     action SetLabelFontOutlineThickness(number value)
@@ -6273,6 +6453,18 @@ class InterfaceOptions
         return GetBorderThickness(LIST):IsNotANumber() = false
     end
 
+    action SetListSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(LIST, value)
+    end
+
+    action GetListSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(LIST)
+    end
+
+    action HasListSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(LIST):IsNotANumber() = false
+    end
+
     action SetListFontOutlineThickness(number value)
         SetFontOutlineThickness(LIST, value)
     end
@@ -6655,6 +6847,18 @@ class InterfaceOptions
 
     action HasListItemBorderThickness returns boolean
         return GetBorderThickness(LIST_ITEM):IsNotANumber() = false
+    end
+
+    action SetListItemSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(LIST_ITEM, value)
+    end
+
+    action GetListItemSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(LIST_ITEM)
+    end
+
+    action HasListItemSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(LIST_ITEM):IsNotANumber() = false
     end
 
     action SetListItemFontOutlineThickness(number value)
@@ -7041,6 +7245,18 @@ class InterfaceOptions
         return GetBorderThickness(MENU_BAR):IsNotANumber() = false
     end
 
+    action SetMenuBarSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(MENU_BAR, value)
+    end
+
+    action GetMenuBarSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(MENU_BAR)
+    end
+
+    action HasMenuBarSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(MENU_BAR):IsNotANumber() = false
+    end
+
     action SetMenuBarFontOutlineThickness(number value)
         SetFontOutlineThickness(MENU_BAR, value)
     end
@@ -7423,6 +7639,18 @@ class InterfaceOptions
 
     action HasMenuItemBorderThickness returns boolean
         return GetBorderThickness(MENU_ITEM):IsNotANumber() = false
+    end
+
+    action SetMenuItemSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(MENU_ITEM, value)
+    end
+
+    action GetMenuItemSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(MENU_ITEM)
+    end
+
+    action HasMenuItemSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(MENU_ITEM):IsNotANumber() = false
     end
 
     action SetMenuItemFontOutlineThickness(number value)
@@ -7809,6 +8037,18 @@ class InterfaceOptions
         return GetBorderThickness(MENU_PANEL):IsNotANumber() = false
     end
 
+    action SetMenuPanelSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(MENU_PANEL, value)
+    end
+
+    action GetMenuPanelSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(MENU_PANEL)
+    end
+
+    action HasMenuPanelSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(MENU_PANEL):IsNotANumber() = false
+    end
+
     action SetMenuPanelFontOutlineThickness(number value)
         SetFontOutlineThickness(MENU_PANEL, value)
     end
@@ -8191,6 +8431,18 @@ class InterfaceOptions
 
     action HasProgressBarBorderThickness returns boolean
         return GetBorderThickness(PROGRESS_BAR):IsNotANumber() = false
+    end
+
+    action SetProgressBarSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(PROGRESS_BAR)
+    end
+
+    action HasProgressBarSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(PROGRESS_BAR):IsNotANumber() = false
     end
 
     action SetProgressBarFontOutlineThickness(number value)
@@ -8577,6 +8829,18 @@ class InterfaceOptions
         return GetBorderThickness(RADIO_BUTTON):IsNotANumber() = false
     end
 
+    action SetRadioButtonSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(RADIO_BUTTON)
+    end
+
+    action HasRadioButtonSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(RADIO_BUTTON):IsNotANumber() = false
+    end
+
     action SetRadioButtonFontOutlineThickness(number value)
         SetFontOutlineThickness(RADIO_BUTTON, value)
     end
@@ -8959,6 +9223,18 @@ class InterfaceOptions
 
     action HasScrollPaneBorderThickness returns boolean
         return GetBorderThickness(SCROLL_PANE):IsNotANumber() = false
+    end
+
+    action SetScrollPaneSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(SCROLL_PANE, value)
+    end
+
+    action GetScrollPaneSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(SCROLL_PANE)
+    end
+
+    action HasScrollPaneSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(SCROLL_PANE):IsNotANumber() = false
     end
 
     action SetScrollPaneFontOutlineThickness(number value)
@@ -9345,6 +9621,18 @@ class InterfaceOptions
         return GetBorderThickness(TAB):IsNotANumber() = false
     end
 
+    action SetTabSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(TAB, value)
+    end
+
+    action GetTabSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(TAB)
+    end
+
+    action HasTabSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(TAB):IsNotANumber() = false
+    end
+
     action SetTabFontOutlineThickness(number value)
         SetFontOutlineThickness(TAB, value)
     end
@@ -9727,6 +10015,18 @@ class InterfaceOptions
 
     action HasTabBarBorderThickness returns boolean
         return GetBorderThickness(TAB_BAR):IsNotANumber() = false
+    end
+
+    action SetTabBarSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(TAB_BAR, value)
+    end
+
+    action GetTabBarSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(TAB_BAR)
+    end
+
+    action HasTabBarSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(TAB_BAR):IsNotANumber() = false
     end
 
     action SetTabBarFontOutlineThickness(number value)
@@ -10113,6 +10413,18 @@ class InterfaceOptions
         return GetBorderThickness(TEXT_BOX):IsNotANumber() = false
     end
 
+    action SetTextBoxSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(TEXT_BOX, value)
+    end
+
+    action GetTextBoxSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(TEXT_BOX)
+    end
+
+    action HasTextBoxSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(TEXT_BOX):IsNotANumber() = false
+    end
+
     action SetTextBoxFontOutlineThickness(number value)
         SetFontOutlineThickness(TEXT_BOX, value)
     end
@@ -10495,6 +10807,18 @@ class InterfaceOptions
 
     action HasTextFieldBorderThickness returns boolean
         return GetBorderThickness(TEXT_FIELD):IsNotANumber() = false
+    end
+
+    action SetTextFieldSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(TEXT_FIELD)
+    end
+
+    action HasTextFieldSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(TEXT_FIELD):IsNotANumber() = false
     end
 
     action SetTextFieldFontOutlineThickness(number value)
@@ -10881,6 +11205,18 @@ class InterfaceOptions
         return GetBorderThickness(TOGGLE_BUTTON):IsNotANumber() = false
     end
 
+    action SetToggleButtonSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(TOGGLE_BUTTON)
+    end
+
+    action HasToggleButtonSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(TOGGLE_BUTTON):IsNotANumber() = false
+    end
+
     action SetToggleButtonFontOutlineThickness(number value)
         SetFontOutlineThickness(TOGGLE_BUTTON, value)
     end
@@ -11263,6 +11599,18 @@ class InterfaceOptions
 
     action HasToolBarBorderThickness returns boolean
         return GetBorderThickness(TOOL_BAR):IsNotANumber() = false
+    end
+
+    action SetToolBarSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(TOOL_BAR, value)
+    end
+
+    action GetToolBarSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(TOOL_BAR)
+    end
+
+    action HasToolBarSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(TOOL_BAR):IsNotANumber() = false
     end
 
     action SetToolBarFontOutlineThickness(number value)
@@ -11649,6 +11997,18 @@ class InterfaceOptions
         return GetBorderThickness(TREE_ITEM):IsNotANumber() = false
     end
 
+    action SetTreeItemSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(TREE_ITEM, value)
+    end
+
+    action GetTreeItemSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(TREE_ITEM)
+    end
+
+    action HasTreeItemSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(TREE_ITEM):IsNotANumber() = false
+    end
+
     action SetTreeItemFontOutlineThickness(number value)
         SetFontOutlineThickness(TREE_ITEM, value)
     end
@@ -12031,6 +12391,18 @@ class InterfaceOptions
 
     action HasTreeTableCellBorderThickness returns boolean
         return GetBorderThickness(TREE_TABLE_CELL):IsNotANumber() = false
+    end
+
+    action SetTreeTableCellSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(TREE_TABLE_CELL)
+    end
+
+    action HasTreeTableCellSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(TREE_TABLE_CELL):IsNotANumber() = false
     end
 
     action SetTreeTableCellFontOutlineThickness(number value)
@@ -12417,6 +12789,18 @@ class InterfaceOptions
         return GetBorderThickness(GROUPING):IsNotANumber() = false
     end
 
+    action SetGroupingSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(GROUPING, value)
+    end
+
+    action GetGroupingSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(GROUPING)
+    end
+
+    action HasGroupingSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(GROUPING):IsNotANumber() = false
+    end
+
     action SetGroupingFontOutlineThickness(number value)
         SetFontOutlineThickness(GROUPING, value)
     end
@@ -12799,6 +13183,18 @@ class InterfaceOptions
 
     action HasStartButtonGroupingBorderThickness returns boolean
         return GetBorderThickness(START_BUTTON_GROUPING):IsNotANumber() = false
+    end
+
+    action SetStartButtonGroupingSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(START_BUTTON_GROUPING)
+    end
+
+    action HasStartButtonGroupingSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(START_BUTTON_GROUPING):IsNotANumber() = false
     end
 
     action SetStartButtonGroupingFontOutlineThickness(number value)
@@ -13185,6 +13581,18 @@ class InterfaceOptions
         return GetBorderThickness(BANNER):IsNotANumber() = false
     end
 
+    action SetBannerSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(BANNER, value)
+    end
+
+    action GetBannerSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(BANNER)
+    end
+
+    action HasBannerSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(BANNER):IsNotANumber() = false
+    end
+
     action SetBannerFontOutlineThickness(number value)
         SetFontOutlineThickness(BANNER, value)
     end
@@ -13567,6 +13975,18 @@ class InterfaceOptions
 
     action HasCodeEditorBorderThickness returns boolean
         return GetBorderThickness(CODE_EDITOR):IsNotANumber() = false
+    end
+
+    action SetCodeEditorSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(CODE_EDITOR)
+    end
+
+    action HasCodeEditorSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(CODE_EDITOR):IsNotANumber() = false
     end
 
     action SetCodeEditorFontOutlineThickness(number value)

@@ -95,6 +95,7 @@ SetBottomLeftPixelRounding(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabPixel
 SetBottomRightPixelRounding(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabPixelRounding)
         
         SetBackgroundColor(constants:BLOCK_PALETTE_TAB_BAR_KEY, blockPaletteTabBarBackground)
+        SetPrimaryErrorColor(constants:BLOCK_PALETTE_KEY, color:CustomColor(1, 0.7, 0.7, 1))
     end
 
     action SetDefaultBlockOptions(text key)
@@ -109,10 +110,18 @@ SetBottomRightPixelRounding(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabPixe
 
             Color newSelectionColor
             newSelectionColor:CopyColor(background:GetBottomLeft())
-            newSelectionColor:SetColor(
-                newSelectionColor:GetRed() * 1.10, 
-                newSelectionColor:GetGreen() * 1.10, 
-                newSelectionColor:GetBlue() * 1.10, 
+            number red = newSelectionColor:GetRed()
+            number green = newSelectionColor:GetGreen()
+            number blue = newSelectionColor:GetBlue()
+            /*newSelectionColor:SetColor(
+                newSelectionColor:GetRed() * 1.2, 
+                newSelectionColor:GetGreen() * 1.2, 
+                newSelectionColor:GetBlue() * 1.2, 
+                newSelectionColor:GetAlpha())*/
+newSelectionColor:SetColor(
+                red * red, 
+                green * green, 
+                blue * blue, 
                 newSelectionColor:GetAlpha())
             SetSelectionColor(key, newSelectionColor)
 
@@ -131,6 +140,12 @@ newMovingColor:SetColor(0.75, 0.75, 0.75, 1)
             Color newPlaceholderColor
             newPlaceholderColor:SetColor(0.6, 1, 0.65, 1)
             SetPlaceholderBackgroundColor(key, newPlaceholderColor)
+            
+            Color selectionBorder = color:DarkGray()
+            selectionBorder:SetAlpha(0.5)
+            SetSelectionBorderColor(key, selectionBorder)
+            SetSelectionBorderThickness(key, 2)
+            SetDetailFontColor(key, color:CustomColor(36 / MAX, 36 / MAX, 36 / MAX, 1))
         end
     end
 
