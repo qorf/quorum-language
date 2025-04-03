@@ -106,9 +106,7 @@ leftLabel:SetFont(editor:GetFont())
                                     Variable parameterInfo = parametersIterator:Next()
                                     Type type = parameterInfo:GetType()
                                     text typeName = type:GetNameWithGenerics()
-                                    parameterBox:AddTopLabel(typeName)
-                                else
-                                    output "No parameters available!"
+                                    parameterBox:AddBottomLabel(typeName)
                                 end
                                 
                                 // If there's more parameters, separate them with a comma label.
@@ -155,7 +153,7 @@ EditBox actionCallBox
         Add(actionCallBox)
 
         actionCallBox:Setup("Expression", location:GetIndex() - GetStartIndex(), 1 + location:GetIndexEnd() - GetStartIndex())
-        actionCallBox:AddTopLabel("Action Call")
+        actionCallBox:AddBottomLabel("Action Call")
         end
         
     end

@@ -140,7 +140,7 @@ class ActionBlock is MultipleLineBlock
         part:Add(nameField)
 
         nameField:Setup("Name", actionContext:actionNameLocation:GetIndex() - GetStartIndex(), actionContext:actionNameLocation:GetIndexEnd() + 1 - GetStartIndex())
-        nameField:AddTopLabel("Name")
+        nameField:AddBottomLabel("Name")
         
         localEndLine = actionContext:actionNameLocation:GetLineNumberEnd() - actionContext:GetLocation():GetLineNumber()
 
@@ -160,7 +160,7 @@ class ActionBlock is MultipleLineBlock
             part:Add(paramField)
 
             paramField:Setup("Parameters", actionContext:leftParen:endIndex + 1 - GetStartIndex(), actionContext:rightParen:startIndex - GetStartIndex())
-            paramField:AddTopLabel("Parameters")
+            paramField:AddBottomLabel("Parameters")
 
             BlockLabel rightParen
             me:rightParen = rightParen
@@ -191,7 +191,7 @@ class ActionBlock is MultipleLineBlock
             part:Add(returnField)
 
             returnField:Setup("Returns", returnLocation:GetIndex() - GetStartIndex(), returnLocation:GetIndexEnd() + 1 - GetStartIndex())
-            returnField:AddTopLabel("Type")
+            returnField:AddBottomLabel("Type")
 
             // Place the end of the block at the end of the return.
             localEnd = returnField:GetEndIndex()

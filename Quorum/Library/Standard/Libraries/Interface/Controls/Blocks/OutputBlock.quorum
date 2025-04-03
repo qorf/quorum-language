@@ -65,7 +65,7 @@ class OutputBlock is SingleLineBlock
         Add(expressionField) 
 
         expressionField:Setup("Expression", location:GetIndex() - GetStartIndex(), 1 + location:GetIndexEnd() - GetStartIndex())
-        expressionField:AddTopLabel("Expression")
+        expressionField:AddBottomLabel("Expression")
     end
 
     action GetOutputContext returns OutputContext

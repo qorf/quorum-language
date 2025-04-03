@@ -254,7 +254,33 @@ result = result + " " + annotation:GetName() + "."
             Item2D child = children:Get(i)
             if child is EditRegion
                 EditRegion edit = cast(EditRegion, child)
+                edit:ShowDetailLabels()
+            end
+            i = i + 1
+        end
+    end
+    
+action ShowTopLabels
+        integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
                 edit:ShowTopLabels()
+            end
+            i = i + 1
+        end
+    end
+    
+action ShowBottomLabels
+        integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                edit:ShowBottomLabels()
             end
             i = i + 1
         end
@@ -267,13 +293,55 @@ integer i = 0
             Item2D child = children:Get(i)
             if child is EditRegion
                 EditRegion edit = cast(EditRegion, child)
+                edit:HideDetailLabels()
+            end
+            i = i + 1
+        end
+    end
+    
+action HideTopLabels
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
                 edit:HideTopLabels()
             end
             i = i + 1
         end
     end
     
+action HideBottomLabels
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                edit:HideBottomLabels()
+            end
+            i = i + 1
+        end
+    end
+    
     action HasDetailLabels returns boolean
+        integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                if edit:HasDetailLabels()
+                    return true
+                end
+            end
+            i = i + 1
+        end
+        return false
+    end
+    
+action HasTopLabels returns boolean
         integer i = 0
         Array<Item2D> children = GetChildren()
         repeat while i < children:GetSize()
@@ -289,6 +357,22 @@ integer i = 0
         return false
     end
     
+action HasBottomLabels returns boolean
+        integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                if edit:HasBottomLabels()
+                    return true
+                end
+            end
+            i = i + 1
+        end
+        return false
+    end
+    
     action HasVisibleDetailLabels returns boolean
 integer i = 0
         Array<Item2D> children = GetChildren()
@@ -296,7 +380,39 @@ integer i = 0
             Item2D child = children:Get(i)
             if child is EditRegion
                 EditRegion edit = cast(EditRegion, child)
+                if edit:HasVisibleDetailLabels()
+                    return true
+                end
+            end
+            i = i + 1
+        end
+        return false
+    end
+    
+action HasVisibleTopLabels returns boolean
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
                 if edit:HasVisibleTopLabels()
+                    return true
+                end
+            end
+            i = i + 1
+        end
+        return false
+    end
+    
+action HasVisibleBottomLabels returns boolean
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                if edit:HasVisibleBottomLabels()
                     return true
                 end
             end
@@ -313,7 +429,7 @@ integer i = 0
             Item2D child = children:Get(i)
             if child is EditRegion
                 EditRegion edit = cast(EditRegion, child)
-                number height = edit:GetTopLabelsHeight()
+                number height = edit:GetDetailLabelsHeight()
                 if height > maxHeight
                     maxHeight = height
                 end
@@ -331,7 +447,79 @@ integer i = 0
             Item2D child = children:Get(i)
             if child is EditRegion
                 EditRegion edit = cast(EditRegion, child)
+                number height = edit:GetVisibleDetailLabelsHeight()
+                if height > maxHeight
+                    maxHeight = height
+                end
+            end
+            i = i + 1
+        end
+        return maxHeight
+    end
+    
+action GetTopLabelsHeight returns number
+        number maxHeight = 0
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                number height = edit:GetTopLabelsHeight()
+                if height > maxHeight
+                    maxHeight = height
+                end
+            end
+            i = i + 1
+        end
+        return maxHeight
+    end
+    
+action GetVisibleTopLabelsHeight returns number
+        number maxHeight = 0
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
                 number height = edit:GetVisibleTopLabelsHeight()
+                if height > maxHeight
+                    maxHeight = height
+                end
+            end
+            i = i + 1
+        end
+        return maxHeight
+    end
+    
+action GetBottomLabelsHeight returns number
+        number maxHeight = 0
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                number height = edit:GetBottomLabelsHeight()
+                if height > maxHeight
+                    maxHeight = height
+                end
+            end
+            i = i + 1
+        end
+        return maxHeight
+    end
+    
+action GetVisibleBottomLabelsHeight returns number
+        number maxHeight = 0
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                number height = edit:GetVisibleBottomLabelsHeight()
                 if height > maxHeight
                     maxHeight = height
                 end

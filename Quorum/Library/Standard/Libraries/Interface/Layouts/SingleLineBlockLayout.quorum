@@ -34,11 +34,13 @@ class SingleLineBlockLayout is Layout
         end
 
         number x = block:GetLeftPadding()
-        number y = (height - block:GetVisibleDetailLabelsHeight()) / 2.0 
+        number y = (height - block:GetVisibleDetailLabelsHeight()) / 2.0 + block:GetVisibleBottomLabelsHeight() 
+        
         
         EditRegion lastEditRegion = undefined
         Control previousControlInStack = undefined
         Array<Label> currentTopLabels = undefined
+        Array<Label> currentBottomLabels = undefined
 
         i = 0
         repeat while i < items:GetSize()
@@ -54,7 +56,17 @@ Label label = undefined
                     label = cast(Label, control)
                 end
                 
-                if label not= undefined and currentTopLabels not= undefined and currentTopLabels:Has(label)
+                boolean isTopLabel = false
+                boolean isBottomLabel = false
+                if label not= undefined
+if currentTopLabels not= undefined and currentTopLabels:Has(label)
+                        isTopLabel = true
+                    elseif currentBottomLabels not= undefined and currentBottomLabels:Has(label)
+                        isBottomLabel = true
+                    end
+                end
+                
+                if isTopLabel
                     if label:IsShowing()
 number regionWidth = lastEditRegion:GetWidth()
                         // The commented code below will center-align the label with the field.
@@ -65,6 +77,21 @@ number regionWidth = lastEditRegion:GetWidth()
                         yOffset = previousControlInStack:GetTopMargin()
                     end
                     number labelY = previousControlInStack:GetY() + previousControlInStack:GetHeight() + yOffset
+                    label:SetPosition(labelX, labelY)
+                    
+                    previousControlInStack = label
+                    end
+                elseif isBottomLabel
+                    if label:IsShowing()
+number regionWidth = lastEditRegion:GetWidth()
+                        // The commented code below will center-align the label with the field.
+                    //number labelX = lastEditRegion:GetX() + (regionWidth - label:GetWidth()) / 2.0
+                        number labelX = lastEditRegion:GetX() + lastEditRegion:GetLeftCharacterPadding()
+                    number yOffset = label:GetTopMargin()
+                    if yOffset < previousControlInStack:GetBottomMargin()
+                        yOffset = previousControlInStack:GetBottomMargin()
+                    end
+                    number labelY = previousControlInStack:GetY() - label:GetHeight() - yOffset
                     label:SetPosition(labelX, labelY)
                     
                     previousControlInStack = label
@@ -81,6 +108,7 @@ region:UpdateLength()
 lastEditRegion = region
                         previousControlInStack = region
                     currentTopLabels = region:GetTopLabels()
+                        currentBottomLabels = region:GetBottomLabels()
                 else
                     // For now, assume the element is capable of figuring out its own size during a Resize.
                     control:Resize()
