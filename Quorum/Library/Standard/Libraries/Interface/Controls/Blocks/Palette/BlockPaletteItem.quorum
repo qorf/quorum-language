@@ -116,7 +116,9 @@ number height = 0
                     Add(copy)
                     visualBlocks:Add(copy)
                     
-                    height = height + GetLineHeight(0)
+                    SingleLineBlock singleBlock = cast(SingleLineBlock, copy)
+                    
+                    height = height + GetLineHeight(0) + singleBlock:GetVisibleDetailLabelsHeight()
                 end
     
                 block = block:GetNextBlock()
@@ -130,8 +132,8 @@ number height = 0
             number current = height
             repeat while i < visualBlocks:GetSize()
                 Block child = visualBlocks:Get(i)
-                current = current - GetLineHeight(i)
                 child:Resize()
+                current = current - child:GetHeight()
                 child:SetPosition(0, current)
                 i = i + 1
             end
