@@ -90,7 +90,7 @@ class EditBox is TextBox, EditRegion
             BlockPaletteItem item = cast(BlockPaletteItem, editor)
             editor = item:GetEditor()
 // Make sure the textbox is using the correct font if it had to pass through a BlockPaletteItem.
-            if GetFont() not= editor:GetFont()
+            if editor not= undefined and GetFont() not= editor:GetFont()
 SetFont(editor:GetFont())
             SetFontSize(editor:GetFontSize())
             end
