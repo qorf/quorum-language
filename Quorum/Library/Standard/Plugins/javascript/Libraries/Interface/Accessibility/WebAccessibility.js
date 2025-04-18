@@ -962,9 +962,9 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             var position = textbox.GetCaretPosition();
             var element = document.getElementById(id);
             if(element != null) {
+              element.value = text;
               element.selectionStart = position;
               element.selectionEnd = position;
-              element.innerHTML = text;
             }
             // console.log("Caret Position: ", position);
             // console.log("Current Line", linePosition);
