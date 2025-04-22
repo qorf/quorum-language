@@ -801,7 +801,7 @@ detailsHeight = singleBlock:GetVisibleDetailLabelsHeight()
 integer i = 0
         repeat while i < selectedBlocks:GetSize()
             Block block = selectedBlocks:Get(i)
-                if block not= undefined and block:GetStartLine() > line
+                if block not= undefined and block:GetNavigationIndex() > line
                     // Exit early if a block is beyond the line we're interested in.
                     i = selectedBlocks:GetSize()
                 elseif block is SingleLineBlock
