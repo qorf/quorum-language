@@ -23,12 +23,28 @@ class DarkBlockOptions is DarkModeOptions, BlockOptions
     Color constructorBlock = color:CustomColor(53.0 / MAX, 94.0 / MAX, 59.0 / MAX, 1)
     Color sayBlock = color:CustomColor(92.0 / MAX, 177.0 / MAX, 214.0 / MAX, 1)
     Color useBlock = color:CustomColor(52.0 / MAX, 82.0 / MAX, 186.0 / MAX, 1)
-    Color comments = color:CustomColor(175.0 / MAX, 186.0 / MAX, 255.0 / MAX, 1)
-    Color freeformBlock = color:CustomColor(240.0 / MAX, 240.0 / MAX, 240.0 / MAX, 1)
+    Color comments = color:CustomColor(80.0 / MAX, 80.0 / MAX, 85.0 / MAX, 1)
+    Color freeformBlock = color:CustomColor(80.0 / MAX, 80.0 / MAX, 80.0 / MAX, 1)
     
     Color returnBlock = color:CustomColor(92.0 / MAX, 177.0 / MAX, 214.0 / MAX, 1)
     Color editFieldBackground = color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1)
     Color selectionColor = color:CustomColor(0.5, 0.5, 0.5, 1)
+    
+    // Additional values for palette and palette-related options.
+    Color blockPaletteTabBackground = color:CustomColor(1, 1, 1, 0)
+    Color blockPaletteTabSelection = color:CustomColor(104.0 / MAX, 104.0 / MAX, 104.0 / MAX, 1)
+    Color blockPaletteTabFont = color:CustomColor(227.0 / MAX, 227.0 / MAX, 227.0 / MAX, 1)
+    Color blockPaletteTabSelectionFont = undefined
+    Color blockPaletteTabFocusColor = undefined
+    Color blockPaletteTabForegroundColor = color:CustomColor(237.0 / MAX, 113.0 / MAX, 107.0 / MAX, 1)
+    Color blockPaletteTabAccentColor = color:White()
+    Color blockPaletteTabUnfocusedSelection = undefined
+    Color blockPaletteTabUnfocusedSelectionFont = undefined
+    
+    number blockPaletteTabBorderThickness = 0
+    number blockPaletteTabPixelRounding = 8
+    
+Color blockPaletteTabBarBackground = color:CustomColor(79.0 / MAX, 83.0 / MAX, 85.0 / MAX, 1.0)
 
     action SetStartingOptions
         SetBackgroundColor(constants:ASSIGNMENT_KEY, defaultStatementColor)
@@ -46,7 +62,7 @@ class DarkBlockOptions is DarkModeOptions, BlockOptions
         SetBackgroundColor(constants:CLASS_KEY, packageBlock)
         SetBackgroundColor(constants:IF_KEY, ifBlock)
         SetBackgroundColor(constants:FREEFORM_KEY, freeformBlock)
-        SetBackgroundColor(constants:COMMENT_KEY, freeformBlock)
+        SetBackgroundColor(constants:COMMENT_KEY, comments)
 
         SetEditBackgroundColor(editFieldBackground)
         SetEditBorderThickness(1)
@@ -59,6 +75,25 @@ class DarkBlockOptions is DarkModeOptions, BlockOptions
         SetSecondaryErrorColor("CodeEditor", color:CustomColor(0.75, 0.25, 0.25, 1))
         SetHintBorderColor("CodeEditor", color:Orange())
         SetHintBorderThickness("CodeEditor", 3)
+        
+        SetBackgroundColor(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabBackground)
+        SetFontColor(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabFont)
+        SetSelectionColor(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabSelection)
+        SetSelectionFontColor(constants:BLOCK_PALETTE_TAB_KEY, color:White())
+        SetFocusColor(constants:BLOCK_PALETTE_TAB_KEY, color:CustomColor(30.0 / MAX, 61.0 / MAX, 92.0 / MAX, 1))
+        SetForegroundColor(constants:BLOCK_PALETTE_TAB_KEY, color:CustomColor(230.0 / MAX, 78.0 / MAX, 88.0 / MAX, 1))
+        SetAccentColor(constants:BLOCK_PALETTE_TAB_KEY, color:White())
+        SetUnfocusedSelectionFontColor(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabFont)
+        SetUnfocusedSelectionColor(constants:BLOCK_PALETTE_TAB_KEY, color:CustomColor(13.0 / MAX, 41.0 / MAX, 62.0 / MAX, 1))
+
+        SetBorderThickness(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabBorderThickness)
+        SetTopLeftPixelRounding(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabPixelRounding)
+        SetTopRightPixelRounding(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabPixelRounding)
+SetBottomLeftPixelRounding(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabPixelRounding)
+SetBottomRightPixelRounding(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabPixelRounding)
+        
+SetBackgroundColor(constants:BLOCK_PALETTE_TAB_BAR_KEY, blockPaletteTabBarBackground)
+SetPrimaryErrorColor(constants:BLOCK_PALETTE_KEY, color:CustomColor(0.55, 0.25, 0.25, 1))
     end
 
     action SetDefaultBlockOptions(text key)
@@ -78,9 +113,9 @@ class DarkBlockOptions is DarkModeOptions, BlockOptions
             Color newSelectionColor
             newSelectionColor:CopyColor(background:GetBottomLeft())
             newSelectionColor:SetColor(
-                newSelectionColor:GetRed() * 1.3, 
-                newSelectionColor:GetGreen() * 1.3, 
-                newSelectionColor:GetBlue() * 1.3, 
+                newSelectionColor:GetRed() * 1.5, 
+                newSelectionColor:GetGreen() * 1.5, 
+                newSelectionColor:GetBlue() * 1.5, 
                 newSelectionColor:GetAlpha())
             SetSelectionColor(key, newSelectionColor)
 
@@ -96,6 +131,9 @@ newMovingColor:SetColor(0.75, 0.75, 0.75, 1)
             newPlaceholderColor:SetColor(0.4, 0.8, 0.45, 1)
             SetPlaceholderBackgroundColor(key, newPlaceholderColor)
             
+SetSelectionBorderColor(key, color:CustomColor(0.9, 0.9, 0.8, 0.25))
+            SetSelectionBorderThickness(key, 2)
+            SetDetailFontColor(key, color:CustomColor(242 / MAX, 242 / MAX, 242 / MAX, 1))
         end
     end
 end

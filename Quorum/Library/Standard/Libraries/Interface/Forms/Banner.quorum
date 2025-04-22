@@ -167,7 +167,7 @@ class Banner is Grouping
         end
     */
     action GetSubtitle returns text
-        Label label = GetTitleLabel()
+        Label label = GetLabel()
         if label not= undefined 
             return label:GetText() 
         end

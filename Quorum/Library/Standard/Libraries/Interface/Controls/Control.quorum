@@ -1603,6 +1603,7 @@ elseif font:IsFontAvailable("courbd")
             Item item = GetChildAsItem(counter)
             if item is Control and haveResized = false
                 Control control = cast(Control, item)
+                
                 if control:NeedsLayout()
                     Resize()
                     haveResized = true
@@ -2183,6 +2184,19 @@ elseif font:IsFontAvailable("courbd")
     action HasBorderThickness returns boolean
         return defaultProperties:HasBorderThickness()
     end
+
+    action SetSelectionBorderThickness(number value)
+        defaultProperties:SetSelectionBorderThickness(value)
+    end
+
+    action GetSelectionBorderThickness returns number
+        return defaultProperties:GetSelectionBorderThickness()
+    end
+
+    action HasSelectionBorderThickness returns boolean
+        return defaultProperties:HasSelectionBorderThickness()
+    end
+
     /*  
         This action sets the font outline thickness value.
 

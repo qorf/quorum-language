@@ -293,6 +293,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
 
 //  private system action TextSelectionChanged(TextBoxSelection selection)
 this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextBoxSelection = function(selection) {
+    return;
     var textBox = selection.GetTextBox();
     if (textBox == null){
         return;
@@ -310,6 +311,7 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextBoxSelection
 
 //  private system action TextSelectionChanged(TextBoxSelection selection)
 this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelection = function(selection) {
+    return;
     var textField = selection.GetTextField();
     if (textField == null) {
         return;
@@ -319,7 +321,8 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
         if (element == null) {
             return;
         }
-        element.setSelectionRange(selection.GetStartIndex(),selection.GetEndIndex());
+        element.selectionStart = selection.GetStartIndex();
+        element.selectionEnd = selection.GetEndIndex();
     }
 
     //console.log("TextField Selection Changed");
@@ -517,6 +520,8 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 {
                     let textBox = global_CheckCast(item, "Libraries.Interface.Controls.TextBox")
                     para.value = textBox.GetText();
+                    para.selectionStart = 0;
+                    para.selectionEnd = 0;
                 }
                 para.quorumItem = item;
                 textInputElements.set(id, para);
@@ -650,6 +655,8 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 {
                     let textField = global_CheckCast(item, "Libraries.Interface.Controls.TextField")
                     para.value = textField.GetText();
+                    para.selectionStart = 0;
+                    para.selectionEnd = 0;
                 }
 
                 para.quorumItem = item;
@@ -955,9 +962,9 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             var position = textbox.GetCaretPosition();
             var element = document.getElementById(id);
             if(element != null) {
+              element.value = text;
               element.selectionStart = position;
               element.selectionEnd = position;
-              element.innerHTML = text;
             }
             // console.log("Caret Position: ", position);
             // console.log("Current Line", linePosition);
@@ -968,8 +975,11 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             var textfield = global_CheckCast(control, "Libraries.Interface.Controls.TextField");
             var text = textfield.GetText();
             var id = textfield.GetHashCode();
+            var position = textfield.GetCaretPosition();
             var element = document.getElementById(id);
             if(element != null) {
+                element.selectionStart = position;
+                element.selectionEnd = position;
               element.value = text;
             }
             //console.log("TextField Text Changed");

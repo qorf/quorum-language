@@ -286,6 +286,11 @@ class Drawable is TextureRegion, Item2D
         SetSize(math:AbsoluteValue(sourceWidth), math:AbsoluteValue(sourceHeight))
         SetOrigin(parent:Item2D:GetWidth() / 2.0, parent:Item2D:GetHeight() / 2.0)
 
+        // When a new texture is loaded, remove the previous color.
+        // Most of the time, a newly loaded texture is used to completely refresh the Drawable.
+        // If this isn't removed, the DrawableShape's color values will be out of sync with the Drawable's color, unless we specifically set it again.
+        colorGroup = undefined
+        
         DrawableShape newShape
         SetDrawableShape(newShape)
         newShape:LoadRectangle(sourceWidth, sourceHeight, me)

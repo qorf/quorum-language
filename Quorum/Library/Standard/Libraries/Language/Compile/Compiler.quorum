@@ -18,7 +18,7 @@ use Libraries.Language.Compile.CompilerErrorCodes
 use Libraries.Language.Support.TextBuilder
 
 class Compiler
-    public constant number VERSION = 12.3
+    public constant number VERSION = 13.0
     File main = undefined
     File outputFolder = undefined
     File pluginFolder = undefined
@@ -594,6 +594,16 @@ class Compiler
             elseif request:GetOutputType() = JAVASCRIPT
                 //first copy all of the standard library opcodes into the array
                 Array<ClassOpcode> classOpcodes = theOpcodes:CopyToValueArray()
+
+                //set that it's user code
+                i = 0
+                repeat while i < classOpcodes:GetSize()
+                    ClassOpcode co = classOpcodes:Get(i)
+                    Class c = co:GetClass()
+                    c:SetUserCode(true)
+                    i = i + 1
+                end
+
                 convertedJavaScript = CompileToJavaScript(classOpcodes, request, m)
                 result:convertedJavaScript = convertedJavaScript
                 if request:writeJavaScriptToDisk

@@ -12,6 +12,7 @@ use Libraries.Language.Compile.Context.UndefinedContext
 use Libraries.Language.Compile.Context.ObjectAssignmentContext
 use Libraries.Language.Compile.Context.ParentAssignmentContext
 use Libraries.Language.Compile.Context.AccessModifierContext
+use Libraries.Game.Graphics.Label
 
 class AssignmentBlock is SingleLineBlock
 
@@ -91,6 +92,7 @@ class AssignmentBlock is SingleLineBlock
             Add(typeField)
 
             typeField:Setup("Type", type:GetIndex() - GetStartIndex(), type:GetIndexEnd() + 1 - GetStartIndex())
+            typeField:AddBottomLabel("Type")
             typeField:SetRightPadding(spacing)
 
             AddVariableEditField(variable)
@@ -137,6 +139,7 @@ class AssignmentBlock is SingleLineBlock
             Add(valueField)
 
             valueField:Setup("Value", expression:GetIndex() - GetStartIndex(), expression:GetIndexEnd() + 1 - GetStartIndex())
+            valueField:AddBottomLabel("Value")
         end
     end
 
@@ -169,6 +172,7 @@ class AssignmentBlock is SingleLineBlock
         Add(nameField)
 
         nameField:Setup("Name", startLocation:GetIndex() - GetStartIndex(), endLocation:GetIndexEnd() + 1 - GetStartIndex())
+        nameField:AddBottomLabel("Name")
     end
 
     action UpdateName(integer selectedLine)

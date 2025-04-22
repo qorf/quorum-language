@@ -31,7 +31,7 @@ class OutputBlock is SingleLineBlock
     end
     
     action GetBlockName returns text
-        return "Output Block"
+        return "Output"
     end
     
     action GetBlockDescription returns text
@@ -65,6 +65,7 @@ class OutputBlock is SingleLineBlock
         Add(expressionField) 
 
         expressionField:Setup("Expression", location:GetIndex() - GetStartIndex(), 1 + location:GetIndexEnd() - GetStartIndex())
+        expressionField:AddBottomLabel("Expression")
     end
 
     action GetOutputContext returns OutputContext

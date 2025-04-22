@@ -1,15 +1,18 @@
-function plugins_quorum_Libraries_Language_Types_Boolean_(optional) {
-    this.myBoolean = false;
+class plugins_quorum_Libraries_Language_Types_Boolean_ {
+    constructor(optional) {
+        this.myBoolean = false;
     
-    if(optional === undefined) {
-    } else {
-        this.myBoolean = optional;
+        if(optional === undefined) {
+        } else {
+            this.myBoolean = optional;
+        }
     }
-    this.SetValueNative$quorum_boolean = function (bool) {
-        myBoolean = bool;
+    
+    SetValueNative$quorum_boolean(bool) {
+        this.myBoolean = bool;
     };
     
-    this.GetHashCode = function() {
+    GetHashCode() {
         return this.myBoolean ? 1231 : 1237;;
     };
 }

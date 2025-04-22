@@ -26,6 +26,16 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
         
         return true;
     };
+
+    this.Dispose = function()
+    {
+        // Attempt to forcibly de-allocate the WebGL context, if the required extension is available.
+        const loseContextExtension = gl.getExtension("WEBGL_lose_context");
+        if (loseContextExtension)
+            loseContextExtension.loseContext();
+
+        gl = null;
+    }
     
     this.HasContext = function()
     {

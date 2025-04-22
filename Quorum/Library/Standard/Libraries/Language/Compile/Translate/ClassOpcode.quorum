@@ -2150,35 +2150,48 @@ actLink:SetClassAttribute("hover:underline text-sm")
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
         
         
-TextBuilder convertedSource
+        TextBuilder convertedSource
+        TextBuilder fakeConstructor
         //text convertedSource = ""
         if clazz:IsProgramStartingClass()
             convertedSource:Append("var " + OUTPUT_VARIABLE + " = " + quote + quote + ";" + EOL)
         end
-        convertedSource:Append(EOL + "function "
-            + clazz:ConvertStaticKeyToUnderScore() + "(parents") 
 
-        //if this is a primitive wrapper, put in the wrapping code
+        boolean user = clazz:IsUserCode()
+        if not user
+            convertedSource:Append(EOL + "class "
+                + clazz:ConvertStaticKeyToUnderScore()) 
+        else
+            convertedSource:Append(EOL + "var " + clazz:ConvertStaticKeyToUnderScore() + 
+                " = class") 
+        end
+
+        convertedSource:Append(" {" + EOL)
+        fakeConstructor:Append("constructor(parents")
+//if this is a primitive wrapper, put in the wrapping code
         text value = clazz:GetStaticKey()
         if value = "Libraries.Language.Types.Integer"
             or value = "Libraries.Language.Types.Boolean"
             or value = "Libraries.Language.Types.Number"
             or value = "Libraries.Language.Types.Text"
-            convertedSource:Append(", optional")
+            fakeConstructor:Append(", optional) {" + EOL)
+        else
+            fakeConstructor:Append(") {"+ EOL)
         end
-
-        convertedSource:Append(") {" + EOL)
-        convertedSource:Append("this.prototype = this;" + EOL)
+        
+        
+        //Not sure if I need to do this in this version yet
+        fakeConstructor:Append("this.prototype = this;" + EOL)
 
         //write the parents
-        convertedSource:Append("this.parentNames_ = [")
+        fakeConstructor:Append("this.parentNames_ = [")
         Iterator<Class> parents = clazz:GetParentClasses()
         repeat while parents:HasNext()
             Class p = parents:Next()
             text parentKey = p:GetStaticKey()
-            convertedSource:Append("'" + parentKey + "', ")
+            fakeConstructor:Append("'" + parentKey + "', ")
         end
-        convertedSource:Append(" '" + clazz:GetStaticKey() + "'];" + EOL)
+        fakeConstructor:Append(" '" + clazz:GetStaticKey() + "'];" + EOL)
         
         text classBytecodeName = converter:ConvertStaticKeyToBytecodePath(staticKey)
 
@@ -2190,12 +2203,12 @@ TextBuilder convertedSource
             if not p:IsObject()
                 text parentKey = p:GetStaticKey()
                 text parentName = p:ConvertStaticKeyToParentFieldName()
-                convertedSource:Append("this." + parentName + " = null;" + EOL)
+                fakeConstructor:Append("this." + parentName + " = null;" + EOL)
             end
         end
         
         if clazz:IsObject()
-            convertedSource:Append("this.myHash = 0;" + EOL)
+            fakeConstructor:Append("this.myHash = 0;" + EOL)
         end
 
         if clazz:HasConstructor()
@@ -2208,8 +2221,8 @@ TextBuilder convertedSource
             Action act = it:Next()
             text thisParentAction = ""
             Class parentOfMethod = act:GetParentClass()
-            thisParentAction = thisParentAction + "this." + act:ConvertActionToJavaScriptName()
-                + " = function("
+            thisParentAction = thisParentAction + act:ConvertActionToJavaScriptName()
+                + "("
 
             Iterator<Variable> params = act:GetParameterIterator()
             repeat while params:HasNext()
@@ -2256,10 +2269,10 @@ TextBuilder convertedSource
                   + EOL 
                 + "}" + EOL
             
-convertedSource:Append(thisParentAction)
+            convertedSource:Append(thisParentAction)
         end
 
-     Iterator<ActionOpcode> actionIterator = actions:GetIterator()
+        Iterator<ActionOpcode> actionIterator = actions:GetIterator()
         repeat while actionIterator:HasNext()
             ActionOpcode act = actionIterator:Next()
             convertedSource:Append(act:WriteJavaScript())
@@ -2275,12 +2288,12 @@ convertedSource:Append(thisParentAction)
             text converted = type:ConvertTypeToBytecodeSignature()
             text hiddenGetterName = clazz:ConvertToActionNameFromField(variable, true)
 
-            convertedSource:Append("this." + hiddenGetterName + " = function() {" + EOL)
+            convertedSource:Append(hiddenGetterName + "() {" + EOL)
             convertedSource:Append("   return this." + variable:GetJavaScriptName() + ";" + EOL)
             convertedSource:Append("};" + EOL)
             
             text hiddenSetterName = clazz:ConvertToActionNameFromField(variable, false)
-            convertedSource:Append("this." + hiddenSetterName + " = function(value) {" + EOL)
+            convertedSource:Append(hiddenSetterName + "(value) {" + EOL)
             convertedSource:Append("   this." + variable:GetJavaScriptName() + " = value;" + EOL)
             convertedSource:Append("};" + EOL)
         end
@@ -2302,12 +2315,12 @@ convertedSource:Append(thisParentAction)
     
                         text thisTempGetterSetter = ""
                         //the getter
-                        thisTempGetterSetter = "this." + getter + " = function() {" + EOL
+                        thisTempGetterSetter = getter + "() {" + EOL
                              + "   return this." + p:ConvertStaticKeyToParentFieldName() + "." + getter + "();" + EOL
                              + "};" + EOL
     
                         //the setter
-                        thisTempGetterSetter = thisTempGetterSetter + "this." + setter + " = function(value) {" + EOL
+                        thisTempGetterSetter = thisTempGetterSetter + setter + "(value) {" + EOL
                              + "   this." + p:ConvertStaticKeyToParentFieldName() + "." + setter + "(value);" + EOL
                              + "};" + EOL
 
@@ -2322,14 +2335,14 @@ convertedSource:Append(thisParentAction)
         end
 
         //initialize all of the parent objects as values, if appropriate
-        convertedSource:Append("if(parents == null) {" + EOL)
+        fakeConstructor:Append("if(parents == null) {" + EOL)
         parents = clazz:GetParentCreationOrder()
         repeat while parents:HasNext()
             Class p = parents:Next()
             if not p:IsObject()
                 text parentKey = p:GetStaticKey()
                 text parentName = p:ConvertStaticKeyToParentFieldName()
-                convertedSource:Append("   this." + parentName + " = new " 
+                fakeConstructor:Append("   this." + parentName + " = new " 
                     + p:ConvertStaticKeyToJavaScriptName() + "(false);" + EOL)
             end
         end
@@ -2353,19 +2366,19 @@ convertedSource:Append(thisParentAction)
                     text convertedGrandParent = grandParent:ConvertStaticKeyToBytecodePathTypeName()
                     
                     if not p:IsObject() and not grandParent:IsObject()
-                    convertedSource:Append("   this." + parentName + "." + grandParentName + 
+                    fakeConstructor:Append("   this." + parentName + "." + grandParentName + 
                         " = this." +  grandParentName + ";" + EOL)
                     end
 
                     if not p:IsObject() 
-                        convertedSource:Append("   this." + parentName 
+                        fakeConstructor:Append("   this." + parentName 
                             + ".prototype = this;"  + EOL)
                     end
                 end
             end
         end
 
-        convertedSource:Append("}" + EOL)
+        fakeConstructor:Append("}" + EOL)
 
         if clazz:HasSystemAction() //this has a plugin, so instantiate it.
             //if this is a primitive wrapper, pass the actual primitive
@@ -2373,11 +2386,11 @@ convertedSource:Append(thisParentAction)
                clazz:GetStaticKey() = "Libraries.Language.Types.Integer" or
                clazz:GetStaticKey() = "Libraries.Language.Types.Number" or
                clazz:GetStaticKey() = "Libraries.Language.Types.Text"
-               convertedSource:Append("this." + clazz:GetPluginName() + 
+               fakeConstructor:Append("this." + clazz:GetPluginName() + 
                     " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(optional, this);" + EOL)
             else 
                 if not clazz:IsObject()
-                    convertedSource:Append("this." + clazz:GetPluginName() + 
+                    fakeConstructor:Append("this." + clazz:GetPluginName() + 
                         " = new " + "plugins_" +  clazz:ConvertStaticKeyToUnderScore() + "(this);" + EOL)
                 end
             end
@@ -2386,12 +2399,12 @@ convertedSource:Append(thisParentAction)
         Iterator<QuorumOpcode> fieldIterator = fields:GetIterator()
         repeat while fieldIterator:HasNext()
             QuorumOpcode field = fieldIterator:Next()
-            convertedSource:Append(field:WriteJavaScript())
+            fakeConstructor:Append(field:WriteJavaScript())
         end
 
         //now that all of the parents have had their parent's set, 
         //call their constructors.
-        convertedSource:Append(EOL + "if(parents == null) {" + EOL)
+        fakeConstructor:Append(EOL + "if(parents == null) {" + EOL)
         parents = clazz:GetParentCreationOrder()
         repeat while parents:HasNext()
             Class p = parents:Next()
@@ -2400,35 +2413,38 @@ convertedSource:Append(thisParentAction)
                 text parentName = p:ConvertStaticKeyToParentFieldName()
     
                 if p:HasConstructor()
-                    convertedSource:Append("this." + parentName + ".constructor_();" + EOL)
+                    fakeConstructor:Append("this." + parentName + ".constructor_();" + EOL)
                 end
             end
         end
-        convertedSource:Append("}" + EOL)
+        fakeConstructor:Append("}" + EOL)
 
         //if this class has a null parents flag, call its constructor
         if clazz:HasConstructor()
-            convertedSource:Append("if (parents == null) {this.constructor_();}" + EOL)
+            fakeConstructor:Append("if (parents == null) {this.constructor_();}" + EOL)
         end
 
         if value = "Libraries.Language.Types.Integer"
-            convertedSource:Append("this.value = optional == null ? 0: optional;")
+            fakeConstructor:Append("this.value = optional == null ? 0: optional;")
         elseif value = "Libraries.Language.Types.Boolean"
-            convertedSource:Append("this.value = optional == null ? false: optional;")
+            fakeConstructor:Append("this.value = optional == null ? false: optional;")
         elseif value = "Libraries.Language.Types.Number"
-            convertedSource:Append("this.value = optional == null ? 0.0: optional;")
+            fakeConstructor:Append("this.value = optional == null ? 0.0: optional;")
         elseif value = "Libraries.Language.Types.Text"
-            convertedSource:Append("this.value = optional == null ? " + quote + quote + ": optional;")
+            fakeConstructor:Append("this.value = optional == null ? " + quote + quote + ": optional;")
         end
 
         //All objects need a global hash now, not just the parent. This makes the file larger,
         //but should save on memory.
         //if clazz:IsObject()
-            convertedSource:Append("this.myHash = globalStaticHash;" + EOL)
-            convertedSource:Append("globalStaticHash = globalStaticHash + 1;" + EOL)
+        fakeConstructor:Append("this.myHash = globalStaticHash;" + EOL)
+        fakeConstructor:Append("globalStaticHash = globalStaticHash + 1;" + EOL)
         //end
+        
+        fakeConstructor:Append("}" + EOL)
+        fakeConstructor:Append(EOL + "};" + EOL)
 
-        convertedSource:Append(EOL + "};" + EOL)
+        convertedSource:Append(EOL + fakeConstructor:ToText() + EOL)
         if clazz:IsProgramStartingClass()
             convertedSource:Append("var $starter;")
             convertedSource:Append("function Start(){" + EOL)

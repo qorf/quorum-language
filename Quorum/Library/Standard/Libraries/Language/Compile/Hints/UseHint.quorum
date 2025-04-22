@@ -3,6 +3,10 @@ package Libraries.Language.Compile.Hints
 class UseHint is Hint
     text code = ""
     text libraryName = ""
+    
+on create
+        SetShortMessage("Use")
+    end
 
     action GetInsertionText returns text
         return code

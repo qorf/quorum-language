@@ -77,6 +77,11 @@ class RepeatBlock is MultipleLineBlock
 
         Location expressionLoc = loopContext:expression:GetLocation()
         expressionField:Setup("Expression", expressionLoc:GetIndex() - GetStartIndex(), expressionLoc:GetIndexEnd() + 1 - GetStartIndex())
+        if loopContext:isTimes
+expressionField:AddBottomLabel("integer")
+        else
+expressionField:AddBottomLabel("boolean")
+        end
         expressionField:SetRightPadding(spacing * 0.5)
         
         integer localEndLine = expressionLoc:GetLineNumberEnd() - loopContext:GetLocation():GetLineNumber()
@@ -103,7 +108,7 @@ class RepeatBlock is MultipleLineBlock
     end
     
     action GetBlockName returns text
-        return "Repeat "+loopLabel:GetText()+" Block"
+        return "Repeat " + loopLabel:GetText()
     end
     
     action GetBlockDescription returns text

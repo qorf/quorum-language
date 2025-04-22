@@ -8,7 +8,7 @@ use Libraries.Language.Compile.CompilerErrorManager
 use Libraries.Language.Compile.Parsing.QuorumLexer
 use Libraries.Language.Compile.Parsing.QuorumParser
 use Libraries.Language.Compile.Context.StartContext
-use Libraries.Language.Compile.Blocks.ParserToBlockListener
+use Libraries.Language.Compile.Blocks.BlockPaletteItemParserToBlockListener
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Language.Compile.Context.StatementContext
 use Libraries.Interface.Controls.Blocks.Block
@@ -20,6 +20,8 @@ use Libraries.Interface.Controls.Blocks.BlockEnvironment
 use Libraries.Interface.Controls.Blocks.FreeformBlock
 use Libraries.Interface.Controls.Blocks.SingleLineBlock
 use Libraries.Interface.Events.FocusEvent
+use Libraries.Language.Compile.Symbol.Action
+use Libraries.Language.Compile.Location
 
 
 class BlockPaletteItem is Button, BlockEnvironment
@@ -30,6 +32,10 @@ class BlockPaletteItem is Button, BlockEnvironment
     text code = undefined
     RootBlock root = undefined
     Array<Block> visualBlocks
+    
+    // An action that will be used to generate the text, parameters, and typing of an action.
+    // Overrides the default compilation method for generating the block, if present.
+    Action templateAction = undefined
     
     on create
         SetVerticalLayoutMode(parent:Control:STANDARD)
@@ -48,9 +54,10 @@ class BlockPaletteItem is Button, BlockEnvironment
             parser:SetLexer(lexer)
             StartContext start = parser:Start()
             
-            ParserToBlockListener blockListener
+            BlockPaletteItemParserToBlockListener blockListener
             blockListener:SetBlockEnvironment(me)
             blockListener:SetQuorumLexer(lexer)
+            blockListener:SetRelatedAction(templateAction)
             
             if manager:IsCompilationErrorFree()
             blockListener:SetStartContext(start)
@@ -95,7 +102,7 @@ class BlockPaletteItem is Button, BlockEnvironment
                 end
             end
             
-            number height = 0        
+number height = 0        
             Block block = root
             repeat until block = undefined
                 block:SetInterfaceScale(GetInterfaceScale()) 
@@ -109,7 +116,9 @@ class BlockPaletteItem is Button, BlockEnvironment
                     Add(copy)
                     visualBlocks:Add(copy)
                     
-                    height = height + GetLineHeight(0)
+                    SingleLineBlock singleBlock = cast(SingleLineBlock, copy)
+                    
+                    height = height + GetLineHeight(0) + singleBlock:GetVisibleDetailLabelsHeight()
                 end
     
                 block = block:GetNextBlock()
@@ -123,8 +132,8 @@ class BlockPaletteItem is Button, BlockEnvironment
             number current = height
             repeat while i < visualBlocks:GetSize()
                 Block child = visualBlocks:Get(i)
-                current = current - GetLineHeight(i)
                 child:Resize()
+                current = current - child:GetHeight()
                 child:SetPosition(0, current)
                 i = i + 1
             end
@@ -160,7 +169,45 @@ SetPixelHeight(height)
                 child:SetPosition(0, current)
                 i = i + 1
             end
+            
         end
+    end
+    
+action GetBlockAtLine(integer line) returns Block
+        if root = undefined
+            return undefined
+        end
+
+        return GetBlockAtLine(root, line)
+    end
+    
+private action GetBlockAtLine(Block block, integer line) returns Block
+        /*
+        TO-DO: Improve this. We have a tree structure, so we should use it to binary search.
+        */
+
+        // Ensure that the starting candidate is navigable.
+        Block candidate = block
+        if candidate not= undefined and candidate:IsNavigable() = false
+            candidate = candidate:GetNextNavigableBlock()
+        end
+        
+        repeat until candidate = undefined or candidate:GetNavigationIndex() = line
+            Block nextCandidate = candidate:GetNextNavigableBlock()
+
+            /*
+            If we ever find a block with a navigation index that's too large, go back one step.
+            Most likely the previous block was our best choice, but had a size greater than 1,
+            meaning we found a "gap" in the mostly linear sequence of navigation indices.
+            */
+            if nextCandidate not= undefined and nextCandidate:GetNavigationIndex() > line
+                return candidate
+            end
+
+            candidate = nextCandidate
+        end
+
+        return candidate
     end
     
     action GetLineY(integer index) returns number
@@ -168,7 +215,17 @@ SetPixelHeight(height)
     end
     
     action GetLineHeight(integer index) returns number
-        return GetFont():GetLineHeight() * (1 + GetPercentageLineHeightPadding())
+        Block block = GetBlockAtLine(index)
+        number labelHeight = 0
+        if block is SingleLineBlock
+            SingleLineBlock singleBlock = cast(SingleLineBlock, block)
+            labelHeight = singleBlock:GetVisibleDetailLabelsHeight()
+        end
+        return GetFont():GetLineHeight() * (1 + GetPercentageLineHeightPadding()) + labelHeight
+    end
+    
+    action GetStaticLineHeight(integer index) returns number
+        return GetLineHeight(index)
     end
     
     action GetCode returns text
@@ -226,7 +283,7 @@ SetPixelHeight(height)
     action ParseToBlocks(text code) returns Array<Block>
         SetCode(code)
         
-        ParserToBlockListener listener
+        BlockPaletteItemParserToBlockListener listener
 
         if GetEditor() = undefined
             return undefined
@@ -247,7 +304,7 @@ SetPixelHeight(height)
         if not manager:IsCompilationErrorFree()
             return undefined
         end
-        ParserToBlockListener blockListener
+        BlockPaletteItemParserToBlockListener blockListener
         blockListener:SetQuorumLexer(lexer)
         blockListener:SetStartContext(start)
         blockListener:SetBlockEnvironment(me)
@@ -290,4 +347,12 @@ action LostFocus(FocusEvent event)
         parent:Control:LostFocus(event)
     end
     
+    action GetTemplateAction returns Action
+        return templateAction
+    end
+
+    action SetTemplateAction(Action templateAction)
+        me:templateAction = templateAction
+    end
+
 end

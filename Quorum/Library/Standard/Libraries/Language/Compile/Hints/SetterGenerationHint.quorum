@@ -3,6 +3,10 @@ package Libraries.Language.Compile.Hints
 class SetterGenerationHint  is Hint
     text code = ""
     text libraryName = ""
+    
+on create
+        SetShortMessage("Setter")
+    end
 
     action GetInsertionText returns text
         return code

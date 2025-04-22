@@ -40,9 +40,9 @@ class ActionBlock is MultipleLineBlock
     
     action GetBlockName returns text
         if nameField not= undefined
-            return nameField:GetText() + " Action Block"
+            return nameField:GetText() + " Action"
         end
-        return "Action Block"
+        return "Action"
     end
     
     action GetBlockDescription returns text
@@ -140,6 +140,7 @@ class ActionBlock is MultipleLineBlock
         part:Add(nameField)
 
         nameField:Setup("Name", actionContext:actionNameLocation:GetIndex() - GetStartIndex(), actionContext:actionNameLocation:GetIndexEnd() + 1 - GetStartIndex())
+        nameField:AddBottomLabel("Name")
         
         localEndLine = actionContext:actionNameLocation:GetLineNumberEnd() - actionContext:GetLocation():GetLineNumber()
 
@@ -157,9 +158,9 @@ class ActionBlock is MultipleLineBlock
             EditBox paramField
             me:paramField = paramField
             part:Add(paramField)
-            
 
             paramField:Setup("Parameters", actionContext:leftParen:endIndex + 1 - GetStartIndex(), actionContext:rightParen:startIndex - GetStartIndex())
+            paramField:AddBottomLabel("Parameters")
 
             BlockLabel rightParen
             me:rightParen = rightParen
@@ -190,6 +191,7 @@ class ActionBlock is MultipleLineBlock
             part:Add(returnField)
 
             returnField:Setup("Returns", returnLocation:GetIndex() - GetStartIndex(), returnLocation:GetIndexEnd() + 1 - GetStartIndex())
+            returnField:AddBottomLabel("Type")
 
             // Place the end of the block at the end of the return.
             localEnd = returnField:GetEndIndex()

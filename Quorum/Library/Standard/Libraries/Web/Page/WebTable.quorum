@@ -39,6 +39,9 @@ DataFrame frame
 */
 class WebTable is WebTag
     constant text border = "border"
+    
+    TableHeader tableHeader = undefined
+    TableBody tableBody = undefined
 
     /*
         This action creates a WebTable object from a two dimensional matrix created with the Matrix class.
@@ -57,6 +60,7 @@ class WebTable is WebTag
     */
     action Add(Matrix matrix)
         TableBody body
+        tableBody = body
         row = 0
         repeat while row < matrix:GetRows()
             col = 0
@@ -99,12 +103,15 @@ class WebTable is WebTag
         */
     action Add(DataFrame frame)
         TableBody body
-
+tableBody = body
+        
         boolean hasRow = true
         if frame:GetSize() = 0
             return now
         end
 
+        TableHeader headerObject
+        tableHeader = headerObject
         TableRow headerRow
         col = 0
         repeat while col < frame:GetSize()
@@ -121,7 +128,8 @@ class WebTable is WebTag
             headerRow:Add(th)
             col = col + 1
         end
-        body:Add(headerRow)
+        headerObject:Add(headerRow)
+        Add(headerObject)
 
         row = 0
         repeat while hasRow
@@ -507,4 +515,20 @@ class WebTable is WebTag
 
         alert("I found a tag with the HTML: " + value:Generate() + ", but this is not allowed at this point in the table.")
     end
+    action GetTableHeader returns TableHeader
+        return tableHeader
+    end
+
+    action SetTableHeader(TableHeader tableHeader)
+        me:tableHeader = tableHeader
+    end
+
+    action GetTableBody returns TableBody
+        return tableBody
+    end
+
+    action SetTableBody(TableBody tableBody)
+        me:tableBody = tableBody
+    end
+
 end

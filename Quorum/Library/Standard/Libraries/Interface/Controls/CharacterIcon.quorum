@@ -1,0 +1,95 @@
+package Libraries.Interface.Controls
+
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Glyph
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Game.Graphics.TextureFilter
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.DrawableShape
+
+class CharacterIcon is Icon
+    text character = ""
+    
+    //The ID for the last loaded font. Used to determine if reloading is needed.
+    text lastFontID = ""
+    
+    action LoadCharacter(integer unicodeValue)
+        LoadCharacter(character:GetUnicodeValue(unicodeValue))
+    end
+    
+    action LoadCharacter(integer unicodeValue, Font font)
+LoadCharacter(character:GetUnicodeValue(unicodeValue), font)
+    end
+    
+    action LoadCharacter(text character)
+        LoadCharacter(character, GetFont())
+    end
+    
+    action LoadCharacter(text character, Font font)
+        me:character = character
+        if font not= undefined and font not= GetFont()
+            SetFont(font)
+        elseif GetFont() not= undefined
+            font = GetFont()
+        else
+            // Try to get a Font from a parent control.
+            Item2D parentItem = me
+            repeat while parentItem not= undefined
+                parentItem = parentItem:GetParent()
+                if parentItem is Control
+                    Control control = cast(Control, parentItem)
+                    if control:GetFont() not= undefined
+                        font = control:GetFont()
+                        SetFont(font)
+                        parentItem = undefined
+                    end
+                end
+            end
+        end
+        
+        Glyph glyph = font:GetGlyph(character) 
+        TextureFilter textureFilter
+        textureFilter:ConstructTextureFilter(textureFilter:LINEAR)
+        Texture texture = glyph:texture:GetTextureField()
+        texture:SetFilter(textureFilter, textureFilter)
+        Load(glyph:texture)
+        lastFontID = font:GetIdentifier()
+        
+        // Reset the color after loading the texture. Loading a texture causes color information to be cleared.
+                if GetIconColor() not= undefined
+            SetColor(GetIconColor())
+        end
+        
+        LayoutProperties currentProperties = GetCurrentLayoutProperties()
+        if currentProperties = undefined
+            currentProperties = GetDefaultLayoutProperties()
+        end
+if currentProperties not= undefined
+            currentProperties:SetRenderingFlag(false)
+        end
+    end
+    
+    action GetCharacter returns text
+        return character
+    end
+    
+action LoadGraphics(LayoutProperties properties)
+        if properties = undefined
+            return now
+        end
+        
+        Font font = properties:GetFont()
+        if font not= undefined
+if font:GetSize() not= cast(integer, GetFontSize() * GetInterfaceScale())
+            font:SetSize(cast(integer, GetFontSize() * GetInterfaceScale()))
+        end
+        
+        if character not= "" and font:GetIdentifier() not= lastFontID
+            LoadCharacter(character, font)
+        end
+        end
+    
+        parent:Control:LoadGraphics(properties)
+end
+
+end

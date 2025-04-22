@@ -31,7 +31,7 @@ class UseBlock is SingleLineBlock
     end
     
     action GetBlockName returns text
-        return "Use Block"
+        return "Use"
     end
     
     action GetBlockDescription returns text
@@ -65,6 +65,7 @@ class UseBlock is SingleLineBlock
         Add(nameField)
 
         nameField:Setup("Name", location:GetIndex() - GetStartIndex(), 1 + location:GetIndexEnd() - GetStartIndex())
+        nameField:AddBottomLabel("Library")
     end
     
     action GetLibraryName returns text

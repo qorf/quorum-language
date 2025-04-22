@@ -543,4 +543,19 @@ family:SetItalic(nextName)
         strategy:SetColor(color)
         return strategy
     end
+    
+    /*This action disposes all Fonts stored in the manager, releasing any system resources associated
+with them. This is used internally by the engine when needed and should almost never be called
+by users explicitly.*/
+    action Dispose
+        // NYI
+        //Iterator<FontStrategy> fonts = fontTable:GetValueIterator()
+        //repeat while fonts:HasNext()
+            //FontStrategy font = fonts:Next()
+//if font:IsLoaded()
+//font:Dispose()
+//            end
+//        end
+        //fontTable:Empty()
+    end
 end

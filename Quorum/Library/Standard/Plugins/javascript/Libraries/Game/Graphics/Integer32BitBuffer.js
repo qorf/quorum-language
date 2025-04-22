@@ -1,80 +1,82 @@
-function plugins_quorum_Libraries_Game_Graphics_Integer32BitBuffer_() 
+class plugins_quorum_Libraries_Game_Graphics_Integer32BitBuffer_
 {
-    var intArray;
-    var size;
-    var writePosition;
-    
-    this.SetSize$quorum_integer = function(newSize)
+    constructor() {
+        this.intArray;
+        this.size;
+        this.writePosition;
+    }
+
+    SetSize$quorum_integer(newSize)
     {
-        intArray = new Int32Array(newSize);
-        size = newSize;
-        writePosition = 0;
+        this.intArray = new Int32Array(newSize);
+        this.size = newSize;
+        this.writePosition = 0;
     };
     
-    this.GetSize = function()
+    GetSize()
     {
-        return size;
+        return this.size;
     };
     
-    this.GetMaxSize = function()
+    GetMaxSize()
     {
-        return intArray.length;
+        return this.intArray.length;
     };
     
-    this.Set$quorum_Libraries_Containers_Integer32BitArray = function(array)
+    Set$quorum_Libraries_Containers_Integer32BitArray(array)
     {
         for (var i = 0; i < array.GetSize(); i++)
         {
-            intArray[i] = array.Get$quorum_integer(i);
+            this.intArray[i] = array.Get$quorum_integer(i);
         }
         
-        size = array.GetSize();
+        this.size = array.GetSize();
     };
     
-    this.Set$quorum_integer$quorum_Libraries_Containers_Integer32BitArray$quorum_integer$quorum_integer = function(targetOffset, array, sourceOffset, count)
+    Set$quorum_integer$quorum_Libraries_Containers_Integer32BitArray$quorum_integer$quorum_integer(targetOffset, array, sourceOffset, count)
     {
         var source = sourceOffset, target = targetOffset;
         for (var i = 0; i < count; i++, source++, target++)
         {
-            intArray[target] = array.Get$quorum_integer(source);
+            this.intArray[target] = array.Get$quorum_integer(source);
         }
     };
     
-    this.Dispose = function()
+    Dispose()
     {
-        intArray = null;
+        this.intArray = null;
     };
     
-    this.GetArray = function()
+    GetArray()
     {
-        return intArray;
+        return this.intArray;
     };
     
-    this.ResetWritePosition = function()
+    ResetWritePosition()
     {
-        writePosition = 0;
+        this.writePosition = 0;
     };
 
-    this.GetWritePosition = function()
+    GetWritePosition()
     {
-        return writePosition;
+        return this.writePosition;
     };
 
-    this.SetWritePosition = function(newPosition)
+    SetWritePosition(newPosition)
     {
-        writePosition = newPosition;
+        this.writePosition = newPosition;
     };
 
-    this.Write = function(array)
+    Write(array)
     {
         for (var i = 0; i < array.length; i++, writePosition++)
         {
-            intArray[writePosition] = array.Get$quorum_integer(i);
+            this.intArray[writePosition] = array.Get$quorum_integer(i);
         }
     };
     
-    this.Get$quorum_integer = function(index)
+    Get$quorum_integer(index)
     {
-        return intArray[index];
+        return this.intArray[index];
     };
 }

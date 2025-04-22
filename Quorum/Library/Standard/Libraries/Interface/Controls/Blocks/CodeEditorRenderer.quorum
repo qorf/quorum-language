@@ -381,6 +381,11 @@ class CodeEditorRenderer is Control
     end
 
     action UpdateSelectionCursor(CodeEditorSelection selection)
+        // If there's no available root block (e.g. during block regeneration) jump out early.
+        if rootBlock = undefined
+            return now
+        end
+        
         CodeEditor editor = GetEditor()
         number x = 0
         number y = 0
@@ -456,7 +461,12 @@ class CodeEditorRenderer is Control
         TO-DO: Improve this. We have a tree structure, so we should use it to binary search.
         */
 
+        // Ensure that the starting candidate is navigable.
         Block candidate = block
+        if candidate not= undefined and candidate:IsNavigable() = false
+            candidate = candidate:GetNextNavigableBlock()
+        end
+        
         repeat until candidate = undefined or candidate:GetNavigationIndex() = line
             Block nextCandidate = candidate:GetNextNavigableBlock()
 

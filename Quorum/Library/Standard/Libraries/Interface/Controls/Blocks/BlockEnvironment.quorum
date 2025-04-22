@@ -17,7 +17,16 @@ number blockNotchTopWidth = 50
     
     blueprint action GetLineY(integer index) returns number
     
+    /*This action returns the height of blocks at the given navigation index.
+This includes the current height of any dynamic elements, such as detail labels above
+editable areas, if there are any that are currently visible.*/
     blueprint action GetLineHeight(integer index) returns number
+    
+    /*This action returns the static, or non-changing, height of blocks at the given navigation index.
+This means that the height will include elements of a block that are always there, such as its
+fields and editable areas, but it won't include elements that show/hide or move, such as detail
+labels that can appear dynamically over fields.*/
+    blueprint action GetStaticLineHeight(integer index) returns number
     
     blueprint action GetCodeBetween(integer startIndex, integer endIndex) returns text
     

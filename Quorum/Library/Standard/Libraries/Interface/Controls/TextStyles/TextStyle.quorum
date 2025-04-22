@@ -109,5 +109,22 @@ class TextStyle
     action GetHighlight returns TextHighlight
         return highlight
     end
+    
+    /*This action creates a copy of the TextStyle. Colors and TextHighlights are
+assigned as shallow copies, while the index and length are independent between
+the two.
+
+Attribute: Returns A copy of this TextStyle.*/
+    action Copy returns TextStyle
+        TextStyle style
+        style:color = color
+style:selectionColor = selectionColor
+    style:highlight = highlight
+
+    style:index = index
+    style:length = length
+        
+        return style
+    end
 
 end

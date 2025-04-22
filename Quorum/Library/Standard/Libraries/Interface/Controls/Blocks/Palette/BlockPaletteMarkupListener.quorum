@@ -8,6 +8,7 @@ use Libraries.Containers.Array
 use Libraries.Interface.Controls.Blocks.Palette.BlockPalette
 use Libraries.Data.Formats.AttributesImplementation
 use Libraries.Interface.Forms.Banner
+use Libraries.Game.Graphics.Color
 
 
 class BlockPaletteMarkupListener is MarkupListener
@@ -27,6 +28,44 @@ class BlockPaletteMarkupListener is MarkupListener
 boolean showControl = true
 boolean showAction = true
     
+    text iconFontPath = ""
+    text iconFontName = ""
+    
+    boolean readingIcon = false
+    text iconCharacter = ""
+    integer iconUnicode = 0
+    text iconFilePath = ""
+    boolean iconHasColor = false
+    number iconRed = 0
+    number iconGreen = 0
+    number iconBlue = 0
+    number iconAlpha = 1
+    
+    //Information for icons related to the default categories available in the BlockPalette.
+    boolean hasBasicIcon = false
+text basicIconCharacter = ""
+    integer basicIconUnicode = 0
+    text basicIconFilePath = ""
+    Color basicIconColor = undefined
+    
+    boolean hasControlIcon = false
+text controlIconCharacter = ""
+    integer controlIconUnicode = 0
+    text controlIconFilePath = ""
+    Color controlIconColor = undefined
+    
+    boolean hasActionIcon = false
+text actionIconCharacter = ""
+    integer actionIconUnicode = 0
+    text actionIconFilePath = ""
+    Color actionIconColor = undefined
+    
+    boolean hasSuggestionIcon = false
+text suggestionIconCharacter = ""
+    integer suggestionIconUnicode = 0
+    text suggestionIconFilePath = ""
+    Color suggestionIconColor = undefined
+    
     on create
         Setup()
     end
@@ -39,6 +78,19 @@ boolean showAction = true
         bannerSubtitle = ""
         customPages:Empty()
         currentPage = undefined
+        
+iconFontPath = ""
+    iconFontName = ""
+    
+    readingIcon = false
+    iconCharacter = ""
+    iconUnicode = 0
+    iconFilePath = ""
+    iconHasColor = false
+    iconRed = 0
+    iconGreen = 0
+    iconBlue = 0
+    iconAlpha = 1
     end
     
 action StartElement(Element element)
@@ -70,6 +122,12 @@ if attributes:GetValue(i):Trim() = "false"
                         showAction = false
                     end
                 end
+                if attributes:GetName(i) = "iconFontPath"
+                    iconFontPath = attributes:GetValue(i):Trim()
+                end
+                if attributes:GetName(i) = "iconFontName"
+                    iconFontName = attributes:GetValue(i):Trim()
+                end
             i = i + 1
         end
         elseif elementName = "page"
@@ -87,6 +145,25 @@ AttributesImplementation attributes = element:GetAttributes()
 elseif elementName = "banner"
 bannerTitle = ""
             bannerSubtitle = ""
+        elseif elementName = "icon"
+            if currentPage = undefined
+                // Bad file
+                doneReading = true
+            else
+readingIcon = true
+            end
+        elseif elementName = "basicIcon"
+            hasBasicIcon = true
+            readingIcon = true
+        elseif elementName = "controlIcon"
+            hasControlIcon = true
+            readingIcon = true
+        elseif elementName = "actionIcon"
+            hasActionIcon = true
+            readingIcon = true
+        elseif elementName = "suggestionIcon"
+            hasSuggestionIcon = true
+            readingIcon = true
         end
     end
     
@@ -114,6 +191,45 @@ elseif name = "text"
 elseif name = "block"
             currentPage:AddBlockPaletteItem(value)
             // parse then add block palette item
+        elseif name = "character" and readingIcon
+            iconCharacter = value
+        elseif name = "unicode" and readingIcon
+            check
+                iconUnicode = cast(integer, value)
+            detect error
+                // Bad file
+                doneReading = true
+            end
+        elseif name = "filePath" and readingIcon
+            iconFilePath = value
+        elseif name = "red" and readingIcon
+            check
+                iconRed = cast(number, value)
+            detect error
+// Bad file
+                doneReading = true
+            end
+elseif name = "green" and readingIcon
+            check
+                iconGreen = cast(number, value)
+            detect error
+// Bad file
+                doneReading = true
+            end
+elseif name = "blue" and readingIcon
+            check
+                iconBlue = cast(number, value)
+            detect error
+// Bad file
+                doneReading = true
+            end
+elseif name = "alpha" and readingIcon
+            check
+                iconAlpha = cast(number, value)
+            detect error
+// Bad file
+                doneReading = true
+            end
         else
             // Bad file
             doneReading = true
@@ -132,6 +248,101 @@ elseif topOfStack:GetName()= "banner"
             if bannerSubtitle not= ""
                 banner:GetLabel():SetFontSize(currentPage:LABEL_SIZE)
             end
+        elseif topOfStack:GetName() = "icon"
+            readingIcon = false
+            if iconUnicode not= 0
+                currentPage:SetIconUnicode(iconUnicode)
+            elseif iconCharacter not= ""
+                currentPage:SetIconUnicode(iconCharacter:GetUnicodeInteger(0))
+            end
+            if iconFilePath not= ""
+                currentPage:SetIconFilePath(iconFilePath)
+            end
+            if iconHasColor
+                Color color
+                color:SetColor(iconRed, iconGreen, iconBlue, iconAlpha)
+                currentPage:SetIconColor(color)
+            end
+    iconCharacter = ""
+    iconUnicode = 0
+    iconFilePath = ""
+    hasColor = false
+    iconRed = 0
+    iconGreen = 0
+    iconBlue = 0
+    iconAlpha = 1
+        elseif topOfStack:GetName() = "basicIcon"
+            readingIcon = false
+            basicIconUnicode = iconUnicode
+            basicIconCharacter = iconCharacter
+            basicIconFilePath = iconFilePath
+            if iconHasColor
+                Color color
+                color:SetColor(iconRed, iconGreen, iconBlue, iconAlpha)
+                basicIconColor = color
+            end
+iconCharacter = ""
+    iconUnicode = 0
+    iconFilePath = ""
+    hasColor = false
+    iconRed = 0
+    iconGreen = 0
+    iconBlue = 0
+    iconAlpha = 1
+elseif topOfStack:GetName() = "controlIcon"
+readingIcon = false
+            controlIconUnicode = iconUnicode
+            controlIconCharacter = iconCharacter
+            controlIconFilePath = iconFilePath
+            if iconHasColor
+                Color color
+                color:SetColor(iconRed, iconGreen, iconBlue, iconAlpha)
+                controlIconColor = color
+            end
+iconCharacter = ""
+    iconUnicode = 0
+    iconFilePath = ""
+    hasColor = false
+    iconRed = 0
+    iconGreen = 0
+    iconBlue = 0
+    iconAlpha = 1
+elseif topOfStack:GetName() = "actionIcon"
+readingIcon = false
+            actionIconUnicode = iconUnicode
+            actionIconCharacter = iconCharacter
+            actionIconFilePath = iconFilePath
+            if iconHasColor
+                Color color
+                color:SetColor(iconRed, iconGreen, iconBlue, iconAlpha)
+                actionIconColor = color
+            end
+iconCharacter = ""
+    iconUnicode = 0
+    iconFilePath = ""
+    hasColor = false
+    iconRed = 0
+    iconGreen = 0
+    iconBlue = 0
+    iconAlpha = 1
+elseif topOfStack:GetName() = "suggestionIcon"
+readingIcon = false
+            actionIconUnicode = iconUnicode
+            actionIconCharacter = iconCharacter
+            actionIconFilePath = iconFilePath
+            if iconHasColor
+                Color color
+                color:SetColor(iconRed, iconGreen, iconBlue, iconAlpha)
+                actionIconColor = color
+            end
+iconCharacter = ""
+    iconUnicode = 0
+    iconFilePath = ""
+    hasColor = false
+    iconRed = 0
+    iconGreen = 0
+    iconBlue = 0
+    iconAlpha = 1
         end
     end
 
@@ -161,6 +372,94 @@ elseif topOfStack:GetName()= "banner"
 
     action GetShowAction returns boolean
         return showAction
+    end
+
+    action GetIconFontPath returns text
+        return iconFontPath
+    end
+
+    action GetIconFontName returns text
+        return iconFontName
+    end
+    
+    action HasBasicIcon returns boolean
+        return hasBasicIcon
+    end
+    
+    action HasControlIcon returns boolean
+        return hasControlIcon
+    end
+    
+    action HasActionIcon returns boolean
+        return hasActionIcon
+    end
+    
+    action HasSuggestionIcon returns boolean
+        return hasSuggestionIcon
+    end
+
+    action GetBasicIconCharacter returns text
+        return basicIconCharacter
+    end
+
+    action GetBasicIconUnicode returns integer
+        return basicIconUnicode
+    end
+
+    action GetBasicIconFilePath returns text
+        return basicIconFilePath
+    end
+
+    action GetBasicIconColor returns Color
+        return basicIconColor
+    end
+
+    action GetControlIconCharacter returns text
+        return controlIconCharacter
+    end
+
+    action GetControlIconUnicode returns integer
+        return controlIconUnicode
+    end
+
+    action GetControlIconFilePath returns text
+        return controlIconFilePath
+    end
+
+    action GetControlIconColor returns Color
+        return controlIconColor
+    end
+
+    action GetActionIconCharacter returns text
+        return actionIconCharacter
+    end
+
+    action GetActionIconUnicode returns integer
+        return actionIconUnicode
+    end
+
+    action GetActionIconFilePath returns text
+        return actionIconFilePath
+    end
+
+    action GetActionIconColor returns Color
+        return actionIconColor
+    end
+
+    action GetSuggestionIconCharacter returns text
+        return suggestionIconCharacter
+    end
+
+    action GetSuggestionIconUnicode returns integer
+        return suggestionIconUnicode
+    end
+
+    action GetSuggestionIconFilePath returns text
+        return suggestionIconFilePath
+    end
+
+    action GetSuggestionIconColor returns Color
+        return suggestionIconColor
     end
 
 end
