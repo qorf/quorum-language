@@ -1475,6 +1475,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
     
     var lastWidth = 0;
     var lastHeight = 0;
+    var lastPixelFactor = 1.0;
     
     this.CheckForEvents$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array = function(mouseEvents, keyEvents, textEvents, resizeEvents, gestureEvents)
     {
@@ -1505,16 +1506,28 @@ function plugins_quorum_Libraries_Game_WebInput_()
 
         // We manually construct the resize events here.
         var display = gameInfo.display.plugin_.GetCanvas();
-        if (lastWidth !== display.clientWidth || lastHeight !== display.clientHeight)
+
+        // If the user has zoomed in their web browser, the HTML size reflects its unscaled value, not the actual
+        // number of pixels. If we're able to identify the zoom level, use it to calculate the scaled size, so we
+        // can adjust the resolution of Quorum elements accordingly.
+        let pixelFactor = lastPixelFactor;
+//        if (window.devicePixelRatio)
+//        {
+//            pixelFactor = window.devicePixelRatio;
+//        }
+
+        if (lastWidth !== display.clientWidth || lastHeight !== display.clientHeight || lastPixelFactor !== pixelFactor)
         {
             lastWidth = display.clientWidth;
             lastHeight = display.clientHeight;
             display.width = display.clientWidth;
             display.height = display.clientHeight;
+
+            lastPixelFactor = pixelFactor;
             
             var quorumEvent = new quorum_Libraries_Interface_Events_ResizeEvent_();
-            quorumEvent.SetWidth$quorum_integer(lastWidth);
-            quorumEvent.SetHeight$quorum_integer(lastHeight);
+            quorumEvent.SetWidth$quorum_integer(lastWidth * lastPixelFactor);
+            quorumEvent.SetHeight$quorum_integer(lastHeight * lastPixelFactor);
             resizeEvents.Add$quorum_Libraries_Language_Object(quorumEvent);
         }
         

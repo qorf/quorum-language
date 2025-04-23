@@ -7,6 +7,7 @@ use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Selections.TextBoxSelection
 use Libraries.Game.GameStateManager
 use Libraries.Game.Game
+use Libraries.Game.WebDisplay
 
 class TextFieldPasteFromClipboardBehavior is Behavior
     action Run(BehaviorEvent event)
@@ -18,8 +19,13 @@ class TextFieldPasteFromClipboardBehavior is Behavior
         TextField box = cast(TextField, item)
         integer position = box:GetCaretPosition()
         GameStateManager manager
-        Game game = manager:GetGame()
+if manager:GetGameDisplay() is WebDisplay
+            WebDisplay display = cast(WebDisplay, manager:GetGameDisplay())
+            display:PasteFromClipboard(box, position)
+        else
+Game game = manager:GetGame()
         text value = game:GetClipboard()
         box:Insert(position, value)
+        end
     end
 end
