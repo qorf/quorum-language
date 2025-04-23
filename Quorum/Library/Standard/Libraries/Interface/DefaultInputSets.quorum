@@ -20,6 +20,7 @@ use Libraries.Interface.Behaviors.Blocks.all
 use Libraries.Interface.Behaviors.CancelBehavior
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.GestureEvent
+use Libraries.Game.WebApplication
 
 
 
@@ -148,7 +149,7 @@ shared class DefaultInputSets
         OpenPopupMenuBehavior openContextMenuBehavior
         buttonTable:Add(GetRightClick(), openContextMenuBehavior)
 
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             buttonTable:Add(AddControlModifier(GetLeftClick()), openContextMenuBehavior)
         end
 
@@ -380,7 +381,7 @@ shared class DefaultInputSets
         TreeOpenPopupMenuBehavior treeOpenContextMenuBehavior
         treeItemTable:Add(rightClickSet, treeOpenContextMenuBehavior)
 
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             InputSet rightClickControlSet
             rightClickControlSet:SetMouseInput(mouse:LEFT)
             rightClickControlSet:AddModifier(rightClickControlSet:CONTROL)
@@ -454,7 +455,7 @@ shared class DefaultInputSets
         spreadsheetTable:Add(GetEnterKey(), spreadsheetActivate)
 
         //copy past for fields
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             //first do copy paste
             InputSet metaC
             metaC:SetKeyboardInput(keys:C)
@@ -654,7 +655,7 @@ shared class DefaultInputSets
         InputSet numpadEnter
         numpadEnter:SetKeyboardInput(keys:NUMPAD_ENTER)
 
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             //first do copy paste
             InputSet textBoxControlC
             textBoxControlC:SetKeyboardInput(keys:C)
@@ -668,6 +669,7 @@ shared class DefaultInputSets
             TextBoxCutToClipboardBehavior textBoxCutToClipboardBehavior
             textBoxTable:Add(textBoxControlX, textBoxCutToClipboardBehavior)
 
+            output "TextBox Paste: CMD-V"
             InputSet textBoxControlV
             textBoxControlV:SetKeyboardInput(keys:V)
             textBoxControlV:AddModifier(textBoxControlC:META)
@@ -1019,7 +1021,7 @@ InputSet textBoxControlDelete
         rightClickControlSet:SetMouseInput(mouse:LEFT)
         rightClickControlSet:AddModifier(rightClickControlSet:CONTROL)
 
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             textBoxTable:Add(rightClickControlSet, textBoxOpenPopupMenuBehavior)
         end
 
@@ -1068,7 +1070,7 @@ InputSet textBoxControlDelete
         TextBoxPageUpBehavior textBoxPageUpBehavior
         textBoxTable:Add(pageUp, textBoxPageUpBehavior)
                
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             //first do copy paste
             InputSet textBoxSelectLeft
             textBoxSelectLeft:SetKeyboardInput(keys:LEFT)
@@ -1104,7 +1106,7 @@ InputSet textBoxControlDelete
         TextBoxCaretToLineEndBehavior caretLineEndBehavior
         textBoxTable:Add(endSet, caretLineEndBehavior)
 
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             textBoxTable:Add(AddMetaModifier(GetLeftArrowKey()), caretLineStartBehavior)
             textBoxTable:Add(AddMetaModifier(GetRightArrowKey()), caretLineEndBehavior)
 
@@ -1258,7 +1260,7 @@ InputSet textBoxControlDelete
         textFieldTable:Add(shiftMouseClick, textFieldSelectToMouseClickBehavior)
 
         //copy past for fields
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             //first do copy paste
             InputSet textFieldControlC
             textFieldControlC:SetKeyboardInput(keys:C)
@@ -1577,7 +1579,7 @@ InputSet textFieldControlDelete
         InputSet selectionMoveDown3DStart
         InputSet selectionMoveDown3DStop
 
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             selectionMoveUp3DStart = AddMetaModifier(GetUpArrowKey())
             selectionMoveUp3DStop = AddMetaModifier(GetUpArrowKey())
             selectionMoveUp3DStop:SetInputTrigger(selectionMoveUp3DStop:FINISH)
@@ -1646,7 +1648,7 @@ InputSet textFieldControlDelete
         InputSet decreaseGridUnitInput
         InputSet openEditorFindDialogInput
 
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             InputSet set
             toggleGridInput:SetKeyboardInput(keys:G)
             toggleGridInput:AddModifier(set:META)
@@ -1717,7 +1719,7 @@ InputSet textFieldControlDelete
         cameraItemTable2D:Add(selectionScaleDownSet, selectionScaleDownBehavior)
 
         InputSet focusPropertiesSet
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             focusPropertiesSet:SetKeyboardInput(keys:P)
             focusPropertiesSet:AddModifier(focusPropertiesSet:META)
         else
@@ -1791,7 +1793,7 @@ InputSet textFieldControlDelete
         InputSet selectionRotateRollRightStart
         InputSet selectionRotateRollRightStop
 
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             selectionRotateRollLeftStart = AddMetaModifier(AddAltModifier(GetLeftArrowKey()))
             selectionRotateRollLeftStop = AddMetaModifier(AddAltModifier(GetLeftArrowKey()))
             selectionRotateRollLeftStop:SetInputTrigger(selectionRotateRollLeftStop:FINISH)
@@ -1876,7 +1878,7 @@ InputSet textFieldControlDelete
         selectionTable:Add(openEditorFindDialogInput, openFindDialogBehavior)
 
         InputSet resetScaleSet        
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             resetScaleSet:SetKeyboardInput(keys:R)
             resetScaleSet = AddMetaModifier(resetScaleSet)
         else
@@ -2385,7 +2387,7 @@ InputSet swipeSet
         CodeEditorCopyToClipboardBehavior copyToClipboardBehavior
         CodeEditorCutToClipboardBehavior cutToClipboardBehavior
         CodeEditorPasteFromClipboardBehavior pasteFromClipboardBehavior
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             controlHomeSet:AddModifier(controlHomeSet:META)
             controlEndSet:AddModifier(controlEndSet:META)
 controlShiftHomeSet:AddModifier(controlHomeSet:META)
@@ -2622,5 +2624,26 @@ InputSet spaceSet
 
         gameInput:AddInputTable(scrollPaneTable)
     end
+    
+    private action ShouldUseMacKeys returns boolean
+        if manager:GetOperatingSystem():Contains("OS X")
+            output "Mac"
+            return true
+        end
+        if manager:GetOperatingSystem():Contains("Web Browser")
+GameStateManager manager
+            if manager:GetApplication() is WebApplication
+WebApplication webApp = cast(WebApplication, manager:GetApplication())
+        if webApp:GetWebOperatingSystem():Contains("Mac")
+                    output "Web Mac"
+                    return true
+        end
+            end
+        end
+        
+        output "Not using Mac keys"
+        return false
+    end
+    
 
 end

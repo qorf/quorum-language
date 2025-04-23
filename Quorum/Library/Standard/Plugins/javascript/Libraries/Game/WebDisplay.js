@@ -170,6 +170,15 @@ function plugins_quorum_Libraries_Game_WebDisplay_()
         }
     }
 
+    async function PasteIntoEditor(editor)
+    {
+        let text = await navigator.clipboard.readText();
+        if (text != null && text != "")
+        {
+            editor.InsertTextAfterLine$quorum_text(text);
+        }
+    }
+
     this.PasteFromClipboard$quorum_Libraries_Interface_Controls_TextBox$quorum_integer = function(textBox, index)
     {
         PasteInto(textBox, index);
@@ -178,6 +187,11 @@ function plugins_quorum_Libraries_Game_WebDisplay_()
     this.PasteFromClipboard$quorum_Libraries_Interface_Controls_TextField$quorum_integer = function(textField, index)
     {
         PasteInto(textField, index);
+    };
+
+    this.PasteFromClipboard$quorum_Libraries_Interface_Controls_Blocks_CodeEditor = function(editor)
+    {
+        PasteIntoEditor(editor);
     };
 
 }

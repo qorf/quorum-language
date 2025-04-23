@@ -199,6 +199,8 @@ function plugins_quorum_Libraries_Game_WebInput_()
 
             if (gameInfo !== null)
             {
+                console.log("Key event: " + event.code);
+
                 var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumKeyEvent(event, true, gameInfo);
                 if (!gameInfo.plugins_quorum_Libraries_Game_WebInput_.pressedKeys[quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__keyCode_()])
                 {

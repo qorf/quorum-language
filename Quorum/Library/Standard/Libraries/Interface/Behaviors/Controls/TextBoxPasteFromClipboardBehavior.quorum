@@ -13,14 +13,17 @@ class TextBoxPasteFromClipboardBehavior is Behavior
     action Run(BehaviorEvent event)
         Item item = event:GetItem()
         if not (item is TextBox)
+            output item:GetName() + " wasn't text box!"
             return now
         end
 
         TextBox box = cast(TextBox, item)
         integer position = box:GetCaretPosition()
         GameStateManager manager
+        output "Paste A"
         if manager:GetGameDisplay() is WebDisplay
             WebDisplay display = cast(WebDisplay, manager:GetGameDisplay())
+            output "Paste B"
             display:PasteFromClipboard(box, position)
         else
 Game game = manager:GetGame()
