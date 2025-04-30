@@ -199,8 +199,6 @@ function plugins_quorum_Libraries_Game_WebInput_()
 
             if (gameInfo !== null)
             {
-                console.log("Key event: " + event.code);
-
                 var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumKeyEvent(event, true, gameInfo);
                 if (!gameInfo.plugins_quorum_Libraries_Game_WebInput_.pressedKeys[quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__keyCode_()])
                 {
@@ -213,6 +211,8 @@ function plugins_quorum_Libraries_Game_WebInput_()
         
         plugins_quorum_Libraries_Game_WebInput_.KeyUp = function(event)
         {
+            console.log("Release JS event for " + event.code);
+
             if (plugins_quorum_Libraries_Game_WebInput_.IsVirtualKeyboardOpen() === true)
             {
                 // If the virtual keyboard is open, don't process the key event.
@@ -241,6 +241,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
             for (let [key, value] of map)
             {
                 let currentInfo = value;
+                console.log("Releasing " + event.code + ". If META is held, other key releases may be lost!");
 
                 var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumKeyEvent(event, false, currentInfo);
                 if (currentInfo && currentInfo.plugins_quorum_Libraries_Game_WebInput_ && currentInfo.plugins_quorum_Libraries_Game_WebInput_.pressedKeys[quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__keyCode_()])
@@ -715,6 +716,12 @@ function plugins_quorum_Libraries_Game_WebInput_()
                         break;
                     case "ControlRight":
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__CONTROL_RIGHT_());
+                        break;
+                    case "MetaLeft":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__META_LEFT_());
+                        break;
+                    case "MetaRight":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__META_RIGHT_());
                         break;
                     case "Escape":
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__ESCAPE_());

@@ -25,10 +25,8 @@ class CodeEditorPasteFromClipboardBehavior is Behavior
         CodeEditor editor = cast(CodeEditor, item)
         
 GameStateManager manager
-        output "Paste C"
         if manager:GetGameDisplay() is WebDisplay
             WebDisplay display = cast(WebDisplay, manager:GetGameDisplay())
-            output "Paste D"
             display:PasteFromClipboard(editor)
         else
 Game game = manager:GetGame()

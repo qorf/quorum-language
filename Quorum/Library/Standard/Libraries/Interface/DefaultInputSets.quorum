@@ -669,7 +669,6 @@ shared class DefaultInputSets
             TextBoxCutToClipboardBehavior textBoxCutToClipboardBehavior
             textBoxTable:Add(textBoxControlX, textBoxCutToClipboardBehavior)
 
-            output "TextBox Paste: CMD-V"
             InputSet textBoxControlV
             textBoxControlV:SetKeyboardInput(keys:V)
             textBoxControlV:AddModifier(textBoxControlC:META)
@@ -2627,7 +2626,6 @@ InputSet spaceSet
     
     private action ShouldUseMacKeys returns boolean
         if manager:GetOperatingSystem():Contains("OS X")
-            output "Mac"
             return true
         end
         if manager:GetOperatingSystem():Contains("Web Browser")
@@ -2635,13 +2633,11 @@ GameStateManager manager
             if manager:GetApplication() is WebApplication
 WebApplication webApp = cast(WebApplication, manager:GetApplication())
         if webApp:GetWebOperatingSystem():Contains("Mac")
-                    output "Web Mac"
                     return true
         end
             end
         end
         
-        output "Not using Mac keys"
         return false
     end
     
