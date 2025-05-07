@@ -12,7 +12,6 @@ class TextBoxCopyToClipboardBehavior is Behavior
     action Run(BehaviorEvent event)
         Item item = event:GetItem()
         if not (item is TextBox)
-            output "Copy failed, item was " + item:GetName()
             return now
         end
 

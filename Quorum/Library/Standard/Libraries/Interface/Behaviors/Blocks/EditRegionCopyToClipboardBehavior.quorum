@@ -26,7 +26,6 @@ action Run(BehaviorEvent event)
             EditBox box = cast(EditBox, region)
 TextBoxSelection selection = box:GetSelection()
         text value = selection:GetText()
-output "Copying " + value + " from EditBox"
         GameStateManager manager
         Game game = manager:GetGame()
         game:SetClipboard(value)
@@ -34,12 +33,9 @@ output "Copying " + value + " from EditBox"
             EditField field = cast(EditField, region)
             TextFieldSelection selection = field:GetSelection()
             text value = selection:GetText()
-output "Copying " + value + " from EditField"
 GameStateManager manager
         Game game = manager:GetGame()
         game:SetClipboard(value)
-        else
-            output "Region was no good!"
         end
         
     end
