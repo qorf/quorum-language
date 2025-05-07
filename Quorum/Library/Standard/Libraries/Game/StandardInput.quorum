@@ -850,8 +850,6 @@ private action GetRecentGestureInput(GestureEvent event) returns RecentInputTime
 
             set:SetKeyboardInput(currentEvent:keyCode)
             anySet:SetKeyboardInput(currentEvent:ANY_KEY)
-
-            output "Set: " + set:GetDisplayName() + ", hash = " + set:GetHashCode()
             
             text inputGroup = ""
             Item focusedItem = manager:GetFocus()

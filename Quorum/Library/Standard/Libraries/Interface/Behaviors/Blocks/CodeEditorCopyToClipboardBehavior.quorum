@@ -25,7 +25,6 @@ class CodeEditorCopyToClipboardBehavior is Behavior
             return now
         end
         text copy = editor:GetSelectedText()
-        output "Copying " + copy
         GameStateManager manager
         Game game = manager:GetGame()
         game:SetClipboard(copy)

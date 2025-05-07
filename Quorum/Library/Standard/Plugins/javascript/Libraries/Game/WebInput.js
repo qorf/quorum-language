@@ -211,7 +211,6 @@ function plugins_quorum_Libraries_Game_WebInput_()
         
         plugins_quorum_Libraries_Game_WebInput_.KeyUp = function(event)
         {
-            console.log("Release JS event for " + event.code);
 
             if (plugins_quorum_Libraries_Game_WebInput_.IsVirtualKeyboardOpen() === true)
             {
@@ -241,7 +240,37 @@ function plugins_quorum_Libraries_Game_WebInput_()
             for (let [key, value] of map)
             {
                 let currentInfo = value;
-                console.log("Releasing " + event.code + ". If META is held, other key releases may be lost!");
+
+                /*
+                On Mac OSX, the system won't report any keys that are released while one of the Meta buttons is held.
+                This means that released keys during this time are "missed" and will be considered stuck down by the system.
+                Unfortunately, there's no way to confirm if a key is actively held or not, which means we need to take
+                our best guess.
+
+                The most common use case for the Meta key is as part of hotkeys, so it's safest to assume that when Meta
+                is released, the other keys were released first. We simulate key release events for any non-Meta keys
+                here, which will be processed by Quorum before the release of the Meta key.
+                */
+                if (event.code && (event.code == "MetaLeft" || event.code == "MetaRight"))
+                {
+                    var quorumKeys = new quorum_Libraries_Interface_Events_KeyboardEvent_();
+
+                    for (const [key, value] of Object.entries(currentInfo.plugins_quorum_Libraries_Game_WebInput_.pressedKeys))
+                    {
+                        if (value === true
+                         && key !== quorumKeys.Get_Libraries_Interface_Events_KeyboardEvent__META_LEFT_()
+                         && key !== quorumKeys.Get_Libraries_Interface_Events_KeyboardEvent__META_RIGHT_())
+                        {
+                            let quorumEvent = new quorum_Libraries_Interface_Events_KeyboardEvent_();
+                            quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__eventType_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__RELEASED_KEY_());
+                            quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(key);
+
+                            currentInfo.plugins_quorum_Libraries_Game_WebInput_.pressedKeys[key] = false;
+                            currentInfo.plugins_quorum_Libraries_Game_WebInput_.pressedKeysCount--;
+                            currentInfo.plugins_quorum_Libraries_Game_WebInput_.keyboardEvents.push(quorumEvent);
+                        }
+                    }
+                }
 
                 var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumKeyEvent(event, false, currentInfo);
                 if (currentInfo && currentInfo.plugins_quorum_Libraries_Game_WebInput_ && currentInfo.plugins_quorum_Libraries_Game_WebInput_.pressedKeys[quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__keyCode_()])
