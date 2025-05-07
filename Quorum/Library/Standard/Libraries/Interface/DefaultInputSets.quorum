@@ -21,9 +21,6 @@ use Libraries.Interface.Behaviors.CancelBehavior
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.GestureEvent
 
-
-
-
 shared class DefaultInputSets
 
     GameStateManager manager
@@ -1411,6 +1408,17 @@ InputSet textFieldControlDelete
             TextFieldDeleteToTokenEndBehavior textFieldDeleteToTokenEndBehavior
             textFieldTable:Add(textFieldControlDelete, textFieldDeleteToTokenEndBehavior)
         end
+        
+InputSet shiftF10SetTextBox
+        shiftF10SetTextBox:SetKeyboardInput(keys:F10)
+        shiftF10SetTextBox:AddModifier(shiftF10SetTextBox:SHIFT)
+        TextBoxOpenPopupMenuBehavior textBoxOpenPopupMenuBehavior
+        textFieldTable:Add(shiftF10SetTextBox, textBoxOpenPopupMenuBehavior)
+
+        InputSet rightClickSetTextBox
+        rightClickSetTextBox:SetMouseInput(mouse:RIGHT)
+        textFieldTable:Add(rightClickSetTextBox, textBoxOpenPopupMenuBehavior)
+        
         gameInput:AddInputTable(textFieldTable)
     end
 

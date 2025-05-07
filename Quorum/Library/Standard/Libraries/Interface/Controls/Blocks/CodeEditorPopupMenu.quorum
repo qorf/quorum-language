@@ -81,7 +81,7 @@ class CodeEditorPopupMenu is PopupMenu
 
     private action GenerateMenu
         //first regenerate the menu based upon context
-        parent:PopupMenu:panel:Empty()
+        Empty()
         if editor not= undefined
             GenerateContextSensitiveMenus()
         end

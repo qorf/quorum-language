@@ -554,6 +554,8 @@ shouldCalculateWidth = true
         elseif item is EditField
             EditField edit = cast(EditField, item)
             return edit:GetCaretGlobalX()
+        else
+            return block:GetGlobalX()
         end
         return -1
     end
@@ -581,6 +583,8 @@ shouldCalculateWidth = true
         elseif item is EditField
             EditField edit = cast(EditField, item)
             return edit:GetCaretGlobalY()
+        else
+            return block:GetGlobalY()
         end
         return -1
     end

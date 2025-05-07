@@ -14,6 +14,11 @@ use Libraries.Interface.Selections.TextFieldSelection
 use Libraries.Interface.Controls.Blocks.Palette.BlockPaletteItem
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.PopupMenu
+use Libraries.Interface.Controls.MenuItem
+use Libraries.Interface.Behaviors.Blocks.EditRegionCutToClipboardBehavior
+use Libraries.Interface.Behaviors.Blocks.EditRegionCopyToClipboardBehavior
+use Libraries.Interface.Behaviors.Blocks.EditRegionPasteFromClipboardBehavior
 
 class EditField is TextField, EditRegion
 
@@ -272,6 +277,40 @@ if GetBlock() is SingleLineBlock
     
     action GetLeftCharacterPadding returns integer
         return parent:TextField:GetLeftCharacterPadding()
+    end
+    
+action GetPopupMenu returns PopupMenu
+        PopupMenu menu = parent:Control:GetPopupMenu()
+        if menu = undefined
+            PopupMenu newMenu
+            menu = newMenu
+            
+MenuItem cut
+    MenuItem copy    
+    MenuItem paste
+            
+            EditRegionCutToClipboardBehavior cutBehavior
+            EditRegionCopyToClipboardBehavior copyBehavior
+            EditRegionPasteFromClipboardBehavior pasteBehavior
+            cutBehavior:SetRegion(me)
+            copyBehavior:SetRegion(me)
+            pasteBehavior:SetRegion(me)
+            
+            cut:SetName("Cut")
+            cut:SetBehavior(cutBehavior)
+            copy:SetName("Copy")
+            copy:SetBehavior(copyBehavior)
+            paste:SetName("Paste")
+            paste:SetBehavior(pasteBehavior)
+            
+            newMenu:Add(cut)
+            newMenu:Add(copy)
+            newMenu:Add(paste)
+            
+            SetPopupMenu(menu)
+        end
+        
+        return menu
     end
     
 end

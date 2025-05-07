@@ -1,0 +1,45 @@
+package Libraries.Interface.Behaviors.Blocks
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Controls.Blocks.EditRegion
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Blocks.EditBox
+use Libraries.Interface.Controls.Blocks.EditField
+use Libraries.Interface.Selections.TextBoxSelection
+use Libraries.Game.GameStateManager
+use Libraries.Game.Game
+use Libraries.Interface.Selections.TextFieldSelection
+
+class EditRegionCutToClipboardBehavior is Behavior
+    
+    EditRegion region = undefined
+    
+    action GetRegion returns EditRegion
+        return region
+    end
+
+    action SetRegion(EditRegion region)
+        me:region = region
+    end
+    
+    action Run(BehaviorEvent event)
+        if region is EditBox
+EditBox box = cast(EditBox, region)
+        TextBoxSelection selection = box:GetSelection()
+        text value = selection:GetText()
+        GameStateManager manager
+        Game game = manager:GetGame()
+        game:SetClipboard(value)
+        box:DeleteSelection()
+        elseif region is EditField
+EditField box = cast(EditField, region)
+        TextFieldSelection selection = box:GetSelection()
+        text value = selection:GetText()
+        GameStateManager manager
+        Game game = manager:GetGame()
+        game:SetClipboard(value)
+        box:DeleteSelection()
+        end
+    end
+
+end
