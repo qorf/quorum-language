@@ -102,8 +102,8 @@ public class WavInputStream extends FilterInputStream {
             {
                 // Ignore any exceptions while closing.
             }
-            throw new RuntimeException("Error reading WAV file: " + file, ex);
-	}
+            throw new RuntimeException("Error reading WAV file: " + file + ": " + ex.getMessage(), ex);
+	    }
     }
 
     private int seekToChunk (char c1, char c2, char c3, char c4) throws IOException 

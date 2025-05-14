@@ -231,11 +231,26 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
                     ancestor = ancestor.parentElement;
                 }
 
+                let game = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().game;
+                let maxWidth = game.GetScreenWidth() - x;
+                let maxHeight = game.GetScreenHeight() - y;
+                let width = item2D.GetWidth();
+                let height = item2D.GetHeight();
+
+                if (maxWidth < width)
+                {
+                    width = maxWidth;
+                }
+                if (maxHeight < height)
+                {
+                    height = maxHeight;
+                }
+
                 element.style.position = "absolute";
                 element.style.left = `${x}px`;
                 element.style.bottom = `${y}px`;
-                element.style.width = `${item2D.GetWidth()}px`;
-                element.style.height = `${item2D.GetHeight()}px`;
+                element.style.width = `${width}px`;
+                element.style.height = `${height}px`;
             }
         }
     };

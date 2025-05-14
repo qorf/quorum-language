@@ -391,11 +391,13 @@ function plugins_quorum_Libraries_Game_WebInput_()
         
         plugins_quorum_Libraries_Game_WebInput_.MouseMove = function(event)
         {
-            if (event.pointerType !== 'touch') 
-            {
-                var gameInfo = plugins_quorum_Libraries_Game_WebInput_.GetMousedGameInfo(event);
+            var gameInfo = plugins_quorum_Libraries_Game_WebInput_.GetMousedGameInfo(event);
 
-                if (gameInfo !== null)
+            if (gameInfo !== null)
+            {
+                var config = gameInfo.game.GetWebConfiguration();
+
+                if (event.pointerType !== 'touch' || config.Get_Libraries_Game_WebConfiguration__convertTouchToMouseEvents_() == true)
                 {
                     event.stopPropagation();
                     event.preventDefault();
@@ -408,6 +410,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
                     }
                 }
             }
+
         };
         
         plugins_quorum_Libraries_Game_WebInput_.MouseScroll = function(event)

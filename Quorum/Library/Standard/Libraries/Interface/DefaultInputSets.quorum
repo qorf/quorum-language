@@ -2589,6 +2589,16 @@ InputSet spaceSet
         
         // Make sure the CodeEditor's drag receiving behavior has a needed reference to the starting drag behavior.
         draggedIntoBehavior:SetSourceDragBehavior(dragBehavior)
+        
+        InputTable blockPaletteTable
+        blockPaletteTable:SetIdentifier("BlockPalette")
+        
+        BlockPaletteAcceptDraggedBlockBehavior paletteDragIntoBehavior
+        paletteDragIntoBehavior:SetSourceDragBehavior(dragBehavior)
+        blockPaletteTable:Add(dragIntoFinishSet, paletteDragIntoBehavior)
+        
+        gameInput:AddInputTable(blockPaletteTable)
+        
     end
 
     action SetupScrollBarControlInput(GameInput gameInput)
