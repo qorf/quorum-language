@@ -108,7 +108,7 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
             label:SetColor(GetFontColor())
         end
 
-        label:SetLeftMargin(DEFAULT_PADDING)
+label:SetLeftMargin(DEFAULT_PADDING)
         label:SetFont(properties:GetFont())
         label:SetFontSize(properties:GetFontSize())
         label:SetInterfaceScale(properties:GetInterfaceScale())
@@ -183,8 +183,8 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
                 end
             end
 
-            LayoutProperties buttonProperties = expandButton:GetDefaultLayoutProperties()
-            expandButton:SetLeftMargin(PADDING_PER_DEPTH * row:GetTreeDepth() * GetInterfaceScale())
+            FlowLayout layout = cast(FlowLayout, GetLayout())
+expandButton:SetLeftMargin(PADDING_PER_DEPTH * row:GetTreeDepth() * GetInterfaceScale())
         end
     end
 

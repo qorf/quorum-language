@@ -204,7 +204,7 @@ class FlowLayout is Layout
         integer i = 0
         repeat while i < items:GetSize()
             Item2D item = items:Get(i)
-            if item:IsShowing()
+            if ignoreHidden = false or item:IsShowing()
                             DefaultLayoutItem(item, items, i, containerWidth, containerHeight)
             end
             i = i + 1

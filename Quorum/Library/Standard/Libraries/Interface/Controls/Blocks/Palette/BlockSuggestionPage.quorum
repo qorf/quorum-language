@@ -290,6 +290,7 @@ AddLabel("Action"):SetFontSize(HEADER2_SIZE)
         filterField:AddTextChangeListener(me)
         filterField:SetVerticalLayoutMode(filterField:parent:Control:FIT_FONT)
 filterField:SetHorizontalLayoutMode(filterField:parent:Control:FILL)
+        filterField:SetBottomPadding(0)
         Add(panel)
     end
     
@@ -401,7 +402,7 @@ text filter = filterField:GetText()
                 if actionName:Contains(filter) or filter = ""
                     text call = MakeFullActionCall(act, variableName)
                     if call not= ""
-suggestedActionItems:Add(AddBlockPaletteItem(call))
+suggestedActionItems:Add(AddBlockPaletteItem(call, act))
                     end
                 end
                 i = i + 1

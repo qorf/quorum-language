@@ -74,7 +74,7 @@ public class DesktopDisplay {
                 technically drawing twice on every resize, but this guarantees
                 that if we swap to the other buffer that it won't have junk
                 data. Resizing the screen is a rare operation, so this should
-                have a minor impact on overall perfo
+                have a minor impact on overall performance.
                 */
                 UpdateBuffer();
             }

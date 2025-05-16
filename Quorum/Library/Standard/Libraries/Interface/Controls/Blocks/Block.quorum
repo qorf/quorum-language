@@ -765,8 +765,15 @@ be dropped. Placeholder blocks have special rules around their text values and h
         BlockEnvironment editor = GetBlockEnvironment()
         if editor is BlockPaletteItem
             BlockPaletteItem item = cast(BlockPaletteItem, editor)
-            editor = item:GetEditor()
+            if item:GetEditor() not= undefined
+editor = item:GetEditor()
+            end
         end
+        
+        if editor = undefined
+            return now
+        end
+        
         number spacing = editor:GetDefaultGlyphWidth()
         SetLeftPadding(spacing * 0.5)
         SetRightPadding(spacing * 0.5)

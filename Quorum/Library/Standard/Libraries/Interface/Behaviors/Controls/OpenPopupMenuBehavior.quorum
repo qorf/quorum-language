@@ -9,7 +9,6 @@ use Libraries.Interface.Controls.PopupMenu
 
 class OpenPopupMenuBehavior is Behavior
     action Run(BehaviorEvent event)
-output "OpenPopupMenuBehavior"
         Item item = event:GetItem()
         if (item is Control) = false
             return now
