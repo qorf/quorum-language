@@ -263,11 +263,21 @@ class SeparatedValue
         justFinishedDoubleQuote = false
 
         dq = line:GetDoubleQuote()
-        repeat size times
+        repeat while count < size
             char = line:GetCharacter(count)
             
             if char = dq
-                isInDoubleQuotes = not isInDoubleQuotes
+                nextCount = count + 1
+                //is it the special case of an escaped double quote?
+                //Also, just asking for a friend here, why is this so ridiculous?
+                if isInDoubleQuotes and nextCount < size and 
+line:GetCharacter(nextCount) = dq
+                    //skip the next character and consume a double quote
+                    count = count + 1
+current = current + dq
+                else
+isInDoubleQuotes = not isInDoubleQuotes
+                end
             elseif char = separator and not isInDoubleQuotes
                     row:Add(current)
                     justFinishedDoubleQuote = false
