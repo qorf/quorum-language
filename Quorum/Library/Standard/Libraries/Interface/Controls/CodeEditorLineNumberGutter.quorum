@@ -19,7 +19,7 @@ class CodeEditorLineNumberGutter is LineNumberGutter, BreakpointListener
     
     action UpdateVisuals(integer startLine)
         Empty()
-        previousStartLine = startLine
+        parent:LineNumberGutter:previousStartLine = startLine
 
         ScrollableLineControl control = GetControl()
         integer fontSize = control:GetFontSize()
