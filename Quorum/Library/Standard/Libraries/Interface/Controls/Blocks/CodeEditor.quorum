@@ -1681,6 +1681,153 @@ editManager:SetSpecialAction(false)
             Delete(startIndex, GetSelectedText():GetSize())
         end
     end
+    
+    private action IsComment(Block block) returns boolean
+        return block is CommentBlock or (block is FreeformBlock and block:GetText():Trim():StartsWith("//"))
+    end
+    
+    /*This action will comment, or uncomment, the selected blocks of code.*/
+    action ToggleCommentsOnSelection
+        integer blockCount = selection:GetSelectedBlocks():GetSize()
+        if blockCount = 0
+            return now
+        elseif blockCount = 1
+            Block block = selection:GetSelectedBlocks():Get(0)
+            if IsComment(block)
+                UncommentBlock(block)
+            else
+                CommentBlock(block)
+            end
+        else
+            // If every block is a comment, uncomment them. If any aren't, comment them.
+            Array<Block> blocks = selection:GetSelectedBlocks()
+            integer i = 0
+            repeat while i < blocks:GetSize()
+                if not IsComment(blocks:Get(i))
+                    CommentBlocks(blocks)
+                    return now
+                end
+                i = i + 1
+            end
+            
+            // If we've reached this point, all blocks are comments.
+            UncommentBlocks(blocks)
+        end
+    end
+    
+    action UncommentBlock(Block block)
+        if block is CommentBlock = false
+            if block is FreeformBlock
+                text freeformText = block:GetText()
+                if freeformText:Trim():StartsWith("//")
+                    integer offset = freeformText:IndexOf("//")
+                    Delete(block:GetStartIndex() + offset, 2)
+                end
+            end
+            return now
+        end
+        
+        CommentBlock comment = cast(CommentBlock, block)
+        if comment:IsMultiLineComment()
+            return now
+        end
+        
+        Delete(comment:GetStartIndex(), 2)
+    end
+    
+    action UncommentBlocks(Array<Block> blocks)
+        integer startIndex = blocks:Get(0):GetStartIndex()
+        integer endIndex = blocks:GetFromEnd():GetEndIndex()
+        
+MultipleLineText oldText = GetCode()
+        text deletedText = rawCode:GetText(startIndex, endIndex)
+        text newText = deletedText
+        
+        // Process the blocks in reverse. We remove text from the rear of the text first,
+        // so we don't have to deal with any offsets for the next block we process.
+integer i = blocks:GetSize()
+        repeat while i > 0
+            i = i - 1
+            Block block = blocks:Get(i)
+            integer subIndex = 0
+            if block is FreeformBlock
+                subIndex = block:GetText():IndexOf("//")
+            end
+            integer slashIndex = (block:GetStartIndex() + subIndex) - startIndex
+            integer postTextStart = slashIndex + 2
+            text subResult = ""
+            if slashIndex > 0
+                subResult = newText:GetSubtext(0, slashIndex)
+            end
+            if postTextStart < newText:GetSize()
+                subResult = subResult + newText:GetSubtext(postTextStart)
+            end
+            newText = subResult
+        end
+
+        TextChangeEvent event
+        event:Initialize(me, newText, deletedText, startIndex)
+        OnTextChange(event, 0)
+
+        BlockChangeEvent blockEvent
+        blockEvent:Set(me,oldText, GetCode())
+        NotifyBlockChangeListeners(blockEvent)
+
+        shouldCalculateWidth = true
+        shouldCalculateHeight = true
+        shouldRegenerateBlocks = true
+        shouldCalculateNavigationIndices = true
+        RequestLayout()
+    end
+    
+    action CommentBlock(Block block)
+MultipleLineText newText = rawCode
+        if block is SingleLineBlock
+            InsertText(block:GetStartIndex(), "//")
+        end
+    end
+    
+    action CommentBlocks(Array<Block> blocks)
+integer startIndex = blocks:Get(0):GetStartIndex()
+        integer endIndex = blocks:GetFromEnd():GetEndIndex()
+        
+MultipleLineText oldText = GetCode()
+        text deletedText = rawCode:GetText(startIndex, endIndex)
+        text newText = deletedText
+        
+        // Process the blocks in reverse. We remove text from the rear of the text first,
+        // so we don't have to deal with any offsets for the next block we process.
+integer i = blocks:GetSize()
+        repeat while i > 0
+            i = i - 1
+            Block block = blocks:Get(i)
+            integer slashIndex = block:GetStartIndex() - startIndex
+            text subResult = ""
+            if slashIndex = 0
+                subResult = "//"
+            else
+                subResult = newText:GetSubtext(0, slashIndex) + "//"
+            end
+            if slashIndex + startIndex < endIndex - 1
+                subResult = subResult + newText:GetSubtext(slashIndex)
+            end
+            newText = subResult
+        end
+
+        TextChangeEvent event
+        event:Initialize(me, newText, deletedText, startIndex)
+        OnTextChange(event, 0)
+
+        BlockChangeEvent blockEvent
+        blockEvent:Set(me,oldText, GetCode())
+        NotifyBlockChangeListeners(blockEvent)
+
+        shouldCalculateWidth = true
+        shouldCalculateHeight = true
+        shouldRegenerateBlocks = true
+        shouldCalculateNavigationIndices = true
+        RequestLayout()
+    end
 
     /*
     This action deletes the given block. If the passed boolean is true, all blocks
@@ -1891,7 +2038,6 @@ editManager:SetSpecialAction(false)
                     editManager:SetSpecialAction(false)
                     return now
                 end
-
 
         else
             

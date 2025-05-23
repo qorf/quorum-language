@@ -2394,6 +2394,9 @@ InputSet swipeSet
         CodeEditorCopyToClipboardBehavior copyToClipboardBehavior
         CodeEditorCutToClipboardBehavior cutToClipboardBehavior
         CodeEditorPasteFromClipboardBehavior pasteFromClipboardBehavior
+        
+        // Behavior for commenting out a line of code.
+        CodeEditorCommentBehavior commentBehavior
         if ShouldUseMacKeys()
             controlHomeSet:AddModifier(controlHomeSet:META)
             controlEndSet:AddModifier(controlEndSet:META)
@@ -2435,6 +2438,11 @@ controlShiftHomeSet:AddModifier(controlHomeSet:META)
             blockControlY:AddModifier(blockControlY:META)
             CodeEditorRedoBehavior codeEditorRedoBehavior
             table:Add(blockControlY, codeEditorRedoBehavior)
+            
+            InputSet controlSlash
+            controlSlash:SetKeyboardInput(keys:SLASH)
+            controlSlash:AddModifier(controlSlash:META)
+            table:Add(controlSlash, commentBehavior)
         else
 controlHomeSet:AddModifier(controlHomeSet:CONTROL)
             controlEndSet:AddModifier(controlEndSet:CONTROL)
@@ -2475,6 +2483,11 @@ controlShiftHomeSet:AddModifier(controlHomeSet:CONTROL)
             blockControlY:AddModifier(blockControlY:CONTROL)
             CodeEditorRedoBehavior codeEditorRedoBehavior
             table:Add(blockControlY, codeEditorRedoBehavior)
+            
+InputSet controlSlash
+            controlSlash:SetKeyboardInput(keys:SLASH)
+            controlSlash:AddModifier(controlSlash:CONTROL)
+            table:Add(controlSlash, commentBehavior)
         end
 
 
