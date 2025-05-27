@@ -456,7 +456,9 @@ class CodeEditorRenderer is Control
         return GetBlockAtLine(rootBlock, line)
     end
 
-    private action GetBlockAtLine(Block block, integer line) returns Block
+    // This version gets the block at the given line, using the provided block as a starting point for the search.
+    // The search only iterates forwards, so if the given block is past the requested line, it won't be found and the candidate will be returned instead.
+    action GetBlockAtLine(Block block, integer line) returns Block
         /*
         TO-DO: Improve this. We have a tree structure, so we should use it to binary search.
         */

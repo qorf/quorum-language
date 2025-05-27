@@ -629,8 +629,12 @@ shouldCalculateWidth = true
         return GetDefaultLineHeight()
     end
     
-action GetStaticLineHeight(integer line) returns number
-        Block block = renderer:GetBlockAtLine(line)
+    action GetStaticLineHeight(integer line) returns number
+Block block = renderer:GetBlockAtLine(line)
+        return GetStaticLineHeight(block, line)
+    end
+    
+private action GetStaticLineHeight(Block block, integer line) returns number
         if block is SingleLineBlock
             SingleLineBlock singleBlock = cast(SingleLineBlock, block)
             number detailsHeight = 0
@@ -675,11 +679,15 @@ detailsHeight = singleBlock:GetVisibleDetailLabelsHeight()
             cachedLinePositions:Empty()
             number currentY = 0
 
+            Block currentBlock = renderer:GetRootBlock()
             integer counter = 0
             integer lines = GetLineCount()
             number total = 0
             repeat while counter < lines
-                number currentHeight = GetStaticLineHeight(counter)
+                // By providing the last block as a starting point for the search, we can reach the next block in (usually) 1 step,
+                // instead of retracing our steps through O(n) blocks.
+                currentBlock = renderer:GetBlockAtLine(currentBlock, counter)
+                number currentHeight = GetStaticLineHeight(currentBlock, counter)
                 currentY = currentY - currentHeight
                 
                 cachedLinePositions:Add(currentY)
