@@ -16,9 +16,13 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import quorum.Libraries.Containers.Array_;
+import quorum.Libraries.Containers.HashTable_;
+import quorum.Libraries.Containers.Iterator_;
 import quorum.Libraries.Language.Object_;
 import quorum.Libraries.Language.Types.Text_;
 import quorum.Libraries.System.File_;
@@ -49,8 +53,28 @@ public class Process {
             String text = t.GetValue();
             list.add(text);
         }
+
+
         try {
             builder = new ProcessBuilder(list);
+
+            //set Environment Variables.
+            Map<String, String> map = builder.environment();
+            HashTable_ table = myProcess.GetEnvironment();
+            Iterator_ iterator = table.GetKeyIterator();
+            while(iterator.HasNext()) {
+                //get the  key
+                Object_ keyObject = iterator.Next();
+                Text_ keyTextObject = (Text_) keyObject;
+                String key = keyTextObject.GetValue();
+
+                //get the value
+                Object_ valueObject = table.GetValue(keyObject);
+                Text_ valueTextObject = (Text_) valueObject;
+                String value = valueTextObject.GetValue();
+                map.put(key, value);
+            }
+
             builder.directory(new File(directory.GetAbsolutePath()));
             myProcess.FireProcessStartedEvent();
             process = builder.start();
