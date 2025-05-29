@@ -9,6 +9,7 @@ use Libraries.Game.Graphics.Color
 use Libraries.System.Properties
 use Libraries.Containers.Iterator
 use Libraries.Game.Graphics.Fonts.FontManager
+use Libraries.Game.Graphics.Fonts.FontFamily
 
 /*
 The Font class is used to load a font from the system. 
@@ -252,11 +253,264 @@ Attribute: Example
 FontManager manager = gameStateManager:GetFontManager()
         return manager:GetFamilyName(me)
     end
-
     
 action GetStyleName returns text
 FontManager manager = gameStateManager:GetFontManager()
         return manager:GetStyleName(me)
+    end
+    
+    /*
+This action returns the name of the default font in the font family, if one exists. Note that 
+fonts are not guaranteed to have a family. Not all fonts have all font types.
+
+Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:Load("Arial")
+                output font:GetDefaultName()
+            end
+        end
+*/
+    action GetDefaultName returns text
+FontManager manager = gameStateManager:GetFontManager()
+        FontFamily family = manager:GetFontFamily(GetFamilyName())
+        if family not= undefined
+            return family:GetDefault()
+        end
+        return undefined
+    end
+    
+    
+/*
+This action returns the default font in the font family, if one exists. Note that 
+fonts are not guaranteed to have a family. Not all fonts have all font types.
+
+Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:Load("Arial")
+                output font:GetDefaultFont():GetName()
+            end
+        end
+*/
+    action GetDefaultFont returns Font
+        text fontName = GetDefaultName()
+        if fontName not= undefined
+Font font
+            font:LoadFont(fontName)
+            return font
+        end
+
+        return undefined
+    end
+    
+/*
+This action returns the name of the bold font in the font family, if one exists. Note that 
+fonts are not guaranteed to have a family. Not all fonts have all font types.
+
+Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:Load("Arial")
+                output font:GetBoldName()
+            end
+        end
+*/
+    action GetBoldName returns text
+FontManager manager = gameStateManager:GetFontManager()
+        FontFamily family = manager:GetFontFamily(GetFamilyName())
+        if family not= undefined
+            return family:GetBold()
+        end
+        return undefined
+    end
+    
+    
+/*
+This action returns the bold font in the font family, if one exists. Note that 
+fonts are not guaranteed to have a family. Not all fonts have all font types.
+
+Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:Load("Arial")
+                output font:GetBoldFont():GetName()
+            end
+        end
+*/
+    action GetBoldFont returns Font
+text fontName = GetBoldName()
+        if fontName not= undefined
+Font font
+            font:LoadFont(fontName)
+            return font
+        end
+
+        return undefined
+    end
+    
+    
+/*
+This action returns the name of the bold italic font in the font family, if one exists. Note that 
+fonts are not guaranteed to have a family. Not all fonts have all font types.
+
+Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:Load("Arial")
+                output font:GetBoldItalicName()
+            end
+        end
+*/
+    action GetBoldItalicName returns text
+FontManager manager = gameStateManager:GetFontManager()
+        FontFamily family = manager:GetFontFamily(GetFamilyName())
+        if family not= undefined
+            return family:GetBoldItalic()
+        end
+        return undefined
+    end
+    
+    
+/*
+This action returns the bold italic font in the font family, if one exists. Note that 
+fonts are not guaranteed to have a family. Not all fonts have all font types.
+
+Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:Load("Arial")
+                output font:GetBoldItalicFont():GetName()
+            end
+        end
+*/
+    action GetBoldItalicFont returns Font
+text fontName = GetBoldItalicName()
+        if fontName not= undefined
+Font font
+            font:LoadFont(fontName)
+            return font
+        end
+
+        return undefined
+    end
+    
+    
+/*
+This action returns the name of the italic font in the font family, if one exists. Note that 
+fonts are not guaranteed to have a family. Not all fonts have all font types.
+
+Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:Load("Arial")
+                output font:GetDefaultName()
+            end
+        end
+*/
+    action GetItalicName returns text
+FontManager manager = gameStateManager:GetFontManager()
+        FontFamily family = manager:GetFontFamily(GetFamilyName())
+        if family not= undefined
+            return family:GetItalic()
+        end
+        return undefined
+    end
+    
+    
+/*
+This action returns the italic font in the font family, if one exists. Note that 
+fonts are not guaranteed to have a family. Not all fonts have all font types.
+
+Attribute: Example
+
+        use Libraries.Game.Graphics.Font
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:Load("Arial")
+                output font:GetItalicFont():GetName()
+            end
+        end
+*/
+    action GetItalicFont returns Font
+text fontName = GetItalicName()
+        if fontName not= undefined
+Font font
+            font:LoadFont(fontName)
+            return font
+        end
+
+        return undefined
     end
     
     /*
