@@ -249,6 +249,12 @@ Attribute: Example
         return manager:IsFontAvailable(fontName)
     end
     
+    action GetFontFamily returns FontFamily
+FontManager manager = gameStateManager:GetFontManager()
+        FontFamily family = manager:GetFontFamily(GetFamilyName())
+        return family
+    end
+    
     action GetFamilyName returns text
 FontManager manager = gameStateManager:GetFontManager()
         return manager:GetFamilyName(me)
