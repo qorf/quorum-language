@@ -316,10 +316,22 @@ Attribute: Example
         if fontName not= undefined
 Font font
             font:LoadFont(fontName)
+            CopyProperties(font)
             return font
         end
 
         return undefined
+    end
+    
+private action CopyProperties(Font font)
+font:isSystemFont = me:isSystemFont
+        font:fontSize = me:fontSize
+        font:angle = me:angle
+        font:subFont = me:subFont
+        font:style = me:style
+        font:fontIdentifier = me:fontIdentifier
+        font:needToRecalculateID = true
+        font:bordered = me:bordered
     end
     
 /*
@@ -379,6 +391,7 @@ text fontName = GetBoldName()
         if fontName not= undefined
 Font font
             font:LoadFont(fontName)
+CopyProperties(font)
             return font
         end
 
@@ -443,6 +456,7 @@ text fontName = GetBoldItalicName()
         if fontName not= undefined
 Font font
             font:LoadFont(fontName)
+CopyProperties(font)
             return font
         end
 
@@ -507,6 +521,7 @@ text fontName = GetItalicName()
         if fontName not= undefined
 Font font
             font:LoadFont(fontName)
+CopyProperties(font)
             return font
         end
 
