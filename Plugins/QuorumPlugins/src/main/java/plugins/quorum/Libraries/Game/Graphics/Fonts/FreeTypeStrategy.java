@@ -481,7 +481,19 @@ public class FreeTypeStrategy
     {
         return (int)(GetLineHeightNative(faceHandle) >> 6);
     }
-    
+
+    public String GetFamilyName() {
+        return GetFamily(faceHandle);
+    }
+
+    public String GetStyleName() {
+        return GetStyleName(faceHandle);
+    }
+
+    native public String GetFamily(long handle);
+
+    native public String GetStyleName(long handle);
+
     native public long GetLineHeightNative(long handle);
     
     public int SystemGetMaximumAscent()

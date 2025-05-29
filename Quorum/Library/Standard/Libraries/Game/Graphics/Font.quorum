@@ -247,7 +247,18 @@ Attribute: Example
         FontManager manager = gameStateManager:GetFontManager()
         return manager:IsFontAvailable(fontName)
     end
+    
+    action GetFamilyName returns text
+FontManager manager = gameStateManager:GetFontManager()
+        return manager:GetFamilyName(me)
+    end
 
+    
+action GetStyleName returns text
+FontManager manager = gameStateManager:GetFontManager()
+        return manager:GetStyleName(me)
+    end
+    
     /*
     This action will set the size of the font. The default font size is 14.
 

@@ -92,6 +92,22 @@ availableWebFonts:Add("FiraSans-BoldItalic")
             return 0
         end
     end
+    
+    action GetFamilyName(Font font) returns text
+if font:IsLoaded()
+            return GetFontStrategy(font:GetIdentifier()):GetFamilyName()
+        else
+            return undefined
+        end
+    end
+    
+    action GetStyleName(Font font) returns text
+if font:IsLoaded()
+            return GetFontStrategy(font:GetIdentifier()):GetStyleName()
+        else
+            return undefined
+        end
+    end
 
     action GetKerning(Font font, text character, text nextCharacter) returns integer
         if font:IsLoaded()
