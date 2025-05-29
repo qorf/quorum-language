@@ -446,9 +446,27 @@ this algorithm imperfectly predicts what is available based on the operating sys
         return families:GetValue(name)
     end
     
+    /*This action obtains an iterator over all of the keys in the font family.*/
+    action GetFontFamilyKeys returns Iterator<text>
+        return families:GetKeyIterator()
+    end
+    
+    /* This action obtains an iterator over all of the FontFamily objects directly. */
+    action GetFontFamilies returns Iterator<FontFamily>
+        return families:GetValueIterator()
+    end
+    
+    /* This action returns an integer representing the size of the font families container.*/
+    action GetFontFamilySize returns integer
+        return families:GetSize()
+    end
+    
     /*
-This algorithm is quite imperfect, especially without the family name from FreeType. However
-, while imperfect, it does provide some basic guidance for many fonts.
+This algorithm calculates font families from system resources. By its nature, since fonts
+can report vendor specific font information, it is not perfect. For example, an arbitrary font
+on a system might claim to be bold, but not really be. Thus, this system categorizes fonts into
+several buckets: Default, Bold, Bold Italic, and Italic. This removes fine distinctions a 
+manufacturer might have, but allows all fonts to have some consistency across platforms and vendors.
 */
 action CalculateFontFamilies
         hasCalculatedFontFamilies = true
@@ -473,56 +491,95 @@ me:families:Add(firaSansName, firaSans)
             return now
         end
         
-        
-                Array<File> fonts = GetAvailableFonts()
-        fonts:Sort(compare)
-        
-            
-        HashTable<integer, boolean> used
+Array<File> fonts = GetAvailableFonts()
         i = 0
 repeat while i < fonts:GetSize()
             File fontFile = fonts:Get(i)
-            text name = fontFile:GetNameNoExtension()
-            
-FontFamily family = undefined
-            if not used:HasKey(i)
-FontFamily fam
-family = fam
-family:SetName(fontFile:GetFileName())
-            families:Add(name, family)
-used:Add(i, true)
+            boolean possiblyLoaded = fontTable:HasKey(fontFile:GetNameNoExtension())
+            boolean alreadyLoaded = false
+            //if the font is already loaded, don't dispose of it
+            if possiblyLoaded
+                FontStrategy strategy = fontTable:GetValue(fontFile:GetNameNoExtension())
+                if strategy:IsLoaded()
+                    alreadyLoaded = true
+                end
             end
+            Font font
+            font:LoadFont(fontFile)
             
-            j = i + 1
-            repeat while j < fonts:GetSize() and not used:HasKey(j)
-                File nextFile = fonts:Get(j)
-text nextName = nextFile:GetNameNoExtension()
-                     //it's the family name
-if nextName:StartsWith(name)
-//skip past any spaces or dashes
-                    text newName = nextName:GetSubtext(name:GetSize())
-newName = newName:Replace("-", " ")
-                    newName = newName:Trim():ToLowerCase()
-                    //it's in the same family, even if the formatting is funky
-                    if newName:StartsWith("bold") or newName:StartsWith("italic")
-                        //mark it as finished with.
-used:Add(j, true)
-                        if newName:Contains("bold") and newName:Contains("italic")
-                            family:SetBoldItalic(nextName)
-                        elseif newName:Contains("bold")
-family:SetBold(nextName)
-                        elseif newName:Contains("italic")
-family:SetItalic(nextName)
-                        end
-                        //If not, it's not in the same family
-                    else
-                        
-                    end
+            if font:IsLoaded()
+                text familyName = font:GetFamilyName()
+                FontFamily family = undefined
+                if families:HasKey(familyName)
+                    family = families:GetValue(familyName)
+                else
+                    FontFamily fam
+                    family = fam
+                    family:SetName(familyName)
+                    families:Add(familyName, family)
                 end
                 
-                j = j + 1
+                text style = font:GetStyleName()
+                CalculateFamilyPositionFromStyle(family, style, fontFile)
+                if not alreadyLoaded
+Dispose(font)
+                end
             end
             i = i + 1
+        end
+    end
+    
+    
+private action CalculateFamilyPositionFromStyle(FontFamily family, text style, File fontFile)
+        //manufacturers can be a bit random. Try and guess what they meant for their font.
+        //Inevitably, this action will be decent, but imperfect
+        boolean regular = false
+        boolean bold = false
+        boolean boldItalic = false
+        boolean italic = false
+        text fontName = fontFile:GetNameNoExtension()
+        if style = "Regular"
+            regular = true
+        elseif style = "Plain"
+regular = true
+        elseif style = "Italic"
+italic = true
+        elseif style = "Bold"
+            bold = true
+        elseif style = "Book"
+regular = true
+elseif style = "Light"
+regular = true
+elseif style = "Roman"
+regular = true
+        elseif style = "Bold Italic"
+            boldItalic = true
+        elseif style = "Thin"
+regular = true
+        elseif style = "Condensed"
+regular = true
+        elseif style = "Medium"
+regular = true
+        elseif style = "Inline"
+regular = true
+        elseif style = "Chancery"
+regular = true
+        elseif style = "Ornaments"
+regular = true
+        elseif style = "HouseScript"
+regular = true
+        elseif style = "Black"
+regular = true
+        end
+        
+        if regular and family:GetDefault() = undefined
+            family:SetDefault(fontName)
+        elseif bold and family:GetBold() = undefined
+            family:SetBold(fontName)
+elseif boldItalic and family:GetBoldItalic() = undefined
+            family:SetBoldItalic(fontName)
+elseif italic and family:GetItalic() = undefined
+            family:SetItalic(fontName)
         end
     end
 
@@ -558,6 +615,13 @@ family:SetItalic(nextName)
         color = color:White()
         strategy:SetColor(color)
         return strategy
+    end
+    
+    action Dispose(Font font)
+if font:IsLoaded()
+            GetFontStrategy(font:GetIdentifier()):Dispose()
+            fontTable:RemoveKey(font:GetIdentifier())
+        end
     end
     
     /*This action disposes all Fonts stored in the manager, releasing any system resources associated
