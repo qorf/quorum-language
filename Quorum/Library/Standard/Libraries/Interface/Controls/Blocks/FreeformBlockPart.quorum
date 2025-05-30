@@ -40,4 +40,12 @@ class FreeformBlockPart is FreeformBlock, MultipleLineBlockPart
         end
 
     end
+    
+    action GetChildCount returns integer
+        return parent:MultipleLineBlockPart:GetChildCount()
+    end
+    
+    action GetChild(integer index) returns Block
+        return parent:MultipleLineBlockPart:GetChild(index)
+    end
 end

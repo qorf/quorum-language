@@ -374,6 +374,9 @@ class CodeEditorRenderer is Control
         Block currentBlock = rootBlock
         integer index = 0
         repeat until currentBlock = undefined
+            if currentBlock is FreeformBlockPart
+                currentBlock:GetChildCount()
+            end
             currentBlock:SetNavigationIndex(index)
             index = index + currentBlock:GetNavigationSize()
             currentBlock = currentBlock:GetNextBlock()

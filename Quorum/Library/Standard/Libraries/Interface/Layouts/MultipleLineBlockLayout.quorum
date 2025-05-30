@@ -41,7 +41,6 @@ class MultipleLineBlockLayout is Layout
             part:Resize()
 
             number currentHeight = editor:GetLineY(part:GetNavigationEndIndex()) - editor:GetLineY(blockIndex + lineRange - 1)
-
             part:SetPosition(0, currentHeight)
 
             if i > 0

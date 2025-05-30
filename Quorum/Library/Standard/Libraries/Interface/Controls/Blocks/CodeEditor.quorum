@@ -1565,12 +1565,17 @@ not currently active in the file.*/
 
         parentBlock:RemoveAt(parentIndex)
         parentBlock:Add(parentIndex, newBlock)
+        
+        boolean transferred = false
 
         if transferChildren
-            // If the old block has children, move them to the new block.
-            repeat until oldBlock:GetChildCount() = 0
+// If the old block has children, move them to the new block.
+            if oldBlock:GetChildCount() > 0
+repeat until oldBlock:GetChildCount() = 0
                 Block child = oldBlock:RemoveAt(0)
                 newBlock:Add(child)
+            end
+                transferred = true
             end
         end
 
@@ -1598,6 +1603,9 @@ not currently active in the file.*/
             end
         end
 
+        if transferred
+            RefreshNavigationIndices()
+        end
         renderer:RefreshBlockView()
     end
 
