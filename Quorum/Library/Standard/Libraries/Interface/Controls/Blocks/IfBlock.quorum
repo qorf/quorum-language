@@ -170,6 +170,7 @@ expressionField:AddBottomLabel("boolean")
 
         part:SetLocalStartLine(block:GetStartLine() - GetStartLine())
         expressionField:Setup("Expression", 7, 7 + expression:GetSize())
+expressionField:AddBottomLabel("boolean")
         
         part:SetLocalEndLine(part:GetLocalStartLine() + (expressionField:GetLineCount() - 1))
 
@@ -206,6 +207,7 @@ expressionField:AddBottomLabel("boolean")
             editor:SelectBlockOrItem(part)
         end
         editor:RequestNavigationIndicesUpdate()
+        part:SetDefaultTabOrder()
         return part
     end
 
