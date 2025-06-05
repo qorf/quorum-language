@@ -5,7 +5,9 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
     // Gets the gl context to be drawn on. Returns true if successful, false if not.
     this.InitializeWebGL = function(canvas)
     {
-        gl = canvas.getContext("webgl2")
+        // Premultiplied alpha must be disabled in the canvas, or else items with transparency can calculate their colors wrong.
+        // This can make pixels appear lighter than they should be, which is especially prominent in fonts where edges will blur out and appear thin.
+        gl = canvas.getContext("webgl2", {premultipliedAlpha: false});
         
         if (!gl)
         {
