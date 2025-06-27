@@ -3519,4 +3519,19 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
     action GetFirstVisibleLine returns integer
         return cast(integer, firstLine)
     end
+    
+/*
+        This action is used when a control is moused over by the mouse.
+    */
+    action BeginMouseOver
+        parent:Control:BeginMouseOver()
+        background:BeginMouseOver()
+    end
+    /*
+        This action is used when a control is moused over and it ends.
+    */
+    action EndMouseOver
+        parent:Control:EndMouseOver()
+        background:EndMouseOver()
+    end
 end

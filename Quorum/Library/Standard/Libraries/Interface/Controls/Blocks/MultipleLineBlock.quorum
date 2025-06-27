@@ -10,7 +10,7 @@ use Libraries.Interface.Controls.Blocks.BlockLabel
 class MultipleLineBlock is Block
 
     Array<MultipleLineBlockPart> blockParts
-    Array<Control> blockConnectors
+    Array<MultipleLineBlockConnector> blockConnectors
 
     on create
         SetFocusable(false)
@@ -91,15 +91,8 @@ repeat until blockConnectors:GetSize() <= blockParts:GetSize() - 1
     end
 
     private action AddConnector
-        Control connector
-        LayoutProperties properties = connector:GetDefaultLayoutProperties()
-        connector:SetInterfaceOptionsKey(GetInterfaceOptionsKey())
-        connector:SetBorderStyle(properties:LEFT + properties:RIGHT)
-        connector:SetCornerPixelRounding(0, 0, 0, 0)
-
-        ControlShaderView view
-        view:Initialize()
-        connector:SetView2D(view)
+        MultipleLineBlockConnector connector
+        connector:Initialize(me)
 
         blockConnectors:Add(connector)
         Add(connector)
@@ -164,7 +157,7 @@ repeat until blockConnectors:GetSize() <= blockParts:GetSize() - 1
         return blockParts
     end
 
-    action GetBlockConnectors returns Array<Control>
+    action GetBlockConnectors returns Array<MultipleLineBlockConnector>
         return blockConnectors
     end
 

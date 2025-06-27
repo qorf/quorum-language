@@ -73,7 +73,7 @@ end
 */
 class InterfaceOptions
 
-    // Key values for color properties.
+        // Key values for color properties.
     public constant text BACKGROUND_COLOR = "backgroundColor"
     public constant text FOREGROUND_COLOR = "foregroundColor"
     public constant text FOREGROUND_SELECTION_COLOR = "foregroundSelectionColor"
@@ -85,6 +85,7 @@ class InterfaceOptions
     public constant text FOCUS_BORDER_COLOR = "focusBorderColor"
     public constant text MOUSE_OVER_COLOR = "mouseOverColor"
     public constant text MOUSE_OVER_FONT_COLOR = "mouseOverFontColor"
+    public constant text MOUSE_OVER_BORDER_COLOR = "mouseOverBorderColor"
     public constant text MOUSE_DOWN_COLOR = "mouseDownColor"
     public constant text MOUSE_DOWN_FONT_COLOR = "mouseDownFontColor"
     public constant text SELECTION_COLOR = "selectionColor"
@@ -103,6 +104,7 @@ class InterfaceOptions
     // Key values for number properties.
     public constant text BORDER_THICKNESS = "borderThickness"
     public constant text SELECTION_BORDER_THICKNESS = "selectionBorderThickness"
+    public constant text MOUSE_OVER_BORDER_THICKNESS = "mouseOverBorderThickness"
     public constant text FONT_OUTLINE_THICKNESS = "fontOutlineThickness"
     public constant text TOP_LEFT_ROUNDING = "topLeftRounding"
     public constant text TOP_RIGHT_ROUNDING = "topRightRounding"
@@ -548,6 +550,33 @@ class InterfaceOptions
             return undefined
         else
             return palette:GetMouseOverFontColor()
+        end
+    end
+
+    action SetMouseOverBorderColor(ColorGroup value)
+        SetColorProperty(MOUSE_OVER_BORDER_COLOR, value)
+    end
+
+    action GetMouseOverBorderColor returns ColorGroup
+        return GetColorProperty(MOUSE_OVER_BORDER_COLOR)
+    end
+
+    action SetMouseOverBorderColor(text controlType, ColorGroup value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetMouseOverBorderColor(value)
+    end
+
+    action GetMouseOverBorderColor(text controlType) returns ColorGroup
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetMouseOverBorderColor()
         end
     end
 
@@ -997,6 +1026,41 @@ class InterfaceOptions
 
     action HasSelectionBorderThickness(text controlType) returns boolean
         return GetSelectionBorderThickness(controlType):IsNotANumber() = false
+    end
+
+    action SetMouseOverBorderThickness(number value)
+        SetNumberProperty(MOUSE_OVER_BORDER_THICKNESS, value)
+    end
+
+    action GetMouseOverBorderThickness returns number
+        return GetNumberProperty(MOUSE_OVER_BORDER_THICKNESS)
+    end
+
+    action HasMouseOverBorderThickness returns boolean
+        return GetNumberProperty(MOUSE_OVER_BORDER_THICKNESS):IsNotANumber() = false
+    end
+
+    action SetMouseOverBorderThickness(text controlType, number value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetMouseOverBorderThickness(value)
+    end
+
+    action GetMouseOverBorderThickness(text controlType) returns number
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return NOT_A_NUMBER
+        else
+            return palette:GetMouseOverBorderThickness()
+        end
+    end
+
+    action HasMouseOverBorderThickness(text controlType) returns boolean
+        return GetMouseOverBorderThickness(controlType):IsNotANumber() = false
     end
 
     action SetFontOutlineThickness(number value)
@@ -1577,6 +1641,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(BUTTON)
     end
 
+    action SetButtonMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(BUTTON, value)
+    end
+
+    action GetButtonMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(BUTTON)
+    end
+
     action SetButtonMouseDownColor(ColorGroup value)
         SetMouseDownColor(BUTTON, value)
     end
@@ -1711,6 +1783,18 @@ class InterfaceOptions
 
     action HasButtonSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(BUTTON):IsNotANumber() = false
+    end
+
+    action SetButtonMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(BUTTON, value)
+    end
+
+    action GetButtonMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(BUTTON)
+    end
+
+    action HasButtonMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(BUTTON):IsNotANumber() = false
     end
 
     action SetButtonFontOutlineThickness(number value)
@@ -1973,6 +2057,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(CELL)
     end
 
+    action SetCellMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(CELL, value)
+    end
+
+    action GetCellMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(CELL)
+    end
+
     action SetCellMouseDownColor(ColorGroup value)
         SetMouseDownColor(CELL, value)
     end
@@ -2107,6 +2199,18 @@ class InterfaceOptions
 
     action HasCellSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(CELL):IsNotANumber() = false
+    end
+
+    action SetCellMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(CELL, value)
+    end
+
+    action GetCellMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(CELL)
+    end
+
+    action HasCellMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(CELL):IsNotANumber() = false
     end
 
     action SetCellFontOutlineThickness(number value)
@@ -2369,6 +2473,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(CHART)
     end
 
+    action SetChartMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(CHART, value)
+    end
+
+    action GetChartMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(CHART)
+    end
+
     action SetChartMouseDownColor(ColorGroup value)
         SetMouseDownColor(CHART, value)
     end
@@ -2503,6 +2615,18 @@ class InterfaceOptions
 
     action HasChartSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(CHART):IsNotANumber() = false
+    end
+
+    action SetChartMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(CHART, value)
+    end
+
+    action GetChartMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(CHART)
+    end
+
+    action HasChartMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(CHART):IsNotANumber() = false
     end
 
     action SetChartFontOutlineThickness(number value)
@@ -2765,6 +2889,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(CHECKBOX)
     end
 
+    action SetCheckboxMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(CHECKBOX, value)
+    end
+
+    action GetCheckboxMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(CHECKBOX)
+    end
+
     action SetCheckboxMouseDownColor(ColorGroup value)
         SetMouseDownColor(CHECKBOX, value)
     end
@@ -2899,6 +3031,18 @@ class InterfaceOptions
 
     action HasCheckboxSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(CHECKBOX):IsNotANumber() = false
+    end
+
+    action SetCheckboxMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(CHECKBOX, value)
+    end
+
+    action GetCheckboxMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(CHECKBOX)
+    end
+
+    action HasCheckboxMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(CHECKBOX):IsNotANumber() = false
     end
 
     action SetCheckboxFontOutlineThickness(number value)
@@ -3161,6 +3305,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(DIALOG)
     end
 
+    action SetDialogMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(DIALOG, value)
+    end
+
+    action GetDialogMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(DIALOG)
+    end
+
     action SetDialogMouseDownColor(ColorGroup value)
         SetMouseDownColor(DIALOG, value)
     end
@@ -3295,6 +3447,18 @@ class InterfaceOptions
 
     action HasDialogSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(DIALOG):IsNotANumber() = false
+    end
+
+    action SetDialogMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(DIALOG, value)
+    end
+
+    action GetDialogMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(DIALOG)
+    end
+
+    action HasDialogMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(DIALOG):IsNotANumber() = false
     end
 
     action SetDialogFontOutlineThickness(number value)
@@ -3557,6 +3721,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(DIALOG_BAR)
     end
 
+    action SetDialogBarMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(DIALOG_BAR)
+    end
+
     action SetDialogBarMouseDownColor(ColorGroup value)
         SetMouseDownColor(DIALOG_BAR, value)
     end
@@ -3691,6 +3863,18 @@ class InterfaceOptions
 
     action HasDialogBarSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(DIALOG_BAR):IsNotANumber() = false
+    end
+
+    action SetDialogBarMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(DIALOG_BAR, value)
+    end
+
+    action GetDialogBarMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(DIALOG_BAR)
+    end
+
+    action HasDialogBarMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(DIALOG_BAR):IsNotANumber() = false
     end
 
     action SetDialogBarFontOutlineThickness(number value)
@@ -3953,6 +4137,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(DIALOG_ACCEPT_BUTTON)
     end
 
+    action SetDialogAcceptButtonMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(DIALOG_ACCEPT_BUTTON)
+    end
+
     action SetDialogAcceptButtonMouseDownColor(ColorGroup value)
         SetMouseDownColor(DIALOG_ACCEPT_BUTTON, value)
     end
@@ -4087,6 +4279,18 @@ class InterfaceOptions
 
     action HasDialogAcceptButtonSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(DIALOG_ACCEPT_BUTTON):IsNotANumber() = false
+    end
+
+    action SetDialogAcceptButtonMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(DIALOG_ACCEPT_BUTTON, value)
+    end
+
+    action GetDialogAcceptButtonMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(DIALOG_ACCEPT_BUTTON)
+    end
+
+    action HasDialogAcceptButtonMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(DIALOG_ACCEPT_BUTTON):IsNotANumber() = false
     end
 
     action SetDialogAcceptButtonFontOutlineThickness(number value)
@@ -4349,6 +4553,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(FLOWCHART)
     end
 
+    action SetFlowchartMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(FLOWCHART, value)
+    end
+
+    action GetFlowchartMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(FLOWCHART)
+    end
+
     action SetFlowchartMouseDownColor(ColorGroup value)
         SetMouseDownColor(FLOWCHART, value)
     end
@@ -4483,6 +4695,18 @@ class InterfaceOptions
 
     action HasFlowchartSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(FLOWCHART):IsNotANumber() = false
+    end
+
+    action SetFlowchartMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(FLOWCHART, value)
+    end
+
+    action GetFlowchartMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(FLOWCHART)
+    end
+
+    action HasFlowchartMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(FLOWCHART):IsNotANumber() = false
     end
 
     action SetFlowchartFontOutlineThickness(number value)
@@ -4745,6 +4969,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(FLOWCHART_ARROW)
     end
 
+    action SetFlowchartArrowMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(FLOWCHART_ARROW)
+    end
+
     action SetFlowchartArrowMouseDownColor(ColorGroup value)
         SetMouseDownColor(FLOWCHART_ARROW, value)
     end
@@ -4879,6 +5111,18 @@ class InterfaceOptions
 
     action HasFlowchartArrowSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(FLOWCHART_ARROW):IsNotANumber() = false
+    end
+
+    action SetFlowchartArrowMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(FLOWCHART_ARROW, value)
+    end
+
+    action GetFlowchartArrowMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(FLOWCHART_ARROW)
+    end
+
+    action HasFlowchartArrowMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(FLOWCHART_ARROW):IsNotANumber() = false
     end
 
     action SetFlowchartArrowFontOutlineThickness(number value)
@@ -5141,6 +5385,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(FLOWCHART_NODE)
     end
 
+    action SetFlowchartNodeMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(FLOWCHART_NODE)
+    end
+
     action SetFlowchartNodeMouseDownColor(ColorGroup value)
         SetMouseDownColor(FLOWCHART_NODE, value)
     end
@@ -5275,6 +5527,18 @@ class InterfaceOptions
 
     action HasFlowchartNodeSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(FLOWCHART_NODE):IsNotANumber() = false
+    end
+
+    action SetFlowchartNodeMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(FLOWCHART_NODE, value)
+    end
+
+    action GetFlowchartNodeMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(FLOWCHART_NODE)
+    end
+
+    action HasFlowchartNodeMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(FLOWCHART_NODE):IsNotANumber() = false
     end
 
     action SetFlowchartNodeFontOutlineThickness(number value)
@@ -5537,6 +5801,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(GUTTER)
     end
 
+    action SetGutterMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(GUTTER, value)
+    end
+
+    action GetGutterMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(GUTTER)
+    end
+
     action SetGutterMouseDownColor(ColorGroup value)
         SetMouseDownColor(GUTTER, value)
     end
@@ -5671,6 +5943,18 @@ class InterfaceOptions
 
     action HasGutterSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(GUTTER):IsNotANumber() = false
+    end
+
+    action SetGutterMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(GUTTER, value)
+    end
+
+    action GetGutterMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(GUTTER)
+    end
+
+    action HasGutterMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(GUTTER):IsNotANumber() = false
     end
 
     action SetGutterFontOutlineThickness(number value)
@@ -5933,6 +6217,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(LABEL)
     end
 
+    action SetLabelMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(LABEL, value)
+    end
+
+    action GetLabelMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(LABEL)
+    end
+
     action SetLabelMouseDownColor(ColorGroup value)
         SetMouseDownColor(LABEL, value)
     end
@@ -6067,6 +6359,18 @@ class InterfaceOptions
 
     action HasLabelSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(LABEL):IsNotANumber() = false
+    end
+
+    action SetLabelMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(LABEL, value)
+    end
+
+    action GetLabelMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(LABEL)
+    end
+
+    action HasLabelMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(LABEL):IsNotANumber() = false
     end
 
     action SetLabelFontOutlineThickness(number value)
@@ -6329,6 +6633,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(LIST)
     end
 
+    action SetListMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(LIST, value)
+    end
+
+    action GetListMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(LIST)
+    end
+
     action SetListMouseDownColor(ColorGroup value)
         SetMouseDownColor(LIST, value)
     end
@@ -6463,6 +6775,18 @@ class InterfaceOptions
 
     action HasListSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(LIST):IsNotANumber() = false
+    end
+
+    action SetListMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(LIST, value)
+    end
+
+    action GetListMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(LIST)
+    end
+
+    action HasListMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(LIST):IsNotANumber() = false
     end
 
     action SetListFontOutlineThickness(number value)
@@ -6725,6 +7049,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(LIST_ITEM)
     end
 
+    action SetListItemMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(LIST_ITEM, value)
+    end
+
+    action GetListItemMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(LIST_ITEM)
+    end
+
     action SetListItemMouseDownColor(ColorGroup value)
         SetMouseDownColor(LIST_ITEM, value)
     end
@@ -6859,6 +7191,18 @@ class InterfaceOptions
 
     action HasListItemSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(LIST_ITEM):IsNotANumber() = false
+    end
+
+    action SetListItemMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(LIST_ITEM, value)
+    end
+
+    action GetListItemMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(LIST_ITEM)
+    end
+
+    action HasListItemMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(LIST_ITEM):IsNotANumber() = false
     end
 
     action SetListItemFontOutlineThickness(number value)
@@ -7121,6 +7465,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(MENU_BAR)
     end
 
+    action SetMenuBarMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(MENU_BAR, value)
+    end
+
+    action GetMenuBarMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(MENU_BAR)
+    end
+
     action SetMenuBarMouseDownColor(ColorGroup value)
         SetMouseDownColor(MENU_BAR, value)
     end
@@ -7255,6 +7607,18 @@ class InterfaceOptions
 
     action HasMenuBarSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(MENU_BAR):IsNotANumber() = false
+    end
+
+    action SetMenuBarMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(MENU_BAR, value)
+    end
+
+    action GetMenuBarMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(MENU_BAR)
+    end
+
+    action HasMenuBarMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(MENU_BAR):IsNotANumber() = false
     end
 
     action SetMenuBarFontOutlineThickness(number value)
@@ -7517,6 +7881,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(MENU_ITEM)
     end
 
+    action SetMenuItemMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(MENU_ITEM, value)
+    end
+
+    action GetMenuItemMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(MENU_ITEM)
+    end
+
     action SetMenuItemMouseDownColor(ColorGroup value)
         SetMouseDownColor(MENU_ITEM, value)
     end
@@ -7651,6 +8023,18 @@ class InterfaceOptions
 
     action HasMenuItemSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(MENU_ITEM):IsNotANumber() = false
+    end
+
+    action SetMenuItemMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(MENU_ITEM, value)
+    end
+
+    action GetMenuItemMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(MENU_ITEM)
+    end
+
+    action HasMenuItemMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(MENU_ITEM):IsNotANumber() = false
     end
 
     action SetMenuItemFontOutlineThickness(number value)
@@ -7913,6 +8297,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(MENU_PANEL)
     end
 
+    action SetMenuPanelMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(MENU_PANEL, value)
+    end
+
+    action GetMenuPanelMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(MENU_PANEL)
+    end
+
     action SetMenuPanelMouseDownColor(ColorGroup value)
         SetMouseDownColor(MENU_PANEL, value)
     end
@@ -8047,6 +8439,18 @@ class InterfaceOptions
 
     action HasMenuPanelSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(MENU_PANEL):IsNotANumber() = false
+    end
+
+    action SetMenuPanelMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(MENU_PANEL, value)
+    end
+
+    action GetMenuPanelMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(MENU_PANEL)
+    end
+
+    action HasMenuPanelMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(MENU_PANEL):IsNotANumber() = false
     end
 
     action SetMenuPanelFontOutlineThickness(number value)
@@ -8309,6 +8713,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(PROGRESS_BAR)
     end
 
+    action SetProgressBarMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(PROGRESS_BAR)
+    end
+
     action SetProgressBarMouseDownColor(ColorGroup value)
         SetMouseDownColor(PROGRESS_BAR, value)
     end
@@ -8443,6 +8855,18 @@ class InterfaceOptions
 
     action HasProgressBarSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(PROGRESS_BAR):IsNotANumber() = false
+    end
+
+    action SetProgressBarMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(PROGRESS_BAR, value)
+    end
+
+    action GetProgressBarMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(PROGRESS_BAR)
+    end
+
+    action HasProgressBarMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(PROGRESS_BAR):IsNotANumber() = false
     end
 
     action SetProgressBarFontOutlineThickness(number value)
@@ -8705,6 +9129,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(RADIO_BUTTON)
     end
 
+    action SetRadioButtonMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(RADIO_BUTTON)
+    end
+
     action SetRadioButtonMouseDownColor(ColorGroup value)
         SetMouseDownColor(RADIO_BUTTON, value)
     end
@@ -8839,6 +9271,18 @@ class InterfaceOptions
 
     action HasRadioButtonSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(RADIO_BUTTON):IsNotANumber() = false
+    end
+
+    action SetRadioButtonMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(RADIO_BUTTON, value)
+    end
+
+    action GetRadioButtonMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(RADIO_BUTTON)
+    end
+
+    action HasRadioButtonMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(RADIO_BUTTON):IsNotANumber() = false
     end
 
     action SetRadioButtonFontOutlineThickness(number value)
@@ -9101,6 +9545,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(SCROLL_PANE)
     end
 
+    action SetScrollPaneMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(SCROLL_PANE, value)
+    end
+
+    action GetScrollPaneMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(SCROLL_PANE)
+    end
+
     action SetScrollPaneMouseDownColor(ColorGroup value)
         SetMouseDownColor(SCROLL_PANE, value)
     end
@@ -9235,6 +9687,18 @@ class InterfaceOptions
 
     action HasScrollPaneSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(SCROLL_PANE):IsNotANumber() = false
+    end
+
+    action SetScrollPaneMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(SCROLL_PANE, value)
+    end
+
+    action GetScrollPaneMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(SCROLL_PANE)
+    end
+
+    action HasScrollPaneMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(SCROLL_PANE):IsNotANumber() = false
     end
 
     action SetScrollPaneFontOutlineThickness(number value)
@@ -9497,6 +9961,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(TAB)
     end
 
+    action SetTabMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(TAB, value)
+    end
+
+    action GetTabMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(TAB)
+    end
+
     action SetTabMouseDownColor(ColorGroup value)
         SetMouseDownColor(TAB, value)
     end
@@ -9631,6 +10103,18 @@ class InterfaceOptions
 
     action HasTabSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(TAB):IsNotANumber() = false
+    end
+
+    action SetTabMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(TAB, value)
+    end
+
+    action GetTabMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(TAB)
+    end
+
+    action HasTabMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(TAB):IsNotANumber() = false
     end
 
     action SetTabFontOutlineThickness(number value)
@@ -9893,6 +10377,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(TAB_BAR)
     end
 
+    action SetTabBarMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(TAB_BAR, value)
+    end
+
+    action GetTabBarMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(TAB_BAR)
+    end
+
     action SetTabBarMouseDownColor(ColorGroup value)
         SetMouseDownColor(TAB_BAR, value)
     end
@@ -10027,6 +10519,18 @@ class InterfaceOptions
 
     action HasTabBarSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(TAB_BAR):IsNotANumber() = false
+    end
+
+    action SetTabBarMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(TAB_BAR, value)
+    end
+
+    action GetTabBarMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(TAB_BAR)
+    end
+
+    action HasTabBarMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(TAB_BAR):IsNotANumber() = false
     end
 
     action SetTabBarFontOutlineThickness(number value)
@@ -10289,6 +10793,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(TEXT_BOX)
     end
 
+    action SetTextBoxMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(TEXT_BOX, value)
+    end
+
+    action GetTextBoxMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(TEXT_BOX)
+    end
+
     action SetTextBoxMouseDownColor(ColorGroup value)
         SetMouseDownColor(TEXT_BOX, value)
     end
@@ -10423,6 +10935,18 @@ class InterfaceOptions
 
     action HasTextBoxSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(TEXT_BOX):IsNotANumber() = false
+    end
+
+    action SetTextBoxMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(TEXT_BOX, value)
+    end
+
+    action GetTextBoxMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(TEXT_BOX)
+    end
+
+    action HasTextBoxMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(TEXT_BOX):IsNotANumber() = false
     end
 
     action SetTextBoxFontOutlineThickness(number value)
@@ -10685,6 +11209,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(TEXT_FIELD)
     end
 
+    action SetTextFieldMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(TEXT_FIELD)
+    end
+
     action SetTextFieldMouseDownColor(ColorGroup value)
         SetMouseDownColor(TEXT_FIELD, value)
     end
@@ -10819,6 +11351,18 @@ class InterfaceOptions
 
     action HasTextFieldSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(TEXT_FIELD):IsNotANumber() = false
+    end
+
+    action SetTextFieldMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(TEXT_FIELD, value)
+    end
+
+    action GetTextFieldMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(TEXT_FIELD)
+    end
+
+    action HasTextFieldMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(TEXT_FIELD):IsNotANumber() = false
     end
 
     action SetTextFieldFontOutlineThickness(number value)
@@ -11081,6 +11625,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(TOGGLE_BUTTON)
     end
 
+    action SetToggleButtonMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(TOGGLE_BUTTON)
+    end
+
     action SetToggleButtonMouseDownColor(ColorGroup value)
         SetMouseDownColor(TOGGLE_BUTTON, value)
     end
@@ -11215,6 +11767,18 @@ class InterfaceOptions
 
     action HasToggleButtonSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(TOGGLE_BUTTON):IsNotANumber() = false
+    end
+
+    action SetToggleButtonMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(TOGGLE_BUTTON, value)
+    end
+
+    action GetToggleButtonMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(TOGGLE_BUTTON)
+    end
+
+    action HasToggleButtonMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(TOGGLE_BUTTON):IsNotANumber() = false
     end
 
     action SetToggleButtonFontOutlineThickness(number value)
@@ -11477,6 +12041,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(TOOL_BAR)
     end
 
+    action SetToolBarMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(TOOL_BAR, value)
+    end
+
+    action GetToolBarMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(TOOL_BAR)
+    end
+
     action SetToolBarMouseDownColor(ColorGroup value)
         SetMouseDownColor(TOOL_BAR, value)
     end
@@ -11611,6 +12183,18 @@ class InterfaceOptions
 
     action HasToolBarSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(TOOL_BAR):IsNotANumber() = false
+    end
+
+    action SetToolBarMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(TOOL_BAR, value)
+    end
+
+    action GetToolBarMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(TOOL_BAR)
+    end
+
+    action HasToolBarMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(TOOL_BAR):IsNotANumber() = false
     end
 
     action SetToolBarFontOutlineThickness(number value)
@@ -11873,6 +12457,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(TREE_ITEM)
     end
 
+    action SetTreeItemMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(TREE_ITEM, value)
+    end
+
+    action GetTreeItemMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(TREE_ITEM)
+    end
+
     action SetTreeItemMouseDownColor(ColorGroup value)
         SetMouseDownColor(TREE_ITEM, value)
     end
@@ -12007,6 +12599,18 @@ class InterfaceOptions
 
     action HasTreeItemSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(TREE_ITEM):IsNotANumber() = false
+    end
+
+    action SetTreeItemMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(TREE_ITEM, value)
+    end
+
+    action GetTreeItemMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(TREE_ITEM)
+    end
+
+    action HasTreeItemMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(TREE_ITEM):IsNotANumber() = false
     end
 
     action SetTreeItemFontOutlineThickness(number value)
@@ -12269,6 +12873,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(TREE_TABLE_CELL)
     end
 
+    action SetTreeTableCellMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(TREE_TABLE_CELL)
+    end
+
     action SetTreeTableCellMouseDownColor(ColorGroup value)
         SetMouseDownColor(TREE_TABLE_CELL, value)
     end
@@ -12403,6 +13015,18 @@ class InterfaceOptions
 
     action HasTreeTableCellSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(TREE_TABLE_CELL):IsNotANumber() = false
+    end
+
+    action SetTreeTableCellMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(TREE_TABLE_CELL, value)
+    end
+
+    action GetTreeTableCellMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(TREE_TABLE_CELL)
+    end
+
+    action HasTreeTableCellMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(TREE_TABLE_CELL):IsNotANumber() = false
     end
 
     action SetTreeTableCellFontOutlineThickness(number value)
@@ -12665,6 +13289,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(GROUPING)
     end
 
+    action SetGroupingMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(GROUPING, value)
+    end
+
+    action GetGroupingMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(GROUPING)
+    end
+
     action SetGroupingMouseDownColor(ColorGroup value)
         SetMouseDownColor(GROUPING, value)
     end
@@ -12799,6 +13431,18 @@ class InterfaceOptions
 
     action HasGroupingSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(GROUPING):IsNotANumber() = false
+    end
+
+    action SetGroupingMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(GROUPING, value)
+    end
+
+    action GetGroupingMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(GROUPING)
+    end
+
+    action HasGroupingMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(GROUPING):IsNotANumber() = false
     end
 
     action SetGroupingFontOutlineThickness(number value)
@@ -13061,6 +13705,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(START_BUTTON_GROUPING)
     end
 
+    action SetStartButtonGroupingMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(START_BUTTON_GROUPING)
+    end
+
     action SetStartButtonGroupingMouseDownColor(ColorGroup value)
         SetMouseDownColor(START_BUTTON_GROUPING, value)
     end
@@ -13195,6 +13847,18 @@ class InterfaceOptions
 
     action HasStartButtonGroupingSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(START_BUTTON_GROUPING):IsNotANumber() = false
+    end
+
+    action SetStartButtonGroupingMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(START_BUTTON_GROUPING, value)
+    end
+
+    action GetStartButtonGroupingMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(START_BUTTON_GROUPING)
+    end
+
+    action HasStartButtonGroupingMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(START_BUTTON_GROUPING):IsNotANumber() = false
     end
 
     action SetStartButtonGroupingFontOutlineThickness(number value)
@@ -13457,6 +14121,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(BANNER)
     end
 
+    action SetBannerMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(BANNER, value)
+    end
+
+    action GetBannerMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(BANNER)
+    end
+
     action SetBannerMouseDownColor(ColorGroup value)
         SetMouseDownColor(BANNER, value)
     end
@@ -13591,6 +14263,18 @@ class InterfaceOptions
 
     action HasBannerSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(BANNER):IsNotANumber() = false
+    end
+
+    action SetBannerMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(BANNER, value)
+    end
+
+    action GetBannerMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(BANNER)
+    end
+
+    action HasBannerMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(BANNER):IsNotANumber() = false
     end
 
     action SetBannerFontOutlineThickness(number value)
@@ -13853,6 +14537,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(CODE_EDITOR)
     end
 
+    action SetCodeEditorMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(CODE_EDITOR)
+    end
+
     action SetCodeEditorMouseDownColor(ColorGroup value)
         SetMouseDownColor(CODE_EDITOR, value)
     end
@@ -13987,6 +14679,18 @@ class InterfaceOptions
 
     action HasCodeEditorSelectionBorderThickness returns boolean
         return GetSelectionBorderThickness(CODE_EDITOR):IsNotANumber() = false
+    end
+
+    action SetCodeEditorMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(CODE_EDITOR, value)
+    end
+
+    action GetCodeEditorMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(CODE_EDITOR)
+    end
+
+    action HasCodeEditorMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(CODE_EDITOR):IsNotANumber() = false
     end
 
     action SetCodeEditorFontOutlineThickness(number value)
@@ -14249,6 +14953,14 @@ class InterfaceOptions
         return GetMouseOverFontColor(CHART_POINT)
     end
 
+    action SetChartPointMouseOverBorderColor(ColorGroup value)
+        SetMouseOverBorderColor(CHART_POINT, value)
+    end
+
+    action GetChartPointMouseOverBorderColor returns ColorGroup
+        return GetMouseOverBorderColor(CHART_POINT)
+    end
+
     action SetChartPointMouseDownColor(ColorGroup value)
         SetMouseDownColor(CHART_POINT, value)
     end
@@ -14371,6 +15083,30 @@ class InterfaceOptions
 
     action HasChartPointBorderThickness returns boolean
         return GetBorderThickness(CHART_POINT):IsNotANumber() = false
+    end
+
+    action SetChartPointSelectionBorderThickness(number value)
+        SetSelectionBorderThickness(CHART_POINT, value)
+    end
+
+    action GetChartPointSelectionBorderThickness returns number
+        return GetSelectionBorderThickness(CHART_POINT)
+    end
+
+    action HasChartPointSelectionBorderThickness returns boolean
+        return GetSelectionBorderThickness(CHART_POINT):IsNotANumber() = false
+    end
+
+    action SetChartPointMouseOverBorderThickness(number value)
+        SetMouseOverBorderThickness(CHART_POINT, value)
+    end
+
+    action GetChartPointMouseOverBorderThickness returns number
+        return GetMouseOverBorderThickness(CHART_POINT)
+    end
+
+    action HasChartPointMouseOverBorderThickness returns boolean
+        return GetMouseOverBorderThickness(CHART_POINT):IsNotANumber() = false
     end
 
     action SetChartPointFontOutlineThickness(number value)

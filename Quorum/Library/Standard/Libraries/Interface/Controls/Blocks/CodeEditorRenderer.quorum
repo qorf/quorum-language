@@ -834,6 +834,9 @@ class CodeEditorRenderer is Control
         end
         if not movingBlocks:IsEmpty()
             text toMove = editor:GetCodeBetween(movingStartIndex, movingEndIndex)
+            if toMove:IsEmpty() = false and toMove:GetCharacter(toMove:GetSize() - 1) not= toMove:GetLineFeed()
+                toMove = toMove + toMove:GetLineFeed()
+            end
             eventDeletion = toMove
             eventDeletionIndex = movingStartIndex
             if movingStartIndex < destination
@@ -844,8 +847,10 @@ class CodeEditorRenderer is Control
                 code = code:Delete(movingStartIndex, movingEndIndex)
                 code = code:Insert(destination, toMove)
             end
+eventInsertion = toMove
         else
             code = code:Insert(destination, toInsert)
+eventInsertion = toInsert
         end
         placeholderBlocks:Empty()
         
@@ -858,7 +863,6 @@ class CodeEditorRenderer is Control
         
         editor:SetCode(code)
         
-        eventInsertion = toInsert
         if eventDeletionIndex >= -1 and eventDeleteFirst
             NotifyTextChangeListeners(eventDeletionIndex, "", eventDeletion)
         end

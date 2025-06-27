@@ -204,11 +204,18 @@ number halfSize = width / 2.0
             if control not= undefined
                 borderThickness = (1.0 / height) * (control:GetBorderThickness() * control:GetInterfaceScale())
                 
+                boolean overrideBorder = false
 if control:IsRenderingSelection() or selected
                     if control:HasSelectionBorderThickness()
+                        overrideBorder = true
                         borderThickness = (1.0 / height) * (control:GetSelectionBorderThickness() * control:GetInterfaceScale())
                     end
 end
+                if overrideBorder = false and control:IsRenderingMouseOver()
+                    if control:HasMouseOverBorderThickness()
+                        borderThickness = (1.0 / height) * (control:GetMouseOverBorderThickness() * control:GetInterfaceScale())
+                    end
+                end
 
                 if borderThickness > 0
                     if control:HasLeftBorder()
@@ -266,8 +273,13 @@ number halfSize = width / 2.0
                     end
                 end
 
-                if backgroundColor = undefined and control:IsRenderingMouseOver()
-                    backgroundColor = control:GetMouseOverColor()
+                if control:IsRenderingMouseOver()
+                    if backgroundColor = undefined
+backgroundColor = control:GetMouseOverColor()
+                    end
+                    if borderColor = undefined
+borderColor = control:GetMouseOverBorderColor()
+                    end
                 end
 
                 if control:IsFocused()

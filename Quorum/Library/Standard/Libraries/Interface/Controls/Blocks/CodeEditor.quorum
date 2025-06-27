@@ -1890,6 +1890,11 @@ integer i = blocks:GetSize()
         integer blockIndex = 0
         boolean isBlockPart = false
         Array<Block> children = undefined
+        
+        // If there's no parent block, this isn't a legal block to delete. Abort early.
+        if parentBlock = undefined
+            return now
+        end
 
         // find the index the block was attached to it's parent for undo purposes
         if parentBlock:IsEnteringScope() = false

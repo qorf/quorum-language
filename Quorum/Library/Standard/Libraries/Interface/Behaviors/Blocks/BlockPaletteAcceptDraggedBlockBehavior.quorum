@@ -21,6 +21,7 @@ Array<Block> sourceBlocks = sourceDragBehavior:GetSourceBlocks()
             end
         
         BlockEnvironment environment = sourceBlocks:Get(0):GetBlockEnvironment()
+        
         if environment is CodeEditor
             CodeEditor editor = cast(CodeEditor, environment)
 if sourceBlocks:GetSize() = 1

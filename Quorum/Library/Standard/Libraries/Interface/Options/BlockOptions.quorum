@@ -121,6 +121,60 @@ class BlockOptions is InterfaceOptions
         end
     end
 
+    action SetEditMouseOverColor(ColorGroup value)
+        SetColorProperty(constants:EDIT_MOUSE_OVER_COLOR, value)
+    end
+
+    action GetEditMouseOverColor returns ColorGroup
+        return GetColorProperty(constants:EDIT_MOUSE_OVER_COLOR)
+    end
+
+    action SetEditMouseOverColor(text controlType, ColorGroup value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetColorProperty(constants:EDIT_MOUSE_OVER_COLOR, value)
+    end
+
+    action GetEditMouseOverColor(text controlType) returns ColorGroup
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetColorProperty(constants:EDIT_MOUSE_OVER_COLOR)
+        end
+    end
+
+    action SetEditMouseOverBorderColor(ColorGroup value)
+        SetColorProperty(constants:EDIT_MOUSE_OVER_BORDER_COLOR, value)
+    end
+
+    action GetEditMouseOverBorderColor returns ColorGroup
+        return GetColorProperty(constants:EDIT_MOUSE_OVER_BORDER_COLOR)
+    end
+
+    action SetEditMouseOverBorderColor(text controlType, ColorGroup value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetColorProperty(constants:EDIT_MOUSE_OVER_BORDER_COLOR, value)
+    end
+
+    action GetEditMouseOverBorderColor(text controlType) returns ColorGroup
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetColorProperty(constants:EDIT_MOUSE_OVER_BORDER_COLOR)
+        end
+    end
+
     action SetStaticFontColor(ColorGroup value)
         SetColorProperty(constants:STATIC_FONT_COLOR, value)
     end
@@ -256,6 +310,33 @@ class BlockOptions is InterfaceOptions
         end
     end
 
+    action SetDetailFontColor(ColorGroup value)
+        SetColorProperty(constants:DETAIL_FONT_COLOR, value)
+    end
+
+    action GetDetailFontColor returns ColorGroup
+        return GetColorProperty(constants:DETAIL_FONT_COLOR)
+    end
+
+    action SetDetailFontColor(text controlType, ColorGroup value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetColorProperty(constants:DETAIL_FONT_COLOR, value)
+    end
+
+    action GetDetailFontColor(text controlType) returns ColorGroup
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return undefined
+        else
+            return palette:GetColorProperty(constants:DETAIL_FONT_COLOR)
+        end
+    end
+
     action SetMovingBackgroundColor(ColorGroup value)
         SetColorProperty(constants:MOVING_BACKGROUND_COLOR, value)
     end
@@ -343,6 +424,41 @@ class BlockOptions is InterfaceOptions
 
     action HasEditBorderThickness(text controlType) returns boolean
         return GetEditBorderThickness(controlType):IsNotANumber() = false
+    end
+
+    action SetEditMouseOverBorderThickness(number value)
+        SetNumberProperty(constants:EDIT_MOUSE_OVER_BORDER_THICKNESS, value)
+    end
+
+    action GetEditMouseOverBorderThickness returns number
+        return GetNumberProperty(constants:EDIT_MOUSE_OVER_BORDER_THICKNESS)
+    end
+
+    action HasEditMouseOverBorderThickness returns boolean
+        return GetNumberProperty(constants:EDIT_MOUSE_OVER_BORDER_THICKNESS):IsNotANumber() = false
+    end
+
+    action SetEditMouseOverBorderThickness(text controlType, number value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetNumberProperty(constants:EDIT_MOUSE_OVER_BORDER_THICKNESS, value)
+    end
+
+    action GetEditMouseOverBorderThickness(text controlType) returns number
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return parent:InterfaceOptions:NOT_A_NUMBER
+        else
+            return palette:GetNumberProperty(constants:EDIT_MOUSE_OVER_BORDER_THICKNESS)
+        end
+    end
+
+    action HasEditMouseOverBorderThickness(text controlType) returns boolean
+        return GetEditMouseOverBorderThickness(controlType):IsNotANumber() = false
     end
 
     action SetEditFontSize(number value)
@@ -483,33 +599,6 @@ class BlockOptions is InterfaceOptions
 
     action HasHintBorderThickness(text controlType) returns boolean
         return GetHintBorderThickness(controlType):IsNotANumber() = false
-    end
-    
-action SetDetailFontColor(ColorGroup value)
-        SetColorProperty(constants:DETAIL_FONT_COLOR, value)
-    end
-
-    action GetDetailFontColor returns ColorGroup
-        return GetColorProperty(constants:DETAIL_FONT_COLOR)
-    end
-
-    action SetDetailFontColor(text controlType, ColorGroup value)
-        InterfaceOptions palette = GetInterfaceOptions(controlType)
-        if palette = undefined
-            InterfaceOptions newPalette
-            palette = newPalette
-            SetInterfaceOptions(controlType, palette)
-        end
-        palette:SetColorProperty(constants:DETAIL_FONT_COLOR, value)
-    end
-
-    action GetDetailFontColor(text controlType) returns ColorGroup
-        InterfaceOptions palette = GetInterfaceOptions(controlType)
-        if palette = undefined
-            return undefined
-        else
-            return palette:GetColorProperty(constants:DETAIL_FONT_COLOR)
-        end
     end
 
 end

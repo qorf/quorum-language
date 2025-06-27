@@ -2545,6 +2545,16 @@ InputSet dragOffSet
         blockCommandZ:SetKeyboardInput(keys:Z)
         blockCommandZ:AddModifier(blockCommandZ:META)
         
+InputSet mouseOn
+        mouseOn:SetInputType(mouseOn:MOUSE_MOVEMENT_INPUT)
+        mouseOn:SetInputTrigger(mouseOn:BEGIN)
+        MouseOnBehavior mouseOnBehavior
+        
+        InputSet mouseOff
+        mouseOff:SetInputType(mouseOff:MOUSE_MOVEMENT_INPUT)
+        mouseOff:SetInputTrigger(mouseOff:FINISH)
+        MouseOffBehavior mouseOffBehavior
+        
         InputTable editFieldTable = gameInput:GetInputTable("TextField"):Copy()
         editFieldTable:SetIdentifier("EditField")
         editFieldTable:RemoveKey(downSet)
@@ -2553,6 +2563,8 @@ InputSet dragOffSet
 editFieldTable:RemoveKey(blockCommandZ)
         editFieldTable:Add(downSet, downBehavior)
         editFieldTable:Add(upSet, upBehavior)
+editFieldTable:Add(mouseOn, mouseOnBehavior)
+editFieldTable:Add(mouseOff, mouseOffBehavior)
         gameInput:AddInputTable(editFieldTable)
 
         
@@ -2567,11 +2579,14 @@ editFieldTable:RemoveKey(blockCommandZ)
         editBoxTable:RemoveKey(blockCommandZ)
         editBoxTable:Add(downSet, downBehavior)
         editBoxTable:Add(upSet, upBehavior)
+editBoxTable:Add(mouseOn, mouseOnBehavior)
+editBoxTable:Add(mouseOff, mouseOffBehavior)
         gameInput:AddInputTable(editBoxTable)
         
         
         InputTable blockTable
         blockTable:SetIdentifier("Block")
+        
         BlockDragBehavior dragBehavior
         InputSet startDrag
         startDrag:SetDragItemInput()
@@ -2582,9 +2597,14 @@ editFieldTable:RemoveKey(blockCommandZ)
         InputSet endDrag
         endDrag:SetDragItemInput()
         endDrag:SetInputTrigger(endDrag:FINISH)
+        
         blockTable:Add(startDrag, dragBehavior)
         blockTable:Add(continueDrag, dragBehavior)
         blockTable:Add(endDrag, dragBehavior)
+        
+        blockTable:Add(mouseOn, mouseOnBehavior)
+        blockTable:Add(mouseOff, mouseOffBehavior)
+        
         gameInput:AddInputTable(blockTable)
         
         InputTable blockPaletteItemTable = blockTable:Copy()
@@ -2611,6 +2631,14 @@ InputSet spaceSet
         blockPaletteTable:Add(dragIntoFinishSet, paletteDragIntoBehavior)
         
         gameInput:AddInputTable(blockPaletteTable)
+        
+        
+        InputTable connectorTable
+        connectorTable:SetIdentifier("MultipleLineBlockConnector")
+        connectorTable:Add(mouseOn, mouseOnBehavior)
+        connectorTable:Add(mouseOff, mouseOffBehavior)
+        
+        gameInput:AddInputTable(connectorTable)
         
     end
 

@@ -149,7 +149,33 @@ if HasColorPropertyOverride(constants:DETAIL_FONT_COLOR)
             return parent:Control:GetColorProperty(constants:DETAIL_FONT_COLOR)
         end
     end
+    
+action GetMouseOverColor returns ColorGroup
+        if HasColorPropertyOverride("mouseOverColor")
+            return parent:Control:GetMouseOverColor()
+        end
 
+        Block block = GetBlock()
+        if block not= undefined
+            return block:GetColorProperty(constants:EDIT_MOUSE_OVER_COLOR)
+        else
+            return parent:Control:GetColorProperty(constants:EDIT_MOUSE_OVER_COLOR)
+        end
+    end
+
+action GetMouseOverBorderColor returns ColorGroup
+        if HasColorPropertyOverride("mouseOverBorderColor")
+            return parent:Control:GetMouseOverBorderColor()
+        end
+
+        Block block = GetBlock()
+        if block not= undefined
+            return block:GetColorProperty(constants:EDIT_MOUSE_OVER_BORDER_COLOR)
+        else
+            return parent:Control:GetColorProperty(constants:EDIT_MOUSE_OVER_BORDER_COLOR)
+        end
+    end
+    
     action GetBorderThickness returns number
         if HasNumberPropertyOverride("borderThickness")
             return parent:Control:GetBorderThickness()
@@ -161,6 +187,23 @@ if HasColorPropertyOverride(constants:DETAIL_FONT_COLOR)
         else
             return parent:Control:GetNumberProperty(constants:EDIT_BORDER_THICKNESS)
         end
+    end
+    
+action GetMouseOverBorderThickness returns number
+        if HasNumberPropertyOverride("mouseOverBorderThickness")
+            return parent:Control:GetMouseOverBorderThickness()
+        end
+
+        Block block = GetBlock()
+        if block not= undefined
+            return block:GetNumberProperty(constants:EDIT_MOUSE_OVER_BORDER_THICKNESS)
+        else
+            return parent:Control:GetNumberProperty(constants:EDIT_MOUSE_OVER_BORDER_THICKNESS)
+        end
+    end
+    
+    action HasMouseOverBorderThickness returns boolean
+        return parent:Control:HasMouseOverBorderThickness() or (GetNumberProperty(constants:EDIT_MOUSE_OVER_BORDER_THICKNESS):IsNotANumber() = false)
     end
 
     action GetBlock returns Block

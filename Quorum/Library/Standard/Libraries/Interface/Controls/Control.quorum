@@ -1936,6 +1936,15 @@ elseif font:IsFontAvailable("courbd")
     action GetMouseOverFontColor returns ColorGroup
         return defaultProperties:GetMouseOverFontColor()
     end
+
+    action SetMouseOverBorderColor(ColorGroup value)
+        defaultProperties:SetMouseOverBorderColor(value)
+    end
+
+    action GetMouseOverBorderColor returns ColorGroup
+        return defaultProperties:GetMouseOverBorderColor()
+    end
+
     /*  
         This action sets the mouse down color.
 
@@ -2195,6 +2204,18 @@ elseif font:IsFontAvailable("courbd")
 
     action HasSelectionBorderThickness returns boolean
         return defaultProperties:HasSelectionBorderThickness()
+    end
+
+    action SetMouseOverBorderThickness(number value)
+        defaultProperties:SetMouseOverBorderThickness(value)
+    end
+
+    action GetMouseOverBorderThickness returns number
+        return defaultProperties:GetMouseOverBorderThickness()
+    end
+
+    action HasMouseOverBorderThickness returns boolean
+        return defaultProperties:HasMouseOverBorderThickness()
     end
 
     /*  

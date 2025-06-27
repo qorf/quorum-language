@@ -29,6 +29,8 @@ class LightBlockOptions is LightModeOptions, BlockOptions
     Color returnBlock = color:CustomColor(183.0 / MAX, 222.0 / MAX, 241.0 / MAX, 1)
     Color selectionColor = color:CustomColor(0.75, 0.75, 0.75, 1)
     
+Color mouseOverColor = color:CustomColor(0.5, 0.5, 1, 1)
+    
 // Additional values for palette and palette-related options.
     Color blockPaletteTabBackground = color:CustomColor(1, 1, 1, 0)
     Color blockPaletteTabSelection = color:CustomColor(205.0 / MAX, 230.0 / MAX, 253.0 / MAX, 1)
@@ -66,7 +68,9 @@ class LightBlockOptions is LightModeOptions, BlockOptions
         SetBackgroundColor(constants:COMMENT_KEY, freeformBlock)
 
         SetEditBorderThickness(1)
+        SetEditMouseOverBorderThickness(2)
         SetEditFontColor(color:Black())
+        SetEditMouseOverBorderColor(mouseOverColor)
         SetStaticFontColor(color:Black())
         SetStaticFontOutlineColor(color:White())
         SetStaticFontOutlineThickness(0)
@@ -145,6 +149,11 @@ newMovingColor:SetColor(0.75, 0.75, 0.75, 1)
             SetSelectionBorderColor(key, selectionBorder)
             SetSelectionBorderThickness(key, 2)
             SetDetailFontColor(key, color:CustomColor(36 / MAX, 36 / MAX, 36 / MAX, 1))
+            
+            //SetMouseOverColor(key, newPlaceholderColor)
+            SetMouseOverColor(key, background)
+            SetMouseOverBorderColor(key, mouseOverColor)
+            SetMouseOverBorderThickness(key, 3)
         end
     end
 
