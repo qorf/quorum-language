@@ -584,5 +584,116 @@ Array<Item2D> children = GetChildren()
         end
         
     end
+    
+    
+/*  
+    This action tests if a point in global x,y coordinates is contained
+    inside this Item2D. The global coordinates are considered to be the x and y
+    coordinates of this Item plus its offsetX and offsetY values.
+
+    Attribute: Returns Whether or not the point is contained in this Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+
+        Item2D item
+        item:SetPosition(50, 50)
+        item:SetWidth(100)
+        item:SetHeight(50)
+        boolean value = item:Contains(125, 70)
+    */
+    action Contains(number containsX, number containsY) returns boolean
+        text name = GetName()
+        number x = GetX()
+        number y = GetY()
+        number testX = containsX - GetOffsetX()
+        number testY = containsY - GetOffsetY()
+        boolean in = testX >= GetX() and testX <= GetX() + GetWidth() * GetScaleX() and testY >= GetY() and testY <= GetY() + GetHeight() * GetScaleY()
+        
+        number topXNotch = GetTopNotchPosition() + GetX()
+        number bottomXNotch = GetBottomNotchPosition() + GetX()
+        CodeEditor editor = GetEditor()
+        //try to take the notch into account
+if editor not= undefined
+number notchTopWidth = editor:GetBlockNotchTopWidth() * GetInterfaceScale()
+                number notchBottomWidth = editor:GetBlockNotchBottomWidth() * GetInterfaceScale()
+                number notchHeight = editor:GetBlockNotchPixelHeight()
+number triangleWidth = (notchTopWidth - notchBottomWidth) / 2.0
+            
+number scaledBottomWidth = notchBottomWidth * GetScaleX()
+            number leftBoxX = bottomXNotch + triangleWidth
+number rightBoxX = bottomXNotch + triangleWidth + notchBottomWidth
+            
+            
+number leftBoxTopX = topXNotch + triangleWidth
+number rightBoxTopX = topXNotch + triangleWidth + notchTopWidth
+            
+            number bottomLowerBoxY = GetY() - notchHeight
+number topLowerBoxY = GetY()
+            
+            //first determine if it's in the bounded box part of the trapezoid
+            number scaledHeightY = GetHeight() * GetScaleY()
+            boolean bottomNotchIn = testX >= leftBoxX and testX <= rightBoxX
+            bottomNotchIn = bottomNotchIn and testY >= bottomLowerBoxY and testY <= topLowerBoxY
+            
+            boolean leftBottomTriangle = IsPointInTriangle(
+    bottomXNotch,topLowerBoxY,
+    bottomXNotch + triangleWidth,topLowerBoxY,
+    bottomXNotch + triangleWidth,bottomLowerBoxY,
+    testX,testY)
+boolean rightBottomTriangle = IsPointInTriangle(
+    rightBoxX,topLowerBoxY,
+    rightBoxX + triangleWidth,topLowerBoxY,
+    rightBoxX,bottomLowerBoxY,
+    testX,testY)
+            bottomNotchIn = bottomNotchIn or leftBottomTriangle or rightBottomTriangle
+            
+            
+boolean topNotchIn = testX >= leftBoxTopX and testX <= rightBoxTopX
+            topNotchIn = topNotchIn and testY >= bottomLowerBoxY + scaledHeightY 
+and testY <= topLowerBoxY + scaledHeightY
+                    
+boolean leftTopTriangle = IsPointInTriangle(
+    topXNotch,topLowerBoxY + scaledHeightY,
+    topXNotch + triangleWidth,topLowerBoxY + scaledHeightY,
+    topXNotch + triangleWidth,bottomLowerBoxY + scaledHeightY,
+    testX,testY)
+boolean rightTopTriangle = IsPointInTriangle(
+    rightBoxTopX,topLowerBoxY + scaledHeightY,
+    rightBoxTopX + triangleWidth,topLowerBoxY + scaledHeightY,
+    rightBoxTopX,bottomLowerBoxY + scaledHeightY,
+    testX,testY)
+topNotchIn = topNotchIn or leftTopTriangle or rightTopTriangle
+            
+
+if (in and not topNotchIn) or bottomNotchIn 
+                in = true
+else
+                in = false
+        end
+        end
+
+        return in
+    end
+    
+    
+action IsPointInTriangle(number x1, number y1, 
+number x2, number y2, 
+number x3, number y3, 
+number px, number py) returns boolean
+number epsilon = 1.0e-14
+        number denominator = ((y2 - y3) * (x1 - x3) + 
+ (x3 - x2) * (y1 - y3))
+        number alpha = ((y2 - y3) * (px - x3) + (x3 - x2) * (py - y3)) / denominator
+        number beta = ((y3 - y1) * (px - x3) + (x1 - x3) * (py - y3)) / denominator
+        number gamma = 1.0 - alpha - beta
+        if -epsilon <= alpha and alpha <= 1 + epsilon and
+-epsilon <= beta and beta <= 1 + epsilon and 
+-epsilon <= gamma and gamma <= 1 + epsilon
+            return true
+        end
+        return false
+    end
 
 end
