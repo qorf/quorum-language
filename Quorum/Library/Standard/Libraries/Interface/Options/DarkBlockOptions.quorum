@@ -30,6 +30,8 @@ class DarkBlockOptions is DarkModeOptions, BlockOptions
     Color editFieldBackground = color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1)
     Color selectionColor = color:CustomColor(0.5, 0.5, 0.5, 1)
     
+Color mouseOverColor = color:CustomColor(0.8, 0.8, 0.88, 1)
+    
     // Additional values for palette and palette-related options.
     Color blockPaletteTabBackground = color:CustomColor(1, 1, 1, 0)
     Color blockPaletteTabSelection = color:CustomColor(104.0 / MAX, 104.0 / MAX, 104.0 / MAX, 1)
@@ -66,6 +68,8 @@ Color blockPaletteTabBarBackground = color:CustomColor(79.0 / MAX, 83.0 / MAX, 8
 
         SetEditBackgroundColor(editFieldBackground)
         SetEditBorderThickness(1)
+        SetEditMouseOverBorderThickness(2)
+        SetEditMouseOverBorderColor(mouseOverColor)
         SetEditFontColor(color:White())
         SetStaticFontColor(color:White())
         SetStaticFontOutlineColor(color:Black())
@@ -134,6 +138,10 @@ newMovingColor:SetColor(0.75, 0.75, 0.75, 1)
 SetSelectionBorderColor(key, color:CustomColor(0.9, 0.9, 0.8, 0.25))
             SetSelectionBorderThickness(key, 2)
             SetDetailFontColor(key, color:CustomColor(242 / MAX, 242 / MAX, 242 / MAX, 1))
+            
+SetMouseOverColor(key, background)
+            SetMouseOverBorderColor(key, mouseOverColor)
+            SetMouseOverBorderThickness(key, 2.5)
         end
     end
 end

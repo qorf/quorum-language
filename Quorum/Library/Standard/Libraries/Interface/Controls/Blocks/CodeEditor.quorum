@@ -695,7 +695,9 @@ detailsHeight = singleBlock:GetVisibleDetailLabelsHeight()
                 counter = counter + 1
             end
 
-            totalContentHeight = total
+            // Add extra padding derived from the font's line height.
+            number extraPadding = GetFont():GetLineHeight() * 2
+            totalContentHeight = total + extraPadding
         end
 
         return totalContentHeight

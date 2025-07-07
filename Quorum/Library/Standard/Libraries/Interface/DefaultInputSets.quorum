@@ -2638,6 +2638,10 @@ InputSet spaceSet
         connectorTable:Add(mouseOn, mouseOnBehavior)
         connectorTable:Add(mouseOff, mouseOffBehavior)
         
+connectorTable:Add(startDrag, dragBehavior)
+        connectorTable:Add(continueDrag, dragBehavior)
+        connectorTable:Add(endDrag, dragBehavior)
+        
         gameInput:AddInputTable(connectorTable)
         
     end
