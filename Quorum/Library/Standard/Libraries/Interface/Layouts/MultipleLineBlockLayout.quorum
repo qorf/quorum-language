@@ -43,15 +43,24 @@ class MultipleLineBlockLayout is Layout
 
             number currentHeight = editor:GetLineY(part:GetNavigationEndIndex()) - editor:GetLineY(blockIndex + lineRange - 1)
             part:SetPosition(0, currentHeight)
+            
+            number maxThickness = part:GetBorderThickness()
+            if part:GetSelectionBorderThickness() > maxThickness
+                maxThickness = part:GetSelectionBorderThickness()
+            end
+            if part:GetMouseOverBorderThickness() > maxThickness
+                maxThickness = part:GetMouseOverBorderThickness()
+            end
+            maxThickness = maxThickness * part:GetInterfaceScale()
 
             if i > 0
                 Control connector = connectors:Get(i - 1)
-                number y = part:GetY() + part:GetHeight() - 1 * part:GetBorderThickness() - 1
+                number y = part:GetY() + part:GetHeight() - maxThickness - 1
                 connector:SetSize(editor:GetScopeIndentationWidth(), connectionTop - y)
                 connector:SetPosition(0, y)
             end
 
-            connectionTop = currentHeight + 1 * part:GetBorderThickness() + 1
+            connectionTop = currentHeight + 1 * maxThickness + 1
             
             if part:GetWidth() > longestWidth
                 longestWidth = part:GetWidth()
