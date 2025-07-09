@@ -133,6 +133,7 @@ if attributes:GetValue(i):Trim() = "false"
         elseif elementName = "page"
 BlockPalettePage page
             page:SetPalette(me:palette)
+page:LeftAlignContent()
             currentPage = page
 AttributesImplementation attributes = element:GetAttributes()
         integer i = 0
