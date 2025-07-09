@@ -21,6 +21,8 @@ use Libraries.Interface.Behaviors.CancelBehavior
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.GestureEvent
 use Libraries.Game.WebApplication
+use Libraries.Interface.Behaviors.FocusNextBehavior
+use Libraries.Interface.Behaviors.FocusPreviousBehavior
 
 shared class DefaultInputSets
 
@@ -2618,6 +2620,11 @@ InputSet spaceSet
         blockPaletteItemTable:Add(GetEnterKey(), activateBehavior)
         blockPaletteItemTable:Add(numpadEnterSet, activateBehavior)
         
+        //add the up and down arrows for the palette
+        FocusNextBehavior paletteNextFocusBehavior
+        FocusPreviousBehavior palettePreviousFocusBehavior
+
+        
         gameInput:AddInputTable(blockPaletteItemTable)
         
         // Make sure the CodeEditor's drag receiving behavior has a needed reference to the starting drag behavior.
@@ -2629,6 +2636,8 @@ InputSet spaceSet
         BlockPaletteAcceptDraggedBlockBehavior paletteDragIntoBehavior
         paletteDragIntoBehavior:SetSourceDragBehavior(dragBehavior)
         blockPaletteTable:Add(dragIntoFinishSet, paletteDragIntoBehavior)
+blockPaletteTable:Add(downSet, paletteNextFocusBehavior)
+blockPaletteTable:Add(upSet, palettePreviousFocusBehavior)
         
         gameInput:AddInputTable(blockPaletteTable)
         
