@@ -9,7 +9,7 @@ use Libraries.Interface.Controls.Blocks.Palette.BlockPalette
 use Libraries.Data.Formats.AttributesImplementation
 use Libraries.Interface.Forms.Banner
 use Libraries.Game.Graphics.Color
-
+use Libraries.Game.Graphics.Label
 
 class BlockPaletteMarkupListener is MarkupListener
     
@@ -181,13 +181,17 @@ readingIcon = true
             bannerSubtitle = value
             elseif name = "header"
             integer fontSize = currentPage:HEADER_SIZE
-            currentPage:AddLabel(value):SetFontSize(fontSize)
+Label label = currentPage:AddLabel(value)
+label:SetFontSize(fontSize)
+            label:SetLeftAlignment()
             elseif name = "subheading"
             integer fontSize = currentPage:HEADER2_SIZE
-            currentPage:AddLabel(value):SetFontSize(fontSize)
+            Label label = currentPage:AddLabel(value)
+label:SetFontSize(fontSize)
+            label:SetLeftAlignment()
 elseif name = "text"
             integer fontSize = currentPage:LABEL_SIZE
-            currentPage:AddLabel(value):SetFontSize(fontSize)
+currentPage:AddLabel(value):SetFontSize(fontSize)
 elseif name = "block"
             currentPage:AddBlockPaletteItem(value)
             // parse then add block palette item
