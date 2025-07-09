@@ -8,6 +8,8 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Accessibility
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Events.FocusEvent
 
 /*
 The Label class is used to draw text on the screen using a Font that is loaded
@@ -72,6 +74,9 @@ class Label is Control
     boolean descendingLines = true
 
     integer lineCount = 0
+    
+    // A box used to indicate focus, if this Label is made focusable.
+    Control focusBox = undefined
 
     on create
         LayoutProperties defaultProperties = GetDefaultLayoutProperties()
@@ -1004,8 +1009,19 @@ end
                 
             end
             
+if focusBox not= undefined
+number borders = focusBox:GetBorderThickness() * GetInterfaceScale()
+            // Use integer truncation of value + 0.5 for quick rounding.
+            integer extraPadding = cast(integer, (1 + 1 * GetInterfaceScale()) + 0.5)
+                number multiLineOffset = (GetLineCount() - 1) * GetLineHeight()
+focusBox:SetSize(GetWidth() + 2 * (borders + extraPadding), GetHeight() + 2 * (borders + extraPadding))
+            if positionOnBaseLine
+focusBox:SetPosition(-borders - extraPadding, -borders - extraPadding + font:GetMaximumDescent() - multiLineOffset)
+            else
+focusBox:SetPosition(-borders - extraPadding, -borders - extraPadding - multiLineOffset)
+            end
         end
-
+        end
     end
 
     private action GetDrawable returns GlyphDrawable
@@ -1027,6 +1043,11 @@ end
             if item is GlyphDrawable
                 drawablePool:Add(cast(GlyphDrawable, item))
             end
+        end
+        
+        // If this removed the focus box, add it back on.
+        if focusBox not= undefined
+            Add(focusBox)
         end
     end
 
@@ -1431,6 +1452,63 @@ end
     
     action IsJustifyAligned returns boolean
         return alignment = JUSTIFY_ALIGN
+    end
+    
+    action SetFocusable(boolean focusable)
+        if focusable = IsFocusable()
+            return now
+        end
+        
+        if focusBox not= undefined
+            Remove(focusBox)
+            focusBox = undefined
+        end
+        
+        if focusable
+            Control control
+            focusBox = control
+            
+            ControlShaderView view
+            view:Initialize()
+            focusBox:SetView2D(view)
+            
+            Color background
+            background:SetColor(1, 1, 1, 0)
+            focusBox:SetBackgroundColor(background)
+            focusBox:SetBorderColor(GetFocusColor())
+            focusBox:SetBottomLeftPixelRounding(GetBottomLeftPixelRounding())
+            focusBox:SetBottomRightPixelRounding(GetBottomRightPixelRounding())
+            focusBox:SetTopLeftPixelRounding(GetTopLeftPixelRounding())
+            focusBox:SetTopRightPixelRounding(GetTopRightPixelRounding())
+            focusBox:SetBorderThickness(GetBorderThickness())
+            
+            Add(focusBox)
+            
+            if IsFocused() = false
+                focusBox:Hide()
+            end
+            
+            // The focus box's dimensions are calculated along with the text, so regenerate it.
+textChanged = true
+        end
+        
+        parent:Control:SetFocusable(focusable)
+    end
+    
+    action GainedFocus(FocusEvent event)
+        if focusBox not= undefined
+            focusBox:Show()
+        end
+        
+        parent:Control:GainedFocus(event)
+    end
+    
+    action LostFocus(FocusEvent event)
+        if focusBox not= undefined
+            focusBox:Hide()
+        end
+        
+        parent:Control:LostFocus(event)
     end
 
 end
