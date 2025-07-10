@@ -1009,6 +1009,38 @@ end
                 
             end
             
+            if IsFocusable()
+                if focusBox = undefined
+Control control
+            focusBox = control
+            
+            ControlShaderView view
+            view:Initialize()
+            focusBox:SetView2D(view)
+            
+            Color background
+            background:SetColor(1, 1, 1, 0)
+            focusBox:SetBackgroundColor(background)
+            focusBox:SetBorderColor(GetFocusColor())
+            focusBox:SetBottomLeftPixelRounding(GetBottomLeftPixelRounding())
+            focusBox:SetBottomRightPixelRounding(GetBottomRightPixelRounding())
+            focusBox:SetTopLeftPixelRounding(GetTopLeftPixelRounding())
+            focusBox:SetTopRightPixelRounding(GetTopRightPixelRounding())
+            focusBox:SetBorderThickness(GetBorderThickness())
+            
+            Add(focusBox)
+                end
+                
+if IsFocused() = false
+                focusBox:Hide()
+                else
+                    focusBox:Show()
+            end
+            elseif focusBox not= undefined
+                Remove(focusBox)
+                focusBox = undefined
+            end
+            
 if focusBox not= undefined
 number borders = focusBox:GetBorderThickness() * GetInterfaceScale()
             // Use integer truncation of value + 0.5 for quick rounding.
@@ -1464,40 +1496,16 @@ focusBox:SetPosition(-borders - extraPadding, -borders - extraPadding - multiLin
             focusBox = undefined
         end
         
-        if focusable
-            Control control
-            focusBox = control
-            
-            ControlShaderView view
-            view:Initialize()
-            focusBox:SetView2D(view)
-            
-            Color background
-            background:SetColor(1, 1, 1, 0)
-            focusBox:SetBackgroundColor(background)
-            focusBox:SetBorderColor(GetFocusColor())
-            focusBox:SetBottomLeftPixelRounding(GetBottomLeftPixelRounding())
-            focusBox:SetBottomRightPixelRounding(GetBottomRightPixelRounding())
-            focusBox:SetTopLeftPixelRounding(GetTopLeftPixelRounding())
-            focusBox:SetTopRightPixelRounding(GetTopRightPixelRounding())
-            focusBox:SetBorderThickness(GetBorderThickness())
-            
-            Add(focusBox)
-            
-            if IsFocused() = false
-                focusBox:Hide()
-            end
-            
-            // The focus box's dimensions are calculated along with the text, so regenerate it.
+// The focus box's dimensions are calculated along with the text, so regenerate it.
 textChanged = true
-        end
-        
         parent:Control:SetFocusable(focusable)
     end
     
     action GainedFocus(FocusEvent event)
         if focusBox not= undefined
             focusBox:Show()
+        else
+            textChanged = true
         end
         
         parent:Control:GainedFocus(event)
