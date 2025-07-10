@@ -1425,6 +1425,17 @@ placeholderControls:Add(newLabel)
         placeholder:SetBlockEnvironment(GetBlockEnvironment())
         placeholder:SetAsPlaceholder(GetText(), children)
         placeholder:SetScopeDepth(GetScopeDepth())
+        
+        if topNotchPositionFactor = 2
+            if bottomNotchPositionFactor = 2
+                placeholder:UseEnterAndExitScopeStyling()
+            else
+                placeholder:UseExitScopeStyling()
+            end
+        elseif bottomNotchPositionFactor = 2
+            placeholder:UseEnterScopeStyling()
+        end
+        
         if me is SingleLineBlock
             SingleLineBlock singleBlock = cast(SingleLineBlock, me)
             placeholder:SetAlwaysShowDetailLabels(singleBlock:AlwaysShowDetailLabels())

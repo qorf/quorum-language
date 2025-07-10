@@ -38,6 +38,9 @@ class EditManager
         edits:Undo()
     */
     action Add(Edit undo)
+        if undo = undefined
+            return now
+        end
         undoList:Add(undo)
         DisposeAndEmpty(redoList)
     end
@@ -70,6 +73,9 @@ class EditManager
     action Undo
         if CanUndo()
             Edit undo = undoList:RemoveFromEnd()
+            if undo = undefined
+                return now
+            end
             undo:Undo()
 
             redoList:Add(undo)
@@ -93,6 +99,10 @@ class EditManager
     action Redo
         if CanRedo()
             Edit redo = redoList:RemoveFromEnd()
+            if redo = undefined
+                return now
+            end
+            
             redo:Redo()
 
             undoList:Add(redo)

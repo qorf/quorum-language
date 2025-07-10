@@ -19,6 +19,7 @@ use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
 use Libraries.Interface.Controls.Control
 use Libraries.Containers.MultipleLineText
 use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Undo.BlockEditManager
 
 class CodeEditorRenderer is Control
 
@@ -863,6 +864,10 @@ eventInsertion = toInsert
         
         editor:SetCode(code)
         
+        // Manage the upcoming changes as a single edit in the edit manager.
+        BlockEditManager edits = editor:GetBlockEditManager()
+        edits:SetSpecialAction(true)
+        
         if eventDeletionIndex >= -1 and eventDeleteFirst
             NotifyTextChangeListeners(eventDeletionIndex, "", eventDeletion)
         end
@@ -872,6 +877,8 @@ eventInsertion = toInsert
         if eventDeletionIndex >= -1 and eventDeleteFirst = false
             NotifyTextChangeListeners(eventDeletionIndex, "", eventDeletion)
         end
+        
+        edits:SetSpecialAction(false)
     end
     
     private action NotifyTextChangeListeners(integer index, text added, text deleted)
