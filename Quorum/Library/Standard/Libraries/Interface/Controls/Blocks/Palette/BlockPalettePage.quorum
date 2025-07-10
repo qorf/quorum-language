@@ -14,6 +14,7 @@ use Libraries.Game.Graphics.Color
 use Libraries.Language.Compile.Symbol.Action
 use Libraries.Game.GameStateManager
 use Libraries.Game.FocusManager
+use Libraries.Interface.Controls.ScrollPaneRendererAnchor
 
 class BlockPalettePage is StackedRowPage
 
@@ -249,15 +250,28 @@ focusManager:FocusPreviousItem()
     end
     
     action ScrollToItem(Item2D focus)
+Item2D candidate = focus:GetParent()
+repeat until candidate = undefined or candidate is ScrollPaneRendererAnchor
+    candidate = candidate:GetParent()
+end
+
+number anchorY = 0
+if candidate not= undefined
+    anchorY = candidate:GetGlobalY()
+        else
+            return now
+end
+
 number totalContentHeight = GetTotalContentHeight()
         number momY = GetScrollPercentageY()
         number scrollHeight = GetScrollPercentageHeight()
-        
-number childY = Clamp(focus:GetY(), 0.0, totalContentHeight)
+        number focusGlobalY = focus:GetGlobalY()
+        number y = focusGlobalY - anchorY
+number childY = Clamp(y, 0.0, totalContentHeight)
         number scrollPadding = focus:GetHeight() / totalContentHeight
         number buffer = scrollPadding * 0.50
         if totalContentHeight not= 0
-number childPercent = 1.0 - (childY / totalContentHeight)
+number childPercent = (totalContentHeight - childY) / totalContentHeight
             childPercent = Clamp(childPercent, 0.0, 1.0)
 if childPercent - scrollPadding < momY
 SetScrollPercentageY(childPercent - scrollPadding - buffer)
