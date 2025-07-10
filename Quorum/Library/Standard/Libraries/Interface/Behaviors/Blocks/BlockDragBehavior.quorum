@@ -243,6 +243,11 @@ behavior begins. The value of the threshold is determined based on the height of
         end
         
         integer startScope = blocks:Get(0):GetScopeDepth()
+        number scopeIndentation = 0
+        if environment not= undefined
+            scopeIndentation = environment:GetScopeIndentationWidth()
+        end
+        
         repeat while i < blocks:GetSize()
             Block block = blocks:Get(i)
             
@@ -251,7 +256,7 @@ behavior begins. The value of the threshold is determined based on the height of
             
             dummyBlock = block:CopyToPlaceholder()
             dummyBlock:SetSize(block:GetWidth(), block:GetHeight())
-            dummyBlock:SetPosition(targetX + (dummyBlock:GetScopeDepth() - startScope) * editor:GetScopeIndentationWidth(), targetY)
+            dummyBlock:SetPosition(targetX + (dummyBlock:GetScopeDepth() - startScope) * scopeIndentation, targetY)
             
             SingleLineBlockView view
             view:Initialize()
