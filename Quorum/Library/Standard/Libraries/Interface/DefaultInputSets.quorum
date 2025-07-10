@@ -23,6 +23,8 @@ use Libraries.Interface.Events.GestureEvent
 use Libraries.Game.WebApplication
 use Libraries.Interface.Behaviors.FocusNextBehavior
 use Libraries.Interface.Behaviors.FocusPreviousBehavior
+use Libraries.Interface.Behaviors.Blocks.BlockPaletteNextFocusBehavior
+use Libraries.Interface.Behaviors.Blocks.BlockPalettePreviousFocusBehavior
 
 shared class DefaultInputSets
 
@@ -2621,8 +2623,8 @@ InputSet spaceSet
         blockPaletteItemTable:Add(numpadEnterSet, activateBehavior)
         
         //add the up and down arrows for the palette
-        FocusNextBehavior paletteNextFocusBehavior
-        FocusPreviousBehavior palettePreviousFocusBehavior
+        BlockPaletteNextFocusBehavior paletteNextFocusBehavior
+        BlockPalettePreviousFocusBehavior palettePreviousFocusBehavior
 
         
         gameInput:AddInputTable(blockPaletteItemTable)
@@ -2637,7 +2639,9 @@ InputSet spaceSet
         paletteDragIntoBehavior:SetSourceDragBehavior(dragBehavior)
         blockPaletteTable:Add(dragIntoFinishSet, paletteDragIntoBehavior)
 blockPaletteTable:Add(downSet, paletteNextFocusBehavior)
+blockPaletteTable:Add(tabSet, paletteNextFocusBehavior)
 blockPaletteTable:Add(upSet, palettePreviousFocusBehavior)
+blockPaletteTable:Add(shiftTabSet, palettePreviousFocusBehavior)
         
         gameInput:AddInputTable(blockPaletteTable)
         
