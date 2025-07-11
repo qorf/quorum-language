@@ -95,7 +95,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
         root = document.createElement("div");
         root.setAttribute("aria-label", title);
         root.setAttribute("tabindex", "-1");
-        root.setAttribute("role", "dialog");
+        root.setAttribute("role", "application");
         root.setAttribute("aria-modal", true);
         root.hidden = true;
 
