@@ -864,17 +864,19 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             // If it can process input events, we'll need to sometimes refer back to the Quorum item in order to update text.
             para.quorumItem = item;
         }
-
+        if(tabpanel !== null) {
+            root.appendChild(tabpanel);
+        }
         //add element to a parent if need be or directly to the root
         if (parent != undefined) {
             var parentElement = document.getElementById(parent);
-            if(parentElement.role = "tab") {
+            if(parentElement.role == "tab") {
                 parentElement = document.getElementById(parent+"-tabpanel");
             }
             if(tablist !== null) {
                 parentElement.appendChild(tablist);
             }
-            if(parentElement.role = "tab") {
+            if(parentElement.role == "tab") {
                 let tabpanelID = parentElement.id+"-tabpanel";
                 parentElement = document.getElementById(tabpanelID);
             }
