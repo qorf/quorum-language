@@ -464,6 +464,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
 
         var sendInputEvents = false;
         let tablist = null;
+        let tabpanel = null;
 
         switch(item.GetAccessibilityCode()){
             //ITEM or CUSTOM
@@ -621,6 +622,14 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                     if (tabpane != undefined) {
                         parent = tabpane.GetHashCode()+"-tablist";
                     }
+                    // create associated tab panel
+                    let tabpanelID = tab.GetHashCode()+"-tabpanel";
+                    tabpanel = document.createElement(elementType);
+                    tabpanel.id = tabpanelID;
+                    tabpanel.role = "tabpanel";
+                    tabpanel.setAttribute("aria-labelledby", tab.GetHashCode());
+                    
+                    para.setAttribute("aria-controls", tabpanelID);
                 }
                 break;
             //TAB_PANE
@@ -859,8 +868,15 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         //add element to a parent if need be or directly to the root
         if (parent != undefined) {
             var parentElement = document.getElementById(parent);
+            if(parentElement.role = "tab") {
+                parentElement = document.getElementById(parent+"-tabpanel");
+            }
             if(tablist !== null) {
                 parentElement.appendChild(tablist);
+            }
+            if(parentElement.role = "tab") {
+                let tabpanelID = parentElement.id+"-tabpanel";
+                parentElement = document.getElementById(tabpanelID);
             }
             parentElement.appendChild(para);
             
