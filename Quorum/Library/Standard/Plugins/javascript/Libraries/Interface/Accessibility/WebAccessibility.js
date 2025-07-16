@@ -102,8 +102,8 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
         root.style.position = "absolute";
         root.style.left = 0;
         root.style.bottom = 0;
-        root.style.width = "1px";
-        root.style.height = "1px";
+        root.style.width = "100%";
+        root.style.height = "100%";
 
         // Ensure that bugs in the positioning of shadow elements
         // don't affect the visible layout.
