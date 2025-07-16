@@ -1045,7 +1045,13 @@ if focusBox not= undefined
 number borders = focusBox:GetBorderThickness() * GetInterfaceScale()
             // Use integer truncation of value + 0.5 for quick rounding.
             integer extraPadding = cast(integer, (1 + 1 * GetInterfaceScale()) + 0.5)
-                number multiLineOffset = (GetLineCount() - 1) * GetLineHeight()
+                
+                // If the lines are descending, correct the y-position of the box.
+number multiLineOffset = 0
+                if descendingLines
+multiLineOffset = (GetLineCount() - 1) * GetLineHeight()
+                end
+                
 focusBox:SetSize(GetWidth() + 2 * (borders + extraPadding), GetHeight() + 2 * (borders + extraPadding))
             if positionOnBaseLine
 focusBox:SetPosition(-borders - extraPadding, -borders - extraPadding + font:GetMaximumDescent() - multiLineOffset)

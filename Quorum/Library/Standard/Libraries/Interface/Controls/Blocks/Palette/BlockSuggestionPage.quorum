@@ -102,6 +102,7 @@ Documentation clazzDocs) returns text
         end
         return ""
     end
+    
     action SetFromResult(BlockSuggestionResult result)
 EmptyPage()
         suggestedActionItems:Empty()
@@ -109,6 +110,7 @@ EmptyPage()
         Class clazz = result:clazz
         if clazz = undefined
             SetupDefaultSuggestions()
+            CalculateDefaultFocusOrdering()
             return now
         end
         text className = clazz:GetName()
@@ -138,6 +140,7 @@ errorBanner:SetBackgroundColor(color)
                 errorBanner:GetLabel():SetJustifyAlignment()
                 
                 SetupDefaultSuggestions()
+CalculateDefaultFocusOrdering()
                 return now
             end
         end
