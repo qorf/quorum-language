@@ -620,7 +620,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                     let tab = global_CheckCast(item, "Libraries.Interface.Controls.Tab");
                     let tabpane = tab.GetTabPane();
                     if (tabpane != undefined) {
-                        parent = tabpane.GetHashCode()+"-tablist";
+                        parent = tabpane.GetHashCode();
                     }
                     // create associated tab panel
                     let tabpanelID = tab.GetHashCode()+"-tabpanel";
@@ -634,10 +634,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 break;
             //TAB_PANE
             case 14:
-                role = "tabpanel";
-                tablist = document.createElement(elementType);
-                tablist.id = id + "-tablist";
-                tablist.role = "tablist";
+                role = "tablist";
                 break;
             //TABLE
             case 15:
@@ -864,9 +861,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             // If it can process input events, we'll need to sometimes refer back to the Quorum item in order to update text.
             para.quorumItem = item;
         }
-        if(tabpanel !== null) {
-            root.appendChild(tabpanel);
-        }
+        
         //add element to a parent if need be or directly to the root
         if (parent != undefined) {
             var parentElement = document.getElementById(parent);
@@ -876,16 +871,17 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             if(tablist !== null) {
                 parentElement.appendChild(tablist);
             }
-            if(parentElement.role == "tab") {
-                let tabpanelID = parentElement.id+"-tabpanel";
-                parentElement = document.getElementById(tabpanelID);
-            }
             parentElement.appendChild(para);
-            
+            if(tabpanel !== null) {
+                parentElement.parentNode.appendChild(tabpanel);
+            }
             //console.log(item.GetName(), " has been added to a parent.");
         } else {
             if(tablist !== null) {
                 root.appendChild(tablist);
+            }
+            if(tabpanel !== null) {
+                root.appendChild(tabpanel);
             }
             root.appendChild(para);
             //console.log(item.GetName(), " has been added.");
