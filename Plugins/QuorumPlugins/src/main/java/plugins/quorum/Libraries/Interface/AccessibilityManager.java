@@ -535,6 +535,7 @@ public class AccessibilityManager
         catch (Throwable e)
         {
             // Fail silently. We don't want to crash the application if the accessibility system hits a snag.
+            //e.printStackTrace();
         }
         
         if (wasRemoved) {
