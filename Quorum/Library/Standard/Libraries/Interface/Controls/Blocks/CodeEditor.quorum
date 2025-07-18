@@ -74,7 +74,7 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
 
     GameStateManager manager
     Accessibility accessibility = undefined
-    Item2D dummyItem = undefined
+    Control dummyItem = undefined
 
 
     boolean shouldCalculateWidth = true
@@ -133,11 +133,16 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
         AddTextChangeListener(editManager)
         rawCode:Initialize("")
 
-                Item2D temp
+                Control temp
         dummyItem = temp
         dummyItem:SetAccessibilityCode(dummyItem:parent:Item:ITEM)
         dummyItem:SetFocusable(true)
         dummyItem:SetName("Top of File")
+        dummyItem:SetPixelHeight(5)
+        dummyItem:SetPercentageWidth(1)
+        dummyItem:SetPercentageX(0)
+        dummyItem:SetPercentageY(1)
+        dummyItem:SetPercentageOriginY(1)
         Add(dummyItem)
 
         
