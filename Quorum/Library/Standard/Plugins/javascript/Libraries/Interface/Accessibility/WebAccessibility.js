@@ -154,24 +154,26 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
         // the canvas.
         container.insertBefore(focusButton, canvas);
         selectionListener = function(event) {
-            const activeElement = document.activeElement;
-            if(activeElement) {
-                let textElement = activeElement;
-                if (!('quorumItem' in textElement)) {
-                    return;
-                }
-                if (textElement.quorumItem && textElement.quorumItem.SetText$quorum_text)
-                    {
-                        let quorumItem = textElement.quorumItem;
-                        let selection = textElement.quorumItem.GetSelection();
-                        let documentSelection = document.getSelection();
-                        let startIndex = textElement.selectionStart;
-                        let endIndex = textElement.selectionEnd;
-                        if (quorumItem.SetCaretPosition$quorum_integer)
-                        {
-                            quorumItem.SetCaretPosition$quorum_integer(endIndex);
-                        }
+            if (GetWebOperatingSystem() == 'Android' || GetWebOperatingSystem() == 'iOS') {
+                const activeElement = document.activeElement;
+                if(activeElement) {
+                    let textElement = activeElement;
+                    if (!('quorumItem' in textElement)) {
+                        return;
                     }
+                    if (textElement.quorumItem && textElement.quorumItem.SetText$quorum_text)
+                        {
+                            let quorumItem = textElement.quorumItem;
+                            let selection = textElement.quorumItem.GetSelection();
+                            let documentSelection = document.getSelection();
+                            let startIndex = textElement.selectionStart;
+                            let endIndex = textElement.selectionEnd;
+                            if (quorumItem.SetCaretPosition$quorum_integer)
+                            {
+                                quorumItem.SetCaretPosition$quorum_integer(endIndex);
+                            }
+                        }
+                }
             }
         };
         document.addEventListener("selectionchange", selectionListener);
@@ -309,7 +311,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
 
 //  private system action TextSelectionChanged(TextBoxSelection selection)
 this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextBoxSelection = function(selection) {
-    return;
+    
     var textBox = selection.GetTextBox();
     if (textBox == null){
         return;
@@ -327,7 +329,7 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextBoxSelection
 
 //  private system action TextSelectionChanged(TextBoxSelection selection)
 this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelection = function(selection) {
-    return;
+    
     var textField = selection.GetTextField();
     if (textField == null) {
         return;
