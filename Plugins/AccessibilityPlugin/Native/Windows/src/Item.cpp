@@ -325,6 +325,7 @@ void Item::Disconnect() noexcept
 		if (env)
 		{
 			env->DeleteGlobalRef(javaItem);
+			javaItem = nullptr;
 		}
 	}
 }

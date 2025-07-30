@@ -13,7 +13,7 @@ TextBoxControl::TextBoxControl(JNIEnv* env, std::wstring&& name, std::wstring&& 
 std::wstring TextBoxControl::GetText()
 {
 	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
+	if (env != NULL && javaItem != nullptr)
 	{
 		jstring jText = reinterpret_cast<jstring>(env->CallObjectMethod(javaItem, JavaClass_TextBox.GetText));
 
@@ -31,7 +31,7 @@ std::wstring TextBoxControl::GetText()
 std::wstring TextBoxControl::GetText(int startIndex, int endIndex)
 {
 	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
+	if (env != NULL && javaItem != nullptr)
 	{
 		jstring jText = reinterpret_cast<jstring>(env->CallObjectMethod(javaItem, JavaClass_TextBox.GetPartialText, startIndex, endIndex));
 
@@ -51,7 +51,7 @@ int TextBoxControl::GetSize()
 	JNIEnv* env = GetJNIEnv();
 
 	jint size = 0;
-	if (env != NULL)
+	if (env != NULL && javaItem != nullptr)
 	{
 		size = env->CallIntMethod(javaItem, JavaClass_TextBox.GetSize);
 	}
@@ -64,7 +64,7 @@ int TextBoxControl::GetIndexOfLine(int line)
 	JNIEnv* env = GetJNIEnv();
 
 	jint index = 0;
-	if (env != NULL)
+	if (env != NULL && javaItem != nullptr)
 	{
 		index = env->CallIntMethod(javaItem, JavaClass_TextBox.GetIndexOfLine, (jint)line);
 	}
@@ -74,7 +74,7 @@ int TextBoxControl::GetIndexOfLine(int line)
 bool TextBoxControl::IsBeginningOfToken(int index)
 {
 	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
+	if (env != NULL && javaItem != nullptr)
 	{
 		if (env->CallBooleanMethod(javaItem, JavaClass_TextBox.IsBeginningOfToken, index))
 		{
@@ -90,7 +90,7 @@ int TextBoxControl::GetLineIndexOfCharacter(int characterIndex)
 	JNIEnv* env = GetJNIEnv();
 
 	jint lineIndex = 0;
-	if (env != NULL)
+	if (env != NULL && javaItem != nullptr)
 	{
 		lineIndex = env->CallIntMethod(javaItem, JavaClass_TextBox.GetLineIndexOfCharacter, characterIndex);
 	}
@@ -101,7 +101,7 @@ Range TextBoxControl::GetSelectionRange()
 {
 	JNIEnv* env = GetJNIEnv();
 	Range selectionRange = { {0}, {0} };
-	if (env != NULL)
+	if (env != NULL && javaItem != nullptr)
 	{
 		jint index = 0;
 		jobject JO_selection;
@@ -121,7 +121,7 @@ Range TextBoxControl::GetSelectionRange()
 void TextBoxControl::Select(const Range& range)
 {
 	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
+	if (env != NULL && javaItem != nullptr)
 	{
 		env->CallVoidMethod(javaItem, JavaClass_TextBox.Select, range.begin, range.end);
 	}
@@ -130,7 +130,7 @@ void TextBoxControl::Select(const Range& range)
 bool TextBoxControl::IsErrorAtIndex(int index)
 {
 	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
+	if (env != NULL && javaItem != nullptr)
 	{
 		if (env->CallStaticBooleanMethod(JavaClass_AccessibilityManager.me, JavaClass_AccessibilityManager.IsErrorAtIndex, javaItem, index))
 		{

@@ -451,32 +451,28 @@ public class DesktopDisplay {
     {
         pauseEventPolling = false;
 
-        try
+        // We always poll for events at least once.
+        GLFW.glfwPollEvents();
+
+        quorum.Libraries.Game.DesktopDisplay dis = (quorum.Libraries.Game.DesktopDisplay) me_;
+        quorum.Libraries.Game.DesktopConfiguration_ config = dis.config;
+
+        double interval = (System.nanoTime() - lastTime) / 1000000000.0;
+        double frameTarget = 1.0 / config.Get_Libraries_Game_DesktopConfiguration__targetFramesPerSecond_();
+        double minimum = config.Get_Libraries_Game_DesktopConfiguration__minimumFrameDelay_();
+
+        if (config.Get_Libraries_Game_DesktopConfiguration__limitFramesPerSecond_())
         {
-            // We always poll for events at least once.
-            GLFW.glfwPollEvents();
-
-            quorum.Libraries.Game.DesktopDisplay dis = (quorum.Libraries.Game.DesktopDisplay) me_;
-            quorum.Libraries.Game.DesktopConfiguration_ config = dis.config;
-
-            double interval = (System.nanoTime() - lastTime) / 1000000000.0;
-            double frameTarget = 1.0 / config.Get_Libraries_Game_DesktopConfiguration__targetFramesPerSecond_();
-            double minimum = config.Get_Libraries_Game_DesktopConfiguration__minimumFrameDelay_();
-
-            if (config.Get_Libraries_Game_DesktopConfiguration__limitFramesPerSecond_())
-                while (pauseEventPolling == false && (interval < minimum || interval < frameTarget))
-                {
-                    if (frameTarget > minimum)
-                        GLFW.glfwWaitEventsTimeout(frameTarget - interval);
-                    else
-                        GLFW.glfwWaitEventsTimeout(minimum - interval);
-                    interval = (System.nanoTime() - lastTime) / 1000000000.0;
-                }
+            while (pauseEventPolling == false && (interval < minimum || interval < frameTarget))
+            {
+                if (frameTarget > minimum)
+                    GLFW.glfwWaitEventsTimeout(frameTarget - interval);
+                else
+                    GLFW.glfwWaitEventsTimeout(minimum - interval);
+                interval = (System.nanoTime() - lastTime) / 1000000000.0;
+            }
         }
-        catch (Throwable e)
-        {
-            //e.printStackTrace();
-        }
+
         
         GLFW.glfwSwapBuffers(window);
     }
