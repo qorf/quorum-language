@@ -114,4 +114,15 @@ File file
 file:SetPath("SomeFile.txt")
 help:OpenInDefaultTextEditor(file)*/
     system action OpenInDefaultTextEditor(File file)
+    
+    
+/*Forces the program to exit with a status code. By convention, 0 means exited normally
+and any other code is not. 
+
+Attribute: integer The exit code.
+
+use Libraries.System.SystemHelper
+SystemHelper help
+help:Exit(0)*/
+    system action Exit(integer code)
 end
