@@ -155,6 +155,16 @@ class LayoutProperties
     boolean setY = false
     boolean setWidth = false
     boolean setHeight = false
+    
+boolean setLeftMargin = false
+    boolean setRightMargin = false
+    boolean setTopMargin = false
+    boolean setBottomMargin = false
+    
+boolean setLeftPadding = false
+    boolean setRightPadding = false
+    boolean setTopPadding = false
+    boolean setBottomPadding = false
 
     /*
     Values indicating where a Control should be located in a grid.
@@ -428,18 +438,22 @@ class LayoutProperties
 
     action SetLeftMargin(number margin)
         leftMargin = margin
+        setLeftMargin = true
     end
 
     action SetRightMargin(number margin)
         rightMargin = margin
+        setRightMargin = true
     end
 
     action SetBottomMargin(number margin)
         bottomMargin = margin
+        setBottomMargin = true
     end
 
     action SetTopMargin(number margin)
         topMargin = margin
+        setTopMargin = true
     end
 
     action GetLeftMargin returns number
@@ -460,18 +474,22 @@ class LayoutProperties
 
     action SetLeftPadding(number padding)
         leftPadding = padding
+        setLeftPadding = true
     end
 
     action SetRightPadding(number padding)
         rightPadding = padding
+        setRightPadding = true
     end
 
     action SetBottomPadding(number padding)
         bottomPadding = padding
+        setBottomPadding = true
     end
 
     action SetTopPadding(number padding)
         topPadding = padding
+        setTopPadding = true
     end
 
     action GetLeftPadding returns number
@@ -488,6 +506,70 @@ class LayoutProperties
 
     action GetTopPadding returns number
         return topPadding
+    end
+    
+action IsSettingLeftMargin returns boolean
+        return setLeftMargin
+    end
+
+    action IsSettingRightMargin returns boolean
+        return setRightMargin
+    end
+
+    action IsSettingTopMargin returns boolean
+        return setTopMargin
+    end
+
+    action IsSettingBottomMargin returns boolean
+        return setBottomMargin
+    end
+
+    action SetLeftMarginSetting(boolean enable)
+        setLeftMargin = enable
+    end
+
+    action SetRightMarginSetting(boolean enable)
+        setRightMargin = enable
+    end
+
+    action SetTopMarginSetting(boolean enable)
+        setTopMargin = enable
+    end
+
+    action SetBottomMarginSetting(boolean enable)
+        setBottomMargin = enable
+    end
+    
+action IsSettingLeftPadding returns boolean
+        return setLeftPadding
+    end
+
+    action IsSettingRightPadding returns boolean
+        return setRightPadding
+    end
+
+    action IsSettingTopPadding returns boolean
+        return setTopPadding
+    end
+
+    action IsSettingBottomPadding returns boolean
+        return setBottomPadding
+    end
+
+    action SetLeftPaddingSetting(boolean enable)
+        setLeftPadding = enable
+    end
+
+    action SetRightPaddingSetting(boolean enable)
+        setRightPadding = enable
+    end
+
+    action SetTopPaddingSetting(boolean enable)
+        setTopPadding = enable
+    end
+
+    action SetBottomPaddingSetting(boolean enable)
+        setBottomMargin = enable
     end
 
     action SetBorderStyle(integer style)
@@ -808,7 +890,7 @@ class LayoutProperties
         me:containerGridHeight = containerGridHeight
     end
 
-    action SetBackgroundColor(ColorGroup value)
+        action SetBackgroundColor(ColorGroup value)
         if options = undefined
             options = NewInterfaceOptions()
         end
@@ -892,9 +974,6 @@ class LayoutProperties
         end
 
         InterfaceOptions default = manager:GetInterfaceOptions()
-        if default = undefined
-            return undefined
-        end
         InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetFontColor() not= undefined
             return controlPalette:GetFontColor()
@@ -1064,6 +1143,29 @@ class LayoutProperties
         return default:GetMouseOverFontColor()
     end
 
+    action SetMouseOverBorderColor(ColorGroup value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetMouseOverBorderColor(value)
+        needsRendering = true
+    end
+
+    action GetMouseOverBorderColor returns ColorGroup
+        if options not= undefined and options:GetMouseOverBorderColor() not= undefined
+            return options:GetMouseOverBorderColor()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:GetMouseOverBorderColor() not= undefined
+            return controlPalette:GetMouseOverBorderColor()
+        end
+
+        return default:GetMouseOverBorderColor()
+    end
+
     action SetMouseDownColor(ColorGroup value)
         if options = undefined
             options = NewInterfaceOptions()
@@ -1217,9 +1319,6 @@ class LayoutProperties
         end
 
         InterfaceOptions default = manager:GetInterfaceOptions()
-        if default = undefined
-            return undefined
-        end
         InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
         if controlPalette not= undefined and controlPalette:GetSelectionFontColor() not= undefined
             return controlPalette:GetSelectionFontColor()
@@ -1427,6 +1526,86 @@ class LayoutProperties
         end
 
         return default:HasBorderThickness()
+    end
+
+    action SetSelectionBorderThickness(number value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetSelectionBorderThickness(value)
+        needsRendering = true
+    end
+
+    action GetSelectionBorderThickness returns number
+        if options not= undefined and options:GetSelectionBorderThickness():IsNotANumber() = false
+            return options:GetSelectionBorderThickness()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasSelectionBorderThickness()
+            return controlPalette:GetSelectionBorderThickness()
+        end
+
+        if default:HasSelectionBorderThickness()
+            return default:GetSelectionBorderThickness()
+        end
+        return 0
+    end
+
+    action HasSelectionBorderThickness returns boolean
+        if options not= undefined and options:HasSelectionBorderThickness()
+            return true
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasSelectionBorderThickness()
+            return true
+        end
+
+        return default:HasSelectionBorderThickness()
+    end
+
+    action SetMouseOverBorderThickness(number value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetMouseOverBorderThickness(value)
+        needsRendering = true
+    end
+
+    action GetMouseOverBorderThickness returns number
+        if options not= undefined and options:GetMouseOverBorderThickness():IsNotANumber() = false
+            return options:GetMouseOverBorderThickness()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasMouseOverBorderThickness()
+            return controlPalette:GetMouseOverBorderThickness()
+        end
+
+        if default:HasMouseOverBorderThickness()
+            return default:GetMouseOverBorderThickness()
+        end
+        return 0
+    end
+
+    action HasMouseOverBorderThickness returns boolean
+        if options not= undefined and options:HasMouseOverBorderThickness()
+            return true
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasMouseOverBorderThickness()
+            return true
+        end
+
+        return default:HasMouseOverBorderThickness()
     end
 
     action SetFontOutlineThickness(number value)

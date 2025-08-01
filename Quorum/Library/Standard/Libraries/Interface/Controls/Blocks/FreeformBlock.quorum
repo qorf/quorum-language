@@ -48,7 +48,7 @@ class FreeformBlock is SingleLineBlock
     end
     
     action GetBlockName returns text
-        return "Blank Block"
+        return "Blank"
     end
     
     action GetBlockDescription returns text
@@ -222,6 +222,7 @@ class FreeformBlock is SingleLineBlock
             isPackageStatement = false
             isUseStatement = false
             isClassStatement = false
+            isActionStatement = false
             isEmpty = false
     
         
@@ -582,6 +583,7 @@ class FreeformBlock is SingleLineBlock
                     end
                     editRegion:SetText(code)
                 end
+                isActionStatement = true
         //  blueprint
             elseif current:category = constants:BLUEPRINT and not tokenIterator:HasNext()
                 StartUndo()
@@ -742,6 +744,19 @@ class FreeformBlock is SingleLineBlock
                         return now
                     end
                     context:Traverse(blockListener)
+                end
+            elseif isActionStatement
+                ParseContext context = parser:ActionDeclaration()
+if context is ActionContext
+                    if parser:HasNext()
+                        SetErrorVisual()
+                        return now
+                    end
+                    ActionContext actionContext = cast(ActionContext, context)
+                    blockListener:EnterAction(actionContext)
+                    blockListener:EnterActionHeader(actionContext)
+                    blockListener:ExitActionHeader(actionContext)
+                    blockListener:ExitAction(actionContext)
                 end
             else
                 // If we're not in a class, parse for a standard statement. 

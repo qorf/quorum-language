@@ -30,6 +30,9 @@ use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Undo.TextFieldEditManager
 use Libraries.Interface.Undo.TextFieldEditState
 use Libraries.Containers.Number32BitArray
+use Libraries.Interface.Controls.TextStyles.TextStyle
+use Libraries.Containers.HashTable
+use Libraries.Interface.Controls.TextStyles.TextHighlight
 /*
     The TextField class is a control object and UI element it is added to the Game 
     class. The TextField is used to represent a general text area that contains a single
@@ -72,13 +75,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
     */
     Font font = undefined
 
-    /*
-    An array of lines which are visible on the screen, where each line is
-    composed of an array of drawables representing each character on the line.
-    */
-    Array<Drawable> lineCharacters
-
-    Drawable caret
+    Drawable caret = undefined
     integer caretThickness = 1
 
     // How far the first character in the view has slid to the left to show text that extends past the end of the TextField.
@@ -150,6 +147,16 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
     /* This field dictates whether this control should render as a password field. */
     boolean passwordField = false
+    
+    /*
+    TextStyle objects are used to indicate changes in the style of text at
+    certain points. For example, text might be a different color, size, or font.
+    
+    The "textStyles" array is sorted from lowest start index to highest start index.
+    The "styleTable" HashTable is used to associate names with styles.
+    */
+    Array<TextStyle> textStyles
+    HashTable<text, TextStyle> styleTable
 
     on create
         SetName("Text Field")
@@ -162,6 +169,8 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         AddMouseMovementListener(me)
 
         Add(background)
+
+        caret = background:GetCaret()
 
         font = GetDefaultFont()
 
@@ -204,6 +213,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
     action IsPassword returns boolean
         return passwordField
     end
+
     /*
         This returns the widths of characters from the left 
         hand side of the screen. 
@@ -328,7 +338,6 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         // Ensure caret is correct size.
         InitializeCaret()
         
-        lineCharacters:Empty()
         background:Empty()
 
         integer size = textValue:GetSize()
@@ -349,8 +358,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
             
             Drawable draw = undefined
             if glyph:texture not= undefined
-                Drawable newDrawable
-                draw = newDrawable
+                draw = background:GetDrawable()
                 draw:SetAcceptsMouseInput(false)
                 draw:Load(glyph:texture)
             end
@@ -362,19 +370,18 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
             end
 
             if highlighted
-                Drawable highlight
+                Drawable highlight = background:GetDrawable()
                 highlight:Load(selectionTexture)
                 highlight:SetSize(glyph:horizontalAdvance, lineHeight)
                 highlight:SetColor(selectionColor)
-                highlight:SetX(x)
+                highlight:SetPosition(x, 0)
                 highlight:SetAcceptsMouseInput(false)
-                background:Add(highlight)
+                background:AddSelectionDrawable(highlight)
             end
 
             if draw not= undefined
                 draw:SetPosition(x + glyph:lengthToGlyph, glyph:heightFromBaseLine - draw:GetHeight() - maxDescent + bottomPadding)
-                lineCharacters:Add(draw)
-                background:Add(draw)
+                background:AddCharacter(draw)
 
                 if highlighted
                     draw:SetColor(selectedFontColor)
@@ -385,9 +392,19 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
             x = x + glyph:horizontalAdvance
             characterCounter = characterCounter + 1
         end
+        
+        // Refresh the TextStyles.
+        UpdateTextStylesAt(0, textValue:GetSize())
+        
+        // Iterate through the styles looking for highlights, and add them back to the background.
+        integer i = 0
+        repeat while i < textStyles:GetSize()
+            TextStyle style = textStyles:Get(i)
+            AddTextStyleHighlight(style)
+            i = i + 1
+        end
 
         PositionCaret()
-        background:Add(caret)
     end
 
     private action InitializeCaret
@@ -679,6 +696,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         caret:Hide()
         caretActive = false
     end
+    
     /*
         This action deletes the character behind the caret (left) or the selected text.
     */
@@ -694,6 +712,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         end
 
         integer toDelete = 1
+        DecrementStyleIndices(index - 1, toDelete)
 
         text deletedText = textValue:GetSubtext(index - toDelete, index)
         text preText = ""
@@ -737,6 +756,8 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
         integer index = caretCharacter
         text deletedText = textValue:GetSubtext(index, index + toDelete)
+        
+DecrementStyleIndices(index, toDelete)
 
         text preText = ""
         text postText = ""
@@ -774,6 +795,8 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         text deletedText = textValue:GetSubtext(selection:GetStartIndex(), selection:GetEndIndex())
         caretCharacter = selection:GetStartIndex()
         integer endIndex = selection:GetEndIndex()
+        
+        DecrementStyleIndices(caretCharacter, deletedText:GetSize())
 
         text preText = ""
         text postText = ""
@@ -801,6 +824,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
         EmptySelectionEvent(true)
     end
+    
     /*
         This action deletes the characters in the string of text from the given start
         and end indexes.
@@ -814,6 +838,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         end
 
         caretCharacter = startIndex
+        DecrementStyleIndices(caretCharacter, endIndex - startIndex)
 
         text preText = ""
         text postText = ""
@@ -861,10 +886,13 @@ TextChangeEvent changeEvent
         text deletedText = ""
         integer originalIndex = GetCaretPosition()
         boolean shouldDeleteSelection = (not selection:IsEmpty())
+        
+        IncrementStyleIndices(originalIndex, value:GetSize())
 
         if (shouldDeleteSelection)
             originalIndex = selection:GetStartIndex()
             deletedText = textValue:GetSubtext(selection:GetStartIndex(), selection:GetEndIndex())
+            DecrementStyleIndices(originalIndex, deletedText:GetSize())
             DeleteSelection(false)
         end
 
@@ -967,21 +995,6 @@ TextChangeEvent changeEvent
                 Select(dragStartIndex, originalIndex, true)
             end
 
-//            boolean atEnd = selection:IsCaretAtEnd()
-//
-//            if atEnd
-//                if caretCharacter < selection:GetStartIndex()
-//                    Select(GetCaretPosition(), selection:GetStartIndex(), false)
-//                else
-//                    Select(selection:GetStartIndex(), GetCaretPosition(), true)
-//                end
-//            else
-//                if GetCaretPosition() > selection:GetEndIndex()
-//                    Select(selection:GetEndIndex(), GetCaretPosition(), true)
-//                else
-//                    Select(GetCaretPosition(), selection:GetEndIndex(), false)
-//                end
-//            end
         elseif dragging and doubleClicking
             integer originalIndex = GetCaretPosition()
             // for textfields it seems to be standard to hide the caret when dragging
@@ -1728,5 +1741,352 @@ TextChangeEvent changeEvent
     */
     action GetPreviousCaretPosition returns integer
         return previousCaretPosition
+    end
+    
+    action AddTextStyle(text name, TextStyle style)
+        if style = undefined
+            return now
+        end
+        integer i = 0
+        boolean inserted = false
+        
+        integer index = style:GetIndex()
+
+        repeat while i < textStyles:GetSize()
+            TextStyle temp = textStyles:Get(i)
+            if temp not= undefined and index < temp:GetIndex()
+                textStyles:Add(i, style)
+                inserted = true
+                i = textStyles:GetSize()
+            end
+            i = i + 1
+        end
+
+        if inserted = false
+            textStyles:AddToEnd(style)
+        end
+
+        if name not= ""
+            styleTable:Add(name, style)
+        end
+
+        // Layout will recalculate all of the styles anyway. If we aren't laying out, add the effects of the single new style.
+        if NeedsLayout() = false
+            AddTextStyleHighlight(style)
+            UpdateTextStylesAt(style:GetIndex(), style:GetSize())
+        end
+    end
+
+    private action AddTextStyleHighlight(TextStyle style)
+        TextHighlight highlight = style:GetHighlight()
+                
+        if highlight not= undefined
+            integer styleStart = style:GetIndex()
+            integer styleEnd = styleStart + style:GetSize()
+
+            number targetY = GetBottomPadding()
+            number highlightHeight = font:GetLineHeight()
+
+            Drawable draw = undefined
+            if highlight:IsLineHighlight()
+                draw = highlight:GetDrawable(GetWidth(), highlightHeight)
+                draw:SetPosition(0, targetY)
+            else
+                integer characterCounter = 0
+                number width = 0
+                number x = leftCharacterPadding
+                integer size = textValue:GetSize()
+
+                repeat while characterCounter < size
+                    Glyph glyph = font:GetGlyph(textValue:GetCharacter(characterCounter))
+
+                    /*
+                    If we haven't reached the styled portion of the
+                    text, advance the x position that we'll place
+                    the highlight at.
+                    */
+                    if (characterCounter < styleStart)
+                        x = x + glyph:horizontalAdvance
+
+                    /*
+                    If we've reached the styled portion and we
+                    aren't past the end, increase the width of the
+                    eventual highlight.
+                    */
+                    elseif (characterCounter < styleEnd)
+                        width = width + glyph:horizontalAdvance
+                    
+                    /*
+                    If we're past the style's end point, then we're
+                    done. Exit the loop and generate the highlight.
+                    */
+                    else
+                        characterCounter = size
+                    end
+                    characterCounter = characterCounter + 1
+                end
+
+                draw = highlight:GetDrawable(width, highlightHeight)
+                draw:SetPosition(x, targetY)
+            end
+
+            if draw not= undefined
+                if highlight:IsVisibleWhileSelected()
+                    background:AddPostSelectionHighlight(highlight, draw)
+                else
+                    background:AddPreSelectionHighlight(highlight, draw)
+                end
+            end
+        end
+    end
+
+    // Update the characters starting at the given index. Sets them to correct colors / styling.
+    private action UpdateTextStylesAt(integer index, integer length)
+        integer endIndex = index + length
+        integer currentGlobalIndex = index
+
+        integer selectionStart = selection:GetStartIndex()
+        integer selectionEnd = selection:GetEndIndex()
+
+        // Because styles are sorted from lowest starting index to highest, there's never any need to check styles earlier than the last one we successfully applied.
+        // On the first pass of the loop, we haven't checked any of them yet, so start from the beginning.
+        integer firstStyleIndex = 0
+
+        ColorGroup defaultFontColor = GetFontColor()
+        ColorGroup defaultSelectedColor = GetSelectionFontColor()
+
+        Array<Drawable> lineDrawables = background:GetCharacters()
+        integer i = index
+        repeat while lineDrawables not= undefined and currentGlobalIndex <= endIndex
+            if i < lineDrawables:GetSize()
+                Drawable glyph = lineDrawables:Get(i)
+                // False if no text styles were applied to the character, true if we did apply something.
+                boolean applied = false
+    
+                ColorGroup fontColor = defaultFontColor
+                ColorGroup selectedColor = defaultSelectedColor
+    
+                integer styleIndex = firstStyleIndex
+                repeat while styleIndex < textStyles:GetSize()
+                    TextStyle style = textStyles:Get(styleIndex)
+                    // Because the array is sorted from lowest to highest index,
+                    // if this style's index is too large, all of the remainder
+                    // will be as well.
+                    if currentGlobalIndex < style:GetIndex()
+                        styleIndex = textStyles:GetSize()
+                    elseif currentGlobalIndex >= style:GetIndex() and currentGlobalIndex < style:GetIndex() + style:GetSize()
+                        if style:GetColor() not= undefined
+                            fontColor = style:GetColor()
+                        end
+                        if style:GetSelectionColor() not= undefined
+                            selectedColor = style:GetSelectionColor()
+                        end
+                    end
+                    styleIndex = styleIndex + 1
+                end
+    
+                // Set the glyph's color, based on whether or not it is part of the selected area.
+                if currentGlobalIndex >= selectionStart and currentGlobalIndex < selectionEnd
+                    glyph:SetColor(selectedColor)
+                else
+                    glyph:SetColor(fontColor)
+                end
+            end
+
+            i = i + 1
+            currentGlobalIndex = currentGlobalIndex + 1
+        end
+    end
+
+    action RemoveTextStyle(text name) returns boolean
+        if styleTable:HasKey(name)
+            TextStyle style = styleTable:RemoveKey(name)
+            textStyles:Remove(style)
+            
+            // If layout is going to happen, it will handle the styles anyway. If not, manually deal with the single style.
+            if NeedsLayout() = false
+                ClearTextStyle(style)
+            end
+
+            return true
+        else
+            return false
+        end
+    end
+
+    action GetTextStyle(text name) returns TextStyle
+        if styleTable:HasKey(name)
+            TextStyle style = styleTable:GetValue(name)
+            return style
+        else
+            return undefined
+        end
+    end
+
+    action HasTextStyle(text name) returns boolean
+        if styleTable:HasKey(name)
+            return true
+        else
+            return false
+        end
+    end
+
+    action RemoveTextStyle(TextStyle style) returns boolean
+        boolean hadValue = textStyles:Remove(style)
+        if hadValue = false
+            return false
+        end
+
+        styleTable:RemoveValue(style)
+
+        // If layout is going to happen, it will handle the styles anyway. If not, manually deal with the single style.
+        if NeedsLayout() = false
+            ClearTextStyle(style)
+        end
+
+        return true
+    end
+
+    // Removes any effects this text style is currently having on the text by deleting its highlight and updating the font at the style's indices.
+    // To be used internally after the style is removed from the table via RemoveTextStyle.
+    private action ClearTextStyle(TextStyle style)
+        TextHighlight highlight = style:GetHighlight()
+        if highlight not= undefined
+            if highlight:IsVisibleWhileSelected()
+                background:RemovePostSelectionHighlight(highlight)
+            else
+                background:RemovePreSelectionHighlight(highlight)
+            end
+        end
+
+        UpdateTextStylesAt(style:GetIndex(), style:GetSize())
+    end
+
+    action GetTextStylesAtIndex(integer index) returns Array<TextStyle>
+        Array<TextStyle> styles
+        integer i = 0
+        repeat while i < textStyles:GetSize()
+            TextStyle style = textStyles:Get(i)
+            if style:GetIndex() <= index and (style:GetIndex() + style:GetSize()) >= index
+                styles:Add(style)
+            elseif style:GetIndex() > index
+                /*
+                Because the TextStyles are sorted from lowest to highest start
+                index, once we've found a style with an excessive start index,
+                we know all of the remaining ones will too.
+                */
+                i = textStyles:GetSize()
+            end
+
+            i = i + 1
+        end
+
+        return styles
+    end
+
+    action EmptyTextStyles
+        textStyles:Empty()
+        styleTable:Empty()
+
+        // If layout is going to happen, it'll automatically recalculate highlight info anyway.
+        // Otherwise, remove highlights and set all of the drawables back to default colors.
+        if NeedsLayout() = false
+            background:EmptyPreSelectionHighlights()
+            background:EmptyPostSelectionHighlights()
+            UpdateTextStylesAt(0, GetSize())
+        end
+    end
+    
+    /*
+    Increases the index of TextStyles by the given amount, used during insert
+    actions. For example, if three characters are added to the text, offset
+    the start index of all styles after the inserted text by 3.
+    */
+    private action IncrementStyleIndices(integer index, integer offset)
+        integer counter = 0
+        repeat while counter < textStyles:GetSize()
+            TextStyle style = textStyles:Get(counter)
+            integer styleIndex = style:GetIndex()
+            if styleIndex >= index
+                style:SetIndex(styleIndex + offset)
+            elseif styleIndex <= index and styleIndex + style:GetSize() > index
+                style:SetSize(style:GetSize() + offset)
+            end
+            counter = counter + 1
+        end
+    end
+
+    /*
+    Decreases the index of TextStyles by the given amount, used during delete
+    actions. For example, if three characters are removed from the text, reduce
+    the start index of all styles after the deleted text by 3.
+    */
+    private action DecrementStyleIndices(integer index, integer offset)
+        integer counter = 0
+
+        // TextStyles that should be deleted are stored and then deleted all at
+        // once at the end of the action.
+        Array<TextStyle> toDelete
+
+        repeat while counter < textStyles:GetSize()
+            TextStyle style = textStyles:Get(counter)
+            integer styleIndex = style:GetIndex()
+            integer styleSize = style:GetSize()
+            
+            if index <= styleIndex
+                // The entire text represented by this TextStyle is being removed.
+                if index + offset > styleIndex + styleSize
+                    toDelete:Add(style)
+
+                // The deleted text is entirely before this TextStyle's contents.
+                elseif index + offset <= styleIndex
+                    style:SetIndex(styleIndex - offset)
+
+                // The deleted text is partially in this TextStyle's contents
+                // and partially outside of it.
+                else
+                    integer outer = styleIndex - index
+                    style:SetIndex(styleIndex - outer)
+                    style:SetSize(styleSize - (offset - outer))
+                end
+            elseif index > styleIndex
+                // The adjusted portion is beyond this TextStyle.
+                if index >= styleIndex + styleSize
+                    // No adjustments necessary.
+
+                // A portion of the text in this TextStyle is being removed.
+                elseif index + offset <= styleIndex + style:GetSize()
+                    style:SetSize(styleSize - offset)
+
+                // The deleted text includes the latter portion of this TextStyle's
+                // contents and text that's outside of this TextStyle.
+                else
+                    style:SetSize(index - styleIndex)
+                end
+            end
+
+            counter = counter + 1
+        end
+
+        counter = 0
+        repeat while counter < toDelete:GetSize()
+            RemoveTextStyle(toDelete:Get(counter))
+            counter = counter + 1
+        end
+    end
+    
+/*
+        This action is used when a control is moused over by the mouse.
+    */
+    action BeginMouseOver
+        parent:Control:BeginMouseOver()
+        background:BeginMouseOver()
+    end
+    /*
+        This action is used when a control is moused over and it ends.
+    */
+    action EndMouseOver
+        parent:Control:EndMouseOver()
+        background:EndMouseOver()
     end
 end

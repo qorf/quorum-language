@@ -72,8 +72,10 @@ class FreeformBlockListener is QuorumSourceListener
     action EnterNoActionsNoClass(NoActionsNoClassContext context) end
     action ExitNoActionsNoClass(NoActionsNoClassContext context) end
 
-    action EnterActionsNoClass(ActionsNoClassContext context) end
-    action ExitActionsNoClass(ActionsNoClassContext context) end
+    action EnterActionsNoClass(ActionsNoClassContext context)
+ end
+    action ExitActionsNoClass(ActionsNoClassContext context)
+ end
     
     action EnterNumber(NumberContext context) end
     action ExitNumber(NumberContext context) end
@@ -279,9 +281,11 @@ class FreeformBlockListener is QuorumSourceListener
             block:Setup()
         end
     end
-    action ExitActionHeader(ActionContext context) end
+    action ExitActionHeader(ActionContext context)
+ end
 
-    action EnterAction(ActionContext context) end
+    action EnterAction(ActionContext context)
+ end
     action ExitAction(ActionContext context)
         if not context:isSystem and not context:isBlueprint
             // The current block must be one of the parts of an action block. Get the action block from the part.

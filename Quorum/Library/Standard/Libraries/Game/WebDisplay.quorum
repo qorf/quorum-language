@@ -1,6 +1,9 @@
 package Libraries.Game
 
 use Libraries.Game.WebConfiguration
+use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.Blocks.CodeEditor
 
 class WebDisplay is GameDisplay
 
@@ -174,5 +177,20 @@ class WebDisplay is GameDisplay
         automatically.
     */
     system action SetClipboard(text value)
+    
+    /*This action will paste into the TextBox at the given index from system clipboard. This 
+is an asynchronous action, meaning the result won't occur immediately -- it depends on 
+how long the browser takes to retrieve the contents of the clipboard. */
+    system action PasteFromClipboard(TextBox box, integer index)
+    
+/*This action will paste into the TextBox at the given index from system clipboard. This 
+is an asynchronous action, meaning the result won't occur immediately -- it depends on 
+how long the browser takes to retrieve the contents of the clipboard. */
+    system action PasteFromClipboard(TextField field, integer index)
+    
+    /*This action will paste into the CodeEditor immediately after the selected block.
+This is an asynchronous action, meaning the result won't occur immediately -- it
+depends on how long the browser takes to retrieve the contents of the clipboard.*/
+    system action PasteFromClipboard(CodeEditor editor)
 
 end

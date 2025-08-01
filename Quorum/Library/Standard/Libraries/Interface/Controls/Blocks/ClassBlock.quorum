@@ -84,11 +84,13 @@ class ClassBlock is MultipleLineBlock
             if generics not= undefined
                 Location genericLocation = generics:GetLocation()
                 nameField:Setup("Name", location:GetIndex() - GetStartIndex(), genericLocation:GetIndexEnd() + 1 - GetStartIndex())
+                nameField:AddBottomLabel("Name")
 
                 // Set the part's end index to match the end of the field.
                 part:SetLocalEndIndex(genericLocation:GetIndexEnd() + 1 - GetStartIndex())
             else
                 nameField:Setup("Name", location:GetIndex() - GetStartIndex(), location:GetIndexEnd() + 1 - GetStartIndex())
+                nameField:AddBottomLabel("Name")
 
                 // Set the part's end index to match the end of the field.
                 part:SetLocalEndIndex(location:GetIndexEnd() + 1 - GetStartIndex())
@@ -133,6 +135,7 @@ class ClassBlock is MultipleLineBlock
         part:Add(inheritsField)
         part:SetLocalEndIndex(lastInherit:GetIndexEnd() + 1 - GetStartIndex())
         inheritsField:Setup("Inherits", firstInherit:GetIndex() - GetStartIndex(), lastInherit:GetIndexEnd() + 1 - GetStartIndex())
+        inheritsField:AddBottomLabel("Classes")
         inheritsField:SetLeftPadding(0)
         inheritsField:SetRightPadding(spacing * 0.5)
     end

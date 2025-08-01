@@ -20,6 +20,7 @@ use Libraries.System.ProcessEvent
 use Libraries.System.ProcessListener
 use Libraries.System.Properties
 use Libraries.Language.Compile.Translate.TranslateConstants
+use Libraries.Language.Support.TextBuilder
 
 class CompilerTestSuite is ProcessListener
     integer total = 0
@@ -37,7 +38,7 @@ class CompilerTestSuite is ProcessListener
     
     boolean testBytecode = true
     boolean testJavaScript = true
-    boolean testPython = false
+    boolean testPython = true
     Library library
     Tester tester
     text javascriptStandardLibraryText = ""
@@ -584,11 +585,20 @@ class CompilerTestSuite is ProcessListener
         outFile:SetWorkingDirectory(root:GetAbsolutePath())
         outFile:SetPath("Run/Result.js")
 
-        text resultText = javascriptStandardLibraryText + "
-" + script 
-+ "
+        TextBuilder builder
+        builder:Append(javascriptStandardLibraryText)
+        builder:Append("
+")
+        builder:Append(script)
+        builder:Append("
 Start();
-"
+")
+        text resultText = builder:ToText()
+//        text resultText = javascriptStandardLibraryText + "
+//" + script 
+//+ "
+//Start();
+//"
         if outFile:Exists()
             outFile:Delete()
         end

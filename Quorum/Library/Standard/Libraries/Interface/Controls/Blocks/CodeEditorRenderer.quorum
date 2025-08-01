@@ -19,6 +19,7 @@ use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
 use Libraries.Interface.Controls.Control
 use Libraries.Containers.MultipleLineText
 use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Undo.BlockEditManager
 
 class CodeEditorRenderer is Control
 
@@ -374,6 +375,9 @@ class CodeEditorRenderer is Control
         Block currentBlock = rootBlock
         integer index = 0
         repeat until currentBlock = undefined
+            if currentBlock is FreeformBlockPart
+                currentBlock:GetChildCount()
+            end
             currentBlock:SetNavigationIndex(index)
             index = index + currentBlock:GetNavigationSize()
             currentBlock = currentBlock:GetNextBlock()
@@ -381,6 +385,11 @@ class CodeEditorRenderer is Control
     end
 
     action UpdateSelectionCursor(CodeEditorSelection selection)
+        // If there's no available root block (e.g. during block regeneration) jump out early.
+        if rootBlock = undefined
+            return now
+        end
+        
         CodeEditor editor = GetEditor()
         number x = 0
         number y = 0
@@ -451,12 +460,19 @@ class CodeEditorRenderer is Control
         return GetBlockAtLine(rootBlock, line)
     end
 
-    private action GetBlockAtLine(Block block, integer line) returns Block
+    // This version gets the block at the given line, using the provided block as a starting point for the search.
+    // The search only iterates forwards, so if the given block is past the requested line, it won't be found and the candidate will be returned instead.
+    action GetBlockAtLine(Block block, integer line) returns Block
         /*
         TO-DO: Improve this. We have a tree structure, so we should use it to binary search.
         */
 
+        // Ensure that the starting candidate is navigable.
         Block candidate = block
+        if candidate not= undefined and candidate:IsNavigable() = false
+            candidate = candidate:GetNextNavigableBlock()
+        end
+        
         repeat until candidate = undefined or candidate:GetNavigationIndex() = line
             Block nextCandidate = candidate:GetNextNavigableBlock()
 
@@ -819,6 +835,9 @@ class CodeEditorRenderer is Control
         end
         if not movingBlocks:IsEmpty()
             text toMove = editor:GetCodeBetween(movingStartIndex, movingEndIndex)
+            if toMove:IsEmpty() = false and toMove:GetCharacter(toMove:GetSize() - 1) not= toMove:GetLineFeed()
+                toMove = toMove + toMove:GetLineFeed()
+            end
             eventDeletion = toMove
             eventDeletionIndex = movingStartIndex
             if movingStartIndex < destination
@@ -829,8 +848,10 @@ class CodeEditorRenderer is Control
                 code = code:Delete(movingStartIndex, movingEndIndex)
                 code = code:Insert(destination, toMove)
             end
+eventInsertion = toMove
         else
             code = code:Insert(destination, toInsert)
+eventInsertion = toInsert
         end
         placeholderBlocks:Empty()
         
@@ -843,7 +864,10 @@ class CodeEditorRenderer is Control
         
         editor:SetCode(code)
         
-        eventInsertion = toInsert
+        // Manage the upcoming changes as a single edit in the edit manager.
+        BlockEditManager edits = editor:GetBlockEditManager()
+        edits:SetSpecialAction(true)
+        
         if eventDeletionIndex >= -1 and eventDeleteFirst
             NotifyTextChangeListeners(eventDeletionIndex, "", eventDeletion)
         end
@@ -853,6 +877,8 @@ class CodeEditorRenderer is Control
         if eventDeletionIndex >= -1 and eventDeleteFirst = false
             NotifyTextChangeListeners(eventDeletionIndex, "", eventDeletion)
         end
+        
+        edits:SetSpecialAction(false)
     end
     
     private action NotifyTextChangeListeners(integer index, text added, text deleted)

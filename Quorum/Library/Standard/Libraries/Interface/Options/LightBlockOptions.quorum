@@ -28,6 +28,26 @@ class LightBlockOptions is LightModeOptions, BlockOptions
     
     Color returnBlock = color:CustomColor(183.0 / MAX, 222.0 / MAX, 241.0 / MAX, 1)
     Color selectionColor = color:CustomColor(0.75, 0.75, 0.75, 1)
+    
+Color mouseOverColor = color:CustomColor(0.5, 0.5, 1, 1)
+    
+// Additional values for palette and palette-related options.
+    Color blockPaletteTabBackground = color:CustomColor(1, 1, 1, 0)
+    Color blockPaletteTabSelection = color:CustomColor(205.0 / MAX, 230.0 / MAX, 253.0 / MAX, 1)
+    Color blockPaletteTabFont = color:CustomColor(32.0 / MAX, 32.0 / MAX, 32.0 / MAX, 1)
+    Color blockPaletteTabIcon = blockPaletteTabFont
+    Color blockPaletteTabSelectionFont = blockPaletteTabFont
+    Color blockPaletteTabFocusColor = undefined
+    Color blockPaletteTabForegroundColor = color:CustomColor(237.0 / MAX, 113.0 / MAX, 107.0 / MAX, 1)
+    Color blockPaletteTabAccentColor = color:White()
+    Color blockPaletteTabUnfocusedSelection = undefined
+    Color blockPaletteTabUnfocusedSelectionFont = undefined
+    Color blockPaletteTabClickedMouse = color:CustomColor(175.0 / MAX, 200.0 / MAX, 223.0 / MAX, 1)
+    
+    number blockPaletteTabBorderThickness = 0
+    number blockPaletteTabPixelRounding = 8
+    
+    Color blockPaletteTabBarBackground = color:CustomColor(231 / MAX, 246 / MAX, 254 / MAX, 1.0)
 
     action SetStartingOptions
         SetBackgroundColor(constants:ASSIGNMENT_KEY, defaultStatementColor)
@@ -48,7 +68,9 @@ class LightBlockOptions is LightModeOptions, BlockOptions
         SetBackgroundColor(constants:COMMENT_KEY, freeformBlock)
 
         SetEditBorderThickness(1)
+        SetEditMouseOverBorderThickness(2)
         SetEditFontColor(color:Black())
+        SetEditMouseOverBorderColor(mouseOverColor)
         SetStaticFontColor(color:Black())
         SetStaticFontOutlineColor(color:White())
         SetStaticFontOutlineThickness(0)
@@ -57,6 +79,27 @@ class LightBlockOptions is LightModeOptions, BlockOptions
         SetSecondaryErrorColor("CodeEditor", color:CustomColor(0.75, 0.25, 0.25, 1))
         SetHintBorderColor("CodeEditor", color:Orange())
         SetHintBorderThickness("CodeEditor", 3)
+        
+SetBackgroundColor(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabBackground)
+        SetFontColor(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabFont)
+        SetIconColor(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabIcon)
+        SetSelectionColor(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabSelection)
+        SetSelectionFontColor(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabSelectionFont)
+        SetFocusColor(constants:BLOCK_PALETTE_TAB_KEY, color:CustomColor(30.0 / MAX, 61.0 / MAX, 92.0 / MAX, 1))
+        SetForegroundColor(constants:BLOCK_PALETTE_TAB_KEY, color:CustomColor(230.0 / MAX, 78.0 / MAX, 88.0 / MAX, 1))
+        SetAccentColor(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabSelectionFont)
+        SetUnfocusedSelectionFontColor(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabFont)
+        SetUnfocusedSelectionColor(constants:BLOCK_PALETTE_TAB_KEY, color:CustomColor(13.0 / MAX, 41.0 / MAX, 62.0 / MAX, 1))
+        SetMouseDownColor(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabClickedMouse)
+
+        SetBorderThickness(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabBorderThickness)
+        SetTopLeftPixelRounding(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabPixelRounding)
+        SetTopRightPixelRounding(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabPixelRounding)
+SetBottomLeftPixelRounding(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabPixelRounding)
+SetBottomRightPixelRounding(constants:BLOCK_PALETTE_TAB_KEY, blockPaletteTabPixelRounding)
+        
+        SetBackgroundColor(constants:BLOCK_PALETTE_TAB_BAR_KEY, blockPaletteTabBarBackground)
+        SetPrimaryErrorColor(constants:BLOCK_PALETTE_KEY, color:CustomColor(1, 0.7, 0.7, 1))
     end
 
     action SetDefaultBlockOptions(text key)
@@ -71,10 +114,18 @@ class LightBlockOptions is LightModeOptions, BlockOptions
 
             Color newSelectionColor
             newSelectionColor:CopyColor(background:GetBottomLeft())
-            newSelectionColor:SetColor(
-                newSelectionColor:GetRed() * 1.10, 
-                newSelectionColor:GetGreen() * 1.10, 
-                newSelectionColor:GetBlue() * 1.10, 
+            number red = newSelectionColor:GetRed()
+            number green = newSelectionColor:GetGreen()
+            number blue = newSelectionColor:GetBlue()
+            /*newSelectionColor:SetColor(
+                newSelectionColor:GetRed() * 1.2, 
+                newSelectionColor:GetGreen() * 1.2, 
+                newSelectionColor:GetBlue() * 1.2, 
+                newSelectionColor:GetAlpha())*/
+newSelectionColor:SetColor(
+                red * red, 
+                green * green, 
+                blue * blue, 
                 newSelectionColor:GetAlpha())
             SetSelectionColor(key, newSelectionColor)
 
@@ -93,6 +144,15 @@ newMovingColor:SetColor(0.75, 0.75, 0.75, 1)
             Color newPlaceholderColor
             newPlaceholderColor:SetColor(0.6, 1, 0.65, 1)
             SetPlaceholderBackgroundColor(key, newPlaceholderColor)
+            
+            Color selectionBorder = color:CustomColor(160 / MAX, 160 / MAX, 160 / MAX, 1)
+            SetSelectionBorderColor(key, selectionBorder)
+            SetSelectionBorderThickness(key, 2)
+            SetDetailFontColor(key, color:CustomColor(36 / MAX, 36 / MAX, 36 / MAX, 1))
+            
+            SetMouseOverColor(key, background)
+            SetMouseOverBorderColor(key, mouseOverColor)
+            SetMouseOverBorderThickness(key, 2.5)
         end
     end
 

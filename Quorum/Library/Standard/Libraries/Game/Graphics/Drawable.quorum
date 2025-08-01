@@ -286,9 +286,17 @@ class Drawable is TextureRegion, Item2D
         SetSize(math:AbsoluteValue(sourceWidth), math:AbsoluteValue(sourceHeight))
         SetOrigin(parent:Item2D:GetWidth() / 2.0, parent:Item2D:GetHeight() / 2.0)
 
+        // When a new texture is loaded, replace the previous color with white.
+        // Most of the time, a newly loaded texture is used to completely refresh the Drawable.
+        // If this isn't replaced, the DrawableShape's color values will be out of sync with the Drawable's color, unless we specifically set it again.
+        Color white
+        white:SetColor(1, 1, 1, 1)
+        
         DrawableShape newShape
         SetDrawableShape(newShape)
         newShape:LoadRectangle(sourceWidth, sourceHeight, me)
+        
+        SetColor(white)
 
         SceneProperties properties
         drawableType = properties:CUSTOM
@@ -374,10 +382,18 @@ class Drawable is TextureRegion, Item2D
         SetRegion(region, sourceX, sourceY, sourceWidth, sourceHeight)
         SetSize(math:AbsoluteValue(sourceWidth), math:AbsoluteValue(sourceHeight))
         SetOrigin(parent:Item2D:GetWidth() / 2.0, parent:Item2D:GetHeight() / 2.0)
+        
+        // If we don't have a color, provide white as a default.
+        if colorGroup = undefined
+            Color white
+            white:SetColor(1, 1, 1, 1)
+            SetColor(white)
+        end
 
         DrawableShape newShape
         SetDrawableShape(newShape)
         newShape:LoadRectangle(sourceWidth, sourceHeight, me)
+        newShape:SetColor(colorGroup)
 
         SceneProperties properties
         drawableType = properties:CUSTOM

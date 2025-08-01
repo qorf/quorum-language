@@ -1,0 +1,50 @@
+package Libraries.Language.Compile.Blocks
+
+use Libraries.Language.Compile.Symbol.Action
+use Libraries.Language.Compile.Context.VariableFunctionCallContext
+use Libraries.Interface.Controls.Blocks.ActionCallBlock
+use Libraries.Language.Compile.Context.ParentVariableFunctionCallContext
+use Libraries.Interface.Controls.Blocks.Block
+
+// This is a custom version of the ParserToBlockListener, used to create a single ActionCallBlock with associated labels for parameter type information.
+class BlockPaletteItemParserToBlockListener is ParserToBlockListener
+    
+    // An action that should be associated with any ActionCallBlocks made by this listener.
+    // Used to provide parameter typing information.
+    Action relatedAction = undefined
+    
+action EnterVariableSoloFunctionCall(VariableFunctionCallContext context)
+        ActionCallBlock block
+        FillPreviousCommentBlocks(context:GetFirstToken(), context:GetLastToken())
+        block:SetScopeDepth(parent:ParserToBlockListener:scopeDepth)
+        block:SetBlockEnvironment(parent:ParserToBlockListener:editor)
+        block:SetContext(context)
+block:SetTemplateAction(relatedAction)
+        parent:ParserToBlockListener:currentBlock:Add(cast(Block, block))
+
+        block:SetAlwaysShowDetailLabels(true)
+        block:Setup()
+    end
+
+    action EnterParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context)
+        ActionCallBlock block
+        FillPreviousCommentBlocks(context:GetFirstToken(), context:GetLastToken())
+        block:SetScopeDepth(parent:ParserToBlockListener:scopeDepth)
+        block:SetBlockEnvironment(parent:ParserToBlockListener:editor)
+        block:SetContext(context)
+        block:SetTemplateAction(relatedAction)
+        parent:ParserToBlockListener:currentBlock:Add(cast(Block, block))
+        
+block:SetAlwaysShowDetailLabels(true)
+        block:Setup()
+    end
+    
+    action GetRelatedAction returns Action
+        return relatedAction
+    end
+
+    action SetRelatedAction(Action relatedAction)
+        me:relatedAction = relatedAction
+    end
+
+end

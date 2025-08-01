@@ -18,6 +18,8 @@ use Libraries.Interface.Controls.Blocks.Palette.BlockPaletteItem
 use Libraries.Interface.Controls.Blocks.Palette.BlockPalette
 use Libraries.Interface.Controls.Blocks.BlockEnvironment
 use Libraries.Compute.Vector2
+use Libraries.Interface.Controls.Blocks.MultipleLineBlockConnector
+use Libraries.Interface.Controls.Blocks.MultipleLineBlock
 
 class BlockDragBehavior is Behavior
     
@@ -53,13 +55,19 @@ behavior begins. The value of the threshold is determined based on the height of
             end
             
             Item2D item2D = cast(Item2D, targetItem)
-            repeat until item2D is Block or item2D is BlockEnvironment or item2D = undefined
+            repeat until item2D is Block or item2D is BlockEnvironment or item2D is MultipleLineBlockConnector or item2D = undefined
                 item2D = item2D:GetParent()
             end
             
             // Try to get a good distance threshold relative to he line height, or use a default value otherwise.
             if item2D not= undefined and item2D is Control
                 Control control = cast(Control, item2D)
+                if control is MultipleLineBlockConnector
+                    MultipleLineBlockConnector connector = cast(MultipleLineBlockConnector, control)
+                    if connector:GetParentBlock() not= undefined
+                        control = connector:GetParentBlock()
+                    end
+                end
                 if control is Block
                     Block block = cast(Block, control)
                     control = block:GetBlockEnvironment()
@@ -74,6 +82,9 @@ behavior begins. The value of the threshold is determined based on the height of
             if dragOriginPoint:Distance(dragEvent:GetX(), dragEvent:GetY()) < dragDistanceThreshold
                 return now
             end
+            
+            // Unload any state from previous drags, if needed.
+            Reset()
             
             draggingStarted = true
             
@@ -103,6 +114,30 @@ behavior begins. The value of the threshold is determined based on the height of
                 
             elseif targetItem is BlockPaletteItem
                 paletteItem = cast(BlockPaletteItem, targetItem)
+            elseif targetItem is MultipleLineBlockConnector
+                MultipleLineBlockConnector connector = cast(MultipleLineBlockConnector, targetItem)
+                MultipleLineBlock multiBlock = connector:GetParentBlock()
+                if multiBlock:GetBlockEnvironment() is CodeEditor
+                    editor = cast(CodeEditor, multiBlock:GetBlockEnvironment())
+                    dragSource = editor
+                end
+                
+                Array<Block> blocks
+                Block currentBlock = multiBlock
+                Block lastBlock = multiBlock:GetChild(multiBlock:GetChildCount() - 1)
+                boolean done = false
+                repeat until currentBlock = undefined or done = true
+                    if currentBlock:IsNavigable()
+                        blocks:Add(currentBlock)
+                    end
+                    if currentBlock = lastBlock
+                        done = true
+                    end
+                    currentBlock = currentBlock:GetNextNavigableBlock()
+                end
+                
+                sourceBlocks = blocks
+                
             elseif targetItem is Item2D
                 Item2D target = cast(Item2D, targetItem)
                 repeat until (target = undefined) or (target is CodeEditor) or (target is BlockPalette) or (target is BlockPaletteItem)
@@ -150,7 +185,7 @@ behavior begins. The value of the threshold is determined based on the height of
             end
             
             if editor not= undefined
-                if dragSource is CodeEditor
+                if dragSource is CodeEditor and sourceBlocks = undefined
                     sourceBlocks = editor:GetSelectedBlocks()
                 end
                 LoadDraggedBlocks(sourceBlocks, dragEvent:GetStartX(), dragEvent:GetStartY())
@@ -207,6 +242,12 @@ behavior begins. The value of the threshold is determined based on the height of
             targetLayer = dragSource:GetLayer()
         end
         
+        integer startScope = blocks:Get(0):GetScopeDepth()
+        number scopeIndentation = 0
+        if environment not= undefined
+            scopeIndentation = environment:GetScopeIndentationWidth()
+        end
+        
         repeat while i < blocks:GetSize()
             Block block = blocks:Get(i)
             
@@ -215,7 +256,7 @@ behavior begins. The value of the threshold is determined based on the height of
             
             dummyBlock = block:CopyToPlaceholder()
             dummyBlock:SetSize(block:GetWidth(), block:GetHeight())
-            dummyBlock:SetPosition(targetX, targetY)
+            dummyBlock:SetPosition(targetX + (dummyBlock:GetScopeDepth() - startScope) * scopeIndentation, targetY)
             
             SingleLineBlockView view
             view:Initialize()

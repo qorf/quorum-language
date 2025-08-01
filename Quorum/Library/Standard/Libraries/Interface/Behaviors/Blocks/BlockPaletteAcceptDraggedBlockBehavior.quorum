@@ -1,0 +1,49 @@
+package Libraries.Interface.Behaviors.Blocks
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Interface.Controls.Blocks.BlockEnvironment
+use Libraries.Interface.Controls.Blocks.CodeEditor
+
+class BlockPaletteAcceptDraggedBlockBehavior is Behavior
+    
+// The behavior that triggers when dragging begins.
+    // This behavior contains info we need, so we store a reference here.
+    // The reference is set when the behaviors are made in DefaultInputSets.
+    BlockDragBehavior sourceDragBehavior = undefined
+    
+    action Run(BehaviorEvent event)
+Array<Block> sourceBlocks = sourceDragBehavior:GetSourceBlocks()
+            if sourceBlocks = undefined or sourceBlocks:IsEmpty()
+                return now
+            end
+        
+        BlockEnvironment environment = sourceBlocks:Get(0):GetBlockEnvironment()
+        
+        if environment is CodeEditor
+            CodeEditor editor = cast(CodeEditor, environment)
+if sourceBlocks:GetSize() = 1
+                editor:Delete(sourceBlocks:Get(0), false)
+        else
+            Block firstBlock = sourceBlocks:GetFromFront()
+                Block lastBlock = sourceBlocks:GetFromEnd()
+                integer startIndex = firstBlock:GetStartIndex()
+                integer endIndex = lastBlock:GetEndIndex()
+                integer size = endIndex - startIndex
+                editor:Delete(startIndex, size)
+        end
+        end
+        
+    end
+    
+    action GetSourceDragBehavior returns BlockDragBehavior
+        return sourceDragBehavior
+    end
+
+    action SetSourceDragBehavior(BlockDragBehavior sourceDragBehavior)
+        me:sourceDragBehavior = sourceDragBehavior
+    end
+
+end

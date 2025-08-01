@@ -47,12 +47,13 @@ class DesktopInput is StandardInput
     the end of the provided arrays.
     */
     private action CheckForEvents(Array<MouseEvent> mouseEvents, Array<KeyboardEvent> keyboardEvents,
-        Array<TextInputEvent> textInputEvents, Array<ResizeEvent> resizeEvents)
+        Array<TextInputEvent> textInputEvents, Array<ResizeEvent> resizeEvents, Array<GestureEvent> gestureEvents)
 
         mouseEvents:Empty(false)
         keyboardEvents:Empty(false)
         textInputEvents:Empty(false)
         resizeEvents:Empty(false)
+        gestureEvents:Empty(false)
 
         mouseProcessor:Update(mouseEvents)
         keyboardProcessor:Update(keyboardEvents)

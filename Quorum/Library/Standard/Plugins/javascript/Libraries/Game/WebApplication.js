@@ -35,21 +35,31 @@ function plugins_quorum_Libraries_Game_WebApplication_()
     };
 
     this.GetWebOperatingSystem = function() {
-	    let userAgent = window.navigator.userAgent;
+        let userAgent = window.navigator.userAgent;
 	    let platform = window.navigator.platform;
         let os = 'Unknown';
-        if(typeof platform !== 'undefined') {
-            if(platform.indexOf('Mac') != -1) return 'Mac';
-            if(platform.indexOf('Win') != -1) return 'Windows';
-            if(platform.indexOf('Linux') != -1) return 'Linux';
-        }
-        if (userAgent.indexOf('Win') != -1) {
+        if (/android/i.test(userAgent)) {
+            return "Android";
+        } else if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+            return "iOS";
+        } else if ((('ontouchstart' in window) ||
+                (navigator.maxTouchPoints > 0) ||
+                (navigator.msMaxTouchPoints > 0))
+                && (userAgent.indexOf("Linux") !== -1 || userAgent.indexOf("Mac") !== -1) ) {
+                    return "Mobile";
+        } else if (userAgent.indexOf('Win') != -1) {
             return 'Windows';
         } else if (userAgent.indexOf('Mac') != -1) {
             return 'Mac';
         } else if (userAgent.indexOf('Linux') != -1) {
             return 'Linux';
+        } 
+        if(typeof platform !== 'undefined') {
+            if(platform.indexOf('Mac') != -1) return 'Mac';
+            if(platform.indexOf('Win') != -1) return 'Windows';
+            if(platform.indexOf('Linux') != -1) return 'Linux';
         }
+        
         return os;
     };
     
@@ -85,6 +95,13 @@ function plugins_quorum_Libraries_Game_WebApplication_()
         game.CreateGame();
         
         loopCall = this.MainLoop;
+        let gameTitle = game.GetWebConfiguration().Get_Libraries_Game_WebConfiguration__title_();
+        const event = new CustomEvent('GameStarted', {
+            detail: {
+                title: gameTitle,
+            },
+        });
+        document.dispatchEvent(event);
         this.MainLoop(startTime);
     };
     
@@ -100,12 +117,16 @@ function plugins_quorum_Libraries_Game_WebApplication_()
             
             if (exitRequested)
             {
+
+                let gameTitle = game.GetWebConfiguration().Get_Libraries_Game_WebConfiguration__title_();
                 var accessibility = game.GetAccessibility();
                 if (accessibility != null)
                 {
                     accessibility.Shutdown();
                 }
-
+                // shutdown the gesture processor
+                let gameInfo = plugins_quorum_Libraries_Game_GameStateManager_.registeredGames.get(game);
+                gameInfo.plugins_quorum_Libraries_Game_WebInput_.gestureProcessor.plugin_.Shutdown();
                 // Wipe the screen clean.
                 var graphics = manager.GetGameGraphics();
                 // 16640 is the result of binary OR on GL_COLOR_BUFFER_BIT and GL_DEPTH_BUFFER_BIT.
@@ -143,6 +164,14 @@ function plugins_quorum_Libraries_Game_WebApplication_()
                 // The canvas is created when running a Game so destroy this one so a new one can be created by another program
                 display.Destroy();
 
+                // Attempt to release any WebGL resources held by the graphics.
+                graphics.Dispose();
+
+                // Get the FontManager and tell it to release all resources attached to loaded fonts.
+                var fontManager = manager.GetFontManager();
+                fontManager.Dispose();
+
+
                 // The GameStateManager needs to reinitialized when another application is ran
                 // NOTE other static initializers might need to be reset but these at least ensure that the FontManager is reloaded every time
                 // NOTE: Due to changes in how GameStateManager works (managing each Game separately) the manager plugin should no longer be reinitialized.
@@ -169,6 +198,13 @@ function plugins_quorum_Libraries_Game_WebApplication_()
                 game = null;
                 display = null;
                 loopCall = null;
+
+                const event = new CustomEvent('GameClosed', {
+                    detail: {
+                        title: gameTitle,
+                    },
+                });
+                document.dispatchEvent(event);
                 return;
             }
             else

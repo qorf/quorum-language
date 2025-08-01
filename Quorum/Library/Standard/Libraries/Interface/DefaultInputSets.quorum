@@ -20,9 +20,11 @@ use Libraries.Interface.Behaviors.Blocks.all
 use Libraries.Interface.Behaviors.CancelBehavior
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.GestureEvent
-
-
-
+use Libraries.Game.WebApplication
+use Libraries.Interface.Behaviors.FocusNextBehavior
+use Libraries.Interface.Behaviors.FocusPreviousBehavior
+use Libraries.Interface.Behaviors.Blocks.BlockPaletteNextFocusBehavior
+use Libraries.Interface.Behaviors.Blocks.BlockPalettePreviousFocusBehavior
 
 shared class DefaultInputSets
 
@@ -148,7 +150,7 @@ shared class DefaultInputSets
         OpenPopupMenuBehavior openContextMenuBehavior
         buttonTable:Add(GetRightClick(), openContextMenuBehavior)
 
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             buttonTable:Add(AddControlModifier(GetLeftClick()), openContextMenuBehavior)
         end
 
@@ -380,7 +382,7 @@ shared class DefaultInputSets
         TreeOpenPopupMenuBehavior treeOpenContextMenuBehavior
         treeItemTable:Add(rightClickSet, treeOpenContextMenuBehavior)
 
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             InputSet rightClickControlSet
             rightClickControlSet:SetMouseInput(mouse:LEFT)
             rightClickControlSet:AddModifier(rightClickControlSet:CONTROL)
@@ -454,7 +456,7 @@ shared class DefaultInputSets
         spreadsheetTable:Add(GetEnterKey(), spreadsheetActivate)
 
         //copy past for fields
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             //first do copy paste
             InputSet metaC
             metaC:SetKeyboardInput(keys:C)
@@ -654,7 +656,7 @@ shared class DefaultInputSets
         InputSet numpadEnter
         numpadEnter:SetKeyboardInput(keys:NUMPAD_ENTER)
 
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             //first do copy paste
             InputSet textBoxControlC
             textBoxControlC:SetKeyboardInput(keys:C)
@@ -1019,7 +1021,7 @@ InputSet textBoxControlDelete
         rightClickControlSet:SetMouseInput(mouse:LEFT)
         rightClickControlSet:AddModifier(rightClickControlSet:CONTROL)
 
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             textBoxTable:Add(rightClickControlSet, textBoxOpenPopupMenuBehavior)
         end
 
@@ -1068,7 +1070,7 @@ InputSet textBoxControlDelete
         TextBoxPageUpBehavior textBoxPageUpBehavior
         textBoxTable:Add(pageUp, textBoxPageUpBehavior)
                
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             //first do copy paste
             InputSet textBoxSelectLeft
             textBoxSelectLeft:SetKeyboardInput(keys:LEFT)
@@ -1104,7 +1106,7 @@ InputSet textBoxControlDelete
         TextBoxCaretToLineEndBehavior caretLineEndBehavior
         textBoxTable:Add(endSet, caretLineEndBehavior)
 
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             textBoxTable:Add(AddMetaModifier(GetLeftArrowKey()), caretLineStartBehavior)
             textBoxTable:Add(AddMetaModifier(GetRightArrowKey()), caretLineEndBehavior)
 
@@ -1258,7 +1260,7 @@ InputSet textBoxControlDelete
         textFieldTable:Add(shiftMouseClick, textFieldSelectToMouseClickBehavior)
 
         //copy past for fields
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             //first do copy paste
             InputSet textFieldControlC
             textFieldControlC:SetKeyboardInput(keys:C)
@@ -1411,6 +1413,17 @@ InputSet textFieldControlDelete
             TextFieldDeleteToTokenEndBehavior textFieldDeleteToTokenEndBehavior
             textFieldTable:Add(textFieldControlDelete, textFieldDeleteToTokenEndBehavior)
         end
+        
+InputSet shiftF10SetTextBox
+        shiftF10SetTextBox:SetKeyboardInput(keys:F10)
+        shiftF10SetTextBox:AddModifier(shiftF10SetTextBox:SHIFT)
+        TextBoxOpenPopupMenuBehavior textBoxOpenPopupMenuBehavior
+        textFieldTable:Add(shiftF10SetTextBox, textBoxOpenPopupMenuBehavior)
+
+        InputSet rightClickSetTextBox
+        rightClickSetTextBox:SetMouseInput(mouse:RIGHT)
+        textFieldTable:Add(rightClickSetTextBox, textBoxOpenPopupMenuBehavior)
+        
         gameInput:AddInputTable(textFieldTable)
     end
 
@@ -1577,7 +1590,7 @@ InputSet textFieldControlDelete
         InputSet selectionMoveDown3DStart
         InputSet selectionMoveDown3DStop
 
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             selectionMoveUp3DStart = AddMetaModifier(GetUpArrowKey())
             selectionMoveUp3DStop = AddMetaModifier(GetUpArrowKey())
             selectionMoveUp3DStop:SetInputTrigger(selectionMoveUp3DStop:FINISH)
@@ -1646,7 +1659,7 @@ InputSet textFieldControlDelete
         InputSet decreaseGridUnitInput
         InputSet openEditorFindDialogInput
 
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             InputSet set
             toggleGridInput:SetKeyboardInput(keys:G)
             toggleGridInput:AddModifier(set:META)
@@ -1717,7 +1730,7 @@ InputSet textFieldControlDelete
         cameraItemTable2D:Add(selectionScaleDownSet, selectionScaleDownBehavior)
 
         InputSet focusPropertiesSet
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             focusPropertiesSet:SetKeyboardInput(keys:P)
             focusPropertiesSet:AddModifier(focusPropertiesSet:META)
         else
@@ -1791,7 +1804,7 @@ InputSet textFieldControlDelete
         InputSet selectionRotateRollRightStart
         InputSet selectionRotateRollRightStop
 
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             selectionRotateRollLeftStart = AddMetaModifier(AddAltModifier(GetLeftArrowKey()))
             selectionRotateRollLeftStop = AddMetaModifier(AddAltModifier(GetLeftArrowKey()))
             selectionRotateRollLeftStop:SetInputTrigger(selectionRotateRollLeftStop:FINISH)
@@ -1876,7 +1889,7 @@ InputSet textFieldControlDelete
         selectionTable:Add(openEditorFindDialogInput, openFindDialogBehavior)
 
         InputSet resetScaleSet        
-        if manager:GetOperatingSystem():Contains("OS X")
+        if ShouldUseMacKeys()
             resetScaleSet:SetKeyboardInput(keys:R)
             resetScaleSet = AddMetaModifier(resetScaleSet)
         else
@@ -2229,16 +2242,40 @@ InputSet textFieldControlDelete
 
         GameStateManager manager
 
+        
+InputSet swipeSet
+        GestureEvent gestures
+        swipeSet:SetGestureInput(gestures:SWIPE)
+
+        InputSet tapSet
+        tapSet:SetGestureInput(gestures:SINGLE_TAP)
+
+        InputSet doubleTapSet
+        doubleTapSet:SetGestureInput(gestures:DOUBLE_TAP)
+
+        InputSet panSet
+        panSet:SetGestureInput(gestures:PAN)
+
+        InputSet longPressSet
+        longPressSet:SetGestureInput(gestures:LONG_PRESS)
+
+        InputSet pinchSet
+        pinchSet:SetGestureInput(gestures:PINCH)
+        
+        CodeEditorSwipeBehavior swipeBehavior
+        //table:Add(swipeSet, swipeBehavior)
 
         InputSet downSet
         downSet:SetKeyboardInput(keys:DOWN)
         CodeEditorSelectionDownBehavior downBehavior
         table:Add(downSet, downBehavior)
+        
 
         InputSet upSet
         upSet:SetKeyboardInput(keys:UP)
         CodeEditorSelectionUpBehavior upBehavior
         table:Add(upSet, upBehavior)
+        
 
         InputSet shiftDownSet = downSet:Copy()
         shiftDownSet:AddModifier(shiftDownSet:SHIFT)
@@ -2361,7 +2398,10 @@ InputSet textFieldControlDelete
         CodeEditorCopyToClipboardBehavior copyToClipboardBehavior
         CodeEditorCutToClipboardBehavior cutToClipboardBehavior
         CodeEditorPasteFromClipboardBehavior pasteFromClipboardBehavior
-        if manager:GetOperatingSystem():Contains("OS X")
+        
+        // Behavior for commenting out a line of code.
+        CodeEditorCommentBehavior commentBehavior
+        if ShouldUseMacKeys()
             controlHomeSet:AddModifier(controlHomeSet:META)
             controlEndSet:AddModifier(controlEndSet:META)
 controlShiftHomeSet:AddModifier(controlHomeSet:META)
@@ -2402,6 +2442,11 @@ controlShiftHomeSet:AddModifier(controlHomeSet:META)
             blockControlY:AddModifier(blockControlY:META)
             CodeEditorRedoBehavior codeEditorRedoBehavior
             table:Add(blockControlY, codeEditorRedoBehavior)
+            
+            InputSet controlSlash
+            controlSlash:SetKeyboardInput(keys:SLASH)
+            controlSlash:AddModifier(controlSlash:META)
+            table:Add(controlSlash, commentBehavior)
         else
 controlHomeSet:AddModifier(controlHomeSet:CONTROL)
             controlEndSet:AddModifier(controlEndSet:CONTROL)
@@ -2442,6 +2487,11 @@ controlShiftHomeSet:AddModifier(controlHomeSet:CONTROL)
             blockControlY:AddModifier(blockControlY:CONTROL)
             CodeEditorRedoBehavior codeEditorRedoBehavior
             table:Add(blockControlY, codeEditorRedoBehavior)
+            
+InputSet controlSlash
+            controlSlash:SetKeyboardInput(keys:SLASH)
+            controlSlash:AddModifier(controlSlash:CONTROL)
+            table:Add(controlSlash, commentBehavior)
         end
 
 
@@ -2499,6 +2549,16 @@ InputSet dragOffSet
         blockCommandZ:SetKeyboardInput(keys:Z)
         blockCommandZ:AddModifier(blockCommandZ:META)
         
+InputSet mouseOn
+        mouseOn:SetInputType(mouseOn:MOUSE_MOVEMENT_INPUT)
+        mouseOn:SetInputTrigger(mouseOn:BEGIN)
+        MouseOnBehavior mouseOnBehavior
+        
+        InputSet mouseOff
+        mouseOff:SetInputType(mouseOff:MOUSE_MOVEMENT_INPUT)
+        mouseOff:SetInputTrigger(mouseOff:FINISH)
+        MouseOffBehavior mouseOffBehavior
+        
         InputTable editFieldTable = gameInput:GetInputTable("TextField"):Copy()
         editFieldTable:SetIdentifier("EditField")
         editFieldTable:RemoveKey(downSet)
@@ -2507,6 +2567,8 @@ InputSet dragOffSet
 editFieldTable:RemoveKey(blockCommandZ)
         editFieldTable:Add(downSet, downBehavior)
         editFieldTable:Add(upSet, upBehavior)
+editFieldTable:Add(mouseOn, mouseOnBehavior)
+editFieldTable:Add(mouseOff, mouseOffBehavior)
         gameInput:AddInputTable(editFieldTable)
 
         
@@ -2521,11 +2583,14 @@ editFieldTable:RemoveKey(blockCommandZ)
         editBoxTable:RemoveKey(blockCommandZ)
         editBoxTable:Add(downSet, downBehavior)
         editBoxTable:Add(upSet, upBehavior)
+editBoxTable:Add(mouseOn, mouseOnBehavior)
+editBoxTable:Add(mouseOff, mouseOffBehavior)
         gameInput:AddInputTable(editBoxTable)
         
         
         InputTable blockTable
         blockTable:SetIdentifier("Block")
+        
         BlockDragBehavior dragBehavior
         InputSet startDrag
         startDrag:SetDragItemInput()
@@ -2536,9 +2601,14 @@ editFieldTable:RemoveKey(blockCommandZ)
         InputSet endDrag
         endDrag:SetDragItemInput()
         endDrag:SetInputTrigger(endDrag:FINISH)
+        
         blockTable:Add(startDrag, dragBehavior)
         blockTable:Add(continueDrag, dragBehavior)
         blockTable:Add(endDrag, dragBehavior)
+        
+        blockTable:Add(mouseOn, mouseOnBehavior)
+        blockTable:Add(mouseOff, mouseOffBehavior)
+        
         gameInput:AddInputTable(blockTable)
         
         InputTable blockPaletteItemTable = blockTable:Copy()
@@ -2552,10 +2622,41 @@ InputSet spaceSet
         blockPaletteItemTable:Add(GetEnterKey(), activateBehavior)
         blockPaletteItemTable:Add(numpadEnterSet, activateBehavior)
         
+        //add the up and down arrows for the palette
+        BlockPaletteNextFocusBehavior paletteNextFocusBehavior
+        BlockPalettePreviousFocusBehavior palettePreviousFocusBehavior
+
+        
         gameInput:AddInputTable(blockPaletteItemTable)
         
         // Make sure the CodeEditor's drag receiving behavior has a needed reference to the starting drag behavior.
         draggedIntoBehavior:SetSourceDragBehavior(dragBehavior)
+        
+        InputTable blockPaletteTable
+        blockPaletteTable:SetIdentifier("BlockPalette")
+        
+        BlockPaletteAcceptDraggedBlockBehavior paletteDragIntoBehavior
+        paletteDragIntoBehavior:SetSourceDragBehavior(dragBehavior)
+        blockPaletteTable:Add(dragIntoFinishSet, paletteDragIntoBehavior)
+blockPaletteTable:Add(downSet, paletteNextFocusBehavior)
+blockPaletteTable:Add(tabSet, paletteNextFocusBehavior)
+blockPaletteTable:Add(upSet, palettePreviousFocusBehavior)
+blockPaletteTable:Add(shiftTabSet, palettePreviousFocusBehavior)
+        
+        gameInput:AddInputTable(blockPaletteTable)
+        
+        
+        InputTable connectorTable
+        connectorTable:SetIdentifier("MultipleLineBlockConnector")
+        connectorTable:Add(mouseOn, mouseOnBehavior)
+        connectorTable:Add(mouseOff, mouseOffBehavior)
+        
+connectorTable:Add(startDrag, dragBehavior)
+        connectorTable:Add(continueDrag, dragBehavior)
+        connectorTable:Add(endDrag, dragBehavior)
+        
+        gameInput:AddInputTable(connectorTable)
+        
     end
 
     action SetupScrollBarControlInput(GameInput gameInput)
@@ -2598,5 +2699,23 @@ InputSet spaceSet
 
         gameInput:AddInputTable(scrollPaneTable)
     end
+    
+    private action ShouldUseMacKeys returns boolean
+        if manager:GetOperatingSystem():Contains("OS X")
+            return true
+        end
+        if manager:GetOperatingSystem():Contains("Web Browser")
+GameStateManager manager
+            if manager:GetApplication() is WebApplication
+WebApplication webApp = cast(WebApplication, manager:GetApplication())
+        if webApp:GetWebOperatingSystem():Contains("Mac")
+                    return true
+        end
+            end
+        end
+        
+        return false
+    end
+    
 
 end

@@ -1,94 +1,97 @@
-function plugins_quorum_Libraries_Language_Types_Text_(optional) {
-    this.text = "";
-    if(optional === undefined) {
-    } else {
-        this.text = optional;
+class plugins_quorum_Libraries_Language_Types_Text_ {
+    constructor(optional) {
+        this.text = "";
+        if(optional === undefined) {
+        } else {
+            this.text = optional;
+        }
     }
-    this.SetValueNative$quorum_text = function (value) {
+
+    SetValueNative$quorum_text(value) {
         this.text = value;
     };
-    this.GetCharacterNative$quorum_integer = function (index) {
+    GetCharacterNative$quorum_integer(index) {
         return this.text.GetCharacterNative$quorum_integer(index);
     };
-    this.GetSubstringNative$quorum_integer$quorum_integer = function (startIndex, endIndex) {
+    GetSubstringNative$quorum_integer$quorum_integer(startIndex, endIndex) {
         return this.text.GetSubstringNative(startIndex, endIndex);
     };
-    this.ParseInteger = function () {
+    ParseInteger() {
         return this.text.ParseInteger();
     };
-    this.ParseNumber = function () {
+    ParseNumber() {
         return this.text.ParseNumber();
     };
-    this.ParseBoolean = function () {
+    ParseBoolean() {
         return this.text.ParseBoolean();
     };
-    this.GetLineFeed = function () {
+    GetLineFeed() {
         return this.text.GetLineFeed();
     };
-    this.GetCarriageReturn = function () {
+    GetCarriageReturn() {
         return this.text.GetCarriageReturn();
     };
-    this.GetTab = function () {
+    GetTab() {
         return this.text.GetTab();
     };
-    this.GetDoubleQuote = function () {
+    GetDoubleQuote() {
         return this.text.GetDoubleQuote();
     };
-    this.GetUnicodeValue$quorum_integer = function (value) {
+    GetUnicodeValue$quorum_integer(value) {
         return this.text.GetUnicodeValue$quorum_integer(value);
     };
-    this.GetUnicodeInteger$quorum_integer = function (value) {
+    GetUnicodeInteger$quorum_integer(value) {
         return this.text.GetUnicodeInteger$quorum_integer(value);
     };
-    this.ContainsNative$quorum_text$quorum_text = function(left, right) {
+    ContainsNative$quorum_text$quorum_text(left, right) {
         return this.text.ContainsNative$quorum_text$quorum_text(left, right);
     };
-    this.EndsWithNative$quorum_text$quorum_text = function(left, right) {
+    EndsWithNative$quorum_text$quorum_text(left, right) {
         return this.text.EndsWithNative$quorum_text$quorum_text(left, right);
     };
-    this.StartsWithNative$quorum_text$quorum_text = function(left, right) {
+    StartsWithNative$quorum_text$quorum_text(left, right) {
         return this.text.StartsWithNative$quorum_text$quorum_text(left, right);
     };
-    this.SplitIntoLines = function() {
+    SplitIntoLines() {
         return this.text.SplitIntoLines();
     };
-    this.IndexOfNative$quorum_text$quorum_text = function(left, right) {
+    IndexOfNative$quorum_text$quorum_text(left, right) {
         return this.text.IndexOfNative$quorum_text$quorum_text(left, right);
     };
-    this.IndexOfNative$quorum_text$quorum_text$quorum_integer = function(left, right, index) {
+    IndexOfNative$quorum_text$quorum_text$quorum_integer(left, right, index) {
         return this.text.IndexOfNative$quorum_text$quorum_text$quorum_integer(left, right, index);
     };
-    this.IsEmptyNative$quorum_text = function(left) {
+    IsEmptyNative$quorum_text(left) {
         return this.text.IsEmptyNative$quorum_text(left);
     };
-    this.ReplaceNative$quorum_text$quorum_text$quorum_text = function(left, old, replacement) {
+    ReplaceNative$quorum_text$quorum_text$quorum_text(left, old, replacement) {
         return this.text.ReplaceNative$quorum_text$quorum_text$quorum_text(left, old, replacement);
     };
-    this.GetSubtextNative$quorum_text$quorum_integer = function(left, index) {
+    GetSubtextNative$quorum_text$quorum_integer(left, index) {
         return this.text.GetSubtextNative$quorum_text$quorum_integer(left, index);
     };
-    this.ToLowerCase = function () {
+    ToLowerCase() {
         return this.text.ToLowerCase();
     };
-    this.ToUpperCase = function () {
+    ToUpperCase() {
         return this.text.ToUpperCase();
     };
-    this.TrimNative$quorum_text = function(left) {
+    TrimNative$quorum_text(left) {
         return this.text.TrimNative$quorum_text(left);
     };
-    this.EqualsIgnoringCaseNative$quorum_text$quorum_text = function (left, right) {
+    EqualsIgnoringCaseNative$quorum_text$quorum_text(left, right) {
         return this.text.EqualsIgnoringCaseNative$quorum_text$quorum_text(left, right);
     };
-    this.CompareInt$quorum_text$quorum_text$quorum_boolean = function (left, right, isIgnoringCase) {
+    CompareInt$quorum_text$quorum_text$quorum_boolean(left, right, isIgnoringCase) {
         return this.text.CompareInt$quorum_text$quorum_text$quorum_boolean(left, right, isIgnoringCase);
     };
-    this.GetSize = function () {
+    GetSize() {
         return this.text.GetSize();
     };
-    this.GetHashCode = function() {
+    GetHashCode() {
         return this.text.GetHashCode();
     };
-    this.GetSubtext$quorum_integer$quorum_integer = function(startIndex, endIndex) {
+    GetSubtext$quorum_integer$quorum_integer(startIndex, endIndex) {
         return this.text.GetSubtext$quorum_integer$quorum_integer(startIndex, endIndex);
     };
 }

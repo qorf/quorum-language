@@ -179,7 +179,11 @@ class LoopOpcode is QuorumOpcode
         end
 
         constants:IncreaseTab()
-        result = result + block:WritePython()
+        if block:IsEmpty()
+result = result + constants:GetTabText() + "pass"
+        else
+result = result + block:WritePython()
+        end
 
         //the loop counter in python
         if isTimes

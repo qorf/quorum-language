@@ -1,0 +1,25 @@
+package Libraries.Game.Graphics.Fonts
+
+use Libraries.Containers.Support.Comparison
+use Libraries.System.File
+class FontFileNameComparison is Comparison
+    
+action Compare(Object a, Object b) returns integer
+        File aFile = cast(File, a)
+File bFile = cast(File, b)
+        
+        text aText = aFile:GetFileName()
+        text bText = bFile:GetFileName()
+        aText = aText:GetSubtext(0, aText:GetSize()- aFile:GetFileExtension():GetSize() - 1)    
+bText = bText:GetSubtext(0, bText:GetSize()- bFile:GetFileExtension():GetSize() - 1)
+        if aText:StartsWith(bText)
+            return parent:Comparison:LARGER
+        elseif bText:StartsWith(aText)
+            return parent:Comparison:SMALLER
+        end
+            
+                     return aText:Compare(bText)
+
+end
+end
+

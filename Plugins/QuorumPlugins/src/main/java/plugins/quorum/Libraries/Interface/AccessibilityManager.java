@@ -447,6 +447,17 @@ public class AccessibilityManager
 
         // Add item and respective pointer to collection.
         ITEM_MAP.put(item, nativePointer);
+
+        // If the Item was a ToggleButton (or Checkbox), and it was already toggled, trigger an update so the UIA info is up to date.
+        if (item instanceof ToggleButton_)
+        {
+            ToggleButton_ toggle = (ToggleButton_)item;
+            if (((ToggleButton_) item).GetToggleState())
+            {
+                OnToggleButtonToggle(toggle);
+            }
+        }
+
         return true;
     }
     

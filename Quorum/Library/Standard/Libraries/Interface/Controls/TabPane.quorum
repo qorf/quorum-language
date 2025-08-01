@@ -49,6 +49,7 @@ LayoutProperties paneProperties = GetDefaultLayoutProperties()
         selection:Initialize(me, -1)
 
         FlowLayout layout
+        layout:SetIgnoreHidden(true)
         SetLayout(layout)
 
         FlowLayout flow
@@ -107,15 +108,6 @@ this is false. */
 
     action IsAccessibleParent returns boolean
         return true
-    end
-
-    action GetDefaultFontName returns text
-        Font font
-        if font:IsFontAvailable("Arial")
-            return "Arial"
-        else
-            return parent:Control:GetDefaultFontName()
-        end
     end
 
     action GetDefaultFontSize returns integer
@@ -189,7 +181,6 @@ this is false. */
     action GetSize returns integer
         return bar:GetSize()
     end
-
 
     /*
         This essentially does what Select does but it will not move focus to the
@@ -377,4 +368,29 @@ the first focusable item within the first generation of children of the related 
         return undefined
     end
     
+/*This action returns the amount of spacing, in non-scaled pixels, that will be placed
+between each Tab in the TabBar. If a Tab has its own margin values set, then this
+will be ignored for that Tab.
+
+Attribute: Returns The default amount of pixels between each Tab.*/
+    action GetTabSpacing returns number
+        return bar:GetTabSpacing()
+    end
+
+/*This action sets the amount of spacing, in non-scaled pixels, that will be placed
+between each Tab in the TabBar. If a Tab has its own margin values set, then this
+will be ignored for that Tab.
+
+Attribute: Parameter tabSpacing The default amount of pixels between each Tab.*/
+    action SetTabSpacing(number tabSpacing)
+        bar:SetTabSpacing(tabSpacing)
+    end
+    
+    /*  This action returns the TabBar at the top of this TabPane.
+
+        Attribute: Returns The TabBar associated with this TabPane.
+    */
+    action GetTabBar returns TabBar
+        return bar
+    end
 end

@@ -56,6 +56,7 @@ class StandardInput is GameInput
     Array<KeyboardEvent> keyboardEvents
     Array<TextInputEvent> textInputEvents
     Array<ResizeEvent> resizeEvents
+    Array<GestureEvent> gestureEvents
 
     GameStateManager manager
 
@@ -94,6 +95,9 @@ class StandardInput is GameInput
     "multipleKeyPressTimer" value from DesktopConfiguration.
     */
     Array<RecentInputTimer> recentKeyPresses
+    
+    
+Array<RecentInputTimer> recentGestures
 
     /* 
     Whether or not a keyboard event was caught by the InputTables on the current
@@ -153,9 +157,9 @@ class StandardInput is GameInput
     action ProcessInputEvents
 
         UpdateRecentInputTimers()
-        CheckForEvents(mouseEvents, keyboardEvents, textInputEvents, resizeEvents)
-
-        Array<Layer> layers = parent:GameInput:layers
+        CheckForEvents(mouseEvents, keyboardEvents, textInputEvents, resizeEvents, gestureEvents)
+        
+     Array<Layer> layers = parent:GameInput:layers
         MouseEvent mouseEvent = undefined
         keypressCaught = false
 
@@ -473,6 +477,10 @@ class StandardInput is GameInput
             ProcessTextInputEvent(textInputEvents)
         end
         
+        if gestureEvents:IsEmpty() = false
+            ProcessGestureEvent(gestureEvents)
+        end
+        
         if resizeEvents:IsEmpty() = false
             repeat while (not resizeEvents:IsEmpty())
                 ResizeEvent event = resizeEvents:RemoveFromFront()
@@ -492,7 +500,7 @@ class StandardInput is GameInput
 
     end
 
-    private action ProcessDragEvent(DragAndDropEvent event)
+    action ProcessDragEvent(DragAndDropEvent event)
         
         Item seeker = event:GetSource()
 
@@ -692,6 +700,27 @@ class StandardInput is GameInput
 
         return timer
     end
+    
+private action GetRecentGestureInput(GestureEvent event) returns RecentInputTimer
+        integer counter = 0
+        Item item = event:GetSource()
+        repeat while counter < recentGestures:GetSize()
+            RecentInputTimer timer = recentGestures:Get(counter)
+            if timer:item = item
+                return timer
+            end
+
+            counter = counter + 1
+        end
+
+        RecentInputTimer timer
+        timer:count = 0
+        timer:inputValue = event:eventType
+        timer:item = item
+        recentGestures:Add(timer)
+
+        return timer
+    end
 
     private action ItemsAreRelated(Item elder, Item younger) returns boolean
         // If both are undefined, return true, otherwise return false.
@@ -821,7 +850,7 @@ class StandardInput is GameInput
 
             set:SetKeyboardInput(currentEvent:keyCode)
             anySet:SetKeyboardInput(currentEvent:ANY_KEY)
-
+            
             text inputGroup = ""
             Item focusedItem = manager:GetFocus()
             boolean processed = false
@@ -1053,6 +1082,138 @@ class StandardInput is GameInput
 
             listenIterator:Rewind()
         end
+    end
+    
+    action ProcessGestureEvent(Array<GestureEvent> gestureEvents)
+
+if gestureEvents:IsEmpty() = false
+            Array<Layer> layers = parent:GameInput:layers
+            GestureEvent gestureEvent = undefined
+
+            InputSet set = keyboardModifiers:Copy()
+            InputSet multiSet = undefined
+
+            RecentInputTimer recentInput = undefined
+
+            Item target = undefined
+
+            repeat while not (gestureEvents:IsEmpty())
+                gestureEvent = gestureEvents:RemoveFromFront()
+                set:SetGestureInput(gestureEvent:eventType)
+                set:SetInputTrigger(gestureEvent:timingCode)
+
+                if gestureEvent:timingCode = gestureEvent:BEGIN
+                    recentInput = GetRecentGestureInput(gestureEvent)
+                end
+
+                multiSet = set:Copy()
+
+                BehaviorEvent behaviorEvent
+                behaviorEvent:SetGestureEvent(gestureEvent)
+
+                boolean useDefaultTable = true
+
+                integer counter = layers:GetSize()
+                repeat while counter > 0 and not gestureEvent:WasEventHandled()
+                    counter = counter - 1
+
+                    Item temp = layers:Get(counter):ProcessGestureEvent(gestureEvent)
+
+                    if gestureEvent:GetSource() not= undefined
+                        Item seeker = gestureEvent:GetSource()
+
+                        InputSet beginSet = set:Copy()
+                        beginSet:SetInputTrigger(beginSet:BEGIN)
+                        InputSet finishSet = set:Copy()
+                        finishSet:SetInputTrigger(finishSet:FINISH)
+
+                        repeat while seeker not= undefined and useDefaultTable = true// or noMoveTarget
+                            InputTable table = GetInputTable(seeker:GetInputGroup())
+
+                            if useDefaultTable
+                                if table not= undefined
+                                    if recentInput not= undefined
+                                        if ItemsAreRelated(seeker, recentInput:item)
+                                            multiSet:SetEventCount(recentInput:count + 1)
+                                        else
+                                            multiSet:SetEventCount(1)
+                                        end
+                                        if table:HasKey(multiSet)
+                                            set = multiSet
+                                        end
+                                    end
+                                    if table:HasKey(set)
+                                        if recentInput not= undefined
+                                            recentInput:timer = 0
+                                            if recentInput:item not= seeker
+                                                recentInput:item = seeker
+                                                recentInput:count = 1
+                                                gestureEvent:gestureCount = 1
+                                            else
+                                                recentInput:count = recentInput:count + 1
+                                                gestureEvent:gestureCount = recentInput:count
+                                            end
+                                        end
+
+                                        useDefaultTable = false
+                                        gestureEvent:SetEventHandled(true)
+                                        target = seeker
+                                    end
+                                end
+                            end
+
+                            if seeker is Item2D
+                                Item2D target2D = cast(Item2D, seeker)
+                                seeker = target2D:GetParent()
+                            elseif seeker is Item3D
+                                Item3D target3D = cast(Item3D, seeker)
+                                seeker = target3D:GetParent()
+                            else
+                                seeker = undefined
+                            end
+                        end
+                    end
+                end
+
+
+                if not gestureEvent:WasEventHandled()
+                    //NotifyGestureListeners(gestureEvent)
+                end
+                
+                behaviorEvent:SetItem(target)
+                InputTable table = undefined
+
+                if useDefaultTable
+                    table = GetDefaultInputTable()
+
+                    if recentInput not= undefined
+
+                        if ItemsAreRelated(recentInput:item, gestureEvent:GetSource())
+                            multiSet:SetEventCount(recentInput:count + 1)
+                            recentInput:timer = 0
+                            recentInput:count = recentInput:count + 1
+                            gestureEvent:gestureCount = recentInput:count
+                            if table:HasKey(multiSet)
+                                set = multiSet
+                            end
+                        else
+                            recentInput:timer = 0
+                            recentInput:count = 1
+                            gestureEvent:gestureCount = 1
+                        end
+
+                        recentInput:item = gestureEvent:GetSource()
+                    end
+                else
+                    table = GetInputTable(target:GetInputGroup())
+                end
+                table:ProcessInput(set, behaviorEvent)
+
+                // End of repeat statement over size of touch events.
+            end
+        end
+
+        // End of action.
     end
 
     /*
@@ -1453,5 +1614,6 @@ class StandardInput is GameInput
     the end of the provided arrays.
     */
     private blueprint action CheckForEvents(Array<MouseEvent> mouseEvents, Array<KeyboardEvent> keyboardEvents,
-        Array<TextInputEvent> textInputEvents, Array<ResizeEvent> resizeEvents)
+        Array<TextInputEvent> textInputEvents, Array<ResizeEvent> resizeEvents, Array<GestureEvent> gestureEvents)
+    
 end

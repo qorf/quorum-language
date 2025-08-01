@@ -1,8 +1,283 @@
 package Libraries.Interface.Controls
 
 use Libraries.Game.Graphics.ColorGroup
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Drawable
+use Libraries.Containers.Support.SortableContainer
+use Libraries.Interface.Controls.TextStyles.TextHighlight
+use Libraries.Game.Graphics.Painter2D
 
 class TextFieldBackground is Control
+
+    Array<Drawable> glyphs
+    Array<Drawable> selectionDrawables
+    Array<SortableContainer<TextHighlight, Drawable>> preSelectionHighlights
+    Array<SortableContainer<TextHighlight, Drawable>> postSelectionHighlights
+    Drawable caret
+
+    /*
+    These variables indicate if the pre/post selection highlights
+    need to be sorted before they're rendered.
+    */
+    boolean sortPreHighlights = false
+    boolean sortPostHighlights = false
+
+    Array<Drawable> drawablePool
+    Array<SortableContainer<TextHighlight, Drawable>> highlightContainerPool
+
+    on create
+        SetCustomDrawing(true)
+        Add(caret)
+    end
+
+    action Draw(Painter2D painter)
+        DrawView(painter)
+        DrawContents(painter)
+    end
+
+    action DrawView(Painter2D painter)
+        if GetView2D() not= undefined
+            GetView2D():Draw(painter)
+        end
+    end
+
+    action DrawContents(Painter2D painter)
+        if sortPreHighlights
+            preSelectionHighlights:Sort()
+            sortPreHighlights = false
+        end
+
+        number priority = 0
+
+        if preSelectionHighlights:IsEmpty() = false
+            priority = preSelectionHighlights:Get(0):GetSorter():GetRenderPriority()
+        end
+
+        integer counter = 0
+        repeat while counter < preSelectionHighlights:GetSize()
+            SortableContainer<TextHighlight, Drawable> container = preSelectionHighlights:Get(counter)
+
+            // If we find an object is in the wrong position according to its render priority,
+            // we'll sort the objects on the next Draw call.
+            if container:GetSorter():GetRenderPriority() < priority
+                sortPreHighlights = true
+            end
+
+            container:GetValue():Draw(painter)
+            counter = counter + 1
+        end
+
+        counter = 0
+        repeat while counter < selectionDrawables:GetSize()
+            painter:Draw(selectionDrawables:Get(counter))
+            counter = counter + 1
+        end
+
+        if sortPostHighlights
+            postSelectionHighlights:Sort()
+            sortPostHighlights = false
+        end
+
+        if postSelectionHighlights:IsEmpty() = false
+            priority = postSelectionHighlights:Get(0):GetSorter():GetRenderPriority()
+        end
+
+        counter = 0
+        repeat while counter < postSelectionHighlights:GetSize()
+            SortableContainer<TextHighlight, Drawable> container = postSelectionHighlights:Get(counter)
+
+            // If we find an object is in the wrong position according to its render priority,
+            // we'll sort the objects on the next Draw call.
+            if container:GetSorter():GetRenderPriority() < priority
+                sortPostHighlights = true
+            end
+
+            container:GetValue():Draw(painter)
+            counter = counter + 1
+        end
+
+        counter = 0
+        repeat while counter < glyphs:GetSize()
+            painter:Draw(glyphs:Get(counter))
+            counter = counter + 1
+        end
+
+        caret:Draw(painter)
+    end
+
+    action GetDrawable returns Drawable
+        if drawablePool:IsEmpty() = false
+            Drawable drawable = drawablePool:RemoveFromEnd()
+            return drawable
+        else
+            Drawable drawable
+            drawable:SetAcceptsMouseInput(false)
+            return drawable
+        end
+    end
+
+    action RecycleDrawable(Drawable drawable)
+        if drawable = undefined
+            return now
+        end
+
+        drawablePool:Add(drawable)
+    end
+
+    action GetHighlightContainer returns SortableContainer<TextHighlight, Drawable>
+        if highlightContainerPool:IsEmpty() = false
+            return highlightContainerPool:RemoveFromEnd()
+        else
+            SortableContainer<TextHighlight, Drawable> container
+            return container
+        end
+    end
+
+    action RecycleHighlightContainer(SortableContainer<TextHighlight, Drawable> container)
+        if container = undefined
+            return now
+        end
+
+        // We don't recycle the Drawables from the highlights because
+        // we didn't create them, and so we don't know if they're being reused
+        // by whatever the original sources of the highlight drawables are.
+
+        container:Set(undefined, undefined)
+        highlightContainerPool:Add(container)
+    end
+
+    action AddCharacter(Drawable character)
+        Add(character)
+        glyphs:Add(character)
+    end
+
+    action AddCharacter(integer index, Drawable character)
+        Add(character)
+        glyphs:Add(index, character)
+    end
+
+    action RemoveCharacter(integer index)
+        if index >= glyphs:GetSize()
+            return now
+        end
+        Drawable character = glyphs:RemoveAt(index)
+        Remove(character)
+        RecycleDrawable(character)
+    end
+
+    action AddSelectionDrawable(Drawable selection)
+        Add(selection)
+        selectionDrawables:Add(selection)
+    end
+
+    action RemoveSelectionDrawable(Drawable selection)
+        selectionDrawables:Remove(selection)
+        Remove(selection)
+        RecycleDrawable(selection)
+    end
+
+    action AddPreSelectionHighlight(TextHighlight highlight, Drawable drawable)
+        Add(drawable)
+        SortableContainer<TextHighlight, Drawable> container = GetHighlightContainer()
+        container:Set(highlight, drawable)
+        preSelectionHighlights:Add(container)
+        sortPreHighlights = true
+    end
+
+    action RemovePreSelectionHighlight(TextHighlight highlight)
+        integer counter = 0
+        repeat while counter < preSelectionHighlights:GetSize()
+            SortableContainer<TextHighlight, Drawable> container = preSelectionHighlights:Get(counter)
+            if container:GetSorter() = highlight
+                counter = preSelectionHighlights:GetSize()
+
+                preSelectionHighlights:Remove(container)
+                Remove(container:GetValue())
+            else
+                counter = counter + 1
+            end
+        end
+    end
+
+    action AddPostSelectionHighlight(TextHighlight highlight, Drawable drawable)
+        Add(drawable)
+        SortableContainer<TextHighlight, Drawable> container = GetHighlightContainer()
+        container:Set(highlight, drawable)
+        postSelectionHighlights:Add(container)
+        sortPostHighlights = true
+    end
+
+    action RemovePostSelectionHighlight(TextHighlight highlight)
+        integer counter = 0
+        repeat while counter < postSelectionHighlights:GetSize()
+            SortableContainer<TextHighlight, Drawable> container = postSelectionHighlights:Get(counter)
+            if container:GetSorter() = highlight
+                counter = postSelectionHighlights:GetSize()
+
+                postSelectionHighlights:Remove(container)
+                Remove(container:GetValue())
+            else
+                counter = counter + 1
+            end
+        end
+    end
+
+    action GetCaret returns Drawable
+        return caret
+    end
+
+    action GetCharacters returns Array<Drawable>
+        return glyphs
+    end
+
+    /*
+    This action empties the most common drawables that would need to be cleared
+    from the TextBox: the text, selection drawables, and highlighting.
+
+    This DOES NOT remove the Caret!
+    */
+    action Empty
+        EmptyGlyphs()
+        EmptySelectionDrawables()
+        EmptyPreSelectionHighlights()
+        EmptyPostSelectionHighlights()
+    end
+
+    action EmptyGlyphs
+        repeat until glyphs:IsEmpty()
+            Drawable drawable = glyphs:RemoveFromEnd()
+            Remove(drawable)
+            RecycleDrawable(drawable)
+        end
+    end
+
+    // The TextBoxRenderer will only resize if we explicitly request it, or an
+    // underlying component has to.
+    action NeedsLayout returns boolean
+        return false
+    end
+
+    action EmptySelectionDrawables
+        repeat until selectionDrawables:IsEmpty()
+            RemoveSelectionDrawable(selectionDrawables:Get(0))
+        end
+    end
+
+    action EmptyPreSelectionHighlights
+        repeat until preSelectionHighlights:IsEmpty()
+            SortableContainer<TextHighlight, Drawable> container = preSelectionHighlights:RemoveFromEnd()
+            Remove(container:GetValue())
+        end
+        sortPreHighlights = false
+    end
+
+    action EmptyPostSelectionHighlights
+        repeat until postSelectionHighlights:IsEmpty()
+            SortableContainer<TextHighlight, Drawable> container = postSelectionHighlights:RemoveFromEnd()
+            Remove(container:GetValue())
+        end
+        sortPostHighlights = false
+    end
 
     action GetBorderColor returns ColorGroup
         if HasColorPropertyOverride("borderColor")
@@ -27,6 +302,32 @@ class TextFieldBackground is Control
 
         return GetParentTextField():GetBackgroundColor()
     end
+    
+action GetMouseOverColor returns ColorGroup
+        if HasColorPropertyOverride("mouseOverColor")
+            return parent:Control:GetMouseOverColor()
+        end
+
+        TextField box = GetParentTextField()
+        if box not= undefined
+            return box:GetMouseOverColor()
+        else
+            return parent:Control:GetMouseOverColor()
+        end
+    end
+    
+action GetMouseOverBorderColor returns ColorGroup
+        if HasColorPropertyOverride("mouseOverBorderColor")
+            return parent:Control:GetMouseOverBorderColor()
+        end
+
+        TextField box = GetParentTextField()
+        if box not= undefined
+            return box:GetMouseOverBorderColor()
+        else
+            return parent:Control:GetMouseOverBorderColor()
+        end
+    end
 
     action GetBorderThickness returns number
         if HasNumberPropertyOverride("borderThickness")
@@ -34,6 +335,32 @@ class TextFieldBackground is Control
         end
 
         return GetParentTextField():GetBorderThickness()
+    end
+    
+action GetMouseOverBorderThickness returns number
+        if HasNumberPropertyOverride("mouseOverBorderThickness")
+            return parent:Control:GetMouseOverBorderThickness()
+        end
+
+        TextField box = GetParentTextField()
+        if box not= undefined
+            return box:GetMouseOverBorderThickness()
+        else
+            return parent:Control:GetMouseOverBorderThickness()
+        end
+    end
+    
+action HasMouseOverBorderThickness returns boolean
+        if HasNumberPropertyOverride("mouseOverBorderThickness")
+            return parent:Control:HasMouseOverBorderThickness()
+        end
+        
+TextField box = GetParentTextField()
+        if box not= undefined
+            return box:HasMouseOverBorderThickness()
+        else
+            return parent:Control:HasMouseOverBorderThickness()
+        end
     end
 
     action GetTopLeftRounding returns number

@@ -1,0 +1,81 @@
+package Libraries.Interface.Controls.Blocks
+
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Containers.Array
+
+class MultipleLineBlockConnector is Control
+    
+    MultipleLineBlock parentBlock = undefined
+    
+    on create
+        SetInputGroup("MultipleLineBlockConnector")
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        SetBorderStyle(properties:LEFT + properties:RIGHT)
+        SetCornerPixelRounding(0, 0, 0, 0)
+    end
+    
+    action Initialize(MultipleLineBlock block)
+        parentBlock = block
+SetInterfaceOptionsKey(block:GetInterfaceOptionsKey())
+        
+ControlShaderView view
+        view:Initialize()
+        SetView2D(view)
+    end
+    
+/*
+        This action is used when a control is moused over by the mouse.
+    */
+    action BeginMouseOver
+        PropagateMouseOver(parentBlock, true)
+    end
+    /*
+        This action is used when a control is moused over and it ends.
+    */
+    action EndMouseOver
+        PropagateMouseOver(parentBlock, false)
+    end
+    
+    private action TriggerMouseOverVisuals(boolean begin)
+        if begin
+            parent:Control:BeginMouseOver()
+        else
+            parent:Control:EndMouseOver()
+        end
+    end
+    
+    private action PropagateMouseOver(Block block, boolean begin)
+        if begin
+            block:BeginMouseOver()
+        else
+            block:EndMouseOver()
+        end
+        
+        if block is MultipleLineBlock
+            MultipleLineBlock multiBlock = cast(MultipleLineBlock, block)
+            Array<MultipleLineBlockConnector> connectors = multiBlock:GetBlockConnectors()
+            integer i = 0
+            repeat while i < connectors:GetSize()
+                if begin
+                    connectors:Get(i):TriggerMouseOverVisuals(true)
+                else
+                    connectors:Get(i):TriggerMouseOverVisuals(false)
+                end
+                i = i + 1
+            end
+        end
+        
+        integer i = 0
+        repeat while i < block:GetChildCount()
+            PropagateMouseOver(block:GetChild(i), begin)
+            i = i + 1
+        end
+    end
+    
+    action GetParentBlock returns MultipleLineBlock
+        return parentBlock
+    end
+
+end

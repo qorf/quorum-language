@@ -475,7 +475,7 @@ class CheckDetectOpcode is QuorumOpcode
                     end
 
                     result = result + ") {" + EOL
-                    result = result + "     " + exceptionVariableName + " = global_ErrorCheck(" + checkExceptionName + ");" + EOL
+                    result = result + "     var " + exceptionVariableName + " = global_ErrorCheck(" + checkExceptionName + ");" + EOL
                     result = result + det:WriteJavaScript()
                     result = result + "     }"
                     detectAmount = detectAmount + 1
@@ -490,13 +490,13 @@ class CheckDetectOpcode is QuorumOpcode
                     Variable value = errorBlock:GetExceptionVariable()
                     text exceptionVariableName = value:GetJavaScriptName()
                     result = result + " else {" + EOL
-                    result = result + "     " + exceptionVariableName + " = global_ErrorCheck(" + checkExceptionName + ");" + EOL
+                    result = result + "     var " + exceptionVariableName + " = global_ErrorCheck(" + checkExceptionName + ");" + EOL
                     result = result + errorBlock:WriteJavaScript()
                     result = result + " }" + EOL
                 else
                     Variable value = errorBlock:GetExceptionVariable()
                     text exceptionVariableName = value:GetJavaScriptName()
-                    result = result + "     " + exceptionVariableName + " = global_ErrorCheck(" + checkExceptionName + ");" + EOL
+                    result = result + "     var " + exceptionVariableName + " = global_ErrorCheck(" + checkExceptionName + ");" + EOL
                     result = result + errorBlock:WriteJavaScript()
                 end
             else

@@ -11,9 +11,14 @@ use Libraries.Language.Debug.Breakpoint
 use Libraries.Interface.Controls.AnnotationLineGutter
 use Libraries.Containers.HashTable
 use Libraries.Interface.Controls.Support.GutterAnnotation
+use Libraries.Interface.Controls.TextStyles.TextStyle
 
 
 class SingleLineBlock is Block
+    
+    // If this is true, detail labels (such as "top labels" for EditRegions) are always visible on this block.
+    // If false, they're only shown when contextually relevant (usually because the block or field is selected)
+    boolean alwaysShowDetailLabels = false
     
     on create
         SetInputGroup("Block")
@@ -217,4 +222,478 @@ result = result + " " + annotation:GetName() + "."
         // For now, always return true.
         return true
     end
+    
+    action AlwaysShowDetailLabels returns boolean
+        return alwaysShowDetailLabels
+    end
+
+    action SetAlwaysShowDetailLabels(boolean alwaysShowDetailLabels)
+        me:alwaysShowDetailLabels = alwaysShowDetailLabels
+    end
+    
+    action GainedSelection
+        if AlwaysShowDetailLabels() = false
+            //ShowDetailLabels()
+        end
+        
+        parent:Block:GainedSelection()
+    end
+    
+    action LostSelection
+        if AlwaysShowDetailLabels() = false
+            HideDetailLabels()
+        end
+        
+        parent:Block:LostSelection()
+    end
+    
+    action ShowDetailLabels
+        integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                edit:ShowDetailLabels()
+            end
+            i = i + 1
+        end
+    end
+    
+action ShowTopLabels
+        integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                edit:ShowTopLabels()
+            end
+            i = i + 1
+        end
+    end
+    
+action ShowBottomLabels
+        integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                edit:ShowBottomLabels()
+            end
+            i = i + 1
+        end
+    end
+    
+    action HideDetailLabels
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                edit:HideDetailLabels()
+            end
+            i = i + 1
+        end
+    end
+    
+action HideTopLabels
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                edit:HideTopLabels()
+            end
+            i = i + 1
+        end
+    end
+    
+action HideBottomLabels
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                edit:HideBottomLabels()
+            end
+            i = i + 1
+        end
+    end
+    
+    action HasDetailLabels returns boolean
+        integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                if edit:HasDetailLabels()
+                    return true
+                end
+            end
+            i = i + 1
+        end
+        return false
+    end
+    
+action HasTopLabels returns boolean
+        integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                if edit:HasTopLabels()
+                    return true
+                end
+            end
+            i = i + 1
+        end
+        return false
+    end
+    
+action HasBottomLabels returns boolean
+        integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                if edit:HasBottomLabels()
+                    return true
+                end
+            end
+            i = i + 1
+        end
+        return false
+    end
+    
+    action HasVisibleDetailLabels returns boolean
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                if edit:HasVisibleDetailLabels()
+                    return true
+                end
+            end
+            i = i + 1
+        end
+        return false
+    end
+    
+action HasVisibleTopLabels returns boolean
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                if edit:HasVisibleTopLabels()
+                    return true
+                end
+            end
+            i = i + 1
+        end
+        return false
+    end
+    
+action HasVisibleBottomLabels returns boolean
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                if edit:HasVisibleBottomLabels()
+                    return true
+                end
+            end
+            i = i + 1
+        end
+        return false
+    end
+    
+    action GetDetailLabelsHeight returns number
+        number maxHeight = 0
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                number height = edit:GetDetailLabelsHeight()
+                if height > maxHeight
+                    maxHeight = height
+                end
+            end
+            i = i + 1
+        end
+        return maxHeight
+    end
+    
+action GetVisibleDetailLabelsHeight returns number
+        number maxHeight = 0
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                number height = edit:GetVisibleDetailLabelsHeight()
+                if height > maxHeight
+                    maxHeight = height
+                end
+            end
+            i = i + 1
+        end
+        return maxHeight
+    end
+    
+action GetTopLabelsHeight returns number
+        number maxHeight = 0
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                number height = edit:GetTopLabelsHeight()
+                if height > maxHeight
+                    maxHeight = height
+                end
+            end
+            i = i + 1
+        end
+        return maxHeight
+    end
+    
+action GetVisibleTopLabelsHeight returns number
+        number maxHeight = 0
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                number height = edit:GetVisibleTopLabelsHeight()
+                if height > maxHeight
+                    maxHeight = height
+                end
+            end
+            i = i + 1
+        end
+        return maxHeight
+    end
+    
+action GetBottomLabelsHeight returns number
+        number maxHeight = 0
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                number height = edit:GetBottomLabelsHeight()
+                if height > maxHeight
+                    maxHeight = height
+                end
+            end
+            i = i + 1
+        end
+        return maxHeight
+    end
+    
+action GetVisibleBottomLabelsHeight returns number
+        number maxHeight = 0
+integer i = 0
+        Array<Item2D> children = GetChildren()
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child is EditRegion
+                EditRegion edit = cast(EditRegion, child)
+                number height = edit:GetVisibleBottomLabelsHeight()
+                if height > maxHeight
+                    maxHeight = height
+                end
+            end
+            i = i + 1
+        end
+        return maxHeight
+    end
+    
+    /*This action adds a TextStyle to this Block. The style's index will be applied with
+consideration to the global index (that is, not the local index) that the block is
+located at. The TextStyle will be applied to relevant EditRegions in the block.
+
+Attribute: Parameter name A name identifying the TextStyle. Used to retrieve or remove the style from EditRegions later.
+Attribute: TextStyle style The TextStyle to apply to the elements of this Block.*/
+    action AddTextStyle(text name, TextStyle style)
+        integer blockIndex = GetStartIndex()
+        integer styleStart = style:GetIndex()
+        integer styleEnd = style:GetIndex() + style:GetSize() - 1
+        // Iterate through the children and find the appropriate EditRegion for this style.
+        Array<Item2D> children = GetChildren()
+        integer i = 0
+        repeat while i < children:GetSize()
+            Item2D item = children:Get(i)
+            if item is EditField
+                EditField field = cast(EditField, item)
+                if styleStart >= (blockIndex + field:GetStartIndex()) and styleEnd <= (blockIndex + field:GetEndIndex())
+                    TextStyle copy = style:Copy()
+                    copy:SetIndex(styleStart - blockIndex - field:GetStartIndex())
+                    field:AddTextStyle(name, copy)
+                    // Set i = children size, so we exit the loop. We only want to apply the style to one region.
+                    i = children:GetSize()
+                end
+            elseif item is EditBox
+EditBox box = cast(EditBox, item)
+                if styleStart >= (blockIndex + box:GetStartIndex()) and styleEnd <= (blockIndex + box:GetEndIndex())
+                    TextStyle copy = style:Copy()
+                    copy:SetIndex(styleStart - blockIndex - box:GetStartIndex())
+                    box:AddTextStyle(name, copy)
+                    // Set i = children size, so we exit the loop. We only want to apply the style to one region.
+                    i = children:GetSize()
+                end
+            end
+            i = i + 1
+        end
+    end
+    
+    /*This action removes all text styles applied to the EditRegions of this block.*/
+    action EmptyTextStyles
+Array<Item2D> children = GetChildren()
+        integer i = 0
+        repeat while i < children:GetSize()
+            Item2D item = children:Get(i)
+            if item is EditField
+                EditField field = cast(EditField, item)
+                field:EmptyTextStyles()
+            elseif item is EditBox
+                EditBox box = cast(EditBox, item)
+                box:EmptyTextStyles()
+            end
+            i = i + 1
+        end
+        
+    end
+    
+    
+/*  
+    This action tests if a point in global x,y coordinates is contained
+    inside this Item2D. The global coordinates are considered to be the x and y
+    coordinates of this Item plus its offsetX and offsetY values.
+
+    Attribute: Returns Whether or not the point is contained in this Item.
+
+    Attribute: Example
+
+        use Libraries.Interface.Item2D
+
+        Item2D item
+        item:SetPosition(50, 50)
+        item:SetWidth(100)
+        item:SetHeight(50)
+        boolean value = item:Contains(125, 70)
+    */
+    action Contains(number containsX, number containsY) returns boolean
+        text name = GetName()
+        number x = GetX()
+        number y = GetY()
+        number testX = containsX - GetOffsetX()
+        number testY = containsY - GetOffsetY()
+        boolean in = testX >= GetX() and testX <= GetX() + GetWidth() * GetScaleX() and testY >= GetY() and testY <= GetY() + GetHeight() * GetScaleY()
+        
+        number topXNotch = GetTopNotchPosition() + GetX()
+        number bottomXNotch = GetBottomNotchPosition() + GetX()
+        CodeEditor editor = GetEditor()
+        //try to take the notch into account
+if editor not= undefined
+number notchTopWidth = editor:GetBlockNotchTopWidth() * GetInterfaceScale()
+                number notchBottomWidth = editor:GetBlockNotchBottomWidth() * GetInterfaceScale()
+                number notchHeight = editor:GetBlockNotchPixelHeight()
+number triangleWidth = (notchTopWidth - notchBottomWidth) / 2.0
+            
+number scaledBottomWidth = notchBottomWidth * GetScaleX()
+            number leftBoxX = bottomXNotch + triangleWidth
+number rightBoxX = bottomXNotch + triangleWidth + notchBottomWidth
+            
+            
+number leftBoxTopX = topXNotch + triangleWidth
+number rightBoxTopX = topXNotch + triangleWidth + notchTopWidth
+            
+            number bottomLowerBoxY = GetY() - notchHeight
+number topLowerBoxY = GetY()
+            
+            //first determine if it's in the bounded box part of the trapezoid
+            number scaledHeightY = GetHeight() * GetScaleY()
+            boolean bottomNotchIn = testX >= leftBoxX and testX <= rightBoxX
+            bottomNotchIn = bottomNotchIn and testY >= bottomLowerBoxY and testY <= topLowerBoxY
+            
+            boolean leftBottomTriangle = IsPointInTriangle(
+    bottomXNotch,topLowerBoxY,
+    bottomXNotch + triangleWidth,topLowerBoxY,
+    bottomXNotch + triangleWidth,bottomLowerBoxY,
+    testX,testY)
+boolean rightBottomTriangle = IsPointInTriangle(
+    rightBoxX,topLowerBoxY,
+    rightBoxX + triangleWidth,topLowerBoxY,
+    rightBoxX,bottomLowerBoxY,
+    testX,testY)
+            bottomNotchIn = bottomNotchIn or leftBottomTriangle or rightBottomTriangle
+            
+            
+boolean topNotchIn = testX >= leftBoxTopX and testX <= rightBoxTopX
+            topNotchIn = topNotchIn and testY >= bottomLowerBoxY + scaledHeightY 
+and testY <= topLowerBoxY + scaledHeightY
+                    
+boolean leftTopTriangle = IsPointInTriangle(
+    topXNotch,topLowerBoxY + scaledHeightY,
+    topXNotch + triangleWidth,topLowerBoxY + scaledHeightY,
+    topXNotch + triangleWidth,bottomLowerBoxY + scaledHeightY,
+    testX,testY)
+boolean rightTopTriangle = IsPointInTriangle(
+    rightBoxTopX,topLowerBoxY + scaledHeightY,
+    rightBoxTopX + triangleWidth,topLowerBoxY + scaledHeightY,
+    rightBoxTopX,bottomLowerBoxY + scaledHeightY,
+    testX,testY)
+topNotchIn = topNotchIn or leftTopTriangle or rightTopTriangle
+            
+
+if (in and not topNotchIn) or bottomNotchIn 
+                in = true
+else
+                in = false
+        end
+        end
+
+        return in
+    end
+    
+    
+action IsPointInTriangle(number x1, number y1, 
+number x2, number y2, 
+number x3, number y3, 
+number px, number py) returns boolean
+number epsilon = 1.0e-14
+        number denominator = ((y2 - y3) * (x1 - x3) + 
+ (x3 - x2) * (y1 - y3))
+        number alpha = ((y2 - y3) * (px - x3) + (x3 - x2) * (py - y3)) / denominator
+        number beta = ((y3 - y1) * (px - x3) + (x1 - x3) * (py - y3)) / denominator
+        number gamma = 1.0 - alpha - beta
+        if -epsilon <= alpha and alpha <= 1 + epsilon and
+-epsilon <= beta and beta <= 1 + epsilon and 
+-epsilon <= gamma and gamma <= 1 + epsilon
+            return true
+        end
+        return false
+    end
+
 end

@@ -27,8 +27,11 @@ shared class BlockOptionConstants
     public constant text EDIT_BACKGROUND_COLOR = "editBackgroundColor"
     public constant text EDIT_BORDER_COLOR = "editBorderColor"
     public constant text EDIT_FONT_COLOR = "editFontColor"
+    public constant text EDIT_MOUSE_OVER_COLOR = "editMouseOverColor"
+    public constant text EDIT_MOUSE_OVER_BORDER_COLOR = "editMouseOverBorderColor"
     public constant text STATIC_FONT_COLOR = "staticFontColor"
     public constant text STATIC_FONT_OUTLINE_COLOR = "staticFontOutlineColor"
+    public constant text DETAIL_FONT_COLOR = "detailFontColor"
     public constant text PRIMARY_ERROR_COLOR = "primaryErrorColor"
     public constant text SECONDARY_ERROR_COLOR = "secondaryErrorColor"
     public constant text HINT_BORDER_COLOR = "hintBorderColor"
@@ -38,12 +41,18 @@ shared class BlockOptionConstants
     Array<text> colorOptionKeys
 
     public constant text EDIT_BORDER_THICKNESS = "editBorderThickness"
+    public constant text EDIT_MOUSE_OVER_BORDER_THICKNESS = "editMouseOverBorderThickness"
     public constant text EDIT_FONT_SIZE = "editFontSize"
     public constant text STATIC_FONT_SIZE = "staticFontSize"
     public constant text STATIC_FONT_OUTLINE_THICKNESS = "staticFontOutlineThickness"
     public constant text HINT_BORDER_THICKNESS = "hintBorderThickness"
 
     Array<text> numberOptionKeys
+    
+    // Additional keys, associated with BlockEditor related controls (like the palette), which aren't directly attached to blocks or their options
+    public constant text BLOCK_PALETTE_TAB_BAR_KEY = "BlockPaletteTabBar"
+    public constant text BLOCK_PALETTE_TAB_KEY = "BlockPaletteTab"
+    public constant text BLOCK_PALETTE_KEY = "BlockPalette"
 
     on create
         // Add all custom block keys to the array.
@@ -69,6 +78,8 @@ shared class BlockOptionConstants
         colorOptionKeys:Add(EDIT_BACKGROUND_COLOR)
         colorOptionKeys:Add(EDIT_BORDER_COLOR)
         colorOptionKeys:Add(EDIT_FONT_COLOR)
+        colorOptionKeys:Add(EDIT_MOUSE_OVER_COLOR)
+        colorOptionKeys:Add(EDIT_MOUSE_OVER_BORDER_COLOR)
         colorOptionKeys:Add(STATIC_FONT_COLOR)
         colorOptionKeys:Add(PRIMARY_ERROR_COLOR)
         colorOptionKeys:Add(SECONDARY_ERROR_COLOR)
@@ -77,6 +88,7 @@ colorOptionKeys:Add(PLACEHOLDER_BACKGROUND_COLOR)
 
         // Add all custom number options to the appropriate array.
         numberOptionKeys:Add(EDIT_BORDER_THICKNESS)
+        numberOptionKeys:Add(EDIT_MOUSE_OVER_BORDER_THICKNESS)
         numberOptionKeys:Add(EDIT_FONT_SIZE)
         numberOptionKeys:Add(STATIC_FONT_SIZE)
         numberOptionKeys:Add(HINT_BORDER_THICKNESS)

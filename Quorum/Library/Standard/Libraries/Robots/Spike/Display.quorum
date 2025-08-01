@@ -1,0 +1,104 @@
+package Libraries.Robots.Spike
+
+/*
+    The Display library is used to display images in the SPIKE App.
+
+    Attribute: Example
+    
+    use Libraries.Robots.Spike.Display
+    Display display
+    display:Text("Hi!")
+*/
+class Display
+    public constant integer IMAGE_ROBOT_1 = 1
+    public constant integer IMAGE_ROBOT_2 = 2
+    public constant integer IMAGE_ROBOT_3 = 3
+    public constant integer IMAGE_ROBOT_4 = 4
+    public constant integer IMAGE_ROBOT_5 = 5
+    public constant integer IMAGE_HUB_1 = 6
+    public constant integer IMAGE_HUB_2 = 7
+    public constant integer IMAGE_HUB_3 = 8
+    public constant integer IMAGE_HUB_4 = 9
+    public constant integer IMAGE_AMUSEMENT_PARK = 10
+    public constant integer IMAGE_BEACH = 11
+    public constant integer IMAGE_HAUNTED_HOUSE = 12
+    public constant integer IMAGE_CARNIVAL = 13
+    public constant integer IMAGE_BOOKSHELF = 14
+    public constant integer IMAGE_PLAYGROUND = 15
+    public constant integer IMAGE_MOON = 16
+    public constant integer IMAGE_CAVE = 17
+    public constant integer IMAGE_OCEAN = 18
+    public constant integer IMAGE_POLAR_BEAR = 19
+    public constant integer IMAGE_PARK = 20
+    public constant integer IMAGE_RANDOM = 21
+
+    /*
+        Hides the currently displayed image or text in the App.
+
+        Attribute: Example
+        use Libraries.Robots.Spike.Display
+        use Libraries.Robots.Spike.Hub
+        Display display
+        Hub hb
+        display:Text("Hi!")
+        hb:Sleep(1000)
+        display:Hide()
+    */
+    action Hide
+        HideNative()
+    end
+
+    private system action HideNative
+
+    /*
+        Selects an image to show the App display utilizing one of the preset images defined as constants 
+        in the Display class.
+
+        Attribute: Parameter image The image to show, an integer value from 1 to 21 obtained from 
+        one of the constants provided in this class.
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Display
+        Display display
+        display:Image(display:IMAGE_BEACH)
+    */
+    action Image(integer image)
+        ImageNative(image)
+    end
+
+    private system action ImageNative(integer image)
+
+    /*
+        Shows the currently selected image or text to the App display.
+
+        Attribute: Parameter fullscreen A boolean which will show the image in fullscreen if true, and 
+        as a pop-up if not.
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Display
+        Display display
+        display:Image(display:IMAGE_BEACH)
+        display:Show(tru)
+    */
+    action Show(boolean fullscreen)
+        ShowNative(fullscreen)
+    end
+
+    private system action ShowNative(boolean fullscreen)
+
+    /*
+        Selects the text to show to the App display.
+
+        Attribute: Parameter value The text to display to the screen.
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Display
+        Display display
+        display:Text("Hi!")
+    */
+    action Text(text value)
+        TextNative(value)
+    end
+
+    private system action TextNative(text value)
+end

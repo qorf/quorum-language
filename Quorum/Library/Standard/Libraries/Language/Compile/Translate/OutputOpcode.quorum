@@ -73,8 +73,8 @@ class OutputOpcode is QuorumOpcode
         Type theReturn = opcode:GetType()
         //due to Javascript's defaults, we need to change the behavior under these conditions
         if theReturn:IsNumber()
-            text illegal = "illegal_"
-            result = result + illegal + " = "+ opcodeResult + ";" + EOL
+            text illegal = "illegal_" //JS6 redefine it every time. Weird.
+            result = result + "var " + illegal + " = "+ opcodeResult + ";" + EOL
             result = result + "global_Output_((global_number_converter_(" + illegal + ")));" + EOL
         else 
             result = "global_Output_(" + opcodeResult + ");" + EOL

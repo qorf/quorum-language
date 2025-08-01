@@ -62,12 +62,24 @@ function plugins_quorum_Libraries_Game_WebDisplay_()
     
     this.GetWidth = function()
     {
-        return canvas.width;
+        let pixelFactor = 1.0;
+//        if (window.devicePixelRatio)
+//        {
+//            pixelFactor = window.devicePixelRatio;
+//        }
+
+        return canvas.width * pixelFactor;
     };
     
     this.GetHeight = function()
     {
-        return canvas.height;
+        let pixelFactor = 1.0;
+//        if (window.devicePixelRatio)
+//        {
+//            pixelFactor = window.devicePixelRatio;
+//        }
+        
+        return canvas.height * pixelFactor;
     };
     
     this.SetVSync$quorum_boolean = function(vsync)
@@ -141,12 +153,46 @@ function plugins_quorum_Libraries_Game_WebDisplay_()
     this.GetClipboard = function()
     {
         return localClipboard;
-    }
+    };
 
     this.SetClipboard$quorum_text = function(value)
     {
         localClipboard = value;
         navigator.clipboard.writeText(value);
+    };
+
+    async function PasteInto(textArea, index)
+    {
+        let text = await navigator.clipboard.readText();
+        if (text != null && text != "")
+        {
+            textArea.Insert$quorum_integer$quorum_text(index, text);
+        }
     }
+
+    async function PasteIntoEditor(editor)
+    {
+        let text = await navigator.clipboard.readText();
+        if (text != null && text != "")
+        {
+            editor.InsertTextAfterLine$quorum_text(text);
+        }
+    }
+
+    this.PasteFromClipboard$quorum_Libraries_Interface_Controls_TextBox$quorum_integer = function(textBox, index)
+    {
+        PasteInto(textBox, index);
+    };
+
+    this.PasteFromClipboard$quorum_Libraries_Interface_Controls_TextField$quorum_integer = function(textField, index)
+    {
+        PasteInto(textField, index);
+    };
+
+    this.PasteFromClipboard$quorum_Libraries_Interface_Controls_Blocks_CodeEditor = function(editor)
+    {
+        PasteIntoEditor(editor);
+    };
+
 }
 

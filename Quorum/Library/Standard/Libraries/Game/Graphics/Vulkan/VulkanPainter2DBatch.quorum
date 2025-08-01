@@ -131,9 +131,11 @@ class VulkanPainter2DBatch
 
         integer i = 0
         repeat while i < vertices:GetSize()
+            output i + ": " + vertices:Get(i)
             vertexData:Set(vertexWritePosition + i, vertices:Get(i))
             i = i + 1
         end
+        output ""
         vertexWritePosition = vertexWritePosition + vertices:GetSize()
 
 

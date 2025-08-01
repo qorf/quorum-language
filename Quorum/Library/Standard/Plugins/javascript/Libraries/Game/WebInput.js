@@ -211,6 +211,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
         
         plugins_quorum_Libraries_Game_WebInput_.KeyUp = function(event)
         {
+
             if (plugins_quorum_Libraries_Game_WebInput_.IsVirtualKeyboardOpen() === true)
             {
                 // If the virtual keyboard is open, don't process the key event.
@@ -239,6 +240,37 @@ function plugins_quorum_Libraries_Game_WebInput_()
             for (let [key, value] of map)
             {
                 let currentInfo = value;
+
+                /*
+                On Mac OSX, the system won't report any keys that are released while one of the Meta buttons is held.
+                This means that released keys during this time are "missed" and will be considered stuck down by the system.
+                Unfortunately, there's no way to confirm if a key is actively held or not, which means we need to take
+                our best guess.
+
+                The most common use case for the Meta key is as part of hotkeys, so it's safest to assume that when Meta
+                is released, the other keys were released first. We simulate key release events for any non-Meta keys
+                here, which will be processed by Quorum before the release of the Meta key.
+                */
+                if (event.code && (event.code == "MetaLeft" || event.code == "MetaRight"))
+                {
+                    var quorumKeys = new quorum_Libraries_Interface_Events_KeyboardEvent_();
+
+                    for (const [key, value] of Object.entries(currentInfo.plugins_quorum_Libraries_Game_WebInput_.pressedKeys))
+                    {
+                        if (value === true
+                         && key !== quorumKeys.Get_Libraries_Interface_Events_KeyboardEvent__META_LEFT_()
+                         && key !== quorumKeys.Get_Libraries_Interface_Events_KeyboardEvent__META_RIGHT_())
+                        {
+                            let quorumEvent = new quorum_Libraries_Interface_Events_KeyboardEvent_();
+                            quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__eventType_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__RELEASED_KEY_());
+                            quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(key);
+
+                            currentInfo.plugins_quorum_Libraries_Game_WebInput_.pressedKeys[key] = false;
+                            currentInfo.plugins_quorum_Libraries_Game_WebInput_.pressedKeysCount--;
+                            currentInfo.plugins_quorum_Libraries_Game_WebInput_.keyboardEvents.push(quorumEvent);
+                        }
+                    }
+                }
 
                 var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumKeyEvent(event, false, currentInfo);
                 if (currentInfo && currentInfo.plugins_quorum_Libraries_Game_WebInput_ && currentInfo.plugins_quorum_Libraries_Game_WebInput_.pressedKeys[quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__keyCode_()])
@@ -282,6 +314,27 @@ function plugins_quorum_Libraries_Game_WebInput_()
             return null;
         };
 
+        plugins_quorum_Libraries_Game_WebInput_.GetGestureGameInfo = function(event)
+        {
+            var map = plugins_quorum_Libraries_Game_GameStateManager_.registeredGames;
+            for (let [key, value] of map)
+            {
+                var gameInfo = value;
+
+                let target = event.target;
+                let canvas = null;
+                if (gameInfo.display != null && gameInfo.display.plugin_.GetCanvas())
+                    canvas = gameInfo.display.plugin_.GetCanvas();
+
+                if (target && canvas && (target === canvas))
+                {
+                    return gameInfo;
+                }
+            }
+
+            return null;
+        };
+
         plugins_quorum_Libraries_Game_WebInput_.GetFocusedGameInfo = function()
         {
             var map = plugins_quorum_Libraries_Game_GameStateManager_.registeredGames;
@@ -301,11 +354,16 @@ function plugins_quorum_Libraries_Game_WebInput_()
 
             if (gameInfo !== null)
             {
-                event.stopPropagation();
-                event.preventDefault();
-                plugins_quorum_Libraries_Game_WebInput_.TakeFocus(gameInfo.game);
-                var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, 1, gameInfo);
-                gameInfo.plugins_quorum_Libraries_Game_WebInput_.mouseEvents.push(quorumEvent);
+                var config = gameInfo.game.GetWebConfiguration();
+
+                if (event.pointerType !== 'touch' || config.Get_Libraries_Game_WebConfiguration__convertTouchToMouseEvents_() == true)
+                {
+                    event.stopPropagation();
+                    event.preventDefault();
+                    plugins_quorum_Libraries_Game_WebInput_.TakeFocus(gameInfo.game);
+                    var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, 1, gameInfo);
+                    gameInfo.plugins_quorum_Libraries_Game_WebInput_.mouseEvents.push(quorumEvent);
+                }
             }
         };
         
@@ -315,13 +373,18 @@ function plugins_quorum_Libraries_Game_WebInput_()
 
             if (gameInfo !== null)
             {
-                event.stopPropagation();
-                event.preventDefault();
+                var config = gameInfo.game.GetWebConfiguration();
 
-                if (plugins_quorum_Libraries_Game_WebInput_.IsFocused(gameInfo.game))
+                if (event.pointerType !== 'touch' || config.Get_Libraries_Game_WebConfiguration__convertTouchToMouseEvents_() == true)
                 {
-                    var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, 4, gameInfo);
-                    gameInfo.plugins_quorum_Libraries_Game_WebInput_.mouseEvents.push(quorumEvent);
+                    event.stopPropagation();
+                    event.preventDefault();
+
+                    if (plugins_quorum_Libraries_Game_WebInput_.IsFocused(gameInfo.game))
+                    {
+                        var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, 4, gameInfo);
+                        gameInfo.plugins_quorum_Libraries_Game_WebInput_.mouseEvents.push(quorumEvent);
+                    }
                 }
             }
         };
@@ -332,16 +395,22 @@ function plugins_quorum_Libraries_Game_WebInput_()
 
             if (gameInfo !== null)
             {
-                event.stopPropagation();
-                event.preventDefault();
+                var config = gameInfo.game.GetWebConfiguration();
 
-                if (plugins_quorum_Libraries_Game_WebInput_.IsFocused(gameInfo.game))
+                if (event.pointerType !== 'touch' || config.Get_Libraries_Game_WebConfiguration__convertTouchToMouseEvents_() == true)
                 {
-                    // If no mouse buttons pressed, send code for MOVED_MOUSE. Otherwise, send DRAGGED_MOUSE.
-                    var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, event.buttons > 0 ? 3 : 2, gameInfo);
-                    gameInfo.plugins_quorum_Libraries_Game_WebInput_.mouseEvents.push(quorumEvent);
+                    event.stopPropagation();
+                    event.preventDefault();
+
+                    if (plugins_quorum_Libraries_Game_WebInput_.IsFocused(gameInfo.game))
+                    {
+                        // If no mouse buttons pressed, send code for MOVED_MOUSE. Otherwise, send DRAGGED_MOUSE.
+                        var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, event.buttons > 0 ? 3 : 2, gameInfo);
+                        gameInfo.plugins_quorum_Libraries_Game_WebInput_.mouseEvents.push(quorumEvent);
+                    }
                 }
             }
+
         };
         
         plugins_quorum_Libraries_Game_WebInput_.MouseScroll = function(event)
@@ -683,6 +752,12 @@ function plugins_quorum_Libraries_Game_WebInput_()
                         break;
                     case "ControlRight":
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__CONTROL_RIGHT_());
+                        break;
+                    case "MetaLeft":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__META_LEFT_());
+                        break;
+                    case "MetaRight":
+                        quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__META_RIGHT_());
                         break;
                     case "Escape":
                         quorumEvent.Set_Libraries_Interface_Events_KeyboardEvent__keyCode_(quorumEvent.Get_Libraries_Interface_Events_KeyboardEvent__ESCAPE_());
@@ -1445,8 +1520,9 @@ function plugins_quorum_Libraries_Game_WebInput_()
     
     var lastWidth = 0;
     var lastHeight = 0;
+    var lastPixelFactor = 1.0;
     
-    this.CheckForEvents$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array = function(mouseEvents, keyEvents, textEvents, resizeEvents)
+    this.CheckForEvents$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array = function(mouseEvents, keyEvents, textEvents, resizeEvents, gestureEvents)
     {
         var gameInfo = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo();
 
@@ -1459,6 +1535,7 @@ function plugins_quorum_Libraries_Game_WebInput_()
                 keyboardEvents: [],
                 textEvents: [],
                 resizeEvents: [],
+                gestureEvents: [],
                 pressedKeys: {},
                 pressedKeysCount: 0,
                 mouseInfo:
@@ -1468,21 +1545,34 @@ function plugins_quorum_Libraries_Game_WebInput_()
                     buttons: 0,
                     wheel: 0,
                 },
+                gestureProcessor: null,
             }
         }
 
         // We manually construct the resize events here.
         var display = gameInfo.display.plugin_.GetCanvas();
-        if (lastWidth !== display.clientWidth || lastHeight !== display.clientHeight)
+
+        // If the user has zoomed in their web browser, the HTML size reflects its unscaled value, not the actual
+        // number of pixels. If we're able to identify the zoom level, use it to calculate the scaled size, so we
+        // can adjust the resolution of Quorum elements accordingly.
+        let pixelFactor = lastPixelFactor;
+//        if (window.devicePixelRatio)
+//        {
+//            pixelFactor = window.devicePixelRatio;
+//        }
+
+        if (lastWidth !== display.clientWidth || lastHeight !== display.clientHeight || lastPixelFactor !== pixelFactor)
         {
             lastWidth = display.clientWidth;
             lastHeight = display.clientHeight;
             display.width = display.clientWidth;
             display.height = display.clientHeight;
+
+            lastPixelFactor = pixelFactor;
             
             var quorumEvent = new quorum_Libraries_Interface_Events_ResizeEvent_();
-            quorumEvent.SetWidth$quorum_integer(lastWidth);
-            quorumEvent.SetHeight$quorum_integer(lastHeight);
+            quorumEvent.SetWidth$quorum_integer(lastWidth * lastPixelFactor);
+            quorumEvent.SetHeight$quorum_integer(lastHeight * lastPixelFactor);
             resizeEvents.Add$quorum_Libraries_Language_Object(quorumEvent);
         }
         
@@ -1500,9 +1590,42 @@ function plugins_quorum_Libraries_Game_WebInput_()
         {
             textEvents.Add$quorum_Libraries_Language_Object(gameInfo.plugins_quorum_Libraries_Game_WebInput_.textEvents[i]);
         }
+        for (var i = 0; i < gameInfo.plugins_quorum_Libraries_Game_WebInput_.gestureEvents.length; i++)
+        {
+            gestureEvents.Add$quorum_Libraries_Language_Object(gameInfo.plugins_quorum_Libraries_Game_WebInput_.gestureEvents[i]);
+        }
         
         gameInfo.plugins_quorum_Libraries_Game_WebInput_.keyboardEvents = [];
         gameInfo.plugins_quorum_Libraries_Game_WebInput_.mouseEvents = [];
         gameInfo.plugins_quorum_Libraries_Game_WebInput_.textEvents = [];
+        gameInfo.plugins_quorum_Libraries_Game_WebInput_.gestureEvents = [];
+    };
+
+    this.SetGestureProcessor$quorum_Libraries_Interface_Events_GestureProcessor = function(gestures) {
+        var gameInfo = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo();
+
+        // Ensure the game info has been initialized for input.
+        if (gameInfo.plugins_quorum_Libraries_Game_WebInput_ == undefined)
+        {
+            gameInfo.plugins_quorum_Libraries_Game_WebInput_ =
+            {
+                mouseEvents: [],
+                keyboardEvents: [],
+                textEvents: [],
+                resizeEvents: [],
+                gestureEvents: [],
+                pressedKeys: {},
+                pressedKeysCount: 0,
+                mouseInfo:
+                {
+                    x: 0,
+                    y: 0,
+                    buttons: 0,
+                    wheel: 0,
+                },
+                gestureProcessor: null,
+            }
+        }
+        gameInfo.plugins_quorum_Libraries_Game_WebInput_.gestureProcessor = gestures;
     };
 }

@@ -46,6 +46,7 @@ use Libraries.Language.Compile.Hints.Hint
 use Libraries.Language.Compile.CompilerError
 use Libraries.Interface.Controls.CodeEditorLineNumberGutter
 use Libraries.Interface.Accessibility
+use Libraries.Interface.Controls.TextStyles.TextStyle
 
 /*
     This is a class representing a code editor that contains source code and blocks. The design is 
@@ -170,50 +171,7 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
     
     
     action GetDefaultFontName returns text
-        text name = undefined
-        Font font
-
-        if font:IsFontAvailable("Courier New Bold")
-            name = "Courier New Bold"
-        elseif font:IsFontAvailable("courbd")
-            name = "courbd"
-        elseif font:IsFontAvailable("FiraCode-Retina")
-            name = "FiraCode-Retina"
-        elseif font:IsFontAvailable("FiraCode-Regular")
-            name = "FiraCode-Regular"
-        elseif font:IsFontAvailable("Lato")
-            name = "Lato"
-        elseif font:IsFontAvailable("Courier")
-            name = "Courier"
-        elseif font:IsFontAvailable("Courier New")
-            name = "Courier New"
-        elseif font:IsFontAvailable("cour")
-            name = "cour"
-        elseif font:IsFontAvailable("Roboto-Black")
-            name = "Roboto-Black"
-        elseif font:IsFontAvailable("Arial")
-            name = "Arial"
-        elseif font:IsFontAvailable("Arial Unicode")
-            font:LoadFont("Arial Unicode")
-            SetFont(font)
-        elseif font:IsFontAvailable("Helvetica")
-            font:LoadFont("Helvetica")
-            SetFont(font)
-        elseif font:IsFontAvailable("Georgia")
-            font:LoadFont("Georgia")
-            SetFont(font)
-        elseif font:IsFontAvailable("Times New Roman")
-            font:LoadFont("Times New Roman")
-            SetFont(font)
-        else
-            Array<File> availableFontFiles = font:GetAvailableFonts()
-            if availableFontFiles:GetSize() > 0
-                File file = availableFontFiles:Get(0)
-                name = file:GetPath()
-            end
-        end
-        
-        return name
+        return parent:Control:GetDefaultMonospaceFontName()
     end
 
     action GetLineNumberGutter returns LineNumberGutter
@@ -517,9 +475,6 @@ shouldCalculateWidth = true
         lexer:Read(code)
         
         if not manager:IsCompilationErrorFree()
-//            text value = manager:GetCompilerErrorsAsText()
-//            output "WARNING: Couldn't generate start context due to the following error:
-//" + value
             return false
         end
         QuorumParser parser
@@ -527,9 +482,6 @@ shouldCalculateWidth = true
         parser:SetLexer(lexer)
         StartContext start = parser:Start()
         if not manager:IsCompilationErrorFree()
-//            text value = manager:GetCompilerErrorsAsText()
-//            output "WARNING: Couldn't generate start context due to the following error:
-//" + value
             return false
         end
         blockListener:SetQuorumLexer(lexer)
@@ -602,6 +554,8 @@ shouldCalculateWidth = true
         elseif item is EditField
             EditField edit = cast(EditField, item)
             return edit:GetCaretGlobalX()
+        else
+            return block:GetGlobalX()
         end
         return -1
     end
@@ -629,6 +583,8 @@ shouldCalculateWidth = true
         elseif item is EditField
             EditField edit = cast(EditField, item)
             return edit:GetCaretGlobalY()
+        else
+            return block:GetGlobalY()
         end
         return -1
     end
@@ -652,15 +608,51 @@ shouldCalculateWidth = true
     action GetLineHeight(integer line) returns number
         Block block = renderer:GetBlockAtLine(line)
         if block is SingleLineBlock
+            SingleLineBlock singleBlock = cast(SingleLineBlock, block)
+            number detailsHeight = singleBlock:GetVisibleDetailLabelsHeight()
+            
             integer startLine = block:GetNavigationIndex()
             integer endLine = block:GetNavigationEndIndex()
             if startLine not= endLine
-                if line = startLine or line = endLine
+                if line = startLine
+                    return GetDefaultUnpaddedLineHeight() + GetLineHeightPadding(line) / 2.0 + detailsHeight
+                elseif line = endLine
                     return GetDefaultUnpaddedLineHeight() + GetLineHeightPadding(line) / 2.0
                 else
                     return GetDefaultUnpaddedLineHeight()
                 end
             end
+            
+            return GetDefaultLineHeight() + detailsHeight
+        end
+        
+        return GetDefaultLineHeight()
+    end
+    
+    action GetStaticLineHeight(integer line) returns number
+Block block = renderer:GetBlockAtLine(line)
+        return GetStaticLineHeight(block, line)
+    end
+    
+private action GetStaticLineHeight(Block block, integer line) returns number
+        if block is SingleLineBlock
+            SingleLineBlock singleBlock = cast(SingleLineBlock, block)
+            number detailsHeight = 0
+            if singleBlock:AlwaysShowDetailLabels()
+detailsHeight = singleBlock:GetVisibleDetailLabelsHeight()
+            end
+            
+            integer startLine = block:GetNavigationIndex()
+            integer endLine = block:GetNavigationEndIndex()
+            if startLine not= endLine
+                if line = startLine or line = endLine
+                    return GetDefaultUnpaddedLineHeight() + GetLineHeightPadding(line) / 2.0 + detailsHeight
+                else
+                    return GetDefaultUnpaddedLineHeight() + detailsHeight
+                end
+            end
+            
+            return GetDefaultLineHeight() + detailsHeight
         end
         
         return GetDefaultLineHeight()
@@ -687,11 +679,15 @@ shouldCalculateWidth = true
             cachedLinePositions:Empty()
             number currentY = 0
 
+            Block currentBlock = renderer:GetRootBlock()
             integer counter = 0
             integer lines = GetLineCount()
             number total = 0
             repeat while counter < lines
-                number currentHeight = GetLineHeight(counter)
+                // By providing the last block as a starting point for the search, we can reach the next block in (usually) 1 step,
+                // instead of retracing our steps through O(n) blocks.
+                currentBlock = renderer:GetBlockAtLine(currentBlock, counter)
+                number currentHeight = GetStaticLineHeight(currentBlock, counter)
                 currentY = currentY - currentHeight
                 
                 cachedLinePositions:Add(currentY)
@@ -699,7 +695,9 @@ shouldCalculateWidth = true
                 counter = counter + 1
             end
 
-            totalContentHeight = total
+            // Add extra padding derived from the font's line height.
+            number extraPadding = GetFont():GetLineHeight() * 2
+            totalContentHeight = total + extraPadding
         end
 
         return totalContentHeight
@@ -810,7 +808,27 @@ shouldCalculateWidth = true
             return 0
         end
         
-        return (renderer:GetHeight() + cachedLinePositions:Get(line)) + (GetScrollPercentageY() * GetTotalContentHeight())
+        // Determine if any selected blocks before this line's index are showing dynamic labels, increasing their height and thus pushing this line down
+        number dynamicHeightOffset = 0
+        Array<Block> selectedBlocks = GetSelectedBlocks()
+        if selectedBlocks not= undefined
+integer i = 0
+        repeat while i < selectedBlocks:GetSize()
+            Block block = selectedBlocks:Get(i)
+                if block not= undefined and block:GetNavigationIndex() > line
+                    // Exit early if a block is beyond the line we're interested in.
+                    i = selectedBlocks:GetSize()
+                elseif block is SingleLineBlock
+                    SingleLineBlock singleBlock = cast(SingleLineBlock, block)
+                    if singleBlock:AlwaysShowDetailLabels() = false
+                        dynamicHeightOffset = dynamicHeightOffset + singleBlock:GetVisibleDetailLabelsHeight()
+                    end
+                end
+                i = i + 1
+        end
+        end
+        
+        return (renderer:GetHeight() + cachedLinePositions:Get(line) - dynamicHeightOffset) + (GetScrollPercentageY() * GetTotalContentHeight())
     end
     
     /*This action returns the navigation index of a line located at the given pixel y-coordinate.
@@ -926,11 +944,15 @@ and usually shouldn't be called directly by users.
 
         shouldRegenerateBlocks = false
 
+// If there was an old selection, it will be wrong now. Attempt to select in the same position as before after we regenerate the blocks.
+        integer selectionLine = selection:GetLine()
+        if selection:GetRangeEndLine() < selectionLine and selection:GetRangeEndLine() >= 0
+            selectionLine = selection:GetRangeEndLine()
+        end
+        
         RootBlock root = blockListener:Update(0, rawCode:GetSize())
         renderer:RegenerateBlocks(root)
 
-        // If there was an old selection, it will be wrong now. Attempt to select in the same position as before.
-        integer selectionLine = selection:GetLine()
         if selectionLine >= 0
             integer count = GetLineCount()
             if selectionLine >= count
@@ -1261,10 +1283,10 @@ action OnTextChange(TextChangeEvent event, integer indexOffset)
     
     action SelectBlockRange(Block firstBlock, Block secondBlock, boolean selectionAtEnd)
         if firstBlock:GetNavigationIndex() < secondBlock:GetNavigationIndex()
-        end
-            Block temp = firstBlock
+Block temp = firstBlock
             firstBlock = secondBlock
             secondBlock = temp
+        end
         
         if selectionAtEnd
             selection:Set(firstBlock, firstBlock:GetNavigationIndex(), secondBlock:GetNavigationIndex(), undefined)
@@ -1545,12 +1567,17 @@ not currently active in the file.*/
 
         parentBlock:RemoveAt(parentIndex)
         parentBlock:Add(parentIndex, newBlock)
+        
+        boolean transferred = false
 
         if transferChildren
-            // If the old block has children, move them to the new block.
-            repeat until oldBlock:GetChildCount() = 0
+// If the old block has children, move them to the new block.
+            if oldBlock:GetChildCount() > 0
+repeat until oldBlock:GetChildCount() = 0
                 Block child = oldBlock:RemoveAt(0)
                 newBlock:Add(child)
+            end
+                transferred = true
             end
         end
 
@@ -1578,6 +1605,9 @@ not currently active in the file.*/
             end
         end
 
+        if transferred
+            RefreshNavigationIndices()
+        end
         renderer:RefreshBlockView()
     end
 
@@ -1669,6 +1699,153 @@ editManager:SetSpecialAction(false)
             Delete(startIndex, GetSelectedText():GetSize())
         end
     end
+    
+    private action IsComment(Block block) returns boolean
+        return block is CommentBlock or (block is FreeformBlock and block:GetText():Trim():StartsWith("//"))
+    end
+    
+    /*This action will comment, or uncomment, the selected blocks of code.*/
+    action ToggleCommentsOnSelection
+        integer blockCount = selection:GetSelectedBlocks():GetSize()
+        if blockCount = 0
+            return now
+        elseif blockCount = 1
+            Block block = selection:GetSelectedBlocks():Get(0)
+            if IsComment(block)
+                UncommentBlock(block)
+            else
+                CommentBlock(block)
+            end
+        else
+            // If every block is a comment, uncomment them. If any aren't, comment them.
+            Array<Block> blocks = selection:GetSelectedBlocks()
+            integer i = 0
+            repeat while i < blocks:GetSize()
+                if not IsComment(blocks:Get(i))
+                    CommentBlocks(blocks)
+                    return now
+                end
+                i = i + 1
+            end
+            
+            // If we've reached this point, all blocks are comments.
+            UncommentBlocks(blocks)
+        end
+    end
+    
+    action UncommentBlock(Block block)
+        if block is CommentBlock = false
+            if block is FreeformBlock
+                text freeformText = block:GetText()
+                if freeformText:Trim():StartsWith("//")
+                    integer offset = freeformText:IndexOf("//")
+                    Delete(block:GetStartIndex() + offset, 2)
+                end
+            end
+            return now
+        end
+        
+        CommentBlock comment = cast(CommentBlock, block)
+        if comment:IsMultiLineComment()
+            return now
+        end
+        
+        Delete(comment:GetStartIndex(), 2)
+    end
+    
+    action UncommentBlocks(Array<Block> blocks)
+        integer startIndex = blocks:Get(0):GetStartIndex()
+        integer endIndex = blocks:GetFromEnd():GetEndIndex()
+        
+MultipleLineText oldText = GetCode()
+        text deletedText = rawCode:GetText(startIndex, endIndex)
+        text newText = deletedText
+        
+        // Process the blocks in reverse. We remove text from the rear of the text first,
+        // so we don't have to deal with any offsets for the next block we process.
+integer i = blocks:GetSize()
+        repeat while i > 0
+            i = i - 1
+            Block block = blocks:Get(i)
+            integer subIndex = 0
+            if block is FreeformBlock
+                subIndex = block:GetText():IndexOf("//")
+            end
+            integer slashIndex = (block:GetStartIndex() + subIndex) - startIndex
+            integer postTextStart = slashIndex + 2
+            text subResult = ""
+            if slashIndex > 0
+                subResult = newText:GetSubtext(0, slashIndex)
+            end
+            if postTextStart < newText:GetSize()
+                subResult = subResult + newText:GetSubtext(postTextStart)
+            end
+            newText = subResult
+        end
+
+        TextChangeEvent event
+        event:Initialize(me, newText, deletedText, startIndex)
+        OnTextChange(event, 0)
+
+        BlockChangeEvent blockEvent
+        blockEvent:Set(me,oldText, GetCode())
+        NotifyBlockChangeListeners(blockEvent)
+
+        shouldCalculateWidth = true
+        shouldCalculateHeight = true
+        shouldRegenerateBlocks = true
+        shouldCalculateNavigationIndices = true
+        RequestLayout()
+    end
+    
+    action CommentBlock(Block block)
+MultipleLineText newText = rawCode
+        if block is SingleLineBlock
+            InsertText(block:GetStartIndex(), "//")
+        end
+    end
+    
+    action CommentBlocks(Array<Block> blocks)
+integer startIndex = blocks:Get(0):GetStartIndex()
+        integer endIndex = blocks:GetFromEnd():GetEndIndex()
+        
+MultipleLineText oldText = GetCode()
+        text deletedText = rawCode:GetText(startIndex, endIndex)
+        text newText = deletedText
+        
+        // Process the blocks in reverse. We remove text from the rear of the text first,
+        // so we don't have to deal with any offsets for the next block we process.
+integer i = blocks:GetSize()
+        repeat while i > 0
+            i = i - 1
+            Block block = blocks:Get(i)
+            integer slashIndex = block:GetStartIndex() - startIndex
+            text subResult = ""
+            if slashIndex = 0
+                subResult = "//"
+            else
+                subResult = newText:GetSubtext(0, slashIndex) + "//"
+            end
+            if slashIndex + startIndex < endIndex - 1
+                subResult = subResult + newText:GetSubtext(slashIndex)
+            end
+            newText = subResult
+        end
+
+        TextChangeEvent event
+        event:Initialize(me, newText, deletedText, startIndex)
+        OnTextChange(event, 0)
+
+        BlockChangeEvent blockEvent
+        blockEvent:Set(me,oldText, GetCode())
+        NotifyBlockChangeListeners(blockEvent)
+
+        shouldCalculateWidth = true
+        shouldCalculateHeight = true
+        shouldRegenerateBlocks = true
+        shouldCalculateNavigationIndices = true
+        RequestLayout()
+    end
 
     /*
     This action deletes the given block. If the passed boolean is true, all blocks
@@ -1715,6 +1892,11 @@ editManager:SetSpecialAction(false)
         integer blockIndex = 0
         boolean isBlockPart = false
         Array<Block> children = undefined
+        
+        // If there's no parent block, this isn't a legal block to delete. Abort early.
+        if parentBlock = undefined
+            return now
+        end
 
         // find the index the block was attached to it's parent for undo purposes
         if parentBlock:IsEnteringScope() = false
@@ -1879,7 +2061,6 @@ editManager:SetSpecialAction(false)
                     editManager:SetSpecialAction(false)
                     return now
                 end
-
 
         else
             
@@ -2854,5 +3035,51 @@ if GetLineCount() <= 0
         end
         
         return -1
+    end
+    
+    /**/
+    action AddTextStyle(text name, TextStyle style) returns SingleLineBlock
+        return AddTextStyle(name, style, GetRootBlock())
+    end
+    
+    /**/
+    action AddTextStyle(text name, TextStyle style, Block startBlock) returns SingleLineBlock
+        SingleLineBlock result = undefined
+        Block current = startBlock
+        if current:IsNavigable() = false
+            current = current:GetNextNavigableBlock()
+        end
+        
+        repeat until current = undefined
+            if current:GetStartIndex() <= style:GetIndex() and current:GetEndIndex() >= (style:GetIndex() + style:GetSize()) and current is SingleLineBlock
+                result = cast(SingleLineBlock, current)
+                current = undefined
+                
+                //Since we're iterating through the blocks in order from start to end, if we reach a block that starts after the style,
+                // then there can't be any valid blocks beyond this point.
+            elseif current:GetStartIndex() > style:GetIndex()
+                current = undefined
+            else
+                current = current:GetNextNavigableBlock()
+            end
+        end
+        
+        if result not= undefined
+            result:AddTextStyle(name, style)
+        end
+        
+        return result
+    end
+    
+    /*This action removes all text styles from the blocks in the CodeEditor.*/
+    action EmptyTextStyles
+        Block current = GetRootBlock()
+        repeat until current = undefined
+            if current is SingleLineBlock
+                SingleLineBlock block = cast(SingleLineBlock, current)
+                block:EmptyTextStyles()
+            end
+            current = current:GetNextBlock()
+        end
     end
 end

@@ -26,6 +26,7 @@ use Libraries.Game.NumberUtilities
 use Libraries.Game.Graphics.VertexAttributes
 use Libraries.Game.WebApplication
 use Libraries.Game.Graphics.OpenGL.OpenGLConstants
+use Libraries.Interface.Views.ControlView
 
 class ControlShaderMapping is BatchingShaderMapping2D
 
@@ -223,6 +224,19 @@ class ControlShaderMapping is BatchingShaderMapping2D
 
             if control not= undefined
                 borderThickness = (1.0 / height) * (control:GetBorderThickness() * control:GetInterfaceScale())
+                
+boolean overrideBorder = false
+if control:IsRenderingSelection() or selected
+                    if control:HasSelectionBorderThickness()
+                        overrideBorder = true
+                        borderThickness = (1.0 / height) * (control:GetSelectionBorderThickness() * control:GetInterfaceScale())
+                    end
+end
+                if overrideBorder = false and control:IsRenderingMouseOver()
+                    if control:HasMouseOverBorderThickness()
+                        borderThickness = (1.0 / height) * (control:GetMouseOverBorderThickness() * control:GetInterfaceScale())
+                    end
+                end
 
                 if borderThickness > 0
                     if control:HasLeftBorder()
@@ -313,8 +327,13 @@ class ControlShaderMapping is BatchingShaderMapping2D
                     end
                 end
 
-                if backgroundColor = undefined and control:IsRenderingMouseOver()
-                    backgroundColor = control:GetMouseOverColor()
+if control:IsRenderingMouseOver()
+                    if backgroundColor = undefined
+backgroundColor = control:GetMouseOverColor()
+                    end
+                    if borderColor = undefined
+borderColor = control:GetMouseOverBorderColor()
+                    end
                 end
 
                 if control:IsFocused()

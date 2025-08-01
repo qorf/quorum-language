@@ -2,6 +2,7 @@ package Libraries.System
 
 use Libraries.Containers.Array
 use Libraries.System.File
+use Libraries.Containers.HashTable
 
 /*
 This class allows us to create a new process on the computer. Essentially, 
@@ -54,6 +55,7 @@ class Process
     Array<ProcessListener> listeners
     text name = ""
     Array<text> flags
+    HashTable<text, text> environment
 
     /*
         Adds a listener object that can tell us when the process starts, stops, or outputs information.
@@ -259,4 +261,13 @@ class Process
     action ToText returns text
         return name
     end
+    
+    action GetEnvironment returns HashTable<text, text>
+        return environment
+    end
+
+    action SetEnvironment(HashTable<text, text> environment)
+        me:environment = environment
+    end
+
 end

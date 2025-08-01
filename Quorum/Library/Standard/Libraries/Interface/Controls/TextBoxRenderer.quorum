@@ -433,6 +433,32 @@ class TextBoxRenderer is Control
             return parent:Control:GetBorderColor()
         end
     end
+    
+action GetMouseOverColor returns ColorGroup
+        if HasColorPropertyOverride("mouseOverColor")
+            return parent:Control:GetMouseOverColor()
+        end
+
+        TextBox box = GetTextBox()
+        if box not= undefined
+            return box:GetMouseOverColor()
+        else
+            return parent:Control:GetMouseOverColor()
+        end
+    end
+    
+action GetMouseOverBorderColor returns ColorGroup
+        if HasColorPropertyOverride("mouseOverBorderColor")
+            return parent:Control:GetMouseOverBorderColor()
+        end
+
+        TextBox box = GetTextBox()
+        if box not= undefined
+            return box:GetMouseOverBorderColor()
+        else
+            return parent:Control:GetMouseOverBorderColor()
+        end
+    end
 
     action GetBorderThickness returns number
         if HasNumberPropertyOverride("borderThickness")
@@ -444,6 +470,32 @@ class TextBoxRenderer is Control
             return box:GetBorderThickness()
         else
             return parent:Control:GetBorderThickness()
+        end
+    end
+    
+action GetMouseOverBorderThickness returns number
+        if HasNumberPropertyOverride("mouseOverBorderThickness")
+            return parent:Control:GetMouseOverBorderThickness()
+        end
+
+        TextBox box = GetTextBox()
+        if box not= undefined
+            return box:GetMouseOverBorderThickness()
+        else
+            return parent:Control:GetMouseOverBorderThickness()
+        end
+    end
+    
+action HasMouseOverBorderThickness returns boolean
+        if HasNumberPropertyOverride("mouseOverBorderThickness")
+            return parent:Control:HasMouseOverBorderThickness()
+        end
+        
+TextBox box = GetTextBox()
+        if box not= undefined
+            return box:HasMouseOverBorderThickness()
+        else
+            return parent:Control:HasMouseOverBorderThickness()
         end
     end
 

@@ -9,6 +9,9 @@ docker run --rm -v ${pwd}:/src alleew/quorumwebfonts em++ FreeTypeStrategy.cpp -
 In terminal:
 docker run --rm -v ${pwd}:/src -u $(id -u):$(id -g)alleew/quorumwebfonts em++ FreeTypeStrategy.cpp -std=c++11 -O3 -s WASM=1 -s USE_FREETYPE=2 -s ASSERTIONS=1 -s LLD_REPORT_UNDEFINED --preload-file fonts -o load.js -s EXPORTED_FUNCTIONS='["_main","_InitializeFreeTypeC","_LoadFontC","_IsFontAvailableC","_SetSizeC","_SetAngleC","_DisposeC","_GetKerningC","_GetUnderlinePositionC","_GetUnderlineThicknessC","_GetLineHeightC","_GetMaximumAscentC","_GetMaximumDescentC","_loadCharC","_getBitmapC","_getBitmapDataC"]' -s EXPORTED_RUNTIME_METHODS='["cwrap","getValue"]' -s SAFE_HEAP=1
 
+Updated call: 
+docker run --rm -v $(pwd):/src alleew/quorumwebfonts em++ FreeTypeStrategy.cpp -std=c++11 -O3 -s WASM=1 -s USE_FREETYPE=2 -s ASSERTIONS=1 -s LLD_REPORT_UNDEFINED --preload-file fonts -o load.js -s EXPORTED_FUNCTIONS='["_main","_InitializeFreeTypeC","_LoadFontC","_IsFontAvailableC","_SetSizeC","_SetAngleC","_DisposeC","_GetKerningC","_GetUnderlinePositionC","_GetUnderlineThicknessC","_GetLineHeightC","_GetMaximumAscentC","_GetMaximumDescentC","_loadCharC","_getBitmapC","_getBitmapDataC"]' -s EXPORTED_RUNTIME_METHODS='["cwrap","getValue"]' -s SAFE_HEAP=1 -s ALLOW_MEMORY_GROWTH=1
+
 Add any fonts you want to the 'fonts' folder and they can be accessed from C++.
 For example: Arial.ttf in the fonts folder can be loaded as a face in FreeType
 using this line:

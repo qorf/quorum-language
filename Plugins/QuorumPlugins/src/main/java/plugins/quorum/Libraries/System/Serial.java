@@ -26,7 +26,7 @@ public class Serial{
         return array;
     }
 
-    public quorum.Libraries.System.SerialPort GetPort(String name) {
+    public quorum.Libraries.System.SerialPort_ GetPort(String name) {
         com.fazecast.jSerialComm.SerialPort port = SerialPort.getCommPort(name);
         if(port == null) {
             return null;

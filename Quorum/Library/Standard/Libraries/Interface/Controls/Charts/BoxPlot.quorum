@@ -211,7 +211,6 @@ class BoxPlot is Chart
                         minimumLine:SetAnnotation(minLabel)
                         chartArea:Add(minLabel)
                     end
-                    plot:Add(minimumLine:GetSelectionArrow())
 
                     // Interquartile Range Region Area
                     interQuartileRange:SetInputGroup("Chart")
@@ -224,16 +223,6 @@ class BoxPlot is Chart
                     if CheckIfInteger(iqr)
                         interQuartileRange:SetDescription(" " + cast(integer, iqr))
                     end
-                    plot:Add(interQuartileRange:GetSelectionArrow())
-                    Drawable topBrack
-                    interQuartileRange:GetSelectionBracket():Add(topBrack)
-                    plot:Add(topBrack)
-                    Drawable sideBrack
-                    interQuartileRange:GetSelectionBracket():Add(sideBrack) 
-                    plot:Add(sideBrack)
-                    Drawable bottomBrack
-                    interQuartileRange:GetSelectionBracket():Add(bottomBrack) 
-                    plot:Add(bottomBrack)  
     
                     // Lower Quartile Line Q1
                     firstQuartileLine:SetInputGroup("Chart")
@@ -259,7 +248,6 @@ class BoxPlot is Chart
                         firstQuartileLine:SetAnnotation(Q1Label)
                         chartArea:Add(Q1Label)
                     end
-                    plot:Add(firstQuartileLine:GetSelectionArrow())
     
                     // Median Line (denser) 
                     medianLine:SetInputGroup("Chart")
@@ -285,7 +273,6 @@ class BoxPlot is Chart
                         medianLine:SetAnnotation(medianLabel)
                         chartArea:Add(medianLabel)
                     end
-                    plot:Add(medianLine:GetSelectionArrow())
     
                     // Upper Quartile Line Q3
                     thirdQuartileLine:SetInputGroup("Chart")
@@ -311,7 +298,6 @@ class BoxPlot is Chart
                         thirdQuartileLine:SetAnnotation(Q3Label)
                         chartArea:Add(Q3Label)
                     end
-                    plot:Add(thirdQuartileLine:GetSelectionArrow())
     
                     // Maximum Line
                     maximumLine:SetInputGroup("Chart")
@@ -337,7 +323,6 @@ class BoxPlot is Chart
                         maximumLine:SetAnnotation(maxLabel)
                         chartArea:Add(maxLabel)
                     end
-                    plot:Add(maximumLine:GetSelectionArrow())
                 end
 
                 plot:Add(rightBorder)
@@ -407,7 +392,6 @@ class BoxPlot is Chart
                         outlier:SetNextFocus(GetNextFocus())
                         outlier:SetPreviousFocus(GetPreviousFocus())
                         plot:Add(outlier)
-                        chartArea:Add(outlier:GetSelectionArrow())
                         plot:AddItem(outlier)
                         j = j + 1
                     end
@@ -472,9 +456,6 @@ class BoxPlot is Chart
                     end
                 end
 
-                // Set selection arrow for plot
-                plot:Add(plot:GetSelectionArrow())
-
                 // Set Navigation Instruction for first plot item (minimum)
                 AddPlotItemInstructions(minimumLine, minimumLine:GetDescription())
                 k = k + 1
@@ -491,20 +472,7 @@ class BoxPlot is Chart
             chartArea:Add(group)
             if i = 0
                 AddGroupPanelInstructions(group, group:GetDescription())
-            end
-            chartArea:Add(group:GetSelectionArrow())
-
-            Drawable top
-            group:GetSelectionBracket():Add(top)
-            chartArea:Add(top)
-
-            Drawable side
-            group:GetSelectionBracket():Add(side) 
-            chartArea:Add(side)
-
-            Drawable bottom
-            group:GetSelectionBracket():Add(bottom) 
-            chartArea:Add(bottom)  
+            end  
 
             GetGroupPanels():Add(group)
             i = i + 1

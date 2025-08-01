@@ -244,17 +244,26 @@ SetCodeEditorSelectionColor(color:Black())
         // Chart specific properties.
         SetChartBackgroundColor(color:White())
         SetChartForegroundColor(color:White())
-        SetChartBorderColor(color:Black())
-        SetChartAccentColor(color:LightGray())
+        SetChartBorderColor(color:CustomColor(122.0/255.0, 122.0/255.0, 122.0/255.0, 1))
+        SetChartAccentColor(color:CustomColor(227.0/255.0, 221.0/255.0, 221.0/255.0, 1))
         SetChartSelectionColor(color:Blue())
         SetChartForegroundSelectionColor(color:CustomColor(0.5, 0.5, 1, 1))
-        SetChartIconColor(color:LightGray())
+        SetChartIconColor(color:CustomColor(32.0/255.0, 32.0/255.0, 32.0/255.0, 1))
         SetChartFontColor(color:Black())
         SetChartSelectionFontColor(color:White())
         SetChartSelectionBorderColor(color:Black())
 
         // Label specific properties.
         SetLabelBackgroundColor(color:CustomColor(1, 1, 1, 0))
+        SetLabelBorderThickness(2)
+SetLabelBottomLeftPixelRounding(6)
+SetLabelBottomRightPixelRounding(6)
+SetLabelTopLeftPixelRounding(6)
+SetLabelTopRightPixelRounding(6)
+        SetLabelFocusColor(color:CustomColor(0.12, 0.12, 1, 1))
+        
+        // Values for ControlLabels.
+        SetBackgroundColor("ControlLabel", color:CustomColor(1, 1, 1, 0))
 
         // Flowchart and flowchart element properties.
         SetFlowchartBackgroundColor(color:White())
@@ -289,5 +298,11 @@ SetCodeEditorSelectionColor(color:Black())
         SetStartButtonGroupingTopRightRounding(0.2)
         SetStartButtonGroupingBottomLeftRounding(0.2)
         SetStartButtonGroupingBottomRightRounding(0.2)
+
+        // ChartPoint specific values.
+        SetChartPointBottomLeftRounding(1)
+        SetChartPointBottomRightRounding(1)
+        SetChartPointTopLeftRounding(1)
+        SetChartPointTopRightRounding(1)
     end
 end

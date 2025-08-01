@@ -43,8 +43,8 @@ class CodeEditorAcceptDraggedBlockBehavior is Behavior
             CodeEditor editor = cast(CodeEditor, received)
             number y = dropEvent:GetY() - editor:GetGlobalY()
             integer line = editor:GetNavigationIndexAtY(y)
-            if line >= editor:GetLineCount()
-                line = editor:GetLineCount() - 1
+            if line > editor:GetLineCount()
+                line = editor:GetLineCount()
             end
             
             Array<Block> sourceBlocks = sourceDragBehavior:GetSourceBlocks()

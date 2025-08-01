@@ -1,0 +1,274 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Interface.Controls.Control
+use Libraries.Containers.Array
+use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Tab
+use Libraries.Interface.Controls.CharacterIcon
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.Button
+use Libraries.Game.Graphics.Font
+
+class AlignedTabFlowLayout is Layout
+    
+    /*These values indicate how much space should be reserved for each of the elements in a Tab.
+These are set by the VerticalTabBarFlowLayout of the container when performing its own layout.*/
+    number iconAreaWidth = 0
+    number labelAreaWidth = 0
+    number closeAreaWidth = 0
+    
+action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
+        // This layout is only meant for tabs, so we assume the container must be a Tab.
+        Tab tab = cast(Tab, container)
+        CharacterIcon icon = tab:GetTabIcon()
+        Label label = tab:GetLabel()
+        Button closeButton = tab:GetCloseButton()
+        
+        number leftPadding = tab:GetLeftPadding()
+        number rightPadding = tab:GetRightPadding()
+        number topPadding = tab:GetTopPadding()
+        number bottomPadding = tab:GetBottomPadding()
+        
+        Control firstControl = undefined
+        if icon not= undefined and icon:IsShowing()
+            firstControl = icon
+        elseif label not= undefined and icon:IsShowing()
+            firstControl = label
+        elseif closeButton not= undefined and closeButton:IsShowing()
+            firstControl = closeButton
+        end
+        
+        Control lastControl = undefined
+        if closeButton not= undefined and closeButton:IsShowing()
+            lastControl = closeButton
+        elseif label not= undefined and label:IsShowing()
+            lastControl = label
+        elseif icon not= undefined and icon:IsShowing()
+            lastControl = icon
+        end
+        
+        if icon not= undefined and icon:IsShowing()
+            LayoutProperties properties = icon:GetDefaultLayoutProperties()
+            if properties:NeedsRendering()
+                icon:LoadGraphics(properties)
+            end
+            
+integer horizontalMode = icon:GetHorizontalLayoutMode()
+            integer verticalMode = icon:GetVerticalLayoutMode()
+            number width = -1
+            number height = -1
+            boolean setWidth = false
+            boolean setHeight = false
+            
+            number bottomSpacing = bottomPadding
+            if properties:GetBottomMargin() > bottomSpacing
+                bottomSpacing = properties:GetBottomMargin()
+            end
+            
+            number topSpacing = topPadding
+            if properties:GetTopMargin() > topSpacing
+                topSpacing = properties:GetTopMargin()
+            end
+            
+            number leftSpacing = properties:GetLeftMargin()
+            if icon:Equals(firstControl) and leftPadding > leftSpacing
+                leftSpacing = leftPadding
+            end
+            
+            number rightSpacing = properties:GetRightMargin()
+if icon:Equals(firstControl) and rightPadding > rightSpacing
+                rightSpacing = rightPadding
+            end
+            
+            
+            if verticalMode = container:STANDARD
+                height = properties:GetPercentageHeight() * containerHeight + (properties:GetPixelHeight() * properties:GetInterfaceScale()) - topSpacing - bottomSpacing
+            elseif verticalMode = container:FILL
+                height = containerHeight - bottomSpacing - topSpacing
+            elseif verticalMode = container:FIT_FONT
+Font font = icon:GetFont()
+                        if font not= undefined
+if font:GetSize() not= cast(integer, icon:GetFontSize() * icon:GetInterfaceScale())
+                            font:SetSize(cast(integer, icon:GetFontSize() * icon:GetInterfaceScale()))
+                        end
+                            number percentHeight = properties:GetPercentageHeight()
+                            if percentHeight = 0.0
+                                percentHeight = 1.0
+                            end
+                            
+                            height = percentHeight * font:GetLineHeight()
+                        end
+            end
+            
+            if horizontalMode = container:STANDARD
+                width = properties:GetPercentageWidth() * containerWidth + (properties:GetPixelWidth() * properties:GetInterfaceScale())
+            elseif horizontalMode = container:FILL
+                width = containerWidth - leftSpacing - rightSpacing
+            end
+            
+            if verticalMode = container:MAINTAIN_ASPECT_RATIO
+                height = properties:GetPercentageHeight() * width
+            elseif horizontalMode = container:MAINTAIN_ASPECT_RATIO
+                width = properties:GetPercentageWidth() * height
+            end
+            
+            // Based on which dimensions we were able to calculate, set the known dimensions.
+            // Assume the control has the info it needs in its own layout to calculate the remaining dimension, then fetch it.
+            if width > 0
+                if height > 0
+                    icon:SetSize(width, height)
+                else
+                    icon:SetWidth(width)
+                    height = icon:GetHeight()
+                end
+            elseif height > 0
+                icon:SetHeight(height)
+                width = icon:GetWidth()
+            end
+            
+            icon:SetPosition((iconAreaWidth - width) / 2.0, bottomSpacing)
+            //Libraries.Game.Graphics.Color color
+            //icon:LoadFilledRectangle(cast(integer, icon:GetWidth()), cast(integer, icon:GetHeight()), color:Red())
+        end
+        
+if label not= undefined and label:IsShowing()
+            LayoutProperties properties = label:GetDefaultLayoutProperties()
+            if properties:NeedsRendering()
+                label:LoadGraphics(properties)
+            end
+            
+            number bottomSpacing = bottomPadding
+            if properties:GetBottomMargin() > bottomSpacing
+                bottomSpacing = properties:GetBottomMargin()
+            end
+            
+            number leftSpacing = properties:GetLeftMargin()
+            if firstControl not= undefined and label:Equals(firstControl) and leftPadding > leftSpacing
+                leftSpacing = leftPadding
+            end
+            
+            label:SetPosition(iconAreaWidth + leftSpacing, (containerHeight - label:GetHeight()) / 2.0)
+        end
+        
+if closeButton not= undefined and closeButton:IsShowing()
+            LayoutProperties properties = closeButton:GetDefaultLayoutProperties()
+            if properties:NeedsRendering()
+                closeButton:LoadGraphics(properties)
+            end
+            
+integer horizontalMode = closeButton:GetHorizontalLayoutMode()
+            integer verticalMode = closeButton:GetVerticalLayoutMode()
+            number width = -1
+            number height = -1
+            boolean setWidth = false
+            boolean setHeight = false
+            
+            number bottomSpacing = bottomPadding
+            if properties:GetBottomMargin() > bottomSpacing
+                bottomSpacing = properties:GetBottomMargin()
+            end
+            
+            number topSpacing = topPadding
+            if properties:GetTopMargin() > topSpacing
+                topSpacing = properties:GetTopMargin()
+            end
+            
+            number leftSpacing = properties:GetLeftMargin()
+            if closeButton:Equals(firstControl) and leftPadding > leftSpacing
+                leftSpacing = leftPadding
+            end
+            
+            number rightSpacing = properties:GetRightMargin()
+if closeButton:Equals(firstControl) and rightPadding > rightSpacing
+                rightSpacing = rightPadding
+            end
+            
+            
+            if verticalMode = container:STANDARD
+                height = properties:GetPercentageHeight() * containerHeight + (properties:GetPixelHeight() * properties:GetInterfaceScale())
+            elseif verticalMode = container:FILL
+                height = containerHeight - bottomSpacing - topSpacing
+            elseif verticalMode = container:FIT_FONT
+Font font = icon:GetFont()
+                        if font not= undefined
+if font:GetSize() not= cast(integer, closeButton:GetFontSize() * closeButton:GetInterfaceScale())
+                            font:SetSize(cast(integer, closeButton:GetFontSize() * closeButton:GetInterfaceScale()))
+                        end
+                            number percentHeight = properties:GetPercentageHeight()
+                            if percentHeight = 0.0
+                                percentHeight = 1.0
+                            end
+                            
+                            height = percentHeight * font:GetLineHeight()
+                        end
+            end
+            
+            if horizontalMode = container:STANDARD
+                width = properties:GetPercentageWidth() * containerWidth + (properties:GetPixelWidth() * properties:GetInterfaceScale())
+            elseif horizontalMode = container:FILL
+                width = containerWidth - iconAreaWidth - labelAreaWidth - leftSpacing - rightSpacing
+            end
+            
+            if verticalMode = container:MAINTAIN_ASPECT_RATIO
+                height = properties:GetPercentageHeight() * width
+            elseif horizontalMode = container:MAINTAIN_ASPECT_RATIO
+                width = properties:GetPercentageWidth() * height
+            end
+            
+            // Based on which dimensions we were able to calculate, set the known dimensions.
+            // Assume the control has the info it needs in its own layout to calculate the remaining dimension, then fetch it.
+            if width > 0
+                if height > 0
+                    closeButton:SetSize(width, height)
+                else
+                    closeButton:SetWidth(width)
+                    height = icon:GetHeight()
+                end
+            elseif height > 0
+                closeButton:SetHeight(height)
+                width = icon:GetWidth()
+            end
+            
+            closeButton:SetPosition(containerWidth - (closeAreaWidth - width) / 2.0, bottomSpacing)
+        end
+        
+        // Finally, ensure all items attached to this have their layout flag reset.
+        // Some components, like hidden icons, might not have been explicitly set. We also don't want any unexpected
+        // extra items to be left requesting layout on every frame.
+        integer i = 0
+        repeat while i < items:GetSize()
+            Item2D item = items:Get(i)
+            if item is Control
+                Control control = cast(Control, item)
+                control:ResetLayoutFlag()
+            end
+            i = i + 1
+        end
+        
+end
+    
+    action GetIconAreaWidth returns number
+        return iconAreaWidth
+    end
+
+    action SetIconAreaWidth(number iconAreaWidth)
+        me:iconAreaWidth = iconAreaWidth
+    end
+
+    action GetLabelAreaWidth returns number
+        return labelAreaWidth
+    end
+
+    action SetLabelAreaWidth(number labelAreaWidth)
+        me:labelAreaWidth = labelAreaWidth
+    end
+
+    action GetCloseAreaWidth returns number
+        return closeAreaWidth
+    end
+
+    action SetCloseAreaWidth(number closeAreaWidth)
+        me:closeAreaWidth = closeAreaWidth
+    end
+
+end

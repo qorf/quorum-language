@@ -54,5 +54,10 @@ class WebConfiguration is ApplicationConfiguration
     "Enter " followed by the title.
     */
     public text focusButtonName = undefined
+    
+    /*When using a web browser on touch enabled devices, Quorum can choose to treat the touch
+events as mouse events. Doing this makes apps with mouse support work more easily on the
+web, but prevents gesture detection. This value is true by default.*/
+    public boolean convertTouchToMouseEvents = true
 
 end

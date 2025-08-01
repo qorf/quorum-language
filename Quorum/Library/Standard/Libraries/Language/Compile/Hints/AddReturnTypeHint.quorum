@@ -2,6 +2,10 @@ package Libraries.Language.Compile.Hints
 
 class AddReturnTypeHint is Hint
     text code = ""
+    
+    on create
+        SetShortMessage("Return")
+    end
 
     action GetInsertionText returns text
         return code

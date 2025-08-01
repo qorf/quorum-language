@@ -1,11 +1,59 @@
 package Libraries.Robots.Spike
 
-class Motor
+/*
+    The motor is an external device that is connected to the hub through a port.
+    It is a rotational device that can be attached to other objects to provide force.
 
+    Attribute: Example
+    use Libraries.Robots.Spike.Motor
+    use Libraries.Robots.Spike.Port
+    Motor wheel
+    Port port
+    wheel:SetPort(port:A)
+    wheel:Run(360)
+*/
+class Motor
+    // Constants for different braking modes
+    public constant integer COAST = 0
+    public constant integer BRAKE = 1
+    public constant integer HOLD = 2
+    public constant integer CONTINUE = 3
+    public constant integer SMART_COAST = 4
+    public constant integer SMART_BRAKE = 5
+
+    // Constants for rotation directions
+    public constant integer CLOCKWISE = 0
+    public constant integer COUNTERCLOCKWISE = 1
+    public constant integer SHORTEST_PATH = 2
+    public constant integer LONGEST_PATH = 3
+
+    /*
+        Returns the port number of the motor
+
+        Attribute: Returns Port number
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        integer wheelPort = wheel:GetPort()
+    */
     action GetPort returns integer
         return GetPortNative()
     end
 
+    /*
+        Sets the port number of the motor object
+
+        Attribute: Parameter port The port (A through F, or 0 through 5) the motor
+        is attached to
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        use Libraries.Robots.Spike.Port
+        Motor wheel
+        Port port
+        wheel:SetPort(port:A)
+    */
     action SetPort(integer port)
         SetPortNative(port)
     end
@@ -13,53 +61,340 @@ class Motor
     private system action GetPortNative returns integer
     private system action SetPortNative(integer port) returns integer
 
+    /*
+        Returns the absolute position of a motor
+
+        Attribute: Parameter position The relative position to use
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        integer currentAbsoluteWheelPosition = wheel:GetAbsolutePosition()
+    */
     action GetAbsolutePosition returns integer
         return GetAbsolutePositionNative()
     end
 
     private system action GetAbsolutePositionNative returns integer
 
+    /*
+        Returns the current duty cycle (pwm) of the motor
+
+        Attribute: Returns PWM, the pwm of the motor
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        integer currentPWM = wheel:GetDutyCyle()
+    */
     action GetDutyCycle returns integer
         return GetDutyCycleNative()
     end
 
     private system action GetDutyCycleNative returns integer
 
+    /*
+        Returns the relative position of a motor
+
+        Attribute: Parameter position The relative position to use
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        integer currentRelativeWheelPosition = wheel:GetRelativePosition()
+    */
     action GetRelativePosition returns integer
         return GetRelativePositionNative()
     end
 
     private system action GetRelativePositionNative returns integer
 
+    /*
+        Changes the position used as an offset for RunToRelativePosition()
+
+        Attribute: Parameter position The relative position to use
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        wheel:SetRelativePosition(90)
+    */
     action SetRelativePosition(integer position)
         SetRelativePositionNative(position)
     end
     private system action SetRelativePositionNative(integer position)
 
+    /*
+        Sets the velocity of the motor in degrees/sec.
+        Ranges for velocity vary per motor size as follows:
+            Small motor: -660 to 660
+            Medium motor: -1110 to 1110
+            Large motor: -1050 to 1050
+        
+        Attribute: Parameter velocity The velocity to set the motor to in
+        degrees/second
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        wheel:Run(90)
+    */
     action Run(integer velocity)
         RunNative(velocity)
     end
 
     private system action RunNative(integer velocity)
 
-    system action RunToDegrees(integer degrees, integer velocity)
+    /*
+        Sets the velocity of the motor in degrees/sec by applying the provided acceleration.
+        Ranges for velocity vary per motor size as follows:
+            Small motor: -660 to 660
+            Medium motor: -1110 to 1110
+            Large motor: -1050 to 1050
+        Acceleration ranges from 0 to 10000
 
+        Attribute: Parameter velocity The velocity to set the motor to in
+        degrees/second
+        Attribute: Parameter acceleration The acceleration of the motor in degrees/sec^2
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        wheel:Run(90, 5000)
+    */
+    action Run(integer velocity, integer acceleration)
+        RunNative(velocity, acceleration)
+    end
+
+    private system action RunNative(integer velocity, integer acceleration)
+
+
+    /*
+        Runs the motor for a certain number of degrees at the provided velocity.
+        Ranges for velocity vary per motor size as follows:
+            Small motor: -660 to 660
+            Medium motor: -1110 to 1110
+            Large motor: -1050 to 1050
+
+        Attribute: Parameter degrees The amount of degrees to run for
+        Attribute: Parameter velocity The velocity in degrees/second
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        wheel:RunForDegrees(720, 90)
+    */
+    system action RunForDegrees(integer degrees, integer velocity)
+
+    /*
+        Runs the motor for a certain number of degrees at the provided velocity with additional parameters.
+        Ranges for velocity vary per motor size as follows:
+            Small motor: -660 to 660
+            Medium motor: -1110 to 1110
+            Large motor: -1050 to 1050
+        Acceleration and deceleration range from 0 to 10000
+        Available braking modes, as Motor constants, are: COAST, BRAKE, HOLD, CONTINUE, SMART_COAST, or SMART_BRAKE
+
+        Attribute: Parameter degrees The amount of degrees to run for
+        Attribute: Parameter velocity The velocity in degrees/second
+        Attribute: Parameter brakingMode The braking mode to use when stopping the motor
+        Attribute: Parameter acceleration The acceleration of the motor in degrees/sec^2
+        Attribute: Parameter deceleration The deceleration of the motor in degrees/sec^2
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        wheel:RunForDegrees(720, 90, wheel:BRAKE, 5000, 5000)
+    */
+    system action RunForDegrees(integer degrees, integer velocity, integer brakingMode, integer acceleration, integer deceleration)
+
+    /*
+        Runs the motor for a set amount of time at the provided velocity.
+        Ranges for velocity vary per motor size as follows:
+            Small motor: -660 to 660
+            Medium motor: -1110 to 1110
+            Large motor: -1050 to 1050
+
+        Attribute: Parameter time The amount of time to run for in
+        milliseconds
+        Attribute: Parameter velocity The velocity in degrees/second
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        wheel:RunForTime(2000, 360)
+    */
     system action RunForTime(integer time, integer velocity)
 
+    /*
+        Runs the motor for a set amount of time at the provided velocity with additional parameters.
+        Ranges for velocity vary per motor size as follows:
+            Small motor: -660 to 660
+            Medium motor: -1110 to 1110
+            Large motor: -1050 to 1050
+        Acceleration and deceleration range from 0 to 10000
+        Available braking modes, as Motor constants, are: COAST, BRAKE, HOLD, CONTINUE, SMART_COAST, or SMART_BRAKE
+
+        Attribute: Parameter time The amount of time to run for in
+        milliseconds
+        Attribute: Parameter velocity The velocity in degrees/second
+        Attribute: Parameter brakingMode The braking mode to use when stopping the motor
+        Attribute: Parameter acceleration The acceleration of the motor in degrees/sec^2
+        Attribute: Parameter deceleration The deceleration of the motor in degrees/sec^2
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        wheel:RunForTime(2000, 360, wheel:BRAKE, 5000, 5000)
+    */
+    system action RunForTime(integer time, integer velocity, integer brakingMode, integer acceleration, integer deceleration)
+
+    /*
+        Turns the motor to a provided absolute position at the provided velocity.
+        Ranges for velocity vary per motor size as follows:
+            Small motor: -660 to 660
+            Medium motor: -1110 to 1110
+            Large motor: -1050 to 1050
+        
+        Attribute: Parameter position The absolute position to run to
+        Attribute: Parameter velocity The velocity in degrees/second
+        Attribute: Example
+        
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        wheel:RunToAbsolutePosition(1200, 360)
+    */
     system action RunToAbsolutePosition(integer position, integer velocity)
 
+    /*
+        Turns the motor to a provided absolute position at the provided velocity with additional parameters.
+        Ranges for velocity vary per motor size as follows:
+            Small motor: -660 to 660
+            Medium motor: -1110 to 1110
+            Large motor: -1050 to 1050
+        Acceleration and deceleration range from 0 to 10000
+        Available braking modes, as Motor constants, are: COAST, BRAKE, HOLD, CONTINUE, SMART_COAST, or SMART_BRAKE
+        Available directions, as Motor constants, are: CLOCKWISE, COUNTERCLOCKWISE, SHORTEST_PATH, LONGEST_PATH
+
+        Attribute: Parameter position The absolute position to run to
+        Attribute: Parameter velocity The velocity in degrees/second
+        Attribute: Parameter direction The direction to turn the motor
+        Attribute: Parameter brakingMode The braking mode to use when stopping the motor
+        Attribute: Parameter acceleration The acceleration of the motor in degrees/sec^2
+        Attribute: Parameter deceleration The deceleration of the motor in degrees/sec^2
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        wheel:RunToAbsolutePosition(120, 360, wheel:SHORTEST_PATH, wheel:BRAKE, 5000, 5000)
+    */
+    system action RunToAbsolutePosition(integer position, integer velocity, integer direction, integer brakingMode, integer acceleration, integer deceleration)
+
+
+    /*
+        Turns the motor to a position relative to current position.
+        Ranges for velocity vary per motor size as follows:
+            Small motor: -660 to 660
+            Medium motor: -1110 to 1110
+            Large motor: -1050 to 1050
+
+        Attribute: Parameter position The relative position to run to
+        Attribute: Parameter velocity The velocity in degrees/second
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        wheel:RunToRelativePosition(360, 360)
+    */
     system action RunToRelativePosition(integer position, integer velocity)
 
+    /*
+        Turns the motor to a position relative to current position.
+        Ranges for velocity vary per motor size as follows:
+            Small motor: -660 to 660
+            Medium motor: -1110 to 1110
+            Large motor: -1050 to 1050
+        Acceleration and deceleration range from 0 to 10000
+        Available braking modes, as Motor constants, are: COAST, BRAKE, HOLD, CONTINUE, SMART_COAST, or SMART_BRAKE
+
+        Attribute: Parameter position The relative position to run to
+        Attribute: Parameter velocity The velocity in degrees/second
+        Attribute: Parameter brakingMode The braking mode to use when stopping the motor
+        Attribute: Parameter acceleration The acceleration of the motor in degrees/sec^2
+        Attribute: Parameter deceleration The deceleration of the motor in degrees/sec^2
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        wheel:RunToRelativePosition(360, 360, wheel:BRAKE, 5000, 5000)
+    */
+    system action RunToRelativePosition(integer position, integer velocity, integer brakingMode, integer acceleration, integer deceleration)
+
+
+    /*
+        Starts a motor using a specific pulse width modulation 
+
+        Attribute: Parameter pulseWidthModulation The pwm from -10000 - 10000
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        wheel:SetDutyCycle(5000)
+    */
     action SetDutyCycle(integer pulseWidthModulation)
         SetDutyCycleNative(pulseWidthModulation)
     end
     private system action SetDutyCycleNative(integer pulseWidthModulation)
 
+    /*
+        Stops the motor from running
+
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        use Libraries.Robots.Spike.Hub
+        Motor wheel
+        Hub hb
+        wheel:Run(360)
+        hb:Sleep(1000)
+        wheel:Stop()
+    */
     action Stop
         StopNative()
     end
     private system action StopNative
 
+    /*
+        Stops the motor from running with the provided braking mode
+        Available braking modes are: COAST, BRAKE, HOLD, CONTINUE, SMART_COAST, or SMART_BRAKE
+
+        Attribute: Parameter brakingMode The braking mode to use when stopping the motor
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        use Libraries.Robots.Spike.Hub
+        Motor wheel
+        Hub hb
+        wheel:Run(360)
+        hb:Sleep(1000)
+        wheel:Stop(wheel:BRAKE)
+    */
+    action Stop(integer brakingMode)
+        StopNative(brakingMode)
+    end
+    private system action StopNative(integer brakingMode)
+
+    /*
+        Returns the velocity in degrees/second of the motor
+
+        Attribute: Returns Velocity, the velocity in degrees/second of the motor
+        Attribute: Example
+
+        use Libraries.Robots.Spike.Motor
+        Motor wheel
+        wheel:Run(360)
+        integer currentVelocity = wheel:GetVelocity()
+    */
     action GetVelocity returns integer
         return GetVelocityNative()
     end

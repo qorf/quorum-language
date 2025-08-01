@@ -265,29 +265,29 @@ class ScatterPlotWriter is ChartWriter
                             end
                             pointSVG:Add(point)
 
-                            if currentPoint:GetSelectionArrow() not= undefined
-                                Array <number> vertices = currentPoint:GetSelectionArrowVertices()
-                                number Yoffset = TranslatePositionY(currentPoint:GetSelectionArrow())
-                                number Xoffset = currentPoint:GetSelectionArrow():GetGlobalX()
-        
-                                Polygon arrow
-                                integer m = 0
-                                repeat while m < vertices:GetSize()
-                                    arrow:AddPoint(vertices:Get(m)+Xoffset, Yoffset+(currentPoint:GetSelectionArrow():GetY()-vertices:Get(m+1)))
-                                    m = m + 2
-                                end
-                                arrow:SetFill(transparent) // Should be transparent until selected 
-                                arrow:SetFillOpacity(transparent)
-                                if HasAccessibility()
-                                    arrow:SetStyleClass("quorum-chart-selection-arrow")
-                                    arrow:SetTabIndex(-1)
-                                    arrow:SetID(pointSVG:GetID() + "_arrow")
-                                    arrow:SetAriaHidden("true")
-                                    pointFocus = pointFocus + "gainFocus('" + arrow:GetID() + "'); "
-                                    pointBlur = pointBlur + "loseFocus('" + arrow:GetID() + "'); "
-                                end
-                                canvas:Add(arrow)
-                            end
+//                            if currentPoint:GetSelectionArrow() not= undefined
+//                                Array <number> vertices = currentPoint:GetSelectionArrowVertices()
+//                                number Yoffset = TranslatePositionY(currentPoint:GetSelectionArrow())
+//                                number Xoffset = currentPoint:GetSelectionArrow():GetGlobalX()
+//        
+//                                Polygon arrow
+//                                integer m = 0
+//                                repeat while m < vertices:GetSize()
+//                                    arrow:AddPoint(vertices:Get(m)+Xoffset, Yoffset+(currentPoint:GetSelectionArrow():GetY()-vertices:Get(m+1)))
+//                                    m = m + 2
+//                                end
+//                                arrow:SetFill(transparent) // Should be transparent until selected 
+//                                arrow:SetFillOpacity(transparent)
+//                                if HasAccessibility()
+//                                    arrow:SetStyleClass("quorum-chart-selection-arrow")
+//                                    arrow:SetTabIndex(-1)
+//                                    arrow:SetID(pointSVG:GetID() + "_arrow")
+//                                    arrow:SetAriaHidden("true")
+//                                    pointFocus = pointFocus + "gainFocus('" + arrow:GetID() + "'); "
+//                                    pointBlur = pointBlur + "loseFocus('" + arrow:GetID() + "'); "
+//                                end
+//                                canvas:Add(arrow)
+//                            end
 
                             if HasAccessibility()
                                 if pointFocus not= ""

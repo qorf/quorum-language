@@ -192,6 +192,7 @@ class FreeTypeStrategy is FontStrategy
         if gameStateManager:GetOperatingSystem() = "Web Browser"
             LoadFontNative(fontName)
             UpdateFontProperties()
+initialized = true
             return now
         end
 
