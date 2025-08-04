@@ -95,15 +95,16 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
         root = document.createElement("div");
         root.setAttribute("aria-label", title);
         root.setAttribute("tabindex", "-1");
-        root.setAttribute("role", "dialog");
+        root.setAttribute("role", "application");
         root.setAttribute("aria-modal", true);
         root.hidden = true;
 
         root.style.position = "absolute";
         root.style.left = 0;
         root.style.bottom = 0;
-        root.style.width = "1px";
-        root.style.height = "1px";
+        root.style.width = "100%";
+        root.style.height = "100%";
+        root.style.overflow = "clip";
 
         // Ensure that bugs in the positioning of shadow elements
         // don't affect the visible layout.
@@ -138,8 +139,8 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
         focusButton.style.position = "absolute";
         focusButton.style.left = 0;
         focusButton.style.bottom = 0;
-        focusButton.style.width = "1px";
-        focusButton.style.height = "1px";
+        focusButton.style.width = "100%";
+        focusButton.style.height = "100%";
 
         // The rationales for the following styles are the same as for the root.
         focusButton.style.filter = "opacity(0%)";
@@ -153,24 +154,26 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
         // the canvas.
         container.insertBefore(focusButton, canvas);
         selectionListener = function(event) {
-            const activeElement = document.activeElement;
-            if(activeElement) {
-                let textElement = activeElement;
-                if (!('quorumItem' in textElement)) {
-                    return;
-                }
-                if (textElement.quorumItem && textElement.quorumItem.SetText$quorum_text)
-                    {
-                        let quorumItem = textElement.quorumItem;
-                        let selection = textElement.quorumItem.GetSelection();
-                        let documentSelection = document.getSelection();
-                        let startIndex = textElement.selectionStart;
-                        let endIndex = textElement.selectionEnd;
-                        if (quorumItem.SetCaretPosition$quorum_integer)
-                        {
-                            quorumItem.SetCaretPosition$quorum_integer(endIndex);
-                        }
+            if (GetWebOperatingSystem() == 'Android' || GetWebOperatingSystem() == 'iOS') {
+                const activeElement = document.activeElement;
+                if(activeElement) {
+                    let textElement = activeElement;
+                    if (!('quorumItem' in textElement)) {
+                        return;
                     }
+                    if (textElement.quorumItem && textElement.quorumItem.SetText$quorum_text)
+                        {
+                            let quorumItem = textElement.quorumItem;
+                            let selection = textElement.quorumItem.GetSelection();
+                            let documentSelection = document.getSelection();
+                            let startIndex = textElement.selectionStart;
+                            let endIndex = textElement.selectionEnd;
+                            if (quorumItem.SetCaretPosition$quorum_integer)
+                            {
+                                quorumItem.SetCaretPosition$quorum_integer(endIndex);
+                            }
+                        }
+                }
             }
         };
         document.addEventListener("selectionchange", selectionListener);
@@ -308,7 +311,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
 
 //  private system action TextSelectionChanged(TextBoxSelection selection)
 this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextBoxSelection = function(selection) {
-    return;
+    
     var textBox = selection.GetTextBox();
     if (textBox == null){
         return;
@@ -326,7 +329,7 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextBoxSelection
 
 //  private system action TextSelectionChanged(TextBoxSelection selection)
 this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelection = function(selection) {
-    return;
+    
     var textField = selection.GetTextField();
     if (textField == null) {
         return;
@@ -464,6 +467,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
 
         var sendInputEvents = false;
         let tablist = null;
+        let tabpanel = null;
 
         switch(item.GetAccessibilityCode()){
             //ITEM or CUSTOM
@@ -619,16 +623,21 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                     let tab = global_CheckCast(item, "Libraries.Interface.Controls.Tab");
                     let tabpane = tab.GetTabPane();
                     if (tabpane != undefined) {
-                        parent = tabpane.GetHashCode()+"-tablist";
+                        parent = tabpane.GetHashCode();
                     }
+                    // create associated tab panel
+                    let tabpanelID = tab.GetHashCode()+"-tabpanel";
+                    tabpanel = document.createElement(elementType);
+                    tabpanel.id = tabpanelID;
+                    tabpanel.role = "tabpanel";
+                    tabpanel.setAttribute("aria-labelledby", tab.GetHashCode());
+                    
+                    para.setAttribute("aria-controls", tabpanelID);
                 }
                 break;
             //TAB_PANE
             case 14:
-                role = "tabpanel";
-                tablist = document.createElement(elementType);
-                tablist.id = id + "-tablist";
-                tablist.role = "tablist";
+                role = "tablist";
                 break;
             //TABLE
             case 15:
@@ -855,19 +864,27 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             // If it can process input events, we'll need to sometimes refer back to the Quorum item in order to update text.
             para.quorumItem = item;
         }
-
+        
         //add element to a parent if need be or directly to the root
         if (parent != undefined) {
             var parentElement = document.getElementById(parent);
+            if(parentElement.role == "tab") {
+                parentElement = document.getElementById(parent+"-tabpanel");
+            }
             if(tablist !== null) {
                 parentElement.appendChild(tablist);
             }
             parentElement.appendChild(para);
-            
+            if(tabpanel !== null) {
+                parentElement.parentNode.appendChild(tabpanel);
+            }
             //console.log(item.GetName(), " has been added to a parent.");
         } else {
             if(tablist !== null) {
                 root.appendChild(tablist);
+            }
+            if(tabpanel !== null) {
+                root.appendChild(tabpanel);
             }
             root.appendChild(para);
             //console.log(item.GetName(), " has been added.");

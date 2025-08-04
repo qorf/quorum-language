@@ -9,7 +9,7 @@ DialogControl::DialogControl(JNIEnv* env, std::wstring&& name, std::wstring&& de
 
 void DialogControl::Close() {
 	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
+	if (env != NULL && javaItem != nullptr)
 	{
 		env->CallObjectMethod(javaItem, JavaClass_Dialog.Hide);
 	}
@@ -17,7 +17,7 @@ void DialogControl::Close() {
 
 bool DialogControl::IsModal() {
 	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
+	if (env != NULL && javaItem != nullptr)
 	{
 		jboolean b = reinterpret_cast<jboolean>(env->CallObjectMethod(javaItem, JavaClass_Dialog.IsModal));
 		bool result = b;

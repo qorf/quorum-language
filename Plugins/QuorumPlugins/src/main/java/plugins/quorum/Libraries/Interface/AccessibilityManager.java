@@ -496,21 +496,23 @@ public class AccessibilityManager
     {
         Long itemToRemove = ITEM_MAP.get(item);
         AccessibilityCodes code = ACCESSIBILITYCODES_MAP.get(item.GetAccessibilityCode());
-        boolean wasRemoved;
+        boolean wasRemoved = false;
         
         // Retreive native pointer for given object
         if (itemToRemove == null)
             return true;
 
-        switch(code)
+        switch (code)
         {
             case MENU_ITEM:
                 MenuItem_ mi = (MenuItem_) item;
                 MenuRoot_ root = mi.GetMenuRoot();
                 int parentCode = root.GetAccessibilityCode();
-                if(parentCode == root.Get_Libraries_Interface_Item__POPUP_MENU_()) {
+                if (parentCode == root.Get_Libraries_Interface_Item__POPUP_MENU_())
+                {
                     wasRemoved = RemovePopupMenuItemNative(itemToRemove);
-                } else {
+                } else
+                {
                     wasRemoved = RemoveMenuItemNative(itemToRemove);
                 }
                 break;
