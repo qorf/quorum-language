@@ -58,6 +58,12 @@ IFACEMETHODIMP TextFieldProvider::GetSelection(_Outptr_result_maybenull_ SAFEARR
 	log("TextFieldProvider::GetSelection Start");
 	#endif
 
+	if (m_control == NULL || m_control->GetMe() == NULL)
+	{
+		// If there's no control to find, we don't try to reference its Quorum values.
+		return E_OUTOFMEMORY;
+	}
+
 	Range caretRange = m_control->GetSelectionRange();
 
 
@@ -140,6 +146,13 @@ IFACEMETHODIMP TextFieldProvider::get_DocumentRange(_Outptr_result_maybenull_ IT
 	log("TextFieldProvider::get_DocumentRange Start");
 	#endif
 
+	if (m_control == NULL || m_control->GetMe() == NULL)
+	{
+		// If there's no control to find, we don't try to reference its Quorum values.
+		*retVal = NULL;
+		return E_OUTOFMEMORY;
+	}
+
 	// Get the full text range that encompasses the document. From the first character on the first line
 	// all the way to the last character on the last line.
 	Range fullDocumentRange = { { 0 }, m_control->GetSize() };
@@ -200,6 +213,14 @@ IFACEMETHODIMP TextFieldProvider::SetValue(LPCWSTR value)
 
 IFACEMETHODIMP TextFieldProvider::get_Value(BSTR* returnValue)
 {
+	if (m_control == NULL || m_control->GetMe() == NULL)
+	{
+		// If there's no control to find, we don't try to reference its Quorum values.
+		std::wstring text = L"";
+		*returnValue = SysAllocStringLen(text.data(), static_cast<UINT>(text.size()));
+		return S_OK;
+	}
+
 	#if LOG
 	log("TextFieldProvider::get_Value Start");
 	#endif
