@@ -502,40 +502,32 @@ public class AccessibilityManager
         if (itemToRemove == null)
             return true;
 
-        try
+        switch (code)
         {
-            switch (code)
-            {
-                case MENU_ITEM:
-                    MenuItem_ mi = (MenuItem_) item;
-                    MenuRoot_ root = mi.GetMenuRoot();
-                    int parentCode = root.GetAccessibilityCode();
-                    if (parentCode == root.Get_Libraries_Interface_Item__POPUP_MENU_())
-                    {
-                        wasRemoved = RemovePopupMenuItemNative(itemToRemove);
-                    } else
-                    {
-                        wasRemoved = RemoveMenuItemNative(itemToRemove);
-                    }
-                    break;
-                case TREE_ITEM:
-                    wasRemoved = RemoveTreeItemNative(itemToRemove);
-                    break;
-                case TABLE:
-                    wasRemoved = RemoveNative(itemToRemove);
-                    break;
-                case CELL:
-                    wasRemoved = RemoveNative(itemToRemove);
-                    break;
-                default:
-                    wasRemoved = RemoveNative(itemToRemove);
-                    break;
-            }
-        }
-        catch (Throwable e)
-        {
-            // Fail silently. We don't want to crash the application if the accessibility system hits a snag.
-            //e.printStackTrace();
+            case MENU_ITEM:
+                MenuItem_ mi = (MenuItem_) item;
+                MenuRoot_ root = mi.GetMenuRoot();
+                int parentCode = root.GetAccessibilityCode();
+                if (parentCode == root.Get_Libraries_Interface_Item__POPUP_MENU_())
+                {
+                    wasRemoved = RemovePopupMenuItemNative(itemToRemove);
+                } else
+                {
+                    wasRemoved = RemoveMenuItemNative(itemToRemove);
+                }
+                break;
+            case TREE_ITEM:
+                wasRemoved = RemoveTreeItemNative(itemToRemove);
+                break;
+            case TABLE:
+                wasRemoved = RemoveNative(itemToRemove);
+                break;
+            case CELL:
+                wasRemoved = RemoveNative(itemToRemove);
+                break;
+            default:
+                wasRemoved = RemoveNative(itemToRemove);
+                break;
         }
         
         if (wasRemoved) {

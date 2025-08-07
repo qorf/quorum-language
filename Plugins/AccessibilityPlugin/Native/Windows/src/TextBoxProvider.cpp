@@ -147,7 +147,6 @@ IFACEMETHODIMP TextBoxProvider::get_Value(BSTR* returnValue)
 #if LOG
 	log("TextFieldProvider::get_Value Start");
 #endif
-
 	std::wstring text = m_control->GetText();
 	*returnValue = SysAllocStringLen(text.data(), static_cast<UINT>(text.size()));
 

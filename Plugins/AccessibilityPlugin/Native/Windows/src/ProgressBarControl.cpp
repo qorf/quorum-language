@@ -11,7 +11,7 @@ ProgressBarControl::ProgressBarControl(JNIEnv* env, std::wstring&& name, std::ws
 
 double ProgressBarControl::GetValue() {
 	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
+	if (env != NULL && javaItem != nullptr)
 	{
 		jdouble value = env->CallDoubleMethod(javaItem, JavaClass_ProgressBar.GetValue);
 		return (int) value;
@@ -54,7 +54,7 @@ double ProgressBarControl::GetPercent(double value) {
 
 double ProgressBarControl::GetMinimum() {
 	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
+	if (env != NULL && javaItem != nullptr)
 	{
 		jdouble value = env->CallDoubleMethod(javaItem, JavaClass_ProgressBar.GetMinimum);
 		return value;
@@ -63,7 +63,7 @@ double ProgressBarControl::GetMinimum() {
 }
 double ProgressBarControl::GetMaximum() {
 	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
+	if (env != NULL && javaItem != nullptr)
 	{
 		jdouble value = env->CallDoubleMethod(javaItem, JavaClass_ProgressBar.GetMaximum);
 		return value;

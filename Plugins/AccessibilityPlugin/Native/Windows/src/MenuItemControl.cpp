@@ -40,7 +40,7 @@ void MenuItemControl::NotifyExpandCollapse()
 std::wstring MenuItemControl::GetMnemonic()
 {
 	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
+	if (env != NULL && javaItem != nullptr)
 	{
 		jstring jText = reinterpret_cast<jstring>(env->CallObjectMethod(javaItem, JavaClass_MenuItem.GetMnemonic));
 

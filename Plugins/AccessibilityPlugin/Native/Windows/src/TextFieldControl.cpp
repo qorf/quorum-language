@@ -30,7 +30,7 @@ std::wstring TextFieldControl::GetText(int startIndex, int endIndex)
 	}
 
 	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
+	if (env != NULL && javaItem != nullptr)
 	{
 		jstring jText = reinterpret_cast<jstring>(env->CallObjectMethod(javaItem, JavaClass_TextField.GetPartialText, startIndex, endIndex));
 
@@ -50,7 +50,7 @@ int TextFieldControl::GetSize()
 	JNIEnv* env = GetJNIEnv();
 
 	jint size = 0;
-	if (env != NULL)
+	if (env != NULL && javaItem != nullptr)
 	{
 		size = env->CallIntMethod(javaItem, JavaClass_TextField.GetSize);
 	}
@@ -66,7 +66,7 @@ int TextFieldControl::GetIndexOfLine(int /* line */)
 bool TextFieldControl::IsBeginningOfToken(int index)
 {
 	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
+	if (env != NULL && javaItem != nullptr)
 	{
 		if (env->CallBooleanMethod(javaItem, JavaClass_TextField.IsBeginningOfToken, index))
 		{
@@ -86,7 +86,7 @@ Range TextFieldControl::GetSelectionRange()
 {
 	JNIEnv* env = GetJNIEnv();
 	Range selectionRange = { {0}, {0} };
-	if (env != NULL)
+	if (env != NULL && javaItem != nullptr)
 	{
 		jint index = 0;
 		jobject JO_selection;
@@ -106,7 +106,7 @@ Range TextFieldControl::GetSelectionRange()
 void TextFieldControl::Select(const Range& range)
 {
 	JNIEnv* env = GetJNIEnv();
-	if (env != NULL)
+	if (env != NULL && javaItem != nullptr)
 	{
 		env->CallVoidMethod(javaItem, JavaClass_TextField.Select, range.begin, range.end);
 	}
@@ -121,7 +121,7 @@ bool TextFieldControl::IsPassword()
 {
 	JNIEnv* env = GetJNIEnv();
 
-	if (env == NULL)
+	if (env == NULL || javaItem != nullptr)
 	{
 		// If the JNI environment isn't available, we can't call up to it.
 		return false;
