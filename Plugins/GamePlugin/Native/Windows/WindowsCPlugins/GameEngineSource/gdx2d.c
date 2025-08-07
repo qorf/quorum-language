@@ -223,7 +223,7 @@ static __inline get_pixel_func get_pixel_func_ptr(uint32_t format) {
 gdx2d_pixmap* gdx2d_load(const unsigned char *buffer, uint32_t len) {
 	int32_t width, height, format;
     
-	const unsigned char* pixels = stbi_load_from_memory(buffer, len, &width, &height, &format, 0);
+	const unsigned char* pixels = stbi_load_from_memory(buffer, len, &width, &height, &format, 4);
 	if (pixels == NULL) {
 		pixels = jpgd_decompress_jpeg_image_from_memory(buffer, len, &width, &height, &format, 3);
 	}

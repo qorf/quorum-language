@@ -79,6 +79,7 @@ public class VulkanDescriptorSet
             writeDescriptorSets.get(0).dstBinding(quorumResources.GetDestinationBinding());
             writeDescriptorSets.get(0).descriptorType(quorumResources.GetDescriptorType());
             writeDescriptorSets.get(0).descriptorCount(quorumResources.GetDescriptorCount());
+            writeDescriptorSets.get(0).dstArrayElement(quorumResources.GetDestinationArrayElement());
             System.out.println("In LinkResources, binding = " + writeDescriptorSets.get(0).dstBinding() + ", descriptor count = " + writeDescriptorSets.get(0).descriptorCount());
 
             if (quorumBuffers != null && quorumBuffers.IsEmpty() == false)
@@ -147,6 +148,7 @@ public class VulkanDescriptorSet
                 writeDescriptorSets.get(j).dstBinding(quorumResources.GetDestinationBinding());
                 writeDescriptorSets.get(j).descriptorType(quorumResources.GetDescriptorType());
                 writeDescriptorSets.get(j).descriptorCount(quorumResources.GetDescriptorCount());
+                writeDescriptorSets.get(j).dstArrayElement(quorumResources.GetDestinationArrayElement());
 
                 if (quorumBuffers != null && quorumBuffers.IsEmpty() == false)
                 {

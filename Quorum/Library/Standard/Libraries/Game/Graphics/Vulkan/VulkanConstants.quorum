@@ -705,5 +705,31 @@ shared class VulkanConstants
     public constant integer DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT = 8
     public constant integer DESCRIPTOR_BINDING_DYNAMIC = 15
 
-    
+    /*
+Constants used for blending, which describe how colors are mixed together (e.g.,  for transparency).
+*/
+    public constant integer BLEND_FACTOR_ZERO = 0
+    public constant integer BLEND_FACTOR_ONE = 1
+    public constant integer BLEND_FACTOR_SOURCE_COLOR = 2
+    public constant integer BLEND_FACTOR_ONE_MINUS_SOURCE_COLOR = 3
+    public constant integer BLEND_FACTOR_DESTINATION_COLOR = 4
+    public constant integer BLEND_FACTOR_ONE_MINUS_DESTINATION_COLOR = 5
+    public constant integer BLEND_FACTOR_SOURCE_ALPHA = 6
+    public constant integer BLEND_FACTOR_ONE_MINUS_SOURCE_ALPHA = 7
+    public constant integer BLEND_FACTOR_DESTINATION_ALPHA = 8
+    public constant integer BLEND_FACTOR_ONE_MINUS_DESTINATION_ALPHA = 9
+    public constant integer BLEND_FACTOR_CONSTANT_COLOR = 10
+    public constant integer BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR = 11
+    public constant integer BLEND_FACTOR_CONSTANT_ALPHA = 12
+    public constant integer BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA = 13
+    public constant integer BLEND_FACTOR_SRC_ALPHA_SATURATE = 14
+    public constant integer BLEND_FACTOR_SOURCE1_COLOR = 15
+    public constant integer BLEND_FACTOR_ONE_MINUS_SOURCE1_COLOR = 16
+    public constant integer BLEND_FACTOR_SOURCE1_ALPHA = 17
+    public constant integer BLEND_FACTOR_ONE_MINUS_SOURCE1_ALPHA = 18
+    public constant integer BLEND_OP_ADD = 0
+    public constant integer BLEND_OP_SUBTRACT = 1
+    public constant integer BLEND_OP_REVERSE_SUBTRACT = 2
+    public constant integer BLEND_OP_MIN = 3
+    public constant integer BLEND_OP_MAX = 4
 end

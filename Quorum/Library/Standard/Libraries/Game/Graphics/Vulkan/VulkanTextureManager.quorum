@@ -97,12 +97,14 @@ class VulkanTextureManager
 
                 if formatValue = format:RGBA8888
                     pixelSize = 4
-                elseif formatValue = format:ALPHA or formatValue = format:LUMINANCE_ALPHA
+                elseif formatValue = format:ALPHA
                     pixelSize = 1
                 elseif formatValue = format:RGB888
                     pixelSize = 3
-                elseif formatValue = format:RGB565 or formatValue = format:RGBA4444
+                elseif formatValue = format:LUMINANCE_ALPHA or formatValue = format:RGB565 or formatValue = format:RGBA4444
                     pixelSize = 2
+                else
+                    output "WARNING: Unknown pixel format = " + formatValue + "!"
                 end
 
 
@@ -183,6 +185,7 @@ class VulkanTextureManager
                 VulkanDescriptorResourcesInfo resourcesInfo
                 resourcesInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_SAMPLED_IMAGE)
                 resourcesInfo:SetDestinationArrayElement(texture:GetVulkanTextureIndex())
+                output "Destination array element = " + resourcesInfo:GetDestinationArrayElement()
                 resourcesInfo:AddImageInfo(undefined, view, constants:IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
                 globalTextureDescriptorSet:LinkResources(resourcesInfo)
   

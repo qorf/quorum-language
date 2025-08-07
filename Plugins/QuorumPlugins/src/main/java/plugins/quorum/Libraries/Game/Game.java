@@ -11,6 +11,7 @@ import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import android.util.Log;
+import quorum.Libraries.Game.DesktopConfiguration_;
 import quorum.Libraries.Game.Game_;
 import quorum.Libraries.Game.Graphics.GraphicsManager_;
 import quorum.Libraries.Game.Graphics.OpenGL.AndroidOpenGL;
@@ -147,10 +148,11 @@ public class Game
             else
             {
                 boolean supportsVulkan = DesktopDisplay.IsVulkanSupported();
+                DesktopConfiguration_ config = GameStateManager.game.GetDesktopConfiguration();
 
                 // If the Display can support Vulkan, try to create Vulkan graphics.
                 // This might fail at some point along the way. If it does, we'll fall back to OpenGL after.
-                if (supportsVulkan)
+                if (supportsVulkan && config.Get_Libraries_Game_DesktopConfiguration__useVulkan_())
                 {
                     System.out.println("Creating Vulkan graphics...");
                     VulkanGraphics vulkanGraphics = new VulkanGraphics();
@@ -164,7 +166,7 @@ public class Game
                         graphics = vulkanGraphics;
                 }
 
-                if (supportsVulkan == false)
+                if (supportsVulkan == false || config.Get_Libraries_Game_DesktopConfiguration__useVulkan_() == false)
                 {
                     System.out.println("GAME INIT -- FALLBACK: Creating OpenGL graphics.");
                     graphics = new DesktopOpenGL();

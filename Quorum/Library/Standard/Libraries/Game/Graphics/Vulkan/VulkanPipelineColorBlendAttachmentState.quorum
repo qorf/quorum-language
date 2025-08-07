@@ -20,6 +20,25 @@ class VulkanPipelineColorBlendAttachmentState
         colorWriteMask = bits:Or(constants:COLOR_COMPONENT_R_BIT, bits:Or(constants:COLOR_COMPONENT_G_BIT, bits:Or(constants:COLOR_COMPONENT_B_BIT, constants:COLOR_COMPONENT_A_BIT)))
     end
 
+    /*This action sets the object to use reasonable default values for blending to support transparency. These are:
+* blendEnable = true
+* sourceColorBlendFactor = BLEND_FACTOR_SOURCE_ALPHA
+* destinationColorBlendFactor = BLEND_FACTOR_ONE_MINUS_SOURCE_ALPHA
+* colorBlendOp = BLEND_OP_ADD
+* sourceAlphaBlendFactor = BLEND_FACTOR_ONE
+* destinationAlphaBlendFactor = BLEND_FACTOR_ZERO
+* alphaBlendOp = BLEND_OP_ADD*/
+    action EnableDefaultTransparency
+        VulkanConstants constants
+        
+        blendEnable = true
+        sourceColorBlendFactor = constants:BLEND_FACTOR_SOURCE_ALPHA
+        destinationColorBlendFactor = constants:BLEND_FACTOR_ONE_MINUS_SOURCE_ALPHA
+        colorBlendOp = constants:BLEND_OP_ADD
+        sourceAlphaBlendFactor = constants:BLEND_FACTOR_ONE
+        destinationAlphaBlendFactor = constants:BLEND_FACTOR_ZERO
+        alphaBlendOp = constants:BLEND_OP_ADD
+    end
 
     action Copy returns VulkanPipelineColorBlendAttachmentState
         VulkanPipelineColorBlendAttachmentState copy

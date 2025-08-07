@@ -220,8 +220,9 @@ class VulkanPainter2D is Painter2D
 
 
 
-            // Define the color blend attachment states. Just creating and adding it is enough, the default values work for us.
+            // Define the color blend attachment states, and use default transparency values.
             VulkanPipelineColorBlendAttachmentState colorBlend
+            colorBlend:EnableDefaultTransparency()
             colorBlendAttachments:Add(colorBlend)
 
 
