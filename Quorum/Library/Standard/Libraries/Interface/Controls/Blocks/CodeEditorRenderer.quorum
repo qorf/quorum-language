@@ -788,8 +788,14 @@ class CodeEditorRenderer is Control
         movingEndIndex = movingBlocks:GetFromEnd():GetEndIndex()
         
         // Capture leading spaces
+        boolean foundWhitespace = false
         repeat while movingStartIndex > 0 and code:GetText(movingStartIndex - 1, movingStartIndex) = " "
+            foundWhitespace = true
             movingStartIndex = movingStartIndex - 1
+        end
+        // if there was whitespace but there is a non whitespace character it might be more code so leave a single space at least
+        if foundWhitespace and code:GetText(movingStartIndex -1, movingStartIndex) not= newLine:GetLineFeed()
+            movingStartIndex = movingStartIndex + 1
         end
         
         // Capture trailing new line
