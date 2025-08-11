@@ -207,6 +207,24 @@ shared class ColorNamer
     action GetNameAsPercentage(number red, number green, number blue) returns text
         return GetName(red * 255.0, green * 255.0, blue * 255.0)
     end
+    
+/*
+        From a red, green, blue value, outputs the closest name in the set of common w3C colors. In
+        this case, the colors go from 0 to 1. The system automatically multiplies this percentage
+        by 255 for the calculation.
+
+        Attribute: Example
+
+        use Libraries.Game.Graphics.ColorNamer
+    
+        ColorNamer namer
+        Color color
+        color = color:CustomColor(117,243,56,1)
+        output namer:GetName(color) //outputs "YellowGreen"
+    */
+    action GetName(Color color) returns text
+        return GetNameAsPercentage(color:GetRed(), color:GetGreen(), color:GetBlue())
+    end
 
     /*
         From a red, green, blue value, outputs the closest name in the set of common w3C colors. In

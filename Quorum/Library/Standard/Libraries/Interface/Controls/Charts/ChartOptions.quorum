@@ -216,7 +216,7 @@ shared class ChartOptions
     end
 
     private action DefaultPalette() returns Array <Color>
-        return ColorgoricalPalette()
+        return DefaultLightPalette()
     end
 
     private action DefaultPatternPalette() returns Array <integer>
@@ -774,6 +774,49 @@ shared class ChartOptions
 
         return palette
     end
+    
+    
+private action DefaultLightPalette returns Array <Color>
+Array <Color> palette
+        //Dark Slate Blue
+color:SetColor(59.0/255, 62.0/255, 172.0/255, 1)
+        palette:Add(color:Copy())
+        
+//Light Sea Green
+color:SetColor(33.0/255, 166.0/255, 149.0/255, 1)
+        palette:Add(color:Copy())
+        
+        //Fire Brick Red
+color:SetColor(184.0/255, 46.0/255, 46.0/255, 1)
+        palette:Add(color:Copy())
+        
+        //Dark GoldenRod
+color:SetColor(214.0/255, 128.0/255, 0.0/255, 1)
+        palette:Add(color:Copy())
+        
+//Dark Magenta
+color:SetColor(153.0/255, 0.0/255, 153.0/255, 1)
+        palette:Add(color:Copy())
+        
+//light sea green
+color:SetColor(0.0/255, 153.0/255, 198.0/255, 1)
+        palette:Add(color:Copy())
+        
+//Red Brown
+color:SetColor(221.0/255, 68.0/255, 119.0/255, 1)
+        palette:Add(color:Copy())
+        
+//Forest Green
+color:SetColor(16.0/255, 150.0/255, 24.0/255, 1)
+        palette:Add(color:Copy())
+        
+//Slate Blue
+color:SetColor(102.0/255, 51.0/255, 204.0/255, 1)
+        palette:Add(color:Copy())
+        
+        return palette
+    end
+    
     /*
         This action builds an interpolated palette between two colors and produces the passed number of colors for optimal contrast.
 
