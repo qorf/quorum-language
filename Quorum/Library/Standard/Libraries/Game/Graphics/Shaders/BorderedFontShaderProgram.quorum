@@ -2,6 +2,9 @@ package Libraries.Game.Graphics.Shaders
 
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.BorderedFontVertexShaderOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.BorderedFontFragmentShaderOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.BorderedFontShaderMappingOpenGL
 
 class BorderedFontShaderProgram is ShaderProgram
 
@@ -10,13 +13,13 @@ class BorderedFontShaderProgram is ShaderProgram
     on create
         SetName(PROGRAM_NAME)
 
-        BorderedFontVertexShader vertex
-        BorderedFontFragmentShader fragment
+        BorderedFontVertexShaderOpenGL vertex
+        BorderedFontFragmentShaderOpenGL fragment
 
         Add(vertex)
         Add(fragment)
 
-        BorderedFontShaderMapping mapping
+        BorderedFontShaderMappingOpenGL mapping
         SetShaderMapping(mapping)
     end
 

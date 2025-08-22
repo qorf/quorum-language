@@ -1,0 +1,77 @@
+package Libraries.Game.Graphics.Shaders
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+use Libraries.Game.Graphics.Renderable
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Mesh
+use Libraries.Game.Graphics.Camera
+
+/*This class is an interface used by the ShaderProgram class to handle the very different ways that
+shaders are used across different graphics libraries like OpenGL and Vulkan.*/
+class ShaderProgramStrategy
+    
+ShaderProgram program = undefined
+    
+// The ordered array of shaders in this program.
+    Array<Shader> shaders
+    
+// The integer handle provided by the rendering system for this shader program.
+    // This value is -1 if it hasn't been loaded yet.
+    integer programHandle = -1
+boolean compiled = false
+    
+action Add(Shader shader)
+        shaders:Add(shader)
+    end
+
+    action Remove(Shader shader)
+        shaders:Remove(shader)
+    end
+
+    action GetShaderIterator returns Iterator<Shader>
+        return shaders:GetIterator()
+    end
+
+    /*
+    This action returns a unique ID representing this shader program. This is provided by
+    the rendering system once the program has been compiled. If this program hasn't been
+    compiled yet, this value will be -1.
+    */
+    action GetID returns integer
+        return programHandle
+    end
+    
+action IsCompiled returns boolean
+        return compiled
+    end
+    
+    blueprint action Compile
+    
+    blueprint action Begin
+    
+    blueprint action End
+    
+    blueprint action Dispose
+    
+blueprint action Render(Renderable renderable)
+
+    blueprint action Draw(Drawable drawable)
+
+    blueprint action Draw(Drawable drawable, integer startIndex, integer totalIndices)
+
+    blueprint action Draw(Mesh mesh, Camera camera, integer startIndex, integer totalIndices)
+
+    blueprint action Draw(Mesh mesh, Camera camera, integer startIndex, integer totalIndices, Array<integer> vertexLocations)
+    
+    action Reload
+    end
+    
+    action GetProgram returns ShaderProgram
+        return program
+    end
+
+    action SetProgram(ShaderProgram program)
+        me:program = program
+    end
+
+end

@@ -1,6 +1,9 @@
 package Libraries.Game.Graphics.Shaders
 
 use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.PatternControlVertexShaderOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.HollowBoxPatternControlFragmentShaderOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.PatternControlShaderMappingOpenGL
 
 class HollowBoxPatternControlShaderProgram is ShaderProgram
 
@@ -17,7 +20,7 @@ class HollowBoxPatternControlShaderProgram is ShaderProgram
             Shader vertex = manager:GetShader(VERTEX_NAME)
             Add(vertex)
         else
-            PatternControlVertexShader vertex
+            PatternControlVertexShaderOpenGL vertex
             Add(vertex)
         end
 
@@ -25,11 +28,11 @@ class HollowBoxPatternControlShaderProgram is ShaderProgram
             Shader fragment = manager:GetShader(FRAGMENT_NAME)
             Add(fragment)
         else
-            HollowBoxPatternControlFragmentShader fragment
+            HollowBoxPatternControlFragmentShaderOpenGL fragment
             Add(fragment)
         end
 
-        PatternControlShaderMapping mapping
+        PatternControlShaderMappingOpenGL mapping
         SetShaderMapping(mapping)
     end
 

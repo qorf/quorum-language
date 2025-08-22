@@ -1,0 +1,23 @@
+package Libraries.Game.Graphics.Shaders.OpenGL.Fragment
+
+class SolidBoxPatternWedgeFragmentShaderOpenGL is WedgeFragmentShaderOpenGL, SolidBoxPatternFragmentShaderPartOpenGL
+
+    constant text SHADER_NAME = "Solid Box Pattern Wedge Fragment Shader"
+
+    on create
+        SetName(SHADER_NAME)
+    end
+
+    private action GetExtraFunctions returns text
+        return parent:SolidBoxPatternFragmentShaderPartOpenGL:GetExtraFunctions()
+    end
+
+    private action GetExtraInputs returns text
+        return parent:SolidBoxPatternFragmentShaderPartOpenGL:GetExtraInputs()
+    end
+
+    private action GetAppendedCode returns text
+        return parent:SolidBoxPatternFragmentShaderPartOpenGL:GetAppendedCode()
+    end
+
+end

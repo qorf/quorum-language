@@ -1,0 +1,112 @@
+package Libraries.Game.Graphics.Shaders.Vulkan
+
+use Libraries.Game.Graphics.Shaders.ShaderProgramStrategy
+use Libraries.Game.Graphics.Renderable
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Mesh
+use Libraries.Game.Graphics.Camera
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Vulkan.VulkanPipeline
+use Libraries.Game.Graphics.Vulkan.VulkanRenderPass
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfo
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.VulkanShaderMapping
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineCache
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.ShaderProgram
+
+class VulkanShaderProgram is ShaderProgramStrategy
+    
+    // The Pipeline this program represents and handles.
+    VulkanPipeline pipeline = undefined
+    
+    action Compile
+        if IsCompiled()
+            return now
+        end
+        
+        Array<Shader> shaders = parent:ShaderProgramStrategy:shaders
+        integer i = 0
+        repeat while i < shaders:GetSize()
+            Shader shader = shaders:Get(i)
+            if shader:IsCompiled() = false
+                shader:Compile()
+            end
+            i = i + 1
+        end
+        
+        parent:ShaderProgramStrategy:compiled = true
+    end
+    
+    action CreatePipeline(VulkanRenderPass renderPass)
+        if pipeline not= undefined
+            pipeline:Dispose()
+        end
+        
+        Compile()
+        
+        VulkanPipeline newPipeline
+        pipeline = newPipeline
+        
+        VulkanDevice device = renderPass:GetDevice()
+        VulkanPipelineInfo info = GetShaderMapping():CreatePipelineInfo(me, device)
+        Array<Shader> shaders = parent:ShaderProgramStrategy:shaders
+        
+        GameStateManager gameState
+VulkanShaderManager shaderManager = cast(VulkanShaderManager, gameState:GetShaderManager())
+VulkanPipelineCache cache = shaderManager:GetPipelineCache()
+        
+// The info structure has lots of other values we could customize, but all of the default values will work well for us here.
+            // We can now create the Pipeline itself.
+            boolean success = pipeline:Create(device, renderPass, cache, shaders, info)
+            
+            if not success
+                pipeline:Dispose()
+            alert("Failed to create Vulkan pipeline for ShaderProgram: " + GetProgram():GetName())
+            end
+    end
+    
+    action Begin
+    end
+    
+    action End
+    end
+    
+    action Dispose
+    end
+    
+action Render(Renderable renderable)
+
+    end
+
+    action Draw(Drawable drawable)
+
+    end
+
+    action Draw(Drawable drawable, integer startIndex, integer totalIndices)
+
+    end
+
+    action Draw(Mesh mesh, Camera camera, integer startIndex, integer totalIndices)
+
+    end
+
+    action Draw(Mesh mesh, Camera camera, integer startIndex, integer totalIndices, Array<integer> vertexLocations)
+
+    end
+    
+    action GetShaderMapping returns VulkanShaderMapping
+        ShaderProgram program = GetProgram()
+        if program not= undefined and program:GetShaderMapping() is VulkanShaderMapping
+            return cast(VulkanShaderMapping, program:GetShaderMapping())
+        end
+        
+        return undefined
+    end
+    
+    action GetPipeline returns VulkanPipeline
+        return pipeline
+    end
+
+end

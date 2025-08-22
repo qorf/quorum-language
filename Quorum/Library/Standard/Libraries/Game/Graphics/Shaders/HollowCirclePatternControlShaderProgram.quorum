@@ -1,5 +1,9 @@
 package Libraries.Game.Graphics.Shaders
+
 use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.PatternControlShaderMappingOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.PatternControlVertexShaderOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.HollowCirclePatternControlFragmentShaderOpenGL
 
 class HollowCirclePatternControlShaderProgram is ShaderProgram
 
@@ -16,7 +20,7 @@ class HollowCirclePatternControlShaderProgram is ShaderProgram
             Shader vertex = manager:GetShader(VERTEX_NAME)
             Add(vertex)
         else
-            PatternControlVertexShader vertex
+            PatternControlVertexShaderOpenGL vertex
             Add(vertex)
         end
 
@@ -24,11 +28,11 @@ class HollowCirclePatternControlShaderProgram is ShaderProgram
             Shader fragment = manager:GetShader(FRAGMENT_NAME)
             Add(fragment)
         else
-            HollowCirclePatternControlFragmentShader fragment
+            HollowCirclePatternControlFragmentShaderOpenGL fragment
             Add(fragment)
         end
 
-        PatternControlShaderMapping mapping
+        PatternControlShaderMappingOpenGL mapping
         SetShaderMapping(mapping)
     end
 

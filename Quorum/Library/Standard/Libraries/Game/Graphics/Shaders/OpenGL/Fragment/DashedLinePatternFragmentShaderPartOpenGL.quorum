@@ -1,0 +1,47 @@
+package Libraries.Game.Graphics.Shaders.OpenGL.Fragment
+
+/*
+The DashedLinePatternFragmentShaderPart isn't a full fragment shader, but rather
+a post-processing "addendum" to be used alongside another, full shader,
+such as the ControlFragmentShader.
+*/
+class DashedLinePatternFragmentShaderPartOpenGL
+
+    private action GetExtraInputs returns text
+        return 
+"in float v_patternDistance;
+in float v_patternRotation;
+in float v_patternThickness;
+in vec4 v_patternColor;"
+    end
+
+    private action GetAppendedCode returns text
+        return "resultColor = postProcess(resultColor);"
+    end
+
+    private action GetExtraFunctions returns text
+        return "vec4 postProcess(vec4 startColor)
+{
+    vec2 point = (v_texCoords.xy - 0.5) * 2.0;
+    point.x = point.x * v_aspectRatio;
+    point = vec2(point.x * cos(v_patternRotation) - point.y * sin(v_patternRotation), point.y * cos(v_patternRotation) + point.x * sin(v_patternRotation));
+    point.x = point.x / v_aspectRatio;
+    point = (point.xy + 1.0) / 2.0;
+
+    float x = mod(point.x, v_patternDistance);
+    float xDistance = abs(x - (v_patternDistance / 2.0));
+    float distance = xDistance;
+
+    float y = mod(point.y / v_aspectRatio, v_patternDistance);
+
+    if (y < v_patternDistance * 0.25 || y > v_patternDistance * 0.75)
+        distance = v_patternThickness;
+
+    vec4 result = mix(v_patternColor, startColor, smoothstep(0.0, v_patternThickness / 2.0, distance));
+    result.a = startColor.a;
+
+    return result;
+}"
+    end
+
+end

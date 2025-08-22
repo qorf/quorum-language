@@ -1,0 +1,155 @@
+package Libraries.Game.Graphics.Shaders.OpenGL.Vertex
+
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.DefaultAttributeNames
+
+class DefaultVertexShader3DOpenGL is Shader
+
+    on create
+        SetType(parent:Shader:VERTEX_SHADER)
+        GameStateManager manager
+        ShaderManager shaderManager = manager:GetShaderManager()
+        SetName(shaderManager:DEFAULT_3D_VERTEX_SHADER)
+        
+        DefaultAttributeNames attributes
+        SetCode(GetVersionHeader() +
+"
+" +
+"// True if item has a diffuse texture, false otherwise
+uniform bool enableDiffuseTexture; 
+
+// Used if enableDiffuseTexture
+uniform vec4 u_diffuseUVTransform;
+out vec2 v_diffuseUV;
+
+// True if item has a specular texture, false otherwise
+uniform bool enableSpecularTexture; 
+
+// Used if enableSpecularTexture
+uniform vec4 u_specularUVTransform;
+out vec2 v_specularUV;
+
+// Used if enableDiffuseTexture or enableSpecularTexture
+in vec2 a_texCoord0;
+
+
+// True if lighting AND normals are available, false otherwise.
+uniform bool enableLighting; 
+
+// Used if enableLighting
+out vec3 v_lightDiffuse;
+in vec3 a_normal;     // Mandatory value if enableLighting is true
+uniform mat3 u_normalMatrix; // Mandatory value is enableLighting is true
+uniform int directionalLightCount;
+uniform int pointLightCount;
+uniform vec3 u_ambientCubemap[6];
+
+// Guaranteed true if enableSpecularTexture is true, but can also be true even if enableSpecularTexture is false.
+uniform bool enableSpecular;
+
+// Used if enableSpecular
+out vec3 v_lightSpecular; // Will default to (0, 0, 0) and passed through if enableSpecular is false
+uniform vec4 u_cameraPosition; 
+
+
+
+// Always used
+layout (location = 0) in vec3 a_position;
+layout (location = 1) in vec4 a_color; // Defaults to (1, 1, 1, 1)
+uniform mat4 u_projViewTrans;
+uniform mat4 u_worldTrans;
+uniform float u_shininess; // Defaults to 20.0
+out vec4 v_color;
+
+
+
+// Used if directionalLightCount > 0
+struct DirectionalLight
+{
+    vec3 color;
+    vec3 direction;
+};
+uniform DirectionalLight u_dirLights[2];
+
+// Used if pointLightCount > 0
+struct PointLight
+{
+    vec3 color;
+    vec3 position;
+};
+uniform PointLight u_pointLights[5];
+
+void main() {
+    if (enableDiffuseTexture)
+        v_diffuseUV = u_diffuseUVTransform.xy + a_texCoord0 * u_diffuseUVTransform.zw;
+    
+    if (enableSpecularTexture)
+        v_specularUV = u_specularUVTransform.xy + a_texCoord0 * u_specularUVTransform.zw;
+    
+    v_color = a_color;
+    vec4 pos = u_worldTrans * vec4(a_position, 1.0);
+    gl_Position = u_projViewTrans * pos;
+    
+    if (enableLighting)
+    {
+        vec3 normal = normalize(u_normalMatrix * a_normal);
+        vec3 squaredNormal = normal * normal;
+        vec3 isPositive  = step(0.0, normal);
+        v_lightDiffuse = squaredNormal.x * mix(u_ambientCubemap[0], u_ambientCubemap[1], isPositive.x) +
+                        squaredNormal.y * mix(u_ambientCubemap[2], u_ambientCubemap[3], isPositive.y) +
+                        squaredNormal.z * mix(u_ambientCubemap[4], u_ambientCubemap[5], isPositive.z);
+
+        v_lightSpecular = vec3(0.0);
+        
+        if (!enableSpecular)
+        {
+            for (int i = 0; i < directionalLightCount; i++) 
+            {
+                vec3 lightDir = -u_dirLights[i].direction;
+                float NdotL = clamp(dot(normal, lightDir), 0.0, 1.0);
+                vec3 value = u_dirLights[i].color * NdotL;
+                v_lightDiffuse += value;
+            }
+
+            for (int i = 0; i < pointLightCount; i++) 
+            {
+                vec3 lightDir = u_pointLights[i].position - pos.xyz;
+                float dist2 = dot(lightDir, lightDir);
+                lightDir *= inversesqrt(dist2);
+                float NdotL = clamp(dot(normal, lightDir), 0.0, 1.0);
+                vec3 value = u_pointLights[i].color * (NdotL / (1.0 + dist2));
+                v_lightDiffuse += value;
+            }
+        }
+        else
+        {
+            vec3 viewVec = normalize(u_cameraPosition.xyz - pos.xyz);
+                
+            for (int i = 0; i < directionalLightCount; i++) {
+                vec3 lightDir = -u_dirLights[i].direction;
+                float NdotL = clamp(dot(normal, lightDir), 0.0, 1.0);
+                vec3 value = u_dirLights[i].color * NdotL;
+                v_lightDiffuse += value;
+                float halfDotView = max(0.0, dot(normal, normalize(lightDir + viewVec)));
+                v_lightSpecular += value * pow(halfDotView, u_shininess);
+            }
+
+            for (int i = 0; i < pointLightCount; i++) {
+                vec3 lightDir = u_pointLights[i].position - pos.xyz;
+                float dist2 = dot(lightDir, lightDir);
+                lightDir *= inversesqrt(dist2);
+                float NdotL = clamp(dot(normal, lightDir), 0.0, 1.0);
+                vec3 value = u_pointLights[i].color * (NdotL / (1.0 + dist2));
+                v_lightDiffuse += value;
+                float halfDotView = max(0.0, dot(normal, normalize(lightDir + viewVec)));
+                v_lightSpecular += value * pow(halfDotView, u_shininess);
+            }
+        }
+    }
+}"
+)
+    end
+
+end

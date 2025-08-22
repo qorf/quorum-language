@@ -1,5 +1,8 @@
 package Libraries.Game.Graphics.Shaders
 use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.BlockErrorVertexShaderOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.BlockErrorFragmentShaderOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.BlockErrorShaderMappingOpenGL
 
 class BlockErrorShaderProgram is ShaderProgram
 
@@ -16,7 +19,7 @@ class BlockErrorShaderProgram is ShaderProgram
             Shader vertex = manager:GetShader(VERTEX_NAME)
             Add(vertex)
         else
-            BlockErrorVertexShader vertex
+            BlockErrorVertexShaderOpenGL vertex
             Add(vertex)
         end
 
@@ -24,11 +27,11 @@ class BlockErrorShaderProgram is ShaderProgram
             Shader fragment = manager:GetShader(FRAGMENT_NAME)
             Add(fragment)
         else
-            BlockErrorFragmentShader fragment
+            BlockErrorFragmentShaderOpenGL fragment
             Add(fragment)
         end
 
-        BlockErrorShaderMapping mapping
+        BlockErrorShaderMappingOpenGL mapping
         SetShaderMapping(mapping)
     end
 

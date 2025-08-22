@@ -1,0 +1,23 @@
+package Libraries.Game.Graphics.Shaders.OpenGL.Fragment
+
+class HollowTrianglePatternWedgeFragmentShaderOpenGL is WedgeFragmentShaderOpenGL, HollowTrianglePatternFragmentShaderPartOpenGL
+
+    constant text SHADER_NAME = "Hollow Triangle Pattern Wedge Fragment Shader"
+
+    on create
+        SetName(SHADER_NAME)
+    end
+
+    private action GetExtraFunctions returns text
+        return parent:HollowTrianglePatternFragmentShaderPartOpenGL:GetExtraFunctions()
+    end
+
+    private action GetExtraInputs returns text
+        return parent:HollowTrianglePatternFragmentShaderPartOpenGL:GetExtraInputs()
+    end
+
+    private action GetAppendedCode returns text
+        return parent:HollowTrianglePatternFragmentShaderPartOpenGL:GetAppendedCode()
+    end
+
+end

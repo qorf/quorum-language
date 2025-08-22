@@ -2,6 +2,8 @@ package Libraries.Game.Graphics.Shaders
 
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.DefaultShaderMapping2DOpenGL
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.DefaultShaderMapping2DVulkan
 
 class DefaultShaderProgram2D is ShaderProgram
 
@@ -10,14 +12,20 @@ class DefaultShaderProgram2D is ShaderProgram
         ShaderManager manager = gameState:GetShaderManager()
         SetName(manager:DEFAULT_2D_SHADER_PROGRAM)
 
-        DefaultVertexShader2D vertex
-        DefaultFragmentShader2D fragment
+        Shader vertex = manager:GetDefaultVertexShader2D()
+        Shader fragment = manager:GetDefaultFragmentShader2D()
 
         Add(vertex)
         Add(fragment)
 
-        DefaultShaderMapping2D mapping
+        if IsVulkanProgram()
+DefaultShaderMapping2DVulkan mapping
         SetShaderMapping(mapping)
+        else
+DefaultShaderMapping2DOpenGL mapping
+        SetShaderMapping(mapping)
+        end
+        
     end
 
 end

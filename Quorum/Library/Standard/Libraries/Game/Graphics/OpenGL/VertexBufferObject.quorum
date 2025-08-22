@@ -12,6 +12,7 @@ use Libraries.Game.Graphics.OpenGL.OpenGLManager
 use Libraries.Game.Graphics.VertexAttributes
 use Libraries.Game.Graphics.Number32BitBuffer
 use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.Graphics.Shaders.OpenGL.OpenGLShaderProgram
 
 class VertexBufferObject is VertexData
 
@@ -135,7 +136,8 @@ OpenGLManager graphics = GetGraphics()
         Bind(program, undefined)
     end
 
-    action Bind(ShaderProgram program, Array<integer> locations)
+    action Bind(ShaderProgram shaderProgram, Array<integer> locations)
+        OpenGLShaderProgram program = cast(OpenGLShaderProgram, shaderProgram:GetShaderProgramStrategy())
 OpenGLManager graphics = GetGraphics()
         graphics:BindBuffer(constants:GL_ARRAY_BUFFER, bufferHandle)
         
@@ -181,7 +183,8 @@ OpenGLManager graphics = GetGraphics()
         Unbind(program, undefined)
     end
 
-    action Unbind(ShaderProgram program, Array<integer> locations)
+    action Unbind(ShaderProgram shaderProgram, Array<integer> locations)
+        OpenGLShaderProgram program = cast(OpenGLShaderProgram, shaderProgram:GetShaderProgramStrategy())
 OpenGLManager graphics = GetGraphics()
         integer attributeCount = attributes:GetSize()
 

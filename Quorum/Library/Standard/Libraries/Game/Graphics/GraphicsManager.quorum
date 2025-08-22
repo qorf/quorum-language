@@ -1,6 +1,7 @@
 package Libraries.Game.Graphics
 use Libraries.Game.Graphics.Shaders.ShaderProgram
 use Libraries.Containers.Number32BitArray
+use Libraries.Game.Graphics.Shaders.ShaderProgramStrategy
 
 class GraphicsManager
     
@@ -50,7 +51,7 @@ Attribute: Parameter alpha The alpha component of the color, as a number between
     blueprint action DeleteShader(integer shaderID)
     
     /**/
-blueprint action CreateShaderProgram(ShaderProgram program) returns integer
+blueprint action CreateShaderProgram(ShaderProgramStrategy program) returns integer
 
     /*
     This action tells the graphics system to render content using the shader program indicated by the provided ID.

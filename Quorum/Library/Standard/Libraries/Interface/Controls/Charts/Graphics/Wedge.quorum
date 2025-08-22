@@ -2,13 +2,14 @@ package Libraries.Interface.Controls.Charts.Graphics
 
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Shaders.ShaderManager
-use Libraries.Game.Graphics.Shaders.DefaultVertexShader2D
 use Libraries.Game.Graphics.Shaders.ShaderProgram
 use Libraries.Game.Graphics.Color
 use Libraries.Compute.Math
 use Libraries.Compute.Vector2
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
-use Libraries.Game.Graphics.Shaders.WedgeVertexShader
+use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.WedgeVertexShaderOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.WedgeFragmentShaderOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.WedgeShaderMappingOpenGL
 use Libraries.Interface.Events.TouchListener
 use Libraries.Interface.Events.TouchEvent
 use Libraries.Interface.Controls.Charts.ChartOptions
@@ -173,14 +174,14 @@ class Wedge is ChartDrawable, TouchListener
                 SetShaderProgram(program)
                 return program
             else
-                WedgeVertexShader vertex
-                WedgeFragmentShader fragment
+                WedgeVertexShaderOpenGL vertex
+                WedgeFragmentShaderOpenGL fragment
                 ShaderProgram program
                 program:Add(vertex)
                 program:Add(fragment)
                 program:SetName(WEDGE_SHADER_PROGRAM_NAME)
     
-                WedgeShaderMapping mapping
+                WedgeShaderMappingOpenGL mapping
                 program:SetShaderMapping(mapping)
     
                 program:Compile()

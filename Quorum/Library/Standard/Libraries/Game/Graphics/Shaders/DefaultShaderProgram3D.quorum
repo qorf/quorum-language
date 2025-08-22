@@ -2,6 +2,10 @@ package Libraries.Game.Graphics.Shaders
 
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.DefaultFragmentShader3DOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.DefaultVertexShader3DOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.DefaultShaderMapping3DOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.OpenGLShaderProgram
 
 class DefaultShaderProgram3D is ShaderProgram
 
@@ -10,18 +14,19 @@ class DefaultShaderProgram3D is ShaderProgram
         ShaderManager manager = gameState:GetShaderManager()
         SetName(manager:DEFAULT_3D_SHADER_PROGRAM)
 
-        DefaultVertexShader3D vertex
-        DefaultFragmentShader3D fragment
+        DefaultVertexShader3DOpenGL vertex
+        DefaultFragmentShader3DOpenGL fragment
 
         Add(vertex)
         Add(fragment)
 
-        DefaultShaderMapping3D mapping
+        DefaultShaderMapping3DOpenGL mapping
         SetShaderMapping(mapping)
 
         // TO-DO: Modify these to whatever new system we use with the updated LWJGL/OpenGL version
-        AddOrderedVertexInput("a_position")
-        AddOrderedVertexInput("a_color")
+        OpenGLShaderProgram glProgram = cast(OpenGLShaderProgram, GetShaderProgramStrategy())
+        glProgram:AddOrderedVertexInput("a_position")
+        glProgram:AddOrderedVertexInput("a_color")
     end
 
 end

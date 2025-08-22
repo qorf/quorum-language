@@ -1,0 +1,38 @@
+package Libraries.Game.Graphics.Shaders.OpenGL.Fragment
+
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.DefaultAttributeNames
+
+class DefaultFragmentShader2DOpenGL is Shader
+
+    on create
+        SetType(parent:Shader:FRAGMENT_SHADER)
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
+        SetName(manager:DEFAULT_2D_FRAGMENT_SHADER)
+
+        DefaultAttributeNames attributes
+        SetCode(GetVersionHeader() +
+"
+" +
+"#ifdef GL_ES
+    #define LOWP lowp
+    precision mediump float;
+#else
+    #define LOWP 
+#endif
+in LOWP vec4 v_color;
+in vec2 v_texCoords;
+uniform sampler2D u_texture;
+layout (location = 0) out vec4 outputColor;
+
+void main()
+{
+    outputColor = v_color * texture(u_texture, v_texCoords);
+}"
+)
+    end
+
+end

@@ -1,6 +1,9 @@
 package Libraries.Game.Graphics.Shaders
 
 use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.PatternWedgeShaderMappingOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.PatternWedgeVertexShaderOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.HollowBoxPatternWedgeFragmentShaderOpenGL
 
 class HollowBoxPatternWedgeShaderProgram is ShaderProgram
 
@@ -17,7 +20,7 @@ class HollowBoxPatternWedgeShaderProgram is ShaderProgram
             Shader vertex = manager:GetShader(VERTEX_NAME)
             Add(vertex)
         else
-            PatternWedgeVertexShader vertex
+            PatternWedgeVertexShaderOpenGL vertex
             Add(vertex)
         end
 
@@ -25,11 +28,11 @@ class HollowBoxPatternWedgeShaderProgram is ShaderProgram
             Shader fragment = manager:GetShader(FRAGMENT_NAME)
             Add(fragment)
         else
-            HollowBoxPatternWedgeFragmentShader fragment
+            HollowBoxPatternWedgeFragmentShaderOpenGL fragment
             Add(fragment)
         end
 
-        PatternWedgeShaderMapping mapping
+        PatternWedgeShaderMappingOpenGL mapping
         SetShaderMapping(mapping)
     end
 

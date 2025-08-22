@@ -1,0 +1,137 @@
+package Libraries.Game.Graphics.Shaders.OpenGL.Mapping
+
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Views.View2D
+use Libraries.Compute.BitwiseOperations
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Interface.Item2D
+use Libraries.Interface.Views.DropShadowView
+use Libraries.Game.Graphics.OpenGL.OpenGLConstants
+use Libraries.Game.Graphics.OpenGL.OpenGLManager
+use Libraries.Game.Graphics.Shaders.ShaderMapping
+use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.Graphics.Shaders.OpenGL.OpenGLShaderProgram
+
+class DropShadowShaderMappingOpenGL is ShaderMapping
+
+    ShaderProgram program = undefined
+    GameStateManager manager
+
+    action Begin(ShaderProgram program, Camera camera)
+        me:program = program
+
+        GraphicsManager graphics = manager:GetGameGraphics()
+        OpenGLConstants constants
+        if graphics is OpenGLManager
+            OpenGLManager openGL = cast(OpenGLManager, graphics)
+openGL:SetDepthMask(true)
+        openGL:EnableProperty(constants:GL_DEPTH_TEST)
+        openGL:SetDepthFunction(constants:GL_LEQUAL)
+        openGL:DisableProperty(constants:GL_CULL_FACE)
+        end
+        
+        OpenGLShaderProgram glProgram = cast(OpenGLShaderProgram, program:GetShaderProgramStrategy())
+
+        // TO-DO: Replace hard-coded values with references to constants
+        glProgram:SetShaderInputMatrix("u_projTrans", camera:GetCombinedMatrix())
+//        program:SetShaderInput("u_texture", 0)
+    end
+
+    action MapInputs(ShaderProgram program, Drawable drawable)
+        number width = drawable:GetWidth() * drawable:GetScaleX()
+        number height = drawable:GetHeight() * drawable:GetScaleY()
+        number widthMultiplier = 1
+        number heightMultiplier = 1
+        number shadowX = 0
+        number shadowY = 0
+        number softness = 0
+
+        number bottomLeftRounding = 0
+        number bottomRightRounding = 0
+        number topLeftRounding = 0
+        number topRightRounding = 0
+
+        number zoomScale = 1
+
+        ColorGroup shadowColor = undefined
+
+        /*
+        We want to get the control or layout properties used to define the element. We'll check these places, in order of priority:
+        1. The drawable's shader data
+        2. If the drawable itself is a Control
+        3. If the drawable is a view, see if the view is attached to a Control
+        */
+        if drawable:GetShaderData() is LayoutProperties
+            LayoutProperties properties = cast(LayoutProperties, drawable:GetShaderData())
+            zoomScale = properties:GetInterfaceScale()            
+
+            widthMultiplier = (width + 2 * properties:GetShadowWidth() * zoomScale) / width
+            heightMultiplier = (height + 2 * properties:GetShadowHeight() * zoomScale) / height
+            shadowX = properties:GetShadowX()
+            shadowY = properties:GetShadowY()
+            softness = (2.0 / height) * properties:GetShadowEdgeFade() * zoomScale
+
+            bottomLeftRounding = properties:GetBottomLeftRounding()
+            bottomRightRounding = properties:GetBottomRightRounding()
+            topLeftRounding = properties:GetTopLeftRounding()
+            topRightRounding = properties:GetTopRightRounding()
+
+            shadowColor = properties:GetShadowColor()
+        else
+            Control control = undefined
+
+            if drawable:GetShaderData() is Control
+                control = cast(Control, drawable:GetShaderData())
+            elseif drawable is Control
+                control = cast(Control, cast(Object, drawable))
+            elseif drawable is View2D
+                View2D view = cast(View2D, cast(Object, drawable))
+                Item2D item = view:GetItem()
+                if item is Control
+                    control = cast(Control, item)
+                end
+            end
+
+            if control not= undefined
+                zoomScale = control:GetInterfaceScale()
+
+                widthMultiplier = (width + 2 * control:GetShadowWidth() * zoomScale) / width
+                heightMultiplier = (height + 2 * control:GetShadowHeight() * zoomScale) / height
+                shadowX = control:GetShadowX()
+                shadowY = control:GetShadowY()
+                softness = (2.0 / height) * control:GetShadowEdgeFade() * zoomScale
+
+                bottomLeftRounding = control:GetBottomLeftRounding()
+                bottomRightRounding = control:GetBottomRightRounding()
+                topLeftRounding = control:GetTopLeftRounding()
+                topRightRounding = control:GetTopRightRounding()
+
+                shadowColor = control:GetShadowColor()
+            end
+        end
+
+        if shadowColor not= undefined
+            drawable:GetDrawableShape():SetColor(shadowColor)
+        end
+
+OpenGLShaderProgram glProgram = cast(OpenGLShaderProgram, program:GetShaderProgramStrategy())
+        
+        glProgram:SetShaderInput("u_aspectRatio", width / height)
+        glProgram:SetShaderInput("u_rounding", bottomRightRounding, topRightRounding, bottomLeftRounding, topLeftRounding)
+        glProgram:SetShaderInput("u_thicknessOffset", widthMultiplier, heightMultiplier)
+        glProgram:SetShaderInput("u_shadowOffset", shadowX, shadowY)
+        glProgram:SetShaderInput("u_softness", softness)
+        glProgram:SetShaderInput("u_localCenter", drawable:GetGlobalX() + width / 2.0, drawable:GetGlobalY() + height / 2.0)
+    end
+
+    action End(ShaderProgram program)
+        me:program = undefined
+    end
+
+end

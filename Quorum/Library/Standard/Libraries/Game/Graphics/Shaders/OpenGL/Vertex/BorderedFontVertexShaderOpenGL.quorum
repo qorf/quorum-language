@@ -1,0 +1,43 @@
+package Libraries.Game.Graphics.Shaders.OpenGL.Vertex
+
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.DefaultAttributeNames
+
+class BorderedFontVertexShaderOpenGL is Shader
+
+    constant text SHADER_NAME = "Bordered Font Vertex Shader"
+
+    on create
+        SetType(parent:Shader:VERTEX_SHADER)
+        SetName(SHADER_NAME)
+
+        DefaultAttributeNames attributes
+        SetCode(GetVersionHeader() +
+"
+" +
+"in vec4 " + attributes:POSITION + ";
+in vec4 " + attributes:COLOR + ";
+in vec2 " + attributes:TEXTURE_COORDINATES + "0;
+in vec4 a_borderColor;
+in float a_borderThickness;
+in float a_fontSize;
+uniform mat4 u_projTrans;
+out vec4 v_color;
+out vec2 v_texCoords;
+out vec4 v_borderColor;
+out float v_borderThickness;
+out float v_fontSize;
+
+void main()
+{
+    v_color = " + attributes:COLOR + ";
+    v_texCoords = " + attributes:TEXTURE_COORDINATES + "0;
+    v_borderColor = a_borderColor;
+    v_borderThickness = a_borderThickness;
+    v_fontSize = a_fontSize;
+    gl_Position =  u_projTrans * " + attributes:POSITION + ";
+}"
+)
+    end
+
+end

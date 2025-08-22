@@ -10,6 +10,8 @@ use Libraries.Game.GameStateManager
 use Libraries.Game.AndroidApplication
 use Libraries.Game.Graphics.Integer32BitBuffer
 use Libraries.Game.Graphics.Number32BitBuffer
+use Libraries.Game.Graphics.Shaders.OpenGL.OpenGLShaderProgram
+use Libraries.Game.Graphics.Shaders.ShaderProgramStrategy
 
 /*
 The GraphicsManager class represents a Quorum interface with OpenGL in order to
@@ -139,13 +141,14 @@ class AndroidOpenGL is OpenGLManager
     /*
 
     */
-    action CreateShaderProgram(ShaderProgram program) returns integer
+    action CreateShaderProgram(ShaderProgramStrategy strategy) returns integer
+        OpenGLShaderProgram program = cast(OpenGLShaderProgram, strategy)
         integer id = CreateShaderProgramID()
         if id = 0
             alert("Could not create new shader program ID.")
         end
 
-        Iterator<Shader> shaders = program:GetIterator()
+        Iterator<Shader> shaders = program:GetShaderIterator()
 
         repeat while shaders:HasNext()
             AttachShader(id, shaders:Next():GetID())

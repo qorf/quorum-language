@@ -1,5 +1,8 @@
 package Libraries.Game.Graphics.Shaders
 use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.BlockVertexShaderOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.BlockFragmentShaderOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.BlockShaderMappingOpenGL
 
 class BlockShaderProgram is ShaderProgram
 
@@ -16,7 +19,7 @@ class BlockShaderProgram is ShaderProgram
             Shader vertex = shaderManager:GetShader(VERTEX_NAME)
             Add(vertex)
         else
-            BlockVertexShader vertex
+            BlockVertexShaderOpenGL vertex
             Add(vertex)
         end
 
@@ -24,11 +27,11 @@ class BlockShaderProgram is ShaderProgram
             Shader fragment = shaderManager:GetShader(FRAGMENT_NAME)
             Add(fragment)
         else
-            BlockFragmentShader fragment
+            BlockFragmentShaderOpenGL fragment
             Add(fragment)
         end
 
-        BlockShaderMapping mapping
+        BlockShaderMappingOpenGL mapping
         SetShaderMapping(mapping)
     end
 

@@ -1,0 +1,23 @@
+package Libraries.Game.Graphics.Shaders.OpenGL.Fragment
+
+class CrosshatchPatternWedgeFragmentShaderOpenGL is WedgeFragmentShaderOpenGL, CrosshatchPatternFragmentShaderPartOpenGL
+
+    constant text SHADER_NAME = "Crosshatch Pattern Wedge Fragment Shader"
+
+    on create
+        SetName(SHADER_NAME)
+    end
+
+    private action GetExtraFunctions returns text
+        return parent:CrosshatchPatternFragmentShaderPartOpenGL:GetExtraFunctions()
+    end
+
+    private action GetExtraInputs returns text
+        return parent:CrosshatchPatternFragmentShaderPartOpenGL:GetExtraInputs()
+    end
+
+    private action GetAppendedCode returns text
+        return parent:CrosshatchPatternFragmentShaderPartOpenGL:GetAppendedCode()
+    end
+
+end

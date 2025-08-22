@@ -5,6 +5,12 @@ use Libraries.Containers.Array
 use Libraries.Game.Graphics.Mesh
 use Libraries.Containers.Iterator
 use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.DefaultVertexShader2DOpenGL
+use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.DefaultVertexShader2DVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.DefaultFragmentShader2DVulkan
+use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.DefaultFragmentShader2DOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.DefaultVertexShader3DOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.DefaultFragmentShader3DOpenGL
 
 class ShaderManager
 
@@ -119,9 +125,17 @@ class ShaderManager
 
     action GetDefaultVertexShader2D returns Shader
         if HasShader(DEFAULT_2D_VERTEX_SHADER) = false
-            DefaultVertexShader2D shader
+            if IsVulkan()
+DefaultVertexShader2DVulkan shader
             // Compiling this shader will automatically register it in the ShaderManager for future use.
             shader:Compile()
+            elseif IsOpenGL()
+DefaultVertexShader2DOpenGL shader
+            // Compiling this shader will automatically register it in the ShaderManager for future use.
+            shader:Compile()
+            else
+                alert("I couldn't create a shader because I couldn't determine what graphics library was being used!")
+            end
         end
 
         return GetShader(DEFAULT_2D_VERTEX_SHADER)
@@ -129,9 +143,17 @@ class ShaderManager
 
     action GetDefaultFragmentShader2D returns Shader
         if HasShader(DEFAULT_2D_FRAGMENT_SHADER) = false
-            DefaultFragmentShader2D shader
+if IsVulkan()
+DefaultFragmentShader2DVulkan shader
             // Compiling this shader will automatically register it in the ShaderManager for future use.
             shader:Compile()
+            elseif IsOpenGL()
+DefaultFragmentShader2DOpenGL shader
+            // Compiling this shader will automatically register it in the ShaderManager for future use.
+            shader:Compile()
+            else
+                alert("I couldn't create a shader because I couldn't determine what graphics library was being used!")
+            end
         end
 
         return GetShader(DEFAULT_2D_FRAGMENT_SHADER)
@@ -139,7 +161,7 @@ class ShaderManager
 
     action GetDefaultVertexShader3D returns Shader
         if HasShader(DEFAULT_3D_VERTEX_SHADER) = false
-            DefaultVertexShader3D shader
+            DefaultVertexShader3DOpenGL shader
             // Compiling this shader will automatically register it in the ShaderManager for future use.
             shader:Compile()
         end
@@ -149,7 +171,7 @@ class ShaderManager
 
     action GetDefaultFragmentShader3D returns Shader
         if HasShader(DEFAULT_3D_FRAGMENT_SHADER) = false
-            DefaultFragmentShader3D shader
+            DefaultFragmentShader3DOpenGL shader
             // Compiling this shader will automatically register it in the ShaderManager for future use.
             shader:Compile()
         end
@@ -185,5 +207,13 @@ class ShaderManager
         not using OpenGL, this action does not provide useful information. The version number is calculated by Quorum, not the graphics hardware.
     */
     blueprint action GetVersionHeader returns text
+    
+    action IsVulkan returns boolean
+        return false
+    end
+    
+    action IsOpenGL returns boolean
+        return false
+    end
     
 end

@@ -4,6 +4,8 @@ use Libraries.Containers.Integer32BitArray
 use Libraries.Game.Graphics.Integer32BitBuffer
 use Libraries.Game.Graphics.DrawableShape
 use Libraries.Game.Graphics.Vulkan.Commands.CopyBufferCommand
+use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
 
 /*
 This class encapsulates a series of buffers and arrays used to batch a large number of drawn elements all at once.
@@ -47,18 +49,24 @@ class VulkanPainter2DBatch
 
     boolean isFull = false
 
+    // The ShaderProgram associated with this batch.
+    ShaderProgram program = undefined
+    
     // The VulkanPipeline associated with this batch.
     VulkanPipeline pipeline = undefined
 
     // How many frames have passed without using this batch. Can be used to determine if a batch hasn't been used in a long time and can be disposed.
     integer age = 0
 
-    action Create(VulkanPipeline pipeline)
-        Create(pipeline, DEFAULT_VERTEX_BUFFER_SIZE, DEFAULT_INDEX_BUFFER_SIZE)
+    action Create(ShaderProgram program)
+        Create(program, DEFAULT_VERTEX_BUFFER_SIZE, DEFAULT_INDEX_BUFFER_SIZE)
     end
 
-    action Create(VulkanPipeline pipeline, integer vertexBufferSize, integer indexBufferSize)
-        me:pipeline = pipeline
+    action Create(ShaderProgram program, integer vertexBufferSize, integer indexBufferSize)
+        me:program = program
+        VulkanShaderProgram strategy = cast(VulkanShaderProgram, program:GetShaderProgramStrategy())
+        
+        pipeline = strategy:GetPipeline()
         VulkanDevice device = pipeline:GetDevice()
 
         Number32BitArray vertexData
@@ -211,6 +219,10 @@ class VulkanPainter2DBatch
 
     action GetIndexOutputBuffer returns VulkanBuffer
         return indexOutputBuffer
+    end
+
+    action GetProgram returns ShaderProgram
+        return program
     end
 
 end

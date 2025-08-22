@@ -1,0 +1,23 @@
+package Libraries.Game.Graphics.Shaders.OpenGL.Fragment
+
+class SolidBoxPatternControlFragmentShaderOpenGL is ControlFragmentShaderOpenGL, SolidBoxPatternFragmentShaderPartOpenGL
+
+    constant text SHADER_NAME = "Solid Box Pattern Control Fragment Shader"
+
+    on create
+        SetName(SHADER_NAME)
+    end
+
+    private action GetExtraFunctions returns text
+        return parent:SolidBoxPatternFragmentShaderPartOpenGL:GetExtraFunctions()
+    end
+
+    private action GetExtraInputs returns text
+        return parent:SolidBoxPatternFragmentShaderPartOpenGL:GetExtraInputs()
+    end
+
+    private action GetAppendedCode returns text
+        return parent:SolidBoxPatternFragmentShaderPartOpenGL:GetAppendedCode()
+    end
+
+end

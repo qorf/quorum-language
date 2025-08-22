@@ -1,5 +1,8 @@
 package Libraries.Game.Graphics.Shaders
+
 use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.BezierCurveMappingOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.BezierCurveFragmentShaderOpenGL
 
 class BezierCurveShaderProgram is ShaderProgram
 
@@ -17,11 +20,11 @@ class BezierCurveShaderProgram is ShaderProgram
             Shader fragment = shaderManager:GetShader(FRAGMENT_NAME)
             Add(fragment)
         else
-            BezierCurveFragmentShader fragment
+            BezierCurveFragmentShaderOpenGL fragment
             Add(fragment)
         end
 
-        BezierCurveMapping mapping
+        BezierCurveMappingOpenGL mapping
         SetShaderMapping(mapping)
     end
 

@@ -1,5 +1,8 @@
 package Libraries.Game.Graphics.Shaders
 use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.ControlVertexShaderOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.ControlFragmentShaderOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.ControlShaderMappingOpenGL
 
 class ControlShaderProgram is ShaderProgram
 
@@ -16,7 +19,7 @@ class ControlShaderProgram is ShaderProgram
             Shader vertex = manager:GetShader(VERTEX_NAME)
             Add(vertex)
         else
-            ControlVertexShader vertex
+            ControlVertexShaderOpenGL vertex
             Add(vertex)
         end
 
@@ -24,11 +27,11 @@ class ControlShaderProgram is ShaderProgram
             Shader fragment = manager:GetShader(FRAGMENT_NAME)
             Add(fragment)
         else
-            ControlFragmentShader fragment
+            ControlFragmentShaderOpenGL fragment
             Add(fragment)
         end
 
-        ControlShaderMapping mapping
+        ControlShaderMappingOpenGL mapping
         SetShaderMapping(mapping)
     end
 

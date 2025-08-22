@@ -1,0 +1,23 @@
+package Libraries.Game.Graphics.Shaders.OpenGL.Fragment
+
+class LinePatternWedgeFragmentShaderOpenGL is WedgeFragmentShaderOpenGL, LinePatternFragmentShaderPartOpenGL
+
+    constant text SHADER_NAME = "Dashed Line Pattern Wedge Fragment Shader"
+
+    on create
+        SetName(SHADER_NAME)
+    end
+
+    private action GetExtraFunctions returns text
+        return parent:LinePatternFragmentShaderPartOpenGL:GetExtraFunctions()
+    end
+
+    private action GetExtraInputs returns text
+        return parent:LinePatternFragmentShaderPartOpenGL:GetExtraInputs()
+    end
+
+    private action GetAppendedCode returns text
+        return parent:LinePatternFragmentShaderPartOpenGL:GetAppendedCode()
+    end
+
+end

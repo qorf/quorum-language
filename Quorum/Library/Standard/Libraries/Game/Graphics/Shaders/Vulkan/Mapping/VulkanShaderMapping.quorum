@@ -1,0 +1,21 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Mapping
+
+use Libraries.Game.Graphics.Shaders.ShaderMapping
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfo
+use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
+use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+
+class VulkanShaderMapping is ShaderMapping
+    
+    /*This action is used to setup the values of a VulkanPipelineInfo that will be used to create the
+VulkanPipeline needed for the shader program. This can also be used to create and keep copies of
+any Vulkan resources that will be needed to send or change shader data.*/
+    blueprint action CreatePipelineInfo(VulkanShaderProgram program, VulkanDevice device) returns VulkanPipelineInfo
+    
+action Begin(ShaderProgram program, Camera camera, VulkanCommandBuffer commandBuffer, integer swapchainIndex)
+end
+    
+end
