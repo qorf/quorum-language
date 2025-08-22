@@ -101,14 +101,45 @@ public class VulkanSwapchain
 
             int imageWidth = createInfo.GetImageWidth();
             int imageHeight = createInfo.GetImageHeight();
+            int finalWidth;
+            int finalHeight;
 
             // Define the "extent", or the dimensions, of the images we'll be using for the Swapchain.
             VkExtent2D dimensions = VkExtent2D.calloc(stack);
-            int finalWidth = Math.min(imageWidth, surfaceCapabilities.maxImageExtent().width());
-            finalWidth = Math.max(finalWidth, surfaceCapabilities.minImageExtent().width());
 
-            int finalHeight = Math.min(imageHeight, surfaceCapabilities.maxImageExtent().height());
-            finalHeight = Math.max(finalHeight, surfaceCapabilities.minImageExtent().height());
+            if (imageWidth <= 0)
+            {
+                finalWidth = surfaceCapabilities.maxImageExtent().width();
+            }
+            else
+            {
+                finalWidth = Math.min(imageWidth, surfaceCapabilities.maxImageExtent().width());
+                finalWidth = Math.max(finalWidth, surfaceCapabilities.minImageExtent().width());
+            }
+
+            if (imageHeight <= 0)
+            {
+                finalHeight = surfaceCapabilities.maxImageExtent().height();
+            }
+            else
+            {
+                finalHeight = Math.min(imageHeight, surfaceCapabilities.maxImageExtent().height());
+                finalHeight = Math.max(finalHeight, surfaceCapabilities.minImageExtent().height());
+            }
+
+            dimensions.set(finalWidth, finalHeight);
+            createInfo.SetImageSize(finalWidth, finalHeight);
+
+//            int imageWidth = createInfo.GetImageWidth();
+//            int imageHeight = createInfo.GetImageHeight();
+//
+//            // Define the "extent", or the dimensions, of the images we'll be using for the Swapchain.
+//            VkExtent2D dimensions = VkExtent2D.calloc(stack);
+//            int finalWidth = Math.min(imageWidth, surfaceCapabilities.maxImageExtent().width());
+//            finalWidth = Math.max(finalWidth, surfaceCapabilities.minImageExtent().width());
+//
+//            int finalHeight = Math.min(imageHeight, surfaceCapabilities.maxImageExtent().height());
+//            finalHeight = Math.max(finalHeight, surfaceCapabilities.minImageExtent().height());
 
             dimensions.set(finalWidth, finalHeight);
             createInfo.SetImageSize(finalWidth, finalHeight);

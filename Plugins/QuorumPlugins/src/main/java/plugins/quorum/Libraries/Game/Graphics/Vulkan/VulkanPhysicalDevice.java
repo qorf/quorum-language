@@ -17,6 +17,7 @@ public class VulkanPhysicalDevice
     public java.lang.Object me_;
 
     private VkPhysicalDevice physicalDevice = null;
+    private quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDeviceLimits quorumLimits = null;
     private VkExtensionProperties.Buffer deviceExtensions = null;
     private VkPhysicalDeviceProperties deviceProperties = null;
     private VkQueueFamilyProperties.Buffer queueFamilyProperties = null;
@@ -223,6 +224,11 @@ public class VulkanPhysicalDevice
             physicalDevice = candidateDevice;
             deviceExtensions = candidateExtensions;
             deviceProperties = candidateProperties;
+            quorumLimits = new quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDeviceLimits();
+            VkPhysicalDeviceLimits limits = deviceProperties.limits();
+            plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDeviceLimits plugin = quorumLimits.plugin_;
+            plugin.SetLimits(limits);
+
             queueFamilyProperties = candidateFamilyProperties;
             memoryProperties = candidateMemoryProperties;
 
@@ -231,6 +237,10 @@ public class VulkanPhysicalDevice
         }
 
         return true;
+    }
+
+    public quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDeviceLimits_ GetLimits() {
+        return quorumLimits;
     }
 
     public VulkanInstance_ GetInstance()
