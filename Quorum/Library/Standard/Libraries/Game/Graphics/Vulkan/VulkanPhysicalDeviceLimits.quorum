@@ -1,0 +1,99 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanPhysicalDeviceLimits
+    system action GetMaxImageDimension1D returns integer
+system action GetMaxImageDimension2D returns integer
+system action GetMaxImageDimension3D returns integer
+system action GetMaxImageArrayLayers returns integer
+    
+system action GetMaxTexelBufferElements returns integer
+system action GetMaxUniformBufferRange returns integer
+system action GetMaxStorageBufferRange returns integer
+system action GetMaxPushConstantsSize returns integer
+system action GetMaxMemoryAllocationCount returns integer
+system action GetMaxSamplerAllocationCount returns integer
+    
+    //do we need the buffer ones?
+    
+system action GetMaxPerStageDescriptorSamplers returns integer
+system action GetMaxPerStageDescriptorUniformBuffers returns integer
+system action GetMaxPerStageDescriptorStorageBuffers returns integer
+    
+    
+system action GetMaxPerStageDescriptorSampledImages returns integer
+    
+system action GetMaxPerStageDescriptorStorageImages returns integer
+system action GetMaxPerStageDescriptorInputAttachments returns integer
+system action GetMaxPerStageResources returns integer
+system action GetMaxDescriptorSetSamplers returns integer
+system action GetMaxDescriptorSetUniformBuffers returns integer
+system action GetMaxDescriptorSetUniformBuffersDynamic returns integer
+system action GetMaxDescriptorSetStorageBuffers returns integer
+system action GetMaxDescriptorSetStorageBuffersDynamic returns integer
+    
+system action GetMaxDescriptorSetSampledImages returns integer
+    
+    
+system action GetMaxDescriptorSetStorageImages returns integer
+system action GetMaxDescriptorSetInputAttachments returns integer
+system action GetMaxVertexInputAttributes returns integer
+system action GetMaxVertexInputBindings returns integer
+system action GetMaxVertexInputAttributeOffset returns integer
+system action GetMaxVertexInputBindingStride returns integer
+system action GetMaxVertexOutputComponents returns integer
+system action GetMaxTessellationGenerationLevel returns integer
+system action GetMaxTessellationPatchSize returns integer
+system action GetMaxTessellationControlPerVertexInputComponents returns integer
+system action GetMaxTessellationControlPerVertexOutputComponents returns integer
+system action GetMaxTessellationControlPerPatchOutputComponents returns integer
+system action GetMaxTessellationControlTotalOutputComponents returns integer
+system action GetMaxTessellationEvaluationInputComponents returns integer
+system action GetMaxTessellationEvaluationOutputComponents returns integer
+system action GetMaxGeometryShaderInvocations returns integer
+system action GetMaxGeometryInputComponents returns integer
+system action GetMaxGeometryOutputComponents returns integer
+system action GetMaxGeometryOutputVertices returns integer
+system action GetMaxGeometryTotalOutputComponents returns integer
+system action GetMaxFragmentInputComponents returns integer
+system action GetMaxFragmentOutputAttachments returns integer
+system action GetMaxFragmentDualSrcAttachments returns integer
+system action GetMaxFragmentCombinedOutputResources returns integer
+system action GetMaxComputeSharedMemorySize returns integer
+system action GetMaxmaxComputeWorkGroupCount returns integer
+system action GetMaxComputeWorkGroupInvocations returns integer
+system action GetMaxComputeWorkGroupSize returns integer
+system action GetSubPixelPrecisionBits returns integer
+system action GetSubTexelPrecisionBits returns integer
+system action GetMipmapPrecisionBits returns integer
+system action GetMaxDrawIndexedIndexValue returns integer
+system action GetMaxDrawIndirectCount returns integer
+system action GetMaxSamplerLodBias returns number
+system action GetMaxSamplerAnisotropy returns number
+system action GetMaxViewports returns integer
+system action GetMaxViewportDimensions returns integer
+system action GetViewportBoundsRange returns number
+system action GetViewportSubPixelBits returns integer
+system action GetMinTexelOffset returns integer
+system action GetMaxTexelOffset returns integer
+system action GetMinTexelGatherOffset returns integer
+system action GetMaxTexelGatherOffset returns integer
+system action GetMinInterpolationOffset returns integer
+system action GetMaxInterpolationOffset returns integer
+system action GetSubPixelInterpolationOffsetBits returns integer
+system action GetMaxFramebufferWidth returns integer
+system action GetMaxFramebufferHeight returns integer
+system action GetMaxFramebufferLayers returns integer
+system action GetMaxColorAttachments returns integer
+system action GetMaxSampleMaskWords returns integer
+system action GetTimestampPeriod returns number
+system action GetMaxClipDistances returns integer
+system action GetMaxCullDistances returns integer
+system action GetMaxCombinedClipAndCullDistances returns integer
+system action GetDiscreteQueuePriorities returns integer
+system action GetPointSizeRange returns number
+system action GetLineWidthRange returns number
+system action GetPointSizeGranularity returns number
+system action GetLineWidthGranularity returns number
+system action GetStrictLines returns boolean
+system action GetStandardSampleLocations returns boolean
+end

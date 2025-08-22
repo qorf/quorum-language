@@ -45,9 +45,15 @@ class VulkanTextureManager
         VulkanConstants constants
         VulkanDescriptorSetManager setManager = graphics:GetDescriptorSetManager()
 
-        // NYI: Currently using a hardcoded value for the maximum number of textures, but this should be drawn from the PhysicalDevice properties instead.
-        output "Creating VulkanTextureManager. Using testing value of 256 max descriptors for textures..."
-        integer maxDescriptors = 128
+        VulkanPhysicalDevice physical = device:GetPhysicalDevice()
+        VulkanPhysicalDeviceLimits limits = physical:GetLimits()
+        integer maxPerStage = limits:GetMaxPerStageDescriptorSampledImages()
+        integer maxFullPipeline = limits:GetMaxDescriptorSetSampledImages()
+        output "Max Per Stage in texture manager: " + maxPerStage
+output "Max across full pipeline in texture manager: " + maxFullPipeline
+        
+        
+        integer maxDescriptors = maxPerStage
         Array<VulkanDescriptorSetLayoutBinding> bindings
 
         VulkanDescriptorSetLayoutBinding texturesBinding
