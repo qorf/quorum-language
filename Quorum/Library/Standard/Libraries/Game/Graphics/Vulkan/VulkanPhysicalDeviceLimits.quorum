@@ -5,21 +5,15 @@ class VulkanPhysicalDeviceLimits
 system action GetMaxImageDimension2D returns integer
 system action GetMaxImageDimension3D returns integer
 system action GetMaxImageArrayLayers returns integer
-    
 system action GetMaxTexelBufferElements returns integer
 system action GetMaxUniformBufferRange returns integer
 system action GetMaxStorageBufferRange returns integer
 system action GetMaxPushConstantsSize returns integer
 system action GetMaxMemoryAllocationCount returns integer
 system action GetMaxSamplerAllocationCount returns integer
-    
-    //do we need the buffer ones?
-    
 system action GetMaxPerStageDescriptorSamplers returns integer
 system action GetMaxPerStageDescriptorUniformBuffers returns integer
 system action GetMaxPerStageDescriptorStorageBuffers returns integer
-    
-    
 system action GetMaxPerStageDescriptorSampledImages returns integer
     
 system action GetMaxPerStageDescriptorStorageImages returns integer
@@ -30,7 +24,6 @@ system action GetMaxDescriptorSetUniformBuffers returns integer
 system action GetMaxDescriptorSetUniformBuffersDynamic returns integer
 system action GetMaxDescriptorSetStorageBuffers returns integer
 system action GetMaxDescriptorSetStorageBuffersDynamic returns integer
-    
 system action GetMaxDescriptorSetSampledImages returns integer
     
     
@@ -59,9 +52,9 @@ system action GetMaxFragmentOutputAttachments returns integer
 system action GetMaxFragmentDualSrcAttachments returns integer
 system action GetMaxFragmentCombinedOutputResources returns integer
 system action GetMaxComputeSharedMemorySize returns integer
-system action GetMaxmaxComputeWorkGroupCount returns integer
+system action GetMaxComputeWorkGroupCount(integer index) returns integer
 system action GetMaxComputeWorkGroupInvocations returns integer
-system action GetMaxComputeWorkGroupSize returns integer
+system action GetMaxComputeWorkGroupSize(integer index) returns integer
 system action GetSubPixelPrecisionBits returns integer
 system action GetSubTexelPrecisionBits returns integer
 system action GetMipmapPrecisionBits returns integer
@@ -70,15 +63,15 @@ system action GetMaxDrawIndirectCount returns integer
 system action GetMaxSamplerLodBias returns number
 system action GetMaxSamplerAnisotropy returns number
 system action GetMaxViewports returns integer
-system action GetMaxViewportDimensions returns integer
-system action GetViewportBoundsRange returns number
+system action GetMaxViewportDimensions(integer index) returns integer
+system action GetViewportBoundsRange(integer index) returns number
 system action GetViewportSubPixelBits returns integer
 system action GetMinTexelOffset returns integer
 system action GetMaxTexelOffset returns integer
 system action GetMinTexelGatherOffset returns integer
 system action GetMaxTexelGatherOffset returns integer
-system action GetMinInterpolationOffset returns integer
-system action GetMaxInterpolationOffset returns integer
+system action GetMinInterpolationOffset returns number
+system action GetMaxInterpolationOffset returns number
 system action GetSubPixelInterpolationOffsetBits returns integer
 system action GetMaxFramebufferWidth returns integer
 system action GetMaxFramebufferHeight returns integer
@@ -90,8 +83,8 @@ system action GetMaxClipDistances returns integer
 system action GetMaxCullDistances returns integer
 system action GetMaxCombinedClipAndCullDistances returns integer
 system action GetDiscreteQueuePriorities returns integer
-system action GetPointSizeRange returns number
-system action GetLineWidthRange returns number
+system action GetPointSizeRange(integer index) returns number
+system action GetLineWidthRange(integer index) returns number
 system action GetPointSizeGranularity returns number
 system action GetLineWidthGranularity returns number
 system action GetStrictLines returns boolean
