@@ -32,11 +32,14 @@ class DesktopApplication is Application
         Properties properties
         GameStateManager manager
         if properties:IsWindows() and game:GetDesktopConfiguration():enableAccessibility
-            AccessibilityManager accessibility
-            game:SetAccessibility(accessibility)
+            //AccessibilityManager accessibility
+            //game:SetAccessibility(accessibility)
+            
+PushDownAccessibility push
+            game:SetAccessibility(push)
         elseif properties:IsMac() and game:GetDesktopConfiguration():enableAccessibility
-            PushDownAccessibility mac
-            game:SetAccessibility(mac)
+            PushDownAccessibility push
+            game:SetAccessibility(push)
         end
 
         MainLoop()
