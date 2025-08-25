@@ -24,7 +24,6 @@ import quorum.Libraries.Interface.Events.TreeChangeEvent_;
 import quorum.Libraries.Interface.Events.TreeTableChangeEvent_;
 import quorum.Libraries.Interface.Events.WindowFocusEvent_;
 import quorum.Libraries.Interface.Item_;
-import quorum.Libraries.Interface.Selections.Selection_;
 import quorum.Libraries.Interface.Selections.TextBoxSelection_;
 import quorum.Libraries.Interface.Selections.TextFieldSelection_;
 
@@ -32,7 +31,7 @@ import quorum.Libraries.Interface.Selections.TextFieldSelection_;
  *
  * @author andreasstefik
  */
-public class MacAccessibility {
+public class PushDownAccessibility {
     public java.lang.Object me_ = null;
     private MacosSubclassingAdapter adapter;
     private final RootItemKit root = new RootItemKit();
@@ -44,7 +43,7 @@ public class MacAccessibility {
     private final HashSet<NodeId> dirtyNodes = new HashSet<NodeId>();
     private boolean isFocusDirty = false;
 
-    public MacAccessibility() {
+    public PushDownAccessibility() {
         items.put(root.GetNodeID(), root);
         DummyKit dummy1 = new DummyKit();
         dummy1.SetDummyNodeID(2);

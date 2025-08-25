@@ -7,7 +7,7 @@ use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Interface.Accessibility
 use Libraries.Interface.AccessibilityManager
-use Libraries.Interface.Accessibility.MacAccessibility
+use Libraries.Interface.Accessibility.PushDownAccessibility
 use Libraries.System.Properties
 
 /*
@@ -35,9 +35,7 @@ class DesktopApplication is Application
             AccessibilityManager accessibility
             game:SetAccessibility(accessibility)
         elseif properties:IsMac() and game:GetDesktopConfiguration():enableAccessibility
-            //turned off for 9.0, as it is blank. Should be enabled again
-            //once the implementation is complete.
-            MacAccessibility mac
+            PushDownAccessibility mac
             game:SetAccessibility(mac)
         end
 
