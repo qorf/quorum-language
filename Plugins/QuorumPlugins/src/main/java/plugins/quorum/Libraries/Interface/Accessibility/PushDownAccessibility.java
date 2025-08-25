@@ -1,5 +1,6 @@
 package plugins.quorum.Libraries.Interface.Accessibility;
 
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -7,10 +8,15 @@ import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import android.util.Log;
 import dev.accesskit.*;
 import dev.accesskit.Tree;
 import org.lwjgl.glfw.GLFWNativeCocoa;
+import org.lwjgl.glfw.GLFWNativeWin32;
 import plugins.quorum.Libraries.Game.DesktopDisplay;
+import plugins.quorum.Libraries.Game.Game;
+import plugins.quorum.Libraries.Game.GameStateManager;
+import plugins.quorum.Libraries.Game.IOSApplication;
 import plugins.quorum.Libraries.Interface.Accessibility.accesskit.*;
 import plugins.quorum.Libraries.Interface.AccessibilityManager;
 import quorum.Libraries.Interface.Controls.*;
@@ -33,10 +39,9 @@ import quorum.Libraries.Interface.Selections.TextFieldSelection_;
  */
 public class PushDownAccessibility {
     public java.lang.Object me_ = null;
-    private MacosSubclassingAdapter adapter;
+    private dev.accesskit.Adapter adapter;
     private final RootItemKit root = new RootItemKit();
     private final HashMap<NodeId, ItemKit> items = new HashMap<NodeId, ItemKit>();
-
     private final ArrayList<DummyKit> dummies = new ArrayList<DummyKit>();
     private int currentDummy = -1;
     private NodeId focus = root.GetNodeID();
@@ -55,21 +60,55 @@ public class PushDownAccessibility {
         items.put(dummy2.GetNodeID(), dummy2);
         root.AddChild(dummy1);
         root.AddChild(dummy2);
+        String nativeFile;
+        long handle = 0;
+
         try
         {
+            String os = System.getProperty("os.name");
             java.io.File file = new java.io.File(AccessibilityManager.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
             String runLocation = file.getParentFile().getAbsolutePath();
-            String nativeFile = runLocation + "/jni/libaccesskit_jni.dylib";
-            System.load(nativeFile);
 
-            long handle = GLFWNativeCocoa.glfwGetCocoaWindow(DesktopDisplay.window);
-
-            adapter = MacosSubclassingAdapter.forWindow(handle, new TreeUpdateSupplier() {
-                @Override
-                public TreeUpdate get() {
-                    return BuildFullTree();
+            if (os.contains("Mac OS X") || os.contains("Linux"))
+            {
+                if (os.contains("Linux") && System.getProperty("java.runtime.name").contains("Android Runtime"))
+                {
+//                    Log.d("Quorum Game Application", "Loading C libraries...");
+//                    Log.d("Quorum Game Application", "Java version is " + System.getProperty("java.version"));
+//                    nativeFile = null;
+//                    GameStateManager.operatingSystem = "Android";
+//                    System.loadLibrary("GameEngineCPlugins");
+//                    Log.d("Quorum Game Application", "Finished loading C libraries.");
                 }
-            });
+                else //Mac
+                {
+                    nativeFile = runLocation + "/jni/libaccesskit_jni.dylib";
+                    System.load(nativeFile);
+
+                    handle = GLFWNativeCocoa.glfwGetCocoaWindow(DesktopDisplay.window);
+                    adapter = MacosSubclassingAdapter.forWindow(handle, new TreeUpdateSupplier() {
+                        @Override
+                        public TreeUpdate get() {
+                            return BuildFullTree();
+                        }
+                    });
+                }
+            }
+            else if (os.contains("Windows"))
+            {
+                nativeFile = runLocation + "/jni/accesskit_jni.dll";
+                System.load(nativeFile);
+
+                handle = GLFWNativeWin32.glfwGetWin32Window(DesktopDisplay.window);
+                adapter = new WindowsSubclassingAdapter(handle, new TreeUpdateSupplier() {
+                    @Override
+                    public TreeUpdate get() {
+                        return BuildFullTree();
+                    }
+                });
+            }
+
+
         }
         catch (URISyntaxException ex)
         {
@@ -489,6 +528,9 @@ public class PushDownAccessibility {
     }
 
     public void  Shutdown() {
-        adapter.close();
+        try { //I think this is ok. Just shut down.
+            adapter.close();
+        } catch(Exception e) {
+        }
     }
 }
