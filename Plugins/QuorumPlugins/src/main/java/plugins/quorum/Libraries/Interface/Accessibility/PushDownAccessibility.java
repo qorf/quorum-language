@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -116,11 +117,16 @@ public class PushDownAccessibility {
         }
     }
 
-    private static void Traverse(ItemKit itemKit, TreeUpdate update) {
+    private static void Traverse(ItemKit itemKit, final TreeUpdate update) {
         update.add(itemKit.GetNodeID(), itemKit.Build());
-        for (ItemKit child : itemKit.GetChildren()) {
-            Traverse(child, update);
-        }
+        itemKit.IterateChildren(new Consumer<Iterable<ItemKit>>() {
+            @Override
+            public void accept(Iterable<ItemKit> children) {
+                for (ItemKit child : children) {
+                    Traverse(child, update);
+                }
+            }
+        });
         for (NodeId child : itemKit.GetInternalChildren()) {
             update.add(child, itemKit.BuildInternalChild(child));
         }
