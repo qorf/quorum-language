@@ -1,15 +1,17 @@
-package Libraries.Game.Graphics.Shaders
+package Libraries.Game.Graphics.Shaders.Programs
 
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.PatternControlShaderMappingOpenGL
 use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.PatternControlVertexShaderOpenGL
-use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.LinePatternControlFragmentShaderOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.HollowCirclePatternControlFragmentShaderOpenGL
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.Shader
 
-class LinePatternControlShaderProgram is ShaderProgram
+class HollowCirclePatternControlShaderProgram is ShaderProgram
 
-    public constant text DEFAULT_NAME = "Line Pattern Control Shader Program"
+    public constant text DEFAULT_NAME = "Hollow Circle Pattern Control Shader Program"
     constant text VERTEX_NAME = "Pattern Control Vertex Shader"
-    constant text FRAGMENT_NAME = "Line Pattern Control Fragment Shader"
+    constant text FRAGMENT_NAME = "Hollow Circle Pattern Control Fragment Shader"
 
     on create
         SetName(DEFAULT_NAME)
@@ -28,7 +30,7 @@ class LinePatternControlShaderProgram is ShaderProgram
             Shader fragment = manager:GetShader(FRAGMENT_NAME)
             Add(fragment)
         else
-            LinePatternControlFragmentShaderOpenGL fragment
+            HollowCirclePatternControlFragmentShaderOpenGL fragment
             Add(fragment)
         end
 

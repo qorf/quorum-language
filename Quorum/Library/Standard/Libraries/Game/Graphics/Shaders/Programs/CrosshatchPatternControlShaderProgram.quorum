@@ -1,15 +1,16 @@
-package Libraries.Game.Graphics.Shaders
-
+package Libraries.Game.Graphics.Shaders.Programs
 use Libraries.Game.GameStateManager
-use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.PatternControlVertexShaderOpenGL
-use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.HollowBoxPatternControlFragmentShaderOpenGL
 use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.PatternControlShaderMappingOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.PatternControlVertexShaderOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.CrosshatchPatternControlFragmentShaderOpenGL
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.Shader
 
-class HollowBoxPatternControlShaderProgram is ShaderProgram
+class CrosshatchPatternControlShaderProgram is ShaderProgram
 
-    public constant text DEFAULT_NAME = "Hollow Box Pattern Control Shader Program"
+    public constant text DEFAULT_NAME = "Crosshatch Pattern Control Shader Program"
     constant text VERTEX_NAME = "Pattern Control Vertex Shader"
-    constant text FRAGMENT_NAME = "Hollow Box Pattern Control Fragment Shader"
+    constant text FRAGMENT_NAME = "Crosshatch Pattern Control Fragment Shader"
 
     on create
         SetName(DEFAULT_NAME)
@@ -28,7 +29,7 @@ class HollowBoxPatternControlShaderProgram is ShaderProgram
             Shader fragment = manager:GetShader(FRAGMENT_NAME)
             Add(fragment)
         else
-            HollowBoxPatternControlFragmentShaderOpenGL fragment
+            CrosshatchPatternControlFragmentShaderOpenGL fragment
             Add(fragment)
         end
 

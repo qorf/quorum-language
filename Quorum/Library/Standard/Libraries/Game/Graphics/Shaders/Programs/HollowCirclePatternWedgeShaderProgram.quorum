@@ -1,14 +1,16 @@
-package Libraries.Game.Graphics.Shaders
+package Libraries.Game.Graphics.Shaders.Programs
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.PatternWedgeShaderMappingOpenGL
 use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.PatternWedgeVertexShaderOpenGL
-use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.SolidCirclePatternWedgeFragmentShaderOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.HollowCirclePatternWedgeFragmentShaderOpenGL
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.Shader
 
-class SolidCirclePatternWedgeShaderProgram is ShaderProgram
+class HollowCirclePatternWedgeShaderProgram is ShaderProgram
 
-    public constant text DEFAULT_NAME = "Solid Circle Pattern Wedge Shader Program"
+    public constant text DEFAULT_NAME = "Hollow Circle Pattern Wedge Shader Program"
     constant text VERTEX_NAME = "Pattern Wedge Vertex Shader"
-    constant text FRAGMENT_NAME = "Solid Circle Pattern Wedge Fragment Shader"
+    constant text FRAGMENT_NAME = "Hollow Circle Pattern Wedge Fragment Shader"
 
     on create
         SetName(DEFAULT_NAME)
@@ -27,7 +29,7 @@ class SolidCirclePatternWedgeShaderProgram is ShaderProgram
             Shader fragment = manager:GetShader(FRAGMENT_NAME)
             Add(fragment)
         else
-            SolidCirclePatternWedgeFragmentShaderOpenGL fragment
+            HollowCirclePatternWedgeFragmentShaderOpenGL fragment
             Add(fragment)
         end
 

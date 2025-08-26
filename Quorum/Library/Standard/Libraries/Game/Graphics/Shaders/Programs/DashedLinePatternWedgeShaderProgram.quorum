@@ -1,15 +1,16 @@
-package Libraries.Game.Graphics.Shaders
-
+package Libraries.Game.Graphics.Shaders.Programs
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.PatternWedgeShaderMappingOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.DashedLinePatternWedgeFragmentShaderOpenGL
 use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.PatternWedgeVertexShaderOpenGL
-use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.HollowBoxPatternWedgeFragmentShaderOpenGL
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.Shader
 
-class HollowBoxPatternWedgeShaderProgram is ShaderProgram
+class DashedLinePatternWedgeShaderProgram is ShaderProgram
 
-    public constant text DEFAULT_NAME = "Hollow Box Pattern Wedge Shader Program"
+    public constant text DEFAULT_NAME = "Dashed Line Pattern Wedge Shader Program"
     constant text VERTEX_NAME = "Pattern Wedge Vertex Shader"
-    constant text FRAGMENT_NAME = "Hollow Box Pattern Wedge Fragment Shader"
+    constant text FRAGMENT_NAME = "Dashed Line Pattern Wedge Fragment Shader"
 
     on create
         SetName(DEFAULT_NAME)
@@ -28,7 +29,7 @@ class HollowBoxPatternWedgeShaderProgram is ShaderProgram
             Shader fragment = manager:GetShader(FRAGMENT_NAME)
             Add(fragment)
         else
-            HollowBoxPatternWedgeFragmentShaderOpenGL fragment
+            DashedLinePatternWedgeFragmentShaderOpenGL fragment
             Add(fragment)
         end
 
