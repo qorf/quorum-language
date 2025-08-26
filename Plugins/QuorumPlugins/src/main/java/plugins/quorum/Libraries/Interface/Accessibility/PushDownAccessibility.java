@@ -360,7 +360,16 @@ public class PushDownAccessibility {
             return true;
         }
 
-        //second, if it's been added, accesskit seems to require parent hierarchies, at least in this design
+        //second, before we possibly recurse into the parent, see if the
+        //item even has an accessible representation
+        int code = item.GetAccessibilityCode();
+        Role role = null;
+        ItemKit itemKit = GetKitFromCode(item);
+        if (itemKit == null) {
+            return false;
+        }
+
+        //third, if it's been added, accesskit seems to require parent hierarchies, at least in this design
         //be ordered parent to child. That might be dangerous quorum side, because that's definitely a contract
         //someone could violate, but we'll give it a try for the end of the hackathon.
         //as such, try the parent next
@@ -381,21 +390,13 @@ public class PushDownAccessibility {
             parentKit = root;
         }
 
-        int code = item.GetAccessibilityCode();
-        Role role = null;
-        ItemKit itemKit = GetKitFromCode(item);
-
-        if(itemKit != null) {
-            itemKit.SetItem(item);
-            NodeId id = itemKit.GetNodeID();
-            items.put(id, itemKit);
-            dirtyNodes.add(id);
-            parentKit.AddChild(itemKit);
-            dirtyNodes.add(parentKit.GetNodeID());
-            return true;
-        }
-
-        return false;
+        itemKit.SetItem(item);
+        NodeId id = itemKit.GetNodeID();
+        items.put(id, itemKit);
+        dirtyNodes.add(id);
+        parentKit.AddChild(itemKit);
+        dirtyNodes.add(parentKit.GetNodeID());
+        return true;
     }
 
     public boolean NativeRemove(Item_ item)
