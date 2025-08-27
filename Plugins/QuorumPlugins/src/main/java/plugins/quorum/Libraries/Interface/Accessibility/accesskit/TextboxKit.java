@@ -26,9 +26,9 @@ public class TextboxKit extends TextKitBase {
         Item_ item = GetItem();
         if(item != null) {
             Rect rect = GetBoundingRectangle();
-            NodeBuilder builder = new NodeBuilder(GetRole());
+            Node builder = new Node(GetRole());
             builder.setBounds(rect);
-            builder.setName(item.GetName());
+            builder.setLabel(item.GetName());
             if(item instanceof TextBox_) { //technically not compiler guaranteed. You can set the code to anything.
                 TextBox_ box = (TextBox_) item;
                 TextBoxSelection_ selection = box.GetSelection();
@@ -58,7 +58,7 @@ public class TextboxKit extends TextKitBase {
                 builder.setTextSelection(new TextSelection(anchor, focus));
             }
             BuildChildren(builder);
-            return builder.build();
+            return builder;
         }
         return null;
     }
@@ -137,8 +137,8 @@ public class TextboxKit extends TextKitBase {
             } else if (!s.endsWith("\r") && !s.endsWith("\n")) {
                 s += value.GetLineSeparator();
             }
-            NodeBuilder builder = BuildLineBase(lineIndex, s);
-            return builder.build();
+            Node builder = BuildLineBase(lineIndex, s);
+            return builder;
         }
         return null;
     }

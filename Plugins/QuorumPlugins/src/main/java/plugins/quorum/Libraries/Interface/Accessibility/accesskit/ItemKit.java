@@ -31,18 +31,18 @@ public class ItemKit {
         Needs to be replaced for general items.
      */
     public Node Build() {
-        NodeBuilder builder = new NodeBuilder(GetRole());
+        Node builder = new Node(GetRole());
         Item_ item = GetItem();
         if (item != null) {
             Rect rect = GetBoundingRectangle();
             builder.setBounds(rect);
-            builder.setName(item.GetName() + ", " + item.GetDescription());
+            builder.setLabel(item.GetName() + ", " + item.GetDescription());
         }
         BuildChildren(builder);
-        return builder.build();
+        return builder;
     }
 
-    protected void BuildChildren(NodeBuilder builder) {
+    protected void BuildChildren(Node builder) {
         for (NodeId child : GetInternalChildren()) {
             builder.addChild(child);
         }

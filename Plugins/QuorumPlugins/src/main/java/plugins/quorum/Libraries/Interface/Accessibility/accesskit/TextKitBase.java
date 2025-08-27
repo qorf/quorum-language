@@ -6,8 +6,8 @@ import java.util.ArrayList;
 abstract class TextKitBase extends ItemKit {
     abstract boolean IsBeginningOfToken(int lineIndex, int charIndexInLine);
 
-    final NodeBuilder BuildLineBase(int lineIndex, String s) {
-        NodeBuilder builder = new NodeBuilder(Role.INLINE_TEXT_BOX);
+    final Node BuildLineBase(int lineIndex, String s) {
+        Node builder = new Node(Role.TEXT_RUN);
         builder.setTextDirection(TextDirection.LEFT_TO_RIGHT);
         builder.setValue(s);
         ArrayList<Byte> characterLengths = new ArrayList<Byte>();

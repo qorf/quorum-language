@@ -1,7 +1,6 @@
 package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 
 import dev.accesskit.Node;
-import dev.accesskit.NodeBuilder;
 import dev.accesskit.Rect;
 import dev.accesskit.Role;
 import quorum.Libraries.Interface.Controls.ProgressBar_;
@@ -16,9 +15,9 @@ public class ProgressBarKit extends ItemKit{
         Item_ item = GetItem();
         if(item != null) {
             Rect rect = GetBoundingRectangle();
-            NodeBuilder builder = new NodeBuilder(GetRole());
+            Node builder = new Node(GetRole());
             builder.setBounds(rect);
-            builder.setName(item.GetName());
+            builder.setLabel(item.GetName());
             if(item instanceof ProgressBar_) { //technically not compiler guaranteed. You can set the code to anything.
                 ProgressBar_ bar = (ProgressBar_) item;
                 double max = bar.GetMaximum();
@@ -28,7 +27,7 @@ public class ProgressBarKit extends ItemKit{
                 builder.setMinNumericValue(min);
                 builder.setNumericValue(value);
             }
-            return builder.build();
+            return builder;
         }
         return null;
     }

@@ -12,23 +12,23 @@ public class DummyKit extends ItemKit {
     }
 
     public Node Build() {
-        NodeBuilder builder = new NodeBuilder(GetRole());
+        Node builder = new Node(GetRole());
         Item_ item = GetItem();
         if (item != null) {
             Rect rect = GetBoundingRectangle();
             builder.setBounds(rect);
-            builder.setName(name);
+            builder.setLabel(name);
         } else {
-            builder.setName("Dummy");
+            builder.setLabel("Dummy");
         }
-        return builder.build();
+        return builder;
     }
 
     public NodeId GetNodeID() {
         return new NodeId(dummyNodeID);
     }
 
-    protected void BuildChildren(NodeBuilder builder) {
+    protected void BuildChildren(Node builder) {
         //intentionally does nothing. May need to change.
     }
 

@@ -87,9 +87,9 @@ public class PushDownAccessibility {
                     System.load(nativeFile);
 
                     handle = GLFWNativeCocoa.glfwGetCocoaWindow(DesktopDisplay.window);
-                    adapter = MacosSubclassingAdapter.forWindow(handle, new TreeUpdateSupplier() {
+                    adapter = new MacosSubclassingAdapter(handle, new ActivationHandler() {
                         @Override
-                        public TreeUpdate get() {
+                        public TreeUpdate requestInitialTree() {
                             return BuildFullTree();
                         }
                     });
@@ -101,9 +101,9 @@ public class PushDownAccessibility {
                 System.load(nativeFile);
 
                 handle = GLFWNativeWin32.glfwGetWin32Window(DesktopDisplay.window);
-                adapter = new WindowsSubclassingAdapter(handle, new TreeUpdateSupplier() {
+                adapter = new WindowsSubclassingAdapter(handle, new ActivationHandler() {
                     @Override
-                    public TreeUpdate get() {
+                    public TreeUpdate requestInitialTree() {
                         return BuildFullTree();
                     }
                 });

@@ -1,7 +1,6 @@
 package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 
 import dev.accesskit.Node;
-import dev.accesskit.NodeBuilder;
 import dev.accesskit.Rect;
 import dev.accesskit.Role;
 import plugins.quorum.Libraries.Game.GameStateManager;
@@ -16,23 +15,23 @@ import quorum.Libraries.Interface.Item_;
 
 public class LabelKit extends ItemKit{
     public LabelKit() {
-        SetRole(Role.STATIC_TEXT);
+        SetRole(Role.LABEL);
     }
 
     public Node Build() {
-        NodeBuilder builder = new NodeBuilder(GetRole());
+        Node builder = new Node(GetRole());
         Item_ item = GetItem();
 
         if (item != null && item instanceof Label_) {
             Label_ label = (Label_) item;
             Rect rect = GetBoundingRectangle();
             builder.setBounds(rect);
-            builder.setName(label.GetText());
+            builder.setValue(label.GetText());
         } else {
-            builder.setName(item.GetName() + ", " + item.GetDescription());
+            builder.setValue(item.GetName() + ", " + item.GetDescription());
         }
         BuildChildren(builder);
-        return builder.build();
+        return builder;
     }
 
     public Rect GetBoundingRectangle()

@@ -4,6 +4,6 @@ import dev.accesskit.Role;
 
 public class ToggleButtonKit extends ItemKit{
     public ToggleButtonKit() {
-        SetRole(Role.TOGGLE_BUTTON);
+        SetRole(Role.BUTTON);
     }
 }
