@@ -87,7 +87,7 @@ public class PushDownAccessibility {
                     System.load(nativeFile);
 
                     handle = GLFWNativeCocoa.glfwGetCocoaWindow(DesktopDisplay.window);
-                    adapter = new MacosSubclassingAdapter(handle, new ActivationHandler() {
+                    adapter = MacosSubclassingAdapter.forWindow(handle, new ActivationHandler() {
                         @Override
                         public TreeUpdate requestInitialTree() {
                             return BuildFullTree();
