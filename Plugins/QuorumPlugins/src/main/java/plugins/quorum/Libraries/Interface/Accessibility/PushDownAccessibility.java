@@ -48,6 +48,7 @@ public class PushDownAccessibility {
     private NodeId focus = root.GetNodeID();
     private final HashSet<NodeId> dirtyNodes = new HashSet<NodeId>();
     private boolean isFocusDirty = false;
+    private boolean updating = false;
 
     public PushDownAccessibility() {
         items.put(root.GetNodeID(), root);
@@ -170,6 +171,10 @@ public class PushDownAccessibility {
                 // Try again on the next frame.
                 return;
             }
+            if (updating) {
+                throw new IllegalStateException("already updating AccessKit");
+            }
+            updating = true;
             adapter.updateIfActive(new TreeUpdateSupplier() {
                 @Override
                 public TreeUpdate get() {
@@ -184,6 +189,7 @@ public class PushDownAccessibility {
                     return update;
                 }
             });
+            updating = false;
             for (NodeId id : dirtyNodes) {
                 ItemKit kit = items.get(id);
                 kit.ClearDirtyInternalChildren();
@@ -234,7 +240,12 @@ public class PushDownAccessibility {
             // TODO: the following should really be done when handling the
             // appropriate GLFW event that indicates when the window itself
             // gains or loses focus.
+            if (updating) {
+                throw new IllegalStateException("already updating AccessKit");
+            }
+            updating = true;
             adapter.updateViewFocusState(true);
+            updating = false;
             focus = id;
             isFocusDirty = true;
         }
