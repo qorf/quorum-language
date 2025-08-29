@@ -11,6 +11,7 @@ use Libraries.Interface.Accessibility
 use Libraries.Interface.Options.InterfaceOptions
 use Libraries.Game.Graphics.SharedTextureManager
 use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
 
 /*
     The GameStateManager is an internal class, used by the game engine to
@@ -169,6 +170,11 @@ shared class GameStateManager
     typically return true after the game has been started.
     */
     action IsDisplayAvailable returns boolean
+        GraphicsManager graphics = GetGameGraphics()
+        if graphics not= undefined and graphics is VulkanGraphics
+            return true
+        end
+        
         GameDisplay display = GetGameDisplay()
         return display not= undefined and display:IsAvailable()
     end

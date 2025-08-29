@@ -5,6 +5,9 @@ use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.ControlFragmentShaderOpenGL
 use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.ControlShaderMappingOpenGL
 use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.ControlVertexShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.ControlFragmentShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.ControlShaderMappingVulkan
 
 class ControlShaderProgram is ShaderProgram
 
@@ -21,20 +24,35 @@ class ControlShaderProgram is ShaderProgram
             Shader vertex = manager:GetShader(VERTEX_NAME)
             Add(vertex)
         else
-            ControlVertexShaderOpenGL vertex
+            if IsVulkanProgram()
+                ControlVertexShaderVulkan vertex
+                Add(vertex)
+            else
+ControlVertexShaderOpenGL vertex
             Add(vertex)
+            end
         end
 
         if manager:HasShader(FRAGMENT_NAME)
             Shader fragment = manager:GetShader(FRAGMENT_NAME)
             Add(fragment)
         else
-            ControlFragmentShaderOpenGL fragment
+            if IsVulkanProgram()
+                ControlFragmentShaderVulkan fragment
+                Add(fragment)
+            else
+ControlFragmentShaderOpenGL fragment
             Add(fragment)
+            end
         end
 
-        ControlShaderMappingOpenGL mapping
+        if IsVulkanProgram()
+            ControlShaderMappingVulkan mapping
+            SetShaderMapping(mapping)
+        else
+ControlShaderMappingOpenGL mapping
         SetShaderMapping(mapping)
+        end
     end
 
 end

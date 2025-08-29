@@ -1,0 +1,133 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Fragment
+
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.DefaultAttributeNames
+
+class ControlFragmentShaderVulkan is Shader
+    
+    constant text SHADER_NAME = "Control Fragment Shader"
+
+    on create
+        SetType(parent:Shader:FRAGMENT_SHADER)
+        SetName(SHADER_NAME)
+
+        DefaultAttributeNames attributes
+
+        SetCode(GetVersionHeader() +
+"
+" +
+"#ifdef GL_ES
+    #define LOWP lowp
+    precision mediump float;
+#else
+    #define LOWP 
+#endif
+
+// Adds support for nonuniformEXT and unsized descriptor arrays.
+#extension GL_EXT_nonuniform_qualifier : require
+
+layout(set = 0, binding = 1) uniform sampler immutableSampler;
+layout(set = 1, binding = 0) uniform texture2D globalTextures[];
+
+layout (location = 0) in vec4 v_color;
+layout (location = 1) in vec2 v_textureCoords;
+layout (location = 2) flat in uint v_textureIndex;
+layout (location = 3) in vec4 v_borderColor;
+layout (location = 4) in vec4 v_rounding;
+layout (location = 5) in vec4 v_borderThickness;
+layout (location = 6) in float v_aspectRatio;
+layout (location = 7) in float v_antiAlias;
+
+layout (location = 0) out vec4 outputColor;
+
+// Calculate how far a point is from the outer shell of a rounded rectangle.
+// The rounding vector contains edge roundness values for:
+// x: top-right
+// y: bottom-right
+// z: top-left
+// w: bottom-left
+float signedDistanceFunction(in vec2 point, in vec2 dimensions, in vec4 rounding)
+{
+    // We calculate as though the point is in the top-right quadrant.
+    // If this isn't true, we need adjust which of the edge rounding values we use.
+    rounding.xy = (point.x > 0.0) ? rounding.xy : rounding.zw;
+    rounding.x = (point.y > 0.0) ? rounding.x : rounding.y;
+    
+    // We take the absolute value of the point to ensure we're calculating from the top-right quadrant
+    vec2 calc = abs(point) - dimensions + rounding.x;
+    return min(max(calc.x, calc.y), 0.0) + length(max(calc, 0.0)) - rounding.x;
+}
+
+" + GetExtraFunctions() + "
+
+void main()
+{
+    vec4 textureColor = texture(nonuniformEXT(sampler2D(globalTextures[v_textureIndex], immutableSampler)), v_textureCoords);
+//    vec4 rounding = v_rounding;
+//    vec4 borderThickness = v_borderThickness;
+//    float aspectRatio = v_aspectRatio;
+//    float antiAliasDistance = v_antiAlias;
+
+//    vec4 borderColor = v_borderColor;
+    bool renderBorders = (v_borderThickness.x + v_borderThickness.y + v_borderThickness.z + v_borderThickness.w) > 0.0;
+    bool renderAllBorders = (v_borderThickness.x > 0.0) && (v_borderThickness.y > 0.0) && (v_borderThickness.z > 0.0) && (v_borderThickness.w > 0.0);
+
+    vec2 point = (v_textureCoords.xy - 0.5) * 2.0;
+    point.x *= v_aspectRatio;
+    vec2 dimensions = vec2(v_aspectRatio, 1.0);
+
+    float distance = signedDistanceFunction(point, dimensions, v_rounding);
+    vec4 resultColor;
+
+    if (renderAllBorders)
+    {
+        resultColor = mix(v_borderColor * textureColor, vec4(v_borderColor.rgb, 0.0), smoothstep(0.0, v_antiAlias, distance));
+        resultColor = mix(v_color * textureColor, resultColor, smoothstep(0.0, v_antiAlias, distance + v_borderThickness.x + v_borderThickness.z));
+    }
+    else if (renderBorders)
+    {
+        // The enabled borders vector stores values for the sides in the following order:
+        // x: right
+        // y: top (y-positive: technically the bottom due to how GLSL handles texture coordinates)
+        // z: left
+        // w: bottom (y-negative)
+        vec2 fillPoint = point - vec2(v_borderThickness.x - v_borderThickness.z, v_borderThickness.y - v_borderThickness.w);
+        vec2 fillDimensions = vec2(dimensions.x - v_borderThickness.x - v_borderThickness.z, dimensions.y - v_borderThickness.y - v_borderThickness.w);
+        float fillDistance = signedDistanceFunction(fillPoint, fillDimensions, v_rounding);
+    
+        resultColor = mix(v_borderColor * textureColor, vec4(v_borderColor.rgb, 0.0), smoothstep(0.0, v_antiAlias, distance));
+        resultColor = mix(v_color * textureColor, resultColor, smoothstep(0.0, v_antiAlias, fillDistance));
+    }
+    else
+    {
+        resultColor = v_color * textureColor;
+        resultColor = mix(resultColor, vec4(resultColor.rgb, 0.0), smoothstep(0.0, v_antiAlias, distance));
+    }
+
+    " + GetAppendedCode() + "
+
+    //resultColor.rgb = pow(resultColor.rgb, (1.0/2.4));
+    outputColor = resultColor;
+}"
+)
+    end
+
+    private action GetPreprocessorDefinitions returns text
+        return ""
+    end
+
+    private action GetExtraInputs returns text
+        return ""
+    end
+
+    private action GetExtraFunctions returns text
+        return ""
+    end
+
+    private action GetAppendedCode returns text
+        return ""
+    end
+
+end

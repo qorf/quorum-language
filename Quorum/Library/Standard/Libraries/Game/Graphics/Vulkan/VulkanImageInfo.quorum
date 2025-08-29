@@ -15,7 +15,7 @@ imageType: An IMAGE_TYPE value from VulkanConstants. Defaults to IMAGE_TYPE_2D.
 depth: The depth of the image. Default value is 1, and this should only be changed if the imageType is IMAGE_TYPE_3D.
 mipLevels: The number of levels of detail available for minified sampling of the image (i.e., how many levels are available for mipmapping). The default value is 1 (no mipmapping).
 arrayLayers: The number of layers in the image. The default value is 1.
-format: The format of the texels (pixels in the image), using a FORMAT value from VulkanConstants. The default value is FORMAT_R8G8B8A8_SRGB (8 bits each of Red, Green, Blue, and Alpha values, stored with sRGB encoding).
+format: The format of the texels (pixels in the image), using a FORMAT value from VulkanConstants. The default value is FORMAT_R8G8B8A8_UNORM (8 bits each of Red, Green, Blue, and Alpha values, as normalized between 0 and 1).
 tiling: The arrangement (or "tiling") of the internal data, using an IMAGE_TILING value from VulkanConstants. The default value is IMAGE_TILING_OPTIMAL.
 initialLayout: An IMAGE_LAYOUT value from VulkanConstants that describes the starting layout of all image subresources of this image. The default value is IMAGE_LAYOUT_UNDEFINED.
 samples: The number of samples per texel (pixel in the image), using a SAMPLE_COUNT value from VulkanConstants. The default value is SAMPLE_COUNT_1_BIT (no multisampling).
@@ -50,7 +50,7 @@ class VulkanImageInfo
     on create
         VulkanConstants constants
         imageType = constants:IMAGE_TYPE_2D
-        format = constants:FORMAT_R8G8B8A8_SRGB
+        format = constants:FORMAT_R8G8B8A8_UNORM
         tiling = constants:IMAGE_TILING_OPTIMAL
         initialLayout = constants:IMAGE_LAYOUT_UNDEFINED
         samples = constants:SAMPLE_COUNT_1_BIT

@@ -19,6 +19,8 @@ import quorum.Libraries.Game.Graphics.Fonts.FontImageSheet_;
 import quorum.Libraries.Game.Graphics.Glyph;
 import quorum.Libraries.Game.Graphics.Texture;
 import quorum.Libraries.Game.Graphics.Texture_;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanGraphics_;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDeviceLimits_;
 
 /**
  *
@@ -279,10 +281,29 @@ public class FreeTypeStrategy
         
         // How much padding there should be between symbols on the ImageSheet.
         int padding = 1;
-        
-        IntBuffer buffer = BufferUtils.newIntBuffer(1);
-        GameStateManager.nativeGraphics.glGetIntegerv(OpenGLManager.GL_MAX_TEXTURE_SIZE, buffer);
-        int maxSize = buffer.get(0);
+
+        int maxSize;
+        if (GameStateManager.graphics instanceof VulkanGraphics_)
+        {
+            VulkanPhysicalDeviceLimits_ limits = ((VulkanGraphics_)GameStateManager.graphics).GetPhysicalDeviceLimits();
+            maxSize = limits.GetMaxImageDimension2D();
+            // If we can't get a good value from the hardware, try to use a reasonable default.
+            if (maxSize <= 0)
+            {
+                maxSize = 4096;
+            }
+        }
+        else if (GameStateManager.nativeGraphics != null)
+        {
+            IntBuffer buffer = BufferUtils.newIntBuffer(1);
+            GameStateManager.nativeGraphics.glGetIntegerv(OpenGLManager.GL_MAX_TEXTURE_SIZE, buffer);
+            maxSize = buffer.get(0);
+        }
+        else
+        {
+            throw new RuntimeException("I couldn't load a font image sheet because the graphics system wasn't available yet.");
+        }
+
         int rowHeight = padding;
         int rowWidth = padding;
         int totalHeight = rowHeight;

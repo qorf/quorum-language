@@ -18,4 +18,10 @@ any Vulkan resources that will be needed to send or change shader data.*/
 action Begin(ShaderProgram program, Camera camera, VulkanCommandBuffer commandBuffer, integer swapchainIndex)
 end
     
+action Begin(ShaderProgram program, Camera camera)
+end
+
+    action End(ShaderProgram program)
+end
+    
 end

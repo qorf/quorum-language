@@ -60,15 +60,6 @@ any Vulkan resources that will be needed to send or change shader data.*/
     action CreatePipelineInfo(VulkanShaderProgram program, VulkanDevice device) returns VulkanPipelineInfo
         VulkanPipelineInfo info
         
-//VulkanShaderManager shaderManager = cast(VulkanShaderManager, gameState:GetShaderManager())
-            //Shader vertexShader = shaderManager:GetDefaultVertexShader2D()
-            //Shader fragmentShader = shaderManager:GetDefaultFragmentShader2D()
-//
-            //Array<Shader> shaders
-            //shaders:Add(vertexShader)
-            //shaders:Add(fragmentShader)
-
-            //VulkanPipelineCache cache = shaderManager:GetPipelineCache()
             VulkanConstants constants
 
             Array<VulkanVertexInputAttributeDescription> vertexAttributes = info:GetVertexInputAttributeDescriptions()
@@ -184,16 +175,6 @@ any Vulkan resources that will be needed to send or change shader data.*/
             VulkanPipelineLayout pipelineLayout = info:GetLayout()
             pipelineLayout:Create(device, descriptorLayouts)
             me:pipelineLayout = pipelineLayout
-
-            // The info structure has lots of other values we could customize, but all of the default values will work well for us here.
-            // We can now create the Pipeline itself.
-            //boolean success = pipeline:Create(device, renderPass, cache, shaders, info)
-        //    
-            //if success
-                //defaultPipeline = pipeline
-            //else
-                //pipeline:Dispose()
-            //end
 
             // Create the buffers for the uniforms. We'll need to know how many images the swapchain has for this.
             // This is because we'll need separate buffers for each swapchain image, so each image can be done in parallel.

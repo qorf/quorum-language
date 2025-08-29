@@ -735,6 +735,14 @@ class VulkanGraphics is GraphicsManager
     action GetPhysicalDevice returns VulkanPhysicalDevice
         return physicalDevice
     end
+    
+    action GetPhysicalDeviceLimits returns VulkanPhysicalDeviceLimits
+        if physicalDevice = undefined
+            return undefined
+        end
+        
+        return physicalDevice:GetLimits()
+    end
 
     action GetDevice returns VulkanDevice
         return device
