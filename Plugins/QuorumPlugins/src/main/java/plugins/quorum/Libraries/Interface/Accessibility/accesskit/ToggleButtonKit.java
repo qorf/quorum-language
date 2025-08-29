@@ -4,7 +4,7 @@ import dev.accesskit.Node;
 import dev.accesskit.Rect;
 import dev.accesskit.Role;
 import dev.accesskit.Toggled;
-import quorum.Libraries.Interface.Controls.Checkbox_;
+import quorum.Libraries.Interface.Controls.ToggleButton_;
 import quorum.Libraries.Interface.Item_;
 
 public class ToggleButtonKit extends ItemKit{
@@ -19,8 +19,9 @@ public class ToggleButtonKit extends ItemKit{
             Node builder = new Node(GetRole());
             builder.setBounds(rect);
             builder.setLabel(item.GetName());
-            if(item instanceof Checkbox_) { //technically not compiler guaranteed. You can set the code to anything.
-                Checkbox_ box = (Checkbox_) item;
+            builder.setDescription(item.GetDescription());
+            if(item instanceof ToggleButton_) { //technically not compiler guaranteed. You can set the code to anything.
+                ToggleButton_ box = (ToggleButton_) item;
                 boolean state = box.GetToggleState();
                 if(state) {
                     builder.setToggled(Toggled.TRUE);

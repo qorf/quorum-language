@@ -16,6 +16,7 @@ public class CheckboxKit extends ItemKit{
             Node builder = new Node(GetRole());
             builder.setBounds(rect);
             builder.setLabel(item.GetName());
+            builder.setDescription(item.GetDescription());
             if(item instanceof Checkbox_) { //technically noto compiler guaranteed. You can set the code to anything.
                 Checkbox_ box = (Checkbox_) item;
                 boolean state = box.GetToggleState();

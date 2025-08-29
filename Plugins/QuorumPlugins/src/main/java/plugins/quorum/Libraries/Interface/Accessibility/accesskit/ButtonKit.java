@@ -18,6 +18,7 @@ public class ButtonKit extends ItemKit{
             Node builder = new Node(GetRole());
             builder.setBounds(rect);
             builder.setLabel(item.GetName());
+            builder.setDescription(item.GetDescription());
             return builder;
         }
         return null;

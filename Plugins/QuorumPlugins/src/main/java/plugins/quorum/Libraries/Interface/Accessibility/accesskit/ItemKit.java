@@ -36,7 +36,10 @@ public class ItemKit {
         if (item != null) {
             Rect rect = GetBoundingRectangle();
             builder.setBounds(rect);
-            builder.setLabel(item.GetName() + ", " + item.GetDescription());
+            //temp in case I need to roll this back to accessibility weirdness on one platform or another.
+            //builder.setLabel(item.GetName() + ", " + item.GetDescription());
+            builder.setLabel(item.GetName());
+            builder.setDescription(item.GetDescription());
         }
         BuildChildren(builder);
         return builder;

@@ -27,8 +27,10 @@ public class CellKit extends ItemKit{
             //this may need to change as access kit changes. It feels like this
             //should be setValue, but that may be an incorrect assumption.
             builder.setLabel(control.GetName());
+            builder.setDescription(control.GetDescription());
         } else {
-            builder.setLabel(item.GetName() + ", " + item.GetDescription());
+            builder.setLabel(item.GetName());
+            builder.setDescription(item.GetDescription());
         }
         BuildChildren(builder);
         return builder;

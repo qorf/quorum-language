@@ -280,41 +280,56 @@ class Action is Symbol
 
         Documentation doc = GetDocumentation()
         if doc not= undefined
-            text value = "<h1>" + display + "</h1>"
+            text valueHTML = "<h1>" + display + "</h1>"
+text value = display
 
-            value = value + "<p>" + doc:GetDescription() + "</p>"
-            value = value + "<p><strong>Parameters</strong></p>"
+            valueHTML = valueHTML + "<p>" + doc:GetDescription() + "</p>"
+            valueHTML = valueHTML + "<p><strong>Parameters</strong></p>"
+value = value + doc:GetDescription()
+            value = value + ", Parameters"
+            
+            
             variables = GetParameterIterator()
             integer i2 = 0
-            value = value + "<ul>"
+            valueHTML = valueHTML + "<ul>"
+value = value
             repeat while variables:HasNext()
                 Variable param = variables:Next()
                 Type type = param:GetType()
                 text paramTypeName = GetTypeName(type, param)
-                value = value + "<li>" + paramTypeName + " " + param:GetName()
+                valueHTML = valueHTML + "<li>" + paramTypeName + " " + param:GetName()
+value = value + paramTypeName + " " + param:GetName()
                 text paramDescription = doc:GetParameterDescription(param:GetName())
                 if paramDescription not= undefined
-                    value = value + ": " + doc:GetParameterDescription(param:GetName()) + "</li>"
+                    valueHTML = valueHTML + ": " + doc:GetParameterDescription(param:GetName()) + "</li>"
+value = value + ": " + doc:GetParameterDescription(param:GetName()) + ","
                 else
-                    value = value + "</li>"
+                    valueHTML = valueHTML + "</li>"
+value = value
                 end
                 
                 i2 = i2 + 1
             end
-            value = value + "</ul>"
+            valueHTML = valueHTML + "</ul>"
+value = value
 
             if not returnType:IsVoid()
-                value = value + "<p><strong>Returns</strong></p>"
+                valueHTML = valueHTML + "<p><strong>Returns</strong></p>"
+                valueHTML = valueHTML + item:rightDisplayText + ": " + doc:GetReturns()
+value = value + " Returns "
                 value = value + item:rightDisplayText + ": " + doc:GetReturns()
             end
 
             text example = doc:GetExample()
             if not example:IsEmpty()
-                value = value + "<p><strong>Example</strong></p>"
-                value = value + example
+                valueHTML = valueHTML + "<p><strong>Example</strong></p>"
+                valueHTML = valueHTML + example
+value = value + ", Example"
+                value = value + " " + example
             end
             
-            item:documentationText = value 
+            item:documentationHTML = valueHTML 
+item:documentationText = value
         end
         
         return item

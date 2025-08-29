@@ -1323,7 +1323,7 @@ class CodeCompletionHandler
             text signature = "Use all classes with the " + DQ + "all" + DQ + " keyword."
             text itemName = "all"
 
-            text description = "<h1>" + signature + "</h1>"
+            text descriptionHTML = "<h1>" + signature + "</h1>"
                     + "<p align=" + DQ + "justify" + DQ + ">The word "
                     + "all indicates to quorum that we would like to"
                     + " have access to all classes in the package. For "
@@ -1331,15 +1331,26 @@ class CodeCompletionHandler
                     + "that we want to use any class in the Libraries.Containers "
                     + "package."
                     + "</p>"
-            description = description + "<h2>" + "Code Example:" + "</h2>"
-            description = description + "<PRE><CODE>"
+            descriptionHTML = descriptionHTML + "<h2>" + "Code Example:" + "</h2>"
+            descriptionHTML = descriptionHTML + "<PRE><CODE>"
                     + "use Libraries.Containers.all\n\n"
                     + "List&lt;integer&gt; list\n"
                     + "Array&lt;integer&gt; array"
                     + "</PRE></CODE>"
 
+text description = signature + " The word  all indicates to quorum that we would like to have access to all classes in the package. 
+For example, the phrase Libraries.Containers.all would indicate that we want to use any class 
+in the Libraries.Containers package."
+            description = description + ", " + "Code Example:"
+            description = description + 
+" use Libraries.Containers.all
+List<integer> list
+Array<integer> array"
+            
+            
             item:displayText = itemName
             item:documentationText = description
+item:documentationHTML = descriptionHTML
             item:completionText = "all"
             text filter = result:filter
             integer size = filter:GetSize()

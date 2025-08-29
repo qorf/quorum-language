@@ -18,6 +18,7 @@ public class ProgressBarKit extends ItemKit{
             Node builder = new Node(GetRole());
             builder.setBounds(rect);
             builder.setLabel(item.GetName());
+            builder.setDescription(item.GetDescription());
             if(item instanceof ProgressBar_) { //technically not compiler guaranteed. You can set the code to anything.
                 ProgressBar_ bar = (ProgressBar_) item;
                 double max = bar.GetMaximum();

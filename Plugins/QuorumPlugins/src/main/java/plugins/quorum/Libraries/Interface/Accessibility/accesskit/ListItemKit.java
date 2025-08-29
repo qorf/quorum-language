@@ -19,11 +19,12 @@ public class ListItemKit extends ItemKit{
             ListItem_ listItem = (ListItem_) item;
             Rect rect = GetBoundingRectangle();
             builder.setBounds(rect);
-            //this may need to change as access kit changes. It feels like this
-            //should be setValue, but that may be an incorrect assumption.
+
             builder.setLabel(listItem.GetText());
+            builder.setDescription(listItem.GetDescription());
         } else {
-            builder.setLabel(item.GetName() + ", " + item.GetDescription());
+            builder.setLabel(item.GetName());
+            builder.setDescription(item.GetDescription());
         }
         BuildChildren(builder);
         return builder;

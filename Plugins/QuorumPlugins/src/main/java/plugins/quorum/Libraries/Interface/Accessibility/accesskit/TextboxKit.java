@@ -29,6 +29,7 @@ public class TextboxKit extends TextKitBase {
             Node builder = new Node(GetRole());
             builder.setBounds(rect);
             builder.setLabel(item.GetName());
+            builder.setDescription(item.GetDescription());
             if(item instanceof TextBox_) { //technically not compiler guaranteed. You can set the code to anything.
                 TextBox_ box = (TextBox_) item;
                 TextBoxSelection_ selection = box.GetSelection();

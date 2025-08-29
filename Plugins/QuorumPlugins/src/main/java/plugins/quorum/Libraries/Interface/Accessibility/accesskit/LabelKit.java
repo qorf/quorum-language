@@ -27,8 +27,11 @@ public class LabelKit extends ItemKit{
             Rect rect = GetBoundingRectangle();
             builder.setBounds(rect);
             builder.setValue(label.GetText());
+            builder.setDescription(label.GetDescription());
         } else {
-            builder.setValue(item.GetName() + ", " + item.GetDescription());
+            //builder.setValue(item.GetName() + ", " + item.GetDescription());
+            builder.setValue(item.GetName());
+            builder.setDescription(item.GetDescription());
         }
         BuildChildren(builder);
         return builder;

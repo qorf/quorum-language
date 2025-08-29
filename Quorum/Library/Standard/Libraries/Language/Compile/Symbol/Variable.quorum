@@ -233,7 +233,8 @@ class Variable is Symbol
             item:displayText = name
             return item
         end
-        text docs = ""
+        text docsHTML = ""
+text docs = ""
         //no resolution is required here because variables are resolved
         //actions require an additional step because they are tied to a
         //particular variable
@@ -241,13 +242,16 @@ class Variable is Symbol
 
         Documentation doc = GetDocumentation()
         if doc not= undefined
-            docs = "<h1>" + signature + "</h1>"
-
-            docs = docs + "<p>" + doc:GetDescription() + "</p>"
+            docsHTML = "<h1>" + signature + "</h1>"
+            docsHTML = docsHTML + "<p>" + doc:GetDescription() + "</p>"
+docs = signature
+            docs = docs + ", " + doc:GetDescription()
 
             text example = doc:GetExample()
             if not example:IsEmpty()
-                docs = docs + "<p><strong>Example</strong></p>"
+                docsHTML = docsHTML + "<p><strong>Example</strong></p>"
+                docsHTML = docsHTML + example
+docs = docs + ", Example, "
                 docs = docs + example
             end
         end
@@ -255,7 +259,8 @@ class Variable is Symbol
         item:displayText = name
         item:rightDisplayText = signature
         item:completionText = name
-        item:documentationText = docs
+        item:documentationHTML = docsHTML
+item:documentationText = docs
 
         return item
     end

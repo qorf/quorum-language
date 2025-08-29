@@ -26,6 +26,7 @@ public class TextFieldKit extends TextKitBase {
             Node builder = new Node(GetRole());
             builder.setBounds(rect);
             builder.setLabel(item.GetName());
+            builder.setDescription(item.GetDescription());
             if(item instanceof TextField_) { //technically not compiler guaranteed. You can set the code to anything.
                 TextField_ field = (TextField_) item;
                 TextFieldSelection_ selection = field.GetSelection();

@@ -16,6 +16,7 @@ public class RadioButtonKit extends ItemKit{
             Node builder = new Node(GetRole());
             builder.setBounds(rect);
             builder.setLabel(item.GetName());
+            builder.setDescription(item.GetDescription());
             if(item instanceof RadioButton_) { //technically not compiler guaranteed. You can set the code to anything.
                 RadioButton_ box = (RadioButton_) item;
                 boolean state = box.GetToggleState();

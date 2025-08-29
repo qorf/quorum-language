@@ -18,6 +18,7 @@ public class DummyKit extends ItemKit {
             Rect rect = GetBoundingRectangle();
             builder.setBounds(rect);
             builder.setLabel(name);
+            builder.setDescription(item.GetDescription());
         } else {
             builder.setLabel("Dummy");
         }
