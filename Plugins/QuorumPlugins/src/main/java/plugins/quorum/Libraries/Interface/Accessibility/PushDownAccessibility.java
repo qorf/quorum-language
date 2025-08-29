@@ -20,6 +20,8 @@ import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Game.IOSApplication;
 import plugins.quorum.Libraries.Interface.Accessibility.accesskit.*;
 import plugins.quorum.Libraries.Interface.AccessibilityManager;
+import quorum.Libraries.Containers.Array_;
+import quorum.Libraries.Containers.Iterator_;
 import quorum.Libraries.Interface.Controls.*;
 import quorum.Libraries.Interface.Events.ControlActivationEvent_;
 import quorum.Libraries.Interface.Events.FocusEvent_;
@@ -33,6 +35,7 @@ import quorum.Libraries.Interface.Events.WindowFocusEvent_;
 import quorum.Libraries.Interface.Item_;
 import quorum.Libraries.Interface.Selections.TextBoxSelection_;
 import quorum.Libraries.Interface.Selections.TextFieldSelection_;
+import quorum.Libraries.Language.Object_;
 
 /**
  *
@@ -539,5 +542,242 @@ public class PushDownAccessibility {
             adapter.close();
         } catch(Exception e) {
         }
+    }
+
+    public static int GetCellRowIndex(Object_ object)
+    {
+        if (object instanceof Cell_)
+        {
+            Cell_ cell = (Cell_)object;
+            Column_ column = cell.GetColumn();
+
+            if (column != null)
+            {
+                return column.GetCellIndex(cell);
+            }
+        }
+        else if (object instanceof TreeTableCell_)
+        {
+            TreeTableCell_ cell = (TreeTableCell_)object;
+            TreeTableColumn_ column = cell.GetColumn();
+
+            if (column != null)
+            {
+                return column.GetCellIndex(cell);
+            }
+        }
+
+        // If we can't retrieve the correct position, return -1 to indicate failure.
+        return -1;
+    }
+
+    public static int GetCellColumnIndex(Object_ object)
+    {
+        if (object instanceof Cell_)
+        {
+            Cell_ cell = (Cell_)object;
+            Column_ column = cell.GetColumn();
+
+            if (column != null)
+            {
+                Spreadsheet_ spreadsheet = cell.GetSpreadsheet();
+                if (spreadsheet != null)
+                    return spreadsheet.GetColumnIndex(column);
+            }
+        }
+        else if (object instanceof TreeTableCell_)
+        {
+            TreeTableCell_ cell = (TreeTableCell_)object;
+            TreeTableColumn_ column = cell.GetColumn();
+
+            if (column != null)
+            {
+                TreeTable_ treeTable = cell.GetTreeTable();
+                if (treeTable != null)
+                    return treeTable.GetColumnIndex(column);
+            }
+        }
+
+        // If we can't retrieve the correct position, return -1 to indicate failure.
+        return -1;
+    }
+
+    public static int GetTreeItemSetSize(TreeItem_ item)
+    {
+        TreeItem_ parent = item.GetParentTreeItem();
+        if (parent == null)
+        {
+            Tree_ tree = item.GetTree();
+            if (tree == null)
+                return 1;
+            else
+                return tree.GetSize();
+        }
+        else
+        {
+            return parent.GetSize();
+        }
+    }
+
+    /*
+    Used by the native layer. Given a TreeItem_ object, returns the 1-indexed
+    position of that TreeItem within its set.
+    */
+    public static int GetTreeItemSetPosition(TreeItem_ item)
+    {
+        Array_ treeItems;
+        TreeItem_ parent = item.GetParentTreeItem();
+
+        if (parent != null)
+            treeItems = parent.Get_Libraries_Interface_Controls_TreeItem__treeItems_();
+        else
+        {
+            Tree_ tree = item.GetTree();
+            if (tree != null)
+                treeItems = tree.Get_Libraries_Interface_Controls_Tree__treeItems_();
+            else
+                return 1;
+        }
+
+        for (int i = 0; i < treeItems.GetSize(); i++)
+        {
+            if (treeItems.Get(i) == item)
+                return i + 1;
+        }
+
+        return 1;
+    }
+
+    public static int GetTableColumnsSize(Object_ object)
+    {
+        Spreadsheet_ spreadsheet = null;
+        TreeTable_ treeTable = null;
+
+        if (object instanceof Spreadsheet_)
+        {
+            spreadsheet = (Spreadsheet_)object;
+        }
+        else if (object instanceof TreeTable_)
+        {
+            treeTable = (TreeTable_)object;
+        }
+        else if (object instanceof Cell_)
+        {
+            spreadsheet = ((Cell_)object).GetSpreadsheet();
+        }
+        else if (object instanceof TreeTableCell_)
+        {
+            treeTable = ((TreeTableCell_)object).GetTreeTable();
+        }
+
+        if (spreadsheet != null)
+        {
+            return spreadsheet.GetColumnsSize();
+        }
+        else if (treeTable != null)
+        {
+            return treeTable.GetColumnsSize();
+        }
+
+        // If we can't retrieve the size, return -1 to indicate failure.
+        return -1;
+    }
+
+    /*
+    Used by the native layer. Returns the total number of rows in a TreeTable
+    or Spreadsheet. If a Cell or TreeTableCell is given, gives information about
+    the table structure that contains that cell. If the value can't be retrieved,
+    this returns -1.
+    */
+    public static int GetTableRowsSize(Object_ object)
+    {
+        Spreadsheet_ spreadsheet = null;
+        TreeTable_ treeTable = null;
+
+        if (object instanceof Spreadsheet_)
+        {
+            spreadsheet = (Spreadsheet_)object;
+        }
+        else if (object instanceof TreeTable_)
+        {
+            treeTable = (TreeTable_)object;
+        }
+        else if (object instanceof Cell_)
+        {
+            spreadsheet = ((Cell_)object).GetSpreadsheet();
+        }
+        else if (object instanceof TreeTableCell_)
+        {
+            treeTable = ((TreeTableCell_)object).GetTreeTable();
+        }
+
+        if (spreadsheet != null)
+        {
+            return spreadsheet.GetRowsSize();
+        }
+        else if (treeTable != null)
+        {
+            /*
+            TO-DO: The TreeTable doesn't currently have a way to calculate its number of rows.
+            It's not clear if this should be number of top-most rows, currently visible rows, or all total rows.
+            */
+            return 0;
+        }
+
+        // If we can't retrieve the size, return -1 to indicate failure.
+        return -1;
+    }
+
+    public static int GetMenuItemSetSize(MenuItem_ item)
+    {
+        MenuItem_ parent = item.GetParentMenu();
+        if (parent == null)
+        {
+            MenuRoot_ root = item.GetMenuRoot();
+            if (root == null)
+                return 1;
+            else
+                return root.GetSize();
+        }
+        else
+        {
+            return parent.GetSize();
+        }
+    }
+
+    /*
+    Used by the native layer. Given a MenuItem_ object, returns the 1-indexed
+    position of that MenuItem within its set.
+    */
+    public static int GetMenuItemSetPosition(MenuItem_ item)
+    {
+        MenuItem_ parent = item.GetParentMenu();
+
+        if (parent != null)
+        {
+            Array_ menuItems = parent.Get_Libraries_Interface_Controls_MenuItem__menuItems_();
+            for (int i = 0; i < menuItems.GetSize(); i++)
+            {
+                if (menuItems.Get(i) == item)
+                    return i + 1;
+            }
+        }
+        else
+        {
+            MenuRoot_ root = item.GetMenuRoot();
+            if (root != null)
+            {
+                Iterator_ iterator = root.GetIterator();
+                int i = 0;
+                while (iterator.HasNext())
+                {
+                    i = i + 1;
+                    if (iterator.Next() == item)
+                        return i;
+                }
+            }
+        }
+
+        return 1;
     }
 }

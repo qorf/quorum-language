@@ -3,6 +3,7 @@ package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 import dev.accesskit.Node;
 import dev.accesskit.Rect;
 import dev.accesskit.Role;
+import plugins.quorum.Libraries.Interface.Accessibility.PushDownAccessibility;
 import plugins.quorum.Libraries.Interface.AccessibilityManager;
 import quorum.Libraries.Interface.Controls.ListItem_;
 import quorum.Libraries.Interface.Controls.MenuItem_;
@@ -21,8 +22,8 @@ public class MenuItemKit extends ItemKit{
             Rect rect = GetBoundingRectangle();
             builder.setBounds(rect);
 
-            int size = AccessibilityManager.GetMenuItemSetSize(control);
-            int position = AccessibilityManager.GetMenuItemSetPosition(control);
+            int size = PushDownAccessibility.GetMenuItemSetSize(control);
+            int position = PushDownAccessibility.GetMenuItemSetPosition(control);
             String mnemonic = control.Get_Libraries_Interface_Controls_MenuItem__mnemonic_();
             String shortcut = control.GetShortcut();
             boolean expanded = control.IsOpen();

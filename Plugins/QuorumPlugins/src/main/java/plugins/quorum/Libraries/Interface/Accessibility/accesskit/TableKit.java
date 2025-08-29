@@ -3,6 +3,7 @@ package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 import dev.accesskit.Node;
 import dev.accesskit.Rect;
 import dev.accesskit.Role;
+import plugins.quorum.Libraries.Interface.Accessibility.PushDownAccessibility;
 import plugins.quorum.Libraries.Interface.AccessibilityManager;
 import quorum.Libraries.Interface.Controls.Spreadsheet_;
 import quorum.Libraries.Interface.Item_;
@@ -20,8 +21,8 @@ public class TableKit extends ItemKit{
             Rect rect = GetBoundingRectangle();
             builder.setBounds(rect);
 
-            int columnsSize = AccessibilityManager.GetTableColumnsSize(control);
-            int rowsSize = AccessibilityManager.GetTableRowsSize(control);
+            int columnsSize = PushDownAccessibility.GetTableColumnsSize(control);
+            int rowsSize = PushDownAccessibility.GetTableRowsSize(control);
 
 
             //this may need to change as access kit changes. It feels like this

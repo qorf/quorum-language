@@ -3,6 +3,7 @@ package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 import dev.accesskit.Node;
 import dev.accesskit.Rect;
 import dev.accesskit.Role;
+import plugins.quorum.Libraries.Interface.Accessibility.PushDownAccessibility;
 import plugins.quorum.Libraries.Interface.AccessibilityManager;
 import quorum.Libraries.Interface.Controls.MenuItem_;
 import quorum.Libraries.Interface.Controls.TreeItem_;
@@ -21,8 +22,8 @@ public class TreeItemKit extends ItemKit{
             Rect rect = GetBoundingRectangle();
             builder.setBounds(rect);
 
-            int size = AccessibilityManager.GetTreeItemSetSize(control);
-            int position = AccessibilityManager.GetTreeItemSetPosition(control);
+            int size = PushDownAccessibility.GetTreeItemSetSize(control);
+            int position = PushDownAccessibility.GetTreeItemSetPosition(control);
             boolean expanded = control.IsOpen();
             builder.setPositionInSet(position);
             builder.setSizeOfSet(size);

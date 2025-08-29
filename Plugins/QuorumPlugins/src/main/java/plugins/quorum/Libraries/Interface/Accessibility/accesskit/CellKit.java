@@ -3,6 +3,7 @@ package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 import dev.accesskit.Node;
 import dev.accesskit.Rect;
 import dev.accesskit.Role;
+import plugins.quorum.Libraries.Interface.Accessibility.PushDownAccessibility;
 import plugins.quorum.Libraries.Interface.AccessibilityManager;
 import quorum.Libraries.Interface.Controls.Cell_;
 import quorum.Libraries.Interface.Controls.MenuItem_;
@@ -21,8 +22,8 @@ public class CellKit extends ItemKit{
             Rect rect = GetBoundingRectangle();
             builder.setBounds(rect);
 
-            int rowIndex = AccessibilityManager.GetCellRowIndex(control);
-            int columnIndex = AccessibilityManager.GetCellColumnIndex(control);
+            int rowIndex = PushDownAccessibility.GetCellRowIndex(control);
+            int columnIndex = PushDownAccessibility.GetCellColumnIndex(control);
 
             //this may need to change as access kit changes. It feels like this
             //should be setValue, but that may be an incorrect assumption.
