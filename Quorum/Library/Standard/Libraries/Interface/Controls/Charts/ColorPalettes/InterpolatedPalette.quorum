@@ -1,0 +1,58 @@
+package Libraries.Interface.Controls.Charts.ColorPalettes
+use Libraries.Interface.Controls.Charts.ColorPalettes.ColorPalette
+use Libraries.Game.Graphics.Color
+
+class InterpolatedPalette is ColorPalette
+    
+    action BuildPalette
+        // built when the colors are set
+    end
+    
+/*
+        This action builds an interpolated palette between two colors and produces the passed number of colors for optimal contrast.
+
+        Attribute: Parameters two colors interpolated respectively and an integer of how many colors to be made.
+    */
+    action SetColors(Color colorA, Color colorB, integer shades)
+number coefficient = 1.0/shades // shades + 1 because we don't want it to ever actually just be white
+        number current = 0 
+        // Shades of newcolor
+        integer i = 0
+        repeat while i < shades
+            colorA:LinearInterpolation(colorB, current)
+            AddColor(colorA:Copy())
+            current = current + coefficient
+            i = i + 1
+        end
+    end
+    
+/*
+        This action builds an interpolated palette between three colors and produces the passed number of colors for optimal contrast.
+
+        Attribute: Parameters three colors interpolated respectively and an integer of how many colors to be made.
+    */
+    action SetColors(Color colorA, Color colorB, Color colorC, integer shades)
+// First half ColorA to ColorB
+        integer half = shades/2
+        number coefficient = 1.0/half
+        number current = 0 
+        integer i = 0
+        repeat while i < half
+            colorA:LinearInterpolation(colorB, current)
+            AddColor(colorA:Copy())
+            current = current + coefficient
+            i = i + 1
+        end
+
+        // Second half ColorB to ColorC
+        coefficient = 1.0/(shades-half)
+        current = 0 
+        i = 0
+        repeat while i < (shades-half)
+            colorB:LinearInterpolation(colorC, current)
+            AddColor(colorB:Copy())
+            current = current + coefficient
+            i = i + 1
+        end
+    end
+end

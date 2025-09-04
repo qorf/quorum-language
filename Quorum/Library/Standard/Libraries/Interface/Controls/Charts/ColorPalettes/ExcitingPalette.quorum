@@ -1,0 +1,75 @@
+package Libraries.Interface.Controls.Charts.ColorPalettes
+use Libraries.Interface.Controls.Charts.ColorPalettes.ColorPalette
+use Libraries.Game.Graphics.Color
+
+/*
+        See the paper below for more information on this palette
+        https://research.tableau.com/sites/default/files/Affective%20Color%20CHI%202017.pdf
+    */
+class ExcitingPalette is ColorPalette
+    
+    action BuildPalette
+        Color color
+// Bright pink
+        color:SetColor(244.0/255, 41.0/255, 122.0/255, 1)
+        AddColor(color:Copy())
+
+        // Bright Red
+        color:SetColor(242.0/255, 0/255, 22.0/255, 1)
+        AddColor(color:Copy())
+
+        // Lighter Orange
+        color:SetColor(253.0/255, 155.0/255, 23.0/255, 1)
+        AddColor(color:Copy())
+
+        // Purple
+        color:SetColor(114.0/255, 42.0/255, 114.0/255, 1)
+        AddColor(color:Copy())
+
+        // Bright Green
+        color:SetColor(37.0/255, 183.0/255, 13.0/255, 1)
+        AddColor(color:Copy())
+
+        // Light pastel blue
+        color:SetColor(155.0/255, 200.0/255, 216.0/255, 1)
+        AddColor(color:Copy())
+
+        // Neutral Red
+        color:SetColor(187.0/255, 7.0/255, 16.0/255, 1)
+        AddColor(color:Copy())
+
+        // Bluish purple
+        color:SetColor(89.0/255, 87.0/255, 171.0/255, 1)
+        AddColor(color:Copy())
+
+        // Greenish Gray
+        color:SetColor(91.0/255, 97.0/255, 87.0/255, 1)
+        AddColor(color:Copy())
+
+        // Navy blue
+        color:SetColor(51.0/255, 42.0/255, 151.0/255, 1)
+        AddColor(color:Copy())
+
+        // Darker Orange
+        color:SetColor(253.0/255, 107.0/255, 7.0/255, 1)
+        AddColor(color:Copy())
+
+        // Yellow
+        color:SetColor(239.0/255, 201.0/255, 31.0/255, 1)
+        AddColor(color:Copy())
+
+        // Ocean Blue
+        color:SetColor(12.0/255, 94.0/255, 154.0/255, 1)
+        AddColor(color:Copy())
+
+        // Dark Red
+        color:SetColor(125.0/255, 0.0/255, 3.0/255, 1)
+        AddColor(color:Copy())
+
+        // Dark Teal
+        color:SetColor(57.0/255, 126.0/255, 123.0/255, 1)
+        AddColor(color:Copy())
+        
+    end
+    
+end

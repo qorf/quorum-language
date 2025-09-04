@@ -1,0 +1,42 @@
+package Libraries.Interface.Controls.Charts.ColorPalettes
+use Libraries.Interface.Controls.Charts.ColorPalettes.ColorPalette
+use Libraries.Game.Graphics.Color
+
+/* 
+        This palette was created by Gramazio, Connor C. and Laidlaw, David H. and Schloss, Karen B. in 2017
+        IEEE Transactions on Visualization and Computer Graphics - Colorgorical: creating discriminable and preferable color palettes for information visualization
+        http://vrl.cs.brown.edu/color
+    }
+    */
+class ColorgoricalPalette is ColorPalette
+    
+    action BuildPalette
+        Color color
+        
+color:SetColor(48.0/255, 79.0/255, 155.0/255, 1)
+        AddColor(color:Copy())
+
+        color:SetColor(174.0/255, 219.0/255, 240.0/255, 1)
+        AddColor(color:Copy())
+        
+        color:SetColor(64.0/255, 101.0/255, 94.0/255, 1)
+        AddColor(color:Copy())
+
+        color:SetColor(90.0/255, 199.0/255, 220.0/255, 1)
+        AddColor(color:Copy())
+
+        color:SetColor(124.0/255, 40.0/255, 164.0/255, 1)
+        AddColor(color:Copy())
+
+        color:SetColor(215.0/255, 124.0/255, 221.0/255, 1)
+        AddColor(color:Copy())
+
+        color:SetColor(55.0/255, 136.0/255, 17.0/255, 1)
+        AddColor(color:Copy())
+
+        color:SetColor(137.0/255, 235.0/255, 123.0/255, 1)
+        AddColor(color:Copy())
+        
+    end
+
+end

@@ -1,0 +1,70 @@
+package Libraries.Interface.Controls.Charts.ColorPalettes
+use Libraries.Interface.Controls.Charts.ColorPalettes.ColorPalette
+use Libraries.Game.Graphics.Color
+
+/*
+        See the paper below for more information on this palette
+        https://research.tableau.com/sites/default/files/Affective%20Color%20CHI%202017.pdf
+    */
+class CalmPalette is ColorPalette
+    
+    action BuildPalette
+        Color color
+//Dark Teal
+        color:SetColor(57.0/255, 126.0/255, 123.0/255, 1)
+        AddColor(color:Copy())
+
+        // Light Gray
+        color:SetColor(202.0/255, 202.0/255, 202.0/255, 1)
+        AddColor(color:Copy())
+
+        // Greenish Gray
+        color:SetColor(91.0/255, 97.0/255, 87.0/255, 1)
+        AddColor(color:Copy())
+
+        //Pastel Teal
+        color:SetColor(146.0/255, 194.0/255, 179.0/255, 1)
+        AddColor(color:Copy())
+
+        // Bright purple
+        color:SetColor(150.0/255, 62.0/255, 153.0/255, 1)
+        AddColor(color:Copy())
+
+        // Pastel Eggplant
+        color:SetColor(133.0/255, 131.0/255, 173.0/255, 1)
+        AddColor(color:Copy())
+
+        // Light pastel blue
+        color:SetColor(155.0/255, 200.0/255, 216.0/255, 1)
+        AddColor(color:Copy())
+
+        // Bright Teal
+        color:SetColor(23.0/255, 179.0/255, 170.0/255, 1)
+        AddColor(color:Copy())
+
+        // Pastel green
+        color:SetColor(158.0/255, 211.0/255, 144.0/255, 1)
+        AddColor(color:Copy())
+
+        // Khaki
+        color:SetColor(213.0/255, 209.0/255, 171.0/255, 1)
+        AddColor(color:Copy())
+
+        // Pink
+        color:SetColor(214.0/255, 159.0/255, 187.0/255, 1)
+        AddColor(color:Copy())
+
+        // Pastel Orange
+        color:SetColor(228.0/255, 187.0/255, 129.0/255, 1)
+        AddColor(color:Copy())
+
+        // Blue
+        color:SetColor(113.0/255, 163.0/255, 220.0/255, 1)
+        AddColor(color:Copy())
+
+        // Light peach
+        color:SetColor(236.0/255, 208.0/255, 190.0/255, 1)
+        AddColor(color:Copy())
+    end
+
+end

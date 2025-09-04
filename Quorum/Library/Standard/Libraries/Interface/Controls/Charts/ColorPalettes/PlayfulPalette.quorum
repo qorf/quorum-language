@@ -1,0 +1,51 @@
+package Libraries.Interface.Controls.Charts.ColorPalettes
+use Libraries.Interface.Controls.Charts.ColorPalettes.ColorPalette
+use Libraries.Game.Graphics.Color
+
+/*
+        See the paper below for more information on this palette
+        https://research.tableau.com/sites/default/files/Affective%20Color%20CHI%202017.pdf
+    */
+class PlayfulPalette is ColorPalette
+    
+    action BuildPalette
+        Color color
+        
+// Darker Orange
+        color:SetColor(253.0/255, 107.0/255, 7.0/255, 1)
+        AddColor(color:Copy()) 
+
+        // Bright purple
+        color:SetColor(150.0/255, 62.0/255, 153.0/255, 1)
+        AddColor(color:Copy())
+
+        // Yellow
+        color:SetColor(239.0/255, 201.0/255, 31.0/255, 1)
+        AddColor(color:Copy())
+
+        // Bright Red
+        color:SetColor(242.0/255, 0/255, 22.0/255, 1)
+        AddColor(color:Copy())
+
+        // Bright pink
+        color:SetColor(244.0/255, 41.0/255, 122.0/255, 1)
+        AddColor(color:Copy())
+
+        // Lighter Orange
+        color:SetColor(253.0/255, 155.0/255, 23.0/255, 1)
+        AddColor(color:Copy())
+
+        // Bright Baby Blue
+        color:SetColor(44.0/255, 177.0/255, 239.0/255, 1)
+        AddColor(color:Copy())
+
+        // Bright Teal
+        color:SetColor(23.0/255, 179.0/255, 170.0/255, 1)
+        AddColor(color:Copy())
+
+        // Bright Green
+        color:SetColor(37.0/255, 183.0/255, 13.0/255, 1)
+        AddColor(color:Copy())
+    end
+    
+end

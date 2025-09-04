@@ -1,0 +1,26 @@
+package Libraries.Interface.Controls.Charts
+
+shared class PatternOptionConstants
+    
+// Patterns
+    public constant integer VERTICAL_LINES = 1
+    public constant integer HORIZONTAL_LINES = 2
+    public constant integer DIAGONAL_DOWN_LINES = 3
+    public constant integer DIAGONAL_UP_LINES = 4
+    public constant integer PLAIN_CROSSHATCH = 5      
+    public constant integer DIAGONAL_CROSSHATCH = 6
+    public constant integer SOLID_CIRCLES = 7
+    public constant integer HOLLOW_CIRCLES = 8
+    public constant integer PINPOINT_DASHES = 9
+    public constant integer SOLID_TRIANGLES = 10
+    public constant integer HOLLOW_TRIANGLES = 11
+    public constant integer SOLID_BOXES = 12
+    public constant integer HOLLOW_BOXES = 13
+    
+// The distance between the beginning of a pattern "tile" and the next "tile". Measured in pixels. Scales with interface scale.
+    public constant number DEFAULT_PATTERN_DISTANCE = 12
+
+    // The thickness of the edges of a pattern. Measured in pixels, and scales with interface scale.
+    public constant number DEFAULT_PATTERN_THICKNESS = 2
+    
+end
