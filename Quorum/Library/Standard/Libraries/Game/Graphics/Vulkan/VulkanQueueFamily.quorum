@@ -24,6 +24,8 @@ class VulkanQueueFamily
     end
 
     system action CanPresentToSurface(VulkanSurface surface) returns boolean
+    
+    system action GetComputeQueueFamilyIndex(VulkanPhysicalDevice context) returns integer
 
     // Even though this is private, the plugin layer can access this, because it doesn't respect access flags.
     private action Initialize(VulkanPhysicalDevice device, integer queueCount, integer queueFlags, integer queueFamilyIndex)

@@ -1,0 +1,54 @@
+package Libraries.Game.Graphics.Vulkan
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Shaders.Shader
+
+class VulkanComputePipelineInfo
+
+    integer pushConstantCount = 0
+    Shader shader = undefined
+    Array<VulkanDescriptorSetLayout> descriptionSetLayouts
+VulkanPipelineCache cache = undefined
+    
+
+    on create
+        
+    end
+    
+    action GetPushConstantsSize returns integer
+        return pushConstantCount
+    end
+    
+    action SetPushConstantsSize(integer size)
+        me:pushConstantCount = size
+    end
+    
+    action GetShader returns Shader
+        return shader
+    end
+    
+    action SetShader(Shader shader)
+        me:shader = shader
+    end
+    
+    action GetDescriptorSetLayouts returns Array<VulkanDescriptorSetLayout> 
+        return descriptionSetLayouts
+    end
+    
+    action GetPipelineCache returns VulkanPipelineCache
+        return cache
+end
+    
+    action SetPipelineCache(VulkanPipelineCache cache)
+        me:cache = cache
+    end
+    
+
+    action Copy returns VulkanComputePipelineInfo
+        VulkanComputePipelineInfo copy
+
+        
+        return copy
+    end
+
+
+end

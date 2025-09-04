@@ -2,6 +2,8 @@ package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.KHRSurface;
+import org.lwjgl.vulkan.VK10;
+import org.lwjgl.vulkan.VkQueueFamilyProperties;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanSurface_;
 
 import java.nio.IntBuffer;
@@ -29,5 +31,21 @@ public class VulkanQueueFamily
 
             return resultBuffer.get(0) == VK_TRUE;
         }
+    }
+
+    public int GetComputeQueueFamilyIndex(quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice device) {
+        int index = -1;
+        VulkanPhysicalDevice plugin = device.plugin_;
+        VkQueueFamilyProperties.Buffer queueFamilyProps = plugin.GetQueueFamilyProperties();
+        int numQueuesFamilies = queueFamilyProps.capacity();
+        for (int i = 0; i < numQueuesFamilies; i++) {
+            VkQueueFamilyProperties props = queueFamilyProps.get(i);
+            boolean computeQueue = (props.queueFlags() & VK10.VK_QUEUE_COMPUTE_BIT) != 0;
+            if (computeQueue) {
+                index = i;
+                break;
+            }
+        }
+        return index;
     }
 }
