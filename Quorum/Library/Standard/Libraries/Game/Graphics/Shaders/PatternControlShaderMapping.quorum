@@ -28,14 +28,16 @@ use Libraries.Game.Graphics.VertexAttributes
 use Libraries.Game.WebApplication
 use Libraries.Compute.Math
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
-use Libraries.Interface.Controls.Charts.ChartOptions
 use Libraries.Interface.Views.PatternControlShaderView
+use Libraries.Interface.Controls.Charts.PatternOptionConstants
+use Libraries.Interface.Controls.Charts.ColorPalettes.ColorPalette
 
 class PatternControlShaderMapping is BatchingShaderMapping2D
 
     ShaderProgram program = undefined
     GameStateManager manager
     NumberUtilities utility
+    ColorPalette colorPalette = undefined
 
     constant integer BATCH_SIZE = 200
 
@@ -146,7 +148,7 @@ class PatternControlShaderMapping is BatchingShaderMapping2D
         // The interface scaling on the Control, or 1 if no scaling is available.
         number interfaceScale = 1
 
-        ChartOptions chartOptions
+        PatternOptionConstants options
 
         /*
         We want to get the control or layout properties used to define the element. We'll check these places, in order of priority:
@@ -248,13 +250,13 @@ class PatternControlShaderMapping is BatchingShaderMapping2D
                     PatternControlShaderView patternView = cast(PatternControlShaderView, view)
                     integer patternType = patternView:GetPatternType()
 
-                    if patternType = chartOptions:VERTICAL_LINES or patternType = chartOptions:PLAIN_CROSSHATCH
+                    if patternType = options:VERTICAL_LINES or patternType = options:PLAIN_CROSSHATCH
                         rotation = 0
-                    elseif patternType = chartOptions:HORIZONTAL_LINES
+                    elseif patternType = options:HORIZONTAL_LINES
                         rotation = 90
-                    elseif patternType = chartOptions:DIAGONAL_DOWN_LINES or patternType = chartOptions:DIAGONAL_CROSSHATCH or patternType = chartOptions:PINPOINT_DASHES
+                    elseif patternType = options:DIAGONAL_DOWN_LINES or patternType = options:DIAGONAL_CROSSHATCH or patternType = options:PINPOINT_DASHES
                         rotation = 45
-                    elseif patternType = chartOptions:DIAGONAL_UP_LINES
+                    elseif patternType = options:DIAGONAL_UP_LINES
                         rotation = 135
                     end
                 end
@@ -268,13 +270,13 @@ class PatternControlShaderMapping is BatchingShaderMapping2D
                     ChartDrawable element = cast(ChartDrawable, control)
                     integer patternType = element:GetPattern()
 
-                    if patternType = chartOptions:VERTICAL_LINES or patternType = chartOptions:PLAIN_CROSSHATCH
+                    if patternType = options:VERTICAL_LINES or patternType = options:PLAIN_CROSSHATCH
                         rotation = 0
-                    elseif patternType = chartOptions:HORIZONTAL_LINES
+                    elseif patternType = options:HORIZONTAL_LINES
                         rotation = 90
-                    elseif patternType = chartOptions:DIAGONAL_DOWN_LINES or patternType = chartOptions:DIAGONAL_CROSSHATCH or patternType = chartOptions:PINPOINT_DASHES
+                    elseif patternType = options:DIAGONAL_DOWN_LINES or patternType = options:DIAGONAL_CROSSHATCH or patternType = options:PINPOINT_DASHES
                         rotation = 45
-                    elseif patternType = chartOptions:DIAGONAL_UP_LINES
+                    elseif patternType = options:DIAGONAL_UP_LINES
                         rotation = 135
                     end
                 end
@@ -437,10 +439,15 @@ class PatternControlShaderMapping is BatchingShaderMapping2D
 
         Math math
         // Currently we use index 0 for the pattern indices. These values aren't conveniently exposed from the drawables and currently are irrelevant.
-        number patternDistance = math:Round(chartOptions:GetPatternDistanceFromPalette(0) * interfaceScale)
-        number patternThickness = math:Round(chartOptions:GetPatternThicknessFromPalette(0) * interfaceScale)
-        Color patternColor = chartOptions:GetPatternColorFromPalette(0)
-
+        number patternDistance = math:Round(options:DEFAULT_PATTERN_DISTANCE * interfaceScale)
+        number patternThickness = math:Round(options:DEFAULT_PATTERN_THICKNESS * interfaceScale)
+        Color patternColor
+        if colorPalette = undefined
+            Color color
+            patternColor = color:Black()
+        else
+            patternColor = colorPalette:GetPatternColor(0)
+        end
         shape:SetDataForAllVertices(patternDistanceAttribute:offset / 4, patternDistance / width)
         shape:SetDataForAllVertices(patternRotationAttribute:offset / 4, math:DegreesToRadians(rotation))
         shape:SetDataForAllVertices(patternThicknessAttribute:offset / 4, patternThickness / width)
@@ -452,6 +459,10 @@ class PatternControlShaderMapping is BatchingShaderMapping2D
     */
     action RenderBatch(ShaderProgram program, Camera camera)
         parent:BatchingShaderMapping2D:RenderBatch(program, camera)
+    end
+    
+    action SetColorPalette(ColorPalette colorPalette)
+        me:colorPalette = colorPalette
     end
 
 end

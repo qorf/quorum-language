@@ -10,7 +10,6 @@ use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.Shaders.ShaderProgram
 use Libraries.Game.Graphics.Shaders.ControlShaderProgram
 use Libraries.Interface.Controls.Charts.SharedBarChartParent
-use Libraries.Interface.Controls.Charts.ChartOptions
 use Libraries.Game.Graphics.Shaders.LinePatternControlShaderProgram
 use Libraries.Game.Graphics.Shaders.CrosshatchPatternControlShaderProgram
 use Libraries.Game.Graphics.Shaders.HollowCirclePatternControlShaderProgram
@@ -21,6 +20,8 @@ use Libraries.Game.Graphics.Shaders.DashedLinePatternControlShaderProgram
 use Libraries.Game.Graphics.Shaders.HollowTrianglePatternControlShaderProgram
 use Libraries.Game.Graphics.Shaders.SolidTrianglePatternControlShaderProgram
 use Libraries.Game.GameStateManager
+use Libraries.Interface.Controls.Charts.PatternOptionConstants
+use Libraries.Interface.Views.ControlShaderView
 
 /*
 The Bar class is a ChartDrawable that stores information for each 
@@ -81,6 +82,10 @@ class Bar is ChartDrawable
 
     action LoadGraphics(LayoutProperties properties)
         // Render this Drawable with the Control Shader.
+        
+ControlShaderView shader
+shader:Initialize()
+        SetView2D(shader)
         if GetShaderProgram() = undefined
             GameStateManager gameState
             ShaderManager manager = gameState:GetShaderManager()
@@ -88,7 +93,7 @@ class Bar is ChartDrawable
             
             if HasPattern()
                 integer pattern = GetPattern()
-                ChartOptions options
+                PatternOptionConstants options
                 
                 if pattern = options:VERTICAL_LINES or pattern = options:HORIZONTAL_LINES or pattern = options:DIAGONAL_DOWN_LINES or pattern = options:DIAGONAL_UP_LINES
                     if manager:HasShaderProgram("Line Pattern Control Shader Program")

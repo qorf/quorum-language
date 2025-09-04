@@ -13,11 +13,11 @@ use Libraries.Game.Graphics.Shaders.SolidBoxPatternControlShaderProgram
 use Libraries.Game.Graphics.Shaders.DashedLinePatternControlShaderProgram
 use Libraries.Game.Graphics.Shaders.HollowTrianglePatternControlShaderProgram
 use Libraries.Game.Graphics.Shaders.SolidTrianglePatternControlShaderProgram
-use Libraries.Interface.Controls.Charts.ChartOptions
+use Libraries.Interface.Controls.Charts.PatternOptionConstants
 
 /*
 The PatternControlShaderView is used to render a pattern onto Controls. It takes one of the
-pattern type constants from ChartOptions and loads an appropriate ShaderProgram.
+pattern type constants from PatternOptionConstants and loads an appropriate ShaderProgram.
 
 Attribute: Example
 use Libraries.Game.Game
@@ -25,7 +25,7 @@ use Libraries.Game.Graphics.Color
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Views.PatternControlShaderView
 use Libraries.Interface.Layouts.FlowLayout
-use Libraries.Interface.Controls.Charts.ChartOptions
+use Libraries.Interface.Controls.Charts.PatternOptionConstants
 
 class Main is Game
 
@@ -48,8 +48,8 @@ class Main is Game
         box:SetPercentageHeight(0.5)
         Add(box)
 
-        // We'll need the ChartOptions to select the pattern type.
-        ChartOptions options
+        // We'll need the PatternOptionConstants to select the pattern type.
+        PatternOptionConstants options
 
         // Make a view, initialize it, and give it to the box.
         PatternControlShaderView view
@@ -66,7 +66,7 @@ class PatternControlShaderView is DrawableView
     The Initialize action prepares the view for use. It must be called before the view can be used,
     or else nothing will be drawn while using the view.
 
-    The provided "patternType" value should be one of the pattern constants from the ChartOptions class.
+    The provided "patternType" value should be one of the pattern constants from the PatternOptionConstants class.
     This will indicate what type of pattern the view will display.
     */
     action Initialize(integer patternType)
@@ -85,7 +85,7 @@ class PatternControlShaderView is DrawableView
 
         ShaderProgram program = undefined
 
-        ChartOptions options
+        PatternOptionConstants options
         ShaderManager manager
 
         if pattern = options:VERTICAL_LINES or pattern = options:HORIZONTAL_LINES or pattern = options:DIAGONAL_DOWN_LINES or pattern = options:DIAGONAL_UP_LINES
@@ -176,7 +176,7 @@ class PatternControlShaderView is DrawableView
 
     /*
     This action returns an integer code representing the type of pattern drawn by this view.
-    The integer code corresponds to the pattern constants found in ChartOptions.
+    The integer code corresponds to the pattern constants found in PatternOptionConstants.
     */
     action GetPatternType returns integer
         return patternType

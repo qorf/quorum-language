@@ -1,7 +1,7 @@
 package Libraries.Data.Formats.ScalableVectorGraphics
 use Libraries.Containers.HashTable
 use Libraries.Containers.Array
-use Libraries.Interface.Controls.Charts.ChartOptions
+use Libraries.Interface.Controls.Charts.PatternOptionConstants
 
 /*
     The Pattern class is an implementation of SVG pattern definitions to be used in the SVG standard. Like other
@@ -23,7 +23,7 @@ use Libraries.Interface.Controls.Charts.ChartOptions
     output pattern:ToText() 
 */
 class Pattern is ScalableVectorGraphicsObject
-    ChartOptions options
+    PatternOptionConstants options
     constant text objectName = "pattern"
     integer canvasWidth = 0
     integer canvasHeight = 0
@@ -192,13 +192,13 @@ class Pattern is ScalableVectorGraphicsObject
     /*
         This action sets the pattern palette that needs to be defined in the SVG
 
-        Attribute: Parameter palette. The integers corresponding to a pattern palette from the ChartOptions class. 
+        Attribute: Parameter palette. The integers corresponding to a pattern from the PatternOptionConstants. 
 
         Attribute: Example
 
         Libraries.Data.Formats.ScalableVectorGraphics.all
 
-        ChartOptions options
+        PatternOptionConstants options
 
         Pattern patterns
         patterns:SetPatternPalette(options:GetPatternPalette())
@@ -210,13 +210,13 @@ class Pattern is ScalableVectorGraphicsObject
     /*
         This action retrieves the pattern palette that needs to be defined in the SVG
 
-        Attribute: Parameter Array<integer>. The integers corresponding to a pattern from the ChartOptions palette. 
+        Attribute: Parameter Array<integer>. The integers corresponding to a pattern from the PatternOptionConstants. 
 
         Attribute: Example
 
         Libraries.Data.Formats.ScalableVectorGraphics.all
 
-        ChartOptions options
+        PatternOptionConstants options
 
         Pattern patterns
         patterns:GetPatternPalette(options:GetPatternPalette())

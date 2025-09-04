@@ -49,7 +49,6 @@ class TwoVariableChart is Chart
     private Array<ChartLine> lines      // Used with Line Charts
     private Array<ChartPoint> points    // Used with Scatter Plots
     private Array<ChartDrawable> regions    // Used with Line Charts / Scatter Plots
-    private ChartOptions options
     private Math math
 
     private number maxPointHeightValue = 0
@@ -1283,188 +1282,6 @@ class TwoVariableChart is Chart
         return region
     end
 
-    /*
-        Split the chart area into regions until a minimum number of points is contained in a region or until a maximum number of division.
-    */
-    private action CreateChunks(ChartAreaPanel chartArea, ChartItem item, ChartDrawable region, Array<ChartPoint> ps,Array<LineSegment> ls, integer currentLevel)
-        alert("NOT CURRENTLY USED. New navigation does not use this.")
-//        number x1 = math:Round(region:GetPercentageX() * GetXAxisMinimum(), options:GetTickDigits())
-//        number x2 = math:Round((region:GetPercentageX() + region:GetPercentageWidth()) * GetXAxisMaximum(), options:GetTickDigits())
-//
-//        text pointDescription = "no points"
-//        text lineDescription = "no segments"
-//        if GetPointsFlag()
-//            if ps:GetSize() = 1
-//                pointDescription = "1 point"
-//            else
-//                pointDescription = ps:GetSize() + " points"
-//            end
-//        end
-//        if ls:GetSize() = 1
-//            lineDescription = "1 segment"
-//        else
-//            lineDescription = ls:GetSize() + " segments"
-//        end
-//        text chunkDescription = " " + pointDescription + " and " + lineDescription + "."
-//
-//        if ps:GetSize() <= pointThreshold or currentLevel >= maxChunks
-//            if ps:IsEmpty() = false
-//                region:SetDescription(chunkDescription + " " + "Use the arrow keys to navigate lines, points, or chunks.")
-//                
-//                //First point
-//                ChartItem firstPointItem = undefined
-//                ChartItem prevPoint = undefined
-//                if GetPointsFlag()
-//                    ChartPoint firstPoint = ps:Get(0)
-//                    firstPointItem = firstPoint
-//
-//                    firstPointItem:SetContainer(me)
-//                    firstPointItem:SetDisplayName(" , " + math:Round(ps:Get(0):GetPercentY() * GetYAxisMaximum(), 1) + ", 1 of " + ps:GetSize() + " points in this chunk. ")
-//                    firstPointItem:SetParent(item)
-//
-//                    item:SetEnterItem(firstPointItem)
-//    
-//                    AddChartItemInstructions(firstPoint, firstPointItem:GetDisplayName())
-//                    prevPoint = firstPointItem
-//                end
-//
-//                //First Line
-//                ChartItem firstLineItem = undefined
-//                ChartItem prevLine = undefined
-//                if ls:IsEmpty() = false
-//                    LineSegment firstLine = ls:Get(0)
-//                    firstLineItem = firstLine
-//                    firstLineItem:SetContainer(me)
-//                    
-//                    if GetPointsFlag()
-//                        firstLineItem:SetEscapeItem(firstPointItem)
-//                        firstPointItem:SetEnterItem(firstLineItem)
-//                    else
-//                        firstLineItem:SetEscapeItem(item)
-//                        item:SetEnterItem(firstLineItem)
-//                        prevLine = firstLineItem
-//                    end
-//                    
-//                    text lineChange = " "
-//                    number start = math:Round(firstLine:GetPoint1():GetPercentY() * GetYAxisMaximum(), 1)
-//                    number stop = math:Round(firstLine:GetPoint2():GetPercentY() * GetYAxisMaximum(), 1)
-//                    if start > stop
-//                        lineChange = ", decreases from " + start + " to " + stop
-//                    elseif start < stop
-//                        lineChange = ", increases from " + start + " to " + stop
-//                    else 
-//                        lineChange = ", has no change, remains at " + start
-//                    end
-//                    firstLine:SetDescription(lineChange)
-//                end
-//
-//                integer i = 1
-//                
-//                repeat while i < ps:GetSize()
-//                    //points
-//                    ChartItem pointItem = undefined
-//                    if GetPointsFlag()
-//                        ChartPoint point = ps:Get(i)
-//                        pointItem = point
-//
-//                        pointItem:SetContainer(me)
-//                        pointItem:SetDisplayName(" , " + math:Round(ps:Get(i):GetPercentY() * GetYAxisMaximum(), 1) + ", " + (i+1) + " of " + ps:GetSize() + " points in this chunk. ")
-//                        pointItem:SetEscapeItem(item)
-//                        pointItem:SetLeftItem(prevPoint)
-//        
-//                        point:SetDescription(pointItem:GetDisplayName())
-//                    end
-//
-//                    //lines
-//                    if i < ls:GetSize()
-//                        LineSegment line = ls:Get(i)
-//                        ChartItem lineItem = line
-//                        lineItem:SetContainer(me)
-//
-//                        if GetPointsFlag()
-//                            lineItem:SetEscapeItem(pointItem)
-//                            pointItem:SetEnterItem(lineItem)
-//                            prevPoint:SetRightItem(pointItem)
-//                            prevPoint = pointItem
-//                        else
-//                            lineItem:SetEscapeItem(item)
-//                            lineItem:SetLeftItem(prevLine)
-//                            prevLine:SetRightItem(lineItem)
-//                            prevLine = lineItem
-//                        end
-//    
-//                        
-//                        text lineChange = " "
-//                        number start = math:Round(line:GetPoint1():GetPercentY() * GetYAxisMaximum(), 1)
-//                        number stop = math:Round(line:GetPoint2():GetPercentY() * GetYAxisMaximum(), 1)
-//                        if start > stop
-//                            lineChange = ", decreases from " + start + " to " + stop
-//                        elseif start < stop
-//                            lineChange = ", increases from " + start + " to " + stop
-//                        else 
-//                            lineChange = ", has no change, remains at " + start
-//                        end
-//                        line:SetDescription(lineChange)
-//                    end
-//
-//                    i = i + 1
-//                end         
-//            else
-//                region:SetDescription(chunkDescription)
-//            end
-//        else
-//            region:SetDescription(chunkDescription + " " + "Use the arrow keys to navigate points or chunks.")
-//            number xDivider = region:GetPercentageX() + (region:GetPercentageWidth() / 2.0)
-//            Array<ChartPoint> leftChunkPoints
-//            Array<Drawable> leftChunkLines
-//            Array<ChartPoint> rightChunkPoints
-//            Array<Drawable> rightChunkLines
-//
-//            integer i = 0
-//            repeat while i < ps:GetSize()
-//                ChartPoint point = ps:Get(i)
-//                if point:GetPercentX() < xDivider
-//                    leftChunkPoints:Add(point)
-//                    if i < ls:GetSize()
-//                        leftChunkLines:Add(ls:Get(i))
-//                    end
-//                else
-//                    rightChunkPoints:Add(point)
-//                    if i < ls:GetSize()
-//                        rightChunkLines:Add(ls:Get(i))
-//                    end
-//                end
-//                i = i + 1
-//            end
-//
-//            //left chunk
-//            ChartDrawable leftChunkRegion = NewRegionIcon(region:GetPercentageX(), 0, region:GetPercentageWidth() / 2.0, 1.0)
-//            leftChunkRegion:SetName("Left Chunk")
-//            chartArea:Add(leftChunkRegion)
-//            regions:Add(leftChunkRegion)
-//
-//            ChartItem leftChunkItem = leftChunkRegion
-//            leftChunkItem:SetContainer(me)
-//            leftChunkItem:SetParent(item)
-//
-//            //right chunk
-//            ChartDrawable rightChunkRegion = NewRegionIcon(region:GetPercentageX() + region:GetPercentageWidth() / 2.0, 0, region:GetPercentageWidth() / 2.0, 1.0)
-//            rightChunkRegion:SetName("Right Chunk")
-//            chartArea:Add(rightChunkRegion)
-//            regions:Add(rightChunkRegion)
-//            
-//            ChartItem rightChunkItem = rightChunkRegion
-//            rightChunkItem:SetContainer(me)
-//            rightChunkItem:SetEscapeItem(item)
-//
-//            item:SetEnterItem(leftChunkItem)
-//            leftChunkItem:SetRightItem(rightChunkItem)
-//            rightChunkItem:SetLeftItem(leftChunkItem)
-//            
-//            CreateChunks(chartArea, leftChunkItem, leftChunkRegion, leftChunkPoints, leftChunkLines, currentLevel + 1)
-//            CreateChunks(chartArea, rightChunkItem, rightChunkRegion, rightChunkPoints, rightChunkLines, currentLevel + 1)
-//        end
-    end
 
     /*
     If the quadrant represented by the ChartItem has more points than the quadrant
@@ -1472,10 +1289,10 @@ class TwoVariableChart is Chart
     This is then called recursively on the new quadrants, if any.
     */
     private action SubdivideQuadrant(ChartAreaPanel chartArea, ChartItem item, ChartDrawable region, Array<ChartPoint> points, integer currentLevel)
-        number x1 = math:Round(region:GetPercentageX() * GetXAxisMaximum(), options:GetTickDigits())
-        number x2 = math:Round((region:GetPercentageX() + region:GetPercentageWidth()) * GetXAxisMaximum(), options:GetTickDigits())
-        number y1 = math:Round(region:GetPercentageY() * GetYAxisMaximum(), options:GetTickDigits())
-        number y2 = math:Round((region:GetPercentageY() + region:GetPercentageHeight()) * GetYAxisMaximum(), options:GetTickDigits())
+        number x1 = math:Round(region:GetPercentageX() * GetXAxisMaximum(), GetTickDigits())
+        number x2 = math:Round((region:GetPercentageX() + region:GetPercentageWidth()) * GetXAxisMaximum(), GetTickDigits())
+        number y1 = math:Round(region:GetPercentageY() * GetYAxisMaximum(), GetTickDigits())
+        number y2 = math:Round((region:GetPercentageY() + region:GetPercentageHeight()) * GetYAxisMaximum(), GetTickDigits())
 
         text pointsText = ""
         if points:GetSize() = 1
@@ -1496,7 +1313,7 @@ class TwoVariableChart is Chart
                 ChartItem firstPointItem = firstPoint
                 
                 firstPointItem:SetContainer(me)
-                firstPointItem:SetDisplayName(GetXAxisTitle() + " " + math:Round(firstPoint:GetPercentX() * GetXAxisMaximum(), options:GetTickDigits()) + ", " + GetYAxisTitle() + " " + math:Round(firstPoint:GetPercentY() * GetYAxisMaximum(), options:GetTickDigits())
+                firstPointItem:SetDisplayName(GetXAxisTitle() + " " + math:Round(firstPoint:GetPercentX() * GetXAxisMaximum(), GetTickDigits()) + ", " + GetYAxisTitle() + " " + math:Round(firstPoint:GetPercentY() * GetYAxisMaximum(), GetTickDigits())
                     + ", 1 of " + points:GetSize())
                 firstPoint:SetName(firstPointItem:GetDisplayName())
                 firstPoint:SetParentRegion(region)
@@ -1510,7 +1327,7 @@ class TwoVariableChart is Chart
                     ChartItem pointItem = point
 
                     pointItem:SetContainer(me)
-                    pointItem:SetDisplayName(GetXAxisTitle() + " " + math:Round(point:GetPercentX() * GetXAxisMaximum(), options:GetTickDigits()) + ", " + GetYAxisTitle() + " " + math:Round(point:GetPercentY() * GetYAxisMaximum(), options:GetTickDigits())
+                    pointItem:SetDisplayName(GetXAxisTitle() + " " + math:Round(point:GetPercentX() * GetXAxisMaximum(), GetTickDigits()) + ", " + GetYAxisTitle() + " " + math:Round(point:GetPercentY() * GetYAxisMaximum(), GetTickDigits())
                         + ", " + (i + 1) + " of " + points:GetSize())
                     point:SetName(pointItem:GetDisplayName())
                     point:SetParentRegion(region)

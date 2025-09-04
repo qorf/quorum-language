@@ -24,6 +24,7 @@ use Libraries.Web.Page.MetaData
 use Libraries.Compute.Vector2
 use Libraries.Data.Formats.ScalableVectorGraphics.Pattern
 use Libraries.Compute.Math
+use Libraries.Interface.Controls.Control
 
 class ChartWriter
     private number axisPointX = 105
@@ -1301,7 +1302,7 @@ class ChartWriter
         Array<VerticalAxisPanel> subVerticalPanels = chart:GetSubVerticalPanels()
         Array<Drawable> ticks = verticalContainer:GetTicks()
         Array<Drawable> brackets = verticalContainer:GetBrackets()
-        Array<Drawable> lines = verticalContainer:GetMajorGridlines()
+        Array<Control> lines = verticalContainer:GetMajorGridlines()
         Array<Drawable> minorlines = verticalContainer:GetMinorGridlines()
         Array<ChartLabel> labels = verticalContainer:GetLabels()
 
@@ -1353,15 +1354,17 @@ class ChartWriter
 
         i = 0
         repeat while i < lines:GetSize()
-            Drawable currentLine = lines:Get(i)
+            Control currentLine = lines:Get(i)
             if currentLine:IsShowing()
                 Rectangle svgElementLine
                 
                 svgElementLine:SetWidth(currentLine:GetWidth())
                 svgElementLine:SetHeight(currentLine:GetHeight())
                 svgElementLine:SetPosition(currentLine:GetGlobalX(), TranslatePositionY(currentLine) - currentLine:GetHeight())
-                svgElementLine:SetFill(currentLine:GetColor())
-                svgElementLine:SetFillOpacity(currentLine:GetColor())
+                Color color
+                color = color:CustomColor(0.6,0.6,0.6,1)
+                svgElementLine:SetFill(color)
+                svgElementLine:SetFillOpacity(color)
 
                 if HasAccessibility()
                     svgElementLine:SetTabIndex(-1)
@@ -1432,7 +1435,7 @@ class ChartWriter
             VerticalAxisPanel subVerticalPanel = subVerticalPanels:Get(j)
             Array<Drawable> subTicks = subVerticalPanel:GetTicks()
             Array<Drawable> subBrackets = subVerticalPanel:GetBrackets()
-            Array<Drawable> subLines = subVerticalPanel:GetMajorGridlines()
+            Array<Control> subLines = subVerticalPanel:GetMajorGridlines()
             Array<Drawable> subMinorlines = subVerticalPanel:GetMinorGridlines()
             Array<ChartLabel> subLabels = subVerticalPanel:GetLabels()
     
@@ -1486,14 +1489,16 @@ class ChartWriter
     
             i = 0
             repeat while i < subLines:GetSize()
-                Drawable currentSubLine = subLines:Get(i)
+                Control currentSubLine = subLines:Get(i)
                 if currentSubLine:IsShowing()
                     Rectangle svgElementLine
                     
                     svgElementLine:SetWidth(currentSubLine:GetWidth())
                     svgElementLine:SetHeight(currentSubLine:GetHeight())
                     svgElementLine:SetPosition(currentSubLine:GetGlobalX(), TranslatePositionY(currentSubLine) - currentSubLine:GetHeight())
-                    svgElementLine:SetFill(currentSubLine:GetColor())
+                    Color color
+                    color = color:CustomColor(0.6,0.6,0.6,1)
+                    svgElementLine:SetFill(color)
     
                     if HasAccessibility()
                         svgElementLine:SetTabIndex(-1)

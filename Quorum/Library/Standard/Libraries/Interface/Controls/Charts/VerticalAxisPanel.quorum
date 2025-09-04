@@ -55,7 +55,6 @@ use Libraries.Interface.Views.ControlShaderView
 */
 
 class VerticalAxisPanel is ChartItem
-    ChartOptions options
     Math math
     private integer numberOfSections = 1
     private boolean appendPercent = false
@@ -83,7 +82,7 @@ class VerticalAxisPanel is ChartItem
     private Array <Drawable> axislines
     private Array <Drawable> ticks
     private Array <Drawable> brackets
-    private Array <Drawable> majorlines
+    private Array <Control> majorlines
     private Array <Drawable> minorlines
     private integer minorlinecount = 5
     private integer tickHeight = 15
@@ -436,7 +435,7 @@ class VerticalAxisPanel is ChartItem
             Array<Drawable> theTicks
             Array<Drawable> theBrackets
             Array<ChartLabel> theLabels
-            Array<Drawable> theMajorLines
+            Array<Control> theMajorLines
             Array<Drawable> theMinorLines
 
             integer i = 0
@@ -471,9 +470,9 @@ class VerticalAxisPanel is ChartItem
                 text scaleText = ""
                 if textLabels = undefined
                     if minDate = undefined
-                        scaleText = "" + math:Round(scaleNum, options:GetTickDigits())
+                        scaleText = "" + math:Round(scaleNum, GetContainer():GetTickDigits())
                         if UseIntegers()
-                            scaleText = "" + cast(integer, math:Round(scaleNum, options:GetTickDigits()))
+                            scaleText = "" + cast(integer, math:Round(scaleNum, GetContainer():GetTickDigits()))
                         end   
                         if appendPercent
                             scaleText = scaleText + "%"
@@ -516,14 +515,14 @@ class VerticalAxisPanel is ChartItem
 
                 if chart:IsShowingMajorYGridLines()
                     if subPanel = undefined
-                        Drawable gridline
+                        Control gridline
                         theMajorLines:Add(gridline)
                         chart:GetChartArea():Add(gridline)
                     else
                         integer horizontalSections = chart:GetHorizontalPanel():GetNumberOfSections()
                         integer m = 0
                         repeat while m < horizontalSections
-                            Drawable gridline
+                            Control gridline
                             theMajorLines:Add(gridline)
                             if chart:GetSubChartAreas():Get(m + k*horizontalSections):IsShowing()
                                 chart:GetSubChartAreas():Get(m + k*horizontalSections):Add(gridline)
@@ -881,7 +880,7 @@ class VerticalAxisPanel is ChartItem
         end
 
         if not majorlines:IsEmpty()
-            Drawable temp = undefined
+            Control temp = undefined
             integer i = 0
             repeat while i < majorlines:GetSize()
                 temp = majorlines:Get(i)
@@ -1002,11 +1001,11 @@ class VerticalAxisPanel is ChartItem
         return minorlines
     end
 
-    action SetMajorGridlines(Array<Drawable> majorlines)
+    action SetMajorGridlines(Array<Control> majorlines)
         me:majorlines = majorlines
     end
 
-    action GetMajorGridlines returns Array<Drawable>
+    action GetMajorGridlines returns Array<Control>
         return majorlines
     end
 
@@ -1366,6 +1365,6 @@ class VerticalAxisPanel is ChartItem
     end
 
     action SetTickDigits(integer digits)
-        options:SetTickDigits(digits)
+        GetContainer():SetTickDigits(digits)
     end
 end

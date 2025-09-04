@@ -55,7 +55,6 @@ use Libraries.Interface.Views.ControlShaderView
 */
 
 class HorizontalAxisPanel is ChartItem
-    ChartOptions options
     Math math
     private integer numberOfSections = 1
     private boolean appendPercent = false
@@ -461,9 +460,9 @@ class HorizontalAxisPanel is ChartItem
                 text scaleText = ""
                 if textLabels = undefined
                     if minDate = undefined
-                        scaleText = "" + math:Round(scaleNum, options:GetTickDigits())
+                        scaleText = "" + math:Round(scaleNum, GetContainer():GetTickDigits())
                         if UseIntegers()
-                            scaleText = "" + cast(integer, math:Round(scaleNum, options:GetTickDigits()))
+                            scaleText = "" + cast(integer, math:Round(scaleNum, GetContainer():GetTickDigits()))
                         end   
                         if appendPercent
                             scaleText = scaleText + "%"
@@ -1445,6 +1444,6 @@ class HorizontalAxisPanel is ChartItem
         This action control the white space (padding/offset) on either side of the axis.
     */
     action SetTickDigits(integer digits)
-        options:SetTickDigits(digits)
+        GetContainer():SetTickDigits(digits)
     end
 end
