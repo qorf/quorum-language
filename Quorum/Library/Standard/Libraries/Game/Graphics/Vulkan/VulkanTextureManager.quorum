@@ -40,6 +40,9 @@ class VulkanTextureManager
     VulkanDescriptorSet globalTextureDescriptorSet = undefined
     VulkanDescriptorSetLayout globalTextureDescriptorSetLayout = undefined
     
+    // A default immutable sampler that can be used to access textures in shaders.
+    VulkanSampler defaultSampler = undefined
+    
     /*
 We use the physical device limits to figure out how many descriptors we can store at once for textures, but
 some platforms return -1 instead of a reasonable value. In this case, we use this default value.
@@ -79,6 +82,11 @@ output "Max across full pipeline in texture manager: " + maxFullPipeline
 
         VulkanDescriptorSetManager descriptorSetManager = graphics:GetDescriptorSetManager()
         globalTextureDescriptorSet = descriptorSetManager:CreateDescriptorSet(globalTextureLayout, constants:DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT)
+        
+        VulkanSampler immutableSampler
+        VulkanSamplerInfo defaultInfo
+        immutableSampler:Create(device, defaultInfo)
+        defaultSampler = immutableSampler
     end
 
     action RequestLoad(Texture texture, PixelMap pixelMap)
@@ -229,6 +237,10 @@ output "Max across full pipeline in texture manager: " + maxFullPipeline
 
     action GetGlobalTextureDescriptorSet returns VulkanDescriptorSet
         return globalTextureDescriptorSet
+    end
+
+    action GetDefaultSampler returns VulkanSampler
+        return defaultSampler
     end
 
 end

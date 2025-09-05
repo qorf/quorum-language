@@ -53,5 +53,9 @@ class VulkanDescriptorSetLayout
     action GetBindings returns Array<VulkanDescriptorSetLayoutBinding>
         return bindings
     end
+    
+    action IsInitialized returns boolean
+        return initialized
+    end
 
 end

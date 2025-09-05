@@ -19,6 +19,7 @@ class VulkanPipeline
             me:device = device
             me:renderPass = renderPass
             me:cache = cache
+            me:info = info
             
             initialized = true
         end
@@ -42,6 +43,10 @@ class VulkanPipeline
 
     action GetCache returns VulkanPipelineCache
         return cache
+    end
+
+    action GetInfo returns VulkanPipelineInfo
+        return info
     end
 
 end

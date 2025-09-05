@@ -89,7 +89,7 @@ class VulkanDescriptorSetManager
             end
 
             // If our selected pool was out of memory, iterate through the available pools from the beginning.
-            // These pools were full at some point, but space might have been freed up sense.
+            // These pools were full at some point, but space might have been freed up since.
             integer i = 0
             repeat while i < availablePools:GetSize() - 1
                 pool = availablePools:Get(i)

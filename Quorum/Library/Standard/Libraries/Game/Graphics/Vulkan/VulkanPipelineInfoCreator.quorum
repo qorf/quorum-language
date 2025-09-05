@@ -1,0 +1,540 @@
+package Libraries.Game.Graphics.Vulkan
+
+use Libraries.Containers.Array
+use Libraries.Game.GameStateManager
+
+/*This is a helper class that is used to create VulkanPipelineInfo objects for
+initializing VulkanPipelines. This class makes it easier to add vertex data,
+and automatically calculates both Vulkan offsets as well as the vertex offets
+in Quorum (used to find elements in the structure of a DrawableShape, for example).*/
+class VulkanPipelineInfoCreator
+    
+    VulkanConstants constants
+    
+    VulkanDevice device = undefined
+    VulkanPipelineInfo info = undefined
+    Array<VulkanVertexInputAttributeDescription> vertexAttributes = undefined
+    Array<VulkanVertexInputBindingDescription> vertexBindings = undefined
+    Array<VulkanPipelineColorBlendAttachmentState> colorBlendAttachments = undefined
+    Array<integer> dynamicStates = undefined
+    
+    Array<VulkanDescriptorSetLayout> descriptorSetLayouts = undefined
+    Array<VulkanDescriptorSetLayoutBinding> descriptorBindings = undefined
+    integer currentDescriptorBindingIndex = 0
+    
+    // Values indicating offsets within the Vulkan buffers and Quorum buffers for the currently added vertex attributes.
+    integer vulkanOffset = 0
+    integer quorumOffset = 0
+    
+    integer currentAttributeIndex = 0
+    
+    integer currentVertexBindingIndex = 0
+    integer vertexRate = constants:VERTEX_INPUT_RATE_VERTEX
+    
+    action Begin(VulkanDevice device)
+        me:device = device
+        
+        VulkanPipelineInfo info
+        me:info = info
+        
+vertexAttributes = info:GetVertexInputAttributeDescriptions()
+        vertexBindings = info:GetVertexInputBindingDescriptions()
+        colorBlendAttachments = info:GetPipelineColorBlendAttachmentStates()
+        dynamicStates = info:GetDynamicStates()
+        
+        Array<VulkanDescriptorSetLayout> descriptorSetLayouts
+        me:descriptorSetLayouts = descriptorSetLayouts
+        Array<VulkanDescriptorSetLayoutBinding> descriptorBindings
+        me:descriptorBindings = descriptorBindings
+        
+currentDescriptorBindingIndex = 0
+    vulkanOffset = 0
+    quorumOffset = 0
+    currentAttributeIndex = 0
+    currentVertexBindingIndex = 0
+    end
+    
+    action CheckHasBegun
+        if device = undefined
+            alert("The creator hasn't been initialized yet. Call Begin before using the creator.")
+        end
+    end
+    
+    action NewVertexRateVertexInputBinding
+        NewVertexInputBinding(constants:VERTEX_INPUT_RATE_VERTEX)
+    end
+    
+    action NewInstanceRateVertexInputBinding
+        NewVertexInputBinding(constants:VERTEX_INPUT_RATE_INSTANCE)
+    end
+    
+    action NewVertexInputBinding(integer vulkanVertexRate)
+        CheckHasBegun()
+        
+        // Only create and add the previous binding if something was added to it.
+        if currentAttributeIndex > 0
+            FinishCurrentVertexInputBinding()
+        end
+        
+        currentAttributeIndex = 0
+        vulkanOffset = 0
+        quorumOffset = 0
+        currentVertexBindingIndex = currentVertexBindingIndex + 1
+        vertexRate = vulkanVertexRate
+    end
+    
+    private action FinishCurrentVertexInputBinding
+        VulkanVertexInputBindingDescription binding
+        binding:Set(currentVertexBindingIndex, vulkanOffset, vertexRate)
+        vertexBindings:Add(binding)
+    end
+    
+    action Finish returns VulkanPipelineInfo
+CheckHasBegun()
+        
+        FinishCurrentVertexInputBinding()
+        VulkanPipelineInfo result = info
+        
+        if not descriptorBindings:IsEmpty()
+            output "Use bindings, do thing"
+            FinishDescriptorSetLayout()
+        end
+        if not descriptorSetLayouts:IsEmpty()
+            output "Use descriptor set layouts, make thing"
+            VulkanPipelineLayout pipelineLayout = info:GetLayout()
+            pipelineLayout:Create(device, descriptorSetLayouts)
+        end
+        
+        info = undefined
+        vertexAttributes = undefined
+        vertexBindings = undefined
+        colorBlendAttachments = undefined
+        dynamicStates = undefined
+        descriptorSetLayouts = undefined
+        device = undefined
+        
+        return result
+    end
+    
+    action AddVertexInput(integer vulkanFormat) returns integer
+CheckHasBegun()
+        
+        integer quorumIndexResult = quorumOffset
+        integer quorumSize = GetQuorumSize(vulkanFormat)
+        
+        if quorumSize < 0
+            return -1
+        end
+        
+        VulkanVertexInputAttributeDescription attribute
+        attribute:Set(currentVertexBindingIndex, currentAttributeIndex, vulkanFormat, vulkanOffset)
+        vertexAttributes:Add(attribute)
+        
+        currentAttributeIndex = currentAttributeIndex + 1
+        vulkanOffset = vulkanOffset + GetVulkanSize(vulkanFormat)
+        quorumOffset = quorumOffset + quorumSize
+        
+        return quorumIndexResult
+    end
+    
+    private action GetQuorumSize(integer vulkanFormat) returns integer
+        integer size = GetVulkanSize(vulkanFormat)
+        if size < 0
+            return -1
+        else
+            size = size / 4    
+        end
+
+        if size = 0
+            size = size + 1
+        end
+
+        return size
+    end
+    
+    private action GetVulkanSize(integer vulkanFormat) returns integer
+        if vulkanFormat = constants:FORMAT_UNDEFINED
+            return -1
+        elseif vulkanFormat = constants:FORMAT_R4G4_UNORM_PACK8
+            return 1
+        elseif vulkanFormat = constants:FORMAT_R4G4B4A4_UNORM_PACK16
+            return 1
+        elseif vulkanFormat = constants:FORMAT_B4G4R4A4_UNORM_PACK16
+            return 1
+        elseif vulkanFormat = constants:FORMAT_R5G6B5_UNORM_PACK16
+            return 1
+        elseif vulkanFormat = constants:FORMAT_B5G6R5_UNORM_PACK16
+            return 1
+        elseif vulkanFormat = constants:FORMAT_R5G5B5A1_UNORM_PACK16
+            return 1
+        elseif vulkanFormat = constants:FORMAT_B5G5R5A1_UNORM_PACK16
+            return 1
+        elseif vulkanFormat = constants:FORMAT_A1R5G5B5_UNORM_PACK16
+            return 1
+        elseif vulkanFormat = constants:FORMAT_R8_UNORM
+            return 1
+        elseif vulkanFormat = constants:FORMAT_R8_SNORM
+            return 1
+        elseif vulkanFormat = constants:FORMAT_R8_USCALED
+            return  1
+        elseif vulkanFormat = constants:FORMAT_R8_SSCALED
+            return 1
+        elseif vulkanFormat = constants:FORMAT_R8_UINT
+            return 1
+        elseif vulkanFormat = constants:FORMAT_R8_SINT
+            return 1
+        elseif vulkanFormat = constants:FORMAT_R8_SRGB
+            return 1
+        elseif vulkanFormat = constants:FORMAT_R8G8_UNORM
+            return 2
+        elseif vulkanFormat = constants:FORMAT_R8G8_SNORM
+            return 2
+        elseif vulkanFormat = constants:FORMAT_R8G8_USCALED
+            return 2
+        elseif vulkanFormat = constants:FORMAT_R8G8_SSCALED
+            return 2
+        elseif vulkanFormat = constants:FORMAT_R8G8_UINT
+            return 2
+        elseif vulkanFormat = constants:FORMAT_R8G8_SINT
+            return 2
+        elseif vulkanFormat = constants:FORMAT_R8G8_SRGB
+            return 2
+        elseif vulkanFormat = constants:FORMAT_R8G8B8_UNORM
+            return 3
+        elseif vulkanFormat = constants:FORMAT_R8G8B8_SNORM
+            return 3
+        elseif vulkanFormat = constants:FORMAT_R8G8B8_USCALED
+            return 3
+        elseif vulkanFormat = constants:FORMAT_R8G8B8_SSCALED
+            return 3
+        elseif vulkanFormat = constants:FORMAT_R8G8B8_UINT
+            return 3
+        elseif vulkanFormat = constants:FORMAT_R8G8B8_SINT
+            return 3
+        elseif vulkanFormat = constants:FORMAT_R8G8B8_SRGB
+            return 3
+        elseif vulkanFormat = constants:FORMAT_B8G8R8_UNORM
+            return 3
+        elseif vulkanFormat = constants:FORMAT_B8G8R8_SNORM
+            return 3
+        elseif vulkanFormat = constants:FORMAT_B8G8R8_USCALED
+            return 3
+        elseif vulkanFormat = constants:FORMAT_B8G8R8_SSCALED
+            return 3
+        elseif vulkanFormat = constants:FORMAT_B8G8R8_UINT
+            return 3
+        elseif vulkanFormat = constants:FORMAT_B8G8R8_SINT
+            return 3
+        elseif vulkanFormat = constants:FORMAT_B8G8R8_SRGB
+            return 3
+        elseif vulkanFormat = constants:FORMAT_R8G8B8A8_UNORM
+            return 4
+        elseif vulkanFormat = constants:FORMAT_R8G8B8A8_SNORM
+            return 4
+        elseif vulkanFormat = constants:FORMAT_R8G8B8A8_USCALED
+            return 4
+        elseif vulkanFormat = constants:FORMAT_R8G8B8A8_SSCALED
+            return 4
+        elseif vulkanFormat = constants:FORMAT_R8G8B8A8_UINT
+            return 4
+        elseif vulkanFormat = constants:FORMAT_R8G8B8A8_SINT
+            return 4
+        elseif vulkanFormat = constants:FORMAT_R8G8B8A8_SRGB
+            return 4
+        elseif vulkanFormat = constants:FORMAT_B8G8R8A8_UNORM
+            return 4
+        elseif vulkanFormat = constants:FORMAT_B8G8R8A8_SNORM
+            return 4
+        elseif vulkanFormat = constants:FORMAT_B8G8R8A8_USCALED
+            return 4
+        elseif vulkanFormat = constants:FORMAT_B8G8R8A8_SSCALED
+            return 4
+        elseif vulkanFormat = constants:FORMAT_B8G8R8A8_UINT
+            return 4
+        elseif vulkanFormat = constants:FORMAT_B8G8R8A8_SINT
+            return 4
+        elseif vulkanFormat = constants:FORMAT_B8G8R8A8_SRGB
+            return 4
+        elseif vulkanFormat = constants:FORMAT_A8B8G8R8_UNORM_PACK32
+            return 4
+        elseif vulkanFormat = constants:FORMAT_A8B8G8R8_SNORM_PACK32
+            return 4
+        elseif vulkanFormat = constants:FORMAT_A8B8G8R8_USCALED_PACK32
+            return 4
+        elseif vulkanFormat = constants:FORMAT_A8B8G8R8_SSCALED_PACK32
+            return 4
+        elseif vulkanFormat = constants:FORMAT_A8B8G8R8_UINT_PACK32
+            return 4
+        elseif vulkanFormat = constants:FORMAT_A8B8G8R8_SINT_PACK32
+            return 4
+        elseif vulkanFormat = constants:FORMAT_A8B8G8R8_SRGB_PACK32
+            return 4
+        elseif vulkanFormat = constants:FORMAT_A2R10G10B10_UNORM_PACK32
+            return 4
+        elseif vulkanFormat = constants:FORMAT_A2R10G10B10_SNORM_PACK32
+            return 4
+        elseif vulkanFormat = constants:FORMAT_A2R10G10B10_USCALED_PACK32
+            return 4
+        elseif vulkanFormat = constants:FORMAT_A2R10G10B10_SSCALED_PACK32
+            return 4
+        elseif vulkanFormat = constants:FORMAT_A2R10G10B10_UINT_PACK32
+            return 4
+        elseif vulkanFormat = constants:FORMAT_A2R10G10B10_SINT_PACK32
+            return 4
+        elseif vulkanFormat = constants:FORMAT_A2B10G10R10_UNORM_PACK32
+            return 4
+        elseif vulkanFormat = constants:FORMAT_A2B10G10R10_SNORM_PACK32
+            return 4
+        elseif vulkanFormat = constants:FORMAT_A2B10G10R10_USCALED_PACK32
+            return 4
+        elseif vulkanFormat = constants:FORMAT_A2B10G10R10_SSCALED_PACK32
+            return 4
+        elseif vulkanFormat = constants:FORMAT_A2B10G10R10_UINT_PACK32
+            return 4
+        elseif vulkanFormat = constants:FORMAT_A2B10G10R10_SINT_PACK32
+            return 4
+        elseif vulkanFormat = constants:FORMAT_R16_UNORM
+            return 2
+        elseif vulkanFormat = constants:FORMAT_R16_SNORM
+            return 2
+        elseif vulkanFormat = constants:FORMAT_R16_USCALED
+            return 2
+        elseif vulkanFormat = constants:FORMAT_R16_SSCALED
+            return 2
+        elseif vulkanFormat = constants:FORMAT_R16_UINT
+            return 2
+        elseif vulkanFormat = constants:FORMAT_R16_SINT
+            return 2
+        elseif vulkanFormat = constants:FORMAT_R16_SFLOAT
+            return 2
+        elseif vulkanFormat = constants:FORMAT_R16G16_UNORM
+            return 4
+        elseif vulkanFormat = constants:FORMAT_R16G16_SNORM
+            return 4
+        elseif vulkanFormat = constants:FORMAT_R16G16_USCALED
+            return 4
+        elseif vulkanFormat = constants:FORMAT_R16G16_SSCALED
+            return 4
+        elseif vulkanFormat = constants:FORMAT_R16G16_UINT
+            return 4
+        elseif vulkanFormat = constants:FORMAT_R16G16_SINT
+            return 4
+        elseif vulkanFormat = constants:FORMAT_R16G16_SFLOAT
+            return 4
+        elseif vulkanFormat = constants:FORMAT_R16G16B16_UNORM
+            return 6
+        elseif vulkanFormat = constants:FORMAT_R16G16B16_SNORM
+            return 6
+        elseif vulkanFormat = constants:FORMAT_R16G16B16_USCALED
+            return 6
+        elseif vulkanFormat = constants:FORMAT_R16G16B16_SSCALED
+            return 6
+        elseif vulkanFormat = constants:FORMAT_R16G16B16_UINT
+            return 6
+        elseif vulkanFormat = constants:FORMAT_R16G16B16_SINT
+            return 6
+        elseif vulkanFormat = constants:FORMAT_R16G16B16_SFLOAT
+            return 6
+        elseif vulkanFormat = constants:FORMAT_R16G16B16A16_UNORM
+            return 8
+        elseif vulkanFormat = constants:FORMAT_R16G16B16A16_SNORM
+            return 8
+        elseif vulkanFormat = constants:FORMAT_R16G16B16A16_USCALED
+            return 8
+        elseif vulkanFormat = constants:FORMAT_R16G16B16A16_SSCALED
+            return 8
+        elseif vulkanFormat = constants:FORMAT_R16G16B16A16_UINT
+            return 8
+        elseif vulkanFormat = constants:FORMAT_R16G16B16A16_SINT
+            return 8
+        elseif vulkanFormat = constants:FORMAT_R16G16B16A16_SFLOAT
+            return 8
+        elseif vulkanFormat = constants:FORMAT_R32_UINT
+            return 4
+        elseif vulkanFormat = constants:FORMAT_R32_SINT
+            return 4
+        elseif vulkanFormat = constants:FORMAT_R32_SFLOAT
+            return 4
+        elseif vulkanFormat = constants:FORMAT_R32G32_UINT
+            return 8
+        elseif vulkanFormat = constants:FORMAT_R32G32_SINT
+            return 8
+        elseif vulkanFormat = constants:FORMAT_R32G32_SFLOAT
+            return 8
+        elseif vulkanFormat = constants:FORMAT_R32G32B32_UINT
+            return 12
+        elseif vulkanFormat = constants:FORMAT_R32G32B32_SINT
+            return 12
+        elseif vulkanFormat = constants:FORMAT_R32G32B32_SFLOAT
+            return 12
+        elseif vulkanFormat = constants:FORMAT_R32G32B32A32_UINT
+            return 16
+        elseif vulkanFormat = constants:FORMAT_R32G32B32A32_SINT
+            return 16
+        elseif vulkanFormat = constants:FORMAT_R32G32B32A32_SFLOAT
+            return 16
+        elseif vulkanFormat = constants:FORMAT_R64_UINT
+            return 8
+        elseif vulkanFormat = constants:FORMAT_R64_SINT
+            return 8
+        elseif vulkanFormat = constants:FORMAT_R64_SFLOAT
+            return 8
+        elseif vulkanFormat = constants:FORMAT_R64G64_UINT
+            return 16
+        elseif vulkanFormat = constants:FORMAT_R64G64_SINT
+            return 16
+        elseif vulkanFormat = constants:FORMAT_R64G64_SFLOAT
+            return 16
+        elseif vulkanFormat = constants:FORMAT_R64G64B64_UINT
+            return 24
+        elseif vulkanFormat = constants:FORMAT_R64G64B64_SINT
+            return 24
+        elseif vulkanFormat = constants:FORMAT_R64G64B64_SFLOAT
+            return 24
+        elseif vulkanFormat = constants:FORMAT_R64G64B64A64_UINT
+            return 32
+        elseif vulkanFormat = constants:FORMAT_R64G64B64A64_SINT
+            return 32
+        elseif vulkanFormat = constants:FORMAT_R64G64B64A64_SFLOAT
+            return 32
+        elseif vulkanFormat = constants:FORMAT_B10G11R11_UFLOAT_PACK32
+            return 4
+        elseif vulkanFormat = constants:FORMAT_E5B9G9R9_UFLOAT_PACK32
+            return 4
+        elseif vulkanFormat = constants:FORMAT_D16_UNORM
+            return 2
+        elseif vulkanFormat = constants:FORMAT_X8_D24_UNORM_PACK32
+            return 4
+        elseif vulkanFormat = constants:FORMAT_D32_SFLOAT
+            return 4
+        elseif vulkanFormat = constants:FORMAT_S8_UINT
+            return 1
+        elseif vulkanFormat = constants:FORMAT_D16_UNORM_S8_UINT
+            return 3
+        elseif vulkanFormat = constants:FORMAT_D24_UNORM_S8_UINT
+            return 4
+        elseif vulkanFormat = constants:FORMAT_D32_SFLOAT_S8_UINT
+            return 5
+        end
+
+        return -1
+    end
+    
+    action AddColorBlendAttachmentState(VulkanPipelineColorBlendAttachmentState colorBlend)
+CheckHasBegun()
+        colorBlendAttachments:Add(colorBlend)
+    end
+    
+    action AddTransparentColorBlendAttachmentState
+CheckHasBegun()
+VulkanPipelineColorBlendAttachmentState colorBlend
+            colorBlend:EnableDefaultTransparency()
+            colorBlendAttachments:Add(colorBlend)
+    end
+    
+action AddOpaqueColorBlendAttachmentState
+CheckHasBegun()
+VulkanPipelineColorBlendAttachmentState colorBlend
+            colorBlendAttachments:Add(colorBlend)
+    end
+    
+    action AddDynamicState(integer dynamicState)
+CheckHasBegun()
+        dynamicStates:Add(dynamicState)
+    end
+    
+    action AddDynamicScissor
+CheckHasBegun()
+        AddDynamicState(constants:DYNAMIC_STATE_SCISSOR)
+    end
+    
+    action AddDynamicViewport
+CheckHasBegun()
+        AddDynamicState(constants:DYNAMIC_STATE_VIEWPORT)
+    end
+    
+    action AddDescriptorSetLayoutBinding(VulkanDescriptorSetLayoutBinding binding)
+        CheckHasBegun()
+        
+        binding:SetBinding(currentDescriptorBindingIndex)
+        currentDescriptorBindingIndex = currentDescriptorBindingIndex + 1
+        descriptorBindings:Add(binding)
+    end
+    
+    action AddDescriptorSetLayoutBinding(integer stageFlags, integer type) returns VulkanDescriptorSetLayoutBinding
+        CheckHasBegun()
+        
+        VulkanDescriptorSetLayoutBinding binding
+        binding:SetBinding(currentDescriptorBindingIndex)
+        binding:SetStageFlags(stageFlags)
+        binding:SetDescriptorType(type)
+        currentDescriptorBindingIndex = currentDescriptorBindingIndex + 1
+        descriptorBindings:Add(binding)
+        return binding
+    end
+    
+    action FinishDescriptorSetLayout returns VulkanDescriptorSetLayout
+        CheckHasBegun()
+        
+        if descriptorBindings = undefined or descriptorBindings:IsEmpty()
+            return undefined
+        end
+        
+        VulkanDescriptorSetLayout layout
+        layout:Create(device, descriptorBindings)
+        descriptorSetLayouts:Add(layout)
+        
+        currentDescriptorBindingIndex = 0
+        Array<VulkanDescriptorSetLayoutBinding> bindings
+        descriptorBindings = bindings
+        return layout
+    end
+    
+    action AddDescriptorSetLayout(VulkanDescriptorSetLayout layout)
+        CheckHasBegun()
+if not descriptorBindings:IsEmpty()
+            FinishDescriptorSetLayout()
+        end
+        descriptorSetLayouts:Add(layout)
+    end
+    
+    action AddDefaultInfo2D
+        CheckHasBegun()
+        
+GameStateManager gameState
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+VulkanTextureManager textureManager = graphics:GetTextureManager()
+        
+            VulkanConstants constants
+        // Add the X, Y, Z coordinates as a Vector3 of 32 bit signed float values.
+        AddVertexInput(constants:FORMAT_R32G32B32_SFLOAT)
+        // Add vertex colors as a Vector4 of 8 bit values normalized between 0 and 1.
+AddVertexInput(constants:FORMAT_R8G8B8A8_UNORM)
+        // Add texture coordinates as a Vector2 of 32 bit signed float values.
+        AddVertexInput(constants:FORMAT_R32G32_SFLOAT)
+        // Add the texture index value as a 32 bit unsigned integer.
+        AddVertexInput(constants:FORMAT_R32_UINT)
+            
+        // Use transparency for color blending for this pipeline.    
+AddTransparentColorBlendAttachmentState()
+
+            // Define the dynamic states permitted by the pipeline. For our case, we want to be able to dynamically adjust viewport and scissor values.
+        AddDynamicViewport()
+        AddDynamicScissor()
+
+        // Add a uniform for the camera, used during the vertex shader stage.
+        AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_VERTEX_BIT, constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+
+        // Create a binding for a sampler to use during fragment shading, then add the sampler to the returned binding.
+        VulkanDescriptorSetLayoutBinding samplerBinding = AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_SAMPLER)
+Array<VulkanSampler> immutableSamplers
+VulkanSampler immutableSampler = textureManager:GetDefaultSampler()
+            immutableSamplers:Add(immutableSampler)
+            samplerBinding:SetImmutableSamplers(immutableSamplers)
+
+            // We also need the descriptor set layout for the global textures. The texture manager holds onto that layout, so go fetch it.
+        // Now, add the pre-existing layout to the set of layouts used by the pipeline we're making.
+        AddDescriptorSetLayout(textureManager:GetGlobalTextureDescriptorSetLayout())
+    end
+    
+end
