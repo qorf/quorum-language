@@ -3,7 +3,7 @@ package Libraries.Game.Graphics.Vulkan
 use Libraries.Containers.Array
 
 class VulkanPipelineLayout
-
+VulkanPushConstantRange  pushConstants
     VulkanDevice device = undefined
     boolean initialized = false    
 
@@ -19,4 +19,12 @@ class VulkanPipelineLayout
 
     private system action CreateNative(VulkanDevice device, Array<VulkanDescriptorSetLayout> descriptorSetLayouts) returns boolean
 
+    
+action GetPushConstants returns VulkanPushConstantRange
+        return pushConstants
+    end
+
+    action SetPushConstants(VulkanPushConstantRange pushConstants)
+        me:pushConstants = pushConstants
+    end
 end

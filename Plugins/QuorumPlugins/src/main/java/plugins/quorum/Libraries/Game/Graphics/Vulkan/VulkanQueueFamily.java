@@ -33,9 +33,9 @@ public class VulkanQueueFamily
         }
     }
 
-    public int GetComputeQueueFamilyIndex(quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice device) {
+    public int GetComputeQueueFamilyIndex(quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice_ device) {
         int index = -1;
-        VulkanPhysicalDevice plugin = device.plugin_;
+        VulkanPhysicalDevice plugin = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice) device).plugin_;
         VkQueueFamilyProperties.Buffer queueFamilyProps = plugin.GetQueueFamilyProperties();
         int numQueuesFamilies = queueFamilyProps.capacity();
         for (int i = 0; i < numQueuesFamilies; i++) {

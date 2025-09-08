@@ -10,6 +10,10 @@ class VulkanQueueFamily
     action GetPhysicalDevice returns VulkanPhysicalDevice
         return device
     end
+    
+action SetPhysicalDevice(VulkanPhysicalDevice device)
+        me:device = device
+    end
 
     action GetQueueCount returns integer
         return queueCount

@@ -1,0 +1,42 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanPushConstantRange
+    integer capacity = 1
+    integer size = 1
+    integer offset = 0
+    integer stage = 0
+    
+    action GetCapacity returns integer
+        return capacity
+    end
+
+    action SetCapacity(integer capacity)
+        me:capacity = capacity
+    end
+
+    action GetSize returns integer
+        return size
+    end
+
+    action SetSize(integer size)
+        me:size = size
+    end
+
+    action GetOffset returns integer
+        return offset
+    end
+
+    action SetOffset(integer offset)
+        me:offset = offset
+    end
+    
+action GetStage returns integer
+        return stage
+    end
+
+    action SetStage(integer capacity)
+        me:stage = stage
+    end
+    
+    system action Create
+end

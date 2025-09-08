@@ -6,9 +6,8 @@ import org.lwjgl.vulkan.*;
 import plugins.quorum.Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderManager;
 import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Game.Graphics.Shaders.Shader_;
-import quorum.Libraries.Game.Graphics.Vulkan.VulkanComputePipelineInfo_;
-import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
-import quorum.Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetLayout_;
+import quorum.Libraries.Game.Graphics.Vulkan.*;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanPipelineLayout;
 import quorum.Libraries.Language.Object_;
 
 import java.nio.LongBuffer;
@@ -24,10 +23,11 @@ public class VulkanComputePipeline {
 
     public boolean CreateNative(VulkanDevice_ quorumDevice, VulkanComputePipelineInfo_ quorumInfo) {
         VulkanDevice quorumDevicePlugin = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
+        plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanPipelineLayout pipelineLayoutPlugin = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanPipelineLayout) quorumInfo).plugin_;
         VkDevice vkDevice = quorumDevicePlugin.GetDevice();
 
         Shader_ quorumShader = quorumInfo.GetShader();
-        int pushConstantSize = quorumInfo.GetPushConstantsSize();
+        VulkanPushConstantRange_ pushConstantRange = quorumInfo.GetPushConstants();
         Array_ quorumDescriptorSetLayouts = quorumInfo.GetDescriptorSetLayouts();
         long pipelineCacheHandle = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanPipelineCache)quorumInfo.GetPipelineCache()).plugin_.GetVulkanCacheHandle();
 
@@ -48,33 +48,33 @@ public class VulkanComputePipeline {
 //                shaderStage.pSpecializationInfo(shaderModule.getSpecInfo());
 //            }
 
-            VkPushConstantRange.Buffer vpcr = null;
-            if (pushConstantSize > 0) {
-                vpcr = VkPushConstantRange.calloc(1, stack)
-                        .stageFlags(VK_SHADER_STAGE_COMPUTE_BIT)
-                        .offset(0)
-                        .size(pushConstantSize);
-            }
+//            VkPushConstantRange.Buffer vpcr = null;
+//            if (pushConstantRange != null) {
+//                quorum.Libraries.Game.Graphics.Vulkan.VulkanPushConstantRange r = (quorum.Libraries.Game.Graphics.Vulkan.VulkanPushConstantRange) pushConstantRange;
+//                vpcr = r.plugin_.pushConstantBuffer;
+//            }
+//
+//            int numLayouts = quorumDescriptorSetLayouts.GetSize();
+//
+//            LongBuffer ppLayout = stack.mallocLong(numLayouts);
+//            for (int i = 0; i < numLayouts; i++) {
+//                VulkanDescriptorSetLayout_ layout = (VulkanDescriptorSetLayout_) quorumDescriptorSetLayouts.Get(i);
+//                VulkanDescriptorSetLayout pluginLayout = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetLayout)layout).plugin_;
+//                ppLayout.put(i, pluginLayout.GetLayoutHandle());
+//            }
+//            VkPipelineLayoutCreateInfo pPipelineLayoutCreateInfo = VkPipelineLayoutCreateInfo.calloc(stack)
+//                    .sType$Default()
+//                    .pSetLayouts(ppLayout)
+//                    .pPushConstantRanges(vpcr);
+//            int vulkanResult = vkCreatePipelineLayout(vkDevice, pPipelineLayoutCreateInfo, null, lp);
+//            if (vulkanResult != VK_SUCCESS)
+//            {
+//                System.out.println("Failed to create Compute Pipeline: code = " + vulkanResult);
+//                return false;
+//            }
+//            vulkanPipelineLayoutHandle = lp.get(0);
 
-            int numLayouts = quorumDescriptorSetLayouts.GetSize();
-
-            LongBuffer ppLayout = stack.mallocLong(numLayouts);
-            for (int i = 0; i < numLayouts; i++) {
-                VulkanDescriptorSetLayout_ layout = (VulkanDescriptorSetLayout_) quorumDescriptorSetLayouts.Get(i);
-                VulkanDescriptorSetLayout pluginLayout = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetLayout)layout).plugin_;
-                ppLayout.put(i, pluginLayout.GetLayoutHandle());
-            }
-            VkPipelineLayoutCreateInfo pPipelineLayoutCreateInfo = VkPipelineLayoutCreateInfo.calloc(stack)
-                    .sType$Default()
-                    .pSetLayouts(ppLayout)
-                    .pPushConstantRanges(vpcr);
-            int vulkanResult = vkCreatePipelineLayout(vkDevice, pPipelineLayoutCreateInfo, null, lp);
-            if (vulkanResult != VK_SUCCESS)
-            {
-                System.out.println("Failed to create Compute Pipeline: code = " + vulkanResult);
-                return false;
-            }
-            vulkanPipelineLayoutHandle = lp.get(0);
+            vulkanPipelineLayoutHandle = pipelineLayoutPlugin.GetLayoutHandle();
 
             VkComputePipelineCreateInfo.Buffer computePipelineCreateInfo = VkComputePipelineCreateInfo.calloc(1, stack)
                     .sType$Default()
@@ -82,7 +82,7 @@ public class VulkanComputePipeline {
                     .layout(vulkanPipelineLayoutHandle);
 
             //Left out. This is all that is left.
-            vulkanResult = vkCreateComputePipelines(vkDevice, pipelineCacheHandle,
+            int vulkanResult = vkCreateComputePipelines(vkDevice, pipelineCacheHandle,
                     computePipelineCreateInfo, null, lp);
             if (vulkanResult != VK_SUCCESS)
             {
