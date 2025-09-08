@@ -7,10 +7,45 @@ use Libraries.Game.GameStateManager
 use Libraries.Containers.Iterator
 use Libraries.Game.Graphics.BezierCurve
 
+/*
+    The Circle class is an implementation of the path element in the SVG standard. Like other
+    ScalableVectorGraphicsObjects the path class inherits global attributes but it also has
+    its own attributes.
+
+    Attribute: Example
+
+    Libraries.Data.Formats.ScalableVectorGraphics.all
+
+// make a rectangle with rounded corners circle
+use Libraries.Data.Formats.ScalableVectorGraphics.all
+
+ScalableVectorGraphics canvas
+canvas:SetSize(440, 440)
+Path path
+path:SetFill("none")
+path:SetStroke("black")
+path:SetStrokeWidth(3)
+path:AddMoveTo(100, 100, false)
+path:AddHorizontalLine(200)
+path:AddArc(20, 20, 0, false, true, 20,20)
+path:AddVerticalLine(220)
+path:AddHorizontalLine(-240)
+path:AddVerticalLine(-220)
+path:AddArc(20,20, 0, false, true, 20, -20)
+path:ClosePath()
+
+canvas:Add(path)
+
+output canvas:ToText()
+
+*/
 class Path is ScalableVectorGraphicsObject
 
     constant text objectName = "path"
+    // used if made through a Quorum LinePath object
     LinePath rawPath = undefined
+    // used if made through raw SVG commands
+    text data = ""
 
     integer canvasWidth = 0
     integer canvasHeight = 0
@@ -55,6 +90,53 @@ class Path is ScalableVectorGraphicsObject
         Attribute: Returns the formatted string of all tags and attributes for this shape
     */
     action ToText returns text
+        if rawPath not= undefined
+            return LinePathToText()
+        end
+        return DataToText()
+    end
+    
+/*
+    This action builds the element based on the the commands added that define this path.
+    */
+    action DataToText returns text
+text result = ""
+        text newLine = result:GetLineFeed()
+        text tab = result:GetTab()
+        text dq = result:GetDoubleQuote()
+
+        result = "<" + objectName + " d=" + dq + data + dq
+
+        result = result + GlobalAttributesToText()
+        if GetTitle() not= "" or GetDescription() not= ""
+            result = result + ">" + newLine
+            if GetTitle() not= ""
+                Title title
+                title:SetTitle(GetTitle())
+                result = result + tab + tab + title:ToText() + newLine
+            end
+            if GetDescription() not= ""
+                Description desc
+                desc:SetDescription(GetDescription())
+                result = result + tab + tab + desc:ToText() + newLine
+            end
+            result = result + tab
+        end
+
+        result = result + GetCloseTag(objectName, IsContainer())
+
+        if IsOneLine() = false
+            result = result + newLine
+        end
+
+        return result
+    end
+    
+/*
+    This action builds the element based on the LinePath that defines this path.
+    Which should be set before using ToText.
+    */
+    action LinePathToText returns text
         if canvasHeight = 0
             check
                 GameStateManager manager
@@ -157,4 +239,313 @@ class Path is ScalableVectorGraphicsObject
 
         return newPoint
     end
+    
+/*
+    This action adds a MoveTo command to the path. This draws no lines but move the pointer where drawing
+    will occur. If the relative flag is not set it will be assumed that points are relative to the current
+    point. 
+
+    Attribute: Parameter x The x position to move to
+    Attribute: Parameter y The y position to move to
+    */
+    action AddMoveTo(number x, number y)
+        AddMoveTo(x, y, true)
+    end
+    
+/*
+    This action adds a MoveTo command to the path. This draws no lines but move the pointer where drawing
+    will occur. If the relative flag is not set it will be assumed that points are relative to the current
+    point. 
+
+    Attribute: Parameter x The x position to move to
+    Attribute: Parameter y The y position to move to
+    Attribute: Parameter relative If true use coordinates relative to the current point otherwise use absolute
+    */
+    action AddMoveTo(number x, number y, boolean relative)
+text command = "M"
+        if relative
+            command = "m"
+        end
+        data = data + command + " " + x + " " + y + " "
+    end
+    
+/*
+    This action adds a LineTo command to the path. This draws a line from the current point to the passed point.
+    If the relative flag is not set it will be assumed that points are relative to the current point. 
+
+    Attribute: Parameter x The x position to move to
+    Attribute: Parameter y The y position to move to
+    */
+    action AddLineTo(number x, number y)
+        AddLineTo(x,y, true)
+    end
+    
+/*
+    This action adds a LineTo command to the path. This draws a line from the current point to the passed point.
+    If the relative flag is not set it will be assumed that points are relative to the current point. 
+
+    Attribute: Parameter x The x position to move to
+    Attribute: Parameter y The y position to move to
+    Attribute: Parameter relative If true use coordinates relative to the current point otherwise use absolute
+    */
+    
+    action AddLineTo(number x, number y, boolean relative)
+        text command = "L"
+        if relative
+            command = "l"
+        end
+        data = data + command + " " + x + " " + y + " "
+    end
+    
+/*
+    This action adds a Horizontal Line command to the path. This draws a line from the current point of the passed length.
+    A negative length will draw the line in the opposite direction. 
+    If the relative flag is not set it will be assumed that points are relative to the current point. 
+
+    Attribute: Parameter length The length of line to draw*/
+    action AddHorizontalLine(number length)
+        AddHorizontalLine(length, true)
+    end
+    
+/*
+    This action adds a Horizontal Line command to the path. This draws a line from the current point of the passed length.
+    A negative length will draw the line in the opposite direction. 
+    If the relative flag is not set it will be assumed that points are relative to the current point. 
+
+    Attribute: Parameter length The length of line to draw
+    Attribute: Parameter relative If true use coordinates relative to the current point otherwise use absolute
+    */
+    action AddHorizontalLine(number length, boolean relative)
+text command = "H"
+        if relative
+            command = "h"
+        end
+        data = data + command + " " + length + " "
+    end
+    
+/*
+    This action adds a Vertical Line command to the path. This draws a line from the current point of the passed height.
+    A negative height will draw the line in the opposite direction. 
+    If the relative flag is not set it will be assumed that points are relative to the current point. 
+
+    Attribute: Parameter height The height of line to draw
+    */
+    action AddVerticalLine(number height)
+        AddVerticalLine(height, true)
+    end
+    
+/*
+    This action adds a Vertical Line command to the path. This draws a line from the current point of the passed height.
+    A negative height will draw the line in the opposite direction. 
+    If the relative flag is not set it will be assumed that points are relative to the current point. 
+
+    Attribute: Parameter height The height of line to draw
+    Attribute: Parameter relative If true use coordinates relative to the current point otherwise use absolute
+    */
+    action AddVerticalLine(number height, boolean relative)
+text command = "V"
+        if relative
+            command = "v"
+        end
+        data = data + command + " " + height + " "
+    end
+    
+/*
+    This action adds a Cubic Bezier Curve command to the path. This draws a bezier curve from the current point to the passed point
+    while using two control points to draw a curve to the passed point.
+    If the relative flag is not set it will be assumed that points are relative to the current point. 
+
+    Attribute: Parameter x1 X of control point 1
+    Attribute: Parameter y1 Y of control point 1
+    Attribute: Parameter x2 X of control point 2
+    Attribute: Parameter y2 Y of control point 2
+    Attribute: Parameter x X of point to end the curve
+    Attribute: Parameter y Y of point to end the curve
+    */
+action AddCubicBezierCurve(number x1, number y1, number x2, number y2, number x, number y)
+        AddCubicBezierCurve(x1, y1, x2, y2, x, y, true)
+end    
+    
+/*
+    This action adds a Cubic Bezier Curve command to the path. This draws a bezier curve from the current point to the passed point
+    while using two control points to draw a curve to the passed point.
+    If the relative flag is not set it will be assumed that points are relative to the current point. 
+
+    Attribute: Parameter x1 X of control point 1
+    Attribute: Parameter y1 Y of control point 1
+    Attribute: Parameter x2 X of control point 2
+    Attribute: Parameter y2 Y of control point 2
+    Attribute: Parameter x X of point to end the curve
+    Attribute: Parameter y Y of point to end the curve
+    Attribute: Parameter relative If true use coordinates relative to the current point otherwise use absolute
+    */
+    action AddCubicBezierCurve(number x1, number y1, number x2, number y2, number x, number y, boolean relative)
+text command = "C"
+        if relative
+            command = "c"
+        end
+        data = data + command + " " + x1 + " " + y1 + " " + x2 + " " + y2 + " " + x + " " + y + " "
+    end
+    
+/*
+    This action adds a shortcutted Cubic Bezier Curve command to the path. This draws a bezier curve from the current point to the passed point
+    while still using two control points to draw a curve to the passed point. The first control point is a reflection of the control point of the
+    previous curve command so only the the second control point needs to be defined.
+    If the relative flag is not set it will be assumed that points are relative to the current point. 
+
+    Attribute: Parameter x2 X of control point 2
+    Attribute: Parameter y2 Y of control point 2
+    Attribute: Parameter x X of point to end the curve
+    Attribute: Parameter y Y of point to end the curve
+    */
+    action AddShortcutBezierCurve(number x2, number y2, number x, number y)
+        AddShortcutBezierCurve(x2, y2, x, y, true)
+    end
+    
+/*
+    This action adds a shortcutted Cubic Bezier Curve command to the path. This draws a bezier curve from the current point to the passed point
+    while still using two control points to draw a curve to the passed point. The first control point is a reflection of the control point of the
+    previous curve command so only the the second control point needs to be defined.
+    If the relative flag is not set it will be assumed that points are relative to the current point. 
+
+    Attribute: Parameter x2 X of control point 2
+    Attribute: Parameter y2 Y of control point 2
+    Attribute: Parameter x X of point to end the curve
+    Attribute: Parameter y Y of point to end the curve
+    Attribute: Parameter relative If true use coordinates relative to the current point otherwise use absolute
+    */
+    action AddShortcutBezierCurve(number x2, number y2, number x, number y, boolean relative)
+text command = "S"
+        if relative
+            command = "s"
+        end
+        data = data + command + " " + x2 + " " + y2 + " " + x + " " + y + " "
+    end
+    
+/*
+    This action adds a Quadratic Bezier Curve command to the path. This draws a bezier curve from the current point to the passed point
+    using a single control point to draw a curve.
+    If the relative flag is not set it will be assumed that points are relative to the current point. 
+
+    Attribute: Parameter x1 X of the control point
+    Attribute: Parameter y1 Y of the control point
+    Attribute: Parameter x X of point to end the curve
+    Attribute: Parameter y Y of point to end the curve
+    */
+    action AddQuadraticBezierCurve(number x1, number y1, number x, number y)
+        AddQuadraticBezierCurve(x1, y1, x, y, true)
+    end
+    
+/*
+    This action adds a Quadratic Bezier Curve command to the path. This draws a bezier curve from the current point to the passed point
+    using a single control point to draw a curve.
+    If the relative flag is not set it will be assumed that points are relative to the current point. 
+
+    Attribute: Parameter x1 X of the control point
+    Attribute: Parameter y1 Y of the control point
+    Attribute: Parameter x X of point to end the curve
+    Attribute: Parameter y Y of point to end the curve
+    Attribute: Parameter relative If true use coordinates relative to the current point otherwise use absolute
+    */
+    action AddQuadraticBezierCurve(number x1, number y1, number x, number y, boolean relative)
+text command = "Q"
+        if relative
+            command = "q"
+        end
+        data = data + command + " " + x1 + " " + y1 + " " + x + " " + y + " "
+    end
+    
+/*
+    This action adds a smooth Quadratic Bezier Curve command to the path. This curve's control point is a relection of the control
+    point of the previous quadratic bezier curve command. If the previous command is not a quadratic curve then the control point
+    is the same as the starting point.
+    If the relative flag is not set it will be assumed that points are relative to the current point. 
+
+    Attribute: Parameter x X of point to end the curve
+    Attribute: Parameter y Y of point to end the curve
+    Attribute: Parameter relative If true use coordinates relative to the current point otherwise use absolute
+    */
+    action AddSmoothQuadraticCurve(integer x, integer y)
+        AddSmoothQuadraticCurve(x, y, true)
+    end
+    
+/*
+    This action adds a smooth Quadratic Bezier Curve command to the path. This curve's control point is a relection of the control
+    point of the previous quadratic bezier curve command. If the previous command is not a quadratic curve then the control point
+    is the same as the starting point.
+    If the relative flag is not set it will be assumed that points are relative to the current point. 
+
+    Attribute: Parameter x X of point to end the curve
+    Attribute: Parameter y Y of point to end the curve
+    Attribute: Parameter relative If true use coordinates relative to the current point otherwise use absolute
+    */
+    action AddSmoothQuadraticCurve(number x, number y, boolean relative)
+text command = "T"
+        if relative
+            command = "t"
+        end
+        data = data + command + " " + x + " " + y + " "
+    end
+    
+/*
+    This action adds an Elliptical Arc Curve command to the path. Elliptical arc curves are defined as portions of 
+    an ellipse. Due to the possibilites of connecting two points with an arc there are several flags to choose which 
+    arc to use to draw the curve.
+    If the relative flag is not set it will be assumed that points are relative to the current point. 
+
+    Attribute: Parameter xRadius the x-radius of the ellipse
+    Attribute: Parameter yRadius the y-radius of the ellipse
+    Attribute: Parameter rotation The angle in degrees to rotate the ellipse
+    Attribute: Parameter largeArcFlag If true use the larger arc otherwise use the smaller one
+    Attribute: Parameter sweepFlag If true use the arc that curves clockwise otherwise use the counterclockwise one
+    Attribute: Parameter x X of point to end the curve
+    Attribute: Parameter y Y of point to end the curve
+    */
+action AddArc(number xRadius, number yRadius, number rotation, boolean largeArcFlag, boolean sweepFlag, number x, number y)
+        AddArc(xRadius, yRadius, rotation, largeArcFlag, sweepFlag, x, y, true)
+    end
+    
+/*
+    This action adds an Elliptical Arc Curve command to the path. Elliptical arc curves are defined as portions of 
+    an ellipse. Due to the possibilites of connecting two points with an arc there are several flags to choose which 
+    arc to use to draw the curve.
+    If the relative flag is not set it will be assumed that points are relative to the current point. 
+
+    Attribute: Parameter xRadius the x-radius of the ellipse
+    Attribute: Parameter yRadius the y-radius of the ellipse
+    Attribute: Parameter rotation The angle in degrees to rotate the ellipse
+    Attribute: Parameter largeArcFlag If true use the larger arc otherwise use the smaller one
+    Attribute: Parameter sweepFlag If true use the arc that curves clockwise otherwise use the counterclockwise one
+    Attribute: Parameter x X of point to end the curve
+    Attribute: Parameter y Y of point to end the curve
+    Attribute: Parameter relative If true use coordinates relative to the current point otherwise use absolute
+    */
+    action AddArc(number xRadius, number yRadius, number rotation, boolean largeArcFlag, boolean sweepFlag, number x, number y ,boolean relative)
+text command = "A"
+        if relative
+            command = "a"
+        end
+        data = data + command + " " + xRadius + " " + yRadius + " " + rotation + " " 
+        if largeArcFlag
+            data = data + "1 " 
+        else
+data = data + "0 "
+        end
+if sweepFlag
+            data = data + "1 " 
+        else
+data = data + "0 "
+        end
+        data = data + x + " " + y + " " 
+    end
+    
+/*
+    This action adds the Close Path command to the path. THe current path is closed by connecting the last
+    point to the initial point. If the points are different coordinates then a straight line is drawn between
+    both points.
+    */
+    action ClosePath
+        data = data + "Z "
+    end
+    
 end
