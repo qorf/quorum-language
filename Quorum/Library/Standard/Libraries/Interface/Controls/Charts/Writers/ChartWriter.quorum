@@ -1215,6 +1215,7 @@ class ChartWriter
             repeat while i < subLines:GetSize()
                 Drawable currentSubLine = subLines:Get(i)
                 if currentSubLine:IsShowing()
+                    
                     Rectangle svgElementLine
                     
                     svgElementLine:SetWidth(currentSubLine:GetWidth())
@@ -1356,15 +1357,24 @@ class ChartWriter
         repeat while i < lines:GetSize()
             Control currentLine = lines:Get(i)
             if currentLine:IsShowing()
-                Rectangle svgElementLine
                 
-                svgElementLine:SetWidth(currentLine:GetWidth())
-                svgElementLine:SetHeight(currentLine:GetHeight())
-                svgElementLine:SetPosition(currentLine:GetGlobalX(), TranslatePositionY(currentLine) - currentLine:GetHeight())
-                Color color
-                color = color:CustomColor(0.6,0.6,0.6,1)
-                svgElementLine:SetFill(color)
-                svgElementLine:SetFillOpacity(color)
+Line svgElementLine
+                    svgElementLine:SetPoints(0, 0, currentLine:GetWidth(), 0)
+                    svgElementLine:SetStrokeWidth(currentLine:GetHeight()/2)
+svgElementLine:SetTranslateTransform(currentLine:GetGlobalX(), TranslatePositionY(currentLine) - currentLine:GetHeight()/2)
+                
+Color color
+                color = color:CustomColor(0.6,0.6,0.6,0.6)
+                    svgElementLine:SetStroke(color)
+                    svgElementLine:SetStrokeDashArray("20 20")
+                //Rectangle svgElementLine
+                //
+                //svgElementLine:SetWidth(currentLine:GetWidth())
+                //svgElementLine:SetHeight(currentLine:GetHeight())
+                //svgElementLine:SetPosition(currentLine:GetGlobalX(), TranslatePositionY(currentLine) - currentLine:GetHeight())
+                
+                //svgElementLine:SetFill(color)
+                //svgElementLine:SetFillOpacity(color)
 
                 if HasAccessibility()
                     svgElementLine:SetTabIndex(-1)
@@ -1651,6 +1661,8 @@ class ChartWriter
                 svgElementSeriesEntry:SetWidth(entryBox:GetWidth())
                 svgElementSeriesEntry:SetHeight(entryBox:GetHeight())
                 svgElementSeriesEntry:SetPosition(entryBox:GetGlobalX(), TranslatePositionY(entryBox) - entryBox:GetHeight())
+                svgElementSeriesEntry:SetHorizontalCornerRadius(10)
+                svgElementSeriesEntry:SetVerticalCornerRadius(10)
 //                svgElementSeriesEntry:SetFill(entryBox:GetColor())
                 svgElementSeriesEntry:SetFill(transparent)
                 svgElementSeriesEntry:SetFillOpacity(transparent)
