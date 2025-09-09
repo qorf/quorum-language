@@ -189,7 +189,7 @@ output "Max across full pipeline in texture manager: " + maxFullPipeline
                 // Now we need an ImageView to encapsulate the Image. The view will be accessed to get information about the related image.
                 VulkanImageView view
                 VulkanImageViewInfo viewInfo
-                viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
+                viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_SRGB)
                 view:Create(device, image, viewInfo)
 
                 // Finally, associate the image view with the texture.

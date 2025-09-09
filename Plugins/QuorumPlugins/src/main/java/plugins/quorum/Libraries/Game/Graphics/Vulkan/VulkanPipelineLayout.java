@@ -2,8 +2,10 @@ package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkPipelineLayoutCreateInfo;
+import org.lwjgl.vulkan.VkPushConstantRange;
 import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanPushConstantRange_;
 
 import java.nio.LongBuffer;
 
@@ -18,12 +20,22 @@ public class VulkanPipelineLayout
 
     public boolean CreateNative(VulkanDevice_ quorumDevice, Array_ quorumDescriptorSetLayouts)
     {
+        quorum.Libraries.Game.Graphics.Vulkan.VulkanPipelineLayout_ quorumSide = (quorum.Libraries.Game.Graphics.Vulkan.VulkanPipelineLayout_) me_;
+        VulkanPushConstantRange_ pushConstantRange = quorumSide.GetPushConstants();
+
         VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
 
         try (MemoryStack stack = MemoryStack.stackPush())
         {
             VkPipelineLayoutCreateInfo createInfo = VkPipelineLayoutCreateInfo.calloc(stack);
             createInfo.sType$Default();
+
+            VkPushConstantRange.Buffer vpcr = null;
+            if (pushConstantRange != null) {
+                quorum.Libraries.Game.Graphics.Vulkan.VulkanPushConstantRange r = (quorum.Libraries.Game.Graphics.Vulkan.VulkanPushConstantRange) pushConstantRange;
+                vpcr = r.plugin_.pushConstantBuffer;
+                createInfo.pPushConstantRanges(vpcr);
+            }
 
             LongBuffer descriptorSetLayoutHandles = stack.callocLong(quorumDescriptorSetLayouts.GetSize());
             for (int i = 0; i < quorumDescriptorSetLayouts.GetSize(); i++)

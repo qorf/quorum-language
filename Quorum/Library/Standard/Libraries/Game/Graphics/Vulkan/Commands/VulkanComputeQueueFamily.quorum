@@ -1,0 +1,8 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanComputeQueueFamily is VulkanQueueFamily
+    action GetQueueFamilyIndex returns integer
+VulkanPhysicalDevice device = GetPhysicalDevice()
+        return GetComputeQueueFamilyIndex(device)
+    end
+end

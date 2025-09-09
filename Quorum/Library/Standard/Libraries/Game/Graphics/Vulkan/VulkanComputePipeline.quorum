@@ -1,0 +1,35 @@
+package Libraries.Game.Graphics.Vulkan
+
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Shaders.Shader
+
+class VulkanComputePipeline
+
+    VulkanDevice device = undefined
+    VulkanRenderPass renderPass = undefined
+    VulkanPipelineCache cache = undefined
+    VulkanPipelineInfo info = undefined
+
+    boolean initialized = false
+
+    action Create(VulkanDevice device, VulkanComputePipelineInfo info) returns boolean
+        boolean result = false
+        
+        return result
+    end
+    
+    system action CreateNative(VulkanDevice device, VulkanComputePipelineInfo info)
+
+
+    action Dispose
+        alert("NYI")
+    end
+
+    action GetDevice returns VulkanDevice
+        return device
+    end
+
+    
+
+end
+
