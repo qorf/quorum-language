@@ -96,11 +96,9 @@ CheckHasBegun()
         VulkanPipelineInfo result = info
         
         if not descriptorBindings:IsEmpty()
-            output "Use bindings, do thing"
             FinishDescriptorSetLayout()
         end
         if not descriptorSetLayouts:IsEmpty()
-            output "Use descriptor set layouts, make thing"
             VulkanPipelineLayout pipelineLayout = info:GetLayout()
             pipelineLayout:Create(device, descriptorSetLayouts)
         end
@@ -139,13 +137,14 @@ CheckHasBegun()
     
     private action GetQuorumSize(integer vulkanFormat) returns integer
         integer size = GetVulkanSize(vulkanFormat)
+        boolean dividesEvenly = (size mod 4) = 0
         if size < 0
             return -1
         else
             size = size / 4    
         end
 
-        if size = 0
+        if dividesEvenly = false
             size = size + 1
         end
 

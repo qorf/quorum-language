@@ -23,230 +23,61 @@ use Libraries.Game.Graphics.Vulkan.VulkanNumber32BitMappedMemory
 use Libraries.Game.Graphics.Vulkan.VulkanDescriptorResourcesInfo
 use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSet
 use Libraries.Game.NumberUtilities
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfoCreator
 
 class BlockShaderMappingVulkan is VulkanShaderMapping
     
 // The sampler used to access 2D textures.
-VulkanSampler immutableSampler = undefined
+//VulkanSampler immutableSampler = undefined
     
 // Resources for the Camera uniform.
-    Array<VulkanBuffer> cameraBuffers
-    Array<VulkanNumber32BitMappedMemory> cameraMappings
-    Array<VulkanDescriptorSet> cameraDescriptors
+    //Array<VulkanBuffer> cameraBuffers
+    //Array<VulkanNumber32BitMappedMemory> cameraMappings
+    //Array<VulkanDescriptorSet> cameraDescriptors
     
     // Layouts used to bind descriptors before drawing.
-VulkanDescriptorSetLayout descriptorSetLayout = undefined
-VulkanPipelineLayout pipelineLayout = undefined
+//VulkanDescriptorSetLayout descriptorSetLayout = undefined
+//VulkanPipelineLayout pipelineLayout = undefined
     
     GameStateManager gameState
     NumberUtilities utility
     
 // An internal array used to transfer data from Matrix4 objects to mapped memory.
-    Number32BitArray matrix4Array
+    //Number32BitArray matrix4Array
     
-    // Indices to the vertex values located in the DrawableShape.
-    constant integer BORDER_COLOR_INDEX = 7
-    constant integer ROUNDING_INDEX = 8
-    constant integer BORDERS_INDEX = 9
-    constant integer ASPECT_RATIO_INDEX = 13
-    constant integer ANTI_ALIAS_INDEX = 14
+// Indices to the vertex values located in the DrawableShape.
+    integer borderColorIndex = 0
+    integer roundingIndex = 0
+    integer bordersIndex = 0
+    integer aspectRatioIndex = 0
+    integer antiAliasIndex = 0
     
     on create
-        matrix4Array:SetSize(16)
+        UseDefaultResources2D(true)
     end
     
     // Returns the size of each vertex in the DrawableShape (which stores values as 32 bit integers).
     action GetVertexSize returns integer
-        return ANTI_ALIAS_INDEX + 1
+        return antiAliasIndex + 1
     end
     
 /*This action is used to setup the values of a VulkanPipelineInfo that will be used to create the
 VulkanPipeline needed for the shader program. This can also be used to create and keep copies of
 any Vulkan resources that will be needed to send or change shader data.*/
     action CreatePipelineInfo(VulkanShaderProgram program, VulkanDevice device) returns VulkanPipelineInfo
-            VulkanPipelineInfo info
+VulkanConstants constants
+        VulkanPipelineInfoCreator creator
+        creator:Begin(device)
+        creator:AddDefaultInfo2D()
         
-            VulkanConstants constants
-
-            Array<VulkanVertexInputAttributeDescription> vertexAttributes = info:GetVertexInputAttributeDescriptions()
-            Array<VulkanVertexInputBindingDescription> vertexBindings = info:GetVertexInputBindingDescriptions()
-            Array<VulkanPipelineColorBlendAttachmentState> colorBlendAttachments = info:GetPipelineColorBlendAttachmentStates()
-
-            // Create the vertex attribute descriptions, and the binding that will indicate how far apart each vertex's data is in the buffers.
-    
-            // How far into the data structure the current piece of data is.
-            integer offset = 0
-
-            // Position attribute
-            VulkanVertexInputAttributeDescription positionAttribute
-            positionAttribute:Set(0, 0, constants:FORMAT_R32G32B32_SFLOAT, offset)
-            vertexAttributes:Add(positionAttribute)
-
-            // Position is stored as 3 floats of 4 bytes each.
-            offset = offset + (3 * 4)
-
-            VulkanVertexInputAttributeDescription colorAttribute
-            colorAttribute:Set(0, 1, constants:FORMAT_R8G8B8A8_UNORM, offset)
-            vertexAttributes:Add(colorAttribute)
-
-            // The color attribute is made of 4 components of 1 byte each.
-            offset = offset + 4
-
-
-            // Texture coordinate attribute
-            VulkanVertexInputAttributeDescription textureCoordinatesAttribute
-            textureCoordinatesAttribute:Set(0, 2, constants:FORMAT_R32G32_SFLOAT, offset)
-            vertexAttributes:Add(textureCoordinatesAttribute)
-
-            // Texture coordinates are stored as 2 floats of 4 bytes each.
-            offset = offset + (2 * 4)
-
-
-            // Texture index attribute. Used to access the right texture from the global texture array in the 2D fragment shader.
-            VulkanVertexInputAttributeDescription textureIndexAttribute
-            textureIndexAttribute:Set(0, 3, constants:FORMAT_R32_UINT, offset)
-            vertexAttributes:Add(textureIndexAttribute)
-
-            // Texture index is stored as a 32-bit (4 byte) integer.
-            offset = offset + 4
+borderColorIndex = creator:AddVertexInput(constants:FORMAT_R8G8B8A8_UNORM)
+        roundingIndex = creator:AddVertexInput(constants:FORMAT_R8G8B8A8_UNORM)
+        bordersIndex = creator:AddVertexInput(constants:FORMAT_R32G32B32A32_SFLOAT)
+        aspectRatioIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        antiAliasIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
         
-        // Border color attribute. Stored in a similar fashion to the base color.
-VulkanVertexInputAttributeDescription borderColorAttribute
-            borderColorAttribute:Set(0, 4, constants:FORMAT_R8G8B8A8_UNORM, offset)
-            vertexAttributes:Add(borderColorAttribute)
-
-            // The color attribute is made of 4 components of 1 byte each.
-            offset = offset + 4
-        
-        // Rounding is handled as a vector of four normalized 8 bit values.
-        VulkanVertexInputAttributeDescription roundingAttribute
-        roundingAttribute:Set(0, 5, constants:FORMAT_R8G8B8A8_UNORM, offset)
-        vertexAttributes:Add(roundingAttribute)
-        
-        // This attribute is 4 components of 1 byte each.
-        offset = offset + 4
-        
-//Borders are also handled as a vector of four 32 bit floats.
-        VulkanVertexInputAttributeDescription bordersAttribute
-        bordersAttribute:Set(0, 6, constants:FORMAT_R32G32B32A32_SFLOAT, offset)
-        vertexAttributes:Add(bordersAttribute)
-        
-        // This attribute is 4 components of 4 bytes each.
-        offset = offset + 16
-        
-        
-        // The aspect ratio attribute is stored as a single 32 bit float.
-        VulkanVertexInputAttributeDescription aspectRatioAttribute
-        aspectRatioAttribute:Set(0, 7, constants:FORMAT_R32_SFLOAT, offset)
-        vertexAttributes:Add(aspectRatioAttribute)
-        
-        // The float requires 4 bytes.
-        offset = offset + 4
-        
-        // The anti-alias attribute is also a 32 bit float.
-        VulkanVertexInputAttributeDescription antiAliasAttribute
-        antiAliasAttribute:Set(0, 8, constants:FORMAT_R32_SFLOAT, offset)
-        vertexAttributes:Add(antiAliasAttribute)
-        
-        offset = offset + 4
-            
-            // Binding description, indicates how far apart each vertex's data is
-            VulkanVertexInputBindingDescription bindingDescription
-  
-            bindingDescription:Set(0, offset, constants:VERTEX_INPUT_RATE_VERTEX)
-            vertexBindings:Add(bindingDescription)
-
-
-
-            // Define the color blend attachment states, and use default transparency values.
-            VulkanPipelineColorBlendAttachmentState colorBlend
-            colorBlend:EnableDefaultTransparency()
-            colorBlendAttachments:Add(colorBlend)
-
-
-            // Define the dynamic states permitted by the pipeline. For our case, we want to be able to dynamically adjust viewport and scissor values.
-            Array<integer> dynamicStates = info:GetDynamicStates()
-            dynamicStates:Add(constants:DYNAMIC_STATE_VIEWPORT)
-            dynamicStates:Add(constants:DYNAMIC_STATE_SCISSOR)
-
-
-            // Create a sampler. We'll use this to access texture information in the shaders.
-            VulkanSampler immutableSampler
-            VulkanSamplerInfo defaultSamplerInfo
-            immutableSampler:Create(device, defaultSamplerInfo)
-            me:immutableSampler = immutableSampler
-
-
-            // Create a structure for the uniforms. We'll need this for the projection matrix (i.e. the camera).
-            // Define how our uniforms will be laid out.
-            VulkanDescriptorSetLayout descriptorLayout
-            Array<VulkanDescriptorSetLayoutBinding> descriptorBindings            
-
-            // Describe the binding of the uniform buffers.
-            VulkanDescriptorSetLayoutBinding uniformsBinding
-            uniformsBinding:SetBinding(0)
-            uniformsBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-            uniformsBinding:SetDescriptorCount(1)
-            uniformsBinding:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT)
-            descriptorBindings:Add(uniformsBinding)
-
-            // Describe the binding of the image sampler
-            VulkanDescriptorSetLayoutBinding samplerBinding
-            samplerBinding:SetBinding(1)
-            samplerBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_SAMPLER)
-            samplerBinding:SetDescriptorCount(1)
-            samplerBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
-            Array<VulkanSampler> immutableSamplers
-            immutableSamplers:Add(immutableSampler)
-            samplerBinding:SetImmutableSamplers(immutableSamplers)
-            descriptorBindings:Add(samplerBinding)
-
-
-            descriptorLayout:Create(device, descriptorBindings)
-            descriptorSetLayout = descriptorLayout
-            
-            Array<VulkanDescriptorSetLayout> descriptorLayouts
-            descriptorLayouts:Add(descriptorLayout)
-
-            // We also need the descriptor set layout for the global textures. The texture manager holds onto that layout, so go fetch it.
-            GameStateManager manager
-            VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
-            VulkanTextureManager textureManager = graphics:GetTextureManager()
-            descriptorLayouts:Add(textureManager:GetGlobalTextureDescriptorSetLayout())
-            
-
-            VulkanPipelineLayout pipelineLayout = info:GetLayout()
-            pipelineLayout:Create(device, descriptorLayouts)
-            me:pipelineLayout = pipelineLayout
-
-            // Create the buffers for the uniforms. We'll need to know how many images the swapchain has for this.
-            // This is because we'll need separate buffers for each swapchain image, so each image can be done in parallel.
-            // Once the buffers are made, we can also combine them together with the layouts to create our final DescriptorSets.
-            VulkanDescriptorSetManager descriptorSetManager = graphics:GetDescriptorSetManager()
-
-            integer counter = 0
-            repeat while counter < graphics:GetSwapchain():GetImageCount()
-                // These buffers are for a 4x4 matrix of floats, so 4 bytes * 16 values.
-                VulkanBuffer buffer
-                buffer:CreateMappableBuffer(device, 4 * 16, constants:BUFFER_USAGE_UNIFORM_BUFFER_BIT)
-                cameraBuffers:Add(buffer)
-
-                VulkanNumber32BitMappedMemory mapping = buffer:MapToNumber32BitMemory()
-                cameraMappings:Add(mapping)
-
-                VulkanDescriptorResourcesInfo cameraResourcesInfo
-                cameraResourcesInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-                cameraResourcesInfo:AddBufferInfo(cameraBuffers:Get(counter), 0, cameraBuffers:Get(counter):GetSize())
-                
-
-                VulkanDescriptorSet set = descriptorSetManager:CreateDescriptorSet(descriptorLayout, cameraResourcesInfo)
-                cameraDescriptors:Add(set)
-
-                counter = counter + 1
-            end
-        
+        VulkanPipelineInfo info = creator:Finish()
         return info
-        
 end
     
 end

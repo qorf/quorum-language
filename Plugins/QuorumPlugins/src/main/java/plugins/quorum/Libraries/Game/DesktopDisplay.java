@@ -58,7 +58,10 @@ public class DesktopDisplay {
                 {
                     GameStateManager.game.ContinueGame();
                 }
-                GLFW.glfwSwapBuffers(window);
+                if (!usingVulkan)
+                {
+                    GLFW.glfwSwapBuffers(window);
+                }
                 
                 /* 
                 Draw the game to the other buffer as well. This means we're

@@ -10,6 +10,8 @@ use Libraries.Game.Graphics.Shaders.ShaderMapping
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Vulkan.VulkanGraphics
 use Libraries.Game.NumberUtilities
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
+use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
 
 class DrawableShape
 
@@ -629,10 +631,17 @@ class DrawableShape
         if needsUpdate = false
             return now
         end
+        ShaderProgram program = drawable:GetShaderProgram()
+        if program not= undefined and program:IsVulkanProgram()
+            VulkanShaderProgram vulkanProgram = cast(VulkanShaderProgram, program:GetShaderProgramStrategy())
+            if not vulkanProgram:IsCreated()
+                return now
+            end
+        end
 
         ShaderMapping mapping = drawable:GetShaderMapping()
-        if mapping = undefined and drawable:GetShaderProgram() not= undefined
-            mapping = drawable:GetShaderProgram():GetShaderMapping()
+        if mapping = undefined and program not= undefined
+            mapping = program:GetShaderMapping()
         end
 
         if mapping not= undefined

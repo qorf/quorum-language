@@ -473,6 +473,18 @@ BindDescriptorSetCommand descriptorBind
         if not shape:IsRenderable()
             return now
         end
+        
+// TO-DO: Check if the Item has a specific pipeline it needs for rendering.
+        ShaderProgram requestedProgram = drawable:GetShaderProgram()
+
+        if requestedProgram = undefined
+            requestedProgram = defaultProgram
+        end
+        VulkanShaderProgram vulkanProgram = cast(VulkanShaderProgram, requestedProgram:GetShaderProgramStrategy())
+        
+        if vulkanProgram:GetPipeline() = undefined
+            vulkanProgram:CreatePipeline(renderPass)
+        end
 
         if shape:NeedsUpdate()
             shape:UpdateVertices()
@@ -483,18 +495,6 @@ BindDescriptorSetCommand descriptorBind
         if shape:AreTextureVerticesValid() = false
 //            output "Invalid texture vertices for " + item:GetName() + "!"
             return now
-        end
-
-        // TO-DO: Check if the Item has a specific pipeline it needs for rendering.
-        ShaderProgram requestedProgram = drawable:GetShaderProgram()
-
-        if requestedProgram = undefined
-            requestedProgram = defaultProgram
-        end
-        VulkanShaderProgram vulkanProgram = cast(VulkanShaderProgram, requestedProgram:GetShaderProgramStrategy())
-        
-        if vulkanProgram:GetPipeline() = undefined
-            vulkanProgram:CreatePipeline(renderPass)
         end
 
         if currentBatch = undefined or currentBatch:GetProgram() not= requestedProgram

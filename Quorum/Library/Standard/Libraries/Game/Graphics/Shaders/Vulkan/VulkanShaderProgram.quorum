@@ -108,5 +108,9 @@ action Render(Renderable renderable)
     action GetPipeline returns VulkanPipeline
         return pipeline
     end
+    
+    action IsCreated returns boolean
+        return pipeline not= undefined
+    end
 
 end
