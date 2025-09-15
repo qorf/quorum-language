@@ -7,7 +7,6 @@ import org.lwjgl.vulkan.VkCommandBufferAllocateInfo;
 import org.lwjgl.vulkan.VkCommandBufferBeginInfo;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanCommandPool_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
-import quorum.Libraries.Game.Graphics.Vulkan.VulkanRenderPass_;
 
 import static org.lwjgl.vulkan.VK10.*;
 
