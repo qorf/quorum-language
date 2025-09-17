@@ -53,7 +53,6 @@ class BlockFragmentShaderVulkan is Shader
 
 layout (set = 0, binding = 1) uniform sampler immutableSampler;
 layout (set = 1, binding = 0) uniform texture2D globalTextures[];
-layout (set = 2, binding = 0) uniform float u_notchHeight;
 
 layout (location = 0) in vec4 v_color;
 layout (location = 1) in vec2 v_textureCoords;
@@ -121,12 +120,14 @@ void main()
     float notchTopWidth = v_notchSize.z;
     float notchHeight = v_notchSize.y;
 
-    vec4 textureColor = texture(nonuniformEXT(sampler2D(globalTextures[v_textureIndex], immutableSampler));
+    vec4 textureColor = texture(nonuniformEXT(sampler2D(globalTextures[v_textureIndex], immutableSampler)), v_textureCoords);
+    // TO-DO, FIX ME: Using the real texture value here crashes AMD drivers for some reason, so this value is temporarily overwritten.
+    textureColor = vec4(1.0, 1.0, 1.0, 1.0);
 
     vec4 borderColor = v_borderColor;
     bool renderBorders = (borderThickness.x + borderThickness.y + borderThickness.z + borderThickness.w) > 0.0;
 
-    vec2 point = (v_texCoords.xy - 0.5) * 2.0;
+    vec2 point = (v_textureCoords.xy - 0.5) * 2.0;
     point.x *= aspectRatio;
     point.y += notchHeight;
     vec2 dimensions = vec2(aspectRatio, 1.0 - notchHeight);

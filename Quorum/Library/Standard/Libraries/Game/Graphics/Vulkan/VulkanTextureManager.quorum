@@ -60,7 +60,9 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
         integer maxFullPipeline = limits:GetMaxDescriptorSetSampledImages()
         output "Max Per Stage in texture manager: " + maxPerStage
 output "Max across full pipeline in texture manager: " + maxFullPipeline
-        
+        output "Max vertex attributes: " + limits:GetMaxVertexInputAttributes()
+output "Max vertex bindings: " + limits:GetMaxVertexInputBindings()
+output "Max vertex outputs: " + limits:GetMaxVertexOutputComponents()
         
         integer maxDescriptors = maxPerStage
         if maxDescriptors <= 0

@@ -33,6 +33,7 @@ layout(location = 7) in float a_aspectRatio;
 layout(location = 8) in float a_antiAlias;
 layout(location = 9) in vec3 a_notchSize;
 layout(location = 10) in vec2 a_notchPositions;
+//layout(location = 10) in float a_notchPositions;
 
 layout(location = 0) out vec4 v_color;
 layout(location = 1) out vec2 v_textureCoords;
@@ -49,24 +50,30 @@ layout(set = 0, binding = 0) uniform Camera
 {
     mat4 projectionViewMatrix;
 } camera;
-layout (set = 2, binding = 0) uniform float u_notchHeight;
+layout (set = 2, binding = 0) uniform NotchProperties
+{
+    float height;
+} notchProperties;
 
 void main()
 {
     v_color = " + attributes:COLOR + ";
     v_borderColor = a_borderColor;
-    v_texCoords = " + attributes:TEXTURE_COORDINATES + "0;
+    v_textureCoords = " + attributes:TEXTURE_COORDINATES + "0;
     v_rounding = a_rounding;
     v_borderThickness = a_borderThickness;
     v_aspectRatio = a_aspectRatio;
     v_antiAlias = a_antiAlias;
     v_notchSize = a_notchSize;
     v_notchPositions = a_notchPositions;
+    //v_notchPositions = vec2(a_notchPositions, a_notchPositions);
+    //vec4 dummy = vec4(0.0 * a_notchPositions.x, 0.0 * a_notchPositions.y, 0.0, 0.0);
 
-    float bottomOffset = " + attributes:TEXTURE_COORDINATES + "0.y > 0.5 ? (u_notchHeight + 1.0) : 0.0;
+    float bottomOffset = " + attributes:TEXTURE_COORDINATES + "0.y > 0.5 ? (notchProperties.height + 1.0) : 0.0;
     vec4 adjustedPosition = vec4(" + attributes:POSITION + ".x, " + attributes:POSITION + ".y - bottomOffset, "  + attributes:POSITION + ".zw);
 
     gl_Position =  camera.projectionViewMatrix * adjustedPosition;
+    //gl_Position =  camera.projectionViewMatrix * adjustedPosition + dummy;
 }"
 )
     end

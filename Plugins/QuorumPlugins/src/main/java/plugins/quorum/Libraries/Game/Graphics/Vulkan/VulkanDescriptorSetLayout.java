@@ -42,15 +42,10 @@ public class VulkanDescriptorSetLayout
                 VulkanDescriptorSetLayoutBinding_ quorumBinding = (VulkanDescriptorSetLayoutBinding_)quorumBindings.Get(i);
                 VkDescriptorSetLayoutBinding vulkanBinding = bindings.get(i);
 
-                System.out.println("Creating binding:");
                 vulkanBinding.binding(quorumBinding.GetBinding());
                 vulkanBinding.descriptorCount(quorumBinding.GetDescriptorCount());
                 vulkanBinding.descriptorType(quorumBinding.GetDescriptorType());
                 vulkanBinding.stageFlags(quorumBinding.GetStageFlags());
-                System.out.println("Binding: " + vulkanBinding.binding() + "\n" +
-                                    "Descriptor Count: " + vulkanBinding.descriptorCount() + "\n" +
-                                    "Descriptor Type: " + vulkanBinding.descriptorType() + "\n" +
-                                    "Stage Flags: " + vulkanBinding.stageFlags());
 
                 if (quorumBinding.GetImmutableSamplers() != null)
                 {

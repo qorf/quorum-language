@@ -5,6 +5,9 @@ use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.BlockFragmentShaderOpenGL
 use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.BlockShaderMappingOpenGL
 use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.BlockVertexShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.BlockFragmentShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.BlockShaderMappingVulkan
 
 class BlockShaderProgram is ShaderProgram
 
@@ -21,20 +24,35 @@ class BlockShaderProgram is ShaderProgram
             Shader vertex = shaderManager:GetShader(VERTEX_NAME)
             Add(vertex)
         else
-            BlockVertexShaderOpenGL vertex
+            if IsVulkanProgram()
+                BlockVertexShaderVulkan vertex
+                Add(vertex)
+            else
+BlockVertexShaderOpenGL vertex
             Add(vertex)
+            end
         end
 
         if shaderManager:HasShader(FRAGMENT_NAME)
             Shader fragment = shaderManager:GetShader(FRAGMENT_NAME)
             Add(fragment)
         else
-            BlockFragmentShaderOpenGL fragment
+            if IsVulkanProgram()
+                BlockFragmentShaderVulkan fragment
+                Add(fragment)
+            else
+BlockFragmentShaderOpenGL fragment
             Add(fragment)
+            end
         end
 
-        BlockShaderMappingOpenGL mapping
+        if IsVulkanProgram()
+            BlockShaderMappingVulkan mapping
+            SetShaderMapping(mapping)
+        else
+BlockShaderMappingOpenGL mapping
         SetShaderMapping(mapping)
+        end
     end
 
 end

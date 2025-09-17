@@ -24,26 +24,29 @@ use Libraries.Game.Graphics.Vulkan.VulkanDescriptorResourcesInfo
 use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSet
 use Libraries.Game.NumberUtilities
 use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfoCreator
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.DrawableShape
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Views.View2D
+use Libraries.Interface.Item2D
+use Libraries.Interface.Views.ToggleView
+use Libraries.Game.Graphics.Color
+use Libraries.Game.WebApplication
+use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Interface.Views.SingleLineBlockView
+use Libraries.Interface.Controls.Blocks.BlockEnvironment
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+use Libraries.Game.Graphics.Vulkan.Commands.BindDescriptorSetCommand
+use Libraries.Interface.Options.BlockOptionConstants
 
 class BlockShaderMappingVulkan is VulkanShaderMapping
     
-// The sampler used to access 2D textures.
-//VulkanSampler immutableSampler = undefined
-    
-// Resources for the Camera uniform.
-    //Array<VulkanBuffer> cameraBuffers
-    //Array<VulkanNumber32BitMappedMemory> cameraMappings
-    //Array<VulkanDescriptorSet> cameraDescriptors
-    
-    // Layouts used to bind descriptors before drawing.
-//VulkanDescriptorSetLayout descriptorSetLayout = undefined
-//VulkanPipelineLayout pipelineLayout = undefined
-    
     GameStateManager gameState
     NumberUtilities utility
-    
-// An internal array used to transfer data from Matrix4 objects to mapped memory.
-    //Number32BitArray matrix4Array
     
 // Indices to the vertex values located in the DrawableShape.
     integer borderColorIndex = 0
@@ -51,6 +54,21 @@ class BlockShaderMappingVulkan is VulkanShaderMapping
     integer bordersIndex = 0
     integer aspectRatioIndex = 0
     integer antiAliasIndex = 0
+    integer notchSizeIndex = 0
+    integer notchPositionsIndex = 0
+    
+// Fetched during vertex mapping, and set just before rendering occurs as a uniform value.
+    number notchHeight = 0
+    number lastNotchHeight = notchHeight - 1
+    
+    // Resources for the notch height descriptor. Since this value isn't expected to change during rendering, just one descriptor and buffer should be fine.
+VulkanBuffer notchHeightBuffer
+    VulkanNumber32BitMappedMemory notchHeightMemory = undefined
+    VulkanDescriptorSet notchHeightDescriptorSet = undefined
+    
+    // The layout of the pipeline. Used to update descriptor information.
+    VulkanPipelineLayout pipelineLayout = undefined
+    
     
     on create
         UseDefaultResources2D(true)
@@ -58,7 +76,7 @@ class BlockShaderMappingVulkan is VulkanShaderMapping
     
     // Returns the size of each vertex in the DrawableShape (which stores values as 32 bit integers).
     action GetVertexSize returns integer
-        return antiAliasIndex + 1
+        return notchPositionsIndex + 2
     end
     
 /*This action is used to setup the values of a VulkanPipelineInfo that will be used to create the
@@ -75,9 +93,326 @@ borderColorIndex = creator:AddVertexInput(constants:FORMAT_R8G8B8A8_UNORM)
         bordersIndex = creator:AddVertexInput(constants:FORMAT_R32G32B32A32_SFLOAT)
         aspectRatioIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
         antiAliasIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        notchSizeIndex = creator:AddVertexInput(constants:FORMAT_R32G32B32_SFLOAT)
+notchPositionsIndex = creator:AddVertexInput(constants:FORMAT_R32G32_SFLOAT)
         
-        VulkanPipelineInfo info = creator:Finish()
+        creator:AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_VERTEX_BIT, constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+        VulkanDescriptorSetLayout descriptorLayout = creator:FinishDescriptorSetLayout()
+        
+        // Also initialize resources for the notch height descriptor.
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        VulkanDescriptorSetManager descriptorManager = graphics:GetDescriptorSetManager()
+        
+        notchHeightBuffer:CreateMappableBuffer(device, 4, constants:BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+        notchHeightMemory = notchHeightBuffer:MapToNumber32BitMemory()
+        
+VulkanDescriptorResourcesInfo notchResourcesInfo
+                notchResourcesInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+                notchResourcesInfo:AddBufferInfo(notchHeightBuffer, 0, notchHeightBuffer:GetSize())
+
+        notchHeightDescriptorSet = descriptorManager:CreateDescriptorSet(descriptorLayout, notchResourcesInfo)
+        
+VulkanPipelineInfo info = creator:Finish()
+        pipelineLayout = info:GetLayout()
         return info
+end
+    
+action SetVertexData(ShaderProgram program, Drawable drawable, DrawableShape shape)
+        number leftBorder = 0
+        number topBorder = 0
+        number rightBorder = 0
+        number bottomBorder = 0
+
+        number bottomLeftRounding = 0
+        number bottomRightRounding = 0
+        number topRightRounding = 0
+        number topLeftRounding = 0
+
+        number borderThickness = 0
+        ColorGroup borderColor = undefined
+        ColorGroup backgroundColor = undefined
+
+        number width = drawable:GetWidth() * drawable:GetScaleX()
+        number height = drawable:GetHeight() * drawable:GetScaleY()
+        number aspectRatio = width / height
+
+        boolean selected = false
+        
+        BlockOptionConstants constants
+
+        /*
+        We want to get the control or layout properties used to define the element. We'll check these places, in order of priority:
+        1. The drawable's shader data
+        2. If the drawable itself is a Control
+        3. If the drawable is a view, see if the view is attached to a Control
+        */
+        if drawable:GetShaderData() is LayoutProperties
+            LayoutProperties properties = cast(LayoutProperties, drawable:GetShaderData())
+            
+            borderThickness = (1.0 / height) * (properties:GetBorderThickness() * properties:GetInterfaceScale())
+
+            if borderThickness > 0
+                if properties:HasLeftBorder()
+                    leftBorder = borderThickness
+                end
+                if properties:HasTopBorder()
+                    topBorder = borderThickness
+                end
+                if properties:HasRightBorder()
+                    rightBorder = borderThickness
+                end
+                if properties:HasBottomBorder()
+                    bottomBorder = borderThickness
+                end
+            end
+
+            bottomLeftRounding = properties:GetBottomLeftRounding()
+            bottomRightRounding = properties:GetBottomRightRounding()
+            topRightRounding = properties:GetTopRightRounding()
+            topLeftRounding = properties:GetTopLeftRounding()
+            
+number halfSize = width / 2.0
+            if height / 2.0 < halfSize
+                halfSize = height / 2.0
+            end
+
+            bottomLeftRounding = bottomLeftRounding + properties:GetBottomLeftPixelRounding() * properties:GetInterfaceScale() / halfSize
+            bottomRightRounding = bottomRightRounding + properties:GetBottomRightPixelRounding() * properties:GetInterfaceScale() / halfSize
+            topLeftRounding = topLeftRounding + properties:GetTopLeftPixelRounding() * properties:GetInterfaceScale() / halfSize
+            topRightRounding = topRightRounding + properties:GetTopRightPixelRounding() * properties:GetInterfaceScale() / halfSize
+
+            if properties:GetBorderColor() not= undefined
+                borderColor = properties:GetBorderColor():GetBottomLeft()
+            end
+            backgroundColor = properties:GetBackgroundColor()
+        else
+            Control control = undefined
+
+            if drawable:GetShaderData() is Control
+                control = cast(Control, drawable:GetShaderData())
+            elseif drawable is Control
+                control = cast(Control, cast(Object, drawable))
+            elseif drawable is View2D
+                View2D view = cast(View2D, cast(Object, drawable))
+                Item2D item = view:GetItem()
+                if item is Control
+                    control = cast(Control, item)
+                end
+                if view is ToggleView
+                    ToggleView toggle = cast(ToggleView, view)
+                    selected = toggle:GetToggleState()
+                end
+            end
+
+            if control not= undefined
+                borderThickness = (1.0 / height) * (control:GetBorderThickness() * control:GetInterfaceScale())
+                
+                boolean overrideBorder = false
+if control:IsRenderingSelection() or selected
+                    if control:HasSelectionBorderThickness()
+                        overrideBorder = true
+                        borderThickness = (1.0 / height) * (control:GetSelectionBorderThickness() * control:GetInterfaceScale())
+                    end
+end
+                if overrideBorder = false and control:IsRenderingMouseOver()
+                    if control:HasMouseOverBorderThickness()
+                        borderThickness = (1.0 / height) * (control:GetMouseOverBorderThickness() * control:GetInterfaceScale())
+                    end
+                end
+
+                if borderThickness > 0
+                    if control:HasLeftBorder()
+                        leftBorder = borderThickness
+                    end
+                    if control:HasTopBorder()
+                        topBorder = borderThickness
+                    end
+                    if control:HasRightBorder()
+                        rightBorder = borderThickness
+                    end
+                    if control:HasBottomBorder()
+                        bottomBorder = borderThickness
+                    end
+                end
+    
+                bottomLeftRounding = control:GetBottomLeftRounding()
+                bottomRightRounding = control:GetBottomRightRounding()
+                topRightRounding = control:GetTopRightRounding()
+                topLeftRounding = control:GetTopLeftRounding()
+                
+number halfSize = width / 2.0
+            if height / 2.0 < halfSize
+                halfSize = height / 2.0
+            end
+            bottomLeftRounding = bottomLeftRounding + control:GetBottomLeftPixelRounding() * control:GetInterfaceScale() / halfSize
+            bottomRightRounding = bottomRightRounding + control:GetBottomRightPixelRounding() * control:GetInterfaceScale() / halfSize
+            topLeftRounding = topLeftRounding + control:GetTopLeftPixelRounding() * control:GetInterfaceScale() / halfSize
+            topRightRounding = topRightRounding + control:GetTopRightPixelRounding() * control:GetInterfaceScale() / halfSize
+
+                /*
+                Determine what color the control should be, based on how the user is interacting with it.
+                We check a hierarchy of potential events, falling through to the next case if the event
+                wasn't fulfilled or if there was no color assigned to that event.
+                */
+                if control:IsRenderingMouseDown()
+                    backgroundColor = control:GetMouseDownColor()
+                end
+
+                if control:IsRenderingSelection() or selected
+                    if control:IsRenderingFocus() = false
+                        if backgroundColor = undefined
+                            backgroundColor = control:GetUnfocusedSelectionColor()
+                        end
+                        if borderColor = undefined
+                            borderColor = control:GetUnfocusedSelectionBorderColor()
+                        end
+                    end
+
+                    if backgroundColor = undefined
+                        backgroundColor = control:GetSelectionColor()
+                    end
+                    if borderColor = undefined
+                        borderColor = control:GetSelectionBorderColor()
+                    end
+                end
+
+                if control:IsRenderingMouseOver()
+                    if backgroundColor = undefined
+backgroundColor = control:GetMouseOverColor()
+                    end
+                    if borderColor = undefined
+borderColor = control:GetMouseOverBorderColor()
+                    end
+                end
+
+                if control:IsFocused()
+                    if backgroundColor = undefined
+                        backgroundColor = control:GetFocusColor()
+                    end
+
+                    if borderColor = undefined
+                        borderColor = control:GetFocusBorderColor()
+                    end
+                end
+                
+                if control is Block
+                    Block block = cast(Block, control)
+                    ColorGroup movingColor = block:GetColorProperty(constants:MOVING_BACKGROUND_COLOR)
+                    if block:IsMoving() and movingColor not= undefined
+                        backgroundColor = movingColor
+                    else
+                        ColorGroup placeholderColor = block:GetColorProperty(constants:PLACEHOLDER_BACKGROUND_COLOR)
+                        if block:IsPlaceholder() and block:IsInEditorTree() and placeholderColor not= undefined
+                            backgroundColor = placeholderColor
+                        end
+                    end
+                end
+
+                if backgroundColor = undefined
+                    backgroundColor = control:GetBackgroundColor()
+                end
+
+                // Get the border color, as well.
+                if borderColor = undefined
+                    borderColor = control:GetBorderColor()
+                end
+            end
+        end
+
+        if backgroundColor not= undefined
+            drawable:GetDrawableShape():SetColor(backgroundColor)
+        end
+
+        if borderColor not= undefined
+            if borderColor is Color
+                Color border = cast(Color, borderColor)
+                shape:SetDataForAllVertices(borderColorIndex, border:EncodeColorAsNumber())
+            else
+                Color bottomRight = borderColor:GetBottomRight()
+                Color bottomLeft = borderColor:GetBottomLeft()
+                Color topRight = borderColor:GetTopRight()
+                Color topLeft = borderColor:GetTopLeft()
+                shape:SetVertexData(borderColorIndex, bottomRight:EncodeColorAsNumber())
+                shape:SetVertexData(borderColorIndex + shape:GetVertexSize(), topRight:EncodeColorAsNumber())
+                shape:SetVertexData(borderColorIndex + shape:GetVertexSize() * 2, bottomLeft:EncodeColorAsNumber())
+                shape:SetVertexData(borderColorIndex + shape:GetVertexSize() * 3, topLeft:EncodeColorAsNumber())
+            end
+        else
+            shape:SetDataForAllVertices(borderColorIndex, 0)
+        end
+
+        number topWidth = 20
+        number bottomWidth = 10
+        number topX = 10
+        number bottomX = 10
+        if drawable is SingleLineBlockView
+            SingleLineBlockView blockView = cast(SingleLineBlockView, drawable)
+            Block block = cast(Block, blockView:GetItem())
+            //CodeEditor editor = block:GetEditor()
+            BlockEnvironment editor = block:GetBlockEnvironment()
+            
+            if editor not= undefined
+                topWidth = editor:GetBlockNotchTopWidth() * block:GetInterfaceScale()
+                bottomWidth = editor:GetBlockNotchBottomWidth() * block:GetInterfaceScale()
+                notchHeight = editor:GetBlockNotchPixelHeight()
+    
+                topX = block:GetTopNotchPosition() + (topWidth / 2.0)
+                bottomX = block:GetBottomNotchPosition() + (topWidth / 2.0)
+    
+                if block:HasImportantHints()
+                    ColorGroup hintColor = editor:GetColorProperty("HintBorderColor")
+                    if hintColor not= undefined
+                        borderColor = hintColor
+                    end
+    
+                    if editor:GetDefaultLayoutProperties():HasNumberProperty("HintBorderThickness")
+                        number thickness = editor:GetNumberProperty("HintBorderThickness")
+                        leftBorder = thickness
+                        rightBorder = thickness
+                        topBorder = thickness
+                        bottomBorder = thickness
+                    end
+                end
+            end
+        end
+        /*
+        Counter-intuitively, we actually divide by the height, not the width, to get the proportional
+        trapezoid width values. This is because we'll already be offsetting the width in the shader via
+        the aspect ratio, so we need to provide the height as the "raw" value and allow the shader to
+        correct it later.
+        */
+        topWidth = topWidth / height
+        bottomWidth = bottomWidth / height
+        number adjustedNotchHeight = notchHeight / height
+
+        topX = topX / width
+        bottomX = bottomX / width
+
+        shape:SetDataForAllVertices(roundingIndex, utility:PackNormalizedVector4(bottomRightRounding, topRightRounding, bottomLeftRounding, topLeftRounding))
+shape:SetDataForAllVertices(bordersIndex, leftBorder)
+        shape:SetDataForAllVertices(bordersIndex + 1, rightBorder)
+        shape:SetDataForAllVertices(bordersIndex + 2, bottomBorder)
+        shape:SetDataForAllVertices(bordersIndex + 3, topBorder)
+        shape:SetDataForAllVertices(aspectRatioIndex, aspectRatio)
+        shape:SetDataForAllVertices(antiAliasIndex, 1.0 / height)
+        shape:SetDataForAllVertices(notchSizeIndex, bottomWidth)
+        shape:SetDataForAllVertices(notchSizeIndex + 1, adjustedNotchHeight)
+        shape:SetDataForAllVertices(notchSizeIndex + 2, topWidth)
+        shape:SetDataForAllVertices(notchPositionsIndex, bottomX)
+        shape:SetDataForAllVertices(notchPositionsIndex + 1, topX)
+    end
+    
+action Begin(ShaderProgram program, Camera camera, VulkanCommandBuffer commandBuffer, integer swapchainIndex)
+        if lastNotchHeight not= notchHeight
+            notchHeightMemory:Set(0, notchHeight)
+            lastNotchHeight = notchHeight
+        end
+        
+BindDescriptorSetCommand descriptorBind
+            descriptorBind:SetPipelineLayout(pipelineLayout)
+            descriptorBind:SetDescriptorSet(notchHeightDescriptorSet)
+            descriptorBind:SetSetIndex(2)
+            commandBuffer:Record(descriptorBind)
 end
     
 end
