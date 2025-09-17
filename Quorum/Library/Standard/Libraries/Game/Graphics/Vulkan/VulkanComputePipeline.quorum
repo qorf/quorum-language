@@ -4,22 +4,23 @@ use Libraries.Containers.Array
 use Libraries.Game.Graphics.Shaders.Shader
 
 class VulkanComputePipeline
-
     VulkanDevice device = undefined
-    VulkanRenderPass renderPass = undefined
-    VulkanPipelineCache cache = undefined
-    VulkanPipelineInfo info = undefined
-
+    VulkanComputePipelineInfo info = undefined
     boolean initialized = false
 
     action Create(VulkanDevice device, VulkanComputePipelineInfo info) returns boolean
-        boolean result = false
-        
+boolean result = CreateNative(device,  info)
+
+        if result
+            me:device = device
+            me:info = info
+            
+            initialized = true
+        end
         return result
     end
     
-    system action CreateNative(VulkanDevice device, VulkanComputePipelineInfo info)
-
+    system action CreateNative(VulkanDevice device, VulkanComputePipelineInfo info) returns boolean
 
     action Dispose
         alert("NYI")
@@ -28,8 +29,4 @@ class VulkanComputePipeline
     action GetDevice returns VulkanDevice
         return device
     end
-
-    
-
 end
-

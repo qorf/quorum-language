@@ -30,6 +30,7 @@ public class VulkanPipelineLayout
             VkPipelineLayoutCreateInfo createInfo = VkPipelineLayoutCreateInfo.calloc(stack);
             createInfo.sType$Default();
 
+            System.out.println("Managing Push Constants.");
             VkPushConstantRange.Buffer vpcr = null;
             if (pushConstantRange != null) {
                 quorum.Libraries.Game.Graphics.Vulkan.VulkanPushConstantRange r = (quorum.Libraries.Game.Graphics.Vulkan.VulkanPushConstantRange) pushConstantRange;
@@ -37,6 +38,7 @@ public class VulkanPipelineLayout
                 createInfo.pPushConstantRanges(vpcr);
             }
 
+            System.out.println("Managing DescriptorSetLayouts.");
             LongBuffer descriptorSetLayoutHandles = stack.callocLong(quorumDescriptorSetLayouts.GetSize());
             for (int i = 0; i < quorumDescriptorSetLayouts.GetSize(); i++)
             {
@@ -48,10 +50,13 @@ public class VulkanPipelineLayout
 
             LongBuffer handleBuffer = stack.callocLong(1);
             int vulkanResult = vkCreatePipelineLayout(pluginDevice.GetDevice(), createInfo, null, handleBuffer);
-            if (vulkanResult != VK_SUCCESS)
+            if (vulkanResult != VK_SUCCESS) {
+                System.out.println("Failed to make vkCreatePipelineLayout in VulkanPipelineLayout");
                 return false;
+            }
 
             layoutHandle = handleBuffer.get(0);
+            System.out.println("Finalizing VulkanPipelineLayout with Handle: " + layoutHandle);
         }
 
         return true;
