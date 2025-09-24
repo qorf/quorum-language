@@ -100,7 +100,6 @@ public class VulkanDescriptorSetLayout
                 return false;
 
             layoutHandle = handleBuffer.get(0);
-            System.out.println("Created Layout, handle = " + Long.toHexString(layoutHandle));
         }
 
         return true;

@@ -45,9 +45,6 @@ public class VulkanDescriptorSet
                 VkDescriptorSetVariableDescriptorCountAllocateInfo variableCountInfo = VkDescriptorSetVariableDescriptorCountAllocateInfo.calloc(stack);
                 variableCountInfo.sType$Default();
                 variableCountInfo.pDescriptorCounts(stack.ints(lastBinding.GetDescriptorCount()));
-                System.out.println("Setting variable counts. Total counts was " + quorumBindings.GetSize() + ", lastBinding count = " + lastBinding.GetDescriptorCount());
-                System.out.println("Allocate info: counts = " + allocateInfo.descriptorSetCount() + ", variableCountInfo: counts = " + variableCountInfo.descriptorSetCount());
-                System.out.println("Associated layout handle = " + Long.toHexString(pluginLayout.GetLayoutHandle()));
                 allocateInfo.pNext(variableCountInfo);
             }
 
@@ -80,7 +77,6 @@ public class VulkanDescriptorSet
             writeDescriptorSets.get(0).descriptorType(quorumResources.GetDescriptorType());
             writeDescriptorSets.get(0).descriptorCount(quorumResources.GetDescriptorCount());
             writeDescriptorSets.get(0).dstArrayElement(quorumResources.GetDestinationArrayElement());
-            System.out.println("In LinkResources, binding = " + writeDescriptorSets.get(0).dstBinding() + ", descriptor count = " + writeDescriptorSets.get(0).descriptorCount());
 
             if (quorumBuffers != null && quorumBuffers.IsEmpty() == false)
             {

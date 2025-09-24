@@ -88,7 +88,6 @@ public class VulkanDevice
             // If we're using descriptor indexing, enable the extended features for it.
             if (hasDescriptorIndexing)
             {
-                System.out.println("ENABLING INDEXING FEATURES!");
                 VkPhysicalDeviceDescriptorIndexingFeatures indexingFeatures = VkPhysicalDeviceDescriptorIndexingFeatures.calloc(stack);
                 indexingFeatures.sType$Default();
                 indexingFeatures.descriptorBindingPartiallyBound(true);
@@ -100,13 +99,12 @@ public class VulkanDevice
             }
             else
             {
-                System.out.println("DIDN'T ENABLE INDEXING FEATURES!");
+                //System.out.println("DIDN'T ENABLE INDEXING FEATURES!");
             }
 
             // Finally, we're ready to create the logical device object. Start by getting a pointer that we can use as a handle once the memory is allocated for it.
             PointerBuffer devicePointer = stack.mallocPointer(1);
             int vulkanResult = vkCreateDevice(physicalDevice.GetDevice(), deviceCreateInfo, null, devicePointer);
-            System.out.println("Creation result code: " + vulkanResult);
             if (vulkanResult != VK_SUCCESS)
             {
                 return false;

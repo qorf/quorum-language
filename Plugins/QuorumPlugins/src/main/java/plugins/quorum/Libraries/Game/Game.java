@@ -5,7 +5,6 @@
  */
 package plugins.quorum.Libraries.Game;
 
-import android.app.Activity;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
@@ -18,9 +17,6 @@ import quorum.Libraries.Game.Graphics.OpenGL.AndroidOpenGL;
 import quorum.Libraries.Game.Graphics.OpenGL.DesktopOpenGL;
 import quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanGraphics;
-//import org.robovm.apple.foundation.Foundation;
-//import org.robovm.apple.foundation.NSString;
-//import org.robovm.apple.uikit.UIDevice;
 
 /**
 *
@@ -154,27 +150,22 @@ public class Game
                 // This might fail at some point along the way. If it does, we'll fall back to OpenGL after.
                 if (supportsVulkan && config.Get_Libraries_Game_DesktopConfiguration__useVulkan_())
                 {
-                    System.out.println("Creating Vulkan graphics...");
                     VulkanGraphics vulkanGraphics = new VulkanGraphics();
 
                     Game_ quorumGame = (Game_)me_;
                     supportsVulkan = vulkanGraphics.Initialize(quorumGame.Get_Libraries_Game_Game__desktopConfig_().Get_Libraries_Game_DesktopConfiguration__vulkanOptions_());
-
-                    System.out.println("Created graphics.");
 
                     if (supportsVulkan)
                         graphics = vulkanGraphics;
                 }
 
                 if (supportsVulkan == false || config.Get_Libraries_Game_DesktopConfiguration__useVulkan_() == false)
-                {
-                    System.out.println("GAME INIT -- FALLBACK: Creating OpenGL graphics.");
+                {   //whether we should log this is not clear.
                     graphics = new DesktopOpenGL();
                     GameStateManager.nativeGraphics = ((DesktopOpenGL) graphics).plugin_;
                 }
                 else
-                {
-                    System.out.println("GAME INIT: Using Vulkan!");
+                {//we could potentially log this
                 }
             }
         }
@@ -193,7 +184,6 @@ public class Game
         }
         else
         {
-            System.out.println("Couldn't detect os! OS was " + os);
             GameStateManager.nativeGraphics = null;
         }
 

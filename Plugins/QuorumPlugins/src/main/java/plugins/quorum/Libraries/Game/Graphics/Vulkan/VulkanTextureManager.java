@@ -20,8 +20,6 @@ public class VulkanTextureManager
 
         try (MemoryStack stack = MemoryStack.stackPush())
         {
-            System.out.println("TRANSFER PIXEL DATA: QB size = " + quorumBuffer.GetSize() + ", pixelBytes limit = " + pixelBytes.limit() + ", cap = " + pixelBytes.capacity()
-            + ", position = " + pixelBytes.position());
             ByteBuffer byteBuffer = MemoryUtil.memByteBuffer(pluginBuffer.GetMappedMemoryPointer(), quorumBuffer.GetSize());
             byteBuffer.put(pixelBytes);
             byteBuffer.flip();

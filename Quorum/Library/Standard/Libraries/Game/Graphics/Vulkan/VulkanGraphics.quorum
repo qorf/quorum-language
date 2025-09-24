@@ -68,7 +68,6 @@ class VulkanGraphics is GraphicsManager
         instance:SetLogger(options:logger)
         boolean success = instance:CreateGraphicsInstance(options:applicationName, options:applicationVersion, options:apiVersion, options:useValidationLayers)
 
-        output "Instance created, success = " + success
         if not success
             return false
         end
@@ -78,7 +77,6 @@ class VulkanGraphics is GraphicsManager
         
         success = physicalDevice:CreateGraphicsDevice(instance)
 
-        output "Physical device created, success = " + success
         if not success
             return false
         end
@@ -88,7 +86,6 @@ class VulkanGraphics is GraphicsManager
 
         success = device:CreateGraphicsDevice(physicalDevice)
 
-        output "Device created, success = " + success
         if not success
             return false
         end
@@ -101,11 +98,11 @@ class VulkanGraphics is GraphicsManager
             display:SetConfiguration(manager:GetGame():GetDesktopConfiguration())
             success = display:SetupDisplay(true)
 
-            output "Created Vulkan Display, success = " + success
             if not success
                 return false
             end
         else
+            //Should this remain, but be logged?
             output "Display was already defined: " + (manager:GetGameDisplay() not= undefined)
         end
 
@@ -113,7 +110,6 @@ class VulkanGraphics is GraphicsManager
         me:surface = surface
         success = surface:Create(instance, manager:GetGameDisplay())
        
-        output "Created Vulkan Surface, success = " + success
         if not success
             return false
         end
@@ -129,7 +125,6 @@ class VulkanGraphics is GraphicsManager
             if bits:And(family:GetQueueFlags(), constants:QUEUE_GRAPHICS_BIT) not= 0
                 VulkanQueue queue
                 graphicsQueue = queue
-                output "Selected queue " + i + " with flags = " + family:GetQueueFlags() + ", creating graphics queue..."
                 // Create the queue using the device, the queue family, and indicate the first (or zero-th) queue in the family
                 queue:Create(device, family, 0)
                 i = device:GetQueueFamilyCount()
@@ -138,7 +133,6 @@ class VulkanGraphics is GraphicsManager
             i = i + 1
         end
 
-        output "Made graphics queue, success = " + (graphicsQueue not= undefined)
         if graphicsQueue = undefined
             return false
         end
@@ -149,12 +143,10 @@ class VulkanGraphics is GraphicsManager
             if family:CanPresentToSurface(surface)
                 // If the graphics queue we already have can also support presentation, use the same queue for both.
                 if graphicsQueue:GetQueueFamily():GetQueueFamilyIndex() = i
-                    output "Using already selected graphics queue at " + i + " for presentation."
                     presentationQueue = graphicsQueue
                 else
                     VulkanQueue queue
                     presentationQueue = queue
-                    output "Selected queue " + i + " with flags = " + family:GetQueueFlags() + ", creating presentation queue..."
                     // Create the queue using the device, the queue family, and indicate the first (or zero-th) queue in the family
                     queue:Create(device, family, 0)
                 end
@@ -163,12 +155,10 @@ class VulkanGraphics is GraphicsManager
             i = i + 1
         end
 
-        output "Made presentation queue, success = " + (presentationQueue not= undefined)
         if presentationQueue = undefined
             return false
         end
 
-        output "Creating Swapchain..."
         VulkanSwapchain swapchain
         me:swapchain = swapchain
 
@@ -181,7 +171,6 @@ class VulkanGraphics is GraphicsManager
         end
 
         success = swapchain:Create(device, surface, swapchainInfo)
-        output "Made swapchain, success = " + success
         if not success
             return false
         end
@@ -189,9 +178,7 @@ class VulkanGraphics is GraphicsManager
         VulkanCommandPool commandPool
         me:commandPool = commandPool
 
-        output "Creating command pool..."
         success = commandPool:Create(device, constants:COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, graphicsQueue:GetQueueFamily():GetQueueFamilyIndex())
-        output "Created command pool, success = " + success
         if not success
             return false
         end
@@ -241,18 +228,13 @@ class VulkanGraphics is GraphicsManager
         Array<VulkanSubpassDependency> subpassDependencies
         subpassDependencies:Add(dependency)
 
-
-        output "Creating RenderPass..."
         VulkanRenderPass renderPass
         me:renderPass = renderPass
         success = renderPass:Create(device, attachmentDescriptions, subpassDescriptions, subpassDependencies)
-        output "Created RenderPass, success = " + success
         if not success
             return false
         end
 
-
-        output "Creating FrameBuffers..."
         Array<VulkanFramebuffer> swapchainFramebuffers
         me:swapchainFramebuffers = swapchainFramebuffers
         i = 0
@@ -264,23 +246,19 @@ class VulkanGraphics is GraphicsManager
             VulkanFramebuffer framebuffer
             success = framebuffer:Create(device, imageViewArray, renderPass)
             if not success
-                output "Failed to create framebuffer!"
                 return false
             end
 
             swapchainFramebuffers:Add(framebuffer)
             i = i + 1
         end
-        output "Created FrameBuffers, success = " + success
 
 
-        output "Creating render command buffers, semaphores, and fences..."
         i = 0
         repeat while i < swapchain:GetImageCount()
             VulkanCommandBuffer renderCommandBuffer
             success = renderCommandBuffer:Create(device, commandPool)
             if not success
-                output "Failed to create render command buffer!"
                 return false
             end
             renderCommandBuffers:Add(renderCommandBuffer)
@@ -288,7 +266,6 @@ class VulkanGraphics is GraphicsManager
             VulkanFence renderFence
             success = renderFence:Create(device, true)
             if not success
-                output "Failed to create render fence!"
                 return false
             end
             renderFences:Add(renderFence)
@@ -296,7 +273,6 @@ class VulkanGraphics is GraphicsManager
             VulkanSemaphore imageAcquiredSemaphore
             success = imageAcquiredSemaphore:Create(device)
             if not success
-                output "Failed to craete image acquired semaphore!"
                 return false
             end
             imageAcquiredSemaphores:Add(imageAcquiredSemaphore)
@@ -304,7 +280,6 @@ class VulkanGraphics is GraphicsManager
             VulkanSemaphore imageRenderCompleteSemaphore
             success = imageRenderCompleteSemaphore:Create(device)
             if not success
-                output "Failed to create image rendering semaphore!"
                 return false
             end
             imageRenderCompleteSemaphores:Add(imageRenderCompleteSemaphore)
@@ -312,13 +287,10 @@ class VulkanGraphics is GraphicsManager
             i = i + 1
         end
 
-        output "Initializing DescriptorSetManager..."
         descriptorSetManager:Initialize(device)
 
-        output "Initializing TextureManager..."
         textureManager:Create(device, me)
 
-        output "Successfully created VulkanGraphics!"
         return true
     end
 
