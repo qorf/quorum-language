@@ -520,6 +520,7 @@ BindDescriptorSetCommand descriptorBind
     end
     
     action Draw(Drawable drawable)
+        QueueForDrawing(drawable)
 //        output "NYI: VulkanPainter2D Draw"
 //        alert("NYI")
     end

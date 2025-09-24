@@ -1,0 +1,86 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Fragment
+
+use Libraries.Game.Graphics.Shaders.Shader
+
+class DropShadowFragmentShaderVulkan is Shader
+    
+constant text SHADER_NAME = "Drop Shadow Fragment Shader"
+
+    on create
+        SetName(SHADER_NAME)
+        SetType(parent:Shader:FRAGMENT_SHADER)
+        SetCode(GetVersionHeader() +
+"
+" +
+"#ifdef GL_ES
+    #define LOWP lowp
+    precision mediump float;
+#else
+    #define LOWP 
+#endif
+
+// Adds support for nonuniformEXT and unsized descriptor arrays.
+#extension GL_EXT_nonuniform_qualifier : require
+
+layout(set = 0, binding = 1) uniform sampler immutableSampler;
+layout(set = 1, binding = 0) uniform texture2D globalTextures[];
+
+//in LOWP vec4 v_color;
+//in vec2 v_texCoords;
+//uniform sampler2D u_texture;
+//uniform vec4 u_rounding;
+//uniform float u_softness;
+//uniform float u_aspectRatio;
+//layout (location = 0) out vec4 outputColor;
+layout(location = 0) in vec4 v_color;
+layout(location = 1) in vec2 v_textureCoords;
+layout(location = 2) flat in uint v_textureIndex;
+layout(location = 3) in vec4 v_rounding;
+layout(location = 4) in float v_softness;
+layout(location = 5) in float v_aspectRatio;
+
+layout(location = 0) out vec4 outputColor;
+
+// Calculate how far a point is from the outer shell of a rounded rectangle.
+// The rounding vector contains edge roundness values for:
+// x: top-right
+// y: bottom-right
+// z: top-left
+// w: bottom-left
+float signedDistanceFunction(in vec2 point, in vec2 dimensions, in vec4 rounding)
+{
+    // We calculate as though the point is in the top-right quadrant.
+    // If this isn't true, we need adjust which of the edge rounding values we use.
+    rounding.xy = (point.x > 0.0) ? rounding.xy : rounding.zw;
+    rounding.x = (point.y > 0.0) ? rounding.x : rounding.y;
+    
+    // We take the absolute value of the point to ensure we're calculating from the top-right quadrant
+    vec2 calc = abs(point) - dimensions + rounding.x;
+    return min(max(calc.x, calc.y), 0.0) + length(max(calc, 0.0)) - rounding.x;
+}
+
+void main()
+{
+    vec4 textureColor = texture(nonuniformEXT(sampler2D(globalTextures[v_textureIndex], immutableSampler)), v_textureCoords);
+    vec2 point = (v_textureCoords.xy - 0.5) * 2.0;
+    point.x *= v_aspectRatio;
+    vec2 dimensions = vec2(v_aspectRatio, 1.0);
+
+    float distance = signedDistanceFunction(point, dimensions, v_rounding);
+
+    // The enabled borders vector stores values for the sides in the following order:
+    // x: right
+    // y: top (y-positive: technically the bottom due to how GLSL handles texture coordinates)
+    // z: left
+    // w: bottom (y-negative)
+    float fillDistance = signedDistanceFunction(point, dimensions, v_rounding);
+    float shadowAlpha = 1.0 - smoothstep(-v_softness, 0.0, fillDistance);
+
+    vec4 resultColor = v_color * textureColor;
+    resultColor.a *= shadowAlpha;  
+
+    outputColor = resultColor;
+}")
+    end
+    
+end

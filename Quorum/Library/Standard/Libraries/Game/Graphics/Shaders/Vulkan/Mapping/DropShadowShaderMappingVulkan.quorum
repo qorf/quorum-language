@@ -1,0 +1,175 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Mapping
+
+use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
+use Libraries.Game.Graphics.Vulkan.all
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.DrawableShape
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.Vulkan.Commands.BindDescriptorSetCommand
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Views.View2D
+use Libraries.Interface.Item2D
+use Libraries.Game.NumberUtilities
+
+class DropShadowShaderMappingVulkan is VulkanShaderMapping
+
+    // This is the index of the added vertex inputs within a DrawableShape.
+    integer thicknessOffsetIndex = 0
+    integer shadowOffsetIndex = 0
+    integer localCenterIndex = 0
+    integer roundingIndex = 0
+    integer softnessIndex = 0
+    integer aspectRatioIndex = 0
+
+NumberUtilities utility
+
+    on create
+        // The info creator will add the default 2D resources, 
+        // so we add this command so the ShaderMapping will automatically receive these resources from the Painter2D during drawing.
+        UseDefaultResources2D(true)
+    end
+
+    // Returns the size of each vertex in the DrawableShape (which stores values as numbers).
+    // This will be the index of the last added vertex input, plus its size in the data structure.
+    action GetVertexSize returns integer
+        return aspectRatioIndex + 1
+    end
+
+    // This action is used to setup the values of a VulkanPipelineInfo that will be used to create the
+    // VulkanPipeline needed for the shader program. This can also be used to create and keep copies of
+    // any Vulkan resources that will be needed to send or change shader data.
+    action CreatePipelineInfo(VulkanShaderProgram program, VulkanDevice device) returns VulkanPipelineInfo
+        VulkanConstants constants
+
+        /* Use the default info, plus values for our additional vertex attributes. Store their indices so we can map to them later.
+The extra attributes map to these values in the vertex shader:
+
+layout(location = 4) in vec2 a_thicknessOffset;
+layout(location = 5) in vec2 a_shadowOffset;
+layout(location = 6) in vec2 a_localCenter;
+layout(location = 7) in vec4 a_rounding;
+layout(location = 8) in float a_softness;
+layout(location = 9) in float a_aspectRatio;
+*/
+        VulkanPipelineInfoCreator creator
+        creator:Begin(device)
+        creator:AddDefaultInfo2D()
+        thicknessOffsetIndex = creator:AddVertexInput(constants:FORMAT_R32G32_SFLOAT)
+shadowOffsetIndex = creator:AddVertexInput(constants:FORMAT_R32G32_SFLOAT)
+localCenterIndex = creator:AddVertexInput(constants:FORMAT_R32G32_SFLOAT)
+        roundingIndex = creator:AddVertexInput(constants:FORMAT_R8G8B8A8_UNORM)
+softnessIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+aspectRatioIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        
+        // Finish creating the PipelineInfo and return it.
+        VulkanPipelineInfo info = creator:Finish()
+        return info
+    end
+    
+    // This action is used to update the vertex information sent from Quorum to the vertex shader.
+    action SetVertexData(ShaderProgram program, Drawable drawable, DrawableShape shape)
+number width = drawable:GetWidth() * drawable:GetScaleX()
+        number height = drawable:GetHeight() * drawable:GetScaleY()
+        number widthMultiplier = 1
+        number heightMultiplier = 1
+        number shadowX = 0
+        number shadowY = 0
+        number softness = 0
+
+        number bottomLeftRounding = 0
+        number bottomRightRounding = 0
+        number topLeftRounding = 0
+        number topRightRounding = 0
+
+        number zoomScale = 1
+
+        ColorGroup shadowColor = undefined
+
+        /*
+        We want to get the control or layout properties used to define the element. We'll check these places, in order of priority:
+        1. The drawable's shader data
+        2. If the drawable itself is a Control
+        3. If the drawable is a view, see if the view is attached to a Control
+        */
+        if drawable:GetShaderData() is LayoutProperties
+            LayoutProperties properties = cast(LayoutProperties, drawable:GetShaderData())
+            zoomScale = properties:GetInterfaceScale()            
+
+            widthMultiplier = (width + 2 * properties:GetShadowWidth() * zoomScale) / width
+            heightMultiplier = (height + 2 * properties:GetShadowHeight() * zoomScale) / height
+            shadowX = properties:GetShadowX()
+            shadowY = properties:GetShadowY()
+            softness = (2.0 / height) * properties:GetShadowEdgeFade() * zoomScale
+
+            bottomLeftRounding = properties:GetBottomLeftRounding()
+            bottomRightRounding = properties:GetBottomRightRounding()
+            topLeftRounding = properties:GetTopLeftRounding()
+            topRightRounding = properties:GetTopRightRounding()
+
+            shadowColor = properties:GetShadowColor()
+        else
+            Control control = undefined
+
+            if drawable:GetShaderData() is Control
+                control = cast(Control, drawable:GetShaderData())
+            elseif drawable is Control
+                control = cast(Control, cast(Object, drawable))
+            elseif drawable is View2D
+                View2D view = cast(View2D, cast(Object, drawable))
+                Item2D item = view:GetItem()
+                if item is Control
+                    control = cast(Control, item)
+                end
+            end
+
+            if control not= undefined
+                zoomScale = control:GetInterfaceScale()
+
+                widthMultiplier = (width + 2 * control:GetShadowWidth() * zoomScale) / width
+                heightMultiplier = (height + 2 * control:GetShadowHeight() * zoomScale) / height
+                shadowX = control:GetShadowX()
+                shadowY = control:GetShadowY()
+                softness = (2.0 / height) * control:GetShadowEdgeFade() * zoomScale
+
+                bottomLeftRounding = control:GetBottomLeftRounding()
+                bottomRightRounding = control:GetBottomRightRounding()
+                topLeftRounding = control:GetTopLeftRounding()
+                topRightRounding = control:GetTopRightRounding()
+
+                shadowColor = control:GetShadowColor()
+            end
+        end
+
+        if shadowColor not= undefined
+            drawable:GetDrawableShape():SetColor(shadowColor)
+        end
+
+        shape:SetDataForAllVertices(aspectRatioIndex, width / height)
+shape:SetDataForAllVertices(roundingIndex, utility:PackNormalizedVector4(bottomRightRounding, topRightRounding, bottomLeftRounding, topLeftRounding))
+        shape:SetDataForAllVertices(thicknessOffsetIndex, widthMultiplier)
+shape:SetDataForAllVertices(thicknessOffsetIndex + 1, heightMultiplier)
+        shape:SetDataForAllVertices(shadowOffsetIndex, shadowX)
+        shape:SetDataForAllVertices(shadowOffsetIndex + 1, shadowY)
+        shape:SetDataForAllVertices(softnessIndex, softness)
+        shape:SetDataForAllVertices(localCenterIndex, drawable:GetGlobalX() + width / 2.0)
+shape:SetDataForAllVertices(localCenterIndex + 1, drawable:GetGlobalY() + height / 2.0)
+        
+        //glProgram:SetShaderInput("u_aspectRatio", width / height)
+        //glProgram:SetShaderInput("u_rounding", bottomRightRounding, topRightRounding, bottomLeftRounding, topLeftRounding)
+        //glProgram:SetShaderInput("u_thicknessOffset", widthMultiplier, heightMultiplier)
+        //glProgram:SetShaderInput("u_shadowOffset", shadowX, shadowY)
+        //glProgram:SetShaderInput("u_softness", softness)
+        //glProgram:SetShaderInput("u_localCenter", drawable:GetGlobalX() + width / 2.0, drawable:GetGlobalY() + height / 2.0)
+    end
+
+    // This action is called when the shader program will begin rendering.
+    action Begin(ShaderProgram program, Camera camera, VulkanCommandBuffer commandBuffer, integer swapchainIndex)
+        // We don't use any custom descriptors, so nothing is needed here.
+    end
+
+end
+
