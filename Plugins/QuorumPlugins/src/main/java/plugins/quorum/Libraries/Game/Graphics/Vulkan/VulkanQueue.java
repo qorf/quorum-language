@@ -33,7 +33,6 @@ public class VulkanQueue
 
             int familyIndex = queueFamily.GetQueueFamilyIndex();
 
-            System.out.println("Family index: " + familyIndex + ", queueIndex: " + queueIndex);
             vkGetDeviceQueue(vulkanDevice, familyIndex, queueIndex, queuePointer);
             vulkanQueue = new VkQueue(queuePointer.get(0), vulkanDevice);
         }

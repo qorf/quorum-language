@@ -22,7 +22,6 @@ public class VulkanComputePipeline {
     private long vulkanPipelineHandle = 0L;
 
     public boolean CreateNative(VulkanDevice_ quorumDevice, VulkanComputePipelineInfo_ quorumInfo) {
-        System.out.println("Creating Compute Pipeline");
         VulkanDevice quorumDevicePlugin = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
         VulkanPipelineLayout_ quorumPipelineLayout = quorumInfo.GetPipelineLayout();
         plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanPipelineLayout pipelineLayoutPlugin = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanPipelineLayout) quorumPipelineLayout).plugin_;
@@ -33,12 +32,10 @@ public class VulkanComputePipeline {
         Array_ quorumDescriptorSetLayouts = quorumInfo.GetDescriptorSetLayouts();
         long pipelineCacheHandle = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanPipelineCache)quorumInfo.GetPipelineCache()).plugin_.GetVulkanCacheHandle();
 
-        System.out.println("Creating Memory Stack");
         try (MemoryStack stack = MemoryStack.stackPush()) {
             LongBuffer lp = stack.callocLong(1);
             ByteBuffer main = stack.UTF8("main");
 
-            System.out.println("Creating Compute Shader Stages");
             VkPipelineShaderStageCreateInfo.Buffer shaderStages = VkPipelineShaderStageCreateInfo.calloc(1, stack);
             VkPipelineShaderStageCreateInfo shaderStage = VkPipelineShaderStageCreateInfo.calloc(stack)
                     .sType$Default()
@@ -79,14 +76,12 @@ public class VulkanComputePipeline {
 //            vulkanPipelineLayoutHandle = lp.get(0);
 
             vulkanPipelineLayoutHandle = pipelineLayoutPlugin.GetLayoutHandle();
-            System.out.println("Compute Pipeline Layout Handle: " + vulkanPipelineLayoutHandle);
 
             VkComputePipelineCreateInfo.Buffer computePipelineCreateInfo = VkComputePipelineCreateInfo.calloc(1, stack)
                     .sType$Default()
                     .stage(shaderStage)
                     .layout(vulkanPipelineLayoutHandle);
 
-            System.out.println("Calling vkCreateComputePipelines");
             //Left out. This is all that is left.
             int vulkanResult = vkCreateComputePipelines(vkDevice, pipelineCacheHandle,
                     computePipelineCreateInfo, null, lp);
@@ -97,7 +92,6 @@ public class VulkanComputePipeline {
             }
 
             vulkanPipelineHandle = lp.get(0);
-            System.out.println("Compute Pipeline Created with handle: " + vulkanPipelineHandle);
         }
 
         return true;

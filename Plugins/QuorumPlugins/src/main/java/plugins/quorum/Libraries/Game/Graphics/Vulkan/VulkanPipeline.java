@@ -80,7 +80,6 @@ public class VulkanPipeline
 
                 VkPipelineShaderStageCreateInfo shaderStage = shaderStages.get(i);
                 shaderStage.sType$Default();
-                System.out.println("SHADER STAGE: " + quorumShader.GetType());
                 shaderStage.stage(VulkanShaderManager.GetVulkanShaderType(quorumShader.GetType()));
                 shaderStage.module(VulkanShaderManager.GetVulkanShaderHandle(quorumShader));
                 shaderStage.pName(shaderEntryPointName);
