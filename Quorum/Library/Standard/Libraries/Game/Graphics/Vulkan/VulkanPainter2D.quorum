@@ -460,12 +460,16 @@ BindDescriptorSetCommand descriptorBind
     end
     
     action QueueForDrawing(Item2D item)
-        if not (item is Drawable)
-            return now
+        if item:IsCustomDrawing()
+            item:Draw(me)
+        elseif item is Drawable
+Drawable drawable = cast(Drawable, item)
+        Draw(drawable)
         end
-
-        Drawable drawable = cast(Drawable, item)
-        DrawableShape shape = drawable:GetDrawableShape()
+    end
+    
+    private action AddToBatch(Drawable drawable)
+DrawableShape shape = drawable:GetDrawableShape()
 
         if not shape:IsRenderable()
             return now
@@ -517,9 +521,7 @@ BindDescriptorSetCommand descriptorBind
     end
     
     action Draw(Drawable drawable)
-        QueueForDrawing(drawable)
-//        output "NYI: VulkanPainter2D Draw"
-//        alert("NYI")
+        AddToBatch(drawable)
     end
     
     action SetClipCoordinates(number x, number y, number width, number height)
