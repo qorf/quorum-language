@@ -22,6 +22,7 @@ use Libraries.Compute.Matrix4
 use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
 use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
 use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.VulkanShaderMapping
+use Libraries.Compute.Vector4
 
 class VulkanPainter2D is Painter2D
 
@@ -51,6 +52,18 @@ class VulkanPainter2D is Painter2D
     Array<DrawIndexedCommand> pendingDrawCommands
     // A parallel array of batches. The n-th draw command uses the vertex and index buffers from the n-th pending batch.
     Array<VulkanPainter2DBatch> pendingBatches
+    // A parallel array of clip coordinate values. Batches that don't perform any clipping will insert "undefined" into the array.
+    Array<Vector4> pendingClipCoordinates
+    
+    number clipX1 = -1
+    number clipY1 = -1
+    number clipX2 = -1
+    number clipY2 = -1
+    number clipWidth = -1
+    number clipHeight = -1
+    boolean isClipping = false
+    
+    boolean needsFlush = false
 
 // Resources for the Camera uniform.
     Array<VulkanBuffer> cameraBuffers
@@ -309,8 +322,16 @@ VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
 
                 counter = counter + 1
             end
-
         end
+        
+        needsFlush = false
+        isClipping = false
+        clipX1 = -1
+        clipX2 = -1
+        clipY1 = -1
+        clipY2 = -1
+        clipWidth = -1
+        clipHeight = -1
     end
     
     action End
@@ -365,12 +386,15 @@ VulkanDescriptorSet texturesDescriptorSet = graphics:GetTextureManager():GetGlob
 
         ShaderProgram currentProgram = undefined
         VulkanPipeline currentPipeline = undefined
+        
+        Vector4 lastClipValues = undefined
     
         // Set the pipelines and send the corresponding draw calls.
         integer i = 0
         repeat while i < pendingBatches:GetSize()
             VulkanPainter2DBatch batch = pendingBatches:Get(i)
             DrawIndexedCommand drawCommand = pendingDrawCommands:Get(i)
+            Vector4 clipValues = pendingClipCoordinates:Get(i)
             
             if currentProgram not= batch:GetProgram()
                 if currentProgram not= undefined
@@ -391,13 +415,37 @@ BindPipelineCommand bindPipeline
             setViewport:SetPosition(0, swapchain:GetImageHeight())
             setViewport:SetSize(swapchain:GetImageWidth(), -swapchain:GetImageHeight())
             commandBuffer:Record(setViewport)
-    
-            // TO-DO: CHANGE THIS DYNAMICALLY FOR RENDERED CONTENT
-            // Set scissor command
+            
+            boolean clippingChanged = false
+            if i = 0
+                // Always send a scissor command before the first draw.
+                clippingChanged = true
+            elseif clipValues not= undefined
+                if lastClipValues = undefined
+                    // In this case, the current clipping values are defined, and the last set wasn't.
+                    clippingChanged = true
+                elseif clipValues:GetX() not= lastClipValues:GetX() or clipValues:GetY() not= lastClipValues:GetY() or
+clipValues:GetZ() not= lastClipValues:GetZ() or clipValues:GetW() not= lastClipValues:GetW()
+                    // In this case, both vectors are defined, but their values don't match.
+                    clippingChanged = true
+                end
+            elseif lastClipValues not= undefined
+                // In this case, the current clip values isn't defined, and the last set was.
+                clippingChanged = true
+            end
+            
+            if clippingChanged
+// Set scissor command
             SetScissorCommand setScissor
-            setScissor:SetPosition(0, 0)
+                if clipValues = undefined
+setScissor:SetPosition(0, 0)
             setScissor:SetSize(swapchain:GetImageWidth(), swapchain:GetImageHeight())
-            commandBuffer:Record(setScissor)
+                else
+                    setScissor:SetPosition(cast(integer, clipValues:GetX()), swapchain:GetImageHeight() - cast(integer, clipValues:GetY() + clipValues:GetW()))
+setScissor:SetSize(cast(integer, clipValues:GetZ()), cast(integer, clipValues:GetW()))
+                end
+commandBuffer:Record(setScissor)
+            end
 
             BindVertexBufferCommand vertexBind
             vertexBind:SetBuffer(batch:GetVertexOutputBuffer())
@@ -445,8 +493,14 @@ BindDescriptorSetCommand descriptorBind
     end
     
     action SetClipping(boolean clippingEnabled)
-//        output "NYI: VulkanPainter2D SetClipping"
-//        alert("NYI")
+        if isClipping not= clippingEnabled
+            Flush()
+isClipping = clippingEnabled
+        end
+    end
+    
+    action IsClipping returns boolean
+        return isClipping
     end
     
     action SetColor(Color color)
@@ -494,7 +548,16 @@ DrawableShape shape = drawable:GetDrawableShape()
         end
 
         if shape:AreTextureVerticesValid() = false
-//            output "Invalid texture vertices for " + item:GetName() + "!"
+            return now
+        end
+        
+        // Allow the drawable to calculate its clip coordinates and update the painter's clipping status.
+        // This can cause a flush to occur.
+drawable:SetClipCoordinates(me)
+
+        // If the clip width or height is negative, then the drawing region is
+        // empty. Don't bother drawing it.
+        if IsClipping() and (clipWidth < 0 or clipHeight < 0)
             return now
         end
 
@@ -506,10 +569,11 @@ DrawableShape shape = drawable:GetDrawableShape()
         end
 
         currentBatch:Add(drawable:GetDrawableShape())
+        needsFlush = true
     end
 
     private action Flush
-        if currentBatch = undefined
+        if currentBatch = undefined or needsFlush = false
             return now
         end
 
@@ -518,15 +582,32 @@ DrawableShape shape = drawable:GetDrawableShape()
         drawCommand:SetIndexCount(currentBatch:GetIndexWritePosition() - currentStartIndex)
         pendingDrawCommands:Add(drawCommand)
         pendingBatches:Add(currentBatch)
+        
+        if isClipping
+            Vector4 clipValues
+            clipValues:Set(clipX1, clipY1, clipWidth, clipHeight)
+            pendingClipCoordinates:Add(clipValues)
+        else
+            pendingClipCoordinates:Add(undefined)
+        end
+        
+        needsFlush = false
     end
     
     action Draw(Drawable drawable)
         AddToBatch(drawable)
     end
     
-    action SetClipCoordinates(number x, number y, number width, number height)
-//        output "NYI: VulkanPainter2D SetClipCoordinates"
-//        alert("NYI")
+    action SetClipCoordinates(number x1, number y1, number x2, number y2)
+        if x1 not= clipX1 or y1 not= clipY1 or x2 not= clipX2 or y2 not= clipY2
+            Flush()
+            clipX1 = x1
+            clipY1 = y1
+            clipX2 = x2
+            clipY2 = y2
+            clipWidth = x2 - x1
+            clipHeight = y2 - y1
+        end
     end
     
 private action MatrixToArray(Matrix4 matrix) returns Number32BitArray
