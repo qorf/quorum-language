@@ -953,7 +953,7 @@ class Matrix
     */
     action Multiply(Matrix matrix) returns Matrix
         if GetColumns() not= matrix:GetRows()
-            alert("Incompatible dimensions: " + GetColumns() + " columns in this matrix must match " + matrix:GetRows() + " rows in value matrix.")
+            alert("Incompatible dimensions: " + GetColumns() + " columns in this matrix("+GetRows() + "," + GetColumns()+") must match " + matrix:GetRows() + " rows in value matrix("+matrix:GetRows() + "," + matrix:GetColumns()+").")
         end
         Multiply multiply
         multiply:SetValue(matrix)

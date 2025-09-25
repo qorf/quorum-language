@@ -3,6 +3,10 @@ package Libraries.Compute.MatrixTransform
 use Libraries.Compute.MatrixTransform.MatrixTransform
 use Libraries.Compute.Matrix
 use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Game.Graphics.Shaders.Vulkan.Compute.OneBufferComputeShaderVulkan
+use Libraries.Game.Graphics.Vulkan.VulkanNumber32BitMappedMemory
+use Libraries.System.DateTime
 
     /*
         This is a MatrixTransform class to perform a matrix multiply operation on two matrices. 
@@ -29,6 +33,11 @@ use Libraries.Containers.Array
     */
 class Multiply is MatrixTransform
     private Matrix values
+    private integer metadata = 4
+    private integer cutoffSingleSize = 80
+    private integer hardwareCutoff = cutoffSingleSize * cutoffSingleSize * cutoffSingleSize
+boolean forceSoftware = false
+    
     /*
         This method sets the a matrix of values for the transform function to apply. 
 
@@ -101,7 +110,81 @@ class Multiply is MatrixTransform
         end
     */
     action Transform(Matrix matrix) returns Matrix
-        Matrix newMatrix
+return TransformInSoftware(matrix)
+    end
+    
+    private action GetShaderCode returns text
+        text code = "#version 450
+
+layout (std430, set=0, binding=0) buffer srcBuf {
+    float data[];
+} buff;
+
+layout (local_size_x = 1) in;
+
+vec2 loadDouble(uint dindex) {
+    return vec2(buff.data[2u * dindex], buff.data[2u * dindex + 1u]);
+}
+
+void storeDouble(uint dindex, float high, float low) {
+    buff.data[2u * dindex]     = high;
+    buff.data[2u * dindex + 1u] = low;
+}
+
+vec2 mulDouble(vec2 a, vec2 b) {
+    float hi = a.x * b.x;
+    float lo = a.x * b.y + a.y * b.x + a.y * b.y;
+    return vec2(hi, lo);
+}
+
+vec2 addDouble(vec2 a, vec2 b) {
+    float s = a.x + b.x;
+    float v = s - a.x;
+    float t = ((b.x - v) + (a.x - (s - v))) + a.y + b.y;
+    return vec2(s, t);
+}
+
+void main()
+{
+    
+    uint rowsA = uint(buff.data[0]);
+    uint colsA = uint(buff.data[1]);
+    uint rowsB = uint(buff.data[2]);
+    uint colsB = uint(buff.data[3]);
+
+    // Offsets into the buffer
+    uint offsetA = 4;
+    uint offsetB = offsetA + 2 * (rowsA * colsA);
+    uint offsetC = offsetB + 2 * (rowsB * colsB);
+    uint offsetA_double = 2;
+    uint offsetB_double = offsetA_double + (rowsA * colsA); // in doubles
+    uint offsetC_double = offsetB_double + (rowsB * colsB); // in doubles
+
+    uint row = gl_GlobalInvocationID.x;
+    uint col = gl_GlobalInvocationID.y;
+
+    if (row < rowsA && col < colsB) {
+        vec2 sum = vec2(0.0, 0.0);
+        for (uint k = 0u; k < colsA; ++k) {
+            uint a_idx = offsetA_double + row + k * rowsA;
+            uint b_idx = offsetB_double + k + col * rowsB;
+
+            vec2 a = loadDouble(a_idx);
+            vec2 b = loadDouble(b_idx);
+
+            sum = addDouble(sum, mulDouble(a, b));
+        }
+
+        uint c_idx = offsetC_double + row + col * rowsA;
+        storeDouble(c_idx, sum.x, sum.y);
+    }
+}
+"
+        return code
+    end
+    
+    action TransformInSoftware(Matrix matrix) returns Matrix
+Matrix newMatrix
         newMatrix:SetSize(matrix:GetRows(), values:GetColumns())
         row = 0
         repeat matrix:GetRows() times
@@ -120,4 +203,129 @@ class Multiply is MatrixTransform
         end
         return newMatrix
     end
+    
+    action TransformInHardware(Matrix matrix) returns Matrix
+        Number32BitArray array = FillBuffer(matrix)
+OneBufferComputeShaderVulkan compute
+        compute:SetName("DoubleMatrixMultiplyShader")
+compute:SetCode(GetShaderCode())
+
+        compute:Create()
+        VulkanNumber32BitMappedMemory mapping = compute:SetBuffer(array)
+        compute:SetupPipelines()
+        
+        integer x = cast(integer, array:Get(0))
+integer y = cast(integer, array:Get(3))
+        compute:Run(x, y, 1)
+        compute:Wait()
+        
+        
+resultColumns = values:GetColumns()
+        resultRows = matrix:GetRows()
+        Matrix result
+        result:SetSize(resultRows, resultColumns)
+        
+resultIndex = 4 + (values:GetSize() + matrix:GetSize()) * 2
+        i = resultIndex
+        j = 0
+        k = 0
+        repeat while j < resultColumns 
+            repeat while k < resultRows and i < mapping:GetSize()
+number high = mapping:Get(i)
+number low = mapping:Get(i+1)
+                number value = high + low
+                result:Set(k, j, value)
+                    
+                
+                k = k + 1
+                        i = i + 2
 end
+            
+            k = 0
+            j = j + 1
+        end
+        
+        return result
+    end
+    
+    
+private action FillBuffer(Matrix matrix) returns Number32BitArray
+        Number32BitArray array
+        integer metadata = 4
+        integer size = CalculateBufferSize(values, matrix)
+        size = metadata + size
+array:SetSize(size)
+        array:Set(0, matrix:GetRows())
+array:Set(1, matrix:GetColumns())
+array:Set(2, values:GetRows())
+array:Set(3, values:GetColumns())
+        FillBuffer(4, array, matrix)
+FillBuffer(4 + matrix:GetSize() * 2, array, values)
+        
+        return array
+end
+    
+    
+action CalculateBufferSize(Matrix matrix1, Matrix matrix2) returns integer
+        integer size1 = matrix1:GetSize()
+integer size2 = matrix2:GetSize()
+        integer size3 = matrix1:GetRows() * matrix2:GetColumns()
+        
+        //4 positions in the buffer for constants
+        return (size1 + size2 + size3) * 2
+    end
+    
+    
+private action FillBuffer(integer offset, Number32BitArray array, Matrix matrix)
+i = offset
+        j = 0
+        k = 0
+        integer rows = matrix:GetRows()
+        integer columns = matrix:GetColumns()
+        integer size = matrix:GetSize() + offset
+        repeat while j < columns
+            repeat while k < rows
+                number value = matrix:Get(k,j)
+                number high = GetHigh(value)
+                number low = GetLow(value)
+                array:Set(i,high)
+array:Set(i+1,low)
+array:Set(i, matrix:Get(k,j))
+                k = k + 1
+i = i + 2
+            end
+            k = 0
+            j = j + 1
+        end
+    end
+    
+    
+private action GetHigh(number value) returns number
+number c = 134217729.0 // 2^27 + 1
+number t = c * value
+number hi = t - (t - value)
+number lo = value - hi
+        
+        return hi
+    end
+    
+    
+private action GetLow(number value) returns number
+number c = 134217729.0 // 2^27 + 1
+number t = c * value
+number hi = t - (t - value)
+number low = value - hi
+        
+        return low
+    end
+    
+    action GetHardwareCutoff returns integer
+        return hardwareCutoff
+    end
+
+    action SetHardwareCutoff(integer hardwareCutoff)
+        me:hardwareCutoff = hardwareCutoff
+    end
+
+end
+
