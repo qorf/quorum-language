@@ -5,6 +5,9 @@ use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.DropShadowFragmentShaderOpen
 use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.DropShadowVertexShaderOpenGL
 use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.DropShadowFragmentShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.DropShadowVertexShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.DropShadowShaderMappingVulkan
 
 class DropShadowShaderProgram is ShaderProgram
 
@@ -17,24 +20,40 @@ class DropShadowShaderProgram is ShaderProgram
         GameStateManager manager
         ShaderManager shaderManager = manager:GetShaderManager()
 
-        if shaderManager:HasShader(FRAGMENT_NAME)
-            Shader fragment = shaderManager:GetShader(FRAGMENT_NAME)
-            Add(fragment)
-        else
-            DropShadowFragmentShaderOpenGL fragment
-            Add(fragment)
-        end
-
         if shaderManager:HasShader(VERTEX_NAME)
             Shader vertex = shaderManager:GetShader(VERTEX_NAME)
             Add(vertex)
         else
-            DropShadowVertexShaderOpenGL vertex
+            if IsVulkanProgram()
+                DropShadowVertexShaderVulkan vertex
+                Add(vertex)
+                else
+DropShadowVertexShaderOpenGL vertex
             Add(vertex)
+            end
+        end
+        
+if shaderManager:HasShader(FRAGMENT_NAME)
+            Shader fragment = shaderManager:GetShader(FRAGMENT_NAME)
+            Add(fragment)
+        else
+            if IsVulkanProgram()
+                DropShadowFragmentShaderVulkan fragment
+                Add(fragment)
+            else
+DropShadowFragmentShaderOpenGL fragment
+            Add(fragment)
+            end
         end
 
-        DropShadowShaderMappingOpenGL mapping
+        if IsVulkanProgram()
+            DropShadowShaderMappingVulkan mapping
+            SetShaderMapping(mapping)
+        else
+DropShadowShaderMappingOpenGL mapping
         SetShaderMapping(mapping)
+        end
+        
     end
 
 end

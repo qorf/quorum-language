@@ -3,10 +3,120 @@ package Libraries.Game.Graphics.Vulkan
 use Libraries.Containers.Array
 use Libraries.Game.GameStateManager
 
-/*This is a helper class that is used to create VulkanPipelineInfo objects for
+/*
+This is a helper class that is used to create VulkanPipelineInfo objects for
 initializing VulkanPipelines. This class makes it easier to add vertex data,
 and automatically calculates both Vulkan offsets as well as the vertex offets
-in Quorum (used to find elements in the structure of a DrawableShape, for example).*/
+in Quorum (used to find elements in the structure of a DrawableShape, for example).
+Most commonly, this class is used as part of a VulkanShaderMapping to create a
+program's pipeline info.
+
+Attribute: Example
+
+package Libraries.Game.Graphics.Shaders.Vulkan.Mapping
+
+use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
+use Libraries.Game.Graphics.Vulkan.all
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.DrawableShape
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.Vulkan.Commands.BindDescriptorSetCommand
+
+class ExampleShaderMapping is VulkanShaderMapping
+
+    // This is the index of the added vertex inputs within a DrawableShape.
+    integer myVertexInputIndex1 = 0
+    integer myVertexInputIndex2 = 0
+
+    // Resources for a descriptor used by the pipeline. Used to set a uniform buffer in the fragment shader.
+    VulkanBuffer uniformBuffer
+    VulkanNumber32BitMappedMemory uniformBufferMemory = undefined
+    VulkanDescriptorSet uniformDescriptorSet = undefined
+    VulkanPipelineLayout pipelineLayout = undefined
+
+    on create
+        // The info creator will add the default 2D resources, 
+        // so we add this command so the ShaderMapping will automatically receive these resources from the Painter2D during drawing.
+        UseDefaultResources2D(true)
+    end
+
+    // Returns the size of each vertex in the DrawableShape (which stores values as numbers).
+    // This will be the index of the last added vertex input, plus its size in the data structure.
+    action GetVertexSize returns integer
+        return myVertexInputIndex2 + 1
+    end
+
+    // This action is used to setup the values of a VulkanPipelineInfo that will be used to create the
+    // VulkanPipeline needed for the shader program. This can also be used to create and keep copies of
+    // any Vulkan resources that will be needed to send or change shader data.
+    action CreatePipelineInfo(VulkanShaderProgram program, VulkanDevice device) returns VulkanPipelineInfo
+        VulkanConstants constants
+
+        // Make the info creator, start it, and add the default vertex inputs and descriptors for 2D shader programs in the game engine.
+        VulkanPipelineInfoCreator creator
+        creator:Begin(device)
+        creator:AddDefaultInfo2D()
+        
+        // Add an extra vertex input. This one is a Vulkan 32-bit signed float. 
+        // The returned index is the offset into a Quorum DrawableShape where this input will be placed.
+        myVertexInputIndex1 = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        // The second input is a 32-bit unsigned integer.
+        myVertexInputIndex2 = creator:AddVertexInput(constants:FORMAT_R32_UINT)
+        
+        // Add a binding for a uniform buffer that will be accessible in the program's fragment shader.
+        creator:AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+        VulkanDescriptorSetLayout descriptorLayout = creator:FinishDescriptorSetLayout()
+        
+        // Create a uniform buffer for a 3x3 matrix, where each value is 4 bytes large (i.e. 9 32-bit floats).
+        uniformBuffer:CreateMappableBuffer(device, 3 * 3 * 4, constants:BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+        uniformBufferMemory = uniformBuffer:MapToNumber32BitMemory()
+        
+        // Indicate which buffer will be used for the descriptor, and the start and end index of that buffer to read from.
+        VulkanDescriptorResourcesInfo bufferResourcesInfo
+        bufferResourcesInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+        bufferResourcesInfo:AddBufferInfo(uniformBuffer, 0, uniformBuffer:GetSize())
+
+        // Use the DescriptorSetManager from the game's graphics system to create the descriptor, using the layout we made with the Creator.
+        GameStateManager gameState
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        VulkanDescriptorSetManager descriptorManager = graphics:GetDescriptorSetManager()
+        uniformDescriptorSet = descriptorManager:CreateDescriptorSet(descriptorLayout, bufferResourcesInfo)
+        
+        // Finish creating the PipelineInfo, then store the created PipelineLayout so we can use it later.
+        VulkanPipelineInfo info = creator:Finish()
+        pipelineLayout = info:GetLayout()
+        return info
+    end
+    
+    // This action is used to update the vertex information sent from Quorum to the vertex shader.
+    action SetVertexData(ShaderProgram program, Drawable drawable, DrawableShape shape)
+        // Set any vertex input information here, using the indices the creator returned for us.
+        shape:SetDataForAllVertices(myVertexInputIndex1, 3.14)
+        shape:SetDataForAllVertices(myVertexInputIndex2, 1)
+    end
+
+    // This action is called when the shader program will begin rendering.
+    action Begin(ShaderProgram program, Camera camera, VulkanCommandBuffer commandBuffer, integer swapchainIndex)
+        // Update the mapped data, if needed. In this case, we're setting a 3x3 matrix with dummy values.
+        integer counter = 0 
+        repeat while counter < uniformBufferMemory:GetSize()
+            uniformBufferMemory:Set(counter, counter * 2)
+            counter = counter + 1
+        end
+
+        // Send a command to bind our descriptors. This will make our mapped descriptor data available in the shaders.
+        //Because default 2D resources uses set indices 0 and 1, our descriptor set must be bound to set index = 2.        
+        BindDescriptorSetCommand descriptorBind
+        descriptorBind:SetPipelineLayout(pipelineLayout)
+        descriptorBind:SetDescriptorSet(uniformDescriptorSet)
+        descriptorBind:SetSetIndex(2)
+        commandBuffer:Record(descriptorBind)
+    end
+
+end
+*/
 class VulkanPipelineInfoCreator
     
     VulkanConstants constants
@@ -31,13 +141,18 @@ class VulkanPipelineInfoCreator
     integer currentVertexBindingIndex = 0
     integer vertexRate = constants:VERTEX_INPUT_RATE_VERTEX
     
+    /*
+    This action begins creating a new VulkanPipelineInfo. This action must be called before using other actions to add elements to the info.
+
+    Attribute: Parameter device An initialized VulkanDevice that will be used when creating pipeline resources.
+    */
     action Begin(VulkanDevice device)
         me:device = device
         
         VulkanPipelineInfo info
         me:info = info
         
-vertexAttributes = info:GetVertexInputAttributeDescriptions()
+        vertexAttributes = info:GetVertexInputAttributeDescriptions()
         vertexBindings = info:GetVertexInputBindingDescriptions()
         colorBlendAttachments = info:GetPipelineColorBlendAttachmentStates()
         dynamicStates = info:GetDynamicStates()
@@ -47,27 +162,53 @@ vertexAttributes = info:GetVertexInputAttributeDescriptions()
         Array<VulkanDescriptorSetLayoutBinding> descriptorBindings
         me:descriptorBindings = descriptorBindings
         
-currentDescriptorBindingIndex = 0
-    vulkanOffset = 0
-    quorumOffset = 0
-    currentAttributeIndex = 0
-    currentVertexBindingIndex = 0
+        currentDescriptorBindingIndex = 0
+        vulkanOffset = 0
+        quorumOffset = 0
+        currentAttributeIndex = 0
+        currentVertexBindingIndex = 0
     end
     
-    action CheckHasBegun
+    private action CheckHasBegun
         if device = undefined
             alert("The creator hasn't been initialized yet. Call Begin before using the creator.")
         end
     end
     
+    /*
+    This action creates a new vertex input binding, and sets its binding rate to per-vertex.
+    The new binding will be empty and will not include any previously added vertex inputs.
+    Previously added inputs will be in their own binding.
+
+    This function is only needed if you have more than one set of vertex inputs for the pipeline.
+    Most pipelines only need one set of vertex inputs, so this action isn't needed.
+    */
     action NewVertexRateVertexInputBinding
         NewVertexInputBinding(constants:VERTEX_INPUT_RATE_VERTEX)
     end
     
+    /*
+    This action creates a new vertex input binding, and sets its binding rate to per-instance.
+    The new binding will be empty and will not include any previously added vertex inputs.
+    Previously added inputs will be in their own binding.
+
+    This function is only needed if you have more than one set of vertex inputs for the pipeline.
+    Most pipelines only need one set of vertex inputs, so this action isn't needed.
+    */
     action NewInstanceRateVertexInputBinding
         NewVertexInputBinding(constants:VERTEX_INPUT_RATE_INSTANCE)
     end
     
+    /*
+    This action creates a new vertex input binding, and sets its binding rate to the requested rate.
+    The new binding will be empty and will not include any previously added vertex inputs.
+    Previously added inputs will be in their own binding.
+
+    This function is only needed if you have more than one set of vertex inputs for the pipeline.
+    Most pipelines only need one set of vertex inputs, so this action isn't needed.
+
+    Attribute: Parameter vulkanVertexRate A VERTEX_INPUT_RATE value from the VulkanConstants class, indicating how the vertex inputs will be used.
+    */
     action NewVertexInputBinding(integer vulkanVertexRate)
         CheckHasBegun()
         
@@ -89,8 +230,15 @@ currentDescriptorBindingIndex = 0
         vertexBindings:Add(binding)
     end
     
+    /*
+    This action finishes PipelineInfo creation. This action returns the created info, which will be ready for use, and
+    resets any state in the creator. After calling Finish, other actions can't be called on the Creator unless the Begin
+    action is called again first.
+
+    Attribute: Returns The created VulkanPipelineInfo.
+    */
     action Finish returns VulkanPipelineInfo
-CheckHasBegun()
+        CheckHasBegun()
         
         FinishCurrentVertexInputBinding()
         VulkanPipelineInfo result = info
@@ -114,8 +262,19 @@ CheckHasBegun()
         return result
     end
     
+    /*
+    This action adds a new vertex input to the current set, using the given data format.
+    Internally, this creates a new VulkanVertexInputAttributeDescription, where the binding
+    and attribute indices are automatically incremented and the offset is calculated.
+    This action also returns an index that corresponds to this input's location within a
+    Quorum DrawableShape. This index can be used with a DrawableShape to set this input's
+    data in a ShaderMapping.
+
+    Attribute: Parameter vulkanFormat A Vulkan FORMAT value from the VulkanConstants class, describing the data type of the input.
+    Attribute: Returns An index to where the value will be expected within a Quorum DrawableShape.
+    */
     action AddVertexInput(integer vulkanFormat) returns integer
-CheckHasBegun()
+        CheckHasBegun()
         
         integer quorumIndexResult = quorumOffset
         integer quorumSize = GetQuorumSize(vulkanFormat)
@@ -419,39 +578,68 @@ CheckHasBegun()
         return -1
     end
     
+    /*
+    This action adds the provided VulkanPipelineColorBlendAttachmentState as a blending value to the PipelineInfo.
+    
+    Attribute: Parameter colorBlend The blending attachment state to be added to the info.
+    */
     action AddColorBlendAttachmentState(VulkanPipelineColorBlendAttachmentState colorBlend)
-CheckHasBegun()
+        CheckHasBegun()
         colorBlendAttachments:Add(colorBlend)
     end
     
+    /*
+    This action adds a default VulkanPipelineColorBlendAttachmentState with transparency to the PipelineInfo.
+    */
     action AddTransparentColorBlendAttachmentState
-CheckHasBegun()
-VulkanPipelineColorBlendAttachmentState colorBlend
+            CheckHasBegun()
+            VulkanPipelineColorBlendAttachmentState colorBlend
             colorBlend:EnableDefaultTransparency()
             colorBlendAttachments:Add(colorBlend)
     end
     
-action AddOpaqueColorBlendAttachmentState
-CheckHasBegun()
-VulkanPipelineColorBlendAttachmentState colorBlend
+    /*
+    This action adds a default VulkanPipelineColorBlendAttachmentState with NO transparency to the PipelineInfo.
+    */
+    action AddOpaqueColorBlendAttachmentState
+            CheckHasBegun()
+            VulkanPipelineColorBlendAttachmentState colorBlend
             colorBlendAttachments:Add(colorBlend)
     end
     
+    /*
+    This action adds a dynamic state flag to the VulkanPipelineInfo. This will signal that certain parameters can change while the pipeline is active.
+
+    Attribute: Parameter dynamicState A Vulkan DYNAMIC_STATE flag from the VulkanConstants class.
+    */
     action AddDynamicState(integer dynamicState)
-CheckHasBegun()
+        CheckHasBegun()
         dynamicStates:Add(dynamicState)
     end
     
+    /*
+    This action adds the DYNAMIC_STATE_SCISSOR flag to the VulkanPipelineInfo, indicating that scissor values can change while the pipeline is active.
+    */
     action AddDynamicScissor
-CheckHasBegun()
+        CheckHasBegun()
         AddDynamicState(constants:DYNAMIC_STATE_SCISSOR)
     end
     
+    /*
+    This action adds the DYNAMIC_STATE_VIEWPORT flag to the VulkanPipelineInfo, indicating that the viewport can change while the pipeline is active.
+    */
     action AddDynamicViewport
-CheckHasBegun()
+        CheckHasBegun()
         AddDynamicState(constants:DYNAMIC_STATE_VIEWPORT)
     end
     
+    /*
+    This action adds a VulkanDescriptorSetLayoutBinding to the creator's current DescriptorSetLayout. The binding's index will be automatically set to
+    the next binding in the layout (i.e., 0, then 1, then 2, etc.) If the creator doesn't have a DescriptorSetLayout yet, this will automatically make one and
+    insert the binding.
+
+    Attribute: Parameter binding The binding to add to the creator's current DescriptorSetLayout.
+    */
     action AddDescriptorSetLayoutBinding(VulkanDescriptorSetLayoutBinding binding)
         CheckHasBegun()
         
@@ -460,6 +648,14 @@ CheckHasBegun()
         descriptorBindings:Add(binding)
     end
     
+    /*
+    This action adds a new VulkanDescriptorSetLayoutBinding to the creator's current DescriptorSetLayout, which will be available in the given shader stages
+    and will have the provided type. The binding's index will be automatically set to the next binding in the layout (i.e., 0, then 1, then 2, etc.) If the 
+    creator doesn't have a DescriptorSetLayout yet, this will automatically make one and insert the binding.
+
+    Attribute: Parameter stageFlags A combination of 1 or more Vulkan SHADER_STAGE flags, combined using bitwise OR or addition, indicating which shader stages the descriptor will be available in.
+    Attribute: Parameter type A Vulkan DESCRIPTOR_TYPE value from the VulkanConstants class.
+    */
     action AddDescriptorSetLayoutBinding(integer stageFlags, integer type) returns VulkanDescriptorSetLayoutBinding
         CheckHasBegun()
         
@@ -472,6 +668,12 @@ CheckHasBegun()
         return binding
     end
     
+    /*
+    This action finalizes any previously added DescriptorSetLayoutBindings and creates a VulkanDescriptorSetLayout. While this action is called automatically when
+    Finish is called, users may want to manually call this action before Finish if they need the VulkanDescriptorSetLayout (e.g., to bind descriptor sets later).
+
+    Attribute: Returns A VulkanDescriptorSetLayout containing all of the currently added descriptor bindings.
+    */
     action FinishDescriptorSetLayout returns VulkanDescriptorSetLayout
         CheckHasBegun()
         
@@ -489,33 +691,54 @@ CheckHasBegun()
         return layout
     end
     
+    /*
+    This action adds an already created VulkanDescriptorSetLayout to the info. This can be used to share descriptor set layouts across different pipelines.
+    If any bindings have been individually added to the Creator, this will automatically finalize them into a separate layout, as if using FinishDescriptorSetLayout,
+    before adding the new layout to the Creator.
+
+    Attribute: Parameter layout An already initialized VulkanDescriptorSetLayout to add to the PipelineInfo.
+    */
     action AddDescriptorSetLayout(VulkanDescriptorSetLayout layout)
         CheckHasBegun()
-if not descriptorBindings:IsEmpty()
+        if not descriptorBindings:IsEmpty()
             FinishDescriptorSetLayout()
         end
         descriptorSetLayouts:Add(layout)
     end
     
+    /*
+    This action adds default resources to the PipelineInfo, allowing it to use the default information provided by a VulkanPainter2D.
+    More specifically, it adds these vertex inputs:
+    - X, Y, Z position coordinates, as a Vector3 of 32-bit signed floating point values.
+    - RGBA vertex colors, as a Vector4 of 8-bit values normalized between 0 and 1.
+    - Texture (U, V) coordinates, stored as a Vector2 of 32-bit signed floating point values.
+    - A texture index value, stored as a 32-bit unsigned integer.
+
+    It also adds a transparency-enabled color blend attachment and dynamic scissor and viewport states.
+    Finally, it adds descriptor layouts for the default 2D camera, sampler, and global textures.
+
+    If using these values, this action should be called before adding additional vertex inputs or descriptors.
+    If using this inside a VulkanShaderMapping, that mapping should also call "UseDefaultResources2D(true)".
+    */
     action AddDefaultInfo2D
         CheckHasBegun()
         
-GameStateManager gameState
+        GameStateManager gameState
         VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
-VulkanTextureManager textureManager = graphics:GetTextureManager()
+        VulkanTextureManager textureManager = graphics:GetTextureManager()
         
-            VulkanConstants constants
+        VulkanConstants constants
         // Add the X, Y, Z coordinates as a Vector3 of 32 bit signed float values.
         AddVertexInput(constants:FORMAT_R32G32B32_SFLOAT)
         // Add vertex colors as a Vector4 of 8 bit values normalized between 0 and 1.
-AddVertexInput(constants:FORMAT_R8G8B8A8_UNORM)
+        AddVertexInput(constants:FORMAT_R8G8B8A8_UNORM)
         // Add texture coordinates as a Vector2 of 32 bit signed float values.
         AddVertexInput(constants:FORMAT_R32G32_SFLOAT)
         // Add the texture index value as a 32 bit unsigned integer.
         AddVertexInput(constants:FORMAT_R32_UINT)
             
         // Use transparency for color blending for this pipeline.    
-AddTransparentColorBlendAttachmentState()
+        AddTransparentColorBlendAttachmentState()
 
             // Define the dynamic states permitted by the pipeline. For our case, we want to be able to dynamically adjust viewport and scissor values.
         AddDynamicViewport()
@@ -526,12 +749,12 @@ AddTransparentColorBlendAttachmentState()
 
         // Create a binding for a sampler to use during fragment shading, then add the sampler to the returned binding.
         VulkanDescriptorSetLayoutBinding samplerBinding = AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_SAMPLER)
-Array<VulkanSampler> immutableSamplers
-VulkanSampler immutableSampler = textureManager:GetDefaultSampler()
-            immutableSamplers:Add(immutableSampler)
-            samplerBinding:SetImmutableSamplers(immutableSamplers)
+        Array<VulkanSampler> immutableSamplers
+        VulkanSampler immutableSampler = textureManager:GetDefaultSampler()
+        immutableSamplers:Add(immutableSampler)
+        samplerBinding:SetImmutableSamplers(immutableSamplers)
 
-            // We also need the descriptor set layout for the global textures. The texture manager holds onto that layout, so go fetch it.
+        // We also need the descriptor set layout for the global textures. The texture manager holds onto that layout, so go fetch it.
         // Now, add the pre-existing layout to the set of layouts used by the pipeline we're making.
         AddDescriptorSetLayout(textureManager:GetGlobalTextureDescriptorSetLayout())
     end
