@@ -1,0 +1,250 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Compute
+
+use Libraries.Containers.Number64BitArray
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanComputeQueueFamily
+use Libraries.Game.Graphics.Vulkan.VulkanQueue
+use Libraries.Game.Graphics.Vulkan.VulkanCommandPool
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+use Libraries.Game.Graphics.Vulkan.VulkanPushConstantRange
+use Libraries.Game.Graphics.Vulkan.VulkanComputePipelineInfo
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetLayout
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineLayout
+use Libraries.Game.Graphics.Vulkan.VulkanComputePipeline
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineCache
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetManager
+use Libraries.Game.Graphics.Vulkan.VulkanBuffer
+use Libraries.Game.Graphics.Vulkan.VulkanNumber32BitMappedMemory
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorResourcesInfo
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSet
+use Libraries.Game.Graphics.Vulkan.Commands.BindComputePipelineCommand
+use Libraries.Game.Graphics.Vulkan.Commands.BindDescriptorSetCommand
+use Libraries.Game.Graphics.Vulkan.Commands.ComputeShaderDispatchCommand
+use Libraries.Game.Graphics.Vulkan.VulkanFence
+use Libraries.Game.Graphics.Vulkan.VulkanSubmitInfo
+use Libraries.Game.Graphics.Vulkan.VulkanSemaphore
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetLayoutBinding
+use Libraries.Game.Graphics.Vulkan.VulkanNumber64BitMappedMemory
+use Libraries.Containers.Number32BitArray
+
+class OneBufferComputeShaderVulkan is Shader
+VulkanConstants constants
+VulkanDevice device = undefined
+    VulkanBuffer buffer = undefined
+VulkanDescriptorResourcesInfo bufferInfo = undefined
+VulkanGraphics vulkan  = undefined
+    
+VulkanQueue queue = undefined
+        VulkanCommandPool commandPool = undefined
+VulkanCommandBuffer commandBuffer = undefined
+    
+    
+VulkanComputePipelineInfo buildInfo = undefined
+VulkanPipelineLayout pipelineLayout = undefined
+VulkanPipelineCache cache = undefined
+VulkanComputePipeline pipeline = undefined
+    
+VulkanDescriptorSet descriptorSet = undefined
+VulkanFence fence
+    
+    on create
+SetType(parent:Shader:COMPUTE_SHADER)
+    end
+    
+    action SetBuffer(Number64BitArray array) returns VulkanNumber64BitMappedMemory
+VulkanBuffer inBuffer
+        integer numberSize = 8
+        integer size = array:GetSize() * numberSize
+        inBuffer:Create(device, size, constants:BUFFER_USAGE_STORAGE_BUFFER_BIT + constants:BUFFER_USAGE_TRANSFER_DESTINATION_BIT + constants:BUFFER_USAGE_TRANSFER_SOURCE_BIT, 
+    constants:MEMORY_USAGE_AUTO, 
+    constants:ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT, 
+    constants:MEMORY_PROPERTY_HOST_COHERENT_BIT +
+    constants:MEMORY_PROPERTY_HOST_VISIBLE_BIT, 
+    0, 
+    false)
+                VulkanNumber64BitMappedMemory mapping = inBuffer:MapToNumber64BitMemory()
+        
+VulkanDescriptorResourcesInfo inBufferInfo
+inBufferInfo:SetDestinationBinding(0)
+                inBufferInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_STORAGE_BUFFER)
+                inBufferInfo:AddBufferInfo(inBuffer, 0, size)
+        
+        bufferInfo = inBufferInfo
+        buffer = inBuffer
+        
+        i = 0 
+        repeat while i < array:GetSize()
+            mapping:Set(i, array:Get(i))
+            i = i + 1
+        end
+        
+        return mapping
+    end
+    
+    
+action SetBuffer(Number32BitArray array) returns VulkanNumber32BitMappedMemory
+VulkanBuffer inBuffer
+        integer numberSize = 4
+        integer size = array:GetSize() * numberSize
+        inBuffer:Create(device, size, constants:BUFFER_USAGE_STORAGE_BUFFER_BIT + constants:BUFFER_USAGE_TRANSFER_DESTINATION_BIT + constants:BUFFER_USAGE_TRANSFER_SOURCE_BIT, 
+    constants:MEMORY_USAGE_AUTO, 
+    constants:ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT, 
+    constants:MEMORY_PROPERTY_HOST_COHERENT_BIT +
+    constants:MEMORY_PROPERTY_HOST_VISIBLE_BIT, 
+    0, 
+    false)
+                VulkanNumber32BitMappedMemory mapping = inBuffer:MapToNumber32BitMemory()
+        
+VulkanDescriptorResourcesInfo inBufferInfo
+inBufferInfo:SetDestinationBinding(0)
+                inBufferInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_STORAGE_BUFFER)
+                inBufferInfo:AddBufferInfo(inBuffer, 0, size)
+        
+        bufferInfo = inBufferInfo
+        buffer = inBuffer
+        
+        i = 0 
+        repeat while i < array:GetSize()
+            mapping:Set(i, array:Get(i))
+            i = i + 1
+        end
+        
+        return mapping
+    end
+    
+    action SetupPipelines
+VulkanPushConstantRange push
+        push:SetCapacity(1)
+        push:SetOffset(0)
+        push:SetSize(10)
+        push:SetStage(constants:SHADER_STAGE_COMPUTE_BIT)
+        
+        VulkanComputePipelineInfo theBuildInfo
+        theBuildInfo:SetShader(me)
+        buildInfo = theBuildInfo
+        
+        Array<VulkanDescriptorSetLayout> layouts = GetDescriptorSetLayouts(device)
+        buildInfo:SetDescriptorSetLayouts(layouts)
+        
+VulkanPipelineLayout thePipelineLayout
+        thePipelineLayout:Create(device, layouts)
+        buildInfo:SetPipelineLayout(thePipelineLayout)
+        pipelineLayout = thePipelineLayout
+        
+        VulkanPipelineCache theCache
+        theCache:Create(device)
+        cache = theCache
+        buildInfo:SetPipelineCache(cache)
+        
+        VulkanComputePipeline thePipeline
+        thePipeline:Create(device, buildInfo)
+        pipeline = thePipeline
+
+VulkanDescriptorSetManager descriptorSetManager = vulkan:GetDescriptorSetManager()
+descriptorSet = descriptorSetManager:CreateDescriptorSet(layouts:Get(0), bufferInfo)
+        
+    end
+    
+private action GetDescriptorSetLayouts(VulkanDevice device) returns Array<VulkanDescriptorSetLayout>
+        Array<VulkanDescriptorSetLayout> layouts
+        
+        VulkanDescriptorSetLayoutBinding binding
+        binding:SetBinding(0)
+        binding:SetDescriptorCount(1)
+        binding:SetDescriptorType(constants:DESCRIPTOR_TYPE_STORAGE_BUFFER)
+                binding:SetStageFlags(constants:SHADER_STAGE_COMPUTE_BIT)
+
+        //Pass an array of bindings, to each layout.
+        VulkanDescriptorSetLayout layout
+        Array<VulkanDescriptorSetLayoutBinding> bindings
+        bindings:Add(binding)
+        layout:Create(device, bindings)
+        
+        //add this array of bindings within a layout to an array of layouts, then pass it back.
+        layouts:Add(layout)
+        return layouts
+    end
+    
+    action Create
+GameStateManager manager
+        GraphicsManager graphicsManager = manager:GetGameGraphics()
+        //check if it's VulkanGraphics
+        vulkan  = cast(VulkanGraphics, graphicsManager)
+        VulkanPhysicalDevice physicalDevice = vulkan:GetPhysicalDevice()
+        device = vulkan:GetDevice()
+        
+        //This gets the right queue from the system about the shader
+        VulkanComputeQueueFamily family
+        family:SetPhysicalDevice(physicalDevice)
+        integer computeIndex = family:GetQueueFamilyIndex()
+VulkanQueue theQueue
+        theQueue:Create(device, family, 0)
+        me:queue = theQueue
+        
+        //Make the command pool, which can run the commands
+        VulkanCommandPool thePool
+        thePool:Create(device, constants:COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, computeIndex)
+        commandPool = thePool
+        
+        //Make the buffer, which stores all of the commands
+VulkanCommandBuffer theCommandBuffer
+        theCommandBuffer:Create(device, commandPool)
+        commandBuffer = theCommandBuffer
+        Compile()
+        
+        
+    end
+    
+    action Run(integer x, integer y, integer z)
+commandBuffer:BeginRecording()
+        //bind the pipeline
+        BindComputePipelineCommand pipey
+        pipey:SetPipeline(pipeline)
+        commandBuffer:Record(pipey)
+        
+        BindDescriptorSetCommand inputBufferDescriptorCommand
+        inputBufferDescriptorCommand:SetPipelineLayout(pipelineLayout)
+        inputBufferDescriptorCommand:SetBindPoint(constants:PIPELINE_BIND_POINT_COMPUTE)
+        inputBufferDescriptorCommand:SetSetIndex(0)
+        inputBufferDescriptorCommand:SetDescriptorSet(descriptorSet)
+        commandBuffer:Record(inputBufferDescriptorCommand)
+        
+        ComputeShaderDispatchCommand compute
+        compute:SetX(x)
+        compute:SetY(y)
+        compute:SetZ(z)
+        
+        commandBuffer:Record(compute)
+        
+        //create a fence so we can wait on it
+        VulkanFence theFence
+        theFence:Create(device, false)
+        fence = theFence
+        
+Array<VulkanCommandBuffer> commandBuffers
+        Array<VulkanSemaphore> signalSemaphores
+        Array<VulkanSemaphore> waitSemaphores
+        Array<integer> waitDestinationStageMasks
+        
+        commandBuffers:Add(commandBuffer)
+        VulkanSubmitInfo submit
+submit:SetSignalSemaphores(signalSemaphores)
+        submit:SetWaitSemaphores(waitSemaphores)
+        submit:SetWaitDestinationStageMasks(waitDestinationStageMasks)
+        submit:SetFence(fence)
+        submit:SetCommandBuffers(commandBuffers)
+        queue:SubmitCommands(submit)
+    end
+    
+    action Wait
+fence:Wait()
+    end
+    
+end
