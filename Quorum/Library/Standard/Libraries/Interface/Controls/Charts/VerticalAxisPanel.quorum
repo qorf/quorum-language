@@ -351,19 +351,6 @@ class VerticalAxisPanel is ChartItem
         parent:Control:LoadGraphics(properties)
     end
 
-    action GetSelectionBorderColor returns ColorGroup
-        if HasColorPropertyOverride("selectionBorderColor")
-            return parent:Control:GetSelectionBorderColor()
-        end
-
-        Chart chart = GetParentChart()
-        if chart not= undefined
-            return chart:GetSelectionColor()
-        end
-
-        return parent:Control:GetSelectionBorderColor()
-    end
-
     /*
         This action is used to load the axis panel contents to the chart. 
         It is used by the LoadGraphics action in the parent Chart. This is

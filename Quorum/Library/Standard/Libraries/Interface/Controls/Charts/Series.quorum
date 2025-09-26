@@ -201,5 +201,26 @@ class Series is ChartDrawable
     action SetYMinimum(text yMinimum)
         me:yMinimum = yMinimum
     end
+    
+    action GainedSelection
+                //previousColor = GetColor()
+                integer i = 0
+                repeat while i < GetSize()
+                    Drawable element = GetItemAt(i)
+                    element:SetColor(GetSelectionColor())
+                    element:SetZ(-1)
+                    i = i + 1
+                end
+                GetEntryIcon():SetColor(GetSelectionColor())
+                GetEntryBox():SetColor(GetSelectionColor())
+                if GetRegressionLine() not= undefined
+                    RegressionLine regressionLine = cast(RegressionLine, GetRegressionLine())
+                    previousZ = regressionLine:GetZ()
+                    regressionLine:SetZ(-5)
+                    //regressionLine:SetColor(GetSelectionColor())
+                    regressionLine:GetLabel():GainedSelection()
+                    regressionLine:GetRegressionIcon():SetColor(GetSelectionColor())
+                end
+    end
 
 end

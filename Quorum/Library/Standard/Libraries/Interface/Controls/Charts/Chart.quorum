@@ -193,6 +193,9 @@ class Chart is ChartItem
     // How thick the borders around icons in the Legend should be, in pixels.
     // Only used if the chart has a Legend. Otherwise, this does nothing.
     number legendIconBorderThickness = 1
+    
+    // The radius of any corners that use rounding
+    number cornerRadius = 10
 
     // Used to indicate that a chart should include a movable regression line.
     // Must be set before displaying the chart.
@@ -213,6 +216,10 @@ class Chart is ChartItem
     Drawable selectionArrow //may or may not be used
     integer currentArrowSize = -1
     boolean currentSideArrow = false
+    
+    // Selection Graphics
+    Control selectionBox = undefined
+    integer selectionBoxPadding = 85
 
     on create
         CheckPlatformInstructions()
@@ -241,6 +248,7 @@ class Chart is ChartItem
     action LoadGraphics(LayoutProperties properties)
         DisposeDrawables()
         parent:Control:LoadGraphics(properties)   
+        output "Chart Graphics"
         if properties = undefined
             return now
         end
@@ -279,6 +287,8 @@ class Chart is ChartItem
             horizontalPanel:ShowGroupBrackets(true)
         end
 
+        // load selection graphics
+        LoadSelectionGraphics()
         // Load the arrow and brackets
         //initially hidden and resized, arbitrary triangle
         Array<number> vertices
@@ -452,6 +462,23 @@ class Chart is ChartItem
         Resize()
         SetNextFocus(GetNextFocus())
         SetPreviousFocus(GetPreviousFocus())
+    end
+    
+    action LoadSelectionGraphics
+        Control temp
+        selectionBox = temp
+        Color color
+        selectionBox:SetBackgroundColor(color:CustomColor(0,0,0,0))
+        selectionBox:SetBorderColor(GetSelectionColor())
+        selectionBox:SetBorderThickness(10)
+        selectionBox:SetSize(200,200)
+        selectionBox:SetCornerPixelRounding(GetCornerRadius(), GetCornerRadius(), GetCornerRadius(), GetCornerRadius())
+        selectionBox:SetZ(-5)
+        ControlShaderView view
+        selectionBox:SetView2D(view)
+        view:Initialize()
+        selectionBox:Hide()
+        Add(selectionBox)
     end
 
     /*
@@ -3440,11 +3467,9 @@ action SetColorPalette(ColorPalette colorPalette)
             return now
         end
 
-        Item target = item
-        if target not= undefined
-            target:Focus()
-            if target is Series
-                Series temp = cast(Series, target)
+        //output "Lost Selection: " + item:GetName()
+        if item is Series
+                Series temp = cast(Series, item)
                 integer i = 0
                 repeat while i < temp:GetSize()
                     Drawable element = temp:GetItemAt(i)
@@ -3461,45 +3486,15 @@ action SetColorPalette(ColorPalette colorPalette)
                     regressionLine:GetLabel():LostSelection()
                     regressionLine:GetRegressionIcon():SetColor(previousColor)
                 end
-            elseif target is RegressionLine
-                RegressionLine temp = cast(RegressionLine, target)
+            elseif item is RegressionLine
+                RegressionLine temp = cast(RegressionLine, item)
                 temp:SetZ(previousZ)
                 temp:SetColor(previousColor)
                 temp:GetLabel():LostSelection()
                 temp:GetRegressionIcon():SetColor(previousColor)
-            elseif target is RegressionLinePointMarker
-                target:Hide()
-            elseif target is GroupPanel
-                GroupPanel temp = cast(GroupPanel, target)  
-//                if temp:GetSelectionArrow() not= undefined          
-//                    temp:GetSelectionArrow():Hide()
-//                end
-//                if temp:GetSelectionBracket():GetSize() = 3          
-//                    temp:GetSelectionBracket():Get(0):Hide()
-//                    temp:GetSelectionBracket():Get(1):Hide()
-//                    temp:GetSelectionBracket():Get(2):Hide()
-//                end
-            elseif target is ChartDrawable
-                // Do nothing. Let the ChartDrawable handle itself.
-            elseif target is Drawable
-                Drawable temp = cast(Drawable, target)
-                temp:SetZ(previousZ)
-                temp:SetColor(previousColor)  
-            elseif target is ChartLabel
-                // Do nothing. Let the ChartLabel handle itself.
-            elseif target is ChartAreaPanel
-                // Do nothing.
-            elseif target is HorizontalAxisPanel or target is VerticalAxisPanel
-                // Do nothing.
-            elseif target is Control
-                Control temp = cast(Control, target)
-                LayoutProperties properties = temp:GetDefaultLayoutProperties()
-                if properties not= undefined
-                    // Remove the View set during Gained selection
-                    temp:SetView2D(undefined)
-                end
+        elseif item is Legend or item is ChartAreaPanel
+            selectionBox:Hide()
             end
-        end
     end
 
     /* 
@@ -3514,76 +3509,30 @@ action SetColorPalette(ColorPalette colorPalette)
         Attribute: Parameter item the ChartItem representing the structure for this particular kind of chart. 
     */
     action OnSelectionChange(ChartItem item)
-        Item target = item
-        if target not= undefined
-            target:Focus()
-            if target is Series
-                Series temp = cast(Series, target)
-                previousColor = temp:GetColor()
-                integer i = 0
-                repeat while i < temp:GetSize()
-                    Drawable element = temp:GetItemAt(i)
-                    element:SetColor(GetSelectionColor())
-                    element:SetZ(-1)
-                    i = i + 1
-                end
-                temp:GetEntryIcon():SetColor(GetSelectionColor())
-                temp:GetEntryBox():SetColor(GetSelectionColor())
-                if showLinearRegression and temp:GetRegressionLine() not= undefined
-                    RegressionLine regressionLine = cast(RegressionLine, temp:GetRegressionLine())
-                    previousZ = regressionLine:GetZ()
-                    regressionLine:SetZ(-5)
-                    //regressionLine:SetColor(GetSelectionColor())
-                    regressionLine:GetLabel():GainedSelection()
-                    regressionLine:GetRegressionIcon():SetColor(GetSelectionColor())
-                end 
-            elseif target is RegressionLine
-                RegressionLine temp = cast(RegressionLine, target)
-                previousZ = temp:GetZ()
-                previousColor = temp:GetColor()
-                temp:SetZ(-5)
-                temp:SetColor(GetSelectionColor())
-                temp:GetLabel():GainedSelection()
-                temp:GetRegressionIcon():SetColor(GetSelectionColor())
-            elseif target is RegressionLinePointMarker
-                target:Show()
-            elseif target is GroupPanel
-                // Removed
-            elseif target is ChartDrawable
-                // Do nothing by default. The ChartDrawable handles its own selection event.
-            elseif target is Drawable
-                Drawable temp = cast(Drawable, target)
-                previousZ = temp:GetZ()
-                previousColor = temp:GetColor()
-                temp:SetZ(-1)
-                temp:SetColor(GetSelectionColor())
-            elseif target is ChartLabel
-                // Do nothing by default. The ChartLabel handles its own selection event.
-            elseif target is ChartAreaPanel
-                /*
-                Do whatever specialized work we want to do to show overall focus/selection on the ChartAreaPanel here.
-                Importantly, we do not want to override the color properties like we would if we fell into the last case below.
-                */
-            //elseif target:Equals(me)
-            //    GetChartArea():GainedSelection()
-            elseif target is HorizontalAxisPanel or target is VerticalAxisPanel
-                // Do nothing by default. The axis panel handles its own selection event.
-            elseif target is Control
-                Control temp = cast(Control, target)
-                LayoutProperties properties = temp:GetDefaultLayoutProperties()
-                if properties not= undefined
-                    previousColorGroup = properties:GetBorderColor()
-                    previousBackgroundColor = properties:GetBackgroundColor()
-                    Color transparency
-                    transparency:SetColor(0, 0, 0, 0)
-                    ControlShaderView view
-                    view:Initialize()
-                    temp:SetBackgroundColor(transparency)
-                    temp:SetBorderColor(GetSelectionColor())
-                    temp:SetView2D(view)
-                end
-            end
+//output "On Selection Change: " + item:GetName()
+        if item = undefined
+            return now
         end
+            item:Focus()
+if item is ChartAreaPanel or item is Legend
+            ApplySelectionBoxAroundItem(item, selectionBoxPadding)
+            //selectionBox:SetSize(item:GetWidth() + selectionBoxPadding, item:GetHeight() + selectionBoxPadding * 1.5)
+            //selectionBox:SetX(item:GetGlobalX() - selectionBoxPadding)
+            //selectionBox:SetY(item:GetGlobalY() - selectionBoxPadding/ 2)
+        elseif item is HorizontalAxisPanel or item is VerticalAxisPanel
+            ApplySelectionBoxAroundItem(item, 0)
+        end
+    end
+    
+    action ApplySelectionBoxAroundItem(ChartItem item, number padding)
+        ApplySelectionBoxAroundItem(item, padding, padding, padding, padding)
+    end
+    
+    action ApplySelectionBoxAroundItem(ChartItem item, number topPadding, number rightPadding, number bottomPadding, number leftPadding)
+            selectionBox:Show()
+            selectionBox:SetSize(item:GetWidth() + rightPadding + leftPadding, item:GetHeight() + bottomPadding + leftPadding)
+            selectionBox:SetX(item:GetGlobalX() - leftPadding)
+            selectionBox:SetY(item:GetGlobalY() - bottomPadding)
     end
 
     action LostSelection
@@ -4433,6 +4382,14 @@ action SetColorPalette(ColorPalette colorPalette)
 
     action GetPatternPalette returns PatternPalette
         return patternPalette
+    end
+
+    action SetCornerRadius(number cornerRadius)
+        me:cornerRadius = cornerRadius
+    end
+
+    action GetCornerRadius returns number
+        return cornerRadius
     end
 
 end

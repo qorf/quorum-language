@@ -82,113 +82,37 @@ class Bar is ChartDrawable
 
     action LoadGraphics(LayoutProperties properties)
         // Render this Drawable with the Control Shader.
+        boolean roundCorners = true
+        if GetParentChart() is SharedBarChartParent
+            SharedBarChartParent chartParent = cast(SharedBarChartParent, GetParentChart())
+            if chartParent:GetStackedFlag()
+                roundCorners = false
+            end
+        end
+        if roundCorners
+if GetParentChart():GetVerticalFlag()
+            if value > 0
+                SetCornerPixelRounding(0,0,GetParentChart():GetCornerRadius(),GetParentChart():GetCornerRadius())
+            else
+                SetCornerPixelRounding(GetParentChart():GetCornerRadius(),GetParentChart():GetCornerRadius(),0,0)
+            end
+        else
+            if value > 0
+                SetCornerPixelRounding(0,GetParentChart():GetCornerRadius(),0,GetParentChart():GetCornerRadius())
+            else
+                SetCornerPixelRounding(GetParentChart():GetCornerRadius(),0,GetParentChart():GetCornerRadius(),0)
+            end
+        end
+            
+        end
+
+        SetBorderColor(GetBorderColor())
+        SetBorderThickness(2)
         
 ControlShaderView shader
 shader:Initialize()
         SetView2D(shader)
-        if GetShaderProgram() = undefined
-            GameStateManager gameState
-            ShaderManager manager = gameState:GetShaderManager()
-            ShaderProgram program = undefined
-            
-            if HasPattern()
-                integer pattern = GetPattern()
-                PatternOptionConstants options
-                
-                if pattern = options:VERTICAL_LINES or pattern = options:HORIZONTAL_LINES or pattern = options:DIAGONAL_DOWN_LINES or pattern = options:DIAGONAL_UP_LINES
-                    if manager:HasShaderProgram("Line Pattern Control Shader Program")
-                        program = manager:GetShaderProgram("Line Pattern Control Shader Program")
-                    else
-                        LinePatternControlShaderProgram patternShader
-                        patternShader:Compile()
-                        program = patternShader
-                    end
-                elseif pattern = options:PLAIN_CROSSHATCH or pattern = options:DIAGONAL_CROSSHATCH
-                    if manager:HasShaderProgram("Crosshatch Pattern Control Shader Program")
-                        program = manager:GetShaderProgram("Crosshatch Pattern Control Shader Program")
-                    else
-                        CrosshatchPatternControlShaderProgram patternShader
-                        patternShader:Compile()
-                        program = patternShader
-                    end
-                elseif pattern = options:HOLLOW_CIRCLES
-                    if manager:HasShaderProgram("Hollow Circle Pattern Control Shader Program")
-                        program = manager:GetShaderProgram("Hollow Circle Pattern Control Shader Program")
-                    else
-                        HollowCirclePatternControlShaderProgram patternShader
-                        patternShader:Compile()
-                        program = patternShader
-                    end
-                elseif pattern = options:SOLID_CIRCLES
-                    if manager:HasShaderProgram("Solid Circle Pattern Control Shader Program")
-                        program = manager:GetShaderProgram("Solid Circle Pattern Control Shader Program")
-                    else
-                        SolidCirclePatternControlShaderProgram patternShader
-                        patternShader:Compile()
-                        program = patternShader
-                    end
-                elseif pattern = options:HOLLOW_BOXES
-                    if manager:HasShaderProgram("Hollow Box Pattern Control Shader Program")
-                        program = manager:GetShaderProgram("Hollow Box Pattern Control Shader Program")
-                    else
-                        HollowBoxPatternControlShaderProgram patternShader
-                        patternShader:Compile()
-                        program = patternShader
-                    end
-                elseif pattern = options:SOLID_BOXES
-                    if manager:HasShaderProgram("Solid Box Pattern Control Shader Program")
-                        program = manager:GetShaderProgram("Solid Box Pattern Control Shader Program")
-                    else
-                        SolidBoxPatternControlShaderProgram patternShader
-                        patternShader:Compile()
-                        program = patternShader
-                    end
-                elseif pattern = options:PINPOINT_DASHES
-                    if manager:HasShaderProgram("Dashed Line Pattern Control Shader Program")
-                        program = manager:GetShaderProgram("Dashed Line Pattern Control Shader Program")
-                    else
-                        DashedLinePatternControlShaderProgram patternShader
-                        patternShader:Compile()
-                        program = patternShader
-                    end
-                elseif pattern = options:HOLLOW_TRIANGLES
-                    if manager:HasShaderProgram("Hollow Triangle Pattern Control Shader Program")
-                        program = manager:GetShaderProgram("Hollow Triangle Pattern Control Shader Program")
-                    else
-                        HollowTrianglePatternControlShaderProgram patternShader
-                        patternShader:Compile()
-                        program = patternShader
-                    end
-                elseif pattern = options:SOLID_TRIANGLES
-                    if manager:HasShaderProgram("Solid Triangle Pattern Control Shader Program")
-                        program = manager:GetShaderProgram("Solid Triangle Pattern Control Shader Program")
-                    else
-                        SolidTrianglePatternControlShaderProgram patternShader
-                        patternShader:Compile()
-                        program = patternShader
-                    end
-                else
-                    // Default case: basic control shader, without pattern
-                    if manager:HasShaderProgram("Control Shader Program")
-                        program = manager:GetShaderProgram("Control Shader Program")
-                    else
-                        ControlShaderProgram controlShader
-                        controlShader:Compile()
-                        program = controlShader
-                    end
-                end
-            else
-                if manager:HasShaderProgram("Control Shader Program")
-                    program = manager:GetShaderProgram("Control Shader Program")
-                else
-                    ControlShaderProgram controlShader
-                    controlShader:Compile()
-                    program = controlShader
-                end
-            end
-            
-            SetShaderProgram(program)
-        end
+        ResolvePatternShader()
 
         parent:Control:LoadGraphics(properties)
     end
@@ -273,46 +197,5 @@ shader:Initialize()
         end
 
         return parent:Control:GetBorderStyle()
-    end
-
-    /*
-        This action returns true if the left border is present on the bar.
-    
-        Attribute: Returns true when the bar has a left border.
-    */
-    action HasLeftBorder returns boolean
-        LayoutProperties properties = GetDefaultLayoutProperties()
-        integer style = GetBorderStyle()
-        return bits:And(style, properties:LEFT) not= 0
-    end
-    /*
-        This action returns true if the top border is present on the bar.
-    
-        Attribute: Returns true when the bar has a top border.
-    */
-    action HasTopBorder returns boolean
-        LayoutProperties properties = GetDefaultLayoutProperties()
-        integer style = GetBorderStyle()
-        return bits:And(style, properties:TOP) not= 0
-    end
-    /*
-        This action returns true if the right border is present on the bar.
-    
-        Attribute: Returns true when the bar has a right border.
-    */
-    action HasRightBorder returns boolean
-        LayoutProperties properties = GetDefaultLayoutProperties()
-        integer style = GetBorderStyle()
-        return bits:And(style, properties:RIGHT) not= 0
-    end
-    /*
-        This action returns true if the bottom border is present on the bar.
-    
-        Attribute: Returns true when the bar has a bottom border.
-    */
-    action HasBottomBorder returns boolean
-        LayoutProperties properties = GetDefaultLayoutProperties()
-        integer style = GetBorderStyle()
-        return bits:And(style, properties:BOTTOM) not= 0
     end
 end

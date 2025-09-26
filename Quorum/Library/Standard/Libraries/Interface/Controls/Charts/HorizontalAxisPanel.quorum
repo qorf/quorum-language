@@ -336,23 +336,7 @@ class HorizontalAxisPanel is ChartItem
 
         parent:Control:LoadGraphics(properties)
     end
-    /* 
-        This action gets the selection border color.
-
-        Attribute: Returns the selection border color.
-    */
-    action GetSelectionBorderColor returns ColorGroup
-        if HasColorPropertyOverride("selectionBorderColor")
-            return parent:Control:GetSelectionBorderColor()
-        end
-
-        Chart chart = GetParentChart()
-        if chart not= undefined
-            return chart:GetSelectionColor()
-        end
-
-        return parent:Control:GetSelectionBorderColor()
-    end
+    
 
     /*
         This action is used to load the axis panel contents to the chart. 

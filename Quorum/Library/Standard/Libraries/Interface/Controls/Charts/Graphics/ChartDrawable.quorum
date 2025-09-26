@@ -14,6 +14,19 @@ use Libraries.Interface.Controls.Charts.TwoVariableChart
 use Libraries.Interface.Controls.Charts.ChartLine
 use Libraries.Game.Graphics.Label
 use Libraries.Interface.Controls.Charts.PatternOptionConstants
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.ShaderProgram
+use Libraries.Game.Graphics.Shaders.LinePatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.CrosshatchPatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.HollowCirclePatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.SolidCirclePatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.HollowBoxPatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.SolidBoxPatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.DashedLinePatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.HollowTrianglePatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.SolidTrianglePatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.ControlShaderProgram
 
 
 /*
@@ -266,39 +279,6 @@ class ChartDrawable is ChartItem, Drawable
         end
 
         return cast(Chart, parentItem)
-    end
-
-    /*
-        This action is used when a Chart Drawable gains the selection. Selection
-        elements are then shown.
-    */
-    action GainedSelection()
-        if HasSelectionBracket() and GetParentChart():GetSelectionBracket():GetSize() = 3 and HasSelectionArrow()
-            AdjustSelectionBracketAndArrow()          
-            GetParentChart():GetSelectionBracket():Get(0):Show()
-            GetParentChart():GetSelectionBracket():Get(1):Show()
-            GetParentChart():GetSelectionBracket():Get(2):Show()
-            GetParentChart():GetSelectionArrow():Show()
-        elseif HasSelectionArrow()
-            AdjustSelectionArrow()          
-            GetParentChart():GetSelectionArrow():Show()
-        end
-        parent:ChartItem:GainedSelection()
-    end
-    /*
-        This action is used when a Chart Drawable loses the selection. Selection
-        elements are then hidden.
-    */
-    action LostSelection()
-        if HasSelectionArrow()         
-            GetParentChart():GetSelectionArrow():Hide()
-        end
-        if HasSelectionBracket() and GetParentChart():GetSelectionBracket():GetSize() = 3          
-            GetParentChart():GetSelectionBracket():Get(0):Hide()
-            GetParentChart():GetSelectionBracket():Get(1):Hide()
-            GetParentChart():GetSelectionBracket():Get(2):Hide()
-        end
-        parent:ChartItem:LostSelection()
     end
 
     /*
@@ -621,6 +601,113 @@ class ChartDrawable is ChartItem, Drawable
 
     action SetSelectionBracket(boolean selectionBracket)
         me:selectionBracket = selectionBracket
+    end
+    
+    action ResolvePatternShader
+        
+if GetShaderProgram() = undefined
+            GameStateManager gameState
+            ShaderManager manager = gameState:GetShaderManager()
+            ShaderProgram program = undefined
+            
+            if HasPattern()
+                integer pattern = GetPattern()
+                PatternOptionConstants options
+                
+                if pattern = options:VERTICAL_LINES or pattern = options:HORIZONTAL_LINES or pattern = options:DIAGONAL_DOWN_LINES or pattern = options:DIAGONAL_UP_LINES
+                    if manager:HasShaderProgram("Line Pattern Control Shader Program")
+                        program = manager:GetShaderProgram("Line Pattern Control Shader Program")
+                    else
+                        LinePatternControlShaderProgram patternShader
+                        patternShader:Compile()
+                        program = patternShader
+                    end
+                elseif pattern = options:PLAIN_CROSSHATCH or pattern = options:DIAGONAL_CROSSHATCH
+                    if manager:HasShaderProgram("Crosshatch Pattern Control Shader Program")
+                        program = manager:GetShaderProgram("Crosshatch Pattern Control Shader Program")
+                    else
+                        CrosshatchPatternControlShaderProgram patternShader
+                        patternShader:Compile()
+                        program = patternShader
+                    end
+                elseif pattern = options:HOLLOW_CIRCLES
+                    if manager:HasShaderProgram("Hollow Circle Pattern Control Shader Program")
+                        program = manager:GetShaderProgram("Hollow Circle Pattern Control Shader Program")
+                    else
+                        HollowCirclePatternControlShaderProgram patternShader
+                        patternShader:Compile()
+                        program = patternShader
+                    end
+                elseif pattern = options:SOLID_CIRCLES
+                    if manager:HasShaderProgram("Solid Circle Pattern Control Shader Program")
+                        program = manager:GetShaderProgram("Solid Circle Pattern Control Shader Program")
+                    else
+                        SolidCirclePatternControlShaderProgram patternShader
+                        patternShader:Compile()
+                        program = patternShader
+                    end
+                elseif pattern = options:HOLLOW_BOXES
+                    if manager:HasShaderProgram("Hollow Box Pattern Control Shader Program")
+                        program = manager:GetShaderProgram("Hollow Box Pattern Control Shader Program")
+                    else
+                        HollowBoxPatternControlShaderProgram patternShader
+                        patternShader:Compile()
+                        program = patternShader
+                    end
+                elseif pattern = options:SOLID_BOXES
+                    if manager:HasShaderProgram("Solid Box Pattern Control Shader Program")
+                        program = manager:GetShaderProgram("Solid Box Pattern Control Shader Program")
+                    else
+                        SolidBoxPatternControlShaderProgram patternShader
+                        patternShader:Compile()
+                        program = patternShader
+                    end
+                elseif pattern = options:PINPOINT_DASHES
+                    if manager:HasShaderProgram("Dashed Line Pattern Control Shader Program")
+                        program = manager:GetShaderProgram("Dashed Line Pattern Control Shader Program")
+                    else
+                        DashedLinePatternControlShaderProgram patternShader
+                        patternShader:Compile()
+                        program = patternShader
+                    end
+                elseif pattern = options:HOLLOW_TRIANGLES
+                    if manager:HasShaderProgram("Hollow Triangle Pattern Control Shader Program")
+                        program = manager:GetShaderProgram("Hollow Triangle Pattern Control Shader Program")
+                    else
+                        HollowTrianglePatternControlShaderProgram patternShader
+                        patternShader:Compile()
+                        program = patternShader
+                    end
+                elseif pattern = options:SOLID_TRIANGLES
+                    if manager:HasShaderProgram("Solid Triangle Pattern Control Shader Program")
+                        program = manager:GetShaderProgram("Solid Triangle Pattern Control Shader Program")
+                    else
+                        SolidTrianglePatternControlShaderProgram patternShader
+                        patternShader:Compile()
+                        program = patternShader
+                    end
+                else
+                    // Default case: basic control shader, without pattern
+                    if manager:HasShaderProgram("Control Shader Program")
+                        program = manager:GetShaderProgram("Control Shader Program")
+                    else
+                        ControlShaderProgram controlShader
+                        controlShader:Compile()
+                        program = controlShader
+                    end
+                end
+            else
+                if manager:HasShaderProgram("Control Shader Program")
+                    program = manager:GetShaderProgram("Control Shader Program")
+                else
+                    ControlShaderProgram controlShader
+                    controlShader:Compile()
+                    program = controlShader
+                end
+            end
+            
+            SetShaderProgram(program)
+        end
     end
 
 end

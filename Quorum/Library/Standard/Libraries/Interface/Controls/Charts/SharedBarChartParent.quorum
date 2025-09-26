@@ -13,6 +13,7 @@ use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Controls.Charts.Graphics.BarGroup
 use Libraries.Interface.Controls.Charts.Graphics.Bar
 use Libraries.Game.Graphics.LinePath
+use Libraries.Interface.Views.ControlShaderView
 
 /*
     The SharedBarChartParent class is Chart object that inherits from Control and like other
@@ -68,6 +69,13 @@ class SharedBarChartParent is Chart
 
     // Used to render a trend line. Undefined if no trend line is being rendered.
     LinePath trendLine = undefined
+    
+    // Selection graphics
+    Control selectionBar = undefined
+    boolean barShowing = false
+number blinkIdleTime = 1.0
+    number blinkTime = 0.35
+    number blinkTimer = blinkIdleTime
 
     on create
         LayoutProperties properties = GetDefaultLayoutProperties()
@@ -84,6 +92,7 @@ class SharedBarChartParent is Chart
     */
     action LoadGraphics(LayoutProperties properties)
         DisposeDrawables()
+        output "bar graphics"
         if properties = undefined
             return now
         end
@@ -100,8 +109,22 @@ class SharedBarChartParent is Chart
         else
             HideMajorXGridLines()
         end
-
         LoadChartAreaItems()
+    end
+    
+    action LoadSelectionGraphics()
+        output "LoadSelectionGraphics"
+        Control temp
+        selectionBar = temp
+        selectionBar:SetSize(100,50)
+        selectionBar:SetBackgroundColor(GetSelectionColor())
+        selectionBar:SetCornerRounding(1,1,1,1)
+        ControlShaderView view
+        selectionBar:SetView2D(view)
+        view:Initialize()
+        selectionBar:Hide()
+        Add(selectionBar)
+        parent:Chart:LoadSelectionGraphics()
     end
 
     action LoadChartAreaItems()
@@ -288,10 +311,12 @@ class SharedBarChartParent is Chart
         if item = undefined
             return now
         end
-        Item target = item
-        if target not= undefined
+        if item is Bar
+            selectionBar:Hide()
+            barShowing = false
+        end
             parent:Chart:LostSelection(item)
-        end 
+
     end
 
     /* 
@@ -310,11 +335,45 @@ class SharedBarChartParent is Chart
         if item = undefined
             return now
         end
-        Item target = item
-        if target not= undefined
-            target:Focus()
+//if selectionBar = undefined
+            //return now
+        //end
+item:Focus()
+        if item is Bar
+            selectionBar:Show()
+            barShowing = true
+            blinkTimer = blinkIdleTime
+            if (GetVerticalFlag() and not isStacked) or (GetHorizontalFlag() and isStacked)
+                selectionBar:SetSize(item:GetWidth(), 25)
+                selectionBar:SetX(item:GetGlobalX())
+                selectionBar:SetY(item:GetGlobalY() + item:GetHeight() + 10)
+            else
+selectionBar:SetSize(25, item:GetHeight())
+                selectionBar:SetX(item:GetGlobalX() + item:GetWidth() + 10)
+                selectionBar:SetY(item:GetGlobalY())
+                selectionBar:SetCornerRounding(0,0,0,0)
+            end
+        elseif item is BarGroup
+            ApplySelectionBoxAroundItem(item, 5)
+        else
             parent:Chart:OnSelectionChange(item)
         end
+    end
+    
+    action Update(number seconds)
+if selectionBar not= undefined and barShowing
+            blinkTimer = blinkTimer - seconds
+            if blinkTimer < 0
+                blinkTimer = blinkTime
+                if selectionBar:IsShowing()
+                    selectionBar:Hide()
+                else
+                    selectionBar:Show()
+                end
+            end
+        end
+        
+        parent:Chart:Update(seconds)
     end
 
     /*

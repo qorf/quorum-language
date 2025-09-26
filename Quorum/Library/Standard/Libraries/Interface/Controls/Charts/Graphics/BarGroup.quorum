@@ -4,6 +4,7 @@ use Libraries.Containers.Array
 use Libraries.Interface.Controls.Charts.GroupPanel
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Game.Graphics.Color
+use Libraries.Interface.Options.InterfaceOptions
 
 /*
 The BarGroup class is a data structure that stores information for each 
@@ -40,11 +41,9 @@ class BarGroup is GroupPanel
     text groupName = ""
 
     action AddBar(Bar bar)
+        
         AddItem(bar)
-bar:SetCornerPixelRounding(0,0,10,10)
-        Color color
-        bar:SetBorderColor(color:CustomColor(0.6,0.6,0.6,1))
-        bar:SetBorderThickness(2)
+        
         RecalculateGroupValues()
     end
     /*
@@ -57,10 +56,6 @@ bar:SetCornerPixelRounding(0,0,10,10)
         Bar bar
         bar:SetName(name)
         bar:SetValue(value)
-        bar:SetCornerPixelRounding(0,0,10,10)
-        Color color
-        bar:SetBorderColor(color:CustomColor(0.6,0.6,0.6,1))
-        bar:SetBorderThickness(2)
         
         AddItem(bar)
         RecalculateGroupValues()
