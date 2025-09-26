@@ -1160,6 +1160,9 @@ if (GetViewportX() not= openGL:GetViewportX() or GetViewportY() not= openGL:GetV
             or GetViewportWidth() not= openGL:GetViewportWidth() or GetViewportHeight() not= openGL:GetViewportHeight())
             openGL:SetViewport(GetViewportX(), GetViewportY(), GetViewportWidth(), GetViewportHeight())
         end
+        elseif painter is VulkanPainter2D
+            VulkanPainter2D vulkanPainter = cast(VulkanPainter2D, painter)
+            vulkanPainter:SetViewport(GetViewportX(), GetViewportY(), GetViewportWidth(), GetViewportHeight())
         end
         
 

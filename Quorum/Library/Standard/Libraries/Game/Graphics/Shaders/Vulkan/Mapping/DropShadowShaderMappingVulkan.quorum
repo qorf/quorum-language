@@ -157,13 +157,6 @@ shape:SetDataForAllVertices(thicknessOffsetIndex + 1, heightMultiplier)
         shape:SetDataForAllVertices(softnessIndex, softness)
         shape:SetDataForAllVertices(localCenterIndex, drawable:GetGlobalX() + width / 2.0)
 shape:SetDataForAllVertices(localCenterIndex + 1, drawable:GetGlobalY() + height / 2.0)
-        
-        //glProgram:SetShaderInput("u_aspectRatio", width / height)
-        //glProgram:SetShaderInput("u_rounding", bottomRightRounding, topRightRounding, bottomLeftRounding, topLeftRounding)
-        //glProgram:SetShaderInput("u_thicknessOffset", widthMultiplier, heightMultiplier)
-        //glProgram:SetShaderInput("u_shadowOffset", shadowX, shadowY)
-        //glProgram:SetShaderInput("u_softness", softness)
-        //glProgram:SetShaderInput("u_localCenter", drawable:GetGlobalX() + width / 2.0, drawable:GetGlobalY() + height / 2.0)
     end
 
     // This action is called when the shader program will begin rendering.

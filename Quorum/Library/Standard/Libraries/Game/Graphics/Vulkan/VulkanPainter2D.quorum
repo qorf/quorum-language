@@ -63,6 +63,11 @@ class VulkanPainter2D is Painter2D
     number clipHeight = -1
     boolean isClipping = false
     
+    integer viewportX = 0
+    integer viewportY = 0
+    integer viewportWidth = 0
+    integer viewportHeight = 0
+    
     boolean needsFlush = false
 
 // Resources for the Camera uniform.
@@ -410,10 +415,17 @@ BindPipelineCommand bindPipeline
                 
             end
 
-            // TO-DO: CHANGE THIS DYNAMICALLY FOR RENDERED CONTENT
+            // Ensure that, if no viewport dimensions were set, we get reasonable defaults from the swapchain.
+            if viewportWidth = 0
+                viewportWidth = swapchain:GetImageWidth()
+            end
+            if viewportHeight = 0
+                viewportHeight = swapchain:GetImageHeight()
+            end
+            
             SetViewportCommand setViewport
-            setViewport:SetPosition(0, swapchain:GetImageHeight())
-            setViewport:SetSize(swapchain:GetImageWidth(), -swapchain:GetImageHeight())
+            setViewport:SetPosition(viewportX, swapchain:GetImageHeight() - viewportY)
+            setViewport:SetSize(viewportWidth, -viewportHeight)
             commandBuffer:Record(setViewport)
             
             boolean clippingChanged = false
@@ -628,6 +640,13 @@ private action MatrixToArray(Matrix4 matrix) returns Number32BitArray
         matrix4Array:Set(14, matrix:row2column3)
         matrix4Array:Set(15, matrix:row3column3)
         return matrix4Array
+    end
+    
+    action SetViewport(integer x, integer y, integer width, integer height)
+        viewportX = x
+        viewportY = y
+        viewportWidth = width
+        viewportHeight = height
     end
 
 end
