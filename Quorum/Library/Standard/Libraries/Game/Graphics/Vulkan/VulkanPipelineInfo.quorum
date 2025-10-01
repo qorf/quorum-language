@@ -11,6 +11,11 @@ class VulkanPipelineInfo
     integer viewportCount = 1
     integer scissorCount = 1
     number lineWidth = 1.0
+    boolean depthTestEnable = true
+    boolean depthWriteEnable = true
+    integer depthCompareOp = 0
+    boolean stencilTestEnable = false
+    
     VulkanPipelineLayout layout
     Array<integer> dynamicStates
     Array<VulkanVertexInputAttributeDescription> vertexInputAttributeDescriptions
@@ -24,6 +29,7 @@ class VulkanPipelineInfo
         cullMode = constants:CULL_MODE_NONE
         frontFace = constants:FRONT_FACE_CLOCKWISE
         rasterizationSamples = constants:SAMPLE_COUNT_1_BIT
+        depthCompareOp = constants:COMPARE_OP_LESS
     end
 
     action Copy returns VulkanPipelineInfo
@@ -169,6 +175,38 @@ class VulkanPipelineInfo
 
     action SetLayout(VulkanPipelineLayout layout)
         me:layout = layout
+    end
+
+    action GetDepthTestEnable returns boolean
+        return depthTestEnable
+    end
+
+    action SetDepthTestEnable(boolean depthTestEnable)
+        me:depthTestEnable = depthTestEnable
+    end
+
+    action GetDepthWriteEnable returns boolean
+        return depthWriteEnable
+    end
+
+    action SetDepthWriteEnable(boolean depthWriteEnable)
+        me:depthWriteEnable = depthWriteEnable
+    end
+
+    action GetDepthCompareOp returns integer
+        return depthCompareOp
+    end
+
+    action SetDepthCompareOp(integer depthCompareOp)
+        me:depthCompareOp = depthCompareOp
+    end
+
+    action GetStencilTestEnable returns boolean
+        return stencilTestEnable
+    end
+
+    action SetStencilTestEnable(boolean stencilTestEnable)
+        me:stencilTestEnable = stencilTestEnable
     end
 
 end

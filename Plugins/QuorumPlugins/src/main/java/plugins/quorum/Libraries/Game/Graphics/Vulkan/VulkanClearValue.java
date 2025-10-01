@@ -14,7 +14,7 @@ public class VulkanClearValue
     {
         if (clearValue == null)
         {
-            clearValue = VkClearValue.calloc(1);
+            clearValue = VkClearValue.calloc(2);
         }
 
         VulkanClearValue_ quorumValue = (VulkanClearValue_)me_;
@@ -28,14 +28,10 @@ public class VulkanClearValue
                             .float32(3, (float) quorumValue.GetAlpha()));
         }
 
-        if (quorumValue.GetDepth() >= 0)
+        if (true)
         {
-            clearValue.apply(0, v -> v.depthStencil().depth((float)quorumValue.GetDepth()));
-        }
-
-        if (quorumValue.GetStencil() >= 0)
-        {
-            clearValue.apply(0, v -> v.depthStencil().stencil(quorumValue.GetStencil()));
+            clearValue.apply(1, v -> v.depthStencil().depth((float) quorumValue.GetDepth()));
+            clearValue.apply(1, v -> v.depthStencil().stencil(quorumValue.GetStencil()));
         }
     }
 

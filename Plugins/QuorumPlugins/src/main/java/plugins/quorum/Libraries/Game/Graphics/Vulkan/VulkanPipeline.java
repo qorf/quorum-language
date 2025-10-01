@@ -104,11 +104,26 @@ public class VulkanPipeline
             rasterStateInfo.cullMode(info.GetCullMode());
             rasterStateInfo.frontFace(info.GetFrontFace());
             rasterStateInfo.lineWidth((float)info.GetLineWidth());
+            rasterStateInfo.depthClampEnable(false);
+            rasterStateInfo.depthBiasEnable(false);
 
             // Describe how we'll handle multisampling.
             VkPipelineMultisampleStateCreateInfo multisampleInfo = VkPipelineMultisampleStateCreateInfo.calloc(stack);
             multisampleInfo.sType$Default();
             multisampleInfo.rasterizationSamples(info.GetRasterizationSamples());
+
+            // Describe how we'll handle depth-testing.
+            VkPipelineDepthStencilStateCreateInfo depthStencilInfo = null;
+            if (info.GetDepthTestEnable())
+            {
+                depthStencilInfo = VkPipelineDepthStencilStateCreateInfo.calloc(stack);
+                depthStencilInfo.sType$Default();
+                depthStencilInfo.depthTestEnable(info.GetDepthTestEnable());
+                depthStencilInfo.depthWriteEnable(info.GetDepthWriteEnable());
+                depthStencilInfo.depthCompareOp(info.GetDepthCompareOp());
+                depthStencilInfo.depthBoundsTestEnable(false);
+                depthStencilInfo.stencilTestEnable(info.GetStencilTestEnable());
+            }
 
 
             // Process the Quorum blend attachment states into their Vulkan equivalents.
@@ -194,6 +209,9 @@ public class VulkanPipeline
             pipelineCreateInfo.pDynamicState(dynamicStateInfo);
             pipelineCreateInfo.layout(vulkanPipelineLayoutHandle);
             pipelineCreateInfo.renderPass(renderPassPlugin.GetRenderPassHandle());
+
+            if (depthStencilInfo != null)
+                pipelineCreateInfo.pDepthStencilState(depthStencilInfo);
 
             int vulkanResult = vkCreateGraphicsPipelines(devicePlugin.GetDevice(), pipelineCacheHandle, pipelineCreateInfo, null, handleBuffer);
             if (vulkanResult != VK_SUCCESS)

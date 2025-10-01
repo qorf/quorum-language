@@ -48,6 +48,7 @@ public class VulkanFramebuffer
             VkFramebufferCreateInfo createInfo = VkFramebufferCreateInfo.calloc(stack);
             createInfo.sType$Default();
             createInfo.pAttachments(imageViewHandles);
+            createInfo.attachmentCount(imageViewArray.GetSize());
             createInfo.width(width);
             createInfo.height(height);
             createInfo.layers(layers);

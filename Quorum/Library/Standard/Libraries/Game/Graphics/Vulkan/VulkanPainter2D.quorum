@@ -99,6 +99,8 @@ on create
         renderPass = pass
 
         VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+VulkanSwapchain swapchain = graphics:GetSwapchain()
+        VulkanDevice device = graphics:GetDevice()
         VulkanConstants constants
 
         /*
@@ -131,11 +133,27 @@ on create
 
         Array<VulkanAttachmentReference> attachmentReferences
         attachmentReferences:Add(outputColorReference)
-
+        
+        VulkanAttachmentDescription depthDescription
+        depthDescription:SetFormat(constants:FORMAT_D32_SFLOAT)
+        depthDescription:SetSamples(constants:SAMPLE_COUNT_1_BIT)
+        depthDescription:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
+        depthDescription:SetStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
+depthDescription:SetStencilLoadOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
+depthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
+        depthDescription:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
+        depthDescription:SetFinalLayout(constants:IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+        
+        VulkanAttachmentReference depthReference
+        depthReference:SetAttachmentIndex(1)
+        depthReference:SetLayout(constants:IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+        
+        attachmentDescriptions:Add(depthDescription)
 
         VulkanSubpassDescription subpass
         subpass:SetPipelineBindPoint(constants:PIPELINE_BIND_POINT_GRAPHICS)
         subpass:SetColorAttachments(attachmentReferences)
+        subpass:SetDepthStencilAttachment(depthReference)
 
         Array<VulkanSubpassDescription> subpassDescriptions
         subpassDescriptions:Add(subpass)
@@ -144,10 +162,10 @@ on create
         VulkanSubpassDependency dependency
         dependency:SetSourceSubpass(constants:SUBPASS_EXTERNAL)
         dependency:SetDestinationSubpass(0)
-        dependency:SetSourceStageMask(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
-        dependency:SetDestinationStageMask(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
-        dependency:SetSourceAccessMask(0)
-        dependency:SetDestinationAccessMask(constants:ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
+        dependency:SetSourceStageMask(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT + constants:PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT)
+        dependency:SetDestinationStageMask(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT + constants:PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT)
+        dependency:SetSourceAccessMask(constants:ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)
+        dependency:SetDestinationAccessMask(constants:ACCESS_COLOR_ATTACHMENT_WRITE_BIT + constants:ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)
 
         Array<VulkanSubpassDependency> subpassDependencies
         subpassDependencies:Add(dependency)

@@ -9,8 +9,8 @@ class OrthographicCamera is Camera
     number zoom = 1
 
     on create
-        parent:Camera:near = 0
         SetFar(20000)
+        SetNear(-20000)
         SetPosition(GetWidth()/2, GetHeight()/2, 10000)
     end
 
