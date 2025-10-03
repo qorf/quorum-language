@@ -219,7 +219,11 @@ class Chart is ChartItem
     
     // Selection Graphics
     Control selectionBox = undefined
+    boolean selectionBoxShowing = false
     integer selectionBoxPadding = 85
+number blinkIdleTime = 1.0
+    number blinkTime = 0.35
+    number blinkTimer = blinkIdleTime
 
     on create
         CheckPlatformInstructions()
@@ -248,7 +252,6 @@ class Chart is ChartItem
     action LoadGraphics(LayoutProperties properties)
         DisposeDrawables()
         parent:Control:LoadGraphics(properties)   
-        output "Chart Graphics"
         if properties = undefined
             return now
         end
@@ -470,7 +473,7 @@ class Chart is ChartItem
         Color color
         selectionBox:SetBackgroundColor(color:CustomColor(0,0,0,0))
         selectionBox:SetBorderColor(GetSelectionColor())
-        selectionBox:SetBorderThickness(10)
+        selectionBox:SetBorderThickness(6)
         selectionBox:SetSize(200,200)
         selectionBox:SetCornerPixelRounding(GetCornerRadius(), GetCornerRadius(), GetCornerRadius(), GetCornerRadius())
         selectionBox:SetZ(-5)
@@ -3467,7 +3470,6 @@ action SetColorPalette(ColorPalette colorPalette)
             return now
         end
 
-        //output "Lost Selection: " + item:GetName()
         if item is Series
                 Series temp = cast(Series, item)
                 integer i = 0
@@ -3492,7 +3494,8 @@ action SetColorPalette(ColorPalette colorPalette)
                 temp:SetColor(previousColor)
                 temp:GetLabel():LostSelection()
                 temp:GetRegressionIcon():SetColor(previousColor)
-        elseif item is Legend or item is ChartAreaPanel
+        else
+selectionBoxShowing = false
             selectionBox:Hide()
             end
     end
@@ -3509,16 +3512,35 @@ action SetColorPalette(ColorPalette colorPalette)
         Attribute: Parameter item the ChartItem representing the structure for this particular kind of chart. 
     */
     action OnSelectionChange(ChartItem item)
-//output "On Selection Change: " + item:GetName()
         if item = undefined
             return now
         end
             item:Focus()
-if item is ChartAreaPanel or item is Legend
-            ApplySelectionBoxAroundItem(item, selectionBoxPadding)
-            //selectionBox:SetSize(item:GetWidth() + selectionBoxPadding, item:GetHeight() + selectionBoxPadding * 1.5)
-            //selectionBox:SetX(item:GetGlobalX() - selectionBoxPadding)
-            //selectionBox:SetY(item:GetGlobalY() - selectionBoxPadding/ 2)
+if item is ChartAreaPanel
+            number borderThickness = selectionBox:GetBorderThickness()
+            number topPadding = 0
+number rightPadding = borderThickness
+number bottomPadding = 0
+number leftPadding = 0
+            if GetTitleLabel() not= undefined
+                ChartLabel title = GetTitleLabel()
+                topPadding = title:GetGlobalY() + title:GetHeight() - item:GetHeight() - item:GetGlobalY()
+            end
+            if GetHorizontalPanel() not= undefined
+                if GetHorizontalPanel():GetTitleLabel() not= undefined
+                    ChartLabel xLabel = GetHorizontalPanel():GetTitleLabel()
+                    bottomPadding = item:GetGlobalY() - (xLabel:GetGlobalY() + xLabel:GetHeight())
+                end
+            end
+            if GetVerticalPanel() not= undefined
+                if GetVerticalPanel():GetLongestLabel() not= undefined
+                    ChartLabel longestLabel = GetVerticalPanel():GetLongestLabel()
+                    leftPadding = item:GetGlobalX() - longestLabel:GetGlobalX() + borderThickness * 2
+                end
+            end
+            ApplySelectionBoxAroundItem(item, topPadding, rightPadding, bottomPadding, leftPadding)
+        elseif item is Legend
+ApplySelectionBoxAroundItem(item, 0)
         elseif item is HorizontalAxisPanel or item is VerticalAxisPanel
             ApplySelectionBoxAroundItem(item, 0)
         end
@@ -3530,6 +3552,9 @@ if item is ChartAreaPanel or item is Legend
     
     action ApplySelectionBoxAroundItem(ChartItem item, number topPadding, number rightPadding, number bottomPadding, number leftPadding)
             selectionBox:Show()
+blinkTimer = blinkIdleTime
+        selectionBoxShowing = true
+        number borderThickness = selectionBox:GetBorderThickness()
             selectionBox:SetSize(item:GetWidth() + rightPadding + leftPadding, item:GetHeight() + bottomPadding + leftPadding)
             selectionBox:SetX(item:GetGlobalX() - leftPadding)
             selectionBox:SetY(item:GetGlobalY() - bottomPadding)
@@ -3802,6 +3827,17 @@ if item is ChartAreaPanel or item is Legend
         if treeNeedsUpdate
             GenerateInfoTree()
             treeNeedsUpdate = false
+        end
+if selectionBox not= undefined and selectionBoxShowing
+            blinkTimer = blinkTimer - seconds
+            if blinkTimer < 0
+                blinkTimer = blinkTime
+                if selectionBox:IsShowing()
+                    selectionBox:Hide()
+                else
+                    selectionBox:Show()
+                end
+            end
         end
     end
     /*

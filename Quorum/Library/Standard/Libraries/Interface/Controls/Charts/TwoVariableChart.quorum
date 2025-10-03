@@ -17,6 +17,7 @@ use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.Calculations.StandardDeviation
 use Libraries.Compute.Statistics.Calculations.Mean
+use Libraries.Interface.Views.ControlShaderView
 
 /*
     The TwoVariableChart class is Chart object that inherits from Control and like other
@@ -79,6 +80,13 @@ class TwoVariableChart is Chart
     private integer annotationFontSize = 0
     
     private ChartPointComparison comparison
+    
+    // Selection Graphics
+    private Control selectionRing = undefined
+boolean ringShowing = false
+number blinkIdleTime = 1.0
+    number blinkTime = 0.35
+    number blinkTimer = blinkIdleTime
 
     /*
         LoadGraphics
@@ -99,6 +107,24 @@ class TwoVariableChart is Chart
         end
 
         LoadChartAreaItems()     
+    end
+    
+    action LoadSelectionGraphics()
+        Control temp
+        selectionRing = temp
+selectionRing:SetBorderThickness(5)
+        selectionRing:SetCornerRounding(1,1,1,1)
+        selectionRing:SetBorderColor(GetSelectionColor())
+        selectionRing:SetZ(-10)
+        Color color
+        selectionRing:SetBackgroundColor(color:CustomColor(0,0,0,0))
+        ControlShaderView view
+        selectionRing:SetView2D(view)
+        view:Initialize()
+selectionRing:SetSize(100,100)
+        selectionRing:Hide()
+        Add(selectionRing)
+        parent:Chart:LoadSelectionGraphics()
     end
     /*
         LoadChartAreaItems
@@ -434,18 +460,16 @@ class TwoVariableChart is Chart
 
         Attribute: Parameter ci the ChartItem representing the structure for this particular kind of chart. 
     */
-    action LostSelection(ChartItem ci)
-        if ci = undefined
+    action LostSelection(ChartItem item)
+        if item = undefined
             return now
         end
-        Item target = ci
 
-        if target not= undefined
-            if target is Series
+            if item is Series
                 if points:GetSize() > 0
-                    parent:Chart:LostSelection(ci)
+                    parent:Chart:LostSelection(item)
                 else
-                    Series temp = cast(Series, target)
+                    Series temp = cast(Series, item)
                     integer i = 0
                     repeat while i < temp:GetSize()
                         ChartLine line = cast(ChartLine, temp:GetItemAt(i))
@@ -456,14 +480,23 @@ class TwoVariableChart is Chart
                     temp:GetEntryIcon():SetColor(previousColor)
                     temp:GetEntryBox():SetColor(0,0,0,0)
                 end
-            elseif target is LineSegment
-                LineSegment temp = cast(LineSegment, target)
-                temp:SetColor(previousColor)
-                temp:SetZ(previousZ)
-            else
-                parent:Chart:LostSelection(ci)
+        elseif item is ChartLine
+            integer i = 0 
+            repeat while i < lines:GetSize()
+                ChartLine line = lines:Get(i)
+                    line:SetLineAlpha(1)
+                i = i + 1
             end
-        end
+            elseif item is LineSegment
+                //LineSegment temp = cast(LineSegment, item)
+                //temp:SetColor(previousColor)
+                //temp:SetZ(previousZ)
+        elseif item is ChartPoint
+            selectionRing:Hide()
+            ringShowing = false
+            else
+                parent:Chart:LostSelection(item)
+            end
     end
 
     /* 
@@ -478,19 +511,18 @@ class TwoVariableChart is Chart
 
         Attribute: Parameter ci the ChartItem representing the structure for this particular kind of chart. 
     */
-    action OnSelectionChange(ChartItem ci)
-        if ci = undefined
+    action OnSelectionChange(ChartItem item)
+        if item = undefined
             return now
         end
-        Item target = ci
+        item:Focus()
 
-        if target not= undefined
-            target:Focus()
-            if target is Series
+            if item is Series
+            output "Series"
                 if points:GetSize() > 0
-                    parent:Chart:OnSelectionChange(ci)
+                    parent:Chart:OnSelectionChange(item)
                 else
-                    Series temp = cast(Series, target)
+                    Series temp = cast(Series, item)
                     previousColor = temp:GetColor()
                     integer i = 0
                     repeat while i < temp:GetSize()
@@ -503,15 +535,38 @@ class TwoVariableChart is Chart
                     temp:GetEntryIcon():SetColor(GetSelectionColor())
                     temp:GetEntryBox():SetColor(GetSelectionColor())
                 end
-            elseif target is LineSegment
-                LineSegment temp = cast(LineSegment, target)
-                previousColor = temp:GetColor()
-                temp:SetColor(GetSelectionColor())
-                temp:SetZ(-1)
-            else
-                parent:Chart:OnSelectionChange(ci)
+        elseif item is ChartLine
+            output "ChartLine"
+            integer i = 0 
+            repeat while i < lines:GetSize()
+                ChartLine selectedLine = cast(ChartLine, item)
+                ChartLine line = lines:Get(i)
+                if line not= selectedLine
+                    line:SetLineAlpha(0.15)
+                end
+                i = i + 1
             end
-        end
+            elseif item is LineSegment
+            output "LineSegment"
+                //LineSegment temp = cast(LineSegment, item)
+                //previousColor = temp:GetColor()
+                //temp:SetColor(GetSelectionColor())
+                //temp:SetZ(-1)
+        elseif item is ChartPoint
+            ApplySelectionRing(item)
+            else
+                parent:Chart:OnSelectionChange(item)
+            end
+    end
+    
+    action ApplySelectionRing(ChartItem item)
+        integer padding = 30
+        selectionRing:Show()
+        blinkTimer = blinkIdleTime
+        selectionRing:SetX(item:GetGlobalX() - padding/2)
+        selectionRing:SetY(item:GetGlobalY() - padding/2)
+        selectionRing:SetSize(item:GetWidth() + padding, item:GetWidth() + padding)
+        
     end
 
     /*

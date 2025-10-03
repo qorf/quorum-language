@@ -92,7 +92,6 @@ number blinkIdleTime = 1.0
     */
     action LoadGraphics(LayoutProperties properties)
         DisposeDrawables()
-        output "bar graphics"
         if properties = undefined
             return now
         end
@@ -113,7 +112,6 @@ number blinkIdleTime = 1.0
     end
     
     action LoadSelectionGraphics()
-        output "LoadSelectionGraphics"
         Control temp
         selectionBar = temp
         selectionBar:SetSize(100,50)
@@ -335,9 +333,6 @@ number blinkIdleTime = 1.0
         if item = undefined
             return now
         end
-//if selectionBar = undefined
-            //return now
-        //end
 item:Focus()
         if item is Bar
             selectionBar:Show()
@@ -354,7 +349,7 @@ selectionBar:SetSize(25, item:GetHeight())
                 selectionBar:SetCornerRounding(0,0,0,0)
             end
         elseif item is BarGroup
-            ApplySelectionBoxAroundItem(item, 5)
+            ApplySelectionBoxAroundItem(item, 3)
         else
             parent:Chart:OnSelectionChange(item)
         end

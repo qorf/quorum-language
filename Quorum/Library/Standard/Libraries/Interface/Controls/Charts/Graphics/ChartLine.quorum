@@ -186,7 +186,6 @@ class ChartLine is ChartDrawable
             i = i + 1
         end
         if series not= undefined
-            series:GetEntryIcon():SetColor(GetSelectionColor())
             series:GetEntryBox():SetColor(GetSelectionColor())
         end
         parent:ChartDrawable:GainedSelection()
@@ -204,7 +203,6 @@ class ChartLine is ChartDrawable
             i = i + 1
         end
         if series not= undefined
-            series:GetEntryIcon():SetColor(GetColor())
             Color transparency
             transparency:SetColor(0, 0, 0, 0)
             series:GetEntryBox():SetColor(transparency)
@@ -220,5 +218,20 @@ class ChartLine is ChartDrawable
         end
 
         return undefined
+    end
+    
+    action SetLineAlpha(number alpha)
+        Color newColor = GetColor()
+        newColor:SetAlpha(alpha)
+integer i = 0
+        repeat while i < points:GetSize()
+            points:Get(i):SetColor(newColor)
+            i = i + 1
+        end
+        i = 0
+        repeat while i < lines:GetSize()
+            lines:Get(i):SetColor(newColor)
+            i = i + 1
+        end
     end
 end
