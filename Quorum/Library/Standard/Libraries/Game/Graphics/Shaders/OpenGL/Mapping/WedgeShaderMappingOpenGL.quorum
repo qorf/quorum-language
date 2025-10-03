@@ -15,6 +15,7 @@ use Libraries.Game.Graphics.VertexAttributes
 use Libraries.Game.Graphics.DrawableShape
 use Libraries.Game.Graphics.OpenGL.OpenGLConstants
 use Libraries.Interface.Controls.Charts.Graphics.Wedge
+use Libraries.Game.Graphics.Color
 
 class WedgeShaderMappingOpenGL is DefaultShaderMapping2DOpenGL
 
@@ -28,6 +29,8 @@ class WedgeShaderMappingOpenGL is DefaultShaderMapping2DOpenGL
     VertexAttribute minAngleAttribute = undefined
     VertexAttribute maxAngleAttribute = undefined
     VertexAttribute originPointAttribute = undefined
+    VertexAttribute crustThicknessAttribute = undefined
+    VertexAttribute crustColorAttribute = undefined
 
     /*
     This action is called when the mapping is created. It must be used to set
@@ -42,11 +45,15 @@ class WedgeShaderMappingOpenGL is DefaultShaderMapping2DOpenGL
         minAngleAttribute = dummy:CustomNumberAttribute("a_minAngle")
         maxAngleAttribute = dummy:CustomNumberAttribute("a_maxAngle")
         originPointAttribute = dummy:CustomVectorAttribute("a_originPoint", 2)
+        crustThicknessAttribute = dummy:CustomNumberAttribute("a_crustThickness")
+        crustColorAttribute = dummy:CustomColorAttribute("a_crustColor")
         extraAttributes:Add(innerRadiusAttribute)
         extraAttributes:Add(outerRadiusAttribute)
         extraAttributes:Add(minAngleAttribute)
         extraAttributes:Add(maxAngleAttribute)
         extraAttributes:Add(originPointAttribute)
+        extraAttributes:Add(crustThicknessAttribute)
+        extraAttributes:Add(crustColorAttribute)
         attributes:SetAttributes(extraAttributes)
         
         /*
@@ -103,6 +110,16 @@ class WedgeShaderMappingOpenGL is DefaultShaderMapping2DOpenGL
 
             shape:SetDataForAllVertices(originPointAttribute:offset / 4, originX)
             shape:SetDataForAllVertices(originPointAttribute:offset / 4 + 1, originY)
+            
+            // TO-DO: Get "real" values for these, instead of the hardcoded testing values used here.
+            // A negative crust thickness will make the crust be rendered as an interior border,
+            // and a positive thickness will be rendered as an exterior border.
+            number crustThickness = -5
+            Color crustColor
+            crustColor = crustColor:Orange()
+            
+            shape:SetDataForAllVertices(crustThicknessAttribute:offset / 4, crustThickness)
+            shape:SetDataForAllVertices(crustColorAttribute:offset / 4, crustColor:EncodeColorAsNumber())
         end
     end
 

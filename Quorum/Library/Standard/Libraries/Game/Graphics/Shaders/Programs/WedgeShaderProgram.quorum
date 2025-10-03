@@ -1,0 +1,59 @@
+package Libraries.Game.Graphics.Shaders.Programs
+
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.WedgeVertexShaderOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.WedgeFragmentShaderOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.WedgeShaderMappingOpenGL
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.WedgeFragmentShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.WedgeVertexShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.WedgeShaderMappingVulkan
+
+class WedgeShaderProgram is ShaderProgram
+    
+public constant text DEFAULT_NAME = "Wedge Shader Program"
+    constant text VERTEX_NAME = "Wedge Vertex Shader"
+    constant text FRAGMENT_NAME = "Wedge Fragment Shader"
+
+    on create
+        SetName(DEFAULT_NAME)
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
+        
+        if manager:HasShader(VERTEX_NAME)
+            Shader vertex = manager:GetShader(VERTEX_NAME)
+            Add(vertex)
+        else
+            if IsVulkanProgram()
+                WedgeVertexShaderVulkan vertex
+                Add(vertex)
+            else
+WedgeVertexShaderOpenGL vertex
+                Add(vertex)
+            end
+        end
+
+        if manager:HasShader(FRAGMENT_NAME)
+            Shader fragment = manager:GetShader(FRAGMENT_NAME)
+            Add(fragment)
+        else
+            if IsVulkanProgram()
+                WedgeFragmentShaderVulkan fragment
+                Add(fragment)
+            else
+WedgeFragmentShaderOpenGL fragment
+Add(fragment)
+            end
+        end
+
+        if IsVulkanProgram()
+            WedgeShaderMappingVulkan mapping
+            SetShaderMapping(mapping)
+        else
+WedgeShaderMappingOpenGL mapping
+        SetShaderMapping(mapping)
+        end
+    end
+    
+end

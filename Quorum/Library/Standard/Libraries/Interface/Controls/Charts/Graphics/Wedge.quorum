@@ -173,15 +173,16 @@ class Wedge is ChartDrawable, TouchListener
                 SetShaderProgram(program)
                 return program
             else
-                WedgeVertexShaderOpenGL vertex
-                WedgeFragmentShaderOpenGL fragment
-                ShaderProgram program
-                program:Add(vertex)
-                program:Add(fragment)
-                program:SetName(WEDGE_SHADER_PROGRAM_NAME)
-    
-                WedgeShaderMappingOpenGL mapping
-                program:SetShaderMapping(mapping)
+                WedgeShaderProgram program
+                //WedgeVertexShaderOpenGL vertex
+                //WedgeFragmentShaderOpenGL fragment
+                //ShaderProgram program
+                //program:Add(vertex)
+                //program:Add(fragment)
+                //program:SetName(WEDGE_SHADER_PROGRAM_NAME)
+    //
+                //WedgeShaderMappingOpenGL mapping
+                //program:SetShaderMapping(mapping)
     
                 program:Compile()
     

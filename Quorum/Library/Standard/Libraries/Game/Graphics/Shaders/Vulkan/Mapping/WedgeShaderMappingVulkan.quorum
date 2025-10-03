@@ -1,0 +1,110 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Mapping
+use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfo
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfoCreator
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.DrawableShape
+use Libraries.Interface.Controls.Charts.Graphics.Wedge
+use Libraries.Interface.Item2D
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Color
+
+class WedgeShaderMappingVulkan is VulkanShaderMapping
+    
+// This is the index of the added vertex inputs within a DrawableShape.
+    integer innerRadiusIndex = 0
+    integer outerRadiusIndex = 0
+    integer minAngleIndex = 0
+    integer maxAngleIndex = 0
+    integer originPointIndex = 0
+    integer crustThicknessIndex = 0
+    integer crustColorIndex = 0
+    
+GameStateManager gameState
+
+    on create
+        // The info creator will add the default 2D resources, 
+        // so we add this command so the ShaderMapping will automatically receive these resources from the Painter2D during drawing.
+        UseDefaultResources2D(true)
+    end
+
+    // Returns the size of each vertex in the DrawableShape (which stores values as numbers).
+    // This will be the index of the last added vertex input, plus its size in the data structure.
+    action GetVertexSize returns integer
+        return crustColorIndex + 1
+    end
+
+    // This action is used to setup the values of a VulkanPipelineInfo that will be used to create the
+    // VulkanPipeline needed for the shader program. This can also be used to create and keep copies of
+    // any Vulkan resources that will be needed to send or change shader data.
+    action CreatePipelineInfo(VulkanShaderProgram program, VulkanDevice device) returns VulkanPipelineInfo
+        VulkanConstants constants
+
+        /* Use the default info, plus values for our additional vertex attributes. Store their indices so we can map to them later.
+The extra attributes map to these values in the vertex shader:
+
+layout(location = 4) in float a_innerRadius;
+layout(location = 5) in float a_outerRadius;
+layout(location = 6) in float a_minAngle;
+layout(location = 7) in float a_maxAngle;
+layout(location = 8) in vec2 a_originPoint;
+layout(location = 9) in float a_crustThickness;
+layout(location = 10) in vec4 a_crustColor;
+*/
+        VulkanPipelineInfoCreator creator
+        creator:Begin(device)
+        creator:AddDefaultInfo2D()
+        innerRadiusIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        outerRadiusIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        minAngleIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        maxAngleIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        originPointIndex = creator:AddVertexInput(constants:FORMAT_R32G32_SFLOAT)
+        crustThicknessIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        crustColorIndex = creator:AddVertexInput(constants:FORMAT_R8G8B8A8_UNORM)
+        
+        // Finish creating the PipelineInfo and return it.
+        VulkanPipelineInfo info = creator:Finish()
+        return info
+    end
+    
+    // This action is used to update the vertex information sent from Quorum to the vertex shader.
+    action SetVertexData(ShaderProgram program, Drawable drawable, DrawableShape shape)
+if drawable is Wedge
+            Wedge wedge = cast(Wedge, drawable)
+            shape:SetDataForAllVertices(outerRadiusIndex, wedge:GetOuterRadius())
+            shape:SetDataForAllVertices(innerRadiusIndex, wedge:GetInnerRadius())
+            shape:SetDataForAllVertices(minAngleIndex, wedge:GetStartPercentage())
+            shape:SetDataForAllVertices(maxAngleIndex, wedge:GetEndPercentage())
+            
+            number originX = 0
+            number originY = 0
+
+            if wedge:GetParent() = undefined
+                originX = wedge:GetGlobalX() + wedge:GetWidth() / 2
+                originY = wedge:GetGlobalY() + wedge:GetHeight() / 2
+            else
+                Item2D item = wedge:GetParent()
+                originX = item:GetGlobalX() + item:GetWidth() / 2
+                originY = item:GetGlobalY() + item:GetHeight() / 2
+            end
+            
+            // We need to invert the direction of the y-axis relative to the screen, so do that before passing the value down.
+            originY = gameState:GetGameDisplay():GetHeight() - originY
+            
+            shape:SetDataForAllVertices(originPointIndex, originX)
+            shape:SetDataForAllVertices(originPointIndex + 1, originY)
+            
+            // TO-DO: Get these values in a reasonable way, so the shader can dynamically update the values.
+            number crustThickness = 5
+            Color crustColor
+            crustColor = crustColor:Orange()
+            
+            shape:SetDataForAllVertices(crustThicknessIndex, 5)
+            shape:SetDataForAllVertices(crustColorIndex, crustColor:EncodeColorAsNumber())
+        end
+    end
+    
+end

@@ -24,6 +24,8 @@ in float a_outerRadius;
 in float a_minAngle;
 in float a_maxAngle;
 in vec2 a_originPoint;
+in float a_crustThickness;
+in vec4 a_crustColor;
 uniform mat4 u_projTrans;
 out vec4 v_color;
 out vec2 v_texCoords;
@@ -32,6 +34,8 @@ out float v_outerRadius;
 out float v_minAngle;
 out float v_maxAngle;
 out vec2 v_originPoint;
+out float v_crustThickness;
+out vec4 v_crustColor;
 
 " + GetExtraInputs() + "
 
@@ -47,6 +51,8 @@ void main()
     v_minAngle = a_minAngle;
     v_maxAngle = a_maxAngle;
     v_originPoint = a_originPoint;
+    v_crustThickness = a_crustThickness;
+    v_crustColor = a_crustColor;
 
     " + GetAppendedCode() + "
 

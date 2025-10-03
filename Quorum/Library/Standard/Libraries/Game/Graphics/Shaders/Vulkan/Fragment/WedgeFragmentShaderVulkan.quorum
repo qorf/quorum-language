@@ -1,14 +1,15 @@
-package Libraries.Game.Graphics.Shaders.OpenGL.Fragment
+package Libraries.Game.Graphics.Shaders.Vulkan.Fragment
 
 use Libraries.Game.Graphics.Shaders.Shader
 
-class WedgeFragmentShaderOpenGL is Shader
-
-    on create
+class WedgeFragmentShaderVulkan is Shader
+    
+on create
         SetType(parent:Shader:FRAGMENT_SHADER)
         SetName("Wedge Fragment Shader")      
 
         SetCode(GetVersionHeader() + "
+#extension GL_EXT_nonuniform_qualifier : require
 " + GetPreprocessorDefinitions() +
 "
 #ifdef GL_ES
@@ -17,17 +18,21 @@ class WedgeFragmentShaderOpenGL is Shader
 #else
     #define LOWP 
 #endif
-in LOWP vec4 v_color;
-in vec2 v_texCoords;
-in float v_innerRadius;
-in float v_outerRadius;
-in float v_minAngle;
-in float v_maxAngle;
-in vec2 v_originPoint;
-in float v_aspectRatio;
-in float v_crustThickness;
-in vec4 v_crustColor;
-uniform sampler2D u_texture;
+
+layout(set = 0, binding = 1) uniform sampler immutableSampler;
+layout(set = 1, binding = 0) uniform texture2D globalTextures[];
+
+layout(location = 0) in LOWP vec4 v_color;
+layout(location = 1) in vec2 v_textureCoords;
+layout(location = 2) flat in uint v_textureIndex;
+layout(location = 3) in float v_innerRadius;
+layout(location = 4) in float v_outerRadius;
+layout(location = 5) in float v_minAngle;
+layout(location = 6) in float v_maxAngle;
+layout(location = 7) in vec2 v_originPoint;
+layout(location = 8) in float v_crustThickness;
+layout(location = 9) in vec4 v_crustColor;
+
 layout (location = 0) out vec4 resultColor;
 
 float PI = 3.1415926538;
@@ -39,7 +44,7 @@ float PI = 3.1415926538;
 void main()
 {
     float x = gl_FragCoord.x - v_originPoint.x;
-    float y = gl_FragCoord.y - v_originPoint.y;
+    float y = v_originPoint.y - gl_FragCoord.y;
     vec2 point = vec2(x, y);
     float length = length(point);
     float angle = atan(x, y);
@@ -53,7 +58,7 @@ void main()
     }
     else
     {
-        vec4 textureColor = texture(u_texture, v_texCoords);
+        vec4 textureColor = texture(nonuniformEXT(sampler2D(globalTextures[v_textureIndex], immutableSampler)), v_textureCoords);
 
         if (v_crustThickness != 0.0)
         {
@@ -86,5 +91,5 @@ void main()
     private action GetAppendedCode returns text
         return ""
     end
-
+    
 end

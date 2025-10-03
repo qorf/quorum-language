@@ -29,7 +29,7 @@ class VulkanPipelineInfo
         cullMode = constants:CULL_MODE_NONE
         frontFace = constants:FRONT_FACE_CLOCKWISE
         rasterizationSamples = constants:SAMPLE_COUNT_1_BIT
-        depthCompareOp = constants:COMPARE_OP_LESS
+        depthCompareOp = constants:COMPARE_OP_LESS_OR_EQUAL
     end
 
     action Copy returns VulkanPipelineInfo
