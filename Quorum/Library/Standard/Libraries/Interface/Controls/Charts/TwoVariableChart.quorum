@@ -18,6 +18,9 @@ use Libraries.Compute.Statistics.DataFrame
 use Libraries.Compute.Statistics.Calculations.StandardDeviation
 use Libraries.Compute.Statistics.Calculations.Mean
 use Libraries.Interface.Views.ControlShaderView
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Controls.ControlLabel
 
 /*
     The TwoVariableChart class is Chart object that inherits from Control and like other
@@ -83,6 +86,9 @@ class TwoVariableChart is Chart
     
     // Selection Graphics
     private Control selectionRing = undefined
+    private Control selectionAnnotationPanel = undefined
+    private ControlLabel selectionAnnotationLabel = undefined
+    text selectionText = ""
 boolean ringShowing = false
 number blinkIdleTime = 1.0
     number blinkTime = 0.35
@@ -124,6 +130,18 @@ selectionRing:SetBorderThickness(5)
 selectionRing:SetSize(100,100)
         selectionRing:Hide()
         Add(selectionRing)
+        ControlLabel tempLabel
+        selectionAnnotationLabel = tempLabel
+        selectionAnnotationLabel:SetCornerPixelRounding(GetCornerRadius(),GetCornerRadius(),GetCornerRadius(),GetCornerRadius())
+        selectionAnnotationLabel:SetBorderColor(color:Black())
+        selectionAnnotationLabel:SetBorderThickness(2)
+        selectionAnnotationLabel:SetToMediumFont()
+        selectionAnnotationLabel:SetZ(-10)
+ControlShaderView panelView
+        selectionAnnotationLabel:SetView2D(panelView)
+        panelView:Initialize()
+        Add(selectionAnnotationLabel)
+        
         parent:Chart:LoadSelectionGraphics()
     end
     /*
@@ -518,7 +536,6 @@ selectionRing:SetSize(100,100)
         item:Focus()
 
             if item is Series
-            output "Series"
                 if points:GetSize() > 0
                     parent:Chart:OnSelectionChange(item)
                 else
@@ -536,7 +553,6 @@ selectionRing:SetSize(100,100)
                     temp:GetEntryBox():SetColor(GetSelectionColor())
                 end
         elseif item is ChartLine
-            output "ChartLine"
             integer i = 0 
             repeat while i < lines:GetSize()
                 ChartLine selectedLine = cast(ChartLine, item)
@@ -547,12 +563,12 @@ selectionRing:SetSize(100,100)
                 i = i + 1
             end
             elseif item is LineSegment
-            output "LineSegment"
                 //LineSegment temp = cast(LineSegment, item)
                 //previousColor = temp:GetColor()
                 //temp:SetColor(GetSelectionColor())
                 //temp:SetZ(-1)
         elseif item is ChartPoint
+            ShowSelectionAnnotation(cast(ChartPoint, item))
             ApplySelectionRing(item)
             else
                 parent:Chart:OnSelectionChange(item)
@@ -560,13 +576,22 @@ selectionRing:SetSize(100,100)
     end
     
     action ApplySelectionRing(ChartItem item)
-        integer padding = 30
+        integer padding = 20
         selectionRing:Show()
         blinkTimer = blinkIdleTime
         selectionRing:SetX(item:GetGlobalX() - padding/2)
         selectionRing:SetY(item:GetGlobalY() - padding/2)
         selectionRing:SetSize(item:GetWidth() + padding, item:GetWidth() + padding)
-        
+    end
+    
+    action ShowSelectionAnnotation(ChartPoint point)
+        if not point:ShowAnnotation()
+            return now
+        end
+        selectionAnnotationLabel:Show()
+        selectionAnnotationLabel:SetX(point:GetGlobalX() + 15)
+        selectionAnnotationLabel:SetY(point:GetGlobalY() + 15)
+        selectionAnnotationLabel:SetText(" " + point:GetName() + " ")
     end
 
     /*
