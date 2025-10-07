@@ -53,10 +53,10 @@ class ScatterPlot is TwoVariableChart
         Font font = GetDefaultFont()
         properties:SetFont(font)
         properties:SetFontSize(GetDefaultFontSize())
-
+ShowYAxisLine(true)
         properties:SetBorderThickness(2)
         SetName("Scatter Plot")
-
+        
         SetInputGroup("Chart")
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:CHART)

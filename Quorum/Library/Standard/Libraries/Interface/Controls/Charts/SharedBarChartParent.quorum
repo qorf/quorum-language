@@ -117,6 +117,7 @@ number blinkIdleTime = 1.0
         selectionBar:SetSize(100,50)
         selectionBar:SetBackgroundColor(GetSelectionColor())
         selectionBar:SetCornerRounding(1,1,1,1)
+        selectionBar:SetZ(-50)
         ControlShaderView view
         selectionBar:SetView2D(view)
         view:Initialize()
@@ -336,20 +337,31 @@ number blinkIdleTime = 1.0
 item:Focus()
         if item is Bar
             selectionBar:Show()
+Bar bar = cast(Bar, item)
             barShowing = true
             blinkTimer = blinkIdleTime
             if (GetVerticalFlag() and not isStacked) or (GetHorizontalFlag() and isStacked)
                 selectionBar:SetSize(item:GetWidth(), 25)
                 selectionBar:SetX(item:GetGlobalX())
-                selectionBar:SetY(item:GetGlobalY() + item:GetHeight() + 10)
+                if ShowAnnotations()
+                    ChartLabel annotation = bar:GetAnnotation()
+                    selectionBar:SetY(item:GetGlobalY() + item:GetHeight() + 10 + annotation:GetHeight())
+                else
+                    selectionBar:SetY(item:GetGlobalY() + item:GetHeight() + 10)
+                end
             else
 selectionBar:SetSize(25, item:GetHeight())
-                selectionBar:SetX(item:GetGlobalX() + item:GetWidth() + 10)
                 selectionBar:SetY(item:GetGlobalY())
                 selectionBar:SetCornerRounding(0,0,0,0)
+                if ShowAnnotations()
+                    ChartLabel annotation = bar:GetAnnotation()
+                    selectionBar:SetX(item:GetGlobalX() + item:GetWidth() + 10 + annotation:GetWidth())
+                else
+selectionBar:SetX(item:GetGlobalX() + item:GetWidth() + 10)
+                end
             end
         elseif item is BarGroup
-            ApplySelectionBoxAroundItem(item, 3)
+            ApplySelectionBoxAroundItem(item, GetSelectionBoxBorderThickness() + 3)
         else
             parent:Chart:OnSelectionChange(item)
         end

@@ -60,6 +60,7 @@ class Legend is ChartItem
         Font font = GetDefaultFont()
         properties:SetFont(font)
         properties:SetFontSize(GetDefaultFontSize())
+        properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
         SetName("Legend")
 
         SetInputGroup("Chart")

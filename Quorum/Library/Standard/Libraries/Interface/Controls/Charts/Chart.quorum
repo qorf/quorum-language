@@ -27,6 +27,7 @@ use Libraries.Interface.Controls.Charts.Graphics.RegressionLinePointMarker
 use Libraries.System.Properties
 use Libraries.Game.Graphics.Gradient
 use Libraries.Interface.Controls.Charts.ColorPalettes.all
+use Libraries.Interface.Layouts.FlowLayout
 
 
 /*
@@ -155,6 +156,7 @@ class Chart is ChartItem
     private Array <VerticalAxisPanel> subVerticalPanels
     private boolean showYAxis = true
     private boolean showYAxisTitle = true 
+    private boolean showYAxisLine = false
     private boolean showMajorYGridLines = true
     private boolean showMinorYGridLines = false   
     private boolean yLabelFontSizeOverride = false
@@ -165,6 +167,7 @@ class Chart is ChartItem
 
     // Legend Components
     private Legend legend
+    private Control legendPanel
     private boolean showLegend = true
     private boolean legendLabelFontSizeOverride = false
     private boolean legendTitleFontSizeOverride = false
@@ -220,7 +223,7 @@ class Chart is ChartItem
     // Selection Graphics
     Control selectionBox = undefined
     boolean selectionBoxShowing = false
-    integer selectionBoxPadding = 85
+    number selectionBoxBorderThickness = 6
 number blinkIdleTime = 1.0
     number blinkTime = 0.35
     number blinkTimer = blinkIdleTime
@@ -448,11 +451,13 @@ number blinkIdleTime = 1.0
         legend:LoadLegend(me, properties)
         if IsShowingLegend()
             legendPanelWidthPercent = 0.10
-            Add(legend)
+            Add(legendPanel)
+            legendPanel:Add(legend)
         elseif legend:GetSeriesList():GetSize() > 0
             integer i = 0
             repeat while i < legend:GetSeriesList():GetSize()
-                Add(legend:GetSeriesList():Get(i))
+                Add(legendPanel)
+                legendPanel:Add(legend:GetSeriesList():Get(i))
                 i = i + 1
             end
         end
@@ -473,10 +478,10 @@ number blinkIdleTime = 1.0
         Color color
         selectionBox:SetBackgroundColor(color:CustomColor(0,0,0,0))
         selectionBox:SetBorderColor(GetSelectionColor())
-        selectionBox:SetBorderThickness(6)
-        selectionBox:SetSize(200,200)
+        selectionBox:SetBorderThickness(selectionBoxBorderThickness)
+        selectionBox:SetSize(500,500)
         selectionBox:SetCornerPixelRounding(GetCornerRadius(), GetCornerRadius(), GetCornerRadius(), GetCornerRadius())
-        selectionBox:SetZ(-5)
+        selectionBox:SetZ(-15)
         ControlShaderView view
         selectionBox:SetView2D(view)
         view:Initialize()
@@ -3235,7 +3240,7 @@ action SetColorPalette(ColorPalette colorPalette)
     action AdjustForLegend()
         legend:SetContainer(me)
         if IsShowingLegend()
-            legend:SetSize(GetWidth()*legendPanelWidthPercent, GetHeight()*legendPanelHeightPercent)
+            legendPanel:SetSize(GetWidth()*legendPanelWidthPercent, GetHeight()*legendPanelHeightPercent)
             integer minimumSpace = 0
             integer minimumWidthSpace = 0
             integer minimumHeightSpace = 0
@@ -3299,7 +3304,9 @@ action SetColorPalette(ColorPalette colorPalette)
                 number remainingChartArea = math:Round(1 - legendPanelWidthPercent - verticalPanelWidthPercent - 0.025, 2) // 0.025 for margin padding
                 SetChartAreaWidthPercent(remainingChartArea)
                 horizontalPanel:SetWidth(remainingChartArea*GetWidth())
-
+legendPanel:SetSize(GetWidth()*legendPanelWidthPercent, GetHeight()*legendPanelHeightPercent)    
+                legend:SetSize(GetWidth()*legendPanelWidthPercent, minimumHeightSpace)
+                legend:SetY(legendPanel:GetHeight() - legend:GetHeight())
             else //legend:DisplayOnTop() or legend:DisplayOnBottom()
                 integer titleautofontsize = cast(integer, ((GetHeight()+GetWidth())/2)*(0.05/2))
                 if legend:GetTitleLabel() not= undefined
@@ -3361,6 +3368,9 @@ action SetColorPalette(ColorPalette colorPalette)
                 SetChartAreaWidthPercent(remainingChartAreaWidth)
                 horizontalPanel:SetWidth(remainingChartAreaWidth*GetWidth())
                 legendPanelWidthPercent = horizontalPanelWidthPercent
+legendPanel:SetSize(GetWidth()*legendPanelWidthPercent, GetHeight()*legendPanelHeightPercent)    
+legend:SetSize(GetWidth()*legendPanelWidthPercent, minimumHeightSpace)
+legend:SetY(legendPanel:GetHeight() - legend:GetHeight())
             end
         else
             legendPanelWidthPercent = 0.05
@@ -3368,7 +3378,7 @@ action SetColorPalette(ColorPalette colorPalette)
             SetChartAreaWidthPercent(remainingChartArea)
             horizontalPanel:SetWidth(remainingChartArea*GetWidth())
         end    
-        legend:SetSize(GetWidth()*legendPanelWidthPercent, GetHeight()*legendPanelHeightPercent)    
+        //legendPanel:SetSize(GetWidth()*legendPanelWidthPercent, GetHeight()*legendPanelHeightPercent)    
     end
     /*
         This action sets the overall font size.
@@ -3517,19 +3527,20 @@ selectionBoxShowing = false
         end
             item:Focus()
 if item is ChartAreaPanel
-            number borderThickness = selectionBox:GetBorderThickness()
-            number topPadding = 0
+        number borderThickness = selectionBox:GetBorderThickness()
+            number topPadding = borderThickness
 number rightPadding = borderThickness
-number bottomPadding = 0
-number leftPadding = 0
-            if GetTitleLabel() not= undefined
+number bottomPadding = borderThickness
+number leftPadding = borderThickness
+            if subChartAreas:GetSize() < 2
+if GetTitleLabel() not= undefined
                 ChartLabel title = GetTitleLabel()
                 topPadding = title:GetGlobalY() + title:GetHeight() - item:GetHeight() - item:GetGlobalY()
             end
             if GetHorizontalPanel() not= undefined
                 if GetHorizontalPanel():GetTitleLabel() not= undefined
                     ChartLabel xLabel = GetHorizontalPanel():GetTitleLabel()
-                    bottomPadding = item:GetGlobalY() - (xLabel:GetGlobalY() + xLabel:GetHeight())
+                    bottomPadding = item:GetGlobalY() - (xLabel:GetGlobalY() + xLabel:GetHeight()) + 5
                 end
             end
             if GetVerticalPanel() not= undefined
@@ -3538,11 +3549,15 @@ number leftPadding = 0
                     leftPadding = item:GetGlobalX() - longestLabel:GetGlobalX() + borderThickness * 2
                 end
             end
+                rightPadding = rightPadding + 5
+            end
             ApplySelectionBoxAroundItem(item, topPadding, rightPadding, bottomPadding, leftPadding)
         elseif item is Legend
-ApplySelectionBoxAroundItem(item, 0)
-        elseif item is HorizontalAxisPanel or item is VerticalAxisPanel
-            ApplySelectionBoxAroundItem(item, 0)
+ApplySelectionBoxAroundItem(item, -35, 0,5,0)
+        elseif item is HorizontalAxisPanel
+ApplySelectionBoxAroundItem(item, 0, 50, 0, 50)
+        elseif item is VerticalAxisPanel
+            ApplySelectionBoxAroundItem(item, 50, 0, 50, 0)
         end
     end
     
@@ -3555,7 +3570,7 @@ ApplySelectionBoxAroundItem(item, 0)
 blinkTimer = blinkIdleTime
         selectionBoxShowing = true
         number borderThickness = selectionBox:GetBorderThickness()
-            selectionBox:SetSize(item:GetWidth() + rightPadding + leftPadding, item:GetHeight() + bottomPadding + leftPadding)
+            selectionBox:SetSize(item:GetWidth() + rightPadding + leftPadding, item:GetHeight() + bottomPadding + topPadding)
             selectionBox:SetX(item:GetGlobalX() - leftPadding)
             selectionBox:SetY(item:GetGlobalY() - bottomPadding)
     end
@@ -4426,6 +4441,26 @@ if selectionBox not= undefined and selectionBoxShowing
 
     action GetCornerRadius returns number
         return cornerRadius
+    end
+
+    action GetLegendPanel returns Control
+        return legendPanel
+    end
+
+    action GetSelectionBoxBorderThickness returns number
+        return selectionBoxBorderThickness
+    end
+
+    action SetSelectionBoxBorderThickness(number selectionBoxBorderThickness)
+        me:selectionBoxBorderThickness = selectionBoxBorderThickness
+    end
+
+    action ShowYAxisLine(boolean showYAxisLine)
+        me:showYAxisLine = showYAxisLine
+    end
+
+    action IsShowingYAxisLine returns boolean
+        return showYAxisLine
     end
 
 end

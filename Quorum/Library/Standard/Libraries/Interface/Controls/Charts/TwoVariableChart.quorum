@@ -88,6 +88,7 @@ class TwoVariableChart is Chart
     private Control selectionRing = undefined
     private Control selectionAnnotationPanel = undefined
     private ControlLabel selectionAnnotationLabel = undefined
+    private boolean changeLineColorsOnSelection = false
     text selectionText = ""
 boolean ringShowing = false
 number blinkIdleTime = 1.0
@@ -136,6 +137,7 @@ selectionRing:SetSize(100,100)
         selectionAnnotationLabel:SetBorderColor(color:Black())
         selectionAnnotationLabel:SetBorderThickness(2)
         selectionAnnotationLabel:SetToMediumFont()
+        selectionAnnotationLabel:SetBackgroundColor(color:White())
         selectionAnnotationLabel:SetZ(-10)
 ControlShaderView panelView
         selectionAnnotationLabel:SetView2D(panelView)
@@ -484,33 +486,23 @@ ControlShaderView panelView
         end
 
             if item is Series
-                if points:GetSize() > 0
-                    parent:Chart:LostSelection(item)
-                else
-                    Series temp = cast(Series, item)
-                    integer i = 0
-                    repeat while i < temp:GetSize()
-                        ChartLine line = cast(ChartLine, temp:GetItemAt(i))
-                        line:SetColor(previousColor)
-                        line:SetZ(previousZ)
-                        i = i + 1
-                    end
-                    temp:GetEntryIcon():SetColor(previousColor)
-                    temp:GetEntryBox():SetColor(0,0,0,0)
-                end
-        elseif item is ChartLine
+integer i = 0 
+            Series series = cast(Series, item)
+            repeat while i < GetLegend():GetSeriesList():GetSize()
+                Series temp = GetLegend():GetSeriesList():Get(i)
+                    temp:SetSeriesAlpha(1)
+                i = i + 1
+            end
+     elseif item is ChartLine
             integer i = 0 
             repeat while i < lines:GetSize()
                 ChartLine line = lines:Get(i)
                     line:SetLineAlpha(1)
                 i = i + 1
             end
-            elseif item is LineSegment
-                //LineSegment temp = cast(LineSegment, item)
-                //temp:SetColor(previousColor)
-                //temp:SetZ(previousZ)
         elseif item is ChartPoint
             selectionRing:Hide()
+            selectionAnnotationLabel:Hide()
             ringShowing = false
             else
                 parent:Chart:LostSelection(item)
@@ -534,25 +526,17 @@ ControlShaderView panelView
             return now
         end
         item:Focus()
-
             if item is Series
-                if points:GetSize() > 0
-                    parent:Chart:OnSelectionChange(item)
-                else
-                    Series temp = cast(Series, item)
-                    previousColor = temp:GetColor()
-                    integer i = 0
-                    repeat while i < temp:GetSize()
-                        ChartLine line = cast(ChartLine, temp:GetItemAt(i))
-                        line:SetColor(GetSelectionColor())
-                        previousZ = line:GetZ()
-                        line:SetZ(-1)
-                        i = i + 1
-                    end
-                    temp:GetEntryIcon():SetColor(GetSelectionColor())
-                    temp:GetEntryBox():SetColor(GetSelectionColor())
+            integer i = 0 
+            Series series = cast(Series, item)
+            repeat while i < GetLegend():GetSeriesList():GetSize()
+                Series temp = GetLegend():GetSeriesList():Get(i)
+                if not (temp = series)
+                    temp:SetSeriesAlpha(0.15)
                 end
-        elseif item is ChartLine
+                i = i + 1
+            end
+     elseif item is ChartLine
             integer i = 0 
             repeat while i < lines:GetSize()
                 ChartLine selectedLine = cast(ChartLine, item)
@@ -576,8 +560,9 @@ ControlShaderView panelView
     end
     
     action ApplySelectionRing(ChartItem item)
-        integer padding = 20
+        integer padding = 16
         selectionRing:Show()
+        ringShowing = true
         blinkTimer = blinkIdleTime
         selectionRing:SetX(item:GetGlobalX() - padding/2)
         selectionRing:SetY(item:GetGlobalY() - padding/2)
@@ -585,7 +570,7 @@ ControlShaderView panelView
     end
     
     action ShowSelectionAnnotation(ChartPoint point)
-        if not point:ShowAnnotation()
+        if ShowAnnotations()
             return now
         end
         selectionAnnotationLabel:Show()
@@ -599,6 +584,23 @@ ControlShaderView panelView
     */
     action Resize()
         parent:Chart:Resize()
+    end
+    
+    action Update(number seconds)
+if selectionRing not= undefined and ringShowing
+            blinkTimer = blinkTimer - seconds
+            if blinkTimer < 0
+                blinkTimer = blinkTime
+                if selectionRing:IsShowing()
+                    selectionRing:Hide()
+                else
+                    selectionRing:Show()
+                end
+            end
+        end
+        
+        parent:Chart:Update(seconds)
+        
     end
 
     /*
@@ -1949,4 +1951,13 @@ ControlShaderView panelView
         annotationFontSizeOverride = true
         annotationFontSize = size
     end
+    
+    action ChangeLineColorsOnSelection(boolean changeLineColorsOnSelection)
+        me:changeLineColorsOnSelection = changeLineColorsOnSelection
+    end
+
+    action IsChangingLineColorsOnSelection returns boolean
+        return changeLineColorsOnSelection
+    end
+
 end

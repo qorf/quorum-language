@@ -175,7 +175,10 @@ class ChartLine is ChartDrawable
     end
 
     action GainedSelection()
-        integer i = 0
+if GetContainer() is TwoVariableChart
+            TwoVariableChart chart = cast(TwoVariableChart, GetContainer())
+            if chart:IsChangingLineColorsOnSelection()
+integer i = 0
         repeat while i < points:GetSize()
             points:Get(i):SetColor(GetSelectionColor())
             i = i + 1
@@ -185,6 +188,9 @@ class ChartLine is ChartDrawable
             lines:Get(i):SetColor(GetSelectionColor())
             i = i + 1
         end
+            end
+        end
+        
         if series not= undefined
             series:GetEntryBox():SetColor(GetSelectionColor())
         end
@@ -192,6 +198,7 @@ class ChartLine is ChartDrawable
     end
 
     action LostSelection()
+        
         integer i = 0
         repeat while i < points:GetSize()
             points:Get(i):SetColor(GetColor())
