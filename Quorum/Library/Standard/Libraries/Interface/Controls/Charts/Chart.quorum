@@ -28,6 +28,7 @@ use Libraries.System.Properties
 use Libraries.Game.Graphics.Gradient
 use Libraries.Interface.Controls.Charts.ColorPalettes.all
 use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Controls.ControlLabel
 
 
 /*
@@ -221,8 +222,10 @@ class Chart is ChartItem
     boolean currentSideArrow = false
     
     // Selection Graphics
-    Control selectionBox = undefined
-    boolean selectionBoxShowing = false
+    private Control selectionBox = undefined
+    private boolean selectionBoxShowing = false
+private ControlLabel selectionAnnotationLabel = undefined
+    private boolean selectionAnnotationLabelShowing = false
     number selectionBoxBorderThickness = 6
 number blinkIdleTime = 1.0
     number blinkTime = 0.35
@@ -473,6 +476,7 @@ number blinkIdleTime = 1.0
     end
     
     action LoadSelectionGraphics
+        // load selection box
         Control temp
         selectionBox = temp
         Color color
@@ -487,6 +491,21 @@ number blinkIdleTime = 1.0
         view:Initialize()
         selectionBox:Hide()
         Add(selectionBox)
+        
+        // load annotation label
+ControlLabel tempLabel
+        selectionAnnotationLabel = tempLabel
+        selectionAnnotationLabel:SetCornerPixelRounding(GetCornerRadius(),GetCornerRadius(),GetCornerRadius(),GetCornerRadius())
+        //selectionAnnotationLabel:SetBorderColor(color:Black())
+        //selectionAnnotationLabel:SetBorderThickness(2)
+        selectionAnnotationLabel:SetToLargeFont()
+        selectionAnnotationLabel:SetBackgroundColor(color:White())
+        selectionAnnotationLabel:SetZ(-100)
+ControlShaderView panelView
+        selectionAnnotationLabel:SetView2D(panelView)
+        panelView:Initialize()
+        selectionAnnotationLabel:Hide()
+        Add(selectionAnnotationLabel)
     end
 
     /*
@@ -3507,6 +3526,8 @@ legend:SetY(legendPanel:GetHeight() - legend:GetHeight())
         else
 selectionBoxShowing = false
             selectionBox:Hide()
+            selectionAnnotationLabelShowing = false
+            selectionAnnotationLabel:Hide()
             end
     end
 
@@ -3533,11 +3554,7 @@ number rightPadding = borderThickness
 number bottomPadding = borderThickness
 number leftPadding = borderThickness
             if subChartAreas:GetSize() < 2
-if GetTitleLabel() not= undefined
-                ChartLabel title = GetTitleLabel()
-                topPadding = title:GetGlobalY() + title:GetHeight() - item:GetHeight() - item:GetGlobalY()
-            end
-            if GetHorizontalPanel() not= undefined
+        if GetHorizontalPanel() not= undefined
                 if GetHorizontalPanel():GetTitleLabel() not= undefined
                     ChartLabel xLabel = GetHorizontalPanel():GetTitleLabel()
                     bottomPadding = item:GetGlobalY() - (xLabel:GetGlobalY() + xLabel:GetHeight()) + 5
@@ -3573,6 +3590,24 @@ blinkTimer = blinkIdleTime
             selectionBox:SetSize(item:GetWidth() + rightPadding + leftPadding, item:GetHeight() + bottomPadding + topPadding)
             selectionBox:SetX(item:GetGlobalX() - leftPadding)
             selectionBox:SetY(item:GetGlobalY() - bottomPadding)
+    end
+    
+    action ShowSelectionAnnotation(ChartItem item, number offsetX, number offsetY)
+        ShowSelectionAnnotation(item, "", offsetX, offsetY)
+    end
+    
+action ShowSelectionAnnotation(ChartItem item, text annotation, number offsetX, number offsetY)
+        if ShowAnnotations()
+            return now
+        end
+        selectionAnnotationLabel:Show()
+        selectionAnnotationLabel:SetX(item:GetGlobalX() + offsetX)
+        selectionAnnotationLabel:SetY(item:GetGlobalY() + offsetY)
+        if annotation = ""
+            selectionAnnotationLabel:SetText(" " + item:GetName() + " ")
+        else
+            selectionAnnotationLabel:SetText(" " + annotation + " ")
+        end
     end
 
     action LostSelection

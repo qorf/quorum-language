@@ -86,10 +86,7 @@ class TwoVariableChart is Chart
     
     // Selection Graphics
     private Control selectionRing = undefined
-    private Control selectionAnnotationPanel = undefined
-    private ControlLabel selectionAnnotationLabel = undefined
     private boolean changeLineColorsOnSelection = false
-    text selectionText = ""
 boolean ringShowing = false
 number blinkIdleTime = 1.0
     number blinkTime = 0.35
@@ -131,18 +128,6 @@ selectionRing:SetBorderThickness(5)
 selectionRing:SetSize(100,100)
         selectionRing:Hide()
         Add(selectionRing)
-        ControlLabel tempLabel
-        selectionAnnotationLabel = tempLabel
-        selectionAnnotationLabel:SetCornerPixelRounding(GetCornerRadius(),GetCornerRadius(),GetCornerRadius(),GetCornerRadius())
-        selectionAnnotationLabel:SetBorderColor(color:Black())
-        selectionAnnotationLabel:SetBorderThickness(2)
-        selectionAnnotationLabel:SetToMediumFont()
-        selectionAnnotationLabel:SetBackgroundColor(color:White())
-        selectionAnnotationLabel:SetZ(-10)
-ControlShaderView panelView
-        selectionAnnotationLabel:SetView2D(panelView)
-        panelView:Initialize()
-        Add(selectionAnnotationLabel)
         
         parent:Chart:LoadSelectionGraphics()
     end
@@ -502,11 +487,9 @@ integer i = 0
             end
         elseif item is ChartPoint
             selectionRing:Hide()
-            selectionAnnotationLabel:Hide()
             ringShowing = false
-            else
-                parent:Chart:LostSelection(item)
             end
+parent:Chart:LostSelection(item)
     end
 
     /* 
@@ -546,13 +529,8 @@ integer i = 0
                 end
                 i = i + 1
             end
-            elseif item is LineSegment
-                //LineSegment temp = cast(LineSegment, item)
-                //previousColor = temp:GetColor()
-                //temp:SetColor(GetSelectionColor())
-                //temp:SetZ(-1)
         elseif item is ChartPoint
-            ShowSelectionAnnotation(cast(ChartPoint, item))
+            ShowSelectionAnnotation(item, 15, 15)
             ApplySelectionRing(item)
             else
                 parent:Chart:OnSelectionChange(item)
@@ -569,15 +547,6 @@ integer i = 0
         selectionRing:SetSize(item:GetWidth() + padding, item:GetWidth() + padding)
     end
     
-    action ShowSelectionAnnotation(ChartPoint point)
-        if ShowAnnotations()
-            return now
-        end
-        selectionAnnotationLabel:Show()
-        selectionAnnotationLabel:SetX(point:GetGlobalX() + 15)
-        selectionAnnotationLabel:SetY(point:GetGlobalY() + 15)
-        selectionAnnotationLabel:SetText(" " + point:GetName() + " ")
-    end
 
     /*
         This action is called whenever the window is resized.

@@ -236,12 +236,7 @@ class ChartPoint is ChartDrawable
         Attribute: Returns the chart point selection color (ColorGroup). 
     */
     action GetSelectionColor returns ColorGroup
-        Chart chart = GetParentChart()
-        if chart not= undefined
-            return chart:GetSelectionColor()
-        end
-
-        return undefined
+        return GetColor()
     end
     /*
         This action gets the chart point x name override value.

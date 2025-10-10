@@ -360,6 +360,7 @@ selectionBar:SetSize(25, item:GetHeight())
 selectionBar:SetX(item:GetGlobalX() + item:GetWidth() + 10)
                 end
             end
+            ShowSelectionAnnotation(item,""+bar:GetValue(), bar:GetWidth()/2, bar:GetHeight()/2)
         elseif item is BarGroup
             ApplySelectionBoxAroundItem(item, GetSelectionBoxBorderThickness() + 3)
         else
