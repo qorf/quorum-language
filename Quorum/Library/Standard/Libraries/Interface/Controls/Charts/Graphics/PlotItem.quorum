@@ -1,0 +1,14 @@
+package Libraries.Interface.Controls.Charts.Graphics
+
+class PlotItem is ChartDrawable
+private number plotValue = 0.0
+    
+    action SetPlotValue(number plotValue)
+        me:plotValue = plotValue
+    end
+
+    action GetPlotValue returns number
+        return plotValue
+    end
+
+end

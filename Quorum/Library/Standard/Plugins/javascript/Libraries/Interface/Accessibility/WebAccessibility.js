@@ -145,6 +145,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
         // The rationales for the following styles are the same as for the root.
         focusButton.style.filter = "opacity(0%)";
         focusButton.style.color = "rgba(0,0,0,0)";
+        focusButton.className = "focusButton";
 
         focusButton.addEventListener("click", (event) => {
             plugins_quorum_Libraries_Game_WebInput_.TakeFocus(thisGame);

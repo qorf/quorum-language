@@ -1,0 +1,49 @@
+package Libraries.Interface.Controls.Charts.ColorPalettes
+use Libraries.Interface.Controls.Charts.ColorPalettes.ColorPalette
+use Libraries.Game.Graphics.Color
+
+/*
+        This palette was produced by Masataka Okabe and Kei (both colorblind) at the University of Japan in 2002
+        Since then it has been advocated as a palette distinguishable by all whom are colorblind and not colorblind.
+        https://jfly.uni-koeln.de/color/
+    */
+class ColorblindPalette is ColorPalette
+    
+    action BuildPalette
+        Color color
+        
+// Black 
+        color:SetColor(0.0/255, 0.0/255, 0.0/255, 1)
+        AddColor(color:Copy())
+
+        // Orange
+        color:SetColor(230.0/255, 159.0/255, 0.0/255, 1)
+        AddColor(color:Copy())
+
+        // Sky Blue
+        color:SetColor(86.0/255, 180.0/255, 233.0/255, 1)
+        AddColor(color:Copy())
+
+        // Bluish Green
+        color:SetColor(0.0/255, 158.0/255, 115.0/255, 1)
+        AddColor(color:Copy())
+
+        // Yellow
+        color:SetColor(240.0/255, 228.0/255, 66.0/255, 1)
+        AddColor(color:Copy())
+
+        // Blue
+        color:SetColor(0.0/255, 114.0/255, 178.0/255, 1)
+        AddColor(color:Copy())
+
+        // Vermillion
+        color:SetColor(213.0/255, 94.0/255, 0.0/255, 1)
+        AddColor(color:Copy())
+
+        // Reddish Purple (pink)
+        color:SetColor(204.0/255, 121.0/255, 167.0/255, 1)
+        AddColor(color:Copy())
+    end
+
+end
+

@@ -1,0 +1,54 @@
+package Libraries.Interface.Controls.Charts
+use Libraries.Containers.Array
+
+class PatternPalette
+    
+    PatternOptionConstants PATTERNS
+    Array <integer> palette
+    
+// The distance between the beginning of a pattern "tile" and the next "tile". Measured in pixels. Scales with interface scale.
+    constant number PATTERN_DISTANCE = 12
+
+    // The thickness of the edges of a pattern. Measured in pixels, and scales with interface scale.
+    constant number PATTERN_THICKNESS = 2
+    
+    on create
+        BuildPalette()
+    end
+    
+/*
+        This action returns the distance between the beginning of a pattern "tile"
+        and the beginning of the next "tile". Patterns are rendered as tiled squares
+        that are repeated across the surface of the chart element. This value is
+        measured in pixels, not including any scaling performed by interface scaling.
+        The default value is 12 pixels.
+
+        Attribute: Returns The number of pixels between each tile of any pattern.
+    */
+    action GetPatternDistanceFromPalette(integer index) returns number
+        return PATTERN_DISTANCE
+    end
+    
+    action GetPattern(integer index) returns integer
+if index > palette:GetSize()-1
+            integer laps = index/palette:GetSize()
+            integer temp = palette:Get(index mod palette:GetSize())
+            return temp
+        else
+            return palette:Get(index)
+        end
+    end
+    
+    action BuildPalette()
+        palette:Add(PATTERNS:DIAGONAL_CROSSHATCH)
+        palette:Add(PATTERNS:VERTICAL_LINES)
+        palette:Add(PATTERNS:HOLLOW_CIRCLES)
+        palette:Add(PATTERNS:DIAGONAL_DOWN_LINES)
+        palette:Add(PATTERNS:HOLLOW_TRIANGLES)
+        palette:Add(PATTERNS:HORIZONTAL_LINES)
+        palette:Add(PATTERNS:HOLLOW_BOXES)
+        palette:Add(PATTERNS:DIAGONAL_UP_LINES)
+        palette:Add(PATTERNS:PLAIN_CROSSHATCH)
+    end
+
+end

@@ -16,15 +16,17 @@ use Libraries.Game.Graphics.DrawableShape
 use Libraries.Interface.Controls.Charts.Graphics.Wedge
 use Libraries.Compute.Math
 use Libraries.Game.Graphics.Color
-use Libraries.Interface.Controls.Charts.ChartOptions
 use Libraries.Game.NumberUtilities
 use Libraries.Game.Graphics.OpenGL.OpenGLConstants
+use Libraries.Interface.Controls.Charts.PatternOptionConstants
+use Libraries.Interface.Controls.Charts.ColorPalettes.ColorPalette
 
 class PatternWedgeShaderMappingOpenGL is DefaultShaderMapping2DOpenGL
 
     ShaderProgram program = undefined
     GameStateManager manager
     NumberUtilities utility
+    ColorPalette colorPalette = undefined
 
     constant integer BATCH_SIZE = 200
 
@@ -124,26 +126,32 @@ class PatternWedgeShaderMappingOpenGL is DefaultShaderMapping2DOpenGL
             shape:SetDataForAllVertices(originPointAttribute:offset / 4, originX)
             shape:SetDataForAllVertices(originPointAttribute:offset / 4 + 1, originY)
 
-            ChartOptions chartOptions
+            PatternOptionConstants options
             number interfaceScale = wedge:GetInterfaceScale()
             number rotation = 0
             integer patternType = wedge:GetPattern()
 
-            if patternType = chartOptions:VERTICAL_LINES or patternType = chartOptions:PLAIN_CROSSHATCH
+            if patternType = options:VERTICAL_LINES or patternType = options:PLAIN_CROSSHATCH
                 rotation = 0
-            elseif patternType = chartOptions:HORIZONTAL_LINES
+            elseif patternType = options:HORIZONTAL_LINES
                 rotation = 90
-            elseif patternType = chartOptions:DIAGONAL_DOWN_LINES or patternType = chartOptions:DIAGONAL_CROSSHATCH or patternType = chartOptions:PINPOINT_DASHES
+            elseif patternType = options:DIAGONAL_DOWN_LINES or patternType = options:DIAGONAL_CROSSHATCH or patternType = options:PINPOINT_DASHES
                 rotation = 45
-            elseif patternType = chartOptions:DIAGONAL_UP_LINES
+            elseif patternType = options:DIAGONAL_UP_LINES
                 rotation = 135
             end
 
             Math math
             // Currently we use index 0 for the pattern indices. These values aren't conveniently exposed from the drawables and currently are irrelevant.
-            number patternDistance = math:Round(chartOptions:GetPatternDistanceFromPalette(0) * interfaceScale)
-            number patternThickness = math:Round(chartOptions:GetPatternThicknessFromPalette(0) * interfaceScale)
-            Color patternColor = chartOptions:GetPatternColorFromPalette(0)
+            number patternDistance = math:Round(options:DEFAULT_PATTERN_DISTANCE * interfaceScale)
+            number patternThickness = math:Round(options:DEFAULT_PATTERN_THICKNESS * interfaceScale)
+            Color patternColor
+if colorPalette = undefined
+            Color color
+            patternColor = color:Black()
+        else
+            patternColor = colorPalette:GetPatternColor(0)
+        end
 
             number width = wedge:GetWidth() * wedge:GetScaleX()
             number height = wedge:GetWidth() * wedge:GetScaleY()
@@ -167,6 +175,10 @@ class PatternWedgeShaderMappingOpenGL is DefaultShaderMapping2DOpenGL
     */
     action RenderBatch(ShaderProgram program, Camera camera)
         parent:BatchingShaderMapping2DOpenGL:RenderBatch(program, camera)
+    end
+    
+    action SetColorPalette(ColorPalette colorPalette)
+        me:colorPalette = colorPalette
     end
 
 end

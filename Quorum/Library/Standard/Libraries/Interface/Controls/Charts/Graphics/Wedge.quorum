@@ -12,8 +12,8 @@ use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.WedgeFragmentShaderOpenGL
 use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.WedgeShaderMappingOpenGL
 use Libraries.Interface.Events.TouchListener
 use Libraries.Interface.Events.TouchEvent
-use Libraries.Interface.Controls.Charts.ChartOptions
 use Libraries.Game.GameStateManager
+use Libraries.Interface.Controls.Charts.PatternOptionConstants
 
 /*
 The Wedge class is used to render wedges in a pie chart. Wedges have an outer radius that measures
@@ -87,7 +87,7 @@ class Wedge is ChartDrawable, TouchListener
         GameStateManager gameState
         ShaderManager manager = gameState:GetShaderManager()
         if HasPattern()
-            ChartOptions options
+            PatternOptionConstants options
             integer pattern = GetPattern()
             ShaderProgram program = undefined            
 

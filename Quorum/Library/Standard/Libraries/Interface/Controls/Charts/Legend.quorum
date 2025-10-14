@@ -23,11 +23,11 @@ use Libraries.Containers.Array
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.Interface.Controls.Charts.ColorPalettes.ColorPalette
 
 
 class Legend is ChartItem
     private LayoutProperties properties = undefined
-    ChartOptions options
     ChartLabel title = undefined
     Array<Series> seriesList
     Array<text> itemNames
@@ -60,6 +60,7 @@ class Legend is ChartItem
         Font font = GetDefaultFont()
         properties:SetFont(font)
         properties:SetFontSize(GetDefaultFontSize())
+        properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
         SetName("Legend")
 
         SetInputGroup("Chart")
@@ -366,6 +367,8 @@ class Legend is ChartItem
         integer i = 0
         repeat while i < seriesList:GetSize()
             Icon seriesIcon
+            seriesIcon:SetCornerPixelRounding(4,4,4,4)
+            
             seriesList:Get(i):SetEntryIcon(seriesIcon)
             if  seriesList:Get(i):GetColor() not= undefined
                 seriesIcon:SetColor(seriesList:Get(i):GetColor())
@@ -480,12 +483,12 @@ class Legend is ChartItem
         This action applies the color palette across a series.
     */
     action ApplySeriesColor()
-        ChartOptions options
+        ColorPalette palette = GetColorPalette()
         i = 0
         repeat while i < seriesList:GetSize()
             Series series = seriesList:Get(i)
-            series:SetColor(options:GetColorFromPalette(i))
-            series:SetBorderColor(options:GetBorderColorFromPalette(i))
+            series:SetColor(palette:GetColor(i))
+            series:SetBorderColor(palette:GetBorderColor(i))
             integer j = 0
             repeat while j < series:GetSize()
                 series:GetItemAt(j):SetColor(series:GetColor())
@@ -499,11 +502,11 @@ class Legend is ChartItem
         This action disposes of the elements on the legend.
     */
     action ApplySeriesPattern()
-        ChartOptions options
+        
         i = 0
         repeat while i < seriesList:GetSize()
             Series series = seriesList:Get(i)
-            series:SetPattern(options:GetPatternFromPalette(i))
+            series:SetPattern(GetContainer():GetPatternPalette():GetPattern(i))
             integer j = 0
             repeat while j < series:GetSize()
                 series:GetItemAt(j):SetPattern(series:GetPattern())

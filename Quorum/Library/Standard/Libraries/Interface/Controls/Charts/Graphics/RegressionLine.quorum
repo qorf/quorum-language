@@ -897,4 +897,13 @@ class RegressionLine is ChartDrawable, LinePath
             movable:RefreshResidualSquares()
         end
     end
+    
+    action GainedSelection
+                //previousColor = temp:GetColor()
+                SetZ(-5)
+                SetColor(GetSelectionColor())
+                GetLabel():GainedSelection()
+                GetRegressionIcon():SetColor(GetSelectionColor())
+        parent:ChartItem:GainedSelection()
+    end
 end

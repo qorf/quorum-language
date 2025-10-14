@@ -1,0 +1,67 @@
+package Libraries.Interface.Controls.Charts.ColorPalettes
+use Libraries.Interface.Controls.Charts.ColorPalettes.ColorPalette
+use Libraries.Game.Graphics.Color
+
+/*
+        See the paper below for more information on this palette
+        https://research.tableau.com/sites/default/files/Affective%20Color%20CHI%202017.pdf
+    */
+class SeriousPalette is ColorPalette
+    
+    action BuildPalette
+        Color color
+// Dark Navy
+        color:SetColor(39.0/255, 67.0/255, 94.0/255, 1)
+        AddColor(color:Copy())
+
+        // Lighter Brown
+        color:SetColor(112.0/255, 63.0/255, 53.0/255, 1)
+        AddColor(color:Copy())
+
+        // Dark Yellowish Green
+        color:SetColor(74.0/255, 131.0/255, 34.0/255, 1)
+        AddColor(color:Copy())
+
+        // Dark Purplish Gray
+        color:SetColor(36.0/255, 38.0/255, 77.0/255, 1)
+        AddColor(color:Copy())
+
+        // Dark Red
+        color:SetColor(125.0/255, 0.0/255, 3.0/255, 1)
+        AddColor(color:Copy())
+
+        // Darkest Teal
+        color:SetColor(18.0/255, 79.0/255, 78.0/255, 1)
+        AddColor(color:Copy())
+
+        // Greenish Mustard
+        color:SetColor(149.0/255, 167.0/255, 59.0/255, 1)
+        AddColor(color:Copy())
+
+        // Bright Red
+        color:SetColor(242.0/255, 0/255, 22.0/255, 1)
+        AddColor(color:Copy())
+
+        // Neutral Gray
+        color:SetColor(118.0/255, 129.0/255, 125.0/255, 1)
+        AddColor(color:Copy())
+
+        // Greenish Gray
+        color:SetColor(91.0/255, 97.0/255, 87.0/255, 1)
+        AddColor(color:Copy())
+
+        // Darker Brown
+        color:SetColor(85.0/255, 35.0/255, 23.0/255, 1)
+        AddColor(color:Copy())
+
+        // True Navy
+        color:SetColor(22.0/255, 58.0/255, 101.0/255, 1)
+        AddColor(color:Copy())
+
+        // Dark Gray
+        color:SetColor(46.0/255, 46.0/255, 46.0/255, 1)
+        AddColor(color:Copy())
+        
+    end
+
+end

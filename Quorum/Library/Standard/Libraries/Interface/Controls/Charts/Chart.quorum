@@ -8,7 +8,6 @@ use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Label
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Containers.Array
-use Libraries.Interface.Controls.Charts.ChartOptions
 use Libraries.Compute.Math
 use Libraries.Game.Graphics.Color
 use Libraries.Interface.Controls.Icon
@@ -27,6 +26,9 @@ use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 use Libraries.Interface.Controls.Charts.Graphics.RegressionLinePointMarker
 use Libraries.System.Properties
 use Libraries.Game.Graphics.Gradient
+use Libraries.Interface.Controls.Charts.ColorPalettes.all
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Controls.ControlLabel
 
 
 /*
@@ -69,7 +71,8 @@ use Libraries.Game.Graphics.Gradient
 class Chart is ChartItem
     private Math math
     private Color color
-    private ChartOptions options
+    private ColorPalette colorPalette = undefined
+    private PatternPalette patternPalette
 
     // Chart Accessibilty
     private boolean treeNeedsUpdate = true
@@ -133,6 +136,7 @@ class Chart is ChartItem
     private boolean showSubChartAreaTitles = true
     private Array<text> factorList = undefined
 
+    private integer tickDigits = 1
     // X-Axis Components
     private HorizontalAxisPanel horizontalPanel
     private Array <HorizontalAxisPanel> subHorizontalPanels
@@ -153,6 +157,7 @@ class Chart is ChartItem
     private Array <VerticalAxisPanel> subVerticalPanels
     private boolean showYAxis = true
     private boolean showYAxisTitle = true 
+    private boolean showYAxisLine = false
     private boolean showMajorYGridLines = true
     private boolean showMinorYGridLines = false   
     private boolean yLabelFontSizeOverride = false
@@ -163,6 +168,7 @@ class Chart is ChartItem
 
     // Legend Components
     private Legend legend
+    private Control legendPanel
     private boolean showLegend = true
     private boolean legendLabelFontSizeOverride = false
     private boolean legendTitleFontSizeOverride = false
@@ -191,6 +197,9 @@ class Chart is ChartItem
     // How thick the borders around icons in the Legend should be, in pixels.
     // Only used if the chart has a Legend. Otherwise, this does nothing.
     number legendIconBorderThickness = 1
+    
+    // The radius of any corners that use rounding
+    number cornerRadius = 10
 
     // Used to indicate that a chart should include a movable regression line.
     // Must be set before displaying the chart.
@@ -211,6 +220,16 @@ class Chart is ChartItem
     Drawable selectionArrow //may or may not be used
     integer currentArrowSize = -1
     boolean currentSideArrow = false
+    
+    // Selection Graphics
+    private Control selectionBox = undefined
+    private boolean selectionBoxShowing = false
+private ControlLabel selectionAnnotationLabel = undefined
+    private boolean selectionAnnotationLabelShowing = false
+    number selectionBoxBorderThickness = 6
+number blinkIdleTime = 1.0
+    number blinkTime = 0.35
+    number blinkTimer = blinkIdleTime
 
     on create
         CheckPlatformInstructions()
@@ -219,6 +238,8 @@ class Chart is ChartItem
 
         // Get default colors from the InterfaceOptions.
         SetInterfaceOptionsKey("Chart")
+        HuesAndContrastPalette defaultPalette
+        colorPalette = defaultPalette
     end
 
     action IsAccessibleParent returns boolean
@@ -275,6 +296,8 @@ class Chart is ChartItem
             horizontalPanel:ShowGroupBrackets(true)
         end
 
+        // load selection graphics
+        LoadSelectionGraphics()
         // Load the arrow and brackets
         //initially hidden and resized, arbitrary triangle
         Array<number> vertices
@@ -406,12 +429,14 @@ class Chart is ChartItem
             end
         end
 
+        horizontalPanel:SetContainer(me)
         horizontalPanel:LoadAxis(me, properties)
         if IsShowingXAxis()
             horizontalPanelHeightPercent = 0.15
             Add(horizontalPanel)
         end
         
+        verticalPanel:SetContainer(me)
         verticalPanel:LoadAxis(me, properties)
         if IsShowingYAxis()
             verticalPanelWidthPercent = 0.15
@@ -431,11 +456,13 @@ class Chart is ChartItem
         legend:LoadLegend(me, properties)
         if IsShowingLegend()
             legendPanelWidthPercent = 0.10
-            Add(legend)
+            Add(legendPanel)
+            legendPanel:Add(legend)
         elseif legend:GetSeriesList():GetSize() > 0
             integer i = 0
             repeat while i < legend:GetSeriesList():GetSize()
-                Add(legend:GetSeriesList():Get(i))
+                Add(legendPanel)
+                legendPanel:Add(legend:GetSeriesList():Get(i))
                 i = i + 1
             end
         end
@@ -448,6 +475,39 @@ class Chart is ChartItem
         Resize()
         SetNextFocus(GetNextFocus())
         SetPreviousFocus(GetPreviousFocus())
+    end
+    
+    action LoadSelectionGraphics
+        // load selection box
+        Control temp
+        selectionBox = temp
+        Color color
+        selectionBox:SetBackgroundColor(color:CustomColor(0,0,0,0))
+        selectionBox:SetBorderColor(GetSelectionColor())
+        selectionBox:SetBorderThickness(selectionBoxBorderThickness)
+        selectionBox:SetSize(500,500)
+        selectionBox:SetCornerPixelRounding(GetCornerRadius(), GetCornerRadius(), GetCornerRadius(), GetCornerRadius())
+        selectionBox:SetZ(-15)
+        ControlShaderView view
+        selectionBox:SetView2D(view)
+        view:Initialize()
+        selectionBox:Hide()
+        Add(selectionBox)
+        
+        // load annotation label
+ControlLabel tempLabel
+        selectionAnnotationLabel = tempLabel
+        selectionAnnotationLabel:SetCornerPixelRounding(GetCornerRadius(),GetCornerRadius(),GetCornerRadius(),GetCornerRadius())
+        selectionAnnotationLabel:SetBorderColor(GetBorderColor())
+        selectionAnnotationLabel:SetBorderThickness(2)
+        selectionAnnotationLabel:SetToLargeFont()
+        selectionAnnotationLabel:SetBackgroundColor(color:White())
+        selectionAnnotationLabel:SetZ(-100)
+ControlShaderView panelView
+        selectionAnnotationLabel:SetView2D(panelView)
+        panelView:Initialize()
+        selectionAnnotationLabel:Hide()
+        Add(selectionAnnotationLabel)
     end
 
     /*
@@ -2324,9 +2384,8 @@ class Chart is ChartItem
     end
 
     private action CreateMovableRegressionSeries(ChartAreaPanel panel) returns MovableRegressionSeries
-        // Fetch the next color from the palette in the Options
-        ChartOptions options
-        Color color = options:GetColorFromPalette(GetSeriesList():GetSize())
+        // Fetch the next color from the palette
+        Color color = colorPalette:GetColor(GetSeriesList():GetSize())
 
         RegressionLine line
         line:SetMovable(true)
@@ -2705,59 +2764,86 @@ class Chart is ChartItem
     action AddSeries(Series series)
         legend:GetSeriesList():Add(series)
     end
+    
+/*
+        This action sets the current color palette.
+        
+        Attribute: Parameter colorPalette the ColorPalette object to use 
+    */
+action SetColorPalette(ColorPalette colorPalette)
+        me:colorPalette = colorPalette
+    end
+
+/*
+        This action returns the current color palette.
+        
+        Attribute: Returns ColorPalette object in use 
+    */
+    action GetColorPalette returns ColorPalette
+        return colorPalette
+    end
     /*
         This action sets the color palette to a collection of calm colors. 
     */
     action SetColorPaletteToCalm()
-        options:SetPalette(options:CALM)
+        CalmPalette calm
+        SetColorPalette(calm)
     end 
     /*
         This action sets the color palette to a collection of exciting colors. 
     */
     action SetColorPaletteToExciting()
-        options:SetPalette(options:EXCITING)
+        ExcitingPalette exciting
+        SetColorPalette(exciting)
     end 
     /*
         This action sets the color palette to a collection of positive colors. 
     */
     action SetColorPaletteToPositive()
-        options:SetPalette(options:POSITIVE)
+        PositivePalette positive
+        SetColorPalette(positive)
     end 
     /*
         This action sets color palette to a collection of negative colors. 
     */
     action SetColorPaletteToNegative()
-        options:SetPalette(options:NEGATIVE)
+        NegativePalette negative
+        SetColorPalette(negative)
     end 
     /*
         This action sets the color palette to a collection of serious colors. 
     */
     action SetColorPaletteToSerious()
-        options:SetPalette(options:SERIOUS)
+        SeriousPalette serious
+        SetColorPalette(serious)
     end 
     /*
         This action sets the color palette to a collection of playful colors. 
     */
     action SetColorPaletteToPlayful()
-        options:SetPalette(options:PLAYFUL)
+        PlayfulPalette playful
+        SetColorPalette(playful)
     end 
     /*
         This action sets the color palette to a collection of trustworthy colors. 
     */
     action SetColorPaletteToTrustworthy()
-        options:SetPalette(options:TRUSTWORTHY)
+        TrustworthyPalette trustworthy
+        SetColorPalette(trustworthy)
     end 
     /*
         This action sets the color palette to a collection of disturbing colors. 
     */
     action SetColorPaletteToDisturbing()
-        options:SetPalette(options:DISTURBING)
+        DisturbingPalette disturbing
+        SetColorPalette(disturbing)
     end 
     /*
         This action sets the color palette to a collection of colorgorical colors. 
     */
     action SetColorPaletteToColorgorical()
-        options:SetPalette(options:COLORGORICAL)
+        ColorgoricalPalette colorgorical
+        SetColorPalette(colorgorical)
     end 
 
     /*
@@ -2772,7 +2858,9 @@ class Chart is ChartItem
         colorB:SetColor(31.0/255, 127.0/255, 122.0/255, 1)
         Color colorC
         colorC:SetColor(52.0/255, 0/255, 67.0/255, 1)
-        options:SetPalette(colorA, colorB, colorC, legend:GetSeriesList():GetSize())
+        InterpolatedPalette interpolated
+        interpolated:SetColors(colorA, colorB, colorC, legend:GetSeriesList():GetSize())
+        SetColorPalette(interpolated)
     end 
     /*
         This action sets the color palette to a collection of warm scaled colors.
@@ -2784,7 +2872,9 @@ class Chart is ChartItem
         colorB:SetColor(168.0/255, 33.0/255, 68.0/255, 1)
         Color colorC
         colorC:SetColor(0/255, 0/255, 4.0/255 ,1)
-        options:SetPalette(colorA, colorB, colorC, legend:GetSeriesList():GetSize())
+        InterpolatedPalette interpolated
+        interpolated:SetColors(colorA, colorB, colorC, legend:GetSeriesList():GetSize())
+        SetColorPalette(interpolated)
     end 
     /*
         This action sets the color palette to a collection of magma colors.
@@ -2796,7 +2886,9 @@ class Chart is ChartItem
         colorB:SetColor(164.0/255, 31.0/255, 103.0/255, 1)
         Color colorC
         colorC:SetColor(0/255, 0/255, 4.0/255 ,1)
-        options:SetPalette(colorA, colorB, colorC, legend:GetSeriesList():GetSize())
+        InterpolatedPalette interpolated
+        interpolated:SetColors(colorA, colorB, colorC, legend:GetSeriesList():GetSize())
+        SetColorPalette(interpolated)
     end 
 
     /*
@@ -2805,7 +2897,13 @@ class Chart is ChartItem
         Attribute: Parameter palette a list of colors.
     */
     action SetColorPalette(Array <Color> palette)
-        options:SetPalette(palette)
+        ColorPalette custom
+        integer i = 0
+        repeat while i < palette:GetSize()
+            custom:AddColor(palette:Get(i))
+            i = i + 1
+        end
+        SetColorPalette(custom)
     end
     /*
         This action sets a custom color palette with one color.
@@ -2819,7 +2917,9 @@ class Chart is ChartItem
         Color lightColor
         lightColor:SetColor(1,1,1,1)
         lightColor:LinearInterpolation(color, 0.15) // Not quite white
-        options:SetPalette(darkColor, color, lightColor, legend:GetSeriesList():GetSize())
+        InterpolatedPalette interpolated
+        interpolated:SetColors(darkColor, color, lightColor, legend:GetSeriesList():GetSize())
+        SetColorPalette(interpolated)
     end
     /*
         This action sets a custom color palette with two colors.
@@ -2828,7 +2928,9 @@ class Chart is ChartItem
         Attribute: Parameter colorB a color.
     */
     action SetColorPalette(Color colorA, Color colorB)
-        options:SetPalette(colorA, colorB, legend:GetSeriesList():GetSize())
+        InterpolatedPalette interpolated
+        interpolated:SetColors(colorA, colorB, legend:GetSeriesList():GetSize())
+        SetColorPalette(interpolated)
     end
     /*
         This action sets a custom color palette with three colors.
@@ -2838,13 +2940,15 @@ class Chart is ChartItem
         Attribute: Parameter colorC a color.
     */
     action SetColorPalette(Color colorA, Color colorB, Color colorC)
-        options:SetPalette(colorA, colorB, colorC, legend:GetSeriesList():GetSize())
+        InterpolatedPalette interpolated
+        interpolated:SetColors(colorA, colorB, colorC, legend:GetSeriesList():GetSize())
+        SetColorPalette(interpolated)
     end
     /*
         This action sets the color palette to a collection of grey colors.
     */
     action SetCurrentPaletteToGrayScale()
-        options:SetPaletteToGrayScale()
+        colorPalette:SetPaletteToGrayScale()
     end
 
     /*
@@ -2852,7 +2956,6 @@ class Chart is ChartItem
     */
     action SetHighlightColor(Color color)
         highlightColor = color
-        options:SetSelectionColor(color)
     end
     /*
         This action resizes the chart.
@@ -3158,7 +3261,7 @@ class Chart is ChartItem
     action AdjustForLegend()
         legend:SetContainer(me)
         if IsShowingLegend()
-            legend:SetSize(GetWidth()*legendPanelWidthPercent, GetHeight()*legendPanelHeightPercent)
+            legendPanel:SetSize(GetWidth()*legendPanelWidthPercent, GetHeight()*legendPanelHeightPercent)
             integer minimumSpace = 0
             integer minimumWidthSpace = 0
             integer minimumHeightSpace = 0
@@ -3222,7 +3325,9 @@ class Chart is ChartItem
                 number remainingChartArea = math:Round(1 - legendPanelWidthPercent - verticalPanelWidthPercent - 0.025, 2) // 0.025 for margin padding
                 SetChartAreaWidthPercent(remainingChartArea)
                 horizontalPanel:SetWidth(remainingChartArea*GetWidth())
-
+legendPanel:SetSize(GetWidth()*legendPanelWidthPercent, GetHeight()*legendPanelHeightPercent)    
+                legend:SetSize(GetWidth()*legendPanelWidthPercent, minimumHeightSpace)
+                legend:SetY(legendPanel:GetHeight() - legend:GetHeight())
             else //legend:DisplayOnTop() or legend:DisplayOnBottom()
                 integer titleautofontsize = cast(integer, ((GetHeight()+GetWidth())/2)*(0.05/2))
                 if legend:GetTitleLabel() not= undefined
@@ -3284,6 +3389,9 @@ class Chart is ChartItem
                 SetChartAreaWidthPercent(remainingChartAreaWidth)
                 horizontalPanel:SetWidth(remainingChartAreaWidth*GetWidth())
                 legendPanelWidthPercent = horizontalPanelWidthPercent
+legendPanel:SetSize(GetWidth()*legendPanelWidthPercent, GetHeight()*legendPanelHeightPercent)    
+legend:SetSize(GetWidth()*legendPanelWidthPercent, minimumHeightSpace)
+legend:SetY(legendPanel:GetHeight() - legend:GetHeight())
             end
         else
             legendPanelWidthPercent = 0.05
@@ -3291,7 +3399,7 @@ class Chart is ChartItem
             SetChartAreaWidthPercent(remainingChartArea)
             horizontalPanel:SetWidth(remainingChartArea*GetWidth())
         end    
-        legend:SetSize(GetWidth()*legendPanelWidthPercent, GetHeight()*legendPanelHeightPercent)    
+        //legendPanel:SetSize(GetWidth()*legendPanelWidthPercent, GetHeight()*legendPanelHeightPercent)    
     end
     /*
         This action sets the overall font size.
@@ -3393,66 +3501,10 @@ class Chart is ChartItem
             return now
         end
 
-        Item target = item
-        if target not= undefined
-            target:Focus()
-            if target is Series
-                Series temp = cast(Series, target)
-                integer i = 0
-                repeat while i < temp:GetSize()
-                    Drawable element = temp:GetItemAt(i)
-                    element:SetColor(previousColor)
-                    element:SetZ(previousZ)
-                    i = i + 1
-                end
-                temp:GetEntryIcon():SetColor(previousColor)
-                temp:GetEntryBox():SetColor(0,0,0,0)
-                if showLinearRegression and temp:GetRegressionLine() not= undefined
-                    RegressionLine regressionLine = cast(RegressionLine, temp:GetRegressionLine())
-                    regressionLine:SetZ(previousZ)
-                    regressionLine:SetColor(previousColor)
-                    regressionLine:GetLabel():LostSelection()
-                    regressionLine:GetRegressionIcon():SetColor(previousColor)
-                end
-            elseif target is RegressionLine
-                RegressionLine temp = cast(RegressionLine, target)
-                temp:SetZ(previousZ)
-                temp:SetColor(previousColor)
-                temp:GetLabel():LostSelection()
-                temp:GetRegressionIcon():SetColor(previousColor)
-            elseif target is RegressionLinePointMarker
-                target:Hide()
-            elseif target is GroupPanel
-                GroupPanel temp = cast(GroupPanel, target)  
-//                if temp:GetSelectionArrow() not= undefined          
-//                    temp:GetSelectionArrow():Hide()
-//                end
-//                if temp:GetSelectionBracket():GetSize() = 3          
-//                    temp:GetSelectionBracket():Get(0):Hide()
-//                    temp:GetSelectionBracket():Get(1):Hide()
-//                    temp:GetSelectionBracket():Get(2):Hide()
-//                end
-            elseif target is ChartDrawable
-                // Do nothing. Let the ChartDrawable handle itself.
-            elseif target is Drawable
-                Drawable temp = cast(Drawable, target)
-                temp:SetZ(previousZ)
-                temp:SetColor(previousColor)  
-            elseif target is ChartLabel
-                // Do nothing. Let the ChartLabel handle itself.
-            elseif target is ChartAreaPanel
-                // Do nothing.
-            elseif target is HorizontalAxisPanel or target is VerticalAxisPanel
-                // Do nothing.
-            elseif target is Control
-                Control temp = cast(Control, target)
-                LayoutProperties properties = temp:GetDefaultLayoutProperties()
-                if properties not= undefined
-                    // Remove the View set during Gained selection
-                    temp:SetView2D(undefined)
-                end
-            end
-        end
+selectionBoxShowing = false
+            selectionBox:Hide()
+            selectionAnnotationLabelShowing = false
+            selectionAnnotationLabel:Hide()
     end
 
     /* 
@@ -3467,75 +3519,70 @@ class Chart is ChartItem
         Attribute: Parameter item the ChartItem representing the structure for this particular kind of chart. 
     */
     action OnSelectionChange(ChartItem item)
-        Item target = item
-        if target not= undefined
-            target:Focus()
-            if target is Series
-                Series temp = cast(Series, target)
-                previousColor = temp:GetColor()
-                integer i = 0
-                repeat while i < temp:GetSize()
-                    Drawable element = temp:GetItemAt(i)
-                    element:SetColor(GetSelectionColor())
-                    element:SetZ(-1)
-                    i = i + 1
-                end
-                temp:GetEntryIcon():SetColor(GetSelectionColor())
-                temp:GetEntryBox():SetColor(GetSelectionColor())
-                if showLinearRegression and temp:GetRegressionLine() not= undefined
-                    RegressionLine regressionLine = cast(RegressionLine, temp:GetRegressionLine())
-                    previousZ = regressionLine:GetZ()
-                    regressionLine:SetZ(-5)
-                    //regressionLine:SetColor(GetSelectionColor())
-                    regressionLine:GetLabel():GainedSelection()
-                    regressionLine:GetRegressionIcon():SetColor(GetSelectionColor())
-                end 
-            elseif target is RegressionLine
-                RegressionLine temp = cast(RegressionLine, target)
-                previousZ = temp:GetZ()
-                previousColor = temp:GetColor()
-                temp:SetZ(-5)
-                temp:SetColor(GetSelectionColor())
-                temp:GetLabel():GainedSelection()
-                temp:GetRegressionIcon():SetColor(GetSelectionColor())
-            elseif target is RegressionLinePointMarker
-                target:Show()
-            elseif target is GroupPanel
-                // Removed
-            elseif target is ChartDrawable
-                // Do nothing by default. The ChartDrawable handles its own selection event.
-            elseif target is Drawable
-                Drawable temp = cast(Drawable, target)
-                previousZ = temp:GetZ()
-                previousColor = temp:GetColor()
-                temp:SetZ(-1)
-                temp:SetColor(GetSelectionColor())
-            elseif target is ChartLabel
-                // Do nothing by default. The ChartLabel handles its own selection event.
-            elseif target is ChartAreaPanel
-                /*
-                Do whatever specialized work we want to do to show overall focus/selection on the ChartAreaPanel here.
-                Importantly, we do not want to override the color properties like we would if we fell into the last case below.
-                */
-            //elseif target:Equals(me)
-            //    GetChartArea():GainedSelection()
-            elseif target is HorizontalAxisPanel or target is VerticalAxisPanel
-                // Do nothing by default. The axis panel handles its own selection event.
-            elseif target is Control
-                Control temp = cast(Control, target)
-                LayoutProperties properties = temp:GetDefaultLayoutProperties()
-                if properties not= undefined
-                    previousColorGroup = properties:GetBorderColor()
-                    previousBackgroundColor = properties:GetBackgroundColor()
-                    Color transparency
-                    transparency:SetColor(0, 0, 0, 0)
-                    ControlShaderView view
-                    view:Initialize()
-                    temp:SetBackgroundColor(transparency)
-                    temp:SetBorderColor(GetSelectionColor())
-                    temp:SetView2D(view)
+        if item = undefined
+            return now
+        end
+            item:Focus()
+if item is ChartAreaPanel
+        number borderThickness = selectionBox:GetBorderThickness()
+            number topPadding = borderThickness
+number rightPadding = borderThickness
+number bottomPadding = borderThickness
+number leftPadding = borderThickness
+            if subChartAreas:GetSize() < 2
+        if GetHorizontalPanel() not= undefined
+                if GetHorizontalPanel():GetTitleLabel() not= undefined
+                    ChartLabel xLabel = GetHorizontalPanel():GetTitleLabel()
+                    bottomPadding = item:GetGlobalY() - (xLabel:GetGlobalY() + xLabel:GetHeight()) + 5
                 end
             end
+            if GetVerticalPanel() not= undefined
+                if GetVerticalPanel():GetLongestLabel() not= undefined
+                    ChartLabel longestLabel = GetVerticalPanel():GetLongestLabel()
+                    leftPadding = item:GetGlobalX() - longestLabel:GetGlobalX() + borderThickness * 2
+                end
+            end
+                rightPadding = rightPadding + 5
+            end
+            ApplySelectionBoxAroundItem(item, topPadding, rightPadding, bottomPadding, leftPadding)
+        elseif item is Legend
+ApplySelectionBoxAroundItem(item, -35, 0,5,0)
+        elseif item is HorizontalAxisPanel
+ApplySelectionBoxAroundItem(item, 0, 50, 0, 50)
+        elseif item is VerticalAxisPanel
+            ApplySelectionBoxAroundItem(item, 50, 0, 50, 0)
+        end
+    end
+    
+    action ApplySelectionBoxAroundItem(ChartItem item, number padding)
+        ApplySelectionBoxAroundItem(item, padding, padding, padding, padding)
+    end
+    
+    action ApplySelectionBoxAroundItem(ChartItem item, number topPadding, number rightPadding, number bottomPadding, number leftPadding)
+            selectionBox:Show()
+blinkTimer = blinkIdleTime
+        selectionBoxShowing = true
+        number borderThickness = selectionBox:GetBorderThickness()
+            selectionBox:SetSize(item:GetWidth() + rightPadding + leftPadding, item:GetHeight() + bottomPadding + topPadding)
+            selectionBox:SetX(item:GetGlobalX() - leftPadding)
+            selectionBox:SetY(item:GetGlobalY() - bottomPadding)
+    end
+    
+    action ShowSelectionAnnotation(ChartItem item, number offsetX, number offsetY)
+        ShowSelectionAnnotation(item, "", offsetX, offsetY)
+    end
+    
+action ShowSelectionAnnotation(ChartItem item, text annotation, number offsetX, number offsetY)
+        if ShowAnnotations()
+            return now
+        end
+        selectionAnnotationLabel:Show()
+        selectionAnnotationLabel:SetX(item:GetGlobalX() + offsetX)
+        selectionAnnotationLabel:SetY(item:GetGlobalY() + offsetY)
+        if annotation = ""
+            selectionAnnotationLabel:SetText(" " + item:GetName() + " ")
+        else
+            selectionAnnotationLabel:SetText(" " + annotation + " ")
         end
     end
 
@@ -3806,6 +3853,17 @@ class Chart is ChartItem
         if treeNeedsUpdate
             GenerateInfoTree()
             treeNeedsUpdate = false
+        end
+if selectionBox not= undefined and selectionBoxShowing
+            blinkTimer = blinkTimer - seconds
+            if blinkTimer < 0
+                blinkTimer = blinkTime
+                if selectionBox:IsShowing()
+                    selectionBox:Hide()
+                else
+                    selectionBox:Show()
+                end
+            end
         end
     end
     /*
@@ -4359,6 +4417,61 @@ class Chart is ChartItem
     */
     action SetCurrentSideArrow(boolean currentSideArrow)
         me:currentSideArrow = currentSideArrow
+    end
+
+
+/*
+        This obtains how many significant digits are used when representing ticks.
+
+        Attribute: Returns the number of significant digits to use for ticks
+    */
+    action SetTickDigits(integer tickDigits)
+        me:tickDigits = tickDigits
+    end
+
+/*
+        This changes how many significant digits are used when representing ticks.
+
+        Attribute: Parameter tickDigits the new number of digits to use for ticks.
+    */
+    action GetTickDigits returns integer
+        return tickDigits
+    end
+
+    action SetPatternPalette(PatternPalette patternPalette)
+        me:patternPalette = patternPalette
+    end
+
+    action GetPatternPalette returns PatternPalette
+        return patternPalette
+    end
+
+    action SetCornerRadius(number cornerRadius)
+        me:cornerRadius = cornerRadius
+    end
+
+    action GetCornerRadius returns number
+        return cornerRadius
+    end
+
+    action GetLegendPanel returns Control
+        return legendPanel
+    end
+
+    action GetSelectionBoxBorderThickness returns number
+        return selectionBoxBorderThickness
+    end
+
+    action SetSelectionBoxBorderThickness(number selectionBoxBorderThickness)
+        me:selectionBoxBorderThickness = selectionBoxBorderThickness
+    end
+
+    action ShowYAxisLine(boolean showYAxisLine)
+        me:showYAxisLine = showYAxisLine
+    end
+
+    action IsShowingYAxisLine returns boolean
+        return showYAxisLine
     end
 
 end

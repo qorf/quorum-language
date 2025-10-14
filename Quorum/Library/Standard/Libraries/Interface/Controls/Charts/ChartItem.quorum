@@ -3,6 +3,7 @@ package Libraries.Interface.Controls.Charts
 use Libraries.Interface.Item
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Controls.Charts.ColorPalettes.ColorPalette
 
 /*
     This class represents one region inside of a chart. This can be anything, 
@@ -27,8 +28,6 @@ class ChartItem is Control
     ChartItem downItem = undefined
     ChartItem enterItem = undefined
     ChartItem escapeItem = undefined
-
-    ChartOptions options
 
     boolean escapeToLastItem = false
     boolean passThroughSelection = false
@@ -69,6 +68,10 @@ class ChartItem is Control
 
     action SetContainer(Chart container)
         me:container = container
+    end
+    
+    action GetColorPalette returns ColorPalette
+        return container:GetColorPalette()
     end
 
     /*

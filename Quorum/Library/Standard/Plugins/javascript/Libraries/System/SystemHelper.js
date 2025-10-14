@@ -24,4 +24,7 @@ function plugins_quorum_Libraries_System_SystemHelper_() {
     this.GetThreadName = function () {
         return "1";
     }
+
+    this.Exit$quorum_integer = function (key) {
+    }
 }

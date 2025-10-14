@@ -39,6 +39,14 @@ class ScalableVectorGraphicsObject
     private text stroke = ""
     private text strokeOpacity = ""
     private text strokeWidth = ""
+    private text strokeDashArray = ""
+    
+    // transform attributes
+    private text rotate = ""
+    private text translate = ""
+    private text skewX = ""
+    private text skewY = ""
+    private text scale = ""
 
     //aria-related attributes
     private text role = ""
@@ -99,6 +107,12 @@ class ScalableVectorGraphicsObject
         end
         if strokeWidth not= ""
             result = result + " stroke-width="+dq+strokeWidth+dq
+        end
+        if strokeDashArray not= ""
+            result = result + " stroke-dasharray="+dq+strokeDashArray+dq
+        end
+        if rotate not= "" or translate not= "" or skewX not= "" or skewY not= "" or scale not= ""
+            result = result + " transform="+dq+rotate+" "+translate+" "+skewX+" "+skewY+" "+scale+dq
         end
         if role not= ""
             result = result + " role="+dq+role+dq
@@ -824,6 +838,11 @@ class ScalableVectorGraphicsObject
     action GetStrokeWidth returns text
         return strokeWidth
     end
+    
+    
+action SetStrokeDashArray(text strokeDashArray)
+        me:strokeDashArray = strokeDashArray
+    end
 
     /*
         This action will give a role attribute to the SVG element. This role can be for general use
@@ -1012,6 +1031,34 @@ class ScalableVectorGraphicsObject
 
     action GetAriaRoleDescription returns text
         return ariaRoleDescription
+    end
+
+    action SetRotateTransform(number angle)
+        me:rotate = "rotate(" + angle + ")"
+    end
+    
+action SetRotateTransform(number angle, number x, number y)
+me:rotate = "rotate(" + angle + ", " + x + ", " + y + ")"
+    end
+
+    action SetTranslateTransform(number x, number y)
+        me:translate = "translate(" + x + " " + y + ")"
+    end
+
+    action SetSkewXTransform(number degrees)
+        me:skewX = "skewX(" + degrees + ")"
+    end
+
+    action SetSkewYTransform(number degrees)
+        me:skewX = "skewY(" + degrees + ")"
+    end
+
+    action SetScaleTransform(number x)
+        me:scale = "scale(" + x + ")"
+    end
+    
+action SetScaleTransform(number x, number y)
+        me:scale = "scale(" + x + ", " + y + ")"
     end
 
 end

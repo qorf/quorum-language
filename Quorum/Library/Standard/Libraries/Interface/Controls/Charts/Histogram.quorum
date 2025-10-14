@@ -706,5 +706,32 @@ class Histogram is SharedBarChartParent
             alert("Share currently only supports Hypertext Markup Language (HTML), please use a .html file extension.")
         end
     end
+    
+    
+/* 
+        OnSelectionChange is a supplemental action to the parent Chart's OnSelectionChange.
+        Any items specific to only this type of chart or if an item needs different highlighting
+        instructions than that of the parent class, it will have their GainedSelection defined here.
+
+        Unlike many kinds of user interface controls, there is no universal way of interacting with a chart and, as such, this 
+        may be defined by any chart to be custom. As such, charts must be able to take messages suggesting an item in the chart
+        has either lost or gained the focus. Broadly speaking, this is done automatically and while charts need to implement
+        this action, they do not need to call this action directly.
+
+        Attribute: Parameter item the ChartItem representing the structure for this particular kind of chart. 
+    */
+    action OnSelectionChange(ChartItem item)
+if item = undefined
+            return now
+        end
+if item is Bar and isOverlayed
+            item:Focus()
+            Bar bar = cast(Bar, item)
+            ApplySelectionBoxAroundItem(item, 3)
+ShowSelectionAnnotation(item,""+bar:GetValue(), bar:GetWidth()/2, bar:GetHeight()/2)
+        else
+            parent:SharedBarChartParent:OnSelectionChange(item)
+end
+    end
 end
 

@@ -67,4 +67,8 @@ public class SystemHelper
         } catch(Exception e) { //fail silently
         }
     }
+
+    public void Exit(int code) {
+        System.exit(code);
+    }
 }

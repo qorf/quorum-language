@@ -1,0 +1,59 @@
+package Libraries.Interface.Controls.Charts.ColorPalettes
+use Libraries.Game.Graphics.Color
+use Libraries.Containers.Array
+
+class ColorPalette
+    
+    Color color
+    Array<Color> colorPalette
+    Color selectionColor = color:Blue()
+    Color borderColor = color:CustomColor(0.6,0.6,0.6,1)
+    Color patternColor = color:Black()
+    
+    
+    on create
+        BuildPalette()
+    end
+    
+action GetColor(integer index) returns Color
+        if index > colorPalette:GetSize()-1
+            integer laps = index/colorPalette:GetSize()
+            Color temp = colorPalette:Get(index mod colorPalette:GetSize()):Copy()
+            temp:LinearInterpolation(temp:White(), (1-1.0/(2*laps)))
+            return temp
+        else
+            return colorPalette:Get(index)
+        end
+    end
+    
+    action GetBorderColor(integer index) returns Color
+        return borderColor
+    end
+    
+    action GetSelectionColor(integer index) returns Color
+        return selectionColor
+    end
+    
+action GetPatternColor(integer index) returns Color
+        return patternColor
+    end
+    
+    action BuildPalette
+    end    
+
+    action AddColor(Color color)
+        colorPalette:Add(color)
+    end
+    
+action SetPaletteToGrayScale()
+        integer i = 0
+        number grayscale = 0.0
+        repeat while i < colorPalette:GetSize()
+            grayscale = (0.299 * colorPalette:Get(i):GetRed()) + (0.587 * colorPalette:Get(i):GetGreen()) + (0.114 * colorPalette:Get(i):GetBlue())
+            colorPalette:Get(i):SetColor(grayscale,grayscale,grayscale,1)
+            i = i + 1
+        end
+    end
+
+end
+

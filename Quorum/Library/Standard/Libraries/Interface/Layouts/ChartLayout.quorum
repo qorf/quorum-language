@@ -27,7 +27,6 @@ use Libraries.Interface.Controls.Charts.GroupPanel
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 use Libraries.Interface.Controls.Charts.TwoVariableChart
 use Libraries.Interface.Controls.Charts.Graphics.RegressionLinePointMarker
-use Libraries.Interface.Controls.Charts.ChartOptions
 use Libraries.Interface.Controls.Charts.ScatterPlot
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Views.PatternControlShaderView
@@ -88,7 +87,8 @@ class ChartLayout is Layout
                 //Get Panel Containers
                 HorizontalAxisPanel horizontalContainer = chart:GetHorizontalPanel()
                 VerticalAxisPanel verticalContainer = chart:GetVerticalPanel()
-                Legend legendContainer = chart:GetLegend()
+                Legend legend = chart:GetLegend()
+                Control legendContainer = chart:GetLegendPanel()
                 ChartAreaPanel chartAreaContainer = chart:GetChartArea()
 
                 if horizontalContainer:GetDefaultLayoutProperties():NeedsRendering()
@@ -102,14 +102,14 @@ class ChartLayout is Layout
                 originPointX = 0
                 originPointY = 0
 
-                if legendContainer:DisplayOnRight() // This is default.. even when legend is not showing.
+                if legend:DisplayOnRight() // This is default.. even when legend is not showing.
                     verticalContainer:SetPosition(originPointX, originPointY + horizontalContainer:GetHeight())
                     chartAreaContainer:SetPosition(originPointX + verticalContainer:GetWidth(), originPointY + horizontalContainer:GetHeight())
                     legendContainer:SetPosition(originPointX + verticalContainer:GetWidth() + chartAreaContainer:GetWidth(), originPointY + horizontalContainer:GetHeight())
 
                     horizontalContainer:SetPosition(originPointX + verticalContainer:GetWidth(), originPointY)
                     
-                elseif legendContainer:DisplayOnLeft()
+                elseif legend:DisplayOnLeft()
                     if chart:IsShowingYAxis()
                         legendContainer:SetPosition(originPointX, originPointY + horizontalContainer:GetHeight())
                         verticalContainer:SetPosition(originPointX + legendContainer:GetWidth(), originPointY + horizontalContainer:GetHeight())
@@ -121,7 +121,7 @@ class ChartLayout is Layout
                     chartAreaContainer:SetPosition(originPointX + legendContainer:GetWidth() + verticalContainer:GetWidth(), originPointY + horizontalContainer:GetHeight())                 
                     horizontalContainer:SetPosition(originPointX + legendContainer:GetWidth() + verticalContainer:GetWidth(), originPointY)
 
-                elseif legendContainer:DisplayOnTop()
+                elseif legend:DisplayOnTop()
                     verticalContainer:SetPosition(originPointX, originPointY + horizontalContainer:GetHeight())
                     chartAreaContainer:SetPosition(originPointX + verticalContainer:GetWidth(), originPointY + horizontalContainer:GetHeight())
                     
@@ -221,7 +221,7 @@ class ChartLayout is Layout
                 end
 
                 if chart:IsShowingLegend()
-                    LayoutLegend(chart, legendContainer)
+                    LayoutLegend(chart, legendContainer, legend)
                 end
 
                 if chart:IsShowingXAxis()
@@ -260,7 +260,7 @@ class ChartLayout is Layout
         // Calculating tick and label positions
         Array<Drawable> ticks = verticalContainer:GetTicks()
         Array<Drawable> brackets = verticalContainer:GetBrackets()
-        Array<Drawable> majorlines = verticalContainer:GetMajorGridlines()
+        Array<Control> majorlines = verticalContainer:GetMajorGridlines()
         Array<Drawable> minorlines = verticalContainer:GetMinorGridlines()
         Array<Drawable> axislines = verticalContainer:GetAxisLines()
         Array<ChartLabel> labels = verticalContainer:GetLabels()
@@ -347,7 +347,7 @@ class ChartLayout is Layout
 
             integer k = 0
             repeat while k < horizontalSections
-                Drawable majorLine
+                Control majorLine
                 if chart:IsShowingMajorYGridLines() and startIndex < majorlines:GetSize()
                     if i = 0  // This will not draw the gridline that overlaps with the x-axis
                         if not chart:IsShowingXAxis() or paddingOffset not= 0
@@ -359,8 +359,11 @@ class ChartLayout is Layout
                 end   
                 integer thin = cast(integer, tickHeight*0.75)
                 majorLine:SetPosition(0, cast(integer, tickY+(thin/2)))
-                majorLine:LoadFilledRectangle(cast(integer, chartWidth), thin, chart:GetAccentColor())
-
+                majorLine:SetSize(chartWidth,thin)
+                majorLine:SetBackgroundColor(chart:GetAccentColor())
+                PatternControlShaderView majorShader
+                majorShader:Initialize(9)
+majorLine:SetView2D(majorShader)
                 if chart:IsShowingMinorYGridLines() and j < minorlines:GetSize() 
                     integer thinner = cast(integer, majorLine:GetHeight()/2)
                     number minorY = majorLine:GetY() + minorDivWidth
@@ -425,7 +428,11 @@ class ChartLayout is Layout
         repeat while i < axislines:GetSize()
             Drawable axis = axislines:Get(i)
             axis:LoadFilledRectangle(axisWidth, axisHeight+xAxisHeight, mainVerticalContainer:GetAxisColor())
-            axis:SetPosition(0-axisWidth, 0-xAxisHeight) //This line is in the chart area. So the placement is less than 0
+            axis:SetPosition(0-axisWidth, 0-xAxisHeight)
+            if not chart:IsShowingYAxisLine() and chart:GetVerticalFlag()
+axis:Hide()
+            end
+ //This line is in the chart area. So the placement is less than 0
             i = i + 1 
         end
     end
@@ -695,17 +702,20 @@ class ChartLayout is Layout
         repeat while i < axislines:GetSize()
             Drawable axis = axislines:Get(i)
             axis:LoadFilledRectangle(axisWidth, axisHeight, mainHorizontalContainer:GetAxisColor())
-            axis:SetPosition(0, 0-axisHeight) //This line is in the chart area. So the placement is less than 0
+//This line is in the chart area. So the placement is less than 0
+            if not chart:IsShowingYAxis() and chart:GetHorizontalFlag()
+                axis:Hide()
+            end
             i = i + 1 
         end
     end
 
-    action LayoutLegend(Chart chart, Legend legendContainer)
+    action LayoutLegend(Chart chart, Control legendContainer, Legend legend)
         // If we have any Series objects from movable regression lines, gather those up so we can iterate over them too.
         Array<Series> movableSeries
         if chart:HasMovableRegressionLine()
             Array<ChartAreaPanel> subAreas
-            if subAreas = undefined or subAreas:IsEmpty()
+if subAreas = undefined or subAreas:IsEmpty()
                 movableSeries:Add(chart:GetChartArea():GetMovableRegressionSeries())
             else
                 integer counter = 0
@@ -717,18 +727,18 @@ class ChartLayout is Layout
         end
        
 
-        if legendContainer:DisplayOnLeft() or legendContainer:DisplayOnRight()
-            integer iconSize = legendContainer:GetLabelFontSize()
+        if legend:DisplayOnLeft() or legend:DisplayOnRight()
+            integer iconSize = legend:GetLabelFontSize()
             integer padding = iconSize/2
             if padding < 2
                 padding = 2
             end
             integer originPointX = padding //add the padding.
-            integer originPointY = cast(integer, legendContainer:GetHeight()-padding)
+            integer originPointY = cast(integer, legend:GetHeight()-padding)
 
             //This is the title of the legend.      
-            if legendContainer:GetTitleLabel() not= undefined
-                ChartLabel legendLabel = legendContainer:GetTitleLabel()
+            if legend:GetTitleLabel() not= undefined
+                ChartLabel legendLabel = legend:GetTitleLabel()
                 if legendLabel:GetDefaultLayoutProperties():NeedsRendering()       
                     legendLabel:LoadGraphics(legendLabel:GetDefaultLayoutProperties())
                 end
@@ -743,7 +753,7 @@ class ChartLayout is Layout
     
             integer labelX = 0
             integer labelY = 0
-            Array<Series> seriesList = legendContainer:GetSeriesList()
+            Array<Series> seriesList = legend:GetSeriesList()
             if not seriesList:IsEmpty()
                 ChartLabel currentLabel = undefined
                 Icon currentIcon = undefined
@@ -795,7 +805,7 @@ class ChartLayout is Layout
                     currentLabel:SetPosition(labelX, labelY)
                     integer numberOfLabels = 1
                     
-                    if legendContainer:IsShowingRegression()
+                    if legend:IsShowingRegression()
                         if series:GetRegressionLine() not= undefined
                             //Regression equation
                             currentLabel = series:GetRegressionLine():GetEquationLabel()
@@ -844,29 +854,29 @@ class ChartLayout is Layout
 
                     entryBox = series:GetEntryBox()
                     LayoutProperties properties = entryBox:GetDefaultLayoutProperties()
-                    entryBox:LoadRectangle(cast(integer, legendContainer:GetWidth()-1),numberOfLabels*iconSize+(numberOfLabels-1)*(padding/2)+padding,transparent)
+                    entryBox:LoadRectangle(cast(integer, legend:GetWidth()-1),numberOfLabels*iconSize+(numberOfLabels-1)*(padding/2)+padding,transparent)
                     entryBox:SetPosition(1, iconY-(padding/2))
 
                     // Only add the box to the legend if the box hasn't previously been added to something.
                     if entryBox:GetParent() = undefined
-                        legendContainer:Add(entryBox)
+                        legend:Add(entryBox)
                     end
 
                     i = i + 1
                 end
             end
         else //legendContainer:DisplayOnTop() or legendContainer:DisplayOnBottom()
-            integer iconSize = legendContainer:GetLabelFontSize()
+            integer iconSize = legend:GetLabelFontSize()
             integer padding = iconSize/2
             if padding < 2
                 padding = 2
             end
             integer originPointX = padding //add the padding.
-            integer originPointY = cast(integer, legendContainer:GetHeight()-padding)
+            integer originPointY = cast(integer, legend:GetHeight()-padding)
 
             //This is the title of the legend.      
-            if legendContainer:GetTitleLabel() not= undefined
-                ChartLabel legendLabel = legendContainer:GetTitleLabel()
+            if legend:GetTitleLabel() not= undefined
+                ChartLabel legendLabel = legend:GetTitleLabel()
                 if legendLabel:GetDefaultLayoutProperties():NeedsRendering()       
                     legendLabel:LoadGraphics(legendLabel:GetDefaultLayoutProperties())
                 end
@@ -881,7 +891,7 @@ class ChartLayout is Layout
     
             integer labelX = 0
             integer labelY = 0
-            Array<Series> seriesList = legendContainer:GetSeriesList()
+            Array<Series> seriesList = legend:GetSeriesList()
             if not seriesList:IsEmpty()
                 ChartLabel currentLabel
                 Icon currentIcon
@@ -913,7 +923,7 @@ class ChartLayout is Layout
                     currentLabel:SetPosition(labelX, labelY)
                     number widestLabel = currentLabel:GetWidth()
       
-                    if legendContainer:IsShowingRegression()
+                    if legend:IsShowingRegression()
                         if series:GetRegressionLine() not= undefined
                             //Regression equation
                             currentLabel = series:GetRegressionLine():GetEquationLabel()
@@ -965,9 +975,9 @@ class ChartLayout is Layout
 
                     entryBox = series:GetEntryBox()
                     LayoutProperties properties = entryBox:GetDefaultLayoutProperties()
-                    entryBox:LoadRectangle(cast(integer, iconSize + widestLabel + padding*2),cast(integer, legendContainer:GetHeight()),transparent)
+                    entryBox:LoadRectangle(cast(integer, iconSize + widestLabel + padding*2),cast(integer, legend:GetHeight()),transparent)
                     entryBox:SetPosition(iconX - (padding/2), 0)
-                    legendContainer:Add(entryBox)
+                    legend:Add(entryBox)
 
                     iconX = cast(integer, labelX + widestLabel + padding)
                     i = i + 1
@@ -1104,8 +1114,7 @@ class ChartLayout is Layout
                         line:GetRegressionIcon():SetColor(chart:GetRegressionLineColor())
                     else
                         // Fetch the next color from the palette in the Options
-                        ChartOptions options
-                        Color color = options:GetColorFromPalette(chart:GetSeriesList():GetSize())
+                        Color color = chart:GetColorPalette():GetColor(chart:GetSeriesList():GetSize())
 
                         line:SetBackgroundColor(color)
                         line:SetIconColor(color)

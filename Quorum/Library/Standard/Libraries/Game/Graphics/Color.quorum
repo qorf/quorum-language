@@ -483,6 +483,30 @@ class Color is ColorGroup
             return math:RaiseToPower((value + 0.055) / 1.055, 2.4)
         end
     end
+    
+/*
+        This action calculates the W3C color contrast between the current
+        color and pure white and pure black. If the contrast between the 
+        current color and white is greater this action returns true. If the
+        contrast with black is greater this action returns false.
+
+        Attribute: Returns true if the contrast with white is greater than 
+        with black
+
+        Attribute: Example
+        use Libraries.Game.Graphics.Color
+        Color color
+        Color pinkish = color:CustomColor(236.0/255.0,85.0/255.0,93.0/255.0,1)
+        output IsBestContrastWhite()
+    */
+    action IsBestContrastWhite() returns boolean
+        number whiteContrast = CalculateContrast(White())
+        number blackContrast = CalculateContrast(Black())
+        if whiteContrast > blackContrast
+            return true
+        end
+        return false
+    end
 
     /*
     This action sets all color component values to be between 0 and 1.

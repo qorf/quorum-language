@@ -40,6 +40,7 @@ class Series is ChartDrawable
     private Icon entryIcon // The small colored shape appearing in the legend for this entry.
     private Icon entryBox
     private Color customColor = undefined
+    private Color previousColor = undefined
     private Array<ChartDrawable> items
     private RegressionLine regressionline = undefined
     private LinePath trendLine = undefined
@@ -200,6 +201,51 @@ class Series is ChartDrawable
 
     action SetYMinimum(text yMinimum)
         me:yMinimum = yMinimum
+    end
+    
+    action GainedSelection
+                integer i = 0
+        boolean changeColor = false
+if GetContainer() is TwoVariableChart
+            TwoVariableChart chart = cast(TwoVariableChart, GetContainer())
+            changeColor = chart:IsChangingLineColorsOnSelection()    
+        end
+repeat while i < GetSize()
+                    Drawable element = GetItemAt(i)
+            if changeColor
+                element:SetColor(GetContainer():GetSelectionColor())
+            end
+                    element:SetZ(-1)
+                    i = i + 1
+                end
+                
+                GetEntryIcon():SetColor(GetContainer():GetSelectionColor())
+                GetEntryBox():SetColor(GetContainer():GetSelectionColor())
+                if GetRegressionLine() not= undefined
+                    RegressionLine regressionLine = cast(RegressionLine, GetRegressionLine())
+                    previousZ = regressionLine:GetZ()
+                    regressionLine:SetZ(-5)
+                    //regressionLine:SetColor(GetSelectionColor())
+                    regressionLine:GetLabel():GainedSelection()
+                    regressionLine:GetRegressionIcon():SetColor(GetContainer():GetSelectionColor())
+                end
+        parent:ChartItem:GainedSelection()
+    end
+    
+    action LostSelection
+        GetEntryBox():SetColor(0,0,0,0)
+        parent:ChartItem:LostSelection()
+    end
+    
+action SetSeriesAlpha(number alpha)
+        Color newColor = GetColor()
+        newColor:SetAlpha(alpha)
+integer i = 0
+        repeat while i < GetSize()
+            Drawable element = GetItemAt(i)
+            element:SetColor(newColor)
+            i = i + 1
+        end
     end
 
 end

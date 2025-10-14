@@ -10,10 +10,23 @@ use Libraries.Interface.Controls.Charts.Chart
 use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Controls.Charts.ChartItem
 use Libraries.Containers.Array
-use Libraries.Interface.Controls.Charts.ChartOptions
 use Libraries.Interface.Controls.Charts.TwoVariableChart
 use Libraries.Interface.Controls.Charts.ChartLine
 use Libraries.Game.Graphics.Label
+use Libraries.Interface.Controls.Charts.PatternOptionConstants
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
+use Libraries.Game.Graphics.Shaders.Programs.LinePatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.Programs.CrosshatchPatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.Programs.HollowCirclePatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.Programs.SolidCirclePatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.Programs.HollowBoxPatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.Programs.SolidBoxPatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.Programs.DashedLinePatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.Programs.HollowTrianglePatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.Programs.SolidTrianglePatternControlShaderProgram
+use Libraries.Game.Graphics.Shaders.Programs.ControlShaderProgram
 
 
 /*
@@ -32,6 +45,7 @@ class ChartDrawable is ChartItem, Drawable
     GroupPanel group = undefined
     Color customColor = undefined
     integer pattern = 0
+    PatternOptionConstants PATTERNS
 
     //annotation handling for drawables display default is top
     ChartLabel annotation = undefined
@@ -72,7 +86,7 @@ class ChartDrawable is ChartItem, Drawable
     end
 
     action GetPatternName returns text
-        ChartOptions options
+        PatternOptionConstants options
         if pattern = options:VERTICAL_LINES
             return "vertical lines"
         elseif pattern = options:HORIZONTAL_LINES
@@ -105,68 +119,55 @@ class ChartDrawable is ChartItem, Drawable
     end
 
     action SetPatternToVerticalLines()
-        ChartOptions options
-        me:pattern = options:VERTICAL_LINES
+        me:pattern = PATTERNS:VERTICAL_LINES
     end
 
     action SetPatternToHorizontalLines()
-        ChartOptions options
-        me:pattern = options:HORIZONTAL_LINES
+        me:pattern = PATTERNS:HORIZONTAL_LINES
     end
 
     action SetPatternToDiagonalUpLines()
-        ChartOptions options
-        me:pattern = options:DIAGONAL_UP_LINES
+        me:pattern = PATTERNS:DIAGONAL_UP_LINES
     end
 
     action SetPatternToDiagonalDownLines()
-        ChartOptions options
-        me:pattern = options:DIAGONAL_DOWN_LINES
+        me:pattern = PATTERNS:DIAGONAL_DOWN_LINES
     end
 
     action SetPatternToDiagonalCrosshatch()
-        ChartOptions options
-        me:pattern = options:DIAGONAL_CROSSHATCH
+        me:pattern = PATTERNS:DIAGONAL_CROSSHATCH
     end
 
     action SetPatternToPlainCrosshatch()
-        ChartOptions options
-        me:pattern = options:PLAIN_CROSSHATCH
+        me:pattern = PATTERNS:PLAIN_CROSSHATCH
     end
 
     action SetPatternToSolidCircles()
-        ChartOptions options
-        me:pattern = options:SOLID_CIRCLES
+        me:pattern = PATTERNS:SOLID_CIRCLES
     end
 
     action SetPatternToHollowCircles()
-        ChartOptions options
-        me:pattern = options:HOLLOW_CIRCLES
+        me:pattern = PATTERNS:HOLLOW_CIRCLES
     end
 
     action SetPatternToSolidBoxes()
-        ChartOptions options
-        me:pattern = options:SOLID_BOXES
+        me:pattern = PATTERNS:SOLID_BOXES
     end
 
     action SetPatternToHollowBoxes()
-        ChartOptions options
-        me:pattern = options:HOLLOW_BOXES
+        me:pattern = PATTERNS:HOLLOW_BOXES
     end
 
     action SetPatternToSolidTriangles()
-        ChartOptions options
-        me:pattern = options:SOLID_TRIANGLES
+        me:pattern = PATTERNS:SOLID_TRIANGLES
     end
 
     action SetPatternToHollowTriangles()
-        ChartOptions options
-        me:pattern = options:HOLLOW_TRIANGLES
+        me:pattern = PATTERNS:HOLLOW_TRIANGLES
     end
 
     action SetPatternToPinpointDashes()
-        ChartOptions options
-        me:pattern = options:PINPOINT_DASHES
+        me:pattern = PATTERNS:PINPOINT_DASHES
     end
 
     /*
@@ -278,39 +279,6 @@ class ChartDrawable is ChartItem, Drawable
         end
 
         return cast(Chart, parentItem)
-    end
-
-    /*
-        This action is used when a Chart Drawable gains the selection. Selection
-        elements are then shown.
-    */
-    action GainedSelection()
-        if HasSelectionBracket() and GetParentChart():GetSelectionBracket():GetSize() = 3 and HasSelectionArrow()
-            AdjustSelectionBracketAndArrow()          
-            GetParentChart():GetSelectionBracket():Get(0):Show()
-            GetParentChart():GetSelectionBracket():Get(1):Show()
-            GetParentChart():GetSelectionBracket():Get(2):Show()
-            GetParentChart():GetSelectionArrow():Show()
-        elseif HasSelectionArrow()
-            AdjustSelectionArrow()          
-            GetParentChart():GetSelectionArrow():Show()
-        end
-        parent:ChartItem:GainedSelection()
-    end
-    /*
-        This action is used when a Chart Drawable loses the selection. Selection
-        elements are then hidden.
-    */
-    action LostSelection()
-        if HasSelectionArrow()         
-            GetParentChart():GetSelectionArrow():Hide()
-        end
-        if HasSelectionBracket() and GetParentChart():GetSelectionBracket():GetSize() = 3          
-            GetParentChart():GetSelectionBracket():Get(0):Hide()
-            GetParentChart():GetSelectionBracket():Get(1):Hide()
-            GetParentChart():GetSelectionBracket():Get(2):Hide()
-        end
-        parent:ChartItem:LostSelection()
     end
 
     /*
@@ -633,6 +601,113 @@ class ChartDrawable is ChartItem, Drawable
 
     action SetSelectionBracket(boolean selectionBracket)
         me:selectionBracket = selectionBracket
+    end
+    
+    action ResolvePatternShader
+        
+if GetShaderProgram() = undefined
+            GameStateManager gameState
+            ShaderManager manager = gameState:GetShaderManager()
+            ShaderProgram program = undefined
+            
+            if HasPattern()
+                integer pattern = GetPattern()
+                PatternOptionConstants options
+                
+                if pattern = options:VERTICAL_LINES or pattern = options:HORIZONTAL_LINES or pattern = options:DIAGONAL_DOWN_LINES or pattern = options:DIAGONAL_UP_LINES
+                    if manager:HasShaderProgram("Line Pattern Control Shader Program")
+                        program = manager:GetShaderProgram("Line Pattern Control Shader Program")
+                    else
+                        LinePatternControlShaderProgram patternShader
+                        patternShader:Compile()
+                        program = patternShader
+                    end
+                elseif pattern = options:PLAIN_CROSSHATCH or pattern = options:DIAGONAL_CROSSHATCH
+                    if manager:HasShaderProgram("Crosshatch Pattern Control Shader Program")
+                        program = manager:GetShaderProgram("Crosshatch Pattern Control Shader Program")
+                    else
+                        CrosshatchPatternControlShaderProgram patternShader
+                        patternShader:Compile()
+                        program = patternShader
+                    end
+                elseif pattern = options:HOLLOW_CIRCLES
+                    if manager:HasShaderProgram("Hollow Circle Pattern Control Shader Program")
+                        program = manager:GetShaderProgram("Hollow Circle Pattern Control Shader Program")
+                    else
+                        HollowCirclePatternControlShaderProgram patternShader
+                        patternShader:Compile()
+                        program = patternShader
+                    end
+                elseif pattern = options:SOLID_CIRCLES
+                    if manager:HasShaderProgram("Solid Circle Pattern Control Shader Program")
+                        program = manager:GetShaderProgram("Solid Circle Pattern Control Shader Program")
+                    else
+                        SolidCirclePatternControlShaderProgram patternShader
+                        patternShader:Compile()
+                        program = patternShader
+                    end
+                elseif pattern = options:HOLLOW_BOXES
+                    if manager:HasShaderProgram("Hollow Box Pattern Control Shader Program")
+                        program = manager:GetShaderProgram("Hollow Box Pattern Control Shader Program")
+                    else
+                        HollowBoxPatternControlShaderProgram patternShader
+                        patternShader:Compile()
+                        program = patternShader
+                    end
+                elseif pattern = options:SOLID_BOXES
+                    if manager:HasShaderProgram("Solid Box Pattern Control Shader Program")
+                        program = manager:GetShaderProgram("Solid Box Pattern Control Shader Program")
+                    else
+                        SolidBoxPatternControlShaderProgram patternShader
+                        patternShader:Compile()
+                        program = patternShader
+                    end
+                elseif pattern = options:PINPOINT_DASHES
+                    if manager:HasShaderProgram("Dashed Line Pattern Control Shader Program")
+                        program = manager:GetShaderProgram("Dashed Line Pattern Control Shader Program")
+                    else
+                        DashedLinePatternControlShaderProgram patternShader
+                        patternShader:Compile()
+                        program = patternShader
+                    end
+                elseif pattern = options:HOLLOW_TRIANGLES
+                    if manager:HasShaderProgram("Hollow Triangle Pattern Control Shader Program")
+                        program = manager:GetShaderProgram("Hollow Triangle Pattern Control Shader Program")
+                    else
+                        HollowTrianglePatternControlShaderProgram patternShader
+                        patternShader:Compile()
+                        program = patternShader
+                    end
+                elseif pattern = options:SOLID_TRIANGLES
+                    if manager:HasShaderProgram("Solid Triangle Pattern Control Shader Program")
+                        program = manager:GetShaderProgram("Solid Triangle Pattern Control Shader Program")
+                    else
+                        SolidTrianglePatternControlShaderProgram patternShader
+                        patternShader:Compile()
+                        program = patternShader
+                    end
+                else
+                    // Default case: basic control shader, without pattern
+                    if manager:HasShaderProgram("Control Shader Program")
+                        program = manager:GetShaderProgram("Control Shader Program")
+                    else
+                        ControlShaderProgram controlShader
+                        controlShader:Compile()
+                        program = controlShader
+                    end
+                end
+            else
+                if manager:HasShaderProgram("Control Shader Program")
+                    program = manager:GetShaderProgram("Control Shader Program")
+                else
+                    ControlShaderProgram controlShader
+                    controlShader:Compile()
+                    program = controlShader
+                end
+            end
+            
+            SetShaderProgram(program)
+        end
     end
 
 end

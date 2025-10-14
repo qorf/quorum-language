@@ -151,21 +151,21 @@ class ChartAreaPanel is ChartItem
 
         Attribute: Returns the chart area panel selection border color. 
     */
-    action GetSelectionBorderColor returns ColorGroup
-        if HasColorPropertyOverride("selectionBorderColor")
-            return parent:Control:GetSelectionBorderColor()
-        end
-
-        if selectionBorderColor not= undefined
-            return selectionBorderColor
-        end
-
-        Chart chart = GetParentChart()
-        if chart not= undefined
-            return chart:GetSelectionColor()
-        end
-        return undefined
-    end
+    //action GetSelectionBorderColor returns ColorGroup
+        //if HasColorPropertyOverride("selectionBorderColor")
+            //return parent:Control:GetSelectionBorderColor()
+        //end
+//
+        //if selectionBorderColor not= undefined
+            //return selectionBorderColor
+        //end
+//
+        //Chart chart = GetParentChart()
+        //if chart not= undefined
+            //return chart:GetSelectionColor()
+        //end
+        //return undefined
+    //end
     /*
         This action sets the chart area panel selection border color.
 

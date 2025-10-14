@@ -27,6 +27,7 @@ class ChartPoint is ChartDrawable
     Series series = undefined
     text xNameOverride = undefined
     text yNameOverride = undefined
+    number outlierValue = 0
     
     ChartDrawable parentRegion = undefined
 
@@ -236,12 +237,7 @@ class ChartPoint is ChartDrawable
         Attribute: Returns the chart point selection color (ColorGroup). 
     */
     action GetSelectionColor returns ColorGroup
-        Chart chart = GetParentChart()
-        if chart not= undefined
-            return chart:GetSelectionColor()
-        end
-
-        return undefined
+        return GetColor()
     end
     /*
         This action gets the chart point x name override value.
@@ -272,6 +268,23 @@ class ChartPoint is ChartDrawable
     */
     action SetYNameOverride(text yNameOverride)
         me:yNameOverride = yNameOverride
+    end
+    
+/*
+        Set the outlier value of the chart point. (Used in Plot charts)
+        Attribute: Parameter outlierValue the number value of the outlier. 
+    */
+    action SetOutlierValue(number outlierValue)
+        me:outlierValue = outlierValue
+    end
+
+/*
+        This action gets the value of the outlier this point represents. (Used in Plot charts)
+
+        Attribute: Returns the value of the outlier. 
+    */
+    action GetOutlierValue returns number
+        return outlierValue
     end
 
 end

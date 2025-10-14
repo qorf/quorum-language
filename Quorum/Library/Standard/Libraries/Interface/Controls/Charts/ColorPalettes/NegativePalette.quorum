@@ -1,0 +1,63 @@
+package Libraries.Interface.Controls.Charts.ColorPalettes
+use Libraries.Interface.Controls.Charts.ColorPalettes.ColorPalette
+use Libraries.Game.Graphics.Color
+
+/*
+        See the paper below for more information on this palette
+        https://research.tableau.com/sites/default/files/Affective%20Color%20CHI%202017.pdf
+    */
+class NegativePalette is ColorPalette
+    
+    action BuildPalette
+        Color color
+// Neutral Red
+        color:SetColor(187.0/255, 7.0/255, 16.0/255, 1)
+        AddColor(color:Copy())
+
+        // Darker Brown
+        color:SetColor(85.0/255, 35.0/255, 23.0/255, 1)
+        AddColor(color:Copy())
+
+        // Greenish Gray
+        color:SetColor(91.0/255, 97.0/255, 87.0/255, 1)
+        AddColor(color:Copy())
+
+        // Dark Navy
+        color:SetColor(39.0/255, 67.0/255, 94.0/255, 1)
+        AddColor(color:Copy())
+
+        // Neutral Gray
+        color:SetColor(118.0/255, 129.0/255, 125.0/255, 1)
+        AddColor(color:Copy())
+
+        // Dark Red
+        color:SetColor(125.0/255, 0.0/255, 3.0/255, 1)
+        AddColor(color:Copy())
+
+        // Pastel Eggplant
+        color:SetColor(133.0/255, 131.0/255, 173.0/255, 1)
+        AddColor(color:Copy())
+
+        // Dark Purplish Gray
+        color:SetColor(36.0/255, 38.0/255, 77.0/255, 1)
+        AddColor(color:Copy())
+
+        // Dark Forest Green
+        color:SetColor(65.0/255, 88.0/255, 33.0/255, 1)
+        AddColor(color:Copy())
+
+        // Light Gray
+        color:SetColor(202.0/255, 202.0/255, 202.0/255, 1)
+        AddColor(color:Copy())
+
+        // Lighter Brown
+        color:SetColor(112.0/255, 63.0/255, 53.0/255, 1)
+        AddColor(color:Copy())
+
+        // Dark Gray
+        color:SetColor(46.0/255, 46.0/255, 46.0/255, 1)
+        AddColor(color:Copy())
+        
+    end
+
+end
