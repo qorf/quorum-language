@@ -17,6 +17,7 @@ use Libraries.Interface.Controls.Charts.Graphics.PlotGroup
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 use Libraries.Language.Errors.CastError
 use Libraries.System.Properties
+use Libraries.Interface.Controls.Charts.Graphics.PlotItem
 
 /*
     The BoxPlot class is Chart object that inherits from Control and like other
@@ -166,16 +167,16 @@ class BoxPlot is Chart
                     chartArea = GetChartArea()
                 end
 
-                ChartDrawable minimumLine
+                PlotItem minimumLine
                 ChartDrawable lowerWhisker 
-                ChartDrawable interQuartileRange
+                PlotItem interQuartileRange
                 ChartDrawable rightBorder // Right side of IQR
                 ChartDrawable leftBorder  // Left side of IQR
-                ChartDrawable firstQuartileLine
-                ChartDrawable medianLine
-                ChartDrawable thirdQuartileLine
-                ChartDrawable upperWhisker 
-                ChartDrawable maximumLine
+                PlotItem firstQuartileLine
+                PlotItem medianLine
+                PlotItem thirdQuartileLine
+                PlotItem upperWhisker 
+                PlotItem maximumLine
                 ChartDrawable filler
 
                 if not plot:IsUndefined()
@@ -193,6 +194,7 @@ class BoxPlot is Chart
                     minimumLine:SetNextFocus(GetNextFocus())
                     minimumLine:SetPreviousFocus(GetPreviousFocus())
                     minimumLine:SetName("Minimum")
+                    minimumLine:SetPlotValue(minimum)
                     minimumLine:SetDescription(" " + minimum)
                     if CheckIfInteger(minimum)
                         minimumLine:SetDescription(" " + cast(integer, minimum))
@@ -218,6 +220,7 @@ class BoxPlot is Chart
                     interQuartileRange:SetNextFocus(GetNextFocus())
                     interQuartileRange:SetPreviousFocus(GetPreviousFocus())
                     interQuartileRange:SetName("Interquartile range")
+                    interQuartileRange:SetPlotValue(iqr)
                     interQuartileRange:SetDescription(" " + iqr)
                     if CheckIfInteger(iqr)
                         interQuartileRange:SetDescription(" " + cast(integer, iqr))
@@ -230,6 +233,7 @@ class BoxPlot is Chart
                     firstQuartileLine:SetNextFocus(GetNextFocus())
                     firstQuartileLine:SetPreviousFocus(GetPreviousFocus())
                     firstQuartileLine:SetName("1st Quartile")
+                    firstQuartileLine:SetPlotValue(firstQ)
                     firstQuartileLine:SetDescription(" " + firstQ)
                     if CheckIfInteger(firstQ)
                         firstQuartileLine:SetDescription(" " + cast(integer, firstQ))
@@ -255,6 +259,7 @@ class BoxPlot is Chart
                     medianLine:SetNextFocus(GetNextFocus())
                     medianLine:SetPreviousFocus(GetPreviousFocus())
                     medianLine:SetName("Median")
+                    medianLine:SetPlotValue(median)
                     medianLine:SetDescription(" " + median)
                     if CheckIfInteger(median)
                         medianLine:SetDescription(" " + cast(integer, median))
@@ -280,6 +285,7 @@ class BoxPlot is Chart
                     thirdQuartileLine:SetNextFocus(GetNextFocus())
                     thirdQuartileLine:SetPreviousFocus(GetPreviousFocus())
                     thirdQuartileLine:SetName("3rd Quartile")
+                    thirdQuartileLine:SetPlotValue(thirdQ)
                     thirdQuartileLine:SetDescription(" " + thirdQ)
                     if CheckIfInteger(thirdQ)
                         thirdQuartileLine:SetDescription(" " + cast(integer, thirdQ))
@@ -305,6 +311,7 @@ class BoxPlot is Chart
                     maximumLine:SetNextFocus(GetNextFocus())
                     maximumLine:SetPreviousFocus(GetPreviousFocus())
                     maximumLine:SetName("Maximum")
+                    maximumLine:SetPlotValue(maximum)
                     maximumLine:SetDescription(" " + maximum)
                     if CheckIfInteger(maximum)
                         maximumLine:SetDescription(" " + cast(integer, maximum))
@@ -390,6 +397,7 @@ class BoxPlot is Chart
                         outlier:SetAccessibilityCode(parent:Item:CHART_ITEM)
                         outlier:SetNextFocus(GetNextFocus())
                         outlier:SetPreviousFocus(GetPreviousFocus())
+                        outlier:SetOutlierValue(outliers:Get(j))
                         plot:Add(outlier)
                         plot:AddItem(outlier)
                         j = j + 1
@@ -599,25 +607,15 @@ item:Focus()
 ApplySelectionBoxAroundItem(temp, 5)
         elseif item is PlotGroup
             ApplySelectionBoxAroundItem(item, 5)
-        elseif item is ChartDrawable
+        elseif item is PlotItem
+            PlotItem plotItem = cast(PlotItem, item)
             ApplySelectionBoxAroundItem(item, 5)
-            ShowSelectionAnnotation(item,item:GetName() + ": " + item:GetDescription(),15,15)
-            //ChartDrawable temp = cast(ChartDrawable, item)
-            //integer i = 0 
-            //repeat plotGroups:GetSize() times
-                //PlotGroup group = plotGroups:Get(i)
-                //integer j = 0
-                //repeat group:GetPlots():GetSize() times
-                    //Plot plot = group:Get(j)
-                    //if plot:GetPlotItems():Has(temp)
-                        //ApplySelectionBoxAroundItem(item, 5)
-                        //ShowSelectionAnnotation(item,item:GetName() + ": " + item:GetDescription(),15.0,15.0)
-                    //end
-                    //
-                    //j = j + 1
-                //end
-                //i = i + i
-            //end
+            ShowSelectionAnnotation(item," " + plotItem:GetPlotValue()+" ",15,15)
+        elseif item is ChartPoint
+            // outliers
+            ChartPoint outlierPoint = cast(ChartPoint, item)
+ApplySelectionBoxAroundItem(item, 6)
+            ShowSelectionAnnotation(item," " + outlierPoint:GetOutlierValue()+" ",15,15)
             else
                 parent:Chart:OnSelectionChange(item)
             end            

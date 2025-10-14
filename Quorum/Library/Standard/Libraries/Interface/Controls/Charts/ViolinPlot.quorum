@@ -431,16 +431,47 @@ class ViolinPlot is Chart
 
         Attribute: Parameter ci the ChartItem representing the structure for this particular kind of chart. 
     */
-    action OnSelectionChange(ChartItem ci)
-        if ci = undefined
+action OnSelectionChange(ChartItem item)
+        if item = undefined
             return now
         end
-        Item target = ci
-
-        if target not= undefined
-            target:Focus()
-            parent:Chart:OnSelectionChange(ci)
-        end
+item:Focus()
+            if item is Series
+                Series temp = cast(Series, item)
+                previousColor = temp:GetColor()
+                integer i = 0
+                repeat while i < temp:GetSize()
+                    Plot plot = cast(Plot, temp:GetItemAt(i))
+                    integer j = 1
+                    repeat while j < plot:GetPlotItems():GetSize()
+                        ChartDrawable plotItem = plot:GetPlotItems():Get(j)
+                        plotItem:SetColor(GetSelectionColor())
+                        j = j + 1
+                    end
+                    i = i + 1
+                end
+                temp:GetEntryIcon():SetColor(GetSelectionColor())
+                temp:GetEntryBox():SetColor(GetSelectionColor())
+        elseif item is Plot
+            Plot plot = cast(Plot, item)
+            Icon area = plot:GetPlotArea()
+            ChartItem temp
+            temp:SetSize(area:GetWidth(), area:GetHeight())
+            temp:SetX(item:GetGlobalX() + area:GetGlobalX())
+            temp:SetY(item:GetGlobalY() + area:GetGlobalY())
+ApplySelectionBoxAroundItem(temp, 5)
+        elseif item is PlotGroup
+            ApplySelectionBoxAroundItem(item, 5)
+        elseif item is ChartDrawable
+            ApplySelectionBoxAroundItem(item, 5)
+        elseif item is ChartPoint
+            // outliers
+            ChartPoint outlierPoint = cast(ChartPoint, item)
+ApplySelectionBoxAroundItem(item, 6)
+            ShowSelectionAnnotation(item," " + outlierPoint:GetOutlierValue()+" ",15,15)
+            else
+                parent:Chart:OnSelectionChange(item)
+            end            
     end
     
     /*

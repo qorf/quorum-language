@@ -496,8 +496,8 @@ number blinkIdleTime = 1.0
 ControlLabel tempLabel
         selectionAnnotationLabel = tempLabel
         selectionAnnotationLabel:SetCornerPixelRounding(GetCornerRadius(),GetCornerRadius(),GetCornerRadius(),GetCornerRadius())
-        //selectionAnnotationLabel:SetBorderColor(color:Black())
-        //selectionAnnotationLabel:SetBorderThickness(2)
+        selectionAnnotationLabel:SetBorderColor(GetBorderColor())
+        selectionAnnotationLabel:SetBorderThickness(2)
         selectionAnnotationLabel:SetToLargeFont()
         selectionAnnotationLabel:SetBackgroundColor(color:White())
         selectionAnnotationLabel:SetZ(-100)
@@ -3499,36 +3499,10 @@ legend:SetY(legendPanel:GetHeight() - legend:GetHeight())
             return now
         end
 
-        if item is Series
-                Series temp = cast(Series, item)
-                integer i = 0
-                repeat while i < temp:GetSize()
-                    Drawable element = temp:GetItemAt(i)
-                    element:SetColor(previousColor)
-                    element:SetZ(previousZ)
-                    i = i + 1
-                end
-                temp:GetEntryIcon():SetColor(previousColor)
-                temp:GetEntryBox():SetColor(0,0,0,0)
-                if showLinearRegression and temp:GetRegressionLine() not= undefined
-                    RegressionLine regressionLine = cast(RegressionLine, temp:GetRegressionLine())
-                    regressionLine:SetZ(previousZ)
-                    regressionLine:SetColor(previousColor)
-                    regressionLine:GetLabel():LostSelection()
-                    regressionLine:GetRegressionIcon():SetColor(previousColor)
-                end
-            elseif item is RegressionLine
-                RegressionLine temp = cast(RegressionLine, item)
-                temp:SetZ(previousZ)
-                temp:SetColor(previousColor)
-                temp:GetLabel():LostSelection()
-                temp:GetRegressionIcon():SetColor(previousColor)
-        else
 selectionBoxShowing = false
             selectionBox:Hide()
             selectionAnnotationLabelShowing = false
             selectionAnnotationLabel:Hide()
-            end
     end
 
     /* 

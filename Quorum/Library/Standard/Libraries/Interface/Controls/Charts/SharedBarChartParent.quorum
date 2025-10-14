@@ -336,11 +336,13 @@ number blinkIdleTime = 1.0
         end
 item:Focus()
         if item is Bar
-            selectionBar:Show()
-Bar bar = cast(Bar, item)
+            Bar bar = cast(Bar, item)
+            if isStacked
+                ApplySelectionBoxAroundItem(item, GetSelectionBoxBorderThickness() + 3)
+            elseif GetVerticalFlag()
+selectionBar:Show()
             barShowing = true
             blinkTimer = blinkIdleTime
-            if (GetVerticalFlag() and not isStacked) or (GetHorizontalFlag() and isStacked)
                 selectionBar:SetSize(item:GetWidth(), 25)
                 selectionBar:SetX(item:GetGlobalX())
                 if ShowAnnotations()
@@ -350,6 +352,9 @@ Bar bar = cast(Bar, item)
                     selectionBar:SetY(item:GetGlobalY() + item:GetHeight() + 10)
                 end
             else
+selectionBar:Show()
+            barShowing = true
+            blinkTimer = blinkIdleTime
 selectionBar:SetSize(25, item:GetHeight())
                 selectionBar:SetY(item:GetGlobalY())
                 selectionBar:SetCornerRounding(0,0,0,0)

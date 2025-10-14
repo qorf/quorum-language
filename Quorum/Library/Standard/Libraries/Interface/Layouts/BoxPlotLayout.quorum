@@ -216,11 +216,7 @@ class BoxPlotLayout is ChartLayout
                                 interQuartile:LoadFilledRectangle(center+line, cast(integer,(upperQuartile-lowerQuartile)/dataScale)+line, lightColor:CustomColor(0, 0, 0, 0))
                                 interQuartile:SetBackgroundColor(lightColor)
                             else
-                                ControlShaderView view
-                                interQuartile:SetCornerPixelRounding(chart:GetCornerRadius(),chart:GetCornerRadius(),chart:GetCornerRadius(),chart:GetCornerRadius())
-                                interQuartile:SetView2D(view)
-                                interQuartile:LoadFilledRectangle(center+line, cast(integer,(upperQuartile-lowerQuartile)/dataScale)+line, lightColor)
-                                view:Initialize()
+interQuartile:LoadFilledRectangle(center+line, cast(integer,(upperQuartile-lowerQuartile)/dataScale)+line, lightColor)
                             end
                             
                             item:Get(3):SetPosition(startw+size, cast(integer, percent*height)-halfline)
@@ -228,10 +224,12 @@ class BoxPlotLayout is ChartLayout
                             //Right IQR line
                             item:Get(4):LoadFilledRectangle(line, cast(integer,(upperQuartile-lowerQuartile)/dataScale), darkColor)
                             item:Get(4):SetPosition(startw+size+center, cast(integer, percent*height), -1)
+                            item:Get(4):SetZ(-3)
                 
                             //Left IQR line
                             item:Get(5):LoadFilledRectangle(line, cast(integer,(upperQuartile-lowerQuartile)/dataScale), darkColor)
                             item:Get(5):SetPosition(startw+size, cast(integer, percent*height), -1)
+                            item:Get(5):SetZ(-3)
                 
                             //Q1
                             yPosition = cast(integer, percent*height)-halfline
@@ -255,8 +253,13 @@ class BoxPlotLayout is ChartLayout
                             //Median
                             percent = (median - rangeMin)/range // used for 7
                             yPosition = cast(integer, percent*height)-halfline
-                            item:Get(7):LoadFilledRectangle(center+line, line, darkColor)
+                            if lightColor:IsBestContrastWhite()
+                                item:Get(7):LoadFilledRectangle(center+line, line, lightColor:White())
+                            else
+item:Get(7):LoadFilledRectangle(center+line, line, lightColor:Black())
+                            end
                             item:Get(7):SetPosition(startw+size, yPosition , -1)
+                            item:Get(7):SetZ(-4)
 
                             //annotation of median
                             if plot:ShowAnnotation() or chart:ShowAnnotations()
@@ -356,26 +359,6 @@ class BoxPlotLayout is ChartLayout
                                     l = l + 1
                                 end
                             end
-
-                            integer arrowSize = line*4
-                            // Load selection arrows and brackets
-                            // Load bracket and arrow for iqr
-                            SetChartDrawableSelectionBracketAndArrow(item:Get(3),arrowSize,true)
-
-                            // Load and place the min line selection arrow
-                            SetChartDrawableSelectionArrow(item:Get(1),arrowSize,true)
-
-                            // Load and place the q1 line selection arrow
-                            SetChartDrawableSelectionArrow(item:Get(6),arrowSize,true)
-
-                            // Load and place the median line selection arrow
-                            SetChartDrawableSelectionArrow(item:Get(7),arrowSize,true)
-
-                            // Load and place the q3 line selection arrow
-                            SetChartDrawableSelectionArrow(item:Get(8),arrowSize,true)
-
-                            // Load and place the max line selection arrow
-                            SetChartDrawableSelectionArrow(item:Get(10),arrowSize,true)
                         end
             
                         if chart:GetOutliersFlag()
@@ -395,8 +378,6 @@ class BoxPlotLayout is ChartLayout
                                 end
 
                                 integer arrowSize = line*4
-                                // Load and place the outlier selection arrow
-                                SetChartDrawableSelectionArrow(item:Get(j),arrowSize,true)
                                 outlierIndex = outlierIndex + 1
                                 j = j + 1
                             end
@@ -412,41 +393,8 @@ class BoxPlotLayout is ChartLayout
                     group:LoadRectangle(groupHeight,panelwidth,transparent)
                     group:SetPosition(0,startpanelw)
                 end
-                // Load and place the group selection bracket/arrow
-                integer arrowSize = 0
-                if chart:GetHorizontalFlag()
-                    arrowSize = cast(integer, group:GetHeight()/8)
-                    integer tickHeight = chart:GetVerticalPanel():GetTickHeight()
-                    if arrowSize < tickHeight*2
-                        arrowSize = tickHeight*2
-                    end
-                else
-                    arrowSize = cast(integer, group:GetWidth()/8)
-                    integer tickWidth = chart:GetHorizontalPanel():GetTickWidth()
-                    if arrowSize < tickWidth*2
-                        arrowSize = tickWidth*2
-                    end
-                end
-                SetChartDrawableSelectionBracketAndArrow(group, arrowSize, false)
                 i = i + 1
             end
         end
     end
-
-    /*
-        Interface action for setting the selection arrow for the plot using the size of plot area. 
-    */
-//    private action LoadPlotSelectionArrowVertices(Chart chart, Plot plot, integer arrowSize)
-//        ChartDrawable plotArea
-//        plotArea:SetSize(plot:GetPlotArea():GetWidth(), plot:GetPlotArea():GetHeight())
-//        plotArea:SetPosition(plot:GetPlotArea():GetX(), plot:GetPlotArea():GetY())
-//
-//        LoadChartDrawableSelectionArrow(chart, plotArea, arrowSize, false)
-//        Array<number> vertices = plotArea:GetSelectionArrowVertices()
-//        Drawable arrow = plot:GetSelectionArrow()
-//        arrow:LoadShape(vertices, plot:GetSelectionColor())
-//        arrow:Hide()
-//        arrow:SetZ(-1)
-//        plot:SetSelectionArrowVertices(vertices) 
-//    end
 end

@@ -60,8 +60,8 @@ class TwoVariableChart is Chart
     private number minPointHeightValue = 0
     private number minPointWidthValue = 0
 
-    private integer PointDensity = 0
-    private integer LineDensity = 0
+    private integer PointDensity = 5
+    private integer LineDensity = 4
     private boolean showPoints = true
 
     private ColorGroup previousColorGroup = undefined
@@ -478,6 +478,11 @@ integer i = 0
                     temp:SetSeriesAlpha(1)
                 i = i + 1
             end
+if IsShowingLinearRegression() and series:GetRegressionLine() not= undefined
+                    RegressionLine regressionLine = cast(RegressionLine, series:GetRegressionLine())
+                    regressionLine:GetLabel():LostSelection()
+                    regressionLine:GetRegressionIcon():SetColor(previousColor)
+                end
      elseif item is ChartLine
             integer i = 0 
             repeat while i < lines:GetSize()
@@ -515,7 +520,7 @@ parent:Chart:LostSelection(item)
             repeat while i < GetLegend():GetSeriesList():GetSize()
                 Series temp = GetLegend():GetSeriesList():Get(i)
                 if not (temp = series)
-                    temp:SetSeriesAlpha(0.15)
+                    temp:SetSeriesAlpha(0.1)
                 end
                 i = i + 1
             end
@@ -525,7 +530,7 @@ parent:Chart:LostSelection(item)
                 ChartLine selectedLine = cast(ChartLine, item)
                 ChartLine line = lines:Get(i)
                 if line not= selectedLine
-                    line:SetLineAlpha(0.15)
+                    line:SetLineAlpha(0.12)
                 end
                 i = i + 1
             end
