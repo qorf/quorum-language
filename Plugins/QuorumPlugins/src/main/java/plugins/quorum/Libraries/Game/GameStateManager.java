@@ -55,6 +55,17 @@ public class GameStateManager
     */
     public static String mainThreadID = "" + Thread.currentThread().getId();
 
+    //calculate a string for the operating system here.
+    static
+    {
+        String os = System.getProperty("os.name");
+        operatingSystem = os;
+        if (os.contains("Mac OS X") || os.contains("Windows") || os.contains("Linux")) {
+            if (os.contains("Linux") && System.getProperty("java.runtime.name").contains("Android Runtime")) {
+                    operatingSystem = "Linux (Android) : TEST-CODE-MCX";
+            }
+        }
+    }
 
 
     public static boolean IsVulkanRendering()
