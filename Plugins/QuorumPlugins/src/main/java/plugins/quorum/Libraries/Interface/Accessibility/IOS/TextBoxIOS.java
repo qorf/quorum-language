@@ -17,7 +17,10 @@ public class TextBoxIOS extends TextAdjust{
     }
 
     public void Initialize(TextField_ field) {
-        UIAccessibilityTraits traits = UIAccessibilityTraits.SearchField;
+        // Use UIAccessibilityTraits.None instead of SearchField to ensure activate() is called
+        // when VoiceOver is disabled. SearchField trait doesn't trigger activate() on tap
+        // when the screen reader is off, but None does (matching behavior of other UI Elements).
+        UIAccessibilityTraits traits = UIAccessibilityTraits.None;
         this.setAccessibilityTraits(traits);
         super.Initialize(field);
     }
@@ -34,6 +37,11 @@ public class TextBoxIOS extends TextAdjust{
         input.setOnscreenKeyboardVisible(false);
     }
 
+    /**
+     * Called by iOS when the accessibility element is activated (tapped) while VoiceOver is disabled.
+     * When VoiceOver is enabled, iOS uses didBecomeFocused() instead. This method ensures the keyboard
+     * appears when users tap on text boxes without VoiceOver enabled.
+     */
     @Override
     public boolean activate() {
         Focus();
