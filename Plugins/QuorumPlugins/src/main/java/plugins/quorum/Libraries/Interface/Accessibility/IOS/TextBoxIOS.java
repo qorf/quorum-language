@@ -34,6 +34,12 @@ public class TextBoxIOS extends TextAdjust{
         input.setOnscreenKeyboardVisible(false);
     }
 
+    @Override
+    public boolean activate() {
+        Focus();
+        return true;
+    }
+
     public TextBox_ GetTextBox() {
         TextBox_ box = (TextBox_) GetItem();
         return box;

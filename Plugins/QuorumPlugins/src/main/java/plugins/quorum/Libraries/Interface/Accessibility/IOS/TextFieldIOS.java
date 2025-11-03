@@ -56,6 +56,12 @@ public class TextFieldIOS extends TextAdjust implements UIKeyInput, UITextInputT
     }
 
     @Override
+    public boolean activate() {
+        Focus();
+        return true;
+    }
+
+    @Override
     public boolean hasText() {
         return true;
     }
