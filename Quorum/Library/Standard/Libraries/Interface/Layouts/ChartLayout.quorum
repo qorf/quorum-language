@@ -801,7 +801,7 @@ if subAreas = undefined or subAreas:IsEmpty()
                     currentIcon:SetPosition(iconX , iconY)
 
                     labelX = iconX + iconSize + padding 
-                    labelY = iconY
+                    labelY = iconY + (iconSize/2 - cast(integer, currentLabel:GetHeight())/2)
                     currentLabel:SetPosition(labelX, labelY)
                     integer numberOfLabels = 1
                     
