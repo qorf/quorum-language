@@ -12,6 +12,7 @@ use Libraries.Interface.Controls.Charts.Graphics.RegressionLine
 use Libraries.Interface.Controls.Charts.MovableRegressionSeries
 use Libraries.Interface.Controls.Charts.ChartAreaPanel
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.Compute.Math
 
 class ScatterPlotLayout is TwoVariableChartLayout
     action LayoutChartContent(Chart control, Control chartAreaContainer)
@@ -25,8 +26,8 @@ class ScatterPlotLayout is TwoVariableChartLayout
             return now
         end
 
-        integer xAxisPaddingOffset = cast(integer, chart:GetHorizontalPanel():GetPaddingOffsetPercent()*chartAreaContainer:GetWidth())
-        integer yAxisPaddingOffset = cast(integer, chart:GetVerticalPanel():GetPaddingOffsetPercent()*chartAreaContainer:GetHeight())
+        number xAxisPaddingOffset = cast(integer, chart:GetHorizontalPanel():GetPaddingOffsetPercent()*chartAreaContainer:GetWidth())
+        number yAxisPaddingOffset = cast(integer, chart:GetVerticalPanel():GetPaddingOffsetPercent()*chartAreaContainer:GetHeight())
         number width = chartAreaContainer:GetWidth() - 2*xAxisPaddingOffset
         number height = chartAreaContainer:GetHeight() - 2*yAxisPaddingOffset
         number xMin = chart:GetXAxisMinimum()
@@ -37,9 +38,14 @@ class ScatterPlotLayout is TwoVariableChartLayout
         // Set default point density
         integer pointRadius = chart:GetPointDensity()
         if pointRadius = 0
-            pointRadius = cast(integer, width * 0.010 / 2) 
-            if pointRadius < 4
-                pointRadius = 4
+            Math math
+            number prop = 0.05
+            number coeff = math:SquareRoot(prop/(points:GetSize()*math:pi))
+            output "coeff: "+coeff
+            pointRadius = cast(integer, math:MinimumOf(width, height) * 0.01) 
+            output pointRadius
+            if pointRadius < 7
+                pointRadius = 7
             end
         end
 
@@ -63,8 +69,8 @@ class ScatterPlotLayout is TwoVariableChartLayout
 
             point:SetPercentX((point:GetValueX() - xMin) / (xMax - xMin))
             point:SetPercentY((point:GetValueY() - yMin) / (yMax - yMin))
-            integer x = cast(integer, point:GetPercentX() * width - (point:GetWidth() / 2.0)) + xAxisPaddingOffset
-            integer y = cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0)) + yAxisPaddingOffset
+            number x = (point:GetPercentX() * width - pointRadius) + xAxisPaddingOffset + point:GetBorderThickness()
+            number y = (point:GetPercentY() * height - pointRadius) + yAxisPaddingOffset + point:GetBorderThickness()
             point:SetPosition(x, y)
 
             //display an annoation of either series name point or letter code in a specified 
@@ -89,14 +95,8 @@ class ScatterPlotLayout is TwoVariableChartLayout
                     pointLabel:SetPosition(annotX, annotY)
                 end
             end
-
-            if chart:GetHorizontalFlag()
-                SetChartDrawableSelectionArrow(point, pointRadius, true)
-            else
-                SetChartDrawableSelectionArrow(point, pointRadius, false)
-            end
-
-            if squares not= undefined
+            
+          if squares not= undefined
                 ResidualSquare square = squares:Get(i)
                 RegressionLine line = point:GetSeries():GetRegressionLine()
                 if line not= undefined

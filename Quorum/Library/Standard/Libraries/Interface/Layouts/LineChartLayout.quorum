@@ -43,9 +43,9 @@ class LineChartLayout is TwoVariableChartLayout
         // Set default point density
         integer pointRadius = chart:GetPointDensity()
         if pointRadius <= 0
-            pointRadius = cast(integer, width * 0.010 / 2) 
-            if pointRadius < 4
-                pointRadius = 4
+            pointRadius = cast(integer, width * 0.010) 
+            if pointRadius < 8
+                pointRadius = 8
             end
         end
 
@@ -53,8 +53,8 @@ class LineChartLayout is TwoVariableChartLayout
         integer lineDensity = chart:GetLineDensity()
         if lineDensity <= 0
             lineDensity = cast(integer, width * 0.0025)
-            if lineDensity < 2
-                lineDensity = 2
+            if lineDensity < 5
+                lineDensity = 5
             end
         end
         chart:SetLineDensity(lineDensity)
@@ -75,8 +75,8 @@ class LineChartLayout is TwoVariableChartLayout
                 end
                 point:SetPercentX((point:GetValueX() - xMin) / (xMax - xMin))
                 point:SetPercentY((point:GetValueY() - yMin) / (yMax - yMin))
-                integer x = cast(integer, point:GetPercentX() * width - (point:GetWidth() / 2.0)) + xAxisPaddingOffset
-                integer y = cast(integer, point:GetPercentY() * height - (point:GetHeight() / 2.0)) + yAxisPaddingOffset
+                number x = cast(integer, point:GetPercentX() * width - pointRadius) + xAxisPaddingOffset + point:GetBorderThickness()
+                number y = cast(integer, point:GetPercentY() * height - pointRadius) + yAxisPaddingOffset + point:GetBorderThickness()
                 point:SetPosition(x, y)
 
                 if point:ShowAnnotation() or chart:ShowAnnotations()
