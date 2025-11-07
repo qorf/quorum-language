@@ -123,11 +123,12 @@ class LineChartWriter is ChartWriter
         chartContentBoundingBox:SetStrokeOpacity(transparent)
         if HasAccessibility()
             chartContent:SetTabIndex(0)
-            chartContent:SetStyleClass("quorum-chart-element quorum-chart-area quorum-chart-information-list")
+            chartContent:SetStyleClass("quorum-chart-area quorum-chart-information-list "+GetDotContainerStyle()+" " + GetSelectionBoxStyle())
             chartContent:SetIsOneLine(true)
             chartContent:SetRole("graphics-object")  
             chartContent:SetID(canvas:GetID() + "_" + GetChartArea():GetHashCode())
             chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox")
+            chartContentBoundingBox:SetStyleClass(GetSelectionBoxStyle())
             chartContentBoundingBox:SetTabIndex(-1)
             chartContentBoundingBox:SetAriaHidden("true")
             if chart:IsShowingTitle()
@@ -157,7 +158,7 @@ class LineChartWriter is ChartWriter
                     seriesSVG:SetFillOpacity(cast(Color, chart:GetSelectionColor()))
                     if HasAccessibility()
                         seriesSVG:SetID(canvas:GetID() + "_" + currentSeries:GetHashCode())
-                        seriesSVG:SetStyleClass("quorum-chart-scatter-series quorum-chart-series-list")
+                        seriesSVG:SetStyleClass("quorum-chart-series-list " + GetDotSeriesStyle())
                         seriesSVG:SetTabIndex(-1)
                         seriesSVG:SetRole("graphics-object")  
                         seriesSVG:SetAriaLabel(currentLine:GetName() + currentLine:GetDescription())
@@ -183,29 +184,6 @@ class LineChartWriter is ChartWriter
                             seriesBlur = seriesBlur + "loseFocus('" + canvas:GetID() + "_" + currentSeries:GetHashCode() + "_legend" + "'); "
                         end
                     end
-
-//                    if currentLine:GetSelectionArrow() not= undefined
-//                        Array <number> vertices = currentLine:GetSelectionArrowVertices()
-//                        number Yoffset = TranslatePositionY(currentLine:GetSelectionArrow())
-//                        number Xoffset = currentLine:GetSelectionArrow():GetGlobalX()
-//
-//                        Polygon arrow
-//                        integer m = 0
-//                        repeat while m < vertices:GetSize()
-//                            arrow:AddPoint(vertices:Get(m)+Xoffset, Yoffset+(currentLine:GetSelectionArrow():GetY()-vertices:Get(m+1)))
-//                            m = m + 2
-//                        end
-//                        arrow:SetFill(transparent) // Should be transparent until selected 
-//                        arrow:SetStyleClass("quorum-chart-selection-arrow")
-//                        arrow:SetTabIndex(-1)
-//                        arrow:SetID(seriesSVG:GetID() + "_arrow")
-//                        if HasAccessibility()
-//                            arrow:SetAriaHidden("true")
-//                            seriesFocus = seriesFocus + "gainFocus('" + arrow:GetID() + "'); "
-//                            seriesBlur = seriesBlur + "loseFocus('" + arrow:GetID() + "'); "
-//                        end
-//                        canvas:Add(arrow)
-//                    end
 
                     j = 0
                     repeat while j < currentLine:GetPoints():GetSize()
@@ -247,7 +225,7 @@ class LineChartWriter is ChartWriter
                         pointSVG:SetFillOpacity(currentPoint:GetColor())
                         if HasAccessibility()
                             pointSVG:SetID(canvas:GetID() + "_" + currentSeries:GetHashCode() + "_" + currentPoint:GetHashCode())
-                            pointSVG:SetStyleClass("quorum-chart-point quorum-chart-point-list")
+                            pointSVG:SetStyleClass("quorum-chart-point-list " + GetSelectionBoxStyle())
                             pointSVG:SetTabIndex(-1)
                             pointSVG:SetRole("graphics-symbol")  
                             pointSVG:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
@@ -271,7 +249,7 @@ class LineChartWriter is ChartWriter
                             point:SetTitle(currentSeries:GetName() + ": " + currentPoint:GetName())
                             if HasAccessibility()
                                 point:SetID(pointSVG:GetID() + "_point")
-                                point:SetStyleClass("quorum-chart-circle")
+                                point:SetStyleClass(GetSelectionBoxStyle())
                                 point:SetTabIndex(-1)
                                 point:SetAriaHidden("true")
                                 pointFocus = pointFocus + "gainFocus('" + point:GetID() + "'); "
@@ -302,30 +280,6 @@ class LineChartWriter is ChartWriter
                                 canvas:Add(labelSVG)
                             end
                         end
-
-//                        if currentPoint:GetSelectionArrow() not= undefined
-//                            Array <number> vertices = currentPoint:GetSelectionArrowVertices()
-//                            number Yoffset = TranslatePositionY(currentPoint:GetSelectionArrow())
-//                            number Xoffset = currentPoint:GetSelectionArrow():GetGlobalX()
-//    
-//                            Polygon arrow
-//                            integer m = 0
-//                            repeat while m < vertices:GetSize()
-//                                arrow:AddPoint(vertices:Get(m)+Xoffset, Yoffset+(currentPoint:GetSelectionArrow():GetY()-vertices:Get(m+1)))
-//                                m = m + 2
-//                            end
-//                            arrow:SetFill(transparent) // Should be transparent until selected 
-//                            arrow:SetFillOpacity(transparent)
-//                            if HasAccessibility()
-//                                arrow:SetStyleClass("quorum-chart-selection-arrow")
-//                                arrow:SetTabIndex(-1)
-//                                arrow:SetID(pointSVG:GetID() + "_arrow")
-//                                arrow:SetAriaHidden("true")
-//                                pointFocus = pointFocus + "gainFocus('" + arrow:GetID() + "'); "
-//                                pointBlur = pointBlur + "loseFocus('" + arrow:GetID() + "'); "
-//                            end
-//                            canvas:Add(arrow)
-//                        end
 
                         if HasAccessibility()
                             if pointFocus not= ""
@@ -365,8 +319,9 @@ class LineChartWriter is ChartWriter
                 subChartContentBoundingBox:SetStrokeOpacity(transparent)
                 if HasAccessibility()
                     subChartContent:SetTabIndex(-1)
-                    subChartContent:SetStyleClass("quorum-chart-region")
+                    subChartContent:SetStyleClass(GetSelectionBoxStyle())
                     subChartContentBoundingBox:SetAriaHidden("true")
+                    subChartContentBoundingBox:SetStyleClass(GetSelectionBoxStyle())
                     subChartContentBoundingBox:SetTabIndex(-1)
                 end
                 subChartContent:Add(subChartContentBoundingBox)
@@ -376,7 +331,7 @@ class LineChartWriter is ChartWriter
                     //Separated, by the Factor levels with multiple Series per subplot
                     if not chart:IsSeparatedBySeries() and chart:IsSeparatedByFactor()
                         subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetSeries():GetHashCode())
-                        subChartContent:SetStyleClass("quorum-chart-region quorum-chart-line-series quorum-chart-category-list") 
+                        subChartContent:SetStyleClass("quorum-chart-category-list " + GetDotSeriesStyle()+ " "+ GetSelectionBoxStyle()) 
                         subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
                         subChartContent:SetRole("graphics-object")  
                         subChartContent:SetAriaHidden("false")
@@ -387,7 +342,7 @@ class LineChartWriter is ChartWriter
                     //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
                     elseif chart:IsSeparatedBySeries() and not chart:IsSeparatedByFactor()
                         subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(i):GetSeries():GetHashCode())
-                        subChartContent:SetStyleClass("quorum-chart-region quorum-chart-line-series quorum-chart-series-list") 
+                        subChartContent:SetStyleClass("quorum-chart-series-list " + GetDotSeriesStyle()+ " " + GetSelectionBoxStyle()) 
                         subChartContent:SetAriaLabel(GetSubChartAreas():Get(i):GetAriaLabel())
                         subChartContent:SetRole("graphics-object")  
                         subChartContent:SetAriaHidden("false")
@@ -433,30 +388,6 @@ class LineChartWriter is ChartWriter
                                 end
                             end
 
-//                            if currentLine:GetSelectionArrow() not= undefined
-//                                Array <number> vertices = currentLine:GetSelectionArrowVertices()
-//                                number Yoffset = TranslatePositionY(currentLine:GetSelectionArrow())
-//                                number Xoffset = currentLine:GetSelectionArrow():GetGlobalX()
-//        
-//                                Polygon arrow
-//                                integer m = 0
-//                                repeat while m < vertices:GetSize()
-//                                    arrow:AddPoint(vertices:Get(m)+Xoffset, Yoffset+(currentLine:GetSelectionArrow():GetY()-vertices:Get(m+1)))
-//                                    m = m + 2
-//                                end
-//                                arrow:SetFill(transparent) // Should be transparent until selected 
-//                                arrow:SetFillOpacity(transparent)
-//                                if HasAccessibility()
-//                                    arrow:SetStyleClass("quorum-chart-selection-arrow")
-//                                    arrow:SetTabIndex(-1)
-//                                    arrow:SetID(subChartContent:GetID() + "_arrow")
-//                                    arrow:SetAriaHidden("true")
-//                                    seriesFocus = seriesFocus + "gainFocus('" + arrow:GetID() + "'); "
-//                                    seriesBlur = seriesBlur + "loseFocus('" + arrow:GetID() + "'); "
-//                                end
-//                                canvas:Add(arrow)
-//                            end
-
                             j = 0
                             repeat while j < currentLine:GetPoints():GetSize()
                                 if currentLine:GetPoints():Get(j) is ChartPoint
@@ -468,7 +399,7 @@ class LineChartWriter is ChartWriter
                                     pointSVG:SetFillOpacity(currentPoint:GetColor())
                                     if HasAccessibility()
                                         pointSVG:SetID(canvas:GetID() + "_" + currentLine:GetSeries():GetHashCode() + "_" + currentPoint:GetHashCode())
-                                        pointSVG:SetStyleClass("quorum-chart-point quorum-chart-point-list")
+                                        pointSVG:SetStyleClass("quorum-chart-point-list " + GetSelectionBoxStyle())
                                         pointSVG:SetTabIndex(-1)
                                         pointSVG:SetRole("graphics-symbol")  
                                         pointSVG:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
@@ -491,7 +422,7 @@ class LineChartWriter is ChartWriter
                                         point:SetTitle(currentLine:GetSeries():GetName() + ": " + currentPoint:GetName())
                                         if HasAccessibility()
                                             point:SetID(pointSVG:GetID() + "_point")
-                                            point:SetStyleClass("quorum-chart-circle")
+                                            point:SetStyleClass(GetSelectionBoxStyle())
                                             point:SetTabIndex(-1)
                                             point:SetAriaHidden("true")
                                             pointFocus = pointFocus + "gainFocus('" + point:GetID() + "'); "
@@ -551,30 +482,6 @@ class LineChartWriter is ChartWriter
                                             canvas:Add(labelSVG)
                                         end
                                     end
-
-//                                    if currentPoint:GetSelectionArrow() not= undefined
-//                                        Array <number> vertices = currentPoint:GetSelectionArrowVertices()
-//                                        number Yoffset = TranslatePositionY(currentPoint:GetSelectionArrow())
-//                                        number Xoffset = currentPoint:GetSelectionArrow():GetGlobalX()
-//                
-//                                        Polygon arrow
-//                                        integer m = 0
-//                                        repeat while m < vertices:GetSize()
-//                                            arrow:AddPoint(vertices:Get(m)+Xoffset, Yoffset+(currentPoint:GetSelectionArrow():GetY()-vertices:Get(m+1)))
-//                                            m = m + 2
-//                                        end
-//                                        arrow:SetFill(transparent) // Should be transparent until selected 
-//                                        arrow:SetFillOpacity(transparent)
-//                                        if HasAccessibility()
-//                                            arrow:SetStyleClass("quorum-chart-selection-arrow")
-//                                            arrow:SetTabIndex(-1)
-//                                            arrow:SetID(pointSVG:GetID() + "_arrow")
-//                                            arrow:SetAriaHidden("true")
-//                                            pointFocus = pointFocus + "gainFocus('" + arrow:GetID() + "'); "
-//                                            pointBlur = pointBlur + "loseFocus('" + arrow:GetID() + "'); "
-//                                        end
-//                                        canvas:Add(arrow)
-//                                    end
 
                                     if HasAccessibility()
                                         if pointFocus not= ""

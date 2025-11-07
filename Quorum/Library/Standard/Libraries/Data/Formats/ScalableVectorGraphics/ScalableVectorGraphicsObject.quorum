@@ -1,6 +1,8 @@
 package Libraries.Data.Formats.ScalableVectorGraphics
 
 use Libraries.Game.Graphics.Color
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
 /*
     The ScalableVectorGraphicsObject class represents all of the global attributes
     that SVG objects can have. Note that because this class
@@ -57,7 +59,15 @@ class ScalableVectorGraphicsObject
     private text ariaLabelledBy = ""
     private text ariaDescribedBy = ""
     private text ariaHidden = ""
-
+    
+    // data-* attributes
+    // name of the data attribute has to follow XML rules for names
+    // * Can't start with xml
+    // * Can't use a semicolon (;)
+    // * No capital letters A-Z
+private HashTable<text, text> dataAttributes
+    
+    
     //event handlers
     private text onFocus = ""
     private text onBlur = ""
@@ -143,6 +153,13 @@ class ScalableVectorGraphicsObject
         end
         if onBlur not= ""
             result = result + " onblur="+dq+onBlur+dq
+        end
+        if not dataAttributes:IsEmpty()
+            Iterator<text> iter = dataAttributes:GetKeyIterator()
+            repeat while iter:HasNext()
+                text attribute = iter:Next()
+                result = result + " data-"+attribute + "="+dq+dataAttributes:GetValue(attribute)+dq 
+            end
         end
         return result
     end
@@ -1059,6 +1076,22 @@ me:rotate = "rotate(" + angle + ", " + x + ", " + y + ")"
     
 action SetScaleTransform(number x, number y)
         me:scale = "scale(" + x + ", " + y + ")"
+    end
+    
+    action AddDataAttribute(text attribute, text value)
+        dataAttributes:Add(attribute, value)
+    end
+    
+    action SetDataAttribute(text attribute, text value)
+        dataAttributes:Set(attribute, value)
+    end
+    
+    action GetDataValue(text attribute) returns text
+        return dataAttributes:GetValue(attribute)
+    end
+    
+    action HasDataAttribute(text attribute) returns boolean
+        return dataAttributes:HasKey(attribute)
     end
 
 end
