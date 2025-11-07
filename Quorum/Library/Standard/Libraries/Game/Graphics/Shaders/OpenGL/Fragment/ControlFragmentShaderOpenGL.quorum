@@ -40,14 +40,24 @@ layout (location = 0) out vec4 outputColor;
 // w: bottom-left
 float signedDistanceFunction(in vec2 point, in vec2 dimensions, in vec4 rounding)
 {
-    // We calculate as though the point is in the top-right quadrant.
-    // If this isn't true, we need adjust which of the edge rounding values we use.
-    rounding.xy = (point.x > 0.0) ? rounding.xy : rounding.zw;
-    rounding.x = (point.y > 0.0) ? rounding.x : rounding.y;
-    
-    // We take the absolute value of the point to ensure we're calculating from the top-right quadrant
-    vec2 calc = abs(point) - dimensions + rounding.x;
-    return min(max(calc.x, calc.y), 0.0) + length(max(calc, 0.0)) - rounding.x;
+    bool right = (point.x >= 0.0);
+    bool top   = (point.y >= 0.0);
+
+    // Select the correct corner radius based on quadrant
+    float r = right
+        ? (top ? rounding.x : rounding.y)   // right: top or bottom
+        : (top ? rounding.z : rounding.w);  // left:  top or bottom
+
+    // Scale radius relative to rectangle size (smallest half-dimension)
+    float minHalf = min(dimensions.x, dimensions.y);
+    float r_scaled = r * minHalf;
+
+    // Canonical SDF
+    vec2 q = abs(point) - (dimensions - vec2(r_scaled));
+    float outsideDist = length(max(q, vec2(0.0)));
+    float insideDist  = min(max(q.x, q.y), 0.0);
+
+    return outsideDist + insideDist - r_scaled;
 }
 
 " + GetExtraFunctions() + "
@@ -101,6 +111,7 @@ void main()
 }
 
 ")
+        
 
     end
 
