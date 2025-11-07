@@ -39,11 +39,7 @@ class ScatterPlotLayout is TwoVariableChartLayout
         integer pointRadius = chart:GetPointDensity()
         if pointRadius = 0
             Math math
-            number prop = 0.05
-            number coeff = math:SquareRoot(prop/(points:GetSize()*math:pi))
-            output "coeff: "+coeff
             pointRadius = cast(integer, math:MinimumOf(width, height) * 0.01) 
-            output pointRadius
             if pointRadius < 7
                 pointRadius = 7
             end
