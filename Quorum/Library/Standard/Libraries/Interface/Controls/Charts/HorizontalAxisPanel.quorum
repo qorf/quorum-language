@@ -793,6 +793,16 @@ class HorizontalAxisPanel is ChartItem
                 tickSkips = 1
             end
         end
+        number visibleWidth = GetWidth()
+        Chart chart = GetContainer()
+        ChartAreaPanel subPanel = undefined
+        if chart:GetNumberOfChartAreas() > 1 and 1 <= chart:GetSubVerticalPanels():GetSize()
+            subPanel = chart:GetSubChartAreas():Get(1)
+            visibleWidth = subPanel:GetWidth()
+        end
+        if (range / tickSkips) > (visibleWidth / (GetFontSize() * 3))
+            return tickSkips * 2
+        end
         return tickSkips
     end
 

@@ -688,7 +688,7 @@ class VerticalAxisPanel is ChartItem
                     scaleWidth = CalculateBestIntervalForRange(range)
                 end
                 RunDefault(scaleWidth)
-            end
+         end
             
         // Text scale (integer intervals only)
         else
@@ -806,7 +806,17 @@ class VerticalAxisPanel is ChartItem
                 tickSkips = 1
             end
         end
-        return tickSkips
+        number visibleHeight = GetHeight()
+        Chart chart = GetContainer()
+        ChartAreaPanel subPanel = undefined
+        if chart:GetNumberOfChartAreas() > 1 and 1 <= chart:GetSubVerticalPanels():GetSize()
+            subPanel = chart:GetSubChartAreas():Get(1)
+            visibleHeight = subPanel:GetHeight()
+        end
+        if (range / tickSkips) > (visibleHeight / (GetFontSize() * 3))
+            return tickSkips * 2
+        end
+     return tickSkips
     end
 
     /*
