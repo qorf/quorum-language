@@ -2144,6 +2144,19 @@ InputSet shiftF10SetTextBox
         //General Chart Nav
         InputTable chartTable
         chartTable:SetIdentifier("Chart")
+        
+        
+InputSet mouseOn
+        mouseOn:SetInputType(mouseOn:MOUSE_MOVEMENT_INPUT)
+        mouseOn:SetInputTrigger(mouseOn:BEGIN)
+        MouseOnBehavior mouseOnBehavior
+        chartTable:Add(mouseOn, mouseOnBehavior)
+
+        InputSet mouseOff
+        mouseOff:SetInputType(mouseOff:MOUSE_MOVEMENT_INPUT)
+        mouseOff:SetInputTrigger(mouseOff:FINISH)
+        MouseOffBehavior mouseOffBehavior
+chartTable:Add(mouseOff, mouseOffBehavior)
 
         InputSet numpadEnterSet
         numpadEnterSet:SetKeyboardInput(keys:NUMPAD_ENTER)
