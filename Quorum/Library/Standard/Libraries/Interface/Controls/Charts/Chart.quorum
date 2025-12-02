@@ -3499,10 +3499,7 @@ legend:SetY(legendPanel:GetHeight() - legend:GetHeight())
             return now
         end
 
-selectionBoxShowing = false
-            selectionBox:Hide()
-            selectionAnnotationLabelShowing = false
-            selectionAnnotationLabel:Hide()
+RemoveSelectionVisual()
     end
 
     /* 
@@ -3534,23 +3531,41 @@ number leftPadding = borderThickness
                     ChartLabel xLabel = GetHorizontalPanel():GetTitleLabel()
                     bottomPadding = item:GetGlobalY() - (xLabel:GetGlobalY() + xLabel:GetHeight()) + 5
                 end
+                else
+                    bottomPadding = -2
             end
             if GetVerticalPanel() not= undefined
-                if GetVerticalPanel():GetLongestLabel() not= undefined
+            if GetVerticalPanel():GetLongestLabel() not= undefined
                     ChartLabel longestLabel = GetVerticalPanel():GetLongestLabel()
                     leftPadding = item:GetGlobalX() - longestLabel:GetGlobalX() + borderThickness * 2
                 end
+                    if me is PieChart
+                        leftPadding = borderThickness
+                    end
+                else
+                    leftPadding = -2
             end
                 rightPadding = rightPadding + 5
             end
             ApplySelectionBoxAroundItem(item, topPadding, rightPadding, bottomPadding, leftPadding)
         elseif item is Legend
-ApplySelectionBoxAroundItem(item, -35, 0,5,0)
+            if legend:GetTitleLabel():GetText() not= ""
+                ApplySelectionBoxAroundItem(item, 5)
+            else
+                ApplySelectionBoxAroundItem(item, -30, 0,5,0)
+            end
         elseif item is HorizontalAxisPanel
 ApplySelectionBoxAroundItem(item, 0, 50, 0, 50)
         elseif item is VerticalAxisPanel
             ApplySelectionBoxAroundItem(item, 50, 0, 50, 0)
         end
+    end
+    
+    action RemoveSelectionVisual()
+selectionBoxShowing = false
+            selectionBox:Hide()
+            selectionAnnotationLabelShowing = false
+            selectionAnnotationLabel:Hide()
     end
     
     action ApplySelectionBoxAroundItem(ChartItem item, number padding)
@@ -3572,9 +3587,6 @@ blinkTimer = blinkIdleTime
     end
     
 action ShowSelectionAnnotation(ChartItem item, text annotation, number offsetX, number offsetY)
-        if ShowAnnotations()
-            return now
-        end
         selectionAnnotationLabel:Show()
         selectionAnnotationLabel:SetX(item:GetGlobalX() + offsetX)
         selectionAnnotationLabel:SetY(item:GetGlobalY() + offsetY)

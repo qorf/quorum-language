@@ -1364,4 +1364,8 @@ class VerticalAxisPanel is ChartItem
     action SetTickDigits(integer digits)
         GetContainer():SetTickDigits(digits)
     end
+    
+    action BeginMouseOver
+        //GetContainer():ApplySelectionBoxAroundItem(me, 50, 0, 50, 0)
+    end
 end

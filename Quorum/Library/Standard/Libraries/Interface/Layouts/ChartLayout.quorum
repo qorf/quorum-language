@@ -744,12 +744,12 @@ if subAreas = undefined or subAreas:IsEmpty()
                 end
 
                 originPointY = originPointY-cast(integer, legendLabel:GetHeight())
-                legendLabel:SetPosition(originPointX, originPointY)
+                legendLabel:SetPosition(originPointX * 2, originPointY)
             end
         
             //This code represents the label entries in the legend
-            integer iconX = originPointX
-            integer iconY = originPointY
+            integer iconX = originPointX + padding
+            integer iconY = originPointY + padding
     
             integer labelX = 0
             integer labelY = 0
@@ -796,7 +796,7 @@ if subAreas = undefined or subAreas:IsEmpty()
                     currentIcon:SetBorderThickness(cast(integer, chart:GetLegendIconBorderThickness() * currentIcon:GetInterfaceScale()))
                     currentIcon:SetSize(iconSize, iconSize)
     
-                    iconX = padding
+                    iconX = padding * 2
                     iconY = iconY - iconSize - padding
                     currentIcon:SetPosition(iconX , iconY)
 

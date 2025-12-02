@@ -1,5 +1,7 @@
 package Libraries.Interface.Controls.Charts.Graphics
 use Libraries.Compute.Math
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Charts.PieChart
 
 /*
 The PieSlice class is a Wedge (ChartDrawable) that stores information 
@@ -27,6 +29,9 @@ class PieSlice is Wedge
 
     // How many digits of precision to round to when interpreting this as text.
     integer textRoundingPrecision = 2
+    Color wedgeColor = undefined
+    number annotationLabelX = -1
+    number annotationLabelY = -1
 
     /*
     This action returns the actual value associated with this slice.
@@ -37,6 +42,11 @@ class PieSlice is Wedge
     */
     action GetValue returns number
         return value
+    end
+    
+    action SetColor(Color color)
+        wedgeColor = color
+        parent:Wedge:SetColor(color)
     end
 
     action SetValue(number value)
@@ -81,4 +91,39 @@ class PieSlice is Wedge
 
         return "" + percent
     end
+    
+action BeginMouseOver
+        if GetContainer() is PieChart
+            PieChart parentChart = cast(PieChart, GetContainer())
+            if parentChart:GetActiveSlice() = me
+                return now
+            end
+            parentChart:RemoveSelectionVisual()
+            parentChart:SelectSlice(me)
+        end
+    end
+    
+    action EndMouseOver
+        //if wedgeColor not= undefined
+//SetColor(wedgeColor)
+            ////ResetLayoutFlag()
+        //end
+    end
+    
+    action SetAnnotationLabelX(number annotationLabelX)
+        me:annotationLabelX = annotationLabelX
+    end
+
+    action GetAnnotationLabelX returns number
+        return annotationLabelX
+    end
+
+    action SetAnnotationLabelY(number annotationLabelY)
+        me:annotationLabelY = annotationLabelY
+    end
+
+    action GetAnnotationLabelY returns number
+        return annotationLabelY
+    end
+
 end

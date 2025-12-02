@@ -311,8 +311,7 @@ number blinkIdleTime = 1.0
             return now
         end
         if item is Bar
-            selectionBar:Hide()
-            barShowing = false
+            RemoveSelectionBar()
         end
             parent:Chart:LostSelection(item)
 
@@ -337,40 +336,55 @@ number blinkIdleTime = 1.0
 item:Focus()
         if item is Bar
             Bar bar = cast(Bar, item)
-            if isStacked
-                ApplySelectionBoxAroundItem(item, GetSelectionBoxBorderThickness() + 3)
-            elseif GetVerticalFlag()
-selectionBar:Show()
-            barShowing = true
-            blinkTimer = blinkIdleTime
-                selectionBar:SetSize(item:GetWidth(), 25)
-                selectionBar:SetX(item:GetGlobalX())
-                if ShowAnnotations()
-                    ChartLabel annotation = bar:GetAnnotation()
-                    selectionBar:SetY(item:GetGlobalY() + item:GetHeight() + 10 + annotation:GetHeight())
-                else
-                    selectionBar:SetY(item:GetGlobalY() + item:GetHeight() + 10)
-                end
+            ApplySelectionBar(bar)
+            if not ShowAnnotations()
+if GetHorizontalFlag()
+ShowSelectionAnnotation(item,""+bar:GetValue(), 10, bar:GetHeight()/2 - 18)
             else
-selectionBar:Show()
-            barShowing = true
-            blinkTimer = blinkIdleTime
-selectionBar:SetSize(25, item:GetHeight())
-                selectionBar:SetY(item:GetGlobalY())
-                selectionBar:SetCornerRounding(0,0,0,0)
-                if ShowAnnotations()
-                    ChartLabel annotation = bar:GetAnnotation()
-                    selectionBar:SetX(item:GetGlobalX() + item:GetWidth() + 10 + annotation:GetWidth())
-                else
-selectionBar:SetX(item:GetGlobalX() + item:GetWidth() + 10)
-                end
+ShowSelectionAnnotation(item,""+bar:GetValue(), 2, bar:GetHeight()/2 - 18)
             end
-            ShowSelectionAnnotation(item,""+bar:GetValue(), bar:GetWidth()/2, bar:GetHeight()/2)
+            end
         elseif item is BarGroup
             ApplySelectionBoxAroundItem(item, GetSelectionBoxBorderThickness() + 3)
         else
             parent:Chart:OnSelectionChange(item)
         end
+    end
+    
+    action ApplySelectionBar(Bar bar)
+if isStacked
+                ApplySelectionBoxAroundItem(bar, GetSelectionBoxBorderThickness() + 3)
+            elseif GetVerticalFlag()
+selectionBar:Show()
+            barShowing = true
+            blinkTimer = blinkIdleTime
+                selectionBar:SetSize(bar:GetWidth(), 25)
+                selectionBar:SetX(bar:GetGlobalX())
+                if ShowAnnotations()
+                    ChartLabel annotation = bar:GetAnnotation()
+                    selectionBar:SetY(bar:GetGlobalY() + bar:GetHeight() + 10 + annotation:GetHeight())
+                else
+                    selectionBar:SetY(bar:GetGlobalY() + bar:GetHeight() + 10)
+                end
+            else
+selectionBar:Show()
+            barShowing = true
+            blinkTimer = blinkIdleTime
+selectionBar:SetSize(25, bar:GetHeight())
+                selectionBar:SetY(bar:GetGlobalY())
+                selectionBar:SetCornerRounding(0,0,0,0)
+                if ShowAnnotations()
+                    ChartLabel annotation = bar:GetAnnotation()
+                    selectionBar:SetX(bar:GetGlobalX() + bar:GetWidth() + 10 + annotation:GetWidth())
+                else
+selectionBar:SetX(bar:GetGlobalX() + bar:GetWidth() + 10)
+                end
+            end
+    end
+    
+    action RemoveSelectionBar()
+selectionBar:Hide()
+            barShowing = false
     end
     
     action Update(number seconds)

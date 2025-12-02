@@ -491,8 +491,7 @@ if IsShowingLinearRegression() and series:GetRegressionLine() not= undefined
                 i = i + 1
             end
         elseif item is ChartPoint
-            selectionRing:Hide()
-            ringShowing = false
+            RemoveSelectionRing()
             end
 parent:Chart:LostSelection(item)
     end
@@ -535,11 +534,18 @@ parent:Chart:LostSelection(item)
                 i = i + 1
             end
         elseif item is ChartPoint
-            ShowSelectionAnnotation(item, 15, 15)
+if not ShowAnnotations()
+                ShowSelectionAnnotation(item, 15, 15)
+        end
             ApplySelectionRing(item)
             else
                 parent:Chart:OnSelectionChange(item)
             end
+    end
+    
+    action RemoveSelectionRing()
+selectionRing:Hide()
+            ringShowing = false
     end
     
     action ApplySelectionRing(ChartItem item)

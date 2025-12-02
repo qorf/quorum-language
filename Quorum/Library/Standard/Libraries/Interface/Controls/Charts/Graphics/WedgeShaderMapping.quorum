@@ -15,6 +15,9 @@ use Libraries.Containers.Array
 use Libraries.Containers.Integer32BitArray
 use Libraries.Game.Graphics.VertexAttributes
 use Libraries.Game.Graphics.DrawableShape
+use Libraries.Compute.Random
+use Libraries.Compute.Math
+use Libraries.Interface.Controls.Charts.PieChart
 
 class WedgeShaderMapping is DefaultShaderMapping2D
 
@@ -88,17 +91,23 @@ class WedgeShaderMapping is DefaultShaderMapping2D
             shape:SetDataForAllVertices(innerRadiusAttribute:offset / 4, wedge:GetInnerRadius())
             shape:SetDataForAllVertices(minAngleAttribute:offset / 4, wedge:GetStartPercentage())
             shape:SetDataForAllVertices(maxAngleAttribute:offset / 4, wedge:GetEndPercentage())
-            
+            ChartDrawable slice = cast(ChartDrawable, wedge)
+            PieChart pie = cast(PieChart, wedge:GetParentChart())
+            number radialOffset = pie:GetDefaultRadialOffset() + wedge:GetRadialOffset()
             number originX = 0
             number originY = 0
-
+            Math math
+            number startAngle = math:DegreesToRadians(90 - wedge:GetStartPercentage() * 360)
+            number endAngle = math:DegreesToRadians(90 - wedge:GetEndPercentage() * 360)
+            number angle = (startAngle + endAngle)/2
+Random random
             if wedge:GetParent() = undefined
                 originX = wedge:GetGlobalX() + wedge:GetWidth() / 2
                 originY = wedge:GetGlobalY() + wedge:GetHeight() / 2
             else
                 Item2D item = wedge:GetParent()
-                originX = item:GetGlobalX() + item:GetWidth() / 2
-                originY = item:GetGlobalY() + item:GetHeight() / 2
+                originX = (item:GetGlobalX() +( item:GetWidth()) / 2) + radialOffset*math:Cosine(angle)
+                originY = (item:GetGlobalY() + ( item:GetHeight()) / 2) + radialOffset*math:Sine(angle)
             end
 
             shape:SetDataForAllVertices(originPointAttribute:offset / 4, originX)
