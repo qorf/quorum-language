@@ -286,5 +286,22 @@ class ChartPoint is ChartDrawable
     action GetOutlierValue returns number
         return outlierValue
     end
+    
+    action BeginMouseOver
+        if GetContainer() is TwoVariableChart
+            TwoVariableChart parentChart = cast(TwoVariableChart, GetContainer())
+            parentChart:RemoveSelectionVisual()
+            parentChart:ShowSelectionAnnotation(me, 15, 15)
+            parentChart:ApplySelectionRing(me)
+        end
+    end
+    
+    action EndMouseOver
+if GetContainer() is TwoVariableChart
+            TwoVariableChart parentChart = cast(TwoVariableChart, GetContainer())
+parentChart:RemoveSelectionVisual()
+            parentChart:RemoveSelectionRing()
+        end
+    end
 
 end

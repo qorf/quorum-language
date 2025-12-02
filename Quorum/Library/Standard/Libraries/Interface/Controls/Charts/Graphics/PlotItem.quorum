@@ -10,5 +10,15 @@ private number plotValue = 0.0
     action GetPlotValue returns number
         return plotValue
     end
+    
+    action BeginMouseOver
+        GetContainer():RemoveSelectionVisual()
+        GetContainer():ApplySelectionBoxAroundItem(me,5)
+GetContainer():ShowSelectionAnnotation(me," " + GetPlotValue()+" ",GetWidth() + 2, GetHeight()/2-20)
+    end
+    
+    action EndMouseOver
+        //GetContainer():RemoveSelectionVisual()
+    end
 
 end

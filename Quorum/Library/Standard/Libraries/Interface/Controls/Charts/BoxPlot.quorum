@@ -610,12 +610,16 @@ ApplySelectionBoxAroundItem(temp, 5)
         elseif item is PlotItem
             PlotItem plotItem = cast(PlotItem, item)
             ApplySelectionBoxAroundItem(item, 5)
-            ShowSelectionAnnotation(item," " + plotItem:GetPlotValue()+" ",15,15)
+            if not ShowAnnotations()
+                ShowSelectionAnnotation(item," " + plotItem:GetPlotValue()+" ",item:GetWidth() + 2, item:GetHeight()/2-20)
+            end
         elseif item is ChartPoint
             // outliers
             ChartPoint outlierPoint = cast(ChartPoint, item)
 ApplySelectionBoxAroundItem(item, 6)
-            ShowSelectionAnnotation(item," " + outlierPoint:GetOutlierValue()+" ",15,15)
+            if not ShowAnnotations()
+                ShowSelectionAnnotation(item," " + outlierPoint:GetOutlierValue()+" ",15,15)
+            end
             else
                 parent:Chart:OnSelectionChange(item)
             end            

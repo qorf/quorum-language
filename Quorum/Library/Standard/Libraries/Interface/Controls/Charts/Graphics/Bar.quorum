@@ -198,4 +198,18 @@ shader:Initialize()
 
         return parent:Control:GetBorderStyle()
     end
+    
+    action BeginMouseOver
+        if GetContainer() is SharedBarChartParent
+            SharedBarChartParent parentChart = cast(SharedBarChartParent, GetContainer())
+            parentChart:RemoveSelectionVisual()
+parentChart:ApplySelectionBar(me)
+            if parentChart:GetHorizontalFlag()
+parentChart:ShowSelectionAnnotation(me,""+GetValue(), 10, GetHeight()/2 - 18)
+            else
+parentChart:ShowSelectionAnnotation(me,""+GetValue(), 2, GetHeight()/2 - 18)
+            end
+        end
+    end
+    
 end

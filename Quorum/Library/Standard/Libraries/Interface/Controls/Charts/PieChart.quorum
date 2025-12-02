@@ -59,6 +59,10 @@ class PieChart is Chart
     ColorGroup previousColorGroup = undefined
     Color previousColor = undefined
     integer previousBorder = 0
+    number defaultRadialOffset = 2
+    private text annotationPlacement = "INSIDE_SLICE"
+    PieSlice activeSlice = undefined
+    integer sliceSelectionPadding = 15
 
     Math math
 
@@ -343,15 +347,10 @@ class PieChart is Chart
         if item = undefined
             return now
         end
-        Item target = item
 
-        if target not= undefined
-            if target is PieSlice
-                PieSlice slice = cast(PieSlice, target)
-                slice:SetColor(previousColor)
-            end
+            RemoveSliceSelectionVisual()
+        
             parent:Chart:LostSelection(item)
-        end
     end
 
     /* 
@@ -370,17 +369,49 @@ class PieChart is Chart
         if item = undefined
             return now
         end
-        Item target = item
-        if target not= undefined
-            target:Focus()
-            if target is PieSlice
-                PieSlice slice = cast(PieSlice, target)
-                previousColor = slice:GetColor()
-                slice:SetColor(GetSelectionColor())
+        
+        if item not= undefined
+            item:Focus()
+            if item is PieSlice
+                PieSlice slice = cast(PieSlice, item)
+                SelectSlice(slice)
             end
             parent:Chart:OnSelectionChange(item)        
         end
     end
+    
+    action SelectSlice(PieSlice slice)
+        RemoveSliceSelectionVisual()
+        activeSlice = slice
+                previousColor = slice:GetColor()
+                slice:SetColor(GetSelectionColor())
+selectionOffset = GetSliceSelectionPadding()
+            if GetNumberOfChartAreas() > 1
+                selectionOffset = GetSliceSelectionPadding()/2
+            end
+                slice:SetRadialOffset(slice:GetRadialOffset()+ selectionOffset)
+        slice:GetAnnotation():Hide()
+        ShowSelectionAnnotation(me," " + slice:GetPercentageText()+"%",slice:GetAnnotationLabelX(), slice:GetAnnotationLabelY())
+        slice:RequestVerticesUpdate()
+        RequestLayout()
+    end
+    
+    action RemoveSliceSelectionVisual()
+        if activeSlice = undefined
+            return now
+        end
+                activeSlice:SetColor(previousColor)
+            integer selectionOffset = GetSliceSelectionPadding()
+            if GetNumberOfChartAreas() > 1
+                selectionOffset = GetSliceSelectionPadding()/2
+            end
+                activeSlice:SetRadialOffset(activeSlice:GetRadialOffset() - selectionOffset)
+        activeSlice:RequestVerticesUpdate()
+        activeSlice:GetAnnotation():Show()
+        activeSlice = undefined
+RequestLayout()
+    end
+    
     /*
         This action adds a pie box to the current chart.
 
@@ -1062,4 +1093,41 @@ class PieChart is Chart
     action GetChartItemsText returns text
         return chartItemsText
     end
+    
+    action SetAnnotationPlacementOutside()
+        me:annotationPlacement = "OUTSIDE"
+    end
+    
+    action SetAnnotationPlacementInsideSlice()
+        me:annotationPlacement = "INSIDE_SLICE"
+    end
+    
+    action SetAnnotationPlacementInsideDonut()
+        me:annotationPlacement = "INSIDE_DONUT"
+    end
+    
+action GetAnnotationPlacement returns text
+        return annotationPlacement
+    end
+    
+    action SetDefaultRadialOffset(number defaultRadialOffset)
+        me:defaultRadialOffset = defaultRadialOffset
+    end
+
+    action GetDefaultRadialOffset returns number
+        return defaultRadialOffset
+    end
+
+    action GetActiveSlice returns PieSlice
+        return activeSlice
+    end
+
+    action SetSliceSelectionPadding(integer sliceSelectionPadding)
+        me:sliceSelectionPadding = sliceSelectionPadding
+    end
+
+    action GetSliceSelectionPadding returns integer
+        return sliceSelectionPadding
+    end
+
 end

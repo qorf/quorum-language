@@ -79,6 +79,7 @@ class Wedge is ChartDrawable, TouchListener
     number innerRadius = 0
     number startPercentage = 0
     number endPercentage = 0.1
+    number radialOffset = 0
 
     // A vector2 used for testing coordinates in the Contains action. Vital for mouse input.
     Vector2 point
@@ -369,4 +370,14 @@ class Wedge is ChartDrawable, TouchListener
         end
         return program
     end
+    
+    action SetRadialOffset(number radialOffset)
+        me:radialOffset = radialOffset
+    end
+
+    action GetRadialOffset returns number
+        return radialOffset
+    end
+    
+
 end

@@ -13,6 +13,7 @@ use Libraries.Game.Graphics.Color
 use Libraries.Compute.Math
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Charts.PieSliceComparison
+use Libraries.Compute.Random
 
 /*
     This class determines the visual layout for a pie chart.
@@ -78,6 +79,10 @@ class PieChartLayout is ChartLayout
             number width = chartAreaContainer:GetWidth()
             number height = chartAreaContainer:GetHeight()
             number donutHolePercent = chart:GetDonutHolePercent()
+integer selectionPadding = chart:GetSliceSelectionPadding()
+            if chart:GetNumberOfChartAreas() > 1
+                selectionPadding = selectionPadding/2
+            end
     
             integer middleX = cast(integer, width/2)
             integer middleY = cast(integer, height/2)
@@ -92,13 +97,29 @@ class PieChartLayout is ChartLayout
     
             number currentTheta = 90 // This starts it at the top
             number currentPercent = 0
+            
             integer i = 0
+            number maxRadialOffset = chart:GetDefaultRadialOffset()
+            repeat while i < slices:GetSize()
+PieSlice slice = slices:Get(i)
+                if chart:GetActiveSlice() not= undefined and chart:GetActiveSlice() = slice
+                    if slice:GetRadialOffset() - selectionPadding + chart:GetDefaultRadialOffset() > maxRadialOffset
+                        maxRadialOffset = slice:GetRadialOffset()  - selectionPadding + chart:GetDefaultRadialOffset()
+                    end
+                else
+                                if slice:GetRadialOffset() + chart:GetDefaultRadialOffset() > maxRadialOffset
+maxRadialOffset = slice:GetRadialOffset() + chart:GetDefaultRadialOffset()
+                end
+                end
+                i = i + 1
+            end
+        i = 0
             repeat while i < slices:GetSize()
                 PieSlice slice = slices:Get(i)
                 number percent = math:Round(slice:GetValue()/cast(number, pieBox:GetValue()), 5)
                 slice:Load(slice:GetColor())
                 slice:SetSize(pieBox:GetWidth(), pieBox:GetHeight())
-                slice:SetOuterRadius(radius)
+                slice:SetOuterRadius(radius - maxRadialOffset - selectionPadding)
                 slice:SetInnerRadius(cast(integer, donutHolePercent*radius))
                 
                 slice:SetStartPercentage(currentPercent)
@@ -108,23 +129,76 @@ class PieChartLayout is ChartLayout
 
                 if slice:ShowAnnotation() or chart:ShowAnnotations() 
                     ControlLabel label = slice:GetAnnotation()
-                    currentTheta = currentTheta - (percent/2) * 360 // Travel half way along the arc to place label
+                    currentTheta = currentTheta - (percent/2) * 360
+                    Color color = slice:GetColor()
+                    if chart:GetSubChartAreas():GetSize() <= 1
+                        label:SetFontSize(36)
+                    else
+                        label:SetToMediumFont()
+                    end
+                    if color:IsBestContrastWhite() and chart:GetAnnotationPlacement() = "INSIDE_SLICE"
+                        label:SetFontColor(color:White())
+                    end
                     if label not= undefined
-                        integer x = cast(integer, middleX + radius * math:Cosine(math:DegreesToRadians(currentTheta)))
-                        integer y = cast(integer, middleY + radius * math:Sine(math:DegreesToRadians(currentTheta)))
+                        /*
+ Options for Annotation Placement
+ - "OUTSIDE"
+ - "INSIDE_SLICE"
+ - "INSIDE_DONUT"
+*/
+                        number radialOffset = 1
+                        if chart:GetAnnotationPlacement() = "INSIDE_SLICE"
+                            if chart:GetDonutHolePercent() > 0
+                                radialOffset = ( ((radius + chart:GetDefaultRadialOffset() + slice:GetRadialOffset()) / radius) + chart:GetDonutHolePercent())/ 2
+                            else
+                                radialOffset = ( ((radius + chart:GetDefaultRadialOffset() + slice:GetRadialOffset()) / radius) + chart:GetDonutHolePercent())/ 1.8
+                            end
+                        elseif chart:GetAnnotationPlacement() = "INSIDE_DONUT"
+                            radialOffset = (chart:GetDonutHolePercent())
+                        elseif chart:GetAnnotationPlacement() = "OUTSIDE"
+                            radialOffset = (radius + maxRadialOffset) / radius
+                        end
+                        integer x = cast(integer, middleX + (radius * radialOffset) * math:Cosine(math:DegreesToRadians(currentTheta)))
+                        integer y = cast(integer, middleY + (radius * radialOffset) * math:Sine(math:DegreesToRadians(currentTheta)))
                         number degrees = currentTheta mod 360
                         if degrees < 0
                             degrees = 360 + degrees
                         end
                         if degrees >= 0 and degrees < 90
-                            label:SetPosition(x, y)
+                            if chart:GetAnnotationPlacement() = "INSIDE_DONUT"
+                                label:SetPosition(x-label:GetWidth(), y-label:GetHeight())
+                            elseif chart:GetAnnotationPlacement() = "INSIDE_SLICE"
+                                label:SetPosition(x-label:GetWidth()/2, y-label:GetHeight()/2)
+                            else
+                                label:SetPosition(x, y)
+                            end
                         elseif degrees >= 90 and degrees < 180
-                            label:SetPosition(x-label:GetWidth(), y)
+                            if chart:GetAnnotationPlacement() = "INSIDE_DONUT"
+                                label:SetPosition(x, y-label:GetHeight())
+                            elseif chart:GetAnnotationPlacement() = "INSIDE_SLICE"
+                                label:SetPosition(x-label:GetWidth()/2, y-label:GetHeight()/2)
+                            else
+                                label:SetPosition(x-label:GetWidth(), y)
+                            end
                         elseif degrees >= 180 and degrees < 270
-                            label:SetPosition(x-label:GetWidth(), y-label:GetHeight())
+                            if chart:GetAnnotationPlacement() = "INSIDE_DONUT"
+                                label:SetPosition(x, y)
+                            elseif chart:GetAnnotationPlacement() = "INSIDE_SLICE"
+                                label:SetPosition(x-label:GetWidth()/2, y-label:GetHeight()/2)
+                            else
+                                label:SetPosition(x-label:GetWidth(), y-label:GetHeight())
+                            end
                         else
-                            label:SetPosition(x, y-label:GetHeight())
+                            if chart:GetAnnotationPlacement() = "INSIDE_DONUT"
+                                label:SetPosition(x-label:GetWidth(), y)
+                            elseif chart:GetAnnotationPlacement() = "INSIDE_SLICE"
+                                label:SetPosition(x-label:GetWidth()/2, y-label:GetHeight()/2)
+                            else
+                                label:SetPosition(x, y-label:GetHeight())
+                            end
                         end
+                        slice:SetAnnotationLabelX(label:GetGlobalX())
+                        slice:SetAnnotationLabelY(label:GetGlobalY())
                     end
                     currentTheta = currentTheta - (percent/2) * 360 // Account for the remaining half of the arc
                 end
