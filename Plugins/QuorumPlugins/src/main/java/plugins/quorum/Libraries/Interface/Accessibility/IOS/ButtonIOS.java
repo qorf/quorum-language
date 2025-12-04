@@ -30,9 +30,43 @@ public class ButtonIOS extends ItemIOS {
         super.Initialize(button);
     }
 
+    /**
+     * Called when the button is activated.
+     * When buttons are activated, they should show visual feedback.
+     */
     @Override
     public boolean activate() {
-        button.Activate();
+        if (button != null) {
+            // Give the button focus so it shows visual feedback
+            button.Focus();
+            // Mirror the Quorum button click so visual state updates
+            button.SetDepression(true);
+            button.ClickedMouse();
+            button.SetDepression(false);
+            button.Activate();
+        }
         return true;
+    }
+
+    /**
+     * Called when accessibility focus moves to this button.
+     */
+    @Override
+    public void Focus() {
+        super.Focus();
+        if (button != null) {
+            // Give the button Quorum focus so it shows the focus visual state
+            button.Focus();
+        }
+    }
+
+    /**
+     * Called when accessibility focus leaves this button.
+     * Manually clear focus.
+     */
+    @Override
+    public void FocusLost() {
+        // The button's LostFocus will be called by the focus manager
+        super.FocusLost();
     }
 }
