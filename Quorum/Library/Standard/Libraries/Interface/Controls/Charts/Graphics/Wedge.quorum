@@ -80,6 +80,12 @@ class Wedge is ChartDrawable, TouchListener
     number startPercentage = 0
     number endPercentage = 0.1
     number radialOffset = 0
+    number crustThickness = -2
+    boolean showCrust = false
+    Color crustColor = undefined
+    number unitX = 0
+    number unitY = 0
+    
 
     // A vector2 used for testing coordinates in the Contains action. Vital for mouse input.
     Vector2 point
@@ -378,6 +384,45 @@ class Wedge is ChartDrawable, TouchListener
     action GetRadialOffset returns number
         return radialOffset
     end
-    
+
+    action ShowCrust(boolean showCrust)
+        me:showCrust = showCrust
+    end
+
+    action ShowingCrust returns boolean
+        return showCrust
+    end
+
+    action SetCrustThickness(number crustThickness)
+        me:crustThickness = crustThickness
+    end
+
+    action GetCrustThickness returns number
+        return crustThickness
+    end
+
+    action SetCrustColor(Color crustColor)
+        me:crustColor = crustColor
+    end
+
+    action GetCrustColor returns Color
+        return crustColor
+    end
+
+    action SetUnitX(number unitX)
+        me:unitX = unitX
+    end
+
+    action GetUnitX returns number
+        return unitX
+    end
+
+    action SetUnitY(number unitY)
+        me:unitY = unitY
+    end
+
+    action GetUnitY returns number
+        return unitY
+    end
 
 end

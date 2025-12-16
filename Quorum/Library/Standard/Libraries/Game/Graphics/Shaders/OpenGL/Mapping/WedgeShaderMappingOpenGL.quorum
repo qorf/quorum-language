@@ -16,9 +16,10 @@ use Libraries.Game.Graphics.DrawableShape
 use Libraries.Game.Graphics.OpenGL.OpenGLConstants
 use Libraries.Interface.Controls.Charts.Graphics.Wedge
 use Libraries.Game.Graphics.Color
-use Libraries.Compute.Random
 use Libraries.Compute.Math
 use Libraries.Interface.Controls.Charts.PieChart
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.Game.Graphics.ColorGroup
 
 class WedgeShaderMappingOpenGL is DefaultShaderMapping2DOpenGL
 
@@ -107,7 +108,6 @@ class WedgeShaderMappingOpenGL is DefaultShaderMapping2DOpenGL
             number startAngle = math:DegreesToRadians(90 - wedge:GetStartPercentage() * 360)
             number endAngle = math:DegreesToRadians(90 - wedge:GetEndPercentage() * 360)
             number angle = (startAngle + endAngle)/2
-Random random
             if wedge:GetParent() = undefined
                 originX = wedge:GetGlobalX() + wedge:GetWidth() / 2
                 originY = wedge:GetGlobalY() + wedge:GetHeight() / 2
@@ -123,9 +123,9 @@ Random random
             // TO-DO: Get "real" values for these, instead of the hardcoded testing values used here.
             // A negative crust thickness will make the crust be rendered as an interior border,
             // and a positive thickness will be rendered as an exterior border.
-            number crustThickness = -5
+            number crustThickness = wedge:GetCrustThickness()
             Color crustColor
-            crustColor = crustColor:Orange()
+            crustColor = cast(Color, wedge:GetCrustColor())
             
             shape:SetDataForAllVertices(crustThicknessAttribute:offset / 4, crustThickness)
             shape:SetDataForAllVertices(crustColorAttribute:offset / 4, crustColor:EncodeColorAsNumber())

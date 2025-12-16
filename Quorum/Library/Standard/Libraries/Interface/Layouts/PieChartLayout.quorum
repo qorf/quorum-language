@@ -121,6 +121,9 @@ maxRadialOffset = slice:GetRadialOffset() + chart:GetDefaultRadialOffset()
                 slice:SetSize(pieBox:GetWidth(), pieBox:GetHeight())
                 slice:SetOuterRadius(radius - maxRadialOffset - selectionPadding)
                 slice:SetInnerRadius(cast(integer, donutHolePercent*radius))
+                if slice:GetCrustColor() = undefined
+                    slice:SetCrustColor(cast(Color, chart:GetBorderColor()))
+                end
                 
                 slice:SetStartPercentage(currentPercent)
                 currentPercent = currentPercent + percent
@@ -158,8 +161,10 @@ maxRadialOffset = slice:GetRadialOffset() + chart:GetDefaultRadialOffset()
                         elseif chart:GetAnnotationPlacement() = "OUTSIDE"
                             radialOffset = (radius + maxRadialOffset) / radius
                         end
-                        integer x = cast(integer, middleX + (radius * radialOffset) * math:Cosine(math:DegreesToRadians(currentTheta)))
-                        integer y = cast(integer, middleY + (radius * radialOffset) * math:Sine(math:DegreesToRadians(currentTheta)))
+                        slice:SetUnitX(math:Cosine(math:DegreesToRadians(currentTheta)))
+                        slice:SetUnitY(math:Sine(math:DegreesToRadians(currentTheta)))
+                        integer x = cast(integer, middleX + (radius * radialOffset) * slice:GetUnitX())
+                        integer y = cast(integer, middleY + (radius * radialOffset) * slice:GetUnitY())
                         number degrees = currentTheta mod 360
                         if degrees < 0
                             degrees = 360 + degrees

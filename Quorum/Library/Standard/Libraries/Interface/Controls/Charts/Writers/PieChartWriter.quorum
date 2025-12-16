@@ -118,7 +118,7 @@ class PieChartWriter is ChartWriter
         chartContentBoundingBox:SetStrokeOpacity(transparent)
         if HasAccessibility()
             chartContent:SetTabIndex(0)
-            chartContent:SetStyleClass("quorum-chart-element quorum-chart-area quorum-chart-information-list")
+            chartContent:SetStyleClass("quorum-chart-area quorum-chart-information-list " + GetSelectionBoxStyle())
             chartContent:SetIsOneLine(true)
             chartContent:SetRole("graphics-object")
             chartContent:SetID(canvas:GetID() + "_" + GetChartArea():GetHashCode())
@@ -158,7 +158,8 @@ class PieChartWriter is ChartWriter
                     sliceSVG:SetFillOpacity(pieBox:Get(i):GetColor())
                     if HasAccessibility()  
                         sliceSVG:SetID(canvas:GetID() + "_" + pieBox:Get(i):GetHashCode())
-                        sliceSVG:SetStyleClass("quorum-chart-bar quorum-chart-bar-list")
+                        sliceSVG:SetStyleClass("quorum-chart-bar quorum-chart-wedge quorum-chart-bar-list")
+sliceSVG:SetStyle("--unit-x: " + pieBox:Get(i):GetUnitX() +"px; --unit-y: " + -pieBox:Get(i):GetUnitY()+"px;")
                         sliceSVG:SetTabIndex(-1) 
                         sliceSVG:SetRole("graphics-symbol") 
                         sliceSVG:SetAriaLabel(pieBox:Get(i):GetName() + pieBox:Get(i):GetDescription())
@@ -166,30 +167,44 @@ class PieChartWriter is ChartWriter
                     end
                     chartContent:Add(sliceSVG)
 
-                    Wedge slice // this is an SVG wedge not chart graphics wedge
+                    Wedge slice
+                    Wedge crust
+ // this is an SVG wedge not chart graphics wedge
                     Wedge slicePattern
                     //Set outer radius
                     number radius = pieBox:Get(i):GetOuterRadius()
                     number innerRadius = pieBox:Get(i):GetInnerRadius()
                     slice:SetOuterRadius(radius)
+                    crust:SetOuterRadius(radius)
                     slicePattern:SetOuterRadius(radius)
+                    number radialOffset = chart:GetDefaultRadialOffset() + pieBox:Get(i):GetRadialOffset()
+                    number originPointX = centerX + pieBox:Get(i):GetUnitX() * radialOffset
+                    number originPointY = centerY + -pieBox:Get(i):GetUnitY() * radialOffset
     
                     //Start point of outer arc
-                    x = centerX + radius * math:Cosine(math:DegreesToRadians(currentTheta))
-                    y = centerY + radius * math:Sine(math:DegreesToRadians(currentTheta))
+                    x = originPointX + radius * math:Cosine(math:DegreesToRadians(currentTheta))
+                    y = originPointY + radius * math:Sine(math:DegreesToRadians(currentTheta))
+                    number startTheta = currentTheta
                     slice:SetStart(x, y)
+                    crust:SetStart(x,y)
                     slicePattern:SetStart(x, y)
     
                     //End point of outer arc
                     number percent = pieBox:Get(i):GetEndPercentage() - pieBox:Get(i):GetStartPercentage()
                     slice:SetPercent(percent)
+                    crust:SetPercent(percent)
                     slicePattern:SetPercent(percent)
                     currentTheta = currentTheta + percent * 360
-                    x = centerX + radius * math:Cosine(math:DegreesToRadians(currentTheta))
-                    y = centerY + radius * math:Sine(math:DegreesToRadians(currentTheta))
+                    x = originPointX + radius * math:Cosine(math:DegreesToRadians(currentTheta))
+                    y = originPointY + radius * math:Sine(math:DegreesToRadians(currentTheta))
                     slice:SetEnd(x, y)
+                    crust:SetEnd(x,y)
                     slicePattern:SetEnd(x, y)
         
+                    number crustRadius = radius - radius/16
+                    crust:SetInnerRadius(crustRadius)
+                    crust:SetInnerEnd(originPointX + crustRadius * math:Cosine(math:DegreesToRadians(startTheta)), originPointY + crustRadius * math:Sine(math:DegreesToRadians(startTheta)))
+                    crust:SetCenter(originPointX + crustRadius * math:Cosine(math:DegreesToRadians(currentTheta)), originPointY + crustRadius * math:Sine(math:DegreesToRadians(currentTheta)))
                     // This will account for the offset if the pie chart has a donut hole.
                     if innerRadius > 0
                         slice:SetInnerRadius(innerRadius)  
@@ -198,14 +213,16 @@ class PieChartWriter is ChartWriter
                         //End point of inner arc
                         if i = 0
                             prevX = centerX
-                            prevY = centerY - innerRadius
+                            prevY = centerY - innerRadius - radialOffset
                         end
-                        slice:SetInnerEnd(prevX, prevY)
-                        slicePattern:SetInnerEnd(prevX, prevY)
+number innerEndX = originPointX + innerRadius * math:Cosine(math:DegreesToRadians(startTheta))
+                        number innerEndY = originPointY + innerRadius * math:Sine(math:DegreesToRadians(startTheta))
+                        slice:SetInnerEnd(innerEndX, innerEndY)
+                        slicePattern:SetInnerEnd(innerEndX, innerEndX)
                         
                         //Start point of inner arc
-                        newX = centerX + innerRadius * math:Cosine(math:DegreesToRadians(currentTheta))
-                        newY = centerY + innerRadius * math:Sine(math:DegreesToRadians(currentTheta))
+                        newX = originPointX + innerRadius * math:Cosine(math:DegreesToRadians(currentTheta))
+                        newY = originPointY + innerRadius * math:Sine(math:DegreesToRadians(currentTheta))
                         slice:SetCenter(newX, newY)
                         slicePattern:SetCenter(newX, newY)
         
@@ -213,14 +230,19 @@ class PieChartWriter is ChartWriter
                         prevY = newY
                     else
                         // Center point if inner radius is not used.
-                        slice:SetCenter(centerX, centerY)
-                        slicePattern:SetCenter(centerX, centerY)
+                        slice:SetCenter(originPointX, originPointY)
+                        slicePattern:SetCenter(originPointX, originPointY)
                     end
+                    slice:SetStyle("--unit-x: " + pieBox:Get(i):GetUnitX() +"px; --unit-y: " + -pieBox:Get(i):GetUnitY()+"px;")
                     slice:SetFill(pieBox:Get(i):GetColor())
                     slice:SetFillOpacity(pieBox:Get(i):GetColor())
                     slice:SetStroke(cast(Color, pieBox:Get(i):GetBorderColor()))
                     slice:SetStrokeOpacity(cast(Color, pieBox:Get(i):GetBorderColor()))
                     slice:SetStrokeWidth(pieBox:Get(i):GetBorderThickness())
+                    crust:SetStyleClass("crust")
+                    crust:SetFill(cast(Color, chart:GetSelectionColor()))
+                    
+                    
 
                     if chart:IsShowingValueAnnotations()
                         number value = pieBox:Get(i):GetValue()
@@ -244,13 +266,14 @@ class PieChartWriter is ChartWriter
 
                     if HasAccessibility()
                         slice:SetID(sliceSVG:GetID() + "_slice")
-                        slice:SetStyleClass("quorum-chart-wedge quorum-chart-bar-list")
+                        slice:SetStyleClass("quorum-chart-bar-list")
                         slice:SetTabIndex(-1)
                         slice:SetAriaHidden("true")
                         sliceFocus = sliceFocus + "gainFocus('" + slice:GetID() + "'); "
                         sliceBlur = sliceBlur + "loseFocus('" + slice:GetID() + "'); "
                     end
                     sliceSVG:Add(slice)
+                    sliceSVG:Add(crust)
     
                     if pieBox:Get(i):ShowAnnotation() or chart:ShowAnnotations()
                         ChartLabel label = pieBox:Get(i):GetAnnotation()
@@ -271,7 +294,7 @@ class PieChartWriter is ChartWriter
                                 //sliceFocus = sliceFocus + "gainFocus('" + labelSVG:GetID() + "'); "
                                 //sliceBlur = sliceBlur + "loseFocus('" + labelSVG:GetID() + "'); "
                             end
-                            canvas:Add(labelSVG)
+                            sliceSVG:Add(labelSVG)
                         end
                     end
                     
@@ -306,8 +329,9 @@ class PieChartWriter is ChartWriter
                     subChartContentBoundingBox:SetStrokeOpacity(transparent)
                     if HasAccessibility()
                         subChartContent:SetTabIndex(-1)
-                        subChartContent:SetStyleClass("quorum-chart-region")
+                        subChartContent:SetStyleClass(GetSelectionBoxStyle())
                         subChartContentBoundingBox:SetAriaHidden("true")
+                        subChartContentBoundingBox:SetStyleClass(GetSelectionBoxStyle())
                         subChartContentBoundingBox:SetTabIndex(-1)
                     end
                     subChartContent:Add(subChartContentBoundingBox)
@@ -317,7 +341,7 @@ class PieChartWriter is ChartWriter
                         //Separated, by the Factor levels with multiple Series per subplot
                         if chart:IsSeparatedByFactor()
                             subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(index):GetHashCode())
-                            subChartContent:SetStyleClass("quorum-chart-region quorum-chart-category-list") 
+                            subChartContent:SetStyleClass("quorum-chart-category-list " + GetSelectionBoxStyle()) 
                             subChartContent:SetAriaLabel(GetSubChartAreas():Get(index):GetAriaLabel())
                             subChartContent:SetRole("graphics-object") 
                             subChartContent:SetAriaHidden("false")
@@ -328,7 +352,7 @@ class PieChartWriter is ChartWriter
                         //Separated, one Series per subplot should go from Chart Area then group list info for sub chart areas
                         elseif chart:IsSeparatedBySeries() and not chart:IsSeparatedByFactor()
                             subChartContent:SetID(canvas:GetID() + "_" + chart:GetSubChartAreas():Get(index):GetHashCode())
-                            subChartContent:SetStyleClass("quorum-chart-region quorum-chart-series-list") 
+                            subChartContent:SetStyleClass("quorum-chart-series-list " + GetSelectionBoxStyle()) 
                             subChartContent:SetAriaLabel(GetSubChartAreas():Get(index):GetAriaLabel())
                             subChartContent:SetRole("graphics-object") 
                             subChartContent:SetAriaHidden("false")
@@ -345,7 +369,7 @@ class PieChartWriter is ChartWriter
 
                     centerX = pieBox:GetX() + pieBox:GetWidth()/2 + cast(integer, pieBox:GetChartArea():GetGlobalX())
                     centerY = pieBox:GetY() + pieBox:GetHeight()/2 + cast(integer, TranslatePositionY(pieBox:GetChartArea()) - pieBox:GetChartArea():GetHeight())
-    
+                    
                     number prevX = 0 //Used on donut hole (inner radius)
                     number prevY = 0 //Used on donut hole (inner radius)
                     number newX = 0 //Used on donut hole (inner radius)
@@ -360,7 +384,8 @@ class PieChartWriter is ChartWriter
                         sliceSVG:SetFillOpacity(pieBox:Get(i):GetColor())
                         if HasAccessibility() 
                             sliceSVG:SetID(canvas:GetID() + "_" + pieBox:GetChartArea():GetHashCode() + "_" + pieBox:Get(i):GetHashCode())
-                            sliceSVG:SetStyleClass("quorum-chart-bar quorum-chart-bar-list")
+                            sliceSVG:SetStyleClass("quorum-chart-bar quorum-chart-wedge quorum-chart-bar-list")
+                            sliceSVG:SetStyle("--unit-x: " + pieBox:Get(i):GetUnitX() +"px; --unit-y: " + -pieBox:Get(i):GetUnitY()+"px;")
                             sliceSVG:SetTabIndex(-1)  
                             sliceSVG:SetRole("graphics-symbol") 
                             sliceSVG:SetAriaLabel(pieBox:Get(i):GetName() + pieBox:Get(i):GetDescription())
@@ -368,30 +393,45 @@ class PieChartWriter is ChartWriter
                         end
                         subChartContent:Add(sliceSVG)
 
-                        Wedge slice // this is an SVG wedge not chart graphics wedge
+                        Wedge slice
+                        Wedge crust
+ // this is an SVG wedge not chart graphics wedge
                         Wedge slicePattern
                         //Set outer radius
                         number radius = pieBox:Get(i):GetOuterRadius()
                         number innerRadius = pieBox:Get(i):GetInnerRadius()
+                        number radialOffset = chart:GetDefaultRadialOffset() + pieBox:Get(i):GetRadialOffset()
+                        number originPointX = centerX + pieBox:Get(i):GetUnitX() * radialOffset
+                        number originPointY = centerY + -pieBox:Get(i):GetUnitY() * radialOffset
+                        
                         slice:SetOuterRadius(radius)
+                        crust:SetOuterRadius(radius)
                         slicePattern:SetOuterRadius(radius)
     
                         //Start point of outer arc
-                        x = centerX + radius * math:Cosine(math:DegreesToRadians(currentTheta))
-                        y = centerY + radius * math:Sine(math:DegreesToRadians(currentTheta))
+                        x = originPointX + radius * math:Cosine(math:DegreesToRadians(currentTheta))
+                        y = originPointY + radius * math:Sine(math:DegreesToRadians(currentTheta))
                         slice:SetStart(x, y)
+                        crust:SetStart(x, y)
                         slicePattern:SetStart(x, y)
     
                         //End point of outer arc
                         number percent = pieBox:Get(i):GetEndPercentage() - pieBox:Get(i):GetStartPercentage()
                         slice:SetPercent(percent)
+                        crust:SetPercent(percent)
                         slicePattern:SetPercent(percent)
+                        number startTheta = currentTheta
                         currentTheta = currentTheta + percent * 360
-                        x = centerX + radius * math:Cosine(math:DegreesToRadians(currentTheta))
-                        y = centerY + radius * math:Sine(math:DegreesToRadians(currentTheta))
+                        x = originPointX + radius * math:Cosine(math:DegreesToRadians(currentTheta))
+                        y = originPointY + radius * math:Sine(math:DegreesToRadians(currentTheta))
                         slice:SetEnd(x, y)
+                        crust:SetEnd(x,y)
                         slicePattern:SetEnd(x, y)
         
+                        number crustRadius = radius - radius/16
+                        crust:SetInnerRadius(crustRadius)
+                        crust:SetInnerEnd(originPointX + crustRadius * math:Cosine(math:DegreesToRadians(startTheta)), originPointY + crustRadius * math:Sine(math:DegreesToRadians(startTheta)))
+                        crust:SetCenter(originPointX + crustRadius * math:Cosine(math:DegreesToRadians(currentTheta)), originPointY + crustRadius * math:Sine(math:DegreesToRadians(currentTheta)))
                         // This will account for the offset if the pie chart has a donut hole.
                         if innerRadius > 0
                             slice:SetInnerRadius(innerRadius)
@@ -402,12 +442,14 @@ class PieChartWriter is ChartWriter
                                 prevX = centerX
                                 prevY = centerY - innerRadius
                             end
-                            slice:SetInnerEnd(prevX, prevY)
-                            slicePattern:SetInnerEnd(prevX, prevY)
+                            number innerEndX = originPointX + innerRadius * math:Cosine(math:DegreesToRadians(startTheta))
+                            number innerEndY = originPointY + innerRadius * math:Sine(math:DegreesToRadians(startTheta))
+                            slice:SetInnerEnd(innerEndX, innerEndY)
+                            slicePattern:SetInnerEnd(innerEndX, innerEndY)
                             
                             //Start point of inner arc
-                            newX = centerX + innerRadius * math:Cosine(math:DegreesToRadians(currentTheta))
-                            newY = centerY + innerRadius * math:Sine(math:DegreesToRadians(currentTheta))
+                            newX = originPointX + innerRadius * math:Cosine(math:DegreesToRadians(currentTheta))
+                            newY = originPointY + innerRadius * math:Sine(math:DegreesToRadians(currentTheta))
                             slice:SetCenter(newX, newY)
                             slicePattern:SetCenter(newX, newY)
             
@@ -415,14 +457,16 @@ class PieChartWriter is ChartWriter
                             prevY = newY
                         else
                             // Center point if inner radius is not used.
-                            slice:SetCenter(centerX, centerY)
-                            slicePattern:SetCenter(centerX, centerY)
+                            slice:SetCenter(originPointX, originPointY)
+                            slicePattern:SetCenter(originPointX, originPointY)
                         end
                         slice:SetFill(pieBox:Get(i):GetColor())
                         slice:SetFillOpacity(pieBox:Get(i):GetColor())
                         slice:SetStroke(cast(Color, pieBox:Get(i):GetBorderColor()))
                         slice:SetStrokeOpacity(cast(Color, pieBox:Get(i):GetBorderColor()))
                         slice:SetStrokeWidth(pieBox:Get(i):GetBorderThickness())
+                        crust:SetStyleClass("crust")
+                        crust:SetFill(cast(Color, chart:GetSelectionColor()))
 
                         if chart:IsShowingValueAnnotations()
                             number value = pieBox:Get(i):GetValue()
@@ -446,13 +490,14 @@ class PieChartWriter is ChartWriter
 
                         if HasAccessibility()
                             slice:SetID(sliceSVG:GetID() + "_slice")
-                            slice:SetStyleClass("quorum-chart-wedge quorum-chart-bar-list")
+                            slice:SetStyleClass("quorum-chart-bar-list")
                             slice:SetTabIndex(-1)
                             slice:SetAriaHidden("true")
                             sliceFocus = sliceFocus + "gainFocus('" + slice:GetID() + "'); "
                             sliceBlur = sliceBlur + "loseFocus('" + slice:GetID() + "'); "
                         end
                         sliceSVG:Add(slice)
+                        sliceSVG:Add(crust)
 
                         if pieBox:Get(i):ShowAnnotation() or chart:ShowAnnotations()
                             ChartLabel label = pieBox:Get(i):GetAnnotation()
@@ -473,7 +518,7 @@ class PieChartWriter is ChartWriter
                                     //sliceFocus = sliceFocus + "gainFocus('" + labelSVG:GetID() + "'); "
                                     //sliceBlur = sliceBlur + "loseFocus('" + labelSVG:GetID() + "'); "
                                 end
-                                canvas:Add(labelSVG)
+                                sliceSVG:Add(labelSVG)
                             end
                         end 
 

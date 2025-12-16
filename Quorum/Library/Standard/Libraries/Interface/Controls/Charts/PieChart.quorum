@@ -62,7 +62,7 @@ class PieChart is Chart
     number defaultRadialOffset = 2
     private text annotationPlacement = "INSIDE_SLICE"
     PieSlice activeSlice = undefined
-    integer sliceSelectionPadding = 15
+    integer sliceSelectionPadding = 30
 
     Math math
 
@@ -384,7 +384,9 @@ class PieChart is Chart
         RemoveSliceSelectionVisual()
         activeSlice = slice
                 previousColor = slice:GetColor()
-                slice:SetColor(GetSelectionColor())
+slice:SetCrustColor(cast(Color,GetSelectionColor()))
+slice:SetCrustThickness(-slice:GetOuterRadius()/16)
+                //slice:SetColor(slice:GetWedgeColor())
 selectionOffset = GetSliceSelectionPadding()
             if GetNumberOfChartAreas() > 1
                 selectionOffset = GetSliceSelectionPadding()/2
@@ -393,6 +395,7 @@ selectionOffset = GetSliceSelectionPadding()
         slice:GetAnnotation():Hide()
         ShowSelectionAnnotation(me," " + slice:GetPercentageText()+"%",slice:GetAnnotationLabelX(), slice:GetAnnotationLabelY())
         slice:RequestVerticesUpdate()
+        //slice:RequestReloadGraphics()
         RequestLayout()
     end
     
@@ -400,7 +403,9 @@ selectionOffset = GetSliceSelectionPadding()
         if activeSlice = undefined
             return now
         end
-                activeSlice:SetColor(previousColor)
+                //activeSlice:SetColor(previousColor)
+        activeSlice:SetCrustColor(cast(Color,GetBorderColor()))
+        activeSlice:SetCrustThickness(-2)
             integer selectionOffset = GetSliceSelectionPadding()
             if GetNumberOfChartAreas() > 1
                 selectionOffset = GetSliceSelectionPadding()/2

@@ -205,6 +205,10 @@ g."+selectionBoxStyle+":focus > circle{
 ."+dotSeriesStyle+":focus {
  outline: none;
 }
+.quorum-chart-wedge:focus + .crust {
+ visibility: visible;
+}
+
 ")
         
         chartCanvas:Add(outlineStyle)
@@ -359,7 +363,18 @@ g."+selectionBoxStyle+":focus > circle{
 ."+dotSeriesStyle+":focus {
  outline: none;
 }
+.quorum-chart-wedge:focus-within{
+ outline: none;
+ transform: translateX(calc(var(--unit-x) * 25)) translateY(calc(var(--unit-y) * 25));
+}
+.quorum-chart-wedge:focus-within > * {
+ outline: none;
+ visibility: visible;
+}
+.crust {
+ visibility: hidden;
 ")
+        
         chartCanvas:Add(outlineStyle)
 Script script
         script:AddAttribute("href","https://quorumlanguage.com/script/quorumCharts.js")

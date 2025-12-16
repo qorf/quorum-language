@@ -372,7 +372,6 @@ selectionBar:Show()
             blinkTimer = blinkIdleTime
 selectionBar:SetSize(25, bar:GetHeight())
                 selectionBar:SetY(bar:GetGlobalY())
-                selectionBar:SetCornerRounding(0,0,0,0)
                 if ShowAnnotations()
                     ChartLabel annotation = bar:GetAnnotation()
                     selectionBar:SetX(bar:GetGlobalX() + bar:GetWidth() + 10 + annotation:GetWidth())
