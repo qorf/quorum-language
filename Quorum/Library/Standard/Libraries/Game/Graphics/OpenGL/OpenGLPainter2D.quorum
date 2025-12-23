@@ -612,8 +612,11 @@ class OpenGLPainter2D is Painter2D
         if drawable:GetTexture() not= lastTexture
             SwitchTexture(drawable:GetTexture())
         end
-
-        if currentMapping:SupportsBatching()
+        
+    if currentMapping:SupportsBatching()
+            // check this
+            // assumes that even if the mapping supports batching it must be a quad if not render immediately
+            if not(shape not= undefined and shape:GetVertexCount() > 4)
             batchDrawables = true
 
             if currentMapping:CanIncludeInBatch(currentProgram, drawable) = false
@@ -621,7 +624,28 @@ class OpenGLPainter2D is Painter2D
             end
 
             currentMapping:MapInputs(currentProgram, drawable)
-        else
+            else
+                // default batching seems to ignore drawing immediately if the batch has something
+                // in it so flush immediately
+Flush()
+            batchDrawables = false
+            currentDrawable = drawable
+
+                // default batch mapping does not map polygons so ignore for now
+            //currentMapping:MapInputs(currentProgram, drawable)
+
+            // Set the vertices of the default mesh before flushing.
+            if shape:GetMesh() = undefined
+                integer counter = 0
+                repeat while counter < shape:GetDataCount()
+                    SetVertex(counter, shape:GetVertexData(counter))
+                    counter = counter + 1
+                end
+            end
+
+            Flush()
+                    end
+else
             // If we can't batch this drawable, map its inputs then render it immediately.
             batchDrawables = false
             currentDrawable = drawable
