@@ -19,6 +19,7 @@ use Libraries.Interface.Controls.Charts.Graphics.PlotGroup
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
 use Libraries.Language.Errors.CastError
 use Libraries.System.Properties
+use Libraries.Interface.Controls.Charts.Graphics.PlotItem
 
 /*
     The ViolinPlot class is Chart object that inherits from Control and like other
@@ -151,16 +152,16 @@ class ViolinPlot is Chart
                 end
                 chartArea:Add(plot) // This is to be the actual violin shape, add before all other stuff.
 
-                ChartDrawable minimumLine
+                PlotItem minimumLine
                 ChartDrawable lowerWhisker 
-                ChartDrawable interQuartileRange
+                PlotItem interQuartileRange
                 ChartDrawable rightBorder // Right side of IQR - not used
                 ChartDrawable leftBorder  // Left side of IQR - not used
-                ChartDrawable firstQuartileLine
+                PlotItem firstQuartileLine
                 ChartPoint medianDot
-                ChartDrawable thirdQuartileLine
+                PlotItem thirdQuartileLine
                 ChartDrawable upperWhisker 
-                ChartDrawable maximumLine
+                PlotItem maximumLine
                 ChartDrawable filler
 
                 if not plot:IsUndefined()
@@ -179,6 +180,7 @@ class ViolinPlot is Chart
                     minimumLine:SetPreviousFocus(GetPreviousFocus())
                     minimumLine:SetName("Minimum")
                     minimumLine:SetDescription(" " + minimum)
+                    minimumLine:SetPlotValue(minimum)
                     if CheckIfInteger(minimum)
                         minimumLine:SetDescription(" " + cast(integer, minimum))
                     end 
@@ -191,6 +193,7 @@ class ViolinPlot is Chart
                     interQuartileRange:SetPreviousFocus(GetPreviousFocus())
                     interQuartileRange:SetName("Interquartile range")
                     interQuartileRange:SetDescription(" " + iqr)
+                    interQuartileRange:SetPlotValue(iqr)
                     if CheckIfInteger(iqr)
                         interQuartileRange:SetDescription(" " + cast(integer, iqr))
                     end 
@@ -203,6 +206,7 @@ class ViolinPlot is Chart
                     firstQuartileLine:SetPreviousFocus(GetPreviousFocus())
                     firstQuartileLine:SetName("1st Quartile")
                     firstQuartileLine:SetDescription(" " + firstQ)
+                    firstQuartileLine:SetPlotValue(firstQ)
                     if CheckIfInteger(firstQ)
                         firstQuartileLine:SetDescription(" " + cast(integer, firstQ))
                     end                  
@@ -215,6 +219,8 @@ class ViolinPlot is Chart
                     medianDot:SetPreviousFocus(GetPreviousFocus())
                     medianDot:SetName("Median")
                     medianDot:SetDescription(" " + median)
+                    // outlier comes from box plot but here it's for the median
+                    medianDot:SetOutlierValue(median)
                     if CheckIfInteger(median)
                         medianDot:SetDescription(" " + cast(integer, median))
                     end
@@ -227,6 +233,7 @@ class ViolinPlot is Chart
                     thirdQuartileLine:SetPreviousFocus(GetPreviousFocus())
                     thirdQuartileLine:SetName("3rd Quartile")
                     thirdQuartileLine:SetDescription(" " + thirdQ)
+                    thirdQuartileLine:SetPlotValue(thirdQ)
                     if CheckIfInteger(thirdQ)
                         thirdQuartileLine:SetDescription(" " + cast(integer, thirdQ))
                     end
@@ -239,6 +246,7 @@ class ViolinPlot is Chart
                     maximumLine:SetPreviousFocus(GetPreviousFocus())
                     maximumLine:SetName("Maximum")
                     maximumLine:SetDescription(" " + maximum)
+                    maximumLine:SetPlotValue(maximum)
                     if CheckIfInteger(maximum)
                         maximumLine:SetDescription(" " + cast(integer, maximum))
                     end
@@ -453,22 +461,28 @@ item:Focus()
                 temp:GetEntryIcon():SetColor(GetSelectionColor())
                 temp:GetEntryBox():SetColor(GetSelectionColor())
         elseif item is Plot
-            Plot plot = cast(Plot, item)
+Plot plot = cast(Plot, item)
             Icon area = plot:GetPlotArea()
             ChartItem temp
             temp:SetSize(area:GetWidth(), area:GetHeight())
-            temp:SetX(item:GetGlobalX() + area:GetGlobalX())
-            temp:SetY(item:GetGlobalY() + area:GetGlobalY())
+            temp:SetX(area:GetGlobalX())
+            temp:SetY(area:GetGlobalY())
 ApplySelectionBoxAroundItem(temp, 5)
         elseif item is PlotGroup
             ApplySelectionBoxAroundItem(item, 5)
-        elseif item is ChartDrawable
+        elseif item is PlotItem
+            PlotItem plotItem = cast(PlotItem, item)
             ApplySelectionBoxAroundItem(item, 5)
+if not ShowAnnotations()
+                ShowSelectionAnnotation(item," " + plotItem:GetPlotValue()+" ",item:GetWidth() + 8, item:GetHeight()/2-20)
+            end
         elseif item is ChartPoint
-            // outliers
-            ChartPoint outlierPoint = cast(ChartPoint, item)
+            ChartPoint medianPoint = cast(ChartPoint, item)
 ApplySelectionBoxAroundItem(item, 6)
-            ShowSelectionAnnotation(item," " + outlierPoint:GetOutlierValue()+" ",15,15)
+if not ShowAnnotations()
+                // for box plot points are for outliners but here the median is a point
+                ShowSelectionAnnotation(item," " + medianPoint:GetOutlierValue()+" ",item:GetWidth() + 8, item:GetHeight()/2-20)
+            end
             else
                 parent:Chart:OnSelectionChange(item)
             end            

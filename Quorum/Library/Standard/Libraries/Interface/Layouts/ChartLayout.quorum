@@ -144,7 +144,7 @@ class ChartLayout is Layout
                 if chart:IsSeparated()
                     integer verticalSections = verticalContainer:GetNumberOfSections()
                     integer horizontalSections = horizontalContainer:GetNumberOfSections()
-                    integer tilePadding = 25
+                    integer tilePadding = 45
                     integer height = cast(integer, (chartAreaContainer:GetHeight()-tilePadding*(verticalSections-1))/verticalSections)
                     integer width = cast(integer, (chartAreaContainer:GetWidth()-tilePadding*(horizontalSections-1))/horizontalSections)
                     integer labelArea = 0

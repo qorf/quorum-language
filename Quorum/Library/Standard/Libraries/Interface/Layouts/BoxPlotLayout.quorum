@@ -322,8 +322,6 @@ item:Get(7):LoadFilledRectangle(center+line, line, lightColor:Black())
                                         plot:GetPlotArea():LoadRectangle(width,plotAreaHeight,transparent)
                                         plot:GetPlotArea():SetPosition(startw,0)
                                     end
-                                    // Load arrow for plot
-                                    SetChartDrawableSelectionArrow(plot,line*8,not(sideArrow))
                                 end                                
                             else
                                 if plot:GetPlotArea() not= undefined
@@ -334,8 +332,6 @@ item:Get(7):LoadFilledRectangle(center+line, line, lightColor:Black())
                                         plot:GetPlotArea():LoadRectangle(width,plotAreaHeight,transparent)
                                         plot:GetPlotArea():SetPosition(startw,0)
                                     end
-                                    // Load arrow for plot
-                                    SetChartDrawableSelectionArrow(plot,line*8,false)
                                 end
                             end
                             if k = 0

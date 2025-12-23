@@ -20,6 +20,7 @@ use Libraries.Containers.Support.Pair
 use Libraries.Interface.Controls.Charts.Graphics.Plot
 use Libraries.Interface.Controls.Charts.Graphics.PlotGroup
 use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.Interface.Views.ControlShaderView
 
 /*
     This is the layout class for Violin Chart. This class is responsible for 
@@ -130,10 +131,10 @@ class ViolinPlotLayout is ChartLayout
                     integer center = cast(integer, width/2) 
                     integer centerOffset = center
                     integer size = cast(integer, width/4)
-                    number linePercent = (0.0025)*plotsPerPanel*groups
-                    if linePercent > 0.05
-                        linePercent = 0.05
-                    end
+                    number linePercent = (0.004)*plotsPerPanel*groups
+                    //if linePercent > 0.05
+                        //linePercent = 0.05
+                    //end
 
                     integer line = cast(integer, width * linePercent)
                     if line < 2
@@ -242,13 +243,31 @@ class ViolinPlotLayout is ChartLayout
                             if itemHeight < 0
                                 itemHeight = 0
                             end
-                            item:Get(3):LoadFilledRectangle(line*3, itemHeight, darkColor)
-                            item:Get(3):SetPosition(item:Get(6):GetX(), item:Get(6):GetY())
+                            ControlShaderView controlView
+                            ChartDrawable iqrBox = item:Get(3)
+                            iqrBox:SetSize(line*3, itemHeight)
+                            iqrBox:SetBackgroundColor(darkColor:White())
+                            iqrBox:SetBorderColor(darkColor)
+                            iqrBox:SetBorderThickness(2)
+                            iqrBox:SetCornerPixelRounding(4,4,4,4)
+                            controlView:Initialize()
+                            iqrBox:SetView2D(controlView)
+                            //item:Get(3):LoadFilledRectangle(line*3, itemHeight, darkColor)
+                            iqrBox:SetPosition(item:Get(6):GetX(), item:Get(6):GetY())
 
                             // Median: index 7
                             percent = (median - rangeMin)/range
-                            item:Get(7):LoadFilledCircle(line, darkColor:White())
-                            item:Get(7):SetPosition(item:Get(3):GetX() + midline ,cast(integer, percent*height)) // center inside IQR
+                            item:Get(7):LoadFilledCircle(line, darkColor)
+                            item:Get(7):SetPosition(item:Get(3):GetX() + midline - item:Get(7):GetBorderThickness() ,cast(integer, percent*height)) // center inside IQR
+                            
+                            // Outer Box
+integer plotAreaHeight = cast(integer, ((plot:GetMaxOutlierValue() - rangeMin)/range)*height)
+                            plot:GetPlotArea():LoadRectangle(width,plotAreaHeight,transparent)
+                            plot:GetPlotArea():SetPosition(startw + shift,0)
+                            if horizontal 
+                                plot:GetPlotArea():LoadRectangle(plotAreaHeight,width,transparent)
+                                plot:GetPlotArea():SetPosition(0, startw + shift)
+                            end
                         end
                         if split and not plot2:IsUndefined()   
                             Array<ChartDrawable> item2 = plot2:GetPlotItems()
@@ -301,13 +320,22 @@ class ViolinPlotLayout is ChartLayout
                             if itemHeight < 0
                                 itemHeight = 0
                             end
-                            item2:Get(3):LoadFilledRectangle(line*3, itemHeight, darkColor)
-                            item2:Get(3):SetPosition(item2:Get(6):GetX(), item2:Get(6):GetY())
+ControlShaderView controlView
+                            ChartDrawable iqrBox = item2:Get(3)
+                            iqrBox:SetSize(line*3, itemHeight)
+                            iqrBox:SetBackgroundColor(darkColor:White())
+                            iqrBox:SetBorderColor(darkColor)
+                            iqrBox:SetBorderThickness(2)
+                            iqrBox:SetCornerPixelRounding(4,4,4,4)
+                            controlView:Initialize()
+                            iqrBox:SetView2D(controlView)
+                            //item2:Get(3):LoadFilledRectangle(line*3, itemHeight, darkColor)
+                            iqrBox:SetPosition(item2:Get(6):GetX(), item2:Get(6):GetY())
         
                             // Median: index 7
                             percent = (median - rangeMin)/range
                             item2:Get(7):LoadFilledCircle(line, transparent:White())
-                            item2:Get(7):SetPosition(item2:Get(3):GetX() + midline ,cast(integer, percent*height)) // center inside IQR
+                            item2:Get(7):SetPosition(item2:Get(3):GetX() + midline  - item:Get(7):GetBorderThickness(),cast(integer, percent*height)) // center inside IQR
 
                             //Outer box
                             integer plotAreaHeight = cast(integer, ((plot2:GetMaxOutlierValue() - rangeMin)/range)*height)
@@ -323,8 +351,6 @@ class ViolinPlotLayout is ChartLayout
                             if plotAreaHeight > groupHeight
                                 groupHeight = plotAreaHeight
                             end
-                            // Load arrow for plot
-                            SetChartDrawableSelectionArrow(plot2, line*8, false)
 
                             if horizontal
                                 integer l = 1
@@ -341,25 +367,6 @@ class ViolinPlotLayout is ChartLayout
                                 end
                             end
 
-                            integer arrowSize = line*4
-                            // Load selection arrows and brackets
-                            // Load bracket and arrow for iqr
-                            SetChartDrawableSelectionBracketAndArrow(item2:Get(3), arrowSize, true)
-
-                            // Load and place the min line selection arrow
-                            SetChartDrawableSelectionArrow(item2:Get(1), arrowSize, true)
-
-                            // Load and place the q1 line selection arrow
-                            SetChartDrawableSelectionArrow(item2:Get(6), arrowSize, true)
-
-                            // Load and place the median line selection arrow
-                            SetChartDrawableSelectionArrow(item2:Get(7), arrowSize, true)
-
-                            // Load and place the q3 line selection arrow
-                            SetChartDrawableSelectionArrow(item2:Get(8), arrowSize, true)
-
-                            // Load and place the max line selection arrow
-                            SetChartDrawableSelectionArrow(item2:Get(10), arrowSize, true)
                         end
 
                         if split
@@ -373,8 +380,6 @@ class ViolinPlotLayout is ChartLayout
                             if plotAreaHeight > groupHeight
                                 groupHeight = plotAreaHeight
                             end
-                            // Load arrow for plot
-                            SetChartDrawableSelectionArrow(plot, line*8, false)
                         else
                             integer plotAreaHeight = cast(integer, ((plot:GetMaxOutlierValue() - rangeMin)/range)*height)
                             plot:GetPlotArea():LoadRectangle(width,plotAreaHeight,transparent)
@@ -389,8 +394,6 @@ class ViolinPlotLayout is ChartLayout
                             if plotAreaHeight > groupHeight
                                 groupHeight = plotAreaHeight
                             end
-                            // Load arrow for plot
-                            SetChartDrawableSelectionArrow(plot, line*8, false)
                         end
 
                         if horizontal
@@ -408,29 +411,9 @@ class ViolinPlotLayout is ChartLayout
                             end
                         end
 
-                        integer arrowSize = line*4
-                        // Load selection arrows and brackets
-                        // Load bracket and arrow for iqr
-                        SetChartDrawableSelectionBracketAndArrow(item:Get(3), arrowSize, true)
-
-                        // Load and place the min line selection arrow
-                        SetChartDrawableSelectionArrow(item:Get(1), arrowSize, true)
-
-                        // Load and place the q1 line selection arrow
-                        SetChartDrawableSelectionArrow(item:Get(6), arrowSize, true)
-
-                        // Load and place the median line selection arrow
-                        SetChartDrawableSelectionArrow(item:Get(7), arrowSize, true)
-
-                        // Load and place the q3 line selection arrow
-                        SetChartDrawableSelectionArrow(item:Get(8), arrowSize, true)
-
-                        // Load and place the max line selection arrow
-                        SetChartDrawableSelectionArrow(item:Get(10), arrowSize, true)
-
                         number bandWidth = chart:GetBandWidth()
                         if bandWidth = 0
-                            bandWidth = range*0.03 //rangeMax*0.03
+                            bandWidth = range*0.05 //rangeMax*0.03
                             chart:SetBandWidth(cast(integer, bandWidth))
                         end
                         
@@ -491,7 +474,7 @@ class ViolinPlotLayout is ChartLayout
                             integer index = 0
                             repeat while index < estimates:GetSize()-1
                                 number estimate = estimates:Get(index)
-                                integer pixW = cast(integer, (estimate/estimateScale)*0.75)
+                                integer pixW = cast(integer, (estimate/estimateScale))
                                 integer pixH = height - nextPixel
                                 if horizontal
                                     pixH = nextPixel
@@ -645,22 +628,6 @@ class ViolinPlotLayout is ChartLayout
                     group:LoadRectangle(groupHeight,panelwidth,transparent)
                     group:SetPosition(0,startpanelw)
                 end
-                // Load and place the group selection bracket/arrow
-                integer arrowSize = 0
-                if chart:GetHorizontalFlag()
-                    arrowSize = cast(integer, group:GetHeight()/8)
-                    integer tickHeight = chart:GetVerticalPanel():GetTickHeight()
-                    if arrowSize < tickHeight*2
-                        arrowSize = tickHeight*2
-                    end
-                else
-                    arrowSize = cast(integer, group:GetWidth()/8)
-                    integer tickWidth = chart:GetHorizontalPanel():GetTickWidth()
-                    if arrowSize < tickWidth*2
-                        arrowSize = tickWidth*2
-                    end
-                end
-                SetChartDrawableSelectionBracketAndArrow(group, arrowSize, false)
                 i = i + 1
             end
         end
