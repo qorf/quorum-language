@@ -2196,6 +2196,8 @@ chartTable:Add(mouseOff, mouseOffBehavior)
 
         InputSet pinchSet
         pinchSet:SetGestureInput(gestures:PINCH)
+        
+        ClickDownBehavior clickDownBehavior
 
         ChartNavigateBehavior chartNavigateBehavior
         chartTable:Add(GetLeftArrowKey(), chartNavigateBehavior)
@@ -2214,6 +2216,7 @@ chartTable:Add(mouseOff, mouseOffBehavior)
         chartTable:Add(panSet, chartNavigateBehavior)
         chartTable:Add(longPressSet, chartNavigateBehavior)
         chartTable:Add(pinchSet, chartNavigateBehavior)
+        chartTable:Add(GetLeftClick(), clickDownBehavior)
 
         InputSet chartTouchStart
         chartTouchStart:SetInputType(chartTouchStart:TOUCH_INPUT)

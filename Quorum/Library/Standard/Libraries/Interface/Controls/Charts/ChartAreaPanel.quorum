@@ -246,5 +246,9 @@ class ChartAreaPanel is ChartItem
     
     action EndMouseOver
     end
+    
+action ClickedMouse
+        GetContainer():OnSelectionChange(me)
+    end
 
 end

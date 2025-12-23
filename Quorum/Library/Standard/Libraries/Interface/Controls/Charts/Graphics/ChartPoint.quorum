@@ -303,5 +303,9 @@ parentChart:RemoveSelectionVisual()
             parentChart:RemoveSelectionRing()
         end
     end
+    
+action ClickedMouse
+        GetContainer():OnSelectionChange(me)
+    end
 
 end

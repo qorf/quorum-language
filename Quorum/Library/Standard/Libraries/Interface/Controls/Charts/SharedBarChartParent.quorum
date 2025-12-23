@@ -345,8 +345,10 @@ ShowSelectionAnnotation(item,""+bar:GetValue(), 2, bar:GetHeight()/2 - 18)
             end
             end
         elseif item is BarGroup
+            RemoveSelectionBar()
             ApplySelectionBoxAroundItem(item, GetSelectionBoxBorderThickness() + 3)
         else
+RemoveSelectionBar()
             parent:Chart:OnSelectionChange(item)
         end
     end

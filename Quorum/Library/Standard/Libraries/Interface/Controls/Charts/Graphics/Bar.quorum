@@ -212,4 +212,8 @@ parentChart:ShowSelectionAnnotation(me,""+GetValue(), 2, GetHeight()/2 - 18)
         end
     end
     
+action ClickedMouse
+        GetContainer():OnSelectionChange(me)
+    end
+    
 end

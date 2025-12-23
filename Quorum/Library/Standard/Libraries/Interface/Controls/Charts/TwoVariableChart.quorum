@@ -513,6 +513,7 @@ parent:Chart:LostSelection(item)
             return now
         end
         item:Focus()
+        RemoveSelectionRing()
             if item is Series
             integer i = 0 
             Series series = cast(Series, item)

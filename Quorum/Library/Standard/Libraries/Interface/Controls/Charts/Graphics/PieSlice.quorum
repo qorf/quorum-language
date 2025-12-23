@@ -129,5 +129,9 @@ action BeginMouseOver
     action GetWedgeColor returns Color
         return wedgeColor
     end
+    
+action ClickedMouse
+        GetContainer():OnSelectionChange(me)
+    end
 
 end
