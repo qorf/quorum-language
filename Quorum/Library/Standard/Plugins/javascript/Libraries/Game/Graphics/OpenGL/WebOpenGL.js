@@ -1,4 +1,4 @@
-function plugins_quorum_Libraries_Game_Graphics_WebGraphics_() 
+function plugins_quorum_Libraries_Game_Graphics_OpenGL_WebOpenGL_()
 {
     var gl = null;
     
@@ -169,7 +169,7 @@ function plugins_quorum_Libraries_Game_Graphics_WebGraphics_()
         this.glDepthRangef(near, far);
     };
     
-    this.GetMaxTextureUnits = function()
+    this.GetMaximumTextureCount = function()
     {
         this.glGetIntegerv(gl.MAX_TEXTURE_IMAGE_UNITS);
     };

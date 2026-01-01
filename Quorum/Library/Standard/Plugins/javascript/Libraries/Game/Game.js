@@ -10,6 +10,11 @@ function plugins_quorum_Libraries_Game_Game_(quorumGame) {
     this.SelectApplicationTypeNative = function() {
         return 4;
     };
+
+    this.CreateGraphicsManager = function() {
+        let manager = new quorum_Libraries_Game_Graphics_OpenGL_WebOpenGL_();
+        return manager;
+    };
 }
 
 // Code for the plugin-only ShaderProgram class.
