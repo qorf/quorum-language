@@ -702,6 +702,7 @@ axis:Hide()
         repeat while i < axislines:GetSize()
             Drawable axis = axislines:Get(i)
             axis:LoadFilledRectangle(axisWidth, axisHeight, mainHorizontalContainer:GetAxisColor())
+            axis:SetY(-axisHeight)
 //This line is in the chart area. So the placement is less than 0
             if not chart:IsShowingYAxis() and chart:GetHorizontalFlag()
                 axis:Hide()
