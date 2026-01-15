@@ -1,0 +1,27 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Fragment
+
+class HollowBoxPatternControlFragmentShaderVulkan is ControlFragmentShaderVulkan, HollowBoxPatternFragmentShaderPartVulkan
+
+    constant text SHADER_NAME = "Hollow Box Pattern Control Fragment Shader"
+
+    on create
+        SetName(SHADER_NAME)
+    end
+
+    private action GetExtraFunctions returns text
+        return parent:HollowBoxPatternFragmentShaderPartVulkan:GetExtraFunctions()
+    end
+
+    private action GetExtraInputs returns text
+        return parent:HollowBoxPatternFragmentShaderPartVulkan:GetExtraInputs()
+    end
+
+    private action GetAppendedCode returns text
+        return parent:HollowBoxPatternFragmentShaderPartVulkan:GetAppendedCode()
+    end
+    
+action GetBaseInputs returns integer
+        return parent:ControlFragmentShaderVulkan:GetBaseInputs()
+    end
+
+end

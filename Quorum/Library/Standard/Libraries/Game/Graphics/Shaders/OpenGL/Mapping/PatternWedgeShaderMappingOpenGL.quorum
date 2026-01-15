@@ -20,6 +20,8 @@ use Libraries.Game.NumberUtilities
 use Libraries.Game.Graphics.OpenGL.OpenGLConstants
 use Libraries.Interface.Controls.Charts.PatternOptionConstants
 use Libraries.Interface.Controls.Charts.ColorPalettes.ColorPalette
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.Interface.Controls.Charts.PieChart
 
 class PatternWedgeShaderMappingOpenGL is DefaultShaderMapping2DOpenGL
 
@@ -35,6 +37,8 @@ class PatternWedgeShaderMappingOpenGL is DefaultShaderMapping2DOpenGL
     VertexAttribute minAngleAttribute = undefined
     VertexAttribute maxAngleAttribute = undefined
     VertexAttribute originPointAttribute = undefined
+VertexAttribute crustThicknessAttribute = undefined
+    VertexAttribute crustColorAttribute = undefined
     VertexAttribute aspectRatioAttribute = undefined
     VertexAttribute patternDistanceAttribute = undefined
     VertexAttribute patternRotationAttribute = undefined
@@ -54,6 +58,8 @@ class PatternWedgeShaderMappingOpenGL is DefaultShaderMapping2DOpenGL
         minAngleAttribute = dummy:CustomNumberAttribute("a_minAngle")
         maxAngleAttribute = dummy:CustomNumberAttribute("a_maxAngle")
         originPointAttribute = dummy:CustomVectorAttribute("a_originPoint", 2)
+crustThicknessAttribute = dummy:CustomNumberAttribute("a_crustThickness")
+        crustColorAttribute = dummy:CustomColorAttribute("a_crustColor")
         aspectRatioAttribute = dummy:CustomNumberAttribute("a_aspectRatio")
         patternDistanceAttribute = dummy:CustomNumberAttribute("a_patternDistance")
         patternRotationAttribute = dummy:CustomNumberAttribute("a_patternRotation")
@@ -64,6 +70,8 @@ class PatternWedgeShaderMappingOpenGL is DefaultShaderMapping2DOpenGL
         extraAttributes:Add(minAngleAttribute)
         extraAttributes:Add(maxAngleAttribute)
         extraAttributes:Add(originPointAttribute)
+extraAttributes:Add(crustThicknessAttribute)
+        extraAttributes:Add(crustColorAttribute)
         extraAttributes:Add(aspectRatioAttribute)
         extraAttributes:Add(patternDistanceAttribute)
         extraAttributes:Add(patternRotationAttribute)
@@ -104,29 +112,34 @@ class PatternWedgeShaderMappingOpenGL is DefaultShaderMapping2DOpenGL
     end
 
     action SetVertexData(ShaderProgram program, Drawable drawable, DrawableShape shape)
-        if drawable is Wedge
+if drawable is Wedge
             Wedge wedge = cast(Wedge, drawable)
             shape:SetDataForAllVertices(outerRadiusAttribute:offset / 4, wedge:GetOuterRadius())
             shape:SetDataForAllVertices(innerRadiusAttribute:offset / 4, wedge:GetInnerRadius())
             shape:SetDataForAllVertices(minAngleAttribute:offset / 4, wedge:GetStartPercentage())
             shape:SetDataForAllVertices(maxAngleAttribute:offset / 4, wedge:GetEndPercentage())
-            
+            ChartDrawable slice = cast(ChartDrawable, wedge)
+            PieChart pie = cast(PieChart, wedge:GetParentChart())
+            number radialOffset = pie:GetDefaultRadialOffset() + wedge:GetRadialOffset()
             number originX = 0
             number originY = 0
-
+            Math math
+            number startAngle = math:DegreesToRadians(90 - wedge:GetStartPercentage() * 360)
+            number endAngle = math:DegreesToRadians(90 - wedge:GetEndPercentage() * 360)
+            number angle = (startAngle + endAngle)/2
             if wedge:GetParent() = undefined
                 originX = wedge:GetGlobalX() + wedge:GetWidth() / 2
                 originY = wedge:GetGlobalY() + wedge:GetHeight() / 2
             else
                 Item2D item = wedge:GetParent()
-                originX = item:GetGlobalX() + item:GetWidth() / 2
-                originY = item:GetGlobalY() + item:GetHeight() / 2
+                originX = (item:GetGlobalX() +( item:GetWidth()) / 2) + radialOffset*math:Cosine(angle)
+                originY = (item:GetGlobalY() + ( item:GetHeight()) / 2) + radialOffset*math:Sine(angle)
             end
 
             shape:SetDataForAllVertices(originPointAttribute:offset / 4, originX)
             shape:SetDataForAllVertices(originPointAttribute:offset / 4 + 1, originY)
-
-            PatternOptionConstants options
+            
+PatternOptionConstants options
             number interfaceScale = wedge:GetInterfaceScale()
             number rotation = 0
             integer patternType = wedge:GetPattern()
@@ -141,7 +154,6 @@ class PatternWedgeShaderMappingOpenGL is DefaultShaderMapping2DOpenGL
                 rotation = 135
             end
 
-            Math math
             // Currently we use index 0 for the pattern indices. These values aren't conveniently exposed from the drawables and currently are irrelevant.
             number patternDistance = math:Round(options:DEFAULT_PATTERN_DISTANCE * interfaceScale)
             number patternThickness = math:Round(options:DEFAULT_PATTERN_THICKNESS * interfaceScale)
@@ -152,8 +164,8 @@ if colorPalette = undefined
         else
             patternColor = colorPalette:GetPatternColor(0)
         end
-
-            number width = wedge:GetWidth() * wedge:GetScaleX()
+            
+number width = wedge:GetWidth() * wedge:GetScaleX()
             number height = wedge:GetWidth() * wedge:GetScaleY()
             number aspectRatio = width / height
 
@@ -163,7 +175,81 @@ if colorPalette = undefined
             shape:SetDataForAllVertices(patternRotationAttribute:offset / 4, math:DegreesToRadians(rotation))
             shape:SetDataForAllVertices(patternThicknessAttribute:offset / 4, patternThickness / width)
             shape:SetDataForAllVertices(patternColorAttribute:offset / 4, utility:PackNormalizedVector4(patternColor:GetRed(), patternColor:GetGreen(), patternColor:GetBlue(), patternColor:GetAlpha()))
+            
+            number crustThickness = wedge:GetCrustThickness()
+            Color crustColor
+            crustColor = cast(Color, wedge:GetCrustColor())
+            
+            shape:SetDataForAllVertices(crustThicknessAttribute:offset / 4, crustThickness)
+            shape:SetDataForAllVertices(crustColorAttribute:offset / 4, crustColor:EncodeColorAsNumber())
         end
+        //if drawable is Wedge
+            //Wedge wedge = cast(Wedge, drawable)
+            //shape:SetDataForAllVertices(outerRadiusAttribute:offset / 4, wedge:GetOuterRadius())
+            //shape:SetDataForAllVertices(innerRadiusAttribute:offset / 4, wedge:GetInnerRadius())
+            //shape:SetDataForAllVertices(minAngleAttribute:offset / 4, wedge:GetStartPercentage())
+            //shape:SetDataForAllVertices(maxAngleAttribute:offset / 4, wedge:GetEndPercentage())
+            //
+            //number originX = 0
+            //number originY = 0
+//
+            //if wedge:GetParent() = undefined
+                //originX = wedge:GetGlobalX() + wedge:GetWidth() / 2
+                //originY = wedge:GetGlobalY() + wedge:GetHeight() / 2
+            //else
+                //Item2D item = wedge:GetParent()
+                //originX = item:GetGlobalX() + item:GetWidth() / 2
+                //originY = item:GetGlobalY() + item:GetHeight() / 2
+            //end
+//
+            //shape:SetDataForAllVertices(originPointAttribute:offset / 4, originX)
+            //shape:SetDataForAllVertices(originPointAttribute:offset / 4 + 1, originY)
+//
+            //PatternOptionConstants options
+            //number interfaceScale = wedge:GetInterfaceScale()
+            //number rotation = 0
+            //integer patternType = wedge:GetPattern()
+//
+            //if patternType = options:VERTICAL_LINES or patternType = options:PLAIN_CROSSHATCH
+                //rotation = 0
+            //elseif patternType = options:HORIZONTAL_LINES
+                //rotation = 90
+            //elseif patternType = options:DIAGONAL_DOWN_LINES or patternType = options:DIAGONAL_CROSSHATCH or patternType = options:PINPOINT_DASHES
+                //rotation = 45
+            //elseif patternType = options:DIAGONAL_UP_LINES
+                //rotation = 135
+            //end
+//
+            //Math math
+            //// Currently we use index 0 for the pattern indices. These values aren't conveniently exposed from the drawables and currently are irrelevant.
+            //number patternDistance = math:Round(options:DEFAULT_PATTERN_DISTANCE * interfaceScale)
+            //number patternThickness = math:Round(options:DEFAULT_PATTERN_THICKNESS * interfaceScale)
+            //Color patternColor
+//if colorPalette = undefined
+            //Color color
+            //patternColor = color:Black()
+        //else
+            //patternColor = colorPalette:GetPatternColor(0)
+        //end
+//
+            //number width = wedge:GetWidth() * wedge:GetScaleX()
+            //number height = wedge:GetWidth() * wedge:GetScaleY()
+            //number aspectRatio = width / height
+//
+            //shape:SetDataForAllVertices(aspectRatioAttribute:offset / 4, aspectRatio)
+    //
+            //shape:SetDataForAllVertices(patternDistanceAttribute:offset / 4, patternDistance / width)
+            //shape:SetDataForAllVertices(patternRotationAttribute:offset / 4, math:DegreesToRadians(rotation))
+            //shape:SetDataForAllVertices(patternThicknessAttribute:offset / 4, patternThickness / width)
+            //shape:SetDataForAllVertices(patternColorAttribute:offset / 4, utility:PackNormalizedVector4(patternColor:GetRed(), patternColor:GetGreen(), patternColor:GetBlue(), patternColor:GetAlpha()))
+            //
+//number crustThickness = wedge:GetCrustThickness()
+            //Color crustColor
+            //crustColor = cast(Color, wedge:GetCrustColor())
+            //
+            //shape:SetDataForAllVertices(crustThicknessAttribute:offset / 4, crustThickness)
+            //shape:SetDataForAllVertices(crustColorAttribute:offset / 4, crustColor:EncodeColorAsNumber())
+        //end
     end
 
     action End(ShaderProgram program)

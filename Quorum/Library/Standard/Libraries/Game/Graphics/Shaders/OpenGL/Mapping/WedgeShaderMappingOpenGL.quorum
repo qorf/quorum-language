@@ -120,9 +120,6 @@ class WedgeShaderMappingOpenGL is DefaultShaderMapping2DOpenGL
             shape:SetDataForAllVertices(originPointAttribute:offset / 4, originX)
             shape:SetDataForAllVertices(originPointAttribute:offset / 4 + 1, originY)
             
-            // TO-DO: Get "real" values for these, instead of the hardcoded testing values used here.
-            // A negative crust thickness will make the crust be rendered as an interior border,
-            // and a positive thickness will be rendered as an exterior border.
             number crustThickness = wedge:GetCrustThickness()
             Color crustColor
             crustColor = cast(Color, wedge:GetCrustColor())

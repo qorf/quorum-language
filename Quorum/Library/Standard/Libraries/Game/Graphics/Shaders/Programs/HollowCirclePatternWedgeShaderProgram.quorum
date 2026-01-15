@@ -5,6 +5,9 @@ use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.PatternWedgeVertexShaderOpenGL
 use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.HollowCirclePatternWedgeFragmentShaderOpenGL
 use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.PatternWedgeVertexShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.HollowCirclePatternWedgeFragmentShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.PatternWedgeShaderMappingVulkan
 
 class HollowCirclePatternWedgeShaderProgram is ShaderProgram
 
@@ -21,20 +24,35 @@ class HollowCirclePatternWedgeShaderProgram is ShaderProgram
             Shader vertex = manager:GetShader(VERTEX_NAME)
             Add(vertex)
         else
-            PatternWedgeVertexShaderOpenGL vertex
+            if IsVulkanProgram()
+PatternWedgeVertexShaderVulkan vertex
             Add(vertex)
+            else
+PatternWedgeVertexShaderOpenGL vertex
+            Add(vertex)
+            end
         end
 
         if manager:HasShader(FRAGMENT_NAME)
             Shader fragment = manager:GetShader(FRAGMENT_NAME)
             Add(fragment)
         else
-            HollowCirclePatternWedgeFragmentShaderOpenGL fragment
+            if IsVulkanProgram()
+HollowCirclePatternWedgeFragmentShaderVulkan fragment
             Add(fragment)
+            else
+HollowCirclePatternWedgeFragmentShaderOpenGL fragment
+            Add(fragment)
+            end
         end
 
-        PatternWedgeShaderMappingOpenGL mapping
+        if IsVulkanProgram()
+PatternWedgeShaderMappingVulkan mapping
         SetShaderMapping(mapping)
+        else
+PatternWedgeShaderMappingOpenGL mapping
+        SetShaderMapping(mapping)
+        end
     end
 
 end

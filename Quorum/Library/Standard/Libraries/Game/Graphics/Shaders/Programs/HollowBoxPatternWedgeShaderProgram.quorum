@@ -6,6 +6,7 @@ use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.PatternWedgeVertexShaderOpenGL
 use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.HollowBoxPatternWedgeFragmentShaderOpenGL
 use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.PatternWedgeVertexShaderVulkan
 
 class HollowBoxPatternWedgeShaderProgram is ShaderProgram
 
@@ -22,8 +23,13 @@ class HollowBoxPatternWedgeShaderProgram is ShaderProgram
             Shader vertex = manager:GetShader(VERTEX_NAME)
             Add(vertex)
         else
-            PatternWedgeVertexShaderOpenGL vertex
+            if IsVulkanProgram()
+PatternWedgeVertexShaderVulkan vertex
             Add(vertex)
+            else
+PatternWedgeVertexShaderOpenGL vertex
+            Add(vertex)
+            end
         end
 
         if manager:HasShader(FRAGMENT_NAME)

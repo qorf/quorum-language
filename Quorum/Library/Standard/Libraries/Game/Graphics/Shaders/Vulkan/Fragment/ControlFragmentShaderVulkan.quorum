@@ -8,14 +8,20 @@ use Libraries.Game.Graphics.Shaders.DefaultAttributeNames
 class ControlFragmentShaderVulkan is Shader
     
     constant text SHADER_NAME = "Control Fragment Shader"
+    
+    action GetBaseInputs returns integer
+        // Return the default count of values with "location = " so other classes can add their values after this.
+        return 8
+    end
 
     on create
         SetType(parent:Shader:FRAGMENT_SHADER)
         SetName(SHADER_NAME)
-
-        DefaultAttributeNames attributes
-
-        SetCode(GetVersionHeader() +
+    end
+	
+	action GetCode returns text
+	    DefaultAttributeNames attributes
+	    return GetVersionHeader() +
 "
 " +
 "#ifdef GL_ES
@@ -39,6 +45,7 @@ layout (location = 4) in vec4 v_rounding;
 layout (location = 5) in vec4 v_borderThickness;
 layout (location = 6) in float v_aspectRatio;
 layout (location = 7) in float v_antiAlias;
+" + GetExtraInputs() + "
 
 layout (location = 0) out vec4 outputColor;
 
@@ -111,8 +118,7 @@ void main()
     //resultColor.rgb = pow(resultColor.rgb, (1.0/2.4));
     outputColor = resultColor;
 }"
-)
-    end
+	end
 
     private action GetPreprocessorDefinitions returns text
         return ""

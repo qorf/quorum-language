@@ -6,6 +6,9 @@ use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.SolidTrianglePatternWedgeFra
 use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.PatternWedgeShaderMappingOpenGL
 use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.PatternWedgeVertexShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.SolidTrianglePatternWedgeFragmentShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.PatternWedgeShaderMappingVulkan
 
 class SolidTrianglePatternWedgeShaderProgram is ShaderProgram
 
@@ -22,20 +25,35 @@ class SolidTrianglePatternWedgeShaderProgram is ShaderProgram
             Shader vertex = manager:GetShader(VERTEX_NAME)
             Add(vertex)
         else
-            PatternWedgeVertexShaderOpenGL vertex
+            if IsVulkanProgram()
+PatternWedgeVertexShaderVulkan vertex
             Add(vertex)
+            else
+PatternWedgeVertexShaderOpenGL vertex
+            Add(vertex)
+            end
         end
 
         if manager:HasShader(FRAGMENT_NAME)
             Shader fragment = manager:GetShader(FRAGMENT_NAME)
             Add(fragment)
         else
-            SolidTrianglePatternWedgeFragmentShaderOpenGL fragment
+            if IsVulkanProgram()
+SolidTrianglePatternWedgeFragmentShaderVulkan fragment
             Add(fragment)
+            else
+SolidTrianglePatternWedgeFragmentShaderOpenGL fragment
+            Add(fragment)
+            end
         end
 
-        PatternWedgeShaderMappingOpenGL mapping
+        if IsVulkanProgram()
+PatternWedgeShaderMappingVulkan mapping
         SetShaderMapping(mapping)
+        else
+PatternWedgeShaderMappingOpenGL mapping
+        SetShaderMapping(mapping)
+        end
     end
 
 end

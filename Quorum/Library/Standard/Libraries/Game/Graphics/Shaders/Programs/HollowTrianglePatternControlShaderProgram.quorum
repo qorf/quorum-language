@@ -6,6 +6,9 @@ use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.PatternControlVertexShaderOpen
 use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.HollowTrianglePatternControlFragmentShaderOpenGL
 use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.PatternControlVertexShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.HollowTrianglePatternControlFragmentShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.PatternControlShaderMappingVulkan
 
 class HollowTrianglePatternControlShaderProgram is ShaderProgram
 
@@ -22,20 +25,35 @@ class HollowTrianglePatternControlShaderProgram is ShaderProgram
             Shader vertex = manager:GetShader(VERTEX_NAME)
             Add(vertex)
         else
-            PatternControlVertexShaderOpenGL vertex
+            if IsVulkanProgram()
+PatternControlVertexShaderVulkan vertex
             Add(vertex)
+            else
+PatternControlVertexShaderOpenGL vertex
+            Add(vertex)
+            end
         end
 
         if manager:HasShader(FRAGMENT_NAME)
             Shader fragment = manager:GetShader(FRAGMENT_NAME)
             Add(fragment)
         else
-            HollowTrianglePatternControlFragmentShaderOpenGL fragment
+            if IsVulkanProgram()
+HollowTrianglePatternControlFragmentShaderVulkan fragment
             Add(fragment)
+            else
+HollowTrianglePatternControlFragmentShaderOpenGL fragment
+            Add(fragment)
+            end
         end
 
-        PatternControlShaderMappingOpenGL mapping
+        if IsVulkanProgram()
+PatternControlShaderMappingVulkan mapping
         SetShaderMapping(mapping)
+        else
+PatternControlShaderMappingOpenGL mapping
+        SetShaderMapping(mapping)
+        end
     end
 
 end

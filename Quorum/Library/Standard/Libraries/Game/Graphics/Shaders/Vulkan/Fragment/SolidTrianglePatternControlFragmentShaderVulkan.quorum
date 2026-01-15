@@ -1,0 +1,27 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Fragment
+
+class SolidTrianglePatternControlFragmentShaderVulkan is ControlFragmentShaderVulkan, SolidTrianglePatternFragmentShaderPartVulkan
+
+    constant text SHADER_NAME = "Solid Triangle Pattern Control Fragment Shader"
+
+    on create
+        SetName(SHADER_NAME)
+    end
+
+    private action GetExtraFunctions returns text
+        return parent:SolidTrianglePatternFragmentShaderPartVulkan:GetExtraFunctions()
+    end
+
+    private action GetExtraInputs returns text
+        return parent:SolidTrianglePatternFragmentShaderPartVulkan:GetExtraInputs()
+    end
+
+    private action GetAppendedCode returns text
+        return parent:SolidTrianglePatternFragmentShaderPartVulkan:GetAppendedCode()
+    end
+    
+action GetBaseInputs returns integer
+        return parent:ControlFragmentShaderVulkan:GetBaseInputs()
+    end
+
+end

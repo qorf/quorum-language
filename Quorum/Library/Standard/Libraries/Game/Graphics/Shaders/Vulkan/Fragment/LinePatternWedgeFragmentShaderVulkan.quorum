@@ -1,0 +1,27 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Fragment
+
+class LinePatternWedgeFragmentShaderVulkan is PatternWedgeFragmentShaderVulkan, LinePatternFragmentShaderPartVulkan
+
+    constant text SHADER_NAME = "Dashed Line Pattern Wedge Fragment Shader"
+
+    on create
+        SetName(SHADER_NAME)
+    end
+
+    private action GetExtraFunctions returns text
+        return parent:LinePatternFragmentShaderPartVulkan:GetExtraFunctions()
+    end
+
+    private action GetExtraInputs returns text
+        return parent:LinePatternFragmentShaderPartVulkan:GetExtraInputs()
+    end
+
+    private action GetAppendedCode returns text
+        return parent:LinePatternFragmentShaderPartVulkan:GetAppendedCode()
+    end
+    
+action GetBaseInputs returns integer
+        return parent:PatternWedgeFragmentShaderVulkan:GetBaseInputs()
+    end
+
+end

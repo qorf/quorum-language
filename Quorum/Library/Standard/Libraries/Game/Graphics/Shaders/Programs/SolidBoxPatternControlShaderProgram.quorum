@@ -6,6 +6,9 @@ use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.PatternControlVertexShaderOpen
 use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.SolidBoxPatternControlFragmentShaderOpenGL
 use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.PatternControlVertexShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.SolidBoxPatternControlFragmentShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.PatternControlShaderMappingVulkan
 
 class SolidBoxPatternControlShaderProgram is ShaderProgram
 
@@ -22,20 +25,35 @@ class SolidBoxPatternControlShaderProgram is ShaderProgram
             Shader vertex = manager:GetShader(VERTEX_NAME)
             Add(vertex)
         else
-            PatternControlVertexShaderOpenGL vertex
+            if IsVulkanProgram()
+PatternControlVertexShaderVulkan vertex
             Add(vertex)
+            else
+PatternControlVertexShaderOpenGL vertex
+            Add(vertex)
+            end
         end
 
         if manager:HasShader(FRAGMENT_NAME)
             Shader fragment = manager:GetShader(FRAGMENT_NAME)
             Add(fragment)
         else
-            SolidBoxPatternControlFragmentShaderOpenGL fragment
+            if IsVulkanProgram()
+SolidBoxPatternControlFragmentShaderVulkan fragment
             Add(fragment)
+            else
+SolidBoxPatternControlFragmentShaderOpenGL fragment
+            Add(fragment)
+            end
         end
 
-        PatternControlShaderMappingOpenGL mapping
+        if IsVulkanProgram()
+PatternControlShaderMappingVulkan mapping
         SetShaderMapping(mapping)
+        else
+PatternControlShaderMappingOpenGL mapping
+        SetShaderMapping(mapping)
+        end
     end
 
 end

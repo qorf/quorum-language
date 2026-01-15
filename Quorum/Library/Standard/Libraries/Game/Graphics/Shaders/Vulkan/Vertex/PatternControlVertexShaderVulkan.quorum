@@ -1,0 +1,31 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Vertex
+
+class PatternControlVertexShaderVulkan is ControlVertexShaderVulkan
+
+    constant text SHADER_NAME = "Pattern Control Vertex Shader"
+
+    on create
+        SetName(SHADER_NAME)
+    end
+
+    private action GetExtraInputs returns text
+        return 
+"layout(location = 9) in float a_patternDistance;
+layout(location = 10) in float a_patternRotation;
+layout(location = 11) in float a_patternThickness;
+layout(location = 12) in vec4 a_patternColor;
+layout(location = 8) out float v_patternDistance;
+layout(location = 9) out float v_patternRotation;
+layout(location = 10) out float v_patternThickness;
+layout(location = 11) out vec4 v_patternColor;"
+    end
+
+    private action GetAppendedCode returns text
+        return 
+"v_patternDistance = a_patternDistance;
+v_patternRotation = a_patternRotation;
+v_patternThickness = a_patternThickness;
+v_patternColor = a_patternColor;"
+    end
+
+end

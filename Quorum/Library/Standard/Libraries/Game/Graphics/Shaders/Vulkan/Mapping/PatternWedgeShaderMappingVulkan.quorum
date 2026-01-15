@@ -1,0 +1,131 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Mapping
+
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
+use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.Graphics.Camera
+use Libraries.Interface.Item2D
+use Libraries.Game.Graphics.VertexAttribute
+use Libraries.Game.Graphics.Mesh
+use Libraries.Game.Graphics.DefaultVertexAttributes2D
+use Libraries.Containers.Array
+use Libraries.Containers.Integer32BitArray
+use Libraries.Game.Graphics.VertexAttributes
+use Libraries.Game.Graphics.DrawableShape
+use Libraries.Interface.Controls.Charts.Graphics.Wedge
+use Libraries.Compute.Math
+use Libraries.Game.Graphics.Color
+use Libraries.Game.NumberUtilities
+use Libraries.Game.Graphics.OpenGL.OpenGLConstants
+use Libraries.Interface.Controls.Charts.PatternOptionConstants
+use Libraries.Interface.Controls.Charts.ColorPalettes.ColorPalette
+use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfo
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfoCreator
+
+class PatternWedgeShaderMappingVulkan is WedgeShaderMappingVulkan
+    
+GameStateManager gameState
+    NumberUtilities utility
+    
+// Indices to the vertex values located in the DrawableShape.
+    integer aspectRatioIndex = 0
+    integer patternDistanceIndex = 0
+    integer patternRotationIndex = 0
+    integer patternThicknessIndex = 0
+    integer patternColorIndex = 0
+
+// Returns the size of each vertex in the DrawableShape (which stores values as 32 bit integers).
+action GetVertexSize returns integer
+        return patternColorIndex + 1
+    end
+
+// This action is used to setup the values of a VulkanPipelineInfo that will be used to create the
+    // VulkanPipeline needed for the shader program. This can also be used to create and keep copies of
+    // any Vulkan resources that will be needed to send or change shader data.
+    action CreatePipelineInfo(VulkanShaderProgram program, VulkanDevice device) returns VulkanPipelineInfo
+        VulkanConstants constants
+
+        /* Use the default info, plus values for our additional vertex attributes. Store their indices so we can map to them later.
+The extra attributes map to these values in the vertex shader:
+
+layout(location = 4) in float a_innerRadius;
+layout(location = 5) in float a_outerRadius;
+layout(location = 6) in float a_minAngle;
+layout(location = 7) in float a_maxAngle;
+layout(location = 8) in vec2 a_originPoint;
+layout(location = 9) in float a_crustThickness;
+layout(location = 10) in vec4 a_crustColor;
+*/
+        VulkanPipelineInfoCreator creator
+        creator:Begin(device)
+        creator:AddDefaultInfo2D()
+        parent:WedgeShaderMappingVulkan:innerRadiusIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        parent:WedgeShaderMappingVulkan:outerRadiusIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        parent:WedgeShaderMappingVulkan:minAngleIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        parent:WedgeShaderMappingVulkan:maxAngleIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        parent:WedgeShaderMappingVulkan:originPointIndex = creator:AddVertexInput(constants:FORMAT_R32G32_SFLOAT)
+        parent:WedgeShaderMappingVulkan:crustThicknessIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        parent:WedgeShaderMappingVulkan:crustColorIndex = creator:AddVertexInput(constants:FORMAT_R8G8B8A8_UNORM)
+        
+        // Also add the information for the pattern.
+        aspectRatioIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+patternDistanceIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        patternRotationIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        patternThicknessIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        patternColorIndex = creator:AddVertexInput(constants:FORMAT_R8G8B8A8_UNORM)
+        
+        // Finish creating the PipelineInfo and return it.
+        VulkanPipelineInfo info = creator:Finish()
+        return info
+    end
+
+    action SetVertexData(ShaderProgram program, Drawable drawable, DrawableShape shape)
+        parent:WedgeShaderMappingVulkan:SetVertexData(program, drawable, shape)
+        
+number width = drawable:GetWidth() * drawable:GetScaleX()
+        number height = drawable:GetHeight() * drawable:GetScaleY()
+        number aspectRatio = width / height
+        
+        if drawable is Wedge
+            Wedge wedge = cast(Wedge, drawable)
+
+            PatternOptionConstants options
+            number interfaceScale = wedge:GetInterfaceScale()
+            number rotation = 0
+            integer patternType = wedge:GetPattern()
+
+            if patternType = options:VERTICAL_LINES or patternType = options:PLAIN_CROSSHATCH
+                rotation = 0
+            elseif patternType = options:HORIZONTAL_LINES
+                rotation = 90
+            elseif patternType = options:DIAGONAL_DOWN_LINES or patternType = options:DIAGONAL_CROSSHATCH or patternType = options:PINPOINT_DASHES
+                rotation = 45
+            elseif patternType = options:DIAGONAL_UP_LINES
+                rotation = 135
+            end
+
+            Math math
+            // Currently we use index 0 for the pattern indices. These values aren't conveniently exposed from the drawables and currently are irrelevant.
+            number patternDistance = math:Round(options:DEFAULT_PATTERN_DISTANCE * interfaceScale)
+            number patternThickness = math:Round(options:DEFAULT_PATTERN_THICKNESS * interfaceScale)
+            Color patternColor = undefined
+if drawable:GetShaderData() is Color
+            patternColor = cast(Color, drawable:GetShaderData())
+        else
+                Color color
+            patternColor = color:Black()
+        end
+
+    shape:SetDataForAllVertices(aspectRatioIndex, aspectRatio)
+            shape:SetDataForAllVertices(patternDistanceIndex, patternDistance / width)
+            shape:SetDataForAllVertices(patternRotationIndex, math:DegreesToRadians(rotation))
+            shape:SetDataForAllVertices(patternThicknessIndex, patternThickness / width)
+            shape:SetDataForAllVertices(patternColorIndex, utility:PackNormalizedVector4(patternColor:GetRed(), patternColor:GetGreen(), patternColor:GetBlue(), patternColor:GetAlpha()))
+        end
+    end
+
+end

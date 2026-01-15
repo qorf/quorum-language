@@ -11,6 +11,9 @@ use Libraries.Interface.Controls.Charts.Graphics.Wedge
 use Libraries.Interface.Item2D
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Charts.Graphics.ChartDrawable
+use Libraries.Interface.Controls.Charts.PieChart
+use Libraries.Compute.Math
 
 class WedgeShaderMappingVulkan is VulkanShaderMapping
     
@@ -79,17 +82,35 @@ if drawable is Wedge
             shape:SetDataForAllVertices(minAngleIndex, wedge:GetStartPercentage())
             shape:SetDataForAllVertices(maxAngleIndex, wedge:GetEndPercentage())
             
+ChartDrawable slice = cast(ChartDrawable, wedge)
+            PieChart pie = cast(PieChart, wedge:GetParentChart())
+            number radialOffset = pie:GetDefaultRadialOffset() + wedge:GetRadialOffset()
             number originX = 0
             number originY = 0
-
+            Math math
+            number startAngle = math:DegreesToRadians(90 - wedge:GetStartPercentage() * 360)
+            number endAngle = math:DegreesToRadians(90 - wedge:GetEndPercentage() * 360)
+            number angle = (startAngle + endAngle)/2
             if wedge:GetParent() = undefined
                 originX = wedge:GetGlobalX() + wedge:GetWidth() / 2
                 originY = wedge:GetGlobalY() + wedge:GetHeight() / 2
             else
                 Item2D item = wedge:GetParent()
-                originX = item:GetGlobalX() + item:GetWidth() / 2
-                originY = item:GetGlobalY() + item:GetHeight() / 2
+                originX = (item:GetGlobalX() +( item:GetWidth()) / 2) + radialOffset*math:Cosine(angle)
+                originY = (item:GetGlobalY() + ( item:GetHeight()) / 2) + radialOffset*math:Sine(angle)
             end
+            
+            //number originX = 0
+            //number originY = 0
+
+            //if wedge:GetParent() = undefined
+                //originX = wedge:GetGlobalX() + wedge:GetWidth() / 2
+                //originY = wedge:GetGlobalY() + wedge:GetHeight() / 2
+            //else
+                //Item2D item = wedge:GetParent()
+                //originX = item:GetGlobalX() + item:GetWidth() / 2
+                //originY = item:GetGlobalY() + item:GetHeight() / 2
+            //end
             
             // We need to invert the direction of the y-axis relative to the screen, so do that before passing the value down.
             originY = gameState:GetGameDisplay():GetHeight() - originY
@@ -97,12 +118,15 @@ if drawable is Wedge
             shape:SetDataForAllVertices(originPointIndex, originX)
             shape:SetDataForAllVertices(originPointIndex + 1, originY)
             
-            // TO-DO: Get these values in a reasonable way, so the shader can dynamically update the values.
-            number crustThickness = 5
+            //// TO-DO: Get these values in a reasonable way, so the shader can dynamically update the values.
+            //number crustThickness = 5
+            //Color crustColor
+            //crustColor = crustColor:Orange()
+number crustThickness = wedge:GetCrustThickness()
             Color crustColor
-            crustColor = crustColor:Orange()
+            crustColor = cast(Color, wedge:GetCrustColor())
             
-            shape:SetDataForAllVertices(crustThicknessIndex, 5)
+            shape:SetDataForAllVertices(crustThicknessIndex, crustThickness)
             shape:SetDataForAllVertices(crustColorIndex, crustColor:EncodeColorAsNumber())
         end
     end

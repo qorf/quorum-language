@@ -1,0 +1,27 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Fragment
+
+class SolidCirclePatternWedgeFragmentShaderVulkan is PatternWedgeFragmentShaderVulkan, SolidCirclePatternFragmentShaderPartVulkan
+
+    constant text SHADER_NAME = "Solid Circle Pattern Wedge Fragment Shader"
+
+    on create
+        SetName(SHADER_NAME)
+    end
+
+    private action GetExtraFunctions returns text
+        return parent:SolidCirclePatternFragmentShaderPartVulkan:GetExtraFunctions()
+    end
+
+    private action GetExtraInputs returns text
+        return parent:SolidCirclePatternFragmentShaderPartVulkan:GetExtraInputs()
+    end
+
+    private action GetAppendedCode returns text
+        return parent:SolidCirclePatternFragmentShaderPartVulkan:GetAppendedCode()
+    end
+    
+action GetBaseInputs returns integer
+        return parent:PatternWedgeFragmentShaderVulkan:GetBaseInputs()
+    end
+
+end

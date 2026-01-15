@@ -5,6 +5,9 @@ use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.PatternControlVertexShaderOpen
 use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.CrosshatchPatternControlFragmentShaderOpenGL
 use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.PatternControlVertexShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.CrosshatchPatternControlFragmentShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.PatternControlShaderMappingVulkan
 
 class CrosshatchPatternControlShaderProgram is ShaderProgram
 
@@ -21,20 +24,35 @@ class CrosshatchPatternControlShaderProgram is ShaderProgram
             Shader vertex = manager:GetShader(VERTEX_NAME)
             Add(vertex)
         else
-            PatternControlVertexShaderOpenGL vertex
+            if IsVulkanProgram()
+                PatternControlVertexShaderVulkan vertex
+                Add(vertex)
+            else
+PatternControlVertexShaderOpenGL vertex
             Add(vertex)
+            end
         end
 
         if manager:HasShader(FRAGMENT_NAME)
             Shader fragment = manager:GetShader(FRAGMENT_NAME)
             Add(fragment)
         else
-            CrosshatchPatternControlFragmentShaderOpenGL fragment
+            if IsVulkanProgram()
+                CrosshatchPatternControlFragmentShaderVulkan fragment
+                Add(fragment)
+            else
+CrosshatchPatternControlFragmentShaderOpenGL fragment
             Add(fragment)
+            end
         end
 
-        PatternControlShaderMappingOpenGL mapping
+        if IsVulkanProgram()
+            PatternControlShaderMappingVulkan mapping
+            SetShaderMapping(mapping)
+        else
+PatternControlShaderMappingOpenGL mapping
         SetShaderMapping(mapping)
+        end
     end
 
 end

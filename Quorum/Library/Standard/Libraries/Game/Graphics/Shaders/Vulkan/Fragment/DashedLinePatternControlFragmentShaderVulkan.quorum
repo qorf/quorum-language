@@ -1,0 +1,27 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Fragment
+
+class DashedLinePatternControlFragmentShaderVulkan is ControlFragmentShaderVulkan, DashedLinePatternFragmentShaderPartVulkan
+
+    constant text SHADER_NAME = "Dashed Line Pattern Control Fragment Shader"
+
+    on create
+        SetName(SHADER_NAME)
+    end
+
+    private action GetExtraFunctions returns text
+        return parent:DashedLinePatternFragmentShaderPartVulkan:GetExtraFunctions()
+    end
+
+    private action GetExtraInputs returns text
+        return parent:DashedLinePatternFragmentShaderPartVulkan:GetExtraInputs()
+    end
+
+    private action GetAppendedCode returns text
+        return parent:DashedLinePatternFragmentShaderPartVulkan:GetAppendedCode()
+    end
+    
+action GetBaseInputs returns integer
+        return parent:ControlFragmentShaderVulkan:GetBaseInputs()
+    end
+
+end
