@@ -2494,24 +2494,28 @@ InputSet controlSlash
             table:Add(controlSlash, commentBehavior)
         end
 
-
         table:Add(typingSet, freeformBehavior)
-        table:Add(shiftLeftSet, freeformBehavior)
-        table:Add(shiftRightSet, freeformBehavior)
+        
         table:Add(controlLeftSet, freeformBehavior)
         table:Add(controlRightSet, freeformBehavior)
         table:Add(controlShiftLeftSet, freeformBehavior)
         table:Add(controlShiftRightSet, freeformBehavior)
-        table:Add(homeSet, freeformBehavior)
-        table:Add(endSet, freeformBehavior)
-        table:Add(shiftHomeSet, freeformBehavior)
-        table:Add(shiftEndSet, freeformBehavior)
-
+        
         CodeEditorFreeformEditingBehavior forceFreeformBehavior
         forceFreeformBehavior:SetForceEditing(true)
         
+CodeEditorFreeformEditingBehavior forceFreeformBehaviorNoPassthrough
+        forceFreeformBehaviorNoPassthrough:SetForceEditing(true)
+        forceFreeformBehaviorNoPassthrough:SetPassthrough(false)
+        
         table:Add(leftSet, forceFreeformBehavior)
-        table:Add(rightSet, forceFreeformBehavior)
+        table:Add(rightSet, forceFreeformBehaviorNoPassthrough)
+table:Add(shiftLeftSet, forceFreeformBehavior)
+        table:Add(shiftRightSet, forceFreeformBehavior)
+table:Add(homeSet, forceFreeformBehavior)
+        table:Add(endSet, forceFreeformBehavior)
+        table:Add(shiftHomeSet, forceFreeformBehavior)
+        table:Add(shiftEndSet, forceFreeformBehavior)
         
         CodeEditorNavigateToStartBehavior navigateToStart
         CodeEditorNavigateToEndBehavior navigateToEnd

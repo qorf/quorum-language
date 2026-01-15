@@ -19,6 +19,7 @@ class CodeEditorFreeformEditingBehavior is Behavior
     GameStateManager manager
     
     boolean forceEditing = false
+    boolean passthrough = true
 
     action Run(BehaviorEvent event)
         CodeEditor editor = undefined
@@ -58,15 +59,17 @@ class CodeEditorFreeformEditingBehavior is Behavior
         region:SetCaretPosition(0)
         region:Focus()
 
+        if passthrough
         // Let the EditRegion process this input as if it had received it.
         event:SetItem(region)
         InputTable table = manager:GetInput():GetInputTable(region:GetInputGroup())
         table:ProcessInput(event:GetInputSet(), event)
 
-        
+
         // Reset the event to hold the original item before sending it back, to ensure the Input system treats it properly.
         event:SetItem(originalItem)
-    end
+                    end
+end
     
     action SetForceEditing(boolean force)
         forceEditing = force
@@ -74,6 +77,14 @@ class CodeEditorFreeformEditingBehavior is Behavior
     
     action GetForceEditing returns boolean
         return forceEditing
+    end
+
+    action SetPassthrough(boolean passthrough)
+        me:passthrough = passthrough
+    end
+
+    action GetPassthrough returns boolean
+        return passthrough
     end
 
 end
