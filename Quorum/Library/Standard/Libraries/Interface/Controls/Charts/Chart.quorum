@@ -226,6 +226,7 @@ class Chart is ChartItem
     private boolean selectionBoxShowing = false
 private ControlLabel selectionAnnotationLabel = undefined
     private boolean selectionAnnotationLabelShowing = false
+    private boolean firstSelection = true
     number selectionBoxBorderThickness = 6
 number blinkIdleTime = 1.0
     number blinkTime = 0.35
@@ -3520,6 +3521,11 @@ RemoveSelectionVisual()
             return now
         end
             item:Focus()
+        if firstSelection
+            RemoveSelectionVisual()
+            firstSelection = false
+            return now
+        end
 if item is ChartAreaPanel
         number borderThickness = selectionBox:GetBorderThickness()
             number topPadding = borderThickness
