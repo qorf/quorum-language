@@ -30,6 +30,7 @@ use Libraries.Interface.Controls.Charts.Graphics.RegressionLinePointMarker
 use Libraries.Interface.Controls.Charts.ScatterPlot
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Views.PatternControlShaderView
+use Libraries.Interface.Views.DashedLineView
 
 class ChartLayout is Layout
     integer minimumLabelOffset = 35
@@ -361,9 +362,12 @@ class ChartLayout is Layout
                 majorLine:SetPosition(0, cast(integer, tickY+(thin/2)))
                 majorLine:SetSize(chartWidth,thin)
                 majorLine:SetBackgroundColor(chart:GetAccentColor())
-                PatternControlShaderView majorShader
-                majorShader:Initialize(9)
+                
+                DashedLineView majorShader
+                majorShader:Initialize(true)
+                majorShader:SetColor(chart:GetAccentColor())
 majorLine:SetView2D(majorShader)
+                
                 if chart:IsShowingMinorYGridLines() and j < minorlines:GetSize() 
                     integer thinner = cast(integer, majorLine:GetHeight()/2)
                     number minorY = majorLine:GetY() + minorDivWidth

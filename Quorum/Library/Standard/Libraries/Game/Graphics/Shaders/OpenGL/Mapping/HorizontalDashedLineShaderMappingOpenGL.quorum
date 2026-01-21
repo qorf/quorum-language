@@ -1,0 +1,105 @@
+package Libraries.Game.Graphics.Shaders.OpenGL.Mapping
+
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
+use Libraries.Game.GameStateManager
+use Libraries.Game.NumberUtilities
+use Libraries.Game.Graphics.VertexAttribute
+use Libraries.Game.Graphics.Mesh
+use Libraries.Game.Graphics.DefaultVertexAttributes2D
+use Libraries.Containers.Array
+use Libraries.Containers.Integer32BitArray
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.DrawableShape
+use Libraries.Compute.Vector2
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.VertexAttributes
+
+class HorizontalDashedLineShaderMappingOpenGL is BatchingShaderMapping2DOpenGL
+ShaderProgram program = undefined
+    GameStateManager manager
+    NumberUtilities utility
+
+    constant integer BATCH_SIZE = 200
+
+    VertexAttribute fillLengthAttribute = undefined
+    VertexAttribute gapLengthAttribute = undefined
+    VertexAttribute pixelLengthAttribute = undefined
+    
+    
+
+    /*
+    This action is called when the mapping is created. It must be used to set
+    the initial values of the Mesh using the Mesh's Load action.
+    */
+    private action InitializeMesh(Mesh mesh)
+        DefaultVertexAttributes2D attributes
+        Array<VertexAttribute> extraAttributes
+        VertexAttribute dummy
+        fillLengthAttribute = dummy:CustomNumberAttribute("a_fillLength")
+        gapLengthAttribute = dummy:CustomNumberAttribute("a_gapLength")
+        pixelLengthAttribute = dummy:CustomNumberAttribute("a_pixelLength")
+        extraAttributes:Add(fillLengthAttribute)
+        extraAttributes:Add(gapLengthAttribute)
+        extraAttributes:Add(pixelLengthAttribute)
+        attributes:SetAttributes(extraAttributes)
+        
+        /*
+        We need a mesh with enough 32-bit float values for the vertices, and the correct number of indices.
+        The "vertexSize" value is calculated as bytes, not floats, so we divide by 4 to get the correct number.
+        We multiply by 4 because we'll be rendering quads (4 points per Drawable).
+
+        For the indices, we need 2 triangles (3 points each) to render a quad, so we multiply by 6 to store the values in the array.
+        */
+        mesh:Load(false, (attributes:parent:VertexAttributes:vertexSize / 4) * 4 * BATCH_SIZE, 6 * BATCH_SIZE, attributes)
+
+        integer length = 6 * BATCH_SIZE
+        Integer32BitArray indices
+        indices:SetSize(length)
+
+        integer indexCounter = 0
+        integer vertexCounter = 0
+
+        // Setup the indices to make pairs of triangles to render quads of vertices.
+        repeat while indexCounter < length
+            indices:Set(indexCounter, vertexCounter)
+            indices:Set(indexCounter + 1, vertexCounter + 1)
+            indices:Set(indexCounter + 2, vertexCounter + 2)
+            indices:Set(indexCounter + 3, vertexCounter + 2)
+            indices:Set(indexCounter + 4, vertexCounter + 3)
+            indices:Set(indexCounter + 5, vertexCounter)
+
+            indexCounter = indexCounter + 6
+            vertexCounter = vertexCounter + 4
+        end
+
+        mesh:SetIndices(indices)
+    end
+
+    action SetVertexData(ShaderProgram program, Drawable drawable, DrawableShape shape)
+number width = drawable:GetWidth() * drawable:GetScaleX()
+        number dashLength = 20
+        number dashGap = 20
+        
+        // If the drawable has Vector2 shader data, use that to set the dash length and gap.
+        // Otherwise, use default values.
+        if drawable:GetShaderData() is Vector2
+            Vector2 data = cast(Vector2, drawable:GetShaderData())
+			dashLength = data:GetX()
+			dashGap = data:GetY()
+        end
+        dashLength = dashLength / width
+        dashGap = dashGap / width
+        
+        shape:SetDataForAllVertices(fillLengthAttribute:offset / 4, dashLength)
+        shape:SetDataForAllVertices(gapLengthAttribute:offset / 4, dashGap)
+        shape:SetDataForAllVertices(pixelLengthAttribute:offset / 4, 1.0 / width)
+    end
+
+    /*
+    This action is called when it is time for the ShaderMapping to render its current batch with the given ShaderProgram.
+    */
+    action RenderBatch(ShaderProgram program, Camera camera)
+        parent:BatchingShaderMapping2DOpenGL:RenderBatch(program, camera)
+    end
+    
+end

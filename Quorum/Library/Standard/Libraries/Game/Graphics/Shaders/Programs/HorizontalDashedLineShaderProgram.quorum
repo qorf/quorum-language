@@ -1,0 +1,58 @@
+package Libraries.Game.Graphics.Shaders.Programs
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.DashedLineVertexShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.HorizontalDashedLineFragmentShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.HorizontalDashedLineShaderMappingVulkan
+use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.DashedLineVertexShaderOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.HorizontalDashedLineFragmentShaderOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.HorizontalDashedLineShaderMappingOpenGL
+
+class HorizontalDashedLineShaderProgram is ShaderProgram
+    
+public constant text DEFAULT_NAME = "Horizontal Dashed Line Shader Program"
+    constant text VERTEX_NAME = "Horizontal Dashed Line Vertex Shader"
+    constant text FRAGMENT_NAME = "Horizontal Dashed Line Fragment Shader"
+
+    on create
+        SetName(DEFAULT_NAME)
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
+        
+        if manager:HasShader(VERTEX_NAME)
+            Shader vertex = manager:GetShader(VERTEX_NAME)
+            Add(vertex)
+        else
+            if IsVulkanProgram()
+                DashedLineVertexShaderVulkan vertex
+                Add(vertex)
+            else
+DashedLineVertexShaderOpenGL vertex
+                Add(vertex)
+            end
+        end
+
+        if manager:HasShader(FRAGMENT_NAME)
+            Shader fragment = manager:GetShader(FRAGMENT_NAME)
+            Add(fragment)
+        else
+            if IsVulkanProgram()
+                HorizontalDashedLineFragmentShaderVulkan fragment
+                Add(fragment)
+            else
+HorizontalDashedLineFragmentShaderOpenGL fragment
+                Add(fragment)
+            end
+        end
+
+        if IsVulkanProgram()
+            HorizontalDashedLineShaderMappingVulkan mapping
+            SetShaderMapping(mapping)
+        else
+HorizontalDashedLineShaderMappingOpenGL mapping
+            SetShaderMapping(mapping)
+        end
+    end
+    
+end

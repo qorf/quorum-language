@@ -1,0 +1,72 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Mapping
+
+use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfo
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfoCreator
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.DrawableShape
+use Libraries.Compute.Vector2
+
+class HorizontalDashedLineShaderMappingVulkan is VulkanShaderMapping
+    
+    // Indices to the vertex values located in the DrawableShape.
+    integer fillLengthIndex = 0
+    integer gapLengthIndex = 0
+    integer pixelLengthIndex = 0
+    
+on create
+UseDefaultResources2D(true)
+    end
+    
+    // Returns the size of each vertex in the DrawableShape (which stores values as 32 bit integers).
+action GetVertexSize returns integer
+        return pixelLengthIndex + 1
+    end
+    
+/*This action is used to setup the values of a VulkanPipelineInfo that will be used to create the
+VulkanPipeline needed for the shader program. This can also be used to create and keep copies of
+any Vulkan resources that will be needed to send or change shader data.*/
+    action CreatePipelineInfo(VulkanShaderProgram program, VulkanDevice device) returns VulkanPipelineInfo
+        VulkanPipelineInfoCreator creator
+            VulkanConstants constants
+        
+        creator:Begin(device)
+        creator:AddDefaultInfo2D()
+
+        fillLengthIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        gapLengthIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        pixelLengthIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        
+        VulkanPipelineInfo info = creator:Finish()
+        return info
+end
+    
+action Begin(ShaderProgram program, Camera camera, VulkanCommandBuffer commandBuffer, integer swapchainIndex)
+end
+    
+action SetVertexData(ShaderProgram program, Drawable drawable, DrawableShape shape)
+number width = drawable:GetWidth() * drawable:GetScaleX()
+        number dashLength = 20
+        number dashGap = 20
+        
+        // If the drawable has Vector2 shader data, use that to set the dash length and gap.
+        // Otherwise, use default values.
+        if drawable:GetShaderData() is Vector2
+            Vector2 data = cast(Vector2, drawable:GetShaderData())
+			dashLength = data:GetX()
+			dashGap = data:GetY()
+        end
+        dashLength = dashLength / width
+        dashGap = dashGap / width
+        
+        shape:SetDataForAllVertices(fillLengthIndex, dashLength)
+        shape:SetDataForAllVertices(gapLengthIndex, dashGap)
+        shape:SetDataForAllVertices(pixelLengthIndex, 1.0 / width)
+end
+    
+end

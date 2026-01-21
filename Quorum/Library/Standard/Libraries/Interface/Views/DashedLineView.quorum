@@ -1,0 +1,62 @@
+package Libraries.Interface.Views
+
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Shaders.Programs.HorizontalDashedLineShaderProgram
+use Libraries.Game.Graphics.Shaders.Programs.VerticalDashedLineShaderProgram
+
+class DashedLineView is DrawableView
+    
+    boolean isHorizontal = true
+    
+/*
+    The Initialize action prepares the view for use. It must be called before the view can be used,
+    or else nothing will be drawn while using the view.
+
+    The provided "patternType" value should be one of the pattern constants from the PatternOptionConstants class.
+    This will indicate what type of pattern the view will display.
+    */
+    action Initialize(boolean horizontal)
+        Color color
+        color:SetColor(1, 1, 1, 1)
+        LoadFilledRectangle(2, 2, color)
+
+        ShaderProgram program = GetShaderProgram(horizontal)
+        SetShaderProgram(program)
+    end
+    
+    action IsHorizontal returns boolean
+        return isHorizontal
+    end
+
+    private action GetShaderProgram(boolean horizontal) returns ShaderProgram
+        isHorizontal = horizontal
+
+        ShaderProgram program = undefined
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
+        
+        if IsHorizontal()
+if manager:HasShaderProgram("Horizontal Dashed Line Shader Program")
+                program = manager:GetShaderProgram("Horizontal Dashed Line Shader Program")
+            else
+                HorizontalDashedLineShaderProgram shaderProgram
+                shaderProgram:Compile()
+                program = shaderProgram
+            end
+        else
+if manager:HasShaderProgram("Vertical Dashed Line Shader Program")
+                program = manager:GetShaderProgram("Vertical Dashed Line Shader Program")
+            else
+                VerticalDashedLineShaderProgram shaderProgram
+                shaderProgram:Compile()
+                program = shaderProgram
+            end
+        end
+    
+        return program
+    end
+    
+end
