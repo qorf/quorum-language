@@ -127,10 +127,7 @@ class VulkanPainter2DBatch
 
     action Add(DrawableShape shape) returns boolean
         Number32BitArray vertices = shape:GetVertexData()
-        Integer32BitBuffer indices = undefined
-        if shape:GetMesh() not= undefined and shape:GetMesh():GetIndexData() not= undefined
-            indices = shape:GetMesh():GetIndexData():GetBuffer()
-        end
+        Integer32BitArray indices = shape:GetIndices()
 
         if vertices:GetSize() + vertexWritePosition > GetVertexBufferSize() or (indices not= undefined and indices:GetSize() + indexWritePosition > GetIndexBufferSize())
             isFull = true
