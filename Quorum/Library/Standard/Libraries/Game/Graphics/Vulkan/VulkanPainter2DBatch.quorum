@@ -195,7 +195,12 @@ class VulkanPainter2DBatch
     end
 
     action Dispose
-        alert("NYI")
+            vertexStagingBuffer:Dispose()
+        indexStagingBuffer:Dispose()
+vertexMappedMemory:Dispose()
+        indexMappedMemory:Dispose()
+        vertexOutputBuffer:Dispose()
+        indexOutputBuffer:Dispose()
     end
     
     action GetPipeline returns VulkanPipeline

@@ -152,4 +152,14 @@ public class VulkanBuffer
     {
         return bufferHandle;
     }
+
+    public void Dispose()
+    {
+        StopMapping();
+
+        VulkanBuffer_ quorumBuffer = (VulkanBuffer_)me_;
+        VulkanDevice_ quorumDevice = quorumBuffer.GetDevice();
+        VulkanMemoryAllocator pluginMemoryAllocator = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanMemoryAllocator)quorumDevice.GetMemoryAllocator()).plugin_;
+        vmaDestroyBuffer(pluginMemoryAllocator.GetAllocatorPointer(), bufferHandle, memoryHandle);
+    }
 }

@@ -31,9 +31,7 @@ class VulkanNumber64BitMappedMemory
 
     private system action CreateNative(VulkanBuffer buffer)
 
-    action Dispose
-        alert("NYI")
-    end
+system action Dispose
 
     action Set(integer index, number value)
         if not initialized

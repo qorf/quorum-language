@@ -39,4 +39,9 @@ public class VulkanNumber64BitMappedMemory
     {
         return doubleBuffer.get(index);
     }
+
+    public void Dispose()
+    {
+        MemoryUtil.memFree(doubleBuffer);
+    }
 }

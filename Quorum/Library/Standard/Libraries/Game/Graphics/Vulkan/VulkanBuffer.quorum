@@ -63,9 +63,7 @@ class VulkanBuffer
 
     private system action CreateNative(VulkanDevice device, integer size, integer bufferUsage, integer memoryUsage, integer allocationFlags, integer requiredMemoryFlags, integer preferredMemoryFlags, integer sharingMode) returns boolean
 
-    action Dispose
-        alert("NYI")
-    end
+    system action Dispose
 
     /*
     This action returns true if this buffer supports "mapped" memory that is directly accessible from the program, or false otherwise.
