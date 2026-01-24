@@ -175,7 +175,7 @@ function plugins_quorum_Libraries_Game_WebDisplay_()
         let text = await navigator.clipboard.readText();
         if (text != null && text != "")
         {
-            editor.InsertTextAfterLine$quorum_text(text);
+            editor.InsertTextAfterLineIntoFreeform$quorum_text(text);
         }
     }
 

@@ -33,7 +33,8 @@ Game game = manager:GetGame()
         text value = game:GetClipboard()
 text clipboard = game:GetClipboard()
         if clipboard not= undefined and clipboard not= ""
-            editor:InsertTextAfterLine(clipboard)
+                editor:InsertTextAfterLineIntoFreeform(clipboard)
+            //editor:InsertTextAfterLine(clipboard)
         end
         end
         

@@ -709,6 +709,10 @@ class FreeformBlock is SingleLineBlock
     
                 if statement not= undefined
                     if parser:HasNext()
+if editor:HasValidParse()
+                editor:SetCode(editor:GetCode())
+                return now
+            end
                         SetErrorVisual()
                         return now
                     end
@@ -722,6 +726,10 @@ class FreeformBlock is SingleLineBlock
                 PackageContext context = parser:Package()
                 if context not= undefined
                     if parser:HasNext()
+if editor:HasValidParse()
+                editor:SetCode(editor:GetCode())
+                return now
+            end
                         SetErrorVisual()
                         return now
                     end
@@ -731,6 +739,10 @@ class FreeformBlock is SingleLineBlock
                 UseContext context = parser:Use()
                 if context not= undefined
                     if parser:HasNext()
+if editor:HasValidParse()
+                editor:SetCode(editor:GetCode())
+                return now
+            end
                         SetErrorVisual()
                         return now
                     end
@@ -740,6 +752,10 @@ class FreeformBlock is SingleLineBlock
                 FullClassDeclarationContext context = parser:FullClass()
                 if context not= undefined
                     if parser:HasNext()
+if editor:HasValidParse()
+                editor:SetCode(editor:GetCode())
+                return now
+            end
                         SetErrorVisual()
                         return now
                     end
@@ -749,6 +765,10 @@ class FreeformBlock is SingleLineBlock
                 ParseContext context = parser:ActionDeclaration()
 if context is ActionContext
                     if parser:HasNext()
+if editor:HasValidParse()
+                editor:SetCode(editor:GetCode())
+                return now
+            end
                         SetErrorVisual()
                         return now
                     end
@@ -765,6 +785,10 @@ if context is ActionContext
     
                 if statement not= undefined
                     if parser:HasNext()
+if editor:HasValidParse()
+                editor:SetCode(editor:GetCode())
+                return now
+            end
                         SetErrorVisual()
                         return now
                     end

@@ -1687,6 +1687,141 @@ editManager:SetSpecialAction(false)
         shouldCalculateNavigationIndices = true
         RequestLayout()
     end
+    
+    action InsertTextAfterLineIntoFreeform(text value)
+        
+// If the selected block is a FreeformBlock, try to parse it before making a new one.
+        if selection:GetBlock() is FreeformBlock
+            // Note that if the selected block is replaced, the new one will be selected before we continue.
+            FreeformBlock freeform = cast(FreeformBlock, selection:GetBlock())
+            freeform:ParseToBlock()
+        end
+
+        integer currentLine = selection:GetLine()
+        integer targetIndex = -1
+        if selection:GetBlock() not= undefined
+            currentLine = selection:GetBlock():GetEndLine()
+        end
+
+        if currentLine >= rawCode:GetLineCount() - 1
+            targetIndex = rawCode:GetSize()
+        elseif currentLine >= 0
+            // Get the start of the next line, then go back one to reach the end of the current line.
+            targetIndex = rawCode:CharacterIndexFromLineIndex(currentLine + 1) - rawCode:GetLineSeparator():GetSize()
+        end
+        boolean sharesLine = false
+        if selection:GetBlock() not= undefined and targetIndex > 0
+            
+            text postText = rawCode:GetText(selection:GetBlock():GetEndIndex(), targetIndex)
+            if postText:Trim() not= ""
+                sharesLine = true
+                targetIndex = selection:GetBlock():GetEndIndex()
+            end
+        end
+        
+        // Get the parent that the new block will be attached to.
+        Block parentBlock = undefined
+        integer scopeDepth = 0
+        integer insertIndex = 0
+
+        if currentLine < 0
+            // If we're inserting at the top, we must add to the root block.
+            parentBlock = renderer:GetRootBlock()
+        else
+            parentBlock = selection:GetBlock()
+
+            scopeDepth = parentBlock:GetScopeDepth()
+            insertIndex = parentBlock:GetParentIndex() + 1
+    
+            // If the selected block is the beginning of a scope, we can add straight to it.
+            // Otherwise, we need to grab the parent of the selected block.
+            if parentBlock:IsEnteringScope() = false
+                parentBlock = parentBlock:GetParentBlock()
+    
+                if parentBlock is MultipleLineBlock
+                    // Adjust the insert index to place this just after the MultipleLineBlock, instead of getting the parent index of the part.
+                    insertIndex = parentBlock:GetParentIndex() + 1
+    
+                    // If the parent block is a MultipleLineBlock, go up one extra step to find the actual scoping block we want to attach to.
+                    parentBlock = parentBlock:GetParentBlock()
+                end
+            else
+                // If we're adding straight to a scoping block, it'll be the first block in the scope.
+                insertIndex = 0
+                scopeDepth = scopeDepth + 1
+            end
+        end
+
+        text newValue = "
+" + GetIndentationText(scopeDepth) + value:Trim()
+        integer indentationSize = GetIndentationText(scopeDepth):GetSize()
+        if sharesLine
+            newValue = "
+"+ GetIndentationText(scopeDepth)+"
+" + value:Trim()
+        end
+        /*
+        Call OffsetIndices on the parent. This will update the necessary indices in the hierarchy so their
+        text and line indices are correct.
+        */
+        newValue = SanitizeNewLines(newValue)
+        
+integer i = 0
+        integer newLinesAdded = 0
+        repeat while i < newValue:GetSize()
+            if newValue:GetUnicodeInteger(i) = newValue:GetUnicodeInteger(0)
+                newLinesAdded = newLinesAdded + 1
+            end
+            i = i + 1
+        end
+        if not sharesLine
+            parentBlock:OffsetIndices(targetIndex, newValue:GetSize(), newLinesAdded)
+        else
+            parentBlock:OffsetIndices(targetIndex, newValue:GetSize(), newLinesAdded)
+        end
+        if targetIndex < 0
+            targetIndex = 0
+        end
+
+        // Process a text change event. This will automatically update the MultipleLineText.
+        TextChangeEvent event
+        event:Initialize(me, newValue, "", targetIndex)
+        OnTextChange(event, 0)
+
+        FreeformBlock newBlock
+
+        if currentLine >= 0
+            targetIndex = targetIndex + 1
+integer startLine = currentLine + 1 - parentBlock:GetStartLine()
+            integer startIndex = targetIndex - parentBlock:GetStartIndex() + indentationSize
+            newBlock:SetLocalStartLine(startLine)
+            newBlock:SetLocalStartIndex(startIndex)
+            //newBlock:SetLocalEndIndex(targetIndex - parentBlock:GetStartIndex()+ newLine:GetSize() - 1)
+        else
+            newBlock:SetLocalStartLine(0)
+            newBlock:SetLocalStartIndex(0)
+        end
+        newBlock:SetLocalEndIndex(targetIndex +  newValue:GetSize() - parentBlock:GetStartIndex() -  1)
+        newBlock:SetScopeDepth(scopeDepth)
+
+        parentBlock:Add(insertIndex, cast(Block, newBlock))
+        newBlock:Setup()
+
+        renderer:RefreshBlockView(GetFirstVisibleLine(), GetLastVisibleLine())
+
+        newBlock:Resize()
+        MoveSelectionDown()
+        BlockChangeEvent blockEvent
+
+        integer eventIndex = targetIndex
+        if targetIndex not= 0
+            eventIndex = eventIndex - newValue:GetSize()
+        end
+
+        blockEvent:Set(me, eventIndex, insertIndex, newBlock, parentBlock, newValue, "", blockEvent:ADDED)
+        NotifyBlockChangeListeners(blockEvent)
+newBlock:ParseToBlock()
+    end
 
     /*
     This action deletes the currently selected block. If the passed boolean is true, all blocks
