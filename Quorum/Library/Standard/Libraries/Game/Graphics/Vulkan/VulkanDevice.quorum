@@ -64,5 +64,10 @@ class VulkanDevice
     action GetQueueFamily(integer index) returns VulkanQueueFamily
         return queueFamilies:Get(index)
     end
+    
+    /* This action makes the program wait until all currently pending operations on this device have finished.
+Once the device is idle, program operation will resume. This should be used sparingly, as it will have
+major performance impacts, but is sometimes necessary (e.g. recreating resources like the swapchain). */
+    system action WaitUntilIdle
 
 end

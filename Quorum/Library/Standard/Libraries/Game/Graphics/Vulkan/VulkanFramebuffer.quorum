@@ -1,4 +1,5 @@
 package Libraries.Game.Graphics.Vulkan
+
 use Libraries.Containers.Array
 
 class VulkanFramebuffer
@@ -22,5 +23,7 @@ class VulkanFramebuffer
     end
 
     private system action CreateNative(VulkanDevice device, Array<VulkanImageView> imageViews, VulkanRenderPass renderPass) returns boolean
+    
+    system action Dispose
 
 end

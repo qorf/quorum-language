@@ -9,8 +9,7 @@ import quorum.Libraries.Game.Graphics.Vulkan.VulkanQueueFamily;
 
 import java.nio.FloatBuffer;
 
-import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
-import static org.lwjgl.vulkan.VK10.vkCreateDevice;
+import static org.lwjgl.vulkan.VK10.*;
 
 public class VulkanDevice
 {
@@ -119,5 +118,10 @@ public class VulkanDevice
     public VkDevice GetDevice()
     {
         return vulkanDevice;
+    }
+
+    public void WaitUntilIdle()
+    {
+        vkDeviceWaitIdle(vulkanDevice);
     }
 }

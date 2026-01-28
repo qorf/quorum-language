@@ -12,6 +12,8 @@ use Libraries.Containers.Array
 
 class VulkanGraphics is GraphicsManager
     
+VulkanConstants constants
+    
     VulkanInstance instance = undefined
     VulkanPhysicalDevice physicalDevice = undefined
     VulkanDevice device = undefined
@@ -123,7 +125,6 @@ VulkanImage depthBufferImage = undefined
         // Create the graphics queue. We need to check the device's queue families to see which one will do the work we want.
         // We'll need to compare against a bitmask for this.
         BitwiseOperations bits
-        VulkanConstants constants
 
         integer i = 0
         repeat while i < device:GetQueueFamilyCount()
@@ -343,114 +344,31 @@ VulkanImageInfo imageInfo
         currentSwapchainIndex = (currentSwapchainIndex + 1) mod swapchain:GetImageCount()
         currentRenderCommandBuffer = renderCommandBuffers:Get(currentSwapchainIndex)
         currentRenderFence = renderFences:Get(currentSwapchainIndex)     
-        currentFramebuffer = swapchainFramebuffers:Get(currentSwapchainIndex)
 
         // Ensure that all work associated with this image has previously finished.
         currentRenderFence:Wait()
 
         // Make sure the next image in the swapchain is valid. Window resizing in particular can make the swapchain "out of date", in which case we'll need to regenerate it.
-        if PrepareNextSwapchainImage(device, swapchain, imageAcquiredSemaphores:Get(currentSwapchainIndex)) = false
+integer swapchainResult = PrepareNextSwapchainImage(device, swapchain, imageAcquiredSemaphores:Get(currentSwapchainIndex))
+        if swapchainResult = constants:SUBOPTIMAL or swapchainResult = constants:ERROR_OUT_OF_DATE
             RegenerateSwapchain()
         end
-
-//        currentFrameIndex = (currentFrameIndex + 1) mod swapchain:GetImageCount()
-//        currentRenderCommandBuffer = renderCommandBuffers:Get(currentFrameIndex)
-//        currentRenderFence = renderFences:Get(currentFrameIndex)
-//
-//        currentRenderFence:Wait()
-//        
-//        // Make sure the next image in the swapchain is valid. Window resizing in particular can make the swapchain "out of date", in which case we'll need to regenerate it.
-//        if PrepareNextSwapchainImage(device, swapchain, imageAcquiredSemaphores:Get(currentFrameIndex)) = false
-//            RegenerateSwapchain()
-//        end
-//
-//        currentSwapchainIndex = GetCurrentSwapchainIndexNative()
-//        currentFramebuffer = swapchainFramebuffers:Get(currentSwapchainIndex)
-
-        // Ensure that all work associated with this image has previously finished.
-//        currentRenderFence:Wait()
-
         
+currentFramebuffer = swapchainFramebuffers:Get(currentSwapchainIndex)
 
         // Reset the fence associated with this frame.
         currentRenderFence:Reset()
 
         // Reset the render command buffer. In this case, we'll instruct the command buffer not to release memory (it might reuse it, depending on local implementation, or just ditch it anyway)
         currentRenderCommandBuffer:Reset()
-
-
-        // Ensure the screen clearing value is ready for use.
-//        if clearValue:IsDirty()
-//            clearValue:ResetDirtyFlag()
-//        end
-
         
         // Begin recording commands for our chosen command buffer.
         currentRenderCommandBuffer:BeginRecording()
-
-
-        // Create the command to begin the render pass.
-//        BeginRenderPassCommand beginRenderPass
-//        beginRenderPass:SetRenderPass(renderPass)
-//        beginRenderPass:SetClearValue(clearValue)
-//        beginRenderPass:SetFramebuffer(currentFramebuffer)
-//        beginRenderPass:SetRenderArea(swapchain:GetImageWidth(), swapchain:GetImageHeight())
-//        currentRenderCommandBuffer:Record(beginRenderPass)
-//
-//        // NEXT STEP: Bind pipeline command
-////        BindPipelineCommand bindPipeline
-////        bindPipeline:SetPipeline(pipeline)
-//
-//        // Set viewport command
-//        // Setting the position to the height and the height to the negated height flips the Y axis of our viewport.
-//        SetViewportCommand setViewport
-//        setViewport:SetPosition(0, swapchain:GetImageHeight())
-//        setViewport:SetSize(swapchain:GetImageWidth(), -swapchain:GetImageHeight())
-//        currentRenderCommandBuffer:Record(setViewport)
-//
-//        // Set scissor command
-//        SetScissorCommand setScissor
-//        setScissor:SetPosition(0, 0)
-//        setScissor:SetSize(swapchain:GetImageWidth(), swapchain:GetImageHeight())
-//        currentRenderCommandBuffer:Record(setScissor)
-//
-//        // End the render pass.
-//        EndRenderPassCommand endRenderPass
-//        currentRenderCommandBuffer:Record(endRenderPass)
-
-//        // Stop recording commands.
-//        currentRenderCommandBuffer:EndRecording()
-//
-//
-//        // TO-DO: Recreating these arrays every frame is going to be an issue. Consider reusing them or making a pool for the SubmitInfo.
-//        VulkanSubmitInfo submitInfo
-//        Array<VulkanCommandBuffer> commandBuffers
-//        Array<VulkanSemaphore> signalSemaphores
-//        Array<VulkanSemaphore> waitSemaphores
-//        Array<integer> waitDestinationStageMasks
-//
-//
-//        VulkanConstants constants
-//        commandBuffers:Add(currentRenderCommandBuffer)
-//        signalSemaphores:Add(imageRenderCompleteSemaphores:Get(currentSwapchainIndex))
-//        waitSemaphores:Add(imageAcquiredSemaphores:Get(currentSwapchainIndex))
-//        waitDestinationStageMasks:Add(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
-//        
-//        submitInfo:SetCommandBuffers(commandBuffers)
-//        submitInfo:SetSignalSemaphores(signalSemaphores)
-//        submitInfo:SetWaitSemaphores(waitSemaphores)
-//        submitInfo:SetWaitDestinationStageMasks(waitDestinationStageMasks)
-//        submitInfo:SetFence(currentRenderFence)
-//
-//        graphicsQueue:SubmitCommands(submitInfo)
-
-        // This will need to move in the future, but this can be here while testing initial screen clearing.
-//        DisplayCurrentImage()
     end
 
     // Asks the system to get the index of the next image in the Swapchain, and returns a boolean indicating if the operation was successful or not.
     // Use GetCurrentSwapchainIndex after using this to get the actual index.
-    private system action PrepareNextSwapchainImage(VulkanDevice device, VulkanSwapchain swapchain, VulkanSemaphore semaphore) returns boolean
+    private system action PrepareNextSwapchainImage(VulkanDevice device, VulkanSwapchain swapchain, VulkanSemaphore semaphore) returns integer
 
     // Returns the index of the next image that the Swapchain has indicated is ready for use. Use PrepareNextSwapchainImage before calling this.
     private system action GetCurrentSwapchainIndexNative returns integer
@@ -467,8 +385,6 @@ VulkanImageInfo imageInfo
         Array<VulkanSemaphore> waitSemaphores
         Array<integer> waitDestinationStageMasks
 
-
-        VulkanConstants constants
         commandBuffers:Add(currentRenderCommandBuffer)
         signalSemaphores:Add(imageRenderCompleteSemaphores:Get(currentSwapchainIndex))
         waitSemaphores:Add(imageAcquiredSemaphores:Get(currentSwapchainIndex))
@@ -488,7 +404,43 @@ VulkanImageInfo imageInfo
     private system action DisplayCurrentImageNative(VulkanQueue presentQueue, VulkanSwapchain swapchain, VulkanSemaphore waitSemaphore, integer imageIndex) returns boolean
 
     private action RegenerateSwapchain
-        alert("NYI")
+        device:WaitUntilIdle()
+        
+        integer i = 0
+        repeat while i < swapchainFramebuffers:GetSize()
+            VulkanFramebuffer buffer = swapchainFramebuffers:Get(i)
+            buffer:Dispose()
+            i = i + 1
+        end
+        
+        VulkanSwapchainInfo info = swapchain:GetInfo():Copy()
+        swapchain:Dispose()
+        
+        VulkanSwapchain newSwapchain
+        swapchain = newSwapchain
+        
+boolean success = swapchain:Create(device, surface, info)
+        if not success
+            alert("Failed to regenerate swapchain!")
+        end
+        
+        swapchainFramebuffers:Empty()
+        i = 0
+        repeat while i < swapchain:GetImageCount()
+            VulkanImageView imageView = swapchain:GetImageView(i)
+            Array<VulkanImageView> imageViewArray
+            imageViewArray:Add(imageView)
+            imageViewArray:Add(depthBufferImageView)
+
+            VulkanFramebuffer framebuffer
+            success = framebuffer:Create(device, imageViewArray, renderPass)
+            if not success
+                alert("Failed to create framebuffer during swapchain regeneration!")
+            end
+
+            swapchainFramebuffers:Add(framebuffer)
+            i = i + 1
+        end
     end
     
     /*

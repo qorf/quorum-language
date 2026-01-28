@@ -10,8 +10,7 @@ import quorum.Libraries.Game.Graphics.Vulkan.VulkanRenderPass_;
 
 import java.nio.LongBuffer;
 
-import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
-import static org.lwjgl.vulkan.VK10.vkCreateFramebuffer;
+import static org.lwjgl.vulkan.VK10.*;
 
 public class VulkanFramebuffer
 {
@@ -67,8 +66,16 @@ public class VulkanFramebuffer
         return true;
     }
 
-
     public long GetFramebufferHandle() {
         return framebufferHandle;
+    }
+
+    public void Dispose()
+    {
+        VulkanDevice_ quorumDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanFramebuffer_)me_).Get_Libraries_Game_Graphics_Vulkan_VulkanFramebuffer__device_();
+        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
+        VkDevice vulkanDevice = pluginDevice.GetDevice();
+
+        vkDestroyFramebuffer(vulkanDevice, framebufferHandle, null);
     }
 }

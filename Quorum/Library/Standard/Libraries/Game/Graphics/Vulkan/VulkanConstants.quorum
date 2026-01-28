@@ -619,7 +619,9 @@ public constant integer PIPELINE_BIND_POINT_COMPUTE = 1
     Vulkan error codes.
     */
     public constant integer SUCCESS = 0
+    public constant integer SUBOPTIMAL = 1000001003
     public constant integer ERROR_OUT_OF_POOL_MEMORY = -1000069000
+    public constant integer ERROR_OUT_OF_DATE = -1000001004
 
     /*
     Image types, used to indicate how many dimensions a VulkanImage has. IMAGE_TYPE_2D is suitable for most cases.

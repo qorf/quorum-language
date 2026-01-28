@@ -6,8 +6,6 @@ class VulkanSwapchain
     VulkanDevice device = undefined
     VulkanSurface surface = undefined
     Array<VulkanImageView> imageViews = undefined
-    Array<VulkanSemaphore> imageAcquiredSemaphores = undefined
-    Array<VulkanSemaphore> imageRenderCompleteSemaphores = undefined
 
     boolean initialized = false
 
@@ -50,18 +48,6 @@ class VulkanSwapchain
             end
 
             imageViews:Add(view)
-
-            VulkanSemaphore acquireSemaphore
-            result = acquireSemaphore:Create(device)
-            if not result
-                return false
-            end
-
-            VulkanSemaphore renderSemaphore
-            result = renderSemaphore:Create(device)
-            if not result
-                return false
-            end
 
             i = i + 1
         end
@@ -137,6 +123,23 @@ class VulkanSwapchain
 
     action GetDevice returns VulkanDevice
         return device
+    end
+    
+    action Dispose
+        integer i = 0
+        repeat while i < imageViews:GetSize()
+            VulkanImageView view = imageViews:Get(i)
+            view:Dispose()
+            i = i + 1
+        end
+        
+        DisposeNative()
+    end
+    
+    private system action DisposeNative
+    
+    action GetInfo returns VulkanSwapchainInfo
+        return info
     end
 
 end

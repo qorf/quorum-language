@@ -1,6 +1,7 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.vulkan.KHRSwapchain;
 import org.lwjgl.vulkan.VkDevice;
 import org.lwjgl.vulkan.VkImageViewCreateInfo;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
@@ -9,8 +10,7 @@ import quorum.Libraries.Game.Graphics.Vulkan.VulkanImage_;
 
 import java.nio.LongBuffer;
 
-import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
-import static org.lwjgl.vulkan.VK10.vkCreateImageView;
+import static org.lwjgl.vulkan.VK10.*;
 
 public class VulkanImageView
 {
@@ -56,5 +56,14 @@ public class VulkanImageView
     public long GetVulkanImageViewHandle()
     {
         return vulkanImageViewHandle;
+    }
+
+    public void Dispose()
+    {
+        VulkanDevice_ quorumDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanImageView_)me_).Get_Libraries_Game_Graphics_Vulkan_VulkanImageView__device_();
+        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
+        VkDevice vulkanDevice = pluginDevice.GetDevice();
+
+        vkDestroyImageView(vulkanDevice, vulkanImageViewHandle, null);
     }
 }

@@ -25,13 +25,6 @@ constant text SHADER_NAME = "Drop Shadow Fragment Shader"
 layout(set = 0, binding = 1) uniform sampler immutableSampler;
 layout(set = 1, binding = 0) uniform texture2D globalTextures[];
 
-//in LOWP vec4 v_color;
-//in vec2 v_texCoords;
-//uniform sampler2D u_texture;
-//uniform vec4 u_rounding;
-//uniform float u_softness;
-//uniform float u_aspectRatio;
-//layout (location = 0) out vec4 outputColor;
 layout(location = 0) in vec4 v_color;
 layout(location = 1) in vec2 v_textureCoords;
 layout(location = 2) flat in uint v_textureIndex;

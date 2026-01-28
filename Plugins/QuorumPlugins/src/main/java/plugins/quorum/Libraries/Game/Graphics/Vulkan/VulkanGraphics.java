@@ -19,7 +19,7 @@ public class VulkanGraphics
 
     int currentSwapchainIndex = 0;
 
-    public boolean PrepareNextSwapchainImage(VulkanDevice_ quorumDevice, VulkanSwapchain_ quorumSwapchain, VulkanSemaphore_ quorumSemaphore)
+    public int PrepareNextSwapchainImage(VulkanDevice_ quorumDevice, VulkanSwapchain_ quorumSwapchain, VulkanSemaphore_ quorumSemaphore)
     {
         VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
         VulkanSwapchain pluginSwapchain = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanSwapchain)quorumSwapchain).plugin_;
@@ -31,15 +31,15 @@ public class VulkanGraphics
             int vulkanResult = KHRSwapchain.vkAcquireNextImageKHR(pluginDevice.GetDevice(), pluginSwapchain.GetVulkanSwapchainHandle(),
                     Long.MAX_VALUE, pluginSemaphore.GetSemaphoreHandle(), 0L, imageIndexBuffer);
 
-            if (vulkanResult == KHRSwapchain.VK_ERROR_OUT_OF_DATE_KHR)
-                return false;
-            else if (vulkanResult == VK_SUBOPTIMAL_KHR)
-                ; // Do nothing. Despite the warning message, the Swapchain is still usable in this state.
-            else if (vulkanResult != VK_SUCCESS)
+            if (vulkanResult == VK_SUCCESS || vulkanResult == VK_SUBOPTIMAL_KHR || vulkanResult == KHRSwapchain.VK_ERROR_OUT_OF_DATE_KHR)
+            {
+                return vulkanResult;
+            }
+            else
+            {
                 throw new RuntimeException("Could not acquire the next swapchain image! Error code: " + vulkanResult);
+            }
         }
-
-        return true;
     }
 
     public int GetCurrentSwapchainIndexNative()

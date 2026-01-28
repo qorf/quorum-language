@@ -130,17 +130,6 @@ public class VulkanSwapchain
             dimensions.set(finalWidth, finalHeight);
             createInfo.SetImageSize(finalWidth, finalHeight);
 
-//            int imageWidth = createInfo.GetImageWidth();
-//            int imageHeight = createInfo.GetImageHeight();
-//
-//            // Define the "extent", or the dimensions, of the images we'll be using for the Swapchain.
-//            VkExtent2D dimensions = VkExtent2D.calloc(stack);
-//            int finalWidth = Math.min(imageWidth, surfaceCapabilities.maxImageExtent().width());
-//            finalWidth = Math.max(finalWidth, surfaceCapabilities.minImageExtent().width());
-//
-//            int finalHeight = Math.min(imageHeight, surfaceCapabilities.maxImageExtent().height());
-//            finalHeight = Math.max(finalHeight, surfaceCapabilities.minImageExtent().height());
-
             dimensions.set(finalWidth, finalHeight);
             createInfo.SetImageSize(finalWidth, finalHeight);
 
@@ -257,5 +246,14 @@ public class VulkanSwapchain
     public long GetVulkanSwapchainHandle()
     {
         return vulkanSwapchainHandle;
+    }
+
+    public void DisposeNative()
+    {
+        VulkanDevice_ quorumDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanSwapchain_)me_).GetDevice();
+        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
+        VkDevice vulkanDevice = pluginDevice.GetDevice();
+
+        KHRSwapchain.vkDestroySwapchainKHR(vulkanDevice, vulkanSwapchainHandle, null);
     }
 }
