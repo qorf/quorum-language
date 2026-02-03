@@ -33,6 +33,7 @@ use Libraries.Containers.Number32BitArray
 use Libraries.Interface.Controls.TextStyles.TextStyle
 use Libraries.Containers.HashTable
 use Libraries.Interface.Controls.TextStyles.TextHighlight
+use Libraries.Game.Graphics.SharedTextureManager
 /*
     The TextField class is a control object and UI element it is added to the Game 
     class. The TextField is used to represent a general text area that contains a single
@@ -297,9 +298,9 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         parent:Control:LoadGraphics(properties)
 
         if selectionTexture = undefined
-            Texture texture
-            selectionTexture = texture
-            selectionTexture:LoadFilledRectangle(1, 1)
+GameStateManager manager
+        SharedTextureManager textureManager = manager:GetSharedTextureManager()
+            selectionTexture = textureManager:GetUnitTexture()
         end
 
         ColorGroup backgroundColor = properties:GetBackgroundColor()

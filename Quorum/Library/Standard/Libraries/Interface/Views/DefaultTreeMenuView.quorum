@@ -9,9 +9,14 @@ use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.PixelMap
 use Libraries.Game.Graphics.Format
 use Libraries.Game.Graphics.FileTextureData
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.SharedTextureManager
+use Libraries.Game.Graphics.SharedTexture
 
 class DefaultTreeMenuView is Drawable, ToggleView
     boolean open = false
+    
+    constant text TEXTURE_KEY_PREFIX = "DefaultTreeMenuView-"
 
     action Initialize(integer width, integer height)
         SetName("DefaultTreeMenuView")
@@ -21,6 +26,18 @@ class DefaultTreeMenuView is Drawable, ToggleView
     end
 
     private action GenerateTriangle(integer size, integer buffer, Color color) returns Texture
+GameStateManager gameState
+        SharedTextureManager textureManager = gameState:GetSharedTextureManager()
+        text textureKey = TEXTURE_KEY_PREFIX + size + "-" + buffer
+        integer red = cast(integer, color:GetRed() * 255)
+integer green = cast(integer, color:GetGreen() * 255)
+integer blue = cast(integer, color:GetBlue() * 255)
+integer alpha = cast(integer, color:GetAlpha() * 255)
+        textureKey = textureKey + "-" + red + "/" + green + "/" + blue + "/" + alpha
+        if textureManager:HasKey(textureKey)
+            return textureManager:GetTexture(textureKey)
+        end
+        
         PixelMap map
         Format format
         format:SetValue(format:RGBA8888)
@@ -30,8 +47,9 @@ class DefaultTreeMenuView is Drawable, ToggleView
         integer middle = buffer * 2
         middle = cast(integer, size / 2.0)
         map:FillTriangle(size / 4, buffer, size / 4, size - buffer, middle + size / 4, middle, color)
-        Texture texture
+        SharedTexture texture
         texture:LoadFromPixelMap(map)
+        textureManager:Add(textureKey, texture)
         return texture
     end
 

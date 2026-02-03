@@ -120,7 +120,8 @@ VulkanSwapchain swapchain = graphics:GetSwapchain()
         if isFirstPass
             outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
         else
-            outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
+            outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_LOAD)
+//outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
         end
 
         Array<VulkanAttachmentDescription> attachmentDescriptions
@@ -269,11 +270,15 @@ depthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
 
             Game game = gameState:GetGame()
             Iterator<Layer> layers = game:GetLayerIterator()
-            if layers:HasNext()
-                Layer layer = layers:Next()
+            boolean finished = false
+            repeat while layers:HasNext() and not finished
+Layer layer = layers:Next()
+                // Note that the "finished = true" will have to move out of the if statement once Vulkan supports 3D (or just check first without a loop).
+                // For now, we intentionally don't consider 3D layers because there's a "dead" 3D layer in slot 0 by default.
                 if layer is Layer2D
                     Layer2D layer2D = cast(Layer2D, layer)
                     isFirstLayer = layer2D:GetPainter():Equals(me)
+                    finished = true
                 end
             end
 
@@ -434,16 +439,12 @@ BindPipelineCommand bindPipeline
             end
 
             // Ensure that, if no viewport dimensions were set, we get reasonable defaults from the swapchain.
-            if viewportWidth = 0 or true
+            if viewportWidth = 0
                 viewportWidth = swapchain:GetImageWidth()
             end
-            if viewportHeight = 0 or true
+            if viewportHeight = 0
                 viewportHeight = swapchain:GetImageHeight()
             end
-            
-            // TO-DO: Remove this
-            viewportX = 0
-            viewportY = 0
             
             SetViewportCommand setViewport
             setViewport:SetPosition(viewportX, swapchain:GetImageHeight() - viewportY)

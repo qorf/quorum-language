@@ -1666,8 +1666,9 @@ class Drawable is TextureRegion, Item2D
     
     */
     action LoadShape(Array<number> points, ColorGroup color)
-        Texture temp
-        temp:LoadFilledRectangle(4, 4)
+GameStateManager manager
+        SharedTextureManager textureManager = manager:GetSharedTextureManager()
+        Texture temp = textureManager:GetUnitTexture()
         Load(temp)
         SetColor(color)
 
@@ -1736,8 +1737,9 @@ class Drawable is TextureRegion, Item2D
     
     */
     action LoadShape(Array<number> points, Array<Color> colors)
-        Texture temp
-        temp:LoadFilledRectangle(4, 4)
+GameStateManager manager
+        SharedTextureManager textureManager = manager:GetSharedTextureManager()
+        Texture temp = textureManager:GetUnitTexture()
         Load(temp)
         SetColor(colors:Get(0))
 

@@ -45,14 +45,6 @@ public class VulkanImage
             if (imageInfo.GetFlags() != 0)
                 createInfo.flags(imageInfo.GetFlags());
 
-//            LongBuffer handleBuffer = stack.mallocLong(1);
-//
-//            int vulkanResult = vkCreateImage(pluginDevice.GetDevice(), createInfo, null, handleBuffer);
-//            if (vulkanResult != VK_SUCCESS)
-//                return false;
-//
-//            vulkanImageHandle = handleBuffer.get(0);
-
             VmaAllocationCreateInfo allocationCreateInfo = VmaAllocationCreateInfo.calloc(stack);
             allocationCreateInfo.usage(imageInfo.GetMemoryUsage());
 
@@ -98,5 +90,12 @@ public class VulkanImage
         return vulkanImageHandle;
     }
 
+    public void Dispose()
+    {
+        VulkanDevice_ quorumDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanImage_)me_).GetDevice();
+        VulkanMemoryAllocator pluginMemoryAllocator = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanMemoryAllocator)quorumDevice.GetMemoryAllocator()).plugin_;
+
+        vmaDestroyImage(pluginMemoryAllocator.GetAllocatorPointer(), vulkanImageHandle, vulkanMemoryHandle);
+    }
 
 }

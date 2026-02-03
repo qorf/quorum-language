@@ -22,6 +22,8 @@ use Libraries.Game.Graphics.PixelMap
 use Libraries.Game.Graphics.Format
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.SharedTextureManager
+use Libraries.Game.Graphics.SharedTexture
 
 class Tab is Button
     TabPane container = undefined
@@ -52,6 +54,9 @@ class Tab is Button
     // Values used to track if the Tab or an item related to it is focused.
     boolean renderFocus = false
     Item lastKnownFocus = undefined
+    
+    // The first part of a key to the SharedTextureManager to store close icons.
+    constant text CLOSE_TEXTURE_KEY_PREFIX = "Tab-"
 
     on create
 label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
@@ -485,6 +490,24 @@ number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
     end
 
     private action GenerateX(integer size, integer buffer, integer width, Color background, Color accent) returns Texture
+        GameStateManager gameState
+        SharedTextureManager textureManager = gameState:GetSharedTextureManager()
+        text textureKey = CLOSE_TEXTURE_KEY_PREFIX + size + "-" + buffer + "-" + width
+        integer backRed = cast(integer, background:GetRed() * 255)
+integer backGreen = cast(integer, background:GetGreen() * 255)
+integer backBlue = cast(integer, background:GetBlue() * 255)
+integer backAlpha = cast(integer, background:GetAlpha() * 255)
+integer accentRed = cast(integer, accent:GetRed() * 255)
+integer accentGreen = cast(integer, accent:GetGreen() * 255)
+integer accentBlue = cast(integer, accent:GetBlue() * 255)
+integer accentAlpha = cast(integer, accent:GetAlpha() * 255)
+        textureKey = textureKey + "-" + backRed + "/" + backGreen + "/" + backBlue + "/" + backAlpha
+        textureKey = textureKey + "-" + accentRed + "/" + accentGreen + "/" + accentBlue + "/" + accentAlpha
+        if textureManager:HasKey(textureKey)
+            return textureManager:GetTexture(textureKey)
+        end
+        
+        
         PixelMap map
         Format format
         format:SetValue(format:RGBA8888)
@@ -525,8 +548,9 @@ number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
             y = y + 1
         end
 
-        Texture texture
+        SharedTexture texture
         texture:LoadFromPixelMap(map)
+        textureManager:Add(textureKey, texture)
         return texture
     end
 

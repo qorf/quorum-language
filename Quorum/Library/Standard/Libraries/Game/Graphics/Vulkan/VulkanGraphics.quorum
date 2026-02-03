@@ -424,6 +424,29 @@ boolean success = swapchain:Create(device, surface, info)
             alert("Failed to regenerate swapchain!")
         end
         
+// Also regenerate the depth buffer image and image view at the new size.
+        depthBufferImage:Dispose()
+        depthBufferImageView:Dispose()
+        
+VulkanImageInfo imageInfo
+        imageInfo:SetWidth(swapchain:GetImageWidth())
+        imageInfo:SetHeight(swapchain:GetImageHeight())
+        imageInfo:SetUsage(constants:IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+        imageInfo:SetFormat(constants:FORMAT_D32_SFLOAT)
+        
+        VulkanImage depthImage
+        depthBufferImage = depthImage
+        depthImage:Create(device, imageInfo)
+        
+        VulkanImageViewInfo viewInfo
+        viewInfo:SetAspectMask(constants:IMAGE_ASPECT_DEPTH_BIT)
+        viewInfo:SetFormat(imageInfo:GetFormat())
+        
+        VulkanImageView depthImageView
+        depthBufferImageView = depthImageView
+        depthImageView:Create(device, depthImage, viewInfo)
+        
+        // Create new framebuffers for the swapchain's new images.
         swapchainFramebuffers:Empty()
         i = 0
         repeat while i < swapchain:GetImageCount()

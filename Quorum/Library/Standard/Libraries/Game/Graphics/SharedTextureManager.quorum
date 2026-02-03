@@ -1,4 +1,6 @@
 package Libraries.Game.Graphics
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
 
 class SharedTextureManager
 
@@ -9,6 +11,9 @@ class SharedTextureManager
     most of the UI, including in the ControlShaderView.
     */
     SharedTexture unitTexture = undefined
+    
+    /* A HashTable where shared textures can be registered and retrieved. */
+    HashTable<text, SharedTexture> sharedTextures
 
     action GetUnitTexture returns SharedTexture
         if unitTexture = undefined
@@ -20,11 +25,52 @@ class SharedTextureManager
 
         return unitTexture
     end
+    
+    action Add(text key, SharedTexture texture)
+        sharedTextures:Add(key, texture)
+    end
+    
+    action HasKey(text key) returns boolean
+        return sharedTextures:HasKey(key)
+    end
+    
+    action GetTexture(text key) returns SharedTexture
+        if HasKey(key)
+            return sharedTextures:GetValue(key)
+        else
+            return undefined
+        end
+    end
+    
+    action Remove(text key) returns SharedTexture
+        if HasKey(key)
+            SharedTexture texture = sharedTextures:RemoveKey(key)
+            return texture
+        else
+            return undefined
+        end
+    end
+    
+    action GetKeyIterator returns Iterator<text>
+        return sharedTextures:GetKeyIterator()
+    end
+    
+    action GetTextureIterator returns Iterator<SharedTexture>
+        return sharedTextures:GetValueIterator()
+    end
 
     action Dispose
         unitTexture:SetDisposalAllowed(true)
         unitTexture:Dispose()
         unitTexture = undefined
+        
+        Iterator<SharedTexture> textures = sharedTextures:GetValueIterator()
+        repeat while textures:HasNext()
+            SharedTexture texture = textures:Next()
+            texture:SetDisposalAllowed(true)
+            texture:Dispose()
+        end
+        sharedTextures:Empty()
     end
 
 end

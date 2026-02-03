@@ -87,14 +87,13 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
     end
 
     action RequestLoad(Texture texture, PixelMap pixelMap)
-        output "Requesting Texture load..."
         pendingTextures:Add(texture)
         pendingPixelMaps:Add(pixelMap)
     end
 
     action ProcessPendingTextures
         if pendingTextures:IsEmpty() = false
-            output "Processing pending textures."
+            //output "Processing pending textures, nextTextureID = " + nextTextureID
             GameStateManager manager
             VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
             VulkanDevice device = graphics:GetDevice()
@@ -198,7 +197,11 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
                 else
                     globalTextureArray:Add(texture)
                     texture:SetVulkanTextureIndex(nextTextureID)
-                    output "Texture set to ID = " + nextTextureID
+text source = "(Undefined)"
+                    if texture:GetSource() not= undefined
+                        source = texture:GetSource()
+                    end
+                    output "Texture set to ID = " + nextTextureID + ", source = " + source
                     nextTextureID = nextTextureID + 1
                 end
 

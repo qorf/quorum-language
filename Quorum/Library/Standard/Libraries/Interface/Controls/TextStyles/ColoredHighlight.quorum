@@ -4,6 +4,7 @@ use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Texture
+use Libraries.Game.GameStateManager
 
 class ColoredHighlight is TextHighlight
     
@@ -40,10 +41,9 @@ class ColoredHighlight is TextHighlight
     Texture used by drawables produced by this highlight.
     */
     private action GenerateTexture returns Texture
-        Texture newTexture
-        Color c
-        newTexture:LoadFilledRectangle(1, 1, c:White())
-        return newTexture
+        GameStateManager manager
+        Texture texture = manager:GetSharedTextureManager():GetUnitTexture()
+        return texture
     end
 
     action SetColor(ColorGroup color)
