@@ -632,6 +632,9 @@ class CodeEditorRenderer is Control
         end
         
         repeat while target not= undefined and target:IsPlaceholder()
+            if target:GetNextNavigableBlock() = undefined
+                return true
+            end
             target = target:GetNextNavigableBlock()
         end
         
