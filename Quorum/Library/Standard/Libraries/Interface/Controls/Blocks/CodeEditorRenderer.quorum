@@ -825,12 +825,7 @@ class CodeEditorRenderer is Control
 
         CodeEditor editor = GetEditor()
         integer destination = placeholderBlocks:GetFromFront():GetStartIndex()
-
-        text eventInsertion = ""
-        text eventDeletion = ""
-        integer eventInsertIndex = destination
-        integer eventDeletionIndex = -1
-        boolean eventDeleteFirst = true
+        integer line = editor:GetLineIndex(destination)
         
         MultipleLineText code = editor:GetCode()
         if code:GetSize() > 0 and destination = code:GetSize()
@@ -844,47 +839,36 @@ class CodeEditorRenderer is Control
             if toMove:IsEmpty() = false and toMove:GetCharacter(toMove:GetSize() - 1) not= toMove:GetLineFeed()
                 toMove = toMove + toMove:GetLineFeed()
             end
-            eventDeletion = toMove
-            eventDeletionIndex = movingStartIndex
-            if movingStartIndex < destination
-                code = code:Insert(destination, toMove)
-                code = code:Delete(movingStartIndex, movingEndIndex)
-                eventDeleteFirst = false
-            else
-                code = code:Delete(movingStartIndex, movingEndIndex)
-                code = code:Insert(destination, toMove)
+            
+            BlockEditManager edits = editor:GetBlockEditManager()
+            edits:SetSpecialAction(true)
+            
+editor:InsertTextAfterLineIntoFreeform(line - 1, toInsert + toInsert:GetLineFeed())
+            
+integer i = 0
+            repeat while i < movingBlocks:GetSize()
+                Block temp = movingBlocks:Get(i)
+                temp:SetMoving(false)
+                editor:Delete(temp, false)
+                i = i + 1
             end
-eventInsertion = toMove
+            
+RemovePlaceholders()
+shouldCalculateWidth = true
+        shouldCalculateHeight = true
+        shouldRegenerateBlocks = true
+        shouldCalculateNavigationIndices = true
+RequestLayout()
+            edits:SetSpecialAction(false)
         else
-            code = code:Insert(destination, toInsert)
-eventInsertion = toInsert
+            editor:InsertTextAfterLineIntoFreeform(line - 1, toInsert + toInsert:GetLineFeed())
+            RemovePlaceholders()
+shouldCalculateWidth = true
+        shouldCalculateHeight = true
+        shouldRegenerateBlocks = true
+        shouldCalculateNavigationIndices = true
+        RequestLayout()
         end
-        placeholderBlocks:Empty()
-        
-        integer i = 0
-        repeat while i < movingBlocks:GetSize()
-            movingBlocks:Get(i):SetMoving(false)
-            i = i + 1
-        end
-        movingBlocks:Empty()
-        
-        editor:SetCode(code)
-        
-        // Manage the upcoming changes as a single edit in the edit manager.
-        BlockEditManager edits = editor:GetBlockEditManager()
-        edits:SetSpecialAction(true)
-        
-        if eventDeletionIndex >= -1 and eventDeleteFirst
-            NotifyTextChangeListeners(eventDeletionIndex, "", eventDeletion)
-        end
-        
-        NotifyTextChangeListeners(eventInsertIndex, eventInsertion, "")
-        
-        if eventDeletionIndex >= -1 and eventDeleteFirst = false
-            NotifyTextChangeListeners(eventDeletionIndex, "", eventDeletion)
-        end
-        
-        edits:SetSpecialAction(false)
     end
     
     private action NotifyTextChangeListeners(integer index, text added, text deleted)

@@ -1688,9 +1688,9 @@ editManager:SetSpecialAction(false)
         RequestLayout()
     end
     
+    /*Inserts text after the line of the currently selected block into a freeform block for parsing*/
     action InsertTextAfterLineIntoFreeform(text value)
-        
-// If the selected block is a FreeformBlock, try to parse it before making a new one.
+        // If the selected block is a FreeformBlock, try to parse it before making a new one.
         if selection:GetBlock() is FreeformBlock
             // Note that if the selected block is replaced, the new one will be selected before we continue.
             FreeformBlock freeform = cast(FreeformBlock, selection:GetBlock())
@@ -1698,10 +1698,17 @@ editManager:SetSpecialAction(false)
         end
 
         integer currentLine = selection:GetLine()
-        integer targetIndex = -1
-        if selection:GetBlock() not= undefined
+if selection:GetBlock() not= undefined
             currentLine = selection:GetBlock():GetEndLine()
         end
+        InsertTextAfterLineIntoFreeform(currentLine, value)
+    end
+    
+/*Inserts text after the given line into a freeform block for parsing*/
+    action InsertTextAfterLineIntoFreeform(integer line, text value)
+        integer currentLine = line
+        integer targetIndex = -1
+Block blockAtLine = renderer:GetBlockAtLine(currentLine)
 
         if currentLine >= rawCode:GetLineCount() - 1
             targetIndex = rawCode:GetSize()
@@ -1710,12 +1717,12 @@ editManager:SetSpecialAction(false)
             targetIndex = rawCode:CharacterIndexFromLineIndex(currentLine + 1) - rawCode:GetLineSeparator():GetSize()
         end
         boolean sharesLine = false
-        if selection:GetBlock() not= undefined and targetIndex > 0
+        if blockAtLine not= undefined and targetIndex > 0
             
-            text postText = rawCode:GetText(selection:GetBlock():GetEndIndex(), targetIndex)
+            text postText = rawCode:GetText(blockAtLine:GetEndIndex(), targetIndex)
             if postText:Trim() not= ""
                 sharesLine = true
-                targetIndex = selection:GetBlock():GetEndIndex()
+                targetIndex = blockAtLine:GetEndIndex()
             end
         end
         
@@ -1728,7 +1735,7 @@ editManager:SetSpecialAction(false)
             // If we're inserting at the top, we must add to the root block.
             parentBlock = renderer:GetRootBlock()
         else
-            parentBlock = selection:GetBlock()
+            parentBlock = blockAtLine
 
             scopeDepth = parentBlock:GetScopeDepth()
             insertIndex = parentBlock:GetParentIndex() + 1
