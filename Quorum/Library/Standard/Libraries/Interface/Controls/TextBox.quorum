@@ -1417,6 +1417,10 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         background:GetCaret():Hide()
         caretActive = false
     end
+    
+    action RemoveSelection
+        EmptySelectionEvent(false)
+    end
 
     /*
     The DeleteBackward action deletes a portion of the text, as if the user had
