@@ -109,22 +109,22 @@ public class VulkanSwapchain
 
             if (imageWidth <= 0)
             {
-                finalWidth = surfaceCapabilities.maxImageExtent().width();
+                finalWidth = surfaceCapabilities.currentExtent().width();
             }
             else
             {
-                finalWidth = Math.min(imageWidth, surfaceCapabilities.maxImageExtent().width());
-                finalWidth = Math.max(finalWidth, surfaceCapabilities.minImageExtent().width());
+                finalWidth = Math.min(imageWidth, surfaceCapabilities.currentExtent().width());
+                finalWidth = Math.max(finalWidth, surfaceCapabilities.currentExtent().width());
             }
 
             if (imageHeight <= 0)
             {
-                finalHeight = surfaceCapabilities.maxImageExtent().height();
+                finalHeight = surfaceCapabilities.currentExtent().height();
             }
             else
             {
-                finalHeight = Math.min(imageHeight, surfaceCapabilities.maxImageExtent().height());
-                finalHeight = Math.max(finalHeight, surfaceCapabilities.minImageExtent().height());
+                finalHeight = Math.min(imageHeight, surfaceCapabilities.currentExtent().height());
+                finalHeight = Math.max(finalHeight, surfaceCapabilities.currentExtent().height());
             }
 
             dimensions.set(finalWidth, finalHeight);
