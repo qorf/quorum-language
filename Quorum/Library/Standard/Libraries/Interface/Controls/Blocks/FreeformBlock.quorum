@@ -36,6 +36,7 @@ class FreeformBlock is SingleLineBlock
     FreeformBlockListener blockListener
     EditBox editRegion = undefined
     boolean addedCode = false
+    boolean allowShortcuts = true
 
     on create
         BlockOptionConstants constants
@@ -233,7 +234,7 @@ class FreeformBlock is SingleLineBlock
                 isEmpty = true
             end
         // output
-            if isEmpty and not failState
+            if isEmpty and not failState and allowShortcuts
                 text trimmedText = code:Trim()
                 if trimmedText:StartsWith("/*") and not trimmedText:EndsWith("*/")
                     StartUndo()
@@ -242,49 +243,49 @@ class FreeformBlock is SingleLineBlock
                     code = editRegion:GetText()
                 end
             end
-            if current:category = constants:OUTPUT and not tokenIterator:HasNext()
+            if allowShortcuts and current:category = constants:OUTPUT and not tokenIterator:HasNext()
                 StartUndo()
                 editRegion:SetCaretPosition(editRegion:GetSize())
                 editRegion:SetText("output " + dq + dq)
                 code = editRegion:GetText()
         //  input
-            elseif current:category = constants:INPUT and not tokenIterator:HasNext()
+            elseif allowShortcuts and current:category = constants:INPUT and not tokenIterator:HasNext()
                 StartUndo()
                 editRegion:SetCaretPosition(editRegion:GetSize())
                 editRegion:SetText("text myInput = input()")
                 code = editRegion:GetText()
         //  integer
-            elseif current:category = constants:INTEGER_KEYWORD and not tokenIterator:HasNext()
+            elseif allowShortcuts and current:category = constants:INTEGER_KEYWORD and not tokenIterator:HasNext()
                 StartUndo()
                 editRegion:SetCaretPosition(editRegion:GetSize())
                 editRegion:SetText("integer " + "myInteger" + " = 0")
                 code = editRegion:GetText()
         //  number
-            elseif current:category = constants:NUMBER_KEYWORD and not tokenIterator:HasNext()
+            elseif allowShortcuts and current:category = constants:NUMBER_KEYWORD and not tokenIterator:HasNext()
                 StartUndo()
                 editRegion:SetCaretPosition(editRegion:GetSize())
                 editRegion:SetText("number " + "myNumber" + " = 0.0")
                 code = editRegion:GetText()
         //  boolean
-            elseif current:category = constants:BOOLEAN_KEYWORD and not tokenIterator:HasNext()
+            elseif allowShortcuts and current:category = constants:BOOLEAN_KEYWORD and not tokenIterator:HasNext()
                 StartUndo()
                 editRegion:SetCaretPosition(editRegion:GetSize())
                 editRegion:SetText("boolean " + "myBoolean" + " = false")
                 code = editRegion:GetText()
         //  text
-            elseif current:category = constants:TEXT and not tokenIterator:HasNext()
+            elseif allowShortcuts and current:category = constants:TEXT and not tokenIterator:HasNext()
                 StartUndo()
                 editRegion:SetCaretPosition(editRegion:GetSize())
                 editRegion:SetText("text " + "myText" + " = "+dq+dq)
                 code = editRegion:GetText()
         //  say
-            elseif current:category = constants:SAY and not tokenIterator:HasNext()
+            elseif allowShortcuts and current:category = constants:SAY and not tokenIterator:HasNext()
                 StartUndo()
                 editRegion:SetCaretPosition(editRegion:GetSize())
                 editRegion:SetText("say " + dq + dq)
                 code = editRegion:GetText()
         //  return (now for void or with a field if it does)
-            elseif current:category = constants:RETURN and not tokenIterator:HasNext()
+            elseif allowShortcuts and current:category = constants:RETURN and not tokenIterator:HasNext()
                 editRegion:SetCaretPosition(editRegion:GetSize())
                 Block parentBlock = GetParentBlock()
                 repeat until parentBlock is ActionBlock or parentBlock = undefined
@@ -302,7 +303,7 @@ class FreeformBlock is SingleLineBlock
                 end
         // if
         // if (condition)
-            elseif current:category = constants:IF
+            elseif allowShortcuts and current:category = constants:IF
                 if not tokenIterator:HasNext()
                     StartUndo()
                     editRegion:SetCaretPosition(editRegion:GetSize())
@@ -346,7 +347,7 @@ class FreeformBlock is SingleLineBlock
                 end
         //  elseif
         //  elseif (condition)
-            elseif current:category = constants:ELSE_IF and not failState
+            elseif allowShortcuts and current:category = constants:ELSE_IF and not failState
                 text expression = ""
                 
                 Block grandparent = GetParentBlock():GetParentBlock()
@@ -377,7 +378,7 @@ class FreeformBlock is SingleLineBlock
                     return now
                 end
         //  else
-            elseif current:category = constants:ELSE and not tokenIterator:HasNext() and not failState
+            elseif allowShortcuts and current:category = constants:ELSE and not tokenIterator:HasNext() and not failState
                 StartUndo()
                 editRegion:SetCaretPosition(editRegion:GetSize())
                 editRegion:SetText("else")
@@ -398,7 +399,7 @@ class FreeformBlock is SingleLineBlock
         //  repeat while (some expression) 
         //  repeat until
         //  repeat until (some expression)
-            elseif current:category = constants:REPEAT
+            elseif allowShortcuts and current:category = constants:REPEAT
                 text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
                 if not tokenIterator:HasNext()
                     StartUndo()
@@ -489,14 +490,14 @@ class FreeformBlock is SingleLineBlock
                     end
                 end
         //  check
-            elseif current:category = constants:CHECK and not failState
+            elseif allowShortcuts and current:category = constants:CHECK and not failState
                 StartUndo()
                 editRegion:SetCaretPosition(editRegion:GetSize())
                 text value ="check" + newLine + editor:GetIndentationText(GetScopeDepth()) + "detect error" + newLine +  editor:GetIndentationText(GetScopeDepth()) + "end"
                 editRegion:SetText(value)
                 code = editRegion:GetText()
         //  detect
-            elseif current:category = constants:DETECT and not failState
+            elseif allowShortcuts and current:category = constants:DETECT and not failState
                 StartUndo()
                 Block grandparent = GetParentBlock():GetParentBlock()
                 if grandparent not= undefined and grandparent is CheckBlock
@@ -525,7 +526,7 @@ class FreeformBlock is SingleLineBlock
                     return now
                 end
         //  always
-            elseif current:category = constants:ALWAYS and not failState
+            elseif allowShortcuts and current:category = constants:ALWAYS and not failState
                 StartUndo()
                 Block grandparent = GetParentBlock():GetParentBlock()
                 if grandparent not= undefined and grandparent is CheckBlock
@@ -544,7 +545,7 @@ class FreeformBlock is SingleLineBlock
                     return now
                 end
         //  action
-            elseif current:category = constants:ACTION
+            elseif allowShortcuts and current:category = constants:ACTION
                 if tokenIterator:HasNext()
                     // if there is more than just the action look for a valid action header
                     ActionContext context
@@ -585,17 +586,17 @@ class FreeformBlock is SingleLineBlock
                 end
                 isActionStatement = true
         //  blueprint
-            elseif current:category = constants:BLUEPRINT and not tokenIterator:HasNext()
+            elseif allowShortcuts and current:category = constants:BLUEPRINT and not tokenIterator:HasNext()
                 StartUndo()
                 code = "blueprint action MyBlueprint"
                 editRegion:SetText(code)
         //  system
-            elseif current:category = constants:NATIVE and not tokenIterator:HasNext()
+            elseif allowShortcuts and current:category = constants:NATIVE and not tokenIterator:HasNext()
                 StartUndo()
                 code = "system action NativeAction"
                 editRegion:SetText(code)
         //  class
-            elseif current:category = constants:CLASS
+            elseif allowShortcuts and current:category = constants:CLASS
                 if not tokenIterator:HasNext()
                     StartUndo()
                     code = "class MyClass"
@@ -625,7 +626,7 @@ class FreeformBlock is SingleLineBlock
                 end
                 isClassStatement = true
         //  shared
-            elseif current:category = constants:STATIC and not failState
+            elseif allowShortcuts and current:category = constants:STATIC and not failState
                 if not tokenIterator:HasNext()
                     StartUndo()
                     code = "shared class MySharedClass"
@@ -640,7 +641,7 @@ class FreeformBlock is SingleLineBlock
                 end
                 isClassStatement = true
         //  on create
-            elseif current:category = constants:ON
+            elseif allowShortcuts and current:category = constants:ON
                 boolean hasCreate = false
                 if not tokenIterator:HasNext()
                     StartUndo()
@@ -823,6 +824,10 @@ if editor:HasValidParse()
 
     action GetTextBox returns EditBox
         return editRegion
+    end
+
+    action AllowShortcuts(boolean allowShortcuts)
+        me:allowShortcuts = allowShortcuts
     end
 
 end
