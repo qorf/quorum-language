@@ -71,6 +71,9 @@ class BlockEditManager is EditManager, TextChangeListener
     private integer lowestIndex = -1
     
     CodeEditor editor = undefined
+    
+    // helper for ignoring nested special action states
+    integer specialCount = 0
 
     on create
         currentState = RESET_STATE
@@ -128,8 +131,20 @@ class BlockEditManager is EditManager, TextChangeListener
         SetToIgnore(false)
     end
 
+    /* 
+Used for complex changes that should fit into one undo.
+Note that if you will get unexpected results if within the action there
+are nested calls to this same action. As long as everytime this action is started with a true 
+and there is exactly one call using false after it should be the case that the highest level
+call should be the only undo state to be saved.
+*/
     action SetSpecialAction(boolean start)
+        if currentState = NULL_STATE
+            return now
+        end
         if start
+            specialCount = specialCount + 1
+            if specialCount = 1
             SaveCurrentEdit()
             me:currentState = SPECIAL_STATE
 
@@ -138,8 +153,12 @@ class BlockEditManager is EditManager, TextChangeListener
             edit:SetUndoState(editor:GetCode())
 
             currentBlockEdit = edit
-        else
-            Reset()
+                    end
+else
+            specialCount = specialCount - 1
+            if specialCount = 0
+                Reset()
+            end
         end
     end
 
