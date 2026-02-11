@@ -195,6 +195,9 @@ class VulkanPainter2DBatch
     end
 
     action Dispose
+        vertexStagingBuffer:StopMapping()
+        indexStagingBuffer:StopMapping()
+        
             vertexStagingBuffer:Dispose()
         indexStagingBuffer:Dispose()
 vertexMappedMemory:Dispose()

@@ -114,14 +114,14 @@ VulkanSwapchain swapchain = graphics:GetSwapchain()
         outputColorAttachment:SetFormat(graphics:GetSwapchain():GetImageViewInfo():GetFormat())
         outputColorAttachment:SetSamples(constants:SAMPLE_COUNT_1_BIT)
         outputColorAttachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
-        outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
         outputColorAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
 
         if isFirstPass
+outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
             outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
         else
+outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
             outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_LOAD)
-//outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
         end
 
         Array<VulkanAttachmentDescription> attachmentDescriptions
@@ -393,7 +393,7 @@ VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
             commandBuffer:Record(barrierCommand)
         end
 
-        integer currentSwapchainIndex = graphics:GetCurrentSwapchainIndex()
+        integer currentSwapchainIndex = graphics:GetCurrentResourceIndex()
         
         camera:Update()
 VulkanNumber32BitMappedMemory currentCameraMapping = cameraMappings:Get(currentSwapchainIndex)
@@ -525,6 +525,7 @@ BindDescriptorSetCommand descriptorBind
         // Empty the pending arrays.
         pendingDrawCommands:Empty(false)
         pendingBatches:Empty(false)
+        pendingClipCoordinates:Empty(false)
     end
     
     action SetClipping(boolean clippingEnabled)

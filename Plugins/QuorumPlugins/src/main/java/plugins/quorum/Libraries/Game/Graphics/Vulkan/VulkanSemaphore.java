@@ -4,11 +4,11 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkDevice;
 import org.lwjgl.vulkan.VkSemaphoreCreateInfo;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanSemaphore_;
 
 import java.nio.LongBuffer;
 
-import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
-import static org.lwjgl.vulkan.VK10.vkCreateSemaphore;
+import static org.lwjgl.vulkan.VK10.*;
 
 public class VulkanSemaphore
 {
@@ -40,5 +40,12 @@ public class VulkanSemaphore
     public long GetSemaphoreHandle()
     {
         return semaphoreHandle;
+    }
+
+    public void Dispose()
+    {
+        VulkanDevice_ quorumDevice = ((VulkanSemaphore_)me_).Get_Libraries_Game_Graphics_Vulkan_VulkanSemaphore__device_();
+        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
+        vkDestroySemaphore(pluginDevice.GetDevice(), semaphoreHandle, null);
     }
 }

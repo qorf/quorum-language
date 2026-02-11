@@ -42,6 +42,11 @@ public class VulkanNumber64BitMappedMemory
 
     public void Dispose()
     {
-        MemoryUtil.memFree(doubleBuffer);
+        /*
+        Null out the buffer so it can be garbage collected. We don't manually free the memory because we didn't directly
+        allocate it -- we just wrapped a chunk of memory that was allocated by the VulkanBuffer. The VulkanBuffer is
+        responsible for deallocating the memory during an Unmap operation.
+        */
+        doubleBuffer = null;
     }
 }

@@ -50,9 +50,10 @@ VulkanImage depthBufferImage = undefined
     Note that the swapchain index can de-sync from the current frame index sometimes.
     Many devices will reliably give us the images of the swapchain in order (e.g., 0, 1, 2, 0, 1, 2, etc.)
     but it's not guaranteed. However, we can't know if we'll get one out of order until it happens, so we
-    can't rely on using the same value for both the current frame index and the swapchain index.
+    can't rely on using the same value for both the current resource index and the swapchain index.
     */
-    integer currentSwapchainIndex = -1
+    integer currentSwapchainIndex = - 1
+    integer currentResourceIndex = -1
     VulkanFramebuffer currentFramebuffer = undefined
     
     // The clear color, or in otherwords, the background color of the screen.
@@ -341,19 +342,21 @@ VulkanImageInfo imageInfo
     the image, and prepares the frame's related resources (e.g. CommandBuffers and Fences).
     */
     action BeginNextFrame
-        currentSwapchainIndex = (currentSwapchainIndex + 1) mod swapchain:GetImageCount()
-        currentRenderCommandBuffer = renderCommandBuffers:Get(currentSwapchainIndex)
-        currentRenderFence = renderFences:Get(currentSwapchainIndex)     
+        currentResourceIndex = (currentResourceIndex + 1) mod swapchain:GetImageCount()
+        currentRenderCommandBuffer = renderCommandBuffers:Get(currentResourceIndex)
+        currentRenderFence = renderFences:Get(currentResourceIndex)     
 
         // Ensure that all work associated with this image has previously finished.
         currentRenderFence:Wait()
 
         // Make sure the next image in the swapchain is valid. Window resizing in particular can make the swapchain "out of date", in which case we'll need to regenerate it.
-integer swapchainResult = PrepareNextSwapchainImage(device, swapchain, imageAcquiredSemaphores:Get(currentSwapchainIndex))
+integer swapchainResult = PrepareNextSwapchainImage(device, swapchain, imageAcquiredSemaphores:Get(currentResourceIndex))
         if swapchainResult = constants:SUBOPTIMAL or swapchainResult = constants:ERROR_OUT_OF_DATE
             RegenerateSwapchain()
+PrepareNextSwapchainImage(device, swapchain, imageAcquiredSemaphores:Get(currentResourceIndex))
         end
         
+        currentSwapchainIndex = GetCurrentSwapchainIndexNative()
 currentFramebuffer = swapchainFramebuffers:Get(currentSwapchainIndex)
 
         // Reset the fence associated with this frame.
@@ -386,8 +389,8 @@ currentFramebuffer = swapchainFramebuffers:Get(currentSwapchainIndex)
         Array<integer> waitDestinationStageMasks
 
         commandBuffers:Add(currentRenderCommandBuffer)
-        signalSemaphores:Add(imageRenderCompleteSemaphores:Get(currentSwapchainIndex))
-        waitSemaphores:Add(imageAcquiredSemaphores:Get(currentSwapchainIndex))
+        signalSemaphores:Add(imageRenderCompleteSemaphores:Get(currentResourceIndex))
+        waitSemaphores:Add(imageAcquiredSemaphores:Get(currentResourceIndex))
         waitDestinationStageMasks:Add(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
         
         submitInfo:SetCommandBuffers(commandBuffers)
@@ -398,7 +401,7 @@ currentFramebuffer = swapchainFramebuffers:Get(currentSwapchainIndex)
 
         graphicsQueue:SubmitCommands(submitInfo)
 
-        DisplayCurrentImageNative(presentationQueue, swapchain, imageRenderCompleteSemaphores:Get(currentSwapchainIndex), currentSwapchainIndex)
+        DisplayCurrentImageNative(presentationQueue, swapchain, imageRenderCompleteSemaphores:Get(currentResourceIndex), currentSwapchainIndex)
     end
 
     private system action DisplayCurrentImageNative(VulkanQueue presentQueue, VulkanSwapchain swapchain, VulkanSemaphore waitSemaphore, integer imageIndex) returns boolean
@@ -462,6 +465,13 @@ VulkanImageInfo imageInfo
             end
 
             swapchainFramebuffers:Add(framebuffer)
+            
+// While it's technically allowed to reuse the previous semaphores, it's possible for a semaphore to be signalled in a way that can't
+        // be reset by a SUBOPTIMAL result when preparing frames. For safety, we generate new ones here.
+            VulkanSemaphore newSemaphore
+success = newSemaphore:Create(device)
+            imageAcquiredSemaphores:Set(i, newSemaphore)
+            
             i = i + 1
         end
     end
@@ -767,8 +777,8 @@ VulkanImageInfo imageInfo
         return clearValue
     end
 
-    action GetCurrentSwapchainIndex returns integer
-        return currentSwapchainIndex
+    action GetCurrentResourceIndex returns integer
+        return currentResourceIndex
     end
 
     action GetDescriptorSetManager returns VulkanDescriptorSetManager

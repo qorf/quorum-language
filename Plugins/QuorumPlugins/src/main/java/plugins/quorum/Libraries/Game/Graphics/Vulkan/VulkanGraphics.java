@@ -33,6 +33,7 @@ public class VulkanGraphics
 
             if (vulkanResult == VK_SUCCESS || vulkanResult == VK_SUBOPTIMAL_KHR || vulkanResult == KHRSwapchain.VK_ERROR_OUT_OF_DATE_KHR)
             {
+                currentSwapchainIndex = imageIndexBuffer.get(0);
                 return vulkanResult;
             }
             else
