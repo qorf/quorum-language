@@ -485,7 +485,8 @@ class Color is ColorGroup
     end
     
 /*
-        This action calculates the W3C color contrast between the current
+
+       This action calculates the W3C color contrast between the current
         color and pure white and pure black. If the contrast between the 
         current color and white is greater this action returns true. If the
         contrast with black is greater this action returns false.
@@ -497,7 +498,7 @@ class Color is ColorGroup
         use Libraries.Game.Graphics.Color
         Color color
         Color pinkish = color:CustomColor(236.0/255.0,85.0/255.0,93.0/255.0,1)
-        output IsBestContrastWhite()
+        output pinkish:IsBestContrastWhite()
     */
     action IsBestContrastWhite() returns boolean
         number whiteContrast = CalculateContrast(White())
@@ -506,6 +507,119 @@ class Color is ColorGroup
             return true
         end
         return false
+     end
+     
+/*
+        This action calculates the perceptual contrast, based on version 2.1 of the 
+        Accessible Perceptual Contrast Algorithm (APCA). It provides a contrast between -100 and 
+        100, with 0 being the minimum. By default the algorithm takes into account polarity,
+        whether you have light text on a dark background or the opposite. The implementation
+        was created using notes from the online repository of APCA:
+
+        https://github.com/Myndex/apca-w3
+
+        Attribute: Parameter two The color to compare against.
+        Attribute: Returns the color contrast
+          
+        Attribute: Example
+        use Libraries.Game.Graphics.Color
+        Color color
+        contrast = pinkish:CalculatePerceptualContrast(color:White())
+        output contrast
+        
+    */
+    action CalculatePerceptualContrast(Color two) returns number
+        return CalculatePerceptualContrast(me, two)
+    end
+    
+/*
+        This action calculates the perceptual contrast, based on version 2.1 of the 
+        Accessible Perceptual Contrast Algorithm (APCA). It provides a contrast between -100 and 
+        100, with 0 being the minimum. By default the algorithm takes into account polarity,
+        whether you have light text on a dark background or the opposite. The implementation
+        was created using notes from the online repository of APCA:
+
+        https://github.com/Myndex/apca-w3
+
+        Attribute: Parameter one the first color in the comparison
+        Attribute: Parameter two the color to compare against
+
+        Attribute: Returns the contrast, between 1 and 21
+
+        Attribute: Example
+        use Libraries.Game.Graphics.Color
+        Color color
+        Color pinkish = color:CustomColor(236.0/255.0,85.0/255.0,93.0/255.0,1)
+        contrast = color:CalculatePerceptualContrast(pinkish, color:White())
+        output contrast
+
+*/
+action CalculatePerceptualContrast(Color background, Color theText) returns number
+Math math
+        number backgroundLuminance = ClampRelativeLuminance(CalculatePerceptualLuminance(background))
+        number textLuminance = ClampRelativeLuminance(CalculatePerceptualLuminance(theText))
+        
+number contrastDifference = math:AbsoluteValue(backgroundLuminance - textLuminance)
+        if contrastDifference < 0.0005
+            return 0.0
+        end
+        
+        number score = 0
+        if backgroundLuminance > textLuminance
+            //background has a higher luminance
+            score = math:RaiseToPower(backgroundLuminance, 0.56) - math:RaiseToPower(textLuminance, 0.57) 
+        else
+            //background has a lower luminance
+score = math:RaiseToPower(backgroundLuminance, 0.65) - math:RaiseToPower(textLuminance, 0.62)
+        end
+        //apply a constant
+        score = score * 1.14
+        
+        if math:AbsoluteValue(score) < 0.1
+            score = 0.0
+        elseif score > 0
+            score = score - 0.027
+        else
+            score = score + 0.027
+        end
+        
+        return score * 100.0
+    end
+    
+    private action ClampRelativeLuminance(number value) returns number
+Math math
+        if value < 0.022
+            number state = 0.022 - value
+            state = value + math:RaiseToPower(state, 1.414)
+        end
+        return value
+    end
+    
+    
+/*
+        This action calculates the luminance of the current color. Luminance
+        ranges from 0 (black) to 1 (white). The potential values include the 
+        endpoints of 0 and 1. This algorithm is very similar to the W3C
+        luminance calculations, except they are computed slightly differently
+        for the Accessible Perceptual Contrast Algorithm (APCA Algorithm.
+
+        Attribute: Returns the luminance, between 0 and 1 (inclusive)
+
+        Attribute: Example
+        use Libraries.Game.Graphics.Color
+        Color color //black by default
+        contrast = color:CalculatePerceptualLuminance()
+        output contrast
+    */
+action CalculatePerceptualLuminance(Color color) returns number
+        Math math
+        constant number power = 2.4
+        number r = math:RaiseToPower(color:GetRed(), power)
+        number g = math:RaiseToPower(color:GetGreen(), power)
+        number b = math:RaiseToPower(color:GetBlue(), power)
+        
+        number y = 0.2126729 * r + 0.7151522 * g + 0.0721750 * b
+        return y
     end
 
     /*
