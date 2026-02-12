@@ -93,7 +93,6 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
 
     action ProcessPendingTextures
         if pendingTextures:IsEmpty() = false
-            //output "Processing pending textures, nextTextureID = " + nextTextureID
             GameStateManager manager
             VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
             VulkanDevice device = graphics:GetDevice()
@@ -112,7 +111,6 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
                 integer pixelSize = 1
                 Format format = pixelMap:GetFormat()
                 integer formatValue = format:GetValue()
-                output "Format = " + formatValue
 
                 if formatValue = format:RGBA8888
                     pixelSize = 4
@@ -129,7 +127,6 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
 
                 VulkanBuffer buffer
                 buffer:CreateTransferSourceBuffer(device, width * height * pixelSize)
-                output "Created buffer with size = " + (width * height * pixelSize) + ", from image " + width + "x" + height + " with pixel size = " + pixelSize
                 buffer:BeginMapping()
                 TransferPixelData(pixelMap, buffer)
                 buffer:StopMapping()
@@ -201,7 +198,6 @@ text source = "(Undefined)"
                     if texture:GetSource() not= undefined
                         source = texture:GetSource()
                     end
-                    output "Texture set to ID = " + nextTextureID + ", source = " + source
                     nextTextureID = nextTextureID + 1
                 end
 
