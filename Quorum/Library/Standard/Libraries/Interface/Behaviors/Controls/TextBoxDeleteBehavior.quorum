@@ -41,6 +41,10 @@ class TextBoxDeleteBehavior is TimedBehavior
         if textBox = undefined
             return now
         end
+        
+        if not textBox:IsFocused()
+            return now
+        end
 
         SetTimer(textBox:GetCaretMoveTime())
         textBox:AddBehavior(me)

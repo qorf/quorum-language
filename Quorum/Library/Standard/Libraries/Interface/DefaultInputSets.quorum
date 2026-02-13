@@ -2417,6 +2417,12 @@ InputSet swipeSet
         
         // Behavior for commenting out a line of code.
         CodeEditorCommentBehavior commentBehavior
+        
+        CodeEditorSmartNavigateDown smartNavDown
+        CodeEditorSmartNavigateUp smartNavUp
+        CodeEditorSmartNavigateLeft smartNavLeft
+        CodeEditorSmartNavigateRight smartNavRight
+        
         if ShouldUseMacKeys()
             controlHomeSet:AddModifier(controlHomeSet:META)
             controlEndSet:AddModifier(controlEndSet:META)
@@ -2463,6 +2469,20 @@ controlShiftHomeSet:AddModifier(controlHomeSet:META)
             controlSlash:SetKeyboardInput(keys:SLASH)
             controlSlash:AddModifier(controlSlash:META)
             table:Add(controlSlash, commentBehavior)
+            
+            InputSet commandDown = AddMetaModifier(GetDownArrowKey())
+            table:Add(commandDown, smartNavDown)
+            
+InputSet commandUp = AddMetaModifier(GetUpArrowKey())
+            commandUp:AddModifier(commandUp:META)
+            table:Add(commandUp, smartNavUp)
+            
+InputSet commandLeft = AddMetaModifier(GetLeftArrowKey())
+            table:Add(commandLeft, smartNavLeft)
+            
+InputSet commandRight = AddMetaModifier(GetRightArrowKey())
+            table:Add(commandRight, smartNavRight)
+            
         else
 controlHomeSet:AddModifier(controlHomeSet:CONTROL)
             controlEndSet:AddModifier(controlEndSet:CONTROL)
@@ -2508,26 +2528,37 @@ InputSet controlSlash
             controlSlash:SetKeyboardInput(keys:SLASH)
             controlSlash:AddModifier(controlSlash:CONTROL)
             table:Add(controlSlash, commentBehavior)
+            
+            InputSet controlUpSet = AddControlModifier(GetUpArrowKey())
+            InputSet controlDownSet = AddControlModifier(GetDownArrowKey())
+            
+            table:Add(controlUpSet, smartNavUp)
+            table:Add(controlDownSet, smartNavDown)
+table:Add(controlLeftSet, smartNavLeft)
+        table:Add(controlRightSet, smartNavRight)
         end
 
-
         table:Add(typingSet, freeformBehavior)
-        table:Add(shiftLeftSet, freeformBehavior)
-        table:Add(shiftRightSet, freeformBehavior)
-        table:Add(controlLeftSet, freeformBehavior)
-        table:Add(controlRightSet, freeformBehavior)
+        
+        
         table:Add(controlShiftLeftSet, freeformBehavior)
         table:Add(controlShiftRightSet, freeformBehavior)
-        table:Add(homeSet, freeformBehavior)
-        table:Add(endSet, freeformBehavior)
-        table:Add(shiftHomeSet, freeformBehavior)
-        table:Add(shiftEndSet, freeformBehavior)
-
+        
         CodeEditorFreeformEditingBehavior forceFreeformBehavior
         forceFreeformBehavior:SetForceEditing(true)
         
+CodeEditorFreeformEditingBehavior forceFreeformBehaviorNoPassthrough
+        forceFreeformBehaviorNoPassthrough:SetForceEditing(true)
+        forceFreeformBehaviorNoPassthrough:SetPassthrough(false)
+        
         table:Add(leftSet, forceFreeformBehavior)
-        table:Add(rightSet, forceFreeformBehavior)
+        table:Add(rightSet, forceFreeformBehaviorNoPassthrough)
+table:Add(shiftLeftSet, forceFreeformBehavior)
+        table:Add(shiftRightSet, forceFreeformBehavior)
+table:Add(homeSet, forceFreeformBehavior)
+        table:Add(endSet, forceFreeformBehavior)
+        table:Add(shiftHomeSet, forceFreeformBehavior)
+        table:Add(shiftEndSet, forceFreeformBehavior)
         
         CodeEditorNavigateToStartBehavior navigateToStart
         CodeEditorNavigateToEndBehavior navigateToEnd

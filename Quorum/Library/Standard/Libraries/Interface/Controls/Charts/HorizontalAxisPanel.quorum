@@ -1438,7 +1438,9 @@ class HorizontalAxisPanel is ChartItem
         This action control the white space (padding/offset) on either side of the axis.
     */
     action SetTickDigits(integer digits)
-        GetContainer():SetTickDigits(digits)
+        if GetContainer() not= undefined
+                    GetContainer():SetTickDigits(digits)
+        end
     end
     
 action BeginMouseOver

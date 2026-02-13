@@ -698,6 +698,10 @@ GameStateManager manager
         caretActive = false
     end
     
+    action RemoveSelection
+        EmptySelectionEvent(false)
+    end
+    
     /*
         This action deletes the character behind the caret (left) or the selected text.
     */
