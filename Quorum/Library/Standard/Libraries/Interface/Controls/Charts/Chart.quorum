@@ -309,9 +309,7 @@ number blinkIdleTime = 1.0
         vertices:Add(tempArrowSize)
         vertices:Add(0)
         vertices:Add(tempArrowSize)
-        //selectionArrow:LoadShape(vertices, GetSelectionColor())
-        output "WARNING: Replacing chart selection arrow due to missing Vulkan feature (custom vertices for Drawables NYI)"
-        selectionArrow:LoadFilledCircle(tempArrowSize, GetSelectionColor())
+        selectionArrow:LoadShape(vertices, GetSelectionColor())
         selectionArrow:Hide()
         selectionArrow:SetZ(-1)
         Add(selectionArrow)
