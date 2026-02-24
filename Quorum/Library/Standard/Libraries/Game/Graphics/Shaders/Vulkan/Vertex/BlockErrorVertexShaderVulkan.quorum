@@ -3,16 +3,16 @@ package Libraries.Game.Graphics.Shaders.Vulkan.Vertex
 use Libraries.Game.Graphics.Shaders.Shader
 use Libraries.Game.Graphics.Shaders.DefaultAttributeNames
 
-class BlockVertexShaderVulkan is Shader
+class BlockErrorVertexShaderVulkan is Shader
     
-    constant text SHADER_NAME = "Block Vertex Shader"
-
+constant text SHADER_NAME = "Block Error Vertex Shader"
+    
     on create
         SetType(parent:Shader:VERTEX_SHADER)
         SetName(SHADER_NAME)
 
         DefaultAttributeNames attributes
-        SetCode(GetVersionHeader() +
+		SetCode(GetVersionHeader() +
 "
 " +
 "#ifdef GL_ES
@@ -33,6 +33,7 @@ layout(location = 7) in float a_aspectRatio;
 layout(location = 8) in float a_antiAlias;
 layout(location = 9) in vec3 a_notchSize;
 layout(location = 10) in vec2 a_notchPositions;
+layout(location = 11) in vec4 a_secondaryColor;
 
 layout(location = 0) out vec4 v_color;
 layout(location = 1) out vec2 v_textureCoords;
@@ -44,6 +45,7 @@ layout(location = 6) out float v_aspectRatio;
 layout(location = 7) out float v_antiAlias;
 layout(location = 8) out vec3 v_notchSize;
 layout(location = 9) out vec2 v_notchPositions;
+layout(location = 10) out vec4 v_secondaryColor;
 
 layout(set = 0, binding = 0) uniform Camera
 {
@@ -65,6 +67,7 @@ void main()
     v_antiAlias = a_antiAlias;
     v_notchSize = a_notchSize;
     v_notchPositions = a_notchPositions;
+	v_secondaryColor = a_secondaryColor;
 
     float bottomOffset = " + attributes:TEXTURE_COORDINATES + "0.y > 0.5 ? (notchProperties.height + 1.0) : 0.0;
     vec4 adjustedPosition = vec4(" + attributes:POSITION + ".x, " + attributes:POSITION + ".y - bottomOffset, "  + attributes:POSITION + ".zw);
@@ -73,5 +76,5 @@ void main()
 }"
 )
     end
-
+    
 end

@@ -5,6 +5,9 @@ use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.BlockErrorFragmentShaderOpen
 use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.BlockErrorShaderMappingOpenGL
 use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.BlockErrorVertexShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.BlockErrorFragmentShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.BlockErrorShaderMappingVulkan
 
 class BlockErrorShaderProgram is ShaderProgram
 
@@ -21,20 +24,35 @@ class BlockErrorShaderProgram is ShaderProgram
             Shader vertex = manager:GetShader(VERTEX_NAME)
             Add(vertex)
         else
-            BlockErrorVertexShaderOpenGL vertex
+            if IsVulkanProgram()
+BlockErrorVertexShaderVulkan vertex
             Add(vertex)
+            else
+BlockErrorVertexShaderOpenGL vertex
+            Add(vertex)
+            end
         end
 
         if manager:HasShader(FRAGMENT_NAME)
             Shader fragment = manager:GetShader(FRAGMENT_NAME)
             Add(fragment)
         else
-            BlockErrorFragmentShaderOpenGL fragment
+            if IsVulkanProgram()
+BlockErrorFragmentShaderVulkan fragment
             Add(fragment)
+            else
+BlockErrorFragmentShaderOpenGL fragment
+            Add(fragment)
+            end
         end
 
-        BlockErrorShaderMappingOpenGL mapping
+        if IsVulkanProgram()
+BlockErrorShaderMappingVulkan mapping
         SetShaderMapping(mapping)
+        else
+BlockErrorShaderMappingOpenGL mapping
+        SetShaderMapping(mapping)
+        end
     end
 
 end

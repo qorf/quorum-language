@@ -1,127 +1,146 @@
-package Libraries.Game.Graphics.Shaders.OpenGL.Mapping
+package Libraries.Game.Graphics.Shaders.Vulkan.Mapping
 
-use Libraries.Game.Graphics.Shaders.ShaderMapping
-use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
 use Libraries.Game.GameStateManager
-use Libraries.Game.Graphics.Camera
-use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.NumberUtilities
+use Libraries.Game.Graphics.Vulkan.VulkanBuffer
+use Libraries.Game.Graphics.Vulkan.VulkanNumber32BitMappedMemory
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSet
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineLayout
+use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfo
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfoCreator
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetLayout
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetManager
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorResourcesInfo
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
 use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.DrawableShape
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Interface.Options.BlockOptionConstants
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Views.View2D
-use Libraries.Game.Graphics.Color
-use Libraries.Game.Graphics.ColorGroup
 use Libraries.Interface.Item2D
-use Libraries.Interface.Controls.Checkbox
 use Libraries.Interface.Views.ToggleView
-use Libraries.Interface.Controls.Tab
-use Libraries.Game.Graphics.VertexAttribute
-use Libraries.Game.Graphics.DefaultVertexAttributes2D
-use Libraries.Game.Graphics.Mesh
-use Libraries.Containers.Array
-use Libraries.Containers.Integer32BitArray
-use Libraries.Game.Graphics.DrawableShape
-use Libraries.Game.Graphics.VertexAttributes
-use Libraries.Game.NumberUtilities
 use Libraries.Interface.Controls.Blocks.Block
+use Libraries.Game.Graphics.Color
 use Libraries.Interface.Views.SingleLineBlockView
-use Libraries.Interface.Controls.Blocks.CodeEditor
-use Libraries.Interface.Views.BlockErrorShaderView
-use Libraries.Interface.Options.BlockOptionConstants
 use Libraries.Interface.Controls.Blocks.BlockEnvironment
-use Libraries.Game.Graphics.OpenGL.OpenGLConstants
-use Libraries.Game.Graphics.Shaders.OpenGL.OpenGLShaderProgram
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+use Libraries.Game.Graphics.Vulkan.Commands.BindDescriptorSetCommand
+use Libraries.Interface.Views.BlockErrorShaderView
 
-class BlockErrorShaderMappingOpenGL is BatchingShaderMapping2DOpenGL
-
-    ShaderProgram program = undefined
-    GameStateManager manager
+class BlockErrorShaderMappingVulkan is VulkanShaderMapping
+    
+GameStateManager gameState
     NumberUtilities utility
-    BlockOptionConstants constants
-
-    constant integer BATCH_SIZE = 200
-
-    VertexAttribute borderColorAttribute = undefined
-    VertexAttribute arrayIndexAttribute = undefined
-    VertexAttribute roundingAttribute = undefined
-    VertexAttribute leftBorderAttribute = undefined
-    VertexAttribute rightBorderAttribute = undefined
-    VertexAttribute bottomBorderAttribute = undefined
-    VertexAttribute topBorderAttribute = undefined
-    VertexAttribute aspectRatioAttribute = undefined
-    VertexAttribute antiAliasAttribute = undefined
-    VertexAttribute notchSizeAttribute = undefined
-    VertexAttribute notchPositionAttribute = undefined
-    VertexAttribute secondaryColorAttribute = undefined
-
-    // Fetched during vertex mapping, and set just before rendering occurs as a uniform value.
+    
+// Indices to the vertex values located in the DrawableShape.
+    integer borderColorIndex = 0
+    integer roundingIndex = 0
+    integer bordersIndex = 0
+    integer aspectRatioIndex = 0
+    integer antiAliasIndex = 0
+    integer notchSizeIndex = 0
+    integer notchPositionsIndex = 0
+    integer secondaryColorIndex = 0
+    
+// Fetched during vertex mapping, and set just before rendering occurs as a uniform value.
     number notchHeight = 0
-
-    /*
-    This action is called when the mapping is created. It must be used to set
-    the initial values of the Mesh using the Mesh's Load action.
-    */
-    private action InitializeMesh(Mesh mesh)
-        DefaultVertexAttributes2D attributes
-        Array<VertexAttribute> extraAttributes
-        VertexAttribute dummy
-        borderColorAttribute = dummy:CustomColorAttribute("a_borderColor")
-        roundingAttribute = dummy:CustomNormalizedVector4Attribute("a_rounding")
-        leftBorderAttribute = dummy:CustomNumberAttribute("a_leftBorder")
-        rightBorderAttribute = dummy:CustomNumberAttribute("a_rightBorder")
-        bottomBorderAttribute = dummy:CustomNumberAttribute("a_bottomBorder")
-        topBorderAttribute = dummy:CustomNumberAttribute("a_topBorder")
-        aspectRatioAttribute = dummy:CustomNumberAttribute("a_aspectRatio")
-        antiAliasAttribute = dummy:CustomNumberAttribute("a_antiAlias")
-        notchSizeAttribute = dummy:CustomVectorAttribute("a_notchSize", 3)
-        notchPositionAttribute = dummy:CustomVectorAttribute("a_notchPositions", 2)
-        secondaryColorAttribute = dummy:CustomColorAttribute("a_secondaryColor")
-        extraAttributes:Add(borderColorAttribute)
-        extraAttributes:Add(roundingAttribute)
-        extraAttributes:Add(leftBorderAttribute)
-        extraAttributes:Add(rightBorderAttribute)
-        extraAttributes:Add(bottomBorderAttribute)
-        extraAttributes:Add(topBorderAttribute)
-        extraAttributes:Add(aspectRatioAttribute)
-        extraAttributes:Add(antiAliasAttribute)
-        extraAttributes:Add(notchSizeAttribute)
-        extraAttributes:Add(notchPositionAttribute)
-        extraAttributes:Add(secondaryColorAttribute)
-        attributes:SetAttributes(extraAttributes)
-        
-        /*
-        We need a mesh with enough 32-bit float values for the vertices, and the correct number of indices.
-        The "vertexSize" value is calculated as bytes, not floats, so we divide by 4 to get the correct number.
-        We multiply by 4 because we'll be rendering quads (4 points per Drawable).
-
-        For the indices, we need 2 triangles (3 points each) to render a quad, so we multiply by 6 to store the values in the array.
-        */
-        mesh:Load(false, (attributes:parent:VertexAttributes:vertexSize / 4) * 4 * BATCH_SIZE, 6 * BATCH_SIZE, attributes)
-
-        integer length = 6 * BATCH_SIZE
-        Integer32BitArray indices
-        indices:SetSize(length)
-
-        integer indexCounter = 0
-        integer vertexCounter = 0
-
-        // Setup the indices to make pairs of triangles to render quads of vertices.
-        repeat while indexCounter < length
-            indices:Set(indexCounter, vertexCounter)
-            indices:Set(indexCounter + 1, vertexCounter + 1)
-            indices:Set(indexCounter + 2, vertexCounter + 2)
-            indices:Set(indexCounter + 3, vertexCounter + 2)
-            indices:Set(indexCounter + 4, vertexCounter + 3)
-            indices:Set(indexCounter + 5, vertexCounter)
-
-            indexCounter = indexCounter + 6
-            vertexCounter = vertexCounter + 4
-        end
-
-        mesh:SetIndices(indices)
+    number lastNotchHeight = notchHeight - 1
+    number lastTime = 0
+    
+    // Resources for the notch height descriptor. Since this value isn't expected to change during rendering, just one descriptor and buffer should be fine.
+VulkanBuffer notchHeightBuffer
+    VulkanNumber32BitMappedMemory notchHeightMemory = undefined
+    // Resources for the time buffers. Used to control the flashing animation.
+    Array<VulkanBuffer> timeBuffers
+    Array<VulkanNumber32BitMappedMemory> timeMappings
+    // Descriptor sets containing the (shared) notch height buffer and a time buffer. We need 1 per image in the swap chain.
+    Array<VulkanDescriptorSet> uniformsDescriptorSets
+    
+    // The layout of the pipeline. Used to update descriptor information.
+    VulkanPipelineLayout pipelineLayout = undefined
+    
+    
+    on create
+        UseDefaultResources2D(true)
     end
-
-    action SetVertexData(ShaderProgram program, Drawable drawable, DrawableShape shape)
+    
+    // Returns the size of each vertex in the DrawableShape (which stores values as numbers).
+    action GetVertexSize returns integer
+        return secondaryColorIndex + 1
+    end
+    
+/*This action is used to setup the values of a VulkanPipelineInfo that will be used to create the
+VulkanPipeline needed for the shader program. This can also be used to create and keep copies of
+any Vulkan resources that will be needed to send or change shader data.*/
+    action CreatePipelineInfo(VulkanShaderProgram program, VulkanDevice device) returns VulkanPipelineInfo
+VulkanConstants constants
+        VulkanPipelineInfoCreator creator
+        creator:Begin(device)
+        creator:AddDefaultInfo2D()
+        
+borderColorIndex = creator:AddVertexInput(constants:FORMAT_R8G8B8A8_UNORM)
+        roundingIndex = creator:AddVertexInput(constants:FORMAT_R8G8B8A8_UNORM)
+        bordersIndex = creator:AddVertexInput(constants:FORMAT_R32G32B32A32_SFLOAT)
+        aspectRatioIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        antiAliasIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        notchSizeIndex = creator:AddVertexInput(constants:FORMAT_R32G32B32_SFLOAT)
+notchPositionsIndex = creator:AddVertexInput(constants:FORMAT_R32G32_SFLOAT)
+        secondaryColorIndex = creator:AddVertexInput(constants:FORMAT_R8G8B8A8_UNORM)
+        
+        creator:AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_VERTEX_BIT, constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+        creator:AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+        VulkanDescriptorSetLayout descriptorLayout = creator:FinishDescriptorSetLayout()
+        
+        // Also initialize resources for the notch height descriptor.
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        VulkanDescriptorSetManager descriptorManager = graphics:GetDescriptorSetManager()
+        
+        notchHeightBuffer:CreateMappableBuffer(device, 4, constants:BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+        notchHeightMemory = notchHeightBuffer:MapToNumber32BitMemory()
+        
+VulkanDescriptorResourcesInfo notchResourcesInfo
+                notchResourcesInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+                notchResourcesInfo:AddBufferInfo(notchHeightBuffer, 0, notchHeightBuffer:GetSize())
+        
+        // Create the buffers for the time values, and create the descriptor sets (one for each image in the swapchain).
+        integer i = 0
+        repeat while i < graphics:GetSwapchain():GetImageCount()
+            VulkanBuffer timeBuffer
+            timeBuffer:CreateMappableBuffer(device, 4, constants:BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+            timeBuffers:Add(timeBuffer)
+            
+            VulkanNumber32BitMappedMemory mapping = timeBuffer:MapToNumber32BitMemory()
+            timeMappings:Add(mapping)
+            
+            Array<VulkanDescriptorResourcesInfo> resources
+            resources:Add(notchResourcesInfo)
+            
+            VulkanDescriptorResourcesInfo timeInfo
+            timeInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+            timeInfo:AddBufferInfo(timeBuffer, 0, timeBuffer:GetSize())
+            timeInfo:SetDestinationBinding(1)
+            resources:Add(timeInfo)
+            
+            VulkanDescriptorSet uniformSet = descriptorManager:CreateDescriptorSet(descriptorLayout, resources)
+            uniformsDescriptorSets:Add(uniformSet)
+            
+            i = i + 1
+        end
+        
+VulkanPipelineInfo info = creator:Finish()
+        pipelineLayout = info:GetLayout()
+        return info
+end
+    
+action SetVertexData(ShaderProgram program, Drawable drawable, DrawableShape shape)
         number leftBorder = 0
         number topBorder = 0
         number rightBorder = 0
@@ -141,6 +160,8 @@ class BlockErrorShaderMappingOpenGL is BatchingShaderMapping2DOpenGL
         number aspectRatio = width / height
 
         boolean selected = false
+        
+        BlockOptionConstants constants
 
         /*
         We want to get the control or layout properties used to define the element. We'll check these places, in order of priority:
@@ -209,7 +230,7 @@ number halfSize = width / 2.0
             if control not= undefined
                 borderThickness = (1.0 / height) * (control:GetBorderThickness() * control:GetInterfaceScale())
                 
-boolean overrideBorder = false
+                boolean overrideBorder = false
 if control:IsRenderingSelection() or selected
                     if control:HasSelectionBorderThickness()
                         overrideBorder = true
@@ -246,7 +267,6 @@ number halfSize = width / 2.0
             if height / 2.0 < halfSize
                 halfSize = height / 2.0
             end
-
             bottomLeftRounding = bottomLeftRounding + control:GetBottomLeftPixelRounding() * control:GetInterfaceScale() / halfSize
             bottomRightRounding = bottomRightRounding + control:GetBottomRightPixelRounding() * control:GetInterfaceScale() / halfSize
             topLeftRounding = topLeftRounding + control:GetTopLeftPixelRounding() * control:GetInterfaceScale() / halfSize
@@ -278,8 +298,8 @@ number halfSize = width / 2.0
                         borderColor = control:GetSelectionBorderColor()
                     end
                 end
-                
-if control:IsRenderingMouseOver()
+
+                if control:IsRenderingMouseOver()
                     if backgroundColor = undefined
 backgroundColor = control:GetMouseOverColor()
                     end
@@ -297,6 +317,19 @@ borderColor = control:GetMouseOverBorderColor()
                         borderColor = control:GetFocusBorderColor()
                     end
                 end
+                
+                if control is Block
+                    Block block = cast(Block, control)
+                    ColorGroup movingColor = block:GetColorProperty(constants:MOVING_BACKGROUND_COLOR)
+                    if block:IsMoving() and movingColor not= undefined
+                        backgroundColor = movingColor
+                    else
+                        ColorGroup placeholderColor = block:GetColorProperty(constants:PLACEHOLDER_BACKGROUND_COLOR)
+                        if block:IsPlaceholder() and block:IsInEditorTree() and placeholderColor not= undefined
+                            backgroundColor = placeholderColor
+                        end
+                    end
+                end
 
                 if backgroundColor = undefined
                     backgroundColor = control:GetBackgroundColor()
@@ -309,11 +342,33 @@ borderColor = control:GetMouseOverBorderColor()
             end
         end
 
+        if backgroundColor not= undefined
+            drawable:GetDrawableShape():SetColor(backgroundColor)
+        end
+
+        if borderColor not= undefined
+            if borderColor is Color
+                Color border = cast(Color, borderColor)
+                shape:SetDataForAllVertices(borderColorIndex, border:EncodeColorAsNumber())
+            else
+                Color bottomRight = borderColor:GetBottomRight()
+                Color bottomLeft = borderColor:GetBottomLeft()
+                Color topRight = borderColor:GetTopRight()
+                Color topLeft = borderColor:GetTopLeft()
+                shape:SetVertexData(borderColorIndex, bottomRight:EncodeColorAsNumber())
+                shape:SetVertexData(borderColorIndex + shape:GetVertexSize(), topRight:EncodeColorAsNumber())
+                shape:SetVertexData(borderColorIndex + shape:GetVertexSize() * 2, bottomLeft:EncodeColorAsNumber())
+                shape:SetVertexData(borderColorIndex + shape:GetVertexSize() * 3, topLeft:EncodeColorAsNumber())
+            end
+        else
+            shape:SetDataForAllVertices(borderColorIndex, 0)
+        end
+
         number topWidth = 20
         number bottomWidth = 10
         number topX = 10
         number bottomX = 10
-        if drawable is BlockErrorShaderView
+if drawable is BlockErrorShaderView
             BlockErrorShaderView blockView = cast(BlockErrorShaderView, drawable)
             Block block = cast(Block, blockView:GetItem())
             BlockEnvironment editor = block:GetBlockEnvironment()
@@ -335,21 +390,21 @@ borderColor = control:GetMouseOverBorderColor()
             if secondaryColor not= undefined
                 if secondaryColor is Color
                     Color secondary = cast(Color, borderColor)
-                    shape:SetDataForAllVertices(secondaryColorAttribute:offset / 4, secondary:EncodeColorAsNumber())
+                    shape:SetDataForAllVertices(secondaryColorIndex, secondary:EncodeColorAsNumber())
                 else
                     Color bottomRight = secondaryColor:GetBottomRight()
                     Color bottomLeft = secondaryColor:GetBottomLeft()
                     Color topRight = secondaryColor:GetTopRight()
                     Color topLeft = secondaryColor:GetTopLeft()
-                    shape:SetVertexData(secondaryColorAttribute:offset / 4, bottomRight:EncodeColorAsNumber())
-                    shape:SetVertexData(secondaryColorAttribute:offset / 4 + shape:GetVertexSize(), topRight:EncodeColorAsNumber())
-                    shape:SetVertexData(secondaryColorAttribute:offset / 4 + shape:GetVertexSize() * 2, bottomLeft:EncodeColorAsNumber())
-                    shape:SetVertexData(secondaryColorAttribute:offset / 4 + shape:GetVertexSize() * 3, topLeft:EncodeColorAsNumber())
+                    shape:SetVertexData(secondaryColorIndex, bottomRight:EncodeColorAsNumber())
+                    shape:SetVertexData(secondaryColorIndex + shape:GetVertexSize(), topRight:EncodeColorAsNumber())
+                    shape:SetVertexData(secondaryColorIndex + shape:GetVertexSize() * 2, bottomLeft:EncodeColorAsNumber())
+                    shape:SetVertexData(secondaryColorIndex + shape:GetVertexSize() * 3, topLeft:EncodeColorAsNumber())
                 end
             else
                 Color secondary
                 secondary:SetColor(0.5, 0.25, 0.25, 1)
-                shape:SetDataForAllVertices(secondaryColorAttribute:offset / 4, secondary:EncodeColorAsNumber())
+                shape:SetDataForAllVertices(secondaryColorIndex, secondary:EncodeColorAsNumber())
             end
 
             if block:HasImportantHints()
@@ -368,29 +423,7 @@ borderColor = control:GetMouseOverBorderColor()
                 end
             end
         end
-
-        if backgroundColor not= undefined
-            drawable:GetDrawableShape():SetColor(backgroundColor)
-        end
-
-        if borderColor not= undefined
-            if borderColor is Color
-                Color border = cast(Color, borderColor)
-                shape:SetDataForAllVertices(borderColorAttribute:offset / 4, border:EncodeColorAsNumber())
-            else
-                Color bottomRight = borderColor:GetBottomRight()
-                Color bottomLeft = borderColor:GetBottomLeft()
-                Color topRight = borderColor:GetTopRight()
-                Color topLeft = borderColor:GetTopLeft()
-                shape:SetVertexData(borderColorAttribute:offset / 4, bottomRight:EncodeColorAsNumber())
-                shape:SetVertexData(borderColorAttribute:offset / 4 + shape:GetVertexSize(), topRight:EncodeColorAsNumber())
-                shape:SetVertexData(borderColorAttribute:offset / 4 + shape:GetVertexSize() * 2, bottomLeft:EncodeColorAsNumber())
-                shape:SetVertexData(borderColorAttribute:offset / 4 + shape:GetVertexSize() * 3, topLeft:EncodeColorAsNumber())
-            end
-        else
-            shape:SetDataForAllVertices(borderColorAttribute:offset / 4, 0)
-        end
-
+        
         /*
         Counter-intuitively, we actually divide by the height, not the width, to get the proportional
         trapezoid width values. This is because we'll already be offsetting the width in the shader via
@@ -404,28 +437,36 @@ borderColor = control:GetMouseOverBorderColor()
         topX = topX / width
         bottomX = bottomX / width
 
-        shape:SetDataForAllVertices(roundingAttribute:offset / 4, utility:PackNormalizedVector4(bottomRightRounding, topRightRounding, bottomLeftRounding, topLeftRounding))
-        shape:SetDataForAllVertices(leftBorderAttribute:offset / 4, leftBorder)
-        shape:SetDataForAllVertices(rightBorderAttribute:offset / 4, rightBorder)
-        shape:SetDataForAllVertices(bottomBorderAttribute:offset / 4, bottomBorder)
-        shape:SetDataForAllVertices(topBorderAttribute:offset / 4, topBorder)
-        shape:SetDataForAllVertices(aspectRatioAttribute:offset / 4, aspectRatio)
-        shape:SetDataForAllVertices(antiAliasAttribute:offset / 4, 1.0 / height)
-        shape:SetDataForAllVertices(notchSizeAttribute:offset / 4, bottomWidth)
-        shape:SetDataForAllVertices(notchSizeAttribute:offset / 4 + 1, adjustedNotchHeight)
-        shape:SetDataForAllVertices(notchSizeAttribute:offset / 4 + 2, topWidth)
-        shape:SetDataForAllVertices(notchPositionAttribute:offset / 4, bottomX)
-        shape:SetDataForAllVertices(notchPositionAttribute:offset / 4 + 1, topX)
+        shape:SetDataForAllVertices(roundingIndex, utility:PackNormalizedVector4(bottomRightRounding, topRightRounding, bottomLeftRounding, topLeftRounding))
+shape:SetDataForAllVertices(bordersIndex, leftBorder)
+        shape:SetDataForAllVertices(bordersIndex + 1, rightBorder)
+        shape:SetDataForAllVertices(bordersIndex + 2, bottomBorder)
+        shape:SetDataForAllVertices(bordersIndex + 3, topBorder)
+        shape:SetDataForAllVertices(aspectRatioIndex, aspectRatio)
+        shape:SetDataForAllVertices(antiAliasIndex, 1.0 / height)
+        shape:SetDataForAllVertices(notchSizeIndex, bottomWidth)
+        shape:SetDataForAllVertices(notchSizeIndex + 1, adjustedNotchHeight)
+        shape:SetDataForAllVertices(notchSizeIndex + 2, topWidth)
+        shape:SetDataForAllVertices(notchPositionsIndex, bottomX)
+        shape:SetDataForAllVertices(notchPositionsIndex + 1, topX)
     end
-
-    /*
-    This action is called when it is time for the ShaderMapping to render its current batch with the given ShaderProgram.
-    */
-    action RenderBatch(ShaderProgram glProgram, Camera camera)
-        OpenGLShaderProgram program = cast(OpenGLShaderProgram, glProgram:GetShaderProgramStrategy())
-        program:SetShaderInput("u_notchHeight", notchHeight)
-        program:SetShaderInput("iTime", manager:GetGameDisplay():GetSecondsSinceStart())
-
-        parent:BatchingShaderMapping2DOpenGL:RenderBatch(glProgram, camera)
-    end
+    
+action Begin(ShaderProgram program, Camera camera, VulkanCommandBuffer commandBuffer, integer swapchainIndex)
+        if lastNotchHeight not= notchHeight
+            notchHeightMemory:Set(0, notchHeight)
+            lastNotchHeight = notchHeight
+        end
+        number currentTime = gameState:GetGameDisplay():GetSecondsSinceStart()
+        if lastTime not= currentTime
+            timeMappings:Get(swapchainIndex):Set(0, currentTime)
+            lastTime = currentTime
+        end
+        
+BindDescriptorSetCommand descriptorBind
+            descriptorBind:SetPipelineLayout(pipelineLayout)
+            descriptorBind:SetDescriptorSet(uniformsDescriptorSets:Get(swapchainIndex))
+            descriptorBind:SetSetIndex(2)
+            commandBuffer:Record(descriptorBind)
+end
+    
 end
