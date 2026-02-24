@@ -353,6 +353,7 @@ class CodeEditorRenderer is Control
         end
 
         UpdateSelectionCursor(editor:GetSelection())
+        parent:Control:Resize()
     end
 
     private action PositionBlock(Block block)
