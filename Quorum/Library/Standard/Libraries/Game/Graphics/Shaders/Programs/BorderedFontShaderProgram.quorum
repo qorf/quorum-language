@@ -5,22 +5,57 @@ use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.BorderedFontVertexShaderOpenGL
 use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.BorderedFontFragmentShaderOpenGL
 use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.BorderedFontShaderMappingOpenGL
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.BorderedFontShaderMappingVulkan
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.BorderedFontVertexShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.BorderedFontFragmentShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.BorderedFontShaderMappingVulkan
 
 class BorderedFontShaderProgram is ShaderProgram
 
-    constant text PROGRAM_NAME = "Bordered Font Program"
+public constant text DEFAULT_NAME = "Bordered Font Program"
+    constant text VERTEX_NAME = "Bordered Font Vertex Shader"
+    constant text FRAGMENT_NAME = "Bordered Font Fragment Shader"
 
     on create
-        SetName(PROGRAM_NAME)
+        SetName(DEFAULT_NAME)
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
+        
+        if manager:HasShader(VERTEX_NAME)
+            Shader vertex = manager:GetShader(VERTEX_NAME)
+            Add(vertex)
+        else
+            if IsVulkanProgram()
+                BorderedFontVertexShaderVulkan vertex
+                Add(vertex)
+            else
+BorderedFontVertexShaderOpenGL vertex
+            Add(vertex)
+            end
+        end
 
-        BorderedFontVertexShaderOpenGL vertex
-        BorderedFontFragmentShaderOpenGL fragment
+        if manager:HasShader(FRAGMENT_NAME)
+            Shader fragment = manager:GetShader(FRAGMENT_NAME)
+            Add(fragment)
+        else
+            if IsVulkanProgram()
+                BorderedFontFragmentShaderVulkan fragment
+                Add(fragment)
+            else
+BorderedFontFragmentShaderOpenGL fragment
+            Add(fragment)
+            end
+        end
 
-        Add(vertex)
-        Add(fragment)
-
-        BorderedFontShaderMappingOpenGL mapping
+        if IsVulkanProgram()
+            BorderedFontShaderMappingVulkan mapping
+            SetShaderMapping(mapping)
+        else
+BorderedFontShaderMappingOpenGL mapping
         SetShaderMapping(mapping)
+        end
     end
 
 end

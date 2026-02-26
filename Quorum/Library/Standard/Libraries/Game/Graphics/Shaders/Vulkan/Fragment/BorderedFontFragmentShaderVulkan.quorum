@@ -1,0 +1,75 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Fragment
+
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.DefaultAttributeNames
+
+class BorderedFontFragmentShaderVulkan is Shader
+    
+constant text SHADER_NAME = "Bordered Font Fragment Shader"
+    
+    on create
+SetType(parent:Shader:FRAGMENT_SHADER)
+        SetName(SHADER_NAME)
+
+        DefaultAttributeNames attributes
+        SetCode(GetVersionHeader() +
+"
+" +
+"#ifdef GL_ES
+    #define LOWP lowp
+    precision mediump float;
+#else
+    #define LOWP 
+#endif
+
+// Adds support for nonuniformEXT and unsized descriptor arrays.
+#extension GL_EXT_nonuniform_qualifier : require
+
+layout(location = 0) in vec4 v_color;
+layout(location = 1) in vec2 v_textureCoords;
+layout(location = 2) flat in uint v_textureIndex;
+layout(location = 3) in vec4 v_borderColor;
+layout(location = 4) in float v_borderThickness;
+layout(location = 5) in float v_fontSize;
+
+layout(set = 0, binding = 1) uniform sampler immutableSampler;
+layout(set = 1, binding = 0) uniform texture2D globalTextures[];
+
+layout (location = 0) out vec4 outputColor;
+
+void main()
+{
+    vec4 textureValue = texture(nonuniformEXT(sampler2D(globalTextures[v_textureIndex], immutableSampler)), v_textureCoords);
+    float sdf = textureValue.a;
+
+    // By default Freetype provides a spread of 8 pixels around the glyph
+    float spread = 8.0;
+
+    float borderThickness = v_borderThickness;
+
+    //Negative = Exterior
+    //Position = Interior
+    //SDF is between 0 and 1, the next line converts it from -1 to 1, multiplied by spread
+    sdf = (sdf - 0.5) * 2.0 * spread;
+    
+    float fontSize = v_fontSize;
+    // 14 and 28 are arbitrarily selected endpoints to interpolate on, based on informal testing
+    // The result will be a value of 0 for 'small' fonts and 0.5 for 'large' fonts
+    // This means smaller fonts will anti-alias outside of the border/fill boundary, while large fonts will anti-alias directly on the boundary
+    float threshold = smoothstep(14.0, 28.0, fontSize) / 2.0;
+
+    //Two colors and a parameter saying how much to use of each. 
+    //v_borderColor.rgb, 0.0) is the first three slots, plus alpha
+    //transparent because it's outside the region
+    //smoothstep(-borderThickness - 1.0, -borderThickness, sdf), gives value between 0 and 1, 
+    //Params, lower bound, upper bound, value to compare
+    outputColor = mix(vec4(v_borderColor.rgb, 0.0), v_borderColor, smoothstep(-borderThickness - 0.5, -borderThickness + 0.5, sdf));
+
+    //v_color is the actual font color
+    //Mixes the actual font color, transparency or the border color
+    //smoothstep(-1.0, 0.0, sdf), -1 transparency or border, 0 font color
+    outputColor = mix(outputColor, v_color, smoothstep(-1.0 + threshold, threshold, sdf));
+}")
+    end
+    
+end

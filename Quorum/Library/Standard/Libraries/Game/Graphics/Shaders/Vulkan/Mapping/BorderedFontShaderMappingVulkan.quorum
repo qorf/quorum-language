@@ -1,0 +1,106 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Mapping
+
+use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfoCreator
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfo
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.DrawableShape
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.GlyphDrawable
+use Libraries.Interface.Controls.Control
+use Libraries.Game.Graphics.Color
+
+class BorderedFontShaderMappingVulkan is VulkanShaderMapping
+    
+// Indices to the vertex values located in the DrawableShape.
+    integer borderColorIndex = 0
+    integer borderThicknessIndex = 0
+    integer fontSizeIndex = 0
+    
+on create
+        UseDefaultResources2D(true)
+    end
+    
+// Returns the size of each vertex in the DrawableShape (which stores values as 32 bit integers).
+action GetVertexSize returns integer
+        return fontSizeIndex + 1
+    end
+    
+/*This action is used to setup the values of a VulkanPipelineInfo that will be used to create the
+VulkanPipeline needed for the shader program. This can also be used to create and keep copies of
+any Vulkan resources that will be needed to send or change shader data.*/
+    action CreatePipelineInfo(VulkanShaderProgram program, VulkanDevice device) returns VulkanPipelineInfo
+        VulkanPipelineInfoCreator creator
+        creator:Begin(device)
+        creator:AddDefaultInfo2D()
+        
+        VulkanConstants constants
+borderColorIndex = creator:AddVertexInput(constants:FORMAT_R8G8B8A8_UNORM)
+        borderThicknessIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        fontSizeIndex = creator:AddVertexInput(constants:FORMAT_R32_SFLOAT)
+        
+        VulkanPipelineInfo info = creator:Finish()
+        
+        return info
+    end
+    
+action SetVertexData(ShaderProgram program, Drawable drawable, DrawableShape shape)
+number borderThickness = 2
+        ColorGroup borderColor = undefined
+
+        if drawable is GlyphDrawable
+            GlyphDrawable glyph = cast(GlyphDrawable, drawable)
+            borderColor = glyph:GetOutlineColor()
+            borderThickness = glyph:GetOutlineThickness()
+        end
+        
+        // Get the color from a control, or if the drawable is a child of a control, get that instead.
+        Control control = undefined
+        if drawable is Control
+            control = cast(Control, cast(Object, drawable))
+        elseif drawable:GetParent() is Control
+            control = cast(Control, cast(Object, drawable:GetParent()))
+        end
+
+        integer fontSize = 14
+
+        if control not= undefined
+            ColorGroup color = control:GetFontOutlineColor()
+            number thickness = control:GetFontOutlineThickness()
+
+            if color not= undefined
+                borderColor = color
+            end
+            if thickness > 0
+                borderThickness = thickness
+            end
+
+            fontSize = cast(integer, control:GetFontSize() * control:GetInterfaceScale())
+        end
+
+        if borderColor is Color
+            Color border = cast(Color, borderColor)
+            shape:SetDataForAllVertices(borderColorIndex, border:EncodeColorAsNumber())
+        elseif borderColor not= undefined
+            Color bottomRight = borderColor:GetBottomRight()
+            Color bottomLeft = borderColor:GetBottomLeft()
+            Color topRight = borderColor:GetTopRight()
+            Color topLeft = borderColor:GetTopLeft()
+            shape:SetVertexData(borderColorIndex, bottomRight:EncodeColorAsNumber())
+            shape:SetVertexData(borderColorIndex + shape:GetVertexSize(), topRight:EncodeColorAsNumber())
+            shape:SetVertexData(borderColorIndex + shape:GetVertexSize() * 2, bottomLeft:EncodeColorAsNumber())
+            shape:SetVertexData(borderColorIndex + shape:GetVertexSize() * 3, topLeft:EncodeColorAsNumber())
+        else
+            Color color
+            color:SetColor(0, 0, 0, 1)
+            shape:SetDataForAllVertices(borderColorIndex, color:EncodeColorAsNumber())
+        end
+
+        shape:SetDataForAllVertices(borderThicknessIndex, borderThickness)
+        shape:SetDataForAllVertices(fontSizeIndex, fontSize)
+end
+    
+end
