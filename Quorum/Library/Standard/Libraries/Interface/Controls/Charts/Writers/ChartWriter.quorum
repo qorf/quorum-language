@@ -209,7 +209,15 @@ g."+selectionBoxStyle+":focus > circle{
  visibility: visible;
 }
 
+.quorum-chart-wedge:focus + .small-slice-text {
+ visibility: visible;
+}
+
+.small-slice-text {
+ visibility: hidden;
+}
 ")
+        
         
         chartCanvas:Add(outlineStyle)
         Script script
@@ -373,6 +381,15 @@ g."+selectionBoxStyle+":focus > circle{
 }
 .crust {
  visibility: hidden;
+}
+
+.quorum-chart-wedge:focus + .small-slice-text {
+ visibility: visible;
+}
+
+.small-slice-text {
+ visibility: hidden;
+}
 ")
         
         chartCanvas:Add(outlineStyle)

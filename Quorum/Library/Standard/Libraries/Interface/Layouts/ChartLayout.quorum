@@ -164,6 +164,9 @@ class ChartLayout is Layout
                                     integer newSize = cast(integer, label:GetFontSize() * (width/label:GetWidth()))
                                     label:SetFontSize(newSize)
                                 end
+                                if label:GetFontSize() < 18
+                                    label:SetFontSize(18)
+                                end
                                 fontSize = label:GetFontSize()
                             end
                             i = i + 1

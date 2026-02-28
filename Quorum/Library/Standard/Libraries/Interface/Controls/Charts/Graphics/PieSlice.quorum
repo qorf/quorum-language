@@ -92,6 +92,13 @@ class PieSlice is Wedge
         return "" + percent
     end
     
+    action IsSmall returns boolean
+        if GetPercentage() < 0.03
+            return true
+        end
+        return false
+    end
+    
 action BeginMouseOver
         if GetContainer() is PieChart
             PieChart parentChart = cast(PieChart, GetContainer())

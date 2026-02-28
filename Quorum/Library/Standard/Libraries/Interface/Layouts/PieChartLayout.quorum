@@ -150,15 +150,20 @@ maxRadialOffset = slice:GetRadialOffset() + chart:GetDefaultRadialOffset()
  - "INSIDE_DONUT"
 */
                         number radialOffset = 1
-                        if chart:GetAnnotationPlacement() = "INSIDE_SLICE"
+                        text annotationPlacement = chart:GetAnnotationPlacement()
+                        if pieBox:Get(i):IsSmall()
+                            annotationPlacement = "OUTSIDE"
+                            label:SetFontColor(color:Black())
+                        end
+                        if annotationPlacement = "INSIDE_SLICE"
                             if chart:GetDonutHolePercent() > 0
                                 radialOffset = ( ((radius + chart:GetDefaultRadialOffset() + slice:GetRadialOffset()) / radius) + chart:GetDonutHolePercent())/ 2
                             else
                                 radialOffset = ( ((radius + chart:GetDefaultRadialOffset() + slice:GetRadialOffset()) / radius) + chart:GetDonutHolePercent())/ 1.8
                             end
-                        elseif chart:GetAnnotationPlacement() = "INSIDE_DONUT"
+                        elseif annotationPlacement = "INSIDE_DONUT"
                             radialOffset = (chart:GetDonutHolePercent())
-                        elseif chart:GetAnnotationPlacement() = "OUTSIDE"
+                        elseif annotationPlacement = "OUTSIDE"
                             radialOffset = (radius + maxRadialOffset) / radius
                         end
                         slice:SetUnitX(math:Cosine(math:DegreesToRadians(currentTheta)))
@@ -204,9 +209,13 @@ maxRadialOffset = slice:GetRadialOffset() + chart:GetDefaultRadialOffset()
                         end
                         slice:SetAnnotationLabelX(label:GetGlobalX())
                         slice:SetAnnotationLabelY(label:GetGlobalY())
+                        if slice:IsSmall()
+                            label:Hide()
+                        end
                     end
-                    currentTheta = currentTheta - (percent/2) * 360 // Account for the remaining half of the arc
                 end
+// Account for the remaining half of the arc
+                currentTheta = currentTheta - (percent/2) * 360
                 i = i + 1
             end
         end
