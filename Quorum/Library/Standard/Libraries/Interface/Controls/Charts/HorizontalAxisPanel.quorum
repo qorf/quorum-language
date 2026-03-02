@@ -82,7 +82,7 @@ class HorizontalAxisPanel is ChartItem
     private Array <Drawable> axislines
     private Array <Drawable> ticks
     private Array <Drawable> brackets
-    private Array <Drawable> majorlines
+    private Array <Control> majorlines
     private Array <Drawable> minorlines
     private integer minorlinecount = 5
     private integer tickHeight = 15
@@ -409,7 +409,7 @@ class HorizontalAxisPanel is ChartItem
             Array<Drawable> theTicks
             Array<Drawable> theBrackets
             Array<ChartLabel> theLabels
-            Array<Drawable> theMajorLines
+            Array<Control> theMajorLines
             Array<Drawable> theMinorLines
 
             integer i = 0
@@ -489,14 +489,14 @@ class HorizontalAxisPanel is ChartItem
 
                 if chart:IsShowingMajorXGridLines()
                     if subPanel = undefined
-                        Drawable gridline
+                        Control gridline
                         theMajorLines:Add(gridline)
                         chart:GetChartArea():Add(gridline)
                     else
                         integer verticalSections = chart:GetVerticalPanel():GetNumberOfSections()
                         integer m = 0
                         repeat while m < verticalSections
-                            Drawable gridline
+                            Control gridline
                             theMajorLines:Add(gridline)
                             if chart:GetSubChartAreas():Get(m + k*verticalSections):IsShowing()
                                 chart:GetSubChartAreas():Get(m + k*verticalSections):Add(gridline)
@@ -864,7 +864,7 @@ class HorizontalAxisPanel is ChartItem
         end
 
         if not majorlines:IsEmpty()
-            Drawable temp = undefined
+            Control temp = undefined
             integer i = 0
             repeat while i < majorlines:GetSize()
                 temp = majorlines:Get(i)
@@ -1033,13 +1033,13 @@ class HorizontalAxisPanel is ChartItem
     
         Attribute: Parameter majorlines the array of major gridlines.
     */
-    action SetMajorGridlines(Array<Drawable> majorlines)
+    action SetMajorGridlines(Array<Control> majorlines)
         me:majorlines = majorlines
     end
     /*
         This action gets the major grid lines as an array of gridlines.
     */
-    action GetMajorGridlines returns Array<Drawable>
+    action GetMajorGridlines returns Array<Control>
         return majorlines
     end
 

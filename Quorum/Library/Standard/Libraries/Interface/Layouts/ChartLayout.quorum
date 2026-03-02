@@ -468,7 +468,7 @@ axis:Hide()
         // Calculating tick and label positions
         Array<Drawable> ticks = horizontalContainer:GetTicks()
         Array<Drawable> brackets = horizontalContainer:GetBrackets()
-        Array<Drawable> majorlines = horizontalContainer:GetMajorGridlines()
+        Array<Control> majorlines = horizontalContainer:GetMajorGridlines()
         Array<Drawable> minorlines = horizontalContainer:GetMinorGridlines()
         Array<Drawable> axislines = horizontalContainer:GetAxisLines()
         Array<ChartLabel> labels = horizontalContainer:GetLabels()
@@ -562,7 +562,7 @@ axis:Hide()
 
             integer k = 0
             repeat while k < verticalSections
-                Drawable majorLine
+                Control majorLine
                 if chart:IsShowingMajorXGridLines() and startIndex < majorlines:GetSize()
                     if i = 0  // This will not draw the gridline that overlaps with the y-axis
                         if not chart:IsShowingYAxis() or paddingOffset not= 0
@@ -574,7 +574,14 @@ axis:Hide()
                 end
                 integer thin = cast(integer, tickWidth*0.75)
                 majorLine:SetPosition(cast(integer, tickX+(thin/2)), 0)
-                majorLine:LoadFilledRectangle(thin, cast(integer, chartHeight), chart:GetAccentColor())
+                majorLine:SetSize(thin, cast(integer, chartHeight))
+                majorLine:SetBackgroundColor(chart:GetAccentColor())
+                //majorLine:LoadFilledRectangle(thin, cast(integer, chartHeight), chart:GetAccentColor())
+                
+                DashedLineView majorShader
+                majorShader:Initialize(false)
+                majorShader:SetColor(chart:GetAccentColor())
+                majorLine:SetView2D(majorShader)
     
                 if chart:IsShowingMinorXGridLines() and j < minorlines:GetSize() 
                     integer thinner = cast(integer, majorLine:GetWidth()/2)

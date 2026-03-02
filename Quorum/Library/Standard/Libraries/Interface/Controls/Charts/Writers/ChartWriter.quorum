@@ -1180,7 +1180,7 @@ number descent = subChartArea:GetLabel():GetFont():GetMaximumDescent()
         Array<HorizontalAxisPanel> subHorizontalPanels = chart:GetSubHorizontalPanels()
         Array<Drawable> ticks = horizontalContainer:GetTicks()
         Array<Drawable> brackets = horizontalContainer:GetBrackets()
-        Array<Drawable> lines = horizontalContainer:GetMajorGridlines()
+        Array<Control> lines = horizontalContainer:GetMajorGridlines()
         Array<Drawable> minorlines = horizontalContainer:GetMinorGridlines()
         Array<ChartLabel> labels = horizontalContainer:GetLabels()
 
@@ -1234,7 +1234,7 @@ number descent = subChartArea:GetLabel():GetFont():GetMaximumDescent()
 
         i = 0
         repeat while i < lines:GetSize()
-            Drawable currentLine = lines:Get(i)
+            Control currentLine = lines:Get(i)
             if currentLine:IsShowing()
                 
 Line svgElementLine
@@ -1242,7 +1242,7 @@ Line svgElementLine
                     svgElementLine:SetStrokeWidth(currentLine:GetWidth()/2)
 svgElementLine:SetTranslateTransform(currentLine:GetGlobalX() + currentLine:GetWidth()/2, TranslatePositionY(currentLine) - currentLine:GetHeight())
                 
-                    svgElementLine:SetStroke(currentLine:GetColor())
+                    svgElementLine:SetStroke(cast(Color,chart:GetAccentColor()))
                     svgElementLine:SetStrokeDashArray("20 20")
                 if HasAccessibility()
                     svgElementLine:SetTabIndex(-1)
@@ -1311,7 +1311,7 @@ number descent = currentLabel:GetFont():GetMaximumDescent()
             HorizontalAxisPanel subHorizontalPanel = subHorizontalPanels:Get(j)
             Array<Drawable> subTicks = subHorizontalPanel:GetTicks()
             Array<Drawable> subBrackets = subHorizontalPanel:GetBrackets()
-            Array<Drawable> subLines = subHorizontalPanel:GetMajorGridlines()
+            Array<Control> subLines = subHorizontalPanel:GetMajorGridlines()
             Array<Drawable> subMinorlines = subHorizontalPanel:GetMinorGridlines()
             Array<ChartLabel> subLabels = subHorizontalPanel:GetLabels()
             
@@ -1365,7 +1365,7 @@ number descent = currentLabel:GetFont():GetMaximumDescent()
     
             i = 0
             repeat while i < subLines:GetSize()
-                Drawable currentSubLine = subLines:Get(i)
+                Control currentSubLine = subLines:Get(i)
                 if currentSubLine:IsShowing()
                     
 Line svgElementLine
@@ -1373,7 +1373,7 @@ Line svgElementLine
                     svgElementLine:SetStrokeWidth(currentSubLine:GetWidth()/2)
 svgElementLine:SetTranslateTransform(currentSubLine:GetGlobalX() + currentSubLine:GetWidth()/2, TranslatePositionY(currentSubLine) - currentSubLine:GetHeight())
                     
-                    svgElementLine:SetStroke(currentSubLine:GetColor())
+                    svgElementLine:SetStroke(cast(Color,chart:GetAccentColor()))
     svgElementLine:SetStrokeDashArray("20 20")
                     if HasAccessibility()
                         svgElementLine:SetTabIndex(-1)
