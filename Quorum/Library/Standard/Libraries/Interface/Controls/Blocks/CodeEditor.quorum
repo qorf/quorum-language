@@ -1820,7 +1820,7 @@ integer startLine = currentLine + 1 - parentBlock:GetStartLine()
             newBlock:SetLocalStartLine(0)
             newBlock:SetLocalStartIndex(0)
         end
-        newBlock:SetLocalEndIndex(targetIndex +  newValue:GetSize() - parentBlock:GetStartIndex())
+        newBlock:SetLocalEndIndex(targetIndex +  newValue:GetSize() - parentBlock:GetStartIndex() - 1)
         newBlock:SetLocalEndLine(currentLine + newLinesAdded - parentBlock:GetStartLine())
         newBlock:SetScopeDepth(scopeDepth)
 

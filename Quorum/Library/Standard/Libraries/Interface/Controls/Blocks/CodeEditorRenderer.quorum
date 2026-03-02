@@ -830,17 +830,13 @@ class CodeEditorRenderer is Control
         CodeEditor editor = GetEditor()
         integer destination = placeholderBlocks:GetFromFront():GetStartIndex()
         integer line = editor:GetLineIndex(destination)
+        integer insertionLine = line - 1
         
         MultipleLineText code = editor:GetCode()
         if code:GetSize() > 0 and destination = code:GetSize()
-            text lastCharacter = code:GetCharacter(code:GetSize() -1 )
-            if lastCharacter not= lastCharacter:GetLineFeed()
-                toInsert = toInsert:GetLineFeed() + toInsert
-            end
+            insertionLine = line
         end
         if not movingBlocks:IsEmpty()
-            
-            
             BlockEditManager edits = editor:GetBlockEditManager()
             // save current state
             
@@ -857,7 +853,7 @@ if movingStartIndex < destination
                 editor:SetCode(code)
             else
 if movingStartIndex < destination
-editor:InsertTextAfterLineIntoFreeform(line - 1, toInsert)
+editor:InsertTextAfterLineIntoFreeform(insertionLine, toInsert)
             
 integer i = 0
             repeat while i < movingBlocks:GetSize()
@@ -872,14 +868,13 @@ integer i = 0
                 editor:Delete(temp, false)
                 i = i + 1
             end
-                
-                editor:InsertTextAfterLineIntoFreeform(line - 1, toInsert)
+                editor:InsertTextAfterLineIntoFreeform(insertionLine, toInsert)
                         end
                 
             end
             edits:SetSpecialAction(false)
         else
-            editor:InsertTextAfterLineIntoFreeform(line - 1, toInsert)
+            editor:InsertTextAfterLineIntoFreeform(insertionLine, toInsert)
         end
         
  integer i = 0
