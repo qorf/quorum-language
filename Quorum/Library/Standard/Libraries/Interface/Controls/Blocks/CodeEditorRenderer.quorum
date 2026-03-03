@@ -353,7 +353,6 @@ class CodeEditorRenderer is Control
         end
 
         UpdateSelectionCursor(editor:GetSelection())
-        parent:Control:Resize()
     end
 
     private action PositionBlock(Block block)
@@ -369,8 +368,10 @@ class CodeEditorRenderer is Control
         end
 
         integer lineIndex = block:GetNavigationIndex() + navigationSize - 1
-        block:SetPosition(editor:GetScopeIndentationWidth() * block:GetScopeDepth() - editor:GetScrollPercentageX() * editor:GetTotalContentWidth(), editor:GetLineY(lineIndex))
-    end
+        if not (block is MultipleLineBlockPart)
+                    block:SetPosition(editor:GetScopeIndentationWidth() * block:GetScopeDepth() - editor:GetScrollPercentageX() * editor:GetTotalContentWidth(), editor:GetLineY(lineIndex))
+        end
+end
 
     action RefreshNavigationIndices
         Block currentBlock = rootBlock
