@@ -89,6 +89,7 @@ class PieChartWriter is ChartWriter
     */
     private action AddChartContent(ScalableVectorGraphics canvas, Chart chart)
         PieChart pieChart = cast(PieChart, chart)
+        pieChart:RemoveSliceSelectionVisual()
         AddSlices(canvas, pieChart)
     end
 
@@ -291,6 +292,9 @@ number innerEndX = originPointX + innerRadius * math:Cosine(math:DegreesToRadian
                                 labelSVG:SetStyleClass("quorum-chart-text")
                                 labelSVG:SetTabIndex(-1)
                                 labelSVG:SetAriaHidden("true")
+                                if pieBox:Get(i):IsSmall()
+                                    labelSVG:SetStyleClass("quorum-chart-text small-slice-text")
+                                end
                                 //sliceFocus = sliceFocus + "gainFocus('" + labelSVG:GetID() + "'); "
                                 //sliceBlur = sliceBlur + "loseFocus('" + labelSVG:GetID() + "'); "
                             end
@@ -515,6 +519,9 @@ number innerEndX = originPointX + innerRadius * math:Cosine(math:DegreesToRadian
                                     labelSVG:SetStyleClass("quorum-chart-text")
                                     labelSVG:SetTabIndex(-1)
                                     labelSVG:SetAriaHidden("true")
+if pieBox:Get(i):IsSmall()
+                                    labelSVG:SetStyleClass("quorum-chart-text small-slice-text")
+                                end
                                     //sliceFocus = sliceFocus + "gainFocus('" + labelSVG:GetID() + "'); "
                                     //sliceBlur = sliceBlur + "loseFocus('" + labelSVG:GetID() + "'); "
                                 end
