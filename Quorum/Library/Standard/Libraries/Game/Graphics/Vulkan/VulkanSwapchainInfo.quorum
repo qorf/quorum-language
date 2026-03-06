@@ -32,6 +32,8 @@ class VulkanSwapchainInfo
         imageUsage = constants:IMAGE_USAGE_COLOR_ATTACHMENT_BIT
         compositeAlpha = constants:COMPOSITE_ALPHA_OPAQUE_BIT
         presentMode = constants:PRESENT_MODE_FIFO
+        
+        //imageViewInfo:SetFormat(imageFormat)
     end
 
     action Copy returns VulkanSwapchainInfo

@@ -132,7 +132,21 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
                 buffer:StopMapping()
 
                 VulkanImage image
-                image:Create(device, width, height, bits:Or(constants:IMAGE_USAGE_TRANSFER_DESTINATION_BIT, constants:IMAGE_USAGE_SAMPLED_BIT))
+                VulkanImageInfo imageInfo
+                imageInfo:SetWidth(width)
+                imageInfo:SetHeight(height)
+                imageInfo:SetUsage(bits:Or(constants:IMAGE_USAGE_TRANSFER_DESTINATION_BIT, constants:IMAGE_USAGE_SAMPLED_BIT))
+                imageInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
+                /*
+VulkanImageInfo info
+        info:SetWidth(width)
+        info:SetHeight(height)
+        info:SetUsage(usage)
+        info:SetAllocationFlags(allocationFlags)
+        return Create(device, info)
+*/
+                //image:Create(device, width, height, bits:Or(constants:IMAGE_USAGE_TRANSFER_DESTINATION_BIT, constants:IMAGE_USAGE_SAMPLED_BIT))
+                image:Create(device, imageInfo)
 
                 // We'll need this as part of the buffer-to-image copy, in order to ensure the image is in the right format to accept the 
                 // buffer data before we send it.
