@@ -50,7 +50,8 @@ class VulkanImageInfo
     on create
         VulkanConstants constants
         imageType = constants:IMAGE_TYPE_2D
-        format = constants:FORMAT_B8G8R8A8_SRGB
+        //format = constants:FORMAT_B8G8R8A8_SRGB
+format = constants:FORMAT_B8G8R8A8_UNORM
         tiling = constants:IMAGE_TILING_OPTIMAL
         initialLayout = constants:IMAGE_LAYOUT_UNDEFINED
         samples = constants:SAMPLE_COUNT_1_BIT
