@@ -50,7 +50,7 @@ out vec2 v_notchPositions;
 void main()
 {
     v_color = " + attributes:COLOR + ";
-    v_color.a = v_color.a * (255.0/254.0);
+    v_color.a = v_color.a;
     v_borderColor = a_borderColor;
     v_texCoords = " + attributes:TEXTURE_COORDINATES + "0;
     v_rounding = a_rounding;

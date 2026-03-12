@@ -26,14 +26,11 @@ class VulkanSwapchainInfo
 
     on create
         VulkanConstants constants
-        //imageFormat = constants:FORMAT_B8G8R8A8_SRGB
 imageFormat = constants:FORMAT_B8G8R8A8_UNORM
         colorSpace = constants:COLOR_SPACE_SRGB_NONLINEAR
         imageUsage = constants:IMAGE_USAGE_COLOR_ATTACHMENT_BIT
         compositeAlpha = constants:COMPOSITE_ALPHA_OPAQUE_BIT
         presentMode = constants:PRESENT_MODE_FIFO
-        
-        //imageViewInfo:SetFormat(imageFormat)
     end
 
     action Copy returns VulkanSwapchainInfo

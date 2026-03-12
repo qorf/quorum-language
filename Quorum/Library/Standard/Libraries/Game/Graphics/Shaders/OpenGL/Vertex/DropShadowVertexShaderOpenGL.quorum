@@ -28,7 +28,7 @@ out vec2 v_texCoords;
 void main()
 {
     v_color = " + attributes:COLOR + ";
-    v_color.a = v_color.a * (255.0/254.0);
+    v_color.a = v_color.a;
     v_texCoords = " + attributes:TEXTURE_COORDINATES + "0;
     vec2 localPosition = " + attributes:POSITION + ".xy - u_localCenter;
     localPosition = (localPosition * u_thicknessOffset) + u_localCenter + u_shadowOffset;

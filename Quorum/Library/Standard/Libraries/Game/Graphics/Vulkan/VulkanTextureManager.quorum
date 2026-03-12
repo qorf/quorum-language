@@ -168,8 +168,6 @@ VulkanImageInfo info
                 copyCommand:SetImageWidth(width)
                 copyCommand:SetImageHeight(height)
                 copyCommand:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
-//                copyCommand:SetBufferRowLength(width)
-//                copyCommand:SetBufferImageHeight(height)
                 copyCommand:SetSourceBuffer(buffer)
                 copyCommand:SetDestinationImage(image)
                 commandBuffer:Record(copyCommand)
@@ -196,7 +194,6 @@ VulkanImageInfo info
                 // Now we need an ImageView to encapsulate the Image. The view will be accessed to get information about the related image.
                 VulkanImageView view
                 VulkanImageViewInfo viewInfo
-                //viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_SRGB)
 viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
                 view:Create(device, image, viewInfo)
 
@@ -237,6 +234,7 @@ text source = "(Undefined)"
             end
 
             pendingTextures:Empty()
+            pendingPixelMaps:Empty()
         end
     end
 
