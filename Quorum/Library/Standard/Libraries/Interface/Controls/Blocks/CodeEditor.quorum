@@ -1777,7 +1777,7 @@ Block blockAtLine = renderer:GetBlockAtLine(currentLine)
 "+ GetIndentationText(scopeDepth)+"
 " + value:Trim()
         end
-        if endInsert or line = -1
+        if line = -1
             newValue = newValue + newValue:GetLineFeed()
         end
         /*
@@ -2111,8 +2111,7 @@ integer i = blocks:GetSize()
                 endIndex = rawCode:GetSize()
             end
         end
-
-
+        
         integer textSize = endIndex - targetIndex
         deletedText = rawCode:GetText(targetIndex, endIndex)
         index = targetIndex
@@ -2301,6 +2300,13 @@ integer i = blocks:GetSize()
     
             if endIndex > rawCode:GetSize()
                 endIndex = rawCode:GetSize()
+            end
+        end
+        
+        if endIndex = rawCode:GetSize() and targetIndex > 0
+            text previousChar = rawCode:GetCharacter(targetIndex - 1)
+            if previousChar = previousChar:GetLineFeed()
+                targetIndex = targetIndex - 1
             end
         end
 
