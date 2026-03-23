@@ -127,6 +127,12 @@ public class VulkanSwapchain
                 finalHeight = Math.max(finalHeight, surfaceCapabilities.currentExtent().height());
             }
 
+            // Ensure a minimum size of 1x1. Values can become 0 if the application is minimized, but generating 0x0 images is illegal.
+            if (finalWidth <= 0)
+                finalWidth = 1;
+            if (finalHeight <= 0)
+                finalHeight = 1;
+
             dimensions.set(finalWidth, finalHeight);
             createInfo.SetImageSize(finalWidth, finalHeight);
 

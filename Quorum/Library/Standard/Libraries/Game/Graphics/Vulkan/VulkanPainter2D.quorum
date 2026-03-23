@@ -230,6 +230,12 @@ depthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
     end
 
     private action EndBatches(VulkanCommandBuffer commandBuffer)
+VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        // Abort if rendering is paused due to window minimization.
+        if graphics:IsRenderingPaused()
+            return now
+        end
+        
         Iterator<Array<VulkanPainter2DBatch>> arrays = batches:GetValueIterator()
         VulkanPipeline defaultPipeline = GetDefaultPipeline()
         repeat while arrays:HasNext()
@@ -263,6 +269,12 @@ depthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
     end
     
     action Begin
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        // Abort if rendering is paused due to window minimization.
+        if graphics:IsRenderingPaused()
+            return now
+        end
+        
         // If the render pass isn't defined and valid, regenerate it.
         // We'll have to determine if this is the first painter in the Game as part of this.
         if not IsRenderPassValid()
@@ -292,7 +304,6 @@ Layer layer = layers:Next()
         if cameraBuffers:IsEmpty()
             // In this case, we haven't initialized the camera resources or sampler yet.
             VulkanDevice device = renderPass:GetDevice()
-VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
             VulkanConstants constants
             
 // Start by creating a sampler. We'll use this to access texture information in the shaders.
@@ -363,9 +374,14 @@ VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
     end
     
     action End
+VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        // Abort if rendering is paused due to window minimization.
+        if graphics:IsRenderingPaused()
+            return now
+        end
+        
         Flush()
 
-        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
         VulkanCommandBuffer commandBuffer = graphics:GetCurrentRenderCommandBuffer()
         VulkanFramebuffer framebuffer = graphics:GetCurrentFramebuffer()
         VulkanSwapchain swapchain = graphics:GetSwapchain()
@@ -560,6 +576,12 @@ Drawable drawable = cast(Drawable, item)
     end
     
     private action AddToBatch(Drawable drawable)
+VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        // Abort if rendering is paused due to window minimization.
+        if graphics:IsRenderingPaused()
+            return now
+        end
+        
 DrawableShape shape = drawable:GetDrawableShape()
 
         if not shape:IsRenderable()
@@ -610,6 +632,12 @@ drawable:SetClipCoordinates(me)
     end
 
     private action Flush
+VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        // Abort if rendering is paused due to window minimization.
+        if graphics:IsRenderingPaused()
+            return now
+        end
+        
         if currentBatch = undefined or needsFlush = false
             return now
         end

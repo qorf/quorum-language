@@ -9,6 +9,7 @@ use Libraries.Game.DesktopApplication
 use Libraries.Game.DesktopDisplay
 use Libraries.Compute.BitwiseOperations
 use Libraries.Containers.Array
+use Libraries.Game.GameDisplay
 
 class VulkanGraphics is GraphicsManager
     
@@ -61,6 +62,12 @@ VulkanImage depthBufferImage = undefined
 
     // A resource used to centralize the creation of DescriptorSets.
     VulkanDescriptorSetManager descriptorSetManager
+    
+    GameStateManager gameState
+    
+    // Rendering is paused if, when a new frame would begin, the application is minimized.
+    // It resumes when a new frame begins and the application is no longer minimized.
+    boolean renderingPaused = false
 
     on create
         clearValue:SetColor(0.85, 0.85, 0.85, 1.0)
@@ -100,11 +107,10 @@ VulkanImage depthBufferImage = undefined
         end
 
         // Create a DesktopDisplay initialized for use with Vulkan, if we don't have one already.
-        GameStateManager manager
-        if manager:GetApplication() is DesktopApplication and manager:GetGameDisplay() = undefined
+        if gameState:GetApplication() is DesktopApplication and gameState:GetGameDisplay() = undefined
             DesktopDisplay display
-            manager:SetGameDisplay(display)
-            display:SetConfiguration(manager:GetGame():GetDesktopConfiguration())
+            gameState:SetGameDisplay(display)
+            display:SetConfiguration(gameState:GetGame():GetDesktopConfiguration())
             success = display:SetupDisplay(true)
 
             if not success
@@ -112,12 +118,12 @@ VulkanImage depthBufferImage = undefined
             end
         else
             //Should this remain, but be logged?
-            output "Display was already defined: " + (manager:GetGameDisplay() not= undefined)
+            output "Display was already defined: " + (gameState:GetGameDisplay() not= undefined)
         end
 
         VulkanSurface surface
         me:surface = surface
-        success = surface:Create(instance, manager:GetGameDisplay())
+        success = surface:Create(instance, gameState:GetGameDisplay())
        
         if not success
             return false
@@ -348,6 +354,19 @@ VulkanImageInfo imageInfo
 
         // Ensure that all work associated with this image has previously finished.
         currentRenderFence:Wait()
+        
+        GameDisplay display = gameState:GetGameDisplay()
+        if display is DesktopDisplay
+            DesktopDisplay desktopDisplay = cast(DesktopDisplay, display)
+            renderingPaused = desktopDisplay:IsWindowMinimized()
+        else
+            renderingPaused = false
+        end
+        
+        // Abort early if rendering is paused.
+        if renderingPaused
+            return now
+        end
 
         // Make sure the next image in the swapchain is valid. Window resizing in particular can make the swapchain "out of date", in which case we'll need to regenerate it.
 integer swapchainResult = PrepareNextSwapchainImage(device, swapchain, imageAcquiredSemaphores:Get(currentResourceIndex))
@@ -377,6 +396,11 @@ currentFramebuffer = swapchainFramebuffers:Get(currentSwapchainIndex)
     private system action GetCurrentSwapchainIndexNative returns integer
 
     action DisplayCurrentImage
+// Abort early if rendering is paused.
+        if renderingPaused
+            return now
+        end
+        
         // Stop recording commands.
         currentRenderCommandBuffer:EndRecording()
 
@@ -787,6 +811,15 @@ success = newSemaphore:Create(device)
 
     action GetTextureManager returns VulkanTextureManager
         return textureManager
+    end
+    
+    /*This action returns true if rendering for the application has paused, or false if it is rendering normally.
+Rendering is paused if the application window is minimized, and it resumes on the next frame of animation when
+the window is restored.
+
+Attribute: Returns True if the application has paused rendering, or false if it is rendering normally.*/
+    action IsRenderingPaused returns boolean
+        return renderingPaused
     end
 
 end
