@@ -15,6 +15,7 @@ use Libraries.Game.Graphics.Shaders.Shader
 use Libraries.Game.Graphics.Vulkan.VulkanPipelineCache
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
+use Libraries.Game.Graphics.Shaders.ShaderManager
 
 class VulkanShaderProgram is ShaderProgramStrategy
     
@@ -37,6 +38,10 @@ class VulkanShaderProgram is ShaderProgramStrategy
         end
         
         parent:ShaderProgramStrategy:compiled = true
+        
+        GameStateManager manager
+        ShaderManager shaderManager = manager:GetShaderManager()
+        shaderManager:Register(GetProgram():GetName(), GetProgram())
     end
     
     action CreatePipeline(VulkanRenderPass renderPass)

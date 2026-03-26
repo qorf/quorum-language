@@ -30,6 +30,7 @@ class EditField is TextField, EditRegion
     on create
         SetInputGroup("EditField")
         SetAutomaticViewMovement(false)
+        SetClipping(false)
     end
 
     action Setup(text name, integer relativeStartIndex, integer relativeEndIndex)

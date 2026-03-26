@@ -32,6 +32,7 @@ class EditBox is TextBox, EditRegion
     on create
         SetInputGroup("EditBox")
         SetPositionOnBaseLine(false)
+        SetClipping(false)
 
         SetHorizontalBarVisibility(parent:ScrollableControl:NEVER_VISIBLE)
     end

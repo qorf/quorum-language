@@ -648,6 +648,8 @@ VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
         pendingDrawCommands:Add(drawCommand)
         pendingBatches:Add(currentBatch)
         
+        currentStartIndex = currentBatch:GetIndexWritePosition()
+        
         if isClipping
             Vector4 clipValues
             clipValues:Set(clipX1, clipY1, clipWidth, clipHeight)
