@@ -620,7 +620,7 @@ drawable:SetClipCoordinates(me)
             return now
         end
 
-        if currentBatch = undefined or currentBatch:GetProgram() not= requestedProgram
+        if currentBatch = undefined or currentBatch:GetProgram() not= requestedProgram or (currentBatch:CanFit(drawable:GetDrawableShape()) = false)
             Flush()
             currentBatch = GetBatch(requestedProgram)
             currentBatch:ResetAge()

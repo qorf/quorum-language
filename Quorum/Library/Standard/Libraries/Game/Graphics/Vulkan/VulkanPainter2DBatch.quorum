@@ -129,8 +129,7 @@ class VulkanPainter2DBatch
         Number32BitArray vertices = shape:GetVertexData()
         Integer32BitArray indices = shape:GetIndices()
 
-        if vertices:GetSize() + vertexWritePosition > GetVertexBufferSize() or (indices not= undefined and indices:GetSize() + indexWritePosition > GetIndexBufferSize())
-            isFull = true
+        if not CanFit(shape)
             return false
         end
 
@@ -184,8 +183,19 @@ class VulkanPainter2DBatch
         buffer:Record(vertexCopyCommand)
         buffer:Record(indexCopyCommand)
     end
+    
+    action CanFit(DrawableShape shape) returns boolean
+        if shape:GetIndices() = undefined
+            return CanFit(shape:GetVertexData():GetSize(), 6)
+        else
+            return CanFit(shape:GetVertexData():GetSize(), shape:GetIndices():GetSize())
+        end
+    end
 
     action CanFit(integer newVertices, integer newIndices) returns boolean
+        if IsFull()
+            return false
+        end
         if newVertices + vertexWritePosition > GetVertexBufferSize() or newIndices + indexWritePosition > GetIndexBufferSize()
             isFull = true
             return false
