@@ -1,0 +1,155 @@
+package Libraries.Game.Graphics.Models.OpenGL
+
+use Libraries.Game.Graphics.Models.ModelResources
+use Libraries.Game.Graphics.Models.OpenGL.Attributes.Material
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Models.OpenGL.Attributes.ColorAttribute
+
+class ModelResourcesOpenGL is ModelResources
+    Array<Material> materials
+    Array<Node> nodes
+    Array<Animation> animations
+    
+    /*
+    This action returns an array containing all Material objects used by this
+    Model.
+
+    Attribute: Returns The array containing the Materials used by this Model.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.Material
+    use Libraries.Containers.Array
+
+    class Main is Game
+
+        Model cube
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color cyan
+            cyan:SetColor(0, 0.75, 1, 1)
+
+            cube:LoadBox(2, 2, 2, cyan)
+            Add(cube)
+
+            Array<Material> materials = cube:GetMaterials()
+            output "This model uses " + materials:GetSize() + " material(s)."
+        end
+    end
+
+    */
+    action GetMaterials returns Array<Material>
+        return materials
+    end
+	
+	/*
+    This action returns an array containing all Node objects used by this
+    Model.
+
+    Attribute: Returns The array containing the Nodes used by this Model.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.ModelData.Node
+    use Libraries.Containers.Array
+
+    class Main is Game
+
+        Model cube
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color cyan
+            cyan:SetColor(0, 0.75, 1, 1)
+
+            cube:LoadBox(2, 2, 2, cyan)
+            Add(cube)
+
+            Array<Node> nodes = cube:GetNodes()
+            output "This model uses " + nodes:GetSize() + " node(s)."
+        end
+    end
+
+    */
+    action GetNodes returns Array<Node>
+        return nodes
+    end
+
+    /*
+    This action returns an array containing all Animation objects used by this
+    Model.
+
+    Attribute: Returns The array containing the Animations used by this Model.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.ModelData.Animation
+    use Libraries.Containers.Array
+
+    class Main is Game
+
+        Model cube
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color cyan
+            cyan:SetColor(0, 0.75, 1, 1)
+
+            cube:LoadBox(2, 2, 2, cyan)
+            Add(cube)
+
+            Array<Animation> animations = cube:GetAnimations()
+            output "This model uses " + animations:GetSize() + " animation(s)."
+        end
+    end
+
+    */
+    action GetAnimations returns Array<Animation>
+        return animations
+    end
+	
+	/*
+    This action sets the diffuse color of a primitive model. If the model did not
+    previously have a color applied to it, it will add a color to it.
+    */
+    action SetColor(Color color)
+        integer counter = 0
+        Array<Material> materials = GetMaterials()
+        repeat materials:GetSize() times
+            Material material = materials:Get(counter)
+            ColorAttribute attribute
+            if material:HasAttribute(attribute:GetDiffuseValue())
+                attribute = cast(ColorAttribute, material:GetAttribute(attribute:GetDiffuseValue()))
+                attribute:SetAttribute(attribute:GetDiffuseValue(), color)
+            else
+                attribute:SetAttribute(attribute:GetDiffuseValue(), color)
+                material:Add(attribute)
+            end
+            counter = counter + 1
+        end
+
+        diffuseColor = color
+    end
+    
+    
+end

@@ -1,0 +1,69 @@
+package Libraries.Game.Graphics.Models.Vulkan
+
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+
+class MeshData
+    integer materialIndex = -1
+    Number32BitArray vertices = undefined
+    Number32BitArray normals = undefined
+    Number32BitArray tangents = undefined
+    Number32BitArray bitangents = undefined
+    Number32BitArray textureCoordinates = undefined
+    Integer32BitArray indices = undefined
+    action GetMaterialIndex returns integer
+        return materialIndex
+    end
+
+    action SetMaterialIndex(integer materialIndex)
+        me:materialIndex = materialIndex
+    end
+
+    action GetVertices returns Number32BitArray
+        return vertices
+    end
+
+    action SetVertices(Number32BitArray vertices)
+        me:vertices = vertices
+    end
+
+    action GetTextureCoordinates returns Number32BitArray
+        return textureCoordinates
+    end
+
+    action SetTextureCoordinates(Number32BitArray textureCoordinates)
+        me:textureCoordinates = textureCoordinates
+    end
+
+    action GetIndices returns Integer32BitArray
+        return indices
+    end
+
+    action SetIndices(Integer32BitArray indices)
+        me:indices = indices
+    end
+
+    action GetNormals returns Number32BitArray
+        return normals
+    end
+
+    action SetNormals(Number32BitArray normals)
+        me:normals = normals
+    end
+
+    action GetTangents returns Number32BitArray
+        return tangents
+    end
+
+    action SetTangents(Number32BitArray tangents)
+        me:tangents = tangents
+    end
+
+    action GetBitangents returns Number32BitArray
+        return bitangents
+    end
+
+    action SetBitangents(Number32BitArray bitangents)
+        me:bitangents = bitangents
+    end
+end

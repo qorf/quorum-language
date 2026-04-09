@@ -6,7 +6,7 @@ import org.lwjgl.assimp.*;
 import org.lwjgl.system.MemoryStack;
 import quorum.Libraries.Compute.*;
 import quorum.Libraries.Containers.*;
-import quorum.Libraries.Game.Graphics.Models.*;
+import quorum.Libraries.Game.Graphics.Models.Vulkan.*;
 import quorum.Libraries.Language.Object_;
 import quorum.Libraries.System.File_;
 

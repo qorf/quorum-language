@@ -11,8 +11,8 @@ import quorum.Libraries.Compute.Vector3_;
 import quorum.Libraries.System.File_;
 import quorum.Libraries.Game.Graphics.Model_;
 import quorum.Libraries.Game.Graphics.ModelLoaders.ModelReader;
-import quorum.Libraries.Game.Graphics.ModelBuilder;
-import quorum.Libraries.Game.Graphics.ModelBlueprint_;
+import quorum.Libraries.Game.Graphics.Models.OpenGL.ModelBuilder;
+import quorum.Libraries.Game.Graphics.Models.OpenGL.ModelBlueprintOpenGL_;
 import quorum.Libraries.Game.BoundingBox;
 import quorum.Libraries.Game.Graphics.Color_;
 import quorum.Libraries.Game.Graphics.Texture_;
@@ -27,32 +27,32 @@ public class Model
     
     private final static ModelReader reader = new ModelReader();
     private final static ModelBuilder builder = new ModelBuilder();
-    private final static Hashtable<String, ModelBlueprint_> hashTable = new Hashtable();
-    private final static Hashtable<ModelBlueprint_, Vector3_> dimensionsTable = new Hashtable();
+    private final static Hashtable<String, ModelBlueprintOpenGL_> hashTable = new Hashtable();
+    private final static Hashtable<ModelBlueprintOpenGL_, Vector3_> dimensionsTable = new Hashtable();
     private final static BoundingBox calcBox = new BoundingBox();
     
-    public ModelBlueprint_ GetCachedBlueprint(File_ file)
+    public ModelBlueprintOpenGL_ GetCachedBlueprint(File_ file)
     {
-        ModelBlueprint_ blueprint = hashTable.get(file.GetPath());
+        ModelBlueprintOpenGL_ blueprint = hashTable.get(file.GetPath());
         if (blueprint == null)
         {
             blueprint = reader.Read(file);
-            blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(file.GetPath());
+            blueprint.Set_Libraries_Game_Graphics_Models_OpenGL_ModelBlueprintOpenGL__id_(file.GetPath());
             hashTable.put(file.GetPath(), blueprint);
         }
         return blueprint;
     }
     
-    public ModelBlueprint_ GetCachedBox(double width, double height, double depth, Color_ color)
+    public ModelBlueprintOpenGL_ GetCachedBox(double width, double height, double depth, Color_ color)
     {
         String blendKey = (color.GetAlpha() < 1.0 ? "BLENDED:" : "");
         String searchKey = ":BOX:DIFFUSE:" + blendKey + width + ":" + height + ":" + depth;
         
-        ModelBlueprint_ blueprint = hashTable.get(searchKey);
+        ModelBlueprintOpenGL_ blueprint = hashTable.get(searchKey);
         if (blueprint == null)
         {
             blueprint = builder.CreateBox(width, height, depth, color);
-            blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
+            blueprint.Set_Libraries_Game_Graphics_Models_OpenGL_ModelBlueprintOpenGL__id_(searchKey);
             hashTable.put(searchKey, blueprint);
             
             Vector3_ vector = new Vector3();
@@ -62,15 +62,15 @@ public class Model
         return blueprint;
     }
     
-    public ModelBlueprint_ GetCachedBox(double width, double height, double depth, Texture_ texture)
+    public ModelBlueprintOpenGL_ GetCachedBox(double width, double height, double depth, Texture_ texture)
     {
         String searchKey = ":BOX:TEXTURED:" + width + ":" + height + ":" + depth;
         
-        ModelBlueprint_ blueprint = hashTable.get(searchKey);
+        ModelBlueprintOpenGL_ blueprint = hashTable.get(searchKey);
         if (blueprint == null)
         {
             blueprint = builder.CreateBox(width, height, depth, texture);
-            blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
+            blueprint.Set_Libraries_Game_Graphics_Models_OpenGL_ModelBlueprintOpenGL__id_(searchKey);
             hashTable.put(searchKey, blueprint);
             
             Vector3_ vector = new Vector3();
@@ -80,16 +80,16 @@ public class Model
         return blueprint;
     }
     
-    public ModelBlueprint_ GetCachedPlane(double width, double depth, Color_ color, boolean doubleSided)
+    public ModelBlueprintOpenGL_ GetCachedPlane(double width, double depth, Color_ color, boolean doubleSided)
     {
         String blendKey = (color.GetAlpha() < 1.0 ? "BLENDED:" : "");
         String searchKey = ":PLANE:DIFFUSE:" + blendKey + width + ":" + depth + ":" + doubleSided;
         
-        ModelBlueprint_ blueprint = hashTable.get(searchKey);
+        ModelBlueprintOpenGL_ blueprint = hashTable.get(searchKey);
         if (blueprint == null)
         {
             blueprint = builder.CreatePlane(width, depth, color, doubleSided);
-            blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
+            blueprint.Set_Libraries_Game_Graphics_Models_OpenGL_ModelBlueprintOpenGL__id_(searchKey);
             hashTable.put(searchKey, blueprint);
             
             Vector3_ vector = new Vector3();
@@ -99,15 +99,15 @@ public class Model
         return blueprint;
     }
     
-    public ModelBlueprint_ GetCachedPlane(double width, double depth, Texture_ texture, boolean doubleSided)
+    public ModelBlueprintOpenGL_ GetCachedPlane(double width, double depth, Texture_ texture, boolean doubleSided)
     {
         String searchKey = ":PLANE:TEXTURED:" + width + ":" + depth + ":" + doubleSided;
         
-        ModelBlueprint_ blueprint = hashTable.get(searchKey);
+        ModelBlueprintOpenGL_ blueprint = hashTable.get(searchKey);
         if (blueprint == null)
         {
             blueprint = builder.CreatePlane(width, depth, texture, doubleSided);
-            blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
+            blueprint.Set_Libraries_Game_Graphics_Models_OpenGL_ModelBlueprintOpenGL__id_(searchKey);
             hashTable.put(searchKey, blueprint);
             
             Vector3_ vector = new Vector3();
@@ -117,16 +117,16 @@ public class Model
         return blueprint;
     }
     
-    public ModelBlueprint_ GetCachedCylinder(double width, double height, double depth, int divisions, Color_ color)
+    public ModelBlueprintOpenGL_ GetCachedCylinder(double width, double height, double depth, int divisions, Color_ color)
     {
         String blendKey = (color.GetAlpha() < 1.0 ? "BLENDED:" : "");
         String searchKey = ":CYLINDER:DIFFUSE:" + blendKey + width + ":" + height + ":" + depth + ":" + divisions;
         
-        ModelBlueprint_ blueprint = hashTable.get(searchKey);
+        ModelBlueprintOpenGL_ blueprint = hashTable.get(searchKey);
         if (blueprint == null)
         {
             blueprint = builder.CreateCylinder(width, height, depth, divisions, color);
-            blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
+            blueprint.Set_Libraries_Game_Graphics_Models_OpenGL_ModelBlueprintOpenGL__id_(searchKey);
             hashTable.put(searchKey, blueprint);
             
             Vector3_ vector = new Vector3();
@@ -136,15 +136,15 @@ public class Model
         return blueprint;
     }
     
-    public ModelBlueprint_ GetCachedCylinder(double width, double height, double depth, int divisions, Texture_ texture)
+    public ModelBlueprintOpenGL_ GetCachedCylinder(double width, double height, double depth, int divisions, Texture_ texture)
     {
         String searchKey = ":CYLINDER:TEXTURED:" + width + ":" + height + ":" + depth + ":" + divisions;
         
-        ModelBlueprint_ blueprint = hashTable.get(searchKey);
+        ModelBlueprintOpenGL_ blueprint = hashTable.get(searchKey);
         if (blueprint == null)
         {
             blueprint = builder.CreateCylinder(width, height, depth, divisions, texture);
-            blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
+            blueprint.Set_Libraries_Game_Graphics_Models_OpenGL_ModelBlueprintOpenGL__id_(searchKey);
             hashTable.put(searchKey, blueprint);
             
             Vector3_ vector = new Vector3();
@@ -154,16 +154,16 @@ public class Model
         return blueprint;
     }
     
-    public ModelBlueprint_ GetCachedSphere(double width, double height, double depth, int hDivisions, int vDivisions, Color_ color)
+    public ModelBlueprintOpenGL_ GetCachedSphere(double width, double height, double depth, int hDivisions, int vDivisions, Color_ color)
     {
         String blendKey = (color.GetAlpha() < 1.0 ? "BLENDED:" : "");
         String searchKey = ":SPHERE:DIFFUSE:" + blendKey + width + ":" + height + ":" + depth + ":" + hDivisions + ":" + vDivisions;
         
-        ModelBlueprint_ blueprint = hashTable.get(searchKey);
+        ModelBlueprintOpenGL_ blueprint = hashTable.get(searchKey);
         if (blueprint == null)
         {
             blueprint = builder.CreateSphere(width, height, depth, hDivisions, vDivisions, color);
-            blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
+            blueprint.Set_Libraries_Game_Graphics_Models_OpenGL_ModelBlueprintOpenGL__id_(searchKey);
             hashTable.put(searchKey, blueprint);
             
             Vector3_ vector = new Vector3();
@@ -173,15 +173,15 @@ public class Model
         return blueprint;
     }
     
-    public ModelBlueprint_ GetCachedSphere(double width, double height, double depth, int hDivisions, int vDivisions, Texture_ texture)
+    public ModelBlueprintOpenGL_ GetCachedSphere(double width, double height, double depth, int hDivisions, int vDivisions, Texture_ texture)
     {
         String searchKey = ":SPHERE:TEXTURED:" + width + ":" + height + ":" + depth + ":" + hDivisions + ":" + vDivisions;
         
-        ModelBlueprint_ blueprint = hashTable.get(searchKey);
+        ModelBlueprintOpenGL_ blueprint = hashTable.get(searchKey);
         if (blueprint == null)
         {
             blueprint = builder.CreateSphere(width, height, depth, hDivisions, vDivisions, texture);
-            blueprint.Set_Libraries_Game_Graphics_ModelBlueprint__id_(searchKey);
+            blueprint.Set_Libraries_Game_Graphics_Models_OpenGL_ModelBlueprintOpenGL__id_(searchKey);
             hashTable.put(searchKey, blueprint);
             
             Vector3_ vector = new Vector3();
@@ -191,7 +191,7 @@ public class Model
         return blueprint;
     }
     
-    public Vector3_ GetCachedDimensions(ModelBlueprint_ blueprint)
+    public Vector3_ GetCachedDimensions(ModelBlueprintOpenGL_ blueprint)
     {
         Vector3_ vector = dimensionsTable.get(blueprint);
         if (vector == null)

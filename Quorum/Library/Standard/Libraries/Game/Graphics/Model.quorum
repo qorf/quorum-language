@@ -1,12 +1,7 @@
 package Libraries.Game.Graphics
 
-use Libraries.Game.Graphics.ModelData.Node
-use Libraries.Game.Graphics.ModelData.Animation
-use Libraries.Game.Graphics.ModelData.NodePart
-use Libraries.Game.Graphics.ModelData.NodeKeyframe
-use Libraries.Game.Graphics.ModelData.NodeAnimation
-use Libraries.Game.Graphics.ModelData.MeshPart
-use Libraries.Game.Graphics.ModelBuilder
+use Libraries.Game.Graphics.Models.OpenGL.all
+use Libraries.Game.Graphics.Models.ModelBlueprint
 use Libraries.Game.Graphics.ModelLoaders.ModelReader
 use Libraries.Game.Scenes.SceneProperties
 use Libraries.Containers.Array
@@ -21,6 +16,7 @@ use Libraries.System.File
 use Libraries.Game.Collision.Shapes.all
 use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
 use Libraries.Game.Graphics.Shaders.ShaderMapping
+use Libraries.Game.Graphics.Models.ModelResources
 
 /*
 The Model class represents a 3D model to be drawn on the screen by the Game
@@ -58,17 +54,13 @@ end
 */
 class Model is Item3D
     
-    Array<Material> materials
-    Array<Node> nodes
-    Array<Animation> animations
     ModelBlueprint modelBlueprint = undefined
-    //public Matrix4 transform = undefined
-    //public Object userData // Used to pass data to the shader
+	ModelResources resources = undefined
 
     // Static in libGDX: is this necessary?
     private boolean defaultShareKeyframes = true
 
-    private HashTable<NodePart, HashTable<Node, Matrix4>> nodePartBones
+    //private HashTable<NodePart, HashTable<Node, Matrix4>> nodePartBones
 
     integer modelType = 0
 
@@ -100,125 +92,8 @@ class Model is Item3D
         SceneProperties properties
         modelType = properties:NONE
     end
-
-    /*
-    This action returns an array containing all Material objects used by this
-    Model.
-
-    Attribute: Returns The array containing the Materials used by this Model.
-
-    Attribute: Example
-
-    use Libraries.Game.Game
-    use Libraries.Game.Graphics.Model
-    use Libraries.Game.Graphics.Color
-    use Libraries.Game.Graphics.Material
-    use Libraries.Containers.Array
-
-    class Main is Game
-
-        Model cube
-
-        action Main
-            StartGame()
-        end
-
-        action CreateGame
-            Color cyan
-            cyan:SetColor(0, 0.75, 1, 1)
-
-            cube:LoadBox(2, 2, 2, cyan)
-            Add(cube)
-
-            Array<Material> materials = cube:GetMaterials()
-            output "This model uses " + materials:GetSize() + " material(s)."
-        end
-    end
-
-    */
-    action GetMaterials returns Array<Material>
-        return materials
-    end
-
-    /*
-    This action returns an array containing all Node objects used by this
-    Model.
-
-    Attribute: Returns The array containing the Nodes used by this Model.
-
-    Attribute: Example
-
-    use Libraries.Game.Game
-    use Libraries.Game.Graphics.Model
-    use Libraries.Game.Graphics.Color
-    use Libraries.Game.Graphics.ModelData.Node
-    use Libraries.Containers.Array
-
-    class Main is Game
-
-        Model cube
-
-        action Main
-            StartGame()
-        end
-
-        action CreateGame
-            Color cyan
-            cyan:SetColor(0, 0.75, 1, 1)
-
-            cube:LoadBox(2, 2, 2, cyan)
-            Add(cube)
-
-            Array<Node> nodes = cube:GetNodes()
-            output "This model uses " + nodes:GetSize() + " node(s)."
-        end
-    end
-
-    */
-    action GetNodes returns Array<Node>
-        return nodes
-    end
-
-    /*
-    This action returns an array containing all Animation objects used by this
-    Model.
-
-    Attribute: Returns The array containing the Animations used by this Model.
-
-    Attribute: Example
-
-    use Libraries.Game.Game
-    use Libraries.Game.Graphics.Model
-    use Libraries.Game.Graphics.Color
-    use Libraries.Game.Graphics.ModelData.Animation
-    use Libraries.Containers.Array
-
-    class Main is Game
-
-        Model cube
-
-        action Main
-            StartGame()
-        end
-
-        action CreateGame
-            Color cyan
-            cyan:SetColor(0, 0.75, 1, 1)
-
-            cube:LoadBox(2, 2, 2, cyan)
-            Add(cube)
-
-            Array<Animation> animations = cube:GetAnimations()
-            output "This model uses " + animations:GetSize() + " animation(s)."
-        end
-    end
-
-    */
-    action GetAnimations returns Array<Animation>
-        return animations
-    end
-
-    /*
+	
+	/*
     Sets a reference to the ModelBlueprint that this model was loaded from.
     */
     private action SetModelBlueprint(ModelBlueprint schematic)
@@ -296,7 +171,8 @@ class Model is Item3D
 
     */
     action GetBlueprintKey returns text
-        return modelBlueprint:id
+        alert("NYI")
+        //return modelBlueprint:id
     end
 
     /*
@@ -314,22 +190,7 @@ class Model is Item3D
     previously have a color applied to it, it will add a color to it.
     */
     action SetColor(Color color)
-        integer counter = 0
-        Array<Material> materials = GetMaterials()
-        repeat materials:GetSize() times
-            Material material = materials:Get(counter)
-            ColorAttribute attribute
-            if material:HasAttribute(attribute:GetDiffuseValue())
-                attribute = cast(ColorAttribute, material:GetAttribute(attribute:GetDiffuseValue()))
-                attribute:SetAttribute(attribute:GetDiffuseValue(), color)
-            else
-                attribute:SetAttribute(attribute:GetDiffuseValue(), color)
-                material:Add(attribute)
-            end
-            counter = counter + 1
-        end
-
-        diffuseColor = color
+        resources:SetColor(color)
     end
 
     /*
@@ -370,12 +231,14 @@ class Model is Item3D
 
     */
     action Load(File file)
-        SceneProperties properties
-        modelType = properties:CUSTOM
-        ModelBlueprint schematic = GetCachedBlueprint(file)
-        Load(schematic)
-
-        assetFile = file
+        alert("NYI")
+        
+        //SceneProperties properties
+        //modelType = properties:CUSTOM
+        //ModelBlueprint schematic = GetCachedBlueprint(file)
+        //Load(schematic)
+//
+        //assetFile = file
     end
 
     /*
@@ -406,9 +269,10 @@ class Model is Item3D
     end
     */
     action Load(text fileName)
-        File file
-        file:SetPath(fileName)
-        Load(file)
+        alert("NYI")
+        //File file
+        //file:SetPath(fileName)
+        //Load(file)
     end
 
     /*
@@ -459,16 +323,18 @@ class Model is Item3D
 
     */
     action LoadBox(number width, number height, number depth, Color color)
-        ModelBlueprint schematic = GetCachedBox(width, height, depth, color)
-        Load(schematic)
-        SetDiffuseColor(color)
-        Box box
-        box:Set(width, height, depth)
-        SetShape(box)
-
-        SceneProperties properties
-        modelType = properties:BOX
-        diffuseColor = color
+        alert("NYI")
+        
+        //ModelBlueprint schematic = GetCachedBox(width, height, depth, color)
+        //Load(schematic)
+        //SetDiffuseColor(color)
+        //Box box
+        //box:Set(width, height, depth)
+        //SetShape(box)
+//
+        //SceneProperties properties
+        //modelType = properties:BOX
+        //diffuseColor = color
     end
 
     /*
@@ -505,10 +371,11 @@ class Model is Item3D
 
     */
     action LoadBox(number width, number height, number depth, File textureFile)
-        Texture texture
-        texture:LoadFromFile(textureFile)
-        LoadBox(width, height, depth, texture)
-        assetFile = textureFile
+        alert("NYI")
+        //Texture texture
+        //texture:LoadFromFile(textureFile)
+        //LoadBox(width, height, depth, texture)
+        //assetFile = textureFile
     end
 
     /*
@@ -541,9 +408,10 @@ class Model is Item3D
 
     */
     action LoadBox(number width, number height, number depth, text textureFile)
-        Texture texture
-        texture:LoadFromFile(textureFile)
-        LoadBox(width, height, depth, texture)
+        alert("NYI")
+        //Texture texture
+        //texture:LoadFromFile(textureFile)
+        //LoadBox(width, height, depth, texture)
     end
 
     /*
@@ -581,8 +449,9 @@ class Model is Item3D
 
     */
     action LoadBox(number width, number height, number depth, Drawable drawable)
-        Texture texture = drawable:GetTexture()
-        LoadBox(width, height, depth, texture)
+        alert("NYI")
+        //Texture texture = drawable:GetTexture()
+        //LoadBox(width, height, depth, texture)
     end
 
     /*
@@ -619,21 +488,22 @@ class Model is Item3D
 
     */
     action LoadBox(number width, number height, number depth, Texture texture)
-        ModelBlueprint schematic = GetCachedBox(width, height, depth, texture)
-        Load(schematic)
-        SetTexture(texture)
-        Box box
-        box:Set(width, height, depth)
-        SetShape(box)
-
-        SceneProperties properties
-        modelType = properties:BOX
-
-        if texture:GetSource() not= undefined
-            File file
-            file:SetPath(texture:GetSource())
-            assetFile = file
-        end
+        alert("NYI")
+        //ModelBlueprint schematic = GetCachedBox(width, height, depth, texture)
+        //Load(schematic)
+        //SetTexture(texture)
+        //Box box
+        //box:Set(width, height, depth)
+        //SetShape(box)
+//
+        //SceneProperties properties
+        //modelType = properties:BOX
+//
+        //if texture:GetSource() not= undefined
+            //File file
+            //file:SetPath(texture:GetSource())
+            //assetFile = file
+        //end
     end
 
     /*
@@ -669,18 +539,19 @@ class Model is Item3D
 
     */
     action LoadPlane(number width, number depth, Color color)
-        ModelBlueprint schematic = GetCachedPlane(width, depth, color, false)
-        Load(schematic)
-        SetDiffuseColor(color)
-        Box box
-        // Using a box with a thin height isn't correct -- it's only a rough
-        // approximation, as we currently lack a "plane" shape.
-        box:Set(width, 0.01, depth)
-        SetShape(box)
-
-        SceneProperties properties
-        modelType = properties:PLANE
-        diffuseColor = color
+        alert("NYI")
+        //ModelBlueprint schematic = GetCachedPlane(width, depth, color, false)
+        //Load(schematic)
+        //SetDiffuseColor(color)
+        //Box box
+        //// Using a box with a thin height isn't correct -- it's only a rough
+        //// approximation, as we currently lack a "plane" shape.
+        //box:Set(width, 0.01, depth)
+        //SetShape(box)
+//
+        //SceneProperties properties
+        //modelType = properties:PLANE
+        //diffuseColor = color
     end
 
     /*
@@ -716,11 +587,12 @@ class Model is Item3D
 
     */
     action LoadPlane(number width, number depth, File textureFile)
-        Texture texture
-        texture:LoadFromFile(textureFile)
-        LoadPlane(width, depth, texture)
-
-        assetFile = textureFile
+        alert("NYI")
+        //Texture texture
+        //texture:LoadFromFile(textureFile)
+        //LoadPlane(width, depth, texture)
+//
+        //assetFile = textureFile
     end
 
     /*
@@ -752,9 +624,10 @@ class Model is Item3D
 
     */
     action LoadPlane(number width, number depth, text textureFile)
-        Texture texture
-        texture:LoadFromFile(textureFile)
-        LoadPlane(width, depth, texture)
+        alert("NYI")
+        //Texture texture
+        //texture:LoadFromFile(textureFile)
+        //LoadPlane(width, depth, texture)
     end
 
     /*
@@ -791,8 +664,9 @@ class Model is Item3D
 
     */
     action LoadPlane(number width, number depth, Drawable drawable)
-        Texture texture = drawable:GetTexture()
-        LoadPlane(width, depth, texture)
+        alert("NYI")
+        //Texture texture = drawable:GetTexture()
+        //LoadPlane(width, depth, texture)
     end
 
     /*
@@ -828,23 +702,24 @@ class Model is Item3D
 
     */
     action LoadPlane(number width, number depth, Texture texture)
-        ModelBlueprint schematic = GetCachedPlane(width, depth, texture, false)
-        Load(schematic)
-        SetTexture(texture)
-        Box box
-        // Using a box with a thin height isn't correct -- it's only a rough
-        // approximation, as we currently lack a "plane" shape.
-        box:Set(width, 0.01, depth)
-        SetShape(box)
-
-        SceneProperties properties
-        modelType = properties:PLANE
-
-        if texture:GetSource() not= undefined
-            File file
-            file:SetPath(texture:GetSource())
-            assetFile = file
-        end
+        alert("NYI")
+        //ModelBlueprint schematic = GetCachedPlane(width, depth, texture, false)
+        //Load(schematic)
+        //SetTexture(texture)
+        //Box box
+        //// Using a box with a thin height isn't correct -- it's only a rough
+        //// approximation, as we currently lack a "plane" shape.
+        //box:Set(width, 0.01, depth)
+        //SetShape(box)
+//
+        //SceneProperties properties
+        //modelType = properties:PLANE
+//
+        //if texture:GetSource() not= undefined
+            //File file
+            //file:SetPath(texture:GetSource())
+            //assetFile = file
+        //end
     end
 
     /*
@@ -883,18 +758,19 @@ class Model is Item3D
 
     */
     action LoadPlane(number width, number depth, Color color, boolean doubleSided)
-        ModelBlueprint schematic = GetCachedPlane(width, depth, color, doubleSided)
-        Load(schematic)
-        SetDiffuseColor(color)
-        Box box
-        // Using a box with a thin height isn't correct -- it's only a rough
-        // approximation, as we currently lack a "plane" shape.
-        box:Set(width, 0.01, depth)
-        SetShape(box)
-
-        SceneProperties properties
-        modelType = properties:PLANE
-        diffuseColor = color
+        alert("NYI")
+        //ModelBlueprint schematic = GetCachedPlane(width, depth, color, doubleSided)
+        //Load(schematic)
+        //SetDiffuseColor(color)
+        //Box box
+        //// Using a box with a thin height isn't correct -- it's only a rough
+        //// approximation, as we currently lack a "plane" shape.
+        //box:Set(width, 0.01, depth)
+        //SetShape(box)
+//
+        //SceneProperties properties
+        //modelType = properties:PLANE
+        //diffuseColor = color
     end
 
     /*
@@ -934,11 +810,12 @@ class Model is Item3D
 
     */
     action LoadPlane(number width, number depth, File textureFile, boolean doubleSided)
-        Texture texture
-        texture:LoadFromFile(textureFile)
-        LoadPlane(width, depth, texture)
-
-        assetFile = textureFile
+        alert("NYI")
+        //Texture texture
+        //texture:LoadFromFile(textureFile)
+        //LoadPlane(width, depth, texture)
+//
+        //assetFile = textureFile
     end
 
     /*
@@ -974,9 +851,10 @@ class Model is Item3D
 
     */
     action LoadPlane(number width, number depth, text textureFile, boolean doubleSided)
-        Texture texture
-        texture:LoadFromFile(textureFile)
-        LoadPlane(width, depth, texture, doubleSided)
+        alert("NYI")
+        //Texture texture
+        //texture:LoadFromFile(textureFile)
+        //LoadPlane(width, depth, texture, doubleSided)
     end
 
     /*
@@ -1016,8 +894,9 @@ class Model is Item3D
 
     */
     action LoadPlane(number width, number depth, Drawable drawable, boolean doubleSided)
-        Texture texture = drawable:GetTexture()
-        LoadPlane(width, depth, texture)
+        alert("NYI")
+        //Texture texture = drawable:GetTexture()
+        //LoadPlane(width, depth, texture)
     end
 
     /*
@@ -1057,23 +936,24 @@ class Model is Item3D
 
     */
     action LoadPlane(number width, number depth, Texture texture, boolean doubleSided)
-        ModelBlueprint schematic = GetCachedPlane(width, depth, texture, doubleSided)
-        Load(schematic)
-        SetTexture(texture)
-        Box box
-        // Using a box with a thin height isn't correct -- it's only a rough
-        // approximation, as we currently lack a "plane" shape.
-        box:Set(width, 0.01, depth)
-        SetShape(box)
-
-        SceneProperties properties
-        modelType = properties:PLANE
-
-        if texture:GetSource() not= undefined
-            File file
-            file:SetPath(texture:GetSource())
-            assetFile = file
-        end
+        alert("NYI")
+        //ModelBlueprint schematic = GetCachedPlane(width, depth, texture, doubleSided)
+        //Load(schematic)
+        //SetTexture(texture)
+        //Box box
+        //// Using a box with a thin height isn't correct -- it's only a rough
+        //// approximation, as we currently lack a "plane" shape.
+        //box:Set(width, 0.01, depth)
+        //SetShape(box)
+//
+        //SceneProperties properties
+        //modelType = properties:PLANE
+//
+        //if texture:GetSource() not= undefined
+            //File file
+            //file:SetPath(texture:GetSource())
+            //assetFile = file
+        //end
     end
 
     /*
@@ -1151,16 +1031,17 @@ class Model is Item3D
 
     */
     action LoadCylinder(number width, number height, number depth, integer divisions, Color color)
-        ModelBlueprint schematic = GetCachedCylinder(width, height, depth, divisions, color)
-        Load(schematic)
-        SetDiffuseColor(color)
-        Cylinder cylinder
-        cylinder:Set(width, height, depth)
-        SetShape(cylinder)
-
-        SceneProperties properties
-        modelType = properties:CYLINDER
-        diffuseColor = color
+        alert("NYI")
+        //ModelBlueprint schematic = GetCachedCylinder(width, height, depth, divisions, color)
+        //Load(schematic)
+        //SetDiffuseColor(color)
+        //Cylinder cylinder
+        //cylinder:Set(width, height, depth)
+        //SetShape(cylinder)
+//
+        //SceneProperties properties
+        //modelType = properties:CYLINDER
+        //diffuseColor = color
     end
 
     /*
@@ -1200,11 +1081,12 @@ class Model is Item3D
 
     */
     action LoadCylinder(number width, number height, number depth, integer divisions, File textureFile)
-        Texture texture
-        texture:LoadFromFile(textureFile)
-        LoadCylinder(width, height, depth, divisions, texture)
-
-        assetFile = textureFile
+        alert("NYI")
+        //Texture texture
+        //texture:LoadFromFile(textureFile)
+        //LoadCylinder(width, height, depth, divisions, texture)
+//
+        //assetFile = textureFile
     end
 
     /*
@@ -1240,9 +1122,10 @@ class Model is Item3D
 
     */
     action LoadCylinder(number width, number height, number depth, integer divisions, text textureFile)
-        Texture texture
-        texture:LoadFromFile(textureFile)
-        LoadCylinder(width, height, depth, divisions, texture)
+        alert("NYI")
+        //Texture texture
+        //texture:LoadFromFile(textureFile)
+        //LoadCylinder(width, height, depth, divisions, texture)
     end
 
     /*
@@ -1283,8 +1166,9 @@ class Model is Item3D
 
     */
     action LoadCylinder(number width, number height, number depth, integer divisions, Drawable drawable)
-        Texture texture = drawable:GetTexture()
-        LoadCylinder(width, height, depth, divisions, texture)
+        alert("NYI")
+        //Texture texture = drawable:GetTexture()
+        //LoadCylinder(width, height, depth, divisions, texture)
     end
 
     /*
@@ -1324,21 +1208,22 @@ class Model is Item3D
 
     */
     action LoadCylinder(number width, number height, number depth, integer divisions, Texture texture)
-        ModelBlueprint schematic = GetCachedCylinder(width, height, depth, divisions, texture)
-        Load(schematic)
-        SetTexture(texture)
-        Cylinder cylinder
-        cylinder:Set(width, height, depth)
-        SetShape(cylinder)
-
-        SceneProperties properties
-        modelType = properties:CYLINDER
-
-        if texture:GetSource() not= undefined
-            File file
-            file:SetPath(texture:GetSource())
-            assetFile = file
-        end
+        alert("NYI")
+        //ModelBlueprint schematic = GetCachedCylinder(width, height, depth, divisions, texture)
+        //Load(schematic)
+        //SetTexture(texture)
+        //Cylinder cylinder
+        //cylinder:Set(width, height, depth)
+        //SetShape(cylinder)
+//
+        //SceneProperties properties
+        //modelType = properties:CYLINDER
+//
+        //if texture:GetSource() not= undefined
+            //File file
+            //file:SetPath(texture:GetSource())
+            //assetFile = file
+        //end
     end
 
     /*
@@ -1565,16 +1450,17 @@ class Model is Item3D
 
     */
     action LoadSphere(number width, number height, number depth, integer horizontalDivisions, integer verticalDivisions, Color color)
-        ModelBlueprint schematic = GetCachedSphere(width, height, depth, horizontalDivisions, verticalDivisions, color)
-        Load(schematic)
-        SetDiffuseColor(color)
-        Sphere sphere
-        sphere:Set(width / 2)
-        SetShape(sphere)
-
-        SceneProperties properties
-        modelType = properties:SPHERE
-        diffuseColor = color
+        alert("NYI")
+        //ModelBlueprint schematic = GetCachedSphere(width, height, depth, horizontalDivisions, verticalDivisions, color)
+        //Load(schematic)
+        //SetDiffuseColor(color)
+        //Sphere sphere
+        //sphere:Set(width / 2)
+        //SetShape(sphere)
+//
+        //SceneProperties properties
+        //modelType = properties:SPHERE
+        //diffuseColor = color
     end
 
     /*
@@ -1615,11 +1501,12 @@ class Model is Item3D
 
     */
     action LoadSphere(number width, number height, number depth, integer horizontalDivisions, integer verticalDivisions, File textureFile)
-        Texture texture
-        texture:LoadFromFile(textureFile)
-        LoadSphere(width, height, depth, horizontalDivisions, verticalDivisions, texture)
-
-        assetFile = textureFile
+        alert("NYI")
+        //Texture texture
+        //texture:LoadFromFile(textureFile)
+        //LoadSphere(width, height, depth, horizontalDivisions, verticalDivisions, texture)
+//
+        //assetFile = textureFile
     end
 
     /*
@@ -1656,9 +1543,10 @@ class Model is Item3D
 
     */
     action LoadSphere(number width, number height, number depth, integer horizontalDivisions, integer verticalDivisions, text textureFile)
-        Texture texture
-        texture:LoadFromFile(textureFile)
-        LoadSphere(width, height, depth, horizontalDivisions, verticalDivisions, texture)
+        alert("NYI")
+        //Texture texture
+        //texture:LoadFromFile(textureFile)
+        //LoadSphere(width, height, depth, horizontalDivisions, verticalDivisions, texture)
     end
 
     /*
@@ -1742,21 +1630,22 @@ class Model is Item3D
 
     */
     action LoadSphere(number width, number height, number depth, integer horizontalDivisions, integer verticalDivisions, Texture texture)
-        ModelBlueprint schematic = GetCachedSphere(width, height, depth, horizontalDivisions, verticalDivisions, texture)
-        Load(schematic)
-        SetTexture(texture)
-        Sphere sphere
-        sphere:Set(width / 2)
-        SetShape(sphere)
-
-        SceneProperties properties
-        modelType = properties:SPHERE
-
-        if texture:GetSource() not= undefined
-            File file
-            file:SetPath(texture:GetSource())
-            assetFile = file
-        end
+        alert("NYI")
+        //ModelBlueprint schematic = GetCachedSphere(width, height, depth, horizontalDivisions, verticalDivisions, texture)
+        //Load(schematic)
+        //SetTexture(texture)
+        //Sphere sphere
+        //sphere:Set(width / 2)
+        //SetShape(sphere)
+//
+        //SceneProperties properties
+        //modelType = properties:SPHERE
+//
+        //if texture:GetSource() not= undefined
+            //File file
+            //file:SetPath(texture:GetSource())
+            //assetFile = file
+        //end
     end
 
     /*
@@ -1916,16 +1805,17 @@ class Model is Item3D
     was built with a different color than this one.
     */
     private action SetDiffuseColor(Color color)
-        integer counter = 0
-        repeat materials:GetSize() times
-            Material material = materials:Get(counter)
-            ColorAttribute attribute
-            if material:HasAttribute(attribute:GetDiffuseValue())
-                attribute = cast(ColorAttribute, material:GetAttribute(attribute:GetDiffuseValue()))
-                attribute:SetAttribute(attribute:GetDiffuseValue(), color)
-            end
-            counter = counter + 1
-        end
+        alert("NYI")
+        //integer counter = 0
+        //repeat materials:GetSize() times
+            //Material material = materials:Get(counter)
+            //ColorAttribute attribute
+            //if material:HasAttribute(attribute:GetDiffuseValue())
+                //attribute = cast(ColorAttribute, material:GetAttribute(attribute:GetDiffuseValue()))
+                //attribute:SetAttribute(attribute:GetDiffuseValue(), color)
+            //end
+            //counter = counter + 1
+        //end
     end
 
     /*
@@ -1934,16 +1824,17 @@ class Model is Item3D
     shape was using a different texture than this one.
     */
     private action SetTexture(Texture texture)
-        integer counter = 0
-        repeat materials:GetSize() times
-            Material material = materials:Get(counter)
-            TextureAttribute attribute
-            if material:HasAttribute(attribute:GetDiffuseValue())
-                attribute = cast(TextureAttribute, material:GetAttribute(attribute:GetDiffuseValue()))
-                attribute:SetAttribute(attribute:GetDiffuseValue(), texture)
-            end
-            counter = counter + 1
-        end
+        alert("NYI")
+        //integer counter = 0
+        //repeat materials:GetSize() times
+            //Material material = materials:Get(counter)
+            //TextureAttribute attribute
+            //if material:HasAttribute(attribute:GetDiffuseValue())
+                //attribute = cast(TextureAttribute, material:GetAttribute(attribute:GetDiffuseValue()))
+                //attribute:SetAttribute(attribute:GetDiffuseValue(), texture)
+            //end
+            //counter = counter + 1
+        //end
     end
 
     /*
@@ -2081,16 +1972,17 @@ class Model is Item3D
 
     */
     action Load(ModelBlueprint loader, Matrix4 matrix)
-        modelBlueprint = loader
-        if matrix not= undefined
-            GetTransform():Set(matrix)
-        end
-
-        CopyNodes(loader:nodes)
-        CopyAnimations(loader:animations)
-        CalculateTransforms()
-
-        SetDimensions(GetCachedDimensions(loader))
+        alert("NYI")
+        //modelBlueprint = loader
+        //if matrix not= undefined
+            //GetTransform():Set(matrix)
+        //end
+//
+        //CopyNodes(loader:nodes)
+        //CopyAnimations(loader:animations)
+        //CalculateTransforms()
+//
+        //SetDimensions(GetCachedDimensions(loader))
     end
 
     /*
@@ -2099,225 +1991,231 @@ class Model is Item3D
     FIX-ME: SetBones() commented, will eventually need to be fixed for animations.
     */
     private action CopyNodes(Array<Node> copyNodes)
-        nodePartBones:Empty()
-        integer index = 0
-        repeat copyNodes:GetSize() times
-            Node node = copyNodes:Get(index)
-            nodes:Add(CopyNode(node))
-            index = index + 1
-        end
-        //SetBones()
+        alert("NYI")
+        //nodePartBones:Empty()
+        //integer index = 0
+        //repeat copyNodes:GetSize() times
+            //Node node = copyNodes:Get(index)
+            //nodes:Add(CopyNode(node))
+            //index = index + 1
+        //end
+        ////SetBones()
     end
 
     /*
     Copy data from a single node into this object's data structures.
     */
     private action CopyNode(Node node) returns Node
-        Node copy
-        copy:id = node:id
-        copy:inheritTransform = node:inheritTransform
-        copy:translation:Set(node:translation)
-        copy:rotation:Set(node:rotation)
-        copy:scale:Set(node:scale)
-        copy:localTransform:Set(node:localTransform)
-        copy:globalTransform:Set(node:globalTransform)
-        
-        integer index = 0
-        NodePart nodePart = undefined
-        repeat node:parts:GetSize() times
-            nodePart = node:parts:Get(index)
-            copy:parts:Add(CopyNodePart(nodePart))
-            index = index + 1
-        end
-
-        Iterator<Node> iterator = node:GetChildren()
-        Node child = undefined
-        repeat while iterator:HasNext()
-            child = iterator:Next()
-            copy:Add(CopyNode(child))
-        end
-        return copy
+        alert("NYI")
+        //Node copy
+        //copy:id = node:id
+        //copy:inheritTransform = node:inheritTransform
+        //copy:translation:Set(node:translation)
+        //copy:rotation:Set(node:rotation)
+        //copy:scale:Set(node:scale)
+        //copy:localTransform:Set(node:localTransform)
+        //copy:globalTransform:Set(node:globalTransform)
+        //
+        //integer index = 0
+        //NodePart nodePart = undefined
+        //repeat node:parts:GetSize() times
+            //nodePart = node:parts:Get(index)
+            //copy:parts:Add(CopyNodePart(nodePart))
+            //index = index + 1
+        //end
+//
+        //Iterator<Node> iterator = node:GetChildren()
+        //Node child = undefined
+        //repeat while iterator:HasNext()
+            //child = iterator:Next()
+            //copy:Add(CopyNode(child))
+        //end
+        //return copy
     end
 
     /*
     Copy data from a single NodePart into this object's data structures.
     */
     private action CopyNodePart(NodePart nodePart) returns NodePart
-        NodePart copy
-        MeshPart meshPart = copy:meshPart
-        meshPart:id = nodePart:meshPart:id
-        meshPart:indexOffset = nodePart:meshPart:indexOffset
-        meshPart:verticesCount = nodePart:meshPart:verticesCount
-        meshPart:primitiveType = nodePart:meshPart:primitiveType
-        meshPart:mesh = nodePart:meshPart:mesh
-        
-        if nodePart:invBoneBindTransforms not= undefined
-            nodePartBones:Add(copy, nodePart:invBoneBindTransforms)
-        end
-
-        integer index = materials:GetFirstLocation(nodePart:material)
-        if index < 0
-            copy:material = nodePart:material:Copy()
-            materials:Add(copy:material)
-        else
-            copy:material = materials:Get(index)
-        end
-
-        return copy
+        alert("NYI")
+        //NodePart copy
+        //MeshPart meshPart = copy:meshPart
+        //meshPart:id = nodePart:meshPart:id
+        //meshPart:indexOffset = nodePart:meshPart:indexOffset
+        //meshPart:verticesCount = nodePart:meshPart:verticesCount
+        //meshPart:primitiveType = nodePart:meshPart:primitiveType
+        //meshPart:mesh = nodePart:meshPart:mesh
+        //
+        //if nodePart:invBoneBindTransforms not= undefined
+            //nodePartBones:Add(copy, nodePart:invBoneBindTransforms)
+        //end
+//
+        //integer index = materials:GetFirstLocation(nodePart:material)
+        //if index < 0
+            //copy:material = nodePart:material:Copy()
+            //materials:Add(copy:material)
+        //else
+            //copy:material = materials:Get(index)
+        //end
+//
+        //return copy
     end
 
     /*
     Set the bones using the previously set nodes.
     */
     private action SetBones
-        Iterator<NodePart> iterator = nodePartBones:GetKeyIterator()
-        NodePart key = undefined
-        HashTable<Node, Matrix4> value = undefined
-        repeat while iterator:HasNext()
-            key = iterator:Next()
-            value = nodePartBones:GetValue(key)
-            
-            key:invBoneBindTransforms:Empty()
-
-            Iterator<Node> iterator2 = value:GetKeyIterator()
-            Node key2 = undefined
-            Matrix4 value2 = undefined
-            repeat while iterator2:HasNext()
-                key2 = iterator2:Next()
-                value2 = value:GetValue(key2)
-
-                key:invBoneBindTransforms:Add(GetNode(key2:id), value2)
-            end
-
-            key:bones:SetMaxSize(value:GetSize())
-            
-            integer index = 0
-            repeat value:GetSize() times
-                Matrix4 temp
-                key:bones:Set(index, temp)
-                index = index + 1
-            end
-        end
+        alert("NYI")
+        //Iterator<NodePart> iterator = nodePartBones:GetKeyIterator()
+        //NodePart key = undefined
+        //HashTable<Node, Matrix4> value = undefined
+        //repeat while iterator:HasNext()
+            //key = iterator:Next()
+            //value = nodePartBones:GetValue(key)
+            //
+            //key:invBoneBindTransforms:Empty()
+//
+            //Iterator<Node> iterator2 = value:GetKeyIterator()
+            //Node key2 = undefined
+            //Matrix4 value2 = undefined
+            //repeat while iterator2:HasNext()
+                //key2 = iterator2:Next()
+                //value2 = value:GetValue(key2)
+//
+                //key:invBoneBindTransforms:Add(GetNode(key2:id), value2)
+            //end
+//
+            //key:bones:SetMaxSize(value:GetSize())
+            //
+            //integer index = 0
+            //repeat value:GetSize() times
+                //Matrix4 temp
+                //key:bones:Set(index, temp)
+                //index = index + 1
+            //end
+        //end
     end
 
     /*
     Find a node in this Model with the matching text ID.
     */
     private action GetNode(text nodeID) returns Node
-        integer counter = 0
-        Node node = undefined
-        repeat nodes:GetSize() times
-            node = nodes:Get(counter)
-            if node:id = nodeID
-                return node
-            end
-            counter = counter + 1
-        end
-        counter = 0
-        Node result = undefined
-        repeat nodes:GetSize() times
-            node = nodes:Get(counter)
-            result = node:GetChild(nodeID)
-            if result not= undefined
-                return result
-            end
-            counter = counter + 1
-        end
-
-        return result
+        alert("NYI")
+        //integer counter = 0
+        //Node node = undefined
+        //repeat nodes:GetSize() times
+            //node = nodes:Get(counter)
+            //if node:id = nodeID
+                //return node
+            //end
+            //counter = counter + 1
+        //end
+        //counter = 0
+        //Node result = undefined
+        //repeat nodes:GetSize() times
+            //node = nodes:Get(counter)
+            //result = node:GetChild(nodeID)
+            //if result not= undefined
+                //return result
+            //end
+            //counter = counter + 1
+        //end
+//
+        //return result
     end
 
     /*
     Copy the animations from the given array into this object.
     */
     private action CopyAnimations(Array<Animation> source)
-        integer index = 0
-        Animation anim = undefined
-        repeat source:GetSize() times
-            anim = source:Get(index)
-
-            Animation animation
-            animation:id = anim:id
-            animation:duration = anim:duration
-
-            integer index2 = 0
-            NodeAnimation nanim = undefined
-            repeat anim:nodeAnimations:GetSize() times
-                nanim = anim:nodeAnimations:Get(index2)
-
-                Node node = GetNode(nanim:node:id)
-                
-                if node not= undefined
-                    NodeAnimation nodeAnim
-                    nodeAnim:node = node
-
-                    if defaultShareKeyframes
-                        nodeAnim:translation = nanim:translation
-                        nodeAnim:rotation = nanim:rotation
-                        nodeAnim:scaling = nanim:scaling
-                    else
-                        if nanim:translation not= undefined
-                            Array<NodeKeyframe<Vector3>> temp
-                            nodeAnim:translation = temp
-                            integer index3 = 0
-                            NodeKeyframe<Vector3> kf = undefined
-                            repeat nanim:translation:GetSize() times
-                                kf = nanim:translation:Get(index3)
-
-                                NodeKeyframe<Vector3> newKF
-                                newKF:Initialize(kf:keyTime, cast(Vector3, kf:value))
-                                nodeAnim:translation:Add(newKF)
-
-                                index3 = index3 + 1
-                            end
-                        end
-
-                        if nanim:rotation not= undefined
-                            Array<NodeKeyframe<Quaternion>> temp
-                            nodeAnim:rotation = temp
-                            integer index3 = 0
-                            NodeKeyframe<Quaternion> kf = undefined
-                            repeat nanim:rotation:GetSize() times
-                                kf = nanim:rotation:Get(index3)
-
-                                NodeKeyframe<Quaternion> newKF
-                                newKF:Initialize(kf:keyTime, cast(Quaternion, kf:value))
-                                nodeAnim:rotation:Add(newKF)
-
-                                index3 = index3 + 1
-                            end
-                        end
-
-                        if nanim:scaling not= undefined
-                            Array<NodeKeyframe<Vector3>> temp
-                            nodeAnim:scaling = temp
-                            integer index3 = 0
-                            NodeKeyframe<Vector3> kf = undefined
-                            repeat nanim:scaling:GetSize() times
-                                kf = nanim:scaling:Get(index3)
-
-                                NodeKeyframe<Vector3> newKF
-                                newKF:Initialize(kf:keyTime, cast(Vector3, kf:value))
-                                nodeAnim:scaling:Add(newKF)
-
-                                index3 = index3 + 1
-                            end
-                        end
-                    end
-
-                    if nodeAnim:translation not= undefined or nodeAnim:rotation not= undefined or nodeAnim:scaling not= undefined
-                        animation:nodeAnimations:Add(nodeAnim)
-                    end
-
-                end
-                if animation:nodeAnimations:GetSize() > 0 
-                    animations:Add(animation)
-                end
-                index2 = index2 + 1
-            end
-
-            index = index + 1
-        end
+        alert("NYI")
+        //integer index = 0
+        //Animation anim = undefined
+        //repeat source:GetSize() times
+            //anim = source:Get(index)
+//
+            //Animation animation
+            //animation:id = anim:id
+            //animation:duration = anim:duration
+//
+            //integer index2 = 0
+            //NodeAnimation nanim = undefined
+            //repeat anim:nodeAnimations:GetSize() times
+                //nanim = anim:nodeAnimations:Get(index2)
+//
+                //Node node = GetNode(nanim:node:id)
+                //
+                //if node not= undefined
+                    //NodeAnimation nodeAnim
+                    //nodeAnim:node = node
+//
+                    //if defaultShareKeyframes
+                        //nodeAnim:translation = nanim:translation
+                        //nodeAnim:rotation = nanim:rotation
+                        //nodeAnim:scaling = nanim:scaling
+                    //else
+                        //if nanim:translation not= undefined
+                            //Array<NodeKeyframe<Vector3>> temp
+                            //nodeAnim:translation = temp
+                            //integer index3 = 0
+                            //NodeKeyframe<Vector3> kf = undefined
+                            //repeat nanim:translation:GetSize() times
+                                //kf = nanim:translation:Get(index3)
+//
+                                //NodeKeyframe<Vector3> newKF
+                                //newKF:Initialize(kf:keyTime, cast(Vector3, kf:value))
+                                //nodeAnim:translation:Add(newKF)
+//
+                                //index3 = index3 + 1
+                            //end
+                        //end
+//
+                        //if nanim:rotation not= undefined
+                            //Array<NodeKeyframe<Quaternion>> temp
+                            //nodeAnim:rotation = temp
+                            //integer index3 = 0
+                            //NodeKeyframe<Quaternion> kf = undefined
+                            //repeat nanim:rotation:GetSize() times
+                                //kf = nanim:rotation:Get(index3)
+//
+                                //NodeKeyframe<Quaternion> newKF
+                                //newKF:Initialize(kf:keyTime, cast(Quaternion, kf:value))
+                                //nodeAnim:rotation:Add(newKF)
+//
+                                //index3 = index3 + 1
+                            //end
+                        //end
+//
+                        //if nanim:scaling not= undefined
+                            //Array<NodeKeyframe<Vector3>> temp
+                            //nodeAnim:scaling = temp
+                            //integer index3 = 0
+                            //NodeKeyframe<Vector3> kf = undefined
+                            //repeat nanim:scaling:GetSize() times
+                                //kf = nanim:scaling:Get(index3)
+//
+                                //NodeKeyframe<Vector3> newKF
+                                //newKF:Initialize(kf:keyTime, cast(Vector3, kf:value))
+                                //nodeAnim:scaling:Add(newKF)
+//
+                                //index3 = index3 + 1
+                            //end
+                        //end
+                    //end
+//
+                    //if nodeAnim:translation not= undefined or nodeAnim:rotation not= undefined or nodeAnim:scaling not= undefined
+                        //animation:nodeAnimations:Add(nodeAnim)
+                    //end
+//
+                //end
+                //if animation:nodeAnimations:GetSize() > 0 
+                    //animations:Add(animation)
+                //end
+                //index2 = index2 + 1
+            //end
+//
+            //index = index + 1
+        //end
     end
     
     /*
@@ -2325,17 +2223,18 @@ class Model is Item3D
     this model, and then calculate the updated bone matrices.
     */
     private action CalculateTransforms
-        integer index = 0
-        integer size = nodes:GetSize()
-        repeat size times
-            nodes:Get(index):CalculateAllTransforms()
-            index = index + 1
-        end
-        index = 0
-        repeat size times
-            nodes:Get(index):CalculateAllBoneTransforms()
-            index = index + 1
-        end
+        alert("NYI")
+        //integer index = 0
+        //integer size = nodes:GetSize()
+        //repeat size times
+            //nodes:Get(index):CalculateAllTransforms()
+            //index = index + 1
+        //end
+        //index = 0
+        //repeat size times
+            //nodes:Get(index):CalculateAllBoneTransforms()
+            //index = index + 1
+        //end
     end
 
     /*
@@ -2346,37 +2245,39 @@ class Model is Item3D
     Attribute: Parameter renderables An array that will contain all of the retrieved Renderables.
     */
     action GetRenderables(Array<Renderable> renderables)
-        Node node = undefined
-        integer index = 0
-        repeat nodes:GetSize() times
-            node = nodes:Get(index)
-            GetRenderables(node, renderables)
-            index = index + 1
-        end
+        alert("NYI")
+        //Node node = undefined
+        //integer index = 0
+        //repeat nodes:GetSize() times
+            //node = nodes:Get(index)
+            //GetRenderables(node, renderables)
+            //index = index + 1
+        //end
     end
 
     /*
     Retrieve all Renderables managed by a single node.
     */
     private action GetRenderables(Node node, Array<Renderable> renderables)
-        if node:parts:GetSize() > 0
-            NodePart nodePart = undefined
-            integer index = 0
-            repeat node:parts:GetSize() times
-                nodePart = node:parts:Get(index)
-                if nodePart:enabled
-                    renderables:Add(GetRenderable(node, nodePart))
-                end
-                index = index + 1
-            end
-        end
-
-        Iterator<Node> childIterator = node:GetChildren()
-        Node child = undefined
-        repeat while childIterator:HasNext()
-            child = childIterator:Next()
-            GetRenderables(child, renderables)
-        end
+        alert("NYI")
+        //if node:parts:GetSize() > 0
+            //NodePart nodePart = undefined
+            //integer index = 0
+            //repeat node:parts:GetSize() times
+                //nodePart = node:parts:Get(index)
+                //if nodePart:enabled
+                    //renderables:Add(GetRenderable(node, nodePart))
+                //end
+                //index = index + 1
+            //end
+        //end
+//
+        //Iterator<Node> childIterator = node:GetChildren()
+        //Node child = undefined
+        //repeat while childIterator:HasNext()
+            //child = childIterator:Next()
+            //GetRenderables(child, renderables)
+        //end
     end
 
     /*
@@ -2384,24 +2285,25 @@ class Model is Item3D
     only used to set the transform.
     */
     private action GetRenderable(Node node, NodePart nodePart) returns Renderable
-        Renderable out
-        nodePart:SetRenderable(out)
-        if nodePart:bones = undefined and GetTransform() not= undefined
-            out:worldTransform:Set(GetTransform()):Multiply(node:globalTransform)
-        elseif GetTransform() not= undefined
-            out:worldTransform:Set(GetTransform())
-        else
-            out:worldTransform:IdentityMatrix()
-        end
-
-        out:shaderProgram = shaderProgram
-        out:shaderMapping = shaderMapping
-        out:shaderData = shaderData
-        if GetLayer() not= undefined
-            out:environment = GetLayer():GetEnvironment()
-        end
-
-        return out
+        alert("NYI")
+        //Renderable out
+        //nodePart:SetRenderable(out)
+        //if nodePart:bones = undefined and GetTransform() not= undefined
+            //out:worldTransform:Set(GetTransform()):Multiply(node:globalTransform)
+        //elseif GetTransform() not= undefined
+            //out:worldTransform:Set(GetTransform())
+        //else
+            //out:worldTransform:IdentityMatrix()
+        //end
+//
+        //out:shaderProgram = shaderProgram
+        //out:shaderMapping = shaderMapping
+        //out:shaderData = shaderData
+        //if GetLayer() not= undefined
+            //out:environment = GetLayer():GetEnvironment()
+        //end
+//
+        //return out
     end
 
     /*
@@ -2544,13 +2446,14 @@ class Model is Item3D
 
     */
     action ExtendBoundingBox(BoundingBox box) returns BoundingBox
-        integer counter = 0
-
-        repeat nodes:GetSize() times
-            nodes:Get(counter):ExtendBoundingBox(box)
-        end
-
-        return box
+        alert("NYI")
+        //integer counter = 0
+//
+        //repeat nodes:GetSize() times
+            //nodes:Get(counter):ExtendBoundingBox(box)
+        //end
+//
+        //return box
     end
 
     /*

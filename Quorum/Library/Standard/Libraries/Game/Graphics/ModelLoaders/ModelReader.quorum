@@ -7,7 +7,7 @@ use Libraries.System.AndroidAssetReader
 use Libraries.System.File
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Model
-use Libraries.Game.Graphics.ModelBlueprint
+use Libraries.Game.Graphics.Models.OpenGL.ModelBlueprintOpenGL
 use Libraries.Game.Graphics.ModelLoaders.WavefrontObject.WavefrontConverterListener
 use Libraries.Game.Graphics.ModelLoaders.WavefrontObject.WavefrontObjectLexer
 use Libraries.Game.Graphics.ModelLoaders.WavefrontObject.WavefrontObjectParser
@@ -19,23 +19,20 @@ use Libraries.Game.Graphics.ModelLoaders.WavefrontObject.Material
 use Libraries.Game.Graphics.ModelLoaders.WavefrontObject.ModelToken
 use Libraries.Game.Graphics.ModelLoaders.WavefrontObject.ModelError
 use Libraries.Game.Graphics.ModelLoaders.Graphics3DLoader
-use Libraries.Game.Graphics.ModelBuilder
+use Libraries.Game.Graphics.Models.OpenGL.ModelBuilder
 use Libraries.Game.Graphics.MeshBuilder
-use Libraries.Game.Graphics.ColorAttribute
 use Libraries.Game.Graphics.Color
 use Libraries.Compute.Vector3
-use Libraries.Game.Graphics.NumberAttribute
-use Libraries.Game.Graphics.BlendingAttribute
 use Libraries.Game.Graphics.TextureDescriptor
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.TextureFilter
 use Libraries.Game.Graphics.TextureWrap
-use Libraries.Game.Graphics.TextureAttribute
 use Libraries.Compute.BitwiseOperations
 use Libraries.Game.Graphics.VertexAttributes
 use Libraries.Game.Graphics.VertexSchematic
 use Libraries.Containers.Table
 use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Models.OpenGL.Attributes.all
 
 class ModelReader 
     
@@ -59,7 +56,7 @@ class ModelReader
         ModelReader reader
         ModelBlueprint schematic = reader:Read(file)
     */
-    action Read(File file) returns ModelBlueprint
+    action Read(File file) returns ModelBlueprintOpenGL
         text value = file:GetPath()
         if value:EndsWith(".obj")
             return ReadWavefrontObject(file)
@@ -70,7 +67,7 @@ class ModelReader
         alert("I did not recognize the file type of this file! The supported file types are .obj, .g3db, and .g3dj")
     end
 
-    private action ReadWavefrontObject(File file) returns ModelBlueprint
+    private action ReadWavefrontObject(File file) returns ModelBlueprintOpenGL
         WavefrontConverterListener listener
         FileReaderBlueprint reader = GetFileReader()
 
@@ -126,14 +123,14 @@ class ModelReader
             end
         end
 
-        ModelBlueprint schematic = ConstructWavefrontObject(listener:GetPositions(), listener:GetTextures(), listener:GetNormals(),
+        ModelBlueprintOpenGL schematic = ConstructWavefrontObject(listener:GetPositions(), listener:GetTextures(), listener:GetNormals(),
             listener:GetFaces(), materialsList, listener:GetUseMaterialIndices(), listener:GetUseMaterialNames(), file)
 
         return schematic
     end
 
     private action ConstructWavefrontObject(Array<VertexNumbers> positions, Array<VertexNumbers> textures, Array<VertexNumbers> normals, 
-        Table<VertexFace> faces, Array<Material> materials, Array<integer> materialIndices, Array<text> materialNames, File file) returns ModelBlueprint
+        Table<VertexFace> faces, Array<Material> materials, Array<integer> materialIndices, Array<text> materialNames, File file) returns ModelBlueprintOpenGL
             
         integer startIndex = 0
         integer endIndex = -1
@@ -165,7 +162,7 @@ class ModelReader
                     alert("I could not find a material named " + currentMaterialAlias + " in the materials (.mtl) file.")
                 end
 
-                Libraries.Game.Graphics.Material graphicsMaterial
+                Libraries.Game.Graphics.Models.OpenGL.Attributes.Material graphicsMaterial
                 graphicsMaterial:id = materialNames:Get(counter)
 
                 boolean isTextured = false
@@ -301,7 +298,7 @@ class ModelReader
                 counter = counter + 1
             end
         else
-            Libraries.Game.Graphics.Material graphicsMaterial
+            Libraries.Game.Graphics.Models.OpenGL.Attributes.Material graphicsMaterial
 
             ColorAttribute attribute
             Color color
@@ -346,7 +343,7 @@ class ModelReader
         return descriptor
     end
 
-    private action AddToWavefrontModel(text name, integer attributesMask, Libraries.Game.Graphics.Material material, Array<VertexNumbers> positions,
+    private action AddToWavefrontModel(text name, integer attributesMask, Libraries.Game.Graphics.Models.OpenGL.Attributes.Material material, Array<VertexNumbers> positions,
         Array<VertexNumbers> normals, Array<VertexNumbers> textures, Table<VertexFace> faces, integer startIndex, integer endIndex)
 
         MeshBuilder meshBuilder = modelBuilder:AddPart(name, modelBuilder:TRIANGLES, attributesMask, material)

@@ -1,0 +1,60 @@
+package Libraries.Game.Graphics.Models.Vulkan
+
+use Libraries.Compute.Vector4
+
+class Material
+    text path = ""
+    text normalMapPath = ""
+    text metalRoughMap = ""
+    Vector4 diffuse
+    number roughness = 0.0
+    number metalic = 0.0
+    action GetPath returns text
+        return path
+    end
+
+    action SetPath(text path)
+        me:path = path
+    end
+
+    action GetDiffuse returns Vector4
+        return diffuse
+    end
+
+    action SetDiffuse(Vector4 diffuse)
+        me:diffuse = diffuse
+    end
+
+    action GetMetalRoughMap returns text
+        return metalRoughMap
+    end
+
+    action SetMetalRoughMap(text metalRoughMap)
+        me:metalRoughMap = metalRoughMap
+    end
+
+    action GetRoughness returns number
+        return roughness
+    end
+
+    action SetRoughness(number roughness)
+        me:roughness = roughness
+    end
+
+    action GetMetalic returns number
+        return metalic
+    end
+
+    action SetMetalic(number metalic)
+        me:metalic = metalic
+    end
+
+    action GetNormalMapPath returns text
+        return normalMapPath
+    end
+
+    action SetNormalMapPath(text normalMapPath)
+        me:normalMapPath = normalMapPath
+    end
+
+end

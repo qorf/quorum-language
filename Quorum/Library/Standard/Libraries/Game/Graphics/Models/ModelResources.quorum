@@ -1,0 +1,18 @@
+package Libraries.Game.Graphics.Models
+
+use Libraries.Game.Graphics.Color
+
+/*This class is an interface for storing resources used by an individual model, depending on the rendering system used.
+Unlike ModelBlueprint, which stores information that is common across multiple models, this class holds information for
+a specific, individual Item3D-type model.
+
+Actual resources are held by implementing classes like ModelResourcesOpenGL or ModelResourcesVulkan.*/
+class ModelResources
+
+    /*
+    This action sets the diffuse color of a primitive model. If the model did not
+    previously have a color applied to it, it will add a color to it.
+    */
+    blueprint action SetColor(Color color)
+
+end

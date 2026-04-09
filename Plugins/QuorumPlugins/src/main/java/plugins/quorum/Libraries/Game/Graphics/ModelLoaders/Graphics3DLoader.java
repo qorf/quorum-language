@@ -5,17 +5,7 @@
  */
 package plugins.quorum.Libraries.Game.Graphics.ModelLoaders;
 
-import quorum.Libraries.Game.Graphics.ModelData.ModelData_;
-import quorum.Libraries.Game.Graphics.ModelData.ModelData;
-import quorum.Libraries.Game.Graphics.ModelData.ModelMesh;
-import quorum.Libraries.Game.Graphics.ModelData.ModelMeshPart;
-import quorum.Libraries.Game.Graphics.ModelData.ModelMaterial;
-import quorum.Libraries.Game.Graphics.ModelData.ModelTextureData;
-import quorum.Libraries.Game.Graphics.ModelData.ModelNode;
-import quorum.Libraries.Game.Graphics.ModelData.ModelNodePart;
-import quorum.Libraries.Game.Graphics.ModelData.ModelAnimation;
-import quorum.Libraries.Game.Graphics.ModelData.ModelNodeAnimation;
-import quorum.Libraries.Game.Graphics.ModelData.ModelNodeKeyframe_;
+import quorum.Libraries.Game.Graphics.Models.OpenGL.*;
 import quorum.Libraries.Game.Graphics.VertexAttribute;
 import quorum.Libraries.Game.Graphics.Color;
 import quorum.Libraries.Compute.Vector2;
@@ -484,10 +474,10 @@ public class Graphics3DLoader
                         if (translation != null && translation.size == 3)
                         {
                             ModelNodeKeyframe_ tkf = nodeAnim.CreateVector3Keyframe();
-                            tkf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__keyTime_(keytime);
+                            tkf.Set_Libraries_Game_Graphics_Models_OpenGL_ModelNodeKeyframe__keyTime_(keytime);
                             Vector3 tempV3 = new Vector3();
                             tempV3.Set(translation.GetFloat(0), translation.GetFloat(1), translation.GetFloat(2));
-                            tkf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__value_(tempV3);
+                            tkf.Set_Libraries_Game_Graphics_Models_OpenGL_ModelNodeKeyframe__value_(tempV3);
                             nodeAnim.translation.Add(tkf);
                         }
                         
@@ -495,20 +485,20 @@ public class Graphics3DLoader
                         if (rotation != null && rotation.size == 4)
                         {
                             ModelNodeKeyframe_ rkf = nodeAnim.CreateQuaternionKeyframe();
-                            rkf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__keyTime_(keytime);
+                            rkf.Set_Libraries_Game_Graphics_Models_OpenGL_ModelNodeKeyframe__keyTime_(keytime);
                             Quaternion tempQ = new Quaternion();
                             tempQ.Set(rotation.GetFloat(0), rotation.GetFloat(1), rotation.GetFloat(2), rotation.GetFloat(3));
-                            rkf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__value_(tempQ);
+                            rkf.Set_Libraries_Game_Graphics_Models_OpenGL_ModelNodeKeyframe__value_(tempQ);
                         }
                         
                         JsonValue scale = keyframe.Get("scale");
                         if (scale != null && scale.size == 3)
                         {
                             ModelNodeKeyframe_ skf = nodeAnim.CreateVector3Keyframe();
-                            skf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__keyTime_(keytime);
+                            skf.Set_Libraries_Game_Graphics_Models_OpenGL_ModelNodeKeyframe__keyTime_(keytime);
                             Vector3 tempV3 = new Vector3();
                             tempV3.Set(scale.GetFloat(0), scale.GetFloat(1), scale.GetFloat(2));
-                            skf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__value_(tempV3);
+                            skf.Set_Libraries_Game_Graphics_Models_OpenGL_ModelNodeKeyframe__value_(tempV3);
                             nodeAnim.scaling.Add(skf);
                         }
                     }
@@ -523,13 +513,13 @@ public class Graphics3DLoader
                         {
                             ModelNodeKeyframe_ kf = nodeAnim.CreateVector3Keyframe();
                             nodeAnim.translation.Add(kf);
-                            kf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__keyTime_(keyframe.GetFloat("keytime", 0) / 1000.f);
+                            kf.Set_Libraries_Game_Graphics_Models_OpenGL_ModelNodeKeyframe__keyTime_(keyframe.GetFloat("keytime", 0) / 1000.f);
                             JsonValue translation = keyframe.Get("value");
                             if (translation != null && translation.size >= 3)
                             {
                                 Vector3 tempV3 = new Vector3();
                                 tempV3.Set(translation.GetFloat(0), translation.GetFloat(1), translation.GetFloat(2));
-                                kf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__value_(tempV3);
+                                kf.Set_Libraries_Game_Graphics_Models_OpenGL_ModelNodeKeyframe__value_(tempV3);
                             }
                         }
                     }
@@ -542,13 +532,13 @@ public class Graphics3DLoader
                         {
                             ModelNodeKeyframe_ kf = nodeAnim.CreateQuaternionKeyframe();
                             nodeAnim.rotation.Add(kf);
-                            kf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__keyTime_(keyframe.GetFloat("keytime", 0f) / 1000.f);
+                            kf.Set_Libraries_Game_Graphics_Models_OpenGL_ModelNodeKeyframe__keyTime_(keyframe.GetFloat("keytime", 0f) / 1000.f);
                             JsonValue rotation = keyframe.Get("value");
                             if (rotation != null && rotation.size >= 4)
                             {
                                 Quaternion tempQ = new Quaternion();
                                 tempQ.Set(rotation.GetFloat(0), rotation.GetFloat(1), rotation.GetFloat(2), rotation.GetFloat(3));
-                                kf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__value_(tempQ);
+                                kf.Set_Libraries_Game_Graphics_Models_OpenGL_ModelNodeKeyframe__value_(tempQ);
                             }
                         }
                     }
@@ -561,13 +551,13 @@ public class Graphics3DLoader
                         {
                             ModelNodeKeyframe_ kf = nodeAnim.CreateVector3Keyframe();
                             nodeAnim.scaling.Add(kf);
-                            kf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__keyTime_(keyframe.GetFloat("keytime", 0f) / 1000.f);
+                            kf.Set_Libraries_Game_Graphics_Models_OpenGL_ModelNodeKeyframe__keyTime_(keyframe.GetFloat("keytime", 0f) / 1000.f);
                             JsonValue scaling = keyframe.Get("value");
                             if (scaling != null && scaling.size >= 3)
                             {
                                 Vector3 tempV3 = new Vector3();
                                 tempV3.Set(scaling.GetFloat(0), scaling.GetFloat(1), scaling.GetFloat(2));
-                                kf.Set_Libraries_Game_Graphics_ModelData_ModelNodeKeyframe__value_(tempV3);
+                                kf.Set_Libraries_Game_Graphics_Models_OpenGL_ModelNodeKeyframe__value_(tempV3);
                             }
                         }
                     }
