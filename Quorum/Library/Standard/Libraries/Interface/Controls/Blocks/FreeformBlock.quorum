@@ -173,6 +173,9 @@ class FreeformBlock is SingleLineBlock
 
     private action SetErrorVisual()
         EndUndo()
+        if editRegion:GetText():Trim() = ""
+            return now
+        end
         BlockErrorShaderView view
         view:Initialize()
         SetView2D(view)
@@ -213,7 +216,9 @@ class FreeformBlock is SingleLineBlock
             // If there's an error, set the block to reflect it, then bail.
             if not errorManager:IsCompilationErrorFree()
                 // TO-DO: Set error state visuals
-                SetErrorVisual()
+                if code:Trim() not= ""
+                    SetErrorVisual()
+                end
                 return now
             end
             TokenIterator<Token> tokenIterator
