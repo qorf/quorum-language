@@ -22,6 +22,7 @@ use Libraries.Game.Graphics.Shaders.Programs.SolidTrianglePatternControlShaderPr
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Controls.Charts.PatternOptionConstants
 use Libraries.Interface.Views.ControlShaderView
+use Libraries.Compute.Math
 
 /*
 The Bar class is a ChartDrawable that stores information for each 
@@ -204,10 +205,15 @@ shader:Initialize()
             SharedBarChartParent parentChart = cast(SharedBarChartParent, GetContainer())
             parentChart:RemoveSelectionVisual()
 parentChart:ApplySelectionBar(me)
+            Math math
+            text valueText = ""+math:Round(GetValue(), 2)
+            if (cast(integer, GetValue()) = GetValue())
+                valueText = ""+cast(integer, GetValue())
+            end
             if parentChart:GetHorizontalFlag()
-parentChart:ShowSelectionAnnotation(me,""+GetValue(), 10, GetHeight()/2 - 18)
+parentChart:ShowSelectionAnnotation(me,valueText, 10, GetHeight()/2 - 18)
             else
-parentChart:ShowSelectionAnnotation(me,""+GetValue(), 2, GetHeight()/2 - 18)
+parentChart:ShowSelectionAnnotation(me,valueText, 2, GetHeight()/2 - 18)
             end
         end
     end

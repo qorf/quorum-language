@@ -149,7 +149,7 @@ class PieChartWriter is ChartWriter
                 number prevY = 0 //Used on donut hole (inner radius)
                 number newX = 0 //Used on donut hole (inner radius)
                 number newY = 0 //Used on donut hole (inner radius)
-                number currentTheta = -90 // This starts it at the top
+                number currentTheta = 270 // This starts it at the top
                 number x = 0
                 number y = 0
                 integer i = 0
@@ -165,6 +165,17 @@ sliceSVG:SetStyle("--unit-x: " + pieBox:Get(i):GetUnitX() +"px; --unit-y: " + -p
                         sliceSVG:SetRole("graphics-symbol") 
                         sliceSVG:SetAriaLabel(pieBox:Get(i):GetName() + pieBox:Get(i):GetDescription())
                         sliceSVG:SetAriaHidden("false")
+                        sliceSVG:AddDataAttribute("label-value",pieBox:Get(i):GetPercentageText()+"%")
+                        if pieBox:Get(i):GetUnitX() < 0
+                            sliceSVG:AddDataAttribute("label-position","left-center")
+                            else
+                            sliceSVG:AddDataAttribute("label-position","right-center")
+                        end
+                        if pieBox:Get(i):GetUnitY() < 0.2
+                            sliceSVG:AddDataAttribute("label-position","top-center")
+                        elseif pieBox:Get(i):GetUnitY() > -0.2
+                            sliceSVG:AddDataAttribute("label-position","bottom-center")
+                        end
                     end
                     chartContent:Add(sliceSVG)
 
@@ -270,8 +281,19 @@ number innerEndX = originPointX + innerRadius * math:Cosine(math:DegreesToRadian
                         slice:SetStyleClass("quorum-chart-bar-list")
                         slice:SetTabIndex(-1)
                         slice:SetAriaHidden("true")
-                        sliceFocus = sliceFocus + "gainFocus('" + slice:GetID() + "'); "
-                        sliceBlur = sliceBlur + "loseFocus('" + slice:GetID() + "'); "
+                        //sliceFocus = sliceFocus + "gainFocus('" + slice:GetID() + "'); "
+                        //sliceBlur = sliceBlur + "loseFocus('" + slice:GetID() + "'); "
+                        slice:AddDataAttribute("label-value",pieBox:Get(i):GetPercentageText()+"%")
+                        if pieBox:Get(i):GetUnitX() < 0
+                            slice:AddDataAttribute("label-position","center-left")
+                        else
+                            slice:AddDataAttribute("label-position","center-right")
+                        end
+                        if pieBox:Get(i):GetUnitY() < 0.2
+                            slice:AddDataAttribute("label-position","top-center")
+                        elseif pieBox:Get(i):GetUnitY() > -0.2
+                            slice:AddDataAttribute("label-position","bottom-center")
+                        end
                     end
                     sliceSVG:Add(slice)
                     sliceSVG:Add(crust)
@@ -394,6 +416,17 @@ number innerEndX = originPointX + innerRadius * math:Cosine(math:DegreesToRadian
                             sliceSVG:SetRole("graphics-symbol") 
                             sliceSVG:SetAriaLabel(pieBox:Get(i):GetName() + pieBox:Get(i):GetDescription())
                             sliceSVG:SetAriaHidden("false")
+                            sliceSVG:AddDataAttribute("label-value",pieBox:Get(i):GetPercentageText()+"%")
+                        if pieBox:Get(i):GetUnitX() < 0
+                            sliceSVG:AddDataAttribute("label-position","center-left")
+                        else
+                            sliceSVG:AddDataAttribute("label-position","center-right")
+                        end
+                        if pieBox:Get(i):GetUnitY() < 0.2
+                            sliceSVG:AddDataAttribute("label-position","top-center")
+                        elseif pieBox:Get(i):GetUnitY() > -0.2
+                            sliceSVG:AddDataAttribute("label-position","bottom-center")
+                        end
                         end
                         subChartContent:Add(sliceSVG)
 
@@ -497,8 +530,19 @@ number innerEndX = originPointX + innerRadius * math:Cosine(math:DegreesToRadian
                             slice:SetStyleClass("quorum-chart-bar-list")
                             slice:SetTabIndex(-1)
                             slice:SetAriaHidden("true")
-                            sliceFocus = sliceFocus + "gainFocus('" + slice:GetID() + "'); "
-                            sliceBlur = sliceBlur + "loseFocus('" + slice:GetID() + "'); "
+                            slice:AddDataAttribute("label-value",pieBox:Get(i):GetPercentageText()+"%")
+                        if pieBox:Get(i):GetUnitX() < 0
+                            slice:AddDataAttribute("label-position","center-left")
+                        else
+                            slice:AddDataAttribute("label-position","center-right")
+                        end
+                        if pieBox:Get(i):GetUnitY() < 0.2
+                            slice:AddDataAttribute("label-position","top-center")
+                        elseif pieBox:Get(i):GetUnitY() > -0.2
+                            slice:AddDataAttribute("label-position","bottom-center")
+                        end
+                            //sliceFocus = sliceFocus + "gainFocus('" + slice:GetID() + "'); "
+                            //sliceBlur = sliceBlur + "loseFocus('" + slice:GetID() + "'); "
                         end
                         sliceSVG:Add(slice)
                         sliceSVG:Add(crust)

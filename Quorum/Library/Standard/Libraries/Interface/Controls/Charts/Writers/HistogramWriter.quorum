@@ -55,6 +55,7 @@ class HistogramWriter is ChartWriter
     private number betweenBarPadding = 0
     private number barWidthPercent = 0
     private number barHeightPercent = 0
+    Math math
     
 //    Array<Rectangle> bars
 
@@ -214,6 +215,8 @@ class HistogramWriter is ChartWriter
                         barSVG:SetRole("graphics-symbol")  
                         barSVG:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription())
                         barSVG:SetAriaHidden("false")
+                        barSVG:AddDataAttribute("label-value",NumberToText(currentBar:GetValue()))
+                    barSVG:AddDataAttribute("label-position","center-left")
                     end
                     if chart:HasGroups()
                         barGroupSVG:Add(barSVG)
@@ -224,9 +227,13 @@ class HistogramWriter is ChartWriter
                     text barFocus = ""
                     text barBlur = ""
 
-                    Path bar = MakeRoundedBar(currentBar:GetWidth(), currentBar:GetHeight(), 10)
+                    Path bar = MakeRoundedBar(currentBar:GetWidth()+currentBar:GetBorderThickness()*2, currentBar:GetHeight()+currentBar:GetBorderThickness()*2, currentBar:GetBorderThickness(), cast(integer, chart:GetCornerRadius()), chart:GetVerticalFlag())
                     //bar:SetPosition(currentBar:GetGlobalX(), TranslatePositionY(currentBar) - currentBar:GetHeight()) 
-                    bar:SetTranslateTransform(currentBar:GetGlobalX(), TranslatePositionY(currentBar) - currentBar:GetHeight())
+                    if chart:GetVerticalFlag()
+                        bar:SetTranslateTransform(currentBar:GetGlobalX() + currentBar:GetBorderThickness(), TranslatePositionY(currentBar) - currentBar:GetHeight() + currentBar:GetBorderThickness() * 1.5)
+                    else
+                        bar:SetTranslateTransform(currentBar:GetGlobalX()-currentBar:GetBorderThickness()/2, TranslatePositionY(currentBar) - currentBar:GetHeight() - currentBar:GetBorderThickness() * 1.5)
+                    end
                     bar:SetFill(currentBar:GetColor())
                     bar:SetFillOpacity(currentBar:GetColor())
                     bar:SetStroke(cast(Color, currentBar:GetBorderColor()))
@@ -247,6 +254,8 @@ class HistogramWriter is ChartWriter
                         bar:SetAriaHidden("true")
                         //barFocus = barFocus + "gainFocus('" + bar:GetID() + "'); "
                         //barBlur = barBlur + "loseFocus('" + bar:GetID() + "'); "
+                        bar:AddDataAttribute("label-value",NumberToText(currentBar:GetValue()))
+                    bar:AddDataAttribute("label-position","center-left")
                     end
                     barSVG:Add(bar)
 
@@ -371,6 +380,8 @@ class HistogramWriter is ChartWriter
                             barSVG:SetRole("graphics-symbol")  
                             barSVG:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription() + ".")
                             barSVG:SetAriaHidden("false")
+                            barSVG:AddDataAttribute("label-value",NumberToText(currentBar:GetValue()))
+                    barSVG:AddDataAttribute("label-position","center-left")
                         end
                         if chart:IsSeparatedBySeries() and chart:IsSeparatedByFactor()
                             chartContent:Add(barSVG)
@@ -381,9 +392,13 @@ class HistogramWriter is ChartWriter
                         text barFocus = ""
                         text barBlur = ""
     
-                        Path bar = MakeRoundedBar(currentBar:GetWidth(), currentBar:GetHeight(), 10)
+                        Path bar = MakeRoundedBar(currentBar:GetWidth()+currentBar:GetBorderThickness()*2, currentBar:GetHeight()+currentBar:GetBorderThickness()*2, currentBar:GetBorderThickness(), cast(integer, chart:GetCornerRadius()), chart:GetVerticalFlag())
                         //bar:SetPosition(currentBar:GetGlobalX(), TranslatePositionY(currentBar) - currentBar:GetHeight()) 
-                        bar:SetTranslateTransform(currentBar:GetGlobalX(), TranslatePositionY(currentBar) - currentBar:GetHeight())
+                        if chart:GetVerticalFlag()
+                            bar:SetTranslateTransform(currentBar:GetGlobalX() + currentBar:GetBorderThickness(), TranslatePositionY(currentBar) - currentBar:GetHeight() + currentBar:GetBorderThickness() * 1.5)
+                        else
+                            bar:SetTranslateTransform(currentBar:GetGlobalX() - currentBar:GetBorderThickness()/2, TranslatePositionY(currentBar) - currentBar:GetHeight() - currentBar:GetBorderThickness() * 1.5)
+                        end
                         bar:SetFill(currentBar:GetColor())
                         bar:SetFillOpacity(currentBar:GetColor())
                         bar:SetStroke(cast(Color, currentBar:GetBorderColor()))
@@ -404,6 +419,9 @@ class HistogramWriter is ChartWriter
                             bar:SetAriaHidden("true")
                             //barFocus = barFocus + "gainFocus('" + bar:GetID() + "'); "
                             //barBlur = barBlur + "loseFocus('" + bar:GetID() + "'); "
+                            
+                            bar:AddDataAttribute("label-value",NumberToText(currentBar:GetValue()))
+                    bar:AddDataAttribute("label-position","center-left")
                         end
                         barSVG:Add(bar)
 
@@ -622,15 +640,58 @@ class HistogramWriter is ChartWriter
         canvas:Add(script)
     end
     
-action MakeRoundedBar(number width, number height, integer radius) returns Path
+    action MakeRoundedBar(number width, number height, number borderOffset, integer radius) returns Path
+        return MakeRoundedBar(width, height, borderOffset, radius, true)
+    end
+    
+    action MakeRoundedBar(number width, number height, number borderOffset, integer radius, boolean vertical) returns Path
+        number roundingThreshold = math:MinimumOf(height,width)*0.66
+    if radius * 2 >=  roundingThreshold
+            radius = cast(integer, radius * 0.2) 
+            if radius >= math:MinimumOf(width,height)
+                radius = 0
+            end
+        end
+        if math:AbsoluteValue(width) < borderOffset*2
+            width = 0
+        else
+            width = width - borderOffset*2
+        end
+        if math:AbsoluteValue(height) < borderOffset*2
+            height = 0
+        else
+            height = height - borderOffset*2
+        end
+        
         Path path
-        path:AddMoveTo(0,radius)
+        if vertical
+            if height = 0
+                path:AddMoveTo(0,0)
+                path:AddHorizontalLine(width)
+                return path
+            end
+path:AddMoveTo(0,radius)
         path:AddArc(radius, radius, 0, false, true, radius, -radius)
         path:AddHorizontalLine(width - 2*radius)
         path:AddArc(radius, radius, 0, false, true, radius, radius)
         path:AddVerticalLine(height-radius)
         path:AddHorizontalLine(-width)
         path:ClosePath()
+        else
+            if width = 0
+                path:AddMoveTo(0,0)
+                path:AddVerticalLine(height)
+                return path
+            end
+path:AddMoveTo(0,0)
+            path:AddHorizontalLine(width - radius)
+            path:AddArc(radius, radius, 0, false, true, radius, radius)
+            path:AddVerticalLine(height-2*radius)
+        path:AddArc(radius, radius, 0, false, true, -radius, radius)
+        path:AddHorizontalLine(-width + radius)
+        path:ClosePath()
+        end
+        
         return path
     end
     

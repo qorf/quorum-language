@@ -24,6 +24,7 @@ use Libraries.Data.Formats.ScalableVectorGraphics.Rectangle
 use Libraries.Data.Formats.ScalableVectorGraphics.Label
 use Libraries.Data.Formats.ScalableVectorGraphics.Circle
 use Libraries.Data.Formats.ScalableVectorGraphics.Polygon
+use Libraries.Interface.Controls.Charts.Graphics.PlotItem
 
 /*
     The BoxPlotChartWriter class is part of the set of writers that allow for Charts
@@ -250,6 +251,16 @@ class BoxPlotWriter is ChartWriter
                                 if k not= 2 and k not= 4 and k not= 5 and k not= 9 // skip elements not in nav
                                     itemSVG:SetAriaLabel(currentItem:GetName() + currentItem:GetDescription())
                                     itemSVG:SetAriaHidden("false")
+                                    if currentItem is PlotItem
+                                        PlotItem plotItem = cast(PlotItem, currentItem)
+                                        itemSVG:AddDataAttribute("label-value",NumberToText(plotItem:GetPlotValue()))
+                                        if chart:GetVerticalFlag()
+                                            itemSVG:AddDataAttribute("label-position","center-right")
+                                            else
+                                            itemSVG:AddDataAttribute("label-position","bottom-center")
+                                        end
+                                    end
+                                    
                                 else
                                     itemSVG:SetAriaHidden("true")
                                 end
@@ -267,7 +278,7 @@ class BoxPlotWriter is ChartWriter
                                 Circle outlier
                                 number radius = currentItem:GetHeight()/2
                                 outlier:SetRadius(radius)
-                                outlier:SetPosition(currentItem:GetGlobalX()+radius, TranslatePositionY(currentItem) - currentItem:GetHeight() + radius) 
+                                outlier:SetPosition(currentItem:GetGlobalX()+radius+currentItem:GetBorderThickness(), TranslatePositionY(currentItem) - currentItem:GetHeight()+radius+currentItem:GetBorderThickness()) 
                                 outlier:SetFill(currentItem:GetColor())
                                 outlier:SetFillOpacity(currentItem:GetColor())
                                 outlier:SetStroke(cast(Color, currentItem:GetBorderColor()))
@@ -283,6 +294,11 @@ class BoxPlotWriter is ChartWriter
                                     outlier:SetAriaHidden("true")
                                     itemFocus = itemFocus + "gainFocus('" + outlier:GetID() + "'); "
                                     itemBlur = itemBlur + "loseFocus('" + outlier:GetID() + "'); "
+                                    if currentItem is ChartPoint
+                                        ChartPoint outlierPoint = cast(ChartPoint, currentItem)
+                                        outlier:AddDataAttribute("label-value",NumberToText(outlierPoint:GetOutlierValue()))
+                                        outlier:AddDataAttribute("label-position","top-right")
+                                    end
                                 end 
                                 itemSVG:Add(outlier)
                             else
@@ -318,6 +334,15 @@ plotLine:SetID(itemSVG:GetID() + "_item")
                                     plotLine:SetAriaHidden("true")
                                     itemFocus = itemFocus + "gainFocus('" + plotLine:GetID() + "'); "
                                     itemBlur = itemBlur + "loseFocus('" + plotLine:GetID() + "'); "
+                                        if currentItem is PlotItem
+                                        PlotItem plotItem = cast(PlotItem, currentItem)
+                                        plotLine:AddDataAttribute("label-value",NumberToText(plotItem:GetPlotValue()))
+                                        if chart:GetVerticalFlag()
+                                            plotLine:AddDataAttribute("label-position","center-right")
+                                            else
+                                            plotLine:AddDataAttribute("label-position","bottom-center")
+                                        end
+                                    end
                                     end
                                 end 
                                 itemSVG:Add(plotLine)
@@ -503,6 +528,15 @@ plotLine:SetID(itemSVG:GetID() + "_item")
                                     itemSVG:SetRole("graphics-symbol")  
                                     itemSVG:SetAriaLabel(currentItem:GetName() + currentItem:GetDescription())
                                     itemSVG:SetAriaHidden("false")
+                                    if currentItem is PlotItem
+                                        PlotItem plotItem = cast(PlotItem, currentItem)
+                                        itemSVG:AddDataAttribute("label-value",NumberToText(plotItem:GetPlotValue()))
+                                        if chart:GetVerticalFlag()
+                                            itemSVG:AddDataAttribute("label-position","center-right")
+                                        else
+                                            itemSVG:AddDataAttribute("label-position","bottom-center")
+                                        end
+                                    end
                                 end
                                 if k not= 2 and k not= 4 and k not= 5 and k not= 9 // skip elements not in nav
                                     plotSVG:Add(itemSVG)
@@ -527,7 +561,7 @@ plotLine:SetID(itemSVG:GetID() + "_item")
                                     Circle outlier
                                     number radius = currentItem:GetHeight()/2
                                     outlier:SetRadius(radius)
-                                    outlier:SetPosition(currentItem:GetGlobalX()+radius, TranslatePositionY(currentItem) - currentItem:GetHeight() + radius) 
+                                    outlier:SetPosition(currentItem:GetGlobalX()+radius+currentItem:GetBorderThickness(), TranslatePositionY(currentItem) - currentItem:GetHeight() + radius + currentItem:GetBorderThickness()) 
                                     outlier:SetFill(currentItem:GetColor())
                                     outlier:SetFillOpacity(currentItem:GetColor())
                                     outlier:SetStroke(cast(Color, currentItem:GetBorderColor()))
@@ -543,6 +577,11 @@ plotLine:SetID(itemSVG:GetID() + "_item")
                                         outlier:SetAriaHidden("true")
                                         itemFocus = itemFocus + "gainFocus('" + outlier:GetID() + "'); "
                                         itemBlur = itemBlur + "loseFocus('" + outlier:GetID() + "'); "
+                                        if currentItem is ChartPoint
+                                        ChartPoint outlierPoint = cast(ChartPoint, currentItem)
+                                        outlier:AddDataAttribute("label-value",NumberToText(outlierPoint:GetOutlierValue()))
+                                        outlier:AddDataAttribute("label-position","top-right")
+                                    end
                                     end 
                                     itemSVG:Add(outlier)
                                 else
@@ -576,6 +615,15 @@ plotLine:SetID(itemSVG:GetID() + "_item")
                                         plotLine:SetAriaHidden("true")
                                         itemFocus = itemFocus + "gainFocus('" + plotLine:GetID() + "'); "
                                         itemBlur = itemBlur + "loseFocus('" + plotLine:GetID() + "'); "
+                                        if currentItem is PlotItem
+                                        PlotItem plotItem = cast(PlotItem, currentItem)
+                                        plotLine:AddDataAttribute("label-value",NumberToText(plotItem:GetPlotValue()))
+                                        if chart:GetVerticalFlag()
+                                            plotLine:AddDataAttribute("label-position","center-right")
+                                            else
+                                            plotLine:AddDataAttribute("label-position","bottom-center")
+                                        end
+                                    end
                                     end 
                                     itemSVG:Add(plotLine)
                                 end

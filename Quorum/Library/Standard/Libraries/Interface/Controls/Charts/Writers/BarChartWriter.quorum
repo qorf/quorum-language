@@ -50,6 +50,7 @@ use Libraries.Data.Formats.ScalableVectorGraphics.ScalableVectorGraphicsObject
 */
 
 class BarChartWriter is ChartWriter
+    Math math
 
     action WriteOutChart(BarChart chart, integer svgWidth, integer svgHeight) returns text
         return WriteOutChart(cast(Chart,chart), svgWidth, svgHeight)
@@ -129,7 +130,7 @@ chartContentBoundingBox:SetStyleClass("quorum-chart-area "+GetSelectionBoxStyle(
             chartContentBoundingBox:SetID(chartContent:GetID() + "_boundingbox")
             chartContentBoundingBox:SetAriaHidden("true")
             chartContentBoundingBox:SetTabIndex(-1)
-            chartContentBoundingBox:SetStyleClass("quorum-chart-area " + GetSelectionBoxStyle())
+            chartContentBoundingBox:SetStyleClass("quorum-chart-area quorum-chart-information-list " + GetSelectionBoxStyle())
             if chart:IsShowingTitle()
                 chartContent:SetAriaLabel(chart:GetTitle() + " " + chart:GetDescription())
             else
@@ -169,9 +170,10 @@ chartContentBoundingBox:SetStyleClass("quorum-chart-area "+GetSelectionBoxStyle(
 
                     // The group area, used for hover 
                     Rectangle barGroup
-                    barGroup:SetWidth(currentBarGroup:GetWidth())
-                    barGroup:SetHeight(currentBarGroup:GetHeight())
-                    barGroup:SetPosition(currentBarGroup:GetGlobalX(), TranslatePositionY(currentBarGroup) - currentBarGroup:GetHeight()) 
+                    integer groupPadding = 2
+                    barGroup:SetWidth(currentBarGroup:GetWidth() + groupPadding * 2)
+                    barGroup:SetHeight(currentBarGroup:GetHeight() + groupPadding * 2)
+                    barGroup:SetPosition(currentBarGroup:GetGlobalX() - groupPadding, TranslatePositionY(currentBarGroup) - currentBarGroup:GetHeight() - groupPadding) 
                     barGroup:SetFill(transparent)
                     barGroup:SetFillOpacity(transparent)
                     if HasAccessibility()
@@ -205,6 +207,8 @@ chartContentBoundingBox:SetStyleClass("quorum-chart-area "+GetSelectionBoxStyle(
                         barSVG:SetRole("graphics-symbol")  
                         barSVG:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription())
                         barSVG:SetAriaHidden("false")
+                        barSVG:AddDataAttribute("label-value",NumberToText(currentBar:GetValue()))
+                        barSVG:AddDataAttribute("label-position","center-left")
                     end
                     if chart:HasGroups()
                         barGroupSVG:Add(barSVG)
@@ -215,14 +219,17 @@ chartContentBoundingBox:SetStyleClass("quorum-chart-area "+GetSelectionBoxStyle(
                     text barFocus = ""
                     text barBlur = ""
 
-                    Path bar = MakeRoundedBar(currentBar:GetWidth() - currentBar:GetBorderThickness()*2, currentBar:GetHeight()- currentBar:GetBorderThickness()*2, 10, chart:GetVerticalFlag()) 
+                    
+                        Path bar = MakeRoundedBar(currentBar:GetWidth(), currentBar:GetHeight(), currentBar:GetBorderThickness(), cast(integer,chart:GetCornerRadius()), chart:GetVerticalFlag())
                     //bar:SetPosition(currentBar:GetGlobalX(), TranslatePositionY(currentBar) - currentBar:GetHeight()) 
-                    bar:SetTranslateTransform(currentBar:GetGlobalX(), TranslatePositionY(currentBar) - currentBar:GetHeight() + currentBar:GetBorderThickness())
+                    bar:SetTranslateTransform(currentBar:GetGlobalX() - currentBar:GetBorderThickness()/2, TranslatePositionY(currentBar) - currentBar:GetHeight() + currentBar:GetBorderThickness() * 2.5)
                     bar:SetFill(currentBar:GetColor())
                     bar:SetFillOpacity(currentBar:GetColor())
                     bar:SetStroke(cast(Color, currentBar:GetBorderColor()))
                     bar:SetStrokeOpacity(cast(Color, currentBar:GetBorderColor()))
                     bar:SetStrokeWidth(currentBar:GetBorderThickness())
+                    bar:AddDataAttribute("label-value",NumberToText(currentBar:GetValue()))
+                    bar:AddDataAttribute("label-position","center-left")
 
 
                     text title = ""
@@ -383,6 +390,8 @@ chartContentBoundingBox:SetStyleClass("quorum-chart-area "+GetSelectionBoxStyle(
                             barSVG:SetRole("graphics-symbol")  
                             barSVG:SetAriaLabel(currentBar:GetName() + currentBar:GetDescription() + ".")
                             barSVG:SetAriaHidden("false")
+                            barSVG:AddDataAttribute("label-value",NumberToText(currentBar:GetValue()))
+                    barSVG:AddDataAttribute("label-position","center-left")
                         end
                         if chart:IsSeparatedBySeries() and chart:IsSeparatedByFactor()
                             chartContent:Add(barSVG)
@@ -393,10 +402,9 @@ chartContentBoundingBox:SetStyleClass("quorum-chart-area "+GetSelectionBoxStyle(
                         text barFocus = ""
                         text barBlur = ""
     
-                        Rectangle bar
-                        bar:SetWidth(currentBar:GetWidth())
-                        bar:SetHeight(currentBar:GetHeight())
-                        bar:SetPosition(currentBar:GetGlobalX(), TranslatePositionY(currentBar) - currentBar:GetHeight()) 
+                        Path bar = MakeRoundedBar(currentBar:GetWidth(), currentBar:GetHeight(), currentBar:GetBorderThickness(), cast(integer,chart:GetCornerRadius()), chart:GetVerticalFlag())
+                    //bar:SetPosition(currentBar:GetGlobalX(), TranslatePositionY(currentBar) - currentBar:GetHeight()) 
+                    bar:SetTranslateTransform(currentBar:GetGlobalX() + currentBar:GetBorderThickness(), TranslatePositionY(currentBar) - currentBar:GetHeight() + currentBar:GetBorderThickness() * 1.5)
                         bar:SetFill(currentBar:GetColor())
                         bar:SetFillOpacity(currentBar:GetColor())
                         bar:SetStroke(cast(Color, currentBar:GetBorderColor()))
@@ -425,13 +433,7 @@ chartContentBoundingBox:SetStyleClass("quorum-chart-area "+GetSelectionBoxStyle(
                         end
     
                         number value = currentBar:GetValue()
-                        if value = cast(integer, value)
-                            title = title + cast(integer, value)
-                        else
-                            title = title + value
-                        end
-    
-                        bar:SetTitle(title)
+                    bar:SetTitle(title + NumberToText(value))
 
 
                         if HasAccessibility()
@@ -441,6 +443,8 @@ chartContentBoundingBox:SetStyleClass("quorum-chart-area "+GetSelectionBoxStyle(
                             bar:SetAriaHidden("true")
                             //barFocus = barFocus + "gainFocus('" + bar:GetID() + "'); "
                             //barBlur = barBlur + "loseFocus('" + bar:GetID() + "'); "
+                            bar:AddDataAttribute("label-value",NumberToText(currentBar:GetValue()))
+                    bar:AddDataAttribute("label-position","center-left")
                         end
                         barSVG:Add(bar)
 
@@ -639,17 +643,36 @@ chartContentBoundingBox:SetStyleClass("quorum-chart-area "+GetSelectionBoxStyle(
         canvas:Add(script)
     end
     
-    action MakeRoundedBar(number width, number height, integer radius) returns Path
-        return MakeRoundedBar(width, height, radius, true)
+    action MakeRoundedBar(number width, number height, number borderOffset, integer radius) returns Path
+        return MakeRoundedBar(width, height, borderOffset, radius, true)
     end
     
-    action MakeRoundedBar(number width, number height, integer radius, boolean vertical) returns Path
-        if radius * 2 >=  width
-            radius = cast(integer, width * 0.1 + 1) 
+    action MakeRoundedBar(number width, number height, number borderOffset, integer radius, boolean vertical) returns Path
+        number roundingThreshold = math:MinimumOf(height,width)*0.66
+    if radius * 2 >=  roundingThreshold
+            radius = cast(integer, radius * 0.2) 
+            if radius >= math:MinimumOf(width,height)
+                radius = 0
+            end
+        end
+        if math:AbsoluteValue(width) < borderOffset*2
+            width = 0
+        else
+            width = width - borderOffset*2
+        end
+        if math:AbsoluteValue(height) < borderOffset*2
+            height = 0
+        else
+            height = height - borderOffset*2
         end
         
         Path path
         if vertical
+            if height = 0
+                path:AddMoveTo(0,0)
+                path:AddHorizontalLine(width)
+                return path
+            end
 path:AddMoveTo(0,radius)
         path:AddArc(radius, radius, 0, false, true, radius, -radius)
         path:AddHorizontalLine(width - 2*radius)
@@ -658,6 +681,11 @@ path:AddMoveTo(0,radius)
         path:AddHorizontalLine(-width)
         path:ClosePath()
         else
+            if width = 0
+                path:AddMoveTo(0,0)
+                path:AddVerticalLine(height)
+                return path
+            end
 path:AddMoveTo(0,0)
             path:AddHorizontalLine(width - radius)
             path:AddArc(radius, radius, 0, false, true, radius, radius)

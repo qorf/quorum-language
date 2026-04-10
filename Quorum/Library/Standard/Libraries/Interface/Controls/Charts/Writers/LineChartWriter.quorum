@@ -123,7 +123,12 @@ class LineChartWriter is ChartWriter
         chartContentBoundingBox:SetStrokeOpacity(transparent)
         if HasAccessibility()
             chartContent:SetTabIndex(0)
-            chartContent:SetStyleClass("quorum-chart-area quorum-chart-information-list "+GetDotContainerStyle()+" " + GetSelectionBoxStyle())
+            if chart:GetNumberOfChartAreas() = 1
+                chartContent:SetStyleClass("quorum-chart-area quorum-chart-information-list "+GetDotContainerStyle()+" " + GetSelectionBoxStyle())
+            else
+                chartContent:SetStyleClass("quorum-chart-area quorum-chart-information-list " + GetSelectionBoxStyle())
+            end
+            
             chartContent:SetIsOneLine(true)
             chartContent:SetRole("graphics-object")  
             chartContent:SetID(canvas:GetID() + "_" + GetChartArea():GetHashCode())
@@ -230,6 +235,8 @@ class LineChartWriter is ChartWriter
                             pointSVG:SetRole("graphics-symbol")  
                             pointSVG:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
                             pointSVG:SetAriaHidden("false")
+                            pointSVG:AddDataAttribute("label-value",currentPoint:GetName())
+                    pointSVG:AddDataAttribute("label-position","top-right")
                         end
                         if chart:GetSeriesList():GetSize() > 0
                             seriesSVG:Add(pointSVG)
@@ -252,8 +259,10 @@ class LineChartWriter is ChartWriter
                                 point:SetStyleClass(GetSelectionBoxStyle())
                                 point:SetTabIndex(-1)
                                 point:SetAriaHidden("true")
-                                pointFocus = pointFocus + "gainFocus('" + point:GetID() + "'); "
-                                pointBlur = pointBlur + "loseFocus('" + point:GetID() + "'); "
+                                point:AddDataAttribute("label-value",currentPoint:GetName())
+                    point:AddDataAttribute("label-position","top-right")
+                                //pointFocus = pointFocus + "gainFocus('" + point:GetID() + "'); "
+                                //pointBlur = pointBlur + "loseFocus('" + point:GetID() + "'); "
                             end
                             pointSVG:Add(point)
                         end
@@ -319,7 +328,7 @@ class LineChartWriter is ChartWriter
                 subChartContentBoundingBox:SetStrokeOpacity(transparent)
                 if HasAccessibility()
                     subChartContent:SetTabIndex(-1)
-                    subChartContent:SetStyleClass(GetSelectionBoxStyle())
+                    subChartContent:SetStyleClass(GetDotContainerStyle()+" "+GetSelectionBoxStyle())
                     subChartContentBoundingBox:SetAriaHidden("true")
                     subChartContentBoundingBox:SetStyleClass(GetSelectionBoxStyle())
                     subChartContentBoundingBox:SetTabIndex(-1)
@@ -404,6 +413,8 @@ class LineChartWriter is ChartWriter
                                         pointSVG:SetRole("graphics-symbol")  
                                         pointSVG:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
                                         pointSVG:SetAriaHidden("false")
+                                        pointSVG:AddDataAttribute("label-value",currentPoint:GetName())
+                    pointSVG:AddDataAttribute("label-position","top-right")
                                     end
                                     subChartContent:Add(pointSVG)
 
@@ -425,10 +436,12 @@ class LineChartWriter is ChartWriter
                                             point:SetStyleClass(GetSelectionBoxStyle())
                                             point:SetTabIndex(-1)
                                             point:SetAriaHidden("true")
-                                            pointFocus = pointFocus + "gainFocus('" + point:GetID() + "'); "
-                                            pointBlur = pointBlur + "loseFocus('" + point:GetID() + "'); "
-                                            seriesFocus = seriesFocus + "gainFocus('" + point:GetID() + "'); "
-                                            seriesBlur = seriesBlur + "loseFocus('" + point:GetID() + "'); "
+                                            point:AddDataAttribute("label-value",currentPoint:GetName())
+                    point:AddDataAttribute("label-position","top-right")
+                                            //pointFocus = pointFocus + "gainFocus('" + point:GetID() + "'); "
+                                            //pointBlur = pointBlur + "loseFocus('" + point:GetID() + "'); "
+                                            //seriesFocus = seriesFocus + "gainFocus('" + point:GetID() + "'); "
+                                            //seriesBlur = seriesBlur + "loseFocus('" + point:GetID() + "'); "
                                         end
                                         pointSVG:Add(point)
                                     end

@@ -344,6 +344,9 @@ class ChartLayout is Layout
             if not mainVerticalContainer:ShowTicks()
                 currentTick:Hide()
             end
+            if not chart:IsShowingYAxisLine() and chart:GetVerticalFlag()
+                currentTick:Hide()
+            end
 
             // Gridlines (contained in chart areas)
             integer horizontalSections = chart:GetHorizontalPanel():GetNumberOfSections()
@@ -500,7 +503,7 @@ axis:Hide()
         end
         minorDivWidth = majorDivWidth/mainHorizontalContainer:GetMinorGridlineCount()
 
-        number tickX = originPointX - cast(integer, tickWidth/2.0)// needs to be a number since rounding can throw off the result a lot
+        number tickX = originPointX// needs to be a number since rounding can throw off the result a lot
         integer tickY = originPointY - axisHeight - tickHeight 
         integer bracketX = 0
 
@@ -553,6 +556,9 @@ axis:Hide()
             end
             currentTick:SetPosition(cast(integer, tickX), tickY)
             if not mainHorizontalContainer:ShowTicks()
+                currentTick:Hide()
+            end
+            if not chart:IsShowingYAxis() and chart:GetHorizontalFlag()
                 currentTick:Hide()
             end
 
