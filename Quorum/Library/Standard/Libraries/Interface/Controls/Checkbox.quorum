@@ -14,6 +14,8 @@ use Libraries.Interface.Views.ToggleView
 use Libraries.Interface.Views.CheckboxView
 use Libraries.Interface.Events.FocusEvent
 use Libraries.Game.Graphics.ColorGroup
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Layouts.ManualLayout
 
 /*
     The Checkbox class is a ToggleButton object that inherits from Button and like other
@@ -44,10 +46,22 @@ use Libraries.Game.Graphics.ColorGroup
 class Checkbox is ToggleButton
 
     Icon buttonIcon
+    Control checkmark
     Label label
+    /* Check box colors are set using Background, Selection, Border, and SelectionBorder colors but that would
+ conflict with the updated graphics so they are stored for use then nulled out when graphics are loaded 
+ */
+    ColorGroup boxColor = undefined
+    ColorGroup boxCheckedColor = undefined
+    ColorGroup boxBorderColor = undefined
+    ColorGroup checkmarkColor = undefined
 
     on create
         label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
+        FlowLayout layout
+        //layout:SetSingleLine(true)
+        layout:SetVerticalCentering(true)
+        SetLayout(layout)
         
         // The layout should already be present, courtesy of our inheritance of Button.
 
@@ -64,10 +78,13 @@ class Checkbox is ToggleButton
         LayoutProperties iconProperties = buttonIcon:GetDefaultLayoutProperties()
         iconProperties:SetHorizontalLayoutMode(iconProperties:MAINTAIN_ASPECT_RATIO)
         iconProperties:SetVerticalLayoutMode(iconProperties:STANDARD)
-        iconProperties:SetPercentageWidth(1.0)
-        iconProperties:SetPercentageHeight(1.0)
+        iconProperties:SetPercentageWidth(1)
+        iconProperties:SetPercentageHeight(0.8)
+        iconProperties:SetLeftMargin(8)
+        
 
-        label:SetLeftMargin(6)
+        label:SetLeftMargin(15)
+        label:SetRightMargin(8)
 
         Add(buttonIcon)
         Add(label)
@@ -120,6 +137,19 @@ class Checkbox is ToggleButton
         if buttonIcon:GetView2D() is ToggleView
             ToggleView content = cast(ToggleView, buttonIcon:GetView2D())
             content:SetToggleState(toggleState)
+        else
+            if toggleState
+                checkmark:Show()
+                Color color
+                buttonIcon:SetBackgroundColor(boxCheckedColor)
+                buttonIcon:SetBorderColor(boxCheckedColor)
+            else
+                checkmark:Hide()
+                Color color
+                buttonIcon:SetBackgroundColor(boxColor)
+                buttonIcon:SetBorderColor(boxBorderColor)
+            end
+            buttonIcon:RequestVerticesUpdate()
         end
 
         Behavior behavior = GetActivationBehavior()
@@ -142,20 +172,38 @@ class Checkbox is ToggleButton
             accessibility:ToggleButtonToggled(me)
         end
     end
+    
+    
+    /*
+    Sets the size of the box that contains the checkmark. By default the box is sized proportional to the font size
+    but in the event where a different size is preferred it can be set by this action and the previous
+    size will be ignored.
+*/
+    action SetCheckboxSize(number width, number height)
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        buttonIcon:SetHorizontalLayoutMode(properties:STANDARD)
+        buttonIcon:SetVerticalLayoutMode(properties:STANDARD)
+        buttonIcon:SetPercentageWidth(0)
+        buttonIcon:SetPercentageHeight(0)
+        buttonIcon:SetPixelWidth(width)
+        buttonIcon:SetPixelHeight(height)
+    end
 
     /*
         This action is fired if the item received the focus.
     */
     action GainedFocus(FocusEvent event)
         //if we have the focus and we are toggled
+        Color color
         if GetToggleState()
+            if buttonIcon:GetView2D() is CheckboxView
             CheckboxView content = cast(CheckboxView, buttonIcon:GetView2D())
             if content not= undefined
-content:SetCheckColor(GetFocusColor())
+content:SetCheckColor(GetSelectionColor())
             end
-        else
-            buttonIcon:SetBorderColor(GetFocusBorderColor())
         end
+        end
+        SetSelectionBorderColor(GetFocusBorderColor())
         parent:Control:GainedFocus(event)
         buttonIcon:RequestVerticesUpdate()
     end
@@ -166,12 +214,13 @@ content:SetCheckColor(GetFocusColor())
     action LostFocus(FocusEvent event)
         //if we have the focus and we are toggled
         if GetToggleState()
+            if buttonIcon:GetView2D() is CheckboxView
             CheckboxView content = cast(CheckboxView, buttonIcon:GetView2D())
             content:SetCheckColor(GetAccentColor())
-        else
-            buttonIcon:SetBorderColor(GetBackgroundColor())
         end
-        buttonIcon:SetBorderColor(GetBorderColor())
+        end
+        Color color
+        SetSelectionBorderColor(color:CustomColor(0,0,0,0))
         parent:Control:LostFocus(event)
         buttonIcon:RequestVerticesUpdate()
     end
@@ -192,6 +241,7 @@ content:SetCheckColor(GetFocusColor())
             buttonView = propertiesView
         end
 
+        label:SetPositionOnBaseLine(false)
         if label:GetSize() not= properties:GetFontSize()
             label:SetSize(properties:GetFontSize())
         end
@@ -201,9 +251,65 @@ content:SetCheckColor(GetFocusColor())
         end
 
         if buttonView = undefined
-            CheckboxView checkboxView
-            checkboxView:Initialize(properties)
-            buttonIcon:SetView2D(checkboxView)
+            // Draw using controls
+            
+            ControlShaderView shader
+        shader:Initialize()
+        SetView2D(shader)
+            
+            // update colors
+        boxColor = GetBackgroundColor()
+        boxCheckedColor = GetSelectionColor()
+        boxBorderColor = GetBorderColor()
+        checkmarkColor = GetSelectionBorderColor()
+            
+            Color color
+            Color transparent = color:CustomColor(0,0,0,0)
+            
+            ManualLayout checkLayout
+        buttonIcon:SetLayout(checkLayout)
+        ControlShaderView containerView
+        containerView:Initialize()
+        buttonIcon:SetView2D(containerView)
+        buttonIcon:SetBorderThickness(GetBorderThickness())
+            buttonIcon:SetBorderColor(boxBorderColor)
+            
+        ControlShaderView checkmarkView
+        checkmarkView:Initialize()
+        checkmark:SetView2D(checkmarkView)
+        
+        checkmark:SetBackgroundColor(color:CustomColor(0,0,0,0))
+        checkmark:SetBorderColor(color:White())
+        checkmark:SetBorderStyle(properties:LEFT + properties:TOP)
+        checkmark:Rotate(-45)
+        checkmark:SetBorderThickness(GetFontSize()/7)
+        checkmark:SetPercentageX(0.2)
+        checkmark:SetPercentageY(0.4)
+        checkmark:SetPercentageWidth(0.6)
+        checkmark:SetPercentageHeight(0.3)
+            
+            boolean toggleState = GetToggleState()
+            if toggleState
+                checkmark:Show()
+                buttonIcon:SetBackgroundColor(boxCheckedColor)
+                buttonIcon:SetBorderColor(boxCheckedColor)
+            else
+                checkmark:Hide()
+                buttonIcon:SetBackgroundColor(boxColor)
+            end
+            
+            if not GetToggleState()
+                checkmark:Hide()
+            end
+            
+            buttonIcon:Add(checkmark)
+            // null out certain colors so it only effects the box not the whole control
+            SetSelectionBorderColor(transparent)
+        SetBackgroundColor(transparent)
+        SetSelectionColor(transparent)
+        SetMouseOverColor(transparent)
+        SetBorderColor(transparent)
+            
         end
 
         boolean toggleState = parent:ToggleButton:toggled
@@ -221,13 +327,11 @@ content:SetCheckColor(buttonIcon:GetAccentColor())
             end
         end
 
-        ColorGroup focusBorderColor = properties:GetFocusBorderColor()
-        if focusBorderColor not= undefined
-            buttonIcon:SetFocusBorderColor(focusBorderColor)
-        end
-
-        if properties:HasBorderThickness()
-            buttonIcon:SetBorderThickness(properties:GetBorderThickness())
-        end
+    end
+    
+    action Resize
+        // adjust box be slightly lower to be more in line with cap height
+        //buttonIcon:SetTopMargin(GetFontSize()*0.18)
+        parent:ToggleButton:Resize()
     end
 end

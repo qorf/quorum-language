@@ -15,6 +15,9 @@ use Libraries.Interface.Views.RadioButtonView
 use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Layouts.ButtonLayout
 use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Game.Graphics.ColorGroup
 
 
 /*
@@ -47,7 +50,23 @@ use Libraries.Interface.Layouts.Layout
 class RadioButton is ToggleButton
 
     Icon buttonIcon
+    Control innerIcon
     Label label
+    number iconRadius = -1
+    
+    /* Radio Button colors are set using Background, Selection, and Border colors but that would
+ conflict with the updated graphics so they are stored for use then nulled out when graphics are loaded 
+ */
+    ColorGroup radioColor = undefined
+    ColorGroup radioToggledColor = undefined
+    ColorGroup radioBorderColor = undefined
+    integer radioBorderThickness = 2
+    
+    /* dot style selection means a dot will appear in the center of the button icon when the radio button is toggled
+  if false then instead the radio button will use a 'ring' style where the border changes to the selection color
+  and the border thickens. 
+*/
+    boolean dotStyleSelection = true
 
     on create
         label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
@@ -65,12 +84,11 @@ class RadioButton is ToggleButton
         label:SetPositionOnBaseLine(false)
 
         LayoutProperties iconProperties = buttonIcon:GetDefaultLayoutProperties()
-        iconProperties:SetHorizontalLayoutMode(iconProperties:MAINTAIN_ASPECT_RATIO)
+        iconProperties:SetHorizontalLayoutMode(iconProperties:STANDARD)
         iconProperties:SetVerticalLayoutMode(iconProperties:STANDARD)
-        iconProperties:SetPercentageWidth(1.0)
-        iconProperties:SetPercentageHeight(1.0)
+        iconProperties:SetLeftMargin(4)
 
-        label:SetLeftMargin(6)
+        label:SetLeftMargin(8)
 
         Add(buttonIcon)
         Add(label)
@@ -135,6 +153,26 @@ class RadioButton is ToggleButton
         if buttonIcon:GetView2D() is ToggleView
             ToggleView content = cast(ToggleView, buttonIcon:GetView2D())
             content:SetToggleState(toggleState)
+        else
+            if toggleState
+                //buttonIcon:SetBackgroundColor(radioToggledColor)
+                if dotStyleSelection
+                    buttonIcon:SetBorderColor(radioToggledColor)
+                    innerIcon:Show()
+                else
+                    buttonIcon:SetBorderColor(radioToggledColor)
+                    buttonIcon:SetBorderThickness(radioBorderThickness * 3)
+            end
+else
+                if dotStyleSelection
+                    buttonIcon:SetBorderColor(radioBorderColor)
+                    innerIcon:Hide()
+                else
+                    buttonIcon:SetBorderColor(radioBorderColor)
+                    buttonIcon:SetBorderThickness(radioBorderThickness)
+            end
+end
+            buttonIcon:RequestVerticesUpdate()
         end
 
         if toggleState
@@ -188,6 +226,21 @@ label:SetColor(GetFontColor())
         end
         return parent:Item:GetPreviousFocus()
     end
+    
+    action SetIconRadius(number radius) 
+        me:iconRadius = radius
+        buttonIcon:SetPixelHeight(iconRadius * 2)
+        buttonIcon:SetPixelWidth(iconRadius * 2)
+        RequestLayout()
+    end
+    
+    action UseDotSelectionStyle
+        dotStyleSelection = true
+    end
+    
+    action UseRingSelectionStyle
+        dotStyleSelection = false
+    end
 
     /*
     This action is used to load the graphical components of the Control. This is
@@ -220,15 +273,85 @@ label:SetColor(GetFontColor())
         end
 
         if buttonView = undefined
-            RadioButtonView radioView
-            radioView:Initialize()
-            buttonIcon:SetView2D(radioView)
+            //RadioButtonView radioView
+            //radioView:Initialize()
+            //buttonIcon:SetView2D(radioView)
+            ControlShaderView myView
+            myView:Initialize()
+            SetView2D(myView)
+            FlowLayout radioLayout
+            radioLayout:SetVerticalCentering(true)
+            //radioLayout:SetSingleLine(true)
+            SetLayout(radioLayout)
+            
+            Color color
+            Color transparent = color:CustomColor(0,0,0,0)
+            
+            // update colors
+        radioColor = GetBackgroundColor()
+        radioToggledColor = GetSelectionColor()
+        radioBorderColor = GetBorderColor()
+            radioBorderThickness = cast(integer, GetBorderThickness())
+            if radioBorderThickness < 1
+                radioBorderThickness = 1
+            end
+            
+            ManualLayout buttonLayout
+            buttonIcon:SetLayout(buttonLayout)
+            ControlShaderView iconView
+            iconView:Initialize()
+            buttonIcon:SetView2D(iconView)
+            
+            if iconRadius < 0
+                iconRadius = label:GetFontSize() * 0.375
+            end
+            
+            buttonIcon:SetBorderThickness(radioBorderThickness)
+            buttonIcon:SetBackgroundColor(color:White())
+            buttonIcon:SetBorderColor(radioBorderColor)
+            buttonIcon:SetPixelWidth(iconRadius * 2)
+            buttonIcon:SetPixelHeight(iconRadius * 2 )
+            
+            ControlShaderView innerView
+        innerView:Initialize()
+        innerIcon:SetView2D(innerView)
+        
+        innerIcon:SetBackgroundColor(radioToggledColor)
+            innerIcon:SetPercentageOriginX(0.5)
+            innerIcon:SetPercentageOriginY(0.5)
+        innerIcon:SetPercentageX(0.5)
+        innerIcon:SetPercentageY(0.5)
+        innerIcon:SetPercentageWidth(0.6)
+        innerIcon:SetPercentageHeight(0.6)
+            innerIcon:SetCornerRounding(1,1,1,1)
+            innerIcon:Hide()
+            
+            buttonIcon:Add(innerIcon)
+            
+            // null out certain colors so it only effects the box not the whole control
+            SetBackgroundColor(transparent)
+            SetSelectionBorderColor(transparent)
+        SetBackgroundColor(transparent)
+        SetSelectionColor(transparent)
+        SetMouseOverColor(transparent)
+        SetBorderColor(transparent)
+            
         end
 
         boolean toggleState = parent:ToggleButton:toggled
         if buttonIcon:GetView2D() is ToggleView
             ToggleView content = cast(ToggleView, buttonIcon:GetView2D())
             content:SetToggleState(toggleState)
-        end
+        else
+            if toggleState
+                if dotStyleSelection
+                    buttonIcon:SetBorderColor(radioToggledColor)
+                    innerIcon:Show()
+                else
+                    buttonIcon:SetBorderColor(radioToggledColor)
+                    buttonIcon:SetBorderThickness(radioBorderThickness * 3)
+                end
+            end
+     end
     end
 end
