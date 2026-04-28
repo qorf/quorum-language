@@ -6,6 +6,7 @@ use Libraries.Interface.Controls.RadioButton
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.ButtonGroup
 use Libraries.Interface.Controls.ToggleButton
+use Libraries.Interface.Layouts.Layout
 
 /*
 
@@ -58,6 +59,8 @@ class Grouping is FormContainerControl, ButtonGroup
 
     integer verticalPosition = TOP_POSITION
     integer columns = 0
+    
+    boolean isUsingCustomLayout = false
 
     action LoadGraphics(LayoutProperties properties)
         if GetView2D() = undefined
@@ -233,8 +236,8 @@ class Grouping is FormContainerControl, ButtonGroup
     action AddToggleButton(text name) returns ToggleButton
         ToggleButton button
         button:SetName(name)
-        button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
-        button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
+        //button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
+        //button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
 
         AddToGrouping(button)
         Add(button)
@@ -306,8 +309,6 @@ class Grouping is FormContainerControl, ButtonGroup
     action AddRadioButton(text name) returns RadioButton
         RadioButton button
         button:SetName(name)
-        button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
-        button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
 
         AddToGrouping(button)
         Add(button)
@@ -424,4 +425,20 @@ class Grouping is FormContainerControl, ButtonGroup
     action GetFormChildren returns Array<Item2D>
         return GetChildren()
     end
+    
+    action SetLayout(Layout layout)
+        isUsingCustomLayout = true
+        parent:Control:SetLayout(layout)
+    end
+    
+    /*
+        Returns if this Grouping is handling the layout of its children on its own or by the 
+        form's layout.
+
+        Attribute: Returns boolean true if a custom layout has been set, false otherwise.
+    */
+    action IsUsingCustomLayout returns boolean
+        return me:isUsingCustomLayout
+    end
+    
 end

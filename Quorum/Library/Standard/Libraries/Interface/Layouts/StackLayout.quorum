@@ -1,0 +1,328 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Compute.Math
+use Libraries.Containers.Array
+use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Control
+use Libraries.Game.Graphics.Font
+
+class StackLayout is Layout
+
+    /*
+    These variables predominantly store information about how the layout should be applied
+    every time the layout occurs. These are retained between layout calls.
+    */
+    Math math
+    boolean ignoreHidden = false
+    boolean ignoreInterfaceScale = false
+
+    /* 
+    All variables below this point are used in the Layout function and its related subfunctions.
+    These are reset to default values whenever layout is called.
+    */
+
+    number containerBorder = 0
+    LayoutProperties containerProperties = undefined
+    number containerWidth = 0
+    number containerHeight = 0
+    number totalHeight = 0
+    number containerLeftPadding = 0
+    number containerRightPadding = 0
+    number containerTopPadding = 0
+    number containerBottomPadding = 0
+
+    /*
+    Boolean used to ensure we don't perform redundant resizing on items
+    that were already fit to their contents while fitting the container
+    width to its contents.
+    */
+    boolean fitContainerContents = false
+
+    // Objects are placed such that their top edge is at the currentY.
+    number currentY = 0
+
+    action Layout(Control container, Array<Item2D> items, number newContainerWidth, number newContainerHeight)
+        containerWidth = newContainerWidth
+        containerHeight = newContainerHeight
+
+        // Perform any necessary layout on the container itself before we adjust the items within it.
+        
+        // Objects are placed such that their top edge is at the currentY.
+        currentY = 0
+        totalHeight = 0
+
+        // Layout the children items in the container.
+        LayoutItems(container, items, containerWidth, containerHeight)
+
+        // If the container needs to fit its contents, do that now that we've laid out the contents.
+        HorizontalLayoutContainer(container, items, containerWidth, containerHeight)
+        VerticalFitContainer(container, items, containerWidth, containerHeight)
+    end
+
+    private action HorizontalLayoutContainer(Control container, Array<Item2D> items, number newContainerWidth, number newContainerHeight)
+        /* 
+        Boolean used to ensure we don't perform redundant resizing on items
+        that were already fit to their contents while fitting the container
+        width to its contents.
+        */
+        fitContainerContents = false
+        containerProperties = undefined
+        containerBorder = 0
+        
+        // for now going to assume that most items in this layout will set their owns heights and avoid percentage heights
+        // due to how relative heights change based on the amount of items
+
+        if container not= undefined
+            containerProperties = container:GetLayoutProperties(containerWidth, containerHeight)
+
+            if containerProperties not= undefined
+                if containerProperties:NeedsRendering()
+                    container:LoadGraphics(containerProperties)
+                end
+                
+             containerBorder = containerProperties:GetBorderThickness()
+                containerLeftPadding = containerProperties:GetLeftPadding()
+                containerRightPadding = containerProperties:GetRightPadding()
+                containerTopPadding = containerProperties:GetTopPadding()
+                containerBottomPadding = containerProperties:GetBottomPadding()
+                number interfaceScale = containerProperties:GetInterfaceScale()
+                if ignoreInterfaceScale
+                    interfaceScale = 1.0
+                end
+                
+                // flag to prevent extra resizing
+                boolean calculatedContainerHeight = false
+                
+             if containerProperties:GetHorizontalLayoutMode() = containerProperties:FIT_CONTENTS
+                    integer i = 0
+                    number maximumWidth = 0
+                    // going to loop through each item so calculated height while at it
+calculatedContainerHeight = true
+                    boolean foundHeight = false
+                    // find the largest width among the items and that will be the containerWidth
+                    repeat while i < items:GetSize()
+                        Item2D item = items:Get(i)
+foundHeight = false
+                        if ignoreHidden = false or item:IsShowing()
+                            if item is Control
+                                Control control = cast(Control, item)
+                                LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+                                if properties not= undefined
+                                    number calculatedWidth = 0
+                              if properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS
+                                        calculatedWidth = control:GetWidth() + properties:GetLeftMargin() + properties:GetRightMargin()
+                                    elseif properties:GetHorizontalLayoutMode() = properties:MAINTAIN_ASPECT_RATIO
+                                        // We have to estimate the height now to determine the width.
+                                        number height = 0
+                                        if properties:GetVerticalLayoutMode() = properties:STANDARD
+                                            height = properties:GetPercentageHeight() * (containerHeight - containerBorder * 2 - properties:GetTopMargin() - properties:GetBottomMargin()) + properties:GetPixelHeight() * interfaceScale
+                                        elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
+                                            if properties:GetFont() not= undefined
+                                                height = properties:GetFont():GetLineHeight()
+                                            end
+                                        elseif properties:GetVerticalLayoutMode() = properties:FILL
+                                            height = containerHeight - properties:GetTopMargin() - properties:GetBottomMargin()
+                                        elseif properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS
+                                            height = control:GetHeight()
+                                        end
+                                        foundHeight = true
+
+                                        calculatedWidth = (properties:GetPercentageWidth() * height) + properties:GetLeftMargin() + properties:GetRightMargin()
+                                    else
+                                        calculatedWidth = (properties:GetPixelWidth() + properties:GetLeftMargin() + properties:GetRightMargin()) * interfaceScale
+                                end
+                                    if calculatedWidth > maximumWidth
+                                        maximumWidth = calculatedWidth
+                                    end
+                                
+                                else
+                                    // If width can't be determined from its properties, use its width instead.
+                                    if item:GetWidth() > maximumWidth
+                                        maxiumWidth = item:GetWidth()
+                                    end
+                                end
+                            else
+                                // If width can't be determined from its properties, use its width instead.
+                                if item:GetWidth() > maximumWidth
+                                    maxiumWidth = item:GetWidth()
+                                end
+                            end
+                        end
+
+                        i = i + 1
+                    end
+containerWidth = maximumWidth + containerLeftPadding + containerRightPadding
+                    container:SetWidth(containerWidth)
+                end
+    end
+        end
+    end
+
+    private action LayoutItems(Control container, Array<Item2D> items, number newContainerWidth, number newContainerHeight)
+        integer i = 0
+        repeat while i < items:GetSize()
+            Item2D item = items:Get(i)
+            if ignoreHidden = false or item:IsShowing()
+                SizeItem(item, containerWidth, containerHeight)
+                            DefaultLayoutItem(item, items, i, containerWidth, containerHeight)
+            end
+            i = i + 1
+        end
+    end
+
+    private action DefaultLayoutItem(Item2D item, Array<Item2D> allItems, integer itemIndex, number newContainerWidth, number newContainerHeight)
+        if item is Control
+            Control control = cast(Control, item)
+            control:ResetLayoutFlag()
+            LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+
+         number interfaceScale = properties:GetInterfaceScale()
+            if ignoreInterfaceScale
+                interfaceScale = 1.0
+            end
+
+            if properties not= undefined and (ignoreHidden = false or control:IsShowing())
+                number width = 0
+                number height = 0
+                number leftMargin = properties:GetLeftMargin()
+                number rightMargin = properties:GetRightMargin()
+                number topMargin = properties:GetTopMargin()
+                number bottomMargin = properties:GetBottomMargin()
+                number x = leftMargin
+                
+                
+                number targetY = currentY - control:GetHeight() - topMargin - bottomMargin
+                control:SetPosition(x, targetY)
+                totalHeight = totalHeight + control:GetHeight()+ topMargin + bottomMargin
+                currentY = targetY
+            end
+        end
+    end
+    
+    action SizeItem(Item2D item, number newContainerWidth, number newContainerHeight)
+        if item is Control
+            Control control = cast(Control, item)
+            LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+
+            if properties:NeedsRendering()
+                control:LoadGraphics(properties)
+            end
+
+            number interfaceScale = properties:GetInterfaceScale()
+            if ignoreInterfaceScale
+                interfaceScale = 1.0
+            end
+
+            if properties not= undefined and (ignoreHidden = false or control:IsShowing())
+                number width = 0
+                number height = 0
+                number leftMargin = properties:GetLeftMargin()
+                number rightMargin = properties:GetRightMargin()
+                number topMargin = properties:GetTopMargin()
+                number bottomMargin = properties:GetBottomMargin()
+
+
+                if properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS
+                    if properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS 
+                        or properties:GetVerticalLayoutMode() = properties:MAINTAIN_ASPECT_RATIO
+                        or properties:GetVerticalLayoutMode() = properties:FILL
+                        // Resize the control and allow it to set its own dimensions.
+                        control:Resize()
+                    elseif properties:GetVerticalLayoutMode() = properties:STANDARD
+                        // Setting the height will trigger a resize.
+                        number setHeight = (containerHeight - containerBorder * 2 - topMargin - bottomMargin) * properties:GetPercentageHeight() + properties:GetPixelHeight() * interfaceScale
+                        control:SetHeight(setHeight)
+                    elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
+                        if properties:GetFont() not= undefined
+                            control:SetHeight(properties:GetFont():GetLineHeight()* interfaceScale)
+                            control:Resize()
+                        end
+                    end
+                    width = control:GetWidth()
+                elseif properties:GetHorizontalLayoutMode() = properties:FILL
+                    width = containerWidth - leftMargin - rightMargin
+                    if width <= 0
+                        width = containerWidth
+                    end
+                elseif properties:GetHorizontalLayoutMode() = properties:STANDARD
+                    width = (containerWidth - containerBorder * 2 - leftMargin - rightMargin) * properties:GetPercentageWidth() + properties:GetPixelWidth() * interfaceScale
+                end
+
+                // Fix the width to an integer. We want things to align well to pixel coordinates.
+                width = cast(integer, width)
+
+             // When we set the size in this step, we also trigger a
+                // resize that will cascade to the entire control's hierarchy.
+                    boolean shouldSetSize = true
+
+                if properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS
+  or properties:GetVerticalLayoutMode() = properties:FILL
+                        // Set the control's width and allow it to set its own height via its contents.
+                        // Setting the width triggers its layout to resize.
+                        shouldSetSize = false
+                        control:SetWidth(width)
+                    elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
+                        Font font = properties:GetFont()
+                        if font not= undefined
+                            if font:GetSize() not= cast(integer, properties:GetFontSize() * interfaceScale)
+                                font:SetSize(cast(integer, properties:GetFontSize() * interfaceScale))
+                            end
+                            height = font:GetLineHeight()
+                        end
+                    elseif properties:GetVerticalLayoutMode() = properties:STANDARD
+                        height = (containerHeight - containerBorder * 2 - topMargin - bottomMargin) * properties:GetPercentageHeight() + properties:GetPixelHeight() * interfaceScale
+                    elseif properties:GetVerticalLayoutMode() = properties:MAINTAIN_ASPECT_RATIO
+                        height = properties:GetPercentageHeight() * width
+                    end
+
+                    if properties:GetHorizontalLayoutMode() = properties:MAINTAIN_ASPECT_RATIO
+                        width = properties:GetPercentageWidth() * height
+                    end
+
+                    if shouldSetSize
+                    control:SetWidth(width)
+                    control:SetHeight(height)
+                    end
+            end
+        end
+    end
+
+    private action VerticalFitContainer(Control container, Array<Item2D> items, number newContainerWidth, number newContainerHeight)
+        if containerProperties not= undefined
+            
+            container:SetHeight(cast(integer, totalHeight + containerTopPadding + containerBottomPadding))
+
+            /*
+            We had to place all elements before to determine the height of the
+            container, but now that the height is known we need to ensure the
+            items are placed at the right y positions.
+            */
+            integer counter = 0
+            containerHeight = container:GetHeight()
+            //currentY = containerHeight
+
+            repeat while counter < items:GetSize()
+                Item2D item = items:Get(counter)
+                item:SetY(totalHeight + item:GetY() + containerBottomPadding)
+                item:MoveX(containerLeftPadding)
+                counter = counter + 1
+            end
+        end
+    end
+
+    action SetIgnoreHidden(boolean ignore)
+        ignoreHidden = ignore
+    end
+
+    action IsIgnoringHidden returns boolean
+        return ignoreHidden
+    end
+    
+    action SetIgnoreInterfaceScale(boolean ignore)
+        ignoreInterfaceScale = ignore
+    end
+
+    action IsIgnoringInterfaceScale returns boolean
+        return ignoreInterfaceScale
+    end
+end

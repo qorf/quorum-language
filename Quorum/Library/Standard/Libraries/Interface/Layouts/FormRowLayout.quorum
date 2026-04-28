@@ -127,7 +127,14 @@ class FormRowLayout is Layout
                     currentAlignment = titleAlignment
                 end
     
+                boolean groupNeedsLayout = true
                 if isGrouping
+                    Grouping group = cast(Grouping, item)
+                    if group:IsUsingCustomLayout()
+                        groupNeedsLayout = false
+                    end
+            end
+                if isGrouping and groupNeedsLayout
                     // If the item is a group, layout its title on a row, if it has one, then place all following children on a single row.
                     Grouping group = cast(Grouping, item)
     
