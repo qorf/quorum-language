@@ -1,0 +1,57 @@
+package Libraries.Game.Graphics.Models.Vulkan
+
+use Libraries.System.File
+use Libraries.Containers.HashTable
+use Libraries.Game.Graphics.Models.Data.ModelLoader
+use Libraries.Game.Graphics.Models.Data.ModelData
+
+shared class ModelManagerVulkan
+    
+    // A table containing cached ModelBlueprints. The key is the file path to the model file.
+    HashTable<text, ModelBlueprintVulkan> cachedBlueprints
+    ModelLoader modelLoader
+    
+action GetModelBlueprint(File file) returns ModelBlueprintVulkan
+        text filePath = file:GetAbsolutePath()
+        if cachedBlueprints:HasKey(filePath)
+            return cachedBlueprints:GetValue(filePath)
+        else
+            ModelData data = modelLoader:Load(file)
+            data:SetID(filePath)
+            ModelBlueprintVulkan result = ConvertToBlueprint(data)
+            cachedBlueprints:Add(filePath, result)
+            return result
+        end
+end
+    
+    action GetModelBlueprint(text filePath) returns ModelBlueprintVulkan
+        File file
+        file:SetPath(filePath)
+        return GetModelBlueprint(file)
+    end
+    
+    private action ConvertToBlueprint(ModelData data) returns ModelBlueprintVulkan
+        ModelBlueprintVulkan result
+        result:SetKey(data:GetID())
+        result:SetData(data)
+        
+        return result
+    end
+    
+    action GetBoxBlueprint(number width, number height, number depth) returns ModelBlueprintVulkan
+        alert("NYI")
+    end
+    
+    action GetCylinderBlueprint(number width, number height, number depth, integer divisions) returns ModelBlueprintVulkan
+        alert("NYI")
+    end
+    
+    action GetSphereBlueprint(number width, number height, number depth, integer horizontalDivisions, integer verticalDivisions) returns ModelBlueprintVulkan
+        alert("NYI")
+    end
+    
+    action GetPlaneBlueprint(number width, number depth, boolean doubleSided) returns ModelBlueprintVulkan
+        alert("NYI")
+    end
+    
+end

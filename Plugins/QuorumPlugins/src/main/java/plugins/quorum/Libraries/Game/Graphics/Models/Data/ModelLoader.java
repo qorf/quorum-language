@@ -1,4 +1,4 @@
-package plugins.quorum.Libraries.Game.Graphics.Models;
+package plugins.quorum.Libraries.Game.Graphics.Models.Data;
 
 import android.renderscript.Matrix4f;
 import org.lwjgl.PointerBuffer;
@@ -6,7 +6,7 @@ import org.lwjgl.assimp.*;
 import org.lwjgl.system.MemoryStack;
 import quorum.Libraries.Compute.*;
 import quorum.Libraries.Containers.*;
-import quorum.Libraries.Game.Graphics.Models.Vulkan.*;
+import quorum.Libraries.Game.Graphics.Models.Data.*;
 import quorum.Libraries.Language.Object_;
 import quorum.Libraries.System.File_;
 

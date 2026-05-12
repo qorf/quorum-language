@@ -1,0 +1,33 @@
+package Libraries.Game.Graphics.Models.Vulkan
+
+use Libraries.Game.Graphics.Models.ModelResources
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Models.ModelBlueprint
+use Libraries.Game.Graphics.Renderable
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Texture
+
+class ModelResourcesVulkan is ModelResources
+    
+    /*
+    This action sets the diffuse color of a primitive model. If the model did not
+    previously have a color applied to it, it will add a color to it.
+    */
+    action SetColor(Color color)
+        alert("NYI")
+end
+    
+    /* This action sets the texture of a primitive model. */
+    action SetTexture(Texture texture)
+alert("NYI")
+end
+    
+    action SetFromBlueprint(ModelBlueprint schematic)
+alert("NYI")
+end
+    
+    action GetRenderables(Array<Renderable> renderables)
+        alert("NYI")
+end
+    
+end

@@ -31,7 +31,7 @@ public class Model
     private final static Hashtable<ModelBlueprintOpenGL_, Vector3_> dimensionsTable = new Hashtable();
     private final static BoundingBox calcBox = new BoundingBox();
     
-    public ModelBlueprintOpenGL_ GetCachedBlueprint(File_ file)
+    public ModelBlueprintOpenGL_ GetCachedBlueprintOpenGL(File_ file)
     {
         ModelBlueprintOpenGL_ blueprint = hashTable.get(file.GetPath());
         if (blueprint == null)
@@ -43,7 +43,7 @@ public class Model
         return blueprint;
     }
     
-    public ModelBlueprintOpenGL_ GetCachedBox(double width, double height, double depth, Color_ color)
+    public ModelBlueprintOpenGL_ GetCachedBoxOpenGL(double width, double height, double depth, Color_ color)
     {
         String blendKey = (color.GetAlpha() < 1.0 ? "BLENDED:" : "");
         String searchKey = ":BOX:DIFFUSE:" + blendKey + width + ":" + height + ":" + depth;
@@ -61,8 +61,8 @@ public class Model
         }
         return blueprint;
     }
-    
-    public ModelBlueprintOpenGL_ GetCachedBox(double width, double height, double depth, Texture_ texture)
+
+    public ModelBlueprintOpenGL_ GetCachedBoxOpenGL(double width, double height, double depth, Texture_ texture)
     {
         String searchKey = ":BOX:TEXTURED:" + width + ":" + height + ":" + depth;
         
@@ -80,7 +80,7 @@ public class Model
         return blueprint;
     }
     
-    public ModelBlueprintOpenGL_ GetCachedPlane(double width, double depth, Color_ color, boolean doubleSided)
+    public ModelBlueprintOpenGL_ GetCachedPlaneOpenGL(double width, double depth, Color_ color, boolean doubleSided)
     {
         String blendKey = (color.GetAlpha() < 1.0 ? "BLENDED:" : "");
         String searchKey = ":PLANE:DIFFUSE:" + blendKey + width + ":" + depth + ":" + doubleSided;
@@ -99,7 +99,7 @@ public class Model
         return blueprint;
     }
     
-    public ModelBlueprintOpenGL_ GetCachedPlane(double width, double depth, Texture_ texture, boolean doubleSided)
+    public ModelBlueprintOpenGL_ GetCachedPlaneOpenGL(double width, double depth, Texture_ texture, boolean doubleSided)
     {
         String searchKey = ":PLANE:TEXTURED:" + width + ":" + depth + ":" + doubleSided;
         
@@ -117,7 +117,7 @@ public class Model
         return blueprint;
     }
     
-    public ModelBlueprintOpenGL_ GetCachedCylinder(double width, double height, double depth, int divisions, Color_ color)
+    public ModelBlueprintOpenGL_ GetCachedCylinderOpenGL(double width, double height, double depth, int divisions, Color_ color)
     {
         String blendKey = (color.GetAlpha() < 1.0 ? "BLENDED:" : "");
         String searchKey = ":CYLINDER:DIFFUSE:" + blendKey + width + ":" + height + ":" + depth + ":" + divisions;
@@ -136,7 +136,7 @@ public class Model
         return blueprint;
     }
     
-    public ModelBlueprintOpenGL_ GetCachedCylinder(double width, double height, double depth, int divisions, Texture_ texture)
+    public ModelBlueprintOpenGL_ GetCachedCylinderOpenGL(double width, double height, double depth, int divisions, Texture_ texture)
     {
         String searchKey = ":CYLINDER:TEXTURED:" + width + ":" + height + ":" + depth + ":" + divisions;
         
@@ -154,7 +154,7 @@ public class Model
         return blueprint;
     }
     
-    public ModelBlueprintOpenGL_ GetCachedSphere(double width, double height, double depth, int hDivisions, int vDivisions, Color_ color)
+    public ModelBlueprintOpenGL_ GetCachedSphereOpenGL(double width, double height, double depth, int hDivisions, int vDivisions, Color_ color)
     {
         String blendKey = (color.GetAlpha() < 1.0 ? "BLENDED:" : "");
         String searchKey = ":SPHERE:DIFFUSE:" + blendKey + width + ":" + height + ":" + depth + ":" + hDivisions + ":" + vDivisions;
@@ -173,7 +173,7 @@ public class Model
         return blueprint;
     }
     
-    public ModelBlueprintOpenGL_ GetCachedSphere(double width, double height, double depth, int hDivisions, int vDivisions, Texture_ texture)
+    public ModelBlueprintOpenGL_ GetCachedSphereOpenGL(double width, double height, double depth, int hDivisions, int vDivisions, Texture_ texture)
     {
         String searchKey = ":SPHERE:TEXTURED:" + width + ":" + height + ":" + depth + ":" + hDivisions + ":" + vDivisions;
         
@@ -191,7 +191,7 @@ public class Model
         return blueprint;
     }
     
-    public Vector3_ GetCachedDimensions(ModelBlueprintOpenGL_ blueprint)
+    public Vector3_ GetCachedDimensionsOpenGL(ModelBlueprintOpenGL_ blueprint)
     {
         Vector3_ vector = dimensionsTable.get(blueprint);
         if (vector == null)

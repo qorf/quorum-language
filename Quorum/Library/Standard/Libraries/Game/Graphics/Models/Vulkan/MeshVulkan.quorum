@@ -1,0 +1,145 @@
+package Libraries.Game.Graphics.Models.Vulkan
+
+use Libraries.Game.Graphics.Vulkan.VulkanBuffer
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanNumber32BitMappedMemory
+use Libraries.Game.Graphics.Vulkan.VulkanInteger32BitMappedMemory
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+use Libraries.Game.Graphics.Vulkan.Commands.CopyBufferCommand
+
+class MeshVulkan
+    
+    VulkanDevice device = undefined
+    
+    VulkanBuffer vertexStagingBuffer = undefined
+    VulkanBuffer indexStagingBuffer = undefined
+    VulkanBuffer vertexBuffer = undefined
+    VulkanBuffer indexBuffer = undefined
+    
+    boolean dataTransferred = false
+    
+    /*
+Each vertex is made of 14 32-bit components:
+- Position (Vector3)
+- Normal (Vector3)
+- Tangent (Vector3)
+- Bitangent (Vector3)
+- Texture Coordinates (Vector2)
+*/
+    public constant integer DEFAULT_VERTEX_SIZE = 14
+    integer vertexSize = DEFAULT_VERTEX_SIZE
+    
+    integer vertexCount = 0
+    integer indexCount = 0
+    
+    action Load(VulkanDevice device, MeshData data)
+        if IsReady()
+            alert("I cannot load data into this mesh because it has already been loaded!")
+        elseif HasData()
+            alert("I cannot set this mesh's data because the data was already set!")
+        end
+        
+        me:device = device
+        VulkanConstants constants
+        
+        Number32BitArray vertices = data:GetVertices()
+        Number32BitArray normals = data:GetNormals()
+    Number32BitArray tangents = data:GetTangents()
+    Number32BitArray bitangents = data:GetBitangents()
+    Number32BitArray textureCoordinates = data:GetTextureCoordinates()
+    Integer32BitArray indices = data:GetIndices()
+        
+        VulkanBuffer vertexStagingBuffer
+        VulkanBuffer indexStagingBuffer
+        me:vertexStagingBuffer = vertexStagingBuffer
+        me:indexStagingBuffer = indexStagingBuffer
+        
+        vertexCount = vertices:GetSize() / 3
+        indexCount = indices:GetSize()
+        
+        integer vertexBufferSize = vertexCount * vertexSize
+        vertexStagingBuffer:CreateTransferSourceBuffer(device, vertexBufferSize * 4)
+        indexStagingBuffer:CreateTransferSourceBuffer(device, indexCount * 4)
+        
+        Number32BitArray vertexArray
+        vertexArray:SetSize(vertexBufferSize)
+        integer counter = 0
+        repeat while counter < vertexCount
+            integer arrayIndex = counter * vertexSize
+            vertexArray:Set(arrayIndex, vertices:Get(counter * 3))
+            vertexArray:Set(arrayIndex + 1, vertices:Get(counter * 3 + 1))
+            vertexArray:Set(arrayIndex + 2, vertices:Get(counter * 3 + 2))
+            
+            vertexArray:Set(arrayIndex + 3, normals:Get(counter * 3))
+            vertexArray:Set(arrayIndex + 4, normals:Get(counter * 3 + 1))
+            vertexArray:Set(arrayIndex + 5, normals:Get(counter * 3 + 2))
+            
+            vertexArray:Set(arrayIndex + 6, tangents:Get(counter * 3))
+            vertexArray:Set(arrayIndex + 7, tangents:Get(counter * 3 + 1))
+            vertexArray:Set(arrayIndex + 8, tangents:Get(counter * 3 + 2))
+            
+            vertexArray:Set(arrayIndex + 9, bitangents:Get(counter * 3))
+            vertexArray:Set(arrayIndex + 10, bitangents:Get(counter * 3 + 1))
+            vertexArray:Set(arrayIndex + 11, bitangents:Get(counter * 3 + 2))
+            
+            vertexArray:Set(arrayIndex + 12, textureCoordinates:Get(counter * 2))
+            vertexArray:Set(arrayIndex + 13, textureCoordinates:Get(counter * 2 + 1))
+            
+            counter = counter + 1
+        end
+        
+        VulkanNumber32BitMappedMemory vertexMapping = vertexStagingBuffer:MapToNumber32BitMemory()
+        VulkanInteger32BitMappedMemory indexMapping = indexStagingBuffer:MapToInteger32BitMemory()
+        
+        vertexMapping:Set(vertexArray)
+        indexMapping:Set(indices)
+        
+        // Load array into staging buffer, then setup indices buffer too...
+        VulkanBuffer vertexBuffer
+        VulkanBuffer indexBuffer
+        me:vertexBuffer = vertexBuffer
+        me:indexBuffer = indexBuffer
+        
+        vertexBuffer:CreateTransferDestinationBuffer(device, vertexStagingBuffer:GetSize(), constants:BUFFER_USAGE_VERTEX_BUFFER_BIT)
+        indexBuffer:CreateTransferDestinationBuffer(device, indexStagingBuffer:GetSize(), constants:BUFFER_USAGE_INDEX_BUFFER_BIT)
+        
+    end
+    
+    action HasData returns boolean
+        return vertexStagingBuffer not= undefined or vertexBuffer not= undefined
+    end
+    
+    action IsReady returns boolean
+        return vertexBuffer not= undefined and dataTransferred
+    end
+    
+    action GetDevice returns VulkanDevice
+        return device
+    end
+    
+    action TransferBuffers(VulkanCommandBuffer buffer)
+        if dataTransferred
+            return now
+        end
+        
+        CopyBufferCommand vertexCopyCommand
+        vertexCopyCommand:SetSourceBuffer(vertexStagingBuffer)
+        vertexCopyCommand:SetDestinationBuffer(vertexBuffer)
+        vertexCopyCommand:SetSize(vertexStagingBuffer:GetSize())        
+
+        CopyBufferCommand indexCopyCommand
+        indexCopyCommand:SetSourceBuffer(indexStagingBuffer)
+        indexCopyCommand:SetDestinationBuffer(indexBuffer)
+        indexCopyCommand:SetSize(indexStagingBuffer:GetSize())
+
+        buffer:Record(vertexCopyCommand)
+        buffer:Record(indexCopyCommand)
+        
+        dataTransferred = true
+    end
+
+end

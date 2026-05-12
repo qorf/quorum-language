@@ -61,14 +61,17 @@ class Custom3DPrimitivePreview is ItemPreview3D
 
         SetName(name + controller:GetNextNamePostfix(schematic:GetName()))
         SetDescription(schematic:GetDescription())
-
+        
+if true
+            alert("NYI: Generalized material implementation for setup")
+        end
         // We need to add a diffuse color attribute to the model so that the textured box also supports color,
         // and a blending attribute so that the preview supports transparency.
-        Material material = GetMaterials():Get(0)
-        SetColor(color)
-        BlendingAttribute blend
-        blend:opacity = color:GetAlpha()
-        material:Add(blend)
+        //Material material = GetMaterials():Get(0)
+        //SetColor(color)
+        //BlendingAttribute blend
+        //blend:opacity = color:GetAlpha()
+        //material:Add(blend)
 
         SetScale(schematic:GetScaleX(), schematic:GetScaleY(), schematic:GetScaleZ())
         SetRotation(schematic:GetYaw(), schematic:GetPitch(), schematic:GetRoll())

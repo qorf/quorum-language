@@ -63,36 +63,39 @@ class Grid3D is Model
         LoadPlane(1, 1, grid, true)
         Scale(scaleFactor, 1, scaleFactor)
 
-        Array<Material> value = GetMaterials()
-        Material material = value:Get(0)
-        
-        BlendingAttribute blend
-        material:Add(blend)
-        blendAttribute = blend
-
-        ColorAttribute lightAttribute
-        lightAttribute = lightAttribute:CreateAmbientLight(1, 1, 1, 1)
-        material:Add(lightAttribute)
-        me:lightAttribute = lightAttribute
-
-        ColorAttribute diffuseAttribute = lightAttribute:CreateDiffuse(0, 0, 0, 0.1)
-        material:Add(diffuseAttribute)
-        me:diffuseAttribute = diffuseAttribute
-
-        TextureAttribute diffuseTexture
-        diffuseTexture = cast(TextureAttribute, material:GetAttribute(diffuseTexture:GetDiffuseValue()))
-        Texture texture = diffuseTexture:descriptor:texture
-        TextureWrap uWrap
-        TextureWrap vWrap
-        uWrap:ConstructTextureWrap(uWrap:REPEAT)
-        vWrap:ConstructTextureWrap(vWrap:REPEAT)
-        texture:SetWrap(uWrap, vWrap)
-        diffuseTexture:scaleU = scaleFactor / gridUnits
-        diffuseTexture:scaleV = scaleFactor / gridUnits
-        textureAttribute = diffuseTexture
-
-        alphaTestAttribute:SetAttribute(alphaTestAttribute:GetAlphaTestValue(), alphaThreshold)
-        material:Add(alphaTestAttribute)
+        if true
+            alert("NYI: OpenGL specific attribute manipulation not yet generalized")
+        end
+        //Array<Material> value = GetMaterials()
+        //Material material = value:Get(0)
+        //
+        //BlendingAttribute blend
+        //material:Add(blend)
+        //blendAttribute = blend
+//
+        //ColorAttribute lightAttribute
+        //lightAttribute = lightAttribute:CreateAmbientLight(1, 1, 1, 1)
+        //material:Add(lightAttribute)
+        //me:lightAttribute = lightAttribute
+//
+        //ColorAttribute diffuseAttribute = lightAttribute:CreateDiffuse(0, 0, 0, 0.1)
+        //material:Add(diffuseAttribute)
+        //me:diffuseAttribute = diffuseAttribute
+//
+        //TextureAttribute diffuseTexture
+        //diffuseTexture = cast(TextureAttribute, material:GetAttribute(diffuseTexture:GetDiffuseValue()))
+        //Texture texture = diffuseTexture:descriptor:texture
+        //TextureWrap uWrap
+        //TextureWrap vWrap
+        //uWrap:ConstructTextureWrap(uWrap:REPEAT)
+        //vWrap:ConstructTextureWrap(vWrap:REPEAT)
+        //texture:SetWrap(uWrap, vWrap)
+        //diffuseTexture:scaleU = scaleFactor / gridUnits
+        //diffuseTexture:scaleV = scaleFactor / gridUnits
+        //textureAttribute = diffuseTexture
+//
+        //alphaTestAttribute:SetAttribute(alphaTestAttribute:GetAlphaTestValue(), alphaThreshold)
+        //material:Add(alphaTestAttribute)
 
         SetAcceptsMouseInput(false)
     end

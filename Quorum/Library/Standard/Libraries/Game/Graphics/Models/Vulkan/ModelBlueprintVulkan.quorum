@@ -1,0 +1,61 @@
+package Libraries.Game.Graphics.Models.Vulkan
+
+use Libraries.Game.Graphics.Models.ModelBlueprint
+use Libraries.Game.BoundingBox
+use Libraries.Compute.Vector3
+use Libraries.Game.Graphics.Models.Data.ModelData
+
+class ModelBlueprintVulkan is ModelBlueprint
+    text key = undefined
+    ModelData data = undefined
+    
+    BoundingBox boundingBox
+    
+    action GetKey returns text
+        return key
+    end
+
+    action SetKey(text key)
+        me:key = key
+    end
+
+    action GetData returns ModelData
+        return data
+    end
+
+    action SetData(ModelData data)
+        me:data = data
+    end
+    
+    action GetDimensions returns Vector3
+        if boundingBox:IsValid() = false
+            CalculateBoundingBox()
+        end
+        return boundingBox:GetDimensions()
+    end
+    
+    /*
+    CalculateBoundingBox will create a new BoundingBox object that contains the
+    bounds of the Model.
+    */
+    private action CalculateBoundingBox returns BoundingBox
+        boundingBox:Invalidate()
+        return ExtendBoundingBox(boundingBox)
+    end
+
+    /*
+    ExtendBoundingBox will expand the bounds of the given BoundingBox to fully
+    encapsulate the bounds of this Model.
+    */
+    action ExtendBoundingBox(BoundingBox box) returns BoundingBox
+        //integer counter = 0
+//
+        //repeat nodes:GetSize() times
+            //nodes:Get(counter):ExtendBoundingBox(box)
+        //end
+//
+        //return box
+        alert("NYI")
+    end
+
+end

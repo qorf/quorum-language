@@ -517,88 +517,11 @@ class ModelBlueprintOpenGL is ModelBlueprint, Disposable
         return box
     end
 
-    /** 
-
-	/** Adds a {@link Disposable} to be managed and disposed by this Model. Can be used to keep track of manually loaded textures
-	 * for {@link ModelInstance}.
-	 * @param disposable the Disposable *-
-	public void manageDisposable (Disposable disposable) {
-		if (!disposables.contains(disposable, true)) disposables.add(disposable);
-	}
-
-	/** @return the {@link Disposable} objects that will be disposed when the {@link #dispose()} method is called. *-
-	public Iterable<Disposable> getManagedDisposables () {
-		return disposables;
-	}
-
-	@Override
-	public void dispose () {
-		for (Disposable disposable : disposables) {
-			disposable.dispose();
-		}
-	}
-
-	
-
-	/** Calculate the bounding box of this model instance. This is a potential slow operation, it is advised to cache the result.
-	 * @param out the {@link BoundingBox} that will be set with the bounds.
-	 * @return the out parameter for chaining *-
-	public BoundingBox calculateBoundingBox (final BoundingBox out) {
-		out.inf();
-		return extendBoundingBox(out);
-	}
-
-	/** Extends the bounding box with the bounds of this model instance. This is a potential slow operation, it is advised to cache
-	 * the result.
-	 * @param out the {@link BoundingBox} that will be extended with the bounds.
-	 * @return the out parameter for chaining *-
-	public BoundingBox extendBoundingBox (final BoundingBox out) {
-		final int n = nodes.size;
-		for (int i = 0; i < n; i++)
-			nodes.get(i).extendBoundingBox(out);
-		return out;
-	}
-
-	/** @param id The ID of the material to fetch.
-	 * @return The {@link Material} with the specified id, or null if not available. *-
-	public Material getMaterial (final String id) {
-		return getMaterial(id, true);
-	}
-
-	/** @param id The ID of the material to fetch.
-	 * @param ignoreCase whether to use case sensitivity when comparing the material id.
-	 * @return The {@link Material} with the specified id, or null if not available. *-
-	public Material getMaterial (final String id, boolean ignoreCase) {
-		final int n = materials.size;
-		Material material;
-		if (ignoreCase) {
-			for (int i = 0; i < n; i++)
-				if ((material = materials.get(i)).id.equalsIgnoreCase(id)) return material;
-		} else {
-			for (int i = 0; i < n; i++)
-				if ((material = materials.get(i)).id.equals(id)) return material;
-		}
-		return null;
-	}
-
-	/** @param id The ID of the node to fetch.
-	 * @return The {@link Node} with the specified id, or null if not found. *-
-	public Node getNode (final String id) {
-		return getNode(id, true);
-	}
-
-	/** @param id The ID of the node to fetch.
-	 * @param recursive false to fetch a root node only, true to search the entire node tree for the specified node.
-	 * @return The {@link Node} with the specified id, or null if not found. *-
-	public Node getNode (final String id, boolean recursive) {
-		return getNode(id, recursive, false);
-	}
-
-	/** @param id The ID of the node to fetch.
-	 * @param recursive false to fetch a root node only, true to search the entire node tree for the specified node.
-	 * @param ignoreCase whether to use case sensitivity when comparing the node id.
-	 * @return The {@link Node} with the specified id, or null if not found. *-
-	public Node getNode (final String id, boolean recursive, boolean ignoreCase) {
-		return Node.getNode(nodes, id, recursive, ignoreCase);
-	}*/
+    action GetKey returns text
+        return id
+    end
+    
+    action SetKey(text key)
+        id = key
+    end
 end

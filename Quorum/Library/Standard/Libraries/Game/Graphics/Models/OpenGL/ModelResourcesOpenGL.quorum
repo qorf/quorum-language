@@ -5,11 +5,26 @@ use Libraries.Game.Graphics.Models.OpenGL.Attributes.Material
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Models.OpenGL.Attributes.ColorAttribute
+use Libraries.Game.Graphics.Models.ModelBlueprint
+use Libraries.Containers.Iterator
+use Libraries.Containers.HashTable
+use Libraries.Compute.Matrix4
+use Libraries.Compute.Vector3
+use Libraries.Compute.Quaternion
+use Libraries.Game.Graphics.Renderable
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.Models.OpenGL.Attributes.TextureAttribute
 
 class ModelResourcesOpenGL is ModelResources
     Array<Material> materials
     Array<Node> nodes
     Array<Animation> animations
+    
+    // Static in libGDX: is this necessary?
+    private boolean defaultShareKeyframes = true
+    
+    private HashTable<NodePart, HashTable<Node, Matrix4>> nodePartBones
     
     /*
     This action returns an array containing all Material objects used by this
@@ -147,9 +162,333 @@ class ModelResourcesOpenGL is ModelResources
             end
             counter = counter + 1
         end
-
-        diffuseColor = color
     end
     
+    action SetFromBlueprint(ModelBlueprint schematic)
+        ModelBlueprintOpenGL loader = cast(ModelBlueprintOpenGL, schematic)
+        CopyNodes(loader:nodes)
+        CopyAnimations(loader:animations)
+        CalculateTransforms()
+    end
+    
+    /* 
+Copy the nodes from the given array into this model's data structures.
+
+    FIX-ME: SetBones() commented, will eventually need to be fixed for animations.
+*/
+    action CopyNodes(Array<Node> copyNodes)
+        nodePartBones:Empty()
+        integer index = 0
+        repeat copyNodes:GetSize() times
+            Node node = copyNodes:Get(index)
+            nodes:Add(CopyNode(node))
+            index = index + 1
+        end
+        //SetBones()
+    end
+    
+    /*
+    Copy data from a single node into this object's data structures.
+    */
+    private action CopyNode(Node node) returns Node
+        Node copy
+        copy:id = node:id
+        copy:inheritTransform = node:inheritTransform
+        copy:translation:Set(node:translation)
+        copy:rotation:Set(node:rotation)
+        copy:scale:Set(node:scale)
+        copy:localTransform:Set(node:localTransform)
+        copy:globalTransform:Set(node:globalTransform)
+        
+        integer index = 0
+        NodePart nodePart = undefined
+        repeat node:parts:GetSize() times
+            nodePart = node:parts:Get(index)
+            copy:parts:Add(CopyNodePart(nodePart))
+            index = index + 1
+        end
+
+        Iterator<Node> iterator = node:GetChildren()
+        Node child = undefined
+        repeat while iterator:HasNext()
+            child = iterator:Next()
+            copy:Add(CopyNode(child))
+        end
+        return copy
+    end
+    
+    /*
+    Copy data from a single NodePart into this object's data structures.
+    */
+    private action CopyNodePart(NodePart nodePart) returns NodePart
+        NodePart copy
+        MeshPart meshPart = copy:meshPart
+        meshPart:id = nodePart:meshPart:id
+        meshPart:indexOffset = nodePart:meshPart:indexOffset
+        meshPart:verticesCount = nodePart:meshPart:verticesCount
+        meshPart:primitiveType = nodePart:meshPart:primitiveType
+        meshPart:mesh = nodePart:meshPart:mesh
+        
+        if nodePart:invBoneBindTransforms not= undefined
+            nodePartBones:Add(copy, nodePart:invBoneBindTransforms)
+        end
+
+        integer index = materials:GetFirstLocation(nodePart:material)
+        if index < 0
+            copy:material = nodePart:material:Copy()
+            materials:Add(copy:material)
+        else
+            copy:material = materials:Get(index)
+        end
+
+        return copy
+    end
+    
+    /*
+    Set the bones using the previously set nodes.
+    */
+    private action SetBones
+        Iterator<NodePart> iterator = nodePartBones:GetKeyIterator()
+        NodePart key = undefined
+        HashTable<Node, Matrix4> value = undefined
+        repeat while iterator:HasNext()
+            key = iterator:Next()
+            value = nodePartBones:GetValue(key)
+            
+            key:invBoneBindTransforms:Empty()
+
+            Iterator<Node> iterator2 = value:GetKeyIterator()
+            Node key2 = undefined
+            Matrix4 value2 = undefined
+            repeat while iterator2:HasNext()
+                key2 = iterator2:Next()
+                value2 = value:GetValue(key2)
+
+                key:invBoneBindTransforms:Add(GetNode(key2:id), value2)
+            end
+
+            key:bones:SetMaxSize(value:GetSize())
+            
+            integer index = 0
+            repeat value:GetSize() times
+                Matrix4 temp
+                key:bones:Set(index, temp)
+                index = index + 1
+            end
+        end
+    end
+
+    /*
+    Find a node in this Model with the matching text ID.
+    */
+    private action GetNode(text nodeID) returns Node
+        integer counter = 0
+        Node node = undefined
+        repeat nodes:GetSize() times
+            node = nodes:Get(counter)
+            if node:id = nodeID
+                return node
+            end
+            counter = counter + 1
+        end
+        counter = 0
+        Node result = undefined
+        repeat nodes:GetSize() times
+            node = nodes:Get(counter)
+            result = node:GetChild(nodeID)
+            if result not= undefined
+                return result
+            end
+            counter = counter + 1
+        end
+
+        return result
+    end
+
+    /*
+    Copy the animations from the given array into this object.
+    */
+    private action CopyAnimations(Array<Animation> source)
+        integer index = 0
+        Animation anim = undefined
+        repeat source:GetSize() times
+            anim = source:Get(index)
+
+            Animation animation
+            animation:id = anim:id
+            animation:duration = anim:duration
+
+            integer index2 = 0
+            NodeAnimation nanim = undefined
+            repeat anim:nodeAnimations:GetSize() times
+                nanim = anim:nodeAnimations:Get(index2)
+
+                Node node = GetNode(nanim:node:id)
+                
+                if node not= undefined
+                    NodeAnimation nodeAnim
+                    nodeAnim:node = node
+
+                    if defaultShareKeyframes
+                        nodeAnim:translation = nanim:translation
+                        nodeAnim:rotation = nanim:rotation
+                        nodeAnim:scaling = nanim:scaling
+                    else
+                        if nanim:translation not= undefined
+                            Array<NodeKeyframe<Vector3>> temp
+                            nodeAnim:translation = temp
+                            integer index3 = 0
+                            NodeKeyframe<Vector3> kf = undefined
+                            repeat nanim:translation:GetSize() times
+                                kf = nanim:translation:Get(index3)
+
+                                NodeKeyframe<Vector3> newKF
+                                newKF:Initialize(kf:keyTime, cast(Vector3, kf:value))
+                                nodeAnim:translation:Add(newKF)
+
+                                index3 = index3 + 1
+                            end
+                        end
+
+                        if nanim:rotation not= undefined
+                            Array<NodeKeyframe<Quaternion>> temp
+                            nodeAnim:rotation = temp
+                            integer index3 = 0
+                            NodeKeyframe<Quaternion> kf = undefined
+                            repeat nanim:rotation:GetSize() times
+                                kf = nanim:rotation:Get(index3)
+
+                                NodeKeyframe<Quaternion> newKF
+                                newKF:Initialize(kf:keyTime, cast(Quaternion, kf:value))
+                                nodeAnim:rotation:Add(newKF)
+
+                                index3 = index3 + 1
+                            end
+                        end
+
+                        if nanim:scaling not= undefined
+                            Array<NodeKeyframe<Vector3>> temp
+                            nodeAnim:scaling = temp
+                            integer index3 = 0
+                            NodeKeyframe<Vector3> kf = undefined
+                            repeat nanim:scaling:GetSize() times
+                                kf = nanim:scaling:Get(index3)
+
+                                NodeKeyframe<Vector3> newKF
+                                newKF:Initialize(kf:keyTime, cast(Vector3, kf:value))
+                                nodeAnim:scaling:Add(newKF)
+
+                                index3 = index3 + 1
+                            end
+                        end
+                    end
+
+                    if nodeAnim:translation not= undefined or nodeAnim:rotation not= undefined or nodeAnim:scaling not= undefined
+                        animation:nodeAnimations:Add(nodeAnim)
+                    end
+
+                end
+                if animation:nodeAnimations:GetSize() > 0 
+                    animations:Add(animation)
+                end
+                index2 = index2 + 1
+            end
+
+            index = index + 1
+        end
+    end
+    
+    /*
+    This action will calculate the local and world transforms of all Nodes in
+    this model, and then calculate the updated bone matrices.
+    */
+    private action CalculateTransforms
+        integer index = 0
+        integer size = nodes:GetSize()
+        repeat size times
+            nodes:Get(index):CalculateAllTransforms()
+            index = index + 1
+        end
+        index = 0
+        repeat size times
+            nodes:Get(index):CalculateAllBoneTransforms()
+            index = index + 1
+        end
+    end
+    
+    action GetRenderables(Array<Renderable> renderables)
+        Node node = undefined
+        integer index = 0
+        repeat nodes:GetSize() times
+            node = nodes:Get(index)
+            GetRenderables(node, renderables)
+            index = index + 1
+        end
+    end
+    
+    /*
+    Retrieve all Renderables managed by a single node.
+    */
+    private action GetRenderables(Node node, Array<Renderable> renderables)
+        if node:parts:GetSize() > 0
+            NodePart nodePart = undefined
+            integer index = 0
+            repeat node:parts:GetSize() times
+                nodePart = node:parts:Get(index)
+                if nodePart:enabled
+                    renderables:Add(GetRenderable(node, nodePart))
+                end
+                index = index + 1
+            end
+        end
+
+        Iterator<Node> childIterator = node:GetChildren()
+        Node child = undefined
+        repeat while childIterator:HasNext()
+            child = childIterator:Next()
+            GetRenderables(child, renderables)
+        end
+    end
+
+    /*
+    Return a single renderable, and set it in the given NodePart. The Node is
+    only used to set the transform.
+    */
+    private action GetRenderable(Node node, NodePart nodePart) returns Renderable
+        Model model = GetModel()
+        Matrix4 transform = model:GetTransform()
+        
+        Renderable out
+        nodePart:SetRenderable(out)
+        if nodePart:bones = undefined and transform not= undefined
+            out:worldTransform:Set(transform):Multiply(node:globalTransform)
+        elseif transform not= undefined
+            out:worldTransform:Set(transform)
+        else
+            out:worldTransform:IdentityMatrix()
+        end
+
+        out:shaderProgram = model:GetShaderProgram()
+        out:shaderMapping = model:GetShaderMapping()
+        out:shaderData = model:GetShaderData()
+        if model:GetLayer() not= undefined
+            out:environment = model:GetLayer():GetEnvironment()
+        end
+
+        return out
+    end
+    
+    action SetTexture(Texture texture)
+        integer counter = 0
+        repeat materials:GetSize() times
+            Material material = materials:Get(counter)
+            TextureAttribute attribute
+            if material:HasAttribute(attribute:GetDiffuseValue())
+                attribute = cast(TextureAttribute, material:GetAttribute(attribute:GetDiffuseValue()))
+                attribute:SetAttribute(attribute:GetDiffuseValue(), texture)
+            end
+            counter = counter + 1
+        end
+    end
     
 end

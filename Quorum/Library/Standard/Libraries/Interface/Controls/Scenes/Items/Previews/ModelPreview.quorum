@@ -55,11 +55,14 @@ class ModelPreview is ItemPreview3D
             Load(modelFile)
             SetColor(color)
 
+            if true
+                alert("NYI: ModelPreview requires material support that isn't generalized yet")
+            end
             // We need to add blending to the custom material in order to support transparency on the preview
-            Material material = GetMaterials():Get(0)
-            BlendingAttribute blend
-            blend:opacity = color:GetAlpha()
-            material:Add(blend)
+            //Material material = GetMaterials():Get(0)
+            //BlendingAttribute blend
+            //blend:opacity = color:GetAlpha()
+            //material:Add(blend)
         end
 
         SetScale(schematic:GetScaleX(), schematic:GetScaleY(), schematic:GetScaleZ())

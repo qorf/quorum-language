@@ -1,4 +1,4 @@
-package Libraries.Game.Graphics.Models.Vulkan
+package Libraries.Game.Graphics.Models.Data
 
 use Libraries.Containers.Array
 
@@ -7,6 +7,7 @@ class ModelData
     Array<MeshData> meshes
     Animations animations = undefined
     text ID = undefined
+    
     action GetMaterials returns Array<Material>
         return materials
     end

@@ -3,14 +3,141 @@ package Libraries.Game.Graphics.Vulkan
 use Libraries.Game.Graphics.Painter3D
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.Skybox
-use Libraries.Game.Graphics.Environment
 use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Models.OpenGL.Attributes.Environment
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
 
 class VulkanPainter3D is Painter3D
     
+    GameStateManager gameState
+    VulkanRenderPass renderPass = undefined
+    ShaderProgram defaultProgram = undefined
+    
+    // Resources for the Camera uniform.
+    Array<VulkanBuffer> cameraBuffers
+    Array<VulkanNumber32BitMappedMemory> cameraMappings
+    Array<VulkanDescriptorSet> cameraDescriptors
+    Camera camera = undefined
+    
+    // An internal array used to transfer data from Matrix4 objects to mapped memory.
+    Number32BitArray matrix4Array
+    
+on create
+        matrix4Array:SetSize(16)
+    end
+
+    action IsRenderPassValid returns boolean
+        return renderPass not= undefined
+    end
+
+    action RegenerateRenderPass(boolean isFirstPass) returns boolean
+        if renderPass not= undefined
+            renderPass:Dispose()
+        end
+
+        VulkanRenderPass pass
+        renderPass = pass
+
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+VulkanSwapchain swapchain = graphics:GetSwapchain()
+        VulkanDevice device = graphics:GetDevice()
+        VulkanConstants constants
+
+        /*
+        Create the RenderPass that will be used for this painter. 
+        This must be compatible with the render pass used for the swapchain Framebuffers.
+        The RenderPass provided to the Framebuffers will indicate how rendering to the buffers will be performed. Pipelines using the
+        Framebuffers must either exactly match the RenderPass, or be compatible with it. More details here:
+        https://registry.khronos.org/vulkan/specs/1.3-extensions/html/chap8.html#renderpass-compatibility
+        */
+        VulkanAttachmentDescription outputColorAttachment
+        outputColorAttachment:SetFormat(graphics:GetSwapchain():GetImageViewInfo():GetFormat())
+        outputColorAttachment:SetSamples(constants:SAMPLE_COUNT_1_BIT)
+        outputColorAttachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
+        outputColorAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
+
+        if isFirstPass
+outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
+            outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
+        else
+outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
+            outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_LOAD)
+        end
+
+        Array<VulkanAttachmentDescription> attachmentDescriptions
+        attachmentDescriptions:Add(outputColorAttachment)
+
+
+        VulkanAttachmentReference outputColorReference
+        outputColorReference:SetAttachmentIndex(0)
+        outputColorReference:SetLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+
+        Array<VulkanAttachmentReference> attachmentReferences
+        attachmentReferences:Add(outputColorReference)
+        
+        VulkanAttachmentDescription depthDescription
+        depthDescription:SetFormat(constants:FORMAT_D32_SFLOAT)
+        depthDescription:SetSamples(constants:SAMPLE_COUNT_1_BIT)
+        depthDescription:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
+        depthDescription:SetStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
+depthDescription:SetStencilLoadOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
+depthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
+        depthDescription:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
+        depthDescription:SetFinalLayout(constants:IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+        
+        VulkanAttachmentReference depthReference
+        depthReference:SetAttachmentIndex(1)
+        depthReference:SetLayout(constants:IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+        
+        attachmentDescriptions:Add(depthDescription)
+
+        VulkanSubpassDescription subpass
+        subpass:SetPipelineBindPoint(constants:PIPELINE_BIND_POINT_GRAPHICS)
+        subpass:SetColorAttachments(attachmentReferences)
+        subpass:SetDepthStencilAttachment(depthReference)
+
+        Array<VulkanSubpassDescription> subpassDescriptions
+        subpassDescriptions:Add(subpass)
+
+        
+        VulkanSubpassDependency dependency
+        dependency:SetSourceSubpass(constants:SUBPASS_EXTERNAL)
+        dependency:SetDestinationSubpass(0)
+        dependency:SetSourceStageMask(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT + constants:PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT)
+        dependency:SetDestinationStageMask(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT + constants:PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT)
+        dependency:SetSourceAccessMask(constants:ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)
+        dependency:SetDestinationAccessMask(constants:ACCESS_COLOR_ATTACHMENT_WRITE_BIT + constants:ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)
+
+        Array<VulkanSubpassDependency> subpassDependencies
+        subpassDependencies:Add(dependency)
+
+
+        boolean success = renderPass:Create(graphics:GetDevice(), attachmentDescriptions, subpassDescriptions, subpassDependencies)
+        return success
+    end
+    
+    action GetDefaultProgram returns ShaderProgram
+        if defaultProgram = undefined
+            ShaderManager shaders = gameState:GetShaderManager()
+            defaultProgram = shaders:GetDefaultShaderProgram3D()
+        end
+        
+        return defaultProgram
+    end
+    
+    action GetDefaultPipeline returns VulkanPipeline
+        ShaderProgram program = GetDefaultProgram()
+        VulkanShaderProgram strategy = cast(VulkanShaderProgram, program:GetShaderProgramStrategy())
+        return strategy:GetPipeline()
+    end
+    
     action SetCamera(Camera camera)
-//        output "NYI: VulkanPainter3D SetCamera"
-//        alert("NYI")
+        me:camera = camera
     end
     
     action Begin
