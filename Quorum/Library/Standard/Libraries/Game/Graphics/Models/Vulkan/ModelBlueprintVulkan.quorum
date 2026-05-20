@@ -4,10 +4,13 @@ use Libraries.Game.Graphics.Models.ModelBlueprint
 use Libraries.Game.BoundingBox
 use Libraries.Compute.Vector3
 use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Containers.Array
 
 class ModelBlueprintVulkan is ModelBlueprint
     text key = undefined
     ModelData data = undefined
+    Array<MeshVulkan> meshes = undefined
+    Array<MaterialVulkan> materials = undefined
     
     BoundingBox boundingBox
     
@@ -56,6 +59,22 @@ class ModelBlueprintVulkan is ModelBlueprint
 //
         //return box
         alert("NYI")
+    end
+
+    action GetMeshes returns Array
+        return meshes
+    end
+
+    action SetMeshes(Array<MeshVulkan> meshes)
+        me:meshes = meshes
+    end
+
+    action GetMaterials returns Array<MaterialVulkan>
+        return materials
+    end
+
+    action SetMaterials(Array<MaterialVulkan> materials)
+        me:materials = materials
     end
 
 end

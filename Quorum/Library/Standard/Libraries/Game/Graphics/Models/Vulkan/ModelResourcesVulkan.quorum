@@ -9,21 +9,26 @@ use Libraries.Game.Graphics.Texture
 
 class ModelResourcesVulkan is ModelResources
     
+    // ModelBlueprints already contain default color and textures per mesh, but they can be overridden on individual models (especially for simple models like primitives).
+    // If these values are undefined, the default value from the blueprint is used instead.
+    Color diffuseColor = undefined
+    Texture texture = undefined
+    
     /*
     This action sets the diffuse color of a primitive model. If the model did not
     previously have a color applied to it, it will add a color to it.
     */
     action SetColor(Color color)
-        alert("NYI")
+        diffuseColor = color
 end
     
     /* This action sets the texture of a primitive model. */
     action SetTexture(Texture texture)
-alert("NYI")
+        me:texture = texture
 end
     
     action SetFromBlueprint(ModelBlueprint schematic)
-alert("NYI")
+        // TO-DO: Set information specific to animation here.
 end
     
     action GetRenderables(Array<Renderable> renderables)

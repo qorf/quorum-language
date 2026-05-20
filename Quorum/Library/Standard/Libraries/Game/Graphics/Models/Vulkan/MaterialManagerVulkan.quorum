@@ -1,0 +1,193 @@
+package Libraries.Game.Graphics.Models.Vulkan
+
+use Libraries.Containers.Array
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Containers.HashTable
+use Libraries.Containers.Queue
+use Libraries.Game.Graphics.Vulkan.VulkanBuffer
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetLayoutBinding
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorResourcesInfo
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSet
+use Libraries.Game.Graphics.Models.Data.Material
+
+class MaterialManagerVulkan
+    
+    GameStateManager gameState
+    
+    // A mapping of material files to already-loaded materials.
+    HashTable<text, MaterialVulkan> materialMap
+    
+    // An array containing any materials that are awaiting data transfers to GPU.
+    Array<MaterialVulkan> pendingMaterials
+
+    VulkanDevice device = undefined
+
+    // Hash tables for retrieving the index of a material in the global material arrays.
+    HashTable<MaterialVulkan, integer> materialToIndexTable
+    
+    // The next index to store a material buffer at in the global arrays.
+    integer nextMaterialID = 0
+    
+    // TO-DO: NYI, whenever a material is disposed, store its index here. New materials should reuse previously freed IDs before using a new index.
+    Queue<integer> recycledMaterialIDs
+    
+    Array<VulkanBuffer> globalMaterialArray
+    
+    /*
+We use the physical device limits to figure out how many descriptors we can store at once for textures, but
+some platforms return -1 instead of a reasonable value. In this case, we use this default value.
+*/
+    constant integer DEFAULT_MAX_DESCRIPTORS = 256
+    
+    action Create(VulkanDevice device)
+        me:device = device
+    end
+    
+    action ProcessPendingResources
+        if pendingMaterials:IsEmpty() = false
+            GameStateManager manager
+            VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+            VulkanCommandBuffer commandBuffer = graphics:GetCurrentRenderCommandBuffer()
+            VulkanDescriptorSet globalMeshDescriptorSet = graphics:GetModelManager():GetGlobalMeshDescriptorSet()
+            VulkanConstants constants
+
+            integer i = 0
+            repeat while i < pendingMaterials:GetSize()
+                MaterialVulkan material = pendingMaterials:Get(i)
+if material:HasData()
+                    material:TransferBuffers(commandBuffer)
+                end
+
+                //VulkanImage image
+                //VulkanImageInfo imageInfo
+                //imageInfo:SetWidth(width)
+                //imageInfo:SetHeight(height)
+                //imageInfo:SetUsage(bits:Or(constants:IMAGE_USAGE_TRANSFER_DESTINATION_BIT, constants:IMAGE_USAGE_SAMPLED_BIT))
+                //imageInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
+                /*
+VulkanImageInfo info
+        info:SetWidth(width)
+        info:SetHeight(height)
+        info:SetUsage(usage)
+        info:SetAllocationFlags(allocationFlags)
+        return Create(device, info)
+*/
+                ////image:Create(device, width, height, bits:Or(constants:IMAGE_USAGE_TRANSFER_DESTINATION_BIT, constants:IMAGE_USAGE_SAMPLED_BIT))
+                //image:Create(device, imageInfo)
+//
+                //// We'll need this as part of the buffer-to-image copy, in order to ensure the image is in the right format to accept the 
+                //// buffer data before we send it.
+                //VulkanImageMemoryBarrier memoryBarrier
+                //memoryBarrier:SetNewLayout(constants:IMAGE_LAYOUT_TRANSFER_DESTINATION_OPTIMAL)
+                //memoryBarrier:SetSourceAccessMask(0)
+                //memoryBarrier:SetDestinationAccessMask(constants:ACCESS_TRANSFER_WRITE_BIT)
+                //memoryBarrier:SetSourceStageMask(constants:PIPELINE_STAGE_TOP_OF_PIPE_BIT)
+                //memoryBarrier:SetDestinationStageMask(constants:PIPELINE_STAGE_TRANSFER_BIT)
+                //memoryBarrier:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
+                //memoryBarrier:SetImage(image)
+//
+                //PipelineBarrierCommand transitionForTransferCommand
+                //transitionForTransferCommand:SetMemoryBarrier(memoryBarrier)
+                //commandBuffer:Record(transitionForTransferCommand)
+//
+                //// Now send the command to copy the buffer to the image.
+                //CopyBufferToImageCommand copyCommand
+                //copyCommand:SetImageWidth(width)
+                //copyCommand:SetImageHeight(height)
+                //copyCommand:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
+                //copyCommand:SetSourceBuffer(buffer)
+                //copyCommand:SetDestinationImage(image)
+                //commandBuffer:Record(copyCommand)
+//
+                //// Once the copy is finished, we'll need to transition the image's layout from a state for receiving data, and into a new state fit for reading from the shader.
+                //VulkanImageMemoryBarrier readTransition
+                //readTransition:SetOldLayout(constants:IMAGE_LAYOUT_TRANSFER_DESTINATION_OPTIMAL)
+                //readTransition:SetNewLayout(constants:IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+                //readTransition:SetSourceAccessMask(constants:ACCESS_TRANSFER_WRITE_BIT)
+                //readTransition:SetDestinationAccessMask(constants:ACCESS_SHADER_READ_BIT)
+                //readTransition:SetSourceStageMask(constants:PIPELINE_STAGE_TRANSFER_BIT)
+                //readTransition:SetDestinationStageMask(constants:PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
+                //readTransition:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
+                //readTransition:SetImage(image)
+//
+                //PipelineBarrierCommand transitionForReadCommand
+                //transitionForReadCommand:SetMemoryBarrier(readTransition)
+                //commandBuffer:Record(transitionForReadCommand)
+//
+                //// We need to hold onto the buffer to be disposed after the transfer is done.
+                //stagingBuffers:Add(buffer)
+//
+//
+                //// Now we need an ImageView to encapsulate the Image. The view will be accessed to get information about the related image.
+                //VulkanImageView view
+                //VulkanImageViewInfo viewInfo
+//viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
+                //view:Create(device, image, viewInfo)
+
+                // Finally, associate the image view with the texture.
+                //texture:SetVulkanImageView(view)
+
+                // Also store the vertex buffer in our global array and associate our resources.
+                if not recycledMaterialIDs:IsEmpty()
+                    // TO-DO: Handle this case. This gets complicated by the question of releasing IDs that might be in use for previous frames.
+                else
+                    globalMaterialArray:Add(material:GetBuffer())
+                    material:SetGlobalMaterialIndex(nextMaterialID)
+                    nextMaterialID = nextMaterialID + 1
+                end
+                
+                VulkanDescriptorResourcesInfo resourcesInfo
+                resourcesInfo:SetDestinationBinding(2)
+                resourcesInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+                resourcesInfo:SetDestinationArrayElement(material:GetGlobalMaterialIndex())
+                resourcesInfo:AddBufferInfo(material:GetBuffer(), 0, material:GetBuffer():GetSize())
+                
+                globalMeshDescriptorSet:LinkResources(resourcesInfo)
+
+                i = i + 1
+            end
+
+            pendingMaterials:Empty()
+        end
+    end
+    
+    action AddPendingMaterial(MaterialVulkan material)
+        pendingMaterials:Add(material)
+    end
+    
+    action GetDescriptorSetLayoutBinding(integer descriptorCount) returns VulkanDescriptorSetLayoutBinding
+        VulkanConstants constants
+        VulkanDescriptorSetLayoutBinding binding
+        
+        binding:SetBinding(2)
+        binding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+        binding:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT)
+        binding:SetDescriptorCount(descriptorCount)
+        binding:SetBindingFlags(constants:DESCRIPTOR_BINDING_DYNAMIC)
+        return binding
+    end
+    
+    action GetMaterial(Material data) returns MaterialVulkan
+        text path = data:GetPath()
+        MaterialVulkan result = GetCachedMaterial(path)
+        if result = undefined
+            MaterialVulkan material
+            material:Load(device, data)
+            materialMap:Add(path, material)
+            result = material
+        end
+        return result
+    end
+    
+    action GetCachedMaterial(text filePath) returns MaterialVulkan
+        if materialMap:HasKey(filePath)
+            return materialMap:GetValue(filePath)
+        end
+        return undefined
+    end
+    
+end

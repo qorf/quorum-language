@@ -36,6 +36,11 @@ Each vertex is made of 14 32-bit components:
     integer vertexCount = 0
     integer indexCount = 0
     
+    integer globalVertexBufferIndex = -1
+    integer globalIndexBufferIndex = -1
+    
+    MaterialVulkan material = undefined
+    
     action Load(VulkanDevice device, MeshData data)
         if IsReady()
             alert("I cannot load data into this mesh because it has already been loaded!")
@@ -98,15 +103,18 @@ Each vertex is made of 14 32-bit components:
         vertexMapping:Set(vertexArray)
         indexMapping:Set(indices)
         
-        // Load array into staging buffer, then setup indices buffer too...
         VulkanBuffer vertexBuffer
         VulkanBuffer indexBuffer
         me:vertexBuffer = vertexBuffer
         me:indexBuffer = indexBuffer
         
-        vertexBuffer:CreateTransferDestinationBuffer(device, vertexStagingBuffer:GetSize(), constants:BUFFER_USAGE_VERTEX_BUFFER_BIT)
-        indexBuffer:CreateTransferDestinationBuffer(device, indexStagingBuffer:GetSize(), constants:BUFFER_USAGE_INDEX_BUFFER_BIT)
+        //vertexBuffer:CreateTransferDestinationBuffer(device, vertexStagingBuffer:GetSize(), constants:BUFFER_USAGE_VERTEX_BUFFER_BIT)
+        //indexBuffer:CreateTransferDestinationBuffer(device, indexStagingBuffer:GetSize(), constants:BUFFER_USAGE_INDEX_BUFFER_BIT)
+        vertexBuffer:CreateTransferDestinationBuffer(device, vertexStagingBuffer:GetSize(), constants:BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+        indexBuffer:CreateTransferDestinationBuffer(device, indexStagingBuffer:GetSize(), constants:BUFFER_USAGE_UNIFORM_BUFFER_BIT)
         
+        vertexStagingBuffer:StopMapping()
+        indexStagingBuffer:StopMapping()
     end
     
     action HasData returns boolean
@@ -140,6 +148,38 @@ Each vertex is made of 14 32-bit components:
         buffer:Record(indexCopyCommand)
         
         dataTransferred = true
+    end
+
+    action GetGlobalVertexBufferIndex returns integer
+        return globalVertexBufferIndex
+    end
+
+    action SetGlobalVertexBufferIndex(integer globalVertexBufferIndex)
+        me:globalVertexBufferIndex = globalVertexBufferIndex
+    end
+
+    action GetGlobalIndexBufferIndex returns integer
+        return globalIndexBufferIndex
+    end
+
+    action SetGlobalIndexBufferIndex(integer globalIndexBufferIndex)
+        me:globalIndexBufferIndex = globalIndexBufferIndex
+    end
+
+    action GetVertexBuffer returns VulkanBuffer
+        return vertexBuffer
+    end
+
+    action GetIndexBuffer returns VulkanBuffer
+        return indexBuffer
+    end
+
+    action GetMaterial returns MaterialVulkan
+        return material
+    end
+
+    action SetMaterial(MaterialVulkan material)
+        me:material = material
     end
 
 end

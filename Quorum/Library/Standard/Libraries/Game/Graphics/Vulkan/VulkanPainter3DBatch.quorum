@@ -1,5 +1,67 @@
 package Libraries.Game.Graphics.Vulkan
 
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
+
 class VulkanPainter3DBatch
     
+    ModelBlueprintVulkan schematic = undefined
+    // It's necessary to store individual models in order to provide per-instance data when drawing occurs.
+    Array<Model> models
+    
+    boolean isTransparent = false
+    
+    // How many frames have passed without using this batch. Can be used to determine if a batch hasn't been used in a long time and can be disposed.
+    integer age = 0
+    
+    boolean isPending = false
+    
+    action Create(ModelBlueprintVulkan schematic, boolean isTransparent)
+        me:schematic = schematic
+        me:isTransparent = isTransparent
+    end
+    
+    action IsTransparent returns boolean
+        return isTransparent
+    end
+
+    action GetModelBlueprint returns ModelBlueprintVulkan
+        return schematic
+    end
+    
+    action Add(Model model)
+        models:Add(model)
+    end
+    
+    action PrepareForNextFrame
+        models:Empty()
+        isPending = false
+        age = age + 1
+    end
+
+    action ResetAge
+        age = 0
+    end
+
+    action GetAge returns integer
+        return age
+    end
+    
+    action Dispose
+        models = undefined
+    end
+    
+    action SetPending(boolean pending)
+        isPending = pending
+    end
+    
+    action IsPending returns boolean
+        return isPending
+    end
+    
+    action GetModelCount returns integer
+        return models:GetSize()
+    end
+
 end

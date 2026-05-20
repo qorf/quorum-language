@@ -10,6 +10,8 @@ use Libraries.Game.DesktopDisplay
 use Libraries.Compute.BitwiseOperations
 use Libraries.Containers.Array
 use Libraries.Game.GameDisplay
+use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
+use Libraries.Game.Graphics.Models.Vulkan.MaterialManagerVulkan
 
 class VulkanGraphics is GraphicsManager
     
@@ -46,6 +48,7 @@ VulkanImage depthBufferImage = undefined
     VulkanFence currentRenderFence = undefined
 
     VulkanTextureManager textureManager
+    ModelManagerVulkan modelManager
 
     /*
     Note that the swapchain index can de-sync from the current frame index sometimes.
@@ -339,6 +342,7 @@ VulkanImageInfo imageInfo
         descriptorSetManager:Initialize(device)
 
         textureManager:Create(device, me)
+        modelManager:Create(device, me)
 
         return true
     end
@@ -811,6 +815,14 @@ success = newSemaphore:Create(device)
 
     action GetTextureManager returns VulkanTextureManager
         return textureManager
+    end
+    
+    action GetModelManager returns ModelManagerVulkan
+        return modelManager
+    end
+    
+    action GetMaterialManager returns MaterialManagerVulkan
+        return modelManager:GetMaterialManager()
     end
     
     /*This action returns true if rendering for the application has paused, or false if it is rendering normally.

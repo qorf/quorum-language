@@ -22,6 +22,7 @@ use Libraries.Game.Graphics.OpenGL.OpenGLManager
 use Libraries.Game.Graphics.Models.Vulkan.ModelResourcesVulkan
 use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
 use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
 
 /*
 The Model class represents a 3D model to be drawn on the screen by the Game
@@ -288,7 +289,7 @@ class Model is Item3D
         if UsingOpenGL()
             return GetCachedBlueprintOpenGL(file)
         else
-            ModelManagerVulkan modelManager
+            ModelManagerVulkan modelManager = GetModelManager()
             return modelManager:GetModelBlueprint(file)
         end
     end
@@ -1825,7 +1826,7 @@ class Model is Item3D
         if UsingOpenGL()
             return GetCachedBoxOpenGL(width, height, depth, color)
         else
-            ModelManagerVulkan modelManager
+            ModelManagerVulkan modelManager = GetModelManager()
             return modelManager:GetBoxBlueprint(width, height, depth)
         end
 end
@@ -1840,7 +1841,7 @@ end
         if UsingOpenGL()
             return GetCachedPlaneOpenGL(width, depth, color, doubleSided)
         else
-            ModelManagerVulkan modelManager
+            ModelManagerVulkan modelManager = GetModelManager()
             return modelManager:GetPlaneBlueprint(width, depth, doubleSided)
         end
     end
@@ -1855,7 +1856,7 @@ end
         if UsingOpenGL()
             return GetCachedCylinderOpenGL(width, height, depth, divisions, color)
         else
-            ModelManagerVulkan modelManager
+            ModelManagerVulkan modelManager = GetModelManager()
             return modelManager:GetCylinderBlueprint(width, height, depth, divisions)
         end
     end
@@ -1870,7 +1871,7 @@ end
         if UsingOpenGL()
             return GetCachedSphereOpenGL(width, height, depth, hDivisions, vDivisions, color)
         else
-            ModelManagerVulkan modelManager
+            ModelManagerVulkan modelManager = GetModelManager()
             return modelManager:GetSphereBlueprint(width, height, depth, hDivisions, vDivisions)
         end
     end
@@ -1885,7 +1886,7 @@ end
         if UsingOpenGL()
             return GetCachedBoxOpenGL(width, height, depth, texture)
         else
-            ModelManagerVulkan modelManager
+            ModelManagerVulkan modelManager = GetModelManager()
             return modelManager:GetBoxBlueprint(width, height, depth)
         end
 end
@@ -1900,7 +1901,7 @@ end
         if UsingOpenGL()
             return GetCachedPlaneOpenGL(width, depth, texture, doubleSided)
         else
-            ModelManagerVulkan modelManager
+            ModelManagerVulkan modelManager = GetModelManager()
             return modelManager:GetPlaneBlueprint(width, depth, doubleSided)
         end
 end
@@ -1915,7 +1916,7 @@ end
         if UsingOpenGL()
             return GetCachedCylinderOpenGL(width, height, depth, divisions, texture)
         else
-            ModelManagerVulkan modelManager
+            ModelManagerVulkan modelManager = GetModelManager()
             return modelManager:GetCylinderBlueprint(width, height, depth, divisions)
         end
 end
@@ -1930,7 +1931,7 @@ end
         if UsingOpenGL()
             return GetCachedSphereOpenGL(width, height, depth, hDivisions, vDivisions, texture)
         else
-            ModelManagerVulkan modelManager
+            ModelManagerVulkan modelManager = GetModelManager()
             return modelManager:GetSphereBlueprint(width, height, depth, hDivisions, vDivisions)
         end
 end
@@ -2247,6 +2248,12 @@ end
     
     action GetResources returns ModelResources
         return resources
+    end
+    
+    action GetModelManager returns ModelManagerVulkan
+        GameStateManager manager
+        VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+        return graphics:GetModelManager()
     end
 
 end

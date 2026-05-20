@@ -1,0 +1,160 @@
+package Libraries.Game.Graphics.Models.Vulkan
+
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanBuffer
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
+use Libraries.Containers.Number32BitArray
+use Libraries.Game.NumberUtilities
+use Libraries.Compute.Vector4
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Vulkan.VulkanTextureManager
+use Libraries.Game.Graphics.SharedTextureManager
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.Vulkan.VulkanNumber32BitMappedMemory
+use Libraries.Game.Graphics.Vulkan.Commands.CopyBufferCommand
+
+class MaterialVulkan
+    
+    VulkanDevice device = undefined
+    
+    boolean dataTransferred = false
+    
+    /*The buffer for an individual material holds this data:
+Diffuse color (RGBA8888, 4 bytes)
+Texture index (uint, 4 bytes)
+Has Normal Map? (uint, 4 bytes, 0 or 1 for boolean logic)
+Has Rough Map? (uint, 4 bytes, 0 or 1 for boolean logic)
+Normal map index (uint, 4 bytes)
+Rough map index (uint, 4 bytes)
+Roughness Factor (float, 4 bytes)
+Metallic Factor (float, 4 bytes)*/
+    constant integer DIFFUSE_INDEX = 0
+    constant integer TEXTURE_INDEX = 1
+    constant integer HAS_NORMAL_MAP_INDEX = 2
+    constant integer HAS_ROUGH_MAP_INDEX = 3
+    constant integer NORMAL_MAP_INDEX = 4
+    constant integer ROUGH_MAP_INDEX = 5
+    constant integer ROUGH_FACTOR_INDEX = 6
+    constant integer METALLIC_FACTOR_INDEX = 7
+    
+    constant integer MATERIAL_BYTE_SIZE = 4 * 8
+    
+    VulkanBuffer stagingBuffer = undefined
+    VulkanBuffer materialBuffer = undefined
+    
+    integer globalMaterialIndex = -1
+    
+    action Load(VulkanDevice device, Material data)
+        if IsReady()
+            alert("I cannot load data into this mesh because it has already been loaded!")
+        elseif HasData()
+            alert("I cannot set this mesh's data because the data was already set!")
+        end
+        
+        me:device = device
+        VulkanConstants constants
+        NumberUtilities utility
+        
+        VulkanBuffer stagingBuffer
+        me:stagingBuffer = stagingBuffer
+        
+        stagingBuffer:CreateTransferSourceBuffer(device, MATERIAL_BYTE_SIZE)
+        
+        Vector4 diffuse = data:GetDiffuse()
+        text texturePath = data:GetPath()
+        text normalPath = data:GetNormalMapPath()
+        text roughPath = data:GetMetalRoughMap()
+        
+        Number32BitArray dataArray
+        dataArray:SetSize(MATERIAL_BYTE_SIZE / 4)
+        // If no diffuse color is used, use a default white.
+        if diffuse not= undefined
+            dataArray:Set(DIFFUSE_INDEX, utility:PackNormalizedVector4(diffuse:GetX(), diffuse:GetY(), diffuse:GetZ(), diffuse:GetW()))
+        else
+            dataArray:Set(DIFFUSE_INDEX, utility:PackNormalizedVector4(1.0, 1.0, 1.0, 1.0))
+        end
+        // Provide the default unit texture if no other texture is used.
+        if texturePath = undefined or texturePath = ""
+            SharedTextureManager sharedTextures
+            Texture unitTexture = sharedTextures:GetUnitTexture()
+            dataArray:Set(TEXTURE_INDEX, unitTexture:GetVulkanTextureIndex())
+        else
+            Texture texture
+            texture:LoadFromFile(texturePath)
+            dataArray:Set(TEXTURE_INDEX, texture:GetVulkanTextureIndex())
+        end
+        if normalPath = undefined or normalPath = ""
+            dataArray:Set(HAS_NORMAL_MAP_INDEX, 0)
+            dataArray:Set(NORMAL_MAP_INDEX, 0)
+        else
+            dataArray:Set(HAS_NORMAL_MAP_INDEX, 1)
+            Texture normal
+            normal:LoadFromFile(normalPath)
+            dataArray:Set(NORMAL_MAP_INDEX, normal:GetVulkanTextureIndex())
+        end
+        if roughPath = undefined or roughPath = ""
+            dataArray:Set(HAS_ROUGH_MAP_INDEX, 0)
+            dataArray:Set(ROUGH_MAP_INDEX, 0)
+        else
+            dataArray:Set(HAS_ROUGH_MAP_INDEX, 1)
+            Texture rough
+            rough:LoadFromFile(roughPath)
+            dataArray:Set(ROUGH_MAP_INDEX, rough:GetVulkanTextureIndex())
+        end
+        dataArray:Set(ROUGH_FACTOR_INDEX, data:GetRoughness())
+        dataArray:Set(METALLIC_FACTOR_INDEX, data:GetMetallic())
+        
+        VulkanNumber32BitMappedMemory mapping = stagingBuffer:MapToNumber32BitMemory()
+        mapping:Set(dataArray)
+        stagingBuffer:StopMapping()
+    end
+    
+    action HasData returns boolean
+        return stagingBuffer not= undefined or materialBuffer not= undefined
+    end
+    
+    action IsReady returns boolean
+        return materialBuffer not= undefined and dataTransferred
+    end
+    
+    action GetDevice returns VulkanDevice
+        return device
+    end
+    
+    action TransferBuffers(VulkanCommandBuffer commandBuffer)
+        if dataTransferred
+            return now
+        end
+        
+        VulkanBuffer destination
+        materialBuffer = destination
+        
+        VulkanConstants constants
+        materialBuffer:CreateTransferDestinationBuffer(device, MATERIAL_BYTE_SIZE, constants:BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+        
+        CopyBufferCommand copyCommand
+        copyCommand:SetSourceBuffer(stagingBuffer)
+        copyCommand:SetDestinationBuffer(materialBuffer)
+        copyCommand:SetSize(materialBuffer:GetSize())        
+
+        commandBuffer:Record(copyCommand)
+        
+        dataTransferred = true
+    end
+    
+    action GetBuffer returns VulkanBuffer
+        return materialBuffer
+    end
+    
+    action GetGlobalMaterialIndex returns integer
+        return globalMaterialIndex
+    end
+
+    action SetGlobalMaterialIndex(integer globalMaterialIndex)
+        me:globalMaterialIndex = globalMaterialIndex
+    end
+
+end

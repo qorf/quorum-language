@@ -1,0 +1,185 @@
+package Libraries.Game.Graphics.Vulkan
+
+use Libraries.Containers.Array
+use Libraries.Game.GameStateManager
+use Libraries.Containers.Number32BitArray
+use Libraries.Game.Graphics.Color
+use Libraries.Compute.Matrix4
+
+/*This class is used by the VulkanPainter3D to manage instance data and queue indirect draw commands.
+Most users will never need to use this class directly.*/
+class VulkanDrawQueue3D
+    
+    VulkanDevice device = undefined
+    
+    Array<VulkanBuffer> instanceData
+    Array<VulkanNumber32BitMappedMemory> instanceMappings
+    
+    integer currentInstanceIndex = 0
+    integer maxInstances = -1
+    
+    VulkanDescriptorSetLayout instanceDataLayout = undefined
+    VulkanDescriptorSet instanceDataDescriptorSet = undefined
+    
+    /*
+We use the physical device limits to figure out how many descriptors we can store at once for textures, but
+some platforms return -1 instead of a reasonable value. In this case, we use this default value.
+*/
+    constant integer DEFAULT_MAX_DESCRIPTORS = 256
+    
+    // The size of a single buffer of instance data, in bytes and as 4-byte words.
+    constant integer INSTANCE_BUFFER_WORD_SIZE = 23
+    constant integer INSTANCE_BUFFER_BYTE_SIZE = INSTANCE_BUFFER_WORD_SIZE * 4
+    
+    // Indices for the location of instance data, aligned to word indices (not bytes).
+    constant integer VERTEX_BUFFER_INDEX = 0
+    constant integer INDEX_BUFFER_INDEX = 1
+    constant integer MATERIAL_INDEX = 2
+    constant integer TEXTURE_OVERRIDE = 3
+    constant integer TEXTURE_INDEX = 4
+    constant integer COLOR_OVERRIDE = 5
+    constant integer DIFFUSE_COLOR_INDEX = 6
+    constant integer TRANSFORM_MATRIX_INDEX = 7
+    
+    // A reusable array for transferring data to mapped memory in bulk.
+    Number32BitArray transferArray
+    
+    action Create(VulkanDevice device, VulkanGraphics graphics)
+        me:device = device
+        transferArray:SetSize(INSTANCE_BUFFER_WORD_SIZE)
+        
+        VulkanConstants constants
+        VulkanDescriptorSetManager setManager = graphics:GetDescriptorSetManager()
+
+        VulkanPhysicalDevice physical = device:GetPhysicalDevice()
+        VulkanPhysicalDeviceLimits limits = physical:GetLimits()
+        integer maxPerStage = limits:GetMaxPerStageDescriptorUniformBuffers()
+        integer maxFullPipeline = limits:GetMaxDescriptorSetUniformBuffers()
+        output "VulkanDrawQueue3D (Create): MaxPerStage = " + maxPerStage + ", MaxFullPipeline = " + maxFullPipeline
+        
+        maxInstances = maxPerStage
+        if maxInstances <= 0
+            maxInstances = DEFAULT_MAX_DESCRIPTORS
+        end
+        Array<VulkanDescriptorSetLayoutBinding> bindings
+
+        VulkanDescriptorSetLayoutBinding buffersBinding
+        buffersBinding:SetBinding(0)
+        buffersBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+        buffersBinding:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT)
+        buffersBinding:SetDescriptorCount(maxInstances)
+        buffersBinding:SetBindingFlags(constants:DESCRIPTOR_BINDING_DYNAMIC)
+        bindings:Add(buffersBinding)
+        
+        VulkanDescriptorSetLayout instanceDataLayout
+        instanceDataLayout:CreateUpdateAfterBind(device, bindings)
+        me:instanceDataLayout = instanceDataLayout
+
+        VulkanDescriptorSetManager descriptorSetManager = graphics:GetDescriptorSetManager()
+        instanceDataDescriptorSet = descriptorSetManager:CreateDescriptorSet(instanceDataLayout, constants:DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT)
+    end
+    
+    action Begin
+        currentInstanceIndex = 0
+    end
+    
+    action GetNextInstanceData returns VulkanNumber32BitMappedMemory
+        VulkanNumber32BitMappedMemory result = GetInstanceData(currentInstanceIndex)
+        currentInstanceIndex = currentInstanceIndex + 1
+        return result
+    end
+    
+    action GetInstanceData(integer index) returns VulkanNumber32BitMappedMemory
+        if instanceData:GetSize() < index
+            return instanceMappings:Get(index)
+        end
+        
+        if instanceData:GetSize() >= maxInstances
+            return undefined
+        end
+        
+        VulkanConstants constants
+        
+        VulkanBuffer buffer
+        buffer:CreateMappableBuffer(device, INSTANCE_BUFFER_BYTE_SIZE, constants:BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+        instanceData:Add(buffer)
+        
+        VulkanNumber32BitMappedMemory mapping = buffer:MapToNumber32BitMemory()
+        instanceMappings:Add(mapping)
+        
+        VulkanDescriptorResourcesInfo bufferInfo
+                bufferInfo:SetDestinationBinding(0)
+                bufferInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+                bufferInfo:SetDestinationArrayElement(index)
+                bufferInfo:AddBufferInfo(buffer, 0, buffer:GetSize())
+                
+                instanceDataDescriptorSet:LinkResources(bufferInfo)
+        
+        return mapping
+    end
+    
+    action AddInstanceData(integer vertexBufferIndex,
+integer indexBufferIndex,
+integer materialIndex,
+integer textureIndex,
+Color diffuseColor,
+Matrix4 modelMatrix)
+        VulkanNumber32BitMappedMemory mappedMemory = GetNextInstanceData()
+        
+        transferArray:Set(VERTEX_BUFFER_INDEX, vertexBufferIndex)
+        transferArray:Set(INDEX_BUFFER_INDEX, indexBufferIndex)
+        transferArray:Set(MATERIAL_INDEX, materialIndex)
+        if textureIndex > 0
+            transferArray:Set(TEXTURE_OVERRIDE, 1)
+            transferArray:Set(TEXTURE_INDEX, textureIndex)
+        else
+            transferArray:Set(TEXTURE_OVERRIDE, 0)
+            transferArray:Set(TEXTURE_INDEX, 0)
+        end
+        if diffuseColor not= undefined
+            transferArray:Set(COLOR_OVERRIDE, 1)
+            transferArray:Set(DIFFUSE_COLOR_INDEX, diffuseColor:EncodeColorAsNumber())
+        else
+            transferArray:Set(COLOR_OVERRIDE, 0)
+            transferArray:Set(DIFFUSE_COLOR_INDEX, 0)
+        end
+        
+        transferArray:Set(TRANSFORM_MATRIX_INDEX, modelMatrix:row0column0)
+        transferArray:Set(TRANSFORM_MATRIX_INDEX + 1, modelMatrix:row1column0)
+        transferArray:Set(TRANSFORM_MATRIX_INDEX + 2, modelMatrix:row2column0)
+        transferArray:Set(TRANSFORM_MATRIX_INDEX + 3, modelMatrix:row3column0)
+        transferArray:Set(TRANSFORM_MATRIX_INDEX + 4, modelMatrix:row0column1)
+        transferArray:Set(TRANSFORM_MATRIX_INDEX + 5, modelMatrix:row1column1)
+        transferArray:Set(TRANSFORM_MATRIX_INDEX + 6, modelMatrix:row2column1)
+        transferArray:Set(TRANSFORM_MATRIX_INDEX + 7, modelMatrix:row3column1)
+        transferArray:Set(TRANSFORM_MATRIX_INDEX + 8, modelMatrix:row0column2)
+        transferArray:Set(TRANSFORM_MATRIX_INDEX + 9, modelMatrix:row1column2)
+        transferArray:Set(TRANSFORM_MATRIX_INDEX + 10, modelMatrix:row2column2)
+        transferArray:Set(TRANSFORM_MATRIX_INDEX + 11, modelMatrix:row3column2)
+        transferArray:Set(TRANSFORM_MATRIX_INDEX + 12, modelMatrix:row0column3)
+        transferArray:Set(TRANSFORM_MATRIX_INDEX + 13, modelMatrix:row1column3)
+        transferArray:Set(TRANSFORM_MATRIX_INDEX + 14, modelMatrix:row2column3)
+        transferArray:Set(TRANSFORM_MATRIX_INDEX + 15, modelMatrix:row3column3)
+        
+        mappedMemory:Set(transferArray)
+    end
+    
+    action AddIndirectDrawCommand(integer vertexCount, integer instanceCount)
+        
+    end
+    
+    action Dispose
+        integer i = 0
+        repeat while i < instanceData:GetSize()
+            VulkanBuffer data = instanceData:Get(i)
+            VulkanNumber32BitMappedMemory mapping = instanceMappings:Get(i)
+            data:StopMapping()
+            data:Dispose()
+            mapping:Dispose()
+            i = i + 1
+        end
+        instanceDataLayout:Dispose()
+        //instanceDataDescriptorSet:Dispose()
+    end
+    
+end

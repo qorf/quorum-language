@@ -11,6 +11,19 @@ use Libraries.Containers.Number32BitArray
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
+use Libraries.Game.Game
+use Libraries.Containers.Iterator
+use Libraries.Game.Layer
+use Libraries.Game.Layer3D
+use Libraries.Containers.HashTable
+use Libraries.Game.Graphics.Models.ModelBlueprint
+use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
+use Libraries.Game.Graphics.Vulkan.Commands.PipelineBarrierCommand
+use Libraries.Game.Graphics.Vulkan.Commands.BeginRenderPassCommand
+use Libraries.Compute.Matrix4
+use Libraries.Game.Graphics.Vulkan.Commands.SetViewportCommand
+use Libraries.Game.Graphics.Vulkan.Commands.BindPipelineCommand
+use Libraries.Game.Graphics.Vulkan.Commands.EndRenderPassCommand
 
 class VulkanPainter3D is Painter3D
     
@@ -26,6 +39,19 @@ class VulkanPainter3D is Painter3D
     
     // An internal array used to transfer data from Matrix4 objects to mapped memory.
     Number32BitArray matrix4Array
+    
+    // The sampler used to access textures.
+VulkanSampler immutableSampler = undefined
+    
+    integer viewportX = 0
+    integer viewportY = 0
+    integer viewportWidth = 0
+    integer viewportHeight = 0
+    
+    HashTable<ModelBlueprint, VulkanPainter3DBatch> batches
+    HashTable<ModelBlueprint, VulkanPainter3DBatch> transparentBatches
+    Array<VulkanPainter3DBatch> pendingBatches
+    Array<VulkanPainter3DBatch> pendingTransparentBatches
     
 on create
         matrix4Array:SetSize(16)
@@ -140,14 +166,352 @@ depthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
         me:camera = camera
     end
     
+    private action GetBatch(Model model) returns VulkanPainter3DBatch
+        // TO-DO: For now, assume models do not use transparency.
+        boolean isTransparent = false
+        ModelBlueprintVulkan schematic = cast(ModelBlueprintVulkan, model:GetModelBlueprint())
+        if not isTransparent
+if batches:HasKey(schematic)
+            return batches:GetValue(schematic)
+        else
+            // This is our first time using this ModelBlueprint.
+            VulkanPainter3DBatch batch = NewBatch(model, isTransparent)
+            batches:Add(schematic, batch)
+            return batch
+        end
+            else
+            if transparentBatches:HasKey(schematic)
+                return transparentBatches:GetValue(schematic)
+            else
+                // This is our first time using this ModelBlueprint.
+            VulkanPainter3DBatch batch = NewBatch(model, isTransparent)
+            transparentBatches:Add(schematic, batch)
+            return batch
+            end
+        end
+    end
+
+    private action NewBatch(Model model, boolean isTransparent) returns VulkanPainter3DBatch
+        VulkanPainter3DBatch batch
+        ModelBlueprintVulkan blue = cast(ModelBlueprintVulkan, model:GetModelBlueprint())
+        batch:Create(blue, isTransparent)
+        return batch
+    end
+    
     action Begin
-//        output "NYI: VulkanPainter3D Begin"
-//        alert("NYI")
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        // Abort if rendering is paused due to window minimization.
+        if graphics:IsRenderingPaused()
+            return now
+        end
+        
+        // If the render pass isn't defined and valid, regenerate it.
+        // We'll have to determine if this is the first painter in the Game as part of this.
+        if not IsRenderPassValid()
+            boolean isFirstLayer = false
+
+            Game game = gameState:GetGame()
+            Iterator<Layer> layers = game:GetLayerIterator()
+            if layers:HasNext()
+Layer layer = layers:Next()
+                if layer is Layer3D
+                    Layer3D layer3D = cast(Layer3D, layer)
+                    isFirstLayer = layer3D:GetPainter():Equals(me)
+                end
+            end
+
+            RegenerateRenderPass(isFirstLayer)
+
+            // If the default program hasn't been loaded, do so now.
+            if defaultProgram = undefined
+                GetDefaultProgram()
+            end
+        end
+        if cameraBuffers:IsEmpty()
+            // In this case, we haven't initialized the camera resources or sampler yet.
+            VulkanDevice device = renderPass:GetDevice()
+            VulkanConstants constants
+            
+// Start by creating a sampler. We'll use this to access texture information in the shaders.
+            VulkanSampler immutableSampler = graphics:GetTextureManager():GetDefaultSampler()
+            me:immutableSampler = immutableSampler
+            
+                        // Initialize the DescriptorSetLayouts that will describe how our uniforms will be sent to the device.
+// Create a structure for the uniforms. We'll need this for the projection matrix (i.e. the camera).
+            // Define how our uniforms will be laid out.
+            VulkanDescriptorSetLayout descriptorLayout
+            Array<VulkanDescriptorSetLayoutBinding> descriptorBindings            
+
+            // Describe the binding of the uniform buffers.
+            VulkanDescriptorSetLayoutBinding uniformsBinding
+            uniformsBinding:SetBinding(0)
+            uniformsBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+            uniformsBinding:SetDescriptorCount(1)
+            uniformsBinding:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT)
+            descriptorBindings:Add(uniformsBinding)
+
+            // Describe the binding of the image sampler
+            VulkanDescriptorSetLayoutBinding samplerBinding
+            samplerBinding:SetBinding(1)
+            samplerBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_SAMPLER)
+            samplerBinding:SetDescriptorCount(1)
+            samplerBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+            Array<VulkanSampler> immutableSamplers
+            immutableSamplers:Add(immutableSampler)
+            samplerBinding:SetImmutableSamplers(immutableSamplers)
+            descriptorBindings:Add(samplerBinding)
+
+            descriptorLayout:Create(device, descriptorBindings)
+            
+// Create the buffers for the uniforms. We'll need to know how many images the swapchain has for this.
+            // This is because we'll need separate buffers for each swapchain image, so each image can be done in parallel.
+            // Once the buffers are made, we can also combine them together with the layouts to create our final DescriptorSets.
+            VulkanDescriptorSetManager descriptorSetManager = graphics:GetDescriptorSetManager()
+
+            integer counter = 0
+            repeat while counter < graphics:GetSwapchain():GetImageCount()
+                // These buffers are for a 4x4 matrix of floats, so 4 bytes * 16 values.
+                VulkanBuffer buffer
+                buffer:CreateMappableBuffer(device, 4 * 16, constants:BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+                cameraBuffers:Add(buffer)
+
+                VulkanNumber32BitMappedMemory mapping = buffer:MapToNumber32BitMemory()
+                cameraMappings:Add(mapping)
+
+                VulkanDescriptorResourcesInfo cameraResourcesInfo
+                cameraResourcesInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+                cameraResourcesInfo:AddBufferInfo(cameraBuffers:Get(counter), 0, cameraBuffers:Get(counter):GetSize())
+
+                VulkanDescriptorSet set = descriptorSetManager:CreateDescriptorSet(descriptorLayout, cameraResourcesInfo)
+                cameraDescriptors:Add(set)
+
+                counter = counter + 1
+            end
+        end
+        
+        //needsFlush = false
+        //isClipping = false
+        //clipX1 = -1
+        //clipX2 = -1
+        //clipY1 = -1
+        //clipY2 = -1
+        //clipWidth = -1
+        //clipHeight = -1
     end
     
     action End
-//        output "NYI: VulkanPainter3D End"
-//        alert("NYI")
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        // Abort if rendering is paused due to window minimization.
+        if graphics:IsRenderingPaused()
+            return now
+        end
+        
+        //Flush()
+
+        VulkanCommandBuffer commandBuffer = graphics:GetCurrentRenderCommandBuffer()
+        VulkanFramebuffer framebuffer = graphics:GetCurrentFramebuffer()
+        VulkanSwapchain swapchain = graphics:GetSwapchain()
+        VulkanClearValue clearValue = graphics:GetClearValue()
+        VulkanConstants constants
+        
+        /*
+        End the batches. This will reset information from the last pass, dispose of any batches that 
+        haven't been used in a long time, and record transfer commands from staging buffers to output buffers.
+        */
+        //EndBatches(commandBuffer)
+        
+        /*TO-DO: Bind descriptors for:
+- Camera
+- Global texture set
+- Global model info
+- Instance data*/
+
+        if not pendingBatches:IsEmpty() or not pendingTransparentBatches:IsEmpty()
+            // After ending the batches, we need to wait for data transfers to complete before any drawing can occur.
+            // Create a memory barrier that ensures that all commands after this must wait for the transfer stage of
+            // the pipeline to complete before operations in the vertex input stage can begin.
+            VulkanMemoryBarrier memoryBarrier
+            memoryBarrier:SetSourceStageMask(constants:PIPELINE_STAGE_TRANSFER_BIT)
+            memoryBarrier:SetSourceAccessMask(constants:ACCESS_MEMORY_WRITE_BIT)
+            memoryBarrier:SetDestinationStageMask(constants:PIPELINE_STAGE_VERTEX_INPUT_BIT)
+            memoryBarrier:SetDestinationAccessMask(constants:ACCESS_MEMORY_READ_BIT)
+
+            PipelineBarrierCommand barrierCommand
+            barrierCommand:SetMemoryBarrier(memoryBarrier)
+            commandBuffer:Record(barrierCommand)
+        end
+
+        integer currentSwapchainIndex = graphics:GetCurrentResourceIndex()
+        
+        camera:Update()
+VulkanNumber32BitMappedMemory currentCameraMapping = cameraMappings:Get(currentSwapchainIndex)
+        VulkanDescriptorSet currentCameraDescriptor = cameraDescriptors:Get(currentSwapchainIndex)
+        
+Number32BitArray projectionViewMatrix = MatrixToArray(camera:GetCombinedMatrix())
+        currentCameraMapping:Set(projectionViewMatrix)
+        
+VulkanDescriptorSet texturesDescriptorSet = graphics:GetTextureManager():GetGlobalTextureDescriptorSet()
+
+        // Create the command to begin the render pass.
+        BeginRenderPassCommand beginRenderPass
+        beginRenderPass:SetRenderPass(renderPass)
+        beginRenderPass:SetClearValue(clearValue)
+        beginRenderPass:SetFramebuffer(framebuffer)
+        beginRenderPass:SetRenderArea(swapchain:GetImageWidth(), swapchain:GetImageHeight())
+        commandBuffer:Record(beginRenderPass)
+
+        // TO-DO: Support custom shaders for 3D.
+        ShaderProgram currentProgram = GetDefaultProgram()
+        VulkanPipeline currentPipeline = GetDefaultPipeline()
+        
+        BindPipelineCommand bindPipeline
+            bindPipeline:SetPipeline(currentPipeline)
+            commandBuffer:Record(bindPipeline)
+        
+        //Set the viewport. If no viewport dimensions were set, we get reasonable defaults from the swapchain.
+            if viewportWidth = 0
+                viewportWidth = swapchain:GetImageWidth()
+            end
+            if viewportHeight = 0
+                viewportHeight = swapchain:GetImageHeight()
+            end
+            
+            SetViewportCommand setViewport
+            setViewport:SetPosition(viewportX, swapchain:GetImageHeight() - viewportY)
+            setViewport:SetSize(viewportWidth, -viewportHeight)
+            commandBuffer:Record(setViewport)
+        
+        Array<VulkanPainter3DBatch> currentBatches = pendingBatches
+        repeat until currentBatches = undefined
+            integer i = 0
+            repeat while i < currentBatches:GetSize()
+                /*
+TO-DO HERE:
+- Set appropriate section of index data buffers related to this batch
+- Send the indirect draw calls
+- Depending on if the batch includes animation, it may need to draw some elements one at a time
+*/
+                i = i + 1
+            end
+            
+            // After drawing all opaque geometry, repeat the process for transparent batches.
+            if currentBatches = pendingBatches
+                currentBatches = pendingTransparentBatches
+            else
+                currentBatches = undefined
+            end
+        end
+    
+        //// Set the pipelines and send the corresponding draw calls.
+        //integer i = 0
+        //repeat while i < pendingBatches:GetSize()
+            //VulkanPainter2DBatch batch = pendingBatches:Get(i)
+            //DrawIndexedCommand drawCommand = pendingDrawCommands:Get(i)
+            //Vector4 clipValues = pendingClipCoordinates:Get(i)
+            //
+            //if currentProgram not= batch:GetProgram()
+                //if currentProgram not= undefined
+                    //currentProgram:End()
+                //end
+                //
+                //currentProgram = batch:GetProgram()
+                //currentPipeline = batch:GetPipeline()
+                //
+//BindPipelineCommand bindPipeline
+            //bindPipeline:SetPipeline(batch:GetPipeline())
+            //commandBuffer:Record(bindPipeline)
+                //
+            //end
+//
+            //// Ensure that, if no viewport dimensions were set, we get reasonable defaults from the swapchain.
+            //if viewportWidth = 0
+                //viewportWidth = swapchain:GetImageWidth()
+            //end
+            //if viewportHeight = 0
+                //viewportHeight = swapchain:GetImageHeight()
+            //end
+            //
+            //SetViewportCommand setViewport
+            //setViewport:SetPosition(viewportX, swapchain:GetImageHeight() - viewportY)
+            //setViewport:SetSize(viewportWidth, -viewportHeight)
+            //commandBuffer:Record(setViewport)
+            //
+            //boolean clippingChanged = false
+            //if i = 0
+                //// Always send a scissor command before the first draw.
+                //clippingChanged = true
+            //elseif clipValues not= undefined
+                //if lastClipValues = undefined
+                    //// In this case, the current clipping values are defined, and the last set wasn't.
+                    //clippingChanged = true
+                //elseif clipValues:GetX() not= lastClipValues:GetX() or clipValues:GetY() not= lastClipValues:GetY() or
+//clipValues:GetZ() not= lastClipValues:GetZ() or clipValues:GetW() not= lastClipValues:GetW()
+                    //// In this case, both vectors are defined, but their values don't match.
+                    //clippingChanged = true
+                //end
+            //elseif lastClipValues not= undefined
+                //// In this case, the current clip values isn't defined, and the last set was.
+                //clippingChanged = true
+            //end
+            //
+            //if clippingChanged
+//// Set scissor command
+            //SetScissorCommand setScissor
+                //if clipValues = undefined
+//setScissor:SetPosition(0, 0)
+            //setScissor:SetSize(swapchain:GetImageWidth(), swapchain:GetImageHeight())
+                //else
+                    //setScissor:SetPosition(cast(integer, clipValues:GetX()), swapchain:GetImageHeight() - cast(integer, clipValues:GetY() + clipValues:GetW()))
+//setScissor:SetSize(cast(integer, clipValues:GetZ()), cast(integer, clipValues:GetW()))
+                //end
+//commandBuffer:Record(setScissor)
+            //end
+//
+            //BindVertexBufferCommand vertexBind
+            //vertexBind:SetBuffer(batch:GetVertexOutputBuffer())
+            //commandBuffer:Record(vertexBind)
+//
+            //BindIndexBufferCommand indexBind
+            //indexBind:SetBuffer(batch:GetIndexOutputBuffer())
+            //commandBuffer:Record(indexBind)
+//
+            //// Once the batches have loaded their vertex and index buffers, allow the shader mapping to submit commands to bind descriptors.
+            //VulkanShaderMapping mapping = cast(VulkanShaderMapping, currentProgram:GetShaderMapping())
+            //
+            //// If the mapping uses default 2D resouces, automatically bind those resources.
+            //if mapping:UsesDefaultResources2D()
+                //VulkanPipelineLayout pipelineLayout = batch:GetPipeline():GetInfo():GetLayout()
+                //
+//BindDescriptorSetCommand descriptorBind
+            //descriptorBind:SetPipelineLayout(pipelineLayout)
+            //descriptorBind:SetDescriptorSet(currentCameraDescriptor)
+            //commandBuffer:Record(descriptorBind)
+//
+            //BindDescriptorSetCommand texturesBind
+            //texturesBind:SetPipelineLayout(pipelineLayout)
+            //texturesBind:SetDescriptorSet(texturesDescriptorSet)
+            //texturesBind:SetSetIndex(1)
+            //commandBuffer:Record(texturesBind)
+            //end
+            //mapping:Begin(currentProgram, camera, commandBuffer, currentSwapchainIndex)
+//
+            //commandBuffer:Record(drawCommand)
+//
+            //lastClipValues = clipValues
+            //i = i + 1
+        //end
+
+        // End the render pass.
+        EndRenderPassCommand endRenderPass
+        commandBuffer:Record(endRenderPass)
+
+        // Set the current batch to undefined, to ensure we're starting with a clean slate again next time.
+        //currentBatch = undefined
+
+        // Empty the pending arrays.
+        //pendingDrawCommands:Empty(false)
+        //pendingBatches:Empty(false)
+        //pendingClipCoordinates:Empty(false)
     end
     
     action SetSkybox(Skybox skybox)
@@ -161,8 +525,44 @@ depthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
     end
     
     action Render(Model model)
-//        output "NYI: VulkanPainter3D Render"
-//        alert("NYI")
+        VulkanPainter3DBatch batch = GetBatch(model)
+        if batch:IsPending() = false
+            batch:SetPending(true)
+            if batch:IsTransparent()
+                pendingTransparentBatches:Add(batch)
+            else
+                pendingBatches:Add(batch)
+            end
+            batch:ResetAge()
+        end
+        batch:Add(model)
+    end
+    
+    private action MatrixToArray(Matrix4 matrix) returns Number32BitArray
+        matrix4Array:Set(0, matrix:row0column0)
+        matrix4Array:Set(1, matrix:row1column0)
+        matrix4Array:Set(2, matrix:row2column0)
+        matrix4Array:Set(3, matrix:row3column0)
+        matrix4Array:Set(4, matrix:row0column1)
+        matrix4Array:Set(5, matrix:row1column1)
+        matrix4Array:Set(6, matrix:row2column1)
+        matrix4Array:Set(7, matrix:row3column1)
+        matrix4Array:Set(8, matrix:row0column2)
+        matrix4Array:Set(9, matrix:row1column2)
+        matrix4Array:Set(10, matrix:row2column2)
+        matrix4Array:Set(11, matrix:row3column2)
+        matrix4Array:Set(12, matrix:row0column3)
+        matrix4Array:Set(13, matrix:row1column3)
+        matrix4Array:Set(14, matrix:row2column3)
+        matrix4Array:Set(15, matrix:row3column3)
+        return matrix4Array
+    end
+    
+    action SetViewport(integer x, integer y, integer width, integer height)
+        viewportX = x
+        viewportY = y
+        viewportWidth = width
+        viewportHeight = height
     end
     
 end

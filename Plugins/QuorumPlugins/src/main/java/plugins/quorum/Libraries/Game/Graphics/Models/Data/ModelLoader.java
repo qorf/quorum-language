@@ -507,7 +507,7 @@ public class ModelLoader {
             material.SetDiffuse(diffuse);
             material.SetNormalMapPath(normalMapPath);
             material.SetMetalRoughMap(metallicRoughnessPath);
-            material.SetMetalic(metallicArr[0]);
+            material.SetMetallic(metallicArr[0]);
             material.SetRoughness(roughnessArr[0]);
 
             return material;
