@@ -229,6 +229,7 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
             label:SetFont(font)
             label:SetSize(properties:GetFontSize())
             label:SetInterfaceScale(properties:GetInterfaceScale())
+            label:SetBackgroundColor(properties:GetBackgroundColor())
             text labelText = properties:GetLabelText()
             if labelText = ""
                 labelText = treeItem:GetName()
@@ -240,6 +241,10 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
         
         parent:Control:LoadGraphics(properties)
+    end
+
+    action GetLabel returns ControlLabel
+        return label
     end
 
 end
