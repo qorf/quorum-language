@@ -53,6 +53,9 @@ VulkanSampler immutableSampler = undefined
     Array<VulkanPainter3DBatch> pendingBatches
     Array<VulkanPainter3DBatch> pendingTransparentBatches
     
+    // An array of draw queues, one per swapchain image. Used to bulk store instance data and draw indirect commands.
+    Array<VulkanDrawQueue3D> drawQueues
+    
 on create
         matrix4Array:SetSize(16)
     end
@@ -228,7 +231,7 @@ Layer layer = layers:Next()
             end
         end
         if cameraBuffers:IsEmpty()
-            // In this case, we haven't initialized the camera resources or sampler yet.
+            // In this case, we haven't initialized the camera resources, sampler, or draw queues yet.
             VulkanDevice device = renderPass:GetDevice()
             VulkanConstants constants
             
@@ -284,6 +287,11 @@ Layer layer = layers:Next()
 
                 VulkanDescriptorSet set = descriptorSetManager:CreateDescriptorSet(descriptorLayout, cameraResourcesInfo)
                 cameraDescriptors:Add(set)
+                
+                // Also create one draw queue per image in the swapchain.
+                VulkanDrawQueue3D queue
+                queue:Create(device, graphics)
+                drawQueues:Add(queue)
 
                 counter = counter + 1
             end

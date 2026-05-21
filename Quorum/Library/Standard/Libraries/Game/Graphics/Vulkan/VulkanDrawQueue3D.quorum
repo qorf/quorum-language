@@ -44,6 +44,11 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
     // A reusable array for transferring data to mapped memory in bulk.
     Number32BitArray transferArray
     
+    VulkanBuffer drawCommandBuffer = undefined
+    VulkanDrawIndirectDataMappedMemory drawDataMemory = undefined
+    integer currentDrawCommandIndex = 0
+    integer currentDrawInstanceIndex = 0
+    
     action Create(VulkanDevice device, VulkanGraphics graphics)
         me:device = device
         transferArray:SetSize(INSTANCE_BUFFER_WORD_SIZE)
@@ -77,10 +82,22 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
 
         VulkanDescriptorSetManager descriptorSetManager = graphics:GetDescriptorSetManager()
         instanceDataDescriptorSet = descriptorSetManager:CreateDescriptorSet(instanceDataLayout, constants:DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT)
+        
+        // Also create the draw command buffer. In the worst case, every mesh is unique, so it's possible to have an equal number of draw commands and instances.
+        VulkanBuffer buffer
+        drawCommandBuffer = buffer
+        
+        // Dummy data used only to retrieve the size of each data structure in bytes. Needed to size the buffer.
+        VulkanDrawIndirectData drawData
+        
+        drawCommandBuffer:CreateMappableBuffer(device, maxInstances * drawData:GetByteSize(), constants:BUFFER_USAGE_INDIRECT_BUFFER_BIT)
+        drawDataMemory = drawCommandBuffer:MapToDrawIndirectDataMemory()
     end
     
     action Begin
         currentInstanceIndex = 0
+        currentDrawCommandIndex = 0
+        currentDrawInstanceIndex = 0
     end
     
     action GetNextInstanceData returns VulkanNumber32BitMappedMemory
@@ -164,8 +181,11 @@ Matrix4 modelMatrix)
         mappedMemory:Set(transferArray)
     end
     
-    action AddIndirectDrawCommand(integer vertexCount, integer instanceCount)
+    action AddDrawIndirectCommand(integer vertexCount, integer instanceCount)
+        drawDataMemory:Set(currentDrawCommandIndex, vertexCount, instanceCount, 0, currentDrawInstanceIndex)
         
+        currentDrawCommandIndex = currentDrawCommandIndex + 1
+        currentDrawInstanceIndex = currentDrawInstanceIndex + instanceCount
     end
     
     action Dispose

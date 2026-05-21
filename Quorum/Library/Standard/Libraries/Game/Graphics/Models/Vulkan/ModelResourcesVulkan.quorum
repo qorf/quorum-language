@@ -22,10 +22,18 @@ class ModelResourcesVulkan is ModelResources
         diffuseColor = color
 end
     
+    action GetColor returns Color
+        return diffuseColor
+    end
+    
     /* This action sets the texture of a primitive model. */
     action SetTexture(Texture texture)
         me:texture = texture
 end
+    
+    action GetTexture returns Texture
+        return texture
+    end
     
     action SetFromBlueprint(ModelBlueprint schematic)
         // TO-DO: Set information specific to animation here.

@@ -1,11 +1,14 @@
 package Libraries.Game.Graphics.Vulkan.Commands
+
 use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+use Libraries.Game.Graphics.Vulkan.VulkanBuffer
 
 class DrawIndirectCommand is VulkanCommand
-    integer vertexCount = 0
-    integer instanceCount = 0
-    integer firstVertex = 0
-    integer firstInstance = 0
+    
+    VulkanBuffer drawCommands = undefined
+    integer offset = 0
+    integer drawCount = 0
+    integer stride = 0
     
     /*
     This action records this command into the provided command buffer.
@@ -13,37 +16,37 @@ class DrawIndirectCommand is VulkanCommand
     buffer's "BeginRecording" action.
     */
     system action Record(VulkanCommandBuffer buffer)
-    
-    action GetVertexCount returns integer
-        return vertexCount
+
+    action GetDrawCommands returns VulkanBuffer
+        return drawCommands
     end
 
-    action SetVertexCount(integer vertexCount)
-        me:vertexCount = vertexCount
+    action SetDrawCommands(VulkanBuffer drawCommands)
+        me:drawCommands = drawCommands
     end
 
-    action GetInstanceCount returns integer
-        return instanceCount
+    action GetOffset returns integer
+        return offset
     end
 
-    action SetInstanceCount(integer instanceCount)
-        me:instanceCount = instanceCount
+    action SetOffset(integer offset)
+        me:offset = offset
     end
 
-    action GetFirstVertex returns integer
-        return firstVertex
+    action GetDrawCount returns integer
+        return drawCount
     end
 
-    action SetFirstVertex(integer firstVertex)
-        me:firstVertex = firstVertex
+    action SetDrawCount(integer drawCount)
+        me:drawCount = drawCount
     end
 
-    action GetFirstInstance returns integer
-        return firstInstance
+    action GetStride returns integer
+        return stride
     end
 
-    action SetFirstInstance(integer firstInstance)
-        me:firstInstance = firstInstance
+    action SetStride(integer stride)
+        me:stride = stride
     end
 
 end

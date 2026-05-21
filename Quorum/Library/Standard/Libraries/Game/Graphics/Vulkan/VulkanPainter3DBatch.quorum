@@ -3,12 +3,18 @@ package Libraries.Game.Graphics.Vulkan
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Model
 use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
+use Libraries.Game.Graphics.Models.Vulkan.MeshVulkan
+use Libraries.Game.Graphics.Models.Vulkan.ModelResourcesVulkan
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Texture
 
 class VulkanPainter3DBatch
     
     ModelBlueprintVulkan schematic = undefined
     // It's necessary to store individual models in order to provide per-instance data when drawing occurs.
     Array<Model> models
+    integer meshesPerModel = 0
+    integer totalVertices = 0
     
     boolean isTransparent = false
     
@@ -20,6 +26,15 @@ class VulkanPainter3DBatch
     action Create(ModelBlueprintVulkan schematic, boolean isTransparent)
         me:schematic = schematic
         me:isTransparent = isTransparent
+        
+        Array<MeshVulkan> meshes = schematic:GetMeshes()
+        meshesPerModel = meshes:GetSize()
+        
+        integer i = 0
+        repeat while i < meshesPerModel
+            totalVertices = totalVertices + meshes:Get(i):GetVertexCount()
+            i = i + 1
+        end
     end
     
     action IsTransparent returns boolean
@@ -62,6 +77,49 @@ class VulkanPainter3DBatch
     
     action GetModelCount returns integer
         return models:GetSize()
+    end
+    
+    action GetMeshCount returns integer
+        return models:GetSize() * meshesPerModel
+    end
+    
+    // For all of the models in this batch, store their per-instance data and queue up indirect draw command(s).
+    action ProcessBatch(VulkanDrawQueue3D queue)
+        if schematic:HasAnimation()
+            alert("NYI: Animation in VulkanPainter3DBatch")
+            else
+            integer i = 0
+            repeat while i < meshesPerModel
+                MeshVulkan mesh = schematic:GetMeshes():Get(i)
+                /*integer vertexBufferIndex,
+integer indexBufferIndex,
+integer materialIndex,
+integer textureIndex,
+Color diffuseColor,
+Matrix4 modelMatrix*/
+                integer vertexBufferIndex = mesh:GetGlobalVertexBufferIndex()
+                integer indexBufferIndex = mesh:GetGlobalIndexBufferIndex()
+                integer materialIndex = mesh:GetMaterial():GetGlobalMaterialIndex()
+                
+                integer j = 0
+                repeat while j < models:GetSize()
+                    Model model = models:Get(j)
+                    ModelResourcesVulkan resources = cast(ModelResourcesVulkan, model:GetResources())
+                    Color diffuseOverride = resources:GetColor()
+                    Texture textureOverride = resources:GetTexture()
+                    integer textureOverrideIndex = -1
+                    if textureOverride not= undefined
+                        textureOverrideIndex = textureOverride:GetVulkanTextureIndex()
+                    end
+                    
+                    queue:AddInstanceData(vertexBufferIndex, indexBufferIndex, materialIndex, textureOverrideIndex, diffuseOverride, model:GetTransform())
+                    
+                    j = j + 1
+                end
+            end
+            
+            queue:AddDrawIndirectCommand(totalVertices, GetMeshCount())
+        end
     end
 
 end

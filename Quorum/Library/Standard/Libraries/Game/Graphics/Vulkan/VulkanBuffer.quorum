@@ -140,4 +140,17 @@ class VulkanBuffer
         result:Create(me)
         return result
     end
+    
+    action MapToDrawIndirectDataMemory returns VulkanDrawIndirectDataMappedMemory
+        if not initialized
+            alert("I couldn't map to memory because this VulkanBuffer hasn't been initialized! Use Create() first.")
+        end
+        if not SupportsMapping()
+            alert("I couldn't map to memory because this VulkanBuffer doesn't support mapping! Create it using the 'MEMORY_PROPERTY_HOST_VISIBLE_BIT' property.")
+        end
+
+        VulkanDrawIndirectDataMappedMemory result
+        result:Create(me)
+        return result
+    end
 end
