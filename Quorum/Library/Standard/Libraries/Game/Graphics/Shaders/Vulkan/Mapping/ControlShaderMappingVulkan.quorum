@@ -368,10 +368,10 @@ borderColor = control:GetMouseOverBorderColor()
         end
 
         shape:SetDataForAllVertices(roundingIndex, utility:PackNormalizedVector4(bottomRightRounding, topRightRounding, bottomLeftRounding, topLeftRounding))
-        shape:SetDataForAllVertices(bordersIndex, leftBorder)
-        shape:SetDataForAllVertices(bordersIndex + 1, rightBorder)
-        shape:SetDataForAllVertices(bordersIndex + 2, bottomBorder)
-        shape:SetDataForAllVertices(bordersIndex + 3, topBorder)
+        shape:SetDataForAllVertices(bordersIndex, rightBorder)
+        shape:SetDataForAllVertices(bordersIndex + 1, topBorder)
+        shape:SetDataForAllVertices(bordersIndex + 2, leftBorder)
+        shape:SetDataForAllVertices(bordersIndex + 3, bottomBorder)
         shape:SetDataForAllVertices(aspectRatioIndex, aspectRatio)
         shape:SetDataForAllVertices(antiAliasIndex, 1.0 / height)
     end
