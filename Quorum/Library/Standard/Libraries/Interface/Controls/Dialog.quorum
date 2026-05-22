@@ -25,6 +25,7 @@ use Libraries.Interface.Pages.StackedRowPage
 use Libraries.Game.InputSet
 use Libraries.Interface.Behaviors.Controls.MouseOnBehavior
 use Libraries.Interface.Views.DrawableView
+use Libraries.Containers.Iterator
 
 class Dialog is Control, FormPrimitiveContainer
     Behavior defaultBehavior = undefined
@@ -45,22 +46,17 @@ class Dialog is Control, FormPrimitiveContainer
         SetInputGroup("Dialog")
         SetInterfaceOptionsKey("Dialog")
         
-        //topBar:SetBorderThickness(1)
         topBar:SetInterfaceOptionsKey("DialogBar")
-        //topBar:SetCornerPixelRounding(0,0,8,8)
-        topBar:SetBorderThickness(3)
 
         LayoutProperties properties = GetDefaultLayoutProperties()
         topBar:SetBorderStyle(properties:LEFT + properties:RIGHT + properties:TOP)
         
         properties:SetHorizontalLayoutMode(properties:STANDARD)
         properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
-        properties:SetPixelX(100)
-        properties:SetPixelY(100)
-        //properties:SetPercentageX(0.5)
-        //properties:SetPercentageY(0.5)
-        //properties:SetPercentageOriginX(0.5)
-        //properties:SetPercentageOriginY(0.5)
+        properties:SetPercentageX(0.5)
+        properties:SetPercentageY(0.5)
+        properties:SetPercentageOriginX(0.5)
+        properties:SetPercentageOriginY(0.5)
         SetAccessibilityCode(parent:Item:DIALOG)
         parent:Item:visible = false
     end
@@ -175,6 +171,8 @@ nameLabel:SetAccessibilityCode(nameLabel:parent:Item:NOT_ACCESSIBLE)
 
         layer:OnShow()
         layer:Add(me)
+        
+        RequestLayout()
 
         parent:Item:Show()
         OnShow()
@@ -331,7 +329,7 @@ nameLabel:SetAccessibilityCode(nameLabel:parent:Item:NOT_ACCESSIBLE)
         if GetView2D() = undefined
             DropShadowView view
             view:Initialize()
-            //SetView2D(view)
+            SetView2D(view)
         end
         
         parent:Control:LoadGraphics(properties)
@@ -349,27 +347,49 @@ nameLabel:SetAccessibilityCode(nameLabel:parent:Item:NOT_ACCESSIBLE)
         return true
     end
     
+    
+    /*
+    This action creates a default StackedRowPage and adds it to the Dialog. This page will be empty but 
+    is added to the Dialog so it will be shown automatically when Show() is called. The page will be fit
+    to the size given to the Dialog and adjust if the top bar is being shown. 
+    Attribute: Returns Returns an empty Page that will be drawn when Show is called
+*/
 action InitializeDefaultPage returns Page
         StackedRowPage page
         me:defaultPage = page
         
         if showTopBar
             page:SetPixelHeight(-20)
-            //page:SetTopMargin(-0.5)
+            page:SetTopMargin(-0.5)
         end
+        
+        page:SetBorderThickness(GetBorderThickness())
+        page:GetScrollableRegion():SetBottomLeftPixelRounding(10)
+        page:GetScrollableRegion():SetBottomRightPixelRounding(10)
         
         Add(page)
         return page
     end
     
+    /*
+    This action returns the default page used as the panel for the Dialog. If InitializeDefaultPage has not been called
+    then this action will return undefined.
+    Attribute: Returns Returns the current default page. Returns undefined if the default page hasn't been initialized.
+*/
     action GetDefaultPage returns Page
         return defaultPage
     end
     
+    
     action SetCurrentPage(Page page)
-        if currentPage not= undefined
-            Remove(currentPage)
-        end
+            integer i = 0
+        Iterator<Item2D> iterator = GetChildren():GetIterator()
+            repeat while iterator:HasNext()
+            Item2D child = iterator:Next()
+            if child is Page
+                    Remove(child)
+end
+            end
         me:currentPage = page
         Add(currentPage)
     end
