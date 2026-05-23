@@ -358,6 +358,13 @@ action InitializeDefaultPage returns Page
         StackedRowPage page
         me:defaultPage = page
         
+        ApplyDefaultStyleToPage(page)
+        
+        Add(page)
+        return page
+    end
+    
+    action ApplyDefaultStyleToPage(Page page)
         if showTopBar
             page:SetPixelHeight(-20)
             page:SetTopMargin(-0.5)
@@ -366,9 +373,6 @@ action InitializeDefaultPage returns Page
         page:SetBorderThickness(GetBorderThickness())
         page:GetScrollableRegion():SetBottomLeftPixelRounding(10)
         page:GetScrollableRegion():SetBottomRightPixelRounding(10)
-        
-        Add(page)
-        return page
     end
     
     /*
