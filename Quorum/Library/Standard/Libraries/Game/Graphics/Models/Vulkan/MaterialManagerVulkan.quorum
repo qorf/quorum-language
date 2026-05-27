@@ -35,13 +35,7 @@ class MaterialManagerVulkan
     // TO-DO: NYI, whenever a material is disposed, store its index here. New materials should reuse previously freed IDs before using a new index.
     Queue<integer> recycledMaterialIDs
     
-    Array<VulkanBuffer> globalMaterialArray
-    
-    /*
-We use the physical device limits to figure out how many descriptors we can store at once for textures, but
-some platforms return -1 instead of a reasonable value. In this case, we use this default value.
-*/
-    constant integer DEFAULT_MAX_DESCRIPTORS = 256
+    //Array<VulkanBuffer> globalMaterialArray
     
     action Create(VulkanDevice device)
         me:device = device
@@ -52,7 +46,7 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
             GameStateManager manager
             VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
             VulkanCommandBuffer commandBuffer = graphics:GetCurrentRenderCommandBuffer()
-            VulkanDescriptorSet globalMeshDescriptorSet = graphics:GetModelManager():GetGlobalMeshDescriptorSet()
+            //VulkanDescriptorSet globalMeshDescriptorSet = graphics:GetModelManager():GetGlobalMeshDescriptorSet()
             VulkanConstants constants
 
             integer i = 0
@@ -135,18 +129,18 @@ VulkanImageInfo info
                 if not recycledMaterialIDs:IsEmpty()
                     // TO-DO: Handle this case. This gets complicated by the question of releasing IDs that might be in use for previous frames.
                 else
-                    globalMaterialArray:Add(material:GetBuffer())
+                    //globalMaterialArray:Add(material:GetBuffer())
                     material:SetGlobalMaterialIndex(nextMaterialID)
                     nextMaterialID = nextMaterialID + 1
                 end
                 
-                VulkanDescriptorResourcesInfo resourcesInfo
-                resourcesInfo:SetDestinationBinding(2)
-                resourcesInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-                resourcesInfo:SetDestinationArrayElement(material:GetGlobalMaterialIndex())
-                resourcesInfo:AddBufferInfo(material:GetBuffer(), 0, material:GetBuffer():GetSize())
-                
-                globalMeshDescriptorSet:LinkResources(resourcesInfo)
+                //VulkanDescriptorResourcesInfo resourcesInfo
+                //resourcesInfo:SetDestinationBinding(2)
+                //resourcesInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+                //resourcesInfo:SetDestinationArrayElement(material:GetGlobalMaterialIndex())
+                //resourcesInfo:AddBufferInfo(material:GetBuffer(), 0, material:GetBuffer():GetSize())
+                //
+                //globalMeshDescriptorSet:LinkResources(resourcesInfo)
 
                 i = i + 1
             end
@@ -159,17 +153,17 @@ VulkanImageInfo info
         pendingMaterials:Add(material)
     end
     
-    action GetDescriptorSetLayoutBinding(integer descriptorCount) returns VulkanDescriptorSetLayoutBinding
-        VulkanConstants constants
-        VulkanDescriptorSetLayoutBinding binding
-        
-        binding:SetBinding(2)
-        binding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-        binding:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT)
-        binding:SetDescriptorCount(descriptorCount)
-        binding:SetBindingFlags(constants:DESCRIPTOR_BINDING_DYNAMIC)
-        return binding
-    end
+    //action GetDescriptorSetLayoutBinding(integer descriptorCount) returns VulkanDescriptorSetLayoutBinding
+        //VulkanConstants constants
+        //VulkanDescriptorSetLayoutBinding binding
+        //
+        //binding:SetBinding(2)
+        //binding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+        //binding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+        //binding:SetDescriptorCount(descriptorCount)
+        //binding:SetBindingFlags(constants:DESCRIPTOR_BINDING_DYNAMIC)
+        //return binding
+    //end
     
     action GetMaterial(Material data) returns MaterialVulkan
         text path = data:GetPath()

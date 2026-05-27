@@ -12,6 +12,8 @@ import java.nio.LongBuffer;
 
 import static org.lwjgl.util.vma.Vma.*;
 import static org.lwjgl.vulkan.VK10.*;
+import static org.lwjgl.vulkan.VK12.VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+import static org.lwjgl.vulkan.VK12.vkGetBufferDeviceAddress;
 
 public class VulkanBuffer
 {
@@ -25,6 +27,9 @@ public class VulkanBuffer
 
     // A pointer to the actual, raw memory after mapping has been performed.
     private long mappedMemoryPointer = 0L;
+
+    // A pointer to the GPU-accessible buffer if using BDA (Buffer Device Address).
+    private long bufferDeviceAddress = 0L;
 
     public boolean CreateNative(VulkanDevice_ quorumDevice, int size, int bufferUsage, int memoryUsage,
                                 int allocationFlags, int requiredMemoryFlags, int preferredMemoryFlags, int sharingMode)
@@ -65,6 +70,15 @@ public class VulkanBuffer
 
             bufferHandle = handleBuffer.get(0);
             memoryHandle = pointerBuffer.get(0);
+
+            if ((bufferUsage & VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) != 0)
+            {
+                VkBufferDeviceAddressInfo addressInfo = VkBufferDeviceAddressInfo.calloc(stack);
+                addressInfo.sType$Default();
+                addressInfo.buffer(bufferHandle);
+                System.out.println("pluginDevice defined? " + (pluginDevice.GetDevice() != null));
+                bufferDeviceAddress = vkGetBufferDeviceAddress(pluginDevice.GetDevice(), addressInfo);
+            }
         }
 
         return true;
@@ -161,5 +175,11 @@ public class VulkanBuffer
         VulkanDevice_ quorumDevice = quorumBuffer.GetDevice();
         VulkanMemoryAllocator pluginMemoryAllocator = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanMemoryAllocator)quorumDevice.GetMemoryAllocator()).plugin_;
         vmaDestroyBuffer(pluginMemoryAllocator.GetAllocatorPointer(), bufferHandle, memoryHandle);
+    }
+
+
+    public long GetBufferDeviceAddress()
+    {
+        return bufferDeviceAddress;
     }
 }

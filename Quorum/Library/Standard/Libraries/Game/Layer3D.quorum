@@ -1073,12 +1073,17 @@ if (GetViewportX() not= openGL:GetViewportX() or GetViewportY() not= openGL:GetV
             or GetViewportWidth() not= openGL:GetViewportWidth() or GetViewportHeight() not= openGL:GetViewportHeight())
             openGL:SetViewport(GetViewportX(), GetViewportY(), GetViewportWidth(), GetViewportHeight())
         end
-        else
-            // Vulkan support isn't available yet
-            return now
         end
 
 Painter3D painter = GetPainter()
+        if painter is VulkanPainter3D
+            VulkanPainter3D vulkan = cast(VulkanPainter3D, painter)
+            if (GetViewportX() not= vulkan:GetViewportX() or GetViewportY() not= vulkan:GetViewportY()
+            or GetViewportWidth() not= vulkan:GetViewportWidth() or GetViewportHeight() not= vulkan:GetViewportHeight())
+                vulkan:SetViewport(GetViewportX(), GetViewportY(), GetViewportWidth(), GetViewportHeight())
+            end
+        end
+        
         painter:Begin()
 
         integer counter = 0

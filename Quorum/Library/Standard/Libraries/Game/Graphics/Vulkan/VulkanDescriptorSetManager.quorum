@@ -131,8 +131,9 @@ class VulkanDescriptorSetManager
             availablePools:Add(newPool)
             return descriptorSet
         else
-            newPool:Dispose()
-            return undefined
+            alert("Descriptor set creation failed! Error code: " + descriptorSet:GetFailureCode())
+            //newPool:Dispose()
+            //return undefined
         end
     end
 

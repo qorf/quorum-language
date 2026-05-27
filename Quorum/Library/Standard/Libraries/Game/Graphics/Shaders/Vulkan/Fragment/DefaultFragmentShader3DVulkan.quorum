@@ -1,0 +1,74 @@
+package Libraries.Game.Graphics.Shaders.Vulkan
+
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.ShaderManager
+
+class DefaultFragmentShader3DVulkan is Shader
+    
+	on create
+        SetType(parent:Shader:FRAGMENT_SHADER)
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
+        SetName(manager:DEFAULT_3D_FRAGMENT_SHADER)
+
+        SetCode(GetVersionHeader() +
+"
+" +
+"#ifdef GL_ES
+    #define LOWP lowp
+    precision mediump float;
+#else
+    #define LOWP 
+#endif
+
+// Adds support for nonuniformEXT and unsized descriptor arrays.
+#extension GL_EXT_nonuniform_qualifier : require
+
+layout(set = 0, binding = 1) uniform sampler immutableSampler;
+layout(set = 1, binding = 0) uniform texture2D globalTextures[];
+
+struct Material {
+	vec4 diffuseColor;
+	uint textureIndex;
+	uint hasNormalMap;
+	uint hasRoughMap;
+	uint normalMapIndex;
+	uint roughMapIndex;
+	float roughness;
+	float metallic;
+};
+
+layout(scalar, buffer_reference) buffer Materials
+{
+	Material data;
+}
+
+layout(location = 0) in vec2 v_textureCoords;
+layout(location = 1) flat in uint64_t v_materialBuffer;
+layout(location = 2) flat in uint v_hasDiffuseOverride;
+layout(location = 3) in vec4 v_diffuseOverride;
+layout(location = 4) flat in uint v_hasTextureOverride;
+layout(location = 5) flat in uint v_textureOverrideIndex;
+
+layout (location = 0) in vec4 outputColor;
+
+void main()
+{
+	Materials materials = Materials(v_materialBuffer);
+	Material material = materials.data;
+	
+	uint textureIndex = material.textureIndex;
+	if (v_hasTextureOverride)
+		textureIndex = v_textureOverrideIndex;
+		
+	vec4 diffuse = material.diffuseColor;
+	if (v_hasDiffuseOverride)
+		diffuse = v_diffuseOverride;
+
+    outputColor = texture(nonuniformEXT(sampler2D(globalTextures[textureIndex], immutableSampler)), v_textureCoords) * diffuse;
+}"
+)
+    end
+
+end

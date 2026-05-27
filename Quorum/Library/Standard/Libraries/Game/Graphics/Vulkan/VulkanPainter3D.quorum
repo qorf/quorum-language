@@ -24,6 +24,10 @@ use Libraries.Compute.Matrix4
 use Libraries.Game.Graphics.Vulkan.Commands.SetViewportCommand
 use Libraries.Game.Graphics.Vulkan.Commands.BindPipelineCommand
 use Libraries.Game.Graphics.Vulkan.Commands.EndRenderPassCommand
+use Libraries.Game.Graphics.Vulkan.Commands.BindDescriptorSetCommand
+use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
+use Libraries.Game.Graphics.Vulkan.Commands.DrawIndirectCommand
+use Libraries.Game.Graphics.Vulkan.Commands.SetPushConstantsCommand
 
 class VulkanPainter3D is Painter3D
     
@@ -56,8 +60,15 @@ VulkanSampler immutableSampler = undefined
     // An array of draw queues, one per swapchain image. Used to bulk store instance data and draw indirect commands.
     Array<VulkanDrawQueue3D> drawQueues
     
+    // A reusable buffer of data for sending push constants. Used to send a pointer to a DrawQueue's instance data during rendering.
+    VulkanPushConstantBuffer pushConstants
+    
+    integer DEFAULT_MAX_INSTANCES = 1024
+    
 on create
         matrix4Array:SetSize(16)
+        //Create the push constants buffer with a size of 8 bytes (one 64-bit pointer). 
+        pushConstants:Create(8)
     end
 
     action IsRenderPassValid returns boolean
@@ -290,7 +301,7 @@ Layer layer = layers:Next()
                 
                 // Also create one draw queue per image in the swapchain.
                 VulkanDrawQueue3D queue
-                queue:Create(device, graphics)
+                queue:Create(device, graphics, DEFAULT_MAX_INSTANCES)
                 drawQueues:Add(queue)
 
                 counter = counter + 1
@@ -321,6 +332,8 @@ Layer layer = layers:Next()
         VulkanSwapchain swapchain = graphics:GetSwapchain()
         VulkanClearValue clearValue = graphics:GetClearValue()
         VulkanConstants constants
+        
+        ModelManagerVulkan modelManager = graphics:GetModelManager()
         
         /*
         End the batches. This will reset information from the last pass, dispose of any batches that 
@@ -389,6 +402,32 @@ VulkanDescriptorSet texturesDescriptorSet = graphics:GetTextureManager():GetGlob
             setViewport:SetSize(viewportWidth, -viewportHeight)
             commandBuffer:Record(setViewport)
         
+        // Bind the global descriptor arrays. This may need to be adjusted if different batches need to eventually point at different descriptors
+        // (e.g. there's more content than can fit in a single array)
+        VulkanPipelineLayout pipelineLayout = currentPipeline:GetInfo():GetLayout()
+        //VulkanDescriptorSet globalMeshDescriptorSet = modelManager:GetGlobalMeshDescriptorSet()
+        //VulkanDescriptorSet globalMeshDescriptorSet = undefined
+                
+BindDescriptorSetCommand cameraBind
+            cameraBind:SetPipelineLayout(pipelineLayout)
+            cameraBind:SetDescriptorSet(currentCameraDescriptor)
+            commandBuffer:Record(cameraBind)
+
+            //BindDescriptorSetCommand texturesBind
+            //texturesBind:SetPipelineLayout(pipelineLayout)
+            //texturesBind:SetDescriptorSet(texturesDescriptorSet)
+            //texturesBind:SetSetIndex(1)
+            //commandBuffer:Record(texturesBind)
+        //
+        //BindDescriptorSetCommand meshDataBind
+            //meshDataBind:SetPipelineLayout(pipelineLayout)
+            //meshDataBind:SetDescriptorSet(globalMeshDescriptorSet)
+            //meshDataBind:SetSetIndex(2)
+            //commandBuffer:Record(meshDataBind)
+        
+        VulkanDrawQueue3D drawQueue = drawQueues:Get(currentSwapchainIndex)
+        drawQueue:Begin()
+        
         Array<VulkanPainter3DBatch> currentBatches = pendingBatches
         repeat until currentBatches = undefined
             integer i = 0
@@ -399,6 +438,9 @@ TO-DO HERE:
 - Send the indirect draw calls
 - Depending on if the batch includes animation, it may need to draw some elements one at a time
 */
+                VulkanPainter3DBatch batch = currentBatches:Get(i)
+                batch:ProcessBatch(drawQueue)
+                
                 i = i + 1
             end
             
@@ -409,6 +451,30 @@ TO-DO HERE:
                 currentBatches = undefined
             end
         end
+        
+        //VulkanDescriptorSet instanceDataDescriptorSet = drawQueue:GetInstanceDataDescriptorSet()
+        ////VulkanDescriptorSet instanceDataDescriptorSet = undefined
+        //
+        //BindDescriptorSetCommand instanceDataBind
+            //instanceDataBind:SetPipelineLayout(pipelineLayout)
+            //instanceDataBind:SetDescriptorSet(instanceDataDescriptorSet)
+            //instanceDataBind:SetSetIndex(3)
+            //commandBuffer:Record(instanceDataBind)
+        
+        pushConstants:ResetWritePosition()
+        pushConstants:AddBufferPointer(drawQueue:GetInstanceDataBuffer())
+        
+        SetPushConstantsCommand setPushConstants
+        setPushConstants:SetData(pushConstants)
+        setPushConstants:SetPipelineLayout(currentPipeline:GetLayout())
+        setPushConstants:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT)
+        commandBuffer:Record(setPushConstants)
+        
+        
+        DrawIndirectCommand drawCommand
+        drawCommand:SetDrawCommands(drawQueue:GetDrawCommandBuffer())
+        drawCommand:SetDrawCount(drawQueue:GetDrawCommandCount())
+        commandBuffer:Record(drawCommand)
     
         //// Set the pipelines and send the corresponding draw calls.
         //integer i = 0
@@ -517,9 +583,8 @@ TO-DO HERE:
         //currentBatch = undefined
 
         // Empty the pending arrays.
-        //pendingDrawCommands:Empty(false)
-        //pendingBatches:Empty(false)
-        //pendingClipCoordinates:Empty(false)
+        pendingBatches:Empty()
+        pendingTransparentBatches:Empty()
     end
     
     action SetSkybox(Skybox skybox)
@@ -573,4 +638,20 @@ TO-DO HERE:
         viewportHeight = height
     end
     
+    action GetViewportX returns integer
+        return viewportX
+    end
+
+    action GetViewportY returns integer
+        return viewportY
+    end
+
+    action GetViewportWidth returns integer
+        return viewportWidth
+    end
+
+    action GetViewportHeight returns integer
+        return viewportHeight
+    end
+
 end

@@ -6,6 +6,7 @@ class VulkanBuffer
     VulkanDevice device = undefined
     integer size = 0
     boolean supportsMapping = false
+    boolean supportsBufferDeviceAddress = false
 
     boolean initialized = false
 
@@ -41,6 +42,11 @@ class VulkanBuffer
         if allowConcurrentAccess
             sharingMode = constants:SHARING_MODE_CONCURRENT
         end
+        
+        BitwiseOperations bits
+        if bits:And(bufferUsage, constants:BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) not= 0
+            allocationFlags = constants:ALLOCATION_CREATE_DEDICATED_MEMORY_BIT
+        end
 
         boolean success = CreateNative(device, size, bufferUsage, memoryUsage, allocationFlags, requiredMemoryFlags, preferredMemoryFlags, sharingMode)
         if success
@@ -48,10 +54,8 @@ class VulkanBuffer
             me:size = size
             initialized = true
 
-            BitwiseOperations bits
             if ( (bits:And(requiredMemoryFlags, constants:MEMORY_PROPERTY_HOST_VISIBLE_BIT) not= 0) or 
                  (bits:And(allocationFlags, bits:Or(constants:ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT, constants:ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT)) not= 0) )
-
                 supportsMapping = true
             end
         end
@@ -73,6 +77,10 @@ class VulkanBuffer
     */
     action SupportsMapping returns boolean
         return supportsMapping
+    end
+    
+    action SupportsBufferDeviceAddress returns boolean
+        return supportsBufferDeviceAddress
     end
 
     action GetDevice returns VulkanDevice

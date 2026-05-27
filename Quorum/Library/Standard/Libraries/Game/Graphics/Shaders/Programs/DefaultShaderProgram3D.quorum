@@ -7,6 +7,8 @@ use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.DefaultVertexShader3DOpenGL
 use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.DefaultShaderMapping3DOpenGL
 use Libraries.Game.Graphics.Shaders.OpenGL.OpenGLShaderProgram
 use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.DefaultShaderMapping3DVulkan
+use Libraries.Game.Graphics.Shaders.Shader
 
 class DefaultShaderProgram3D is ShaderProgram
 
@@ -15,19 +17,24 @@ class DefaultShaderProgram3D is ShaderProgram
         ShaderManager manager = gameState:GetShaderManager()
         SetName(manager:DEFAULT_3D_SHADER_PROGRAM)
 
-        DefaultVertexShader3DOpenGL vertex
-        DefaultFragmentShader3DOpenGL fragment
+        Shader vertex = manager:GetDefaultVertexShader3D()
+        Shader fragment = manager:GetDefaultFragmentShader3D()
 
         Add(vertex)
         Add(fragment)
 
-        DefaultShaderMapping3DOpenGL mapping
+        if IsVulkanProgram()
+            DefaultShaderMapping3DVulkan mapping
+            SetShaderMapping(mapping)
+        else
+            DefaultShaderMapping3DOpenGL mapping
         SetShaderMapping(mapping)
 
         // TO-DO: Modify these to whatever new system we use with the updated LWJGL/OpenGL version
         OpenGLShaderProgram glProgram = cast(OpenGLShaderProgram, GetShaderProgramStrategy())
         glProgram:AddOrderedVertexInput("a_position")
         glProgram:AddOrderedVertexInput("a_color")
+        end
     end
 
 end

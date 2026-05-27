@@ -2,6 +2,7 @@ package Libraries.Game.Graphics.Vulkan
 
 use Libraries.Containers.Array
 use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
 
 /*
 This is a helper class that is used to create VulkanPipelineInfo objects for
@@ -757,6 +758,44 @@ class VulkanPipelineInfoCreator
         // We also need the descriptor set layout for the global textures. The texture manager holds onto that layout, so go fetch it.
         // Now, add the pre-existing layout to the set of layouts used by the pipeline we're making.
         AddDescriptorSetLayout(textureManager:GetGlobalTextureDescriptorSetLayout())
+    end
+    
+    action AddDefaultInfo3D
+        CheckHasBegun()
+        
+        GameStateManager gameState
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        VulkanTextureManager textureManager = graphics:GetTextureManager()
+        ModelManagerVulkan modelManager = graphics:GetModelManager()
+        
+        VulkanConstants constants
+            
+        // Use transparency for color blending for this pipeline.    
+        AddTransparentColorBlendAttachmentState()
+
+            // Define the dynamic states permitted by the pipeline. For our case, we want to be able to dynamically adjust viewport and scissor values.
+        AddDynamicViewport()
+        AddDynamicScissor()
+
+        // Add a uniform for the camera, used during the vertex shader stage.
+        AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_VERTEX_BIT, constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+
+        // Create a binding for a sampler to use during fragment shading, then add the sampler to the returned binding.
+        VulkanDescriptorSetLayoutBinding samplerBinding = AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_SAMPLER)
+        Array<VulkanSampler> immutableSamplers
+        VulkanSampler immutableSampler = textureManager:GetDefaultSampler()
+        immutableSamplers:Add(immutableSampler)
+        samplerBinding:SetImmutableSamplers(immutableSamplers)
+
+        // We also need the descriptor set layout for the global textures. The texture manager holds onto that layout, so go fetch it.
+        // Now, add the pre-existing layout to the set of layouts used by the pipeline we're making.
+        //AddDescriptorSetLayout(textureManager:GetGlobalTextureDescriptorSetLayout())
+        
+        // Also add the descriptor set layout for the global mesh resources, taken from the model manager.
+        //AddDescriptorSetLayout(modelManager:GetGlobalMeshDescriptorSetLayout())
+        
+        // We'll also need a layout for the instance data that is managed by the VulkanDrawQueue3Ds.
+        //AddDescriptorSetLayout(modelManager:GetInstanceDataDescriptorSetLayout())
     end
     
 end

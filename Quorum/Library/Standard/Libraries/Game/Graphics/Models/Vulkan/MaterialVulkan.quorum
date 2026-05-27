@@ -133,7 +133,7 @@ Metallic Factor (float, 4 bytes)*/
         materialBuffer = destination
         
         VulkanConstants constants
-        materialBuffer:CreateTransferDestinationBuffer(device, MATERIAL_BYTE_SIZE, constants:BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+        materialBuffer:CreateTransferDestinationBuffer(device, MATERIAL_BYTE_SIZE, constants:BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)
         
         CopyBufferCommand copyCommand
         copyCommand:SetSourceBuffer(stagingBuffer)

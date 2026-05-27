@@ -77,15 +77,32 @@ public class VulkanDevice
                 queueFamilies.Add(quorumFamily);
             }
 
+            // Extra features we'll use for 3D rendering, especially buffer device addressing (BDA) for pointer-like referencing to data on GPU.
+            VkPhysicalDeviceVulkan12Features features12 = VkPhysicalDeviceVulkan12Features.calloc(stack);
+            features12.sType$Default();
+            features12.bufferDeviceAddress(true);
+            features12.scalarBlockLayout(true);
+
+            VkPhysicalDeviceFeatures2 features2 = VkPhysicalDeviceFeatures2.calloc(stack);
+            features2.sType$Default();
+
+            VkPhysicalDeviceFeatures features = features2.features();
+            features.shaderInt64(true);
+            features.multiDrawIndirect(true);
+            features.drawIndirectFirstInstance(true);
+
+            features2.pNext(features12.address());
+
             // We'll need an info struct for creating the logical device itself as well. We'll use all the queue info structs as part of this.
             VkDeviceCreateInfo deviceCreateInfo = VkDeviceCreateInfo.calloc(stack);
             deviceCreateInfo.sType$Default();
             deviceCreateInfo.ppEnabledExtensionNames(requiredExtensions);
             deviceCreateInfo.pEnabledFeatures(physicalDevice.GetDeviceFeatures());
             deviceCreateInfo.pQueueCreateInfos(queueCreationInfoBuffer);
+            deviceCreateInfo.pNext(features2.address());
 
             // If we're using descriptor indexing, enable the extended features for it.
-            if (hasDescriptorIndexing)
+            if (hasDescriptorIndexing && false)
             {
                 VkPhysicalDeviceDescriptorIndexingFeatures indexingFeatures = VkPhysicalDeviceDescriptorIndexingFeatures.calloc(stack);
                 indexingFeatures.sType$Default();
@@ -94,7 +111,8 @@ public class VulkanDevice
                 indexingFeatures.descriptorBindingUpdateUnusedWhilePending(true);
                 indexingFeatures.descriptorBindingVariableDescriptorCount(true);
                 indexingFeatures.runtimeDescriptorArray(true);
-                deviceCreateInfo.pNext(indexingFeatures);
+                //deviceCreateInfo.pNext(indexingFeatures);
+                features12.pNext(indexingFeatures.address());
             }
             else
             {

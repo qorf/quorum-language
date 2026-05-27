@@ -1,0 +1,37 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Mapping
+use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfo
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfoCreator
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+
+class DefaultShaderMapping3DVulkan is VulkanShaderMapping
+    
+    on create
+        UseDefaultResources3D(true)
+    end
+    
+/*This action is used to setup the values of a VulkanPipelineInfo that will be used to create the
+VulkanPipeline needed for the shader program. This can also be used to create and keep copies of
+any Vulkan resources that will be needed to send or change shader data.*/
+    action CreatePipelineInfo(VulkanShaderProgram program, VulkanDevice device) returns VulkanPipelineInfo
+        VulkanPipelineInfoCreator creator
+        creator:Begin(device)
+        creator:AddDefaultInfo3D()
+        VulkanPipelineInfo info = creator:Finish()
+        
+        return info
+    end
+    
+action Begin(ShaderProgram program, Camera camera)
+end
+    
+    action Begin(ShaderProgram program, Camera camera, VulkanCommandBuffer commandBuffer, integer swapchainIndex)
+    end
+
+    action End(ShaderProgram program)
+    end
+    
+end

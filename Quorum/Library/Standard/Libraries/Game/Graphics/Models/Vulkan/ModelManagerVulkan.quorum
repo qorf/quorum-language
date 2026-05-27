@@ -45,66 +45,73 @@ shared class ModelManagerVulkan
     Queue<integer> recycledVertexIDs
     Queue<integer> recycledIndexIDs
     
-    Array<VulkanBuffer> globalVertexBufferArray
-    Array<VulkanBuffer> globalIndexBufferArray
+    //Array<VulkanBuffer> globalVertexBufferArray
+    //Array<VulkanBuffer> globalIndexBufferArray
 
     /*
     A descriptor set that can be dynamically added to and updated (UPDATE_AFTER_BIND_BIT) that
     contains all valid meshes in the system. Changes only when textures are loaded/disposed.
     */
-    VulkanDescriptorSet globalMeshDescriptorSet = undefined
-    VulkanDescriptorSetLayout globalMeshDescriptorSetLayout = undefined
+    //VulkanDescriptorSet globalMeshDescriptorSet = undefined
+    //VulkanDescriptorSetLayout globalMeshDescriptorSetLayout = undefined
     
-    /*
-We use the physical device limits to figure out how many descriptors we can store at once for textures, but
-some platforms return -1 instead of a reasonable value. In this case, we use this default value.
-*/
-    constant integer DEFAULT_MAX_DESCRIPTORS = 256
+    //VulkanDescriptorSetLayout instanceDataDescriptorSetLayout = undefined
     
     MaterialManagerVulkan materialManager
     
     action Create(VulkanDevice device, VulkanGraphics graphics)
-        GameStateManager gameState
-        VulkanConstants constants
-        VulkanDescriptorSetManager setManager = graphics:GetDescriptorSetManager()
-
-        VulkanPhysicalDevice physical = device:GetPhysicalDevice()
-        VulkanPhysicalDeviceLimits limits = physical:GetLimits()
-        integer maxPerStage = limits:GetMaxPerStageDescriptorUniformBuffers()
-        integer maxFullPipeline = limits:GetMaxDescriptorSetUniformBuffers()
-        output "ModelManagerVulkan (Create): MaxPerStage = " + maxPerStage + ", MaxFullPipeline = " + maxFullPipeline
+        me:device = device
         
-        integer maxDescriptors = maxPerStage
-        if maxDescriptors <= 0
-            maxDescriptors = DEFAULT_MAX_DESCRIPTORS
-        end
-        Array<VulkanDescriptorSetLayoutBinding> bindings
+        //GameStateManager gameState
+        //VulkanConstants constants
+        //VulkanDescriptorSetManager setManager = graphics:GetDescriptorSetManager()
+//
+        //integer maxDescriptors = graphics:GetMaxDescriptorsPerStage()
+        //Array<VulkanDescriptorSetLayoutBinding> bindings
 
-        VulkanDescriptorSetLayoutBinding vertexBinding
-        vertexBinding:SetBinding(0)
-        vertexBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-        vertexBinding:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT)
-        vertexBinding:SetDescriptorCount(maxDescriptors)
-        vertexBinding:SetBindingFlags(constants:DESCRIPTOR_BINDING_DYNAMIC)
-        bindings:Add(vertexBinding)
-        
-        VulkanDescriptorSetLayoutBinding indexBinding
-        indexBinding:SetBinding(1)
-        indexBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-        indexBinding:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT)
-        indexBinding:SetDescriptorCount(maxDescriptors)
-        indexBinding:SetBindingFlags(constants:DESCRIPTOR_BINDING_DYNAMIC)
-        bindings:Add(indexBinding)
+        //VulkanDescriptorSetLayoutBinding vertexBinding
+        //vertexBinding:SetBinding(0)
+        //vertexBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+        //vertexBinding:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT)
+        //vertexBinding:SetDescriptorCount(maxDescriptors)
+        //vertexBinding:SetBindingFlags(constants:DESCRIPTOR_BINDING_DYNAMIC)
+        //bindings:Add(vertexBinding)
+        //
+        //VulkanDescriptorSetLayoutBinding indexBinding
+        //indexBinding:SetBinding(1)
+        //indexBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+        //indexBinding:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT)
+        //indexBinding:SetDescriptorCount(maxDescriptors)
+        //indexBinding:SetBindingFlags(constants:DESCRIPTOR_BINDING_DYNAMIC)
+        //bindings:Add(indexBinding)
         
         // Also get a binding at index = 2 for the materials from the material manager.
-        bindings:Add(materialManager:GetDescriptorSetLayoutBinding(maxDescriptors))
-
-        VulkanDescriptorSetLayout globalMeshLayout
-        globalMeshLayout:CreateUpdateAfterBind(device, bindings)
-        globalMeshDescriptorSetLayout = globalMeshLayout
-
-        VulkanDescriptorSetManager descriptorSetManager = graphics:GetDescriptorSetManager()
-        globalMeshDescriptorSet = descriptorSetManager:CreateDescriptorSet(globalMeshLayout, constants:DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT)
+        //bindings:Add(materialManager:GetDescriptorSetLayoutBinding(maxDescriptors))
+//
+        //VulkanDescriptorSetLayout globalMeshLayout
+        //globalMeshLayout:CreateUpdateAfterBind(device, bindings)
+        //globalMeshDescriptorSetLayout = globalMeshLayout
+//
+        //VulkanDescriptorSetManager descriptorSetManager = graphics:GetDescriptorSetManager()
+        //globalMeshDescriptorSet = descriptorSetManager:CreateDescriptorSet(globalMeshLayout, constants:DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT)
+        
+        // Also create the shared layout for instance data buffers. This will be used by VulkanDrawQueue3Ds to create their descriptor sets, as well as initialize shader layouts.
+        //VulkanDescriptorSetLayout instanceDataDescriptorSetLayout
+        //me:instanceDataDescriptorSetLayout = instanceDataDescriptorSetLayout
+        //
+        //Array<VulkanDescriptorSetLayoutBinding> instanceDataBindings
+//
+        //VulkanDescriptorSetLayoutBinding buffersBinding
+        //buffersBinding:SetBinding(0)
+        //buffersBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+        //buffersBinding:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT)
+        //buffersBinding:SetDescriptorCount(maxDescriptors)
+        //buffersBinding:SetBindingFlags(constants:DESCRIPTOR_BINDING_DYNAMIC)
+        //instanceDataBindings:Add(buffersBinding)
+        //
+        //VulkanDescriptorSetLayout instanceDataLayout
+        //instanceDataLayout:CreateUpdateAfterBind(device, instanceDataBindings)
+        //instanceDataDescriptorSetLayout = instanceDataLayout
         
         materialManager:Create(device)
     end
@@ -196,35 +203,35 @@ VulkanImageInfo info
                 if not recycledVertexIDs:IsEmpty()
                     // TO-DO: Handle this case. This gets complicated by the question of releasing IDs that might be in use for previous frames.
                 else
-                    globalVertexBufferArray:Add(mesh:GetVertexBuffer())
+                    //globalVertexBufferArray:Add(mesh:GetVertexBuffer())
                     mesh:SetGlobalVertexBufferIndex(nextVertexBufferID)
                     nextVertexBufferID = nextVertexBufferID + 1
                 end
                 if not recycledIndexIDs:IsEmpty()
                     // TO-DO: Handle this case. This gets complicated by the question of releasing IDs that might be in use for previous frames.
                 else
-                    globalIndexBufferArray:Add(mesh:GetIndexBuffer())
+                    //globalIndexBufferArray:Add(mesh:GetIndexBuffer())
                     mesh:SetGlobalIndexBufferIndex(nextIndexBufferID)
                     nextIndexBufferID = nextIndexBufferID + 1
                 end
                 
-                Array<VulkanDescriptorResourcesInfo> resourcesInfos
-                
-                VulkanDescriptorResourcesInfo vertexResourcesInfo
-                vertexResourcesInfo:SetDestinationBinding(0)
-                vertexResourcesInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-                vertexResourcesInfo:SetDestinationArrayElement(mesh:GetGlobalVertexBufferIndex())
-                vertexResourcesInfo:AddBufferInfo(mesh:GetVertexBuffer(), 0, mesh:GetVertexBuffer():GetSize())
-                resourcesInfos:Add(vertexResourcesInfo)
-                
-                VulkanDescriptorResourcesInfo indexResourcesInfo
-                indexResourcesInfo:SetDestinationBinding(1)
-                indexResourcesInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-                indexResourcesInfo:SetDestinationArrayElement(mesh:GetGlobalIndexBufferIndex())
-                indexResourcesInfo:AddBufferInfo(mesh:GetIndexBuffer(), 0, mesh:GetIndexBuffer():GetSize())
-                resourcesInfos:Add(indexResourcesInfo)
-                
-                globalMeshDescriptorSet:LinkResources(resourcesInfos)
+                //Array<VulkanDescriptorResourcesInfo> resourcesInfos
+                //
+                //VulkanDescriptorResourcesInfo vertexResourcesInfo
+                //vertexResourcesInfo:SetDestinationBinding(0)
+                //vertexResourcesInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+                //vertexResourcesInfo:SetDestinationArrayElement(mesh:GetGlobalVertexBufferIndex())
+                //vertexResourcesInfo:AddBufferInfo(mesh:GetVertexBuffer(), 0, mesh:GetVertexBuffer():GetSize())
+                //resourcesInfos:Add(vertexResourcesInfo)
+                //
+                //VulkanDescriptorResourcesInfo indexResourcesInfo
+                //indexResourcesInfo:SetDestinationBinding(1)
+                //indexResourcesInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+                //indexResourcesInfo:SetDestinationArrayElement(mesh:GetGlobalIndexBufferIndex())
+                //indexResourcesInfo:AddBufferInfo(mesh:GetIndexBuffer(), 0, mesh:GetIndexBuffer():GetSize())
+                //resourcesInfos:Add(indexResourcesInfo)
+                //
+                //globalMeshDescriptorSet:LinkResources(resourcesInfos)
 
                 i = i + 1
             end
@@ -310,12 +317,16 @@ end
         return materialManager
     end
     
-    action GetGlobalMeshDescriptorSet returns VulkanDescriptorSet
-        return globalMeshDescriptorSet
-    end
-    
-    action GetGlobalMeshDescriptorSetLayout returns VulkanDescriptorSetLayout
-        return globalMeshDescriptorSetLayout
-    end
+    //action GetGlobalMeshDescriptorSet returns VulkanDescriptorSet
+        //return globalMeshDescriptorSet
+    //end
+    //
+    //action GetGlobalMeshDescriptorSetLayout returns VulkanDescriptorSetLayout
+        //return globalMeshDescriptorSetLayout
+    //end
+//
+    //action GetInstanceDataDescriptorSetLayout returns VulkanDescriptorSetLayout
+        //return instanceDataDescriptorSetLayout
+    //end
 
 end

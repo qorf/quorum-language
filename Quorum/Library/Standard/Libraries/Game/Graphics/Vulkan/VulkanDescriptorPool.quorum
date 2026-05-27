@@ -3,8 +3,10 @@ use Libraries.Containers.Array
 
 class VulkanDescriptorPool
 
-    public constant integer DEFAULT_DESCRIPTOR_COUNT = 256
-    public constant integer DEFAULT_MAX_SETS = 128
+    //public constant integer DEFAULT_DESCRIPTOR_COUNT = 256
+    //public constant integer DEFAULT_MAX_SETS = 128
+    public constant integer DEFAULT_DESCRIPTOR_COUNT = 1024
+    public constant integer DEFAULT_MAX_SETS = 1024
 
     VulkanDevice device = undefined
     boolean initialized = false

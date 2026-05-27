@@ -71,6 +71,15 @@ VulkanImage depthBufferImage = undefined
     // Rendering is paused if, when a new frame would begin, the application is minimized.
     // It resumes when a new frame begins and the application is no longer minimized.
     boolean renderingPaused = false
+    
+    integer maxDescriptors = -1
+    boolean cachedMaxDescriptors = false
+    
+    /*
+We use the physical device limits to figure out how many descriptors we can store at once for textures, but
+some platforms return -1 instead of a reasonable value. In this case, we use this default value.
+*/
+    constant integer DEFAULT_MAX_DESCRIPTORS = 256
 
     on create
         clearValue:SetColor(0.85, 0.85, 0.85, 1.0)
@@ -832,6 +841,22 @@ the window is restored.
 Attribute: Returns True if the application has paused rendering, or false if it is rendering normally.*/
     action IsRenderingPaused returns boolean
         return renderingPaused
+    end
+    
+    action GetMaxDescriptorsPerStage returns integer
+        if cachedMaxDescriptors = false
+            VulkanPhysicalDevice physical = device:GetPhysicalDevice()
+        VulkanPhysicalDeviceLimits limits = physical:GetLimits()
+        maxDescriptors = limits:GetMaxPerStageDescriptorUniformBuffers()
+        output "VulkanGraphics: MaxDescriptorsPerStage = " + maxDescriptors
+        
+        if maxDescriptors <= 0
+            maxDescriptors = DEFAULT_MAX_DESCRIPTORS
+        end
+            
+            cachedMaxDescriptors = true
+        end
+        return maxDescriptors
     end
 
 end

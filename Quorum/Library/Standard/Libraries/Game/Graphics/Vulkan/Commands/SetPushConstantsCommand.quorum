@@ -1,0 +1,48 @@
+package Libraries.Game.Graphics.Vulkan.Commands
+
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineLayout
+use Libraries.Game.Graphics.Vulkan.VulkanPushConstantBuffer
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+
+class SetPushConstantsCommand is VulkanCommand
+    
+    VulkanPipelineLayout pipelineLayout = undefined
+    integer stageFlags = 0
+    integer offset = 0
+    VulkanPushConstantBuffer data = undefined
+    
+    system action Record(VulkanCommandBuffer buffer)
+    
+    action GetPipelineLayout returns VulkanPipelineLayout
+        return pipelineLayout
+    end
+
+    action SetPipelineLayout(VulkanPipelineLayout pipelineLayout)
+        me:pipelineLayout = pipelineLayout
+    end
+
+    action GetStageFlags returns integer
+        return stageFlags
+    end
+
+    action SetStageFlags(integer stageFlags)
+        me:stageFlags = stageFlags
+    end
+
+    action GetOffset returns integer
+        return offset
+    end
+
+    action SetOffset(integer offset)
+        me:offset = offset
+    end
+
+    action GetData returns VulkanPushConstantBuffer
+        return data
+    end
+
+    action SetData(VulkanPushConstantBuffer data)
+        me:data = data
+    end
+
+end

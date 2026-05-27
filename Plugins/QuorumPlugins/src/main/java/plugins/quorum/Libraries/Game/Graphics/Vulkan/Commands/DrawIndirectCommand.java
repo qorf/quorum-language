@@ -1,5 +1,6 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan.Commands;
 
+import org.lwjgl.vulkan.VkDrawIndirectCommand;
 import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer;
 import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer;
 import quorum.Libraries.Game.Graphics.Vulkan.Commands.DrawIndirectCommand_;
@@ -19,5 +20,10 @@ public class DrawIndirectCommand
 
         vkCmdDrawIndirect(pluginCommandBuffer.GetCommandBuffer(), pluginDataBuffer.GetBufferHandle(),
                 quorumCommand.GetOffset(), quorumCommand.GetDrawCount(), quorumCommand.GetStride());
+    }
+
+    public int GetDefaultStride()
+    {
+        return VkDrawIndirectCommand.SIZEOF;
     }
 }

@@ -11,6 +11,7 @@ use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
 class VulkanShaderMapping is ShaderMapping
     
     boolean useDefaultResources2D = false
+    boolean useDefaultResources3D = false
     
     /*This action is used to setup the values of a VulkanPipelineInfo that will be used to create the
 VulkanPipeline needed for the shader program. This can also be used to create and keep copies of
@@ -32,6 +33,14 @@ end
     
     action UseDefaultResources2D(boolean useResources)
         useDefaultResources2D = useResources
+    end
+    
+    action UsesDefaultResources3D returns boolean
+        return useDefaultResources3D
+    end
+    
+    action UseDefaultResources3D(boolean useResources)
+        useDefaultResources3D = useResources
     end
     
 end

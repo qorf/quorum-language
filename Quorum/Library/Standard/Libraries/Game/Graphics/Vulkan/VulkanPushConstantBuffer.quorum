@@ -1,0 +1,33 @@
+package Libraries.Game.Graphics.Vulkan
+
+use Libraries.Compute.Matrix4
+
+class VulkanPushConstantBuffer
+    
+    /* This action sets the size of the buffer, in bytes.
+This also flushes out any previous data, reinitializing the buffer to a fresh state. */
+    system action Create(integer size)
+    
+    /* This action resets the buffer's write position. After calling this action, all newly added
+data will be placed from the beginning of the buffer, overwriting any previous data. */
+    system action ResetWritePosition
+    
+    /* This action adds a pointer to a VulkanBuffer to the push constants. The buffer must have been initialized with
+the SHADER_DEVICE_ADDRESS_BIT usage flag to be added to the constants. */
+    system action AddBufferPointer(VulkanBuffer buffer)
+    
+    /*This action adds a 32-bit number value to the buffer.*/
+    system action AddNumber32Bit(number value)
+    
+    /*This action adds a 64-bit number value to the buffer.*/
+    system action AddNumber64Bit(number value)
+    
+    /*This action adds a 32-bit integer value to the buffer.*/
+    system action AddInteger32Bit(integer value)
+    
+    /*This action adds a 4x4 matrix to the buffer.*/
+    system action AddMatrix4(Matrix4 matrix)
+    
+    system action Dispose
+    
+end

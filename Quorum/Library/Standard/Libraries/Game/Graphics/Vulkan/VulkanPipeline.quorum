@@ -48,5 +48,9 @@ class VulkanPipeline
     action GetInfo returns VulkanPipelineInfo
         return info
     end
+    
+    action GetLayout returns VulkanPipelineLayout
+        return info:GetLayout()
+    end
 
 end

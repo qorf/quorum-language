@@ -1,0 +1,101 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Vertex
+
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.ShaderManager
+
+class DefaultVertexShader3DVulkan is Shader
+    
+    on create
+        SetType(parent:Shader:VERTEX_SHADER)
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
+        SetName(manager:DEFAULT_3D_VERTEX_SHADER)
+
+        SetCode(GetVersionHeader() +
+"
+" +
+"// Adds support for nonuniformEXT and unsized descriptor arrays.
+//#extension GL_EXT_nonuniform_qualifier : require
+// Adds support for dynamic buffer referencing via pointers and more intuitive layout of structs in memory.
+#extension GL_EXT_buffer_reference: require
+#extension GL_EXT_buffer_reference2: enable
+#extension GL_EXT_scalar_block_layout: require
+
+layout(location = 0) out vec2 v_textureCoords;
+layout(location = 1) flat out uint64_t v_materialBuffer;
+layout(location = 2) flat out uint v_hasDiffuseOverride;
+layout(location = 3) out vec4 v_diffuseOverride;
+layout(location = 4) flat out uint v_hasTextureOverride;
+layout(location = 5) flat out uint v_textureOverrideIndex;
+
+layout(set = 0, binding = 0) uniform Camera
+{
+    mat4 projectionViewMatrix;
+} camera;
+
+struct Vertex {
+	vec3 position;
+	vec3 normal;
+	vec3 tangent;
+	vec3 bitangent;
+	vec2 textureCoordinates;
+};
+
+layout(scalar, buffer_reference) buffer VertexBuffer {
+	Vertex[] vertices;
+};
+
+layout(scalar, buffer_reference) buffer IndexBuffer {
+	uint[] indices;
+};
+
+struct InstanceData {
+	VertexBuffer vertexBuffer;
+	IndexBuffer indexBuffer;
+	uint64_t materialBuffer;
+	uint textureOverride;
+	uint textureIndex;
+	uint diffuseColorOverride;
+	vec4 diffuseColor;
+	mat4 modelTransform;
+};
+
+layout(std430, buffer_reference, buffer_reference_align=16) buffer Instances {
+	InstanceData[] data;
+};
+
+layout(push_constant) uniform pushConstants {
+	Instances instances;
+}
+
+void main()
+{
+	uint entityID = gl_InstanceIndex;
+	Instances instances = pushConstants.instances;
+	InstanceData instanceData = instances.data[entityID];
+	
+	mat4 modelTransform = instanceData.modelTransform;
+	
+	VertexBuffer vertexBuffer = instanceData.vertexBuffer;
+	IndexBuffer indexBuffer = instanceData.indexBuffer;
+	
+	uint index = indexBuffer.indices[gl_VertexIndex];
+	Vertex vertex = vertexBuffer.vertices[index];
+	
+	vec3 inPos = vertex.position;
+	vec4 worldPosition = modelTransform * vec4(inPos, 1);
+
+	v_textureCoords = vertex.textureCoordinates;
+	v_materialBuffer = instanceData.materialBuffer;
+	v_hasDiffuseOverride = instanceData.diffuseColorOverride;
+	v_diffuseOverride = instanceData.diffuseColor;
+	v_hasTextureOverride = instanceData.textureOverride;
+	v_textureOverrideIndex = instanceData.textureIndex;
+    
+    gl_Position =  camera.projectionViewMatrix * worldPosition;
+}"
+)
+    end
+    
+end

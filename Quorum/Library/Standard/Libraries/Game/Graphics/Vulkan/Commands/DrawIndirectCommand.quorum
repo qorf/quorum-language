@@ -8,7 +8,9 @@ class DrawIndirectCommand is VulkanCommand
     VulkanBuffer drawCommands = undefined
     integer offset = 0
     integer drawCount = 0
-    integer stride = 0
+    integer stride = GetDefaultStride()
+    
+    private system action GetDefaultStride returns integer
     
     /*
     This action records this command into the provided command buffer.

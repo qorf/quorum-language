@@ -110,8 +110,8 @@ Each vertex is made of 14 32-bit components:
         
         //vertexBuffer:CreateTransferDestinationBuffer(device, vertexStagingBuffer:GetSize(), constants:BUFFER_USAGE_VERTEX_BUFFER_BIT)
         //indexBuffer:CreateTransferDestinationBuffer(device, indexStagingBuffer:GetSize(), constants:BUFFER_USAGE_INDEX_BUFFER_BIT)
-        vertexBuffer:CreateTransferDestinationBuffer(device, vertexStagingBuffer:GetSize(), constants:BUFFER_USAGE_UNIFORM_BUFFER_BIT)
-        indexBuffer:CreateTransferDestinationBuffer(device, indexStagingBuffer:GetSize(), constants:BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+        vertexBuffer:CreateTransferDestinationBuffer(device, vertexStagingBuffer:GetSize(), constants:BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)
+        indexBuffer:CreateTransferDestinationBuffer(device, indexStagingBuffer:GetSize(), constants:BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)
         
         vertexStagingBuffer:StopMapping()
         indexStagingBuffer:StopMapping()

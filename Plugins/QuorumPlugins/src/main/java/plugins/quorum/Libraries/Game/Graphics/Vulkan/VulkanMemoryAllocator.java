@@ -7,8 +7,7 @@ import org.lwjgl.util.vma.VmaVulkanFunctions;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanInstance_;
 
-import static org.lwjgl.util.vma.Vma.vmaCreateAllocator;
-import static org.lwjgl.util.vma.Vma.vmaDestroyAllocator;
+import static org.lwjgl.util.vma.Vma.*;
 import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
 
 public class VulkanMemoryAllocator
@@ -36,6 +35,7 @@ public class VulkanMemoryAllocator
             createInfo.device(pluginDevice.GetDevice());
             createInfo.physicalDevice(pluginPhysicalDevice.GetDevice());
             createInfo.pVulkanFunctions(vulkanFunctions);
+            createInfo.flags(VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT);
 
             int vulkanResult = vmaCreateAllocator(createInfo, pointerBuffer);
             if (vulkanResult != VK_SUCCESS)

@@ -97,9 +97,9 @@ integer materialIndex,
 integer textureIndex,
 Color diffuseColor,
 Matrix4 modelMatrix*/
-                integer vertexBufferIndex = mesh:GetGlobalVertexBufferIndex()
-                integer indexBufferIndex = mesh:GetGlobalIndexBufferIndex()
-                integer materialIndex = mesh:GetMaterial():GetGlobalMaterialIndex()
+                //integer vertexBufferIndex = mesh:GetGlobalVertexBufferIndex()
+                //integer indexBufferIndex = mesh:GetGlobalIndexBufferIndex()
+                //integer materialIndex = mesh:GetMaterial():GetGlobalMaterialIndex()
                 
                 integer j = 0
                 repeat while j < models:GetSize()
@@ -107,15 +107,17 @@ Matrix4 modelMatrix*/
                     ModelResourcesVulkan resources = cast(ModelResourcesVulkan, model:GetResources())
                     Color diffuseOverride = resources:GetColor()
                     Texture textureOverride = resources:GetTexture()
-                    integer textureOverrideIndex = -1
-                    if textureOverride not= undefined
-                        textureOverrideIndex = textureOverride:GetVulkanTextureIndex()
-                    end
+                    //integer textureOverrideIndex = -1
+                    //if textureOverride not= undefined
+                        //textureOverrideIndex = textureOverride:GetVulkanTextureIndex()
+                    //end
                     
-                    queue:AddInstanceData(vertexBufferIndex, indexBufferIndex, materialIndex, textureOverrideIndex, diffuseOverride, model:GetTransform())
+                    //queue:AddInstanceData(vertexBufferIndex, indexBufferIndex, materialIndex, textureOverrideIndex, diffuseOverride, model:GetTransform())
+                    queue:AddInstanceData(mesh, textureOverride, diffuseOverride, model:GetTransform())
                     
                     j = j + 1
                 end
+                i = i + 1
             end
             
             queue:AddDrawIndirectCommand(totalVertices, GetMeshCount())
