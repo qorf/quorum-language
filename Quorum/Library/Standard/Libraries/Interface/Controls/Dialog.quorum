@@ -357,6 +357,7 @@ nameLabel:SetAccessibilityCode(nameLabel:parent:Item:NOT_ACCESSIBLE)
 action InitializeDefaultPage returns Page
         StackedRowPage page
         me:defaultPage = page
+        SetVerticalLayoutMode(GetDefaultLayoutProperties():STANDARD)
         
         ApplyDefaultStyleToPage(page)
         
