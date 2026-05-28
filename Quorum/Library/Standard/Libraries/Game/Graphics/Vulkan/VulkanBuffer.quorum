@@ -44,9 +44,9 @@ class VulkanBuffer
         end
         
         BitwiseOperations bits
-        if bits:And(bufferUsage, constants:BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) not= 0
-            allocationFlags = constants:ALLOCATION_CREATE_DEDICATED_MEMORY_BIT
-        end
+        //if bits:And(bufferUsage, constants:BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) not= 0
+            //allocationFlags = constants:ALLOCATION_CREATE_DEDICATED_MEMORY_BIT
+        //end
 
         boolean success = CreateNative(device, size, bufferUsage, memoryUsage, allocationFlags, requiredMemoryFlags, preferredMemoryFlags, sharingMode)
         if success

@@ -157,6 +157,10 @@ public class Game
 
                     if (supportsVulkan)
                         graphics = vulkanGraphics;
+                    else
+                    {
+                        System.out.println("WARNING: Failed to initialize Vulkan, falling back to OpenGL...");
+                    }
                 }
 
                 if (supportsVulkan == false || config.Get_Libraries_Game_DesktopConfiguration__useVulkan_() == false)

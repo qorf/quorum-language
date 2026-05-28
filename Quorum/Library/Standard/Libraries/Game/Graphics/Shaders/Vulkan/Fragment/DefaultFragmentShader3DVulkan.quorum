@@ -24,6 +24,10 @@ class DefaultFragmentShader3DVulkan is Shader
 
 // Adds support for nonuniformEXT and unsized descriptor arrays.
 #extension GL_EXT_nonuniform_qualifier : require
+#extension GL_EXT_buffer_reference: require
+#extension GL_EXT_buffer_reference2: enable
+#extension GL_EXT_scalar_block_layout: require
+#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
 
 layout(set = 0, binding = 1) uniform sampler immutableSampler;
 layout(set = 1, binding = 0) uniform texture2D globalTextures[];
@@ -42,7 +46,7 @@ struct Material {
 layout(scalar, buffer_reference) buffer Materials
 {
 	Material data;
-}
+};
 
 layout(location = 0) in vec2 v_textureCoords;
 layout(location = 1) flat in uint64_t v_materialBuffer;
@@ -51,7 +55,7 @@ layout(location = 3) in vec4 v_diffuseOverride;
 layout(location = 4) flat in uint v_hasTextureOverride;
 layout(location = 5) flat in uint v_textureOverrideIndex;
 
-layout (location = 0) in vec4 outputColor;
+layout (location = 0) out vec4 outputColor;
 
 void main()
 {
@@ -59,11 +63,11 @@ void main()
 	Material material = materials.data;
 	
 	uint textureIndex = material.textureIndex;
-	if (v_hasTextureOverride)
+	if (v_hasTextureOverride == 1)
 		textureIndex = v_textureOverrideIndex;
 		
 	vec4 diffuse = material.diffuseColor;
-	if (v_hasDiffuseOverride)
+	if (v_hasDiffuseOverride == 1)
 		diffuse = v_diffuseOverride;
 
     outputColor = texture(nonuniformEXT(sampler2D(globalTextures[textureIndex], immutableSampler)), v_textureCoords) * diffuse;

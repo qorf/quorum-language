@@ -276,7 +276,7 @@ end
             MaterialVulkan material = materialManager:GetMaterial(materialData:Get(i))
             //material:Load(device, materialData:Get(i))
             materials:Add(material)
-            materialManager:AddPendingMaterial(material)
+            //materialManager:AddPendingMaterial(material)
             i = i + 1
         end
         result:SetMaterials(materials)

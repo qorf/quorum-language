@@ -168,10 +168,6 @@ DefaultFragmentShader2DOpenGL shader
         if HasShader(DEFAULT_3D_VERTEX_SHADER) = false
             if IsVulkan()
                 DefaultVertexShader3DVulkan shader
-                output "Vertex Code:
-" + shader:GetCode() + "
----
-"
                 shader:Compile()
             else
                 DefaultVertexShader3DOpenGL shader

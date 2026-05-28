@@ -76,7 +76,6 @@ public class VulkanBuffer
                 VkBufferDeviceAddressInfo addressInfo = VkBufferDeviceAddressInfo.calloc(stack);
                 addressInfo.sType$Default();
                 addressInfo.buffer(bufferHandle);
-                System.out.println("pluginDevice defined? " + (pluginDevice.GetDevice() != null));
                 bufferDeviceAddress = vkGetBufferDeviceAddress(pluginDevice.GetDevice(), addressInfo);
             }
         }

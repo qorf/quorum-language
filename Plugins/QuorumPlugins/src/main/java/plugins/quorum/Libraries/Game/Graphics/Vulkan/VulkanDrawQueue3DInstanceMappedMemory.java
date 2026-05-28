@@ -24,6 +24,7 @@ public class VulkanDrawQueue3DInstanceMappedMemory
     public void PrepareForTransfers()
     {
         byteBuffer.position(0);
+        byteBuffer.limit(byteBuffer.capacity());
     }
 
     public void TransferInstanceData(MeshVulkan_ quorumMesh, Texture_ texture, Color_ color, Matrix4_ modelMatrix)

@@ -151,6 +151,7 @@ use Libraries.Game.Graphics.Vulkan.VulkanGraphics
 use Libraries.Game.Graphics.Shaders.OpenGL.OpenGLShaderManager
 use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderManager
 use Libraries.Game.Graphics.Vulkan.VulkanTextureManager
+use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
 
 /*
 The Game class is the heart of any game in Quorum. The basic Game class will
@@ -796,6 +797,8 @@ class Game
 
             VulkanTextureManager textures = vulkan:GetTextureManager()
             textures:ProcessPendingTextures()
+            ModelManagerVulkan models = vulkan:GetModelManager()
+            models:ProcessPendingResources()
         end
     end
 

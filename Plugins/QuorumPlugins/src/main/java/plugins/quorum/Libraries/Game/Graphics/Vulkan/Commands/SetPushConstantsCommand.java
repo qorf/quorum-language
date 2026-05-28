@@ -20,6 +20,8 @@ public class SetPushConstantsCommand
 
         VulkanPipelineLayout pipelineLayout = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanPipelineLayout)quorumCommand.GetPipelineLayout()).plugin_;
         ByteBuffer data = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanPushConstantBuffer)quorumCommand.GetData()).plugin_.GetByteBuffer();
+        data.position(0);
+        data.limit(data.capacity());
 
         vkCmdPushConstants(pluginCommandBuffer.GetCommandBuffer(), pipelineLayout.GetLayoutHandle(),
                 quorumCommand.GetStageFlags(), quorumCommand.GetOffset(), data);

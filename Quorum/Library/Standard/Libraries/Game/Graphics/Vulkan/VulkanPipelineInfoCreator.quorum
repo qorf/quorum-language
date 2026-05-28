@@ -142,6 +142,8 @@ class VulkanPipelineInfoCreator
     integer currentVertexBindingIndex = 0
     integer vertexRate = constants:VERTEX_INPUT_RATE_VERTEX
     
+    VulkanPushConstantRange pushConstantRange = undefined
+    
     /*
     This action begins creating a new VulkanPipelineInfo. This action must be called before using other actions to add elements to the info.
 
@@ -249,6 +251,7 @@ class VulkanPipelineInfoCreator
         end
         if not descriptorSetLayouts:IsEmpty()
             VulkanPipelineLayout pipelineLayout = info:GetLayout()
+            pipelineLayout:SetPushConstants(pushConstantRange)
             pipelineLayout:Create(device, descriptorSetLayouts)
         end
         
@@ -259,6 +262,7 @@ class VulkanPipelineInfoCreator
         dynamicStates = undefined
         descriptorSetLayouts = undefined
         device = undefined
+        pushConstantRange = undefined
         
         return result
     end
@@ -789,13 +793,24 @@ class VulkanPipelineInfoCreator
 
         // We also need the descriptor set layout for the global textures. The texture manager holds onto that layout, so go fetch it.
         // Now, add the pre-existing layout to the set of layouts used by the pipeline we're making.
-        //AddDescriptorSetLayout(textureManager:GetGlobalTextureDescriptorSetLayout())
+        AddDescriptorSetLayout(textureManager:GetGlobalTextureDescriptorSetLayout())
         
         // Also add the descriptor set layout for the global mesh resources, taken from the model manager.
         //AddDescriptorSetLayout(modelManager:GetGlobalMeshDescriptorSetLayout())
         
         // We'll also need a layout for the instance data that is managed by the VulkanDrawQueue3Ds.
         //AddDescriptorSetLayout(modelManager:GetInstanceDataDescriptorSetLayout())
+        
+        // For default 3D usage, the push constants need to store 8 bytes for a single 64-bit buffer pointer.
+        VulkanPushConstantRange pushConstants
+        pushConstants:SetSize(8)
+        pushConstants:SetStage(constants:SHADER_STAGE_VERTEX_BIT)
+        pushConstants:Create()
+        SetPushConstantRange(pushConstants)
     end
     
+    action SetPushConstantRange(VulkanPushConstantRange pushConstantRange)
+        me:pushConstantRange = pushConstantRange
+    end
+
 end

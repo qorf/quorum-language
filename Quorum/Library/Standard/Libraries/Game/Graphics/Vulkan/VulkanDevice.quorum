@@ -19,6 +19,7 @@ class VulkanDevice
         VulkanConstants constants
         extensionNames:Add(constants:SWAPCHAIN_EXTENSION)
         extensionNames:Add(constants:DESCRIPTOR_INDEXING_EXTENSION)
+        extensionNames:Add(constants:BUFFER_DEVICE_ADDRESS_EXTENSION)
 
         return Create(physicalDevice, extensionNames)
     end

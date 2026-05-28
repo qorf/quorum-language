@@ -282,15 +282,11 @@ VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
 
             Game game = gameState:GetGame()
             Iterator<Layer> layers = game:GetLayerIterator()
-            boolean finished = false
-            repeat while layers:HasNext() and not finished
+            if layers:HasNext()
 Layer layer = layers:Next()
-                // Note that the "finished = true" will have to move out of the if statement once Vulkan supports 3D (or just check first without a loop).
-                // For now, we intentionally don't consider 3D layers because there's a "dead" 3D layer in slot 0 by default.
                 if layer is Layer2D
                     Layer2D layer2D = cast(Layer2D, layer)
                     isFirstLayer = layer2D:GetPainter():Equals(me)
-                    finished = true
                 end
             end
 

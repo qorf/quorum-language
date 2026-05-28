@@ -7,7 +7,9 @@ shared class VulkanConstants
     // Constants representing common target Vulkan API versions. For other possible versions, see VulkanUtilities "ConvertToAPIVersionID" action.
     public constant integer API_VERSION_1_0_0 = utilities:ConvertToAPIVersionID(1, 0, 0)
     public constant integer API_VERSION_1_1_0 = utilities:ConvertToAPIVersionID(1, 1, 0)
-    public constant integer DEFAULT_API_VERSION = API_VERSION_1_1_0
+    public constant integer API_VERSION_1_2_0 = utilities:ConvertToAPIVersionID(1, 2, 0)
+    public constant integer API_VERSION_1_3_0 = utilities:ConvertToAPIVersionID(1, 3, 0)
+    public constant integer DEFAULT_API_VERSION = API_VERSION_1_2_0
 
     // Values representing the engine information provided to Vulkan Instances when they're created under the hood.
     // These can be used to identify what engine is implementing Vulkan for hardware providers, such as driver manufacturers, if they choose to check.
@@ -43,6 +45,8 @@ shared class VulkanConstants
 
     // An extension for devices. Used to allow for more dynamic indexing of descriptors.
     public constant text DESCRIPTOR_INDEXING_EXTENSION = "VK_EXT_descriptor_indexing"
+    // An extension for devices. Used to enable buffer device addresses (BDA), allowing buffers to be accessed via pointer in shaders.
+    public constant text BUFFER_DEVICE_ADDRESS_EXTENSION = "VK_KHR_buffer_device_address"
 
     // Constants representing types of physical devices. 
     public constant integer PHYSICAL_DEVICE_TYPE_OTHER = 0

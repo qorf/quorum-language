@@ -77,6 +77,8 @@ public class VulkanDevice
                 queueFamilies.Add(quorumFamily);
             }
 
+            VkPhysicalDeviceFeatures supportedFeatures = physicalDevice.GetDeviceFeatures();
+
             // Extra features we'll use for 3D rendering, especially buffer device addressing (BDA) for pointer-like referencing to data on GPU.
             VkPhysicalDeviceVulkan12Features features12 = VkPhysicalDeviceVulkan12Features.calloc(stack);
             features12.sType$Default();
@@ -87,32 +89,47 @@ public class VulkanDevice
             features2.sType$Default();
 
             VkPhysicalDeviceFeatures features = features2.features();
+            features.set(supportedFeatures);
             features.shaderInt64(true);
             features.multiDrawIndirect(true);
             features.drawIndirectFirstInstance(true);
+            features.robustBufferAccess(true);
+
+            if (supportedFeatures.samplerAnisotropy())
+                features.samplerAnisotropy(true);
 
             features2.pNext(features12.address());
+
+//            VkPhysicalDeviceBufferDeviceAddressFeatures bdaFeatures = VkPhysicalDeviceBufferDeviceAddressFeatures.calloc(stack);
+//            bdaFeatures.bufferDeviceAddress(true);
+//            features12.pNext(bdaFeatures.address());
 
             // We'll need an info struct for creating the logical device itself as well. We'll use all the queue info structs as part of this.
             VkDeviceCreateInfo deviceCreateInfo = VkDeviceCreateInfo.calloc(stack);
             deviceCreateInfo.sType$Default();
             deviceCreateInfo.ppEnabledExtensionNames(requiredExtensions);
-            deviceCreateInfo.pEnabledFeatures(physicalDevice.GetDeviceFeatures());
+//            deviceCreateInfo.pEnabledFeatures(physicalDevice.GetDeviceFeatures());
             deviceCreateInfo.pQueueCreateInfos(queueCreationInfoBuffer);
             deviceCreateInfo.pNext(features2.address());
 
             // If we're using descriptor indexing, enable the extended features for it.
-            if (hasDescriptorIndexing && false)
+            if (hasDescriptorIndexing)
             {
-                VkPhysicalDeviceDescriptorIndexingFeatures indexingFeatures = VkPhysicalDeviceDescriptorIndexingFeatures.calloc(stack);
-                indexingFeatures.sType$Default();
-                indexingFeatures.descriptorBindingPartiallyBound(true);
-                indexingFeatures.descriptorBindingSampledImageUpdateAfterBind(true);
-                indexingFeatures.descriptorBindingUpdateUnusedWhilePending(true);
-                indexingFeatures.descriptorBindingVariableDescriptorCount(true);
-                indexingFeatures.runtimeDescriptorArray(true);
+                features12.descriptorBindingPartiallyBound(true);
+                features12.descriptorBindingSampledImageUpdateAfterBind(true);
+                features12.descriptorBindingUpdateUnusedWhilePending(true);
+                features12.descriptorBindingVariableDescriptorCount(true);
+                features12.descriptorIndexing(true);
+                features12.runtimeDescriptorArray(true);
+
+//                VkPhysicalDeviceDescriptorIndexingFeatures indexingFeatures = VkPhysicalDeviceDescriptorIndexingFeatures.calloc(stack);
+//                indexingFeatures.sType$Default();
+//                indexingFeatures.descriptorBindingPartiallyBound(true);
+//                indexingFeatures.descriptorBindingSampledImageUpdateAfterBind(true);
+//                indexingFeatures.descriptorBindingUpdateUnusedWhilePending(true);
+//                indexingFeatures.descriptorBindingVariableDescriptorCount(true);
+//                indexingFeatures.runtimeDescriptorArray(true);
                 //deviceCreateInfo.pNext(indexingFeatures);
-                features12.pNext(indexingFeatures.address());
             }
             else
             {

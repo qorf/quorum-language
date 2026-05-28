@@ -16,15 +16,26 @@ public class VulkanPushConstantRange {
         int offset = quorumSide.GetOffset();
         int stage = quorumSide.GetStage();
 
-        try (MemoryStack stack = MemoryStack.stackPush()) {
+//        try (MemoryStack stack = MemoryStack.stackPush()) {
             VkPushConstantRange.Buffer vpcr = null;
             if (size > 0) {
-                vpcr = VkPushConstantRange.calloc(1, stack)
-                        .stageFlags(stage)
-                        .offset(0)
-                        .size(size);
+//                vpcr = VkPushConstantRange.calloc(1, stack);
+                vpcr = VkPushConstantRange.calloc(capacity);
+                VkPushConstantRange range = vpcr.get(0);
+                range.stageFlags(stage);
+                range.offset(offset);
+                range.size(size);
                 pushConstantBuffer = vpcr;
             }
+//        }
+    }
+
+    public void Dispose()
+    {
+        if (pushConstantBuffer != null)
+        {
+            pushConstantBuffer.free();
+            pushConstantBuffer = null;
         }
     }
 }

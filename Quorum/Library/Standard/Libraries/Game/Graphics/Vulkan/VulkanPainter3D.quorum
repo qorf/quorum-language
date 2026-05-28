@@ -28,6 +28,8 @@ use Libraries.Game.Graphics.Vulkan.Commands.BindDescriptorSetCommand
 use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
 use Libraries.Game.Graphics.Vulkan.Commands.DrawIndirectCommand
 use Libraries.Game.Graphics.Vulkan.Commands.SetPushConstantsCommand
+use Libraries.Game.Graphics.Vulkan.Commands.SetScissorCommand
+use Libraries.Game.Graphics.Vulkan.Commands.BindVertexBufferCommand
 
 class VulkanPainter3D is Painter3D
     
@@ -64,6 +66,9 @@ VulkanSampler immutableSampler = undefined
     VulkanPushConstantBuffer pushConstants
     
     integer DEFAULT_MAX_INSTANCES = 1024
+    
+    // A dummy vertex buffer. Without extensions to bypass it, the Vulkan spec requires we bind something to the vertex buffers, even if our pipeline doesn't need it due to bindless rendering.
+    VulkanBuffer dummyVertexBuffer = undefined
     
 on create
         matrix4Array:SetSize(16)
@@ -308,6 +313,15 @@ Layer layer = layers:Next()
             end
         end
         
+        if dummyVertexBuffer = undefined
+            VulkanConstants constants
+            
+            VulkanBuffer dummyBuffer
+            dummyVertexBuffer = dummyBuffer
+            
+            dummyBuffer:CreateMappableBuffer(renderPass:GetDevice(), 12, constants:BUFFER_USAGE_VERTEX_BUFFER_BIT)
+        end
+        
         //needsFlush = false
         //isClipping = false
         //clipX1 = -1
@@ -341,12 +355,7 @@ Layer layer = layers:Next()
         */
         //EndBatches(commandBuffer)
         
-        /*TO-DO: Bind descriptors for:
-- Camera
-- Global texture set
-- Global model info
-- Instance data*/
-
+        
         if not pendingBatches:IsEmpty() or not pendingTransparentBatches:IsEmpty()
             // After ending the batches, we need to wait for data transfers to complete before any drawing can occur.
             // Create a memory barrier that ensures that all commands after this must wait for the transfer stage of
@@ -385,6 +394,12 @@ VulkanDescriptorSet texturesDescriptorSet = graphics:GetTextureManager():GetGlob
         ShaderProgram currentProgram = GetDefaultProgram()
         VulkanPipeline currentPipeline = GetDefaultPipeline()
         
+        if currentPipeline = undefined
+            VulkanShaderProgram strategy = cast(VulkanShaderProgram, currentProgram:GetShaderProgramStrategy())
+            strategy:CreatePipeline(renderPass)
+            currentPipeline = strategy:GetPipeline()
+        end
+        
         BindPipelineCommand bindPipeline
             bindPipeline:SetPipeline(currentPipeline)
             commandBuffer:Record(bindPipeline)
@@ -402,6 +417,18 @@ VulkanDescriptorSet texturesDescriptorSet = graphics:GetTextureManager():GetGlob
             setViewport:SetSize(viewportWidth, -viewportHeight)
             commandBuffer:Record(setViewport)
         
+        SetScissorCommand setScissor
+        setScissor:SetPosition(0, 0)
+            setScissor:SetSize(swapchain:GetImageWidth(), swapchain:GetImageHeight())
+        commandBuffer:Record(setScissor)
+        
+        // We actually don't use regular vertex inputs in our bindless approach, but Vulkan complains if we never bind anything.
+        // Bind a dummy set to satisfy the spec and prevent warnings and unpredictable behavior.
+        BindVertexBufferCommand bindVertex
+        bindVertex:SetBuffer(dummyVertexBuffer)
+        commandBuffer:Record(bindVertex)
+        
+        
         // Bind the global descriptor arrays. This may need to be adjusted if different batches need to eventually point at different descriptors
         // (e.g. there's more content than can fit in a single array)
         VulkanPipelineLayout pipelineLayout = currentPipeline:GetInfo():GetLayout()
@@ -413,11 +440,11 @@ BindDescriptorSetCommand cameraBind
             cameraBind:SetDescriptorSet(currentCameraDescriptor)
             commandBuffer:Record(cameraBind)
 
-            //BindDescriptorSetCommand texturesBind
-            //texturesBind:SetPipelineLayout(pipelineLayout)
-            //texturesBind:SetDescriptorSet(texturesDescriptorSet)
-            //texturesBind:SetSetIndex(1)
-            //commandBuffer:Record(texturesBind)
+            BindDescriptorSetCommand texturesBind
+            texturesBind:SetPipelineLayout(pipelineLayout)
+            texturesBind:SetDescriptorSet(texturesDescriptorSet)
+            texturesBind:SetSetIndex(1)
+            commandBuffer:Record(texturesBind)
         //
         //BindDescriptorSetCommand meshDataBind
             //meshDataBind:SetPipelineLayout(pipelineLayout)
@@ -470,6 +497,7 @@ TO-DO HERE:
         setPushConstants:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT)
         commandBuffer:Record(setPushConstants)
         
+        output "Drawing " + drawQueue:GetDrawCommandCount() + " commands..."
         
         DrawIndirectCommand drawCommand
         drawCommand:SetDrawCommands(drawQueue:GetDrawCommandBuffer())

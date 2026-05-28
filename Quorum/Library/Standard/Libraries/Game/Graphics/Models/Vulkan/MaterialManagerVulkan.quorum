@@ -172,6 +172,7 @@ VulkanImageInfo info
             MaterialVulkan material
             material:Load(device, data)
             materialMap:Add(path, material)
+            AddPendingMaterial(material)
             result = material
         end
         return result
