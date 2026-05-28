@@ -51,7 +51,7 @@ layout(scalar, buffer_reference) buffer Materials
 layout(location = 0) in vec2 v_textureCoords;
 layout(location = 1) flat in uint64_t v_materialBuffer;
 layout(location = 2) flat in uint v_hasDiffuseOverride;
-layout(location = 3) in vec4 v_diffuseOverride;
+layout(location = 3) flat in uint v_diffuseOverride;
 layout(location = 4) flat in uint v_hasTextureOverride;
 layout(location = 5) flat in uint v_textureOverrideIndex;
 
@@ -59,18 +59,19 @@ layout (location = 0) out vec4 outputColor;
 
 void main()
 {
-	Materials materials = Materials(v_materialBuffer);
-	Material material = materials.data;
+	//Materials materials = Materials(v_materialBuffer);
+	//Material material = materials.data;
 	
-	uint textureIndex = material.textureIndex;
-	if (v_hasTextureOverride == 1)
-		textureIndex = v_textureOverrideIndex;
+	//uint textureIndex = material.textureIndex;
+	//if (v_hasTextureOverride == 1)
+	//	textureIndex = v_textureOverrideIndex;
 		
-	vec4 diffuse = material.diffuseColor;
-	if (v_hasDiffuseOverride == 1)
-		diffuse = v_diffuseOverride;
+	//vec4 diffuse = material.diffuseColor;
+	//if (v_hasDiffuseOverride == 1)
+	//	diffuse = v_diffuseOverride;
 
-    outputColor = texture(nonuniformEXT(sampler2D(globalTextures[textureIndex], immutableSampler)), v_textureCoords) * diffuse;
+    //outputColor = texture(nonuniformEXT(sampler2D(globalTextures[textureIndex], immutableSampler)), v_textureCoords) * diffuse;
+	outputColor = vec4(1.0, 0.0, 0.0, 1.0);
 }"
 )
     end

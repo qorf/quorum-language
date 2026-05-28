@@ -26,7 +26,7 @@ class DefaultVertexShader3DVulkan is Shader
 layout(location = 0) out vec2 v_textureCoords;
 layout(location = 1) flat out uint64_t v_materialBuffer;
 layout(location = 2) flat out uint v_hasDiffuseOverride;
-layout(location = 3) out vec4 v_diffuseOverride;
+layout(location = 3) flat out uint v_diffuseOverride;
 layout(location = 4) flat out uint v_hasTextureOverride;
 layout(location = 5) flat out uint v_textureOverrideIndex;
 
@@ -47,7 +47,7 @@ layout(scalar, buffer_reference) buffer VertexBuffer {
 	Vertex[] vertices;
 };
 
-layout(scalar, buffer_reference) buffer IndexBuffer {
+layout(std430, buffer_reference, buffer_reference_align=4) buffer IndexBuffer {
 	uint[] indices;
 };
 
@@ -58,11 +58,11 @@ struct InstanceData {
 	uint textureOverride;
 	uint textureIndex;
 	uint diffuseColorOverride;
-	vec4 diffuseColor;
+	uint diffuseColor;
 	mat4 modelTransform;
 };
 
-layout(std430, buffer_reference, buffer_reference_align=16) buffer Instances {
+layout(scalar, buffer_reference) buffer Instances {
 	InstanceData[] data;
 };
 
@@ -78,21 +78,40 @@ void main()
 	
 	mat4 modelTransform = instanceData.modelTransform;
 	
-	VertexBuffer vertexBuffer = instanceData.vertexBuffer;
-	IndexBuffer indexBuffer = instanceData.indexBuffer;
+	//VertexBuffer vertexBuffer = instanceData.vertexBuffer;
+	//IndexBuffer indexBuffer = instanceData.indexBuffer;
 	
-	uint index = indexBuffer.indices[gl_VertexIndex];
-	Vertex vertex = vertexBuffer.vertices[index];
+	//uint index = indexBuffer.indices[gl_VertexIndex];
+	//uint index = indexBuffer.indices[0];
+	//Vertex vertex = vertexBuffer.vertices[index];
+	//Vertex vertex = vertexBuffer.vertices[0];
 	
-	vec3 inPos = vertex.position;
-	vec4 worldPosition = modelTransform * vec4(inPos, 1);
+	//vec3 inPos = vertex.position;
+	//vec4 worldPosition = modelTransform * vec4(inPos, 1.0);
 
-	v_textureCoords = vertex.textureCoordinates;
+	//v_textureCoords = vertex.textureCoordinates;
 	v_materialBuffer = instanceData.materialBuffer;
 	v_hasDiffuseOverride = instanceData.diffuseColorOverride;
 	v_diffuseOverride = instanceData.diffuseColor;
 	v_hasTextureOverride = instanceData.textureOverride;
 	v_textureOverrideIndex = instanceData.textureIndex;
+	
+	//vec4 worldPosition = modelTransform * vec4(1.0, 1.0, 1.0, 1.0);
+	
+	vec4 adjust = vec4(4.0, 4.0, 0.0, 1.0);
+	if ((gl_VertexIndex & 1) == 0)
+		adjust.x = -4.0;
+	if ((gl_VertexIndex & 2) == 0)
+		adjust.y = -4.0;
+	vec4 worldPosition = modelTransform * adjust;
+	
+	
+	v_textureCoords = vec2(0.0, 0.0);
+	//v_materialBuffer = 0;
+	//v_hasDiffuseOverride = instanceData.diffuseColorOverride;
+	//v_hasTextureOverride = 0;
+	//v_diffuseOverride = vec4(1.0, 1.0, 1.0, 1.0);
+	//v_textureOverrideIndex = index;
     
     gl_Position =  camera.projectionViewMatrix * worldPosition;
 }"

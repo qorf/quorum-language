@@ -467,6 +467,7 @@ TO-DO HERE:
 */
                 VulkanPainter3DBatch batch = currentBatches:Get(i)
                 batch:ProcessBatch(drawQueue)
+                batch:PrepareForNextFrame()
                 
                 i = i + 1
             end

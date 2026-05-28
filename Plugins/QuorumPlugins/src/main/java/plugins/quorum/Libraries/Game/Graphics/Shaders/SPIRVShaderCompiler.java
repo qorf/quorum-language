@@ -23,6 +23,8 @@ public class SPIRVShaderCompiler
         {
             compilerHandle = Shaderc.shaderc_compiler_initialize();
             optionsHandle = Shaderc.shaderc_compile_options_initialize();
+            System.out.println("WARNING: Disabling shader optimization in SPIRVShaderCompiler.");
+            Shaderc.shaderc_compile_options_set_optimization_level(optionsHandle, 0);
 
             long result = Shaderc.shaderc_compile_into_spv(compilerHandle, code, shaderType, shaderName, "main", optionsHandle);
 

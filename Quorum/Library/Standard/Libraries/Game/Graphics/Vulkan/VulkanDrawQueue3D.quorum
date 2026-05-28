@@ -28,7 +28,7 @@ class VulkanDrawQueue3D
     //VulkanDescriptorSet instanceDataDescriptorSet = undefined
     
     // The size of a single buffer of instance data, in bytes and as 4-byte words.
-    public constant integer INSTANCE_DATA_WORD_SIZE = 23
+    public constant integer INSTANCE_DATA_WORD_SIZE = (2 + 2 + 2 + 1 + 1 + 1 + 1 + 16)
     public constant integer INSTANCE_DATA_BYTE_SIZE = INSTANCE_DATA_WORD_SIZE * 4
     
     // Indices for the location of instance data, aligned to word indices (not bytes).

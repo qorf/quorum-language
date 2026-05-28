@@ -28,7 +28,6 @@ public class VulkanPushConstantBuffer
     public void AddBufferPointer(VulkanBuffer_ quorumBuffer)
     {
         VulkanBuffer pluginBuffer = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer)quorumBuffer).plugin_;
-        System.out.println("Push Constant Pointer: " + pluginBuffer.GetBufferDeviceAddress());
         buffer.putLong(pluginBuffer.GetBufferDeviceAddress());
     }
     
