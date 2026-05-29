@@ -498,8 +498,6 @@ TO-DO HERE:
         setPushConstants:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT)
         commandBuffer:Record(setPushConstants)
         
-        output "Drawing " + drawQueue:GetDrawCommandCount() + " commands..."
-        
         DrawIndirectCommand drawCommand
         drawCommand:SetDrawCommands(drawQueue:GetDrawCommandBuffer())
         drawCommand:SetDrawCount(drawQueue:GetDrawCommandCount())

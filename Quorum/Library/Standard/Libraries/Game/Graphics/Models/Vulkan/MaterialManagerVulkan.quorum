@@ -19,7 +19,7 @@ class MaterialManagerVulkan
     GameStateManager gameState
     
     // A mapping of material files to already-loaded materials.
-    HashTable<text, MaterialVulkan> materialMap
+    //HashTable<text, MaterialVulkan> materialMap
     
     // An array containing any materials that are awaiting data transfers to GPU.
     Array<MaterialVulkan> pendingMaterials
@@ -27,13 +27,13 @@ class MaterialManagerVulkan
     VulkanDevice device = undefined
 
     // Hash tables for retrieving the index of a material in the global material arrays.
-    HashTable<MaterialVulkan, integer> materialToIndexTable
+    //HashTable<MaterialVulkan, integer> materialToIndexTable
     
     // The next index to store a material buffer at in the global arrays.
-    integer nextMaterialID = 0
+    //integer nextMaterialID = 0
     
     // TO-DO: NYI, whenever a material is disposed, store its index here. New materials should reuse previously freed IDs before using a new index.
-    Queue<integer> recycledMaterialIDs
+    //Queue<integer> recycledMaterialIDs
     
     //Array<VulkanBuffer> globalMaterialArray
     
@@ -52,6 +52,9 @@ class MaterialManagerVulkan
             integer i = 0
             repeat while i < pendingMaterials:GetSize()
                 MaterialVulkan material = pendingMaterials:Get(i)
+                if material:IsPreloaded()
+                    material:Load()
+                end
 if material:HasData()
                     material:TransferBuffers(commandBuffer)
                 end
@@ -126,13 +129,13 @@ VulkanImageInfo info
                 //texture:SetVulkanImageView(view)
 
                 // Also store the vertex buffer in our global array and associate our resources.
-                if not recycledMaterialIDs:IsEmpty()
-                    // TO-DO: Handle this case. This gets complicated by the question of releasing IDs that might be in use for previous frames.
-                else
-                    //globalMaterialArray:Add(material:GetBuffer())
-                    material:SetGlobalMaterialIndex(nextMaterialID)
-                    nextMaterialID = nextMaterialID + 1
-                end
+                //if not recycledMaterialIDs:IsEmpty()
+                    //// TO-DO: Handle this case. This gets complicated by the question of releasing IDs that might be in use for previous frames.
+                //else
+                    ////globalMaterialArray:Add(material:GetBuffer())
+                    //material:SetGlobalMaterialIndex(nextMaterialID)
+                    //nextMaterialID = nextMaterialID + 1
+                //end
                 
                 //VulkanDescriptorResourcesInfo resourcesInfo
                 //resourcesInfo:SetDestinationBinding(2)
@@ -170,18 +173,18 @@ VulkanImageInfo info
         MaterialVulkan result = GetCachedMaterial(path)
         if result = undefined
             MaterialVulkan material
-            material:Load(device, data)
-            materialMap:Add(path, material)
+            material:Preload(device, data)
+            //materialMap:Add(path, material)
             AddPendingMaterial(material)
             result = material
         end
         return result
     end
     
-    action GetCachedMaterial(text filePath) returns MaterialVulkan
-        if materialMap:HasKey(filePath)
-            return materialMap:GetValue(filePath)
-        end
+    private action GetCachedMaterial(text filePath) returns MaterialVulkan
+        //if materialMap:HasKey(filePath)
+            //return materialMap:GetValue(filePath)
+        //end
         return undefined
     end
     

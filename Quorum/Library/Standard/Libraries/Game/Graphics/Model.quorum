@@ -205,13 +205,33 @@ class Model is Item3D
     action SetColor(Color color)
         resources:SetColor(color)
     end
+    
+    /*Models can be made up of multiple parts, called meshes. This action sets the color of a specific mesh in the model
+based on its index.*/
+    action SetColor(integer meshIndex, Color color)
+        resources:SetColor(meshIndex, color)
+    end
 
     /*
     This action returns the diffuse color of a primitive model. If a primitive
     shape hasn't been loaded, this action will return undefined.
     */
     action GetColor returns Color
-        return diffuseColor
+        return GetColor(0)
+    end
+    
+    /*This action returns the color applied to one of the meshes of the Model, which is located at the given index.*/
+    action GetColor(integer meshIndex) returns Color
+        if resources is ModelResourcesVulkan
+            ModelResourcesVulkan vulkanResources = cast(ModelResourcesVulkan, resources)
+            return vulkanResources:GetColor(meshIndex)
+        else
+            if meshIndex = 0
+                return diffuseColor
+            else
+                return undefined
+            end
+        end
     end
 
     /*
@@ -2250,10 +2270,14 @@ end
         return resources
     end
     
-    action GetModelManager returns ModelManagerVulkan
+    private action GetModelManager returns ModelManagerVulkan
         GameStateManager manager
         VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
         return graphics:GetModelManager()
+    end
+    
+    action GetMeshCount returns integer
+        return modelBlueprint:GetMeshCount()
     end
 
 end

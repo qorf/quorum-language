@@ -33,7 +33,7 @@ layout(set = 0, binding = 1) uniform sampler immutableSampler;
 layout(set = 1, binding = 0) uniform texture2D globalTextures[];
 
 struct Material {
-	vec4 diffuseColor;
+	uint diffuseColor;
 	uint textureIndex;
 	uint hasNormalMap;
 	uint hasRoughMap;
@@ -59,19 +59,18 @@ layout (location = 0) out vec4 outputColor;
 
 void main()
 {
-	//Materials materials = Materials(v_materialBuffer);
-	//Material material = materials.data;
+	Materials materials = Materials(v_materialBuffer);
+	Material material = materials.data;
 	
-	//uint textureIndex = material.textureIndex;
-	//if (v_hasTextureOverride == 1)
-	//	textureIndex = v_textureOverrideIndex;
+	uint textureIndex = material.textureIndex;
+	if (v_hasTextureOverride == 1)
+		textureIndex = v_textureOverrideIndex;
 		
-	//vec4 diffuse = material.diffuseColor;
-	//if (v_hasDiffuseOverride == 1)
-	//	diffuse = v_diffuseOverride;
+	vec4 diffuse = unpackUnorm4x8(material.diffuseColor);
+	if (v_hasDiffuseOverride == 1)
+		diffuse = unpackUnorm4x8(v_diffuseOverride);
 
-    //outputColor = texture(nonuniformEXT(sampler2D(globalTextures[textureIndex], immutableSampler)), v_textureCoords) * diffuse;
-	outputColor = vec4(1.0, 0.0, 0.0, 1.0);
+    outputColor = texture(nonuniformEXT(sampler2D(globalTextures[textureIndex], immutableSampler)), v_textureCoords) * diffuse;
 }"
 )
     end

@@ -164,6 +164,19 @@ class ModelResourcesOpenGL is ModelResources
         end
     end
     
+    action SetColor(integer meshIndex, Color color)
+        Array<Material> materials = GetMaterials()
+        Material material = materials:Get(meshIndex)
+        ColorAttribute attribute
+            if material:HasAttribute(attribute:GetDiffuseValue())
+                attribute = cast(ColorAttribute, material:GetAttribute(attribute:GetDiffuseValue()))
+                attribute:SetAttribute(attribute:GetDiffuseValue(), color)
+            else
+                attribute:SetAttribute(attribute:GetDiffuseValue(), color)
+                material:Add(attribute)
+            end
+    end
+    
     action SetFromBlueprint(ModelBlueprint schematic)
         ModelBlueprintOpenGL loader = cast(ModelBlueprintOpenGL, schematic)
         CopyNodes(loader:nodes)
@@ -489,6 +502,15 @@ Copy the nodes from the given array into this model's data structures.
             end
             counter = counter + 1
         end
+    end
+    
+    action SetTexture(integer meshIndex, Texture texture)
+        Material material = materials:Get(meshIndex)
+        TextureAttribute attribute
+        if material:HasAttribute(attribute:GetDiffuseValue())
+                attribute = cast(TextureAttribute, material:GetAttribute(attribute:GetDiffuseValue()))
+                attribute:SetAttribute(attribute:GetDiffuseValue(), texture)
+            end
     end
     
 end

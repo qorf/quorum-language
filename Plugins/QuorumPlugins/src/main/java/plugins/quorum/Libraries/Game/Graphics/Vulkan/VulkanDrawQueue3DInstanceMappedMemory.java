@@ -58,8 +58,14 @@ public class VulkanDrawQueue3DInstanceMappedMemory
         }
         else
         {
+            int a = (int)(255 * color.GetAlpha()) << 24;
+            int b = (int)(255 * color.GetBlue()) << 16;
+            int g = (int)(255 * color.GetGreen()) << 8;
+            int r = (int)(255 * color.GetRed());
+            int result = a | b | g | r;
+
             byteBuffer.putInt(1);
-            byteBuffer.putInt(color.GetColorCode());
+            byteBuffer.putInt(result);
         }
 
         byteBuffer.putFloat((float)modelMatrix.Get_Libraries_Compute_Matrix4__row0column0_());

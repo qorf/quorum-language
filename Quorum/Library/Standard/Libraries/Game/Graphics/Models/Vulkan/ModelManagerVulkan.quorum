@@ -270,6 +270,7 @@ end
         VulkanDevice device = graphics:GetDevice()
         
         Array<Material> materialData = data:GetMaterials()
+        output "ModelManagerVulkan: Material data, total size = " + materialData:GetSize()
         Array<MaterialVulkan> materials
         integer i = 0
         repeat while i < materialData:GetSize()

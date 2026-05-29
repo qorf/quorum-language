@@ -47,14 +47,64 @@ Metallic Factor (float, 4 bytes)*/
     
     integer globalMaterialIndex = -1
     
-    action Load(VulkanDevice device, Material data)
+    Material preloadData = undefined
+    Texture preloadTexture = undefined
+    Texture preloadNormalMap = undefined
+    Texture preloadRoughMap = undefined
+    
+    // Ensures all data in the material that needs to be pre-processed, such as textures, are sent to their appropriate managers.
+    action Preload(VulkanDevice device, Material data)
+        me:device = device
+        preloadData = data
+        
+        text texturePath = data:GetPath()
+        text normalPath = data:GetNormalMapPath()
+        text roughPath = data:GetMetalRoughMap()
+        
+        if texturePath = undefined or texturePath = ""
+            // Simply requesting the unit texture from the manager is enough to ensure it will be sent to the texture manager for loading, if it hasn't been already.
+            SharedTextureManager sharedTextures
+            preloadTexture = sharedTextures:GetUnitTexture()
+        else
+            Texture texture
+            texture:LoadFromFile(texturePath)
+            preloadTexture = texture
+        end
+        if normalPath = undefined or normalPath = ""
+            // Do nothing, no normal map is used.
+        else
+            Texture normal
+            normal:LoadFromFile(normalPath)
+            preloadNormalMap = normal
+        end
+        if roughPath = undefined or roughPath = ""
+            // Do nothing, no rough map is used.
+        else
+            Texture rough
+            rough:LoadFromFile(roughPath)
+            preloadRoughMap = rough
+        end
+        
+        
+    end
+    
+    /*Loads the material's data into host-visible memory, in preparation for transfer to the GPU later. Must be done after preload,
+because texture information must be processed in advance to prevent placeholder texture IDs from being inserted into the buffer.
+Ensure the VulkanTextureManager processes its pending resources between calling Preload and Load (this happens automatically when using the
+default material loading system, as part of the model load system).*/
+    action Load
+        output "MATERIAL: Load..."
+        if preloadData = undefined
+            alert("I couldn't load this data because Preload wasn't called first. Call Preload and allow the TextureManager to process pending requests before loading.")
+        end
         if IsReady()
             alert("I cannot load data into this mesh because it has already been loaded!")
         elseif HasData()
             alert("I cannot set this mesh's data because the data was already set!")
         end
         
-        me:device = device
+        Material data = preloadData
+        
         VulkanConstants constants
         NumberUtilities utility
         
@@ -64,45 +114,46 @@ Metallic Factor (float, 4 bytes)*/
         stagingBuffer:CreateTransferSourceBuffer(device, MATERIAL_BYTE_SIZE)
         
         Vector4 diffuse = data:GetDiffuse()
-        text texturePath = data:GetPath()
-        text normalPath = data:GetNormalMapPath()
-        text roughPath = data:GetMetalRoughMap()
         
         Number32BitArray dataArray
         dataArray:SetSize(MATERIAL_BYTE_SIZE / 4)
         // If no diffuse color is used, use a default white.
         if diffuse not= undefined
+            output "MATERIAL LOAD: Diffuse = " + diffuse:GetX() + ", " + diffuse:GetY() + ", " + diffuse:GetZ() + ", " + diffuse:GetW()
+            Libraries.Compute.BitwiseOperations ops
+            
+            integer a = ops:ShiftLeft(cast(integer, diffuse:GetW() * 255), 24)
+        integer b = ops:ShiftLeft(cast(integer, diffuse:GetZ() * 255), 16)
+        integer g = ops:ShiftLeft(cast(integer, diffuse:GetY() * 255), 8)
+        integer r = cast(integer, diffuse:GetX() * 255)
+
+        integer result = ops:Or(ops:Or(a, b), ops:Or(g, r))
+            output "MATERIAL BITS: Result = " + result
+            
             dataArray:Set(DIFFUSE_INDEX, utility:PackNormalizedVector4(diffuse:GetX(), diffuse:GetY(), diffuse:GetZ(), diffuse:GetW()))
+            
         else
+            output "MATERIAL LOAD: Diffuse = WHITE"
             dataArray:Set(DIFFUSE_INDEX, utility:PackNormalizedVector4(1.0, 1.0, 1.0, 1.0))
         end
-        // Provide the default unit texture if no other texture is used.
-        if texturePath = undefined or texturePath = ""
-            SharedTextureManager sharedTextures
-            Texture unitTexture = sharedTextures:GetUnitTexture()
-            dataArray:Set(TEXTURE_INDEX, unitTexture:GetVulkanTextureIndex())
+        
+        // There is always a texture, whether its custom or the default unit texture.
+        output "MATERIAL LOAD: texture ID = " + preloadTexture:GetVulkanTextureIndex()
+        dataArray:Set(TEXTURE_INDEX, utility:EncodeIntegerAsNumber(preloadTexture:GetVulkanTextureIndex()))
+        
+        if preloadNormalMap = undefined
+            dataArray:Set(HAS_NORMAL_MAP_INDEX, utility:EncodeIntegerAsNumber(0))
+            dataArray:Set(NORMAL_MAP_INDEX, utility:EncodeIntegerAsNumber(0))
         else
-            Texture texture
-            texture:LoadFromFile(texturePath)
-            dataArray:Set(TEXTURE_INDEX, texture:GetVulkanTextureIndex())
+            dataArray:Set(HAS_NORMAL_MAP_INDEX, utility:EncodeIntegerAsNumber(1))
+            dataArray:Set(NORMAL_MAP_INDEX, utility:EncodeIntegerAsNumber(preloadNormalMap:GetVulkanTextureIndex()))
         end
-        if normalPath = undefined or normalPath = ""
-            dataArray:Set(HAS_NORMAL_MAP_INDEX, 0)
-            dataArray:Set(NORMAL_MAP_INDEX, 0)
+        if preloadRoughMap = undefined
+            dataArray:Set(HAS_ROUGH_MAP_INDEX, utility:EncodeIntegerAsNumber(0))
+            dataArray:Set(ROUGH_MAP_INDEX, utility:EncodeIntegerAsNumber(0))
         else
-            dataArray:Set(HAS_NORMAL_MAP_INDEX, 1)
-            Texture normal
-            normal:LoadFromFile(normalPath)
-            dataArray:Set(NORMAL_MAP_INDEX, normal:GetVulkanTextureIndex())
-        end
-        if roughPath = undefined or roughPath = ""
-            dataArray:Set(HAS_ROUGH_MAP_INDEX, 0)
-            dataArray:Set(ROUGH_MAP_INDEX, 0)
-        else
-            dataArray:Set(HAS_ROUGH_MAP_INDEX, 1)
-            Texture rough
-            rough:LoadFromFile(roughPath)
-            dataArray:Set(ROUGH_MAP_INDEX, rough:GetVulkanTextureIndex())
+            dataArray:Set(HAS_ROUGH_MAP_INDEX, utility:EncodeIntegerAsNumber(1))
+            dataArray:Set(ROUGH_MAP_INDEX, utility:EncodeIntegerAsNumber(preloadRoughMap:GetVulkanTextureIndex()))
         end
         dataArray:Set(ROUGH_FACTOR_INDEX, data:GetRoughness())
         dataArray:Set(METALLIC_FACTOR_INDEX, data:GetMetallic())
@@ -110,6 +161,15 @@ Metallic Factor (float, 4 bytes)*/
         VulkanNumber32BitMappedMemory mapping = stagingBuffer:MapToNumber32BitMemory()
         mapping:Set(dataArray)
         stagingBuffer:StopMapping()
+        
+        preloadData = undefined
+        preloadTexture = undefined
+        preloadNormalMap = undefined
+        preloadRoughMap = undefined
+    end
+    
+    action IsPreloaded returns boolean
+        return preloadData not= undefined
     end
     
     action HasData returns boolean

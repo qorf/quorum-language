@@ -21,8 +21,14 @@ class ModelResources
     */
     blueprint action SetColor(Color color)
     
+    /* This action sets the diffuse color of a mesh located at the given index within the Model. */
+    blueprint action SetColor(integer meshIndex, Color color)
+    
     /* This action sets the texture of a primitive model. */
     blueprint action SetTexture(Texture texture)
+    
+    /*This action sets a custom texture for a mesh located at the given index within the Model.*/
+    blueprint action SetTexture(integer meshIndex, Texture texture)
     
     blueprint action SetFromBlueprint(ModelBlueprint schematic)
     

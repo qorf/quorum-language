@@ -77,5 +77,9 @@ class ModelBlueprintVulkan is ModelBlueprint
     action SetMaterials(Array<MaterialVulkan> materials)
         me:materials = materials
     end
+    
+    action GetMeshCount returns integer
+        return meshes:GetSize()
+    end
 
 end

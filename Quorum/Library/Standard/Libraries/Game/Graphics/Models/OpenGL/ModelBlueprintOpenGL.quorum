@@ -524,4 +524,8 @@ class ModelBlueprintOpenGL is ModelBlueprint, Disposable
     action SetKey(text key)
         id = key
     end
+    
+    action GetMeshCount returns integer
+        return meshes:GetSize()
+    end
 end

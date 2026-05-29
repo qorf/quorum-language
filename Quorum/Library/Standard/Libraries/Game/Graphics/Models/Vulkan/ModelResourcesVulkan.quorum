@@ -6,33 +6,80 @@ use Libraries.Game.Graphics.Models.ModelBlueprint
 use Libraries.Game.Graphics.Renderable
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.Model
 
 class ModelResourcesVulkan is ModelResources
     
     // ModelBlueprints already contain default color and textures per mesh, but they can be overridden on individual models (especially for simple models like primitives).
+    // These arrays correspond to the array of meshes in a model, e.g. the diffuse color at index 1 is applied to the model's mesh at index 1.
     // If these values are undefined, the default value from the blueprint is used instead.
-    Color diffuseColor = undefined
-    Texture texture = undefined
+    Array<Color> diffuseColors
+    Array<Texture> textures
     
     /*
     This action sets the diffuse color of a primitive model. If the model did not
     previously have a color applied to it, it will add a color to it.
     */
     action SetColor(Color color)
-        diffuseColor = color
+        SetColor(0, color)
 end
     
-    action GetColor returns Color
-        return diffuseColor
+    action SetColor(integer meshIndex, Color color)
+        if meshIndex >= diffuseColors:GetSize()
+            Model model = GetModel()
+            integer meshCount = model:GetMeshCount()
+            if meshIndex < meshCount
+                // Increase the size of the array to fit the request. Extra values are initialized to undefined.
+                diffuseColors:SetSize(meshIndex + 1)
+            else
+                alert("I cannot set the color of the mesh at index " + meshIndex + " because this model only contains " + meshCount + " meshes.")
+            end
+        end
+        diffuseColors:Set(meshIndex, color)
     end
     
-    /* This action sets the texture of a primitive model. */
+    action GetColor returns Color
+        return GetColor(0)
+    end
+    
+    action GetColor(integer meshIndex) returns Color
+        if meshIndex >= diffuseColors:GetSize()
+            return undefined
+        end
+        return diffuseColors:Get(meshIndex)
+    end
+    
+    /*
+    This action sets the texture of a primitive model. If the model did not
+    previously have a texture applied to it, it will add a texture to it.
+    */
     action SetTexture(Texture texture)
-        me:texture = texture
+        SetTexture(0, texture)
 end
     
+    action SetTexture(integer meshIndex, Texture texture)
+        if meshIndex >= textures:GetSize()
+            Model model = GetModel()
+            integer meshCount = model:GetMeshCount()
+            if meshIndex < meshCount
+                // Increase the size of the array to fit the request. Extra values are initialized to undefined.
+                textures:SetSize(meshIndex + 1)
+            else
+                alert("I cannot set the texture of the mesh at index " + meshIndex + " because this model only contains " + meshCount + " meshes.")
+            end
+        end
+        textures:Set(meshIndex, texture)
+    end
+    
     action GetTexture returns Texture
-        return texture
+        return GetTexture(0)
+    end
+    
+    action GetTexture(integer meshIndex) returns Texture
+        if meshIndex >= textures:GetSize()
+            return undefined
+        end
+        return textures:Get(meshIndex)
     end
     
     action SetFromBlueprint(ModelBlueprint schematic)
