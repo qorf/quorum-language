@@ -1,0 +1,158 @@
+package Libraries.Compute.Statistics.Sorting
+
+use Libraries.Containers.Support.Comparison
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Language.Object
+use Libraries.Language.Types.Text
+
+/*
+    The LabelComparison class is a Comparison that orders text labels according to a
+    caller-supplied order, instead of the default alphabetical or hash-code
+    order. This is useful for ordering the categories of a factor column in a
+    chart. For example, a column of sizes can be displayed in the order
+    Low, Medium, High rather than alphabetically.
+
+    The desired order is provided once through the SetOrder action. Internally,
+    each label is mapped to its position using a HashTable, so each comparison
+    is a constant time lookup. Labels that are not present in the supplied
+    order are sorted after all known labels.
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.Sorting.LabelComparison
+    use Libraries.Compute.Statistics.DataFrame
+    use Libraries.Compute.Statistics.DataFrameColumn
+    use Libraries.Containers.Array
+
+    class Main
+        action Main
+            DataFrame frame
+            frame:Load("data/items.csv")
+            frame:AddSelectedColumns("Count")
+            frame:AddSelectedFactors("Size")
+
+            Array<text> order
+            order:Add("Low")
+            order:Add("Medium")
+            order:Add("High")
+
+            LabelComparison sorter
+            sorter:SetOrder(order)
+
+            DataFrameColumn column = frame:GetColumn("Size")
+            column:SetSortComparison(sorter)
+        end
+    end
+*/
+class LabelComparison is Comparison
+
+    HashTable<text, integer> positions
+    integer unknownPosition = 0
+
+    /*
+        This action sets the order in which labels should be sorted. Each label
+        is mapped to its index in the supplied array, so comparisons are constant
+        time. Any label not in this array is treated as coming after all of the
+        supplied labels.
+
+        Attribute: Parameter labels An Array of text labels in the desired sort order.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.Sorting.LabelComparison
+        use Libraries.Containers.Array
+
+        Array<text> order
+        order:Add("Low")
+        order:Add("Medium")
+        order:Add("High")
+
+        LabelComparison sorter
+        sorter:SetOrder(order)
+    */
+    action SetOrder(Array<text> labels)
+        positions:Empty()
+        integer i = 0
+        repeat while i < labels:GetSize()
+            positions:Add(labels:Get(i), i)
+            i = i + 1
+        end
+        unknownPosition = labels:GetSize()
+    end
+
+    /*
+        This action returns the sort position of a label. If the label was part
+        of the order supplied to SetOrder, its index is returned. Otherwise a
+        position after all known labels is returned, so unknown labels sort last.
+
+        Attribute: Parameter label The text label to look up.
+
+        Attribute: Returns The integer sort position of the label.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.Sorting.LabelComparison
+        use Libraries.Containers.Array
+
+        Array<text> order
+        order:Add("Low")
+        order:Add("High")
+
+        LabelComparison sorter
+        sorter:SetOrder(order)
+        integer position = sorter:GetPosition("High")
+    */
+    action GetPosition(text label) returns integer
+        if positions:HasKey(label)
+            return positions:GetValue(label)
+        end
+        return unknownPosition
+    end
+
+    /*
+        This action compares two label objects according to the order supplied
+        to SetOrder. It returns -1 if the first label comes before the second,
+        1 if it comes after, and 0 if they share the same position. This action
+        is called automatically by the sorting machinery and is not usually
+        called directly.
+
+        Attribute: Parameter a The first object to compare. It must be a Text label.
+
+        Attribute: Parameter b The second object to compare. It must be a Text label.
+
+        Attribute: Returns -1, 0, or 1 indicating the relative order of the labels.
+
+        Attribute: Example
+
+        use Libraries.Compute.Statistics.Sorting.LabelComparison
+        use Libraries.Containers.Array
+        use Libraries.Language.Types.Text
+
+        Array<text> order
+        order:Add("Low")
+        order:Add("High")
+
+        LabelComparison sorter
+        sorter:SetOrder(order)
+
+        Text low
+        low:SetValue("Low")
+        Text high
+        high:SetValue("High")
+        integer result = sorter:Compare(low, high)
+    */
+    action Compare(Object a, Object b) returns integer
+        Text textA = cast(Text, a)
+        Text textB = cast(Text, b)
+        integer positionA = GetPosition(textA:GetValue())
+        integer positionB = GetPosition(textB:GetValue())
+
+        if positionA < positionB
+            return -1
+        elseif positionA > positionB
+            return 1
+        end
+        return 0
+    end
+end
