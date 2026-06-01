@@ -228,11 +228,11 @@ class Main is NetworkExchangeListener
         File main4
         main:SetAbsolutePath(
 //    "/Users/stefik/Repositories/quorum-language/Quorum/Library/Tests/Matrix/Pass/WebTable.quorum")
-        "/Users/stefik/Quorum Studio/MathTester/SourceCode/Main.quorum")
+        "/Users/stefik/Quorum Studio/FieldAccessTest/SourceCode/Main.quorum")
         //main:SetWorkingDirectory("Library/Tests/Game/Pass")
         //main:SetPath("WebTest.quorum")
         main2:SetAbsolutePath(
-            "/Users/stefik/Repositories/quorum-language/Quorum/Library/Tests/TemplatingGenerated/Classes/Yoda.quorum")
+            "/Users/stefik/Quorum Studio/FieldAccessTest/SourceCode/ClassWithFields.quorum")
 
         main3:SetAbsolutePath(
             "/Users/stefik/Repositories/quorum-language/Quorum/Library/Tests/Inheritance/Pass/CastB.quorum")
@@ -266,7 +266,7 @@ class Main is NetworkExchangeListener
 
         //files = main:GetParentDirectory():GetDirectoryListing()
         //files:Add(compilerRootFolder)
-//        files:Add(main2)
+        files:Add(main2)
 //        files:Add(main3)
 //        files:Add(main4)
 
@@ -274,7 +274,7 @@ class Main is NetworkExchangeListener
         request:files = files
         request:library = compiler:GetStandardLibrary()
         request:main = main
-        request:SetOutputType(request:PYTHON)
+        //request:SetOutputType(request:PYTHON)
         //request:mainOnlyJavaScript = true
         //request:isWebRequest = true
 

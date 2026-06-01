@@ -13,7 +13,7 @@ class FullClassDeclarationContext is ParseContext
 
     public GenericDeclarationContext generic = undefined
     public InheritStatementsContext inherit = undefined
-    Array<ClassStatementsContext> statements = undefined
+    public Array<ClassStatementsContext> statements = undefined
     /*
         In the Antlr parser, there is a bug related to documentation where it only fires
         under certain conditions. This can be used to mimic the bug, but should be removed

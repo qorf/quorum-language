@@ -1256,6 +1256,25 @@ class QuorumBytecodeListener is QuorumSourceListener
             end
         end
 
+        if field:IsPrivate()
+            //is the field of the same type
+            //there might be more conditions, as this is just the most restrictive
+            text assignedIn = variable:GetType():GetStaticKey()
+            text inClazz = me:currentClass:GetStaticKey()
+            boolean throwPrivateError = assignedIn = inClazz
+            if not throwPrivateError
+                CompilerError error
+                error:SetCode(codes:QUORUM_BYTECODE_LISTENER_GENERIC_MISMATCH)
+                error:SetLocation(context:objectLocation)
+                CompilerErrorType errorType
+                errorType:SetCurrentType(errorType:MISMATCHED_TEMPLATES)
+                error:SetCompilerErrorType(errorType)
+                error:SetErrorMessage("Cannot assign the private field '" + field:GetName() + "' in '"  
+                    + assignedIn + "' from '" + inClazz + ".'")
+                manager:Add(error)
+            end
+        end
+
         //No error is needed here because we've already caught it 
         //under other circumstances.
         if right2 = undefined
@@ -1277,6 +1296,8 @@ class QuorumBytecodeListener is QuorumSourceListener
         if currentBlock = undefined
             assignment:SetIsInFieldBlock(true)
         end
+
+        
 
         assignment:SetLocation(context:GetLocation())
         assignment:SetClass(currentClass)
