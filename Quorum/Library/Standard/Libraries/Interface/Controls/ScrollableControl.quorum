@@ -39,7 +39,7 @@ class ScrollableControl is Control
 
     integer verticalMode = VISIBLE_IF_NEEDED
     integer horizontalMode = VISIBLE_IF_NEEDED
-
+    
     on create
         scrollableRegion = GetScrollableRegion()
         scrollableRegion:SetPercentageWidth(1)
@@ -288,6 +288,25 @@ class ScrollableControl is Control
             horizontalBar:Hide()
             scrollableRegion:SetPixelHeight(0)
             scrollableRegion:SetPixelY(0)
+        end
+        
+        // if the scroll pane is attempting to use corner rounding passthrough the values or 
+        // remove the rounding if it bar would be visible
+        // this assumes that the scrollable control is going to have the rounding values
+        scrollableRegion:SetTopLeftPixelRounding(GetTopLeftPixelRounding())
+        if horizontalVisible
+            scrollableRegion:SetBottomRightPixelRounding(0)
+            scrollableRegion:SetBottomLeftPixelRounding(0)
+        else
+            scrollableRegion:SetBottomRightPixelRounding(GetBottomRightPixelRounding())
+            scrollableRegion:SetBottomLeftPixelRounding(GetBottomLeftPixelRounding())
+        end
+        if verticalVisible
+            scrollableRegion:SetBottomRightPixelRounding(0)
+            scrollableRegion:SetTopRightPixelRounding(0)
+        else
+            scrollableRegion:SetBottomRightPixelRounding(GetBottomRightPixelRounding())
+            scrollableRegion:SetTopRightPixelRounding(GetTopRightPixelRounding())
         end
 
         // The RefreshPaneView action will call the parent resize, so layouts will be applied then.
