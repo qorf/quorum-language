@@ -4,7 +4,7 @@ use Libraries.Containers.Array
 use Libraries.Game.Disposable
 use Libraries.Game.Graphics.Models.OpenGL.Attributes.IntegerAttribute
 use Libraries.Game.Graphics.Models.OpenGL.Attributes.DepthTestAttribute
-use Libraries.Game.Graphics.Models.OpenGL.Attributes.Environment
+use Libraries.Game.Graphics.Models.OpenGL.Attributes.EnvironmentOpenGL
 use Libraries.Game.Graphics.TextureDescriptor
 use Libraries.Game.Graphics.Shaders.SkyboxShader
 use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
@@ -20,7 +20,7 @@ class OpenGLPainter3D is Painter3D, Disposable
     
     Array<Renderable> renderables
     Camera camera = undefined
-    Environment environment = undefined
+    EnvironmentOpenGL environment = undefined
     Skybox skybox = undefined
     SkyboxShader skyboxShader
 
@@ -114,7 +114,8 @@ private action GetGraphics returns OpenGLManager
     currently set environment.
     */
     action SetEnvironment(Environment environment)
-        me:environment = environment
+        EnvironmentOpenGL environ = cast(EnvironmentOpenGL, environment)
+        environment = environ
     end
 
     /*

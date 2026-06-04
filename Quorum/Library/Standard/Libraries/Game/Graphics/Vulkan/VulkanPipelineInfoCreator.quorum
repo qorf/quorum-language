@@ -774,8 +774,15 @@ class VulkanPipelineInfoCreator
         
         VulkanConstants constants
             
-        // Use transparency for color blending for this pipeline.    
+        /*Add the color attachments. These are for:
+1. Positions (no blending)
+2. Albedo (allow blending)
+3. Normals (no blending)
+4. PBR Properties (no blending)*/
+        AddOpaqueColorBlendAttachmentState()
         AddTransparentColorBlendAttachmentState()
+        AddOpaqueColorBlendAttachmentState()
+        AddOpaqueColorBlendAttachmentState()
 
             // Define the dynamic states permitted by the pipeline. For our case, we want to be able to dynamically adjust viewport and scissor values.
         AddDynamicViewport()

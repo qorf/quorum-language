@@ -1,0 +1,25 @@
+package Libraries.Game.Graphics.Shaders.Programs
+
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.CopyFromSamplerShaderMappingVulkan
+use Libraries.Game.Graphics.Shaders.Shader
+
+class CopyFromSamplerShaderProgram is ShaderProgram
+    
+    on create
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
+        SetName(manager:COPY_FROM_SAMPLER_SHADER_PROGRAM)
+
+        Shader vertex = manager:GetCopyFromSamplerVertexShader()
+        Shader fragment = manager:GetCopyFromSamplerFragmentShader()
+
+        Add(vertex)
+        Add(fragment)
+        
+        CopyFromSamplerShaderMappingVulkan mapping
+        SetShaderMapping(mapping)
+    end
+    
+end

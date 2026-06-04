@@ -1,0 +1,509 @@
+package Libraries.Game.Graphics.Models.Vulkan
+
+use Libraries.Game.Graphics.Environment
+use Libraries.Game.Graphics.Light
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.DirectionalLight
+use Libraries.Game.Graphics.PointLight
+use Libraries.Game.Graphics.AmbientLight
+use Libraries.Containers.Iterator
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanBuffer
+use Libraries.Game.Graphics.Vulkan.VulkanNumber32BitMappedMemory
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
+use Libraries.Containers.Number32BitArray
+use Libraries.Compute.Vector3
+use Libraries.Game.NumberUtilities
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSet
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetLayout
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetLayoutBinding
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetManager
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorResourcesInfo
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorBufferInfo
+
+class EnvironmentVulkan is Environment
+    
+    public constant integer DEFAULT_MAX_LIGHTS = 16
+    
+    VulkanDevice device = undefined
+    
+    Array<PointLight> pointLights
+    Array<DirectionalLight> directionalLights
+    AmbientLight ambientLight = undefined
+    
+    Camera camera = undefined
+    
+    Array<boolean> lightsDirty
+    Array<boolean> sceneDataDirty
+    
+    // Arrays of buffers and associated resources for data specific to individual lights.
+    // One buffer per frame of flight rendered in Vulkan.
+    Array<VulkanBuffer> lightsBuffers
+    Array<VulkanNumber32BitMappedMemory> lightsMemories
+    Number32BitArray lightMappingArray
+    
+    // Arrays of buffer and associated resourcess for general scene information (properties that don't change between lights). 
+    // One buffer per frame of flight rendered in Vulkan.
+    Array<VulkanBuffer> sceneDataBuffers
+    Array<VulkanNumber32BitMappedMemory> sceneDataMemories
+    Number32BitArray sceneDataMappingArray
+    
+    /*Lights store these components in the buffer:
+* Position/Direction (Vec3, 3 * 4 bytes)
+* IsDirectional (uint, 4 byte)
+* Intensity (float, 4 bytes)
+* RGB Color (Vec3, 3 * 4 bytes)*/
+    integer LIGHTS_WORD_SIZE = 8
+    integer LIGHTS_BYTE_SIZE = LIGHTS_WORD_SIZE * 4
+    
+    constant integer POSITION_DIRECTION_INDEX = 0
+    constant integer IS_DIRECTIONAL_INDEX = 3
+    constant integer INTENSITY_INDEX = 4
+    constant integer COLOR_INDEX = 5
+    
+    integer SCENE_DATA_WORD_SIZE = 8
+    integer SCENE_DATA_BYTE_SIZE = SCENE_DATA_WORD_SIZE * 4
+    
+    constant integer CAMERA_POSITION_INDEX = 0
+    constant integer AMBIENT_LIGHT_INTENSITY_INDEX = 3
+    constant integer AMBIENT_LIGHT_COLOR_INDEX = 4
+    constant integer LIGHT_COUNT_INDEX = 7
+    
+    integer maxLights = DEFAULT_MAX_LIGHTS
+    
+    Array<VulkanDescriptorSet> descriptorSets
+    VulkanDescriptorSetLayout descriptorSetLayout = undefined
+    
+    action Create(VulkanDevice device, VulkanGraphics graphics)
+        me:device = device
+        
+        integer resourceCount = graphics:GetSwapchain():GetImageCount()
+        // Initialize values. All frames are dirty and all resources begin undefined (they'll be lazy loaded later).
+        repeat resourceCount times
+            lightsDirty:Add(true)
+            sceneDataDirty:Add(true)
+            lightsBuffers:Add(undefined)
+            sceneDataBuffers:Add(undefined)
+            lightsMemories:Add(undefined)
+            sceneDataMemories:Add(undefined)
+            descriptorSets:Add(undefined)
+        end
+        
+        lightMappingArray:SetSize(maxLights * LIGHTS_WORD_SIZE)
+        sceneDataMappingArray:SetSize(SCENE_DATA_WORD_SIZE)
+    end
+    
+    private action SetLightsDirty
+        integer i = 0
+        repeat while i < lightsDirty:GetSize()
+            lightsDirty:Set(i, true)
+            i = i + 1
+        end
+    end
+    
+    private action SetSceneDataDirty
+        integer i = 0
+        repeat while i < sceneDataDirty:GetSize()
+            sceneDataDirty:Set(i, true)
+            i = i + 1
+        end
+    end
+    
+    action SetDirty
+        integer i = 0
+        repeat while i < sceneDataDirty:GetSize()
+            sceneDataDirty:Set(i, true)
+            lightsDirty:Set(i, true)
+            i = i + 1
+        end
+    end
+    
+    /*
+    This action will add a light to the environment. It can accept any light
+    that inherits from Light as a parameter, but the Environment can only   
+    use lights that are either DirectionalLight or PointLight. If the given
+    light can't be used by the Environment, an error will be alerted.
+    */
+    action Add(Light light)
+        if light is PointLight
+            Add(cast(PointLight, light))
+        elseif light is DirectionalLight
+            Add(cast(DirectionalLight, light))
+        elseif light is AmbientLight
+            SetAmbientLight(cast(AmbientLight, light))
+        else
+            alert("I can only add PointLights or DirectionalLights.")
+        end
+    end
+
+    /*
+    This action will add an array of lights to the environment. Each light must
+    be usable by the Environment. The Environment can use DirectionalLight and
+    PointLight.
+    */
+    action Add(Array<Light> array)
+        integer i = 0
+        repeat while i < array:GetSize()
+            Add(array:Get(i))
+            i = i + 1
+        end
+end
+
+    /*
+    Adds a DirectionalLight to this environment.
+    */
+    action Add(DirectionalLight light)
+        directionalLights:Add(light)
+        light:SetEnvironment(me)
+        SetDirty()
+end
+
+    /*
+    Adds a PointLight to this environment.
+    */
+    action Add(PointLight light)
+        pointLights:Add(light)
+        light:SetEnvironment(me)
+        SetDirty()
+end
+
+    /*
+    This action will remove a light from the environment. The given light must
+    be usable by the Environment, i.e. it is a DirectionalLight or PointLight.
+    If the given light was not a part of the Environment before using Remove,
+    nothing will happen.
+    */
+    action Remove(Light light)
+        if light is PointLight
+            Remove(cast(PointLight, light))
+        elseif light is DirectionalLight
+            Remove(cast(DirectionalLight, light))
+        end
+end
+
+    /*
+    This action will remove each light that is present in the given array from
+    the Environment. Each light must be usable by the Environment, i.e., it is a
+    DirectionalLight or PointLight. Otherwise, an error will be alerted. Lights
+    that are present in the array but not in the Environment will have no effect.
+    */
+    action Remove(Array<Light> array)
+        integer i = 0
+        repeat while i < array:GetSize()
+            Remove(array:Get(i))
+            i = i + 1
+        end
+end
+
+    /*
+    This action will remove the given DirectionalLight from the Environment. If
+    the light was not present in the Environment before using this action, it
+    will have no effect.
+    */
+    action Remove(DirectionalLight light)
+        directionalLights:Remove(light)
+        light:SetEnvironment(undefined)
+        SetDirty()
+end
+
+    /*
+    This action will remove the given PointLight from the Environment. If
+    the light was not present in the Environment before using this action, it
+    will have no effect.
+    */
+    action Remove(PointLight light)
+        pointLights:Remove(light)
+        light:SetEnvironment(undefined)
+        SetDirty()
+end
+
+    /*
+    This action will add ambient lighting to the Environment.
+    */
+    action SetAmbientLight(AmbientLight light)
+        ambientLight = light
+        light:SetEnvironment(me)
+        SetSceneDataDirty()
+end
+
+    /*
+    This action will remove all ambient lighting from this Environment.
+    */
+    action RemoveAmbientLight
+        ambientLight:SetEnvironment(undefined)
+        ambientLight = undefined
+        SetSceneDataDirty()
+end
+
+    /*
+    Gets the AmbientLight set for this environment. If none is set, will return
+    undefined.
+    */
+    action GetAmbientLight returns AmbientLight
+        return ambientLight
+end
+
+    /*
+    This action will return whether the Environment currently contains any
+    lighting elements. An Environment that contains no lighting elements will
+    be ignored during rendering. 
+    */
+    action ContainsLighting returns boolean
+        return (not pointLights:IsEmpty()) or (not directionalLights:IsEmpty()) or ambientLight not= undefined
+end
+
+    /*
+    This action returns an iterator containing all of the DirectionLights in the
+    environment.
+    */
+    action GetDirectionalLightIterator returns Iterator<DirectionalLight>
+        return directionalLights:GetIterator()
+end
+    
+    action GetPointLightIterator returns Iterator<PointLight>
+        return pointLights:GetIterator()
+end
+    
+    action GetDirectionalLightCount returns integer
+        return directionalLights:GetSize()
+end
+    
+    action GetPointLightCount returns integer
+        return pointLights:GetSize()
+end
+    
+    action GetDirectionalLight(integer index) returns DirectionalLight
+        return directionalLights:Get(index)
+end
+    
+    action GetPointLight(integer index) returns PointLight
+        return pointLights:Get(index)
+end
+    
+    action GetDevice returns VulkanDevice
+        return device
+    end
+    
+    action IsDirty(integer resourceIndex) returns boolean
+        return sceneDataDirty:Get(resourceIndex) = true or lightsDirty:Get(resourceIndex) = true
+    end
+    
+    action UpdateBuffers(integer resourceIndex)
+        VulkanBuffer lightsBuffer = lightsBuffers:Get(resourceIndex)
+        VulkanBuffer sceneDataBuffer = sceneDataBuffers:Get(resourceIndex)
+        VulkanNumber32BitMappedMemory lightsMemory = lightsMemories:Get(resourceIndex)
+        VulkanNumber32BitMappedMemory sceneDataMemory = sceneDataMemories:Get(resourceIndex)
+        if lightsBuffer = undefined
+            VulkanConstants constants
+            
+            VulkanBuffer newBuffer
+            lightsBuffer = newBuffer
+            
+            lightsBuffer:CreateMappableBuffer(device, LIGHTS_BYTE_SIZE * maxLights, constants:BUFFER_USAGE_STORAGE_BUFFER_BIT)
+            lightsMemory = lightsBuffer:MapToNumber32BitMemory()
+            
+            lightsBuffers:Set(resourceIndex, lightsBuffer)
+            lightsMemories:Set(resourceIndex, lightsMemory)
+        end
+        if sceneDataBuffer = undefined
+            VulkanConstants constants
+            
+            VulkanBuffer newBuffer
+            sceneDataBuffer = newBuffer
+            
+            sceneDataBuffer:CreateMappableBuffer(device, SCENE_DATA_BYTE_SIZE, constants:BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+            sceneDataMemory = sceneDataBuffer:MapToNumber32BitMemory()
+            
+            sceneDataBuffers:Set(resourceIndex, sceneDataBuffer)
+            sceneDataMemories:Set(resourceIndex, sceneDataMemory)
+        end
+        
+        if lightsDirty:Get(resourceIndex)
+            NumberUtilities utility
+            
+            integer index = 0
+        integer i = 0
+        repeat while i < directionalLights:GetSize()
+            DirectionalLight light = directionalLights:Get(i)
+            Vector3 direction = light:GetDirection()
+            Color color = light:GetColor()
+            
+            lightMappingArray:Set(index + POSITION_DIRECTION_INDEX, direction:GetX())
+            lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 1, direction:GetY())
+            lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 2, direction:GetZ())
+            lightMappingArray:Set(index + IS_DIRECTIONAL_INDEX, utility:EncodeIntegerAsNumber(1))
+            lightMappingArray:Set(index + INTENSITY_INDEX, light:GetIntensity())
+            lightMappingArray:Set(index + COLOR_INDEX, color:GetRed())
+            lightMappingArray:Set(index + COLOR_INDEX + 1, color:GetGreen())
+            lightMappingArray:Set(index + COLOR_INDEX + 2, color:GetBlue())
+            
+            index = index + LIGHTS_WORD_SIZE
+            i = i + 1
+        end
+        
+        i = 0
+        repeat while i < pointLights:GetSize()
+            PointLight light = pointLights:Get(i)
+            Color color = light:GetColor()
+            
+            lightMappingArray:Set(index + POSITION_DIRECTION_INDEX, light:GetX())
+            lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 1, light:GetY())
+            lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 2, light:GetZ())
+            lightMappingArray:Set(index + IS_DIRECTIONAL_INDEX, utility:EncodeIntegerAsNumber(0))
+            lightMappingArray:Set(index + INTENSITY_INDEX, light:GetIntensity())
+            lightMappingArray:Set(index + COLOR_INDEX, color:GetRed())
+            lightMappingArray:Set(index + COLOR_INDEX + 1, color:GetGreen())
+            lightMappingArray:Set(index + COLOR_INDEX + 2, color:GetBlue())
+            
+            index = index + LIGHTS_WORD_SIZE
+            i = i + 1
+        end
+        
+        lightsMemory:Set(lightMappingArray)
+        lightsDirty:Set(resourceIndex, false)
+        end
+        
+        if sceneDataDirty:Get(resourceIndex)
+            NumberUtilities utility
+            
+            if camera not= undefined
+                Vector3 position = camera:GetPosition()
+                sceneDataMappingArray:Set(CAMERA_POSITION_INDEX, position:GetX())
+                sceneDataMappingArray:Set(CAMERA_POSITION_INDEX + 1, position:GetY())
+                sceneDataMappingArray:Set(CAMERA_POSITION_INDEX + 2, position:GetZ())
+            else
+                sceneDataMappingArray:Set(CAMERA_POSITION_INDEX, 0)
+                sceneDataMappingArray:Set(CAMERA_POSITION_INDEX + 1, 0)
+                sceneDataMappingArray:Set(CAMERA_POSITION_INDEX + 2, 0)
+            end
+            if ambientLight not= undefined
+                Color color = ambientLight:GetColor()
+                sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX, color:GetRed())
+                sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX + 1, color:GetGreen())
+                sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX + 2, color:GetBlue())
+            else
+                // If there's no lighting at all, set ambient light to full white (all pixels receive full color)
+                if pointLights:IsEmpty() and directionalLights:IsEmpty()
+                    sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX, 1.0)
+                sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX, 1.0)
+                sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX, 1.0)
+                else
+                    sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX, 0.0)
+                sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX, 0.0)
+                sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX, 0.0)
+                end
+            end
+            sceneDataMappingArray:Set(AMBIENT_LIGHT_INTENSITY_INDEX, 1.0)
+            sceneDataMappingArray:Set(LIGHT_COUNT_INDEX, utility:EncodeIntegerAsNumber(pointLights:GetSize() + directionalLights:GetSize()))
+            
+            sceneDataMemory:Set(sceneDataMappingArray)
+            sceneDataDirty:Set(resourceIndex, false)
+        end
+        
+    end
+
+    action GetMaxLights returns integer
+        return maxLights
+    end
+
+    action SetMaxLights(integer maxLights)
+        me:maxLights = maxLights
+        isDirty = true
+    end
+    
+    action GetLightsBuffer(integer resourceIndex) returns VulkanBuffer
+        if lightsDirty:Get(resourceIndex)
+            UpdateBuffers(resourceIndex)
+        end
+        
+        return lightsBuffers:Get(resourceIndex)
+    end
+    
+    action GetSceneDataBuffer(integer resourceIndex) returns VulkanBuffer
+        if sceneDataDirty:Get(resourceIndex)
+            UpdateBuffers(resourceIndex)
+        end
+        
+        return sceneDataBuffers:Get(resourceIndex)
+    end
+
+    action GetCamera returns Camera
+        return camera
+    end
+
+    action SetCamera(Camera camera)
+        me:camera = camera
+        SetSceneDataDirty()
+    end
+    
+    action LightChanged(Light light)
+        if light is PointLight or light is DirectionalLight
+            SetLightsDirty()
+        elseif light is AmbientLight
+            SetSceneDataDirty()
+        end
+    end
+    
+    action GetDescriptorSet(integer resourceIndex) returns VulkanDescriptorSet
+        // The buffers need to already exist so we can link the resources, so ensure they have been created.
+        UpdateBuffers(resourceIndex)
+        
+        if descriptorSetLayout = undefined
+            VulkanDescriptorSetLayout layout
+            descriptorSetLayout = layout
+            
+            Array<VulkanDescriptorSetLayoutBinding> bindings
+            VulkanConstants constants
+            
+            // Describe the binding of the uniform buffers.
+            VulkanDescriptorSetLayoutBinding lightsBinding
+            lightsBinding:SetBinding(0)
+            lightsBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_STORAGE_BUFFER)
+            lightsBinding:SetDescriptorCount(1)
+            lightsBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+            bindings:Add(lightsBinding)
+            
+            VulkanDescriptorSetLayoutBinding sceneDataBinding
+            sceneDataBinding:SetBinding(1)
+            sceneDataBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+            sceneDataBinding:SetDescriptorCount(1)
+            sceneDataBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+            bindings:Add(sceneDataBinding)
+            
+            descriptorSetLayout:Create(device, bindings)
+        end
+        
+        // Initialize the descriptor set if we haven't already.
+        if descriptorSets:Get(resourceIndex) = undefined
+            GameStateManager manager
+            VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+            VulkanDescriptorSetManager descriptorManager = graphics:GetDescriptorSetManager()
+            VulkanConstants constants
+            
+            VulkanBuffer lightBuffer = lightsBuffers:Get(resourceIndex)
+            VulkanBuffer dataBuffer = sceneDataBuffers:Get(resourceIndex)
+            
+            VulkanDescriptorResourcesInfo lightResources
+            lightResources:AddBufferInfo(lightBuffer, 0, lightBuffer:GetSize())
+            lightResources:SetDestinationBinding(0)
+            lightResources:SetDescriptorType(constants:DESCRIPTOR_TYPE_STORAGE_BUFFER)
+            
+            VulkanDescriptorResourcesInfo dataResources
+            dataResources:AddBufferInfo(dataBuffer, 0, dataBuffer:GetSize())
+            dataResources:SetDestinationBinding(1)
+            dataResources:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+            
+            VulkanDescriptorSet set = descriptorManager:CreateDescriptorSet(descriptorSetLayout)
+            set:LinkResources(lightResources)
+            set:LinkResources(dataResources)
+            descriptorSets:Set(resourceIndex, set)
+        end
+        
+        return descriptorSets:Get(resourceIndex)
+    end
+
+end

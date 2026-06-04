@@ -7,11 +7,12 @@ use Libraries.Game.Graphics.PointLight
 use Libraries.Game.Graphics.AmbientCubemap
 use Libraries.Game.Graphics.Light
 use Libraries.Game.Graphics.AmbientLight
+use Libraries.Game.Graphics.Environment
 
 /*
 The Environment class is a set of Attributes that specifically handles lighting.
 */
-class Environment is Attributes
+class EnvironmentOpenGL is Attributes, Environment
 
     /*
     This boolean indicates whether the Environment currently contains any
@@ -64,6 +65,7 @@ class Environment is Attributes
             lightsAttribute:lights:Add(light)
         end
 
+        light:SetEnvironment(me)
         containsLighting = true
     end
 
@@ -80,6 +82,7 @@ class Environment is Attributes
             lightsAttribute:lights:Add(light)
         end
 
+        light:SetEnvironment(me)
         containsLighting = true
     end
 
@@ -130,6 +133,7 @@ class Environment is Attributes
             end
         end
 
+        light:SetEnvironment(undefined)
         containsLighting = TestContainsLighting()
     end
 
@@ -148,14 +152,16 @@ class Environment is Attributes
             end
         end
 
+        light:SetEnvironment(undefined)
         containsLighting = TestContainsLighting()
     end
 
     /*
     This action will add ambient lighting to the Environment.
     */
-    action Add(AmbientLight light)
+    action SetAmbientLight(AmbientLight light)
         Add(light:GetAttribute())
+        light:SetEnvironment(me)
         containsLighting = true
     end
 
@@ -164,6 +170,7 @@ class Environment is Attributes
     */
     action Remove(AmbientLight light)
         RemoveAmbientLight()
+        light:SetEnvironment(undefined)
         containsLighting = TestContainsLighting()
     end
 
@@ -235,6 +242,59 @@ class Environment is Attributes
         else
             return lightsAttribute:lights:GetIterator()
         end
+    end
+    
+    action GetPointLightIterator returns Iterator<PointLight>
+        PointLightsAttribute newAttribute
+        PointLightsAttribute lightsAttribute = cast(PointLightsAttribute, GetAttribute(newAttribute:GetPointLightsValue()))
+        if lightsAttribute = undefined
+            return newAttribute:lights:GetIterator()
+        else
+            return lightsAttribute:lights:GetIterator()
+        end
+    end
+    
+    action GetDirectionalLightCount returns integer
+        DirectionalLightsAttribute newAttribute
+        DirectionalLightsAttribute lightsAttribute = cast(DirectionalLightsAttribute, GetAttribute(newAttribute:GetDirectionalLightsValue()))
+        if lightsAttribute = undefined
+            return 0
+        else
+            return lightsAttribute:lights:GetSize()
+        end
+    end
+    
+    action GetPointLightCount returns integer
+        PointLightsAttribute newAttribute
+        PointLightsAttribute lightsAttribute = cast(PointLightsAttribute, GetAttribute(newAttribute:GetPointLightsValue()))
+        if lightsAttribute = undefined
+            return 0
+        else
+            return lightsAttribute:lights:GetSize()
+        end
+    end
+    
+    action GetDirectionalLight(integer index) returns DirectionalLight
+        DirectionalLightsAttribute newAttribute
+        DirectionalLightsAttribute lightsAttribute = cast(DirectionalLightsAttribute, GetAttribute(newAttribute:GetDirectionalLightsValue()))
+        if lightsAttribute = undefined
+            return undefined
+        else
+            return lightsAttribute:lights:Get(index)
+        end
+    end
+    
+    action GetPointLight(integer index) returns PointLight
+        PointLightsAttribute newAttribute
+        PointLightsAttribute lightsAttribute = cast(PointLightsAttribute, GetAttribute(newAttribute:GetPointLightsValue()))
+        if lightsAttribute = undefined
+            return undefined
+        else
+            return lightsAttribute:lights:Get(index)
+        end
+    end
+    
+    action LightChanged(Light light)
     end
 
 end

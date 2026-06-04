@@ -1,0 +1,25 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Vertex
+
+use Libraries.Game.Graphics.Shaders.Shader
+
+class CopyFromSamplerVertexShaderVulkan is Shader
+    
+    public constant text DEFAULT_NAME = "Copy From Sampler Vertex Shader"
+    
+    on create
+        SetType(parent:Shader:VERTEX_SHADER)
+        SetName(DEFAULT_NAME)
+        
+        SetCode(GetVersionHeader() + "
+
+layout (location = 0) out vec2 v_sampleCoordinate;
+		
+void main()
+{
+	v_sampleCoordinate = vec2((gl_VertexIndex << 1) & 2, gl_VertexIndex & 2);
+	gl_Position = vec4(v_sampleCoordinate.x * 2.0 - 1.0, v_sampleCoordinate.y * -2.0 + 1.0, 0.0, 1.0);
+}
+")
+    end
+    
+end

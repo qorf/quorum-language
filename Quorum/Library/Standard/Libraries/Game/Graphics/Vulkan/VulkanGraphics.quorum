@@ -61,7 +61,7 @@ VulkanImage depthBufferImage = undefined
     VulkanFramebuffer currentFramebuffer = undefined
     
     // The clear color, or in otherwords, the background color of the screen.
-    VulkanClearValue clearValue
+    VulkanClearValues clearValues
 
     // A resource used to centralize the creation of DescriptorSets.
     VulkanDescriptorSetManager descriptorSetManager
@@ -82,7 +82,8 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
     constant integer DEFAULT_MAX_DESCRIPTORS = 256
 
     on create
-        clearValue:SetColor(0.85, 0.85, 0.85, 1.0)
+        clearValues:AddColor(0.85, 0.85, 0.85, 1.0)
+        clearValues:AddDepthStencil(1, 0)
     end
     
     /*
@@ -522,7 +523,8 @@ success = newSemaphore:Create(device)
     Attribute: Parameter blue The blue component of the color, as a number between 0.0 (no blue) and 1.0 (full blue).
     */
     action SetClearScreenColor(number red, number green, number blue)
-        clearValue:SetColor(red, green, blue)
+        VulkanClearValue value = clearValues:Get(0)
+        value:SetColor(red, green, blue)
     end
 
     /*
@@ -537,7 +539,8 @@ success = newSemaphore:Create(device)
     Attribute: Parameter alpha The alpha component of the color, as a number between 0.0 (completely transparent) and 1.0 (completely opaque).
     */
     action SetClearScreenColor(number red, number green, number blue, number alpha)
-        clearValue:SetColor(red, green, blue, alpha)
+        VulkanClearValue value = clearValues:Get(0)
+        value:SetColor(red, green, blue, alpha)
     end
     
     /*
@@ -807,11 +810,11 @@ success = newSemaphore:Create(device)
         return currentFramebuffer
     end
 
-    action GetClearValue returns VulkanClearValue
-        if clearValue:IsDirty()
-            clearValue:ResetDirtyFlag()
+    action GetClearValues returns VulkanClearValues
+        if clearValues:IsDirty()
+            clearValues:UpdateNativeValues()
         end
-        return clearValue
+        return clearValues
     end
 
     action GetCurrentResourceIndex returns integer
@@ -848,7 +851,6 @@ Attribute: Returns True if the application has paused rendering, or false if it 
             VulkanPhysicalDevice physical = device:GetPhysicalDevice()
         VulkanPhysicalDeviceLimits limits = physical:GetLimits()
         maxDescriptors = limits:GetMaxPerStageDescriptorUniformBuffers()
-        output "VulkanGraphics: MaxDescriptorsPerStage = " + maxDescriptors
         
         if maxDescriptors <= 0
             maxDescriptors = DEFAULT_MAX_DESCRIPTORS

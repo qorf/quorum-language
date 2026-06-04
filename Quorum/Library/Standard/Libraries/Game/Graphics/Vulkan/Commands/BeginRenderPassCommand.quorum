@@ -5,7 +5,8 @@ use Libraries.Game.Graphics.Vulkan.all
 class BeginRenderPassCommand is VulkanCommand
 
     VulkanRenderPass renderPass = undefined
-    VulkanClearValue clearValue = undefined
+    //VulkanClearValue clearValue = undefined
+    VulkanClearValues clearValues = undefined
     VulkanFramebuffer framebuffer = undefined
     
     integer renderAreaWidth = -1
@@ -28,13 +29,13 @@ class BeginRenderPassCommand is VulkanCommand
         me:renderPass = renderPass
     end
 
-    action GetClearValue returns VulkanClearValue
-        return clearValue
-    end
+    //action GetClearValue returns VulkanClearValue
+        //return clearValue
+    //end
 
-    action SetClearValue(VulkanClearValue clearValue)
-        me:clearValue = clearValue
-    end
+    //action SetClearValue(VulkanClearValue clearValue)
+        //me:clearValue = clearValue
+    //end
 
     action GetFramebuffer returns VulkanFramebuffer
         return framebuffer
@@ -71,6 +72,14 @@ class BeginRenderPassCommand is VulkanCommand
 
     action SetRenderAreaHeight(integer renderAreaHeight)
         me:renderAreaHeight = renderAreaHeight
+    end
+
+    action GetClearValues returns VulkanClearValues
+        return clearValues
+    end
+
+    action SetClearValues(VulkanClearValues clearValues)
+        me:clearValues = clearValues
     end
 
 end

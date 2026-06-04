@@ -27,6 +27,8 @@ layout(location = 2) flat out uint v_hasDiffuseOverride;
 layout(location = 3) flat out uint v_diffuseOverride;
 layout(location = 4) flat out uint v_hasTextureOverride;
 layout(location = 5) flat out uint v_textureOverrideIndex;
+layout(location = 6) out vec4 v_position;
+layout(location = 7) out mat3 v_tangentBitangentNormal;
 
 layout(set = 0, binding = 0) uniform Camera
 {
@@ -92,6 +94,14 @@ void main()
 	v_hasTextureOverride = instanceData.textureOverride;
 	v_textureOverrideIndex = instanceData.textureIndex;
     
+	v_position = worldPosition;
+	
+	mat3 inverseTransform = transpose(inverse(mat3(modelTransform)));
+	vec3 outNormal = inverseTransform * normalize(vertex.normal);
+	vec3 outTangent = inverseTransform * normalize(vertex.tangent);
+	vec3 outBitangent = inverseTransform * normalize(vertex.bitangent);
+	v_tangentBitangentNormal = mat3(outTangent, outBitangent, outNormal);
+	
     gl_Position =  camera.projectionViewMatrix * worldPosition;
 }"
 )

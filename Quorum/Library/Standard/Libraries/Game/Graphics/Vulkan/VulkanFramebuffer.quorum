@@ -26,4 +26,12 @@ class VulkanFramebuffer
     
     system action Dispose
 
+    action GetImageViews returns Array<VulkanImageView>
+        return imageViews
+    end
+
+    action GetRenderPass returns VulkanRenderPass
+        return renderPass
+    end
+
 end

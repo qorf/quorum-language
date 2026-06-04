@@ -1,0 +1,29 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Fragment
+
+use Libraries.Game.Graphics.Shaders.Shader
+
+class CopyFromSamplerFragmentShaderVulkan is Shader
+    
+    public constant text DEFAULT_NAME = "Copy From Sampler Fragment Shader"
+    
+    on create
+        SetType(parent:Shader:FRAGMENT_SHADER)
+        SetName(DEFAULT_NAME)
+        
+        SetCode(GetVersionHeader() + "
+
+layout (location = 0) in vec2 v_samplerCoordinate;
+
+layout (location = 0) out vec4 outputColor;
+
+// The sampled image to copy out to the color attachment
+layout (set = 0, binding = 0) uniform sampler2D u_sampler;
+
+void main()
+{
+	outputColor = texture(u_sampler, v_samplerCoordinate);
+}
+")
+    end
+    
+end

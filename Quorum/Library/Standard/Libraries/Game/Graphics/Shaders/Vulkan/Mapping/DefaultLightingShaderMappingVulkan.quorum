@@ -1,0 +1,61 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Mapping
+use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfo
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfoCreator
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetLayoutBinding
+
+class DefaultLightingShaderMappingVulkan is VulkanShaderMapping
+    
+/*This action is used to setup the values of a VulkanPipelineInfo that will be used to create the
+VulkanPipeline needed for the shader program. This can also be used to create and keep copies of
+any Vulkan resources that will be needed to send or change shader data.*/
+    action CreatePipelineInfo(VulkanShaderProgram program, VulkanDevice device) returns VulkanPipelineInfo
+        VulkanPipelineInfoCreator creator
+        creator:Begin(device)
+        
+        GameStateManager gameState
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        
+        VulkanConstants constants
+            
+        // Use transparency for color blending for this pipeline.    
+        creator:AddTransparentColorBlendAttachmentState()
+
+            // Define the dynamic states permitted by the pipeline. For our case, we want to be able to dynamically adjust viewport and scissor values.
+        creator:AddDynamicViewport()
+        creator:AddDynamicScissor()
+
+        // Create a binding for a sampler to use during fragment shading, then add the sampler to the returned binding.
+        //VulkanDescriptorSetLayoutBinding samplerBinding = creator:AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+        
+        // We have four samplers being accessed in the first descriptor set, so add all of them.
+        repeat 4 times
+            creator:AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+        end
+        creator:FinishDescriptorSetLayout()
+        
+        // Add another descriptor set layout for the lighting and scene data set.
+        creator:AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_STORAGE_BUFFER)
+        creator:AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+        
+        VulkanPipelineInfo info = creator:Finish()
+        return info
+    end
+    
+action Begin(ShaderProgram program, Camera camera)
+end
+    
+    action Begin(ShaderProgram program, Camera camera, VulkanCommandBuffer commandBuffer, integer swapchainIndex)
+    end
+
+    action End(ShaderProgram program)
+    end
+    
+end

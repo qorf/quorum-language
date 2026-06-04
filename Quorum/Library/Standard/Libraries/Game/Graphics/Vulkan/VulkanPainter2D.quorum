@@ -381,7 +381,7 @@ VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
         VulkanCommandBuffer commandBuffer = graphics:GetCurrentRenderCommandBuffer()
         VulkanFramebuffer framebuffer = graphics:GetCurrentFramebuffer()
         VulkanSwapchain swapchain = graphics:GetSwapchain()
-        VulkanClearValue clearValue = graphics:GetClearValue()
+        VulkanClearValues clearValues = graphics:GetClearValues()
         VulkanConstants constants
         
         /*
@@ -419,7 +419,7 @@ VulkanDescriptorSet texturesDescriptorSet = graphics:GetTextureManager():GetGlob
         // Create the command to begin the render pass.
         BeginRenderPassCommand beginRenderPass
         beginRenderPass:SetRenderPass(renderPass)
-        beginRenderPass:SetClearValue(clearValue)
+        beginRenderPass:SetClearValues(clearValues)
         beginRenderPass:SetFramebuffer(framebuffer)
         beginRenderPass:SetRenderArea(swapchain:GetImageWidth(), swapchain:GetImageHeight())
         commandBuffer:Record(beginRenderPass)

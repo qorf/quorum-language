@@ -1,0 +1,51 @@
+package Libraries.Game.Graphics.Vulkan.Commands
+
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+
+class DrawCommand is VulkanCommand
+    
+    integer vertexCount = 0
+    integer instanceCount = 1
+    integer firstVertex = 0
+    integer firstInstance = 0
+    
+    /*
+    This action records this command into the provided command buffer.
+    The command buffer must already be open for recording using the
+    buffer's "BeginRecording" action.
+    */
+    system action Record(VulkanCommandBuffer buffer)
+    
+    action GetVertexCount returns integer
+        return vertexCount
+    end
+
+    action SetVertexCount(integer vertexCount)
+        me:vertexCount = vertexCount
+    end
+
+    action GetInstanceCount returns integer
+        return instanceCount
+    end
+
+    action SetInstanceCount(integer instanceCount)
+        me:instanceCount = instanceCount
+    end
+
+    action GetFirstVertex returns integer
+        return firstVertex
+    end
+
+    action SetFirstVertex(integer firstVertex)
+        me:firstVertex = firstVertex
+    end
+
+    action GetFirstInstance returns integer
+        return firstInstance
+    end
+
+    action SetFirstInstance(integer firstInstance)
+        me:firstInstance = firstInstance
+    end
+
+end

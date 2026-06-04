@@ -6,11 +6,11 @@ use Libraries.Compute.Vector3
 use Libraries.Language.Object
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.Models.OpenGL.MeshPart
-use Libraries.Game.Graphics.Models.OpenGL.Attributes.Environment
 use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
 use Libraries.Game.Graphics.Shaders.ShaderMapping
 use Libraries.Game.Graphics.Models.OpenGL.Attributes.Material
 use Libraries.Game.Graphics.Models.OpenGL.Attributes.BlendingAttribute
+use Libraries.Game.Graphics.Models.OpenGL.Attributes.EnvironmentOpenGL
 
 class Renderable
     
@@ -28,7 +28,7 @@ class Renderable
 
     public Material material = undefined
 
-    public Environment environment = undefined
+    public EnvironmentOpenGL environment = undefined
 
     public Array<Matrix4> bones = undefined
 

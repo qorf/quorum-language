@@ -16,16 +16,11 @@ class VulkanDrawQueue3D
     
     VulkanDevice device = undefined
     
-    //Array<VulkanBuffer> instanceData
-    //Array<VulkanNumber32BitMappedMemory> instanceMappings
     VulkanBuffer instanceData = undefined
     VulkanDrawQueue3DInstanceMappedMemory instanceMapping = undefined
     
     integer currentInstanceIndex = 0
     integer maxInstances = -1
-    
-    //VulkanDescriptorSetLayout instanceDataLayout = undefined
-    //VulkanDescriptorSet instanceDataDescriptorSet = undefined
     
     // The size of a single buffer of instance data, in bytes and as 4-byte words.
     public constant integer INSTANCE_DATA_WORD_SIZE = (2 + 2 + 2 + 1 + 1 + 1 + 1 + 16)
@@ -41,50 +36,23 @@ class VulkanDrawQueue3D
     constant integer DIFFUSE_COLOR_INDEX = 6
     constant integer TRANSFORM_MATRIX_INDEX = 7
     
-    // A reusable array for transferring data to mapped memory in bulk.
-    //Number32BitArray transferArray
-    
     VulkanBuffer drawCommandBuffer = undefined
     VulkanDrawIndirectDataMappedMemory drawDataMemory = undefined
     integer currentDrawCommandIndex = 0
     integer currentDrawInstanceIndex = 0
     
-    //NumberUtilities utility
-    
     action Create(VulkanDevice device, VulkanGraphics graphics, integer maxInstances)
         me:device = device
-        //transferArray:SetSize(INSTANCE_DATA_WORD_SIZE * maxInstances)
         
         VulkanConstants constants
         VulkanDescriptorSetManager setManager = graphics:GetDescriptorSetManager()
         
 me:maxInstances = maxInstances
-        //Array<VulkanDescriptorSetLayoutBinding> bindings
-//
-        //VulkanDescriptorSetLayoutBinding buffersBinding
-        //buffersBinding:SetBinding(0)
-        //buffersBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-        //buffersBinding:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT)
-        //buffersBinding:SetDescriptorCount(maxInstances)
-        //buffersBinding:SetBindingFlags(constants:DESCRIPTOR_BINDING_DYNAMIC)
-        //bindings:Add(buffersBinding)
-        //
-        //VulkanDescriptorSetLayout instanceDataLayout
-        //instanceDataLayout:CreateUpdateAfterBind(device, bindings)
-        //me:instanceDataLayout = instanceDataLayout
-
-        //ModelManagerVulkan modelManager = graphics:GetModelManager()
-        //instanceDataLayout = modelManager:GetInstanceDataDescriptorSetLayout()
-        
-        //VulkanDescriptorSetManager descriptorSetManager = graphics:GetDescriptorSetManager()
-        //instanceDataDescriptorSet = descriptorSetManager:CreateDescriptorSet(instanceDataLayout, constants:DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT)
-        
         
         VulkanBuffer instanceData
         me:instanceData = instanceData
         instanceData:CreateMappableBuffer(device, maxInstances * INSTANCE_DATA_BYTE_SIZE, constants:BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)
         
-        //instanceMapping = instanceData:MapToNumber32BitMemory()
         VulkanDrawQueue3DInstanceMappedMemory instanceMapping
         me:instanceMapping = instanceMapping
         instanceMapping:Create(instanceData)
@@ -108,43 +76,7 @@ me:maxInstances = maxInstances
     end
     
     action End
-        //instanceMapping:Set(0, transferArray, 0, currentInstanceIndex * INSTANCE_DATA_WORD_SIZE)
     end
-    
-    //action GetNextInstanceData returns VulkanNumber32BitMappedMemory
-        //VulkanNumber32BitMappedMemory result = GetInstanceData(currentInstanceIndex)
-        //currentInstanceIndex = currentInstanceIndex + 1
-        //return result
-    //end
-    
-    //action GetInstanceData(integer index) returns VulkanNumber32BitMappedMemory
-        //if instanceData:GetSize() < index
-            //return instanceMappings:Get(index)
-        //end
-        //
-        //if instanceData:GetSize() >= maxInstances
-            //return undefined
-        //end
-        //
-        //VulkanConstants constants
-        //
-        //VulkanBuffer buffer
-        //buffer:CreateMappableBuffer(device, INSTANCE_DATA_BYTE_SIZE, constants:BUFFER_USAGE_UNIFORM_BUFFER_BIT)
-        //instanceData:Add(buffer)
-        //
-        //VulkanNumber32BitMappedMemory mapping = buffer:MapToNumber32BitMemory()
-        //instanceMappings:Add(mapping)
-        //
-        //VulkanDescriptorResourcesInfo bufferInfo
-                //bufferInfo:SetDestinationBinding(0)
-                //bufferInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-                //bufferInfo:SetDestinationArrayElement(index)
-                //bufferInfo:AddBufferInfo(buffer, 0, buffer:GetSize())
-        //        
-                //instanceDataDescriptorSet:LinkResources(bufferInfo)
-        //
-        //return mapping
-    //end
     
     action AddInstanceData(MeshVulkan mesh,
 Texture texture,
@@ -166,22 +98,7 @@ Matrix4 modelMatrix)
         drawDataMemory:Dispose()
         drawCommandBuffer:Dispose()
         instanceData:Dispose()
-        //integer i = 0
-        //repeat while i < instanceData:GetSize()
-            //VulkanBuffer data = instanceData:Get(i)
-            //VulkanNumber32BitMappedMemory mapping = instanceMappings:Get(i)
-            //data:StopMapping()
-            //data:Dispose()
-            //mapping:Dispose()
-            //i = i + 1
-        //end
-        //instanceDataLayout:Dispose()
-        //instanceDataDescriptorSet:Dispose()
     end
-    
-    //action GetInstanceDataDescriptorSet returns VulkanDescriptorSet
-        //return instanceDataDescriptorSet
-    //end
 
     action GetDrawCommandBuffer returns VulkanBuffer
         return drawCommandBuffer

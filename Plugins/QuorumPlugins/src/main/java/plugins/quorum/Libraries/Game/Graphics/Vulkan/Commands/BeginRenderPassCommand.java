@@ -1,11 +1,10 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan.Commands;
 
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.vulkan.VkClearValue;
 import org.lwjgl.vulkan.VkRenderPassBeginInfo;
-import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanClearValue;
-import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer;
-import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanFramebuffer;
-import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanRenderPass;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.*;
+import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer_;
 
 import static org.lwjgl.vulkan.VK10.vkCmdBeginRenderPass;
@@ -19,8 +18,10 @@ public class BeginRenderPassCommand
         quorum.Libraries.Game.Graphics.Vulkan.Commands.BeginRenderPassCommand_ quorumCommand = (quorum.Libraries.Game.Graphics.Vulkan.Commands.BeginRenderPassCommand_)me_;
         VulkanCommandBuffer pluginBuffer = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer)quorumBuffer).plugin_;
         VulkanRenderPass pluginRenderPass = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanRenderPass)quorumCommand.GetRenderPass()).plugin_;
-        VulkanClearValue pluginClearValue = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanClearValue)quorumCommand.GetClearValue()).plugin_;
         VulkanFramebuffer pluginFramebuffer = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanFramebuffer)quorumCommand.GetFramebuffer()).plugin_;
+        VulkanClearValues pluginClearValues = null;
+        if (quorumCommand.GetClearValues() != null)
+            pluginClearValues = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanClearValues)quorumCommand.GetClearValues()).plugin_;
 
         int width = quorumCommand.GetRenderAreaWidth();
         int height = quorumCommand.GetRenderAreaHeight();
@@ -30,9 +31,10 @@ public class BeginRenderPassCommand
             VkRenderPassBeginInfo beginInfo = VkRenderPassBeginInfo.calloc(stack);
             beginInfo.sType$Default();
             beginInfo.renderPass(pluginRenderPass.GetRenderPassHandle());
-            beginInfo.pClearValues(pluginClearValue.GetClearValue());
             beginInfo.renderArea(a -> a.extent().set(width, height));
             beginInfo.framebuffer(pluginFramebuffer.GetFramebufferHandle());
+            if (pluginClearValues != null)
+                beginInfo.pClearValues(pluginClearValues.GetBuffer());
 
             vkCmdBeginRenderPass(pluginBuffer.GetCommandBuffer(), beginInfo, quorumCommand.GetCommandType());
         }

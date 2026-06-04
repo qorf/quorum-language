@@ -16,6 +16,12 @@ use Libraries.Game.Graphics.Shaders.Programs.DefaultShaderProgram2D
 use Libraries.Game.Graphics.Shaders.Programs.DefaultShaderProgram3D
 use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.DefaultVertexShader3DVulkan
 use Libraries.Game.Graphics.Shaders.Vulkan.DefaultFragmentShader3DVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.DefaultLightingVertexShaderVulkan
+use Libraries.Game.Graphics.Shaders.Programs.DefaultLightingShaderProgram
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.DefaultLightingFragmentShaderVulkan
+use Libraries.Game.Graphics.Shaders.Programs.CopyFromSamplerShaderProgram
+use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.CopyFromSamplerVertexShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.CopyFromSamplerFragmentShaderVulkan
 
 class ShaderManager
 
@@ -25,6 +31,12 @@ class ShaderManager
     public constant text DEFAULT_3D_SHADER_PROGRAM = "Default 3D Shader Program"
     public constant text DEFAULT_3D_VERTEX_SHADER = "Default 3D Vertex Shader"
     public constant text DEFAULT_3D_FRAGMENT_SHADER = "Default 3D Fragment Shader"
+    public constant text DEFAULT_LIGHTING_VERTEX_SHADER = "Default Lighting Vertex Shader"
+    public constant text DEFAULT_LIGHTING_FRAGMENT_SHADER = "Default Lighting Fragment Shader"
+    public constant text DEFAULT_LIGHTING_SHADER_PROGRAM = "Default Lighting Shader Program"
+    public constant text COPY_FROM_SAMPLER_VERTEX_SHADER = "Copy From Sampler Vertex Shader"
+    public constant text COPY_FROM_SAMPLER_FRAGMENT_SHADER = "Copy From Sampler Fragment Shader"
+    public constant text COPY_FROM_SAMPLER_SHADER_PROGRAM = "Copy From Sampler Shader Program"
 
     // This type constant is used to indicate that the shader is a vertex shader. Every shader program must have a vertex shader as its first shader step.
     public constant integer VERTEX_SHADER = 1
@@ -192,6 +204,94 @@ DefaultFragmentShader2DOpenGL shader
         end
 
         return GetShader(DEFAULT_3D_FRAGMENT_SHADER)
+    end
+    
+    action GetDefaultLightingShaderProgram returns ShaderProgram
+        ShaderProgram program = GetShaderProgram(DEFAULT_LIGHTING_SHADER_PROGRAM)
+        if program = undefined
+            DefaultLightingShaderProgram default
+            // Compiling this program will automatically register it in the ShaderManager for future use.
+            default:Compile()
+            return default
+        else
+            return program
+        end
+    end
+
+    action GetDefaultLightingVertexShader returns Shader
+        if HasShader(DEFAULT_LIGHTING_VERTEX_SHADER) = false
+            if IsVulkan()
+                DefaultLightingVertexShaderVulkan shader
+            // Compiling this shader will automatically register it in the ShaderManager for future use.
+            shader:Compile()
+            elseif IsOpenGL()
+alert("I cannot provide a standalone lighting shader for OpenGL because lighting is performed as part of the default 3D shaders.")
+            else
+                alert("I couldn't create a shader because I couldn't determine what graphics library was being used!")
+            end
+        end
+
+        return GetShader(DEFAULT_LIGHTING_VERTEX_SHADER)
+    end
+
+    action GetDefaultLightingFragmentShader returns Shader
+        if HasShader(DEFAULT_LIGHTING_FRAGMENT_SHADER) = false
+if IsVulkan()
+DefaultLightingFragmentShaderVulkan shader
+            // Compiling this shader will automatically register it in the ShaderManager for future use.
+            shader:Compile()
+            elseif IsOpenGL()
+                alert("I cannot provide a standalone lighting shader for OpenGL because lighting is performed as part of the default 3D shaders.")
+            else
+                alert("I couldn't create a shader because I couldn't determine what graphics library was being used!")
+            end
+        end
+
+        return GetShader(DEFAULT_LIGHTING_FRAGMENT_SHADER)
+    end
+    
+    action GetCopyFromSamplerShaderProgram returns ShaderProgram
+        ShaderProgram program = GetShaderProgram(COPY_FROM_SAMPLER_SHADER_PROGRAM)
+        if program = undefined
+            CopyFromSamplerShaderProgram default
+            // Compiling this program will automatically register it in the ShaderManager for future use.
+            default:Compile()
+            return default
+        else
+            return program
+        end
+    end
+
+    action GetCopyFromSamplerVertexShader returns Shader
+        if HasShader(COPY_FROM_SAMPLER_VERTEX_SHADER) = false
+            if IsVulkan()
+                CopyFromSamplerVertexShaderVulkan shader
+            // Compiling this shader will automatically register it in the ShaderManager for future use.
+            shader:Compile()
+            elseif IsOpenGL()
+alert("I cannot provide a shader for copying from a sampler because OpenGL doesn't support this feature.")
+            else
+                alert("I couldn't create a shader because I couldn't determine what graphics library was being used!")
+            end
+        end
+
+        return GetShader(COPY_FROM_SAMPLER_VERTEX_SHADER)
+    end
+
+    action GetCopyFromSamplerFragmentShader returns Shader
+        if HasShader(COPY_FROM_SAMPLER_FRAGMENT_SHADER) = false
+if IsVulkan()
+CopyFromSamplerFragmentShaderVulkan shader
+            // Compiling this shader will automatically register it in the ShaderManager for future use.
+            shader:Compile()
+            elseif IsOpenGL()
+                alert("I cannot provide a shader for copying from a sampler because OpenGL doesn't support this feature.")
+            else
+                alert("I couldn't create a shader because I couldn't determine what graphics library was being used!")
+            end
+        end
+
+        return GetShader(COPY_FROM_SAMPLER_FRAGMENT_SHADER)
     end
 
     action AddReloadableMesh(Mesh mesh)

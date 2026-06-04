@@ -4,7 +4,7 @@ use Libraries.Game.Graphics.Painter3D
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.Skybox
 use Libraries.Game.Graphics.Model
-use Libraries.Game.Graphics.Models.OpenGL.Attributes.Environment
+use Libraries.Game.Graphics.Environment
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
 use Libraries.Containers.Number32BitArray
@@ -30,12 +30,23 @@ use Libraries.Game.Graphics.Vulkan.Commands.DrawIndirectCommand
 use Libraries.Game.Graphics.Vulkan.Commands.SetPushConstantsCommand
 use Libraries.Game.Graphics.Vulkan.Commands.SetScissorCommand
 use Libraries.Game.Graphics.Vulkan.Commands.BindVertexBufferCommand
+use Libraries.Game.Graphics.Shaders.Programs.CopyFromSamplerShaderProgram
+use Libraries.Game.Graphics.Vulkan.Commands.DrawCommand
+use Libraries.Game.Graphics.Models.Vulkan.EnvironmentVulkan
 
 class VulkanPainter3D is Painter3D
     
     GameStateManager gameState
-    VulkanRenderPass renderPass = undefined
+    VulkanRenderPass sceneRenderPass = undefined
+    VulkanRenderPass lightRenderPass = undefined
+    VulkanRenderPass resultRenderPass = undefined
     ShaderProgram defaultProgram = undefined
+    ShaderProgram defaultLightingProgram = undefined
+    
+    // The clear value for the scene-space is not the same background clear value used for the swapchain.
+    // It must be fully transparent to ensure proper blending with other layers.
+    VulkanClearValues sceneClearValues
+    VulkanClearValues lightClearValues
     
     // Resources for the Camera uniform.
     Array<VulkanBuffer> cameraBuffers
@@ -70,60 +81,131 @@ VulkanSampler immutableSampler = undefined
     // A dummy vertex buffer. Without extensions to bypass it, the Vulkan spec requires we bind something to the vertex buffers, even if our pipeline doesn't need it due to bindless rendering.
     VulkanBuffer dummyVertexBuffer = undefined
     
+    /*Resources for the lighting step.*/
+    Array<VulkanFramebuffer> lightFramebuffers
+    Array<VulkanDescriptorSet> lightDescriptors
+    
+    /*An array of framebuffers, used to render to blank images each frame. Unlike 2D, which can draw directly onto the previous image, 3D needs to
+post-process the environment without interference from the rendering of previous layers. There is one framebuffer per image in the swapchain,
+to allow for simultaneous rendering.*/
+    Array<VulkanFramebuffer> renderFramebuffers
+    /*An array of descriptor sets used with the result render pass.*/
+    Array<VulkanDescriptorSet> resultDescriptors
+    
+    // Used to create combined image-sampler descriptors. Accesses the individual values in a sampled image.
+    VulkanSampler resultSampler = undefined
+    
+    EnvironmentVulkan environment = undefined
+    
 on create
         matrix4Array:SetSize(16)
         //Create the push constants buffer with a size of 8 bytes (one 64-bit pointer). 
         pushConstants:Create(8)
     end
 
-    action IsRenderPassValid returns boolean
-        return renderPass not= undefined
+    action AreRenderPassesValid returns boolean
+        return sceneRenderPass not= undefined and resultRenderPass not= undefined
     end
 
-    action RegenerateRenderPass(boolean isFirstPass) returns boolean
-        if renderPass not= undefined
-            renderPass:Dispose()
+    action RegenerateRenderPasses(boolean isFirstPass) returns boolean
+        if me:sceneRenderPass not= undefined
+            sceneRenderPass:Dispose()
+        end
+if lightRenderPass not= undefined
+            lightRenderPass:Dispose()
+        end
+        if resultRenderPass not= undefined
+            resultRenderPass:Dispose()
         end
 
-        VulkanRenderPass pass
-        renderPass = pass
+        VulkanRenderPass sceneRender
+        sceneRenderPass = sceneRender
+        VulkanRenderPass lightRender
+        lightRenderPass = lightRender
+        VulkanRenderPass resultRender
+        resultRenderPass = resultRender
+        
+        if not renderFramebuffers:IsEmpty()
+            repeat until renderFramebuffers:IsEmpty()
+                renderFramebuffers:RemoveFromEnd():Dispose()
+            end
+        end
+        if not lightFramebuffers:IsEmpty()
+            repeat until lightFramebuffers:IsEmpty()
+                lightFramebuffers:RemoveFromEnd():Dispose()
+            end
+        end
 
         VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
 VulkanSwapchain swapchain = graphics:GetSwapchain()
         VulkanDevice device = graphics:GetDevice()
         VulkanConstants constants
-
-        /*
-        Create the RenderPass that will be used for this painter. 
-        This must be compatible with the render pass used for the swapchain Framebuffers.
-        The RenderPass provided to the Framebuffers will indicate how rendering to the buffers will be performed. Pipelines using the
-        Framebuffers must either exactly match the RenderPass, or be compatible with it. More details here:
-        https://registry.khronos.org/vulkan/specs/1.3-extensions/html/chap8.html#renderpass-compatibility
-        */
-        VulkanAttachmentDescription outputColorAttachment
-        outputColorAttachment:SetFormat(graphics:GetSwapchain():GetImageViewInfo():GetFormat())
-        outputColorAttachment:SetSamples(constants:SAMPLE_COUNT_1_BIT)
-        outputColorAttachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
-        outputColorAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
-
-        if isFirstPass
-outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
-            outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
-        else
-outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
-            outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_LOAD)
+        
+        if resultSampler = undefined
+            VulkanSampler sampler
+            VulkanSamplerInfo info
+            info:SetHorizontalWrapMode(constants:SAMPLER_ADDRESS_MODE_REPEAT)
+            info:SetVerticalWrapMode(constants:SAMPLER_ADDRESS_MODE_REPEAT)
+            sampler:Create(device, info)
+            resultSampler = sampler
         end
-
-        Array<VulkanAttachmentDescription> attachmentDescriptions
-        attachmentDescriptions:Add(outputColorAttachment)
-
-
-        VulkanAttachmentReference outputColorReference
-        outputColorReference:SetAttachmentIndex(0)
-        outputColorReference:SetLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-
-        Array<VulkanAttachmentReference> attachmentReferences
-        attachmentReferences:Add(outputColorReference)
+        
+        /*Begin by creating all the attachment information we'll need. We need attachments to represent the outputs for our render passes.
+The attachments we need correspond to our phases of rendering:
+    * Scene:
+        - Position
+        - Albedo
+        - Normals
+        - Physical-Based Rendering (PBR) Properties
+        - Depth
+    * Lighting:
+        - Color
+    * Result (Copy to Swapchain Image)
+        - Color
+*/
+        Array<VulkanAttachmentDescription> sceneAttachmentDescriptions
+        Array<VulkanAttachmentReference> sceneColorAttachmentReferences
+        Array<VulkanAttachmentDescription> lightAttachmentDescriptions
+        Array<VulkanAttachmentReference> lightColorAttachmentReferences
+        Array<VulkanAttachmentDescription> resultAttachmentDescriptions
+        Array<VulkanAttachmentReference> resultColorAttachmentReferences
+        
+        // Scene render attachments.
+        VulkanAttachmentDescription positionAttachment
+        positionAttachment:SetFormat(constants:FORMAT_R16G16B16A16_SFLOAT)
+        positionAttachment:SetSamples(1)
+        positionAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
+        positionAttachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
+        positionAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
+        positionAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+        sceneAttachmentDescriptions:Add(positionAttachment)
+        
+        VulkanAttachmentDescription albedoAttachment
+        albedoAttachment:SetFormat(constants:FORMAT_R16G16B16A16_SFLOAT)
+        albedoAttachment:SetSamples(1)
+        albedoAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
+        albedoAttachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
+        albedoAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
+        albedoAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+        sceneAttachmentDescriptions:Add(albedoAttachment)
+        
+        VulkanAttachmentDescription normalsAttachment
+        normalsAttachment:SetFormat(constants:FORMAT_R16G16B16A16_SFLOAT)
+        normalsAttachment:SetSamples(1)
+        normalsAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
+        normalsAttachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
+        normalsAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
+        normalsAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+        sceneAttachmentDescriptions:Add(normalsAttachment)
+        
+        VulkanAttachmentDescription pbrAttachment
+        pbrAttachment:SetFormat(constants:FORMAT_R16G16B16A16_SFLOAT)
+        pbrAttachment:SetSamples(1)
+        pbrAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
+        pbrAttachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
+        pbrAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
+        pbrAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+        sceneAttachmentDescriptions:Add(pbrAttachment)
         
         VulkanAttachmentDescription depthDescription
         depthDescription:SetFormat(constants:FORMAT_D32_SFLOAT)
@@ -134,21 +216,286 @@ depthDescription:SetStencilLoadOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
 depthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
         depthDescription:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
         depthDescription:SetFinalLayout(constants:IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+        sceneAttachmentDescriptions:Add(depthDescription)
         
+        //Now, create the attachment references for the position, albedo, normals, PBR properties, and depth.
+        VulkanAttachmentReference positionReference
+        positionReference:SetAttachmentIndex(0)
+        positionReference:SetLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+        sceneColorAttachmentReferences:Add(positionReference)
+        
+        VulkanAttachmentReference albedoReference
+        albedoReference:SetAttachmentIndex(1)
+        albedoReference:SetLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+        sceneColorAttachmentReferences:Add(albedoReference)
+        
+        VulkanAttachmentReference normalsReference
+        normalsReference:SetAttachmentIndex(2)
+        normalsReference:SetLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+        sceneColorAttachmentReferences:Add(normalsReference)
+        
+        VulkanAttachmentReference pbrReference
+        pbrReference:SetAttachmentIndex(3)
+        pbrReference:SetLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+        sceneColorAttachmentReferences:Add(pbrReference)
+        
+        VulkanAttachmentReference sceneDepthReference
+        sceneDepthReference:SetAttachmentIndex(4)
+        sceneDepthReference:SetLayout(constants:IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+        
+        // Now that we have all of the required attachment info, create the scene render pass.
+        CreateRenderPass(sceneRenderPass, sceneAttachmentDescriptions, sceneColorAttachmentReferences, sceneDepthReference)
+        
+        // Lighting render attachments.
+        VulkanAttachmentDescription lightColorAttachment
+        lightColorAttachment:SetFormat(constants:FORMAT_R16G16B16A16_SFLOAT)
+        lightColorAttachment:SetSamples(1)
+        lightColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
+        lightColorAttachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
+        lightColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
+        lightColorAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+        lightAttachmentDescriptions:Add(albedoAttachment)
+        
+        VulkanAttachmentReference lightColorReference
+        lightColorReference:SetAttachmentIndex(0)
+        lightColorReference:SetLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+        lightColorAttachmentReferences:Add(lightColorReference)
+        
+        // Now, create the lighting render pass.
+        CreateRenderPass(lightRenderPass, lightAttachmentDescriptions, lightColorAttachmentReferences, undefined)
+        
+        // Final result rendering attachments.
+        VulkanAttachmentDescription outputColorAttachment
+        outputColorAttachment:SetFormat(graphics:GetSwapchain():GetImageViewInfo():GetFormat())
+        outputColorAttachment:SetSamples(constants:SAMPLE_COUNT_1_BIT)
+        outputColorAttachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
+        outputColorAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
+        outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
+            outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
+        
+        // We need to manage the starting state of the output buffer differently depending on whether this is the first layer or not
+        // (i.e. if it's the first layer it needs to be cleared, otherwise we don't want to erase work from previous layers)
+        if isFirstPass
+outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
+            outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
+        else
+outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
+            outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_LOAD)
+        end
+
+        resultAttachmentDescriptions:Add(outputColorAttachment)
+
+        VulkanAttachmentReference outputColorReference
+        outputColorReference:SetAttachmentIndex(0)
+        outputColorReference:SetLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+
+        resultColorAttachmentReferences:Add(outputColorReference)
+        
+        // Note that we don't have to create another depth description, we can use the existing one as it has identical properties as what we need.
+        resultAttachmentDescriptions:Add(depthDescription)
+        
+        // While we didn't need a description, we do need a new depth reference which points to a different attachment index.
         VulkanAttachmentReference depthReference
         depthReference:SetAttachmentIndex(1)
         depthReference:SetLayout(constants:IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
         
-        attachmentDescriptions:Add(depthDescription)
+        CreateRenderPass(resultRenderPass, resultAttachmentDescriptions, resultColorAttachmentReferences, depthReference)
+        
+        lightDescriptors:Empty()
+        resultDescriptors:Empty()
+        
+        VulkanDescriptorSetLayout lightsLayout = undefined
+        if lightDescriptors:GetSize() < swapchain:GetImageCount()
+            VulkanDescriptorSetLayout descriptorLayout
+            lightsLayout = descriptorLayout
+            Array<VulkanDescriptorSetLayoutBinding> lightsBindings
+            
+            // Describe the binding of the uniform buffers.
+            VulkanDescriptorSetLayoutBinding positionSamplerBinding
+            positionSamplerBinding:SetBinding(0)
+            positionSamplerBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+            positionSamplerBinding:SetDescriptorCount(1)
+            positionSamplerBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+            lightsBindings:Add(positionSamplerBinding)
+            
+            VulkanDescriptorSetLayoutBinding albedoSamplerBinding
+            albedoSamplerBinding:SetBinding(1)
+            albedoSamplerBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+            albedoSamplerBinding:SetDescriptorCount(1)
+            albedoSamplerBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+            lightsBindings:Add(albedoSamplerBinding)
+            
+            VulkanDescriptorSetLayoutBinding normalsSamplerBinding
+            normalsSamplerBinding:SetBinding(2)
+            normalsSamplerBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+            normalsSamplerBinding:SetDescriptorCount(1)
+            normalsSamplerBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+            lightsBindings:Add(normalsSamplerBinding)
+            
+            VulkanDescriptorSetLayoutBinding pbrSamplerBinding
+            pbrSamplerBinding:SetBinding(3)
+            pbrSamplerBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+            pbrSamplerBinding:SetDescriptorCount(1)
+            pbrSamplerBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+            lightsBindings:Add(pbrSamplerBinding)
+            
+            lightsLayout:Create(device, lightsBindings)
+        end
+        
+        VulkanDescriptorSetLayout resultsLayout = undefined
+        if resultDescriptors:GetSize() < swapchain:GetImageCount()
+            // Initialize the DescriptorSetLayouts that will describe how our uniforms will be sent to the device.
+            // Define how our uniforms will be laid out.
+            VulkanDescriptorSetLayout descriptorLayout
+            resultsLayout = descriptorLayout
+            Array<VulkanDescriptorSetLayoutBinding> resultsBindings            
 
+            // Describe the binding of the uniform buffers.
+            VulkanDescriptorSetLayoutBinding samplerBinding
+            samplerBinding:SetBinding(0)
+            samplerBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+            samplerBinding:SetDescriptorCount(1)
+            samplerBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+            resultsBindings:Add(samplerBinding)
+
+            resultsLayout:Create(device, resultsBindings)
+        end
+        
+        VulkanDescriptorSetManager descriptorSetManager = graphics:GetDescriptorSetManager()
+        
+        // Create (or regenerate) our framebuffers. We need images to store data that reflects the attachments defined above.
+        integer i = 0
+        integer swapchainWidth = swapchain:GetImageWidth()
+        integer swapchainHeight = swapchain:GetImageHeight()
+        repeat while i < swapchain:GetImageCount()
+            VulkanFramebuffer renderFramebuffer
+            Array<VulkanImageView> renderImageViews
+            
+            // The color attachments all have the same properties, so they can be quickly created in a loop.
+            integer j = 0
+            repeat while j < 4
+                VulkanImageInfo imageInfo
+            imageInfo:SetWidth(swapchainWidth)
+            imageInfo:SetHeight(swapchainHeight)
+            imageInfo:SetFormat(constants:FORMAT_R16G16B16A16_SFLOAT)
+            imageInfo:SetUsage(constants:IMAGE_USAGE_COLOR_ATTACHMENT_BIT + constants:IMAGE_USAGE_SAMPLED_BIT)
+            VulkanImage image
+            image:Create(device, imageInfo)
+                
+                VulkanImageViewInfo imageViewInfo
+                imageViewInfo:SetFormat(imageInfo:GetFormat())
+                VulkanImageView imageView
+                imageView:Create(device, image, imageViewInfo)
+                renderImageViews:Add(imageView)
+                
+                j = j + 1
+            end
+            
+            // Also create an image for depth usage.
+            VulkanImageInfo depthImageInfo
+        depthImageInfo:SetWidth(swapchainWidth)
+        depthImageInfo:SetHeight(swapchainHeight)
+        depthImageInfo:SetUsage(constants:IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+        depthImageInfo:SetFormat(constants:FORMAT_D32_SFLOAT)
+        
+        VulkanImage depthImage
+        depthImage:Create(device, depthImageInfo)
+        
+        VulkanImageViewInfo depthViewInfo
+        depthViewInfo:SetAspectMask(constants:IMAGE_ASPECT_DEPTH_BIT)
+        depthViewInfo:SetFormat(depthImageInfo:GetFormat())
+        
+        VulkanImageView depthImageView
+        depthImageView:Create(device, depthImage, depthViewInfo)
+            renderImageViews:Add(depthImageView)
+            
+            renderFramebuffer:Create(device, renderImageViews, sceneRenderPass)
+            renderFramebuffers:Add(renderFramebuffer)
+            
+            // Also create the light framebuffer.
+            VulkanFramebuffer lightFramebuffer
+            Array<VulkanImageView> lightImageViews
+            
+            VulkanImageInfo imageInfo
+            imageInfo:SetWidth(swapchainWidth)
+            imageInfo:SetHeight(swapchainHeight)
+            imageInfo:SetFormat(constants:FORMAT_R16G16B16A16_SFLOAT)
+            imageInfo:SetUsage(constants:IMAGE_USAGE_COLOR_ATTACHMENT_BIT + constants:IMAGE_USAGE_SAMPLED_BIT)
+            VulkanImage image
+            image:Create(device, imageInfo)
+                
+                VulkanImageViewInfo imageViewInfo
+                imageViewInfo:SetFormat(imageInfo:GetFormat())
+                VulkanImageView imageView
+                imageView:Create(device, image, imageViewInfo)
+                lightImageViews:Add(imageView)
+            
+            lightFramebuffer:Create(device, lightImageViews, lightRenderPass)
+            lightFramebuffers:Add(lightFramebuffer)
+            
+            // Also ensure we have all the descriptor sets we need for the lighting and result stages.
+            if lightsLayout not= undefined
+                VulkanDescriptorSet lightSet = descriptorSetManager:CreateDescriptorSet(lightsLayout)
+                lightDescriptors:Add(lightSet)
+            end
+            if resultsLayout not= undefined
+                VulkanDescriptorSet resultSet = descriptorSetManager:CreateDescriptorSet(resultsLayout)
+                resultDescriptors:Add(resultSet)
+            end
+            
+            VulkanDescriptorSet lightSet = lightDescriptors:Get(i)
+            // Link up all four of the attachments out from the scene rendering stage as descriptor inputs to the lighting stage.
+            j = 0
+            repeat while j < 4
+                VulkanDescriptorResourcesInfo lightResources
+            VulkanDescriptorImageInfo lightImage
+            lightImage:SetImageView(renderImageViews:Get(j))
+            lightImage:SetSampler(resultSampler)
+            lightImage:SetImageLayout(constants:IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+            Array<VulkanDescriptorImageInfo> lightImages
+            lightImages:Add(lightImage)
+            lightResources:SetImageInfo(lightImages)
+            lightResources:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+                lightResources:SetDestinationBinding(j)
+            lightSet:LinkResources(lightResources)
+                
+                j = j + 1
+            end
+            
+            // Also update the descriptor set used by the results phase to get the output from the lighting phase.
+            VulkanDescriptorSet resultSet = resultDescriptors:Get(i)
+            VulkanDescriptorResourcesInfo resultResources
+            VulkanDescriptorImageInfo resultImage
+            // Get the color attachment from the lighting pass. The output color from lighting is the source color of the result copy step.
+            resultImage:SetImageView(lightImageViews:Get(0))
+            resultImage:SetSampler(resultSampler)
+            resultImage:SetImageLayout(constants:IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+            Array<VulkanDescriptorImageInfo> resultImages
+            resultImages:Add(resultImage)
+            resultResources:SetImageInfo(resultImages)
+            resultResources:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+            resultSet:LinkResources(resultResources)
+            
+            i = i + 1
+        end
+        
+        return true
+    end
+    
+    private action CreateRenderPass(VulkanRenderPass renderPass,
+Array<VulkanAttachmentDescription> attachmentDescriptions,
+Array<VulkanAttachmentReference> colorReferences,
+VulkanAttachmentReference depthReference) returns boolean
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        VulkanConstants constants
+        
         VulkanSubpassDescription subpass
         subpass:SetPipelineBindPoint(constants:PIPELINE_BIND_POINT_GRAPHICS)
-        subpass:SetColorAttachments(attachmentReferences)
+        subpass:SetColorAttachments(colorReferences)
         subpass:SetDepthStencilAttachment(depthReference)
 
         Array<VulkanSubpassDescription> subpassDescriptions
         subpassDescriptions:Add(subpass)
-
         
         VulkanSubpassDependency dependency
         dependency:SetSourceSubpass(constants:SUBPASS_EXTERNAL)
@@ -160,7 +507,6 @@ depthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
 
         Array<VulkanSubpassDependency> subpassDependencies
         subpassDependencies:Add(dependency)
-
 
         boolean success = renderPass:Create(graphics:GetDevice(), attachmentDescriptions, subpassDescriptions, subpassDependencies)
         return success
@@ -175,8 +521,35 @@ depthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
         return defaultProgram
     end
     
+    action GetDefaultLightingPipeline returns VulkanPipeline
+        ShaderProgram program = GetDefaultLightingProgram()
+        VulkanShaderProgram strategy = cast(VulkanShaderProgram, program:GetShaderProgramStrategy())
+        return strategy:GetPipeline()
+    end
+    
+    action GetDefaultLightingProgram returns ShaderProgram
+        if defaultLightingProgram = undefined
+            ShaderManager shaders = gameState:GetShaderManager()
+            defaultLightingProgram = shaders:GetDefaultLightingShaderProgram()
+        end
+        
+        return defaultLightingProgram
+    end
+    
     action GetDefaultPipeline returns VulkanPipeline
         ShaderProgram program = GetDefaultProgram()
+        VulkanShaderProgram strategy = cast(VulkanShaderProgram, program:GetShaderProgramStrategy())
+        return strategy:GetPipeline()
+    end
+    
+    private action GetCopyFromSamplerProgram returns CopyFromSamplerShaderProgram
+        ShaderManager manager = gameState:GetShaderManager()
+        CopyFromSamplerShaderProgram program = cast(CopyFromSamplerShaderProgram, manager:GetCopyFromSamplerShaderProgram())
+        return program
+    end
+    
+    action GetCopyFromSamplerPipeline returns VulkanPipeline
+        ShaderProgram program = GetCopyFromSamplerProgram()
         VulkanShaderProgram strategy = cast(VulkanShaderProgram, program:GetShaderProgramStrategy())
         return strategy:GetPipeline()
     end
@@ -226,7 +599,7 @@ if batches:HasKey(schematic)
         
         // If the render pass isn't defined and valid, regenerate it.
         // We'll have to determine if this is the first painter in the Game as part of this.
-        if not IsRenderPassValid()
+        if not AreRenderPassesValid()
             boolean isFirstLayer = false
 
             Game game = gameState:GetGame()
@@ -239,7 +612,7 @@ Layer layer = layers:Next()
                 end
             end
 
-            RegenerateRenderPass(isFirstLayer)
+            RegenerateRenderPasses(isFirstLayer)
 
             // If the default program hasn't been loaded, do so now.
             if defaultProgram = undefined
@@ -248,7 +621,7 @@ Layer layer = layers:Next()
         end
         if cameraBuffers:IsEmpty()
             // In this case, we haven't initialized the camera resources, sampler, or draw queues yet.
-            VulkanDevice device = renderPass:GetDevice()
+            VulkanDevice device = sceneRenderPass:GetDevice()
             VulkanConstants constants
             
 // Start by creating a sampler. We'll use this to access texture information in the shaders.
@@ -319,7 +692,7 @@ Layer layer = layers:Next()
             VulkanBuffer dummyBuffer
             dummyVertexBuffer = dummyBuffer
             
-            dummyBuffer:CreateMappableBuffer(renderPass:GetDevice(), 12, constants:BUFFER_USAGE_VERTEX_BUFFER_BIT)
+            dummyBuffer:CreateMappableBuffer(sceneRenderPass:GetDevice(), 12, constants:BUFFER_USAGE_VERTEX_BUFFER_BIT)
         end
         
         //needsFlush = false
@@ -342,12 +715,23 @@ Layer layer = layers:Next()
         //Flush()
 
         VulkanCommandBuffer commandBuffer = graphics:GetCurrentRenderCommandBuffer()
-        VulkanFramebuffer framebuffer = graphics:GetCurrentFramebuffer()
         VulkanSwapchain swapchain = graphics:GetSwapchain()
-        VulkanClearValue clearValue = graphics:GetClearValue()
+        //VulkanFramebuffer framebuffer = graphics:GetCurrentFramebuffer()
+        VulkanFramebuffer sceneFramebuffer = renderFramebuffers:Get(graphics:GetCurrentResourceIndex())
+        //VulkanClearValue clearValue = graphics:GetClearValue()
         VulkanConstants constants
         
         ModelManagerVulkan modelManager = graphics:GetModelManager()
+        
+        if sceneClearValues:IsEmpty()
+            repeat 4 times
+                sceneClearValues:AddColor(0, 0, 0, 0)
+            end
+            sceneClearValues:AddDepthStencil(1, 0)
+        end
+        if lightClearValues:IsEmpty()
+            lightClearValues:AddColor(0, 0, 0, 0)
+        end
         
         /*
         End the batches. This will reset information from the last pass, dispose of any batches that 
@@ -384,9 +768,9 @@ VulkanDescriptorSet texturesDescriptorSet = graphics:GetTextureManager():GetGlob
 
         // Create the command to begin the render pass.
         BeginRenderPassCommand beginRenderPass
-        beginRenderPass:SetRenderPass(renderPass)
-        beginRenderPass:SetClearValue(clearValue)
-        beginRenderPass:SetFramebuffer(framebuffer)
+        beginRenderPass:SetRenderPass(sceneRenderPass)
+        beginRenderPass:SetClearValues(sceneClearValues)
+        beginRenderPass:SetFramebuffer(sceneFramebuffer)
         beginRenderPass:SetRenderArea(swapchain:GetImageWidth(), swapchain:GetImageHeight())
         commandBuffer:Record(beginRenderPass)
 
@@ -396,7 +780,7 @@ VulkanDescriptorSet texturesDescriptorSet = graphics:GetTextureManager():GetGlob
         
         if currentPipeline = undefined
             VulkanShaderProgram strategy = cast(VulkanShaderProgram, currentProgram:GetShaderProgramStrategy())
-            strategy:CreatePipeline(renderPass)
+            strategy:CreatePipeline(sceneRenderPass)
             currentPipeline = strategy:GetPipeline()
         end
         
@@ -412,15 +796,7 @@ VulkanDescriptorSet texturesDescriptorSet = graphics:GetTextureManager():GetGlob
                 viewportHeight = swapchain:GetImageHeight()
             end
             
-            SetViewportCommand setViewport
-            setViewport:SetPosition(viewportX, swapchain:GetImageHeight() - viewportY)
-            setViewport:SetSize(viewportWidth, -viewportHeight)
-            commandBuffer:Record(setViewport)
-        
-        SetScissorCommand setScissor
-        setScissor:SetPosition(0, 0)
-            setScissor:SetSize(swapchain:GetImageWidth(), swapchain:GetImageHeight())
-        commandBuffer:Record(setScissor)
+        SetViewportAndScissor(commandBuffer, swapchain)
         
         // We actually don't use regular vertex inputs in our bindless approach, but Vulkan complains if we never bind anything.
         // Bind a dummy set to satisfy the spec and prevent warnings and unpredictable behavior.
@@ -428,12 +804,7 @@ VulkanDescriptorSet texturesDescriptorSet = graphics:GetTextureManager():GetGlob
         bindVertex:SetBuffer(dummyVertexBuffer)
         commandBuffer:Record(bindVertex)
         
-        
-        // Bind the global descriptor arrays. This may need to be adjusted if different batches need to eventually point at different descriptors
-        // (e.g. there's more content than can fit in a single array)
         VulkanPipelineLayout pipelineLayout = currentPipeline:GetInfo():GetLayout()
-        //VulkanDescriptorSet globalMeshDescriptorSet = modelManager:GetGlobalMeshDescriptorSet()
-        //VulkanDescriptorSet globalMeshDescriptorSet = undefined
                 
 BindDescriptorSetCommand cameraBind
             cameraBind:SetPipelineLayout(pipelineLayout)
@@ -445,12 +816,6 @@ BindDescriptorSetCommand cameraBind
             texturesBind:SetDescriptorSet(texturesDescriptorSet)
             texturesBind:SetSetIndex(1)
             commandBuffer:Record(texturesBind)
-        //
-        //BindDescriptorSetCommand meshDataBind
-            //meshDataBind:SetPipelineLayout(pipelineLayout)
-            //meshDataBind:SetDescriptorSet(globalMeshDescriptorSet)
-            //meshDataBind:SetSetIndex(2)
-            //commandBuffer:Record(meshDataBind)
         
         VulkanDrawQueue3D drawQueue = drawQueues:Get(currentSwapchainIndex)
         drawQueue:Begin()
@@ -480,15 +845,6 @@ TO-DO HERE:
             end
         end
         
-        //VulkanDescriptorSet instanceDataDescriptorSet = drawQueue:GetInstanceDataDescriptorSet()
-        ////VulkanDescriptorSet instanceDataDescriptorSet = undefined
-        //
-        //BindDescriptorSetCommand instanceDataBind
-            //instanceDataBind:SetPipelineLayout(pipelineLayout)
-            //instanceDataBind:SetDescriptorSet(instanceDataDescriptorSet)
-            //instanceDataBind:SetSetIndex(3)
-            //commandBuffer:Record(instanceDataBind)
-        
         pushConstants:ResetWritePosition()
         pushConstants:AddBufferPointer(drawQueue:GetInstanceDataBuffer())
         
@@ -502,116 +858,150 @@ TO-DO HERE:
         drawCommand:SetDrawCommands(drawQueue:GetDrawCommandBuffer())
         drawCommand:SetDrawCount(drawQueue:GetDrawCommandCount())
         commandBuffer:Record(drawCommand)
-    
-        //// Set the pipelines and send the corresponding draw calls.
-        //integer i = 0
-        //repeat while i < pendingBatches:GetSize()
-            //VulkanPainter2DBatch batch = pendingBatches:Get(i)
-            //DrawIndexedCommand drawCommand = pendingDrawCommands:Get(i)
-            //Vector4 clipValues = pendingClipCoordinates:Get(i)
-            //
-            //if currentProgram not= batch:GetProgram()
-                //if currentProgram not= undefined
-                    //currentProgram:End()
-                //end
-                //
-                //currentProgram = batch:GetProgram()
-                //currentPipeline = batch:GetPipeline()
-                //
-//BindPipelineCommand bindPipeline
-            //bindPipeline:SetPipeline(batch:GetPipeline())
-            //commandBuffer:Record(bindPipeline)
-                //
-            //end
-//
-            //// Ensure that, if no viewport dimensions were set, we get reasonable defaults from the swapchain.
-            //if viewportWidth = 0
-                //viewportWidth = swapchain:GetImageWidth()
-            //end
-            //if viewportHeight = 0
-                //viewportHeight = swapchain:GetImageHeight()
-            //end
-            //
-            //SetViewportCommand setViewport
-            //setViewport:SetPosition(viewportX, swapchain:GetImageHeight() - viewportY)
-            //setViewport:SetSize(viewportWidth, -viewportHeight)
-            //commandBuffer:Record(setViewport)
-            //
-            //boolean clippingChanged = false
-            //if i = 0
-                //// Always send a scissor command before the first draw.
-                //clippingChanged = true
-            //elseif clipValues not= undefined
-                //if lastClipValues = undefined
-                    //// In this case, the current clipping values are defined, and the last set wasn't.
-                    //clippingChanged = true
-                //elseif clipValues:GetX() not= lastClipValues:GetX() or clipValues:GetY() not= lastClipValues:GetY() or
-//clipValues:GetZ() not= lastClipValues:GetZ() or clipValues:GetW() not= lastClipValues:GetW()
-                    //// In this case, both vectors are defined, but their values don't match.
-                    //clippingChanged = true
-                //end
-            //elseif lastClipValues not= undefined
-                //// In this case, the current clip values isn't defined, and the last set was.
-                //clippingChanged = true
-            //end
-            //
-            //if clippingChanged
-//// Set scissor command
-            //SetScissorCommand setScissor
-                //if clipValues = undefined
-//setScissor:SetPosition(0, 0)
-            //setScissor:SetSize(swapchain:GetImageWidth(), swapchain:GetImageHeight())
-                //else
-                    //setScissor:SetPosition(cast(integer, clipValues:GetX()), swapchain:GetImageHeight() - cast(integer, clipValues:GetY() + clipValues:GetW()))
-//setScissor:SetSize(cast(integer, clipValues:GetZ()), cast(integer, clipValues:GetW()))
-                //end
-//commandBuffer:Record(setScissor)
-            //end
-//
-            //BindVertexBufferCommand vertexBind
-            //vertexBind:SetBuffer(batch:GetVertexOutputBuffer())
-            //commandBuffer:Record(vertexBind)
-//
-            //BindIndexBufferCommand indexBind
-            //indexBind:SetBuffer(batch:GetIndexOutputBuffer())
-            //commandBuffer:Record(indexBind)
-//
-            //// Once the batches have loaded their vertex and index buffers, allow the shader mapping to submit commands to bind descriptors.
-            //VulkanShaderMapping mapping = cast(VulkanShaderMapping, currentProgram:GetShaderMapping())
-            //
-            //// If the mapping uses default 2D resouces, automatically bind those resources.
-            //if mapping:UsesDefaultResources2D()
-                //VulkanPipelineLayout pipelineLayout = batch:GetPipeline():GetInfo():GetLayout()
-                //
-//BindDescriptorSetCommand descriptorBind
-            //descriptorBind:SetPipelineLayout(pipelineLayout)
-            //descriptorBind:SetDescriptorSet(currentCameraDescriptor)
-            //commandBuffer:Record(descriptorBind)
-//
-            //BindDescriptorSetCommand texturesBind
-            //texturesBind:SetPipelineLayout(pipelineLayout)
-            //texturesBind:SetDescriptorSet(texturesDescriptorSet)
-            //texturesBind:SetSetIndex(1)
-            //commandBuffer:Record(texturesBind)
-            //end
-            //mapping:Begin(currentProgram, camera, commandBuffer, currentSwapchainIndex)
-//
-            //commandBuffer:Record(drawCommand)
-//
-            //lastClipValues = clipValues
-            //i = i + 1
-        //end
 
         // End the render pass.
         EndRenderPassCommand endRenderPass
         commandBuffer:Record(endRenderPass)
 
-        // Set the current batch to undefined, to ensure we're starting with a clean slate again next time.
-        //currentBatch = undefined
-
         // Empty the pending arrays.
         pendingBatches:Empty()
         pendingTransparentBatches:Empty()
+        
+        // Now that scene geometry has been rendered, prepare for the lighting pass.
+        // First, ensure that all writing to the scene's color attachments has finished before attempting to read any of it.
+        integer i = 0
+        repeat while i < 4
+            VulkanImage attachment = sceneFramebuffer:GetImageViews():Get(i):GetImage()
+        AttachmentWriteBarrier(commandBuffer, attachment)
+            i = i + 1
+        end
+        
+        // Begin the render pass for the lighting phase.
+        VulkanFramebuffer lightFramebuffer = lightFramebuffers:Get(graphics:GetCurrentResourceIndex())
+        
+        BeginRenderPassCommand beginLightRender
+        beginLightRender:SetRenderPass(lightRenderPass)
+        beginLightRender:SetClearValues(lightClearValues)
+        beginLightRender:SetFramebuffer(lightFramebuffer)
+        beginLightRender:SetRenderArea(swapchain:GetImageWidth(), swapchain:GetImageHeight())
+        commandBuffer:Record(beginLightRender)
+        
+        VulkanPipeline lightPipeline = GetDefaultLightingPipeline()
+        if lightPipeline = undefined
+            VulkanShaderProgram strategy = cast(VulkanShaderProgram, GetDefaultLightingProgram():GetShaderProgramStrategy())
+            strategy:CreatePipeline(lightRenderPass)
+            lightPipeline = strategy:GetPipeline()
+        end
+        
+        BindPipelineCommand bindLightPipeline
+            bindLightPipeline:SetPipeline(lightPipeline)
+            commandBuffer:Record(bindLightPipeline)
+        
+        SetViewportAndScissor(commandBuffer, swapchain)
+        
+        // We can reuse the earlier BindVertexBufferCommand to bind our dummy vertex data.
+        commandBuffer:Record(bindVertex)
+        
+        VulkanPipelineLayout lightPipelineLayout = lightPipeline:GetInfo():GetLayout()
+                
+BindDescriptorSetCommand lightDescriptorBind
+            lightDescriptorBind:SetPipelineLayout(lightPipelineLayout)
+            lightDescriptorBind:SetDescriptorSet(lightDescriptors:Get(graphics:GetCurrentResourceIndex()))
+            commandBuffer:Record(lightDescriptorBind)
+        
+        BindDescriptorSetCommand lightDataDescriptorBind
+        lightDataDescriptorBind:SetPipelineLayout(lightPipelineLayout)
+        lightDataDescriptorBind:SetDescriptorSet(environment:GetDescriptorSet(graphics:GetCurrentResourceIndex()))
+        lightDataDescriptorBind:SetSetIndex(1)
+        commandBuffer:Record(lightDataDescriptorBind)
+
+        DrawCommand lightDrawCommand
+        lightDrawCommand:SetVertexCount(3)
+        commandBuffer:Record(lightDrawCommand)
+
+        // End the render pass.
+        EndRenderPassCommand endLightRenderPass
+        commandBuffer:Record(endLightRenderPass)
+        
+        // Now that the scene geometry and lighting are finished, copy the result from the Painter3D's framebuffer to the swapchain image that will eventually be drawn to the screen.
+        // First, ensure all writing to the light's output attachment is done before we proceed.
+        VulkanImage lightAttachmentImage = lightFramebuffer:GetImageViews():Get(0):GetImage()
+        AttachmentWriteBarrier(commandBuffer, lightAttachmentImage)
+        
+        // Now, begin the render pass for the copy draw phase. Get the resources we'll need and create the command.
+        VulkanFramebuffer resultFramebuffer = graphics:GetCurrentFramebuffer()
+        VulkanClearValues resultClearValues = graphics:GetClearValues()
+        
+        BeginRenderPassCommand beginResultRender
+        beginResultRender:SetRenderPass(resultRenderPass)
+        beginResultRender:SetClearValues(resultClearValues)
+        beginResultRender:SetFramebuffer(resultFramebuffer)
+        beginResultRender:SetRenderArea(swapchain:GetImageWidth(), swapchain:GetImageHeight())
+        commandBuffer:Record(beginResultRender)
+
+        // TO-DO: Support custom shaders for 3D.
+        VulkanPipeline resultPipeline = GetCopyFromSamplerPipeline()
+        
+        if resultPipeline = undefined
+            VulkanShaderProgram strategy = cast(VulkanShaderProgram, GetCopyFromSamplerProgram():GetShaderProgramStrategy())
+            strategy:CreatePipeline(resultRenderPass)
+            resultPipeline = strategy:GetPipeline()
+        end
+        
+        BindPipelineCommand bindResultPipeline
+            bindResultPipeline:SetPipeline(resultPipeline)
+            commandBuffer:Record(bindResultPipeline)
+        
+        SetViewportAndScissor(commandBuffer, swapchain)
+        
+        // We can reuse the earlier BindVertexBufferCommand to bind our dummy vertex data.
+        commandBuffer:Record(bindVertex)
+        
+        VulkanPipelineLayout resultPipelineLayout = resultPipeline:GetInfo():GetLayout()
+                
+BindDescriptorSetCommand resultDescriptorBind
+            resultDescriptorBind:SetPipelineLayout(resultPipelineLayout)
+            resultDescriptorBind:SetDescriptorSet(resultDescriptors:Get(graphics:GetCurrentResourceIndex()))
+            commandBuffer:Record(resultDescriptorBind)
+
+        DrawCommand resultDrawCommand
+        resultDrawCommand:SetVertexCount(3)
+        commandBuffer:Record(resultDrawCommand)
+
+        // End the render pass.
+        EndRenderPassCommand endResultRenderPass
+        commandBuffer:Record(endResultRenderPass)
+        
+    end
+    
+    private action AttachmentWriteBarrier(VulkanCommandBuffer commandBuffer, VulkanImage image)
+        VulkanImageMemoryBarrier barrier
+        VulkanConstants constants
+        
+        barrier:SetOldLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+        barrier:SetNewLayout(constants:IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+        barrier:SetSourceStageMask(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
+        barrier:SetDestinationStageMask(constants:PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
+        barrier:SetSourceAccessMask(constants:ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
+        barrier:SetDestinationAccessMask(constants:ACCESS_SHADER_READ_BIT)
+        barrier:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
+        barrier:SetImage(image)
+        
+        PipelineBarrierCommand barrierCommand
+        barrierCommand:SetMemoryBarrier(barrier)
+        commandBuffer:Record(barrierCommand)
+    end
+    
+    private action SetViewportAndScissor(VulkanCommandBuffer commandBuffer, VulkanSwapchain swapchain)
+        SetViewportCommand setViewport
+            setViewport:SetPosition(viewportX, swapchain:GetImageHeight() - viewportY)
+            setViewport:SetSize(viewportWidth, -viewportHeight)
+            commandBuffer:Record(setViewport)
+        
+        SetScissorCommand setScissor
+        setScissor:SetPosition(0, 0)
+            setScissor:SetSize(swapchain:GetImageWidth(), swapchain:GetImageHeight())
+        commandBuffer:Record(setScissor)
     end
     
     action SetSkybox(Skybox skybox)
@@ -620,8 +1010,7 @@ TO-DO HERE:
     end
     
     action SetEnvironment(Environment environment)
-//        output "NYI: VulkanPainter3D SetEnvironment"
-//        alert("NYI")
+        me:environment = cast(EnvironmentVulkan, environment)
     end
     
     action Render(Model model)

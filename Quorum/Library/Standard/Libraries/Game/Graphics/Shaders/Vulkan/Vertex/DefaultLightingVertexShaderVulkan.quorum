@@ -1,0 +1,27 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Vertex
+
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.ShaderManager
+
+class DefaultLightingVertexShaderVulkan is Shader
+    
+    on create
+        SetType(parent:Shader:VERTEX_SHADER)
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
+        SetName(manager:DEFAULT_LIGHTING_VERTEX_SHADER)
+        
+        SetCode(GetVersionHeader() + "
+
+layout (location = 0) out vec2 v_sampleCoordinate;
+		
+void main()
+{
+	v_sampleCoordinate = vec2((gl_VertexIndex << 1) & 2, gl_VertexIndex & 2);
+	gl_Position = vec4(v_sampleCoordinate.x * 2.0 - 1.0, v_sampleCoordinate.y * -2.0 + 1.0, 0.0, 1.0);
+}
+")
+    end
+    
+end

@@ -54,11 +54,33 @@ layout(location = 2) flat in uint v_hasDiffuseOverride;
 layout(location = 3) flat in uint v_diffuseOverride;
 layout(location = 4) flat in uint v_hasTextureOverride;
 layout(location = 5) flat in uint v_textureOverrideIndex;
+layout(location = 6) in vec4 v_position;
+layout(location = 7) in mat3 v_tangentBitangentNormal;
 
-layout (location = 0) out vec4 outputColor;
+layout (location = 0) out vec4 outputPosition;
+layout (location = 1) out vec4 outputColor;
+layout (location = 2) out vec4 outputNormal;
+layout (location = 3) out vec4 outputPBR;
+
+vec3 calculateNormal(Material material, mat3 tanBitanNormal, vec2 textCoords)
+{
+    vec3 newNormal = tanBitanNormal[2];
+    if (material.hasNormalMap > 0)
+    {
+        //newNormal = texture(textSampler[material.normalMapIdx], textCoords).rgb;
+		newNormal = texture(nonuniformEXT(sampler2D(globalTextures[material.normalMapIndex], immutableSampler)), textCoords).rgb;
+        newNormal = normalize(newNormal * 2.0 - 1.0);
+        newNormal = normalize(tanBitanNormal * newNormal);
+    }
+    return newNormal;
+}
 
 void main()
 {
+	// Set position.
+	outputPosition = v_position;
+	
+	// Calculate albedo.
 	Materials materials = Materials(v_materialBuffer);
 	Material material = materials.data;
 	
@@ -71,6 +93,29 @@ void main()
 		diffuse = unpackUnorm4x8(v_diffuseOverride);
 
     outputColor = texture(nonuniformEXT(sampler2D(globalTextures[textureIndex], immutableSampler)), v_textureCoords) * diffuse;
+	
+	// Calculate and set normal.
+	vec3 newNormal = calculateNormal(material, v_tangentBitangentNormal, v_textureCoords);	
+	outputNormal = vec4(newNormal, 1.0);
+	
+	
+	// Calculate PBR properties.
+	float roughnessFactor = 0.0f;
+    float metallicFactor = 0.0f;
+    if (material.hasRoughMap > 0) 
+	{
+        //vec4 metRoughValue = texture(textSampler[material.roughMapIdx], inTextCoords);
+		vec4 pbrValues = texture(nonuniformEXT(sampler2D(globalTextures[material.roughMapIndex], immutableSampler)), v_textureCoords);
+        roughnessFactor = pbrValues.g;
+        metallicFactor = pbrValues.b;
+    } 
+	else 
+	{
+        roughnessFactor = material.roughness;
+        metallicFactor = material.metallic;
+    }
+	
+	outputPBR = vec4(0.5, roughnessFactor, metallicFactor, 1.0);
 }"
 )
     end

@@ -8,7 +8,7 @@ use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.Renderable
 use Libraries.Game.Graphics.Mesh
-use Libraries.Game.Graphics.Models.OpenGL.Attributes.Environment
+use Libraries.Game.Graphics.Models.OpenGL.Attributes.EnvironmentOpenGL
 use Libraries.Game.Graphics.DirectionalLight
 use Libraries.Game.Graphics.Models.OpenGL.Attributes.all
 use Libraries.Game.Graphics.PointLight
@@ -540,7 +540,7 @@ openGL:SetDepthMask(mask)
     end
 
     private action BindLights(Attributes attributes, Renderable renderable)
-        Environment environment = renderable:environment
+        EnvironmentOpenGL environment = renderable:environment
         OpenGLShaderProgram glProgram = cast(OpenGLShaderProgram, program:GetShaderProgramStrategy())
 
         if environment = undefined or environment:ContainsLighting() = false

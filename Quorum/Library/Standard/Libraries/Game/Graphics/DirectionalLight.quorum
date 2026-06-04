@@ -5,7 +5,8 @@ use Libraries.Compute.Vector3
 
 class DirectionalLight is Light
     
-    public Vector3 direction
+    Vector3 direction
+    number intensity = 4
 
     /*
     This action will set the direction the light points in. It takes three
@@ -45,6 +46,10 @@ class DirectionalLight is Light
     given values.
     */
     action SetLight(Color newColor, Vector3 newDirection)
+        SetLight(newColor, newDirection, intensity)
+    end
+    
+    action SetLight(Color newColor, Vector3 newDirection, number intensity)
         if newColor not= undefined
             SetColor(newColor)
         end
@@ -53,6 +58,16 @@ class DirectionalLight is Light
             SetDirection(newDirection)
             direction:Normalize()
         end
+        
+        me:intensity = intensity
+    end
+
+    action GetIntensity returns number
+        return intensity
+    end
+
+    action SetIntensity(number intensity)
+        me:intensity = intensity
     end
 
 end

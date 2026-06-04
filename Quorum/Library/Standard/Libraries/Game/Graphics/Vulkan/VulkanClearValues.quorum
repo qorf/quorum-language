@@ -1,0 +1,70 @@
+package Libraries.Game.Graphics.Vulkan
+
+use Libraries.Containers.Array
+
+class VulkanClearValues
+    
+    Array<VulkanClearValue> clearValues
+    boolean isDirty = true
+    
+    action Add(VulkanClearValue value)
+        clearValues:Add(value)
+        isDirty = true
+    end
+    
+    action AddColor(number red, number green, number blue, number alpha)
+        VulkanClearValue value
+        value:SetColor(red, green, blue, alpha)
+        Add(value)
+    end
+    
+    action AddDepthStencil(number depth, integer stencil)
+        VulkanClearValue value
+        value:SetDepth(depth)
+        value:SetStencil(stencil)
+        Add(value)
+    end
+    
+    action Get(integer index) returns VulkanClearValue
+        return clearValues:Get(index)
+    end
+    
+    action GetSize returns integer
+        return clearValues:GetSize()
+    end
+    
+    action IsEmpty returns boolean
+        return clearValues:IsEmpty()
+    end
+    
+    action IsDirty returns boolean
+        if isDirty
+            return true
+        end
+        
+        integer i = 0
+        repeat while i < clearValues:GetSize()
+            if clearValues:Get(i):IsDirty()
+                return true
+            end
+            i = i + 1
+        end
+        return false
+    end
+    
+    action UpdateNativeValues
+        SystemUpdateNativeValues()
+        isDirty = false
+    end
+    
+    private system action SystemUpdateNativeValues
+    
+    action Dispose
+        DisposeNative()
+        clearValues:Empty()
+        isDirty = true
+    end
+    
+    private system action DisposeNative
+    
+end

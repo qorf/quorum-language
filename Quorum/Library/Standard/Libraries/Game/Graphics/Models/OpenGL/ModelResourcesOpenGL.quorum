@@ -15,6 +15,7 @@ use Libraries.Game.Graphics.Renderable
 use Libraries.Game.Graphics.Model
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Models.OpenGL.Attributes.TextureAttribute
+use Libraries.Game.Graphics.Models.OpenGL.Attributes.EnvironmentOpenGL
 
 class ModelResourcesOpenGL is ModelResources
     Array<Material> materials
@@ -485,7 +486,7 @@ Copy the nodes from the given array into this model's data structures.
         out:shaderMapping = model:GetShaderMapping()
         out:shaderData = model:GetShaderData()
         if model:GetLayer() not= undefined
-            out:environment = model:GetLayer():GetEnvironment()
+            out:environment = cast(EnvironmentOpenGL, model:GetLayer():GetEnvironment())
         end
 
         return out

@@ -8,10 +8,9 @@ class VulkanClearValue
     number alpha = -1
 
     number depth = 1
-    
     integer stencil = 0
-
-    // Indicates if the Vulkan layer needs to update its values to match this.
+    
+    boolean isColorValue = true
     boolean isDirty = true
 
     action SetColor(number red, number green, number blue)
@@ -24,6 +23,7 @@ class VulkanClearValue
         me:blue = blue
         me:alpha = alpha
 
+        isColorValue = true
         isDirty = true
     end
 
@@ -34,6 +34,7 @@ class VulkanClearValue
     action SetRed(number red)
         me:red = red
 
+        isColorValue = true
         isDirty = true
     end
 
@@ -44,6 +45,7 @@ class VulkanClearValue
     action SetGreen(number green)
         me:green = green
 
+        isColorValue = true
         isDirty = true
     end
 
@@ -54,6 +56,7 @@ class VulkanClearValue
     action SetBlue(number blue)
         me:blue = blue
 
+        isColorValue = true
         isDirty = true
     end
 
@@ -64,6 +67,7 @@ class VulkanClearValue
     action SetAlpha(number alpha)
         me:alpha = alpha
 
+        isColorValue = true
         isDirty = true
     end
 
@@ -74,6 +78,7 @@ class VulkanClearValue
     action SetDepth(number depth)
         me:depth = depth
 
+        isColorValue = false
         isDirty = true
     end
 
@@ -84,6 +89,7 @@ class VulkanClearValue
     action SetStencil(integer stencil)
         me:stencil = stencil
 
+        isColorValue = false
         isDirty = true
     end
 
@@ -92,24 +98,15 @@ class VulkanClearValue
     end
 
     action ResetDirtyFlag
-        SetNativeValues()
         isDirty = false
     end
-
-    private system action SetNativeValues
-
-    action Dispose
-        red = -1
-        green = -1
-        blue = -1
-        alpha = -1
-        depth = -1
-        stencil = -1
-        isDirty = true
-
-        DisposeNative()
+    
+    action IsColorClearValue returns boolean
+        return isColorValue
     end
-
-    private system action DisposeNative
+    
+    action IsDepthStencilClearValue returns boolean
+        return not isColorValue
+    end
 
 end
