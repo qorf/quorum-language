@@ -336,12 +336,18 @@ number blinkIdleTime = 1.0
 item:Focus()
         if item is Bar
             Bar bar = cast(Bar, item)
+            number barValue = math:Round(bar:GetValue(), 2)
+            text valueText = ""+barValue
+                if CheckIfInteger(barValue)
+                    valueText = ""+cast(integer, barValue)
+                end
+            
             ApplySelectionBar(bar)
             if not ShowAnnotations()
 if GetHorizontalFlag()
-ShowSelectionAnnotation(item,""+bar:GetValue(), 10, bar:GetHeight()/2 - 18)
+ShowSelectionAnnotation(item,valueText, 10, bar:GetHeight()/2 - 18)
             else
-ShowSelectionAnnotation(item,""+bar:GetValue(), 2, bar:GetHeight()/2 - 18)
+ShowSelectionAnnotation(item,valueText, 2, bar:GetHeight()/2 - 18)
             end
             end
         elseif item is BarGroup

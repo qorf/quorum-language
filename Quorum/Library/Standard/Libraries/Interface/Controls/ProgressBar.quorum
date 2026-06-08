@@ -94,6 +94,9 @@ class ProgressBar is Control
         Color transparency
         transparency:SetColor(1, 1, 1, 0)
         bar:SetBorderColor(transparency)
+        bar:SetCornerPixelRounding(GetBottomLeftPixelRounding(), GetBottomRightPixelRounding(),
+                           GetTopLeftPixelRounding(), GetTopRightPixelRounding())
+        
 
         parent:Control:LoadGraphics(properties)
     end

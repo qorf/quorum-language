@@ -163,7 +163,7 @@ class ModelReader
                 end
 
                 Libraries.Game.Graphics.Models.OpenGL.Attributes.Material graphicsMaterial
-                graphicsMaterial:id = materialNames:Get(counter)
+                graphicsMaterial:SetID(materialNames:Get(counter))
 
                 boolean isTextured = false
 

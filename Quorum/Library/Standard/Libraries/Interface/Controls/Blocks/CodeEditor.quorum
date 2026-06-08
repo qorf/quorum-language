@@ -1198,7 +1198,18 @@ action OnTextChange(TextChangeEvent event, integer indexOffset)
     
     action MoveSelectionDown
         if selection:GetBlock() not= undefined
-            SelectBlockOrItem(selection:GetBlock():GetNextNavigableBlock())
+            Block nextBlock = selection:GetBlock():GetNextNavigableBlock()
+            if nextBlock not= undefined
+                // if the block is a placeholder it will resolve itself in OnSelectionChange
+                if nextBlock:IsPlaceholder()
+                    Block actualNextBlock = nextBlock:GetNextNavigableBlock()
+                    // in the case there is not real next block don't move selection
+                    if actualNextBlock = undefined
+                        return now
+                    end
+                end
+                SelectBlockOrItem(nextBlock)
+            end
         elseif selection:GetLine() < 0
             SelectBlockAtLine(0)
         else

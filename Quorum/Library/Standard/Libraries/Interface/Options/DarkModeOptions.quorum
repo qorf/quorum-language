@@ -16,12 +16,15 @@ class DarkModeOptions is InterfaceOptions
         SetSelectionColor(defaultSelectionColor)
         SetBorderColor(color:CustomColor(122.0 / MAX, 124.0 / MAX, 126.0 / MAX, 1))
         SetIconColor(color:White())
+        
+        
 
         Color commonFontColor = color:CustomColor(186.0 / MAX, 197.0 / MAX, 210.0 / MAX, 1)
         Gradient backgroundGradient
         Color darkGray = color:CustomColor(60.0 / MAX, 63.0 / MAX, 65.0 / MAX, 1)
         backgroundGradient:Set(darkGray, darkGray, darkGray, darkGray)
         SetBackgroundColor(backgroundGradient)
+        SetForegroundColor(color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1))
 
         Gradient mouseOverGradient
         Color mouseOver = color:CustomColor(76.0 / MAX, 80.0 / MAX, 82.0 / MAX, 1)

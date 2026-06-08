@@ -25,6 +25,7 @@ use Libraries.Data.Formats.ScalableVectorGraphics.Label
 use Libraries.Data.Formats.ScalableVectorGraphics.Circle
 use Libraries.Data.Formats.ScalableVectorGraphics.Line
 use Libraries.Data.Formats.ScalableVectorGraphics.Polygon
+use Libraries.Interface.Controls.Charts.Graphics.PlotItem
 
 /*
     The ViolinPlotWriter class is part of the set of writers that allow for Charts
@@ -184,15 +185,6 @@ class ViolinPlotWriter is ChartWriter
                         plotGroup:SetAriaHidden("true")
                     end
                     plotGroupSVG:Add(plotGroup)
-    
-                    if HasAccessibility()
-                        if plotGroupFocus not= ""
-                            scriptText = scriptText + "document.getElementById('" + plotGroupSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + plotGroupFocus + "});" + newLine
-                        end
-                        if plotGroupBlur not= ""
-                            scriptText = scriptText + "document.getElementById('" + plotGroupSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + plotGroupBlur + "});" + newLine
-                        end
-                    end
                 end
 
                 integer j = 0
@@ -233,15 +225,6 @@ class ViolinPlotWriter is ChartWriter
                         plotArea:SetAriaHidden("true")
                     end
                     plotSVG:Add(plotArea)
-
-                    if HasAccessibility()
-                        if plotFocus not= ""
-                            scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + plotFocus + "});" + newLine
-                        end
-                        if plotBlur not= ""
-                            scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + plotBlur + "});" + newLine
-                        end
-                    end   
 
                     // Plot: The violin shape, will be loaded as a polygon in the SVG          
                     Array<Pair<integer>> points = plot:GetPoints() //These points were calculated by ViolinPlotLayout
@@ -299,6 +282,15 @@ class ViolinPlotWriter is ChartWriter
                                 itemSVG:SetRole("graphics-symbol") 
                                 itemSVG:SetAriaLabel(currentItem:GetName() + currentItem:GetDescription())
                                 itemSVG:SetAriaHidden("false")
+                                if currentItem is PlotItem
+                                        PlotItem plotItem = cast(PlotItem, currentItem)
+                                        itemSVG:AddDataAttribute("label-value",NumberToText(plotItem:GetPlotValue()))
+                                        if chart:GetVerticalFlag()
+                                            itemSVG:AddDataAttribute("label-position","center-right")
+                                            else
+                                            itemSVG:AddDataAttribute("label-position","bottom-center")
+                                        end
+                                    end
                             end
                             if k not= 2 and k not= 4 and k not= 5 and k not= 9 // skip elements not in nav
                                 plotSVG:Add(itemSVG)
@@ -326,8 +318,13 @@ class ViolinPlotWriter is ChartWriter
                                     outlier:SetID(itemSVG:GetID() + "_item")
                                     outlier:SetTabIndex(-1)
                                     outlier:SetAriaHidden("true")
-                                    itemFocus = itemFocus + "gainFocus('" + outlier:GetID() + "'); "
-                                    itemBlur = itemBlur + "loseFocus('" + outlier:GetID() + "'); "
+                                    //itemFocus = itemFocus + "gainFocus('" + outlier:GetID() + "'); "
+                                    //itemBlur = itemBlur + "loseFocus('" + outlier:GetID() + "'); "
+                                    if currentItem is ChartPoint
+                                        ChartPoint outlierPoint = cast(ChartPoint, currentItem)
+                                        outlier:AddDataAttribute("label-value",NumberToText(outlierPoint:GetOutlierValue()))
+                                        outlier:AddDataAttribute("label-position","top-right")
+                                    end
                                 end 
                                 itemSVG:Add(outlier)
                             else
@@ -344,8 +341,17 @@ class ViolinPlotWriter is ChartWriter
                                     plotLine:SetID(itemSVG:GetID() + "_item")
                                     plotLine:SetTabIndex(-1)
                                     plotLine:SetAriaHidden("true")
-                                    itemFocus = itemFocus + "gainFocus('" + plotLine:GetID() + "'); "
-                                    itemBlur = itemBlur + "loseFocus('" + plotLine:GetID() + "'); "
+                                    //itemFocus = itemFocus + "gainFocus('" + plotLine:GetID() + "'); "
+                                    //itemBlur = itemBlur + "loseFocus('" + plotLine:GetID() + "'); "
+                                    if currentItem is PlotItem
+                                        PlotItem plotItem = cast(PlotItem, currentItem)
+                                        plotLine:AddDataAttribute("label-value",NumberToText(plotItem:GetPlotValue()))
+                                        if chart:GetVerticalFlag()
+                                            plotLine:AddDataAttribute("label-position","center-right")
+                                            else
+                                            plotLine:AddDataAttribute("label-position","bottom-center")
+                                        end
+                                    end
                                 end 
                                 itemSVG:Add(plotLine)
                             end
@@ -377,14 +383,6 @@ class ViolinPlotWriter is ChartWriter
 
                             end
         
-                            if HasAccessibility()
-                                if itemFocus not= ""
-                                    scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + itemFocus + "});" + newLine
-                                end
-                                if itemBlur not= ""
-                                    scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + itemBlur + "});" + newLine
-                                end
-                            end 
                         end
                         k = k + 1
                     end        
@@ -485,15 +483,6 @@ class ViolinPlotWriter is ChartWriter
                             plotArea:SetAriaHidden("true")
                         end
                         plotSVG:Add(plotArea)
-
-                        if HasAccessibility()
-                            if plotFocus not= ""
-                                scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + plotFocus + "});" + newLine
-                            end
-                            if plotBlur not= ""
-                                scriptText = scriptText + "document.getElementById('" + plotSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + plotBlur + "});" + newLine
-                            end
-                        end   
     
                         // Plot: The violin shape, will be loaded as a polygon in the SVG          
                         Array<Pair<integer>> points = plot:GetPoints() //These points were calculated by ViolinPlotLayout
@@ -551,6 +540,15 @@ class ViolinPlotWriter is ChartWriter
                                     itemSVG:SetRole("graphics-symbol")    
                                     itemSVG:SetAriaLabel(currentItem:GetName() + currentItem:GetDescription())
                                     itemSVG:SetAriaHidden("false")
+                                    if currentItem is PlotItem
+                                        PlotItem plotItem = cast(PlotItem, currentItem)
+                                        itemSVG:AddDataAttribute("label-value",NumberToText(plotItem:GetPlotValue()))
+                                        if chart:GetVerticalFlag()
+                                            itemSVG:AddDataAttribute("label-position","center-right")
+                                            else
+                                            itemSVG:AddDataAttribute("label-position","bottom-center")
+                                        end
+                                    end
                                 end
                                 if k not= 2 and k not= 4 and k not= 5 and k not= 9 // skip elements not in nav
                                     plotSVG:Add(itemSVG)
@@ -578,8 +576,13 @@ class ViolinPlotWriter is ChartWriter
                                         outlier:SetID(itemSVG:GetID() + "_item")
                                         outlier:SetTabIndex(-1)
                                         outlier:SetAriaHidden("true")
-                                        itemFocus = itemFocus + "gainFocus('" + outlier:GetID() + "'); "
-                                        itemBlur = itemBlur + "loseFocus('" + outlier:GetID() + "'); "
+                                        //itemFocus = itemFocus + "gainFocus('" + outlier:GetID() + "'); "
+                                        //itemBlur = itemBlur + "loseFocus('" + outlier:GetID() + "'); "
+                                        if currentItem is ChartPoint
+                                        ChartPoint outlierPoint = cast(ChartPoint, currentItem)
+                                        outlier:AddDataAttribute("label-value",NumberToText(outlierPoint:GetOutlierValue()))
+                                        outlier:AddDataAttribute("label-position","top-right")
+                                    end
                                     end 
                                     itemSVG:Add(outlier)
                                 else
@@ -596,8 +599,17 @@ class ViolinPlotWriter is ChartWriter
                                         plotLine:SetID(itemSVG:GetID() + "_item")
                                         plotLine:SetTabIndex(-1)
                                         plotLine:SetAriaHidden("true")
-                                        itemFocus = itemFocus + "gainFocus('" + plotLine:GetID() + "'); "
-                                        itemBlur = itemBlur + "loseFocus('" + plotLine:GetID() + "'); "
+                                        //itemFocus = itemFocus + "gainFocus('" + plotLine:GetID() + "'); "
+                                        //itemBlur = itemBlur + "loseFocus('" + plotLine:GetID() + "'); "
+                                        if currentItem is PlotItem
+                                        PlotItem plotItem = cast(PlotItem, currentItem)
+                                        plotLine:AddDataAttribute("label-value",NumberToText(plotItem:GetPlotValue()))
+                                        if chart:GetVerticalFlag()
+                                            plotLine:AddDataAttribute("label-position","center-right")
+                                            else
+                                            plotLine:AddDataAttribute("label-position","bottom-center")
+                                        end
+                                    end
                                     end 
                                     itemSVG:Add(plotLine)
                                 end
@@ -628,15 +640,6 @@ class ViolinPlotWriter is ChartWriter
                                     end 
 
                                 end
-        
-                                if HasAccessibility()
-                                    if itemFocus not= ""
-                                        scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('focus', (event) => {" + newLine + itemFocus + "});" + newLine
-                                    end
-                                    if itemBlur not= ""
-                                        scriptText = scriptText + "document.getElementById('" + itemSVG:GetID() + "').addEventListener('blur', (event) => {" + newLine + itemBlur + "});" + newLine
-                                    end
-                                end 
                             end
                             k = k + 1
                         end      

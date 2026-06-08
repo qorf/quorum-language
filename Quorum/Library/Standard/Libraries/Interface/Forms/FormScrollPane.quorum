@@ -1,0 +1,10 @@
+package Libraries.Interface.Forms
+use Libraries.Containers.Array
+use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.ScrollPane
+
+class FormScrollPane is FormContainerControl, ScrollPane
+    action GetFormChildren returns Array<Item2D>
+        return GetScrollRegionItems()
+    end
+end

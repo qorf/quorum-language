@@ -212,6 +212,8 @@ class ScatterPlotWriter is ChartWriter
                                 pointSVG:SetRole("graphics-symbol")
                                 pointSVG:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
                                 pointSVG:SetAriaHidden("false")
+                                pointSVG:AddDataAttribute("label-value",currentPoint:GetName())
+                    pointSVG:AddDataAttribute("label-position","top-right")
                             end
                             if chart:GetSeriesList():GetSize() > 0
                                 seriesSVG:Add(pointSVG)
@@ -237,8 +239,10 @@ class ScatterPlotWriter is ChartWriter
                                 point:SetStyleClass(GetSelectionBoxStyle())
                                 point:SetTabIndex(-1)
                                 point:SetAriaHidden("true")
-                                pointFocus = pointFocus + "gainFocus('" + point:GetID() + "'); "
-                                pointBlur = pointBlur + "loseFocus('" + point:GetID() + "'); "
+                                point:AddDataAttribute("label-value",currentPoint:GetName())
+                    point:AddDataAttribute("label-position","top-right")
+                                //pointFocus = pointFocus + "gainFocus('" + point:GetID() + "'); "
+                                //pointBlur = pointBlur + "loseFocus('" + point:GetID() + "'); "
                             end
                 
                             if currentPoint:ShowAnnotation() or chart:ShowAnnotations()
@@ -374,6 +378,8 @@ class ScatterPlotWriter is ChartWriter
                             pointSVG:SetRole("graphics-symbol")
                             pointSVG:SetAriaLabel(currentPoint:GetName() + currentPoint:GetDescription())
                             pointSVG:SetAriaHidden("false")
+                            pointSVG:AddDataAttribute("label-value",currentPoint:GetName())
+                    pointSVG:AddDataAttribute("label-position","top-right")
                         end
                         subChartContent:Add(pointSVG)
 
@@ -396,6 +402,8 @@ class ScatterPlotWriter is ChartWriter
                             point:SetAriaHidden("true")
                             pointFocus = pointFocus + "gainFocus('" + point:GetID() + "'); "
                             pointBlur = pointBlur + "loseFocus('" + point:GetID() + "'); "
+                            point:AddDataAttribute("label-value",currentPoint:GetName())
+                    point:AddDataAttribute("label-position","top-right")
                         end
                         pointSVG:Add(point)
             

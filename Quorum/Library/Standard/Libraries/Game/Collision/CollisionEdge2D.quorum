@@ -15,20 +15,20 @@ class CollisionEdge2D
     objects, the "Item2D other" variable lets you know which object's bounding box
     that the "head's" bounding box is colliding with.
     */
-    Item2D other = undefined
+    public Item2D other = undefined
     /*
     Sets which collision event the represents the collision between the current
     Item2D object and the other Item2D object.
     */
-    CollisionEvent2D collision = undefined
+    public CollisionEvent2D collision = undefined
     /*
     Points to the previous node in the doubly linked list.
     */
-    CollisionEdge2D previous = undefined
+    public CollisionEdge2D previous = undefined
     /*
     Points to the next node in the doubly linked list.
     */
-    CollisionEdge2D next = undefined
+    public CollisionEdge2D next = undefined
 
     /*
     This action gets the Item2D object that has the head

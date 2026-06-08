@@ -529,6 +529,7 @@ class TreeItem is Control
             SetTreeItemContent(defaultContents)
             defaultContents:SetFontSize(properties:GetFontSize())
             defaultContents:SetInterfaceScale(properties:GetInterfaceScale())
+            defaultContents:SetBackgroundColor(properties:GetBackgroundColor())
         else
             contents:GetDefaultLayoutProperties():SetRenderingFlag(true)
         end

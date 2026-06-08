@@ -58,7 +58,7 @@ class BinaryOpcode is QuorumOpcode
             value:integerValue = 0
             Type type
             type:SetToNumber()
-            type:numberConstant = value:integerValue
+            type:SetNumberConstant(value:integerValue)
             value:type = type
         end
     end

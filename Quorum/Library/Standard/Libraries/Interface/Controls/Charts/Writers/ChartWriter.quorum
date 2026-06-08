@@ -65,6 +65,8 @@ class ChartWriter
     //File paths for script/style
     text scriptFilepath = ""
     text styleFilepath = ""
+    text defaultScriptPath = "https://quorumlanguage.com/script/quorumCharts.js"
+    //text defaultScriptPath = "https://127.0.0.1/script/quorumCharts.js"
     
     text selectionBoxStyle = "selection-box"
     text dotContainerStyle = "dot-container"
@@ -166,17 +168,45 @@ class ChartWriter
         Style outlineStyle
         Color selectionColor = cast(Color, chart:GetSelectionColor())
         outlineStyle:SetType("text/css")
-        outlineStyle:AddText("."+selectionBoxStyle+":focus {
- outline: 5px solid rgb("+selectionColor:GetRed()*255+","+selectionColor:GetGreen()*255+","+selectionColor:GetBlue()*255+");
- outline-offset: 5px;
+        outlineStyle:AddText("
+.quorum-chart {
+ --quorum-focus-outline:5px solid rgb("+selectionColor:GetRed()*255+","+selectionColor:GetGreen()*255+","+selectionColor:GetBlue()*255+");
+ --quorum-hover-outline:5px solid rgb("+selectionColor:GetRed()*255+","+selectionColor:GetGreen()*255+","+selectionColor:GetBlue()*255+");
+}
+
+.quorum-chart:has(."+selectionBoxStyle+":hover) {
+ --quorum-focus-outline: transparent;
+}
+."+selectionBoxStyle+":focus {
+ outline: var(--quorum-focus-outline);
+ outline-offset: 2px;
  animation: blink-animation 1s steps(5, start) infinite;
  animation-delay: 1s;
  border-radius: 5px;
  z-index: 10;
 }
+
 g."+selectionBoxStyle+":focus > rect {
- outline: 5px solid rgb("+selectionColor:GetRed()*255+","+selectionColor:GetGreen()*255+","+selectionColor:GetBlue()*255+");
- outline-offset: 5px;
+ outline: var(--quorum-focus-outline);
+ outline-offset: 2px;
+ animation: blink-animation 1s steps(5, start) infinite;
+ animation-delay: 1s;
+ border-radius: 5px;
+ z-index: 10;
+}
+
+."+selectionBoxStyle+":not(:has(."+selectionBoxStyle+":hover)):hover {
+ outline: var(--quorum-hover-outline);
+ outline-offset: 2px;
+ animation: blink-animation 1s steps(5, start) infinite;
+ animation-delay: 1s;
+ border-radius: 5px;
+ z-index: 10;
+}
+
+g."+selectionBoxStyle+" > path:focus {
+ outline: var(-quorum-focus-outline);
+ outline-offset: 2px;
  animation: blink-animation 1s steps(5, start) infinite;
  animation-delay: 1s;
  border-radius: 5px;
@@ -205,8 +235,16 @@ g."+selectionBoxStyle+":focus > circle{
 ."+dotSeriesStyle+":focus {
  outline: none;
 }
-.quorum-chart-wedge:focus + .crust {
+.quorum-chart-wedge:focus-within{
+ outline: none;
+ transform: translateX(calc(var(--unit-x) * 25)) translateY(calc(var(--unit-y) * 25));
+}
+.quorum-chart-wedge:focus-within > * {
+ outline: none;
  visibility: visible;
+}
+.crust {
+ visibility: hidden;
 }
 
 .quorum-chart-wedge:focus + .small-slice-text {
@@ -216,12 +254,20 @@ g."+selectionBoxStyle+":focus > circle{
 .small-slice-text {
  visibility: hidden;
 }
+
+.quorum-ignore-click {
+ pointer-events: none;
+}
 ")
         
         
         chartCanvas:Add(outlineStyle)
         Script script
-        script:AddAttribute("href","https://quorumlanguage.com/script/quorumChart.js")
+        if scriptFilepath not= ""
+            script:AddAttribute("href",scriptFilepath)
+        else
+            script:AddAttribute("href",defaultScriptPath)
+        end
         chartCanvas:Add(script)
         chartCanvas:SetStyle("user-select: none;")
         if HasAccessibility()
@@ -332,17 +378,45 @@ selectionBoxStyle = selectionBoxStyle+UniversalUniqueIdentifier()
 Style outlineStyle
         outlineStyle:SetType("text/css")
         Color selectionColor = cast(Color, chart:GetSelectionColor())
-        outlineStyle:AddText("."+selectionBoxStyle+":focus {
- outline: 5px solid rgb("+selectionColor:GetRed()*255+","+selectionColor:GetGreen()*255+","+selectionColor:GetBlue()*255+");
- outline-offset: 5px;
+        outlineStyle:AddText("
+.quorum-chart {
+ --quorum-focus-outline:5px solid rgb("+selectionColor:GetRed()*255+","+selectionColor:GetGreen()*255+","+selectionColor:GetBlue()*255+");
+ --quorum-hover-outline:5px solid rgb("+selectionColor:GetRed()*255+","+selectionColor:GetGreen()*255+","+selectionColor:GetBlue()*255+");
+}
+
+.quorum-chart:has(."+selectionBoxStyle+":hover) {
+ --quorum-focus-outline: transparent;
+}
+."+selectionBoxStyle+":focus {
+ outline: var(--quorum-focus-outline);
+ outline-offset: 2px;
  animation: blink-animation 1s steps(5, start) infinite;
  animation-delay: 1s;
  border-radius: 5px;
  z-index: 10;
 }
+
 g."+selectionBoxStyle+":focus > rect {
- outline: 5px solid rgb("+selectionColor:GetRed()*255+","+selectionColor:GetGreen()*255+","+selectionColor:GetBlue()*255+");
- outline-offset: 5px;
+ outline: var(--quorum-focus-outline);
+ outline-offset: 2px;
+ animation: blink-animation 1s steps(5, start) infinite;
+ animation-delay: 1s;
+ border-radius: 5px;
+ z-index: 10;
+}
+
+."+selectionBoxStyle+":not(:has(."+selectionBoxStyle+":hover)):hover {
+ outline: var(--quorum-hover-outline);
+ outline-offset: 2px;
+ animation: blink-animation 1s steps(5, start) infinite;
+ animation-delay: 1s;
+ border-radius: 5px;
+ z-index: 10;
+}
+
+g."+selectionBoxStyle+" > path:focus {
+ outline: var(-quorum-focus-outline);
+ outline-offset: 2px;
  animation: blink-animation 1s steps(5, start) infinite;
  animation-delay: 1s;
  border-radius: 5px;
@@ -375,6 +449,10 @@ g."+selectionBoxStyle+":focus > circle{
  outline: none;
  transform: translateX(calc(var(--unit-x) * 25)) translateY(calc(var(--unit-y) * 25));
 }
+.quorum-chart-wedge:hover{
+ outline: none;
+ transform: translateX(calc(var(--unit-x) * 25)) translateY(calc(var(--unit-y) * 25));
+}
 .quorum-chart-wedge:focus-within > * {
  outline: none;
  visibility: visible;
@@ -387,14 +465,26 @@ g."+selectionBoxStyle+":focus > circle{
  visibility: visible;
 }
 
+.quorum-chart-wedge:hover + .small-slice-text {
+ visibility: visible;
+}
+
 .small-slice-text {
  visibility: hidden;
+}
+
+.quorum-ignore-click {
+ pointer-events: none;
 }
 ")
         
         chartCanvas:Add(outlineStyle)
 Script script
-        script:AddAttribute("href","https://quorumlanguage.com/script/quorumCharts.js")
+        if scriptFilepath not= ""
+            script:AddAttribute("href",scriptFilepath)
+        else
+            script:AddAttribute("href",defaultScriptPath)
+        end
         chartCanvas:Add(script)
         chartCanvas:SetStyle("user-select: none;")
         if HasAccessibility()
@@ -486,7 +576,7 @@ Script script
         if scriptFilepath not= ""
             page:AddScript(scriptFilepath)
         else
-            page:AddScript("http://quorumlanguage.com/script/quorumCharts.js")
+            page:AddScript(defaultScriptPath)
         end
 
         // add necessary styles
