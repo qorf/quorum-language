@@ -354,7 +354,7 @@ nameLabel:SetAccessibilityCode(nameLabel:parent:Item:NOT_ACCESSIBLE)
     to the size given to the Dialog and adjust if the top bar is being shown. 
     Attribute: Returns Returns an empty Page that will be drawn when Show is called
 */
-action InitializeDefaultPage returns Page
+    action InitializeDefaultPage returns Page
         StackedRowPage page
         me:defaultPage = page
         SetVerticalLayoutMode(GetDefaultLayoutProperties():STANDARD)
@@ -388,12 +388,12 @@ action InitializeDefaultPage returns Page
     
     action SetCurrentPage(Page page)
             integer i = 0
-        Iterator<Item2D> iterator = GetChildren():GetIterator()
+            Iterator<Item2D> iterator = GetChildren():GetIterator()
             repeat while iterator:HasNext()
             Item2D child = iterator:Next()
             if child is Page
                     Remove(child)
-end
+    end
             end
         me:currentPage = page
         Add(currentPage)
