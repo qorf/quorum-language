@@ -115,7 +115,7 @@ private action GetGraphics returns OpenGLManager
     */
     action SetEnvironment(Environment environment)
         EnvironmentOpenGL environ = cast(EnvironmentOpenGL, environment)
-        environment = environ
+        me:environment = environ
     end
 
     /*

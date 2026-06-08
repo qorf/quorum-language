@@ -59,60 +59,12 @@ shared class ModelManagerVulkan
     
     MaterialManagerVulkan materialManager
     
+    on create
+        modelLoader:UseLeftHandedCoordinates(true)
+    end
+    
     action Create(VulkanDevice device, VulkanGraphics graphics)
         me:device = device
-        
-        //GameStateManager gameState
-        //VulkanConstants constants
-        //VulkanDescriptorSetManager setManager = graphics:GetDescriptorSetManager()
-//
-        //integer maxDescriptors = graphics:GetMaxDescriptorsPerStage()
-        //Array<VulkanDescriptorSetLayoutBinding> bindings
-
-        //VulkanDescriptorSetLayoutBinding vertexBinding
-        //vertexBinding:SetBinding(0)
-        //vertexBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-        //vertexBinding:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT)
-        //vertexBinding:SetDescriptorCount(maxDescriptors)
-        //vertexBinding:SetBindingFlags(constants:DESCRIPTOR_BINDING_DYNAMIC)
-        //bindings:Add(vertexBinding)
-        //
-        //VulkanDescriptorSetLayoutBinding indexBinding
-        //indexBinding:SetBinding(1)
-        //indexBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-        //indexBinding:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT)
-        //indexBinding:SetDescriptorCount(maxDescriptors)
-        //indexBinding:SetBindingFlags(constants:DESCRIPTOR_BINDING_DYNAMIC)
-        //bindings:Add(indexBinding)
-        
-        // Also get a binding at index = 2 for the materials from the material manager.
-        //bindings:Add(materialManager:GetDescriptorSetLayoutBinding(maxDescriptors))
-//
-        //VulkanDescriptorSetLayout globalMeshLayout
-        //globalMeshLayout:CreateUpdateAfterBind(device, bindings)
-        //globalMeshDescriptorSetLayout = globalMeshLayout
-//
-        //VulkanDescriptorSetManager descriptorSetManager = graphics:GetDescriptorSetManager()
-        //globalMeshDescriptorSet = descriptorSetManager:CreateDescriptorSet(globalMeshLayout, constants:DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT)
-        
-        // Also create the shared layout for instance data buffers. This will be used by VulkanDrawQueue3Ds to create their descriptor sets, as well as initialize shader layouts.
-        //VulkanDescriptorSetLayout instanceDataDescriptorSetLayout
-        //me:instanceDataDescriptorSetLayout = instanceDataDescriptorSetLayout
-        //
-        //Array<VulkanDescriptorSetLayoutBinding> instanceDataBindings
-//
-        //VulkanDescriptorSetLayoutBinding buffersBinding
-        //buffersBinding:SetBinding(0)
-        //buffersBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-        //buffersBinding:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT)
-        //buffersBinding:SetDescriptorCount(maxDescriptors)
-        //buffersBinding:SetBindingFlags(constants:DESCRIPTOR_BINDING_DYNAMIC)
-        //instanceDataBindings:Add(buffersBinding)
-        //
-        //VulkanDescriptorSetLayout instanceDataLayout
-        //instanceDataLayout:CreateUpdateAfterBind(device, instanceDataBindings)
-        //instanceDataDescriptorSetLayout = instanceDataLayout
-        
         materialManager:Create(device)
     end
     

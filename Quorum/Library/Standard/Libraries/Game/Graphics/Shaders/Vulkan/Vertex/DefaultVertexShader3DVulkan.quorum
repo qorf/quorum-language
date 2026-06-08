@@ -102,7 +102,7 @@ void main()
 	vec3 outBitangent = inverseTransform * normalize(vertex.bitangent);
 	v_tangentBitangentNormal = mat3(outTangent, outBitangent, outNormal);
 	
-    gl_Position =  camera.projectionViewMatrix * worldPosition;
+    gl_Position = camera.projectionViewMatrix * worldPosition;
 }"
 )
     end

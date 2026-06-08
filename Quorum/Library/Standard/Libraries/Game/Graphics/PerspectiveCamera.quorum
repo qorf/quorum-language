@@ -3,6 +3,8 @@ package Libraries.Game.Graphics
 use Libraries.Compute.Vector3
 use Libraries.Compute.Matrix4
 use Libraries.Compute.Math
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
 
 class PerspectiveCamera is Camera
 
@@ -11,6 +13,9 @@ class PerspectiveCamera is Camera
 
     Math math
     private Vector3 calcVector
+    
+    boolean isVulkan = false
+    boolean isVulkanCached = false
 
     /*
     This action will set the field of view of the camera to the given angle.
@@ -45,16 +50,134 @@ class PerspectiveCamera is Camera
     after the camera has been manipulated in any way.
     */
     action Update
+        if not isVulkanCached
+            CheckIfVulkan()
+        end
+        
         number aspect = GetWidth() / GetHeight()
-
         GetProjectionMatrix():SetToProjection(math:AbsoluteValue(GetNear()), math:AbsoluteValue(GetFar()), fieldOfView / zoom, aspect)
-        GetViewMatrix():SetToLookAt(GetPosition(), calcVector:Set(GetPosition()):Add(GetDirection()), GetUp())
+        
+        /*Due to differences in coordinate systems, we need to set the view differently between OpenGL and Vulkan.
+OpenGL uses the original Matrix4 calculations, while Vulkan uses a different implementation of SetToLookAt
+that inverts the order of cross products to flip the handedness.*/
+        if isVulkan
+            SetToLookAt(GetViewMatrix(), GetPosition(), calcVector:Set(GetPosition()):Add(GetDirection()), GetUp())
+        else
+            GetViewMatrix():SetToLookAt(GetPosition(), calcVector:Set(GetPosition()):Add(GetDirection()), GetUp())
+        end
+        
         GetCombinedMatrix():Set(GetProjectionMatrix())
         GetCombinedMatrix():Multiply(GetViewMatrix())
 
         GetInverseCombinedMatrix():Set(GetCombinedMatrix())
         GetInverseCombinedMatrix():Inverse()
         GetFrustum():Update(GetInverseCombinedMatrix())
+    end
+    
+    private action CheckIfVulkan
+        GameStateManager manager
+        GraphicsManager graphics = manager:GetGameGraphics()
+        if graphics not= undefined
+            isVulkan = (graphics is VulkanGraphics)
+            isVulkanCached = true
+        else
+            isVulkan = false
+            isVulkanCached = false
+        end
+    end
+    
+    private action SetToVulkanProjection(Matrix4 matrix, number near, number far, number fieldOfView, number aspect)
+        number value1 = 1.0 / math:Tangent((fieldOfView * (math:pi / 180)) / 2.0)
+        number value2 = far / (far - near)
+        number value3 = (far * near) / (near - far)
+
+        matrix:row0column0 = value1 / aspect
+        matrix:row1column0 = 0
+        matrix:row2column0 = 0
+        matrix:row3column0 = 0
+
+        matrix:row0column1 = 0
+        matrix:row1column1 = value1
+        matrix:row2column1 = 0
+        matrix:row3column1 = 0
+
+        matrix:row0column2 = 0
+        matrix:row1column2 = 0
+        matrix:row2column2 = value2
+        matrix:row3column2 = 1
+
+        matrix:row0column3 = 0
+        matrix:row1column3 = 0
+        matrix:row2column3 = value3
+        matrix:row3column3 = 0
+    end
+    
+    private action SetToLocalProjection(Matrix4 matrix, number near, number far, number fieldOfView, number aspect)
+        number value1 = 1.0 / math:Tangent((fieldOfView * (math:pi / 180)) / 2.0)
+        number value2 = (far + near) / (far - near)
+        number value3 = (2 * far * near) / (near - far)
+
+        matrix:row0column0 = value1 / aspect
+        matrix:row1column0 = 0
+        matrix:row2column0 = 0
+        matrix:row3column0 = 0
+
+        matrix:row0column1 = 0
+        matrix:row1column1 = value1
+        matrix:row2column1 = 0
+        matrix:row3column1 = 0
+
+        matrix:row0column2 = 0
+        matrix:row1column2 = 0
+        matrix:row2column2 = value2
+        matrix:row3column2 = 1
+
+        matrix:row0column3 = 0
+        matrix:row1column3 = 0
+        matrix:row2column3 = value3
+        matrix:row3column3 = 0
+    end
+    
+    private action SetToLookAt(Matrix4 matrix, Vector3 position, Vector3 target, Vector3 up) returns Matrix4
+        Vector3 tmpVec
+        tmpVec:Set(target):Subtract(position)
+        SetToLookAt(matrix, tmpVec, up)
+
+        Matrix4 tmpMat
+
+        matrix:Multiply(tmpMat:SetToTranslation(-1 * position:GetX(), -1 * position:GetY(), -1 * position:GetZ()))
+
+        return matrix
+    end
+    
+    private action SetToLookAt(Matrix4 matrix, Vector3 direction, Vector3 up) returns Matrix4
+        Vector3 vZ
+        Vector3 vX
+        Vector3 vY
+        vZ:Set(direction):Normalize()
+        //vX:Set(direction):Normalize()
+        //vX:CrossProduct(up):Normalize()
+        vX:Set(up):Normalize()
+        vX:CrossProduct(direction):Normalize()
+        //vY:Set(vX):CrossProduct(vZ):Normalize()
+        vY:Set(vZ):CrossProduct(vX):Normalize()
+
+        matrix:IdentityMatrix()
+
+        matrix:row0column0 = vX:GetX()
+        matrix:row0column1 = vX:GetY()
+        matrix:row0column2 = vX:GetZ()
+        matrix:row1column0 = vY:GetX()
+        matrix:row1column1 = vY:GetY()
+        matrix:row1column2 = vY:GetZ()
+        matrix:row2column0 = -1 * vZ:GetX()
+        matrix:row2column1 = -1 * vZ:GetY()
+        matrix:row2column2 = -1 * vZ:GetZ()
+        //matrix:row2column0 = vZ:GetX()
+        //matrix:row2column1 = vZ:GetY()
+        //matrix:row2column2 = vZ:GetZ()
+
+        return matrix
     end
 
     /*

@@ -33,9 +33,11 @@ public class ModelLoader {
     }
 
     public ModelData_ Load(String path, String textures, boolean animation) {
+        ModelLoader_ quorumLoader = (ModelLoader_)me_;
+        boolean vulkanLoading = quorumLoader.IsUsingLeftHandedCoordinates();
         int flags = aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices |
                 aiProcess_Triangulate | aiProcess_FixInfacingNormals | aiProcess_CalcTangentSpace | aiProcess_LimitBoneWeights |
-                (animation ? 0 : aiProcess_PreTransformVertices);
+                (animation ? 0 : aiProcess_PreTransformVertices) | (vulkanLoading ? aiProcess_ConvertToLeftHanded : 0);
         AIScene aiScene = aiImportFile(path, flags);
         if (aiScene == null) {
             //throw new RuntimeException("Error loading model [modelPath: " + modelPath + ", texturesDir:" + texturesDir + "]");

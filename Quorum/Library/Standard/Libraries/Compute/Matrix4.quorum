@@ -1426,7 +1426,6 @@ result = result + "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + 
 
     */
     action SetToProjection(number nearPlane, number farPlane, number fieldOfViewHeight, number aspectRatio) returns Matrix4
-        IdentityMatrix()
         number l_fd = 1.0 / math:Tangent((fieldOfViewHeight * (math:pi / 180)) / 2.0)
         number l_a1 = (farPlane + nearPlane) / (nearPlane - farPlane)
         number l_a2 = (2 * farPlane * nearPlane) / (nearPlane - farPlane)

@@ -93,7 +93,6 @@ because texture information must be processed in advance to prevent placeholder 
 Ensure the VulkanTextureManager processes its pending resources between calling Preload and Load (this happens automatically when using the
 default material loading system, as part of the model load system).*/
     action Load
-        output "MATERIAL: Load..."
         if preloadData = undefined
             alert("I couldn't load this data because Preload wasn't called first. Call Preload and allow the TextureManager to process pending requests before loading.")
         end
@@ -119,7 +118,6 @@ default material loading system, as part of the model load system).*/
         dataArray:SetSize(MATERIAL_BYTE_SIZE / 4)
         // If no diffuse color is used, use a default white.
         if diffuse not= undefined
-            output "MATERIAL LOAD: Diffuse = " + diffuse:GetX() + ", " + diffuse:GetY() + ", " + diffuse:GetZ() + ", " + diffuse:GetW()
             Libraries.Compute.BitwiseOperations ops
             
             integer a = ops:ShiftLeft(cast(integer, diffuse:GetW() * 255), 24)
@@ -128,17 +126,14 @@ default material loading system, as part of the model load system).*/
         integer r = cast(integer, diffuse:GetX() * 255)
 
         integer result = ops:Or(ops:Or(a, b), ops:Or(g, r))
-            output "MATERIAL BITS: Result = " + result
             
             dataArray:Set(DIFFUSE_INDEX, utility:PackNormalizedVector4(diffuse:GetX(), diffuse:GetY(), diffuse:GetZ(), diffuse:GetW()))
             
         else
-            output "MATERIAL LOAD: Diffuse = WHITE"
             dataArray:Set(DIFFUSE_INDEX, utility:PackNormalizedVector4(1.0, 1.0, 1.0, 1.0))
         end
         
         // There is always a texture, whether its custom or the default unit texture.
-        output "MATERIAL LOAD: texture ID = " + preloadTexture:GetVulkanTextureIndex()
         dataArray:Set(TEXTURE_INDEX, utility:EncodeIntegerAsNumber(preloadTexture:GetVulkanTextureIndex()))
         
         if preloadNormalMap = undefined

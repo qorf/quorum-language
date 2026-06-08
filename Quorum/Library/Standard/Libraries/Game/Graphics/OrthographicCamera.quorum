@@ -3,6 +3,8 @@ package Libraries.Game.Graphics
 use Libraries.Compute.Vector2
 use Libraries.Compute.Vector3
 use Libraries.Game.GameStateManager
+use Libraries.Compute.Matrix4
+use Libraries.Containers.Array
 
 class OrthographicCamera is Camera
     
@@ -34,14 +36,14 @@ class OrthographicCamera is Camera
     after the camera has been manipulated in any way.
     */
     action Update
-
         parent:Camera:projection:SetToOrthographic(-parent:Camera:viewportWidth/(2 * zoom), parent:Camera:viewportWidth/(2 * zoom),
             -parent:Camera:viewportHeight/(2 * zoom), parent:Camera:viewportHeight/(2 * zoom), parent:Camera:near, parent:Camera:far)
             
         parent:Camera:view:SetToLookAt(parent:Camera:position, calcVector:Set(parent:Camera:position):Add(parent:Camera:direction), parent:Camera:up)
+        
         parent:Camera:combined:Set(parent:Camera:projection)
         parent:Camera:combined:Multiply(parent:Camera:view)
-
+        
         parent:Camera:inverseProjectionView:Set(parent:Camera:combined)
         parent:Camera:inverseProjectionView:Inverse()
         parent:Camera:frustum:Update(parent:Camera:inverseProjectionView)

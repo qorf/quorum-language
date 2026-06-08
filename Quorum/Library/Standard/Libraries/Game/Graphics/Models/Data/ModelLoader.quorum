@@ -3,6 +3,9 @@ package Libraries.Game.Graphics.Models.Data
 use Libraries.System.File
 
 class ModelLoader
+    
+    boolean leftHandedCoordinates = false
+    
     action Load(File path) returns ModelData
         File mom = path:GetParentDirectory()
         return Load(path, mom, false)
@@ -45,4 +48,25 @@ class ModelLoader
         texturePath:SetPath(textures)
         return Load(filePath, texturePath, animation)
     end
+    
+    /*This action indicates whether or not the loader should use a left-handed coordinate system when loading models.
+By default, this is false (the system uses a right-handed coordinate system). OpenGL uses a right-handed system by default.
+Some systems, like Vulkan, use a left-handed system. Loading models with the wrong coordinate system for the rendering API
+can cause models to appear flipped or backwards.
+
+Attribute: Parameter toUse True to use a left-handed system, like for Vulkan, or false to use a right-handed system, like for OpenGL.*/
+    action UseLeftHandedCoordinates(boolean toUse)
+        leftHandedCoordinates = toUse
+    end
+    
+    /*This action returns whether or not the loader is using a left-handed coordinate system when loading models.
+By default, this is false (the system uses a right-handed coordinate system). OpenGL uses a right-handed system by default.
+Some systems, like Vulkan, use a left-handed system. Loading models with the wrong coordinate system for the rendering API
+can cause models to appear flipped or backwards.
+
+Attribute: Parameter toUse True to use a left-handed system, like for Vulkan, or false to use a right-handed system, like for OpenGL.*/
+    action IsUsingLeftHandedCoordinates returns boolean
+        return leftHandedCoordinates
+    end
+    
 end
