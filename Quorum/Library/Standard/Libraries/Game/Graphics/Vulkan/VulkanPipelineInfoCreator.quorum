@@ -811,7 +811,7 @@ class VulkanPipelineInfoCreator
         // For default 3D usage, the push constants need to store 8 bytes for a single 64-bit buffer pointer.
         VulkanPushConstantRange pushConstants
         pushConstants:SetSize(8)
-        pushConstants:SetStage(constants:SHADER_STAGE_VERTEX_BIT)
+        pushConstants:SetStage(constants:SHADER_STAGE_VERTEX_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
         pushConstants:Create()
         SetPushConstantRange(pushConstants)
     end
