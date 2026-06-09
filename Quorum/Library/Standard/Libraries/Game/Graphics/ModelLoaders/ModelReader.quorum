@@ -19,7 +19,7 @@ use Libraries.Game.Graphics.ModelLoaders.WavefrontObject.Material
 use Libraries.Game.Graphics.ModelLoaders.WavefrontObject.ModelToken
 use Libraries.Game.Graphics.ModelLoaders.WavefrontObject.ModelError
 use Libraries.Game.Graphics.ModelLoaders.Graphics3DLoader
-use Libraries.Game.Graphics.Models.OpenGL.ModelBuilder
+use Libraries.Game.Graphics.Models.OpenGL.ModelBuilderOpenGL
 use Libraries.Game.Graphics.MeshBuilder
 use Libraries.Game.Graphics.Color
 use Libraries.Compute.Vector3
@@ -36,7 +36,7 @@ use Libraries.Game.Graphics.Models.OpenGL.Attributes.all
 
 class ModelReader 
     
-    ModelBuilder modelBuilder
+    ModelBuilderOpenGL modelBuilder
     Graphics3DLoader g3dLoader
 
     /*

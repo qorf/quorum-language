@@ -1,0 +1,585 @@
+package Libraries.Game.Graphics.Models.Data
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Containers.Array
+use Libraries.Compute.Vector4
+use Libraries.Compute.Math
+use Libraries.Compute.Vector3
+use Libraries.Compute.Vector2
+
+/*This class is used to build model data from scratch, instead of loading them from a file.*/
+class ModelBuilder
+    
+    Math math
+    
+    Material defaultMaterial
+    
+    integer currentVertex = 0
+    integer currentIndex = 0
+    
+    constant integer POSITION_SIZE = 3
+    constant integer NORMAL_SIZE = 3
+    constant integer TANGENT_SIZE = 3
+    constant integer BITANGENT_SIZE = 3
+    constant integer TEXTURE_COORDS_SIZE = 2
+    
+    // Reusable vectors for sending around data.
+    Vector3 workPosition
+    Vector3 workNormal
+    Vector3 workTangent
+    Vector3 workBitangent
+    Vector2 workTexture
+    
+    on create
+        Vector4 diffuseColor
+        diffuseColor:Set(1, 1, 1, 1)
+        defaultMaterial:SetDiffuse(diffuseColor)
+        defaultMaterial:SetRoughness(0)
+    end
+    
+    private action Reset
+        currentVertex = 0
+        currentIndex = 0
+    end
+    
+    action CreatePlane(number width, number depth) returns ModelData
+        return CreatePlane(width, depth, true)
+    end
+    
+    action CreatePlane(number width, number depth, boolean doubleSided) returns ModelData
+        Reset()
+        
+        ModelData data = NewModelData(4, 6)
+        data:SetID("Plane")
+        MeshData mesh = data:GetMeshes():Get(0)
+        AddHorizontalPlane(mesh, 0, 0, 0, width, depth, true)
+        
+        return data
+    end
+    
+    action CreateBox(number width, number height, number depth) returns ModelData
+        Reset()
+        
+        ModelData data = NewModelData(24, 36)
+        data:SetID("Box")
+        MeshData mesh = data:GetMeshes():Get(0)
+        
+        number halfWidth = 0.5 * width
+        number halfHeight = 0.5 * height
+        number halfDepth = 0.5 * depth
+        
+        AddHorizontalPlane(mesh, 0, halfHeight, 0, width, depth, true)
+        AddHorizontalPlane(mesh, 0, -halfHeight, 0, width, depth, false)
+        AddVerticalPlane(mesh, 0, 0, -halfDepth, width, depth, 0, -1)
+        AddVerticalPlane(mesh, halfWidth, 0, 0, width, depth, 1, 0)
+        AddVerticalPlane(mesh, 0, 0, halfDepth, width, depth, 0, 1)
+        AddVerticalPlane(mesh, -halfWidth, 0, 0, width, depth, -1, 0)
+        
+        return data
+    end
+    
+    action CreateCylinder(number width, number height, number depth, integer divisions) returns ModelData
+        Reset()
+    
+        // (2 * (divisions + 1) vertices are used for the cylinder's shell, and an additional 2 * (divisions + 2) for the caps on each end.
+        integer vertexCount = (2 * (divisions + 1)) + 2 * (divisions + 2) 
+        // The cylinder's shell requires divisions * 6 indices, and the two caps require (divisions * 3) indices each.
+        integer indexCount = (divisions * 6) + 2 * (divisions * 3)
+        ModelData data = NewModelData(vertexCount, indexCount)
+        data:SetID("Cylinder")
+        MeshData mesh = data:GetMeshes():Get(0)
+        
+        AddCylinder(mesh, width, height, depth, divisions, 0, 360, true)
+        
+        return data
+    end
+    
+    action CreateSphere(number width, number height, number depth, integer horizontalDivisions, integer verticalDivisions) returns ModelData
+        Reset()
+        
+        ModelData data = NewModelData((verticalDivisions + 1) * (horizontalDivisions + 1), verticalDivisions * (horizontalDivisions + 1) * 6)
+        data:SetID("Sphere")
+        MeshData mesh = data:GetMeshes():Get(0)
+        
+        AddSphere(mesh, width, height, depth, horizontalDivisions, verticalDivisions, 0, 360, 0, 180)
+        
+        return data
+    end
+    
+    private action NewModelData(integer vertexCount, integer indexCount) returns ModelData
+        ModelData data
+        Array<MeshData> meshes = data:GetMeshes()
+        Array<Material> materials = data:GetMaterials()
+        
+        meshes:Add(NewMeshData(vertexCount, indexCount))
+        materials:Add(defaultMaterial)
+        
+        return data
+    end
+    
+    private action NewMeshData(integer vertexCount, integer indexCount) returns MeshData
+        MeshData data
+        
+        Number32BitArray vertices
+        Number32BitArray normals
+    Number32BitArray tangents
+    Number32BitArray bitangents
+    Number32BitArray textureCoordinates
+    Integer32BitArray indices
+        
+        vertices:SetSize(vertexCount * POSITION_SIZE)
+        normals:SetSize(vertexCount * NORMAL_SIZE)
+        tangents:SetSize(vertexCount * TANGENT_SIZE)
+        bitangents:SetSize(vertexCount * BITANGENT_SIZE)
+        textureCoordinates:SetSize(vertexCount * TEXTURE_COORDS_SIZE)
+        indices:SetSize(indexCount)
+        
+        data:SetVertices(vertices)
+        data:SetNormals(normals)
+        data:SetTangents(tangents)
+        data:SetBitangents(bitangents)
+        data:SetTextureCoordinates(textureCoordinates)
+        data:SetIndices(indices)
+        data:SetMaterialIndex(0)
+        
+        return data
+    end
+    
+    private action AddHorizontalPlane(MeshData data, number x, number y, number z, number width, number depth, boolean facesUp)
+        Number32BitArray vertices = data:GetVertices()
+    Number32BitArray normals = data:GetNormals()
+    Number32BitArray tangents = data:GetTangents()
+    Number32BitArray bitangents = data:GetBitangents()
+    Number32BitArray textureCoordinates = data:GetTextureCoordinates()
+    Integer32BitArray indices = data:GetIndices()
+        
+        number facingOffset = 1
+        if not facesUp
+            facingOffset = -1
+        end
+        
+        number halfWidth = 0.5 * width * facingOffset
+        number halfDepth = 0.5 * depth * facingOffset
+        number x1 = x - halfWidth
+        number x2 = x + halfWidth
+        number z1 = z - halfDepth
+        number z2 = z + halfDepth
+        
+        vertices:Set(currentVertex * POSITION_SIZE, x1)
+        vertices:Set(currentVertex * POSITION_SIZE + 1, y)
+        vertices:Set(currentVertex * POSITION_SIZE + 2, z2)
+        vertices:Set(currentVertex * POSITION_SIZE + 3, x1)
+        vertices:Set(currentVertex * POSITION_SIZE + 4, y)
+        vertices:Set(currentVertex * POSITION_SIZE + 5, z1)
+        vertices:Set(currentVertex * POSITION_SIZE + 6, x2)
+        vertices:Set(currentVertex * POSITION_SIZE + 7, y)
+        vertices:Set(currentVertex * POSITION_SIZE + 8, z1)
+        vertices:Set(currentVertex * POSITION_SIZE + 9, x2)
+        vertices:Set(currentVertex * POSITION_SIZE + 10, y)
+        vertices:Set(currentVertex * POSITION_SIZE + 11, z2)
+        
+        integer i = currentVertex * NORMAL_SIZE
+        integer limit = i + 12
+        repeat while i < limit
+            normals:Set(i, 0)
+            normals:Set(i + 1, facingOffset)
+            normals:Set(i + 2, 0)
+            
+            tangents:Set(i, 1)
+            tangents:Set(i + 1, 0)
+            tangents:Set(i + 2, 0)
+            
+            bitangents:Set(i, 0)
+            bitangents:Set(i + 1, 0)
+            bitangents:Set(i + 2, facingOffset)
+            
+            i = i + 3
+        end
+        
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE, 0)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 1, 0)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 2, 0)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 3, 1)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 4, 1)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 5, 1)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 6, 1)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 7, 0)
+        
+        indices:Set(currentIndex, currentVertex)
+        indices:Set(currentIndex + 1, currentVertex + 1)
+        indices:Set(currentIndex + 2, currentVertex + 2)
+        indices:Set(currentIndex + 3, currentVertex + 2)
+        indices:Set(currentIndex + 4, currentVertex + 3)
+        indices:Set(currentIndex + 5, currentVertex)
+        
+        currentVertex = currentVertex + 4
+        currentIndex = currentIndex + 6
+    end
+    
+    // Adds an axis-aligned vertical plane. One of xNormal or zNormal should be -1 or 1, and the other should be 0
+    private action AddVerticalPlane(MeshData data, number x, number y, number z, number width, number height, number xNormal, number zNormal)
+        Number32BitArray vertices = data:GetVertices()
+    Number32BitArray normals = data:GetNormals()
+    Number32BitArray tangents = data:GetTangents()
+    Number32BitArray bitangents = data:GetBitangents()
+    Number32BitArray textureCoordinates = data:GetTextureCoordinates()
+    Integer32BitArray indices = data:GetIndices()
+        
+        // If this plane is on a back face, we want to reverse the winding order.
+        number backFaceOffset = 1
+        if xNormal < 0 or zNormal < 0
+            backFaceOffset = -1
+        end
+        
+        number halfWidth = 0.5 * width * backFaceOffset
+        number halfHeight = 0.5 * height * backFaceOffset
+        
+        number y1 = y - halfWidth
+        number y2 = y + halfWidth
+        
+        // The x and z inputs represent the coordinates at the face's center. Depending on the face's orientation, the corners of the face may or may not match it.
+        number x1 = x
+        number x2 = x
+        number z1 = z
+        number z2 = z
+        // If the zNormal is non-zero, this face points forward or back. The x-coordinates of the vertices are to the left and right of the face's center.
+        if zNormal not= 0
+            x1 = x - halfWidth
+            x2 = x + halfWidth
+        elseif xNormal not= 0
+            z1 = z - halfWidth
+            z2 = z + halfWidth
+        end
+        
+        vertices:Set(currentVertex * POSITION_SIZE, x1)
+        vertices:Set(currentVertex * POSITION_SIZE + 1, y1)
+        vertices:Set(currentVertex * POSITION_SIZE + 2, z1)
+        vertices:Set(currentVertex * POSITION_SIZE + 3, x1)
+        vertices:Set(currentVertex * POSITION_SIZE + 4, y2)
+        vertices:Set(currentVertex * POSITION_SIZE + 5, z1)
+        vertices:Set(currentVertex * POSITION_SIZE + 6, x2)
+        vertices:Set(currentVertex * POSITION_SIZE + 7, y2)
+        vertices:Set(currentVertex * POSITION_SIZE + 8, z2)
+        vertices:Set(currentVertex * POSITION_SIZE + 9, x2)
+        vertices:Set(currentVertex * POSITION_SIZE + 10, y1)
+        vertices:Set(currentVertex * POSITION_SIZE + 11, z2)
+        
+        integer i = currentVertex * NORMAL_SIZE
+        integer limit = i + 12
+        repeat while i < limit
+            normals:Set(i, xNormal)
+            normals:Set(i + 1, 0)
+            normals:Set(i + 2, zNormal)
+            
+            tangents:Set(i, zNormal)
+            tangents:Set(i + 1, 0)
+            tangents:Set(i + 2, xNormal)
+            
+            bitangents:Set(i, 0)
+            bitangents:Set(i + 1, 1)
+            bitangents:Set(i + 2, 0)
+            
+            i = i + 3
+        end
+        
+        if zNormal < 0
+            textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE, 1)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 1, 0)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 2, 1)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 3, 1)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 4, 0)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 5, 1)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 6, 0)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 7, 0)
+        elseif zNormal > 0
+            textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE, 1)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 1, 1)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 2, 1)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 3, 0)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 4, 0)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 5, 0)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 6, 0)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 7, 1)
+        elseif xNormal > 0
+            textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE, 0)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 1, 1)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 2, 0)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 3, 0)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 4, 1)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 5, 0)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 6, 1)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 7, 1)
+        else
+            // xNormal is < 0 in this case
+            textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE, 0)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 1, 0)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 2, 0)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 3, 1)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 4, 1)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 5, 1)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 6, 1)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 7, 0)
+        end
+        
+        indices:Set(currentIndex, currentVertex)
+        indices:Set(currentIndex + 1, currentVertex + 1)
+        indices:Set(currentIndex + 2, currentVertex + 2)
+        indices:Set(currentIndex + 3, currentVertex + 2)
+        indices:Set(currentIndex + 4, currentVertex + 3)
+        indices:Set(currentIndex + 5, currentVertex)
+        
+        currentVertex = currentVertex + 4
+        currentIndex = currentIndex + 6
+        
+    end
+    
+    private action AddSphere(MeshData data, number width, number height, number depth, integer divisionsU, integer divisionsV,
+     number uAngleStartDegrees, number uAngleEndDegrees, number vAngleStartDegrees, number vAngleEndDegrees)
+        Integer32BitArray indices = data:GetIndices()
+        
+        number halfWidth = 0.5 * width
+        number halfHeight = 0.5 * height
+        number halfDepth = 0.5 * depth
+        
+        number uAngleStart = math:DegreesToRadians(uAngleStartDegrees)
+        number uStep = (math:DegreesToRadians(uAngleEndDegrees - uAngleStartDegrees)) / divisionsU
+        number vAngleStart = math:DegreesToRadians(vAngleStartDegrees)
+        number vStep = (math:DegreesToRadians(vAngleEndDegrees - vAngleStartDegrees)) / divisionsV
+        number uInverseDivisions = 1.0 / divisionsU
+        number vInverseDivisions = 1.0 / divisionsV
+        
+        Array<integer> tempIndices
+        integer indicesSize = divisionsU + 3
+        tempIndices:SetSize(indicesSize)
+        integer indicesOffset = 0
+        
+        integer vCounter = 0
+        repeat while vCounter <= divisionsV
+            number angleV = vAngleStart + vStep * vCounter
+            number vTextureCoordinate = vInverseDivisions * vCounter
+            number t = math:Sine(angleV)
+            number h = math:Cosine(angleV) * halfHeight
+            
+            integer uCounter = 0
+            repeat while uCounter <= divisionsU
+                number angleU = uAngleStart + uStep * uCounter
+                number uTextureCoordinate = uInverseDivisions * uCounter
+                
+                integer vertexID = currentVertex
+                workPosition:Set(math:Cosine(angleU) * halfWidth * t, h, math:Sine(angleU) * halfDepth * t)
+                workNormal:Set(workPosition):Normalize()
+                workTangent:Set(0, 0, 0)
+                workBitangent:Set(0, 0, 0)
+                workTexture:Set(uTextureCoordinate, vTextureCoordinate)
+                //workTexture:Set(vTextureCoordinate, uTextureCoordinate)
+                AddVertex(data, workPosition, workNormal, workTangent, workBitangent, workTexture)
+                
+                tempIndices:Set(indicesOffset, vertexID)
+                integer o = indicesOffset + indicesSize
+                if (vCounter > 0) and (uCounter > 0)
+                    integer i1 = tempIndices:Get(indicesOffset)
+                    integer i2 = tempIndices:Get((o - 1) mod indicesSize)
+                    integer i3 = tempIndices:Get((o - (divisionsU + 2)) mod indicesSize)
+                    integer i4 = tempIndices:Get((o - (divisionsU + 1)) mod indicesSize)
+                    indices:Set(currentIndex, i1)
+                    indices:Set(currentIndex + 1, i2)
+                    indices:Set(currentIndex + 2, i3)
+                    indices:Set(currentIndex + 3, i3)
+                    indices:Set(currentIndex + 4, i4)
+                    indices:Set(currentIndex + 5, i1)
+                    currentIndex = currentIndex + 6
+                end
+                
+                indicesOffset = (indicesOffset + 1) mod indicesSize
+                uCounter = uCounter + 1
+            end
+            
+            vCounter = vCounter + 1
+        end
+    end
+    
+    private action AddCylinder(MeshData data, number width, number height, number depth, integer divisions,
+ number startAngleDegrees, number endAngleDegrees, boolean close)
+        Integer32BitArray indices = data:GetIndices()
+        
+        number halfWidth = 0.5 * width
+        number halfHeight = 0.5 * height
+        number halfDepth = 0.5 * depth
+        number startAngle = math:DegreesToRadians(startAngleDegrees)
+        number step = math:DegreesToRadians(endAngleDegrees - startAngleDegrees) / divisions
+        number divisionStep = 1.0 / divisions
+        
+        integer i1 = 0
+        integer i2 = 0
+        integer i3 = 0
+        integer i4 = 0
+        
+        // EnsureVertices(2 * (divisions + 1))
+        // EnsureRectangleIndices(divisions)
+        
+        integer counter = 0
+        repeat while counter <= divisions
+            number angle = startAngle + step * counter
+            number u = 1.0 - divisionStep * counter
+            
+            i2 = currentVertex
+            workPosition:Set(math:Cosine(angle) * halfWidth, 0, math:Sine(angle) * halfDepth)
+            workNormal:Set(workPosition):Normalize()
+            workPosition:SetY(-halfHeight)
+            workTexture:Set(u, 1)
+            workTangent:Set(0, 0, 0)
+            workBitangent:Set(0, 0, 0)
+            AddVertex(data, workPosition, workNormal, workTangent, workBitangent, workTexture)
+            
+            i1 = currentVertex
+            workPosition:SetY(halfHeight)
+            workTexture:Set(u, 0)
+            AddVertex(data, workPosition, workNormal, workTangent, workBitangent, workTexture)
+
+            if counter not= 0
+                indices:Set(currentIndex, i3)
+                    indices:Set(currentIndex + 1, i1)
+                    indices:Set(currentIndex + 2, i2)
+                    indices:Set(currentIndex + 3, i2)
+                    indices:Set(currentIndex + 4, i4)
+                    indices:Set(currentIndex + 5, i3)
+                    currentIndex = currentIndex + 6
+            end
+
+            i4 = i2
+            i3 = i1
+
+            counter = counter + 1
+        end
+        
+        if close
+            AddEllipse(data, width, depth, 0, 0, divisions, 0, halfHeight, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, startAngleDegrees, endAngleDegrees)
+            AddEllipse(data, width, depth, 0, 0, divisions, 0, -halfHeight, 0, 0, -1, 0, -1, 0, 0, 0, 0, 1, 180.0 - endAngleDegrees, 180.0 - startAngleDegrees)
+        end
+    end
+    
+    private action AddEllipse(MeshData data, number width, number height, number innerWidth, number innerHeight, integer divisions, number centerX,
+        number centerY, number centerZ, number normalX, number normalY, number normalZ, number tangentX, number tangentY, number tangentZ,
+        number binormalX, number binormalY, number binormalZ, number startAngleDegrees, number endAngleDegrees)
+        /*You may see this action and wonder why it needed to have literally 20 parameters.
+
+Me too, man.*/
+        Integer32BitArray indices = data:GetIndices()
+        
+        // EnsureVertices(divisions + 2)
+        // EnsureTriangleIndices(divisions)
+        number startAngle = math:DegreesToRadians(startAngleDegrees)
+        number step = math:DegreesToRadians(endAngleDegrees - startAngleDegrees) / divisions
+        Vector3 widthOffsets
+        Vector3 heightOffsets
+        Vector3 innerWidthOffsets
+        Vector3 innerHeightOffsets
+        widthOffsets:Set(tangentX, tangentY, tangentZ):Scale(width * 0.5)
+        heightOffsets:Set(binormalX, binormalY, binormalZ):Scale(height * 0.5)
+        innerWidthOffsets:Set(tangentX, tangentY, tangentZ):Scale(innerWidth * 0.5)
+        innerHeightOffsets:Set(binormalX, binormalY, binormalZ):Scale(innerHeight * 0.5)
+
+        //VertexSchematic currIn = vertTemp3:Set(undefined, undefined, undefined, undefined)
+        //currIn:SetTextureCoordinates(0.5, 0.5)
+        //currIn:SetPosition(centerX, centerY, centerZ)
+        //currIn:SetNormal(normalX, normalY, normalZ)
+
+        workPosition:Set(centerX, centerY, centerZ)
+        workTexture:Set(0.5, 0.5)
+        workNormal:Set(normalX, normalY, normalZ)
+        workTangent:Set(0, 0, 0)
+        workBitangent:Set(0, 0, 0)
+        integer centerID = AddVertex(data, workPosition, workNormal, workTangent, workBitangent, workTexture)
+        
+        // Formerly us and vs
+        number subwidth = 0.5 * (innerWidth / width)
+        number subheight = 0.5 * (innerHeight / height)
+        
+        integer i1 = 0
+        integer i2 = 0
+        integer i3 = 0
+        integer i4 = 0
+
+        integer counter = 0
+        repeat while counter <= divisions
+            number angle = startAngle + step * counter
+            number x = math:Cosine(angle)
+            number y = math:Sine(angle)
+            
+            workPosition:Set(centerX, centerY, centerZ)
+            workPosition:Add(widthOffsets:GetX() * x + heightOffsets:GetX() * y, widthOffsets:GetY() * x + heightOffsets:GetY() * y,
+                widthOffsets:GetZ() * x + heightOffsets:GetZ() * y)
+            workTexture:Set(0.5 + 0.5 * x, 0.5 + 0.5 * y)
+            //currEx:SetPosition(centerX, centerY, centerZ)
+            //currEx:GetPosition():Add(sxEx:GetX() * x + syEx:GetX() * y, sxEx:GetY() * x + syEx:GetY() * y,
+//                sxEx:GetZ() * x + syEx:GetZ() * y)
+            //currEx:SetTextureCoordinates(0.5 + 0.5 * x, 0.5 + 0.5 * y)
+
+            i1 = AddVertex(data, workPosition, workNormal, workTangent, workBitangent, workTexture)
+            
+            if innerWidth <= 0 or innerHeight <= 0
+                if counter not= 0
+                    indices:Set(currentIndex, i1)
+                    indices:Set(currentIndex + 1, i2)
+                    indices:Set(currentIndex + 2, centerID)
+                    currentIndex = currentIndex + 3
+                end
+                i2 = i1
+            else
+                alert("NYI: This builder doesn't currently support innerWidth or innerHeight values > 0.")
+                //currIn:GetPosition():Add(sxIn:GetX() * x + syIn:GetX() * y, sxIn:GetY() * x + syIn:GetY() * y,
+//                    sxIn:GetZ() * x + syIn:GetZ() * y)
+                //currIn:SetTextureCoordinates(0.5 + us * x, 0.5 + vs * y)
+//
+                //i2 = i1
+                //i1 = AddVertex(currIn)
+//
+                //if counter not= 0
+                    //BuildRectangle(i1, i2, i4, i3)
+                //end
+//
+                //i4 = i2
+                //i3 = i1
+            end
+
+            counter = counter + 1
+        end
+        
+    end
+    
+    private action AddVertex(MeshData data, Vector3 position, Vector3 normal, Vector3 tangent, Vector3 bitangent, Vector2 textureCoords) returns integer
+        integer vertexID = currentVertex
+        
+        Number32BitArray vertices = data:GetVertices()
+    Number32BitArray normals = data:GetNormals()
+    Number32BitArray tangents = data:GetTangents()
+    Number32BitArray bitangents = data:GetBitangents()
+    Number32BitArray textureCoordinates = data:GetTextureCoordinates()
+        
+        integer baseIndex3 = currentVertex * POSITION_SIZE
+        integer baseIndex2 = currentVertex * TEXTURE_COORDS_SIZE
+        
+        vertices:Set(baseIndex3, position:GetX())
+        vertices:Set(baseIndex3 + 1, position:GetY())
+        vertices:Set(baseIndex3 + 2, position:GetZ())
+        
+        normals:Set(baseIndex3, normal:GetX())
+        normals:Set(baseIndex3 + 1, normal:GetY())
+        normals:Set(baseIndex3 + 2, normal:GetZ())
+        
+        tangents:Set(baseIndex3, tangent:GetX())
+        tangents:Set(baseIndex3 + 1, tangent:GetY())
+        tangents:Set(baseIndex3 + 2, tangent:GetZ())
+        
+        bitangents:Set(baseIndex3, bitangent:GetX())
+        bitangents:Set(baseIndex3 + 1, bitangent:GetY())
+        bitangents:Set(baseIndex3 + 2, bitangent:GetZ())
+        
+        textureCoordinates:Set(baseIndex2, textureCoords:GetX())
+        textureCoordinates:Set(baseIndex2 + 1, textureCoords:GetY())
+        
+        currentVertex = currentVertex + 1
+        return vertexID
+    end
+    
+end
