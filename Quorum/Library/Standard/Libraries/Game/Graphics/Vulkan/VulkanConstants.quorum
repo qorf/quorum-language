@@ -9,7 +9,8 @@ shared class VulkanConstants
     public constant integer API_VERSION_1_1_0 = utilities:ConvertToAPIVersionID(1, 1, 0)
     public constant integer API_VERSION_1_2_0 = utilities:ConvertToAPIVersionID(1, 2, 0)
     public constant integer API_VERSION_1_3_0 = utilities:ConvertToAPIVersionID(1, 3, 0)
-    public constant integer DEFAULT_API_VERSION = API_VERSION_1_2_0
+public constant integer API_VERSION_1_4_0 = utilities:ConvertToAPIVersionID(1, 4, 0)
+    public constant integer DEFAULT_API_VERSION = API_VERSION_1_3_0
 
     // Values representing the engine information provided to Vulkan Instances when they're created under the hood.
     // These can be used to identify what engine is implementing Vulkan for hardware providers, such as driver manufacturers, if they choose to check.

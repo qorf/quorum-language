@@ -22,7 +22,7 @@ class DefaultVertexShader3DVulkan is Shader
 #extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
 
 layout(location = 0) out vec2 v_textureCoords;
-layout(location = 1) flat out uint64_t v_materialBuffer;
+layout(location = 1) flat out uint v_entityID;
 layout(location = 2) flat out uint v_hasDiffuseOverride;
 layout(location = 3) flat out uint v_diffuseOverride;
 layout(location = 4) flat out uint v_hasTextureOverride;
@@ -52,27 +52,29 @@ layout(std430, buffer_reference, buffer_reference_align=4) buffer IndexBuffer {
 };
 
 struct InstanceData {
-	VertexBuffer vertexBuffer;
-	IndexBuffer indexBuffer;
-	uint64_t materialBuffer;
-	uint textureOverride;
-	uint textureIndex;
-	uint diffuseColorOverride;
-	uint diffuseColor;
-	mat4 modelTransform;
+   VertexBuffer vertexBuffer;
+   IndexBuffer indexBuffer;
+   uint padding1;
+   uint padding2;
+   uint textureOverride;
+   uint textureIndex;
+   uint diffuseColorOverride;
+   uint diffuseColor;
+   mat4 modelTransform;
 };
 
 layout(scalar, buffer_reference) buffer Instances {
-	InstanceData[] data;
+   InstanceData[] data;
 };
 
 layout(push_constant) uniform PushConstants {
-	Instances instances;
+   Instances instances;
 } pushConstants;
 
 void main()
 {
 	uint entityID = gl_InstanceIndex;
+v_entityID = entityID;
 	Instances instances = pushConstants.instances;
 	InstanceData instanceData = instances.data[entityID];
 	
@@ -88,7 +90,6 @@ void main()
 	vec4 worldPosition = modelTransform * vec4(inPos, 1.0);
 
 	v_textureCoords = vertex.textureCoordinates;
-	v_materialBuffer = instanceData.materialBuffer;
 	v_hasDiffuseOverride = instanceData.diffuseColorOverride;
 	v_diffuseOverride = instanceData.diffuseColor;
 	v_hasTextureOverride = instanceData.textureOverride;

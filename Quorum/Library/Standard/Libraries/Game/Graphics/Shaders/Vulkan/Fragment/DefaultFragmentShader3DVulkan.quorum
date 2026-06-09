@@ -49,7 +49,7 @@ layout(scalar, buffer_reference) buffer Materials
 };
 
 layout(location = 0) in vec2 v_textureCoords;
-layout(location = 1) flat in uint64_t v_materialBuffer;
+layout(location = 1) flat in uint v_entityID;
 layout(location = 2) flat in uint v_hasDiffuseOverride;
 layout(location = 3) flat in uint v_diffuseOverride;
 layout(location = 4) flat in uint v_hasTextureOverride;
@@ -75,16 +75,39 @@ vec3 calculateNormal(Material material, mat3 tanBitanNormal, vec2 textCoords)
     return newNormal;
 }
 
+struct InstanceData {
+   uint vertexPadding1;
+   uint vertexPadding2;
+   uint indexPadding1;
+   uint indexPadding2;
+   Materials materials;
+   uint textureOverride;
+   uint textureIndex;
+   uint diffuseColorOverride;
+   uint diffuseColor;
+   mat4 modelTransform;
+};
+
+layout(scalar, buffer_reference) buffer Instances {
+   InstanceData[] data;
+};
+
+layout(push_constant) uniform PushConstants {
+   Instances instances;
+} pushConstants;
+
 void main()
 {
 	// Set position.
 	outputPosition = v_position;
 	
 	// Calculate albedo.
-	Materials materials = Materials(v_materialBuffer);
-	Material material = materials.data;
-	
-	uint textureIndex = material.textureIndex;
+   Instances instances = pushConstants.instances;
+   InstanceData instanceData = instances.data[v_entityID];
+   Materials materials = instanceData.materials;
+   Material material = materials.data;
+
+   uint textureIndex = material.textureIndex;
 	if (v_hasTextureOverride == 1)
 		textureIndex = v_textureOverrideIndex;
 		

@@ -851,7 +851,8 @@ TO-DO HERE:
         SetPushConstantsCommand setPushConstants
         setPushConstants:SetData(pushConstants)
         setPushConstants:SetPipelineLayout(currentPipeline:GetLayout())
-        setPushConstants:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT)
+        setPushConstants:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT + 
+constants:SHADER_STAGE_FRAGMENT_BIT)
         commandBuffer:Record(setPushConstants)
         
         DrawIndirectCommand drawCommand

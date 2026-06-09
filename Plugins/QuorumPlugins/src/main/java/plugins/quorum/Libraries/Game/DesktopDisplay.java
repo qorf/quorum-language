@@ -9,6 +9,7 @@ import java.nio.ByteBuffer;
 
 import org.lwjgl.glfw.*;
 import org.lwjgl.system.MemoryUtil;
+import plugins.quorum.Libraries.Interface.Controls.FileChooser;
 import quorum.Libraries.Game.ScreenResolution_;
 import quorum.Libraries.Containers.Array_;
 
@@ -419,6 +420,7 @@ public class DesktopDisplay {
     public void Destroy() {
         // This will need to be revisited for a multiple window system.
         GLFW.glfwDestroyWindow(window);
+        FileChooser.ShutDown();
     }
 
     public boolean IsActive() {
