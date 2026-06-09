@@ -158,15 +158,42 @@ end
     end
     
     action GetBoxBlueprint(number width, number height, number depth) returns ModelBlueprintVulkan
-        alert("NYI")
+        text key = PRIMITIVE_KEY + BOX_KEY + width + DELIMITER + height + DELIMITER + depth
+        if cachedBlueprints:HasKey(key)
+            return cachedBlueprints:GetValue(key)
+        else
+            ModelData data = modelBuilder:CreateBox(width, height, depth)
+            data:SetID(key)
+            ModelBlueprintVulkan result = ConvertToBlueprint(data)
+            cachedBlueprints:Add(key, result)
+            return result
+        end
     end
     
     action GetCylinderBlueprint(number width, number height, number depth, integer divisions) returns ModelBlueprintVulkan
-        alert("NYI")
+        text key = PRIMITIVE_KEY + CYLINDER_KEY + width + DELIMITER + height + DELIMITER + depth + DELIMITER + divisions
+        if cachedBlueprints:HasKey(key)
+            return cachedBlueprints:GetValue(key)
+        else
+            ModelData data = modelBuilder:CreateCylinder(width, height, depth, divisions)
+            data:SetID(key)
+            ModelBlueprintVulkan result = ConvertToBlueprint(data)
+            cachedBlueprints:Add(key, result)
+            return result
+        end
     end
     
     action GetSphereBlueprint(number width, number height, number depth, integer horizontalDivisions, integer verticalDivisions) returns ModelBlueprintVulkan
-        alert("NYI")
+        text key = PRIMITIVE_KEY + SPHERE_KEY + width + DELIMITER + height + DELIMITER + depth + DELIMITER + horizontalDivisions + DELIMITER + verticalDivisions
+        if cachedBlueprints:HasKey(key)
+            return cachedBlueprints:GetValue(key)
+        else
+            ModelData data = modelBuilder:CreateSphere(width, height, depth, horizontalDivisions, verticalDivisions)
+            data:SetID(key)
+            ModelBlueprintVulkan result = ConvertToBlueprint(data)
+            cachedBlueprints:Add(key, result)
+            return result
+        end
     end
     
     action GetPlaneBlueprint(number width, number depth, boolean doubleSided) returns ModelBlueprintVulkan
