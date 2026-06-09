@@ -11,7 +11,7 @@ import quorum.Libraries.Compute.Vector3_;
 import quorum.Libraries.System.File_;
 import quorum.Libraries.Game.Graphics.Model_;
 import quorum.Libraries.Game.Graphics.ModelLoaders.ModelReader;
-import quorum.Libraries.Game.Graphics.Models.OpenGL.ModelBuilder;
+import quorum.Libraries.Game.Graphics.Models.OpenGL.ModelBuilderOpenGL;
 import quorum.Libraries.Game.Graphics.Models.OpenGL.ModelBlueprintOpenGL_;
 import quorum.Libraries.Game.BoundingBox;
 import quorum.Libraries.Game.Graphics.Color_;
@@ -26,7 +26,7 @@ public class Model
     public java.lang.Object me_ = null;
     
     private final static ModelReader reader = new ModelReader();
-    private final static ModelBuilder builder = new ModelBuilder();
+    private final static ModelBuilderOpenGL builder = new ModelBuilderOpenGL();
     private final static Hashtable<String, ModelBlueprintOpenGL_> hashTable = new Hashtable();
     private final static Hashtable<ModelBlueprintOpenGL_, Vector3_> dimensionsTable = new Hashtable();
     private final static BoundingBox calcBox = new BoundingBox();

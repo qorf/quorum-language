@@ -1,0 +1,159 @@
+package Libraries.Game.Graphics.Models.Data
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Containers.Array
+use Libraries.Compute.Vector4
+
+/*This class is used to build model data from scratch, instead of loading them from a file.*/
+class ModelBuilder
+    
+    Material defaultMaterial
+    
+    integer currentVertex = 0
+    integer currentIndex = 0
+    
+    constant integer POSITION_SIZE = 3
+    constant integer NORMAL_SIZE = 3
+    constant integer TANGENT_SIZE = 3
+    constant integer BITANGENT_SIZE = 3
+    constant integer TEXTURE_COORDS_SIZE = 2
+    
+    on create
+        Vector4 diffuseColor
+        diffuseColor:Set(1, 1, 1, 1)
+        defaultMaterial:SetDiffuse(diffuseColor)
+        defaultMaterial:SetRoughness(0)
+    end
+    
+    private action Reset
+        currentVertex = 0
+        currentIndex = 0
+    end
+    
+    action CreatePlane(number width, number depth) returns ModelData
+        return CreatePlane(width, depth, true)
+    end
+    
+    action CreatePlane(number width, number depth, boolean doubleSided) returns ModelData
+        Reset()
+        
+        ModelData data = NewModelData(4, 6)
+        data:SetID("Plane")
+        MeshData mesh = data:GetMeshes():Get(0)
+        AddHorizontalPlane(mesh, 0, 0, 0, width, depth)
+        
+        return data
+    end
+    
+    action CreateBox(number width, number height, number depth) returns ModelData
+        Reset()
+        
+        output "NYI"
+        
+        return undefined
+    end
+    
+    private action NewModelData(integer vertexCount, integer indexCount) returns ModelData
+        ModelData data
+        Array<MeshData> meshes = data:GetMeshes()
+        Array<Material> materials = data:GetMaterials()
+        
+        meshes:Add(NewMeshData(vertexCount, indexCount))
+        materials:Add(defaultMaterial)
+        
+        return data
+    end
+    
+    private action NewMeshData(integer vertexCount, integer indexCount) returns MeshData
+        MeshData data
+        
+        Number32BitArray vertices
+        Number32BitArray normals
+    Number32BitArray tangents
+    Number32BitArray bitangents
+    Number32BitArray textureCoordinates
+    Integer32BitArray indices
+        
+        vertices:SetSize(vertexCount * POSITION_SIZE)
+        normals:SetSize(vertexCount * NORMAL_SIZE)
+        tangents:SetSize(vertexCount * TANGENT_SIZE)
+        bitangents:SetSize(vertexCount * BITANGENT_SIZE)
+        textureCoordinates:SetSize(vertexCount * TEXTURE_COORDS_SIZE)
+        indices:SetSize(indexCount)
+        
+        data:SetVertices(vertices)
+        data:SetNormals(normals)
+        data:SetTangents(tangents)
+        data:SetBitangents(bitangents)
+        data:SetTextureCoordinates(textureCoordinates)
+        data:SetIndices(indices)
+        data:SetMaterialIndex(0)
+        
+        return data
+    end
+    
+    private action AddHorizontalPlane(MeshData data, number x, number y, number z, number width, number depth)
+        Number32BitArray vertices = data:GetVertices()
+    Number32BitArray normals = data:GetNormals()
+    Number32BitArray tangents = data:GetTangents()
+    Number32BitArray bitangents = data:GetBitangents()
+    Number32BitArray textureCoordinates = data:GetTextureCoordinates()
+    Integer32BitArray indices = data:GetIndices()
+        
+        number halfWidth = 0.5 * width
+        number halfDepth = 0.5 * depth
+        number x1 = x - halfWidth
+        number x2 = x + halfWidth
+        number z1 = z - halfDepth
+        number z2 = z + halfDepth
+        
+        vertices:Set(currentVertex * POSITION_SIZE, x1)
+        vertices:Set(currentVertex * POSITION_SIZE + 1, y)
+        vertices:Set(currentVertex * POSITION_SIZE + 2, z2)
+        vertices:Set(currentVertex * POSITION_SIZE + 3, x1)
+        vertices:Set(currentVertex * POSITION_SIZE + 4, y)
+        vertices:Set(currentVertex * POSITION_SIZE + 5, z1)
+        vertices:Set(currentVertex * POSITION_SIZE + 6, x2)
+        vertices:Set(currentVertex * POSITION_SIZE + 7, y)
+        vertices:Set(currentVertex * POSITION_SIZE + 8, z1)
+        vertices:Set(currentVertex * POSITION_SIZE + 9, x2)
+        vertices:Set(currentVertex * POSITION_SIZE + 10, y)
+        vertices:Set(currentVertex * POSITION_SIZE + 11, z2)
+        
+        integer i = currentVertex * NORMAL_SIZE
+        repeat while i < 12
+            normals:Set(i, 0)
+            normals:Set(i + 1, 1)
+            normals:Set(i + 2, 0)
+            
+            tangents:Set(i, 0)
+            tangents:Set(i + 1, 0)
+            tangents:Set(i + 2, 0)
+            bitangents:Set(i, 0)
+            bitangents:Set(i + 1, 0)
+            bitangents:Set(i + 2, 0)
+            
+            i = i + 3
+        end
+        
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE, 0)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 1, 0)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 2, 0)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 3, 1)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 4, 1)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 5, 1)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 6, 1)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 7, 0)
+        
+        indices:Set(currentIndex, currentVertex)
+        indices:Set(currentIndex + 1, currentVertex + 1)
+        indices:Set(currentIndex + 2, currentVertex + 2)
+        indices:Set(currentIndex + 3, currentVertex + 2)
+        indices:Set(currentIndex + 4, currentVertex + 3)
+        indices:Set(currentIndex + 5, currentVertex)
+        
+        currentVertex = currentVertex + 4
+        currentIndex = currentIndex + 6
+    end
+    
+end
