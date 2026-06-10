@@ -113,8 +113,9 @@ Each vertex is made of 14 32-bit components:
         vertexBuffer:CreateTransferDestinationBuffer(device, vertexStagingBuffer:GetSize(), constants:BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)
         indexBuffer:CreateTransferDestinationBuffer(device, indexStagingBuffer:GetSize(), constants:BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)
         
-        vertexStagingBuffer:StopMapping()
-        indexStagingBuffer:StopMapping()
+        //TODO: These cause a crash in some cases, for reasons unclear. Go back and figure this out later.
+        //vertexStagingBuffer:StopMapping()
+        //indexStagingBuffer:StopMapping()
     end
     
     action HasData returns boolean

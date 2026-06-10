@@ -324,7 +324,7 @@ public class ModelLoader {
         //if there are no textures, we need empty slots, or at least
         //the textbook says we do.
         if (coordinates.GetSize() == 0) {
-            int size = (coordinates.GetSize() / 3) * 2;
+            int size = (vertices.GetSize() / 3) * 2;
             coordinates.SetSize(size);
         }
 
