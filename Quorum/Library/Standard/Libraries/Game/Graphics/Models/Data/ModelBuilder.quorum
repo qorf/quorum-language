@@ -46,13 +46,23 @@ class ModelBuilder
         return CreatePlane(width, depth, true)
     end
     
+    action CreatePlane(number width, number depth, Vector4 textureCoordinates) returns ModelData
+        return CreatePlane(width, depth, textureCoordinates, true)
+    end
+    
     action CreatePlane(number width, number depth, boolean doubleSided) returns ModelData
+        Vector4 textureCoordinates
+        textureCoordinates:Set(0, 0, 1, 1)
+        return CreatePlane(width, depth, textureCoordinates, true)
+    end
+    
+    action CreatePlane(number width, number depth, Vector4 textureCoordinates, boolean doubleSided) returns ModelData
         Reset()
         
         ModelData data = NewModelData(4, 6)
         data:SetID("Plane")
         MeshData mesh = data:GetMeshes():Get(0)
-        AddHorizontalPlane(mesh, 0, 0, 0, width, depth, true)
+        AddHorizontalPlane(mesh, 0, 0, 0, width, depth, textureCoordinates, true)
         
         return data
     end
@@ -146,6 +156,12 @@ class ModelBuilder
     end
     
     private action AddHorizontalPlane(MeshData data, number x, number y, number z, number width, number depth, boolean facesUp)
+        Vector4 textureCoordinates
+        textureCoordinates:Set(0, 0, 1, 1)
+        AddHorizontalPlane(data, x, y, z, width, depth, textureCoordinates, facesUp)
+    end
+    
+    private action AddHorizontalPlane(MeshData data, number x, number y, number z, number width, number depth, Vector4 setTextureCoordinates, boolean facesUp)
         Number32BitArray vertices = data:GetVertices()
     Number32BitArray normals = data:GetNormals()
     Number32BitArray tangents = data:GetTangents()
@@ -196,14 +212,27 @@ class ModelBuilder
             i = i + 3
         end
         
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE, 0)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 1, 0)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 2, 0)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 3, 1)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 4, 1)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 5, 1)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 6, 1)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 7, 0)
+        number texLeft = setTextureCoordinates:GetX()
+        number texDown = setTextureCoordinates:GetY()
+        number texRight = setTextureCoordinates:GetZ()
+        number texUp = setTextureCoordinates:GetW()
+        
+        //textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE, 0)
+        //textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 1, 0)
+        //textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 2, 0)
+        //textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 3, 1)
+        //textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 4, 1)
+        //textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 5, 1)
+        //textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 6, 1)
+        //textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 7, 0)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE, texLeft)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 1, texDown)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 2, texLeft)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 3, texUp)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 4, texRight)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 5, texUp)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 6, texRight)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 7, texDown)
         
         indices:Set(currentIndex, currentVertex)
         indices:Set(currentIndex + 1, currentVertex + 1)

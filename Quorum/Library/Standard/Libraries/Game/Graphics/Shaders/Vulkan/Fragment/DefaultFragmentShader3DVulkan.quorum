@@ -98,9 +98,6 @@ layout(push_constant) uniform PushConstants {
 
 void main()
 {
-	// Set position.
-	outputPosition = v_position;
-	
 	// Calculate albedo.
    Instances instances = pushConstants.instances;
    InstanceData instanceData = instances.data[v_entityID];
@@ -116,6 +113,13 @@ void main()
 		diffuse = unpackUnorm4x8(v_diffuseOverride);
 
     outputColor = texture(nonuniformEXT(sampler2D(globalTextures[textureIndex], immutableSampler)), v_textureCoords) * diffuse;
+
+	// If the color is less than half of the base transparency (i.e. transparent pixels in the texture), discard the fragment.
+	if (outputColor.a < diffuse.a / 2.0)
+		discard;
+
+	// Set position.
+	outputPosition = v_position;
 	
 	// Calculate and set normal.
 	vec3 newNormal = calculateNormal(material, v_tangentBitangentNormal, v_textureCoords);	

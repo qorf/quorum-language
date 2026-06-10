@@ -560,7 +560,7 @@ VulkanAttachmentReference depthReference) returns boolean
     
     private action GetBatch(Model model) returns VulkanPainter3DBatch
         // TO-DO: For now, assume models do not use transparency.
-        boolean isTransparent = false
+        boolean isTransparent = model:HasTransparency()
         ModelBlueprintVulkan schematic = cast(ModelBlueprintVulkan, model:GetModelBlueprint())
         if not isTransparent
 if batches:HasKey(schematic)

@@ -1,4 +1,5 @@
 package Libraries.Game.Graphics.Models
+use Libraries.Game.BoundingBox
 
 /*This class is an interface used to represent the different kinds of information used to handle Models by different rendering systems.
 
@@ -14,5 +15,7 @@ class ModelBlueprint
     action HasAnimation returns boolean
         return false
     end
+    
+    blueprint action ExtendBoundingBox(BoundingBox box) returns BoundingBox
     
 end

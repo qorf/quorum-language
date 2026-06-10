@@ -22,6 +22,7 @@ use Libraries.Game.Graphics.Vulkan.VulkanBuffer
 use Libraries.Game.Graphics.Vulkan.VulkanDescriptorResourcesInfo
 use Libraries.Game.Graphics.Models.Data.Material
 use Libraries.Game.Graphics.Models.Data.ModelBuilder
+use Libraries.Compute.Vector4
 
 shared class ModelManagerVulkan
     
@@ -197,11 +198,30 @@ end
     end
     
     action GetPlaneBlueprint(number width, number depth, boolean doubleSided) returns ModelBlueprintVulkan
-        text key = PRIMITIVE_KEY + PLANE_KEY + width + DELIMITER + depth + DELIMITER + doubleSided
+        return GetPlaneBlueprint(width, depth, undefined, doubleSided)
+    end
+    
+    action GetPlaneBlueprint(number width, number depth, Vector4 textureCoordinates, boolean doubleSided) returns ModelBlueprintVulkan
+        number left = 0
+        number right = 1
+        number bottom = 0
+        number top = 1
+        if textureCoordinates not= undefined
+            left = textureCoordinates:GetX()
+            bottom = textureCoordinates:GetY()
+            right = textureCoordinates:GetZ()
+            top = textureCoordinates:GetW()
+        else
+            Vector4 new
+            textureCoordinates = new
+            new:Set(left, bottom, right, top)
+        end
+        text key = PRIMITIVE_KEY + PLANE_KEY + width + DELIMITER + depth + DELIMITER +
+left + DELIMITER + bottom + DELIMITER + right + DELIMITER + top + DELIMITER + doubleSided
         if cachedBlueprints:HasKey(key)
             return cachedBlueprints:GetValue(key)
         else
-            ModelData data = modelBuilder:CreatePlane(width, depth, doubleSided)
+            ModelData data = modelBuilder:CreatePlane(width, depth, textureCoordinates, doubleSided)
             data:SetID(key)
             ModelBlueprintVulkan result = ConvertToBlueprint(data)
             cachedBlueprints:Add(key, result)
