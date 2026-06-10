@@ -3,18 +3,18 @@ package Libraries.Game.Graphics.Models.Data
 use Libraries.Compute.Vector4
 
 class Material
-    text path = ""
+    text texturePath = ""
     text normalMapPath = ""
     text metalRoughMap = ""
     Vector4 diffuse
     number roughness = 0.0
     number metallic = 0.0
-    action GetPath returns text
-        return path
+    action GetTexturePath returns text
+        return texturePath
     end
 
-    action SetPath(text path)
-        me:path = path
+    action SetTexturePath(text path)
+        me:texturePath = texturePath
     end
 
     action GetDiffuse returns Vector4
