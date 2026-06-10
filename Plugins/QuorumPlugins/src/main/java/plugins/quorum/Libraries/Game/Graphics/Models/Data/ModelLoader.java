@@ -13,6 +13,7 @@ import quorum.Libraries.System.File_;
 import java.io.File;
 import java.lang.Math;
 import java.nio.IntBuffer;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -473,8 +474,13 @@ public class ModelLoader {
             aiGetMaterialTexture(aiMaterial, aiTextureType_DIFFUSE, 0, aiTexturePath, (IntBuffer) null,
                     null, null, null, null, null);
             String texturePath = aiTexturePath.dataString();
+            String workingDirectory = System.getProperty("user.dir");
+            java.nio.file.Path workingDirectoryPath = java.nio.file.Paths.get(workingDirectory);
             if (texturePath != null && texturePath.length() > 0) {
-                texturePath = new File(texturePath).getName();
+                java.nio.file.Path thePathObject = new java.io.File(
+                        texturesDir + File.separator + texturePath).toPath().toAbsolutePath();
+                java.nio.file.Path relative = workingDirectoryPath.relativize(thePathObject);
+                texturePath = relative.toString();
                 diffuse.Set(0.0, 0.0, 0.0, 0.0);
             }
 
@@ -483,7 +489,10 @@ public class ModelLoader {
                     null, null, null, null, null);
             String normalMapPath = aiNormalMapPath.dataString();
             if (normalMapPath != null && normalMapPath.length() > 0) {
-                normalMapPath = new File(normalMapPath).getName();
+                java.nio.file.Path thePathObject = new java.io.File(
+                        texturesDir + File.separator + normalMapPath).toPath().toAbsolutePath();
+                java.nio.file.Path relative = workingDirectoryPath.relativize(thePathObject);
+                normalMapPath = relative.toString();
             }
 
             AIString aiMetallicRoughnessPath = AIString.calloc(stack);
@@ -491,7 +500,10 @@ public class ModelLoader {
                     null, null, null, null, null);
             String metallicRoughnessPath = aiMetallicRoughnessPath.dataString();
             if (metallicRoughnessPath != null && metallicRoughnessPath.length() > 0) {
-                metallicRoughnessPath = new File(metallicRoughnessPath).getName();
+                java.nio.file.Path thePathObject = new java.io.File(
+                        texturesDir + File.separator + metallicRoughnessPath).toPath().toAbsolutePath();
+                java.nio.file.Path relative = workingDirectoryPath.relativize(thePathObject);
+                metallicRoughnessPath = relative.toString();
             }
 
             float[] metallicArr = new float[]{0.0f};
@@ -508,6 +520,7 @@ public class ModelLoader {
             }
 
             Material_ material = new Material();
+            material.SetTexturePath(texturePath);
             material.SetDiffuse(diffuse);
             material.SetNormalMapPath(normalMapPath);
             material.SetMetalRoughMap(metallicRoughnessPath);

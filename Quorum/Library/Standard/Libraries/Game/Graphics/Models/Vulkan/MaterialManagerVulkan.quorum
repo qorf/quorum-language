@@ -169,7 +169,7 @@ VulkanImageInfo info
     //end
     
     action GetMaterial(Material data) returns MaterialVulkan
-        text path = data:GetPath()
+        text path = data:GetTexturePath()
         MaterialVulkan result = GetCachedMaterial(path)
         if result = undefined
             MaterialVulkan material
