@@ -22,6 +22,9 @@ use Libraries.Game.Graphics.Vulkan.VulkanBuffer
 use Libraries.Game.Graphics.Vulkan.VulkanDescriptorResourcesInfo
 use Libraries.Game.Graphics.Models.Data.Material
 use Libraries.Game.Graphics.Models.Data.ModelBuilder
+use Libraries.Game.Graphics.Models.Data.Animations
+use Libraries.Game.Graphics.Models.Data.Animation
+use Libraries.Game.Graphics.Models.Data.AnimationFrame
 
 shared class ModelManagerVulkan
     
@@ -54,6 +57,7 @@ shared class ModelManagerVulkan
     Queue<integer> recycledVertexIDs
     Queue<integer> recycledIndexIDs
     
+    AnimationManagerVulkan animationManager
     MaterialManagerVulkan materialManager
     
     on create
@@ -63,6 +67,7 @@ shared class ModelManagerVulkan
     action Create(VulkanDevice device, VulkanGraphics graphics)
         me:device = device
         materialManager:Create(device)
+        animationManager:Create(device)
     end
     
     action ProcessPendingResources
@@ -102,6 +107,7 @@ if mesh:HasData()
         end
         
         materialManager:ProcessPendingResources()
+        animationManager:ProcessPendingResources()
     end
     
 action GetModelBlueprint(File file) returns ModelBlueprintVulkan
@@ -154,6 +160,12 @@ end
         end
         result:SetMeshes(meshes)
         
+        //Now if the model has animations, add them to a pending spot
+        boolean animate = data:HasAnimations()
+        if animate
+            Animations animations = data:GetAnimations()
+            animationManager:AddPendingAnimations(animations)
+        end
         return result
     end
     

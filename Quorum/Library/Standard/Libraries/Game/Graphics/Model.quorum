@@ -25,6 +25,10 @@ use Libraries.Game.Graphics.Vulkan.VulkanGraphics
 use Libraries.Game.Graphics.Models.Data.Animation
 use Libraries.Game.Graphics.Models.OpenGL.ModelResourcesOpenGL
 use Libraries.Game.Graphics.Models.OpenGL.ModelBlueprintOpenGL
+use Libraries.Game.Graphics.Models.Data.AnimationState
+use Libraries.Game.Graphics.Models.Data.AnimationFrame
+use Libraries.Interface.Accessibility
+use Libraries.Interface.Events.FocusEvent
 
 /*
 The Model class represents a 3D model to be drawn on the screen by the Game
@@ -90,6 +94,8 @@ class Model is Item3D
     how this data should be used. The default shaders/mappings will typically ignore this value.
     */
     Object shaderData = undefined
+    
+    AnimationState animationState = undefined
 
     on create
         SceneProperties properties
@@ -2295,5 +2301,73 @@ end
     action GetMeshCount returns integer
         return modelBlueprint:GetMeshCount()
     end
+
+    action GetAnimationState returns AnimationState
+        return animationState
+    end
+
+    action SetAnimationState(AnimationState animationState)
+        me:animationState = animationState
+    end
+    
+    action UpdateAnimationState(number seconds)
+        if animationState = undefined or not HasAnimations()
+            return now
+        end
+        
+        if animationState:IsStarted()
+            integer index = animationState:GetAnimationIndex()
+            if index < 0 or index >= GetAnimationsSize()
+                return now
+            end
+            
+            Animation animation = GetAnimation(index)
+            if animation = undefined
+                return now
+            end
+            
+            Array<AnimationFrame> frames = animation:GetFrames()
+            if frames = undefined
+                return now
+            end
+            
+            number timePerFrame = animation:GetMilliseconds()
+            integer frame = animationState:GetCurrentFrame()
+            //calculate the frame that we are on
+            number startTime = animationState:GetCurrentTime()
+            number currentTime = startTime + seconds
+            number newFrameNumber = currentTime / timePerFrame
+            integer newFrame = cast(integer, newFrameNumber)
+            if newFrame >= frames:GetSize()
+                newFrame = frames:GetSize() - 1
+            end
+            animationState:SetCurrentFrame(newFrame)
+            
+            //somehow tell the model what's going on here
+            
+            //somehow decide what the accessibility system does here.
+            if startTime = 0
+                output "Access triggered."
+                GameStateManager manager
+                //this is wrong, but I'm still working on it.
+            Accessibility accessibility = manager:GetAccessibility()
+            accessibility:Notify(me, "Test Message")
+                
+                SetName("Test Message in Model.")
+                FocusEvent event
+                event:Initialize(undefined, me)
+                accessibility:FocusChanged(event)
+            end
+            
+            animationState:SetCurrentTime(currentTime)
+        end
+        
+        
+    end
+    
+    action Update(number seconds)
+        UpdateAnimationState(seconds)
+    end
+    
 
 end

@@ -1,0 +1,46 @@
+package Libraries.Game.Graphics.Models.Vulkan
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Models.Data.Animation
+use Libraries.Game.Graphics.Models.Data.Animations
+use Libraries.Game.Graphics.Models.Data.AnimationFrame
+
+class AnimationManagerVulkan
+    
+    VulkanDevice device = undefined
+    Array<Animations> pendingAnimations
+    
+    action Create(VulkanDevice device)
+        me:device = device
+    end
+    
+    action ProcessPendingResources
+        if pendingAnimations:IsEmpty()
+            return now
+        end
+        
+        i = 0
+        repeat while i < pendingAnimations:GetSize()
+            Animations animations = pendingAnimations:Get(i)
+            j = 0
+            repeat while j < animations:GetSize()
+                Animation animation = animations:Get(j)
+                
+                j = j + 1
+            end
+            
+            i = i + 1
+        end
+        
+        
+        output "Animations Finishing"
+            pendingAnimations:Empty()
+    end
+    
+    
+    action AddPendingAnimations(Animations animations)
+        pendingAnimations:Add(animations)
+    end
+    
+    
+end

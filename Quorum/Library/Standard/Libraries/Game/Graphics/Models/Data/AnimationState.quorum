@@ -1,0 +1,41 @@
+package Libraries.Game.Graphics.Models.Data
+
+class AnimationState
+    boolean started = false
+    integer animationIndex = 0
+    integer currentFrame = 0
+    number currentTime = 0
+    
+    action IsStarted returns boolean
+        return started
+    end
+
+    action SetStarted(boolean started)
+        me:started = started
+    end
+
+    action GetAnimationIndex returns integer
+        return animationIndex
+    end
+
+    action SetAnimationIndex(integer animationIndex)
+        me:animationIndex = animationIndex
+    end
+
+    action GetCurrentFrame returns integer
+        return currentFrame
+    end
+
+    action SetCurrentFrame(integer currentFrame)
+        me:currentFrame = currentFrame
+    end
+
+    action GetCurrentTime returns number
+        return currentTime
+    end
+
+    action SetCurrentTime(number currentTime)
+        me:currentTime = currentTime
+    end
+
+end
