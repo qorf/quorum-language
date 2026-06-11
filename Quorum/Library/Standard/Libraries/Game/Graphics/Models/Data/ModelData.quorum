@@ -31,6 +31,14 @@ class ModelData
     action SetMeshes(Array<MeshData> meshes)
         me:meshes = meshes
     end
+    
+    action HasAnimations returns boolean
+        if animations not= undefined and animations:HasAnimations()
+            return true
+        else
+            return false
+        end
+    end
 
     action GetAnimations returns Animations
         return animations

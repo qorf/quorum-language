@@ -5,6 +5,8 @@ use Libraries.Game.BoundingBox
 use Libraries.Compute.Vector3
 use Libraries.Game.Graphics.Models.Data.ModelData
 use Libraries.Containers.Array
+use Libraries.Game.Graphics.Models.Data.Animation
+use Libraries.Game.Graphics.Models.Data.Animations
 
 class ModelBlueprintVulkan is ModelBlueprint
     text key = undefined
@@ -13,6 +15,32 @@ class ModelBlueprintVulkan is ModelBlueprint
     Array<MaterialVulkan> materials = undefined
     
     BoundingBox boundingBox
+    
+    
+action HasAnimations returns boolean
+        Animations animations = data:GetAnimations()
+        if animations = undefined
+            return false
+        end
+        
+        return animations:HasAnimations()
+end
+    
+    action GetAnimation(integer index) returns Animation
+        if not HasAnimations()
+            return undefined
+        end
+Animations animations = data:GetAnimations()
+        return animations:Get(index)
+    end
+    
+    action GetAnimationsSize returns integer
+        if not HasAnimations()
+            return 0
+        end
+Animations animations = data:GetAnimations()
+        return animations:GetSize()
+    end
     
     action GetKey returns text
         return key
@@ -58,7 +86,7 @@ class ModelBlueprintVulkan is ModelBlueprint
         //end
 //
         //return box
-        output "Warning: Temporarily ignoring NYI action ExtendBoundingBox in ModelBlueprintVulkan..."
+        //output "Warning: Temporarily ignoring NYI action ExtendBoundingBox in ModelBlueprintVulkan..."
         return box
     end
 

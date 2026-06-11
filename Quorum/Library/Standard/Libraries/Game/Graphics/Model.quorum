@@ -1,6 +1,5 @@
 package Libraries.Game.Graphics
 
-use Libraries.Game.Graphics.Models.OpenGL.all
 use Libraries.Game.Graphics.Models.ModelBlueprint
 use Libraries.Game.Graphics.ModelLoaders.ModelReader
 use Libraries.Game.Scenes.SceneProperties
@@ -23,6 +22,9 @@ use Libraries.Game.Graphics.Models.Vulkan.ModelResourcesVulkan
 use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
 use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
 use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Models.Data.Animation
+use Libraries.Game.Graphics.Models.OpenGL.ModelResourcesOpenGL
+use Libraries.Game.Graphics.Models.OpenGL.ModelBlueprintOpenGL
 
 /*
 The Model class represents a 3D model to be drawn on the screen by the Game
@@ -92,6 +94,19 @@ class Model is Item3D
     on create
         SceneProperties properties
         modelType = properties:NONE
+    end
+    
+    action HasAnimations returns boolean
+        return modelBlueprint:HasAnimations()
+    end
+    
+    
+    action GetAnimation(integer index) returns Animation
+return modelBlueprint:GetAnimation(index)
+    end
+    
+    action GetAnimationsSize returns integer
+return modelBlueprint:GetAnimationsSize()
     end
 	
 	/*

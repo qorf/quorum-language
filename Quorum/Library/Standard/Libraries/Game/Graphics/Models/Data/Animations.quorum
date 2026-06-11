@@ -28,5 +28,19 @@ class Animations
     action SetAnimationMeshData(Array<AnimationMeshData> animationMeshData)
         me:animationMeshData = animationMeshData
     end
-
+    
+    action Get(integer index) returns Animation
+        return animations:Get(index)
+    end
+    
+    action Set(integer index, Animation animation)
+        animations:Set(index,animation)
+    end
+    
+    action GetSize returns integer
+        if animations = undefined
+            return 0
+        end
+        return animations:GetSize()
+    end
 end
