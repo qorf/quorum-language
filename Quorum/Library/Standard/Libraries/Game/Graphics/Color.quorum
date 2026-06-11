@@ -102,6 +102,39 @@ class Color is ColorGroup
         Clamp()
 
     end
+    
+    /*
+    This action sets a color to match the value of another color.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+
+            Drawable rectangle
+
+            Color orange
+            Color copy
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                orange:SetColor(1, 0.7, 0, 1)
+                copy:SetColor(orange)
+                rectangle:LoadFilledRectangle(100, 50, copy)
+                rectangle:SetPosition(50, 50)
+                Add(rectangle)
+            end
+        end
+    */
+    action SetColor(Color sourceColor)
+SetColor(sourceColor:GetRed(), sourceColor:GetGreen(), sourceColor:GetBlue(), sourceColor:GetAlpha())
+    end
 
     /*
     This action is used internally by the game engine to set a color using an

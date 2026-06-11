@@ -5,6 +5,8 @@ use Libraries.Game.BoundingBox
 use Libraries.Compute.Vector3
 use Libraries.Game.Graphics.Models.Data.ModelData
 use Libraries.Containers.Array
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Containers.Number32BitArray
 use Libraries.Game.Graphics.Models.Data.Animation
 use Libraries.Game.Graphics.Models.Data.Animations
 
@@ -79,14 +81,51 @@ Animations animations = data:GetAnimations()
     encapsulate the bounds of this Model.
     */
     action ExtendBoundingBox(BoundingBox box) returns BoundingBox
-        //integer counter = 0
-//
-        //repeat nodes:GetSize() times
-            //nodes:Get(counter):ExtendBoundingBox(box)
-        //end
-//
-        //return box
-        //output "Warning: Temporarily ignoring NYI action ExtendBoundingBox in ModelBlueprintVulkan..."
+        number minX = box:GetMinimum():GetX()
+        number minY = box:GetMinimum():GetY()
+        number minZ = box:GetMinimum():GetZ()
+        number maxX = box:GetMaximum():GetX()
+        number maxY = box:GetMaximum():GetY()
+        number maxZ = box:GetMaximum():GetZ()
+        
+        integer i = 0
+        repeat while i < data:GetMeshes():GetSize()
+            MeshData mesh = data:GetMeshes():Get(i)
+            Number32BitArray positions = mesh:GetVertices()
+            integer j = 0
+            repeat while j < positions:GetSize()
+                number x = positions:Get(j)
+                number y = positions:Get(j + 1)
+                number z = positions:Get(j + 2)
+                
+                if x < minX
+                    minX = x
+                elseif x > maxX
+                    maxX = x
+                end
+                if y < minY
+                    minY = y
+                elseif y > maxY
+                    maxY = y
+                end
+                if z < minZ
+                    minZ = z
+                elseif z > maxZ
+                    maxZ = z
+                end
+                
+                j = j + 3
+            end
+            
+            i = i + 1
+        end
+        
+        Vector3 min
+        min:Set(minX, minY, minZ)
+        Vector3 max
+        max:Set(maxX, maxY, maxZ)
+        
+        box:Set(min, max)
         return box
     end
 

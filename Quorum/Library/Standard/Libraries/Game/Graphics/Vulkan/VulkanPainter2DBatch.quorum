@@ -6,6 +6,7 @@ use Libraries.Game.Graphics.DrawableShape
 use Libraries.Game.Graphics.Vulkan.Commands.CopyBufferCommand
 use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
 use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
+use Libraries.Game.Graphics.Texture
 
 /*
 This class encapsulates a series of buffers and arrays used to batch a large number of drawn elements all at once.
@@ -57,6 +58,11 @@ class VulkanPainter2DBatch
 
     // How many frames have passed without using this batch. Can be used to determine if a batch hasn't been used in a long time and can be disposed.
     integer age = 0
+    
+    //Which texture group this batch is using.
+    // The batch can't accept drawables that are using textures not in this batch's texture group.
+    integer textureGroupID = -1
+    boolean textureGroupSet = false
 
     action Create(ShaderProgram program)
         Create(program, DEFAULT_VERTEX_BUFFER_SIZE, DEFAULT_INDEX_BUFFER_SIZE)
@@ -101,6 +107,7 @@ class VulkanPainter2DBatch
         indexWritePosition = 0
         verticesCount = 0
         isFull = false
+        textureGroupSet = false
 
         age = age + 1
     end
@@ -123,6 +130,25 @@ class VulkanPainter2DBatch
 
     action GetIndexBufferSize returns integer
         return indexData:GetSize()
+    end
+    
+    // Returns true if this Batch is using the same group ID as the texture.
+    // If this Batch isn't using any ID yet, it primes the Batch to accept this ID and returns true.
+    action IsTextureCompatible(Texture texture) returns boolean
+        integer groupIndex = texture:GetVulkanTextureGroupIndex()
+        return IsTextureCompatible(groupIndex)
+    end
+    
+    action IsTextureCompatible(integer groupIndex) returns boolean
+        if textureGroupSet = false
+            textureGroupID = groupIndex
+            textureGroupSet = true
+        end
+        return groupIndex = textureGroupID
+    end
+    
+    action GetTextureGroupID returns integer
+        return textureGroupID
     end
 
     action Add(DrawableShape shape) returns boolean

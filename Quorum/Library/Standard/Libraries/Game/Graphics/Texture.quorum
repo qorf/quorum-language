@@ -80,6 +80,11 @@ class Texture is Disposable
 
     // An index associated with the global array of textures stored by the VulkanTextureManager, if Vulkan is being used for the engine.
     integer vulkanTextureIndex = -1
+    
+    // Indices associated with the Vulkan descriptor sets for textures. If there's more textures than can fit in a single descriptor set,
+    // textures are sorted into sub-arrays. This represents which sub-array (the group index) and the location within that sub-array (local index).
+    integer vulkanTextureGroupIndex = -1
+    integer vulkanTextureLocalIndex = -1
 
     on create
         minimizeFilter:ConstructTextureFilter(minimizeFilter:NEAREST)
@@ -1553,6 +1558,28 @@ class Texture is Disposable
     */
     action SetVulkanTextureIndex(integer vulkanTextureIndex)
         me:vulkanTextureIndex = vulkanTextureIndex
+        
+        if manager:GetGameGraphics() is VulkanGraphics
+            VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+            VulkanTextureManager textureManager = graphics:GetTextureManager()
+            
+            vulkanTextureGroupIndex = vulkanTextureIndex / textureManager:GetDescriptorSetEntries()
+            vulkanTextureLocalIndex = vulkanTextureIndex mod textureManager:GetDescriptorSetEntries()
+        end
+    end
+    
+    /*This action returns the group index of this texture within the VulkanTextureManager's global groupings.
+The manager may divide textures into multiple groups if there are more textures than can fit into a single
+array as a shader input. */
+    action GetVulkanTextureGroupIndex returns integer
+        return vulkanTextureGroupIndex
+    end
+    
+    /*This action returns the texture's index within its grouping inside the VulkanTextureManager.
+The manager may divide textures into multiple groups if there are more textures than can fit into a single
+array as a shader input.*/
+    action GetVulkanTextureLocalIndex returns integer
+        return vulkanTextureLocalIndex
     end
 
 end

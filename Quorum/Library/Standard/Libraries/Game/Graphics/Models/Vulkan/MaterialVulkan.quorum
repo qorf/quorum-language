@@ -52,6 +52,8 @@ Metallic Factor (float, 4 bytes)*/
     Texture preloadNormalMap = undefined
     Texture preloadRoughMap = undefined
     
+    integer textureGroupIndex = -1
+    
     // Ensures all data in the material that needs to be pre-processed, such as textures, are sent to their appropriate managers.
     action Preload(VulkanDevice device, Material data)
         me:device = device
@@ -134,21 +136,23 @@ default material loading system, as part of the model load system).*/
         end
         
         // There is always a texture, whether its custom or the default unit texture.
-        dataArray:Set(TEXTURE_INDEX, utility:EncodeIntegerAsNumber(preloadTexture:GetVulkanTextureIndex()))
+        dataArray:Set(TEXTURE_INDEX, utility:EncodeIntegerAsNumber(preloadTexture:GetVulkanTextureLocalIndex()))
+        
+        textureGroupIndex = preloadTexture:GetVulkanTextureGroupIndex()
         
         if preloadNormalMap = undefined
             dataArray:Set(HAS_NORMAL_MAP_INDEX, utility:EncodeIntegerAsNumber(0))
             dataArray:Set(NORMAL_MAP_INDEX, utility:EncodeIntegerAsNumber(0))
         else
             dataArray:Set(HAS_NORMAL_MAP_INDEX, utility:EncodeIntegerAsNumber(1))
-            dataArray:Set(NORMAL_MAP_INDEX, utility:EncodeIntegerAsNumber(preloadNormalMap:GetVulkanTextureIndex()))
+            dataArray:Set(NORMAL_MAP_INDEX, utility:EncodeIntegerAsNumber(preloadNormalMap:GetVulkanTextureLocalIndex()))
         end
         if preloadRoughMap = undefined
             dataArray:Set(HAS_ROUGH_MAP_INDEX, utility:EncodeIntegerAsNumber(0))
             dataArray:Set(ROUGH_MAP_INDEX, utility:EncodeIntegerAsNumber(0))
         else
             dataArray:Set(HAS_ROUGH_MAP_INDEX, utility:EncodeIntegerAsNumber(1))
-            dataArray:Set(ROUGH_MAP_INDEX, utility:EncodeIntegerAsNumber(preloadRoughMap:GetVulkanTextureIndex()))
+            dataArray:Set(ROUGH_MAP_INDEX, utility:EncodeIntegerAsNumber(preloadRoughMap:GetVulkanTextureLocalIndex()))
         end
         dataArray:Set(ROUGH_FACTOR_INDEX, data:GetRoughness())
         dataArray:Set(METALLIC_FACTOR_INDEX, data:GetMetallic())
@@ -210,6 +214,10 @@ default material loading system, as part of the model load system).*/
 
     action SetGlobalMaterialIndex(integer globalMaterialIndex)
         me:globalMaterialIndex = globalMaterialIndex
+    end
+
+    action GetTextureGroupIndex returns integer
+        return textureGroupIndex
     end
 
 end

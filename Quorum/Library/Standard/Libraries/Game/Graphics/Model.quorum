@@ -22,6 +22,7 @@ use Libraries.Game.Graphics.Models.Vulkan.ModelResourcesVulkan
 use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
 use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
 use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Compute.Vector4
 use Libraries.Game.Graphics.Models.Data.Animation
 use Libraries.Game.Graphics.Models.OpenGL.ModelResourcesOpenGL
 use Libraries.Game.Graphics.Models.OpenGL.ModelBlueprintOpenGL
@@ -96,7 +97,10 @@ class Model is Item3D
     Object shaderData = undefined
     
     AnimationState animationState = undefined
-
+    // The first boolean tracks if this Model is treated as having transparency.
+    // The second boolean is true if the transparency can be automatically set by setting colors or other means, or false if it was set manually.
+    boolean hasTransparency = false
+    boolean transparencyAutoSet = true
     on create
         SceneProperties properties
         modelType = properties:NONE
@@ -225,11 +229,17 @@ return modelBlueprint:GetAnimationsSize()
     */
     action SetColor(Color color)
         resources:SetColor(color)
+        if transparencyAutoSet and color:GetAlpha() < 1.0
+            hasTransparency = true
+        end
     end
     
     /*Models can be made up of multiple parts, called meshes. This action sets the color of a specific mesh in the model
 based on its index.*/
     action SetColor(integer meshIndex, Color color)
+        if transparencyAutoSet and color:GetAlpha() < 1.0
+            hasTransparency = true
+        end
         resources:SetColor(meshIndex, color)
     end
 
@@ -727,7 +737,9 @@ based on its index.*/
     */
     action LoadPlane(number width, number depth, Drawable drawable)
         Texture texture = drawable:GetTexture()
-        LoadPlane(width, depth, texture)
+        Vector4 coordinates
+        coordinates:Set(drawable:GetLeftSide(), drawable:GetBottomSide(), drawable:GetRightSide(), drawable:GetTopSide())
+        LoadPlane(width, depth, texture, coordinates)
     end
 
     /*
@@ -763,23 +775,46 @@ based on its index.*/
 
     */
     action LoadPlane(number width, number depth, Texture texture)
-        ModelBlueprint schematic = GetCachedPlane(width, depth, texture, false)
-        Load(schematic)
-        SetTexture(texture)
-        Box box
-        // Using a box with a thin height isn't correct -- it's only a rough
-        // approximation, as we currently lack a "plane" shape.
-        box:Set(width, 0.01, depth)
-        SetShape(box)
+        LoadPlane(width, depth, texture, undefined)
+    end
+    
+    /*
+    This action will load the Model with a plane with the given width,
+    depth, and texture. The texture will be sampled according to the texture
+    coordinates provided, with the first two values providing the x and y
+    coordinates of the first point on the texture, and the second values
+    indicating the x y coordinates of the second point.
 
-        SceneProperties properties
-        modelType = properties:PLANE
+    Attribute: Parameter width How long the plane should be along the x-axis.
+    Attribute: Parameter depth How long the plane should be along the z-axis.
+    Attribute: Parameter drawable A loaded Drawable containing an image to be used on the surface of the plane.
 
-        if texture:GetSource() not= undefined
-            File file
-            file:SetPath(texture:GetSource())
-            assetFile = file
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Texture
+
+    class Main is Game
+
+        Model plane
+
+        action Main
+            StartGame()
         end
+
+        action CreateGame
+            Texture texture
+            texture:LoadFilledCircle(150)
+
+            plane:LoadPlane(2, 2, texture)
+            Add(plane)
+        end
+    end
+
+    */
+    action LoadPlane(number width, number depth, Texture texture, Vector4 textureCoordinates)
+        LoadPlane(width, depth, texture, textureCoordinates, false)
     end
 
     /*
@@ -871,7 +906,7 @@ based on its index.*/
     action LoadPlane(number width, number depth, File textureFile, boolean doubleSided)
         Texture texture
         texture:LoadFromFile(textureFile)
-        LoadPlane(width, depth, texture)
+        LoadPlane(width, depth, texture, doubleSided)
 
         assetFile = textureFile
     end
@@ -952,7 +987,9 @@ based on its index.*/
     */
     action LoadPlane(number width, number depth, Drawable drawable, boolean doubleSided)
         Texture texture = drawable:GetTexture()
-        LoadPlane(width, depth, texture)
+        Vector4 coordinates
+        coordinates:Set(drawable:GetLeftSide(), drawable:GetBottomSide(), drawable:GetRightSide(), drawable:GetTopSide())
+        LoadPlane(width, depth, texture, coordinates, doubleSided)
     end
 
     /*
@@ -992,7 +1029,55 @@ based on its index.*/
 
     */
     action LoadPlane(number width, number depth, Texture texture, boolean doubleSided)
-        ModelBlueprint schematic = GetCachedPlane(width, depth, texture, doubleSided)
+        LoadPlane(width, depth, texture, undefined, doubleSided)
+    end
+    
+    /*
+    This action will load the Model with a plane with the given width,
+    depth, and texture. The texture will be sampled according to the texture
+    coordinates provided, with the first two values providing the x and y
+    coordinates of the first point on the texture, and the second values
+    indicating the x y coordinates of the second point.
+    If the boolean value provided is true, it will be double sided (allowing it 
+    to be viewed from both sides of the plane) -- otherwise, it will only 
+    visible along the top of the plane.
+
+    Attribute: Parameter width How long the plane should be along the x-axis.
+    Attribute: Parameter depth How long the plane should be along the z-axis.
+    Attribute: Parameter texture A texture to be used on the surface of the plane.
+    Attribute: Parameter textureCoordinates Coordinates to sample on the texture, with the format X1, Y1, X2, Y2.
+    Attribute: Parameter doubleSided True to make the plane double-sided, false otherwise.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Texture
+    use Libraries.Game.Graphics.Vector4
+
+    class Main is Game
+
+        Model plane
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Texture texture
+            texture:LoadFilledCircle(150)
+
+            Vector4 textureCoordinates
+            textureCoordinates:Set(0, 0, 0.5, 0.5)
+
+            plane:LoadPlane(2, 2, texture, textureCoordinates, true)
+            Add(plane)
+        end
+    end
+
+    */
+    action LoadPlane(number width, number depth, Texture texture, Vector4 textureCoordinates, boolean doubleSided)
+        ModelBlueprint schematic = GetCachedPlane(width, depth, texture, textureCoordinates, doubleSided)
         Load(schematic)
         SetTexture(texture)
         Box box
@@ -1939,12 +2024,12 @@ end
     */
     private system action GetCachedBoxOpenGL(number width, number height, number depth, Texture texture) returns ModelBlueprintOpenGL
     
-    private action GetCachedPlane(number width, number depth, Texture texture, boolean doubleSided) returns ModelBlueprint
+    private action GetCachedPlane(number width, number depth, Texture texture, Vector4 coordinates, boolean doubleSided) returns ModelBlueprint
         if UsingOpenGL()
             return GetCachedPlaneOpenGL(width, depth, texture, doubleSided)
         else
             ModelManagerVulkan modelManager = GetModelManager()
-            return modelManager:GetPlaneBlueprint(width, depth, doubleSided)
+            return modelManager:GetPlaneBlueprint(width, depth, coordinates, doubleSided)
         end
 end
 
@@ -2232,14 +2317,7 @@ end
 
     */
     action ExtendBoundingBox(BoundingBox box) returns BoundingBox
-        alert("NYI")
-        //integer counter = 0
-//
-        //repeat nodes:GetSize() times
-            //nodes:Get(counter):ExtendBoundingBox(box)
-        //end
-//
-        //return box
+        return modelBlueprint:ExtendBoundingBox(box)
     end
 
     /*
@@ -2300,6 +2378,15 @@ end
     
     action GetMeshCount returns integer
         return modelBlueprint:GetMeshCount()
+    end
+    
+    action HasTransparency returns boolean
+        return hasTransparency
+    end
+    
+    action EnableTransparency(boolean enable)
+        hasTransparency = enable
+        transparencyAutoSet = false
     end
 
     action GetAnimationState returns AnimationState

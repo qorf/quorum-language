@@ -23,6 +23,9 @@ class VulkanPainter3DBatch
     
     boolean isPending = false
     
+    // This action tracks how many meshes have been sent to each draw queue this frame.
+    Array<integer> drawQueueUses
+    
     action Create(ModelBlueprintVulkan schematic, boolean isTransparent)
         me:schematic = schematic
         me:isTransparent = isTransparent
@@ -53,6 +56,12 @@ class VulkanPainter3DBatch
         models:Empty()
         isPending = false
         age = age + 1
+        
+        integer i = 0
+        repeat while i < drawQueueUses:GetSize()
+            drawQueueUses:Set(i, 0)
+            i = i + 1
+        end
     end
 
     action ResetAge
@@ -84,13 +93,14 @@ class VulkanPainter3DBatch
     end
     
     // For all of the models in this batch, store their per-instance data and queue up indirect draw command(s).
-    action ProcessBatch(VulkanDrawQueue3D queue)
+    action ProcessBatch(VulkanPainter3D painter)
         if schematic:HasAnimations()
             //TODO: Getting close.
             else
             integer i = 0
             repeat while i < meshesPerModel
                 MeshVulkan mesh = schematic:GetMeshes():Get(i)
+                integer baseTextureGroup = mesh:GetMaterial():GetTextureGroupIndex()
                 
                 integer j = 0
                 repeat while j < models:GetSize()
@@ -99,15 +109,42 @@ class VulkanPainter3DBatch
                     Color diffuseOverride = resources:GetColor(i)
                     Texture textureOverride = resources:GetTexture(i)
                     
+                    VulkanDrawQueue3D queue = undefined
+                    if textureOverride not= undefined
+                        queue = painter:GetCurrentDrawQueue(textureOverride:GetVulkanTextureGroupIndex())
+                        IncrementUses(textureOverride:GetVulkanTextureGroupIndex())
+                    else
+                        queue = painter:GetCurrentDrawQueue(baseTextureGroup)
+                        IncrementUses(baseTextureGroup)
+                    end
+                    
                     queue:AddInstanceData(mesh, textureOverride, diffuseOverride, model:GetTransform())
                     
                     j = j + 1
                 end
                 
-                queue:AddDrawIndirectCommand(mesh:GetIndexCount(), models:GetSize())
+                j = 0
+                repeat while j < drawQueueUses:GetSize()
+                    VulkanDrawQueue3D queue = painter:GetCurrentDrawQueue(j)
+                    if drawQueueUses:Get(j) > 0
+                        queue:AddDrawIndirectCommand(mesh:GetIndexCount(), drawQueueUses:Get(j))
+                        drawQueueUses:Set(j, 0)
+                    end
+                    j = j + 1
+                end
+                
+                //queue:AddDrawIndirectCommand(mesh:GetIndexCount(), models:GetSize())
                 i = i + 1
             end
         end
+    end
+    
+    private action IncrementUses(integer index)
+        // Make sure there's an array entry at the requested index.
+        repeat until drawQueueUses:GetSize() > index
+            drawQueueUses:Add(0)
+        end
+        drawQueueUses:Set(index, drawQueueUses:Get(index) + 1)
     end
 
 end

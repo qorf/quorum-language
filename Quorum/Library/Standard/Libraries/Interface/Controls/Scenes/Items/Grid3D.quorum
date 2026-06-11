@@ -12,6 +12,12 @@ use Libraries.Game.Graphics.TextureWrap
 use Libraries.Game.Graphics.Models.OpenGL.Attributes.NumberAttribute
 use Libraries.Interface.Controls.Scenes.SceneConstants
 use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Models.Vulkan.ModelResourcesVulkan
+use Libraries.Game.Graphics.Models.OpenGL.ModelResourcesOpenGL
+use Libraries.Game.Graphics.Color
+use Libraries.Compute.Vector4
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
 
 /*
     The Grid3D class is a Model that will be drawn in the EditorLayer3D to show the grid in
@@ -56,46 +62,61 @@ class Grid3D is Model
 
         Texture gridTexture
         gridTexture:LoadRectangle(100, 100)
-        Drawable grid
-        grid:Load(gridTexture)
-        grid:SetColor(editorConstants:GRID_2D_COLOR)
         
-        LoadPlane(1, 1, grid, true)
+        
         Scale(scaleFactor, 1, scaleFactor)
 
-        if true
-            alert("NYI: OpenGL specific attribute manipulation not yet generalized")
+        GameStateManager manager
+if manager:GetGameGraphics() is VulkanGraphics
+            Vector4 textureCoordinates
+            textureCoordinates:Set(0, 0, scaleFactor / gridUnits, scaleFactor / gridUnits)
+            LoadPlane(1, 1, gridTexture, textureCoordinates, true)
+            
+            Color gridColor
+            gridColor:SetColor(editorConstants:GRID_2D_COLOR)
+            gridColor:SetAlpha(0.1)
+            
+            SetColor(gridColor)
+            
+            // TO-DO: Override lighting to ensure albedo is used directly (i.e. replicate the OpenGL ambient light attribute)
+        else
+Drawable grid
+        grid:Load(gridTexture)
+        grid:SetColor(editorConstants:GRID_2D_COLOR)
+            LoadPlane(1, 1, grid, true)
+            
+            ModelResourcesOpenGL resources = cast(ModelResourcesOpenGL, GetResources())
+            Array<Material> value = resources:GetMaterials()
+        Material material = value:Get(0)
+        
+        BlendingAttribute blend
+        material:Add(blend)
+        blendAttribute = blend
+
+        ColorAttribute lightAttribute
+        lightAttribute = lightAttribute:CreateAmbientLight(1, 1, 1, 1)
+        material:Add(lightAttribute)
+        me:lightAttribute = lightAttribute
+
+        ColorAttribute diffuseAttribute = lightAttribute:CreateDiffuse(0, 0, 0, 0.1)
+        material:Add(diffuseAttribute)
+        me:diffuseAttribute = diffuseAttribute
+
+        TextureAttribute diffuseTexture
+        diffuseTexture = cast(TextureAttribute, material:GetAttribute(diffuseTexture:GetDiffuseValue()))
+        Texture texture = diffuseTexture:descriptor:texture
+        TextureWrap uWrap
+        TextureWrap vWrap
+        uWrap:ConstructTextureWrap(uWrap:REPEAT)
+        vWrap:ConstructTextureWrap(vWrap:REPEAT)
+        texture:SetWrap(uWrap, vWrap)
+        diffuseTexture:scaleU = scaleFactor / gridUnits
+        diffuseTexture:scaleV = scaleFactor / gridUnits
+        textureAttribute = diffuseTexture
+
+        alphaTestAttribute:SetAttribute(alphaTestAttribute:GetAlphaTestValue(), alphaThreshold)
+        material:Add(alphaTestAttribute)
         end
-        //Array<Material> value = GetMaterials()
-        //Material material = value:Get(0)
-        //
-        //BlendingAttribute blend
-        //material:Add(blend)
-        //blendAttribute = blend
-//
-        //ColorAttribute lightAttribute
-        //lightAttribute = lightAttribute:CreateAmbientLight(1, 1, 1, 1)
-        //material:Add(lightAttribute)
-        //me:lightAttribute = lightAttribute
-//
-        //ColorAttribute diffuseAttribute = lightAttribute:CreateDiffuse(0, 0, 0, 0.1)
-        //material:Add(diffuseAttribute)
-        //me:diffuseAttribute = diffuseAttribute
-//
-        //TextureAttribute diffuseTexture
-        //diffuseTexture = cast(TextureAttribute, material:GetAttribute(diffuseTexture:GetDiffuseValue()))
-        //Texture texture = diffuseTexture:descriptor:texture
-        //TextureWrap uWrap
-        //TextureWrap vWrap
-        //uWrap:ConstructTextureWrap(uWrap:REPEAT)
-        //vWrap:ConstructTextureWrap(vWrap:REPEAT)
-        //texture:SetWrap(uWrap, vWrap)
-        //diffuseTexture:scaleU = scaleFactor / gridUnits
-        //diffuseTexture:scaleV = scaleFactor / gridUnits
-        //textureAttribute = diffuseTexture
-//
-        //alphaTestAttribute:SetAttribute(alphaTestAttribute:GetAlphaTestValue(), alphaThreshold)
-        //material:Add(alphaTestAttribute)
 
         SetAcceptsMouseInput(false)
     end

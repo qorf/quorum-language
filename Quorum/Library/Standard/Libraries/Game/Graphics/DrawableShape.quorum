@@ -693,7 +693,7 @@ mesh = GenerateMesh(vertices:GetSize(), indices:GetSize())
 
         integer textureID = -1
         if drawable:GetTexture() not= undefined
-            textureID = drawable:GetTexture():GetVulkanTextureIndex()
+            textureID = drawable:GetTexture():GetVulkanTextureLocalIndex()
         end
 
         if textureID >= 0
@@ -976,7 +976,7 @@ mesh = GenerateMesh(vertices:GetSize(), indices:GetSize())
             return now
         end
 
-        integer textureID = drawable:GetTexture():GetVulkanTextureIndex()
+        integer textureID = drawable:GetTexture():GetVulkanTextureLocalIndex()
         if textureID >= 0
             areTextureVerticesValid = true
         else

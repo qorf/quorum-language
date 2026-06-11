@@ -41,8 +41,11 @@ class VulkanDrawQueue3D
     integer currentDrawCommandIndex = 0
     integer currentDrawInstanceIndex = 0
     
-    action Create(VulkanDevice device, VulkanGraphics graphics, integer maxInstances)
+    integer textureGroupID = -1
+    
+    action Create(VulkanDevice device, VulkanGraphics graphics, integer maxInstances, integer textureGroupID)
         me:device = device
+        me:textureGroupID = textureGroupID
         
         VulkanConstants constants
         VulkanDescriptorSetManager setManager = graphics:GetDescriptorSetManager()
@@ -110,6 +113,10 @@ Matrix4 modelMatrix)
     
     action GetInstanceDataBuffer returns VulkanBuffer
         return instanceData
+    end
+
+    action GetTextureGroupID returns integer
+        return textureGroupID
     end
 
 end

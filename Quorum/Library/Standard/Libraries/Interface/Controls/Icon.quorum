@@ -11,6 +11,11 @@ use Libraries.Game.Graphics.Texture
 */
 class Icon is Control, Drawable
 
+    action Load(TextureRegion region)
+        parent:Drawable:Load(region)
+        RequestLayout()
+    end
+    
     action Load(Texture region, integer sourceX, integer sourceY, integer sourceWidth, integer sourceHeight)
         // If the Drawable is loaded, ensure it gets laid out again on the next sizing call.
         parent:Drawable:Load(region, sourceX, sourceY, sourceWidth, sourceHeight)

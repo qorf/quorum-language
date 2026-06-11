@@ -1,4 +1,6 @@
 package Libraries.Game.Graphics.Models
+
+use Libraries.Game.BoundingBox
 use Libraries.Game.Graphics.Models.Data.Animation
 
 /*This class is an interface used to represent the different kinds of information used to handle Models by different rendering systems.
@@ -22,4 +24,7 @@ end
     blueprint action SetKey(text key)
     
     blueprint action GetMeshCount returns integer
+    
+    blueprint action ExtendBoundingBox(BoundingBox box) returns BoundingBox
+    
 end
