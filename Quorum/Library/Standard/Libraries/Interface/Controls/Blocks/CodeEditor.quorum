@@ -1716,7 +1716,7 @@ editManager:SetSpecialAction(false)
 
         integer currentLine = selection:GetLine()
 if selection:GetBlock() not= undefined
-            currentLine = selection:GetBlock():GetEndLine()
+            currentLine = selection:GetBlock():GetNavigationEndIndex()
         end
         InsertTextAfterLineIntoFreeform(currentLine, value)
     end
