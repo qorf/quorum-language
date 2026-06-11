@@ -337,10 +337,18 @@ class Drawable is TextureRegion, Item2D
         SetRegion(region)
         SetSize(region:GetRegionWidth(), region:GetRegionHeight())
         SetOrigin(parent:Item2D:GetWidth() / 2.0, parent:Item2D:GetHeight() / 2.0)
+        
+        // If we don't have a color, provide white as a default.
+        if colorGroup = undefined
+            Color white
+            white:SetColor(1, 1, 1, 1)
+            SetColor(white)
+        end
 
         DrawableShape newShape
         SetDrawableShape(newShape)
         newShape:LoadRectangle(GetWidth(), GetHeight(), me)
+        newShape:SetColor(colorGroup)
 
         SceneProperties properties
         drawableType = properties:CUSTOM

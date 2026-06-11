@@ -66,12 +66,13 @@ VulkanSampler immutableSampler = undefined
     integer viewportHeight = 0
     
     HashTable<ModelBlueprint, VulkanPainter3DBatch> batches
-    HashTable<ModelBlueprint, VulkanPainter3DBatch> transparentBatches
+    HashTable<ModelBlueprint,VulkanPainter3DBatch> transparentBatches
     Array<VulkanPainter3DBatch> pendingBatches
     Array<VulkanPainter3DBatch> pendingTransparentBatches
     
-    // An array of draw queues, one per swapchain image. Used to bulk store instance data and draw indirect commands.
-    Array<VulkanDrawQueue3D> drawQueues
+    // Arrays of draw queues. There is one array per swapchain image, and each array contains up to as many draw queues as there are texture groups in the VulkanTextureManager.
+    // Used to bulk store instance data and draw indirect commands.
+    Array<Array<VulkanDrawQueue3D>> drawQueues
     
     // A reusable buffer of data for sending push constants. Used to send a pointer to a DrawQueue's instance data during rendering.
     VulkanPushConstantBuffer pushConstants
@@ -559,7 +560,6 @@ VulkanAttachmentReference depthReference) returns boolean
     end
     
     private action GetBatch(Model model) returns VulkanPainter3DBatch
-        // TO-DO: For now, assume models do not use transparency.
         boolean isTransparent = model:HasTransparency()
         ModelBlueprintVulkan schematic = cast(ModelBlueprintVulkan, model:GetModelBlueprint())
         if not isTransparent
@@ -677,10 +677,9 @@ Layer layer = layers:Next()
                 VulkanDescriptorSet set = descriptorSetManager:CreateDescriptorSet(descriptorLayout, cameraResourcesInfo)
                 cameraDescriptors:Add(set)
                 
-                // Also create one draw queue per image in the swapchain.
-                VulkanDrawQueue3D queue
-                queue:Create(device, graphics, DEFAULT_MAX_INSTANCES)
-                drawQueues:Add(queue)
+                // Also create an array of draw queues per image in the swapchain.
+                Array<VulkanDrawQueue3D> queueArray
+                drawQueues:Add(queueArray)
 
                 counter = counter + 1
             end
@@ -722,6 +721,7 @@ Layer layer = layers:Next()
         VulkanConstants constants
         
         ModelManagerVulkan modelManager = graphics:GetModelManager()
+        VulkanTextureManager textureManager = graphics:GetTextureManager()
         
         if sceneClearValues:IsEmpty()
             repeat 4 times
@@ -764,7 +764,7 @@ VulkanNumber32BitMappedMemory currentCameraMapping = cameraMappings:Get(currentS
 Number32BitArray projectionViewMatrix = MatrixToArray(camera:GetCombinedMatrix())
         currentCameraMapping:Set(projectionViewMatrix)
         
-VulkanDescriptorSet texturesDescriptorSet = graphics:GetTextureManager():GetGlobalTextureDescriptorSet()
+//VulkanDescriptorSet texturesDescriptorSet = graphics:GetTextureManager():GetGlobalTextureDescriptorSet()
 
         // Create the command to begin the render pass.
         BeginRenderPassCommand beginRenderPass
@@ -810,31 +810,27 @@ BindDescriptorSetCommand cameraBind
             cameraBind:SetPipelineLayout(pipelineLayout)
             cameraBind:SetDescriptorSet(currentCameraDescriptor)
             commandBuffer:Record(cameraBind)
-
-            BindDescriptorSetCommand texturesBind
-            texturesBind:SetPipelineLayout(pipelineLayout)
-            texturesBind:SetDescriptorSet(texturesDescriptorSet)
-            texturesBind:SetSetIndex(1)
-            commandBuffer:Record(texturesBind)
         
-        VulkanDrawQueue3D drawQueue = drawQueues:Get(currentSwapchainIndex)
-        drawQueue:Begin()
+        //VulkanDrawQueue3D drawQueue = drawQueues:Get(currentSwapchainIndex)
+        //drawQueue:Begin()
+        integer i = 0
+        repeat while i < drawQueues:GetSize()
+            VulkanDrawQueue3D drawQueue = GetCurrentDrawQueue(i)
+            if drawQueue not= undefined
+                drawQueue:Begin()
+            end
+            i = i + 1
+        end
         
         Array<VulkanPainter3DBatch> currentBatches = pendingBatches
         repeat until currentBatches = undefined
-            integer i = 0
-            repeat while i < currentBatches:GetSize()
-                /*
-TO-DO HERE:
-- Set appropriate section of index data buffers related to this batch
-- Send the indirect draw calls
-- Depending on if the batch includes animation, it may need to draw some elements one at a time
-*/
-                VulkanPainter3DBatch batch = currentBatches:Get(i)
-                batch:ProcessBatch(drawQueue)
+            integer counter = 0
+            repeat while counter < currentBatches:GetSize()
+                VulkanPainter3DBatch batch = currentBatches:Get(counter)
+                batch:ProcessBatch(me)
                 batch:PrepareForNextFrame()
                 
-                i = i + 1
+                counter = counter + 1
             end
             
             // After drawing all opaque geometry, repeat the process for transparent batches.
@@ -845,7 +841,27 @@ TO-DO HERE:
             end
         end
         
-        pushConstants:ResetWritePosition()
+        //pushConstants:ResetWritePosition()
+        //pushConstants:AddBufferPointer(drawQueue:GetInstanceDataBuffer())
+        //
+        //SetPushConstantsCommand setPushConstants
+        //setPushConstants:SetData(pushConstants)
+        //setPushConstants:SetPipelineLayout(currentPipeline:GetLayout())
+        //setPushConstants:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT + 
+//constants:SHADER_STAGE_FRAGMENT_BIT)
+        //commandBuffer:Record(setPushConstants)
+        
+        i = 0
+        repeat while i < drawQueues:GetSize()
+            VulkanDrawQueue3D drawQueue = GetCurrentDrawQueue(i)
+            if drawQueue not= undefined and drawQueue:GetDrawCommandCount() > 0
+                BindDescriptorSetCommand texturesBind
+            texturesBind:SetPipelineLayout(pipelineLayout)
+            texturesBind:SetDescriptorSet(textureManager:GetGlobalTextureDescriptorSet(i))
+            texturesBind:SetSetIndex(1)
+            commandBuffer:Record(texturesBind)
+                
+                pushConstants:ResetWritePosition()
         pushConstants:AddBufferPointer(drawQueue:GetInstanceDataBuffer())
         
         SetPushConstantsCommand setPushConstants
@@ -854,11 +870,18 @@ TO-DO HERE:
         setPushConstants:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT + 
 constants:SHADER_STAGE_FRAGMENT_BIT)
         commandBuffer:Record(setPushConstants)
-        
-        DrawIndirectCommand drawCommand
+                
+                DrawIndirectCommand drawCommand
         drawCommand:SetDrawCommands(drawQueue:GetDrawCommandBuffer())
         drawCommand:SetDrawCount(drawQueue:GetDrawCommandCount())
         commandBuffer:Record(drawCommand)
+            end
+            i = i + 1
+        end
+        //DrawIndirectCommand drawCommand
+        //drawCommand:SetDrawCommands(drawQueue:GetDrawCommandBuffer())
+        //drawCommand:SetDrawCount(drawQueue:GetDrawCommandCount())
+        //commandBuffer:Record(drawCommand)
 
         // End the render pass.
         EndRenderPassCommand endRenderPass
@@ -870,7 +893,7 @@ constants:SHADER_STAGE_FRAGMENT_BIT)
         
         // Now that scene geometry has been rendered, prepare for the lighting pass.
         // First, ensure that all writing to the scene's color attachments has finished before attempting to read any of it.
-        integer i = 0
+        i = 0
         repeat while i < 4
             VulkanImage attachment = sceneFramebuffer:GetImageViews():Get(i):GetImage()
         AttachmentWriteBarrier(commandBuffer, attachment)
@@ -1003,6 +1026,31 @@ BindDescriptorSetCommand resultDescriptorBind
         setScissor:SetPosition(0, 0)
             setScissor:SetSize(swapchain:GetImageWidth(), swapchain:GetImageHeight())
         commandBuffer:Record(setScissor)
+    end
+    
+    action GetCurrentDrawQueue(integer textureGroupID) returns VulkanDrawQueue3D
+        GameStateManager manager
+        VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+        VulkanDevice device = graphics:GetDevice()
+        integer resourceIndex = graphics:GetCurrentResourceIndex()
+        
+        Array<VulkanDrawQueue3D> array = drawQueues:Get(resourceIndex)
+        // Elements are indexed in the array to match their texture group index.
+        // If there's not enough entries, we'll create a new element at the index we care about,
+        // and we'll pad out any extra values beforehand with undefined values.
+        if array:GetSize() <= textureGroupID
+            // Add undefined values until the size = the ID. This means we'll have one less element in the array than we need for the requested index.
+            repeat until array:GetSize() = textureGroupID
+                array:Add(undefined)
+            end
+            
+            // Now create and add a queue at the required spot in the array.
+            VulkanDrawQueue3D queue
+                queue:Create(device, graphics, DEFAULT_MAX_INSTANCES, textureGroupID)
+                array:Add(queue)
+        end
+        
+        return array:Get(textureGroupID)
     end
     
     action SetSkybox(Skybox skybox)

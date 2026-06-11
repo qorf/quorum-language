@@ -37,8 +37,10 @@ class VulkanTextureManager
     A descriptor set that can be dynamically added to and updated (UPDATE_AFTER_BIND_BIT) that
     contains all valid textures in the system. Changes only when textures are loaded/disposed.
     */
-    VulkanDescriptorSet globalTextureDescriptorSet = undefined
+    Array<VulkanDescriptorSet> globalTextureDescriptorSets
     VulkanDescriptorSetLayout globalTextureDescriptorSetLayout = undefined
+    
+    integer descriptorSetEntries = -1
     
     // A default immutable sampler that can be used to access textures in shaders.
     VulkanSampler defaultSampler = undefined
@@ -46,9 +48,11 @@ class VulkanTextureManager
     action Create(VulkanDevice device, VulkanGraphics graphics)
         GameStateManager gameState
         VulkanConstants constants
-        VulkanDescriptorSetManager setManager = graphics:GetDescriptorSetManager()
+        VulkanDescriptorSetManager descriptorSetManager = graphics:GetDescriptorSetManager()
 
         integer maxDescriptors = graphics:GetMaxDescriptorsPerStage()
+        descriptorSetEntries = maxDescriptors
+        
         Array<VulkanDescriptorSetLayoutBinding> bindings
 
         VulkanDescriptorSetLayoutBinding texturesBinding
@@ -63,13 +67,31 @@ class VulkanTextureManager
         globalTextureLayout:CreateUpdateAfterBind(device, bindings)
         globalTextureDescriptorSetLayout = globalTextureLayout
 
-        VulkanDescriptorSetManager descriptorSetManager = graphics:GetDescriptorSetManager()
-        globalTextureDescriptorSet = descriptorSetManager:CreateDescriptorSet(globalTextureLayout, constants:DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT)
+        // Initialize the first of our texture descriptor sets. We may create more on-demand later.
+        //CreateNewTextureDescriptorSet()
         
         VulkanSampler immutableSampler
         VulkanSamplerInfo defaultInfo
         immutableSampler:Create(device, defaultInfo)
         defaultSampler = immutableSampler
+    end
+    
+    private action CreateNewTextureDescriptorSet
+        GameStateManager gameState
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        VulkanConstants constants
+        VulkanDescriptorSetManager descriptorSetManager = graphics:GetDescriptorSetManager()
+        
+        VulkanDescriptorSet set = descriptorSetManager:CreateDescriptorSet(globalTextureDescriptorSetLayout, constants:DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT)
+        globalTextureDescriptorSets:Add(set)
+    end
+    
+    private action GetDescriptorSetForIndex(integer globalIndex) returns VulkanDescriptorSet
+        integer groupID = globalIndex / descriptorSetEntries
+        if groupID = globalTextureDescriptorSets:GetSize()
+            CreateNewTextureDescriptorSet()
+        end
+        return globalTextureDescriptorSets:Get(groupID)
     end
 
     action RequestLoad(Texture texture, PixelMap pixelMap)
@@ -123,15 +145,6 @@ class VulkanTextureManager
                 imageInfo:SetHeight(height)
                 imageInfo:SetUsage(bits:Or(constants:IMAGE_USAGE_TRANSFER_DESTINATION_BIT, constants:IMAGE_USAGE_SAMPLED_BIT))
                 imageInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
-                /*
-VulkanImageInfo info
-        info:SetWidth(width)
-        info:SetHeight(height)
-        info:SetUsage(usage)
-        info:SetAllocationFlags(allocationFlags)
-        return Create(device, info)
-*/
-                //image:Create(device, width, height, bits:Or(constants:IMAGE_USAGE_TRANSFER_DESTINATION_BIT, constants:IMAGE_USAGE_SAMPLED_BIT))
                 image:Create(device, imageInfo)
 
                 // We'll need this as part of the buffer-to-image copy, in order to ensure the image is in the right format to accept the 
@@ -188,33 +201,21 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
 
                 // Also store the texture in our global array and associate our resources.
                 if not recycledTextureIDs:IsEmpty()
-                    // TO-DO: Handle this case. This gets complicated slightly by the question of releasing texture IDs that might be in use for previous frames.
+                    // TO-DO: Handle this case. This gets complicated by the question of releasing texture IDs that might be in use for previous frames.
                 else
                     globalTextureArray:Add(texture)
                     texture:SetVulkanTextureIndex(nextTextureID)
-text source = "(Undefined)"
-                    if texture:GetSource() not= undefined
-                        source = texture:GetSource()
-                    end
                     nextTextureID = nextTextureID + 1
                 end
 
+                VulkanDescriptorSet globalTextureDescriptorSet = GetDescriptorSetForIndex(texture:GetVulkanTextureIndex())
+                
                 VulkanDescriptorResourcesInfo resourcesInfo
                 resourcesInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_SAMPLED_IMAGE)
-                resourcesInfo:SetDestinationArrayElement(texture:GetVulkanTextureIndex())
+                resourcesInfo:SetDestinationArrayElement(texture:GetVulkanTextureLocalIndex())
                 
                 resourcesInfo:AddImageInfo(undefined, view, constants:IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
                 globalTextureDescriptorSet:LinkResources(resourcesInfo)
-  
-                // NOTE: Currently not assigning a sampler, because 2D is using the images with a shared common sampler from the Painter2D instead.      
-                // We'll use a combined image sampler to access the texture. Create a sampler and associate it with the texture.
-//                VulkanSampler sampler
-//                VulkanSamplerInfo samplerInfo
-//                // TO-DO: NYI, Update the samplerInfo to more accurately match the information given for a Texture, especially its wrap and min/mag modes.
-//                // For now, just use the default sampler values.
-//                sampler:Create(device, samplerInfo)
-//                texture:SetVulkanSampler(sampler)
-
 
                 i = i + 1
             end
@@ -230,12 +231,17 @@ text source = "(Undefined)"
         return globalTextureDescriptorSetLayout
     end
 
-    action GetGlobalTextureDescriptorSet returns VulkanDescriptorSet
-        return globalTextureDescriptorSet
+    action GetGlobalTextureDescriptorSet(integer groupID) returns VulkanDescriptorSet
+        return globalTextureDescriptorSets:Get(groupID)
     end
 
     action GetDefaultSampler returns VulkanSampler
         return defaultSampler
+    end
+    
+    /*This returns the maximum number of textures that can be stored in a single descriptor set by the texture manager.*/
+    action GetDescriptorSetEntries returns integer
+        return descriptorSetEntries
     end
 
 end

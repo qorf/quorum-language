@@ -23,6 +23,7 @@ use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
 use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
 use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.VulkanShaderMapping
 use Libraries.Compute.Vector4
+use Libraries.Game.Graphics.Texture
 
 class VulkanPainter2D is Painter2D
 
@@ -191,7 +192,7 @@ depthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
         return strategy:GetPipeline()
     end
 
-    private action GetBatch(ShaderProgram program) returns VulkanPainter2DBatch
+    private action GetBatch(ShaderProgram program, integer textureGroupID) returns VulkanPainter2DBatch
         if program = undefined
             program = GetDefaultProgram()
         end
@@ -202,7 +203,7 @@ depthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
             integer i = 0
             repeat while i < array:GetSize()
                 VulkanPainter2DBatch batch = array:Get(i)
-                if not batch:IsFull()
+                if (not batch:IsFull()) and (batch:IsTextureCompatible(textureGroupID))
                     return batch
                 end
 
@@ -211,12 +212,14 @@ depthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
 
             // If there wasn't an available batch, make a new one and add it to the array.
             VulkanPainter2DBatch batch = NewBatch(program)
+            batch:IsTextureCompatible(textureGroupID)
             array:Add(batch)
             return batch
         else
             // This is our first time using this pipeline. Make an array and a batch for it.
             Array<VulkanPainter2DBatch> array
             VulkanPainter2DBatch batch = NewBatch(program)
+            batch:IsTextureCompatible(textureGroupID)
             array:Add(batch)
             batches:Add(program, array)
             return batch
@@ -414,7 +417,7 @@ VulkanNumber32BitMappedMemory currentCameraMapping = cameraMappings:Get(currentS
 Number32BitArray projectionViewMatrix = MatrixToArray(camera:GetCombinedMatrix())
         currentCameraMapping:Set(projectionViewMatrix)
         
-VulkanDescriptorSet texturesDescriptorSet = graphics:GetTextureManager():GetGlobalTextureDescriptorSet()
+        VulkanTextureManager textureManager = graphics:GetTextureManager()
 
         // Create the command to begin the render pass.
         BeginRenderPassCommand beginRenderPass
@@ -514,6 +517,8 @@ BindDescriptorSetCommand descriptorBind
             descriptorBind:SetDescriptorSet(currentCameraDescriptor)
             commandBuffer:Record(descriptorBind)
 
+                VulkanDescriptorSet texturesDescriptorSet = textureManager:GetGlobalTextureDescriptorSet(batch:GetTextureGroupID())
+                
             BindDescriptorSetCommand texturesBind
             texturesBind:SetPipelineLayout(pipelineLayout)
             texturesBind:SetDescriptorSet(texturesDescriptorSet)
@@ -616,14 +621,17 @@ drawable:SetClipCoordinates(me)
             return now
         end
 
-        if currentBatch = undefined or currentBatch:GetProgram() not= requestedProgram or (currentBatch:CanFit(drawable:GetDrawableShape()) = false)
+        Texture texture = drawable:GetTexture()
+        if currentBatch = undefined or currentBatch:GetProgram() not= requestedProgram 
+or (currentBatch:CanFit(drawable:GetDrawableShape()) = false)
+or (currentBatch:IsTextureCompatible(texture) = false)
             Flush()
-            currentBatch = GetBatch(requestedProgram)
+            currentBatch = GetBatch(requestedProgram, texture:GetVulkanTextureGroupIndex())
             currentBatch:ResetAge()
             currentStartIndex = currentBatch:GetIndexWritePosition()
         end
 
-        currentBatch:Add(drawable:GetDrawableShape())
+        boolean result = currentBatch:Add(drawable:GetDrawableShape())
         needsFlush = true
     end
 

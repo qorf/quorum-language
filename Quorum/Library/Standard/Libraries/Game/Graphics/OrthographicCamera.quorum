@@ -5,10 +5,14 @@ use Libraries.Compute.Vector3
 use Libraries.Game.GameStateManager
 use Libraries.Compute.Matrix4
 use Libraries.Containers.Array
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
 
 class OrthographicCamera is Camera
     
     number zoom = 1
+    
+    boolean isVulkan = false
+    boolean isVulkanCached = false
 
     on create
         SetFar(20000)
@@ -17,9 +21,6 @@ class OrthographicCamera is Camera
     end
 
     private Vector3 calcVector
-//    private Vector3 negatedPosition
-//    private Vector3 negatedDirection
-//    private Vector3 negatedUp
 
     /*
     Initializes the camera by giving a width and height for the camera to show
@@ -30,14 +31,35 @@ class OrthographicCamera is Camera
         parent:Camera:viewportHeight = viewportHeight
         Update()
     end
+    
+    private action CheckIfVulkan
+        GameStateManager manager
+        GraphicsManager graphics = manager:GetGameGraphics()
+        if graphics not= undefined
+            isVulkan = (graphics is VulkanGraphics)
+            isVulkanCached = true
+        else
+            isVulkan = false
+            isVulkanCached = false
+        end
+    end
 
     /*
     This action recalculates the camera's position and data. This should be used
     after the camera has been manipulated in any way.
     */
     action Update
-        parent:Camera:projection:SetToOrthographic(-parent:Camera:viewportWidth/(2 * zoom), parent:Camera:viewportWidth/(2 * zoom),
+        if not isVulkanCached
+            CheckIfVulkan()
+        end
+        
+        if isVulkan
+            ProjectionToVulkanOrthographic(parent:Camera:projection, -parent:Camera:viewportWidth/(2 * zoom), parent:Camera:viewportWidth/(2 * zoom),
             -parent:Camera:viewportHeight/(2 * zoom), parent:Camera:viewportHeight/(2 * zoom), parent:Camera:near, parent:Camera:far)
+        else
+            parent:Camera:projection:SetToOrthographic(-parent:Camera:viewportWidth/(2 * zoom), parent:Camera:viewportWidth/(2 * zoom),
+            -parent:Camera:viewportHeight/(2 * zoom), parent:Camera:viewportHeight/(2 * zoom), parent:Camera:near, parent:Camera:far)
+        end
             
         parent:Camera:view:SetToLookAt(parent:Camera:position, calcVector:Set(parent:Camera:position):Add(parent:Camera:direction), parent:Camera:up)
         
@@ -47,6 +69,39 @@ class OrthographicCamera is Camera
         parent:Camera:inverseProjectionView:Set(parent:Camera:combined)
         parent:Camera:inverseProjectionView:Inverse()
         parent:Camera:frustum:Update(parent:Camera:inverseProjectionView)
+    end
+    
+    private action ProjectionToVulkanOrthographic(Matrix4 matrix, number left, number right, number bottom, number top, number near, number far)
+        matrix:IdentityMatrix()
+        number x_orth = 2 / (right - left)
+        number y_orth = 2 / (top - bottom)
+        //number z_orth = -2 / (far - near)
+        number z_orth = -1 / (far - near)
+
+        number tx = -1 * (right + left) / (right - left)
+        number ty = -1 * (top + bottom) / (top - bottom)
+        //number tz = -1 * (far + near) / (far - near)
+        number tz = -1 * (near) / (far - near)
+
+        matrix:row0column0 = x_orth
+        matrix:row1column0 = 0
+        matrix:row2column0 = 0
+        matrix:row3column0 = 0
+
+        matrix:row0column1 = 0
+        matrix:row1column1 = y_orth
+        matrix:row2column1 = 0
+        matrix:row3column1 = 0
+
+        matrix:row0column2 = 0
+        matrix:row1column2 = 0
+        matrix:row2column2 = z_orth
+        matrix:row3column2 = 0
+
+        matrix:row0column3 = tx
+        matrix:row1column3 = ty
+        matrix:row2column3 = tz
+        matrix:row3column3 = 1
     end
 
     /*
