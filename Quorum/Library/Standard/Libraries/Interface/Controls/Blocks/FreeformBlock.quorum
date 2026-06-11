@@ -211,6 +211,11 @@ class FreeformBlock is SingleLineBlock
             if editor = undefined
                 return now
             end
+            
+            // trim the text to avoid problems clipping blocks of just whitespace
+            // means you cant paste a bunch of white space in but whether that's neccessary is questionable
+            code = code:Trim()
+            editRegion:SetText(code)
     
             boolean failState = editor:GetFailState()
             /*
@@ -277,7 +282,7 @@ class FreeformBlock is SingleLineBlock
                 ClassStatementsContext statement = parser:ClassStatement()
     
                 if statement not= undefined
-                    if parser:HasNext()
+                    if parser:IsValid()
 if editor:HasValidParse()
                 editor:SetCode(editor:GetCode())
                 return now
@@ -294,7 +299,7 @@ if editor:HasValidParse()
             elseif isPackageStatement
                 PackageContext context = parser:Package()
                 if context not= undefined
-                    if parser:HasNext()
+                    if parser:IsValid()
 if editor:HasValidParse()
                 editor:SetCode(editor:GetCode())
                 return now
@@ -307,7 +312,7 @@ if editor:HasValidParse()
             elseif isUseStatement
                 UseContext context = parser:Use()
                 if context not= undefined
-                    if parser:HasNext()
+                    if parser:IsValid()
 if editor:HasValidParse()
                 editor:SetCode(editor:GetCode())
                 return now
@@ -320,7 +325,7 @@ if editor:HasValidParse()
             elseif isClassStatement
                 FullClassDeclarationContext context = parser:FullClass()
                 if context not= undefined
-                    if parser:HasNext()
+                    if parser:IsValid()
 if editor:HasValidParse()
                 editor:SetCode(editor:GetCode())
                 return now
@@ -333,7 +338,7 @@ if editor:HasValidParse()
             elseif isActionStatement
                 ParseContext context = parser:ActionDeclaration()
 if context is ActionContext
-                    if parser:HasNext()
+                    if parser:IsValid()
             if editor:HasValidParse()
                 editor:SetCode(editor:GetCode())
                 return now
@@ -350,14 +355,10 @@ if context is ActionContext
             else
                 // If we're not in a class, parse for a standard statement. 
                 // If you KNOW you are inside of an action, you use this
-                if editor:HasValidParse()
-                    editor:SetCode(editor:GetCode())
-                            return now
-                end
-                StatementContext statement = parser:Statement()
+            StatementContext statement = parser:Statement()
                 if statement not= undefined
-                    if parser:HasNext()
-                    SetErrorVisual()
+                    if parser:IsValid()
+                        editor:SetCode(editor:GetCode())
                         return now
                     end
                     blockListener:EnterStatement(statement)
