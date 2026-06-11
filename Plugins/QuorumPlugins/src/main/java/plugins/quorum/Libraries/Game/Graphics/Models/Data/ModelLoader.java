@@ -35,15 +35,32 @@ public class ModelLoader {
 
     public ModelData_ Load(String path, String textures, boolean animation) {
         ModelLoader_ quorumLoader = (ModelLoader_)me_;
+
+        //first read the file to see if it's an animating model
+        int flags = 0;
+        AIScene aiSceneCheck = aiImportFile(path, flags);
+        if (aiSceneCheck == null) {
+            throw new RuntimeException("Error loading model: " + path + ", with error:" + Assimp.aiGetErrorString());
+        }
+        boolean hasAnimations = aiSceneCheck.mNumAnimations() > 0;
+        aiReleaseImport(aiSceneCheck);
+
         boolean vulkanLoading = quorumLoader.IsUsingLeftHandedCoordinates();
-        int flags = aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices |
-                aiProcess_Triangulate | aiProcess_FixInfacingNormals | aiProcess_CalcTangentSpace | aiProcess_LimitBoneWeights |
-                (animation ? 0 : aiProcess_PreTransformVertices) | (vulkanLoading ? aiProcess_ConvertToLeftHanded : 0);
+        if(hasAnimations) {
+            flags = aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices |
+                    aiProcess_Triangulate | aiProcess_FixInfacingNormals | aiProcess_CalcTangentSpace | aiProcess_LimitBoneWeights |
+                    (vulkanLoading ? aiProcess_ConvertToLeftHanded : 0);
+        } else {
+            flags = aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices |
+                    aiProcess_Triangulate | aiProcess_FixInfacingNormals | aiProcess_CalcTangentSpace | aiProcess_LimitBoneWeights |
+                    aiProcess_PreTransformVertices | (vulkanLoading ? aiProcess_ConvertToLeftHanded : 0);
+        }
         AIScene aiScene = aiImportFile(path, flags);
         if (aiScene == null) {
             throw new RuntimeException("Error loading model: " + path + ", with error:" + Assimp.aiGetErrorString());
         }
 
+        boolean isAnimatedModel = aiScene.mNumAnimations() > 0;
         ModelData_ data = new ModelData();
         Array_ materials = data.GetMaterials();
         int numMaterials = aiScene.mNumMaterials();
@@ -63,7 +80,7 @@ public class ModelLoader {
         }
 
         int numAnimations = aiScene.mNumAnimations();
-        if(animation && numAnimations > 0) {
+        if(isAnimatedModel && numAnimations > 0) {
             Animations_ animations = new Animations();
             Array_ animMeshDataList = animations.GetAnimationMeshData();
             List<Bone_> boneList = new ArrayList<>();
@@ -324,7 +341,7 @@ public class ModelLoader {
         //if there are no textures, we need empty slots, or at least
         //the textbook says we do.
         if (coordinates.GetSize() == 0) {
-            int size = (coordinates.GetSize() / 3) * 2;
+            int size = (vertices.GetSize() / 3) * 2;
             coordinates.SetSize(size);
         }
 

@@ -1,20 +1,29 @@
 package Libraries.Game.Graphics.Models
+
 use Libraries.Game.BoundingBox
+use Libraries.Game.Graphics.Models.Data.Animation
 
 /*This class is an interface used to represent the different kinds of information used to handle Models by different rendering systems.
 
 Most of the relevant graphical information will be held in implementing classes like ModelBlueprintOpenGL or ModelBlueprintVulkan.*/
 class ModelBlueprint
+    action HasAnimations returns boolean
+        return false
+end
+    
+    action GetAnimation(integer index) returns Animation
+        return undefined
+    end
+    
+    action GetAnimationsSize returns integer
+        return 0
+    end
     
     blueprint action GetKey returns text
     
     blueprint action SetKey(text key)
     
     blueprint action GetMeshCount returns integer
-    
-    action HasAnimation returns boolean
-        return false
-    end
     
     blueprint action ExtendBoundingBox(BoundingBox box) returns BoundingBox
     

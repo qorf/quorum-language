@@ -37,7 +37,14 @@ class FreeformBlock is SingleLineBlock
     EditBox editRegion = undefined
     boolean addedCode = false
     boolean allowShortcuts = true
-
+    // helper fields for parsing
+    boolean isEmpty = true
+    boolean isPackageStatement = false
+    boolean isUseStatement = false
+    boolean isClassStatement = false
+    boolean isActionStatement = false
+    QuorumLexerConstants constants
+    
     on create
         BlockOptionConstants constants
         SetInterfaceOptionsKey(constants:FREEFORM_KEY)
@@ -204,6 +211,11 @@ class FreeformBlock is SingleLineBlock
             if editor = undefined
                 return now
             end
+            
+            // trim the text to avoid problems clipping blocks of just whitespace
+            // means you cant paste a bunch of white space in but whether that's neccessary is questionable
+            code = code:Trim()
+            editRegion:SetText(code)
     
             boolean failState = editor:GetFailState()
             /*
@@ -215,7 +227,7 @@ class FreeformBlock is SingleLineBlock
             
             // If there's an error, set the block to reflect it, then bail.
             if not errorManager:IsCompilationErrorFree()
-                // TO-DO: Set error state visuals
+                // the lexer will fail if the text is whitespace but that's not an error for the freeform block
                 if code:Trim() not= ""
                     SetErrorVisual()
                 end
@@ -223,465 +235,22 @@ class FreeformBlock is SingleLineBlock
             end
             TokenIterator<Token> tokenIterator
             tokenIterator:SetLexer(shortcutLexer)
-            Token current
-            QuorumLexerConstants constants
-            isPackageStatement = false
-            isUseStatement = false
-            isClassStatement = false
-            isActionStatement = false
-            isEmpty = false
+            me:isPackageStatement = false
+            me:isUseStatement = false
+            me:isClassStatement = false
+            me:isActionStatement = false
+            me:isEmpty = false
     
-        
-            // since we ignore white space the shortcuts will overwrite the text to guarantee spacing
-            if tokenIterator:HasNext()
-                current = tokenIterator:Next()
-            else
-                isEmpty = true
-            end
-        // output
-            if isEmpty and not failState and allowShortcuts
-                text trimmedText = code:Trim()
-                if trimmedText:StartsWith("/*") and not trimmedText:EndsWith("*/")
-                    StartUndo()
-                    editRegion:SetCaretPosition(editRegion:GetSize())
-                    editRegion:Insert("*/")
-                    code = editRegion:GetText()
+            // pass the token iterator and add more code if a shortcut is found
+            // if the freeform is empty attempting to check for shortcuts will set the flag
+            if allowShortcuts
+                boolean continueParsing = ResolveShortcut(tokenIterator)
+                // if an error has already been found while trying to resolve a shortcut then early exit
+                if not continueParsing
+                    return now
                 end
             end
-            if allowShortcuts and current:category = constants:OUTPUT and not tokenIterator:HasNext()
-                StartUndo()
-                editRegion:SetCaretPosition(editRegion:GetSize())
-                editRegion:SetText("output " + dq + dq)
-                code = editRegion:GetText()
-        //  input
-            elseif allowShortcuts and current:category = constants:INPUT and not tokenIterator:HasNext()
-                StartUndo()
-                editRegion:SetCaretPosition(editRegion:GetSize())
-                editRegion:SetText("text myInput = input()")
-                code = editRegion:GetText()
-        //  integer
-            elseif allowShortcuts and current:category = constants:INTEGER_KEYWORD and not tokenIterator:HasNext()
-                StartUndo()
-                editRegion:SetCaretPosition(editRegion:GetSize())
-                editRegion:SetText("integer " + "myInteger" + " = 0")
-                code = editRegion:GetText()
-        //  number
-            elseif allowShortcuts and current:category = constants:NUMBER_KEYWORD and not tokenIterator:HasNext()
-                StartUndo()
-                editRegion:SetCaretPosition(editRegion:GetSize())
-                editRegion:SetText("number " + "myNumber" + " = 0.0")
-                code = editRegion:GetText()
-        //  boolean
-            elseif allowShortcuts and current:category = constants:BOOLEAN_KEYWORD and not tokenIterator:HasNext()
-                StartUndo()
-                editRegion:SetCaretPosition(editRegion:GetSize())
-                editRegion:SetText("boolean " + "myBoolean" + " = false")
-                code = editRegion:GetText()
-        //  text
-            elseif allowShortcuts and current:category = constants:TEXT and not tokenIterator:HasNext()
-                StartUndo()
-                editRegion:SetCaretPosition(editRegion:GetSize())
-                editRegion:SetText("text " + "myText" + " = "+dq+dq)
-                code = editRegion:GetText()
-        //  say
-            elseif allowShortcuts and current:category = constants:SAY and not tokenIterator:HasNext()
-                StartUndo()
-                editRegion:SetCaretPosition(editRegion:GetSize())
-                editRegion:SetText("say " + dq + dq)
-                code = editRegion:GetText()
-        //  return (now for void or with a field if it does)
-            elseif allowShortcuts and current:category = constants:RETURN and not tokenIterator:HasNext()
-                editRegion:SetCaretPosition(editRegion:GetSize())
-                Block parentBlock = GetParentBlock()
-                repeat until parentBlock is ActionBlock or parentBlock = undefined
-                    parentBlock = parentBlock:GetParentBlock()
-                end
-                if parentBlock not= undefined
-                    ActionBlock parentAction = cast(ActionBlock, parentBlock)
-                    StartUndo()
-                    if parentAction:HasReturn()
-                        editRegion:SetText("return undefined")
-                    else
-                        editRegion:SetText("return now")
-                        code = editRegion:GetText()
-                    end
-                end
-        // if
-        // if (condition)
-            elseif allowShortcuts and current:category = constants:IF
-                if not tokenIterator:HasNext()
-                    StartUndo()
-                    editRegion:SetCaretPosition(editRegion:GetSize())
-                    text value = "if true"
-                    code = value
-                    text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
-                    editRegion:SetText(value)
-                    if failState and AllTokensOnSingleLine()
-                        code = value + endText
-                    elseif not failState
-                        code = value + endText
-                    end
-                    editRegion:SetText(code)
-                else
-                    // check for an expression
-                    current = tokenIterator:Next()
-                    expression = code:GetSubtext(current:startIndex)
-                    ParseContext ifExpression = ParseExpression(expression)
-                    if ifExpression not= undefined
-                        // if an expression was successfully parsed then add an end if needed
-                        repeat until not tokenIterator:HasNext()
-                            current = tokenIterator:Next()
-                        end
-                        if current:category not= constants:END
-                            StartUndo()
-                            text value = "if " + expression
-                            code = value
-                            text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
-                            editRegion:SetText(value)
-                            if failState and AllTokensOnSingleLine()
-                                code = value + endText
-                            elseif not failState
-                                code = value + endText
-                            end
-                            editRegion:SetText(code)
-                        end
-                    else
-                        SetErrorVisual()
-                        return now
-                    end
-                end
-        //  elseif
-        //  elseif (condition)
-            elseif allowShortcuts and current:category = constants:ELSE_IF and not failState
-                text expression = ""
-                
-                Block grandparent = GetParentBlock():GetParentBlock()
-                if grandparent not= undefined and grandparent is IfBlock
-                    IfBlock ifParent = cast(IfBlock, grandparent)
-                    if not tokenIterator:HasNext()
-                        StartUndo()
-                        editRegion:SetCaretPosition(editRegion:GetSize())
-                        editRegion:SetText("elseif false")
-                        expression = "false"
-                    else
-                        current = tokenIterator:Next()
-                        expression = code:GetSubtext(current:startIndex)
-                        ParseContext elseifExpression = ParseExpression(expression)
-                        if elseifExpression = undefined
-                            SetErrorVisual()
-                            return now
-                        end
-                    end
-                    
-                    if ifParent:AddElseifLineFromFreeform(me, expression) = undefined
-                        SetErrorVisual()
-                    end
-                    return now
-                else
-                    // TO-DO: Set error state visuals
-                    SetErrorVisual()
-                    return now
-                end
-        //  else
-            elseif allowShortcuts and current:category = constants:ELSE and not tokenIterator:HasNext() and not failState
-                StartUndo()
-                editRegion:SetCaretPosition(editRegion:GetSize())
-                editRegion:SetText("else")
-                Block grandparent = GetParentBlock():GetParentBlock()
-                if grandparent not= undefined and grandparent is IfBlock
-                    IfBlock ifParent = cast(IfBlock, grandparent)
-                    if ifParent:AddElseLineFromFreeform(me) = undefined
-                        SetErrorVisual()
-                    end
-                    return now
-                else
-                    // TO-DO: Set error state visuals
-                    SetErrorVisual()
-                    return now
-                end
-        //  repeat - by default it's times
-        //  repeat while
-        //  repeat while (some expression) 
-        //  repeat until
-        //  repeat until (some expression)
-            elseif allowShortcuts and current:category = constants:REPEAT
-                text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
-                if not tokenIterator:HasNext()
-                    StartUndo()
-                    editRegion:SetCaretPosition(editRegion:GetSize())
-                    text value = "repeat 1 times"
-                    code = value
-                    editRegion:SetText(value)
-                    if failState and AllTokensOnSingleLine()
-                        code = value + endText
-                    elseif not failState
-                        code = value + endText
-                    end
-                    editRegion:SetText(code)
-                else
-                    current = tokenIterator:Next()
-                    boolean hasExpression = true
-                    boolean whileType = false
-                    boolean untilType = false
-                    if current:category = constants:WHILE
-                        whileType = true
-                        if not tokenIterator:HasNext()
-                            StartUndo()
-                            editRegion:SetCaretPosition(editRegion:GetSize())
-                            text value = "repeat while false"
-                            code = value
-                            editRegion:SetText(value)
-                            if failState and AllTokensOnSingleLine()
-                                code = value + endText
-                            elseif not failState
-                                code = value + endText
-                            end
-                            editRegion:SetText(code)
-                            hasExpression = false
-                        end
-                        current = tokenIterator:Next()
-                    elseif current:category = constants:UNTIL
-                        untilType = true
-                        if not tokenIterator:HasNext()
-                            StartUndo() 
-                            editRegion:SetCaretPosition(editRegion:GetSize())
-                            text value = "repeat until true"
-                            code = value
-                            editRegion:SetText(value)
-                            if failState and AllTokensOnSingleLine()
-                                code = value + endText
-                            elseif not failState
-                                code = value + endText
-                            end
-                            editRegion:SetText(code)
-                            hasExpression = false
-                        end
-                        current = tokenIterator:Next()
-                    end
-                    // there is an expression here
-                    if hasExpression
-                        expression = code:GetSubtext(current:startIndex)
-                        ParseContext repeatExpression = ParseExpression(expression)
-                        if repeatExpression not= undefined
-                            // if an expression was successfully parsed then add an end if needed
-                            repeat until not tokenIterator:HasNext()
-                                current = tokenIterator:Next()
-                            end
-                            if current:category not= constants:END
-                                if whileType
-                                    code = "repeat while " + expression 
-                                elseif untilType
-                                    code = "repeat until " + expression
-                                else
-                                    if current:category = constants:TIMES
-                                        code = "repeat " + expression
-                                    else
-                                        code = "repeat " + expression + " times"
-                                    end
-                                StartUndo()
-                                end
-                                editRegion:SetText(code)
-                                if failState and AllTokensOnSingleLine()
-                                    code = code + endText
-                                elseif not failState
-                                    code = code + endText
-                                end
-                                editRegion:SetText(code)
-                            end
-                        else
-                            SetErrorVisual()
-                            return now
-                        end
-                    end
-                end
-        //  check
-            elseif allowShortcuts and current:category = constants:CHECK and not failState
-                StartUndo()
-                editRegion:SetCaretPosition(editRegion:GetSize())
-                text value ="check" + newLine + editor:GetIndentationText(GetScopeDepth()) + "detect error" + newLine +  editor:GetIndentationText(GetScopeDepth()) + "end"
-                editRegion:SetText(value)
-                code = editRegion:GetText()
-        //  detect
-            elseif allowShortcuts and current:category = constants:DETECT and not failState
-                StartUndo()
-                Block grandparent = GetParentBlock():GetParentBlock()
-                if grandparent not= undefined and grandparent is CheckBlock
-                    if not tokenIterator:HasNext()
-                        code = "detect error"
-                        editRegion:SetText(code)
-                    else
-                        code = editRegion:GetText()
-                    end
-                    QuorumLexer detectLexer = LexerForText(code, errorManager)
-                    QuorumParser parser
-                    parser:SetCompilerErrorManager(errorManager)
-                    parser:SetLexer(detectLexer)
     
-                    DetectStatementContext context = parser:DetectStatement()
-                    if context not= undefined
-                        CheckBlock parentCheck = cast(CheckBlock, grandparent)
-                        if parentCheck:AddDetectLineFromFreeform(me, context) not= undefined
-                            return now
-                        end
-                    end
-                    SetErrorVisual()
-                    return now
-                else
-                    SetErrorVisual()
-                    return now
-                end
-        //  always
-            elseif allowShortcuts and current:category = constants:ALWAYS and not failState
-                StartUndo()
-                Block grandparent = GetParentBlock():GetParentBlock()
-                if grandparent not= undefined and grandparent is CheckBlock
-                    if tokenIterator:HasNext()
-                        SetErrorVisual()
-                        return now
-                    end
-                    editRegion:SetText("always")
-                    CheckBlock parentCheck = cast(CheckBlock, grandparent)
-                    if parentCheck:AddAlwaysLineFromFreeform(me) = undefined
-                        SetErrorVisual()
-                    end
-                    return now
-                else
-                    SetErrorVisual()
-                    return now
-                end
-        //  action
-            elseif allowShortcuts and current:category = constants:ACTION
-                if tokenIterator:HasNext()
-                    // if there is more than just the action look for a valid action header
-                    ActionContext context
-                    QuorumLexer actionLexer = LexerForText(code, errorManager)
-                    QuorumParser parser
-                    parser:SetCompilerErrorManager(errorManager)
-                    parser:SetLexer(actionLexer)
-                    context = parser:ActionShared()
-                    if context = undefined
-                        SetErrorVisual()
-                        return now
-                    end
-                    repeat until not tokenIterator:HasNext()
-                        current = tokenIterator:Next()
-                    end
-                    if current:category not= constants:END
-                        StartUndo()
-                        code = editRegion:GetText()
-                        text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
-                        if failState and AllTokensOnSingleLine()
-                            code = code + endText
-                        elseif not failState
-                            code = code + endText
-                        end
-                        editRegion:SetText(code)
-                    end
-                else
-                    StartUndo()
-                    code = "action MyAction"
-                    text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
-                    editRegion:SetText(code)
-                    if failState and AllTokensOnSingleLine()
-                        code = code + endText
-                    elseif not failState
-                        code = code + endText
-                    end
-                    editRegion:SetText(code)
-                end
-                isActionStatement = true
-        //  blueprint
-            elseif allowShortcuts and current:category = constants:BLUEPRINT and not tokenIterator:HasNext()
-                StartUndo()
-                code = "blueprint action MyBlueprint"
-                editRegion:SetText(code)
-        //  system
-            elseif allowShortcuts and current:category = constants:NATIVE and not tokenIterator:HasNext()
-                StartUndo()
-                code = "system action NativeAction"
-                editRegion:SetText(code)
-        //  class
-            elseif allowShortcuts and current:category = constants:CLASS
-                if not tokenIterator:HasNext()
-                    StartUndo()
-                    code = "class MyClass"
-                    text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
-                    editRegion:SetText(code)
-                    if failState and AllTokensOnSingleLine()
-                        code = code + endText
-                    elseif not failState
-                        code = code + endText
-                    end
-                    editRegion:SetText(code)
-                else 
-                    repeat until not tokenIterator:HasNext()
-                        current = tokenIterator:Next()
-                    end
-                    if current:category not= constants:END
-                        StartUndo()
-                        code = editRegion:GetText()
-                        text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
-                        if failState and AllTokensOnSingleLine()
-                            code = code + endText
-                        elseif not failState
-                            code = code + endText
-                        end
-                        editRegion:SetText(code)
-                    end
-                end
-                isClassStatement = true
-        //  shared
-            elseif allowShortcuts and current:category = constants:STATIC and not failState
-                if not tokenIterator:HasNext()
-                    StartUndo()
-                    code = "shared class MySharedClass"
-                    text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
-                    editRegion:SetText(code)
-                    if failState and AllTokensOnSingleLine()
-                        code = code + endText
-                    elseif not failState
-                        code = code + endText
-                    end
-                    editRegion:SetText(code)
-                end
-                isClassStatement = true
-        //  on create
-            elseif allowShortcuts and current:category = constants:ON
-                boolean hasCreate = false
-                if not tokenIterator:HasNext()
-                    StartUndo()
-                    editRegion:SetCaretPosition(editRegion:GetSize())
-                    text value = "on create"
-                    code = value
-                    hasCreate = true
-                else
-                    current = tokenIterator:Next()
-                    hasCreate = (current:category = constants:CREATE)
-                end
-    
-                if not tokenIterator:HasNext() and hasCreate
-                    StartUndo()
-                    text value = "on create"
-                    text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
-                    editRegion:SetText(value)
-                    if failState and AllTokensOnSingleLine()
-                        code = value + endText
-                    elseif not failState
-                        code = value + endText
-                    end
-                    editRegion:SetText(code)
-                end
-        // other
-            elseif current:category = constants:PACKAGE_NAME
-                isPackageStatement = true
-            elseif current:category = constants:USE
-                isUseStatement = true
-            end
-    
-            if editor:GetFailState()
-                editor:SetCode(editor:GetCode())
-                return now
-            end
             /*
             Read the code, and if it's valid, try to parse it.
             */
@@ -692,7 +261,6 @@ class FreeformBlock is SingleLineBlock
             
             // If there's an error, set the block to reflect it, then bail.
             if not manager:IsCompilationErrorFree()
-                // TO-DO: Set error state visuals
                 SetErrorVisual()
                 return now
             end
@@ -714,7 +282,7 @@ class FreeformBlock is SingleLineBlock
                 ClassStatementsContext statement = parser:ClassStatement()
     
                 if statement not= undefined
-                    if parser:HasNext()
+                    if parser:IsValid()
 if editor:HasValidParse()
                 editor:SetCode(editor:GetCode())
                 return now
@@ -731,7 +299,7 @@ if editor:HasValidParse()
             elseif isPackageStatement
                 PackageContext context = parser:Package()
                 if context not= undefined
-                    if parser:HasNext()
+                    if parser:IsValid()
 if editor:HasValidParse()
                 editor:SetCode(editor:GetCode())
                 return now
@@ -744,7 +312,7 @@ if editor:HasValidParse()
             elseif isUseStatement
                 UseContext context = parser:Use()
                 if context not= undefined
-                    if parser:HasNext()
+                    if parser:IsValid()
 if editor:HasValidParse()
                 editor:SetCode(editor:GetCode())
                 return now
@@ -757,7 +325,7 @@ if editor:HasValidParse()
             elseif isClassStatement
                 FullClassDeclarationContext context = parser:FullClass()
                 if context not= undefined
-                    if parser:HasNext()
+                    if parser:IsValid()
 if editor:HasValidParse()
                 editor:SetCode(editor:GetCode())
                 return now
@@ -770,8 +338,8 @@ if editor:HasValidParse()
             elseif isActionStatement
                 ParseContext context = parser:ActionDeclaration()
 if context is ActionContext
-                    if parser:HasNext()
-if editor:HasValidParse()
+                    if parser:IsValid()
+            if editor:HasValidParse()
                 editor:SetCode(editor:GetCode())
                 return now
             end
@@ -787,15 +355,10 @@ if editor:HasValidParse()
             else
                 // If we're not in a class, parse for a standard statement. 
                 // If you KNOW you are inside of an action, you use this
-                StatementContext statement = parser:Statement()
-    
+            StatementContext statement = parser:Statement()
                 if statement not= undefined
-                    if parser:HasNext()
-if editor:HasValidParse()
-                editor:SetCode(editor:GetCode())
-                return now
-            end
-                        SetErrorVisual()
+                    if parser:IsValid()
+                        editor:SetCode(editor:GetCode())
                         return now
                     end
                     blockListener:EnterStatement(statement)
@@ -805,10 +368,8 @@ if editor:HasValidParse()
                     blockListener:FillComment()
                 end
             end
-    
             // Once again, if there's an error, set the block to reflect it, then bail.
             if not manager:IsCompilationErrorFree() and not (blockListener:GetBlock() is CommentBlock and isEmpty)
-                // TO-DO: Set error state visuals
                 SetErrorVisual()
                 return now
             end
@@ -825,6 +386,464 @@ if editor:HasValidParse()
             text value = e:GetStackTraceMessage()
             logger:Log(value)
         end
+    end
+
+    private action ResolveShortcut(TokenIterator<Token> tokenIterator) returns boolean
+        Token current
+        text code = editRegion:GetText()
+        text newLine = editRegion:GetDefaultLineSeparator()
+        text dq = code:GetDoubleQuote()
+        CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
+        boolean failState = editor:GetFailState()
+        CompilerErrorManager errorManager
+        // since we ignore white space the shortcuts will overwrite the text to guarantee spacing
+        if tokenIterator:HasNext()
+            current = tokenIterator:Next()
+        else
+            me:isEmpty = true
+        end
+        if me:isEmpty and not failState 
+            text trimmedText = code:Trim()
+            if trimmedText:StartsWith("/*") and not trimmedText:EndsWith("*/")
+                StartUndo()
+                editRegion:SetCaretPosition(editRegion:GetSize())
+                editRegion:Insert("*/")
+                code = editRegion:GetText()
+            end
+        end
+        if current:category = constants:OUTPUT and not tokenIterator:HasNext()
+            // output
+            StartUndo()
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            editRegion:SetText("output " + dq + dq)
+            code = editRegion:GetText()
+        elseif current:category = constants:INPUT and not tokenIterator:HasNext()
+            //  input
+            StartUndo()
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            editRegion:SetText("text myInput = input()")
+            code = editRegion:GetText()
+        elseif current:category = constants:INTEGER_KEYWORD and not tokenIterator:HasNext()
+            //  integer
+            StartUndo()
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            editRegion:SetText("integer " + "myInteger" + " = 0")
+            code = editRegion:GetText()
+        elseif current:category = constants:NUMBER_KEYWORD and not tokenIterator:HasNext()
+            //  number
+            StartUndo()
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            editRegion:SetText("number " + "myNumber" + " = 0.0")
+            code = editRegion:GetText()
+        elseif current:category = constants:BOOLEAN_KEYWORD and not tokenIterator:HasNext()
+            //  boolean
+            StartUndo()
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            editRegion:SetText("boolean " + "myBoolean" + " = false")
+            code = editRegion:GetText()
+        elseif current:category = constants:TEXT and not tokenIterator:HasNext()
+            //  text
+            StartUndo()
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            editRegion:SetText("text " + "myText" + " = "+dq+dq)
+            code = editRegion:GetText()
+        elseif current:category = constants:SAY and not tokenIterator:HasNext()
+            //  say
+            StartUndo()
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            editRegion:SetText("say " + dq + dq)
+            code = editRegion:GetText()
+        elseif current:category = constants:RETURN and not tokenIterator:HasNext()
+            //  return (now for void or with a field if it does)
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            Block parentBlock = GetParentBlock()
+            repeat until parentBlock is ActionBlock or parentBlock = undefined
+                parentBlock = parentBlock:GetParentBlock()
+            end
+            if parentBlock not= undefined
+                ActionBlock parentAction = cast(ActionBlock, parentBlock)
+                StartUndo()
+                if parentAction:HasReturn()
+                    editRegion:SetText("return undefined")
+                else
+                    editRegion:SetText("return now")
+                    code = editRegion:GetText()
+                end
+            end
+        elseif current:category = constants:IF
+            // if
+            // if (condition)
+            if not tokenIterator:HasNext()
+                StartUndo()
+                editRegion:SetCaretPosition(editRegion:GetSize())
+                text value = "if true"
+                code = value
+                text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+                editRegion:SetText(value)
+                if failState and AllTokensOnSingleLine()
+                    code = value + endText
+                elseif not failState
+                    code = value + endText
+                end
+                editRegion:SetText(code)
+            else
+                // check for an expression
+                current = tokenIterator:Next()
+                expression = code:GetSubtext(current:startIndex)
+                ParseContext ifExpression = ParseExpression(expression)
+                if ifExpression not= undefined
+                    // if an expression was successfully parsed then add an end if needed
+                    repeat until not tokenIterator:HasNext()
+                        current = tokenIterator:Next()
+                    end
+                    if current:category not= constants:END
+                        StartUndo()
+                        text value = "if " + expression
+                        code = value
+                        text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+                        editRegion:SetText(value)
+                        if failState and AllTokensOnSingleLine()
+                            code = value + endText
+                        elseif not failState
+                            code = value + endText
+                        end
+                        editRegion:SetText(code)
+                    end
+                else
+                    SetErrorVisual()
+                    return false
+                end
+            end
+        elseif current:category = constants:ELSE_IF and not failState
+            //  elseif
+            //  elseif (condition)
+            text expression = ""
+            
+            Block grandparent = GetParentBlock():GetParentBlock()
+            if grandparent not= undefined and grandparent is IfBlock
+                IfBlock ifParent = cast(IfBlock, grandparent)
+                if not tokenIterator:HasNext()
+                    StartUndo()
+                    editRegion:SetCaretPosition(editRegion:GetSize())
+                    editRegion:SetText("elseif false")
+                    expression = "false"
+                else
+                    current = tokenIterator:Next()
+                    expression = code:GetSubtext(current:startIndex)
+                    ParseContext elseifExpression = ParseExpression(expression)
+                    if elseifExpression = undefined
+                        SetErrorVisual()
+                        return false
+                    end
+                end
+                
+                if ifParent:AddElseifLineFromFreeform(me, expression) = undefined
+                    SetErrorVisual()
+                end
+                return false
+            else
+                SetErrorVisual()
+                return false
+            end
+        elseif current:category = constants:ELSE and not tokenIterator:HasNext() and not failState
+            //  else
+            StartUndo()
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            editRegion:SetText("else")
+            Block grandparent = GetParentBlock():GetParentBlock()
+            if grandparent not= undefined and grandparent is IfBlock
+                IfBlock ifParent = cast(IfBlock, grandparent)
+                if ifParent:AddElseLineFromFreeform(me) = undefined
+                    SetErrorVisual()
+                end
+                return false
+            else
+                SetErrorVisual()
+                return false
+            end
+        elseif current:category = constants:REPEAT
+            //  repeat - by default it's times
+            //  repeat while
+            //  repeat while (some expression) 
+            //  repeat until
+            //  repeat until (some expression)
+            text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+            if not tokenIterator:HasNext()
+                StartUndo()
+                editRegion:SetCaretPosition(editRegion:GetSize())
+                text value = "repeat 1 times"
+                code = value
+                editRegion:SetText(value)
+                if failState and AllTokensOnSingleLine()
+                    code = value + endText
+                elseif not failState
+                    code = value + endText
+                end
+                editRegion:SetText(code)
+            else
+                current = tokenIterator:Next()
+                boolean hasExpression = true
+                boolean whileType = false
+                boolean untilType = false
+                if current:category = constants:WHILE
+                    whileType = true
+                    if not tokenIterator:HasNext()
+                        StartUndo()
+                        editRegion:SetCaretPosition(editRegion:GetSize())
+                        text value = "repeat while false"
+                        code = value
+                        editRegion:SetText(value)
+                        if failState and AllTokensOnSingleLine()
+                            code = value + endText
+                        elseif not failState
+                            code = value + endText
+                        end
+                        editRegion:SetText(code)
+                        hasExpression = false
+                    end
+                    current = tokenIterator:Next()
+                elseif current:category = constants:UNTIL
+                    untilType = true
+                    if not tokenIterator:HasNext()
+                        StartUndo() 
+                        editRegion:SetCaretPosition(editRegion:GetSize())
+                        text value = "repeat until true"
+                        code = value
+                        editRegion:SetText(value)
+                        if failState and AllTokensOnSingleLine()
+                            code = value + endText
+                        elseif not failState
+                            code = value + endText
+                        end
+                        editRegion:SetText(code)
+                        hasExpression = false
+                    end
+                    current = tokenIterator:Next()
+                end
+                // there is an expression here
+                if hasExpression
+                    expression = code:GetSubtext(current:startIndex)
+                    ParseContext repeatExpression = ParseExpression(expression)
+                    if repeatExpression not= undefined
+                        // if an expression was successfully parsed then add an end if needed
+                        repeat until not tokenIterator:HasNext()
+                            current = tokenIterator:Next()
+                        end
+                        if current:category not= constants:END
+                            if whileType
+                                code = "repeat while " + expression 
+                            elseif untilType
+                                code = "repeat until " + expression
+                            else
+                                if current:category = constants:TIMES
+                                    code = "repeat " + expression
+                                else
+                                    code = "repeat " + expression + " times"
+                                end
+                            StartUndo()
+                            end
+                            editRegion:SetText(code)
+                            if failState and AllTokensOnSingleLine()
+                                code = code + endText
+                            elseif not failState
+                                code = code + endText
+                            end
+                            editRegion:SetText(code)
+                        end
+                    else
+                        SetErrorVisual()
+                        return false
+                    end
+                end
+            end
+        elseif current:category = constants:CHECK and not failState
+            //  check
+            StartUndo()
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            text value ="check" + newLine + editor:GetIndentationText(GetScopeDepth()) + "detect error" + newLine +  editor:GetIndentationText(GetScopeDepth()) + "end"
+            editRegion:SetText(value)
+            code = editRegion:GetText()
+        elseif current:category = constants:DETECT and not failState
+            //  detect
+            StartUndo()
+            Block grandparent = GetParentBlock():GetParentBlock()
+            if grandparent not= undefined and grandparent is CheckBlock
+                if not tokenIterator:HasNext()
+                    code = "detect error"
+                    editRegion:SetText(code)
+                else
+                    code = editRegion:GetText()
+                end
+                QuorumLexer detectLexer = LexerForText(code, errorManager)
+                QuorumParser parser
+                parser:SetCompilerErrorManager(errorManager)
+                parser:SetLexer(detectLexer)
+
+                DetectStatementContext context = parser:DetectStatement()
+                if context not= undefined
+                    CheckBlock parentCheck = cast(CheckBlock, grandparent)
+                    if parentCheck:AddDetectLineFromFreeform(me, context) not= undefined
+                        return false
+                    end
+                end
+                SetErrorVisual()
+                return false
+            else
+                SetErrorVisual()
+                return false
+            end
+        elseif current:category = constants:ALWAYS and not failState
+            //  always
+            StartUndo()
+            Block grandparent = GetParentBlock():GetParentBlock()
+            if grandparent not= undefined and grandparent is CheckBlock
+                if tokenIterator:HasNext()
+                    SetErrorVisual()
+                    return false
+                end
+                editRegion:SetText("always")
+                CheckBlock parentCheck = cast(CheckBlock, grandparent)
+                if parentCheck:AddAlwaysLineFromFreeform(me) = undefined
+                    SetErrorVisual()
+                end
+                return false
+            else
+                SetErrorVisual()
+                return false
+            end
+        elseif current:category = constants:ACTION
+            //  action
+            if tokenIterator:HasNext()
+                // if there is more than just the action look for a valid action header
+                ActionContext context
+                QuorumLexer actionLexer = LexerForText(code, errorManager)
+                QuorumParser parser
+                parser:SetCompilerErrorManager(errorManager)
+                parser:SetLexer(actionLexer)
+                context = parser:ActionShared()
+                if context = undefined
+                    SetErrorVisual()
+                    return false
+                end
+                repeat until not tokenIterator:HasNext()
+                    current = tokenIterator:Next()
+                end
+                if current:category not= constants:END
+                    StartUndo()
+                    code = editRegion:GetText()
+                    text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+                    if failState and AllTokensOnSingleLine()
+                        code = code + endText
+                    elseif not failState
+                        code = code + endText
+                    end
+                    editRegion:SetText(code)
+                end
+            else
+                StartUndo()
+                code = "action MyAction"
+                text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+                editRegion:SetText(code)
+                if failState and AllTokensOnSingleLine()
+                    code = code + endText
+                elseif not failState
+                    code = code + endText
+                end
+                editRegion:SetText(code)
+            end
+            me:isActionStatement = true
+        elseif allowShortcuts and current:category = constants:BLUEPRINT and not tokenIterator:HasNext()
+        //  blueprint
+            StartUndo()
+            code = "blueprint action MyBlueprint"
+            editRegion:SetText(code)
+        elseif allowShortcuts and current:category = constants:NATIVE and not tokenIterator:HasNext()
+            //  system
+            StartUndo()
+            code = "system action NativeAction"
+            editRegion:SetText(code)
+        elseif allowShortcuts and current:category = constants:CLASS
+            //  class
+            if not tokenIterator:HasNext()
+                StartUndo()
+                code = "class MyClass"
+                text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+                editRegion:SetText(code)
+                if failState and AllTokensOnSingleLine()
+                    code = code + endText
+                elseif not failState
+                    code = code + endText
+                end
+                editRegion:SetText(code)
+            else 
+                repeat until not tokenIterator:HasNext()
+                    current = tokenIterator:Next()
+                end
+                if current:category not= constants:END
+                    StartUndo()
+                    code = editRegion:GetText()
+                    text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+                    if failState and AllTokensOnSingleLine()
+                        code = code + endText
+                    elseif not failState
+                        code = code + endText
+                    end
+                    editRegion:SetText(code)
+                end
+            end
+            isClassStatement = true
+        elseif allowShortcuts and current:category = constants:STATIC and not failState
+            //  shared
+            if not tokenIterator:HasNext()
+                StartUndo()
+                code = "shared class MySharedClass"
+                text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+                editRegion:SetText(code)
+                if failState and AllTokensOnSingleLine()
+                    code = code + endText
+                elseif not failState
+                    code = code + endText
+                end
+                editRegion:SetText(code)
+            end
+            isClassStatement = true
+        elseif current:category = constants:ON
+            //  on create
+            boolean hasCreate = false
+            if not tokenIterator:HasNext()
+                StartUndo()
+                editRegion:SetCaretPosition(editRegion:GetSize())
+                text value = "on create"
+                code = value
+                hasCreate = true
+            else
+                current = tokenIterator:Next()
+                hasCreate = (current:category = constants:CREATE)
+            end
+
+            if not tokenIterator:HasNext() and hasCreate
+                StartUndo()
+                text value = "on create"
+                text endText = newLine + editor:GetIndentationText(GetScopeDepth()) + "end"
+                editRegion:SetText(value)
+                if failState and AllTokensOnSingleLine()
+                    code = value + endText
+                elseif not failState
+                    code = value + endText
+                end
+                editRegion:SetText(code)
+            end
+        elseif current:category = constants:PACKAGE_NAME
+            isPackageStatement = true
+        elseif current:category = constants:USE
+            isUseStatement = true
+        end
+        
+        if editor:GetFailState()
+            editor:SetCode(editor:GetCode())
+            return false
+        end
+        return true
     end
 
     action GetTextBox returns EditBox

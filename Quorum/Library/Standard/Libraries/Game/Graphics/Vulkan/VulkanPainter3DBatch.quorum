@@ -94,8 +94,8 @@ class VulkanPainter3DBatch
     
     // For all of the models in this batch, store their per-instance data and queue up indirect draw command(s).
     action ProcessBatch(VulkanPainter3D painter)
-        if schematic:HasAnimation()
-            alert("NYI: Animation in VulkanPainter3DBatch")
+        if schematic:HasAnimations()
+            //TODO: Getting close.
             else
             integer i = 0
             repeat while i < meshesPerModel
