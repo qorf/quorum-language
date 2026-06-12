@@ -81,14 +81,21 @@ public class ModelLoader {
 
         int numAnimations = aiScene.mNumAnimations();
         if(isAnimatedModel && numAnimations > 0) {
+            PointerBuffer animationsBuffer = aiScene.mAnimations();
             Animations_ animations = new Animations();
             Array_ animMeshDataList = animations.GetAnimationMeshData();
+            //First get the bone list
             List<Bone_> boneList = new ArrayList<>();
             for (int i = 0; i < numMeshes; i++) {
                 AIMesh aiMesh = AIMesh.create(aiMeshes.get(i));
                 AnimationMeshData_ animMeshData = ProcessBones(aiMesh, boneList);
                 animMeshDataList.Add(animMeshData);
             }
+
+
+
+
+            //Now "Bake" in frames of animation so we can use it in the engine
 
             AnimationNode_ rootNode = BuildNodesTree(aiScene.mRootNode(), null);
             Matrix4_ globalInverseTransformation = ToMatrix(aiScene.mRootNode().mTransformation()).Inverse();
@@ -100,13 +107,86 @@ public class ModelLoader {
         return data;
     }
 
+    private static AnimationChannel_ StoreRawAnimationData(AINodeAnim aiChannel, float ticksPerSecond) {
+        AnimationChannel_ channel = new AnimationChannel();
+
+        //Create the Quorum values
+        Array_ positions = new Array(); //Vector3
+        Array_ rotations = new Array(); //Quaternion
+        Array_ scalings = new Array(); //Vector3
+        Number32BitArray_ timestamps = new Number32BitArray();
+
+        //Set the arrays
+        channel.SetPositions(positions);
+        channel.SetRotations(rotations);
+        channel.SetScalings(scalings);
+        channel.SetTimestamps(timestamps);
+
+        //Create the positions
+        int positionKeys = aiChannel.mNumPositionKeys();
+        AIVectorKey.Buffer positionBuffer = aiChannel.mPositionKeys();
+        if (positionBuffer != null) {
+            for (int i = 0; i < positionKeys; i++) {
+                AIVectorKey key = positionBuffer.get(i);
+                AIVector3D val = key.mValue();
+                Vector3_ vector = new Vector3();
+                vector.Set(val.x(), val.y(), val.z());
+                positions.Add(vector);
+            }
+        }
+
+        //Create the quaternions
+        int quaternionKeys = aiChannel.mNumRotationKeys();
+        AIQuatKey.Buffer quaternionBuffer = aiChannel.mRotationKeys();
+
+        if (quaternionBuffer != null) {
+            for (int i = 0; i < quaternionKeys; i++) {
+                AIQuatKey key = quaternionBuffer.get(i);
+                AIQuaternion val = key.mValue();
+                Quaternion_ quat = new Quaternion();
+                quat.Set(val.x(), val.y(), val.z(), val.w());
+                rotations.Add(quat);
+            }
+        }
+
+        //Create the scaling values
+        int scalingKeys = aiChannel.mNumScalingKeys();
+        AIVectorKey.Buffer scalingBuffer = aiChannel.mScalingKeys();
+
+        if (scalingBuffer != null) {
+            for (int i = 0; i < scalingKeys; i++) {
+                AIVectorKey key = scalingBuffer.get(i);
+                AIVector3D val = key.mValue();
+                Vector3_ vector = new Vector3();
+                vector.Set(val.x(), val.y(), val.z());
+                scalings.Add(vector);
+            }
+        }
+
+        //Create the timestamps
+        int timestampKeys = aiChannel.mNumPositionKeys();
+        AIVectorKey.Buffer timestampBuffer = aiChannel.mPositionKeys();
+        timestamps.SetSize(timestampKeys);
+
+        if (timestampBuffer != null) {
+            for (int i = 0; i < timestampKeys; i++) {
+                AIVectorKey key = timestampBuffer.get(i);
+                float value = (float) (key.mTime() / ticksPerSecond);
+                timestamps.Set(i, value);
+            }
+        }
+
+        return channel;
+    }
+
     private static void ProcessAnimations(AIScene aiScene, List<Bone_> boneList,
                                           AnimationNode_ rootNode, Matrix4_ globalInverseTransformation,
                                           Animations_ animations) {
         Array_ animationsTopLevelArray = animations.GetAnimations();
 
-        int maxJointsMatricesLists = DEFAULT_MAX_JOINTS_MATRICES_LISTS;//temporary
-        // Process all animations
+        int maxJointsMatricesLists = DEFAULT_MAX_JOINTS_MATRICES_LISTS;
+
+        // Process all animations. We get the raw channels and bake in frames.
         int numAnimations = aiScene.mNumAnimations();
         PointerBuffer aiAnimations = aiScene.mAnimations();
         for (int i = 0; i < numAnimations; i++) {
@@ -116,10 +196,31 @@ public class ModelLoader {
 
             Animation_ animation = new Animation();
             Array_ frames = animation.GetFrames();
+            Array_ channels = animation.GetChannels();
             animation.SetName(aiAnimation.mName().dataString());
             animation.SetMilliseconds(frameMillis);
             animationsTopLevelArray.Add(animation);
 
+            //Now get the raw channels for processing Quorum side if we want it.
+            int numChannels = aiAnimation.mNumChannels();
+            PointerBuffer channelsBuffer = aiAnimation.mChannels();
+            float ticksPerSecond = (float) aiAnimation.mTicksPerSecond();
+            // Default to 25 ticks per second if the exporter omitted it
+            if (ticksPerSecond == 0) {
+                ticksPerSecond = 25.0f;
+            }
+
+            if (channelsBuffer != null) {
+                for (int j = 0; j < numChannels; j++) {
+                    AINodeAnim aiChannel = AINodeAnim.create(channelsBuffer.get(j));
+                    String boneName = aiChannel.mNodeName().dataString();
+                    AnimationChannel_ quorumChannel = StoreRawAnimationData(aiChannel, ticksPerSecond);
+                    quorumChannel.SetBone(boneName);
+                    channels.Add(quorumChannel);
+                }
+            }
+
+            //Now bake in the frames so we can send it to GPU if we wish.
             for (int j = 0; j < maxFrames; j++) {
                 AnimationFrame_ frame = new AnimationFrame();
                 Array_ joints = frame.GetJoints();

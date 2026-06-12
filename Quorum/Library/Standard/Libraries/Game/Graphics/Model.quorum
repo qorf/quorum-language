@@ -2430,20 +2430,12 @@ end
             end
             animationState:SetCurrentFrame(newFrame)
             
-            //somehow tell the model what's going on here
+            //somehow tell the model to actually chane the frame of animation here
             
             //somehow decide what the accessibility system does here.
             if startTime = 0
-                output "Access triggered."
-                GameStateManager manager
-                //this is wrong, but I'm still working on it.
-            Accessibility accessibility = manager:GetAccessibility()
-            accessibility:Notify(me, "Test Message")
-                
-                SetName("Test Message in Model.")
-                FocusEvent event
-                event:Initialize(undefined, me)
-                accessibility:FocusChanged(event)
+                text description = animation:GetName() + ", " + animation:GetDescription()
+                SetDescription(description)
             end
             
             animationState:SetCurrentTime(currentTime)
@@ -2452,9 +2444,9 @@ end
         
     end
     
+    
+    
     action Update(number seconds)
         UpdateAnimationState(seconds)
     end
-    
-
 end

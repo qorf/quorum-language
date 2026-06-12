@@ -6,8 +6,47 @@ use Libraries.Compute.Quaternion
 
 class AnimationChannel
     text bone = ""
-    Number32BitArray timestamps
-    Array<Vector3> positions
-    Array<Quaternion> rotations
-    Array<Vector3> scalings
+    Number32BitArray timestamps = undefined
+    Array<Vector3> positions = undefined
+    Array<Quaternion> rotations = undefined
+    Array<Vector3> scalings = undefined
+    action GetBone returns text
+        return bone
+    end
+
+    action SetBone(text bone)
+        me:bone = bone
+    end
+
+    action GetTimestamps returns Number32BitArray
+        return timestamps
+    end
+
+    action SetTimestamps(Number32BitArray timestamps)
+        me:timestamps = timestamps
+    end
+
+    action GetPositions returns Array<Vector3>
+        return positions
+    end
+
+    action SetPositions(Array<Vector3> positions)
+        me:positions = positions
+    end
+
+    action GetRotations returns Array<Quaternion>
+        return rotations
+    end
+
+    action SetRotations(Array<Quaternion> rotations)
+        me:rotations = rotations
+    end
+
+    action GetScalings returns Array<Vector3>
+        return scalings
+    end
+
+    action SetScalings(Array<Vector3> scalings)
+        me:scalings = scalings
+    end
 end
