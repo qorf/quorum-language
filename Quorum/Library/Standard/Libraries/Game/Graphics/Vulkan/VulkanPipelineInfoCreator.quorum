@@ -781,6 +781,24 @@ class VulkanPipelineInfoCreator
 4. PBR Properties (no blending)*/
         AddOpaqueColorBlendAttachmentState()
         AddTransparentColorBlendAttachmentState()
+        
+        VulkanPipelineColorBlendAttachmentState albedoBlend
+        albedoBlend:SetBlendEnable(true)
+        albedoBlend:SetSourceColorBlendFactor(constants:BLEND_FACTOR_SOURCE_ALPHA)
+        albedoBlend:SetDestinationColorBlendFactor(constants:BLEND_FACTOR_ONE_MINUS_SOURCE_ALPHA)
+        albedoBlend:SetColorBlendOp(constants:BLEND_OP_ADD)
+        albedoBlend:SetSourceAlphaBlendFactor(constants:BLEND_FACTOR_ONE)
+        albedoBlend:SetDestinationAlphaBlendFactor(constants:BLEND_FACTOR_ONE)
+        albedoBlend:SetAlphaBlendOp(constants:BLEND_OP_MAX)
+        //blendEnable = true
+        //sourceColorBlendFactor = constants:BLEND_FACTOR_SOURCE_ALPHA
+        //destinationColorBlendFactor = constants:BLEND_FACTOR_ONE_MINUS_SOURCE_ALPHA
+        //colorBlendOp = constants:BLEND_OP_ADD
+        //sourceAlphaBlendFactor = constants:BLEND_FACTOR_ONE
+        //destinationAlphaBlendFactor = constants:BLEND_FACTOR_ONE
+        //alphaBlendOp = constants:BLEND_OP_MAX
+            colorBlendAttachments:Add(albedoBlend)
+        
         AddOpaqueColorBlendAttachmentState()
         AddOpaqueColorBlendAttachmentState()
 

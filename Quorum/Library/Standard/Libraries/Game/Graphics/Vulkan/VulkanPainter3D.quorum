@@ -976,7 +976,7 @@ BindDescriptorSetCommand lightDescriptorBind
             bindResultPipeline:SetPipeline(resultPipeline)
             commandBuffer:Record(bindResultPipeline)
         
-        SetViewportAndScissor(commandBuffer, swapchain)
+        SetResultViewportAndScissor(commandBuffer, swapchain)
         
         // We can reuse the earlier BindVertexBufferCommand to bind our dummy vertex data.
         commandBuffer:Record(bindVertex)
@@ -1028,6 +1028,18 @@ BindDescriptorSetCommand resultDescriptorBind
         commandBuffer:Record(setScissor)
     end
     
+    private action SetResultViewportAndScissor(VulkanCommandBuffer commandBuffer, VulkanSwapchain swapchain)
+        SetViewportCommand setViewport
+            setViewport:SetPosition(0, swapchain:GetImageHeight())
+            setViewport:SetSize(swapchain:GetImageWidth(), -swapchain:GetImageHeight())
+            commandBuffer:Record(setViewport)
+        
+        SetScissorCommand setScissor
+        setScissor:SetPosition(0, 0)
+            setScissor:SetSize(swapchain:GetImageWidth(), swapchain:GetImageHeight())
+        commandBuffer:Record(setScissor)
+    end
+    
     action GetCurrentDrawQueue(integer textureGroupID) returns VulkanDrawQueue3D
         GameStateManager manager
         VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
@@ -1063,6 +1075,10 @@ BindDescriptorSetCommand resultDescriptorBind
     end
     
     action Render(Model model)
+        if model = undefined or model:GetModelBlueprint() = undefined
+            return now
+        end
+        
         VulkanPainter3DBatch batch = GetBatch(model)
         if batch:IsPending() = false
             batch:SetPending(true)
