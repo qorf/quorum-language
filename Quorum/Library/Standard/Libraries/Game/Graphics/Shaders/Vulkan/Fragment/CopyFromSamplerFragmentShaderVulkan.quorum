@@ -22,10 +22,6 @@ layout (set = 0, binding = 0) uniform sampler2D u_sampler;
 void main()
 {
 	outputColor = texture(u_sampler, v_samplerCoordinate);
-	//if (outputColor.a > 0.0)
-	//{
-	//	outputColor.a = 1.0;
-	//}
 }
 ")
     end
