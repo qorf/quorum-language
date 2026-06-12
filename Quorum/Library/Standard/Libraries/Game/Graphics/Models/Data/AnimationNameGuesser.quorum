@@ -43,7 +43,7 @@ class AnimationNameGuesser
         
         cleanNames:Sort()
         
-        name = channels:GetSize() + " bones moved, including "
+        name = channels:GetSize() + " bones moved, with at least "
         i = 0
         repeat while i < cleanNames:GetSize()
             text value = cleanNames:Get(i)

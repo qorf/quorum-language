@@ -2395,6 +2395,21 @@ end
 
     action SetAnimationState(AnimationState animationState)
         me:animationState = animationState
+        if animationState = undefined
+            SetDescription("")
+        end
+    end
+    
+    action StartAnimation(integer index) returns AnimationState
+        AnimationState state
+        animationState:SetStarted(true)
+        state:SetAnimationIndex(index)
+        me:animationState = state
+        return state
+    end
+    
+    action StopAnimation
+        SetAnimationState(undefined)
     end
     
     action UpdateAnimationState(number seconds)
@@ -2440,8 +2455,6 @@ end
             
             animationState:SetCurrentTime(currentTime)
         end
-        
-        
     end
     
     
