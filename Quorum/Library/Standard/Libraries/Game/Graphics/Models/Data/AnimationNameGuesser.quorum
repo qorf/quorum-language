@@ -1,0 +1,82 @@
+package Libraries.Game.Graphics.Models.Data
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Models.Data.Animation
+use Libraries.Game.Graphics.Models.Data.AnimationChannel
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+
+class AnimationNameGuesser
+    action GuessName(Animation animation) returns text
+        text name = animation:GetName()
+        if name not= undefined and not name:IsEmpty()
+            return name
+        end
+        
+        HashTable<text, integer> popular
+        //The animation is not labeled. Take a guess
+        Array<AnimationChannel> channels = animation:GetChannels()
+        i = 0
+        repeat while i < channels:GetSize()
+            AnimationChannel channel = channels:Get(i)
+            text dirtyBone = channel:GetBone()
+            
+            Array<text> alpha = StripBoneName(dirtyBone)
+            j = 0
+            repeat while j < alpha:GetSize()
+                text clean = alpha:Get(j)
+                if popular:HasKey(clean)
+                    integer value = popular:GetValue(clean)
+                    popular:Add(clean, value + 1)
+                else
+                    popular:Add(clean, 1)
+                end
+                j = j + 1
+            end
+            i = i + 1
+        end
+        
+        Array<text> cleanNames
+        Iterator<text> iterator = popular:GetKeyIterator()
+        repeat while iterator:HasNext()
+            cleanNames:Add(iterator:Next())
+        end
+        
+        cleanNames:Sort()
+        
+        name = channels:GetSize() + " bones moved, with at least "
+        i = 0
+        repeat while i < cleanNames:GetSize()
+            text value = cleanNames:Get(i)
+            name = name + value
+            if i + 1 < cleanNames:GetSize()
+                name = name + ", "
+            end
+            
+            i = i + 1
+        end
+        
+        
+        return name
+    end
+    
+    
+    action StripBoneName(text original) returns Array<text>
+        Array<text> names
+        integer i = 0
+        text current = ""
+        repeat while i < original:GetSize()
+            text character = original:GetCharacter(i)
+            // Keep purely alphabetic uppercase or lowercase text blocks
+            if (character >= "a" and character <= "z") or (character >= "A" and character <= "Z")
+                current = current + character
+            else
+                if current not= undefined and not current:IsEmpty()
+                    names:Add(current)
+                    current = ""
+                end
+            end
+            i = i + 1
+        end
+        return names
+    end
+end

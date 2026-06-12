@@ -4,8 +4,10 @@ use Libraries.Containers.Array
 
 class Animation
     text name = ""
+    text description = ""
     number milliseconds = 0.0
     Array<AnimationFrame> frames
+    Array<AnimationChannel> channels
     action GetName returns text
         return name
     end
@@ -13,6 +15,13 @@ class Animation
     action SetName(text name)
         me:name = name
     end
+    
+    action GuessDescription returns text
+        AnimationNameGuesser guesser
+        text value = guesser:GuessName(me)
+        return value
+    end
+    
 
     action GetMilliseconds returns number
         return milliseconds
@@ -28,5 +37,21 @@ class Animation
 
     action SetFrames(Array<AnimationFrame> frames)
         me:frames = frames
+    end
+    
+    action GetChannels returns Array<AnimationChannel>
+        return channels
+    end
+
+    action SetChannels(Array<AnimationChannel> channels)
+        me:channels = channels
+    end
+
+    action GetDescription returns text
+        return description
+    end
+
+    action SetDescription(text description)
+        me:description = description
     end
 end
