@@ -84,7 +84,8 @@ class VulkanDescriptorSetManager
             boolean success = descriptorSet:Create(device, pool, layout)
             if success
                 return descriptorSet
-            elseif descriptorSet:GetFailureCode() not= constants:ERROR_OUT_OF_POOL_MEMORY
+            elseif descriptorSet:GetFailureCode() not= constants:ERROR_OUT_OF_POOL_MEMORY and 
+descriptorSet:GetFailureCode() not= constants:ERROR_FRAGMENTED_POOL
                 return undefined
             end
 
@@ -96,7 +97,8 @@ class VulkanDescriptorSetManager
                 success = descriptorSet:Create(device, pool, layout)
                 if success
                     return descriptorSet
-                elseif descriptorSet:GetFailureCode() not= constants:ERROR_OUT_OF_POOL_MEMORY
+                elseif descriptorSet:GetFailureCode() not= constants:ERROR_OUT_OF_POOL_MEMORY and 
+descriptorSet:GetFailureCode() not= constants:ERROR_FRAGMENTED_POOL
                     return undefined
                 end
 
