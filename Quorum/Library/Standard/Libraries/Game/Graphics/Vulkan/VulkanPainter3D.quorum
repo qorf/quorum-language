@@ -1061,6 +1061,12 @@ BindDescriptorSetCommand resultDescriptorBind
                 queue:Create(device, graphics, DEFAULT_MAX_INSTANCES, textureGroupID)
                 array:Add(queue)
         end
+        if array:Get(textureGroupID) = undefined
+            // A previously unneeded queue is needed now. Instantiate and place it in the structure.
+            VulkanDrawQueue3D queue
+                queue:Create(device, graphics, DEFAULT_MAX_INSTANCES, textureGroupID)
+                array:Set(textureGroupID, queue)
+        end
         
         return array:Get(textureGroupID)
     end
