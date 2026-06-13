@@ -77,7 +77,7 @@ VulkanSampler immutableSampler = undefined
     // A reusable buffer of data for sending push constants. Used to send a pointer to a DrawQueue's instance data during rendering.
     VulkanPushConstantBuffer pushConstants
     
-    integer DEFAULT_MAX_INSTANCES = 1024
+    integer DEFAULT_MAX_INSTANCES = 8192
     
     // A dummy vertex buffer. Without extensions to bypass it, the Vulkan spec requires we bind something to the vertex buffers, even if our pipeline doesn't need it due to bindless rendering.
     VulkanBuffer dummyVertexBuffer = undefined
@@ -811,13 +811,27 @@ BindDescriptorSetCommand cameraBind
             cameraBind:SetDescriptorSet(currentCameraDescriptor)
             commandBuffer:Record(cameraBind)
         
-        //VulkanDrawQueue3D drawQueue = drawQueues:Get(currentSwapchainIndex)
-        //drawQueue:Begin()
-        integer i = 0
+        //integer i = 0
+        //repeat while i < drawQueues:GetSize()
+            //VulkanDrawQueue3D drawQueue = GetCurrentDrawQueue(i)
+            //if drawQueue not= undefined
+                //drawQueue:Begin()
+            //end
+            //i = i + 1
+        //end
+        
+        
+        i = 0
         repeat while i < drawQueues:GetSize()
-            VulkanDrawQueue3D drawQueue = GetCurrentDrawQueue(i)
-            if drawQueue not= undefined
-                drawQueue:Begin()
+            Array<VulkanDrawQueue3D> allQueues = drawQueues:Get(i)
+            integer j = 0
+            repeat while j < allQueues:GetSize()
+                VulkanDrawQueue3D queue = allQueues:Get(j)
+                if queue not= undefined
+                    queue:Begin()
+                end
+                
+                j = j + 1
             end
             i = i + 1
         end
