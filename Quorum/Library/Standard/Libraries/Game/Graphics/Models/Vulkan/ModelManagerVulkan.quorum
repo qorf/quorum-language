@@ -26,6 +26,7 @@ use Libraries.Game.Graphics.Models.Data.Animations
 use Libraries.Game.Graphics.Models.Data.Animation
 use Libraries.Game.Graphics.Models.Data.AnimationFrame
 use Libraries.Compute.Vector4
+use Libraries.Game.Graphics.Models.Data.AnimationMeshData
 
 shared class ModelManagerVulkan
     
@@ -135,6 +136,8 @@ end
         result:SetKey(data:GetID())
         result:SetData(data)
         
+        boolean hasAnimations = data:GetAnimations() not= undefined
+        
         VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
         VulkanDevice device = graphics:GetDevice()
         
@@ -153,7 +156,12 @@ end
         i = 0
         repeat while i < meshData:GetSize()
             MeshVulkan mesh
-            mesh:Load(device, meshData:Get(i))
+            AnimationMeshData animationData = undefined
+            if hasAnimations
+                animationData = data:GetAnimations():GetAnimationMeshData():Get(i)
+            end
+            
+            mesh:Load(device, meshData:Get(i), animationData)
             mesh:SetMaterial(materials:Get(meshData:Get(i):GetMaterialIndex()))
             meshes:Add(mesh)
             pendingMeshes:Add(mesh)
@@ -162,10 +170,17 @@ end
         result:SetMeshes(meshes)
         
         //Now if the model has animations, add them to a pending spot
-        boolean animate = data:HasAnimations()
-        if animate
-            Animations animations = data:GetAnimations()
-            animationManager:AddPendingAnimations(animations)
+        if hasAnimations
+            Array<Animation> animations = data:GetAnimations():GetAnimations()
+            Array<Array<AnimationFrameVulkan>> allFrames
+            i = 0
+            repeat while i < animations:GetSize()
+                Array<AnimationFrameVulkan> frames = animationManager:GetAnimationFrames(animations:Get(i))
+                allFrames:Add(frames)
+                i = i + 1
+            end
+            
+            result:SetAnimationFrames(allFrames)
         end
         return result
     end

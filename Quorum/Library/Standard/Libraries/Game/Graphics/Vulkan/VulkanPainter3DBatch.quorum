@@ -94,7 +94,8 @@ class VulkanPainter3DBatch
     
     // For all of the models in this batch, store their per-instance data and queue up indirect draw command(s).
     action ProcessBatch(VulkanPainter3D painter)
-        if schematic:HasAnimations()
+        if schematic:HasAnimations() and false
+            output "Not rendering (animated)"
             //TODO: Getting close.
             else
             integer i = 0

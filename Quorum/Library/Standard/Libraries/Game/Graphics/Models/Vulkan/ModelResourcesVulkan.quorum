@@ -7,6 +7,11 @@ use Libraries.Game.Graphics.Renderable
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Vulkan.VulkanBuffer
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
 
 class ModelResourcesVulkan is ModelResources
     
@@ -15,6 +20,11 @@ class ModelResourcesVulkan is ModelResources
     // If these values are undefined, the default value from the blueprint is used instead.
     Array<Color> diffuseColors
     Array<Texture> textures
+    
+    /*An array of VulkanBuffers representing the vertices of this model after animation has been applied. 
+If this model doesn't have animations, the array will be undefined. Otherwise, the array will contain
+one buffer per mesh in the model. */
+    Array<VulkanBuffer> postAnimationVertexBuffers = undefined
     
     /*
     This action sets the diffuse color of a primitive model. If the model did not
@@ -83,11 +93,35 @@ end
     end
     
     action SetFromBlueprint(ModelBlueprint schematic)
-        // TO-DO: Set information specific to animation here.
+        // If the blueprint has animations, create one buffer per mesh to store post-animation transformed vertices.
+        if schematic:HasAnimations()
+            GameStateManager manager
+            VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+            VulkanDevice device = graphics:GetDevice()
+            VulkanConstants constants
+            
+            Array<VulkanBuffer> vertexBuffers
+            postAnimationVertexBuffers = vertexBuffers
+            
+            ModelBlueprintVulkan vulkanBlueprint = cast(ModelBlueprintVulkan, schematic)
+            Array<MeshVulkan> meshes = vulkanBlueprint:GetMeshes()
+            
+            integer i = 0
+            repeat while i < meshes:GetSize()
+                MeshVulkan mesh = meshes:Get(i)
+                
+                VulkanBuffer newBuffer
+                newBuffer:Create(device, mesh:GetVertexBufferSize(), constants:BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+constants:MEMORY_USAGE_AUTO, 0, 0, 0, false)
+                vertexBuffers:Add(newBuffer)
+                
+                i = i + 1
+            end
+        end
 end
     
     action GetRenderables(Array<Renderable> renderables)
-        alert("NYI")
+        // Do nothing. Renderables are used for OpenGL resources.
 end
     
 end

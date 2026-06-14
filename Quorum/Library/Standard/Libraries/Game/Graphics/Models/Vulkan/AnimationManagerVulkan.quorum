@@ -4,42 +4,69 @@ use Libraries.Game.Graphics.Vulkan.VulkanDevice
 use Libraries.Game.Graphics.Models.Data.Animation
 use Libraries.Game.Graphics.Models.Data.Animations
 use Libraries.Game.Graphics.Models.Data.AnimationFrame
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
 
 class AnimationManagerVulkan
     
     VulkanDevice device = undefined
-    Array<Animations> pendingAnimations
+    Array<AnimationFrameVulkan> pendingFrames
     
     action Create(VulkanDevice device)
         me:device = device
     end
     
     action ProcessPendingResources
-        if pendingAnimations:IsEmpty()
+        if pendingFrames:IsEmpty()
             return now
         end
         
+        GameStateManager manager
+            VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+            VulkanCommandBuffer commandBuffer = graphics:GetCurrentRenderCommandBuffer()
+        
         i = 0
-        repeat while i < pendingAnimations:GetSize()
-            Animations animations = pendingAnimations:Get(i)
-            j = 0
-            repeat while j < animations:GetSize()
-                Animation animation = animations:Get(j)
-                
-                j = j + 1
+        repeat while i < pendingFrames:GetSize()
+            AnimationFrameVulkan frame = pendingFrames:Get(i)
+            
+            if frame:HasData()
+                frame:TransferBuffers(commandBuffer)
             end
             
             i = i + 1
         end
         
-        
         output "Animations Finishing"
-            pendingAnimations:Empty()
+            pendingFrames:Empty()
     end
     
+    action GetAnimationFrames(Animation animation) returns Array<AnimationFrameVulkan>
+        Array<AnimationFrameVulkan> result = GetCachedFrames(animation)
+        if result = undefined
+            Array<AnimationFrameVulkan> array
+            result = array
+            
+            Array<AnimationFrame> frames = animation:GetFrames()
+            integer i = 0
+            repeat while i < frames:GetSize()
+                AnimationFrameVulkan vulkanFrame
+                vulkanFrame:Create(device, frames:Get(i))
+                AddPendingAnimationFrame(vulkanFrame)
+                result:Add(vulkanFrame)
+                i = i + 1
+            end
+        end
+        return result
+    end
     
-    action AddPendingAnimations(Animations animations)
-        pendingAnimations:Add(animations)
+    private action GetCachedFrames(Animation animation) returns Array<AnimationFrameVulkan>
+        // Caching NYI -- in practice, caching will likely be handled further upstream at the model blueprint level
+        return undefined
+    end
+    
+    action AddPendingAnimationFrame(AnimationFrameVulkan frame)
+        pendingFrames:Add(frame)
     end
     
     

@@ -10,6 +10,8 @@ use Libraries.Game.Graphics.Vulkan.VulkanInteger32BitMappedMemory
 use Libraries.Game.Graphics.Vulkan.VulkanConstants
 use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
 use Libraries.Game.Graphics.Vulkan.Commands.CopyBufferCommand
+use Libraries.Game.Graphics.Models.Data.AnimationMeshData
+use Libraries.Game.NumberUtilities
 
 class MeshVulkan
     
@@ -17,8 +19,10 @@ class MeshVulkan
     
     VulkanBuffer vertexStagingBuffer = undefined
     VulkanBuffer indexStagingBuffer = undefined
+    VulkanBuffer animationDataStagingBuffer = undefined
     VulkanBuffer vertexBuffer = undefined
     VulkanBuffer indexBuffer = undefined
+    VulkanBuffer animationDataBuffer = undefined
     
     boolean dataTransferred = false
     
@@ -41,7 +45,7 @@ Each vertex is made of 14 32-bit components:
     
     MaterialVulkan material = undefined
     
-    action Load(VulkanDevice device, MeshData data)
+    action Load(VulkanDevice device, MeshData data, AnimationMeshData animationData)
         if IsReady()
             alert("I cannot load data into this mesh because it has already been loaded!")
         elseif HasData()
@@ -113,9 +117,50 @@ Each vertex is made of 14 32-bit components:
         vertexBuffer:CreateTransferDestinationBuffer(device, vertexStagingBuffer:GetSize(), constants:BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)
         indexBuffer:CreateTransferDestinationBuffer(device, indexStagingBuffer:GetSize(), constants:BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)
         
+        // If animation data has been provided, load a buffer with the weights and bone IDs.
+        if animationData not= undefined
+            NumberUtilities utility
+            Number32BitArray weights = animationData:GetWeights()
+            Integer32BitArray boneIDs = animationData:GetBoneIDs()
+            
+            Number32BitArray transferArray
+            transferArray:SetSize(weights:GetSize() + boneIDs:GetSize())
+            
+            VulkanBuffer animationDataStagingBuffer
+            me:animationDataStagingBuffer = animationDataStagingBuffer
+            animationDataStagingBuffer:CreateTransferSourceBuffer(device, transferArray:GetSize() * 4)
+            
+            integer entryCount = weights:GetSize() / 4
+            integer i = 0
+            repeat while i < transferArray:GetSize()
+                integer sourceIndex = i / 2
+                
+                transferArray:Set(i, weights:Get(sourceIndex))
+                transferArray:Set(i + 1, weights:Get(sourceIndex + 1))
+                transferArray:Set(i + 2, weights:Get(sourceIndex + 2))
+                transferArray:Set(i + 3, weights:Get(sourceIndex + 3))
+                
+                transferArray:Set(i + 4, utility:EncodeIntegerAsNumber(boneIDs:Get(sourceIndex)))
+                transferArray:Set(i + 5, utility:EncodeIntegerAsNumber(boneIDs:Get(sourceIndex + 1)))
+                transferArray:Set(i + 6, utility:EncodeIntegerAsNumber(boneIDs:Get(sourceIndex + 2)))
+                transferArray:Set(i + 7, utility:EncodeIntegerAsNumber(boneIDs:Get(sourceIndex + 3)))
+                
+                i = i + 8
+            end
+            
+            VulkanNumber32BitMappedMemory animationMapping = animationDataStagingBuffer:MapToNumber32BitMemory()
+            animationMapping:Set(transferArray)
+            
+            VulkanBuffer animationDataBuffer
+            me:animationDataBuffer = animationDataBuffer
+            
+            animationDataBuffer:CreateTransferDestinationBuffer(device, animationDataStagingBuffer:GetSize(), constants:BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)
+        end
+        
         //TODO: These cause a crash in some cases, for reasons unclear. Go back and figure this out later.
         //vertexStagingBuffer:StopMapping()
         //indexStagingBuffer:StopMapping()
+        //animationDataStagingBuffer:StopMapping()
     end
     
     action HasData returns boolean
@@ -124,6 +169,10 @@ Each vertex is made of 14 32-bit components:
     
     action IsReady returns boolean
         return vertexBuffer not= undefined and dataTransferred
+    end
+    
+    action HasAnimations returns boolean
+        return animationDataStagingBuffer not= undefined or animationDataBuffer not= undefined
     end
     
     action GetDevice returns VulkanDevice
@@ -147,6 +196,15 @@ Each vertex is made of 14 32-bit components:
 
         buffer:Record(vertexCopyCommand)
         buffer:Record(indexCopyCommand)
+        
+        if animationDataStagingBuffer not= undefined
+            CopyBufferCommand animationCopyCommand
+            animationCopyCommand:SetSourceBuffer(animationDataStagingBuffer)
+            animationCopyCommand:SetDestinationBuffer(animationDataBuffer)
+            animationCopyCommand:SetSize(animationDataStagingBuffer:GetSize())
+            
+            buffer:Record(animationCopyCommand)
+        end
         
         dataTransferred = true
     end
@@ -189,6 +247,28 @@ Each vertex is made of 14 32-bit components:
 
     action GetIndexCount returns integer
         return indexCount
+    end
+    
+    /*Returns the size of the vertex buffer in bytes.*/
+    action GetVertexBufferSize returns integer
+        if dataTransferred
+            return vertexBuffer:GetSize()
+        elseif vertexStagingBuffer not= undefined
+            return vertexStagingBuffer:GetSize()
+        else
+            return 0
+        end
+    end
+    
+    /*Returns the size of the index buffer in bytes.*/
+    action GetIndexBufferSize returns integer
+        if dataTransferred
+            return indexBuffer:GetSize()
+        elseif indexStagingBuffer not= undefined
+            return indexStagingBuffer:GetSize()
+        else
+            return 0
+        end
     end
 
 end

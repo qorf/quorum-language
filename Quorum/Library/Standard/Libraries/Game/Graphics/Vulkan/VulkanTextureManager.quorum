@@ -137,7 +137,7 @@ class VulkanTextureManager
                 buffer:CreateTransferSourceBuffer(device, width * height * pixelSize)
                 buffer:BeginMapping()
                 TransferPixelData(pixelMap, buffer)
-                buffer:StopMapping()
+                //buffer:StopMapping()
 
                 VulkanImage image
                 VulkanImageInfo imageInfo

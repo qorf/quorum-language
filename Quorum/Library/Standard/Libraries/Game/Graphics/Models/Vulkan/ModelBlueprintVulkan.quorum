@@ -15,6 +15,7 @@ class ModelBlueprintVulkan is ModelBlueprint
     ModelData data = undefined
     Array<MeshVulkan> meshes = undefined
     Array<MaterialVulkan> materials = undefined
+    Array<Array<AnimationFrameVulkan>> animationFrames = undefined
     
     BoundingBox boundingBox
     
@@ -147,6 +148,14 @@ Animations animations = data:GetAnimations()
     
     action GetMeshCount returns integer
         return meshes:GetSize()
+    end
+
+    action GetAnimationFrames returns Array<Array<AnimationFrameVulkan>>
+        return animationFrames
+    end
+
+    action SetAnimationFrames(Array<Array<AnimationFrameVulkan>> animationFrames)
+        me:animationFrames = animationFrames
     end
 
 end

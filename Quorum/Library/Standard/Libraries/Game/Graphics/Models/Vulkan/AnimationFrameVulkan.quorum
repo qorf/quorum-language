@@ -1,0 +1,110 @@
+package Libraries.Game.Graphics.Models.Vulkan
+
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanBuffer
+use Libraries.Game.Graphics.Models.Data.AnimationFrame
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
+use Libraries.Containers.Array
+use Libraries.Compute.Matrix4
+use Libraries.Containers.Number32BitArray
+use Libraries.Game.Graphics.Vulkan.VulkanNumber32BitMappedMemory
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+use Libraries.Game.Graphics.Vulkan.Commands.CopyBufferCommand
+
+class AnimationFrameVulkan
+    
+    VulkanDevice device = undefined
+    
+    VulkanBuffer stagingBuffer = undefined
+    VulkanBuffer dataBuffer = undefined
+    
+    boolean dataTransferred = false
+    
+    action Create(VulkanDevice device, AnimationFrame frame)
+        if IsReady()
+            alert("I cannot load data into this animation frame because it has already been loaded!")
+        elseif HasData()
+            alert("I cannot set this animation frame's data because the data was already set!")
+        end
+        
+        me:device = device
+        VulkanConstants constants
+        
+        Array<Matrix4> joints = frame:GetJoints()
+        
+        VulkanBuffer stagingBuffer
+        me:stagingBuffer = stagingBuffer
+        stagingBuffer:CreateTransferSourceBuffer(device, joints:GetSize() * 16 * 4)
+        
+        Number32BitArray transferArray
+        transferArray:SetSize(joints:GetSize() * 16)
+        integer i = 0
+        repeat while i < joints:GetSize()
+            integer arrayIndex = i * 16
+            Matrix4 matrix = joints:Get(i)
+            
+            transferArray:Set(arrayIndex, matrix:row0column0)
+            transferArray:Set(arrayIndex + 1, matrix:row1column0)
+            transferArray:Set(arrayIndex + 2, matrix:row2column0)
+            transferArray:Set(arrayIndex + 3, matrix:row3column0)
+            transferArray:Set(arrayIndex + 4, matrix:row0column1)
+            transferArray:Set(arrayIndex + 5, matrix:row1column1)
+            transferArray:Set(arrayIndex + 6, matrix:row2column1)
+            transferArray:Set(arrayIndex + 7, matrix:row3column1)
+            transferArray:Set(arrayIndex + 8, matrix:row0column2)
+            transferArray:Set(arrayIndex + 9, matrix:row1column2)
+            transferArray:Set(arrayIndex + 10, matrix:row2column2)
+            transferArray:Set(arrayIndex + 11, matrix:row3column2)
+            transferArray:Set(arrayIndex + 12, matrix:row0column3)
+            transferArray:Set(arrayIndex + 13, matrix:row1column3)
+            transferArray:Set(arrayIndex + 14, matrix:row2column3)
+            transferArray:Set(arrayIndex + 15, matrix:row3column3)
+            
+            i = i + 1
+        end
+        
+        VulkanNumber32BitMappedMemory dataMapping = stagingBuffer:MapToNumber32BitMemory()
+        
+        dataMapping:Set(transferArray)
+        
+        VulkanBuffer dataBuffer
+        me:dataBuffer = dataBuffer
+        
+        dataBuffer:CreateTransferDestinationBuffer(device, stagingBuffer:GetSize(), constants:BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)
+        
+        //TODO: These cause a crash in some cases, for reasons unclear. Go back and figure this out later.
+        //stagingBuffer:StopMapping()
+    end
+    
+    action HasData returns boolean
+        return stagingBuffer not= undefined or dataBuffer not= undefined
+    end
+    
+    action IsReady returns boolean
+        return dataBuffer not= undefined and dataTransferred
+    end
+    
+    action GetDevice returns VulkanDevice
+        return device
+    end
+    
+    action TransferBuffers(VulkanCommandBuffer commandBuffer)
+        if dataTransferred
+            return now
+        end
+        
+        CopyBufferCommand copyCommand
+        copyCommand:SetSourceBuffer(stagingBuffer)
+        copyCommand:SetDestinationBuffer(dataBuffer)
+        copyCommand:SetSize(stagingBuffer:GetSize())
+
+        commandBuffer:Record(copyCommand)
+        
+        dataTransferred = true
+    end
+    
+    action GetBuffer returns VulkanBuffer
+        return dataBuffer
+    end
+
+end

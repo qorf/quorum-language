@@ -5,6 +5,7 @@ use Libraries.Containers.Array
 class Animations
     Array<Animation> animations
     Array<AnimationMeshData> animationMeshData
+    
     action HasAnimations returns boolean
         if animations = undefined or animations:IsEmpty()
             return false
