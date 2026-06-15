@@ -9,6 +9,7 @@ use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
 use Libraries.Game.NumberUtilities
 use Libraries.Game.Graphics.Models.Vulkan.MeshVulkan
 use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.Models.Vulkan.MaterialVulkan
 
 /*This class is used by the VulkanPainter3D to manage instance data and queue indirect draw commands.
 Most users will never need to use this class directly.*/
@@ -86,6 +87,16 @@ Texture texture,
 Color diffuseColor,
 Matrix4 modelMatrix)
         instanceMapping:TransferInstanceData(mesh, texture, diffuseColor, modelMatrix)
+        currentInstanceIndex = currentInstanceIndex + 1
+    end
+    
+    action AddInstanceData(VulkanBuffer vertexBuffer,
+VulkanBuffer indexBuffer,
+MaterialVulkan material,
+Texture texture,
+Color diffuseColor,
+Matrix4 modelMatrix)
+        instanceMapping:TransferInstanceData(vertexBuffer, indexBuffer, material, texture, diffuseColor, modelMatrix)
         currentInstanceIndex = currentInstanceIndex + 1
     end
     

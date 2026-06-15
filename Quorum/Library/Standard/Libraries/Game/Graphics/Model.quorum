@@ -2412,7 +2412,7 @@ end
         SetAnimationState(undefined)
     end
     
-    action UpdateAnimationState(number seconds)
+    private action UpdateAnimationState(number seconds)
         if animationState = undefined or not HasAnimations()
             return now
         end
@@ -2459,7 +2459,8 @@ end
     
     
     
-    action Update(number seconds)
+    action UpdateAll(number seconds)
+        parent:Item:UpdateAll(seconds)
         UpdateAnimationState(seconds)
     end
 end

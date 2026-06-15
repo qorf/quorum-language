@@ -20,7 +20,7 @@ boolean result = CreateNative(device,  info)
         return result
     end
     
-    system action CreateNative(VulkanDevice device, VulkanComputePipelineInfo info) returns boolean
+    private system action CreateNative(VulkanDevice device, VulkanComputePipelineInfo info) returns boolean
 
     action Dispose
         alert("NYI")
@@ -29,4 +29,17 @@ boolean result = CreateNative(device,  info)
     action GetDevice returns VulkanDevice
         return device
     end
+    
+    action GetInfo returns VulkanComputePipelineInfo
+        return info
+    end
+    
+    action GetLayout returns VulkanPipelineLayout
+        if info not= undefined
+            return info:GetPipelineLayout()
+        else
+            return undefined
+        end
+    end
+
 end

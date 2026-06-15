@@ -33,10 +33,19 @@ use Libraries.Game.Graphics.Vulkan.Commands.BindVertexBufferCommand
 use Libraries.Game.Graphics.Shaders.Programs.CopyFromSamplerShaderProgram
 use Libraries.Game.Graphics.Vulkan.Commands.DrawCommand
 use Libraries.Game.Graphics.Models.Vulkan.EnvironmentVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Compute.AnimationComputeShaderVulkan
+use Libraries.Game.Graphics.Vulkan.Commands.BindComputePipelineCommand
+use Libraries.Game.Graphics.Models.Data.AnimationState
+use Libraries.Game.Graphics.Models.Vulkan.MeshVulkan
+use Libraries.Game.Graphics.Models.Vulkan.AnimationFrameVulkan
+use Libraries.Game.Graphics.Models.Vulkan.ModelResourcesVulkan
+use Libraries.Compute.Math
+use Libraries.Game.Graphics.Vulkan.Commands.ComputeShaderDispatchCommand
 
 class VulkanPainter3D is Painter3D
     
     GameStateManager gameState
+    Math math
     VulkanRenderPass sceneRenderPass = undefined
     VulkanRenderPass lightRenderPass = undefined
     VulkanRenderPass resultRenderPass = undefined
@@ -73,6 +82,15 @@ VulkanSampler immutableSampler = undefined
     // Arrays of draw queues. There is one array per swapchain image, and each array contains up to as many draw queues as there are texture groups in the VulkanTextureManager.
     // Used to bulk store instance data and draw indirect commands.
     Array<Array<VulkanDrawQueue3D>> drawQueues
+    
+    // An array of models with active animations. These will be pre-processed in a compute shader to calculate the current position of their vertices before rendering.
+    Array<Model> animatedModels
+    
+    // Resources for the animation compute shader stage. Undefined until a model with an active animation is rendered.
+    VulkanComputePipeline animationPipeline = undefined
+    VulkanFence animationFence = undefined
+    VulkanPushConstantBuffer animationPushConstants = undefined
+    integer animationLocalSizeX = -1
     
     // A reusable buffer of data for sending push constants. Used to send a pointer to a DrawQueue's instance data during rendering.
     VulkanPushConstantBuffer pushConstants
@@ -733,13 +751,6 @@ Layer layer = layers:Next()
             lightClearValues:AddColor(0, 0, 0, 0)
         end
         
-        /*
-        End the batches. This will reset information from the last pass, dispose of any batches that 
-        haven't been used in a long time, and record transfer commands from staging buffers to output buffers.
-        */
-        //EndBatches(commandBuffer)
-        
-        
         if not pendingBatches:IsEmpty() or not pendingTransparentBatches:IsEmpty()
             // After ending the batches, we need to wait for data transfers to complete before any drawing can occur.
             // Create a memory barrier that ensures that all commands after this must wait for the transfer stage of
@@ -753,6 +764,12 @@ Layer layer = layers:Next()
             PipelineBarrierCommand barrierCommand
             barrierCommand:SetMemoryBarrier(memoryBarrier)
             commandBuffer:Record(barrierCommand)
+        end
+        
+        // Before we begin rendering, we need to pre-process the vertices of any animated models in a compute shader.
+        if not animatedModels:IsEmpty()
+            ComputeAnimations(graphics)
+            animatedModels:Empty()
         end
 
         integer currentSwapchainIndex = graphics:GetCurrentResourceIndex()
@@ -1012,6 +1029,128 @@ BindDescriptorSetCommand resultDescriptorBind
         
     end
     
+    private action ComputeAnimations(VulkanGraphics graphics)
+        VulkanConstants constants
+        VulkanComputePipeline animationPipeline = GetAnimationPipeline(graphics)
+        
+        // Wait here for any previous animation computations to finish before processing them again.
+        animationFence:Wait()
+        animationFence:Reset()
+        
+        VulkanCommandBuffer commandBuffer = graphics:GetComputeCommandBuffer()
+        commandBuffer:BeginRecording()
+        
+        // Don't allow any shader writes to occur during the compute shader stage until previous commands in the vertex input stage have finished.
+        VulkanMemoryBarrier memoryBarrier
+        memoryBarrier:SetSourceStageMask(constants:PIPELINE_STAGE_VERTEX_INPUT_BIT)
+        memoryBarrier:SetSourceAccessMask(0)
+        memoryBarrier:SetDestinationStageMask(constants:PIPELINE_STAGE_COMPUTE_SHADER_BIT)
+        memoryBarrier:SetDestinationAccessMask(constants:ACCESS_SHADER_WRITE_BIT)
+        PipelineBarrierCommand barrierCommand
+        barrierCommand:SetMemoryBarrier(memoryBarrier)
+        commandBuffer:Record(barrierCommand)
+        
+        BindComputePipelineCommand bindPipelineCommand
+        bindPipelineCommand:SetPipeline(animationPipeline)
+        commandBuffer:Record(bindPipelineCommand)
+        
+        integer i = 0
+        repeat while i < animatedModels:GetSize()
+            Model model = animatedModels:Get(i)
+            AnimationState state = model:GetAnimationState()
+            ModelBlueprintVulkan modelBlueprint = cast(ModelBlueprintVulkan, model:GetModelBlueprint())
+            ModelResourcesVulkan resources = cast(ModelResourcesVulkan, model:GetResources())
+            
+            integer animationIndex = state:GetAnimationIndex()
+            integer frameIndex = state:GetCurrentFrame()
+            
+            integer j = 0
+            repeat while j < model:GetMeshCount()
+                MeshVulkan mesh = modelBlueprint:GetMeshes():Get(j)
+                VulkanBuffer sourceVertices = mesh:GetVertexBuffer()
+                VulkanBuffer weightsBuffer = mesh:GetAnimationDataBuffer()
+                Array<AnimationFrameVulkan> animationFrames = modelBlueprint:GetAnimationFrames():Get(animationIndex)
+                VulkanBuffer animationFrame = animationFrames:Get(frameIndex):GetBuffer()
+                VulkanBuffer destinationVertices = resources:GetPostAnimationVertexBuffers():Get(j)
+                
+                // TO-DO: Set the push constants. Dispatch the work command.
+                animationPushConstants:ResetWritePosition()
+                animationPushConstants:AddBufferPointer(sourceVertices)
+                animationPushConstants:AddBufferPointer(weightsBuffer)
+                animationPushConstants:AddBufferPointer(animationFrame)
+                animationPushConstants:AddBufferPointer(destinationVertices)
+                animationPushConstants:AddInteger32Bit(sourceVertices:GetSize() / 4)
+                
+                SetPushConstantsCommand setPushConstants
+                setPushConstants:SetData(animationPushConstants)
+                setPushConstants:SetStageFlags(constants:SHADER_STAGE_COMPUTE_BIT)
+                setPushConstants:SetPipelineLayout(animationPipeline:GetLayout())
+                commandBuffer:Record(setPushConstants)
+                
+                integer workGroups = cast(integer, math:Ceiling(cast(number, mesh:GetVertexCount()) / animationLocalSizeX))
+                ComputeShaderDispatchCommand dispatch
+                dispatch:SetX(workGroups)
+                commandBuffer:Record(dispatch)
+                
+                j = j + 1
+            end
+            i = i + 1
+        end
+        
+        commandBuffer:EndRecording()
+        
+        VulkanQueue computeQueue = graphics:GetComputeQueue()
+        
+        VulkanSubmitInfo submitInfo
+        Array<VulkanCommandBuffer> commandBuffers
+        commandBuffers:Add(commandBuffer)
+        submitInfo:SetCommandBuffers(commandBuffers)
+        submitInfo:SetFence(animationFence)
+
+        computeQueue:SubmitCommands(submitInfo)
+    end
+    
+    private action GetAnimationPipeline(VulkanGraphics graphics) returns VulkanComputePipeline
+        if animationPipeline = undefined
+            VulkanDevice device = graphics:GetDevice()
+            VulkanConstants constants
+            
+            VulkanFence fence
+            animationFence = fence
+            animationFence:Create(device, true)
+            
+            AnimationComputeShaderVulkan shader
+            animationLocalSizeX = shader:GetLocalSizeX()
+            shader:Compile()
+            
+            VulkanPushConstantBuffer animationPushConstants
+            me:animationPushConstants = animationPushConstants
+            // The push constants for the compute shader includes 4 8-byte pointers plus one 4-byte integer.
+            animationPushConstants:Create(4 * 8 + 4)
+            
+            VulkanPushConstantRange pushConstantRange
+            pushConstantRange:SetStage(constants:SHADER_STAGE_COMPUTE_BIT)
+            pushConstantRange:SetSize(4 * 8 + 4)
+            pushConstantRange:Create()
+            
+            VulkanPipelineLayout layout
+            layout:SetPushConstants(pushConstantRange)
+            layout:Create(device, undefined)
+            
+            VulkanComputePipelineInfo info
+            info:SetShader(shader)
+            info:SetPushConstants(pushConstantRange)
+            info:SetPipelineLayout(layout)
+            info:SetPushConstants(pushConstantRange)
+            
+            VulkanComputePipeline pipeline
+            pipeline:Create(device, info)
+            animationPipeline = pipeline
+        end
+        
+        return animationPipeline
+    end
+    
     private action AttachmentWriteBarrier(VulkanCommandBuffer commandBuffer, VulkanImage image)
         VulkanImageMemoryBarrier barrier
         VulkanConstants constants
@@ -1110,6 +1249,10 @@ BindDescriptorSetCommand resultDescriptorBind
             batch:ResetAge()
         end
         batch:Add(model)
+        
+        if model:GetAnimationState() not= undefined
+            animatedModels:Add(model)
+        end
     end
     
     private action MatrixToArray(Matrix4 matrix) returns Number32BitArray

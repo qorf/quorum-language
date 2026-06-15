@@ -1,0 +1,121 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Compute
+
+use Libraries.Game.Graphics.Shaders.Shader
+
+class AnimationComputeShaderVulkan is Shader
+    constant text SHADER_NAME = "Animation Compute Shader"
+    
+    integer localSizeX = 32
+    integer localSizeY = 1
+    integer localSizeZ = 1
+    
+    on create
+SetType(parent:Shader:COMPUTE_SHADER)
+        SetName(SHADER_NAME)
+    end
+    
+    action GetCode returns text
+        text code = GetVersionHeader() + "
+
+#extension GL_EXT_buffer_reference: require
+// #extension GL_EXT_shader_explicit_arithmetic_types_int64 : enable
+
+layout(std430, buffer_reference) buffer FloatBuffer {
+    float data[];
+};
+
+layout(std430, buffer_reference) buffer MatricesBuffer {
+    mat4[] data;
+};
+
+layout (local_size_x=" + localSizeX + ", local_size_y=" + localSizeY + ", local_size_z=" + localSizeZ + ") in;
+
+layout(push_constant) uniform PushConstants {
+    FloatBuffer sourceVertices;
+    FloatBuffer weightsBuffer;
+    MatricesBuffer jointsBuffer;
+    FloatBuffer destinationVertices;
+    uint sourceVerticesSize;
+} pushConstants;
+
+
+void main()
+{
+    int baseSourceIndex = int(gl_GlobalInvocationID.x) * 14;
+    if (baseSourceIndex >= pushConstants.sourceVerticesSize) 
+	{
+        return;
+    }
+    int baseWeightsIndex  = int(gl_GlobalInvocationID.x) * 8;
+    vec4 weights = vec4(pushConstants.weightsBuffer.data[baseWeightsIndex], pushConstants.weightsBuffer.data[baseWeightsIndex + 1], pushConstants.weightsBuffer.data[baseWeightsIndex + 2], pushConstants.weightsBuffer.data[baseWeightsIndex + 3]);
+    ivec4 joints = ivec4(pushConstants.weightsBuffer.data[baseWeightsIndex + 4], pushConstants.weightsBuffer.data[baseWeightsIndex + 5], pushConstants.weightsBuffer.data[baseWeightsIndex + 6], pushConstants.weightsBuffer.data[baseWeightsIndex + 7]);
+
+    vec4 position = vec4(pushConstants.sourceVertices.data[baseSourceIndex], pushConstants.sourceVertices.data[baseSourceIndex + 1], pushConstants.sourceVertices.data[baseSourceIndex + 2], 1);
+    position =
+    weights.x * pushConstants.jointsBuffer.data[joints.x] * position +
+    weights.y * pushConstants.jointsBuffer.data[joints.y] * position +
+    weights.z * pushConstants.jointsBuffer.data[joints.z] * position +
+    weights.w * pushConstants.jointsBuffer.data[joints.w] * position;
+    pushConstants.dstBuf.data[baseSourceIndex] = position.x / position.w;
+    pushConstants.dstBuf.data[baseSourceIndex + 1] = position.y / position.w;
+    pushConstants.dstBuf.data[baseSourceIndex + 2] = position.z / position.w;
+
+    mat3 matJoint1 = mat3(transpose(inverse(pushConstants.jointsBuffer.data[joints.x])));
+    mat3 matJoint2 = mat3(transpose(inverse(pushConstants.jointsBuffer.data[joints.y])));
+    mat3 matJoint3 = mat3(transpose(inverse(pushConstants.jointsBuffer.data[joints.z])));
+    baseSourceIndex += 3;
+    vec3 normal = vec3(pushConstants.sourceVertices.data[baseSourceIndex], pushConstants.sourceVertices.data[baseSourceIndex + 1], pushConstants.sourceVertices.data[baseSourceIndex + 2]);
+    normal =
+    weights.x * matJoint1 * normal +
+    weights.y * matJoint2 * normal +
+    weights.z * matJoint3 * normal;
+    normal = normalize(normal);
+    pushConstants.dstBuf.data[baseSourceIndex] = normal.x;
+    pushConstants.dstBuf.data[baseSourceIndex + 1] = normal.y;
+    pushConstants.dstBuf.data[baseSourceIndex + 2] = normal.z;
+
+    baseSourceIndex += 3;
+    vec3 tangent = vec3(pushConstants.sourceVertices.data[baseSourceIndex], pushConstants.sourceVertices.data[baseSourceIndex + 1], pushConstants.sourceVertices.data[baseSourceIndex + 2]);
+    tangent =
+    weights.x * matJoint1 * tangent +
+    weights.y * matJoint2 * tangent +
+    weights.z * matJoint3 * tangent;
+    tangent = normalize(tangent);
+    pushConstants.dstBuf.data[baseSourceIndex] = tangent.x;
+    pushConstants.dstBuf.data[baseSourceIndex + 1] = tangent.y;
+    pushConstants.dstBuf.data[baseSourceIndex + 2] = tangent.z;
+
+    baseSourceIndex += 3;
+    vec3 bitangent = vec3(pushConstants.sourceVertices.data[baseSourceIndex], pushConstants.sourceVertices.data[baseSourceIndex + 1], pushConstants.sourceVertices.data[baseSourceIndex + 2]);
+    bitangent =
+    weights.x * matJoint1 * bitangent +
+    weights.y * matJoint2 * bitangent +
+    weights.z * matJoint3 * bitangent;
+    bitangent = normalize(bitangent);
+    pushConstants.dstBuf.data[baseSourceIndex] = bitangent.x;
+    pushConstants.dstBuf.data[baseSourceIndex + 1] = bitangent.y;
+    pushConstants.dstBuf.data[baseSourceIndex + 2] = bitangent.z;
+
+    baseSourceIndex += 3;
+    vec2 textCoords = vec2(pushConstants.sourceVertices.data[baseSourceIndex], pushConstants.sourceVertices.data[baseSourceIndex + 1]);
+    pushConstants.dstBuf.data[baseSourceIndex] = textCoords.x;
+    pushConstants.dstBuf.data[baseSourceIndex + 1] = textCoords.y;
+}
+"
+        return code
+    end
+    
+    
+    action GetLocalSizeX returns integer
+        return localSizeX
+    end
+
+    action GetLocalSizeY returns integer
+        return localSizeY
+    end
+
+    action GetLocalSizeZ returns integer
+        return localSizeZ
+    end
+
+end

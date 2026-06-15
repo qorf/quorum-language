@@ -3,6 +3,7 @@ package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 import org.lwjgl.system.MemoryUtil;
 import quorum.Libraries.Compute.Matrix4_;
 import quorum.Libraries.Game.Graphics.Color_;
+import quorum.Libraries.Game.Graphics.Models.Vulkan.MaterialVulkan_;
 import quorum.Libraries.Game.Graphics.Models.Vulkan.MeshVulkan_;
 import quorum.Libraries.Game.Graphics.Texture_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer_;
@@ -27,11 +28,11 @@ public class VulkanDrawQueue3DInstanceMappedMemory
         byteBuffer.limit(byteBuffer.capacity());
     }
 
-    public void TransferInstanceData(MeshVulkan_ quorumMesh, Texture_ texture, Color_ color, Matrix4_ modelMatrix)
+    public void TransferInstanceData(VulkanBuffer_ vertexBuffer, VulkanBuffer_ indexBuffer, MaterialVulkan_ material, Texture_ texture, Color_ color, Matrix4_ modelMatrix)
     {
-        VulkanBuffer vertexPlugin = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer)quorumMesh.GetVertexBuffer()).plugin_;
-        VulkanBuffer indexPlugin = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer)quorumMesh.GetIndexBuffer()).plugin_;
-        VulkanBuffer materialPlugin = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer)quorumMesh.GetMaterial().GetBuffer()).plugin_;
+        VulkanBuffer vertexPlugin = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer)vertexBuffer).plugin_;
+        VulkanBuffer indexPlugin = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer)indexBuffer).plugin_;
+        VulkanBuffer materialPlugin = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer)material.GetBuffer()).plugin_;
         long vertexAddress = vertexPlugin.GetBufferDeviceAddress();
         long indexAddress = indexPlugin.GetBufferDeviceAddress();
         long materialAddress = materialPlugin.GetBufferDeviceAddress();

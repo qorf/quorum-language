@@ -80,6 +80,11 @@ We use the physical device limits to figure out how many descriptors we can stor
 some platforms return -1 instead of a reasonable value. In this case, we use this default value.
 */
     constant integer DEFAULT_MAX_DESCRIPTORS = 256
+    
+    // Resources for compute shaders.
+    VulkanQueue computeQueue = undefined
+    VulkanCommandPool computeCommandPool = undefined
+    VulkanCommandBuffer computeCommandBuffer = undefined
 
     on create
         clearValues:AddColor(0.85, 0.85, 0.85, 1.0)
@@ -201,7 +206,8 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
         if not success
             return false
         end
-
+        
+        // Now create the graphics command pool.
         VulkanCommandPool commandPool
         me:commandPool = commandPool
 
@@ -209,6 +215,38 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
         if not success
             return false
         end
+        
+        // We'll also get a compute-compatible queue.
+        i = 0
+        repeat while i < device:GetQueueFamilyCount()
+            VulkanQueueFamily family = device:GetQueueFamily(i)
+            if bits:And(family:GetQueueFlags(), constants:QUEUE_COMPUTE_BIT) not= 0
+                VulkanQueue queue
+                computeQueue = queue
+                // Create the queue using the device, the queue family, and indicate the first (or zero-th) queue in the family
+                queue:Create(device, family, 0)
+                i = device:GetQueueFamilyCount()
+            end
+
+            i = i + 1
+        end
+        
+        // Also create the compute command pool.
+        VulkanCommandPool computeCommandPool
+        me:computeCommandPool = computeCommandPool
+        
+        success = commandPool:Create(device, constants:COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, computeQueue:GetQueueFamily():GetQueueFamilyIndex())
+        if not success
+            return false
+        end
+        
+        // Create the compute command buffer.
+        VulkanCommandBuffer computeCommandBuffer
+        me:computeCommandBuffer = computeCommandBuffer
+            success = computeCommandBuffer:Create(device, computeCommandPool)
+            if not success
+                return false
+            end
 
         /*
         Create the RenderPass that will be used for the Framebuffers. The actual RenderPasses used during rendering are held by the Painters.
@@ -859,6 +897,14 @@ Attribute: Returns True if the application has paused rendering, or false if it 
             cachedMaxDescriptors = true
         end
         return maxDescriptors
+    end
+
+    action GetComputeCommandBuffer returns VulkanCommandBuffer
+        return computeCommandBuffer
+    end
+
+    action GetComputeQueue returns VulkanQueue
+        return computeQueue
     end
 
 end

@@ -37,14 +37,21 @@ public class VulkanPipelineLayout
                 createInfo.pPushConstantRanges(vpcr);
             }
 
-            LongBuffer descriptorSetLayoutHandles = stack.callocLong(quorumDescriptorSetLayouts.GetSize());
-            for (int i = 0; i < quorumDescriptorSetLayouts.GetSize(); i++)
+            if (quorumDescriptorSetLayouts != null)
             {
-                VulkanDescriptorSetLayout pluginLayout = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetLayout)quorumDescriptorSetLayouts.Get(i)).plugin_;
-                descriptorSetLayoutHandles.put(pluginLayout.GetLayoutHandle());
+                LongBuffer descriptorSetLayoutHandles = stack.callocLong(quorumDescriptorSetLayouts.GetSize());
+                for (int i = 0; i < quorumDescriptorSetLayouts.GetSize(); i++)
+                {
+                    VulkanDescriptorSetLayout pluginLayout = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetLayout) quorumDescriptorSetLayouts.Get(i)).plugin_;
+                    descriptorSetLayoutHandles.put(pluginLayout.GetLayoutHandle());
+                }
+                descriptorSetLayoutHandles.flip();
+                createInfo.pSetLayouts(descriptorSetLayoutHandles);
             }
-            descriptorSetLayoutHandles.flip();
-            createInfo.pSetLayouts(descriptorSetLayoutHandles);
+            else
+            {
+                createInfo.pSetLayouts(null);
+            }
 
             LongBuffer handleBuffer = stack.callocLong(1);
             int vulkanResult = vkCreatePipelineLayout(pluginDevice.GetDevice(), createInfo, null, handleBuffer);

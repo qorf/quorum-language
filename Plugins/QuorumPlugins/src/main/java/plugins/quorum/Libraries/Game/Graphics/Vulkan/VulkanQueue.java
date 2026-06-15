@@ -40,8 +40,6 @@ public class VulkanQueue
 
     public boolean SubmitCommands(VulkanSubmitInfo_ quorumInfo)
     {
-        VulkanFence pluginFence = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanFence)quorumInfo.GetFence()).plugin_;
-
         try (MemoryStack stack = MemoryStack.stackPush())
         {
             VkSubmitInfo submitInfo = VkSubmitInfo.calloc(stack);
@@ -57,31 +55,43 @@ public class VulkanQueue
             commandBuffers.flip();
 
             Array_ quorumSignalSemaphores = quorumInfo.GetSignalSemaphores();
-            LongBuffer signalSemaphores = stack.mallocLong(quorumSignalSemaphores.GetSize());
-            for (int i = 0; i < quorumSignalSemaphores.GetSize(); i++)
+            LongBuffer signalSemaphores = null;
+            if (quorumSignalSemaphores != null)
             {
-                quorum.Libraries.Game.Graphics.Vulkan.VulkanSemaphore quorumSemaphore = (quorum.Libraries.Game.Graphics.Vulkan.VulkanSemaphore) quorumSignalSemaphores.Get(i);
-                signalSemaphores.put(quorumSemaphore.plugin_.GetSemaphoreHandle());
+                signalSemaphores = stack.mallocLong(quorumSignalSemaphores.GetSize());
+                for (int i = 0; i < quorumSignalSemaphores.GetSize(); i++)
+                {
+                    quorum.Libraries.Game.Graphics.Vulkan.VulkanSemaphore quorumSemaphore = (quorum.Libraries.Game.Graphics.Vulkan.VulkanSemaphore) quorumSignalSemaphores.Get(i);
+                    signalSemaphores.put(quorumSemaphore.plugin_.GetSemaphoreHandle());
+                }
+                signalSemaphores.flip();
             }
-            signalSemaphores.flip();
 
             Array_ quorumWaitSemaphores = quorumInfo.GetWaitSemaphores();
-            LongBuffer waitSemaphores = stack.mallocLong(quorumWaitSemaphores.GetSize());
-            for (int i = 0; i < quorumWaitSemaphores.GetSize(); i++)
+            LongBuffer waitSemaphores = null;
+            if (quorumWaitSemaphores != null)
             {
-                quorum.Libraries.Game.Graphics.Vulkan.VulkanSemaphore quorumSemaphore = (quorum.Libraries.Game.Graphics.Vulkan.VulkanSemaphore) quorumWaitSemaphores.Get(i);
-                waitSemaphores.put(quorumSemaphore.plugin_.GetSemaphoreHandle());
+                waitSemaphores = stack.mallocLong(quorumWaitSemaphores.GetSize());
+                for (int i = 0; i < quorumWaitSemaphores.GetSize(); i++)
+                {
+                    quorum.Libraries.Game.Graphics.Vulkan.VulkanSemaphore quorumSemaphore = (quorum.Libraries.Game.Graphics.Vulkan.VulkanSemaphore) quorumWaitSemaphores.Get(i);
+                    waitSemaphores.put(quorumSemaphore.plugin_.GetSemaphoreHandle());
+                }
+                waitSemaphores.flip();
             }
-            waitSemaphores.flip();
 
             Array_ quorumWaitMasks = quorumInfo.GetWaitDestinationStageMasks();
-            IntBuffer waitMasks = stack.mallocInt(quorumWaitMasks.GetSize());
-            for (int i = 0; i < quorumWaitMasks.GetSize(); i++)
+            IntBuffer waitMasks = null;
+            if (quorumWaitMasks != null)
             {
-                Integer_ mask = (Integer_)quorumWaitMasks.Get(i);
-                waitMasks.put(mask.GetValue());
+                stack.mallocInt(quorumWaitMasks.GetSize());
+                for (int i = 0; i < quorumWaitMasks.GetSize(); i++)
+                {
+                    Integer_ mask = (Integer_) quorumWaitMasks.Get(i);
+                    waitMasks.put(mask.GetValue());
+                }
+                waitMasks.flip();
             }
-            waitMasks.flip();
 
             submitInfo.pCommandBuffers(commandBuffers);
             submitInfo.pSignalSemaphores(signalSemaphores);
@@ -89,7 +99,14 @@ public class VulkanQueue
             submitInfo.pWaitSemaphores(waitSemaphores);
             submitInfo.pWaitDstStageMask(waitMasks);
 
-            int vulkanResult = vkQueueSubmit(vulkanQueue, submitInfo, pluginFence.GetFenceHandle());
+            long fenceHandle = 0L;
+            if (quorumInfo.GetFence() != null)
+            {
+                VulkanFence pluginFence = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanFence)quorumInfo.GetFence()).plugin_;
+                fenceHandle = pluginFence.GetFenceHandle();
+            }
+
+            int vulkanResult = vkQueueSubmit(vulkanQueue, submitInfo, fenceHandle);
             if (vulkanResult != VK_SUCCESS)
                 return false;
         }

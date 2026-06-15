@@ -3,6 +3,7 @@ use Libraries.Game.Graphics.Models.Vulkan.MeshVulkan
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Color
 use Libraries.Compute.Matrix4
+use Libraries.Game.Graphics.Models.Vulkan.MaterialVulkan
 
 /* A specialized class for optimized memory management of instance data for 3D drawing.
 Users should not use this class directly. */
@@ -36,7 +37,11 @@ class VulkanDrawQueue3DInstanceMappedMemory
     system action PrepareForTransfers
     
     // Adds all data needed for a single instance of 3D rendering to the current insertion position in the buffer.
-    system action TransferInstanceData(MeshVulkan mesh, Texture texture, Color diffuse, Matrix4 transform)
+    action TransferInstanceData(MeshVulkan mesh, Texture texture, Color diffuse, Matrix4 transform)
+        TransferInstanceData(mesh:GetVertexBuffer(), mesh:GetIndexBuffer(), mesh:GetMaterial(), texture, diffuse, transform)
+    end
+    
+    system action TransferInstanceData(VulkanBuffer vertexBuffer, VulkanBuffer indexBuffer, MaterialVulkan material, Texture texture, Color diffuse, Matrix4 transform)
     
     action GetByteSize returns integer
         return parentBuffer:GetSize()

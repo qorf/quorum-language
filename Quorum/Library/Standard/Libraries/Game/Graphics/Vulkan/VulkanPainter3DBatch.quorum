@@ -7,6 +7,8 @@ use Libraries.Game.Graphics.Models.Vulkan.MeshVulkan
 use Libraries.Game.Graphics.Models.Vulkan.ModelResourcesVulkan
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.Models.Vulkan.MaterialVulkan
+use Libraries.Game.Graphics.Models.Data.AnimationState
 
 class VulkanPainter3DBatch
     
@@ -94,9 +96,45 @@ class VulkanPainter3DBatch
     
     // For all of the models in this batch, store their per-instance data and queue up indirect draw command(s).
     action ProcessBatch(VulkanPainter3D painter)
-        if schematic:HasAnimations() and false
-            output "Not rendering (animated)"
-            //TODO: Getting close.
+        if schematic:HasAnimations()
+            output "Rendering (animated)"
+            integer i = 0
+            repeat while i < meshesPerModel
+                MeshVulkan mesh = schematic:GetMeshes():Get(i)
+                VulkanBuffer indexBuffer = mesh:GetIndexBuffer()
+                MaterialVulkan material = mesh:GetMaterial()
+                integer baseTextureGroup = material:GetTextureGroupIndex()
+                
+                integer j = 0
+                repeat while j < models:GetSize()
+                    Model model = models:Get(j)
+                    ModelResourcesVulkan resources = cast(ModelResourcesVulkan, model:GetResources())
+                    Color diffuseOverride = resources:GetColor(i)
+                    Texture textureOverride = resources:GetTexture(i)
+                    
+                    VulkanBuffer vertexBuffer = mesh:GetVertexBuffer()
+                    if model:GetAnimationState() not= undefined
+                        // Get the animation vertex buffer associated with this mesh.
+                        vertexBuffer = resources:GetPostAnimationVertexBuffers():Get(i)
+                    end
+                    
+                    VulkanDrawQueue3D queue = undefined
+                    if textureOverride not= undefined
+                        queue = painter:GetCurrentDrawQueue(textureOverride:GetVulkanTextureGroupIndex())
+                    else
+                        queue = painter:GetCurrentDrawQueue(baseTextureGroup)
+                    end
+                    
+                    // Each animated model potentially uses a different vertex buffer and must be drawn separately.
+                    queue:AddInstanceData(vertexBuffer, indexBuffer, material, textureOverride, diffuseOverride, model:GetTransform())
+                    queue:AddDrawIndirectCommand(mesh:GetIndexCount(), 1)
+                    
+                    j = j + 1
+                end
+                
+                i = i + 1
+            end
+            
             else
             integer i = 0
             repeat while i < meshesPerModel
@@ -134,7 +172,6 @@ class VulkanPainter3DBatch
                     j = j + 1
                 end
                 
-                //queue:AddDrawIndirectCommand(mesh:GetIndexCount(), models:GetSize())
                 i = i + 1
             end
         end
