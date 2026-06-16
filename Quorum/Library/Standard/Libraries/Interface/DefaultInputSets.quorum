@@ -1480,6 +1480,7 @@ InputSet shiftF10SetTextBox
         SelectionCancelBehavior selectionCancelBehavior
         SelectionResetScaleBehavior selectionResetScaleBehavior
         SelectSceneItemBehavior selectSceneItemBehavior
+        SelectScene3DItemBehavior selectScene3DItemBehavior
         SelectionHighlightDragBehavior selectionHighlightDragBehavior
 
         selectionStartMovingLeftBehavior:SetDirection(-1)
@@ -1526,6 +1527,7 @@ InputSet shiftF10SetTextBox
         CameraVerticalDirectionBehavior cameraStartMoveDownBehavior
         CameraVerticalDirectionBehavior cameraStopVerticalDirectionBehavior
         CameraItemsInViewBehavior cameraItemsInViewBehavior
+        CameraMouseMoveDirectionBehavior cameraMouseMoveDirectionBehavior
 
         cameraStartRotateLeftBehavior:SetDirection(-1)
         cameraStartRotateRightBehavior:SetDirection(1)
@@ -1628,6 +1630,42 @@ InputSet shiftF10SetTextBox
         table:Add3D(selectionMoveForward3DStop, selectionStopMovingZBehavior)
         table:Add3D(selectionMoveBackward3DStart, selectionStartMovingBackwardBehavior)
         table:Add3D(selectionMoveBackward3DStop, selectionStopMovingZBehavior)
+        
+        //InputSet cameraMouseMoveDirectionSet
+        //cameraMouseMoveDirectionSet:SetDragItemInput()
+        //cameraMouseMoveDirectionSet:SetInputTrigger(cameraMouseMoveDirectionSet:BEGIN)
+        //InputSet cameraMouseMoveDirectionSetContinue
+        //cameraMouseMoveDirectionSetContinue:SetDragItemInput()
+        //cameraMouseMoveDirectionSetContinue:SetInputTrigger(cameraMouseMoveDirectionSet:CONTINUE)
+        //InputSet cameraMouseMoveDirectionSetEnd
+        //cameraMouseMoveDirectionSetEnd:SetDragItemInput()
+        //cameraMouseMoveDirectionSetEnd:SetInputTrigger(cameraMouseMoveDirectionSet:FINISH)
+        //
+        //table:Add3D(cameraMouseMoveDirectionSet, cameraMouseMoveDirectionBehavior)
+        //table:Add3D(cameraMouseMoveDirectionSetContinue, cameraMouseMoveDirectionBehavior)
+        //table:Add3D(cameraMouseMoveDirectionSetEnd, cameraMouseMoveDirectionBehavior)
+        
+        InputSet rightClickMove
+        rightClickMove:SetMouseMovementInput(mouse:RIGHT)
+        rightClickMove:SetInputTrigger(rightClickMove:CONTINUE)
+        
+        InputSet middleClickMoveStart
+        middleClickMoveStart:SetMouseMovementInput(mouse:MIDDLE)
+        middleClickMoveStart:SetInputTrigger(middleClickMoveStart:BEGIN)
+        
+        InputSet middleClickMoveFinish
+        middleClickMoveFinish:SetMouseMovementInput(mouse:MIDDLE)
+        middleClickMoveFinish:SetInputTrigger(middleClickMoveFinish:FINISH)
+        
+        InputSet middleClickMove
+        middleClickMove:SetMouseMovementInput(mouse:MIDDLE)
+        middleClickMove:SetInputTrigger(middleClickMove:CONTINUE)
+        
+        table:Add3D(rightClickMove, cameraMouseMoveDirectionBehavior)
+        table:Add3D(middleClickMove, cameraMouseMoveDirectionBehavior)
+        table:Add3D(middleClickMoveStart, cameraMouseMoveDirectionBehavior)
+        table:Add3D(middleClickMoveFinish, cameraMouseMoveDirectionBehavior)
+        
 
         InputSet selectionMoveLeft2DStart = GetLeftArrowKey()
         InputSet selectionMoveLeft2DStop = GetLeftArrowKey()
@@ -1963,6 +2001,8 @@ InputSet shiftF10SetTextBox
         sceneItemTable:Add(selectSceneItemInput, selectSceneItemBehavior)
 
         sceneItemTable:Add(selectionHighlightDragInput, selectionHighlightDragBehavior)
+        
+        table:Add3D(GetLeftClick(), selectScene3DItemBehavior)
 
 
 

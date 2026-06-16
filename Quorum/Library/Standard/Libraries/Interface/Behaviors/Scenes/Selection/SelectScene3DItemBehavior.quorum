@@ -1,0 +1,160 @@
+package Libraries.Interface.Behaviors.Scenes.Selection
+
+use Libraries.Containers.Array
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Item
+use Libraries.Game.Layer
+use Libraries.Interface.Item2D
+use Libraries.Interface.Item3D
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Compute.Ray
+use Libraries.Compute.Vector3
+use Libraries.Game.Graphics.Camera
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
+use Libraries.Interface.Controls.Scenes.Items.EditorCamera3D
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Color
+use Libraries.Containers.Iterator
+use Libraries.Interface.Controls.Scenes.Items.Highlights.SelectionHighlight3D
+use Libraries.Interface.Controls.Scenes.Items.EditorItem3D
+use Libraries.Interface.Controls.Scenes.SceneConstants
+use Libraries.Interface.Controls.Scenes.Items.EditorCursor
+
+/*
+    This behavior is used to select an item in the scene editor. The input expected 
+    by the scene editor to use this behavior is a left mouse click. If the user clicks 
+    on the scene editor and there is a scene item there then the scene editor will try 
+    to select that item. 
+*/
+class SelectScene3DItemBehavior is Behavior
+    SceneConstants constants
+
+    action Run(BehaviorEvent event)
+        MouseEvent mouse = event:GetMouseEvent()
+        
+        SceneEditor editor = cast(SceneEditor, event:GetItem())
+        EditorLayer3D layer = cast(EditorLayer3D, editor:GetSelectedLayer())
+
+        EditorCamera3D camera = layer:GetEditorCamera()
+        
+        //Ray ray = camera:GetPickRay(mouse:GetX() - editor:GetGlobalX(), camera:GetHeight() - mouse:GetY() - editor:GetGlobalY())
+        Ray ray = camera:GetPickRay(mouse:GetX(), mouse:GetY(), editor:GetGlobalX(), editor:GetGlobalY(), camera:GetWidth(), camera:GetHeight())
+        
+        
+        //Drawable location
+        //Color color
+        //location:LoadCircle(20, color:Red())
+        //location:SetPosition(mouse:GetX()-camera:GetWidth()/2-10, mouse:GetY()-camera:GetHeight()/2-10)
+        //editor:Add(location)
+        Vector3 origin = ray:GetOrigin()
+        number viewportX = editor:GetGlobalX()
+        number viewportY = editor:GetGlobalY()
+        number viewportWidth = camera:GetWidth()
+        number viewportHeight = camera:GetHeight()
+
+        integer counter = 0
+        Item3D temp = undefined
+        Array<Item> result
+        
+        //output "mouseX: " + mouse:GetX()
+        //output "mouseY: " + mouse:GetY()
+        //output "cameraWidth: " + camera:GetWidth()
+        //output "cameraHeight: " + camera:GetHeight()
+        //output "editorX: " + editor:GetGlobalX()
+        //output "editorY: " + editor:GetGlobalY()
+        //output "editorScreenX: " + (mouse:GetX() - editor:GetGlobalX())
+        //output "editorScreenY: " + (mouse:GetY() - editor:GetGlobalY())
+        output "rayX: " +camera:WorldToScreenCoordinates(origin, viewportX, viewportY, viewportWidth, viewportHeight):GetX()
+        output "rayY: " +camera:WorldToScreenCoordinates(origin, viewportX, viewportY, viewportWidth, viewportHeight):GetY()
+        
+        Iterator<Item3D> items = layer:GetIterator()
+        if items:HasNext()
+            output "gonna check for items"
+        else
+            output " no items"
+        end
+        repeat while items:HasNext()
+            //output "----iteration!----"
+            temp = items:Next()
+            output "checking against item: " + temp:GetName()
+            
+            //output "--X: " + temp:GetX()
+            //output "--Y: " + temp:GetY()
+            //output "--Z: " + temp:GetZ()
+            //output "--width: " + temp:GetWidth()
+            //output "--height: " + temp:GetHeight()
+            if not (temp is EditorCursor)
+                
+            if RayIntersectsItem(ray, temp)
+                output "intersect found: " + temp:GetName()
+                result:Add(temp)
+            end
+end
+end
+        
+        if not result:IsEmpty()
+            editor:SetFilteredItems(result, true)
+        end
+    end
+    
+    /*
+    This action will test if the given ray intersects with an Item3D. This
+    intersection is tested using the base, axis-aligned dimensions of the item.
+    It will not properly reflect changes made due to scaling or rotation, and
+    assumes the Item is a box-like shape.
+    */
+    private action RayIntersectsItem(Ray ray, Item3D item) returns boolean
+        number divX = 1.0 / ray:GetDirection():GetX()
+        number divY = 1.0 / ray:GetDirection():GetY()
+        number divZ = 1.0 / ray:GetDirection():GetZ()
+
+        number minX = ((item:GetGlobalX() - item:GetWidth() * 0.5) - ray:GetOrigin():GetX()) * divX
+        number maxX = ((item:GetGlobalX() + item:GetWidth() * 0.5) - ray:GetOrigin():GetX()) * divX
+        
+        if minX > maxX
+            number temp = minX
+            minX = maxX
+            maxX = temp
+        end
+
+        number minY = ((item:GetGlobalY() - item:GetHeight() * 0.5) - ray:GetOrigin():GetY()) * divY
+        number maxY = ((item:GetGlobalY() + item:GetHeight() * 0.5) - ray:GetOrigin():GetY()) * divY
+
+        if minY > maxY
+            number temp = minY
+            minY = maxY
+            maxY = temp
+        end
+
+        number minZ = ((item:GetGlobalZ() - item:GetDepth() * 0.5) - ray:GetOrigin():GetZ()) * divZ
+        number maxZ = ((item:GetGlobalZ() + item:GetDepth() * 0.5) - ray:GetOrigin():GetZ()) * divZ
+
+        if minZ > maxZ
+            number temp = minZ
+            minZ = maxZ
+            maxZ = temp
+        end
+
+        number min = minX
+        if minY > min
+            min = minY
+        end
+        if minZ > min
+            min = minZ
+        end
+
+        number max = maxX
+        if maxY < max
+            max = maxY
+        end
+        if maxZ < max
+            max = maxZ
+        end
+
+        return max >= 0 and max >= min
+    end
+
+end
