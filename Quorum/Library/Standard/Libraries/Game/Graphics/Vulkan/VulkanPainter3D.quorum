@@ -1054,6 +1054,7 @@ BindDescriptorSetCommand resultDescriptorBind
         bindPipelineCommand:SetPipeline(animationPipeline)
         commandBuffer:Record(bindPipelineCommand)
         
+        output "ComputeAnimations..."
         integer i = 0
         repeat while i < animatedModels:GetSize()
             Model model = animatedModels:Get(i)
@@ -1088,6 +1089,7 @@ BindDescriptorSetCommand resultDescriptorBind
                 commandBuffer:Record(setPushConstants)
                 
                 integer workGroups = cast(integer, math:Ceiling(cast(number, mesh:GetVertexCount()) / animationLocalSizeX))
+                output "Dispatching with " + workGroups + " workGroups."
                 ComputeShaderDispatchCommand dispatch
                 dispatch:SetX(workGroups)
                 commandBuffer:Record(dispatch)

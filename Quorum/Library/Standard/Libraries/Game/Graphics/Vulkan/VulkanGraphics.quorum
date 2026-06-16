@@ -235,7 +235,7 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
         VulkanCommandPool computeCommandPool
         me:computeCommandPool = computeCommandPool
         
-        success = commandPool:Create(device, constants:COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, computeQueue:GetQueueFamily():GetQueueFamilyIndex())
+        success = computeCommandPool:Create(device, constants:COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, computeQueue:GetQueueFamily():GetQueueFamilyIndex())
         if not success
             return false
         end

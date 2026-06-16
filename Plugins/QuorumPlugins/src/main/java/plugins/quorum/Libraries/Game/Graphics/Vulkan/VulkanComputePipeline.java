@@ -30,7 +30,9 @@ public class VulkanComputePipeline {
         Shader_ quorumShader = quorumInfo.GetShader();
         VulkanPushConstantRange_ pushConstantRange = quorumInfo.GetPushConstants();
         Array_ quorumDescriptorSetLayouts = quorumInfo.GetDescriptorSetLayouts();
-        long pipelineCacheHandle = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanPipelineCache)quorumInfo.GetPipelineCache()).plugin_.GetVulkanCacheHandle();
+        long pipelineCacheHandle = 0L;
+        if (quorumInfo.GetPipelineCache() != null)
+            pipelineCacheHandle = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanPipelineCache)quorumInfo.GetPipelineCache()).plugin_.GetVulkanCacheHandle();
 
         try (MemoryStack stack = MemoryStack.stackPush()) {
             LongBuffer lp = stack.callocLong(1);

@@ -2402,9 +2402,9 @@ end
     
     action StartAnimation(integer index) returns AnimationState
         AnimationState state
-        animationState:SetStarted(true)
+        state:SetStarted(true)
         state:SetAnimationIndex(index)
-        me:animationState = state
+        SetAnimationState(state)
         return state
     end
     
@@ -2433,7 +2433,8 @@ end
                 return now
             end
             
-            number timePerFrame = animation:GetMilliseconds()
+            //number timePerFrame = animation:GetMilliseconds() / 1000
+            number timePerFrame = 0.1
             integer frame = animationState:GetCurrentFrame()
             //calculate the frame that we are on
             number startTime = animationState:GetCurrentTime()
@@ -2442,7 +2443,12 @@ end
             integer newFrame = cast(integer, newFrameNumber)
             if newFrame >= frames:GetSize()
                 newFrame = frames:GetSize() - 1
+                // FOR DEBUGGING ONLY -- FORCED LOOPING
+                newFrame = 0
+                currentTime = 0
             end
+            //output "TESTING: Forcing animation to frame 0)"
+            //newFrame = 0
             animationState:SetCurrentFrame(newFrame)
             
             //somehow tell the model to actually chane the frame of animation here

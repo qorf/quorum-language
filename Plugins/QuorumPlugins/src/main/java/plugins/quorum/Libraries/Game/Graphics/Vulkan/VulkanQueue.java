@@ -84,7 +84,7 @@ public class VulkanQueue
             IntBuffer waitMasks = null;
             if (quorumWaitMasks != null)
             {
-                stack.mallocInt(quorumWaitMasks.GetSize());
+                waitMasks = stack.mallocInt(quorumWaitMasks.GetSize());
                 for (int i = 0; i < quorumWaitMasks.GetSize(); i++)
                 {
                     Integer_ mask = (Integer_) quorumWaitMasks.Get(i);
@@ -95,7 +95,7 @@ public class VulkanQueue
 
             submitInfo.pCommandBuffers(commandBuffers);
             submitInfo.pSignalSemaphores(signalSemaphores);
-            submitInfo.waitSemaphoreCount(quorumWaitSemaphores.GetSize());
+            submitInfo.waitSemaphoreCount(quorumWaitSemaphores == null ? 0 : quorumWaitSemaphores.GetSize());
             submitInfo.pWaitSemaphores(waitSemaphores);
             submitInfo.pWaitDstStageMask(waitMasks);
 

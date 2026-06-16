@@ -56,9 +56,9 @@ void main()
     weights.y * pushConstants.jointsBuffer.data[joints.y] * position +
     weights.z * pushConstants.jointsBuffer.data[joints.z] * position +
     weights.w * pushConstants.jointsBuffer.data[joints.w] * position;
-    pushConstants.dstBuf.data[baseSourceIndex] = position.x / position.w;
-    pushConstants.dstBuf.data[baseSourceIndex + 1] = position.y / position.w;
-    pushConstants.dstBuf.data[baseSourceIndex + 2] = position.z / position.w;
+    pushConstants.destinationVertices.data[baseSourceIndex] = position.x / position.w;
+    pushConstants.destinationVertices.data[baseSourceIndex + 1] = position.y / position.w;
+    pushConstants.destinationVertices.data[baseSourceIndex + 2] = position.z / position.w;
 
     mat3 matJoint1 = mat3(transpose(inverse(pushConstants.jointsBuffer.data[joints.x])));
     mat3 matJoint2 = mat3(transpose(inverse(pushConstants.jointsBuffer.data[joints.y])));
@@ -70,9 +70,9 @@ void main()
     weights.y * matJoint2 * normal +
     weights.z * matJoint3 * normal;
     normal = normalize(normal);
-    pushConstants.dstBuf.data[baseSourceIndex] = normal.x;
-    pushConstants.dstBuf.data[baseSourceIndex + 1] = normal.y;
-    pushConstants.dstBuf.data[baseSourceIndex + 2] = normal.z;
+    pushConstants.destinationVertices.data[baseSourceIndex] = normal.x;
+    pushConstants.destinationVertices.data[baseSourceIndex + 1] = normal.y;
+    pushConstants.destinationVertices.data[baseSourceIndex + 2] = normal.z;
 
     baseSourceIndex += 3;
     vec3 tangent = vec3(pushConstants.sourceVertices.data[baseSourceIndex], pushConstants.sourceVertices.data[baseSourceIndex + 1], pushConstants.sourceVertices.data[baseSourceIndex + 2]);
@@ -81,9 +81,9 @@ void main()
     weights.y * matJoint2 * tangent +
     weights.z * matJoint3 * tangent;
     tangent = normalize(tangent);
-    pushConstants.dstBuf.data[baseSourceIndex] = tangent.x;
-    pushConstants.dstBuf.data[baseSourceIndex + 1] = tangent.y;
-    pushConstants.dstBuf.data[baseSourceIndex + 2] = tangent.z;
+    pushConstants.destinationVertices.data[baseSourceIndex] = tangent.x;
+    pushConstants.destinationVertices.data[baseSourceIndex + 1] = tangent.y;
+    pushConstants.destinationVertices.data[baseSourceIndex + 2] = tangent.z;
 
     baseSourceIndex += 3;
     vec3 bitangent = vec3(pushConstants.sourceVertices.data[baseSourceIndex], pushConstants.sourceVertices.data[baseSourceIndex + 1], pushConstants.sourceVertices.data[baseSourceIndex + 2]);
@@ -92,14 +92,14 @@ void main()
     weights.y * matJoint2 * bitangent +
     weights.z * matJoint3 * bitangent;
     bitangent = normalize(bitangent);
-    pushConstants.dstBuf.data[baseSourceIndex] = bitangent.x;
-    pushConstants.dstBuf.data[baseSourceIndex + 1] = bitangent.y;
-    pushConstants.dstBuf.data[baseSourceIndex + 2] = bitangent.z;
+    pushConstants.destinationVertices.data[baseSourceIndex] = bitangent.x;
+    pushConstants.destinationVertices.data[baseSourceIndex + 1] = bitangent.y;
+    pushConstants.destinationVertices.data[baseSourceIndex + 2] = bitangent.z;
 
     baseSourceIndex += 3;
     vec2 textCoords = vec2(pushConstants.sourceVertices.data[baseSourceIndex], pushConstants.sourceVertices.data[baseSourceIndex + 1]);
-    pushConstants.dstBuf.data[baseSourceIndex] = textCoords.x;
-    pushConstants.dstBuf.data[baseSourceIndex + 1] = textCoords.y;
+    pushConstants.destinationVertices.data[baseSourceIndex] = textCoords.x;
+    pushConstants.destinationVertices.data[baseSourceIndex + 1] = textCoords.y;
 }
 "
         return code
