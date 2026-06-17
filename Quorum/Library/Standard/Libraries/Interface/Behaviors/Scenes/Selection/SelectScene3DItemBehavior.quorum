@@ -44,11 +44,6 @@ class SelectScene3DItemBehavior is Behavior
         Ray ray = camera:GetPickRay(mouse:GetX(), mouse:GetY(), editor:GetGlobalX(), editor:GetGlobalY(), camera:GetWidth(), camera:GetHeight())
         
         
-        //Drawable location
-        //Color color
-        //location:LoadCircle(20, color:Red())
-        //location:SetPosition(mouse:GetX()-camera:GetWidth()/2-10, mouse:GetY()-camera:GetHeight()/2-10)
-        //editor:Add(location)
         Vector3 origin = ray:GetOrigin()
         number viewportX = editor:GetGlobalX()
         number viewportY = editor:GetGlobalY()
@@ -59,37 +54,11 @@ class SelectScene3DItemBehavior is Behavior
         Item3D temp = undefined
         Array<Item> result
         
-        //output "mouseX: " + mouse:GetX()
-        //output "mouseY: " + mouse:GetY()
-        //output "cameraWidth: " + camera:GetWidth()
-        //output "cameraHeight: " + camera:GetHeight()
-        //output "editorX: " + editor:GetGlobalX()
-        //output "editorY: " + editor:GetGlobalY()
-        //output "editorScreenX: " + (mouse:GetX() - editor:GetGlobalX())
-        //output "editorScreenY: " + (mouse:GetY() - editor:GetGlobalY())
-        output "rayX: " +camera:WorldToScreenCoordinates(origin, viewportX, viewportY, viewportWidth, viewportHeight):GetX()
-        output "rayY: " +camera:WorldToScreenCoordinates(origin, viewportX, viewportY, viewportWidth, viewportHeight):GetY()
-        
         Iterator<Item3D> items = layer:GetIterator()
-        if items:HasNext()
-            output "gonna check for items"
-        else
-            output " no items"
-        end
-        repeat while items:HasNext()
-            //output "----iteration!----"
+     repeat while items:HasNext()
             temp = items:Next()
-            output "checking against item: " + temp:GetName()
-            
-            //output "--X: " + temp:GetX()
-            //output "--Y: " + temp:GetY()
-            //output "--Z: " + temp:GetZ()
-            //output "--width: " + temp:GetWidth()
-            //output "--height: " + temp:GetHeight()
             if not (temp is EditorCursor)
-                
             if RayIntersectsItem(ray, temp)
-                output "intersect found: " + temp:GetName()
                 result:Add(temp)
             end
 end
