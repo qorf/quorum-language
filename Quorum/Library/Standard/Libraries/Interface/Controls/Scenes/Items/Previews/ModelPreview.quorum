@@ -96,7 +96,7 @@ class ModelPreview is ItemPreview3D
         EditorModel model
         model:SetName(GetName())
         
-        Color color = GetColor():Copy()
+        Color color = schematic:GetColor():Copy()
         color:SetAlpha(1.0)
         integer modelType = schematic:GetModelType()
         SceneProperties properties
