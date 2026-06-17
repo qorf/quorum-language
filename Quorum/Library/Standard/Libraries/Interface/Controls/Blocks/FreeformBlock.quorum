@@ -271,7 +271,7 @@ class FreeformBlock is SingleLineBlock
     
             // Set the initial information for the listener. This gives it offset info it needs to calculate correct values.
             blockListener:SetSourceBlock(me)
-    
+            blockListener:SetQuorumLexer(lexer)
             /*
             If the freeform block is attached to a class, we need to parse a class statement,
             which might be a full on action declaration.
@@ -283,7 +283,7 @@ class FreeformBlock is SingleLineBlock
     
                 if statement not= undefined
                     if parser:IsValid()
-if editor:HasValidParse()
+if not failState
                 editor:SetCode(editor:GetCode())
                 return now
             end
@@ -292,9 +292,16 @@ if editor:HasValidParse()
                     end
                     blockListener:EnterClassStatements(statement)
                 end
-                if blockListener:GetBlock() = undefined
+                if blockListener:GetBlock():GetChildCount() = 0
                     blockListener:SetQuorumLexer(lexer)
                     blockListener:FillComment()
+                end
+                
+                if blockListener:GetBlock():GetChildCount() > 0
+                    if (blockListener:GetBlock():GetChild(0) is MultipleLineBlock) and not failState
+                        editor:SetCode(editor:GetCode())
+                        return now
+                    end
                 end
             elseif isPackageStatement
                 PackageContext context = parser:Package()
@@ -352,6 +359,12 @@ if context is ActionContext
                     blockListener:ExitActionHeader(actionContext)
                     blockListener:ExitAction(actionContext)
                 end
+                if blockListener:GetBlock():GetChildCount() > 0
+                    if (blockListener:GetBlock():GetChild(0) is MultipleLineBlock) and not failState
+                        editor:SetCode(editor:GetCode())
+                        return now
+                    end
+                end
             else
                 // If we're not in a class, parse for a standard statement. 
                 // If you KNOW you are inside of an action, you use this
@@ -363,13 +376,20 @@ if context is ActionContext
                     end
                     blockListener:EnterStatement(statement)
                 end
-                if blockListener:GetBlock() = undefined
+                if blockListener:GetBlock():GetChildCount() = 0
                     blockListener:SetQuorumLexer(lexer)
                     blockListener:FillComment()
                 end
+                
+                if blockListener:GetBlock():GetChildCount() > 0
+                    if (blockListener:GetBlock():GetChild(0) is MultipleLineBlock) and not failState
+                        editor:SetCode(editor:GetCode())
+                        return now
+                    end
+                end
             end
             // Once again, if there's an error, set the block to reflect it, then bail.
-            if not manager:IsCompilationErrorFree() and not (blockListener:GetBlock() is CommentBlock and isEmpty)
+            if not manager:IsCompilationErrorFree() and not (blockListener:GetBlock():GetChild(0) is CommentBlock and isEmpty)
                 SetErrorVisual()
                 return now
             end
@@ -378,13 +398,18 @@ if context is ActionContext
             Block result = blockListener:GetBlock()
     
             // If we have a valid block, replace this Freeform block with the new one.
-            if result not= undefined
-                editor:Replace(me, result)
+            if result:GetChildCount() > 0
+                editor:Replace(me, result:GetChild(0))
             end
         detect e
             SharedLogger logger
             text value = e:GetStackTraceMessage()
             logger:Log(value)
+            // fallback 
+            CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
+            if editor:HasValidParse()
+                editor:SetCode(editor:GetCode())
+            end
         end
     end
 
