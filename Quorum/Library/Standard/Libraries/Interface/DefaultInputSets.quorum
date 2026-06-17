@@ -1631,30 +1631,16 @@ InputSet shiftF10SetTextBox
         table:Add3D(selectionMoveBackward3DStart, selectionStartMovingBackwardBehavior)
         table:Add3D(selectionMoveBackward3DStop, selectionStopMovingZBehavior)
         
-        //InputSet cameraMouseMoveDirectionSet
-        //cameraMouseMoveDirectionSet:SetDragItemInput()
-        //cameraMouseMoveDirectionSet:SetInputTrigger(cameraMouseMoveDirectionSet:BEGIN)
-        //InputSet cameraMouseMoveDirectionSetContinue
-        //cameraMouseMoveDirectionSetContinue:SetDragItemInput()
-        //cameraMouseMoveDirectionSetContinue:SetInputTrigger(cameraMouseMoveDirectionSet:CONTINUE)
-        //InputSet cameraMouseMoveDirectionSetEnd
-        //cameraMouseMoveDirectionSetEnd:SetDragItemInput()
-        //cameraMouseMoveDirectionSetEnd:SetInputTrigger(cameraMouseMoveDirectionSet:FINISH)
-        //
-        //table:Add3D(cameraMouseMoveDirectionSet, cameraMouseMoveDirectionBehavior)
-        //table:Add3D(cameraMouseMoveDirectionSetContinue, cameraMouseMoveDirectionBehavior)
-        //table:Add3D(cameraMouseMoveDirectionSetEnd, cameraMouseMoveDirectionBehavior)
-        
         InputSet rightClickMove
         rightClickMove:SetMouseMovementInput(mouse:RIGHT)
         rightClickMove:SetInputTrigger(rightClickMove:CONTINUE)
         
         InputSet middleClickMoveStart
-        middleClickMoveStart:SetMouseMovementInput(mouse:MIDDLE)
+        middleClickMoveStart:SetMouseInput(mouse:MIDDLE)
         middleClickMoveStart:SetInputTrigger(middleClickMoveStart:BEGIN)
         
         InputSet middleClickMoveFinish
-        middleClickMoveFinish:SetMouseMovementInput(mouse:MIDDLE)
+        middleClickMoveFinish:SetMouseInput(mouse:MIDDLE)
         middleClickMoveFinish:SetInputTrigger(middleClickMoveFinish:FINISH)
         
         InputSet middleClickMove
@@ -1670,7 +1656,19 @@ InputSet shiftF10SetTextBox
         
         InputSet mouseScroll
         mouseScroll:SetInputType(mouseScroll:MOUSE_WHEEL_INPUT)
+        
+        InputSet mouseShiftMiddleMouseMoveStart
+        mouseShiftMiddleMouseMoveStart:SetMouseInput(mouse:MIDDLE)
+        AddShiftModifier(mouseShiftMiddleMouseMoveStart)
+        
+        InputSet mouseShiftMiddleMouseMove
+        mouseShiftMiddleMouseMove:SetMouseMovementInput(mouse:MIDDLE)
+        mouseShiftMiddleMouseMove:SetInputTrigger(mouseShiftMiddleMouseMove:CONTINUE)
+        AddShiftModifier(mouseShiftMiddleMouseMove)
+        
         table:Add3D(mouseScroll, cameraMousePanBehavior)
+        table:Add3D(mouseShiftMiddleMouseMoveStart, cameraMousePanBehavior)
+        table:Add3D(mouseShiftMiddleMouseMove, cameraMousePanBehavior)
         
 
         InputSet selectionMoveLeft2DStart = GetLeftArrowKey()
