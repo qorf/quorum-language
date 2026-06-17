@@ -140,10 +140,10 @@ Each vertex is made of 14 32-bit components:
                 transferArray:Set(i + 2, weights:Get(sourceIndex + 2))
                 transferArray:Set(i + 3, weights:Get(sourceIndex + 3))
                 
-                transferArray:Set(i + 4, utility:EncodeIntegerAsNumber(boneIDs:Get(sourceIndex)))
-                transferArray:Set(i + 5, utility:EncodeIntegerAsNumber(boneIDs:Get(sourceIndex + 1)))
-                transferArray:Set(i + 6, utility:EncodeIntegerAsNumber(boneIDs:Get(sourceIndex + 2)))
-                transferArray:Set(i + 7, utility:EncodeIntegerAsNumber(boneIDs:Get(sourceIndex + 3)))
+                transferArray:Set(i + 4, boneIDs:Get(sourceIndex))
+                transferArray:Set(i + 5, boneIDs:Get(sourceIndex + 1))
+                transferArray:Set(i + 6, boneIDs:Get(sourceIndex + 2))
+                transferArray:Set(i + 7, boneIDs:Get(sourceIndex + 3))
                 
                 i = i + 8
             end

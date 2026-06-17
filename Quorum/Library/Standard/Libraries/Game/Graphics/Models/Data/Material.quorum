@@ -9,11 +9,12 @@ class Material
     Vector4 diffuse
     number roughness = 0.0
     number metallic = 0.0
+    
     action GetTexturePath returns text
         return texturePath
     end
 
-    action SetTexturePath(text path)
+    action SetTexturePath(text texturePath)
         me:texturePath = texturePath
     end
 
