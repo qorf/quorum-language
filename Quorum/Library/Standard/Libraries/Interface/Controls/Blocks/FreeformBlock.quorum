@@ -44,6 +44,7 @@ class FreeformBlock is SingleLineBlock
     boolean isClassStatement = false
     boolean isActionStatement = false
     QuorumLexerConstants constants
+    text code = ""
     
     on create
         BlockOptionConstants constants
@@ -199,7 +200,7 @@ class FreeformBlock is SingleLineBlock
                 return now
             end
     
-            text code = editRegion:GetText()
+            me:code = editRegion:GetText()
             text newLine = editRegion:GetDefaultLineSeparator()
             text dq = code:GetDoubleQuote()
             if code = undefined or code = "" or GetParentBlock() = undefined
@@ -407,7 +408,7 @@ if context is ActionContext
             logger:Log(value)
             // fallback 
             CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
-            if editor:HasValidParse()
+            if editor not= undefined and editor:HasValidParse()
                 editor:SetCode(editor:GetCode())
             end
         end
@@ -415,7 +416,7 @@ if context is ActionContext
 
     private action ResolveShortcut(TokenIterator<Token> tokenIterator) returns boolean
         Token current
-        text code = editRegion:GetText()
+        me:code = editRegion:GetText()
         text newLine = editRegion:GetDefaultLineSeparator()
         text dq = code:GetDoubleQuote()
         CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
