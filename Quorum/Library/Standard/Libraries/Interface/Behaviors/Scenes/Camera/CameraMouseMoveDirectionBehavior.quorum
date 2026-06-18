@@ -56,7 +56,7 @@ if mouseEvent:IsClicked()
                 Vector3 cameraPosition = camera:GetPosition():Copy()
                 Vector3 cameraDirection = camera:GetDirection():Copy()
                 me:orbitYaw = math:InverseTangent2(cameraDirection:GetX(), cameraDirection:GetZ()) + math:pi
-            me:orbitPitch = math:InverseSine(cameraDirection:GetY())
+            me:orbitPitch = -math:InverseSine(cameraDirection:GetY())
                 //pivotPoint = cameraPosition:Add(cameraDirection:Scale(pivotDistance))
                 number dirX = cameraDirection:GetX()
 number dirY = cameraDirection:GetY()

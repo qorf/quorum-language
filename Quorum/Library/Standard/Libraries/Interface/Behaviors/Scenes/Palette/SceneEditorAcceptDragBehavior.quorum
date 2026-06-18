@@ -84,11 +84,17 @@ end
                 if currentPreview not= undefined
                     editor:CancelItemPreview(currentPreview)
                     currentPreview = undefined
+                    if palette:GetDraggedItem() not= undefined
+                        palette:GetDraggedItem():Show()
+                    end
                 end
             end
         elseif dropEvent:eventType = dropEvent:DRAGGED_ONTO_DESTINATION
             if editor:GetSelectedLayer() is EditorLayer3D
                 currentPreview = editor:CreateItemPreview(schematic)
+                if palette:GetDraggedItem() not= undefined
+                    palette:GetDraggedItem():Hide()
+                end
             end
         elseif dropEvent:eventType = dropEvent:DROPPED
             if editor:GetSelectedLayer() is EditorLayer3D
