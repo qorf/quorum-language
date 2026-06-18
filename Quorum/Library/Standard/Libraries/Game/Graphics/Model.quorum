@@ -2412,6 +2412,18 @@ end
         SetAnimationState(undefined)
     end
     
+    action IsAnimating returns boolean
+        if animationState = undefined or not HasAnimations()
+            return false
+        end
+        
+        if animationState:IsStarted()
+            return true
+        else
+            return false
+        end
+    end
+    
     private action UpdateAnimationState(number seconds)
         if animationState = undefined or not HasAnimations()
             return now
