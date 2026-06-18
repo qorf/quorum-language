@@ -1,0 +1,39 @@
+package Libraries.Interface.Behaviors.Scenes.Palette
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.DragAndDropEvent
+use Libraries.Interface.Item
+use Libraries.Interface.Item2D
+use Libraries.Interface.Item3D
+use Libraries.Game.Graphics.Drawable
+use Libraries.Containers.Array
+use Libraries.Compute.Vector3
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
+use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
+use Libraries.Interface.Controls.Scenes.Blueprints.DrawableBlueprint
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer2D
+use Libraries.Interface.Controls.Scenes.ScenePalette
+use Libraries.Interface.Controls.Scenes.ScenePaletteItem
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Behaviors.Behavior
+
+class SceneEditorAcceptDragBehavior is Behavior
+
+action Run(BehaviorEvent event)
+        DragAndDropEvent dropEvent = event:GetDragAndDropEvent()
+        Item received = dropEvent:GetDestination()
+        
+        Item source = dropEvent:GetSource()
+        
+        if dropEvent:eventType = dropEvent:DRAGGING_CONTINUED
+            //output "CONTINUED"
+        elseif dropEvent:eventType = dropEvent:DRAGGED_OFF_DESTINATION
+            //output "DRAG OFF"
+        elseif dropEvent:eventType = dropEvent:DRAGGED_ONTO_DESTINATION
+            //output "DRAG ON"
+        elseif dropEvent:eventType = dropEvent:DROPPED
+            //output "DROP"
+        end
+    end
+
+end

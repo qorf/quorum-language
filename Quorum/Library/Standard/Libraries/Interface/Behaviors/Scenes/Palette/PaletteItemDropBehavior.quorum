@@ -48,9 +48,6 @@ class PaletteItemDropBehavior is Behavior
             end
         end
 
-        if controller = undefined
-            return now
-        end
 
         Item2D item = undefined
         if dragEvent:GetSource() is Item2D
@@ -67,6 +64,12 @@ class PaletteItemDropBehavior is Behavior
         ScenePaletteItem paletteItem = cast(ScenePaletteItem, item)
         ScenePalette palette = paletteItem:GetPalette()
         ItemBlueprint schematic = paletteItem:GetItemBlueprint()
+        
+        if controller = undefined
+            palette:SetDraggedItem(undefined)
+            return now
+        end
+        
         if schematic is DrawableBlueprint
             EditorLayer layer = controller:GetSelectedLayer()
             if layer is EditorLayer2D = false

@@ -84,15 +84,18 @@ class DarkModeOptions is InterfaceOptions
         SetCellBackgroundColor(darkGray)
 
         // Checkbox specific colors.
-        SetCheckboxBorderThickness(1)
+        SetCheckboxBorderThickness(2)
         SetCheckboxTopLeftRounding(defaultButtonRounding)
         SetCheckboxTopRightRounding(defaultButtonRounding)
         SetCheckboxBottomLeftRounding(defaultButtonRounding)
         SetCheckboxBottomRightRounding(defaultButtonRounding)
+        
         SetCheckboxBackgroundColor(controlBackground)
         SetCheckboxSelectionColor(acceptBlue)
-        SetCheckboxFocusColor(color:CustomColor(255.0 / MAX, 255.0 / MAX, 255.0 / MAX, 1))
+        SetCheckboxFocusColor(color:CustomColor(0,0,0,0))
+        SetCheckboxUnfocusedSelectionColor(color:CustomColor(0,0,0,0))
         SetCheckboxFocusBorderColor(acceptBlue)
+        
         SetCheckboxBorderColor(color:CustomColor(215.0 / MAX, 215.0 / MAX, 215.0 / MAX, 1))
         SetCheckboxSelectionBorderColor(acceptBlue)
         SetCheckboxAccentColor(controlBackground)
@@ -211,6 +214,10 @@ class DarkModeOptions is InterfaceOptions
         SetDialogShadowWidth(8)
         SetDialogShadowHeight(8)
         SetDialogShadowEdgeFade(11)
+        SetDialogTopLeftRounding(0.04)
+        SetDialogTopRightRounding(0.04)
+        SetDialogBottomLeftRounding(0.04)
+        SetDialogBottomRightRounding(0.04)
 
         // Dialog bar specific colors.
         SetDialogBarBackgroundColor(darkGray)
@@ -218,6 +225,8 @@ class DarkModeOptions is InterfaceOptions
         SetDialogBarForegroundColor(color:CustomColor(230.0 / MAX, 78.0 / MAX, 88.0 / MAX, 1))
         SetDialogBarAccentColor(color:White())
         SetDialogBarFontColor(commonFontColor)
+        SetDialogBarTopRightPixelRounding(8)
+        SetDialogBarTopLeftPixelRounding(8)
 
         // Dialog accept button colors.
         SetDialogAcceptButtonBorderThickness(1)

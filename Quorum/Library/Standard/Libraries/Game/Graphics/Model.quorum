@@ -2174,6 +2174,10 @@ end
     Attribute: Parameter renderables An array that will contain all of the retrieved Renderables.
     */
     action GetRenderables(Array<Renderable> renderables)
+        if resources = undefined
+            return now
+        end
+        
         resources:GetRenderables(renderables)
     end
 
