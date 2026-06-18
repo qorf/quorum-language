@@ -2433,8 +2433,8 @@ end
                 return now
             end
             
-            //number timePerFrame = animation:GetMilliseconds() / 1000
-            number timePerFrame = 0.1
+            number timePerFrame = animation:GetMilliseconds() / 1000
+            //number timePerFrame = 0.1
             integer frame = animationState:GetCurrentFrame()
             //calculate the frame that we are on
             number startTime = animationState:GetCurrentTime()
@@ -2447,11 +2447,7 @@ end
                 newFrame = 0
                 currentTime = 0
             end
-            //output "TESTING: Forcing animation to frame 0)"
-            //newFrame = 0
             animationState:SetCurrentFrame(newFrame)
-            
-            //somehow tell the model to actually chane the frame of animation here
             
             //somehow decide what the accessibility system does here.
             if startTime = 0

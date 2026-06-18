@@ -77,7 +77,18 @@ public class PixelMap {
         pixelPointer = Load(nativeData, bytes, 0, bytes.length);
         if (pixelPointer == null)
             throw new GameRuntimeError("Error loading PixelMap: " + GetFailureReason());
-            
+
+        // If the returned data is in RGB888 format, translate it to RGBA8888 instead.
+        // This happens most commonly with JPG files (as the file format doesn't support transparency).
+        if ((int)nativeData[3] == FORMAT_RGB888)
+        {
+            int width = (int)nativeData[1];
+            int height = (int)nativeData[2];
+            ByteBuffer bufferWithAlpha = AddAlphaChannel(pixelPointer, width, height, (byte)255);
+            LoadFromByteBuffer(bufferWithAlpha, width, height, FORMAT_RGBA8888);
+            return;
+        }
+
         basePointer = nativeData[0];
         width = (int)nativeData[1];
         height = (int)nativeData[2];
@@ -378,7 +389,22 @@ public class PixelMap {
     public static native String GetFailureReason (); /*
         return env->NewStringUTF(gdx2d_get_failure_reason());
     */
-    
+
+    // Copies a buffer in RGB888 format to a new buffer in RGBA8888 format by adding an alpha channel.
+    private ByteBuffer AddAlphaChannel(ByteBuffer pixels, int width, int height, byte alphaValue)
+    {
+        ByteBuffer newPixels = ByteBuffer.allocate(width * height * 4);
+        for (int i = 0; i < width * height * 3; i = i + 3)
+        {
+            newPixels.put(pixels.get(i));
+            newPixels.put(pixels.get(i + 1));
+            newPixels.put(pixels.get(i + 2));
+            newPixels.put(alphaValue);
+        }
+        newPixels.flip();
+        return newPixels;
+    }
+
     public void LoadFromByteBuffer(ByteBuffer pixels, int width, int height, int format)
     {      
         pixelPointer = pixels;

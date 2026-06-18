@@ -116,22 +116,10 @@ class VulkanTextureManager
                 integer width = pixelMap:GetWidth()
                 integer height = pixelMap:GetHeight()
 
-                integer pixelSize = 1
-                Format format = pixelMap:GetFormat()
-                integer formatValue = format:GetValue()
-
-                if formatValue = format:RGBA8888
-                    pixelSize = 4
-                elseif formatValue = format:ALPHA
-                    pixelSize = 1
-                elseif formatValue = format:RGB888
-                    pixelSize = 3
-                elseif formatValue = format:LUMINANCE_ALPHA or formatValue = format:RGB565 or formatValue = format:RGBA4444
-                    pixelSize = 2
-                else
-                    output "WARNING: Unknown pixel format = " + formatValue + "!"
-                end
-
+                integer pixelSize = 4
+                // With the Vulkan system, we now convert all textures to RGBA8888.
+                //Format format = pixelMap:GetFormat()
+                //integer formatValue = format:GetValue()
 
                 VulkanBuffer buffer
                 buffer:CreateTransferSourceBuffer(device, width * height * pixelSize)

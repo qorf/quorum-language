@@ -95,8 +95,9 @@ Each vertex is made of 14 32-bit components:
             vertexArray:Set(arrayIndex + 10, bitangents:Get(counter * 3 + 1))
             vertexArray:Set(arrayIndex + 11, bitangents:Get(counter * 3 + 2))
             
+            // Invert the texture y-coordinate to match our coordinate systems.
             vertexArray:Set(arrayIndex + 12, textureCoordinates:Get(counter * 2))
-            vertexArray:Set(arrayIndex + 13, textureCoordinates:Get(counter * 2 + 1))
+            vertexArray:Set(arrayIndex + 13, 1.0 - textureCoordinates:Get(counter * 2 + 1))
             
             counter = counter + 1
         end
