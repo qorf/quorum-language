@@ -49,14 +49,19 @@ class AnimationManagerVulkan
             Array<AnimationFrame> frames = animation:GetFrames()
             integer i = 0
             repeat while i < frames:GetSize()
-                AnimationFrameVulkan vulkanFrame
-                vulkanFrame:Create(device, frames:Get(i))
-                AddPendingAnimationFrame(vulkanFrame)
+                AnimationFrameVulkan vulkanFrame = GetAnimationFrame(frames:Get(i))
                 result:Add(vulkanFrame)
                 i = i + 1
             end
         end
         return result
+    end
+    
+    action GetAnimationFrame(AnimationFrame frame) returns AnimationFrameVulkan
+        AnimationFrameVulkan vulkanFrame
+                vulkanFrame:Create(device, frame)
+                AddPendingAnimationFrame(vulkanFrame)
+        return vulkanFrame
     end
     
     private action GetCachedFrames(Animation animation) returns Array<AnimationFrameVulkan>

@@ -111,11 +111,12 @@ class VulkanPainter3DBatch
                     Color diffuseOverride = resources:GetColor(i)
                     Texture textureOverride = resources:GetTexture(i)
                     
-                    VulkanBuffer vertexBuffer = mesh:GetVertexBuffer()
-                    if model:GetAnimationState() not= undefined
-                        // Get the animation vertex buffer associated with this mesh.
-                        vertexBuffer = resources:GetPostAnimationVertexBuffers():Get(i)
-                    end
+                    VulkanBuffer vertexBuffer = resources:GetPostAnimationVertexBuffers():Get(i)
+                    //VulkanBuffer vertexBuffer = mesh:GetVertexBuffer()
+                    //if model:GetAnimationState() not= undefined
+                        //// Get the animation vertex buffer associated with this mesh.
+                        //vertexBuffer = resources:GetPostAnimationVertexBuffers():Get(i)
+                    //end
                     
                     VulkanDrawQueue3D queue = undefined
                     if textureOverride not= undefined

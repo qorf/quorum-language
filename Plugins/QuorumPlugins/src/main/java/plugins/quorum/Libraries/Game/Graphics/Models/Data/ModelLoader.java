@@ -98,6 +98,7 @@ public class ModelLoader {
             //Now "Bake" in frames of animation so we can use it in the engine
 
             AnimationNode_ rootNode = BuildNodesTree(aiScene.mRootNode(), null);
+            System.out.println("Root node transformation:\n" + ToMatrix(aiScene.mRootNode().mTransformation()).ToText());
             Matrix4_ globalInverseTransformation = ToMatrix(aiScene.mRootNode().mTransformation()).Inverse();
             ProcessAnimations(aiScene, boneList, rootNode, globalInverseTransformation, animations);
             data.SetAnimations(animations);
@@ -220,6 +221,8 @@ public class ModelLoader {
                 }
             }
 
+            System.out.println("Global inverse = \n" + globalInverseTransformation.ToText());
+
             //Now bake in the frames so we can send it to GPU if we wish.
             for (int j = 0; j < maxFrames; j++) {
                 AnimationFrame_ frame = new AnimationFrame();
@@ -235,6 +238,30 @@ public class ModelLoader {
                 frames.Add(frame);
             }
         }
+
+        // Also create a single animation frame to represent the transformations used for the bind pose.
+        AnimationFrame_ bindPoseFrame = new AnimationFrame();
+        Array_ joints = bindPoseFrame.GetJoints();
+        joints.SetSize(maxJointsMatricesLists);
+        System.out.println("Global inverse * root node transform...");
+        for (int i = 0; i < joints.GetSize(); i++)
+        {
+            Matrix4_ identity = new Matrix4();
+//            identity.IdentityMatrix();
+//            identity.Set_Libraries_Compute_Matrix4__row0column0_(0);
+//            identity.Set_Libraries_Compute_Matrix4__row1column1_(0);
+//            identity.Set_Libraries_Compute_Matrix4__row2column2_(0);
+//            identity.Set_Libraries_Compute_Matrix4__row0column1_(1);
+//            identity.Set_Libraries_Compute_Matrix4__row1column2_(-1);
+//            identity.Set_Libraries_Compute_Matrix4__row2column0_(-1);
+//            identity.Set(globalInverseTransformation);
+            identity.Multiply(rootNode.GetNodeTransform());
+//            identity.Multiply(boneList.iterator().next().GetOffset());
+            joints.Set(i, identity);
+        }
+        System.out.println("Resulting matrix for bind pose =\n" + ((Matrix4)joints.Get(0)).ToText() + "\n");
+//        BuildBindPoseMatrices(boneList, bindPoseFrame, rootNode, rootNode.GetNodeTransform(), globalInverseTransformation);
+        animations.SetBindPoseFrame(bindPoseFrame);
     }
 
 
@@ -267,6 +294,8 @@ public class ModelLoader {
             int boneID = bone.GetBoneID();
             Array_ joints = animatedFrame.GetJoints();
             joints.Set(bone.GetBoneID(), boneTransform);
+            if (frame == 0)
+                System.out.println("Setting bone " + boneID + " to: \n" + ((Matrix4)joints.Get(boneID)).ToText());
         }
 
         Array_ children = node.GetChildren();
@@ -274,6 +303,47 @@ public class ModelLoader {
             AnimationNode_ childNode = (AnimationNode_) children.Get(i);
             BuildFrameMatrices(aiAnimation, boneList, animatedFrame, frame, childNode, nodeGlobalTransform,
                     globalInverseTransform);
+        }
+    }
+
+    private static void BuildBindPoseMatrices(List<Bone_> boneList, AnimationFrame_ animatedFrame,
+                                           AnimationNode_ node, Matrix4_ parentTransformation, Matrix4_ globalInverseTransform) {
+        String nodeName = node.GetName();
+//        AINodeAnim aiNodeAnim = FindAIAnimNode(aiAnimation, nodeName);
+//        Matrix4_ nodeTransform = node.GetNodeTransform();
+//        if (aiNodeAnim != null) {
+//            nodeTransform = BuildNodeTransformationMatrix(aiNodeAnim, frame);
+//        }
+
+        Matrix4_ nodeTransform = new Matrix4();
+        nodeTransform.IdentityMatrix();
+
+        Matrix4_ nodeGlobalTransform = new Matrix4();
+        nodeGlobalTransform.Set(parentTransformation);
+        nodeGlobalTransform.Multiply(nodeTransform);
+
+        List<Bone_> affectedBones = new ArrayList<>();
+        Iterator<Bone_> iterator = boneList.iterator();
+        while(iterator.hasNext()) {
+            Bone_ next = iterator.next();
+            if(next.GetName() != null && next.GetName().equals(nodeName)) {
+                affectedBones.add(next);
+            }
+        }
+        for (Bone_ bone : affectedBones) {
+            Matrix4_ boneTransform = new Matrix4();
+            boneTransform.Set(globalInverseTransform);
+            boneTransform.Multiply(nodeGlobalTransform);
+            boneTransform.Multiply(bone.GetOffset());
+            int boneID = bone.GetBoneID();
+            Array_ joints = animatedFrame.GetJoints();
+            joints.Set(bone.GetBoneID(), boneTransform);
+        }
+
+        Array_ children = node.GetChildren();
+        for(int i = 0; i < children.GetSize(); i++) {
+            AnimationNode_ childNode = (AnimationNode_) children.Get(i);
+            BuildBindPoseMatrices(boneList, animatedFrame, childNode, nodeGlobalTransform, globalInverseTransform);
         }
     }
 

@@ -1057,20 +1057,25 @@ BindDescriptorSetCommand resultDescriptorBind
         integer i = 0
         repeat while i < animatedModels:GetSize()
             Model model = animatedModels:Get(i)
-            AnimationState state = model:GetAnimationState()
             ModelBlueprintVulkan modelBlueprint = cast(ModelBlueprintVulkan, model:GetModelBlueprint())
             ModelResourcesVulkan resources = cast(ModelResourcesVulkan, model:GetResources())
             
-            integer animationIndex = state:GetAnimationIndex()
-            integer frameIndex = state:GetCurrentFrame()
+            AnimationState state = model:GetAnimationState()
+            VulkanBuffer animationFrame = modelBlueprint:GetBindPoseAnimationFrame():GetBuffer()
+            if state not= undefined
+                animationIndex = state:GetAnimationIndex()
+            frameIndex = state:GetCurrentFrame()
+                Array<AnimationFrameVulkan> animationFrames = modelBlueprint:GetAnimationFrames():Get(animationIndex)
+                animationFrame = animationFrames:Get(frameIndex):GetBuffer()
+            else
+                output "Rendering using bind pose animation."
+            end
             
             integer j = 0
             repeat while j < model:GetMeshCount()
                 MeshVulkan mesh = modelBlueprint:GetMeshes():Get(j)
                 VulkanBuffer sourceVertices = mesh:GetVertexBuffer()
                 VulkanBuffer weightsBuffer = mesh:GetAnimationDataBuffer()
-                Array<AnimationFrameVulkan> animationFrames = modelBlueprint:GetAnimationFrames():Get(animationIndex)
-                VulkanBuffer animationFrame = animationFrames:Get(frameIndex):GetBuffer()
                 VulkanBuffer destinationVertices = resources:GetPostAnimationVertexBuffers():Get(j)
                 
                 // TO-DO: Set the push constants. Dispatch the work command.
@@ -1250,7 +1255,7 @@ BindDescriptorSetCommand resultDescriptorBind
         end
         batch:Add(model)
         
-        if model:GetAnimationState() not= undefined
+        if model:HasAnimations()
             animatedModels:Add(model)
         end
     end

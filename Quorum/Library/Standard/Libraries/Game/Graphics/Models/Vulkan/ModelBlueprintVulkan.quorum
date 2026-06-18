@@ -17,6 +17,9 @@ class ModelBlueprintVulkan is ModelBlueprint
     Array<MaterialVulkan> materials = undefined
     Array<Array<AnimationFrameVulkan>> animationFrames = undefined
     
+    // An additional animation frame that represents the bind pose -- i.e., no animation is performed. Used to allow the animation layer to apply base model transforms without animation.
+    AnimationFrameVulkan bindPoseAnimationFrame = undefined
+    
     BoundingBox boundingBox
     
     
@@ -156,6 +159,14 @@ Animations animations = data:GetAnimations()
 
     action SetAnimationFrames(Array<Array<AnimationFrameVulkan>> animationFrames)
         me:animationFrames = animationFrames
+    end
+
+    action GetBindPoseAnimationFrame returns AnimationFrameVulkan
+        return bindPoseAnimationFrame
+    end
+
+    action SetBindPoseAnimationFrame(AnimationFrameVulkan bindPoseAnimationFrame)
+        me:bindPoseAnimationFrame = bindPoseAnimationFrame
     end
 
 end
