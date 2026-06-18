@@ -16,24 +16,89 @@ use Libraries.Interface.Controls.Scenes.ScenePalette
 use Libraries.Interface.Controls.Scenes.ScenePaletteItem
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
+use Libraries.Interface.Controls.Scenes.Items.Previews.ItemPreview
+use Libraries.Interface.Controls.Scenes.Items.EditorCamera3D
+use Libraries.Compute.Ray
 
 class SceneEditorAcceptDragBehavior is Behavior
+    
+    ItemPreview currentPreview = undefined
+    
 
 action Run(BehaviorEvent event)
         DragAndDropEvent dropEvent = event:GetDragAndDropEvent()
         Item received = dropEvent:GetDestination()
+        SceneEditor editor = undefined
+        
+        if received is SceneEditor
+            editor = cast(SceneEditor, received)
+        else
+            return now
+        end
+        
         
         Item source = dropEvent:GetSource()
+        Item2D item = undefined
+        if source is Item2D
+            item = cast(Item2D, dropEvent:GetSource())
+            repeat until item = undefined or item is ScenePaletteItem
+                item = item:GetParent()
+            end
+        end
+
+        if item = undefined
+            return now
+        end
+
+        ScenePaletteItem paletteItem = cast(ScenePaletteItem, item)
+        ScenePalette palette = paletteItem:GetPalette()
+        ItemBlueprint schematic = paletteItem:GetItemBlueprint()
         
         if dropEvent:eventType = dropEvent:DRAGGING_CONTINUED
-            //output "CONTINUED"
+            if currentPreview not= undefined and editor:GetSelectedLayer() is EditorLayer3D
+                // for now we're assuming the preview was made at the cursor position
+                // and we're only go to move the X and Z and leave Y alone
+                EditorLayer3D layer = cast(EditorLayer3D, editor:GetSelectedLayer())
+                EditorCamera3D camera = layer:GetEditorCamera()
+                number planeY = currentPreview:GetY()
+                number hitX = 0
+                number hitZ = 0
+                //Ray pickRay = camera:GetPickRay(dropEvent:GetX(),dropEvent:GetY())
+                Ray pickRay = camera:GetPickRay(dropEvent:GetX(),dropEvent:GetY(), editor:GetGlobalX(), editor:GetGlobalY(), camera:GetWidth(), camera:GetHeight())
+if pickRay:GetDirection():GetY() not= 0
+                    number t = (planeY - pickRay:GetOrigin():GetY()) / pickRay:GetDirection():GetY()
+                    if t >= 0
+                        hitX = pickRay:GetOrigin():GetX() + pickRay:GetDirection():GetX() * t
+                        hitZ = pickRay:GetOrigin():GetZ() + pickRay:GetDirection():GetZ() * t
+end
+end
+                hitX = layer:GetPreviousGridCoordinate(hitX)
+                hitZ = layer:GetPreviousGridCoordinate(hitZ)
+                
+                currentPreview:SetX(hitX)
+                currentPreview:SetZ(hitZ)
+            end
         elseif dropEvent:eventType = dropEvent:DRAGGED_OFF_DESTINATION
-            //output "DRAG OFF"
+            if editor:GetSelectedLayer() is EditorLayer3D
+                if currentPreview not= undefined
+                    editor:CancelItemPreview(currentPreview)
+                    currentPreview = undefined
+                end
+            end
         elseif dropEvent:eventType = dropEvent:DRAGGED_ONTO_DESTINATION
-            //output "DRAG ON"
+            if editor:GetSelectedLayer() is EditorLayer3D
+                currentPreview = editor:CreateItemPreview(schematic)
+            end
         elseif dropEvent:eventType = dropEvent:DROPPED
-            //output "DROP"
-        end
+            if editor:GetSelectedLayer() is EditorLayer3D
+                if currentPreview not= undefined
+                    editor:ConfirmItemPreview(currentPreview)
+                    editor:CancelItemPreview(currentPreview)
+                    currentPreview = undefined
+                end
+            end
+    end
     end
 
 end

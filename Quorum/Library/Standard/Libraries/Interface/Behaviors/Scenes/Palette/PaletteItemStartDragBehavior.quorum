@@ -12,6 +12,7 @@ use Libraries.Interface.Controls.Scenes.Items.Previews.ItemPreview2D
 use Libraries.Interface.Controls.Scenes.ScenePaletteItem
 use Libraries.Interface.Controls.Scenes.ScenePalette
 use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Controls.Scenes.Blueprints.ModelBlueprint
 
 /*
     This behavior starts a drag and drop event from a ScenePaletteItem which allows the 
@@ -50,6 +51,14 @@ class PaletteItemStartDragBehavior is Behavior
 
             drawable:SetPosition(worldCoordinates:GetX() - drawable:GetWidth() / 2, worldCoordinates:GetY() - drawable:GetHeight() / 2)
             palette:SetDraggedItem(drawable)
+        elseif schematic is ModelBlueprint
+            ModelBlueprint modelBlueprint = cast(ModelBlueprint, schematic)
+            Drawable dragPreview
+            dragPreview:Load(modelBlueprint:GetPaletteIcon())
+            Layer2D layer = item:GetLayer()
+            
+            dragPreview:SetPosition(dragEvent:GetX() - dragPreview:GetWidth()/2, dragEvent:GetY() - dragPreview:GetWidth()/2)
+            palette:SetDraggedItem(dragPreview)
         else
             // TO-DO
         end
