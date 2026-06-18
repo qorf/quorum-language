@@ -5,6 +5,34 @@ use Libraries.Game.Graphics.Shaders.Programs.ShaderProgramStrategy
 
 class GraphicsManager
     
+    /*This action sets the background color of the window. This is the color used to clear
+the screen between each frame of animation. 
+Attribute: Parameter red The red component of the color, as a number between 0.0 (no red) and 1.0 (full red).
+Attribute: Parameter green The green component of the color, as a number between 0.0 (no green) and 1.0 (full green).
+Attribute: Parameter blue The blue component of the color, as a number between 0.0 (no blue) and 1.0 (full blue).*/
+    action ClearScreenColor(number red, number green, number blue)
+        SetClearScreenColor(red, green, blue)
+    end
+    
+    /*This action sets the background color of the window. This is the color used to clear
+the screen between each frame of animation. 
+Attribute: Parameter color The color that should be used to clear the screen.*/
+    action ClearScreenColor(Color color)
+        SetClearScreenColor(color)
+    end
+    
+    /*This action sets the background color of the window. This is the color used to clear
+the screen between each frame of animation. The alpha component (transparency) isn't 
+supported for OpenGL rendering, but Vulkan rendering can draw a transparent window 
+background if the feature is enabled.
+Attribute: Parameter red The red component of the color, as a number between 0.0 (no red) and 1.0 (full red).
+Attribute: Parameter green The green component of the color, as a number between 0.0 (no green) and 1.0 (full green).
+Attribute: Parameter blue The blue component of the color, as a number between 0.0 (no blue) and 1.0 (full blue).
+Attribute: Parameter alpha The alpha component of the color, as a number between 0.0 (completely transparent) and 1.0 (completely opaque).*/
+    action ClearScreenColor(number red, number green, number blue, number alpha)
+        SetClearScreenColor(red, green, blue, alpha)
+    end
+    
 /*This action sets the background color of the window. This is the color used to clear
 the screen between each frame of animation. 
 Attribute: Parameter red The red component of the color, as a number between 0.0 (no red) and 1.0 (full red).

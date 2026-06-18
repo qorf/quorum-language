@@ -6,6 +6,7 @@ use Libraries.Interface.Controls.Blocks.all
 use Libraries.Language.Compile.Location
 use Libraries.Language.Compile.Parsing.Token
 use Libraries.Language.Compile.Parsing.QuorumLexer
+use Libraries.Containers.Array
 
 class FreeformBlockListener is QuorumSourceListener
 
@@ -22,7 +23,8 @@ class FreeformBlockListener is QuorumSourceListener
     integer scopeDepth = -1
     
     // The resulting block produced by a parse.
-    Block block = undefined
+    Block currentBlock = undefined
+    Array<Block> parentBlocks
 
     // used to find comments
     integer recentToken = -1
@@ -42,7 +44,7 @@ class FreeformBlockListener is QuorumSourceListener
         lineOffset = sourceBlock:GetStartLine()
         scopeDepth = sourceBlock:GetScopeDepth()
 
-        block = undefined
+        currentBlock = dummyRoot
     end
 
     action EnterDocumentation(DocumentationContext context) end
@@ -60,7 +62,7 @@ class FreeformBlockListener is QuorumSourceListener
                 comment:SetToken(next)
                 comment:SetScopeDepth(scopeDepth)
                 comment:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
-                block = comment
+                currentBlock:Add(cast(Block,comment))
                 return now
             end
             i = i + 1
@@ -103,7 +105,7 @@ class FreeformBlockListener is QuorumSourceListener
             result:SetScopeDepth(scopeDepth)
             result:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
             result:SetSayContext(context)
-            block = result
+            currentBlock:Add(cast(Block,result))
         end
     end
     action ExitSayStatement(SayContext context) end
@@ -117,20 +119,22 @@ class FreeformBlockListener is QuorumSourceListener
         block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
 
-        dummyRoot:Add(cast(Block, block))
+        currentBlock:Add(cast(Block,block))
 
-        me:block = block
-        block:AddStartLine()
+        currentBlock = block:AddStartLine()
     end
+    
     action ExitCheckStatement(CheckContext context)
         // The current block must be one of the parts of an if block. Get the if block from the part.
-        CheckBlock checkBlock = cast(CheckBlock, block)
+        CheckBlock checkBlock = cast(CheckBlock, currentBlock:GetParentBlock())
         
         // Add the last line of the if block.
         checkBlock:AddEndLine()
 
         // Now that all parts have been added, call Setup on the block.
         checkBlock:Setup()
+        currentBlock = checkBlock:GetParentBlock()
+        scopeDepth = scopeDepth - 1
     end
 
     action EnterParentFieldAccess(ParentFieldAccessContext context) end
@@ -155,14 +159,18 @@ class FreeformBlockListener is QuorumSourceListener
         block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetFullClass(ctx)
         
-        dummyRoot:Add(cast(Block, block))
-        me:block = block
+        currentBlock:Add(cast(Block,block))
+        
         MultipleLineBlockPart startLine = block:AddStartLine()
+        currentBlock = startLine
+        scopeDepth = scopeDepth + 1
     end
     action ExitFullClassDeclaration(FullClassDeclarationContext ctx)
-        ClassBlock classBlock = cast(ClassBlock, block)
+        ClassBlock classBlock = cast(ClassBlock, currentBlock:GetParentBlock())
         classBlock:AddEndLine()
+        scopeDepth = scopeDepth - 1
         classBlock:Setup()
+        currentBlock = classBlock:GetParentBlock()
     end
 
     action EnterNoClassDeclaration(NoClassDeclarationContext ctx) end
@@ -212,7 +220,7 @@ class FreeformBlockListener is QuorumSourceListener
             result:SetScopeDepth(scopeDepth)
             result:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
             result:SetOutputContext(context)
-            block = result
+            currentBlock:Add(cast(Block,result))
         end
     end
 
@@ -228,14 +236,15 @@ class FreeformBlockListener is QuorumSourceListener
         block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
         
-        dummyRoot:Add(cast(Block, block))
-        me:block = block
+        currentBlock:Add(cast(Block,block))
         MultipleLineBlockPart startLine = block:AddStartLine()
+        currentBlock = startLine
         scopeDepth = scopeDepth + 1
     end
     action ExitConstructor(ConstructorContext context)
-        ConstructorBlock block = cast(ConstructorBlock, me:block)
+        ConstructorBlock block = cast(ConstructorBlock, currentBlock:GetParent())
         block:AddEndLine()
+        currentBlock = block:GetParentBlock()
         block:Setup()
         scopeDepth = scopeDepth - 1
     end
@@ -268,13 +277,12 @@ class FreeformBlockListener is QuorumSourceListener
         block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetActionContext(context)
 
-        dummyRoot:Add(cast(Block, block))
-        me:block = block
-
+        currentBlock:Add(cast(Block,block))
         MultipleLineBlockPart startLine = block:AddStartLine()
 
         // system and blueprint actions are single line blocks
         if not context:isSystem and not context:isBlueprint
+            currentBlock = startLine
             scopeDepth = scopeDepth + 1
         else
             // Don't change the current block, as this is essentially a single line block. Set up the block immediately.
@@ -289,14 +297,15 @@ class FreeformBlockListener is QuorumSourceListener
     action ExitAction(ActionContext context)
         if not context:isSystem and not context:isBlueprint
             // The current block must be one of the parts of an action block. Get the action block from the part.
-            ActionBlock actionBlock = cast(ActionBlock, me:block)
+            ActionBlock actionBlock = cast(ActionBlock, currentBlock:GetParentBlock())
+            
             
             // Add the last line of the action block.
             actionBlock:AddEndLine()
     
             // Now that all parts have been added, call Setup on the block.
-            actionBlock:Setup()
-    
+    actionBlock:Setup()
+            currentBlock = actionBlock:GetParentBlock()
             scopeDepth = scopeDepth - 1
         end
     end
@@ -332,28 +341,28 @@ class FreeformBlockListener is QuorumSourceListener
         block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
 
-        dummyRoot:Add(cast(Block, block))
-
-        me:block = block
-        block:AddStartLine()
+        currentBlock:Add(cast(Block,block))
+scopeDepth = scopeDepth+1
+        currentBlock = block:AddStartLine()
     end
 
     action ExitIfStatement(IfContext context)
         // The current block must be one of the parts of an if block. Get the if block from the part.
-        IfBlock ifBlock = cast(IfBlock, block)
+        IfBlock ifBlock = cast(IfBlock, currentBlock:GetParent())
         
         // Add the last line of the if block.
         ifBlock:AddEndLine()
-
+currentBlock = ifBlock:GetParentBlock()
         // Now that all parts have been added, call Setup on the block.
         ifBlock:Setup()
     end
 
     action EnterElseIfStatement(IfContext context)
         // The current block must be one of the parts of an if block. Get the if block from the part.
-        IfBlock ifBlock = cast(IfBlock, block)
+        IfBlock ifBlock = cast(IfBlock, currentBlock:GetParentBlock())
 
         MultipleLineBlockPart newPart = ifBlock:AddElseifLine(ifBlock:GetChildCount() - 1)
+        currentBlock = newPart
     end
 
     action ExitElseIfStatement(IfContext context)
@@ -361,9 +370,10 @@ class FreeformBlockListener is QuorumSourceListener
 
     action EnterElseStatement(IfContext context) 
         // The current block must be one of the parts of an if block. Get the if block from the part.
-        IfBlock ifBlock = cast(IfBlock, block)
+        IfBlock ifBlock = cast(IfBlock, currentBlock:GetParentBlock())
 
         MultipleLineBlockPart newPart = ifBlock:AddElseLine()
+        currentBlock = newPart
     end
 
     action ExitElseStatement(IfContext context) 
@@ -396,15 +406,14 @@ class FreeformBlockListener is QuorumSourceListener
         block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
 
-        dummyRoot:Add(cast(Block, block))
-
-        me:block = block
-        block:AddStartLine()
+        currentBlock:Add(cast(Block,block))
+        currentBlock = block:AddStartLine()
         scopeDepth = scopeDepth + 1
     end
     action ExitLoopStatement(LoopContext context)
-        RepeatBlock repeatBlock = cast(RepeatBlock, block)
+        RepeatBlock repeatBlock = cast(RepeatBlock, currentBlock:GetParentBlock())
         repeatBlock:AddEndLine()
+        currentBlock = repeatBlock:GetParentBlock()
         repeatBlock:Setup()
         scopeDepth = scopeDepth - 1
     end
@@ -428,17 +437,19 @@ class FreeformBlockListener is QuorumSourceListener
                 i = i + 1
             end
         end
-        CheckBlock checkBlock = cast(CheckBlock, block)
+        CheckBlock checkBlock = cast(CheckBlock, currentBlock:GetParentBlock())
 
         MultipleLineBlockPart newPart = checkBlock:AddDetectLine(context)
+        currentBlock = newPart
     end
     action ExitDetectStatement(DetectStatementContext context) end
 
     action EnterAlwaysStatement(AlwaysStatementContext context)
         OffsetLocation(context:GetLocation())
-        CheckBlock checkBlock = cast(CheckBlock, block)
+        CheckBlock checkBlock = cast(CheckBlock, currentBlock:GetParentBlock())
 
         MultipleLineBlockPart newPart = checkBlock:AddAlwaysLine(context)
+        currentBlock = newPart
     end
     action ExitAlwaysStatement(AlwaysStatementContext context) end
 
@@ -455,7 +466,7 @@ class FreeformBlockListener is QuorumSourceListener
         block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
         
-        me:block = block
+        currentBlock:Add(cast(Block,block))
     end
     action ExitReturnStatement(ReturnContext context) end
 
@@ -482,9 +493,8 @@ class FreeformBlockListener is QuorumSourceListener
         block:SetScopeDepth(scopeDepth)
         block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
-
-        me:block = block
-
+        
+        currentBlock:Add(cast(Block,block))
     end
     action ExitAlertStatement(AlertContext context) end
 
@@ -498,7 +508,7 @@ class FreeformBlockListener is QuorumSourceListener
         block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
 
-        me:block = block
+        currentBlock:Add(cast(Block,block))
     end
     action ExitUse(UseContext context) end
 
@@ -531,7 +541,7 @@ class FreeformBlockListener is QuorumSourceListener
         block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
 
-        me:block = block
+        currentBlock:Add(cast(Block,block))
     end
     action ExitPackageRule(PackageContext context) end
 
@@ -549,7 +559,7 @@ class FreeformBlockListener is QuorumSourceListener
         block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
 
-        me:block = block
+        currentBlock:Add(cast(Block,block))
     end
     action ExitNormalAssignment(NormalAssignmentContext context) end
 
@@ -563,7 +573,7 @@ class FreeformBlockListener is QuorumSourceListener
         block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
 
-        me:block = block
+        currentBlock:Add(cast(Block,block))
     end
     action ExitParentAssignment(ParentAssignmentContext context) end
 
@@ -579,7 +589,7 @@ class FreeformBlockListener is QuorumSourceListener
         block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
 
-        me:block = block
+        currentBlock:Add(cast(Block,block))
     end
     action ExitObjectAssignment(ObjectAssignmentContext context) end
 
@@ -593,7 +603,7 @@ class FreeformBlockListener is QuorumSourceListener
         block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
 
-        me:block = block
+        currentBlock:Add(cast(Block,block))
     end
     action ExitNoTypeAssignment(NoTypeAssignmentContext context) end
 
@@ -608,7 +618,7 @@ class FreeformBlockListener is QuorumSourceListener
         block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
 
-        me:block = block
+        currentBlock:Add(cast(Block,block))
     end
     action ExitVariableSoloFunctionCall(VariableFunctionCallContext context) end
 
@@ -620,7 +630,7 @@ class FreeformBlockListener is QuorumSourceListener
         block:SetBlockEnvironment(dummyRoot:GetBlockEnvironment())
         block:SetContext(context)
 
-        me:block = block
+        currentBlock:Add(cast(Block,block))
     end
     action ExitParentVariableSoloFunctionCall(ParentVariableFunctionCallContext context) end
 
@@ -637,6 +647,9 @@ class FreeformBlockListener is QuorumSourceListener
     action ExitActionCall(ActionCallContext ctx) end
 
     private action OffsetLocation(Location location)
+        //if not (currentBlock is FreeformDummyRootBlock)
+            //return now
+        //end
         if location not= undefined
             location:SetIndex(location:GetIndex() + indexOffset)
             location:SetIndexEnd(location:GetIndexEnd() + indexOffset)
@@ -646,16 +659,16 @@ class FreeformBlockListener is QuorumSourceListener
     end
 
     private action OffsetToken(Token token)
-        if token not= undefined
+    if token not= undefined
             token:startIndex = token:startIndex + indexOffset
             token:endIndex = token:endIndex + indexOffset
             token:startLine = token:startLine + lineOffset
             token:endLine = token:endLine + lineOffset
         end
     end
-
+    
     action GetBlock returns Block
-        return block
+    return currentBlock
     end
 
     action GetQuorumLexer returns QuorumLexer
