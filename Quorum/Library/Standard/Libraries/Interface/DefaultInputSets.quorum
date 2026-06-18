@@ -2006,8 +2006,31 @@ InputSet shiftF10SetTextBox
 
         sceneItemTable:Add(selectionHighlightDragInput, selectionHighlightDragBehavior)
         
-        table:Add3D(GetLeftClick(), selectScene3DItemBehavior)
+        InputTable sceneItem3DTable
+        sceneItem3DTable:SetIdentifier(sceneConstants:SCENE_ITEM3D_INPUT_GROUP)
 
+        sceneItem3DTable:Add(GetLeftClick(), selectSceneItemBehavior)
+
+        
+        // drag and drop
+        sceneItemTable:Add(selectionHighlightDragInput, selectionHighlightDragBehavior)
+        
+        SceneEditorAcceptDragBehavior sceneEditorAcceptDragBehavior
+        
+        InputSet dragIntoSet
+        dragIntoSet:SetDropItemInput()
+        InputSet dragIntoContinueSet = dragIntoSet:Copy()
+        InputSet dragIntoFinishSet = dragIntoSet:Copy()
+        dragIntoContinueSet:SetInputTrigger(dragIntoContinueSet:CONTINUE)
+        dragIntoFinishSet:SetInputTrigger(dragIntoFinishSet:FINISH)
+        InputSet dragOffSet
+        dragOffSet:SetDropItemInput()
+        dragOffSet:SetInputTrigger(dragOffSet:FINISH_UNCAUGHT)
+
+        table:Add2D(dragIntoSet, sceneEditorAcceptDragBehavior)
+        table:Add2D(dragIntoContinueSet, sceneEditorAcceptDragBehavior)
+        table:Add2D(dragIntoFinishSet, sceneEditorAcceptDragBehavior)
+        table:Add2D(dragOffSet, sceneEditorAcceptDragBehavior)
 
 
         itemPreviewTable:Add(reportLocation, reportLocationBehavior)
@@ -2160,6 +2183,7 @@ InputSet shiftF10SetTextBox
         gameInput:AddInputTable(cameraItemTable2D)
         gameInput:AddInputTable(cameraItemTable3D)
         gameInput:AddInputTable(sceneItemTable)
+        gameInput:AddInputTable(sceneItem3DTable)
         gameInput:AddInputTable(itemPreviewTable)
         gameInput:AddInputTable(itemPreviewTable2D)
         gameInput:AddInputTable(propertiesDialogTable)
