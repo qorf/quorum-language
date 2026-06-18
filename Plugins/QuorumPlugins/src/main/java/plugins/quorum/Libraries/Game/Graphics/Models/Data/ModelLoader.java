@@ -192,7 +192,7 @@ public class ModelLoader {
         for (int i = 0; i < numAnimations; i++) {
             AIAnimation aiAnimation = AIAnimation.create(aiAnimations.get(i));
             int maxFrames = CalculateAnimationMaxFrames(aiAnimation);
-            float frameMillis = (float) (aiAnimation.mDuration() / aiAnimation.mTicksPerSecond());
+            float frameMillis = (float)(aiAnimation.mDuration() / maxFrames);
 
             Animation_ animation = new Animation();
             Array_ frames = animation.GetFrames();
@@ -589,8 +589,9 @@ public class ModelLoader {
                 diffuse.Set(colour.r(), colour.g(), colour.b(), colour.a());
             }
             AIString aiTexturePath = AIString.calloc(stack);
-            aiGetMaterialTexture(aiMaterial, aiTextureType_DIFFUSE, 0, aiTexturePath, (IntBuffer) null,
+            result = aiGetMaterialTexture(aiMaterial, aiTextureType_DIFFUSE, 0, aiTexturePath, (IntBuffer) null,
                     null, null, null, null, null);
+
             String texturePath = aiTexturePath.dataString();
             String workingDirectory = System.getProperty("user.dir");
             java.nio.file.Path workingDirectoryPath = java.nio.file.Paths.get(workingDirectory);
@@ -599,7 +600,7 @@ public class ModelLoader {
                         texturesDir + File.separator + texturePath).toPath().toAbsolutePath();
                 java.nio.file.Path relative = workingDirectoryPath.relativize(thePathObject);
                 texturePath = relative.toString();
-                diffuse.Set(0.0, 0.0, 0.0, 0.0);
+                diffuse.Set(1.0, 1.0, 1.0, 1.0);
             }
 
             AIString aiNormalMapPath = AIString.calloc(stack);
