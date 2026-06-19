@@ -4814,5 +4814,24 @@ if gl20 is OpenGLManager
     action GetShaderManager returns ShaderManager
         return shaderManager
     end
+    
+    /*This action determines if the Game engine should use Vulkan, if it is supported on this platform.
+If Vulkan is requested but not available, the system will fall back to OpenGL. This must be set
+before calling StartGame().
+
+Attribute: Example
+use Libraries.Game.Game
+
+class Main is Game
+    action Main
+        UseVulkan(true)
+        StartGame()
+    end
+end
+
+Attribute: Parameter enabled True to use Vulkan, or false to use OpenGL.*/
+    action UseVulkan(boolean enabled)
+        desktopConfig:useVulkan = enabled
+    end
 
 end

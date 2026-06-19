@@ -1,10 +1,17 @@
 package Libraries.Game.Graphics.Models.Data
 
 class AnimationState
+    public constant integer STOP_ON_COMPLETE = 0
+    public constant integer LOOP_ON_COMPLETE = 1
+    public constant integer PAUSE_ON_COMPLETE = 2
+    
     boolean started = false
     integer animationIndex = 0
     integer currentFrame = 0
     number currentTime = 0
+    boolean paused = false
+    number animationSpeed = 1.0
+    integer endBehavior = STOP_ON_COMPLETE
     
     action IsStarted returns boolean
         return started
@@ -36,6 +43,30 @@ class AnimationState
 
     action SetCurrentTime(number currentTime)
         me:currentTime = currentTime
+    end
+
+    action GetEndBehavior returns integer
+        return endBehavior
+    end
+
+    action SetEndBehavior(integer endBehavior)
+        me:endBehavior = endBehavior
+    end
+
+    action IsPaused returns boolean
+        return paused
+    end
+
+    action SetPaused(boolean paused)
+        me:paused = paused
+    end
+
+    action GetAnimationSpeed returns number
+        return animationSpeed
+    end
+
+    action SetAnimationSpeed(number animationSpeed)
+        me:animationSpeed = animationSpeed
     end
 
 end

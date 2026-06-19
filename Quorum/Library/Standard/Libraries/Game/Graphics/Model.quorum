@@ -2416,6 +2416,18 @@ end
         SetAnimationState(undefined)
     end
     
+    action PauseAnimation
+        if animationState not= undefined
+            animationState:SetPaused(true)
+        end
+    end
+    
+    action ResumeAnimation
+        if animationState not= undefined
+            animationState:SetPaused(false)
+        end
+    end
+    
     action IsAnimating returns boolean
         if animationState = undefined or not HasAnimations()
             return false
@@ -2433,7 +2445,7 @@ end
             return now
         end
         
-        if animationState:IsStarted()
+        if animationState:IsStarted() and (animationState:IsPaused() = false)
             integer index = animationState:GetAnimationIndex()
             if index < 0 or index >= GetAnimationsSize()
                 return now
@@ -2449,29 +2461,58 @@ end
                 return now
             end
             
+            number adjustedSeconds = seconds * animationState:GetAnimationSpeed()
+            boolean playingForward = adjustedSeconds >= 0.0
+            
             number timePerFrame = animation:GetMilliseconds() / 1000
-            //number timePerFrame = 0.1
             integer frame = animationState:GetCurrentFrame()
+            
             //calculate the frame that we are on
             number startTime = animationState:GetCurrentTime()
-            number currentTime = startTime + seconds
+            number currentTime = startTime + adjustedSeconds
             number newFrameNumber = currentTime / timePerFrame
             integer newFrame = cast(integer, newFrameNumber)
-            if newFrame >= frames:GetSize()
-                newFrame = frames:GetSize() - 1
-                // FOR DEBUGGING ONLY -- FORCED LOOPING
-                newFrame = 0
-                currentTime = 0
+            
+            if playingForward
+                if newFrame >= frames:GetSize()
+                    integer endState = animationState:GetEndBehavior()
+                    if endState = animationState:STOP_ON_COMPLETE
+                        StopAnimation()
+                    elseif endState = animationState:PAUSE_ON_COMPLETE
+                        newFrame = frames:GetSize() - 1
+                        currentTime = animation:GetFrames():GetSize() * timePerFrame
+                        PauseAnimation()
+                    elseif endState = animationState:LOOP_ON_COMPLETE
+                        newFrame = 0
+                        currentTime = 0
+                    end
             end
-            animationState:SetCurrentFrame(newFrame)
+            else
+                if newFrame < 0
+                    integer endState = animationState:GetEndBehavior()
+                    if endState = animationState:STOP_ON_COMPLETE
+                        StopAnimation()
+                    elseif endState = animationState:PAUSE_ON_COMPLETE
+                        newFrame = 0
+                        currentTime = 0
+                        PauseAnimation()
+                    elseif endState = animationState:LOOP_ON_COMPLETE
+                        newFrame = animation:GetFrames():GetSize() - 1
+                        currentTime = (newFrame + 1) * timePerFrame
+                    end
+                end
+            end
+            
+            if animationState not= undefined
+                animationState:SetCurrentFrame(newFrame)
+                animationState:SetCurrentTime(currentTime)
+            end
             
             //somehow decide what the accessibility system does here.
             if startTime = 0
                 text description = animation:GetName() + ", " + animation:GetDescription()
                 SetDescription(description)
             end
-            
-            animationState:SetCurrentTime(currentTime)
         end
     end
     

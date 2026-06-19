@@ -73,18 +73,23 @@ public class PixelMap {
             GameFile javaFile = GameStateManager.fileHandler.Convert(quorumFile);
             bytes = javaFile.ReadBytes();
         }
-        
-        pixelPointer = Load(nativeData, bytes, 0, bytes.length);
+
+        // The native graphics field is specifically for OpenGL graphics. If it's null, we're using Vulkan.
+        boolean useVulkan = (GameStateManager.nativeGraphics == null);
+
+        // We specifically want RGBA on Vulkan (4 channels), but the OpenGL system can handle
+        // different formats more easily (use however many channels are in the file).
+        pixelPointer = Load(nativeData, bytes, 0, bytes.length, useVulkan ? 4 : 0);
         if (pixelPointer == null)
             throw new GameRuntimeError("Error loading PixelMap: " + GetFailureReason());
 
-        // If the returned data is in RGB888 format, translate it to RGBA8888 instead.
+        // If we're using Vulkan and the returned data is in RGB888 format, translate it to RGBA8888 instead.
         // This happens most commonly with JPG files (as the file format doesn't support transparency).
-        if ((int)nativeData[3] == FORMAT_RGB888)
+        if ((int)nativeData[3] == FORMAT_RGB888 && useVulkan)
         {
-            int width = (int)nativeData[1];
-            int height = (int)nativeData[2];
-            ByteBuffer bufferWithAlpha = AddAlphaChannel(pixelPointer, width, height, (byte)255);
+            int width = (int) nativeData[1];
+            int height = (int) nativeData[2];
+            ByteBuffer bufferWithAlpha = AddAlphaChannel(pixelPointer, width, height, (byte) 255);
             LoadFromByteBuffer(bufferWithAlpha, width, height, FORMAT_RGBA8888);
             return;
         }
@@ -315,7 +320,7 @@ public class PixelMap {
         FillTriangle(basePointer, x1, y1, x2, y2, x3, y3, color);
     }
     
-    private static native ByteBuffer Load(long[] nativeData, byte[] buffer, int offset, int len);
+    private static native ByteBuffer Load(long[] nativeData, byte[] buffer, int offset, int len, int requestedChannels);
     
     private static native ByteBuffer NewPixelMap (long[] nativeData, int width, int height, int format); /*MANUAL
 		gdx2d_pixmap* pixmap = gdx2d_new(width, height, format);
