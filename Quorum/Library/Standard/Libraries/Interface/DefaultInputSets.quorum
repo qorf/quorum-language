@@ -2009,8 +2009,8 @@ InputSet shiftF10SetTextBox
         InputTable sceneItem3DTable
         sceneItem3DTable:SetIdentifier(sceneConstants:SCENE_ITEM3D_INPUT_GROUP)
 
-        sceneItem3DTable:Add(GetLeftClick(), selectSceneItemBehavior)
-
+        //sceneItem3DTable:Add(GetLeftClick(), selectSceneItemBehavior)
+table:Add3D(GetLeftClick(), selectScene3DItemBehavior)
         
         // drag and drop
         sceneItemTable:Add(selectionHighlightDragInput, selectionHighlightDragBehavior)
