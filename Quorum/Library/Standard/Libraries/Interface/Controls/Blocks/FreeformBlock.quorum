@@ -390,7 +390,12 @@ if context is ActionContext
                 end
             end
             // Once again, if there's an error, set the block to reflect it, then bail.
-            if not manager:IsCompilationErrorFree() and not (blockListener:GetBlock():GetChild(0) is CommentBlock and isEmpty)
+            Block rootBlock = blockListener:GetBlock() 
+            Block firstChild = undefined
+            if rootBlock:GetChildCount() > 0
+                firstChild = rootBlock:GetChild(0)
+            end
+            if not manager:IsCompilationErrorFree() and not ((firstChild not= undefined and firstChild is CommentBlock) and isEmpty)
                 SetErrorVisual()
                 return now
             end
