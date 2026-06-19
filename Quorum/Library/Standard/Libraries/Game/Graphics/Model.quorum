@@ -2518,12 +2518,14 @@ end
     end
     
     private action GetAnimationDescriptionLabelWithExtra(Animation animation, AnimationState state) returns text
-        text description = animation:GetName() + ", " + animation:GetDescription()
+        text name = animation:GetName()
                 text extra = state:GetAnimationStateLabel()
+        text total = name
+        
                 if extra = undefined
-            return description
+            return total
                 else
-                    return description + ", " + extra
+                    return total + ", " + extra
                 end
     end
     
