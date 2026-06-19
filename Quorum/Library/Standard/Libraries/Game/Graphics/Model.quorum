@@ -2509,7 +2509,7 @@ end
             end
             
             //somehow decide what the accessibility system does here.
-            if startTime = 0 or animationState:HasLabelChange()
+            if startTime = 0 or (animationState not= undefined and animationState:HasLabelChange())
                 text description = GetAnimationDescriptionLabelWithExtra(animation, animationState)
                 SetDescription(description)
                 animationState:SetLabelChange(false)
