@@ -1712,8 +1712,9 @@ class Camera
     */
     action GetPickRay(number screenX, number screenY, number viewportX, number viewportY, number viewportWidth, number viewportHeight) returns Ray
         Ray ray
-        ScreenToWorldCoordinates(ray:GetOrigin():Set(screenX, screenY, 0), viewportX, viewportY, viewportWidth, viewportHeight)
-        ScreenToWorldCoordinates(ray:GetDirection():Set(screenX, screenY, 1), viewportX, viewportY, viewportWidth, viewportHeight)
+        number flippedX = viewportWidth - (screenX - viewportX) + viewportX
+        ScreenToWorldCoordinates(ray:GetOrigin():Set(flippedX, screenY, 0), viewportX, viewportY, viewportWidth, viewportHeight)
+        ScreenToWorldCoordinates(ray:GetDirection():Set(flippedX, screenY, 1), viewportX, viewportY, viewportWidth, viewportHeight)
         ray:GetDirection():Subtract(ray:GetOrigin()):Normalize()
         return ray
     end

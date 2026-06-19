@@ -102,7 +102,7 @@ class PaletteItemDropBehavior is Behavior
             controller:Add(layer, drawable)
             controller:IncrementNameCount(schematic:GetName())
         else
-            // TO-DO
+            palette:SetDraggedItem(undefined)
         end
     end
 

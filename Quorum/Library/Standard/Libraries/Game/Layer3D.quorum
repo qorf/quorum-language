@@ -1189,7 +1189,7 @@ Painter3D painter = GetPainter()
     Attribute: Returns The Item which intercepted the event, or undefined if no Item received the event.
     */
     action ProcessMouseEvent(MouseEvent event) returns Item
-        Ray ray = camera:GetPickRay(camera:GetWidth() - event:GetX(), event:GetY())
+        Ray ray = camera:GetPickRay(event:GetX(), event:GetY())
         Vector3 origin = ray:GetOrigin()
 
         integer counter = 0
@@ -1301,7 +1301,7 @@ Painter3D painter = GetPainter()
     and will respond to at least one of the given InputSets.
     */
     action GetItemWithInput(number x, number y, Array<InputSet> inputValues) returns Item
-        Ray ray = camera:GetPickRay(camera:GetWidth() - x, y)
+        Ray ray = camera:GetPickRay(x, y)
         Vector3 origin = ray:GetOrigin()
 
         integer counter = 0
@@ -1367,7 +1367,7 @@ Painter3D painter = GetPainter()
             return undefined
         end
 
-        Ray ray = camera:GetPickRay(camera:GetWidth() - event:GetX(), event:GetY())
+        Ray ray = camera:GetPickRay(event:GetX(), event:GetY())
         Vector3 origin = ray:GetOrigin()
 
         integer counter = 0
@@ -1471,7 +1471,7 @@ Painter3D painter = GetPainter()
             return undefined
         end
 
-        Ray ray = camera:GetPickRay(camera:GetWidth() - event:GetX(), event:GetY())
+        Ray ray = camera:GetPickRay(event:GetX(), event:GetY())
         Vector3 origin = ray:GetOrigin()
 
         integer counter = 0
