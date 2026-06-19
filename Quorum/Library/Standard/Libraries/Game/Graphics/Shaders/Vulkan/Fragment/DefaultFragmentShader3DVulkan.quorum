@@ -115,8 +115,7 @@ void main()
     outputColor = texture(nonuniformEXT(sampler2D(globalTextures[textureIndex], immutableSampler)), v_textureCoords) * diffuse;
 
 	// If the color is less than half of the base transparency (i.e. transparent pixels in the texture), discard the fragment.
-	//if (outputColor.a < (diffuse.a / 2.0))
-	if (outputColor.a < 0.01)
+	if (outputColor.a < (diffuse.a / 2.0))
 	{
 		discard;
 	}

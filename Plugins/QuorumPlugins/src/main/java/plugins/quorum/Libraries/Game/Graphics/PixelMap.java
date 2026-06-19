@@ -77,20 +77,19 @@ public class PixelMap {
         // The native graphics field is specifically for OpenGL graphics. If it's null, we're using Vulkan.
         boolean useVulkan = (GameStateManager.nativeGraphics == null);
 
-        // We specifically want RGBA on Vulkan (4 channels), but the OpenGL system can handle
-        // different formats more easily (use however many channels are in the file).
-        pixelPointer = Load(nativeData, bytes, 0, bytes.length, useVulkan ? 4 : 0);
+        // Passing 0 to the requested channels will load as many channels are present in the file.
+        pixelPointer = Load(nativeData, bytes, 0, bytes.length, 0);
         if (pixelPointer == null)
             throw new GameRuntimeError("Error loading PixelMap: " + GetFailureReason());
 
-        // If we're using Vulkan and the returned data is in RGB888 format, translate it to RGBA8888 instead.
-        // This happens most commonly with JPG files (as the file format doesn't support transparency).
-        if ((int)nativeData[3] == FORMAT_RGB888 && useVulkan)
+        // If we're using Vulkan and the returned data is not in RGBA8888 format, translate it to that format.
+        // This happens most commonly with JPG files (as the file format doesn't support transparency, so RGB888 is used).
+        if ((int)nativeData[3] != FORMAT_RGBA8888 && useVulkan)
         {
             int width = (int) nativeData[1];
             int height = (int) nativeData[2];
-            ByteBuffer bufferWithAlpha = AddAlphaChannel(pixelPointer, width, height, (byte) 255);
-            LoadFromByteBuffer(bufferWithAlpha, width, height, FORMAT_RGBA8888);
+            ByteBuffer convertedBuffer = ConvertToRGBA8888(pixelPointer, (int)nativeData[3], width, height, (byte) 255);
+            LoadFromByteBuffer(convertedBuffer, width, height, FORMAT_RGBA8888);
             return;
         }
 
@@ -395,17 +394,43 @@ public class PixelMap {
         return env->NewStringUTF(gdx2d_get_failure_reason());
     */
 
-    // Copies a buffer in RGB888 format to a new buffer in RGBA8888 format by adding an alpha channel.
-    private ByteBuffer AddAlphaChannel(ByteBuffer pixels, int width, int height, byte alphaValue)
+    // Takes a buffer in the given format and creates a new buffer in RGBA8888 format.
+    private ByteBuffer ConvertToRGBA8888(ByteBuffer pixels, int format, int width, int height, byte alphaValue)
     {
         ByteBuffer newPixels = ByteBuffer.allocate(width * height * 4);
-        for (int i = 0; i < width * height * 3; i = i + 3)
+        switch (format)
         {
-            newPixels.put(pixels.get(i));
-            newPixels.put(pixels.get(i + 1));
-            newPixels.put(pixels.get(i + 2));
-            newPixels.put(alphaValue);
+            case FORMAT_RGB888:
+                for (int i = 0; i < width * height * 3; i = i + 3)
+                {
+                    newPixels.put(pixels.get(i));
+                    newPixels.put(pixels.get(i + 1));
+                    newPixels.put(pixels.get(i + 2));
+                    newPixels.put(alphaValue);
+                }
+                break;
+            case FORMAT_ALPHA:
+                for (int i = 0; i < width * height; i++)
+                {
+                    newPixels.put(alphaValue);
+                    newPixels.put(alphaValue);
+                    newPixels.put(alphaValue);
+                    newPixels.put(pixels.get(i));
+                }
+                break;
+            case FORMAT_LUMINANCE_ALPHA:
+                for (int i = 0; i < width * height * 2; i = i + 2)
+                {
+                    newPixels.put(pixels.get(i));
+                    newPixels.put(pixels.get(i));
+                    newPixels.put(pixels.get(i));
+                    newPixels.put(pixels.get(i + 1));
+                }
+                break;
+            default:
+                newPixels.put(pixels);
         }
+
         newPixels.flip();
         return newPixels;
     }
