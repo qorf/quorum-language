@@ -189,22 +189,6 @@ end
             
             // Create a frame with no animation, used to transform the bind pose when no other animation is playing.
             AnimationFrame bindPoseFrame = data:GetAnimations():GetBindPoseFrame()
-            //Array<Matrix4> joints = bindPoseFrame:GetJoints()
-            //i = 0
-            //output "Joint count = " + jointCount
-            //repeat while i < jointCount
-                //Matrix4 matrix
-                //matrix:IdentityMatrix()
-                //matrix:row1column1 = 0
-                //matrix:row2column2 = 0
-                //matrix:row2column1 = 1
-                //matrix:row1column2 = -1
-                //if i = 0
-                    //output "Set matrix to " + matrix:ToText()
-                //end
-                //joints:Add(matrix)
-                //i = i + 1
-            //end
             AnimationFrameVulkan bindPoseFrameVulkan = animationManager:GetAnimationFrame(bindPoseFrame)
             
             result:SetAnimationFrames(allFrames)

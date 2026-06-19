@@ -1067,8 +1067,6 @@ BindDescriptorSetCommand resultDescriptorBind
             frameIndex = state:GetCurrentFrame()
                 Array<AnimationFrameVulkan> animationFrames = modelBlueprint:GetAnimationFrames():Get(animationIndex)
                 animationFrame = animationFrames:Get(frameIndex):GetBuffer()
-            else
-                output "Rendering using bind pose animation."
             end
             
             integer j = 0
