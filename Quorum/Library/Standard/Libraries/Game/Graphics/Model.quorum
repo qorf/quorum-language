@@ -2509,14 +2509,23 @@ end
             end
             
             //somehow decide what the accessibility system does here.
-            if startTime = 0
-                text description = animation:GetName() + ", " + animation:GetDescription()
+            if startTime = 0 or animationState:HasLabelChange()
+                text description = GetAnimationDescriptionLabelWithExtra(animation, animationState)
                 SetDescription(description)
+                animationState:SetLabelChange(false)
             end
         end
     end
     
-    
+    private action GetAnimationDescriptionLabelWithExtra(Animation animation, AnimationState state) returns text
+        text description = animation:GetName() + ", " + animation:GetDescription()
+                text extra = state:GetAnimationStateLabel()
+                if extra = undefined
+            return description
+                else
+                    return description + ", " + extra
+                end
+    end
     
     action UpdateAll(number seconds)
         parent:Item:UpdateAll(seconds)
