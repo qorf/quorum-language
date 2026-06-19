@@ -30,6 +30,7 @@ use Libraries.Game.Graphics.Models.Data.AnimationState
 use Libraries.Game.Graphics.Models.Data.AnimationFrame
 use Libraries.Interface.Accessibility
 use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.AccessibilityManager
 
 /*
 The Model class represents a 3D model to be drawn on the screen by the Game
@@ -2511,9 +2512,37 @@ end
             //somehow decide what the accessibility system does here.
             if startTime = 0 or (animationState not= undefined and animationState:HasLabelChange())
                 text description = GetAnimationDescriptionLabelWithExtra(animation, animationState)
-                SetDescription(description)
+                NotifyAnimationChange(description)
                 animationState:SetLabelChange(false)
             end
+        end
+    end
+    
+    Item3D dummyNode = undefined
+    text dummyDescription = ""
+    private action NotifyAnimationChange(text description)
+        SetDescription(description)
+        GameStateManager manager
+        text newDummyDescription = GetName() + ", " + description
+        if manager:GetAccessibility() is AccessibilityManager and newDummyDescription not= dummyDescription
+            AccessibilityManager accessibility = cast(AccessibilityManager, manager:GetAccessibility())
+            Item3D dummy
+            dummy:SetLayer(GetLayer())
+            dummy:SetFocusable(true)
+            dummy:SetAccessibilityCode(parent:Item:CUSTOM)
+            dummy:SetName(newDummyDescription)
+            accessibility:Add(dummy)
+            
+            FocusEvent dummyEvent
+            dummyEvent:Initialize(manager:GetFocus(), dummy)
+            accessibility:FocusChanged(dummyEvent)
+            
+            if dummyNode not= undefined
+                accessibility:Remove(dummyNode)
+            end
+            dummyNode = dummy
+            dummyDescription = newDummyDescription
+            //accessibility:Notify(me, GetName() + ", " + description)
         end
     end
     
