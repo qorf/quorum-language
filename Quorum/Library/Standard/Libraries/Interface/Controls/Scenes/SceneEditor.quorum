@@ -1005,11 +1005,11 @@ action Update(number seconds)
         NotifySceneEditorChangeListeners(event)
     end
 
-    action CreateItemPreview(ItemBlueprint schematic)
-        CreateItemPreview(schematic, undefined)
+    action CreateItemPreview(ItemBlueprint schematic) returns ItemPreview
+        return CreateItemPreview(schematic, undefined)
     end
 
-    action CreateItemPreview(ItemBlueprint schematic, File asset)
+    action CreateItemPreview(ItemBlueprint schematic, File asset) returns ItemPreview
         if schematic is DrawableBlueprint
             DrawableBlueprint drawableBlueprint = cast(DrawableBlueprint, schematic)
             if not (GetSelectedLayer() is EditorLayer2D)
@@ -1026,7 +1026,7 @@ action Update(number seconds)
                 end
 
                 if not found
-                    return now
+                    return undefined
                 end
             end
 
@@ -1044,6 +1044,7 @@ action Update(number seconds)
 
             layer:Add(preview)
             preview:Focus()
+            return preview
         elseif schematic is ModelBlueprint or schematic is PointLightBlueprint or schematic is Audio3DBlueprint
             
             if not (GetSelectedLayer() is EditorLayer3D)
@@ -1060,7 +1061,7 @@ action Update(number seconds)
                 end
 
                 if not found
-                    return now
+                    return undefined
                 end
             end
 
@@ -1103,7 +1104,9 @@ action Update(number seconds)
 
             layer:Add(preview)
             preview:Focus()
+            return preview
         end
+        return undefined
     end
 
     action CancelItemPreview(ItemPreview preview)

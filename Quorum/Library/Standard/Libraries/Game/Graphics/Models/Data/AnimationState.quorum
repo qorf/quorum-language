@@ -12,6 +12,8 @@ class AnimationState
     boolean paused = false
     number animationSpeed = 1.0
     integer endBehavior = STOP_ON_COMPLETE
+    text animationStateLabel = undefined
+    boolean hasLabelChange = false
     
     action IsStarted returns boolean
         return started
@@ -69,4 +71,19 @@ class AnimationState
         me:animationSpeed = animationSpeed
     end
 
+    action GetAnimationStateLabel returns text
+        return animationStateLabel
+    end
+
+    action SetAnimationStateLabel(text animationStateLabel)
+        me:animationStateLabel = animationStateLabel
+    end
+    
+    action HasLabelChange returns boolean
+        return hasLabelChange
+    end
+
+    action SetLabelChange(boolean hasLabelChange)
+        me:hasLabelChange = hasLabelChange
+    end
 end

@@ -22,6 +22,7 @@ use Libraries.Interface.Controls.Scenes.Items.Highlights.SelectionHighlight3D
 use Libraries.Interface.Controls.Scenes.Items.EditorItem3D
 use Libraries.Interface.Controls.Scenes.SceneConstants
 use Libraries.Interface.Controls.Scenes.Items.EditorCursor
+use Libraries.Game.Item3DDepthComparison
 
 /*
     This behavior is used to select an item in the scene editor. The input expected 
@@ -31,6 +32,7 @@ use Libraries.Interface.Controls.Scenes.Items.EditorCursor
 */
 class SelectScene3DItemBehavior is Behavior
     SceneConstants constants
+    Item3DDepthComparison depthSorter
 
     action Run(BehaviorEvent event)
         MouseEvent mouse = event:GetMouseEvent()
@@ -52,17 +54,24 @@ class SelectScene3DItemBehavior is Behavior
 
         integer counter = 0
         Item3D temp = undefined
-        Array<Item> result
+        Array<Item> targetArray
         
         Iterator<Item3D> items = layer:GetIterator()
      repeat while items:HasNext()
             temp = items:Next()
-            if not (temp is EditorCursor)
+            if temp:HasProperty(constants:EDITOR_TAG) = false
             if RayIntersectsItem(ray, temp)
-                result:Add(temp)
+                targetArray:Add(temp)
             end
 end
 end
+        
+        Array<Item> result
+        if targetArray:GetSize() not= 0
+            depthSorter:SetOrigin(origin)
+            targetArray:Sort(depthSorter)
+            result:Add(targetArray:Get(0))
+        end
         
         if not result:IsEmpty()
             editor:SetFilteredItems(result, true)

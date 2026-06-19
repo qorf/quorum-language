@@ -2009,8 +2009,8 @@ InputSet shiftF10SetTextBox
         InputTable sceneItem3DTable
         sceneItem3DTable:SetIdentifier(sceneConstants:SCENE_ITEM3D_INPUT_GROUP)
 
-        sceneItem3DTable:Add(GetLeftClick(), selectSceneItemBehavior)
-
+        //sceneItem3DTable:Add(GetLeftClick(), selectSceneItemBehavior)
+table:Add3D(GetLeftClick(), selectScene3DItemBehavior)
         
         // drag and drop
         sceneItemTable:Add(selectionHighlightDragInput, selectionHighlightDragBehavior)
@@ -2031,6 +2031,11 @@ InputSet shiftF10SetTextBox
         table:Add2D(dragIntoContinueSet, sceneEditorAcceptDragBehavior)
         table:Add2D(dragIntoFinishSet, sceneEditorAcceptDragBehavior)
         table:Add2D(dragOffSet, sceneEditorAcceptDragBehavior)
+        table:Add3D(dragIntoSet, sceneEditorAcceptDragBehavior)
+        table:Add3D(dragIntoContinueSet, sceneEditorAcceptDragBehavior)
+        table:Add3D(dragIntoFinishSet, sceneEditorAcceptDragBehavior)
+        table:Add3D(dragOffSet, sceneEditorAcceptDragBehavior)
+        
 
 
         itemPreviewTable:Add(reportLocation, reportLocationBehavior)
