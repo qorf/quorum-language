@@ -220,6 +220,18 @@ public class ModelLoader {
                 }
             }
 
+            Iterator<Bone_> boneIterator = boneList.iterator();
+            int maxBoneID = -1;
+            while (boneIterator.hasNext())
+            {
+                int boneID = boneIterator.next().GetBoneID();
+                if (boneID > maxBoneID)
+                    maxBoneID = boneID;
+            }
+
+            if (maxBoneID >= 0)
+                maxJointsMatricesLists = maxBoneID + 1;
+
             //Now bake in the frames so we can send it to GPU if we wish.
             for (int j = 0; j < maxFrames; j++) {
                 AnimationFrame_ frame = new AnimationFrame();
@@ -285,7 +297,7 @@ public class ModelLoader {
             boneTransform.Multiply(bone.GetOffset());
             int boneID = bone.GetBoneID();
             Array_ joints = animatedFrame.GetJoints();
-            joints.Set(bone.GetBoneID(), boneTransform);
+            joints.Set(boneID, boneTransform);
         }
 
         Array_ children = node.GetChildren();
