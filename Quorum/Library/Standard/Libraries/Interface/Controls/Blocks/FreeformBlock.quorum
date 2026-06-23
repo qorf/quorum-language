@@ -250,7 +250,22 @@ class FreeformBlock is SingleLineBlock
                 if not continueParsing
                     return now
                 end
+            else
+                // if shortcuts aren't being processed there's still some small processing that needs to happen
+                Token current
+                if tokenIterator:HasNext()
+            current = tokenIterator:Next()
+        else
+            me:isEmpty = true
+        end
+                if not isEmpty
+                if current:category = constants:PACKAGE_NAME
+                    me:isPackageStatement = true
+                elseif current:category = constants:USE
+                    me:isUseStatement = true
+                end
             end
+end
     
             /*
             Read the code, and if it's valid, try to parse it.
