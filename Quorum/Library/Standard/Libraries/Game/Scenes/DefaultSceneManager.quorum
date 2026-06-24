@@ -545,7 +545,8 @@ class DefaultSceneManager is SceneManager
         integer responsiveness = -1
         number mass = 0
         number friction = 0
-
+number restitution = 0
+        
         item = CreateItem3D(classValue)
 
         if classValue = "Model"
@@ -603,6 +604,8 @@ class DefaultSceneManager is SceneManager
                 mass = json:GetNumber(key)
             elseif key = properties:FRICTION
                 friction = json:GetNumber(key)
+            elseif key = properties:RESTITUTION
+                restitution = json:GetNumber(key)
             elseif key = properties:INTENSITY
                 intensity = json:GetNumber(key)
             elseif key = properties:VOLUME
@@ -699,6 +702,7 @@ class DefaultSceneManager is SceneManager
             item:SetResponsiveness(responsiveness)
             item:SetMass(mass)
             item:SetFriction(friction)
+            item:SetRestitution(restitution)
         end
 
         if scale not= undefined
