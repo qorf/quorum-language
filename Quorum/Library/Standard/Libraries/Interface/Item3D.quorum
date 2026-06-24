@@ -877,6 +877,7 @@ class Item3D is Item
         parentItem:Add(myItem)
         number y = myItem:GetGlobalY()
     */
+    
     action GetGlobalY returns number
         return transform:row1column3
     end
@@ -996,7 +997,7 @@ class Item3D is Item
         workerMatrix:Scale(scaleX, scaleY, scaleZ)
         transform:Set(rotationMatrix)
         transform:Multiply(workerMatrix)
-        transform:SetTranslation(x, y, z)
+        transform:SetTranslation(x + offsetX, y + offsetY, z + offsetZ)
     end
 
     /*

@@ -22,6 +22,9 @@ class ModelBlueprintVulkan is ModelBlueprint
     
     BoundingBox boundingBox
     
+    on create
+        boundingBox:Invalidate()
+    end
     
 action HasAnimations returns boolean
         Animations animations = data:GetAnimations()

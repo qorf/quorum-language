@@ -80,10 +80,10 @@ class ModelBuilder
         
         AddHorizontalPlane(mesh, 0, halfHeight, 0, width, depth, true)
         AddHorizontalPlane(mesh, 0, -halfHeight, 0, width, depth, false)
-        AddVerticalPlane(mesh, 0, 0, -halfDepth, width, depth, 0, -1)
-        AddVerticalPlane(mesh, halfWidth, 0, 0, width, depth, 1, 0)
-        AddVerticalPlane(mesh, 0, 0, halfDepth, width, depth, 0, 1)
-        AddVerticalPlane(mesh, -halfWidth, 0, 0, width, depth, -1, 0)
+        AddVerticalPlane(mesh, 0, 0, -halfDepth, width, height, 0, -1)
+        AddVerticalPlane(mesh, halfWidth, 0, 0, depth, height, 1, 0)
+        AddVerticalPlane(mesh, 0, 0, halfDepth, width, height, 0, 1)
+        AddVerticalPlane(mesh, -halfWidth, 0, 0, depth, height, -1, 0)
         
         return data
     end
@@ -259,8 +259,8 @@ class ModelBuilder
         number halfWidth = 0.5 * width * backFaceOffset
         number halfHeight = 0.5 * height * backFaceOffset
         
-        number y1 = y - halfWidth
-        number y2 = y + halfWidth
+        number y1 = y - halfHeight
+        number y2 = y + halfHeight
         
         // The x and z inputs represent the coordinates at the face's center. Depending on the face's orientation, the corners of the face may or may not match it.
         number x1 = x
