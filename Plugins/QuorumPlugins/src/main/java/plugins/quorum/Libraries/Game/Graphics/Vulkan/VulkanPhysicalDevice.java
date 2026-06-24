@@ -7,6 +7,7 @@ import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanInstance;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanInstance_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice_;
+import quorum.Libraries.Language.Types.Text_;
 
 import java.nio.IntBuffer;
 
@@ -155,7 +156,7 @@ public class VulkanPhysicalDevice
                         String extensionName = currentExtensions.get(j).extensionNameString();
                         for (int k = 0; k < extensionNames.GetSize(); k++)
                         {
-                            quorum.Libraries.Language.Types.Text_ quorumText = (quorum.Libraries.Language.Types.Text_) extensionNames.Get(i);
+                            quorum.Libraries.Language.Types.Text_ quorumText = (quorum.Libraries.Language.Types.Text_) extensionNames.Get(k);
                             if (quorumText.GetValue().equals(extensionName))
                             {
                                 foundExtensions++;
