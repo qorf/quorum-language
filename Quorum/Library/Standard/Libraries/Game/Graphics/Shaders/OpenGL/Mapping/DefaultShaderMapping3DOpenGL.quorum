@@ -544,7 +544,6 @@ openGL:SetDepthMask(mask)
         OpenGLShaderProgram glProgram = cast(OpenGLShaderProgram, program:GetShaderProgramStrategy())
 
         if environment = undefined or environment:ContainsLighting() = false
-            output "OPEN GL -- ENV UNDEF? " + (environment = undefined)
             glProgram:SetShaderInput(enableLightingID, false)
             return now
         end
