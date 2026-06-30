@@ -9,6 +9,8 @@ use Libraries.Containers.Array
 use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Statistics.Columns.TextColumn
 use Libraries.System.File
+use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Statistics.Inputs.FactorInput
 
 /*
     This class implements a suitibiity check before a Factor Analysis: 
@@ -30,7 +32,7 @@ use Libraries.System.File
     test:Calculate(frame)
     output test:GetFormalSummary()
 */
-class CheckReducibilityStrength is StatisticalTest
+class CheckReducibilityStrength is StatisticalTest, ColumnInput, FactorInput
     Math math
 
     Array<CheckReducibilityStrengthResult> results

@@ -14,6 +14,8 @@ use Libraries.Containers.HashTable
 use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Compute.Statistics.Columns.TextColumn
 use Libraries.System.File
+use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Statistics.Inputs.FactorInput
 
 /*
     This class implements two tests:
@@ -43,7 +45,7 @@ use Libraries.System.File
     
     output correlate:GetCorrelation()
 */
-class CorrelateGroups is StatisticalTest
+class CorrelateGroups is StatisticalTest, ColumnInput, FactorInput
     /* The distribution used to calculate the p-value.*/
     private HeavyTailNormalDistribution tdistribution
     private Array<CorrelateGroupsResult> results

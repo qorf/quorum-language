@@ -292,7 +292,8 @@ class CompareCounts is StatisticalTest
         number df = (rows-1)*(cols-1)
         distribution:Setup(df)
         number p = 1.0 - distribution:CumulativeDistribution(x2)
-        number v = math:SquareRoot(x2 / (design:GetNumberOfSubjects() * df))
+        number v_df = math:MinimumOf(rows-1,cols-1)
+        number v = math:SquareRoot(x2 / (design:GetNumberOfSubjects() * v_df))
 
         Array<text> sources
         text source = ivs:Get(0)
@@ -373,7 +374,8 @@ class CompareCounts is StatisticalTest
             number df = (rows-1)*(cols-1)
             distribution:Setup(df)
             number p = 1.0 - distribution:CumulativeDistribution(x2)
-            number v = math:SquareRoot(x2 / (design:GetNumberOfSubjects() * df))
+            number v_df = math:MinimumOf(rows-1,cols-1)
+            number v = math:SquareRoot(x2 / (design:GetNumberOfSubjects() * v_df))
     
             text variable = design:GetGroupsFrame():GetColumn(i):GetHeader()
 
@@ -458,7 +460,8 @@ class CompareCounts is StatisticalTest
             number df = (rows-1)*(cols-1)
             distribution:Setup(df)
             number p = 1.0 - distribution:CumulativeDistribution(x2)
-            number v = math:SquareRoot(x2 / (design:GetNumberOfSubjects() * df))
+            number v_df = math:MinimumOf(rows-1,cols-1)
+            number v = math:SquareRoot(x2 / (design:GetNumberOfSubjects() * v_df))
 
             text variable = design:GetGroupsFrame():GetColumn(i):GetHeader()
 
@@ -632,7 +635,8 @@ class CompareCounts is StatisticalTest
             number df = (rows-1)*(cols-1)
             distribution:Setup(df)
             number p = 1.0 - distribution:CumulativeDistribution(x2)
-            number v = math:SquareRoot(x2 / (design:GetNumberOfSubjects() * df))
+            number v_df = math:MinimumOf(rows-1,cols-1)
+            number v = math:SquareRoot(x2 / (design:GetNumberOfSubjects() * v_df))
     
             text variable = design:GetGroupsFrame():GetColumn(i):GetHeader()
 

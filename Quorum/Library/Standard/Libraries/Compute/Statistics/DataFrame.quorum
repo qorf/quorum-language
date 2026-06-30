@@ -2298,8 +2298,8 @@ class DataFrame
         end
 
         CompareCounts counts
-        selection:CopyTo(cast(ColumnInput, counts))
-        selection:CopyTo(cast(FactorInput, counts))
+//        selection:CopyTo(cast(ColumnInput, counts))
+//        selection:CopyTo(cast(FactorInput, counts))
         counts:Calculate(me)
         return counts
     end
@@ -2333,8 +2333,8 @@ class DataFrame
         end
 
         CompareCounts counts
-        selection:CopyTo(cast(ColumnInput, counts))
-        selection:CopyTo(cast(FactorInput, counts))
+//        selection:CopyTo(cast(ColumnInput, counts))
+//        selection:CopyTo(cast(FactorInput, counts))
         counts:RepeatedMeasures(true)
         counts:Calculate(me)
         return counts
@@ -2391,8 +2391,8 @@ class DataFrame
         end
 
         CompareCountsPairwise compare
-        selection:CopyTo(cast(FactorInput, compare))
-        selection:CopyTo(cast(ColumnInput, compare))
+//        selection:CopyTo(cast(FactorInput, compare))
+//        selection:CopyTo(cast(ColumnInput, compare))
         compare:Calculate(me)
         return compare
     end
@@ -2454,8 +2454,8 @@ class DataFrame
         end
 
         CompareCountsPairwise compare
-        selection:CopyTo(cast(FactorInput, compare))
-        selection:CopyTo(cast(ColumnInput, compare))
+//        selection:CopyTo(cast(FactorInput, compare))
+//        selection:CopyTo(cast(ColumnInput, compare))
         compare:Paired(true)
         compare:RepeatedMeasures(true)
         compare:Calculate(me)
@@ -2490,8 +2490,8 @@ class DataFrame
         end
 
         CompareMeans compare
-        selection:CopyTo(cast(FactorInput, compare))
-        selection:CopyTo(cast(ColumnInput, compare))
+//        selection:CopyTo(cast(FactorInput, compare))
+//        selection:CopyTo(cast(ColumnInput, compare))
         compare:Calculate(me)
         return compare
     end
@@ -2550,8 +2550,8 @@ class DataFrame
 
         CompareMeans compare
         compare:AssumeEqualVariances(equalVariances)
-        selection:CopyTo(cast(FactorInput, compare))
-        selection:CopyTo(cast(ColumnInput, compare))
+//        selection:CopyTo(cast(FactorInput, compare))
+//        selection:CopyTo(cast(ColumnInput, compare))
         compare:Calculate(me)
         return compare
     end
@@ -2584,8 +2584,8 @@ class DataFrame
         end
 
         CompareMeans compare
-        selection:CopyTo(cast(FactorInput, compare))
-        selection:CopyTo(cast(ColumnInput, compare))
+//        selection:CopyTo(cast(FactorInput, compare))
+//        selection:CopyTo(cast(ColumnInput, compare))
         compare:RepeatedMeasures(true)
         compare:Paired(true)
         compare:Calculate(me)
@@ -2618,8 +2618,8 @@ class DataFrame
         end
 
         CompareMeans compare
-        selection:CopyTo(cast(FactorInput, compare))
-        selection:CopyTo(cast(ColumnInput, compare))
+//        selection:CopyTo(cast(FactorInput, compare))
+//        selection:CopyTo(cast(ColumnInput, compare))
         compare:SetMean(mean)
         compare:Calculate(me)
         return compare
@@ -2652,8 +2652,8 @@ class DataFrame
         end
 
         CompareMeans compare
-        selection:CopyTo(cast(FactorInput, compare))
-        selection:CopyTo(cast(ColumnInput, compare))
+//        selection:CopyTo(cast(FactorInput, compare))
+//        selection:CopyTo(cast(ColumnInput, compare))
         compare:SetMean(mean)
         compare:Paired(true)
         compare:Calculate(me)
@@ -2688,8 +2688,8 @@ class DataFrame
         end
 
         CompareMeans compare
-        selection:CopyTo(cast(FactorInput, compare))
-        selection:CopyTo(cast(ColumnInput, compare))
+//        selection:CopyTo(cast(FactorInput, compare))
+//        selection:CopyTo(cast(ColumnInput, compare))
         compare:Ranked(true)
         compare:Calculate(me)
         return compare
@@ -2723,8 +2723,8 @@ class DataFrame
         end
 
         CompareMeans compare
-        selection:CopyTo(cast(FactorInput, compare))
-        selection:CopyTo(cast(ColumnInput, compare))
+//        selection:CopyTo(cast(FactorInput, compare))
+//        selection:CopyTo(cast(ColumnInput, compare))
         compare:RepeatedMeasures(true)
         compare:Paired(true)
         compare:Ranked(true)
@@ -2758,8 +2758,8 @@ class DataFrame
         end
 
         CompareMeans compare
-        selection:CopyTo(cast(ColumnInput, compare))
-        selection:CopyTo(cast(FactorInput, compare))
+//        selection:CopyTo(cast(ColumnInput, compare))
+//        selection:CopyTo(cast(FactorInput, compare))
         compare:Ranked(true)
         compare:SetMedian(median)
         compare:CompareToRankedMean(me)
@@ -2792,8 +2792,8 @@ class DataFrame
         end
 
         CompareMeans compare
-        selection:CopyTo(cast(ColumnInput, compare))
-        selection:CopyTo(cast(FactorInput, compare))
+//        selection:CopyTo(cast(ColumnInput, compare))
+//        selection:CopyTo(cast(FactorInput, compare))
         compare:Ranked(true)
         compare:SetMedian(median)
         compare:Paired(true)
@@ -2827,8 +2827,8 @@ class DataFrame
         end
 
         CompareMeansPairwise compare
-        selection:CopyTo(cast(FactorInput, compare))
-        selection:CopyTo(cast(ColumnInput, compare))
+//        selection:CopyTo(cast(FactorInput, compare))
+//        selection:CopyTo(cast(ColumnInput, compare))
         compare:Calculate(me)
         return compare
     end
@@ -2892,8 +2892,8 @@ class DataFrame
         end
 
         CompareMeansPairwise compare
-        selection:CopyTo(cast(FactorInput, compare))
-        selection:CopyTo(cast(ColumnInput, compare))
+//        selection:CopyTo(cast(FactorInput, compare))
+//        selection:CopyTo(cast(ColumnInput, compare))
         compare:Ranked(true)
         compare:Calculate(me)
         return compare
@@ -2926,8 +2926,8 @@ class DataFrame
         end
 
         CompareMeansPairwise compare
-        selection:CopyTo(cast(FactorInput, compare))
-        selection:CopyTo(cast(ColumnInput, compare))
+//        selection:CopyTo(cast(FactorInput, compare))
+//        selection:CopyTo(cast(ColumnInput, compare))
         compare:Paired(true)
         compare:RepeatedMeasures(true)
         compare:Calculate(me)
@@ -2961,8 +2961,8 @@ class DataFrame
         end
 
         CompareMeansPairwise compare
-        selection:CopyTo(cast(FactorInput, compare))
-        selection:CopyTo(cast(ColumnInput, compare))
+//        selection:CopyTo(cast(FactorInput, compare))
+//        selection:CopyTo(cast(ColumnInput, compare))
         compare:Paired(true)
         compare:RepeatedMeasures(true)
         compare:Calculate(me)
@@ -2995,8 +2995,8 @@ class DataFrame
         end
 
         CompareMeansPairwise compare
-        selection:CopyTo(cast(FactorInput, compare))
-        selection:CopyTo(cast(ColumnInput, compare))
+//        selection:CopyTo(cast(FactorInput, compare))
+//        selection:CopyTo(cast(ColumnInput, compare))
         compare:UseLenientCorrection(true)
         compare:Calculate(me)
         return compare
@@ -3061,8 +3061,8 @@ class DataFrame
         end
 
         CompareMeansPairwise compare
-        selection:CopyTo(cast(FactorInput, compare))
-        selection:CopyTo(cast(ColumnInput, compare))
+//        selection:CopyTo(cast(FactorInput, compare))
+//        selection:CopyTo(cast(ColumnInput, compare))
         compare:UseStrictCorrection(true)
         compare:Calculate(me)
         return compare
@@ -3162,8 +3162,8 @@ class DataFrame
         end
 
         CorrelateGroups correlate
-        selection:CopyTo(cast(ColumnInput, correlate))
-        selection:CopyTo(cast(FactorInput, correlate))
+//        selection:CopyTo(cast(ColumnInput, correlate))
+//        selection:CopyTo(cast(FactorInput, correlate))
         correlate:Calculate(me)
         return correlate
     end
@@ -3195,8 +3195,8 @@ class DataFrame
         end
 
         CorrelateGroups correlate
-        selection:CopyTo(cast(FactorInput, correlate))
-        selection:CopyTo(cast(ColumnInput, correlate))
+//        selection:CopyTo(cast(FactorInput, correlate))
+//        selection:CopyTo(cast(ColumnInput, correlate))
         correlate:Ranked(true)
         correlate:Calculate(me)
         return correlate
@@ -3229,8 +3229,8 @@ class DataFrame
         end
 
         CompareVariances compare
-        selection:CopyTo(cast(FactorInput, compare))
-        selection:CopyTo(cast(ColumnInput, compare))
+//        selection:CopyTo(cast(FactorInput, compare))
+//        selection:CopyTo(cast(ColumnInput, compare))
         compare:Calculate(me)
         return compare
     end
@@ -3288,8 +3288,8 @@ class DataFrame
         end
 
         CompareVariances compare
-        selection:CopyTo(cast(FactorInput, compare))
-        selection:CopyTo(cast(ColumnInput, compare))
+//        selection:CopyTo(cast(FactorInput, compare))
+//        selection:CopyTo(cast(ColumnInput, compare))
         compare:UseMeanAsCenter()
         compare:Calculate(me)
         return compare
@@ -3321,8 +3321,8 @@ class DataFrame
         end
 
         CompareVariances compare
-        selection:CopyTo(cast(FactorInput, compare))
-        selection:CopyTo(cast(ColumnInput, compare))
+//        selection:CopyTo(cast(FactorInput, compare))
+//        selection:CopyTo(cast(ColumnInput, compare))
         compare:RepeatedMeasures(true)
         compare:Calculate(me)
         return compare
@@ -3356,8 +3356,8 @@ class DataFrame
         end
 
         CompareDistributions compare
-        selection:CopyTo(cast(FactorInput, compare))
-        selection:CopyTo(cast(ColumnInput, compare))
+//        selection:CopyTo(cast(FactorInput, compare))
+//        selection:CopyTo(cast(ColumnInput, compare))
         compare:Calculate(me)
         return compare
     end
@@ -3388,8 +3388,8 @@ class DataFrame
         end
 
         CheckReducibility test
-        selection:CopyTo(cast(FactorInput, test))
-        selection:CopyTo(cast(ColumnInput, test))
+//        selection:CopyTo(cast(FactorInput, test))
+//        selection:CopyTo(cast(ColumnInput, test))
         test:Calculate(me)
         return test
     end
@@ -3422,8 +3422,8 @@ class DataFrame
         end
 
         CheckReducibilityStrength test
-        selection:CopyTo(cast(FactorInput, test))
-        selection:CopyTo(cast(ColumnInput, test))
+//        selection:CopyTo(cast(FactorInput, test))
+//        selection:CopyTo(cast(ColumnInput, test))
         test:Calculate(me)
         return test
     end
@@ -3456,8 +3456,8 @@ class DataFrame
         end
 
         PrincipalComponentAnalysis test
-        selection:CopyTo(cast(FactorInput, test))
-        selection:CopyTo(cast(ColumnInput, test))
+//        selection:CopyTo(cast(FactorInput, test))
+//        selection:CopyTo(cast(ColumnInput, test))
         test:Calculate(me)
         return test
     end

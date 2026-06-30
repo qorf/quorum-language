@@ -3221,12 +3221,12 @@ class CompareMeans is StatisticalTest
     /************************************************************************************/
 
     private action CopySelection(DataFrame frame)
-        if frame:GetSelection() not= undefined
-            frame:GetSelection():CopyTo(cast(ColumnInput, me))
-        end
-        if frame:GetSelection() not= undefined 
-            frame:GetSelection():CopyTo(cast(FactorInput, me))
-        end
+//        if frame:GetSelection() not= undefined
+//            frame:GetSelection():CopyTo(cast(ColumnInput, me))
+//        end
+//        if frame:GetSelection() not= undefined 
+//            frame:GetSelection():CopyTo(cast(FactorInput, me))
+//        end
     end
 
     private action CheckDataIntegrity(DataFrame frame)

@@ -12,6 +12,9 @@ use Libraries.Compute.Math
 use Libraries.Containers.Array
 use Libraries.Compute.Statistics.Columns.TextColumn
 use Libraries.System.File
+use Libraries.Compute.Statistics.Inputs.ColumnInput
+use Libraries.Compute.Statistics.Inputs.FactorInput
+
 
 /*
     This class implements two tests: 
@@ -43,7 +46,7 @@ use Libraries.System.File
     frame:Calculate(compare)
     output frame:GetFormalSummary()
 */
-class CompareDistributions is StatisticalTest
+class CompareDistributions is StatisticalTest, ColumnInput, FactorInput
     /* The distribution used to calculate the p-value in normality tests.*/
     NormalDistribution zdistribution
 
