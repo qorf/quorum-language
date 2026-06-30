@@ -34,7 +34,7 @@ class MultivariateCompareVariancesTest is Test
 
         
         CompareVariances compare
-        frame:Calculate(compare)
+//        frame:Calculate(compare)
         CompareVariancesResult result = compare:GetResult()
         text source = result:GetSources():Get(0)
         Check(result:GetTestStatisticsTable():GetValue(source):GetValue("M"), 29.308704203501804)

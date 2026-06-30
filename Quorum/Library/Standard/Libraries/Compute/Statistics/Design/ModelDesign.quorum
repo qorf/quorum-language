@@ -1,0 +1,323 @@
+package Libraries.Compute.Statistics.Design
+
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Matrix
+use Libraries.Compute.Statistics.Design.Variables.all
+use Libraries.Compute.Statistics.Tests.Regression
+use Libraries.Compute.Statistics.Tests.StatisticalTest
+
+/*
+ModelDesign class defines the statistical or ML design for a dataset.
+Holds references to DesignVariables, design matrices, and relevant metadata.
+Assumes tidy-formatted data. Missing data must be handled beforehand,
+except for RemoveUndefined() which removes rows with missing values.
+
+Author: Hannah Williams
+*/
+
+class ModelDesign
+
+    // ----------------------------
+    // Variables
+    // ----------------------------
+    DesignVariable subjectVariable = undefined                   // SUBJECT_IDENTIFIER variable (only one allowed)
+    Array<DesignVariable> designVariables
+
+    Array<InputInteraction> interactions
+//    HashTable<text, boolean> isMainEffect                   // parallel to variableRegistry
+//    HashTable<text, Array<text>> interactionTerms           // interaction groupings
+
+    // ----------------------------
+    // Missing data handling
+    // ----------------------------
+    boolean removeUndefined = true                         // Removes row(s) associated with an ID that has missing values
+
+    // ----------------------------
+    // Flags
+    // ----------------------------
+
+
+    // ----------------------------
+    // Design info
+    // ----------------------------
+    integer numberOfSubjects = 0
+    integer numberOfObservations = 0
+    integer numberOfMeasurements = 1                      // Repeated measures
+    integer numberOfIndependentGroups = 1                 // Between-subjects groups
+
+    // ----------------------------
+    // Original and transformed DataFrames
+    // ----------------------------
+    private DataFrame originalFrame = undefined           // Dataset that this model references
+
+    // ----------------------------
+    // Subject / identifier info
+    // ----------------------------
+    private text subjectIdentifierHeader = ""             // Optional; used with repeated measures
+
+    // ----------------------------
+    // Headers for variable roles
+    // ----------------------------
+    private Array<text> inputHeaders = undefined          // INPUT variables
+    private Array<text> outputHeaders = undefined         // OUTPUT variables
+    private Array<text> repeatedHeaders = undefined       // REPEATED variables
+    private Array<text> controlHeaders = undefined        // CONTROL variables
+    private Array<text> randomHeaders = undefined         // RANDOM variables
+    private Array<text> repeatedControlHeaders = undefined// REPEATED_CONTROL variables
+
+    // ----------------------------
+    // Design matrices
+    // ----------------------------
+    /*
+        Input Matrix (X): Fixed Effects
+        The core design matrix in any linear model. 
+        Each row is an observation, each column is a predictor term 
+        (main effects, encoded categoricals, interaction expansions, covariates)
+    */
+    private Matrix inputMatrix = undefined                // X
+    private Matrix outputMatrix = undefined               // Y
+    private Matrix randomMatrix = undefined               // Z (for subject/random effects)
+    private Matrix contrastMatrix = undefined             // For within-subjects factors
+
+    // ----------------------------
+    // Methods
+    // ----------------------------
+
+    action SetDataFrame(DataFrame dataFrame)
+        originalFrame = dataFrame
+    end
+
+    action AddVariable(DesignVariable variable)
+        // If variable is not added, add variable to registry and set isMainEffect to true
+        // Otherwise skip variable registration
+        designVariables:Add(variable)
+
+    end
+
+    action AddVariables(Array<DesignVariable> variables)
+        // If variables are not added, add variables to registry and set isMainEffect to true
+        // Otherwise skip variable registration
+        integer i = 0
+        repeat while i < variables:GetSize()
+            designVariables:Add(variables:Get(i))
+            i = i + 1
+        end
+    end
+
+    // Only kinds of input allowed in interactions: INPUT, REPEATED, CONTROL and REPEATED_CONTROL variables 
+    // Make sure to save order of terms
+    action AddInputInteraction(DesignVariable var1, DesignVariable var2)
+        // If variables are not added, add variables to registry and set isMainEffect to true
+        // Otherwise skip variable registration
+        InputInteraction interaction
+        interaction:CreateInteraction(var1, var2, true)
+        interactions:Add(interaction)
+    end
+
+    action AddInputInteraction(DesignVariable var1, DesignVariable var2, boolean includeLower)
+        // If variables are not in registry, add variables to registry and set isMainEffect to includeLower
+        // Otherwise skip variable registration
+        InputInteraction interaction
+        interaction:CreateInteraction(var1, var2, includeLower)
+        interactions:Add(interaction)
+    end
+
+    action AddInputInteraction(DesignVariable var1, DesignVariable var2, DesignVariable var3)
+        // If variables are not added, add variables to registry and set isMainEffect to true
+        // Otherwise skip variable registration
+        InputInteraction interaction
+        interaction:CreateInteraction(var1, var2, var3, true)
+        interactions:Add(interaction)
+    end
+
+    action AddInputInteraction(DesignVariable var1, DesignVariable var2, DesignVariable var3, boolean includeLower)
+        // If variables are not in registry, add variables to registry and set isMainEffect to includeLower
+        // Otherwise skip variable registration
+        InputInteraction interaction
+        interaction:CreateInteraction(var1, var2, var3, includeLower)
+        interactions:Add(interaction)
+    end
+
+    // Make sure to save order of terms and save all lower terms as interactions too.
+    action AddInputInteraction(Array<DesignVariable> variables)
+        // If variables are not added, add variables to registry and set isMainEffect to true
+        // Otherwise skip variable registration
+        InputInteraction interaction
+        interaction:CreateInteraction(variables, true)
+        interactions:Add(interaction)
+    end
+
+    action AddInputInteraction(Array<DesignVariable> variables, boolean includeLower)
+        // If variables are not in registry, add variables to registry and set isMainEffect to includeLower
+        // Otherwise skip variable registration
+        InputInteraction interaction
+        interaction:CreateInteraction(variables, includeLower)
+        interactions:Add(interaction)
+    end
+
+    action Empty()
+        // This empties all variables and interactions
+        designVariables:Empty()
+        interactions:Empty()
+    end
+
+    private action BuildInputMatrix()
+        // Build from every input variable (INPUT, REPEATED, CONTROL) and input interaction encoding
+        
+    end
+
+    action GetInputMatrix() returns Matrix
+        return inputMatrix
+    end
+
+    action GetRandomMatrix() returns Matrix
+        return randomMatrix
+    end
+
+    action GetOutputMatrix() returns Matrix
+        return outputMatrix
+    end
+
+    action GetTest(DataFrame frame) returns StatisticalTest
+        integer outputCount = 0
+        integer inputCount = 0
+        Array<DesignVariable> inputs
+        Array<DesignVariable> outputs
+        // count up the variables
+        integer i = 0
+        repeat while i < designVariables:GetSize()
+            DesignVariable variable = designVariables:Get(i)
+            if variable:IsOutput()
+                outputCount = outputCount + 1
+                outputs:Add(variable)
+            elseif variable:IsInput()
+                inputCount = inputCount + 1
+                inputs:Add(variable)
+            end
+            i = i + 1
+        end
+        // select the test
+        // NO output
+        if outputCount = 0
+            PCA()
+        end
+        // MANY output
+        if outputCount > 1
+            if inputCount = 0
+                output "Pairwise Matrix"
+            elseif inputCount > 0
+                i = 0
+                repeat while i < outputs:GetSize()
+                    if not (outputs:Get(i) is NumericalVariable)
+                        ERROR()
+                    end
+                    i = i + 1
+                end
+                // Linear Regression 
+                return LinearRegression(inputs, outputs, frame)
+            end
+        end
+        // ONE output
+        if outputCount = 1
+            DesignVariable outputVar = outputs:GetFromFront()
+            if outputVar is NumericalVariable
+                if inputCount = 0
+                    OneSampleT()
+                elseif inputCount = 1
+                    DesignVariable inputVar = inputs:GetFromFront()
+                    if inputVar is NumericalVariable
+                        Pearson()
+                    elseif inputVar is CategoricalVariable
+                        
+                    elseif inputVar is OrdinalVariable
+                        RankCorrelation()
+                    end
+                elseif inputCount > 1
+                    NYI()
+                end
+            elseif outputVar is CategoricalVariable
+            elseif outputVar is OrdinalVariable
+                RankCorrelation()
+            else 
+                ERROR()
+            end
+        end     
+        return undefined
+    end
+
+    private action PCA
+        output "PCA"
+    end
+
+    private action LinearRegression(Array<DesignVariable> inputs, Array<DesignVariable> outputs, DataFrame frame) returns Regression
+        frame:EmptySelectedColumns()
+        frame:EmptySelectedFactors()
+        // verify inputs
+        integer i = 0
+        repeat while i < inputs:GetSize()
+            if not (inputs:Get(i) is NumericalVariable)
+                ERROR()
+            else
+                frame:AddSelectedFactors(inputs:Get(i):GetColumnName())
+            end
+            i = i + 1
+        end
+        i = 0
+        repeat while i < outputs:GetSize()
+            frame:AddSelectedColumns(outputs:Get(i):GetColumnName())
+            i = i + 1
+        end
+        Regression regression
+        regression:SetDataFrame(frame)
+        regression:SetModelDesign(me)
+        return regression
+    end
+
+    private action Pearson
+        output "Pearson"
+    end
+
+    private action OneSampleT
+        output "1 Sample T"
+    end
+
+    private action TwoSampleT
+        output "2 Sample T"
+    end
+
+    private action ANOVA
+        output "ANOVA"
+    end
+
+    private action RankCorrelation
+        output "Rank Correlation"
+    end
+
+    private action ERROR
+        alert("ERROR CAN NOT CONTINUE")
+    end
+
+    private action NYI
+        alert("NYI :(")
+    end
+
+    action DescribeDesign returns text
+        text result = ""
+        integer i = 0
+        repeat while i < designVariables:GetSize()
+            result = result + designVariables:Get(i):ToText()
+            i = i + 1
+        end
+        return result
+    end
+
+    action Copy returns ModelDesign
+        ModelDesign newDesign
+        newDesign:AddVariables(designVariables:CopyToArray())
+        newDesign:AddInputInteraction(interactions:CopyToArray())
+        return newDesign
+    end
+
+end

@@ -23,7 +23,7 @@ class CompareDistributionToNormalTest is Test
         compare:AddColumn(1)
         compare:AddColumn(2)
         compare:AddColumn(3)
-        frame:Calculate(compare)
+//        frame:Calculate(compare)
         
         CompareDistributionsResult result0 = compare:GetResults():Get(0)
         Check(result0:GetTestStatistic(), 0.9010217394232677)

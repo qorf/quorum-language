@@ -1,0 +1,78 @@
+package Libraries.Compute.Statistics.Design.Variables
+
+
+class VariableBuilder
+
+    action CreateNumericalInputVariable(text columnName) returns NumericalVariable
+        NumericalVariable var
+        var:SetToInput(columnName)
+        return var
+    end
+
+    action CreateNumericalOutputVariable(text columnName) returns NumericalVariable
+        NumericalVariable var
+        var:SetToOutput(columnName)
+        return var
+    end
+    
+    action CreateNumericalControlVariable(text columnName) returns NumericalVariable
+        NumericalVariable var
+        var:SetToControl(columnName)
+        return var
+    end
+
+    action CreateCategoricalInputVariable(text columnName) returns CategoricalVariable
+        CategoricalVariable var
+        var:SetToInput(columnName)
+        return var
+    end
+
+    action CreateCategoricalOutputVariable(text columnName) returns CategoricalVariable
+        CategoricalVariable var
+        var:SetToOutput(columnName)
+        return var
+    end
+    
+    action CreateCategoricalControlVariable(text columnName) returns CategoricalVariable
+        CategoricalVariable var
+        var:SetToControl(columnName)
+        return var
+    end
+
+    action CreateCategoricalRepeatedVariable(text columnName) returns CategoricalVariable
+        CategoricalVariable var
+        var:SetToRepeated(columnName)
+        return var
+    end
+
+    action CreateOrdinalInputVariable(text columnName) returns OrdinalVariable
+        OrdinalVariable var
+        var:SetToInput(columnName)
+        return var
+    end
+
+    action CreateOrdinalOutputVariable(text columnName) returns OrdinalVariable
+        OrdinalVariable var
+        var:SetToOutput(columnName)
+        return var
+    end
+
+    action CreateOrdinalControlVariable(text columnName) returns OrdinalVariable
+        OrdinalVariable var
+        var:SetToControl(columnName)
+        return var
+    end
+
+    action CreateOrdinalRepeatedVariable(text columnName) returns OrdinalVariable
+        OrdinalVariable var
+        var:SetToRepeated(columnName)
+        return var
+    end
+
+    action CreateIdentifierVariable(text columnName) returns IdentifierVariable
+        IdentifierVariable var
+        var:SetColumnName(columnName)
+        return var
+    end
+
+end

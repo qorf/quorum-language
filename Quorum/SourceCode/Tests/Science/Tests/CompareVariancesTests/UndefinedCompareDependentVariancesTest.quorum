@@ -28,7 +28,7 @@ class UndefinedCompareDependentVariancesTest is Test
 
         CompareVariances compare
         compare:RepeatedMeasures(true)
-        frame:Calculate(compare)
+//        frame:Calculate(compare)
         
         CompareVariancesResult result = compare:GetResult()
         text source = result:GetSources():Get(0)

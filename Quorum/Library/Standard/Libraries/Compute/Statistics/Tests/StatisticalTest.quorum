@@ -10,8 +10,11 @@ use Libraries.Compute.Statistics.Reporting.StatisticalTestResult
 use Libraries.Compute.Statistics.Columns.NumberColumn
 use Libraries.Containers.HashTable
 use Libraries.Compute.Matrix
+use Libraries.Compute.Statistics.Design.ModelDesign
 
-class StatisticalTest //is DataFrameCalculation, ColumnInput, FactorInput
+class StatisticalTest is DataFrameCalculation//, ColumnInput, FactorInput
+    DataFrame dataFrame
+    ModelDesign design
     // Formatting used in test result summary
     StatisticsFormatting formatting
 
@@ -21,6 +24,9 @@ class StatisticalTest //is DataFrameCalculation, ColumnInput, FactorInput
     // Flags to deal with missing values
     boolean removeUndefined = true
 
+    action Run() returns StatisticalTestResult
+        return undefined
+    end
     action Calculate(DataFrame frame) 
         /* 
             With most of these tests we want to make sure there are no undefined values.
@@ -212,5 +218,22 @@ class StatisticalTest //is DataFrameCalculation, ColumnInput, FactorInput
         return groups
     end
 
-    private blueprint action RunTest(DataFrame frame) 
+    private blueprint action RunTest(DataFrame frame)
+
+    action SetDataFrame(DataFrame dataFrame)
+        me:dataFrame = dataFrame
+    end
+ 
+    action GetDataFrame returns DataFrame
+        return me:dataFrame
+    end
+
+    action SetModelDesign(ModelDesign design)
+        me:design = design
+    end
+
+    action GetModelDesign returns ModelDesign
+        return design
+    end
+
 end

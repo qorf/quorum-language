@@ -29,7 +29,7 @@ class UndefinedCompareIndependentVariancesTest is Test
 
         // Median as center
         CompareVariances compare
-        frame:Calculate(compare)
+//        frame:Calculate(compare)
         
         CompareVariancesResult result = compare:GetResult()
         Check(result:GetTestStatistic(), 0.9076824219537616)

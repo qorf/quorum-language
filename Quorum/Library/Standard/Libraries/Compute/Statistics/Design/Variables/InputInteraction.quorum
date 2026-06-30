@@ -1,0 +1,26 @@
+package Libraries.Compute.Statistics.Design.Variables
+use Libraries.Containers.Array
+
+class InputInteraction
+    Array<DesignVariable> variables
+    boolean includeLower = true
+
+    action CreateInteraction(DesignVariable variable1, DesignVariable variable2, boolean lower)
+        variables:Add(variable1)
+        variables:Add(variable2)
+        includeLower = lower
+    end
+
+    action CreateInteraction(DesignVariable variable1, DesignVariable variable2, DesignVariable variable3, boolean lower)
+        variables:Add(variable1)
+        variables:Add(variable2)
+        variables:Add(variable3)
+        includeLower = lower
+    end
+
+    action CreateInteraction(Array<DesignVariable> variables, boolean lower)
+        me:variables = variables
+        includeLower = lower
+    end
+
+end

@@ -1,0 +1,15 @@
+package Libraries.Compute.Statistics.Design.Variables
+
+
+class IdentifierVariable is DesignVariable
+
+    on create
+        parent:DesignVariable:variableType = parent:DesignVariable:CATEGORICAL
+        parent:DesignVariable:variableRole = parent:DesignVariable:IDENTIFIER
+        parent:DesignVariable:variableTransformation = parent:DesignVariable:ONE_HOT_ENCODER
+    end
+
+    action SetColumnName(text columnName)
+        parent:DesignVariable:columnName = columnName
+    end
+end

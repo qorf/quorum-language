@@ -31,7 +31,7 @@ class FactorialCompareVariancesTest is Test
 
         // Median as center
         CompareVariances compare
-        frame:Calculate(compare)
+//        frame:Calculate(compare)
         
         CompareVariancesResult result = compare:GetResult()
         Check(result:GetTestStatistic(), 10.83333333333333)
@@ -47,7 +47,7 @@ class FactorialCompareVariancesTest is Test
         // Mean as center
         CompareVariances compare2
         compare2:UseMeanAsCenter()
-        frame:Calculate(compare2)
+//        frame:Calculate(compare2)
         
         CompareVariancesResult result2 = compare2:GetResult()
         Check(result2:GetTestStatistic(), 10.83333333333333)

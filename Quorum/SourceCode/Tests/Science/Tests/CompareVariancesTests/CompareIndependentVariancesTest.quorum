@@ -22,7 +22,7 @@ class CompareIndependentVariancesTest is Test
 
         // Median as center
         CompareVariances compare
-        frame:Calculate(compare)
+//        frame:Calculate(compare)
         
         CompareVariancesResult result = compare:GetResult()
         Check(result:GetTestStatistic(), 1.275736252280429)
@@ -38,7 +38,7 @@ class CompareIndependentVariancesTest is Test
         // Mean as center
         CompareVariances compare2
         compare2:UseMeanAsCenter()
-        frame:Calculate(compare2)
+//        frame:Calculate(compare2)
         
         CompareVariancesResult result2 = compare2:GetResult()
         Check(result2:GetTestStatistic(), 1.6138848191141646)

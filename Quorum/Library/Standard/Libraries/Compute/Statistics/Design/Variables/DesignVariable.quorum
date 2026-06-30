@@ -1,0 +1,309 @@
+package Libraries.Compute.Statistics.Design.Variables
+
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.DataFrame
+
+/*
+    ModelVariable is the base class for all statistical model variables.
+    It holds the core metadata shared across all variable types: the raw data
+    column, the encoded result, the variable name, type, and role.
+
+    Users should not instantiate ModelVariable directly. Instead use the
+    appropriate subclass based on the variable's measurement level:
+
+        CategoricalVariable  — nominal categories with no inherent order
+        NumericalVariable    — continuous or count numeric data
+        OrderedVariable      — ordered categories or ordered numeric data
+        IdentifierVariable   — unique subject/unit identifier, never modeled
+
+    These subclasses are most easily created via DataFrame factory actions:
+        frame:CreateCategoricalInputVariable("Group")
+        frame:CreateNumericalOutputVariable("Score")
+        frame:CreateOrderedInputVariable("Rating")
+        frame:CreateIdentifierVariable("PersonID")
+
+    Variable types (100-199):
+        NO_TYPE, CATEGORICAL, NUMERICAL, ORDINAL, COUNT, BOOLEAN, DATE_TIME
+
+    Variable roles (200-299):
+        NO_ROLE, INPUT, OUTPUT, REPEATED, RANDOM, CONTROL, REPEATED_CONTROL, IDENTIFIER
+
+    Attribute: Author Hannah Williams
+
+    Attribute: Example
+
+    use Libraries.Compute.Statistics.Design.Variables.CategoricalVariable
+
+    CategoricalVariable group
+    group:SetVariableData(frame, "Group", group:INPUT)
+    group:SetLevelOrder("A,B,C")
+*/
+class DesignVariable
+
+    // ----------------------------
+    // Variable Type (100-199)
+    // ----------------------------
+
+    // Default. No statistical type assigned.
+    public constant integer NO_TYPE      = 100
+
+    // Nominal variable with no inherent order.
+    public constant integer CATEGORICAL  = 110
+
+    // Continuous numeric variable.
+    public constant integer NUMERICAL    = 120
+
+    // Ordered variable — text or numeric with meaningful sequence.
+    public constant integer ORDINAL      = 130
+
+    // Non-negative integer counts.
+    public constant integer COUNT        = 140
+
+    // True/False treated as 1/0 in the model (true = 1).
+    public constant integer BOOLEAN      = 150
+
+    // Date/time variable, optional for time series models.
+    public constant integer DATE_TIME    = 160
+
+    // ----------------------------
+    // Variable Role (200-299)
+    // ----------------------------
+
+    // Default. Variable has no assigned role.
+    public constant integer NO_ROLE          = 200
+
+    // Independent variable / predictor.
+    public constant integer INPUT            = 210
+
+    // Dependent variable / outcome.
+    public constant integer OUTPUT           = 220
+
+    // Within-subject factor (repeated measures predictor).
+    public constant integer REPEATED         = 230
+
+    // Random effect predictor. Not used in fixed-effect interactions.
+    public constant integer RANDOM           = 240
+
+    // Covariate or control variable (predictor).
+    public constant integer CONTROL          = 250
+
+    // Repeated covariate (predictor).
+    public constant integer REPEATED_CONTROL = 260
+
+    // Unique subject/unit identifier. Never modeled as a predictor.
+    public constant integer IDENTIFIER       = 270
+
+    // ----------------------------
+    // Transformation / Encoder (300-399)
+    // ----------------------------
+
+    // No encoding applied. Use raw values.
+    public constant integer NO_TRANSFORMATION           = 300
+
+    // One-hot dummy encoding with reference level dropped (k-1 columns).
+    public constant integer REFERENCE_ENCODER           = 310
+
+    // Full one-hot encoding, all levels included (k columns).
+    public constant integer ONE_HOT_ENCODER             = 320
+
+    // Ordered encoding — maps levels to integers [1, 2, 3...].
+    public constant integer INTEGER_ENCODER             = 330
+
+    // Sum-to-zero contrasts for categorical variables.
+    public constant integer SUM_CONTRAST_ENCODER        = 340
+
+    // Helmert contrasts for categorical variables.
+    public constant integer HELMERT_CONTRAST_ENCODER    = 350
+
+    // Orthogonal polynomial contrasts for ordered factors.
+    public constant integer POLYNOMIAL_CONTRAST_ENCODER = 360
+
+    // Z-score normalization: (x - mean) / std.
+    public constant integer Z_SCORE_NORMALIZATION       = 370
+
+    // Min-max scaling to [0, 1].
+    public constant integer MIN_MAX_NORMALIZATION       = 380
+
+    // Natural log transformation.
+    public constant integer LOG_TRANSFORMATION          = 390
+
+    // Converts to ranks for non-parametric modeling.
+    public constant integer RANK_TRANSFORMATION         = 391
+
+    // ----------------------------
+    // Core variable state
+    // 0 = never initialized (distinct from NO_TYPE / NO_ROLE constants)
+    // ----------------------------
+    DataFrameColumn data = undefined        // raw original column
+    DataFrame transformedData = undefined   // encoded/transformed result
+    text columnName = ""                   // original column header
+    integer variableType = 0               // set by subclass
+    integer variableRole = 0               // set by subclass
+    integer variableTransformation = 0
+
+
+    /*
+        Sets the core variable data from a DataFrame column.
+        Validates that the column exists and isolates it.
+        The type constant is set by each subclass — the subclass
+        IS the type declaration so no type parameter is needed here.
+
+        Attribute: Parameter dataframe The DataFrame containing the column.
+        Attribute: Parameter header The column header to use.
+        Attribute: Parameter role The variable role constant.
+    */
+    action SetVariableData(DataFrame dataframe, text header, integer role)
+        if not dataframe:HasColumn(header)
+            alert("ModelVariable: Column '" + header
+                + "' cannot be found in the DataFrame.")
+        end
+
+        dataframe:AddSelectedColumns(header)
+        DataFrame variableData = dataframe:CopySelectedColumns()
+        dataframe:RemoveSelectedColumns(header)
+
+        data = variableData:GetColumn(0)
+        originName = data:GetHeader()
+        name = header
+        variableRole = role
+    end
+
+    /*
+        Returns the raw DataFrameColumn holding the original data.
+
+        Attribute: Returns The original DataFrameColumn.
+    */
+    action GetData returns DataFrameColumn
+        return data
+    end
+
+    /*
+        Returns the transformed/encoded DataFrame.
+        Undefined if encoding has not yet been run.
+
+        Attribute: Returns The encoded DataFrame.
+    */
+    action GetTransformedData returns DataFrame
+        return transformedData
+    end
+
+    /*
+        Sets the transformed/encoded DataFrame.
+        Called internally after encoding is complete.
+
+        Attribute: Parameter encoded The encoded DataFrame result.
+    */
+    action SetTransformedData(DataFrame encoded)
+        transformedData = encoded
+    end
+
+
+    /*
+        Returns the variable type constant.
+
+        Attribute: Returns The integer variable type constant.
+    */
+    action GetVariableType returns integer
+        return variableType
+    end
+
+    /*
+        Returns the variable role constant.
+
+        Attribute: Returns The integer variable role constant.
+    */
+    action GetVariableRole returns integer
+        return variableRole
+    end
+
+    /*
+        Returns true if this variable has been fully initialized.
+
+        Attribute: Returns True if type and role are both set.
+    */
+    action IsInitialized returns boolean
+        return variableType not= 0 and variableRole not= 0
+    end
+
+    /*
+        Returns true if this variable is an input.
+
+        Attribute: Returns True if this variable is an input.
+    */
+    action IsInput returns boolean
+        return variableRole = INPUT
+    end
+
+    /*
+        Returns true if this variable is an output.
+
+        Attribute: Returns True if this variable is an ouput.
+    */
+    action IsOutput returns boolean
+        return variableRole = OUTPUT
+    end
+
+    /*
+        Returns true if this variable is a control variable.
+
+        Attribute: Returns True if this variable is a control variable.
+    */
+    action IsControl returns boolean
+        return variableRole = CONTROL
+    end
+
+    /*
+        Returns true if this variable is a repeated variable.
+
+        Attribute: Returns True if this variable is a repeated variable.
+    */
+    action IsRepeated returns boolean
+        return variableRole = REPEATED
+    end
+
+    /*
+        Returns true if this variable has encoded data ready
+        for matrix construction.
+
+        Attribute: Returns True if transformedData is not undefined.
+    */
+    action IsEncoded returns boolean
+        return transformedData not= undefined
+    end
+
+    /*
+        Returns the name of the DataFrameColumn that this variable would reference.
+
+        Attribute: Returns The name of the column.
+    */
+    action GetColumnName returns text
+        return columnName
+    end
+
+    /*
+        Returns a human-readable summary of this variable.
+
+        Attribute: Returns A text description.
+    */
+    action ToText returns text
+        text result = ""
+        if me is NumericalVariable
+            result = "NumericalVariable: " + columnName
+        elseif me is CategoricalVariable
+            result = "CategoricalVariable: " + columnName
+        elseif me is OrdinalVariable
+            result = "OrdinalVariable: " + columnName
+        elseif me is IdentifierVariable
+            result = "IdentifierVariable: " + columnName
+        else
+            result = "DesignVariable: " + columnName
+        end
+        lineEnding = result:GetLineFeed()
+        result = result + lineEnding
+        result = result + " | Type: " + variableType + lineEnding
+        result = result + " | Role: " + variableRole + lineEnding
+        result = result + " | Encoded: " + IsEncoded() + lineEnding
+        return result
+    end
+
+end

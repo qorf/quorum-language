@@ -1,0 +1,29 @@
+package Libraries.Compute.Statistics.Design.Variables
+
+
+class OrdinalVariable is DesignVariable
+
+    on create
+        parent:DesignVariable:variableType = parent:DesignVariable:ORDINAL
+    end
+
+    action SetToInput(text columnName)
+        parent:DesignVariable:variableRole = parent:DesignVariable:INPUT
+        parent:DesignVariable:columnName = columnName
+    end
+
+    action SetToOutput(text columnName)
+        parent:DesignVariable:variableRole = parent:DesignVariable:OUTPUT
+        parent:DesignVariable:columnName = columnName
+    end
+
+    action SetToControl(text columnName)
+        parent:DesignVariable:variableRole = parent:DesignVariable:CONTROL
+        parent:DesignVariable:columnName = columnName
+    end
+
+    action SetToRepeated(text columnName)
+        parent:DesignVariable:variableRole = parent:DesignVariable:REPEATED
+        parent:DesignVariable:columnName = columnName
+    end
+end
