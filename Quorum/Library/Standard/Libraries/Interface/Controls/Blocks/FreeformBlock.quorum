@@ -173,6 +173,10 @@ class FreeformBlock is SingleLineBlock
 
     private action EndUndo()
         if addedCode
+            // trim the text to avoid problems clipping blocks of just whitespace
+            // means you cant paste a bunch of white space in but whether that's neccessary is questionable
+            code = code:Trim()
+            editRegion:SetText(code)
             CodeEditor editor = cast(CodeEditor, GetBlockEnvironment())
             BlockEditManager editManager = editor:GetBlockEditManager()
             editManager:SetSpecialAction(false)
@@ -213,12 +217,8 @@ class FreeformBlock is SingleLineBlock
                 return now
             end
             
-            // trim the text to avoid problems clipping blocks of just whitespace
-            // means you cant paste a bunch of white space in but whether that's neccessary is questionable
-            code = code:Trim()
-            editRegion:SetText(code)
-    
             boolean failState = editor:GetFailState()
+            
             /*
             First check special cases where the user has typed a short-cut.
             If so, insert extra code to make it valid before we parse it.
@@ -263,6 +263,49 @@ class FreeformBlock is SingleLineBlock
                     me:isPackageStatement = true
                 elseif current:category = constants:USE
                     me:isUseStatement = true
+                        elseif current:category = constants:ELSE_IF and not failState
+            //  elseif
+            //  elseif (condition)
+            text expression = ""
+            
+            Block grandparent = GetParentBlock():GetParentBlock()
+            if grandparent not= undefined and grandparent is IfBlock
+                IfBlock ifParent = cast(IfBlock, grandparent)
+            if tokenIterator:HasNext() 
+                    current = tokenIterator:Next()
+                    expression = code:GetSubtext(current:startIndex)
+                    ParseContext elseifExpression = ParseExpression(expression)
+                    if elseifExpression = undefined
+                        SetErrorVisual()
+                                    return now
+                    end
+                end
+                
+                if ifParent:AddElseifLineFromFreeform(me, expression) = undefined
+                    SetErrorVisual()
+                end
+                return now
+            else
+                SetErrorVisual()
+                return now
+            end
+                        
+                        elseif current:category = constants:ELSE and not tokenIterator:HasNext() and not failState
+            //  else
+            StartUndo()
+            editRegion:SetCaretPosition(editRegion:GetSize())
+            editRegion:SetText("else")
+            Block grandparent = GetParentBlock():GetParentBlock()
+            if grandparent not= undefined and grandparent is IfBlock
+                IfBlock ifParent = cast(IfBlock, grandparent)
+                if ifParent:AddElseLineFromFreeform(me) = undefined
+                    SetErrorVisual()
+                end
+                return now
+            else
+                SetErrorVisual()
+                return now
+            end
                 end
             end
 end
@@ -399,6 +442,7 @@ if context is ActionContext
                 
                 if blockListener:GetBlock():GetChildCount() > 0
                     if (blockListener:GetBlock():GetChild(0) is MultipleLineBlock) and not failState
+                        EndUndo()
                         editor:SetCode(editor:GetCode())
                         return now
                     end
