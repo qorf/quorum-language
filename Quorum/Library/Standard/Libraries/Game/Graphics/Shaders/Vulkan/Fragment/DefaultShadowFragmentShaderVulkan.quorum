@@ -1,0 +1,107 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Fragment
+
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.GameStateManager
+
+class DefaultShadowFragmentShaderVulkan is Shader
+    on create
+        SetType(parent:Shader:FRAGMENT_SHADER)
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
+        SetName(manager:DEFAULT_SHADOW_FRAGMENT_SHADER)
+        
+        SetCode(GetVersionHeader() + "
+		
+		// Adds support for nonuniformEXT and unsized descriptor arrays.
+		#extension GL_EXT_nonuniform_qualifier : require
+		#extension GL_EXT_buffer_reference: require
+		#extension GL_EXT_buffer_reference2: enable
+		#extension GL_EXT_scalar_block_layout: require
+		
+		layout (location = 0) in vec2 v_textureCoordinates;
+		layout (location = 1) in flat uint v_entityID;
+		
+		layout(set = 0, binding = 1) uniform sampler immutableSampler;
+		layout(set = 1, binding = 0) uniform texture2D globalTextures[];
+		
+		layout (location = 0) out vec2 outputMoments;
+		
+		struct Material {
+			uint diffuseColor;
+			uint textureIndex;
+			uint hasNormalMap;
+			uint hasRoughMap;
+			uint normalMapIndex;
+			uint roughMapIndex;
+			float roughness;
+			float metallic;
+		};
+		
+		layout(scalar, buffer_reference) buffer Materials
+		{
+			Material data;
+		};
+		
+		struct InstanceData {
+		   uint vertexPadding1;
+		   uint vertexPadding2;
+		   uint indexPadding1;
+		   uint indexPadding2;
+		   Materials materials;
+		   uint textureOverride;
+		   uint textureIndex;
+		   uint diffuseColorOverride;
+		   uint diffuseColor;
+		   mat4 modelTransform;
+		};
+
+		layout(scalar, buffer_reference) buffer Instances {
+		   InstanceData[] data;
+		};
+
+		layout(push_constant) uniform PushConstants {
+		   Instances instances;
+		   uint isPointLight;
+		   uint lightIndex;
+		} pushConstants;
+		
+		void main()
+		{
+			// Calculate albedo so we can get the alpha -- we need to know the opacity to know if this element casts shadows.
+		    Instances instances = pushConstants.instances;
+		    InstanceData instanceData = instances.data[v_entityID];
+		    Materials materials = instanceData.materials;
+		    Material material = materials.data;
+
+		    uint textureIndex = material.textureIndex;
+			if (v_hasTextureOverride == 1)
+				textureIndex = v_textureOverrideIndex;
+				
+			vec4 diffuse = unpackUnorm4x8(material.diffuseColor);
+			if (v_hasDiffuseOverride == 1)
+				diffuse = unpackUnorm4x8(v_diffuseOverride);
+
+			outputColor = texture(nonuniformEXT(sampler2D(globalTextures[textureIndex], immutableSampler)), v_textureCoords) * diffuse;
+
+			// If the color is less than half of the base transparency (i.e. transparent pixels in the texture), discard the fragment.
+			if (outputColor.a < 0.5)
+			{
+				discard;
+			}
+			
+			float depth = gl_FragCoord.z;
+			float moment1 = depth;
+			float moment2 = depth * depth;
+			
+			// Adjust moments to avoid light bleeding
+			float dx = dFdx(depth);
+			float dy = dFdy(depth);
+			moment2 += 0.25 * (dx * dx + dy * dy);
+
+			outputMoments = vec2(moment1, moment2);
+		}
+		
+		")
+	end
+end

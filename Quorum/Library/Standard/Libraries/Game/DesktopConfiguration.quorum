@@ -115,5 +115,19 @@ application will use OpenGL for rendering instead. Must be set before starting t
 to render the game, including the Vulkan API version and whether or not to use validation
 layers for debugging.*/
     public VulkanOptions vulkanOptions
+    
+    /*This option sets the maximum number of lights that can be active in a single Layer3D at a time.
+The default value is 16.  This value should be set before the Game starts, and only affects Vulkan applications.*/
+    public integer maximumLights = 16
+    
+    /*This action sets the number of "splits" used in cascading shadow maps. Increasing this number provides higher quality shadows
+but negatively impacts performance. The increase in quality with higher numbers falls off quickly, but the performance impact
+does not, so it is advised to keep this number relatively low. The default value is 3.*/
+    public integer shadowMapCascadeCount = 3
+    
+    /*This value determines the dimensions of the textures used by shadow maps in the game. Larger textures allow for higher resolution
+shadows but negatively impact performance. It is recommended to use powers of two for this value, e.g. 512, 1024, 2048, or 4096. The
+default value is 4096.*/
+    public integer shadowMapSize = 4096
 
 end

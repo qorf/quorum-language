@@ -1,0 +1,25 @@
+package Libraries.Game.Graphics.Shaders.Programs
+
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.DefaultShadowShaderMappingVulkan
+
+class DefaultShadowShaderProgram is ShaderProgram
+    
+    on create
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
+        SetName(manager:DEFAULT_SHADOW_SHADER_PROGRAM)
+
+        Shader vertex = manager:GetDefaultShadowVertexShader()
+        Shader fragment = manager:GetDefaultShadowFragmentShader()
+
+        Add(vertex)
+        Add(fragment)
+        
+        DefaultShadowShaderMappingVulkan mapping
+        SetShaderMapping(mapping)
+    end
+    
+end

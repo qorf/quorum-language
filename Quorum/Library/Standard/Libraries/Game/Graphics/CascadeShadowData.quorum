@@ -1,0 +1,34 @@
+package Libraries.Game.Graphics
+
+use Libraries.Containers.Array
+use Libraries.Compute.Matrix4
+
+class CascadeShadowData
+    
+    Array<Matrix4> shadowProjectionMatrices
+    number splitDistance = 0.0
+    
+    on create
+        repeat 6 times
+            Matrix4 matrix
+            shadowProjectionMatrices:Add(matrix)
+        end
+    end
+    
+    action GetProjectionMatrix(integer index) returns Matrix4
+        return shadowProjectionMatrices:Get(index)
+    end
+    
+    action GetProjectionMatrixCount returns integer
+        return shadowProjectionMatrices:GetSize()
+    end
+    
+    action GetSplitDistance returns number
+        return splitDistance
+    end
+
+    action SetSplitDistance(number splitDistance)
+        me:splitDistance = splitDistance
+    end
+
+end

@@ -274,6 +274,39 @@ class Vector4
     action Set(Vector2 vector, number z, number w) returns Vector4
         return Set(vector:GetX(), vector:GetY(), z, w)
     end
+    
+    /*
+    This action sets the vector's x, y, and z components to the components
+    of the passed 3D vector and sets the 4th component to the final passed value.
+
+    Attribute: Parameter vector The 3D vector to set this vector's x, y, and z components
+    Attribute: Parameter w The value to set the 4th component to
+
+    Attribute: Returns The calling vector
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+    use Libraries.Compute.Vector3
+
+    Vector4 vector
+    Vector3 setVector
+    
+    setVector:Set(3.5, -7.0, 2.0)
+    
+    vector:Set(setVector, 1.0)
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+    number newW = vector:GetW()
+
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+    */
+    action Set(Vector3 vector, number w) returns Vector4
+        return Set(vector:GetX(), vector:GetY(), vector:GetZ(), w)
+    end
 
     /*
     This action sets the x component of the vector to the passed value.
@@ -2028,6 +2061,49 @@ class Vector4
         y = 0
         z = 0
         w = 0
+        return me
+    end
+    
+    /*
+    This action multiplies the vector by a 4-by-4 matrix.
+
+    Attribute: Parameter matrix The matrix to multiply
+    
+    Attribute: Returns The vector after multiplication
+
+    Attribute: Example
+
+    use Libraries.Compute.Vector4
+    use Libraries.Compute.Matrix4
+    use Libraries.Containers.Array
+    
+    Vector4 vector
+    Matrix4 matrix
+    Array<number> values
+
+    integer i = 0
+    repeat 16 times
+        array:Add(i)
+        i = i + 1
+    end
+
+    matrix:Set(values)
+    
+    vector:Multiply(matrix)
+
+    number newX = vector:GetX()
+    number newY = vector:GetY()
+    number newZ = vector:GetZ()
+    number newW = vector:GetW()
+    
+    output "The new vector is: [" + newX + ", " + newY + ", " + newZ + ", " + newW + "]"
+
+    */
+    action Multiply(Matrix4 matrix) returns Vector4
+        Set(x * matrix:row0column0 + y * matrix:row0column1 + z * matrix:row0column2 + w * matrix:row0column3,
+                   x * matrix:row1column0 + y * matrix:row1column1 + z * matrix:row1column2 + w * matrix:row1column3,
+                   x * matrix:row2column0 + y * matrix:row2column1 + z * matrix:row2column2 + w * matrix:row2column3,
+                   x * matrix:row3column0 + y * matrix:row3column1 + z * matrix:row3column2 + w * matrix:row3column3)
         return me
     end
 end

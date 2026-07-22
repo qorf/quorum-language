@@ -49,6 +49,7 @@ VulkanImage depthBufferImage = undefined
 
     VulkanTextureManager textureManager
     ModelManagerVulkan modelManager
+    VulkanLightingProperties lightingProperties
 
     /*
     Note that the swapchain index can de-sync from the current frame index sometimes.
@@ -391,6 +392,7 @@ VulkanImageInfo imageInfo
 
         textureManager:Create(device, me)
         modelManager:Create(device, me)
+        lightingProperties:Create(gameState:GetGame():GetDesktopConfiguration())
 
         return true
     end
@@ -905,6 +907,10 @@ Attribute: Returns True if the application has paused rendering, or false if it 
 
     action GetComputeQueue returns VulkanQueue
         return computeQueue
+    end
+
+    action GetLightingProperties returns VulkanLightingProperties
+        return lightingProperties
     end
 
 end

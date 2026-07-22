@@ -18,6 +18,27 @@ class VulkanClearValues
         Add(value)
     end
     
+    action AddColor(number red, number green, number blue)
+        VulkanClearValue value
+        value:SetColor(red, green, blue, 0)
+        value:SetColorComponents(3)
+        Add(value)
+    end
+    
+    action AddColor(number red, number green)
+        VulkanClearValue value
+        value:SetColor(red, green, 0, 0)
+        value:SetColorComponents(2)
+        Add(value)
+    end
+    
+    action AddColor(number red)
+        VulkanClearValue value
+        value:SetColor(red, 0, 0, 0)
+        value:SetColorComponents(1)
+        Add(value)
+    end
+    
     action AddDepthStencil(number depth, integer stencil)
         VulkanClearValue value
         value:SetDepth(depth)

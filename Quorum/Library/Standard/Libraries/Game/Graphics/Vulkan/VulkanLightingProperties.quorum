@@ -1,0 +1,31 @@
+package Libraries.Game.Graphics.Vulkan
+
+use Libraries.Game.DesktopConfiguration
+
+/*This class holds configuration options for the lighting and shadow systems in Vulkan.
+The values here are "constant" in the sense that once the application begins they will
+not change, but their values are not set until the Game starts.*/
+class VulkanLightingProperties
+    integer maximumLights = 16
+    integer shadowMapCascadeCount = 3
+    integer shadowMapSize = 4096
+    
+    action Create(DesktopConfiguration configuration)
+        maximumLights = configuration:maximumLights
+        shadowMapCascadeCount = configuration:shadowMapCascadeCount
+        shadowMapSize = configuration:shadowMapSize
+    end
+    
+    action GetMaximumLights returns integer
+        return maximumLights
+    end
+
+    action GetShadowMapCascadeCount returns integer
+        return shadowMapCascadeCount
+    end
+
+    action GetShadowMapSize returns integer
+        return shadowMapSize
+    end
+
+end

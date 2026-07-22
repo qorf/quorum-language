@@ -42,6 +42,12 @@ class VulkanDrawQueue3D
     integer currentDrawCommandIndex = 0
     integer currentDrawInstanceIndex = 0
     
+    /* Draw commands for specifically the shadow mapping stage. This will render a subset (which may be the whole set) of the
+queued elements for the scene render pass, only sending draw commands for models which are capable of casting shadows.*/
+    VulkanBuffer shadowDrawCommandBuffer = undefined
+    VulkanDrawIndirectDataMappedMemory shadowDrawDataMemory = undefined
+    integer currentShadowDrawCommandIndex = 0
+    
     integer textureGroupID = -1
     
     action Create(VulkanDevice device, VulkanGraphics graphics, integer maxInstances, integer textureGroupID)
@@ -70,6 +76,13 @@ me:maxInstances = maxInstances
         
         drawCommandBuffer:CreateMappableBuffer(device, maxInstances * drawData:GetByteSize(), constants:BUFFER_USAGE_INDIRECT_BUFFER_BIT)
         drawDataMemory = drawCommandBuffer:MapToDrawIndirectDataMemory()
+        
+        // Also create the parallel draw resources for the shadow mapping pass.
+        VulkanBuffer buffer2
+        shadowDrawCommandBuffer = buffer2
+        
+        shadowDrawCommandBuffer:CreateMappableBuffer(device, drawCommandBuffer:GetSize(), constants:BUFFER_USAGE_INDIRECT_BUFFER_BIT)
+        shadowDrawDataMemory = shadowDrawCommandBuffer:MapToDrawIndirectDataMemory()
     end
     
     action Begin
@@ -77,6 +90,8 @@ me:maxInstances = maxInstances
         currentDrawCommandIndex = 0
         currentDrawInstanceIndex = 0
         instanceMapping:PrepareForTransfers()
+        
+        currentShadowDrawCommandIndex = 0
     end
     
     action End
@@ -100,8 +115,13 @@ Matrix4 modelMatrix)
         currentInstanceIndex = currentInstanceIndex + 1
     end
     
-    action AddDrawIndirectCommand(integer vertexCount, integer instanceCount)
+    action AddDrawIndirectCommand(integer vertexCount, integer instanceCount, boolean hasShadows)
         drawDataMemory:Set(currentDrawCommandIndex, vertexCount, instanceCount, 0, currentDrawInstanceIndex)
+        
+        if hasShadows
+            shadowDrawDataMemory:Set(currentShadowDrawCommandIndex, vertexCount, instanceCount, 0, currentDrawInstanceIndex)
+            currentShadowDrawCommandIndex = currentShadowDrawCommandIndex + 1
+        end
         
         currentDrawCommandIndex = currentDrawCommandIndex + 1
         currentDrawInstanceIndex = currentDrawInstanceIndex + instanceCount
@@ -111,6 +131,8 @@ Matrix4 modelMatrix)
         instanceMapping:Dispose()
         drawDataMemory:Dispose()
         drawCommandBuffer:Dispose()
+        shadowDrawDataMemory:Dispose()
+        shadowDrawCommandBuffer:Dispose()
         instanceData:Dispose()
     end
 
@@ -120,6 +142,14 @@ Matrix4 modelMatrix)
 
     action GetDrawCommandCount returns integer
         return currentDrawCommandIndex
+    end
+    
+    action GetShadowDrawCommandBuffer returns VulkanBuffer
+        return shadowDrawCommandBuffer
+    end
+    
+    action GetShadowDrawCommandCount returns integer
+        return currentShadowDrawCommandIndex
     end
     
     action GetInstanceDataBuffer returns VulkanBuffer

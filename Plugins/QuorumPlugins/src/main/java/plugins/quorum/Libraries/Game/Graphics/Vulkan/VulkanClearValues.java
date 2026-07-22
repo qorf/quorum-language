@@ -25,10 +25,26 @@ public class VulkanClearValues
             VulkanClearValue_ quorumValue = (VulkanClearValue_)quorumArray.Get(i);
             if (quorumValue.IsColorClearValue())
             {
-                buffer.apply(i, v -> v.color().float32(0, (float) quorumValue.GetRed())
-                        .float32(1, (float) quorumValue.GetGreen())
-                        .float32(2, (float) quorumValue.GetBlue())
-                        .float32(3, (float) quorumValue.GetAlpha()));
+                switch (quorumValue.GetColorComponents())
+                {
+                    case 1:
+                        buffer.apply(i, v -> v.color().float32(0, (float) quorumValue.GetRed()));
+                        break;
+                    case 2:
+                        buffer.apply(i, v -> v.color().float32(0, (float) quorumValue.GetRed())
+                                .float32(1, (float) quorumValue.GetGreen()));
+                        break;
+                    case 3:
+                        buffer.apply(i, v -> v.color().float32(0, (float) quorumValue.GetRed())
+                                .float32(1, (float) quorumValue.GetGreen())
+                                .float32(2, (float) quorumValue.GetBlue()));
+                        break;
+                    case 4:
+                        buffer.apply(i, v -> v.color().float32(0, (float) quorumValue.GetRed())
+                                .float32(1, (float) quorumValue.GetGreen())
+                                .float32(2, (float) quorumValue.GetBlue())
+                                .float32(3, (float) quorumValue.GetAlpha()));
+                }
             }
             else
             {

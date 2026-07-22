@@ -14,6 +14,7 @@ class Light
     */
     Color color
     Environment environment = undefined
+    CascadeShadowData shadowData = undefined
     
     /*
     This action will set the color of the light using number values for the red,
@@ -53,6 +54,14 @@ class Light
 is added to an environment, so users should never need to use this action directly.*/
     action SetEnvironment(Environment environment)
         me:environment = environment
+    end
+
+    action GetShadowData returns CascadeShadowData
+        return shadowData
+    end
+
+    action SetShadowData(CascadeShadowData shadowData)
+        me:shadowData = shadowData
     end
 
 end

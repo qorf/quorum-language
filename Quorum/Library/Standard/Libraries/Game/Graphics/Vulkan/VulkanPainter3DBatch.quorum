@@ -127,7 +127,7 @@ class VulkanPainter3DBatch
                     
                     // Each animated model potentially uses a different vertex buffer and must be drawn separately.
                     queue:AddInstanceData(vertexBuffer, indexBuffer, material, textureOverride, diffuseOverride, model:GetTransform())
-                    queue:AddDrawIndirectCommand(mesh:GetIndexCount(), 1)
+                    queue:AddDrawIndirectCommand(mesh:GetIndexCount(), 1, model:CastsShadows())
                     
                     j = j + 1
                 end
@@ -136,6 +136,7 @@ class VulkanPainter3DBatch
             end
             
             else
+            boolean castsShadows = true
             integer i = 0
             repeat while i < meshesPerModel
                 MeshVulkan mesh = schematic:GetMeshes():Get(i)
@@ -147,6 +148,7 @@ class VulkanPainter3DBatch
                     ModelResourcesVulkan resources = cast(ModelResourcesVulkan, model:GetResources())
                     Color diffuseOverride = resources:GetColor(i)
                     Texture textureOverride = resources:GetTexture(i)
+                    castsShadows = model:CastsShadows()
                     
                     VulkanDrawQueue3D queue = undefined
                     if textureOverride not= undefined
@@ -166,7 +168,7 @@ class VulkanPainter3DBatch
                 repeat while j < drawQueueUses:GetSize()
                     VulkanDrawQueue3D queue = painter:GetCurrentDrawQueue(j)
                     if drawQueueUses:Get(j) > 0
-                        queue:AddDrawIndirectCommand(mesh:GetIndexCount(), drawQueueUses:Get(j))
+                        queue:AddDrawIndirectCommand(mesh:GetIndexCount(), drawQueueUses:Get(j), castsShadows)
                         drawQueueUses:Set(j, 0)
                     end
                     j = j + 1
