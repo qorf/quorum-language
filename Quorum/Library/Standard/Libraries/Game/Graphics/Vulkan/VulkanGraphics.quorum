@@ -392,7 +392,7 @@ VulkanImageInfo imageInfo
 
         textureManager:Create(device, me)
         modelManager:Create(device, me)
-        lightingProperties:Create(gameState:GetGame():GetDesktopConfiguration())
+        lightingProperties:Create(device, gameState:GetGame():GetDesktopConfiguration())
 
         return true
     end

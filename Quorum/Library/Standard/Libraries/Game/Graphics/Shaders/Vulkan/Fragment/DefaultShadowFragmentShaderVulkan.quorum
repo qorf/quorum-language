@@ -68,24 +68,28 @@ class DefaultShadowFragmentShaderVulkan is Shader
 		
 		void main()
 		{
+		/*
 			// Calculate albedo so we can get the alpha -- we need to know the opacity to know if this element casts shadows.
 		    Instances instances = pushConstants.instances;
 		    InstanceData instanceData = instances.data[v_entityID];
 		    Materials materials = instanceData.materials;
 		    Material material = materials.data;
 
+			uint hasTextureOverride = instanceData.textureOverride;
+			uint hasDiffuseOverride = instanceData.diffuseColorOverride;
+
 		    uint textureIndex = material.textureIndex;
-			if (v_hasTextureOverride == 1)
-				textureIndex = v_textureOverrideIndex;
+			if (hasTextureOverride == 1)
+				textureIndex = instanceData.textureIndex;
 				
 			vec4 diffuse = unpackUnorm4x8(material.diffuseColor);
-			if (v_hasDiffuseOverride == 1)
-				diffuse = unpackUnorm4x8(v_diffuseOverride);
+			if (hasDiffuseOverride == 1)
+				diffuse = unpackUnorm4x8(instanceData.diffuseColor);
 
-			outputColor = texture(nonuniformEXT(sampler2D(globalTextures[textureIndex], immutableSampler)), v_textureCoords) * diffuse;
+			vec4 sampledColor = texture(nonuniformEXT(sampler2D(globalTextures[textureIndex], immutableSampler)), v_textureCoordinates) * diffuse;
 
-			// If the color is less than half of the base transparency (i.e. transparent pixels in the texture), discard the fragment.
-			if (outputColor.a < 0.5)
+			// If the color mostly transparent, discard the fragment.
+			if (sampledColor.a < 0.5)
 			{
 				discard;
 			}
@@ -100,6 +104,8 @@ class DefaultShadowFragmentShaderVulkan is Shader
 			moment2 += 0.25 * (dx * dx + dy * dy);
 
 			outputMoments = vec2(moment1, moment2);
+			*/
+			outputMoments = vec2(1.0, 1.0);
 		}
 		
 		")

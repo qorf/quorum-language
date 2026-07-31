@@ -53,7 +53,7 @@ class DefaultShadowGeometryShaderVulkan is Shader
 		{
 			uint isPoint = pushConstants.isPointLight;
 			uint lightIndex = pushConstants.lightIndex;
-			uint cubeBaseIndex = lightIndex * 6 * SHADOW_MAP_CASCADE_COUNT;
+			//uint cubeBaseIndex = lightIndex * 6 * SHADOW_MAP_CASCADE_COUNT;
 			
 			/*
 			If this is a directional light, we only need one frustum, not six. Output to the first face of each cubemap and ignore the other 5.
@@ -73,7 +73,9 @@ class DefaultShadowGeometryShaderVulkan is Shader
 				{
 					v_textureCoordinates = inTextureCoordinates[i];
 					v_entityID = inEntityID[i];
-					gl_Layer = cubeBaseIndex + (gl_InvocationID * 6 + j);
+					//gl_Layer = cubeBaseIndex + (gl_InvocationID * 6 + j);
+					//gl_Layer = gl_InvocationID * 6 + j;
+					gl_Layer = 0;
 					gl_Position = shadows.data[lightIndex * SHADOW_MAP_CASCADE_COUNT + gl_InvocationID].matrix[j] * gl_in[i].gl_Position;
 					EmitVertex();
 				}

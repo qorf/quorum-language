@@ -30,6 +30,14 @@ use Libraries.Compute.Matrix4
 use Libraries.Compute.Vector4
 use Libraries.Compute.Math
 use Libraries.Game.Graphics.CascadeShadowData
+use Libraries.Game.Graphics.Vulkan.VulkanFramebuffer
+use Libraries.Game.Graphics.Vulkan.VulkanImageView
+use Libraries.Game.Graphics.Vulkan.VulkanImageInfo
+use Libraries.Game.Graphics.Vulkan.VulkanImage
+use Libraries.Game.Graphics.Vulkan.VulkanImageViewInfo
+use Libraries.Game.Graphics.Vulkan.VulkanRenderPass
+use Libraries.Game.Graphics.Vulkan.VulkanSampler
+use Libraries.Game.Graphics.Vulkan.VulkanSamplerInfo
 
 class EnvironmentVulkan is Environment
     
@@ -61,8 +69,6 @@ class EnvironmentVulkan is Environment
     Array<VulkanBuffer> cascadeShadowBuffers
     Array<VulkanNumber32BitMappedMemory> cascadeShadowMemories
     Number32BitArray cascadeShadowTransferArray
-    // An array of 6 matrices, used to temporarily store the calculated Quorum projection values before they're transferred to the buffers.
-    //Array<Matrix4> shadowProjectionMatrices
     
     /*Lights store these components in the buffer:
 * Position/Direction (Vec3, 3 * 4 bytes)
@@ -77,13 +83,14 @@ class EnvironmentVulkan is Environment
     constant integer INTENSITY_INDEX = 4
     constant integer COLOR_INDEX = 5
     
-    constant integer SCENE_DATA_WORD_SIZE = 8
+    constant integer SCENE_DATA_WORD_SIZE = 24
     constant integer SCENE_DATA_BYTE_SIZE = SCENE_DATA_WORD_SIZE * 4
     
     constant integer CAMERA_POSITION_INDEX = 0
     constant integer AMBIENT_LIGHT_INTENSITY_INDEX = 3
     constant integer AMBIENT_LIGHT_COLOR_INDEX = 4
     constant integer LIGHT_COUNT_INDEX = 7
+    constant integer CAMERA_VIEW_MATRIX_INDEX = 8
     
     /*Cascade shadow data is made of 6 Matrix4s for shadow projection transforms, followed by one Vector4 for split distance values.*/
     constant integer SHADOW_PROJECTION_WORD_SIZE = 16
@@ -101,8 +108,11 @@ class EnvironmentVulkan is Environment
     integer maxLights = -1
     VulkanLightingProperties lightingProperties = undefined
     
-    Array<VulkanDescriptorSet> descriptorSets
-    VulkanDescriptorSetLayout descriptorSetLayout = undefined
+    Array<VulkanDescriptorSet> lightDataDescriptorSets
+    VulkanDescriptorSetLayout lightDataDescriptorSetLayout = undefined
+    //Array<VulkanDescriptorSet> shadowDataDescriptorSets
+    //Array<Array<VulkanFramebuffer>> shadowCubemapFramebuffers
+    //VulkanSampler shadowCubemapSampler = undefined
     
     // Used to check if the camera has changed since the previous update. If so, we need to update shadows.
     Matrix4 previousCameraTransform
@@ -128,17 +138,16 @@ class EnvironmentVulkan is Environment
             lightsMemories:Add(undefined)
             sceneDataMemories:Add(undefined)
             cascadeShadowMemories:Add(undefined)
-            descriptorSets:Add(undefined)
+            lightDataDescriptorSets:Add(undefined)
+            //shadowDataDescriptorSets:Add(undefined)
+            
+            //Array<VulkanFramebuffer> array
+            //shadowCubemapFramebuffers:Add(array)
         end
-        
-        // Add the 6 shadow calculation matrices to the array.
-//repeat 6 times
-            //Matrix4 matrix
-            //shadowProjectionMatrices:Add(matrix)
-//        end
         
         lightMappingArray:SetSize(maxLights * LIGHTS_WORD_SIZE)
         sceneDataMappingArray:SetSize(SCENE_DATA_WORD_SIZE)
+        cascadeShadowTransferArray:SetSize(SHADOW_DATA_WORD_SIZE * maxLights)
     end
     
     action Update
@@ -478,6 +487,24 @@ end
             sceneDataMappingArray:Set(AMBIENT_LIGHT_INTENSITY_INDEX, 1.0)
             sceneDataMappingArray:Set(LIGHT_COUNT_INDEX, utility:EncodeIntegerAsNumber(pointLights:GetSize() + directionalLights:GetSize()))
             
+            Matrix4 matrix = camera:GetViewMatrix()
+                    sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX, matrix:row0column0)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 1, matrix:row1column0)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 2, matrix:row2column0)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 3, matrix:row3column0)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 4, matrix:row0column1)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 5, matrix:row1column1)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 6, matrix:row2column1)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 7, matrix:row3column1)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 8, matrix:row0column2)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 9, matrix:row1column2)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 10, matrix:row2column2)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 11, matrix:row3column2)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 12, matrix:row0column3)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 13, matrix:row1column3)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 14, matrix:row2column3)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 15, matrix:row3column3)
+            
             sceneDataMemory:Set(sceneDataMappingArray)
             sceneDataDirty:Set(resourceIndex, false)
         end
@@ -802,13 +829,13 @@ cascadeSplits:Add((d - nearClip) / clipRange)
         end
     end
     
-    action GetDescriptorSet(integer resourceIndex) returns VulkanDescriptorSet
+    action GetLightDataDescriptorSet(integer resourceIndex) returns VulkanDescriptorSet
         // The buffers need to already exist so we can link the resources, so ensure they have been created.
         UpdateBuffers(resourceIndex)
         
-        if descriptorSetLayout = undefined
+        if lightDataDescriptorSetLayout = undefined
             VulkanDescriptorSetLayout layout
-            descriptorSetLayout = layout
+            lightDataDescriptorSetLayout = layout
             
             Array<VulkanDescriptorSetLayoutBinding> bindings
             VulkanConstants constants
@@ -828,11 +855,11 @@ cascadeSplits:Add((d - nearClip) / clipRange)
             sceneDataBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
             bindings:Add(sceneDataBinding)
             
-            descriptorSetLayout:Create(device, bindings)
+            lightDataDescriptorSetLayout:Create(device, bindings)
         end
         
         // Initialize the descriptor set if we haven't already.
-        if descriptorSets:Get(resourceIndex) = undefined
+        if lightDataDescriptorSets:Get(resourceIndex) = undefined
             GameStateManager manager
             VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
             VulkanDescriptorSetManager descriptorManager = graphics:GetDescriptorSetManager()
@@ -851,13 +878,13 @@ cascadeSplits:Add((d - nearClip) / clipRange)
             dataResources:SetDestinationBinding(1)
             dataResources:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
             
-            VulkanDescriptorSet set = descriptorManager:CreateDescriptorSet(descriptorSetLayout)
+            VulkanDescriptorSet set = descriptorManager:CreateDescriptorSet(lightDataDescriptorSetLayout)
             set:LinkResources(lightResources)
             set:LinkResources(dataResources)
-            descriptorSets:Set(resourceIndex, set)
+            lightDataDescriptorSets:Set(resourceIndex, set)
         end
         
-        return descriptorSets:Get(resourceIndex)
+        return lightDataDescriptorSets:Get(resourceIndex)
     end
 
 end

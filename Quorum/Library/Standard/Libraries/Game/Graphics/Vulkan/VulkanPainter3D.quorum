@@ -56,6 +56,7 @@ class VulkanPainter3D is Painter3D
     VulkanRenderPass resultRenderPass = undefined
     ShaderProgram defaultProgram = undefined
     ShaderProgram defaultLightingProgram = undefined
+    ShaderProgram defaultShadowProgram = undefined
     
     // The clear value for the scene-space is not the same background clear value used for the swapchain.
     // It must be fully transparent to ensure proper blending with other layers.
@@ -112,7 +113,8 @@ VulkanSampler immutableSampler = undefined
     /*Resources for the lighting step.*/
     Array<VulkanFramebuffer> lightFramebuffers
     Array<VulkanDescriptorSet> lightDescriptors
-    Array<VulkanDescriptorSet> lightShadowProjectionDescriptors
+    Array<VulkanDescriptorSet> lightShadowDataDescriptors
+    Array<VulkanDescriptorSet> lightShadowCubemapDescriptors
     
     /*An array of framebuffers, used to render to blank images each frame. Unlike 2D, which can draw directly onto the previous image, 3D needs to
 post-process the environment without interference from the rendering of previous layers. There is one framebuffer per image in the swapchain,
@@ -122,9 +124,11 @@ to allow for simultaneous rendering.*/
     Array<VulkanDescriptorSet> resultDescriptors
     
     // Resources for the shadow mapping stage.
-    Array<VulkanFramebuffer> shadowCubemaps
-    Array<VulkanDescriptorSet> shadowDescriptors
-    boolean shadowResourcesLinked = false
+    //Array<VulkanFramebuffer> shadowCubemaps
+    Array<VulkanDescriptorSet> shadowProjectionDescriptors
+    boolean shadowProjectionResourcesLinked = false
+    
+    Array<Array<VulkanFramebuffer>> shadowCubemapFramebuffers
     //Array<VulkanBuffer> cascadeShadowBuffers
     //Array<VulkanNumber32BitMappedMemory> cascadeShadowMappings
     //Number32BitArray cascadeShadowTransferArray = undefined
@@ -183,10 +187,18 @@ if lightRenderPass not= undefined
                 lightFramebuffers:RemoveFromEnd():Dispose()
             end
         end
-        if not shadowCubemaps:IsEmpty()
-            repeat until shadowCubemaps:IsEmpty()
-                shadowCubemaps:RemoveFromEnd():Dispose()
+        
+        integer counter = 0
+        repeat while counter < shadowCubemapFramebuffers:GetSize()
+            Array<VulkanFramebuffer> framebuffers
+            integer i = 0
+            repeat while i < framebuffers:GetSize()
+                VulkanFramebuffer buffer = framebuffers:Get(i)
+                buffer:Dispose()
+                i = i + 1
             end
+            framebuffers:Empty()
+            counter = counter + 1
         end
 
         VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
@@ -196,6 +208,12 @@ VulkanSwapchain swapchain = graphics:GetSwapchain()
         VulkanShaderManager shaderManager = cast(VulkanShaderManager, gameState:GetShaderManager())
         VulkanLightingProperties lightProperties = graphics:GetLightingProperties()
         VulkanConstants constants
+        
+        // Make sure we have an array of framebuffers for each image available in the swapchain.
+        repeat while shadowCubemapFramebuffers:GetSize() < swapchain:GetImageCount()
+            Array<VulkanFramebuffer> array
+            shadowCubemapFramebuffers:Add(array)
+        end
         
         if resultSampler = undefined
             VulkanSampler sampler
@@ -208,6 +226,8 @@ VulkanSwapchain swapchain = graphics:GetSwapchain()
         if shadowSampler = undefined
             VulkanSampler sampler
             VulkanSamplerInfo info
+            info:SetHorizontalWrapMode(constants:SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE)
+            info:SetVerticalWrapMode(constants:SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE)
             sampler:Create(device, info)
             shadowSampler = sampler
         end
@@ -403,15 +423,15 @@ outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
         
         CreateRenderPass(resultRenderPass, resultAttachmentDescriptions, resultColorAttachmentReferences, depthReference)
         
-        shadowDescriptors:Empty()
+        shadowProjectionDescriptors:Empty()
         lightDescriptors:Empty()
-        lightShadowProjectionDescriptors:Empty()
+        lightShadowDataDescriptors:Empty()
         resultDescriptors:Empty()
         
-        VulkanDescriptorSetLayout shadowLayout = undefined
-        if shadowDescriptors:GetSize() < swapchain:GetImageCount()
+        VulkanDescriptorSetLayout shadowProjectionLayout = undefined
+        if shadowProjectionDescriptors:GetSize() < swapchain:GetImageCount()
             VulkanDescriptorSetLayout descriptorLayout
-            shadowLayout = descriptorLayout
+            shadowProjectionLayout = descriptorLayout
             Array<VulkanDescriptorSetLayoutBinding> shadowBindings
             
             // First, create a binding for the shadow projection matrices. These are used in the geometry phase.
@@ -432,8 +452,9 @@ outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
         VulkanSampler immutableSampler = textureManager:GetDefaultSampler()
         immutableSamplers:Add(immutableSampler)
         samplerBinding:SetImmutableSamplers(immutableSamplers)
+            shadowBindings:Add(samplerBinding)
             
-            shadowLayout:Create(device, shadowBindings)
+            shadowProjectionLayout:Create(device, shadowBindings)
         end
         
         VulkanDescriptorSetLayout lightsLayout = undefined
@@ -474,25 +495,28 @@ outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
             
             lightsLayout:Create(device, lightsBindings)
             
-            VulkanDescriptorSetLayout newDescriptorLayout
-            lightShadowProjectionLayout = newDescriptorLayout
-            Array<VulkanDescriptorSetLayoutBinding> shadowBindings
+            //VulkanDescriptorSetLayout newDescriptorLayout
+            //lightShadowProjectionLayout = newDescriptorLayout
+            //Array<VulkanDescriptorSetLayoutBinding> shadowBindings
+            //
+            //VulkanDescriptorSetLayoutBinding projectionBinding
+            //projectionBinding:SetBinding(0)
+            //projectionBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+            //projectionBinding:SetDescriptorCount(1)
+            //projectionBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+            //shadowBindings:Add(projectionBinding)
+            //
+            //VulkanDescriptorSetLayoutBinding cubemapBinding
+            //cubemapBinding:SetBinding(1)
+            //cubemapBinding:SetBindingFlags(constants:DESCRIPTOR_BINDING_DYNAMIC)
+            //cubemapBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+            //cubemapBinding:SetDescriptorCount(lightProperties:GetMaximumLights())
+            //cubemapBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+            //shadowBindings:Add(cubemapBinding)
+            //
+            //lightShadowProjectionLayout:CreateUpdateAfterBind(device, shadowBindings)
             
-            VulkanDescriptorSetLayoutBinding cubemapBinding
-            cubemapBinding:SetBinding(0)
-            cubemapBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
-            cubemapBinding:SetDescriptorCount(1)
-            cubemapBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
-            shadowBindings:Add(cubemapBinding)
-            
-            VulkanDescriptorSetLayoutBinding projectionBinding
-            projectionBinding:SetBinding(1)
-            projectionBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-            projectionBinding:SetDescriptorCount(1)
-            projectionBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
-            shadowBindings:Add(projectionBinding)
-            
-            lightShadowProjectionLayout:Create(device, shadowBindings)
+            lightShadowProjectionLayout = lightProperties:GetShadowCubemapsDescriptorSetLayout()
         end
         
         VulkanDescriptorSetLayout resultsLayout = undefined
@@ -565,50 +589,6 @@ outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
             renderFramebuffer:Create(device, renderImageViews, sceneRenderPass)
             renderFramebuffers:Add(renderFramebuffer)
             
-            
-            // Now create a framebuffer for the shadow pass.
-            VulkanFramebuffer shadowFramebuffer
-            Array<VulkanImageView> shadowImageViews
-            
-            VulkanImageInfo shadowImageInfo
-            shadowImageInfo:SetFlags(constants:IMAGE_CREATE_CUBE_COMPATIBLE_BIT)
-        shadowImageInfo:SetWidth(lightProperties:GetShadowMapSize())
-        shadowImageInfo:SetHeight(lightProperties:GetShadowMapSize())
-        shadowImageInfo:SetFormat(constants:FORMAT_R32G32_SFLOAT)
-        shadowImageInfo:SetUsage(constants:IMAGE_USAGE_COLOR_ATTACHMENT_BIT + constants:IMAGE_USAGE_SAMPLED_BIT)
-            shadowImageInfo:SetArrayLayers(6 * lightProperties:GetShadowMapCascadeCount() * lightProperties:GetMaximumLights())
-        VulkanImage shadowImage
-        shadowImage:Create(device, shadowImageInfo)
-            
-            VulkanImageViewInfo shadowImageViewInfo
-            shadowImageViewInfo:SetFormat(shadowImageInfo:GetFormat())
-            shadowImageViewInfo:SetViewType(constants:IMAGE_VIEW_TYPE_CUBE_ARRAY)
-            shadowImageViewInfo:SetLayerCount(6 * lightProperties:GetShadowMapCascadeCount() * lightProperties:GetMaximumLights())
-            VulkanImageView shadowImageView
-            shadowImageView:Create(device, shadowImage, shadowImageViewInfo)
-            shadowImageViews:Add(shadowImageView)
-            
-            // Also create an image for depth usage.
-            VulkanImageInfo shadowDepthImageInfo
-        shadowDepthImageInfo:SetWidth(lightProperties:GetShadowMapSize())
-        shadowDepthImageInfo:SetHeight(lightProperties:GetShadowMapSize())
-        shadowDepthImageInfo:SetUsage(constants:IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-        shadowDepthImageInfo:SetFormat(constants:FORMAT_D32_SFLOAT)
-        
-        VulkanImage shadowDepthImage
-        shadowDepthImage:Create(device, shadowDepthImageInfo)
-        
-        VulkanImageViewInfo shadowDepthViewInfo
-        shadowDepthViewInfo:SetAspectMask(constants:IMAGE_ASPECT_DEPTH_BIT)
-        shadowDepthViewInfo:SetFormat(shadowDepthImageInfo:GetFormat())
-        
-        VulkanImageView shadowDepthImageView
-        shadowDepthImageView:Create(device, shadowDepthImage, shadowDepthViewInfo)
-            shadowImageViews:Add(depthImageView)
-            
-            shadowFramebuffer:Create(device, shadowImageViews, shadowRenderPass)
-            shadowCubemaps:Add(shadowFramebuffer)
-            
             // Also create the light framebuffer.
             VulkanFramebuffer lightFramebuffer
             Array<VulkanImageView> lightImageViews
@@ -631,17 +611,17 @@ outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
             lightFramebuffers:Add(lightFramebuffer)
             
             // Also ensure we have all the descriptor sets we need for the shadow, lighting, and result stages.
-            if shadowLayout not= undefined
-                VulkanDescriptorSet shadowSet = descriptorSetManager:CreateDescriptorSet(shadowLayout)
-                shadowDescriptors:Add(shadowSet)
+            if shadowProjectionLayout not= undefined
+                VulkanDescriptorSet shadowSet = descriptorSetManager:CreateDescriptorSet(shadowProjectionLayout)
+                shadowProjectionDescriptors:Add(shadowSet)
             end
             if lightsLayout not= undefined
                 VulkanDescriptorSet lightSet = descriptorSetManager:CreateDescriptorSet(lightsLayout)
                 lightDescriptors:Add(lightSet)
             end
             if lightShadowProjectionLayout not= undefined
-                VulkanDescriptorSet projectionSet = descriptorSetManager:CreateDescriptorSet(lightShadowProjectionLayout)
-                lightShadowProjectionDescriptors:Add(projectionSet)
+                VulkanDescriptorSet projectionSet = descriptorSetManager:CreateDescriptorSet(lightShadowProjectionLayout, constants:DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT)
+                lightShadowDataDescriptors:Add(projectionSet)
             end
             if resultsLayout not= undefined
                 VulkanDescriptorSet resultSet = descriptorSetManager:CreateDescriptorSet(resultsLayout)
@@ -666,21 +646,6 @@ outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
                 
                 j = j + 1
             end
-            
-            // Also link up the shadow stage attachment as a descriptor input to the lighting stage.
-            VulkanDescriptorSet shadowProjectionSet = lightShadowProjectionDescriptors:Get(i)
-            
-            VulkanDescriptorResourcesInfo shadowOutputResources
-            VulkanDescriptorImageInfo shadowOutputInfo
-            shadowOutputInfo:SetImageView(shadowImageView)
-            shadowOutputInfo:SetSampler(shadowSampler)
-            shadowOutputInfo:SetImageLayout(constants:IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-            Array<VulkanDescriptorImageInfo> shadowOutputImages
-            shadowOutputImages:Add(shadowOutputInfo)
-            shadowOutputResources:SetImageInfo(shadowOutputImages)
-            shadowOutputResources:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
-            shadowOutputResources:SetDestinationBinding(0)
-            shadowProjectionSet:LinkResources(shadowOutputResources)
             
             // Also update the descriptor set used by the results phase to get the output from the lighting phase.
             VulkanDescriptorSet resultSet = resultDescriptors:Get(i)
@@ -732,6 +697,92 @@ VulkanAttachmentReference depthReference) returns boolean
         return success
     end
     
+    private action EnsureShadowCubemapFramebuffers(integer resourceIndex)
+        integer totalLights = environment:GetDirectionalLightCount() + environment:GetPointLightCount()
+        if totalLights > environment:GetMaxLights()
+            totalLights = environment:GetMaxLights()
+        end
+        
+        Array<VulkanFramebuffer> framebuffers = shadowCubemapFramebuffers:Get(resourceIndex)
+        
+        if framebuffers:GetSize() >= totalLights
+            return now
+        end
+        
+        VulkanConstants constants
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        VulkanDevice device = graphics:GetDevice()
+        VulkanLightingProperties lightProperties = graphics:GetLightingProperties()
+        
+        integer i = framebuffers:GetSize()
+        repeat while i < totalLights
+            // Create a framebuffer for the shadow pass.
+            VulkanFramebuffer shadowFramebuffer
+            Array<VulkanImageView> shadowImageViews
+            
+            VulkanImageInfo shadowImageInfo
+        shadowImageInfo:SetWidth(lightProperties:GetShadowMapSize())
+        shadowImageInfo:SetHeight(lightProperties:GetShadowMapSize())
+        shadowImageInfo:SetFormat(constants:FORMAT_R32G32_SFLOAT)
+        shadowImageInfo:SetUsage(constants:IMAGE_USAGE_COLOR_ATTACHMENT_BIT + constants:IMAGE_USAGE_SAMPLED_BIT)
+            shadowImageInfo:SetArrayLayers(6 * lightProperties:GetShadowMapCascadeCount())
+        VulkanImage shadowImage
+        shadowImage:Create(device, shadowImageInfo)
+            
+            VulkanImageViewInfo shadowImageViewInfo
+            shadowImageViewInfo:SetFormat(shadowImageInfo:GetFormat())
+            shadowImageViewInfo:SetViewType(constants:IMAGE_VIEW_TYPE_2D_ARRAY)
+            shadowImageViewInfo:SetLayerCount(6 * lightProperties:GetShadowMapCascadeCount())
+            VulkanImageView shadowImageView
+            shadowImageView:Create(device, shadowImage, shadowImageViewInfo)
+            shadowImageViews:Add(shadowImageView)
+            
+            // Also create an image for depth usage.
+            VulkanImageInfo shadowDepthImageInfo
+        shadowDepthImageInfo:SetWidth(lightProperties:GetShadowMapSize())
+        shadowDepthImageInfo:SetHeight(lightProperties:GetShadowMapSize())
+        shadowDepthImageInfo:SetUsage(constants:IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+        shadowDepthImageInfo:SetFormat(constants:FORMAT_D32_SFLOAT)
+            shadowDepthImageInfo:SetArrayLayers(6 * lightProperties:GetShadowMapCascadeCount())
+        
+        VulkanImage shadowDepthImage
+        shadowDepthImage:Create(device, shadowDepthImageInfo)
+        
+        VulkanImageViewInfo shadowDepthViewInfo
+        shadowDepthViewInfo:SetAspectMask(constants:IMAGE_ASPECT_DEPTH_BIT)
+        shadowDepthViewInfo:SetFormat(shadowDepthImageInfo:GetFormat())
+            shadowDepthViewInfo:SetViewType(constants:IMAGE_VIEW_TYPE_2D_ARRAY)
+            shadowDepthViewInfo:SetLayerCount(6 * lightProperties:GetShadowMapCascadeCount())
+        
+        VulkanImageView shadowDepthImageView
+        shadowDepthImageView:Create(device, shadowDepthImage, shadowDepthViewInfo)
+            shadowImageViews:Add(shadowDepthImageView)
+            
+            shadowFramebuffer:Create(device, shadowImageViews, shadowRenderPass)
+            framebuffers:Add(shadowFramebuffer)
+            
+            
+            // Also link up the shadow stage attachment as a descriptor input to the lighting stage.
+            VulkanDescriptorSet shadowProjectionSet = lightShadowDataDescriptors:Get(resourceIndex)
+            
+            VulkanDescriptorResourcesInfo shadowOutputResources
+            VulkanDescriptorImageInfo shadowOutputInfo
+            shadowOutputInfo:SetImageView(shadowImageView)
+            shadowOutputInfo:SetSampler(shadowSampler)
+            shadowOutputInfo:SetImageLayout(constants:IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+            Array<VulkanDescriptorImageInfo> shadowOutputImages
+            shadowOutputImages:Add(shadowOutputInfo)
+            shadowOutputResources:SetImageInfo(shadowOutputImages)
+            shadowOutputResources:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+            shadowOutputResources:SetDestinationBinding(1)
+            shadowOutputResources:SetDestinationArrayElement(i)
+            shadowProjectionSet:LinkResources(shadowOutputResources)
+            
+            i = i + 1
+        end
+        
+    end
+    
     action GetDefaultProgram returns ShaderProgram
         if defaultProgram = undefined
             ShaderManager shaders = gameState:GetShaderManager()
@@ -739,6 +790,21 @@ VulkanAttachmentReference depthReference) returns boolean
         end
         
         return defaultProgram
+    end
+    
+    action GetDefaultShadowPipeline returns VulkanPipeline
+        ShaderProgram program = GetDefaultShadowProgram()
+        VulkanShaderProgram strategy = cast(VulkanShaderProgram, program:GetShaderProgramStrategy())
+        return strategy:GetPipeline()
+    end
+    
+    action GetDefaultShadowProgram returns ShaderProgram
+        if defaultShadowProgram = undefined
+            ShaderManager shaders = gameState:GetShaderManager()
+            defaultShadowProgram = shaders:GetDefaultShadowShaderProgram()
+        end
+        
+        return defaultShadowProgram
     end
     
     action GetDefaultLightingPipeline returns VulkanPipeline
@@ -814,6 +880,10 @@ if batches:HasKey(schematic)
         // Abort if rendering is paused due to window minimization.
         if graphics:IsRenderingPaused()
             return now
+        end
+        
+        if environment:GetCamera() = undefined
+            environment:SetCamera(camera)
         end
         
         // If the render pass isn't defined and valid, regenerate it.
@@ -903,7 +973,7 @@ Layer layer = layers:Next()
                 counter = counter + 1
             end
         end
-        if not shadowResourcesLinked
+        if not shadowProjectionResourcesLinked
             VulkanConstants constants
             integer i = 0
             repeat while i < graphics:GetSwapchain():GetImageCount()
@@ -914,13 +984,22 @@ Layer layer = layers:Next()
             projectionResources:SetDestinationBinding(0)
             projectionResources:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
             
-            VulkanDescriptorSet set = shadowDescriptors:Get(i)
+            VulkanDescriptorSet set = shadowProjectionDescriptors:Get(i)
             set:LinkResources(projectionResources)
+                
+                // Also link the same buffer as resources available to the lightShadowDataDescriptors.
+                VulkanDescriptorResourcesInfo lightProjectionResources
+                lightProjectionResources:AddBufferInfo(shadowBuffer, 0, shadowBuffer:GetSize())
+            lightProjectionResources:SetDestinationBinding(0)
+            lightProjectionResources:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+                
+                VulkanDescriptorSet lightSet = lightShadowDataDescriptors:Get(i)
+                lightSet:LinkResources(lightProjectionResources)
                 
                 i = i + 1
             end
             
-            shadowResourcesLinked = true
+            shadowProjectionResourcesLinked = true
         end
         
         if dummyVertexBuffer = undefined
@@ -931,15 +1010,6 @@ Layer layer = layers:Next()
             
             dummyBuffer:CreateMappableBuffer(sceneRenderPass:GetDevice(), 12, constants:BUFFER_USAGE_VERTEX_BUFFER_BIT)
         end
-        
-        //needsFlush = false
-        //isClipping = false
-        //clipX1 = -1
-        //clipX2 = -1
-        //clipY1 = -1
-        //clipY2 = -1
-        //clipWidth = -1
-        //clipHeight = -1
     end
     
     action End
@@ -948,10 +1018,12 @@ Layer layer = layers:Next()
         if graphics:IsRenderingPaused()
             return now
         end
+        
+        integer resourceIndex = graphics:GetCurrentResourceIndex()
 
         VulkanCommandBuffer commandBuffer = graphics:GetCurrentRenderCommandBuffer()
         VulkanSwapchain swapchain = graphics:GetSwapchain()
-        VulkanFramebuffer sceneFramebuffer = renderFramebuffers:Get(graphics:GetCurrentResourceIndex())
+        VulkanFramebuffer sceneFramebuffer = renderFramebuffers:Get(resourceIndex)
         VulkanConstants constants
         
         ModelManagerVulkan modelManager = graphics:GetModelManager()
@@ -1051,16 +1123,6 @@ BindDescriptorSetCommand cameraBind
             cameraBind:SetDescriptorSet(currentCameraDescriptor)
             commandBuffer:Record(cameraBind)
         
-        //integer i = 0
-        //repeat while i < drawQueues:GetSize()
-            //VulkanDrawQueue3D drawQueue = GetCurrentDrawQueue(i)
-            //if drawQueue not= undefined
-                //drawQueue:Begin()
-            //end
-            //i = i + 1
-        //end
-        
-        
         i = 0
         repeat while i < drawQueues:GetSize()
             Array<VulkanDrawQueue3D> allQueues = drawQueues:Get(i)
@@ -1095,16 +1157,6 @@ BindDescriptorSetCommand cameraBind
             end
         end
         
-        //pushConstants:ResetWritePosition()
-        //pushConstants:AddBufferPointer(drawQueue:GetInstanceDataBuffer())
-        //
-        //SetPushConstantsCommand setPushConstants
-        //setPushConstants:SetData(pushConstants)
-        //setPushConstants:SetPipelineLayout(currentPipeline:GetLayout())
-        //setPushConstants:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT +
-//constants:SHADER_STAGE_FRAGMENT_BIT)
-        //commandBuffer:Record(setPushConstants)
-        
         i = 0
         repeat while i < drawQueues:GetSize()
             VulkanDrawQueue3D drawQueue = GetCurrentDrawQueue(i)
@@ -1132,10 +1184,6 @@ constants:SHADER_STAGE_FRAGMENT_BIT)
             end
             i = i + 1
         end
-        //DrawIndirectCommand drawCommand
-        //drawCommand:SetDrawCommands(drawQueue:GetDrawCommandBuffer())
-        //drawCommand:SetDrawCount(drawQueue:GetDrawCommandCount())
-        //commandBuffer:Record(drawCommand)
 
         // End the render pass.
         EndRenderPassCommand endRenderPass
@@ -1144,79 +1192,91 @@ constants:SHADER_STAGE_FRAGMENT_BIT)
         // Now, submit commands to render the shadow maps.
         // We intentionally do NOT put any additional barriers or waiting here, because the shadow stage is independent of the scene rendering.
         // Allow Vulkan to run this stage in parallel with the scene rendering.
-        VulkanFramebuffer shadowCubemap = shadowCubemaps:Get(graphics:GetCurrentResourceIndex())
         
-        // TO-DO: SHADOW STAGE RENDERING HERE
-        // TO-DO: Calculate projection matrices and store in the local buffer
+        // Before we begin rendering the shadows, make sure we have all the framebuffers needed for the data in this stage.
+        EnsureShadowCubemapFramebuffers(resourceIndex)
         
-        // Create the command to begin the render pass.
-        BeginRenderPassCommand beginShadowPass
-        beginShadowPass:SetRenderPass(shadowRenderPass)
-        beginShadowPass:SetClearValues(shadowClearValues)
-        beginShadowPass:SetFramebuffer(shadowCubemap)
-        beginShadowPass:SetRenderArea(swapchain:GetImageWidth(), swapchain:GetImageHeight())
-        commandBuffer:Record(beginShadowPass)
-
-        // TO-DO: Support custom shaders for 3D.
-        ShaderProgram shadowProgram = undefined
-        VulkanPipeline shadowPipeline = undefined
+        Array<VulkanFramebuffer> shadowFramebuffers = shadowCubemapFramebuffers:Get(resourceIndex)
+        
+        // Perform the shadow rendering phase.
+        integer directionalLightCount = environment:GetDirectionalLightCount()
+            integer totalLightCount = directionalLightCount + environment:GetPointLightCount()
+            if totalLightCount > lightProperties:GetMaximumLights()
+                totalLightCount = lightProperties:GetMaximumLights()
+            end
+        
+        ShaderProgram shadowProgram = GetDefaultShadowProgram()
+        VulkanPipeline shadowPipeline = GetDefaultShadowPipeline()
         
         if shadowPipeline = undefined
             VulkanShaderProgram strategy = cast(VulkanShaderProgram, shadowProgram:GetShaderProgramStrategy())
             strategy:CreatePipeline(shadowRenderPass)
             shadowPipeline = strategy:GetPipeline()
         end
-        
-        BindPipelineCommand bindShadowPipeline
-            bindShadowPipeline:SetPipeline(shadowPipeline)
-            commandBuffer:Record(bindShadowPipeline)
-        
-        SetViewportAndScissor(commandBuffer, swapchain)
-        
-        // We actually don't use regular vertex inputs in our bindless approach, but Vulkan complains if we never bind anything.
-        // Use our previous command to bind a dummy set to satisfy the spec and prevent warnings and unpredictable behavior.
-        commandBuffer:Record(bindVertex)
-        
         VulkanPipelineLayout shadowPipelineLayout = shadowPipeline:GetInfo():GetLayout()
         
-BindDescriptorSetCommand shadowDescriptorBind
-            shadowDescriptorBind:SetPipelineLayout(shadowPipelineLayout)
-            shadowDescriptorBind:SetDescriptorSet(shadowDescriptors:Get(graphics:GetCurrentResourceIndex()))
-            commandBuffer:Record(shadowDescriptorBind)
+        integer shadowMapSize = lightProperties:GetShadowMapSize()
         
-        /*Note that if we are not rendering shadows, we still bind and begin the render pass -- we only skip the sending of draw
+        i = 0
+        repeat while i < totalLightCount
+            VulkanFramebuffer shadowFramebuffer = shadowFramebuffers:Get(i)
+            
+            // We have to render to a different framebuffer for each light, so we create a render pass for each one.
+            // Create the command to begin the render pass.
+        BeginRenderPassCommand beginShadowPass
+        beginShadowPass:SetRenderPass(shadowRenderPass)
+        beginShadowPass:SetClearValues(shadowClearValues)
+        beginShadowPass:SetFramebuffer(shadowFramebuffer)
+        beginShadowPass:SetRenderArea(shadowMapSize, shadowMapSize)
+        commandBuffer:Record(beginShadowPass)
+            
+            BindPipelineCommand bindShadowPipeline
+            bindShadowPipeline:SetPipeline(shadowPipeline)
+            commandBuffer:Record(bindShadowPipeline)
+            
+            SetViewportCommand setViewport
+            setViewport:SetPosition(0, shadowMapSize)
+            setViewport:SetSize(shadowMapSize, -shadowMapSize)
+            commandBuffer:Record(setViewport)
+        
+        SetScissorCommand setScissor
+        setScissor:SetPosition(0, 0)
+            setScissor:SetSize(shadowMapSize, shadowMapSize)
+        commandBuffer:Record(setScissor)
+            
+            // We actually don't use regular vertex inputs in our bindless approach, but Vulkan complains if we never bind anything.
+        // Use our previous command to bind a dummy set to satisfy the spec and prevent warnings and unpredictable behavior.
+        commandBuffer:Record(bindVertex)
+            
+            BindDescriptorSetCommand shadowDescriptorBind
+            shadowDescriptorBind:SetPipelineLayout(shadowPipelineLayout)
+            shadowDescriptorBind:SetDescriptorSet(shadowProjectionDescriptors:Get(resourceIndex))
+            commandBuffer:Record(shadowDescriptorBind)
+            
+            integer isPointLight = 0
+            if i >= directionalLightCount
+                isPointLight = 1
+            end
+            
+            /*Note that if we are not rendering shadows, we still bind and begin the render pass -- we only skip the sending of draw
 commands. This is because performing the lighting render pass relies on the output from the shadow stage even if there are
 no shadows (the shaders expect the buffers to be present). A render pass with no draw will reset all cubemaps back to
 their default clear values, which is functionally equivalent to there being no shadows.*/
-        i = 0
-        if IsRenderingShadows()
-            integer lightCounter = 0
-            integer directionalLightCount = environment:GetDirectionalLightCount()
-            integer totalLightCount = directionalLightCount + environment:GetPointLightCount()
-            if totalLightCount > lightProperties:GetMaximumLights()
-                totalLightCount = lightProperties:GetMaximumLights()
-            end
-            
-            output "Total lights = " + totalLightCount
-            repeat while lightCounter < totalLightCount
-                integer isPointLight = 0
-                if lightCounter >= directionalLightCount
-                    isPointLight = 1
-                end
-                
-                repeat while i < drawQueues:GetSize()
-            VulkanDrawQueue3D drawQueue = GetCurrentDrawQueue(i)
-            if drawQueue not= undefined and drawQueue:GetDrawCommandCount() > 0
-                BindDescriptorSetCommand texturesBind
-            texturesBind:SetPipelineLayout(shadowPipelineLayout)
-            texturesBind:SetDescriptorSet(textureManager:GetGlobalTextureDescriptorSet(i))
-            texturesBind:SetSetIndex(1)
-            commandBuffer:Record(texturesBind)
-                
+            integer j = 0
+            if IsRenderingShadows()
+            repeat while j < drawQueues:GetSize()
+                    VulkanDrawQueue3D drawQueue = GetCurrentDrawQueue(j)
+            if drawQueue not= undefined and drawQueue:GetShadowDrawCommandCount() > 0
+                        BindDescriptorSetCommand shadowTextureDescriptorBind
+            shadowTextureDescriptorBind:SetPipelineLayout(shadowPipelineLayout)
+            shadowTextureDescriptorBind:SetDescriptorSet(textureManager:GetGlobalTextureDescriptorSet(j))
+            shadowTextureDescriptorBind:SetSetIndex(1)
+            commandBuffer:Record(shadowTextureDescriptorBind)
+                        
                 shadowPushConstants:ResetWritePosition()
         shadowPushConstants:AddBufferPointer(drawQueue:GetInstanceDataBuffer())
                         shadowPushConstants:AddInteger32Bit(isPointLight)
-                        shadowPushConstants:AddInteger32Bit(lightCounter)
+                        shadowPushConstants:AddInteger32Bit(i)
         
         SetPushConstantsCommand setPushConstants
         setPushConstants:SetData(shadowPushConstants)
@@ -1225,32 +1285,28 @@ their default clear values, which is functionally equivalent to there being no s
 constants:SHADER_STAGE_GEOMETRY_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
         commandBuffer:Record(setPushConstants)
                 
-                        output "Sending shadow draw command for drawQueue " + i + ", light #" + lightCounter
                 DrawIndirectCommand drawCommand
         drawCommand:SetDrawCommands(drawQueue:GetShadowDrawCommandBuffer())
         drawCommand:SetDrawCount(drawQueue:GetShadowDrawCommandCount())
         commandBuffer:Record(drawCommand)
-                    else
-                        if drawQueue not= undefined
-                            output "Didn't draw, queue command count = " + drawQueue:GetDrawCommandCount()
-                        end
             end
-            i = i + 1
-        end
                 
-                lightCounter = lightCounter + 1
+                j = j + 1
+end
             end
-        end
-        
-        // End the render pass.
+            
+            // End the render pass.
         EndRenderPassCommand endShadowRenderPass
         commandBuffer:Record(endShadowRenderPass)
+            
+            i = i + 1
+        end
 
         // Empty the pending arrays.
         pendingBatches:Empty()
         pendingTransparentBatches:Empty()
         
-        // Now that scene geometry has been rendered, prepare for the lighting pass.
+        // Now that scene geometry has been rendered, and shadow maps calculated, prepare for the lighting pass.
         // First, ensure that all writing to the scene's color attachments has finished before attempting to read any of it.
         i = 0
         repeat while i < 4
@@ -1258,11 +1314,16 @@ constants:SHADER_STAGE_GEOMETRY_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
         AttachmentWriteBarrier(commandBuffer, attachment)
             i = i + 1
         end
+        
         // Also ensure all writing to the shadow cubemaps has finished, because the lighting stage needs that too.
-        AttachmentWriteBarrier(commandBuffer, shadowCubemap:GetImageViews():Get(0):GetImage())
+        i = 0
+        repeat while i < shadowFramebuffers:GetSize()
+            AttachmentWriteBarrier(commandBuffer, shadowFramebuffers:Get(i):GetImageViews():Get(0):GetImage())
+            i = i + 1
+        end
         
         // Begin the render pass for the lighting phase.
-        VulkanFramebuffer lightFramebuffer = lightFramebuffers:Get(graphics:GetCurrentResourceIndex())
+        VulkanFramebuffer lightFramebuffer = lightFramebuffers:Get(resourceIndex)
         
         BeginRenderPassCommand beginLightRender
         beginLightRender:SetRenderPass(lightRenderPass)
@@ -1291,14 +1352,20 @@ constants:SHADER_STAGE_GEOMETRY_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
                 
 BindDescriptorSetCommand lightDescriptorBind
             lightDescriptorBind:SetPipelineLayout(lightPipelineLayout)
-            lightDescriptorBind:SetDescriptorSet(lightDescriptors:Get(graphics:GetCurrentResourceIndex()))
+            lightDescriptorBind:SetDescriptorSet(lightDescriptors:Get(resourceIndex))
             commandBuffer:Record(lightDescriptorBind)
         
         BindDescriptorSetCommand lightDataDescriptorBind
         lightDataDescriptorBind:SetPipelineLayout(lightPipelineLayout)
-        lightDataDescriptorBind:SetDescriptorSet(environment:GetDescriptorSet(graphics:GetCurrentResourceIndex()))
+        lightDataDescriptorBind:SetDescriptorSet(environment:GetLightDataDescriptorSet(resourceIndex))
         lightDataDescriptorBind:SetSetIndex(1)
         commandBuffer:Record(lightDataDescriptorBind)
+        
+        BindDescriptorSetCommand lightShadowDescriptorBind
+        lightShadowDescriptorBind:SetPipelineLayout(lightPipelineLayout)
+        lightShadowDescriptorBind:SetDescriptorSet(lightShadowDataDescriptors:Get(resourceIndex))
+        lightShadowDescriptorBind:SetSetIndex(2)
+        commandBuffer:Record(lightShadowDescriptorBind)
 
         DrawCommand lightDrawCommand
         lightDrawCommand:SetVertexCount(3)
@@ -1346,7 +1413,7 @@ BindDescriptorSetCommand lightDescriptorBind
                 
 BindDescriptorSetCommand resultDescriptorBind
             resultDescriptorBind:SetPipelineLayout(resultPipelineLayout)
-            resultDescriptorBind:SetDescriptorSet(resultDescriptors:Get(graphics:GetCurrentResourceIndex()))
+            resultDescriptorBind:SetDescriptorSet(resultDescriptors:Get(resourceIndex))
             commandBuffer:Record(resultDescriptorBind)
 
         DrawCommand resultDrawCommand

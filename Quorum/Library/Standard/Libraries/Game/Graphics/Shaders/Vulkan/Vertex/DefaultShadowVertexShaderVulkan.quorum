@@ -21,6 +21,14 @@ class DefaultShadowVertexShaderVulkan is Shader
 layout(location = 0) out vec2 v_textureCoords;
 layout(location = 1) flat out uint v_entityID;
 
+struct Vertex {
+	vec3 position;
+	vec3 normal;
+	vec3 tangent;
+	vec3 bitangent;
+	vec2 textureCoordinates;
+};
+
 layout(scalar, buffer_reference) buffer VertexBuffer {
 	Vertex[] vertices;
 };
@@ -50,17 +58,10 @@ layout(push_constant) uniform PushConstants {
    uint isPointLight;
    uint lightIndex;
 } pushConstants;
-
-struct Vertex {
-	vec3 position;
-	vec3 normal;
-	vec3 tangent;
-	vec3 bitangent;
-	vec2 textureCoordinates;
-};
 		
 void main()
 {
+/*
 	uint entityID = gl_InstanceIndex;
 	
 	Instances instances = pushConstants.instances;
@@ -81,6 +82,9 @@ void main()
 	v_entityID = entityID;
 	
 	gl_Position = worldPosition;
+	*/
+	
+	gl_Position = vec4(0.1 * gl_InstanceIndex, 0.01 * gl_VertexIndex, gl_VertexIndex & 2, 1.0);
 }
 ")
     end
