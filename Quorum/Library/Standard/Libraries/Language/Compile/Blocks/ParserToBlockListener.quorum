@@ -641,4 +641,21 @@ class ParserToBlockListener is QuorumSourceListener
     action SetQuorumLexer(QuorumLexer lexer)
         me:lexer = lexer
     end
+    
+    action SetStartLine(integer startLine)
+        me:startLine = startLine
+    end
+
+    action GetStartLine returns integer
+        return startLine
+    end
+
+    action SetFinishLine(integer finishLine)
+        me:finishLine = finishLine
+    end
+
+    action GetFinishLine returns integer
+        return finishLine
+    end
+
 end
