@@ -386,4 +386,8 @@ class PixelMap is Disposable
         Game game = manager:GetGame()
         Screenshot(0, 0, game:GetScreenWidth(), game:GetScreenHeight())
     end
+    
+    /*This action writes a PixelMap to disk in either png, jpg, jpeg, gif, bmp, or 
+dib format. This action works only on Desktop platforms. */
+    system action Save(File file)
 end

@@ -14,6 +14,11 @@ import plugins.quorum.Libraries.Game.GameFile;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 import plugins.quorum.Libraries.Game.Graphics.OpenGL.OpenGLManager;
 import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import java.io.IOException;
+import quorum.Libraries.System.File;
+import quorum.Libraries.System.File_;
 
 /**
  *
@@ -466,5 +471,39 @@ public class PixelMap {
 
         LoadFromByteBuffer(result, width, height, FORMAT_RGBA8888);
     }
-    
+
+    public void Save(File_ file) throws IOException {
+        String path = file.GetAbsolutePath();
+        String extension = file.GetFileExtension();
+        if(extension.compareTo("png") == 0 ||
+                extension.compareTo("jpg") == 0 ||
+                extension.compareTo("jpeg") == 0 ||
+                extension.compareTo("gif") == 0 ||
+                extension.compareTo("bmp") == 0 ||
+                extension.compareTo("dib") == 0)
+        {
+        } else {
+            throw new IOException("Extension in format " + extension + " is not available on this platform.");
+        }
+        int[] pixels = new int[width * height];
+        for(int i = 0; i < height; i++) {
+            for(int j = 0; j < width; j++) {
+                //Java's buffered image packs the pixels differently.
+                //So, repack them and bitshift into the way it likes it
+                int code = GetPixel(j, i);
+                int r = (code >>> 24) & 255;
+                int g = (code >>> 16) & 255;
+                int b = (code >>> 8) & 255;
+                int a = code & 255;
+                int argb = (a << 24) | (r << 16) | (g << 8) | b;
+                pixels[i * width + j] = argb;
+            }
+        }
+
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        image.setRGB(0, 0, width, height, pixels, 0, width);
+
+        java.io.File out = new java.io.File(path);
+        ImageIO.write(image, extension, out);
+    }
 }

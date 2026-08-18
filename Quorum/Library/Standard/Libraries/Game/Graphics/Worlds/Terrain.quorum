@@ -1,0 +1,297 @@
+package Libraries.Game.Graphics.Worlds
+use Libraries.System.File
+use Libraries.Compute.BitwiseOperations
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Containers.Number32BitArray
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Containers.Integer32BitArray
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
+use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
+use Libraries.Compute.Vector3
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Compute.Vector4
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.PixelMap
+
+/*This is a default and very primitive Terrain class that can be used 
+to store data from a height map image. 
+
+Attribute: Example
+
+use Libraries.Game.Game
+use Libraries.Game.Graphics.PixelMap
+use Libraries.System.File
+use Libraries.Game.Graphics.Color
+use Libraries.Compute.BitwiseOperations
+use Libraries.Game.Graphics.Terrain
+use Libraries.Game.Graphics.DirectionalLight
+use Libraries.Game.Graphics.PointLight
+use Libraries.Game.Graphics.Camera
+
+class Main is Game
+    Terrain terrain
+    action Main
+        UseVulkan(true)
+        StartGame()
+    end
+
+    action CreateGame
+        File file
+        file:SetPath("Terrain.png")
+        terrain:LoadHeightMap(file)
+        
+        number scale = 0.5
+        terrain:Scale(scale,scale,scale)
+        terrain:SetY(-15)
+        terrain:SetX(-25)
+        terrain:SetZ(10)
+        
+        Color color
+        Add(terrain)
+        
+        DirectionalLight light
+        light:SetIntensity(3)
+        light:SetColor(color:LightGray())
+        light:SetDirection(-1, -5, -1)
+        Add(light)
+        
+        PointLight light2
+        light2:SetIntensity(100)
+        light2:SetColor(color:Green())
+        light2:SetPosition(0, 3, -15)
+        Add(light2)
+    end
+
+    action Update(number seconds)
+        Camera camera = GetCamera3D()
+        camera:Move(0,0,2 * seconds)
+    end
+end */
+class Terrain is Model 
+    BitwiseOperations ops
+    number heightScale = 30
+    
+    /*This action loads a height map from a gray scale image. The amount of 
+white in every pixel generates the height in the model. 
+
+Attribute: Parameter text the path to the file to process.*/
+    action LoadHeightMap(text path)
+        File file
+        file:SetPath(path)
+        LoadHeightMap(file)
+    end
+    
+    /*This action loads a height map from a gray scale image. The amount of 
+white in every pixel generates the height in the model. 
+
+Attribute: Parameter File the file to process.*/
+    action LoadHeightMap(File file)
+        PixelMap map
+        map:LoadPixelMap(file)
+        
+        //Temporary storage
+        Vector3 normal
+        Vector3 temp
+        
+        //Store all the mathematical details for the mesh.
+        Number32BitArray vertices
+        vertices:SetSize(map:GetWidth() * map:GetHeight() * 3)
+        Number32BitArray normals
+        normals:SetSize(vertices:GetSize())
+        Number32BitArray tangents
+        tangents:SetSize(vertices:GetSize())
+        Number32BitArray bitangents
+        bitangents:SetSize(vertices:GetSize())
+        Number32BitArray textureCoordinates
+        textureCoordinates:SetSize(map:GetWidth() * map:GetHeight() * 2)
+        
+        
+        //Loop through the pixel map and get all the coordinates
+        i = 0
+        j = 0
+        repeat while i < map:GetHeight()
+            repeat while j < map:GetWidth()
+                integer code = map:GetPixel(i, j)
+            
+                //We ignore all the colors but red because they are all the same.
+            number alpha = ops:And(code, 255)
+        	    number blue = ops:And(ops:ShiftRight(code, 8), 255)
+            number green = ops:And(ops:ShiftRight(code, 16), 255)
+            number red = CalculateValueFromRed(code)
+            
+                //y is the height of the position. 
+                number x = j
+                number y = red
+                number z = i
+                
+                //Tracking the indices
+                integer bump = (i * map:GetWidth() * 3)
+                integer position = j * 3 + bump
+                integer uvBump = (i * map:GetWidth() * 2)
+                integer uvPosition = j * 2 + uvBump
+                
+                //vertices
+                vertices:Set(position, x)
+                vertices:Set(position + 1, y)
+                vertices:Set(position + 2, z)
+
+                number left = 0
+                number right = 0
+                number top = 0
+                number bottom = 0
+                
+                //If there is no neighbor, just use the vertex value
+                //Left
+                if j - 1 >= 0
+                    left  = CalculateValueFromRed(map:GetPixel(i, j - 1))
+                else
+                    left  = y
+                end
+                
+                //Right
+                if j + 1 < map:GetWidth()
+                    right  = CalculateValueFromRed(map:GetPixel(i, j + 1))
+                else
+                    //Mirror
+                    right  = y
+                end
+                
+                //Top
+                if i - 1 >= 0
+                    integer newCode = map:GetPixel(i - 1, j)
+                    bottom  = CalculateValueFromRed(map:GetPixel(i - 1, j))
+                else
+                    bottom = y
+                end
+                
+                if i + 1 < map:GetHeight()
+                    top  = CalculateValueFromRed(map:GetPixel(i + 1, j))
+                else
+                    top = y
+                end
+                
+                number dx = right - left
+                number dz = top - bottom
+                
+                //Calculate the normals
+                Vector3 result = temp:Set(-dx, 2, -dz):Normalize()
+                Vector3 normalTemp = result:Copy()
+                normals:Set(position, result:GetX())
+                normals:Set(position + 1, result:GetY())
+                normals:Set(position + 2, result:GetZ())
+                
+                //Calculate the tangents
+                result = temp:Set(2, dx, 0):Normalize()
+                Vector3 tangentTemp = result:Copy()
+                tangents:Set(position, result:GetX())
+                tangents:Set(position + 1, result:GetY())
+                tangents:Set(position + 2, result:GetZ())
+                
+                //Calculate the bitangents
+                result = normalTemp:CrossProduct(tangentTemp)
+                bitangents:Set(position, result:GetX())
+                bitangents:Set(position + 1, result:GetY())
+                bitangents:Set(position + 2, result:GetZ())
+                
+                //Calculate the texture coordinates
+                textureCoordinates:Set(uvPosition, 0)
+                textureCoordinates:Set(uvPosition + 1, 0)
+                
+                j = j + 1
+            end
+            
+            j = 0
+            i = i + 1
+        end
+        
+        //Calculate the indices
+        Integer32BitArray indices
+        indices:SetSize((map:GetWidth() - 1) * (map:GetHeight() - 1) * 2 * 3)
+        integer position = 0
+        
+        i = 0
+        repeat while i < map:GetHeight() - 1
+            j = 0
+            repeat while j < map:GetWidth() - 1
+                integer width = map:GetWidth()
+                integer topLeft = i * width + j
+                integer topRight = topLeft + 1
+                integer bottomLeft = (i + 1) * width + j
+                integer bottomRight = bottomLeft + 1
+                //Cell Left
+                indices:Set(position, topLeft)
+                indices:Set(position + 1, bottomLeft)
+                indices:Set(position + 2, topRight)
+                
+                //Cell Right
+                indices:Set(position + 3, topRight)
+                indices:Set(position + 4, bottomLeft)
+                indices:Set(position + 5, bottomRight)
+                
+                position = position + 6
+                j = j + 1
+ end
+            i = i + 1
+ end
+        
+        //Create a MeshData for the model
+        MeshData meshData
+        meshData:SetVertices(vertices)
+        meshData:SetIndices(indices)
+        meshData:SetNormals(normals)
+        meshData:SetTangents(tangents)
+        meshData:SetBitangents(bitangents)
+        meshData:SetTextureCoordinates(textureCoordinates)
+        meshData:SetMaterialIndex(0)
+        
+        Array<MeshData> meshes
+        meshes:Add(meshData)
+        
+        //This will likely need to change. Some research is needed first
+        //We likely want to let the user map materials and textures.
+        Array<Material> materials
+        Material material
+        //Confusing, but the Assimp library uses vectors for colors.
+        //As such, this is RGBA, scaled from 0 to 1 (256)
+        Vector4 diffuse
+        diffuse:Set(1,1,1,1)
+        material:SetDiffuse(diffuse)
+        materials:Add(material)
+        
+        //The model data needs a unique ID, the meshes, and materials.
+        ModelData modelData
+        modelData:SetID(file:GetAbsolutePath())
+        modelData:SetMeshes(meshes)
+        modelData:SetMaterials(materials)
+        
+        //Now get a model blueprint and set it.
+        ModelManagerVulkan manager
+        ModelBlueprintVulkan bluey = manager:GetModelBlueprint(modelData)
+        SetModelBlueprint(bluey)
+    end
+    
+    private action CalculateValueFromRed(integer code) returns number
+return heightScale * ops:And(ops:ShiftRight(code, 24), 255) / 256.0
+end
+    
+    private action FillVector(Vector3 vector, integer index, Number32BitArray vertices)
+        vector:SetX(vertices:Get(index * 3))
+        vector:SetY(vertices:Get(index * 3 + 1))
+        vector:SetZ(vertices:Get(index * 3 + 2))
+    end
+    
+    /*This action get the amount to scale the height values. By default, 
+they are scaled by 30 * some amount of white in the pixel in the heightmap,
+which is itself scaled from 0 to 1. Thus, we have 0 to 30 by default. */
+    action GetHeightScale returns number
+        return heightScale
+    end
+
+    /*This action get the amount to scale the height values. By default, 
+they are scaled by 30 * some amount of white in the pixel in the heightmap,
+which is itself scaled from 0 to 1. Thus, we have 0 to 30 by default. */
+    action SetHeightScale(number heightScale)
+        me:heightScale = heightScale
+    end
+end
