@@ -126,6 +126,17 @@ action GetModelBlueprint(File file) returns ModelBlueprintVulkan
         end
 end
     
+    action GetModelBlueprint(ModelData data) returns ModelBlueprintVulkan
+        text key = data:GetID()
+        if cachedBlueprints:HasKey(key)
+            return cachedBlueprints:GetValue(key)
+        else
+            ModelBlueprintVulkan result = ConvertToBlueprint(data)
+            cachedBlueprints:Add(key, result)
+            return result
+        end
+ end
+    
     action GetModelBlueprint(text filePath) returns ModelBlueprintVulkan
         File file
         file:SetPath(filePath)
