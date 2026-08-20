@@ -2106,4 +2106,19 @@ class Vector4
                    x * matrix:row3column0 + y * matrix:row3column1 + z * matrix:row3column2 + w * matrix:row3column3)
         return me
     end
+    
+    /*This action returns the Vector as formatted text. The vector's component values will be placed
+between square brackets and are separated by commas and spaces.
+
+Attribute: Returns The value of the vector as text.
+
+Attribute: Example
+
+use Libraries.Compute.Vector4
+
+Vector4 vector
+output vector:ToText()*/
+    action ToText returns text
+        return "[" + x + ", " + y + ", " + z + ", " + w + "]"
+    end
 end

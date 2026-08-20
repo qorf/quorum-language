@@ -61,7 +61,6 @@ layout(push_constant) uniform PushConstants {
 		
 void main()
 {
-/*
 	uint entityID = gl_InstanceIndex;
 	
 	Instances instances = pushConstants.instances;
@@ -82,9 +81,8 @@ void main()
 	v_entityID = entityID;
 	
 	gl_Position = worldPosition;
-	*/
 	
-	gl_Position = vec4(0.1 * gl_InstanceIndex, 0.01 * gl_VertexIndex, gl_VertexIndex & 2, 1.0);
+	//gl_Position = vec4(0.1 * gl_InstanceIndex, 0.01 * gl_VertexIndex, gl_VertexIndex & 2, 1.0);
 }
 ")
     end

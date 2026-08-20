@@ -445,6 +445,7 @@ outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
             // Set = 0, Binding = 1 will be the immutable sampler for textures.
         VulkanDescriptorSetLayoutBinding samplerBinding
             samplerBinding:SetBinding(1)
+            //samplerBinding:SetBinding(0)
             samplerBinding:SetDescriptorCount(1)
             samplerBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_SAMPLER)
             samplerBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
@@ -1012,6 +1013,10 @@ Layer layer = layers:Next()
         end
     end
     
+    //Model DEBUG_model = undefined
+    //VulkanBuffer instanceData = undefined
+    //VulkanDrawQueue3DInstanceMappedMemory instanceMemory = undefined
+    
     action End
         VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
         // Abort if rendering is paused due to window minimization.
@@ -1026,10 +1031,28 @@ Layer layer = layers:Next()
         VulkanFramebuffer sceneFramebuffer = renderFramebuffers:Get(resourceIndex)
         VulkanConstants constants
         
+        //if DEBUG_model not= undefined and instanceData = undefined
+            //VulkanBuffer buffer
+            //instanceData = buffer
+            //
+            //buffer:CreateMappableBuffer(graphics:GetDevice(), (2 + 2 + 2 + 1 + 1 + 1 + 1 + 16) * 4, constants:BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)
+            //
+            //VulkanDrawQueue3DInstanceMappedMemory memory
+            //instanceMemory = memory
+            //instanceMemory:Create(instanceData)
+            //
+            //ModelBlueprintVulkan modelPrint = cast(ModelBlueprintVulkan, DEBUG_model:GetModelBlueprint())
+            //instanceMemory:PrepareForTransfers()
+            //instanceMemory:TransferInstanceData(modelPrint:GetMeshes():Get(0), undefined, undefined, DEBUG_model:GetTransform())
+        //end
+        
         ModelManagerVulkan modelManager = graphics:GetModelManager()
         VulkanTextureManager textureManager = graphics:GetTextureManager()
         VulkanShaderManager shaderManager = cast(VulkanShaderManager, gameState:GetShaderManager())
         VulkanLightingProperties lightProperties = graphics:GetLightingProperties()
+        
+        //output "Flush 1"
+        //graphics:DEBUG_FlushCommands()
         
         if sceneClearValues:IsEmpty()
             repeat 4 times
@@ -1038,7 +1061,7 @@ Layer layer = layers:Next()
             sceneClearValues:AddDepthStencil(1, 0)
         end
         if shadowClearValues:IsEmpty()
-            shadowClearValues:AddColor(1.0, 1.0)
+            shadowClearValues:AddColor(1, 1)
             shadowClearValues:AddDepthStencil(1, 0)
         end
         if lightClearValues:IsEmpty()
@@ -1077,15 +1100,7 @@ Number32BitArray projectionViewMatrix = MatrixToArray(camera:GetCombinedMatrix()
         currentCameraMapping:Set(projectionViewMatrix)
         
 //VulkanDescriptorSet texturesDescriptorSet = graphics:GetTextureManager():GetGlobalTextureDescriptorSet()
-
-        // Create the command to begin the render pass.
-        BeginRenderPassCommand beginRenderPass
-        beginRenderPass:SetRenderPass(sceneRenderPass)
-        beginRenderPass:SetClearValues(sceneClearValues)
-        beginRenderPass:SetFramebuffer(sceneFramebuffer)
-        beginRenderPass:SetRenderArea(swapchain:GetImageWidth(), swapchain:GetImageHeight())
-        commandBuffer:Record(beginRenderPass)
-
+        
         // TO-DO: Support custom shaders for 3D.
         ShaderProgram currentProgram = GetDefaultProgram()
         VulkanPipeline currentPipeline = GetDefaultPipeline()
@@ -1096,32 +1111,8 @@ Number32BitArray projectionViewMatrix = MatrixToArray(camera:GetCombinedMatrix()
             currentPipeline = strategy:GetPipeline()
         end
         
-        BindPipelineCommand bindPipeline
-            bindPipeline:SetPipeline(currentPipeline)
-            commandBuffer:Record(bindPipeline)
-        
-        //Set the viewport. If no viewport dimensions were set, we get reasonable defaults from the swapchain.
-            if viewportWidth = 0
-                viewportWidth = swapchain:GetImageWidth()
-            end
-            if viewportHeight = 0
-                viewportHeight = swapchain:GetImageHeight()
-            end
-            
-        SetViewportAndScissor(commandBuffer, swapchain)
-        
-        // We actually don't use regular vertex inputs in our bindless approach, but Vulkan complains if we never bind anything.
-        // Bind a dummy set to satisfy the spec and prevent warnings and unpredictable behavior.
-        BindVertexBufferCommand bindVertex
-        bindVertex:SetBuffer(dummyVertexBuffer)
-        commandBuffer:Record(bindVertex)
-        
-        VulkanPipelineLayout pipelineLayout = currentPipeline:GetInfo():GetLayout()
-                
-BindDescriptorSetCommand cameraBind
-            cameraBind:SetPipelineLayout(pipelineLayout)
-            cameraBind:SetDescriptorSet(currentCameraDescriptor)
-            commandBuffer:Record(cameraBind)
+        //output "Flush 1D"
+        //graphics:DEBUG_FlushCommands()
         
         i = 0
         repeat while i < drawQueues:GetSize()
@@ -1157,6 +1148,93 @@ BindDescriptorSetCommand cameraBind
             end
         end
         
+        //output "Flush 1E"
+        //graphics:DEBUG_FlushCommands()
+
+        // Create the command to begin the render pass.
+        BeginRenderPassCommand beginRenderPass
+        beginRenderPass:SetRenderPass(sceneRenderPass)
+        beginRenderPass:SetClearValues(sceneClearValues)
+        beginRenderPass:SetFramebuffer(sceneFramebuffer)
+        beginRenderPass:SetRenderArea(swapchain:GetImageWidth(), swapchain:GetImageHeight())
+        commandBuffer:Record(beginRenderPass)
+        
+        BindPipelineCommand bindPipeline
+            bindPipeline:SetPipeline(currentPipeline)
+            commandBuffer:Record(bindPipeline)
+        
+        //Set the viewport. If no viewport dimensions were set, we get reasonable defaults from the swapchain.
+            if viewportWidth = 0
+                viewportWidth = swapchain:GetImageWidth()
+            end
+            if viewportHeight = 0
+                viewportHeight = swapchain:GetImageHeight()
+            end
+            
+        SetViewportAndScissor(commandBuffer, swapchain)
+        
+        // We actually don't use regular vertex inputs in our bindless approach, but Vulkan complains if we never bind anything.
+        // Bind a dummy set to satisfy the spec and prevent warnings and unpredictable behavior.
+        BindVertexBufferCommand bindVertex
+        bindVertex:SetBuffer(dummyVertexBuffer)
+        commandBuffer:Record(bindVertex)
+        
+        VulkanPipelineLayout pipelineLayout = currentPipeline:GetInfo():GetLayout()
+                
+BindDescriptorSetCommand cameraBind
+            cameraBind:SetPipelineLayout(pipelineLayout)
+            cameraBind:SetDescriptorSet(currentCameraDescriptor)
+            commandBuffer:Record(cameraBind)
+        
+        //i = 0
+        //repeat while i < drawQueues:GetSize()
+            //Array<VulkanDrawQueue3D> allQueues = drawQueues:Get(i)
+            //integer j = 0
+            //repeat while j < allQueues:GetSize()
+                //VulkanDrawQueue3D queue = allQueues:Get(j)
+                //if queue not= undefined
+                    //queue:Begin()
+                //end
+                //
+                //j = j + 1
+            //end
+            //i = i + 1
+        //end
+        
+        //Array<VulkanPainter3DBatch> currentBatches = pendingBatches
+        //repeat until currentBatches = undefined
+            //integer counter = 0
+            //repeat while counter < currentBatches:GetSize()
+                //VulkanPainter3DBatch batch = currentBatches:Get(counter)
+                //batch:ProcessBatch(me)
+                //batch:PrepareForNextFrame()
+                //
+                //counter = counter + 1
+            //end
+            //
+            //// After drawing all opaque geometry, repeat the process for transparent batches.
+            //if currentBatches = pendingBatches
+                //currentBatches = pendingTransparentBatches
+            //else
+                //currentBatches = undefined
+            //end
+        //end
+        
+        if not pendingBatches:IsEmpty() or not pendingTransparentBatches:IsEmpty()
+            // After ending the batches, we need to wait for data transfers to complete before any drawing can occur.
+            // Create a memory barrier that ensures that all commands after this must wait for the transfer stage of
+            // the pipeline to complete before operations in the vertex input stage can begin.
+            VulkanMemoryBarrier memoryBarrier
+            memoryBarrier:SetSourceStageMask(constants:PIPELINE_STAGE_TRANSFER_BIT)
+            memoryBarrier:SetSourceAccessMask(constants:ACCESS_MEMORY_WRITE_BIT)
+            memoryBarrier:SetDestinationStageMask(constants:PIPELINE_STAGE_VERTEX_INPUT_BIT)
+            memoryBarrier:SetDestinationAccessMask(constants:ACCESS_MEMORY_READ_BIT)
+
+            PipelineBarrierCommand barrierCommand
+            barrierCommand:SetMemoryBarrier(memoryBarrier)
+            //commandBuffer:Record(barrierCommand)
+        end
+        
         i = 0
         repeat while i < drawQueues:GetSize()
             VulkanDrawQueue3D drawQueue = GetCurrentDrawQueue(i)
@@ -1169,6 +1247,9 @@ BindDescriptorSetCommand cameraBind
                 
                 pushConstants:ResetWritePosition()
         pushConstants:AddBufferPointer(drawQueue:GetInstanceDataBuffer())
+                //pushConstants:AddBufferPointer(instanceData)
+                //drawQueue:GetInstanceDataBuffer():DEBUG_OutputPointerAddress()
+                //drawQueue:DEBUG_OutputValidation()
         
         SetPushConstantsCommand setPushConstants
         setPushConstants:SetData(pushConstants)
@@ -1189,9 +1270,33 @@ constants:SHADER_STAGE_FRAGMENT_BIT)
         EndRenderPassCommand endRenderPass
         commandBuffer:Record(endRenderPass)
         
+        //output "Flush 2"
+        //graphics:DEBUG_FlushCommands()
+        //output "Finished Flush 2..."
+        
         // Now, submit commands to render the shadow maps.
         // We intentionally do NOT put any additional barriers or waiting here, because the shadow stage is independent of the scene rendering.
         // Allow Vulkan to run this stage in parallel with the scene rendering.
+        
+        // NOTE: FOR TESTING, THESE BARRIERS HAVE MOVED HERE.
+        i = 0
+        repeat while i < 4
+            VulkanImage attachment = sceneFramebuffer:GetImageViews():Get(i):GetImage()
+        AttachmentWriteBarrier(commandBuffer, attachment)
+            i = i + 1
+        end
+        
+        // FOR TESTING ONLY
+        //VulkanMemoryBarrier memoryBarrier1
+            //memoryBarrier1:SetSourceStageMask(constants:PIPELINE_STAGE_ALL_GRAPHICS_BIT)
+            //memoryBarrier1:SetSourceAccessMask(constants:ACCESS_SHADER_WRITE_BIT + constants:ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
+            //memoryBarrier1:SetDestinationStageMask(constants:PIPELINE_STAGE_VERTEX_INPUT_BIT)
+            //memoryBarrier1:SetDestinationAccessMask(constants:ACCESS_MEMORY_READ_BIT)
+//
+            //PipelineBarrierCommand barrierCommand1
+            //barrierCommand1:SetMemoryBarrier(memoryBarrier1)
+            //commandBuffer:Record(barrierCommand1)
+        
         
         // Before we begin rendering the shadows, make sure we have all the framebuffers needed for the data in this stage.
         EnsureShadowCubemapFramebuffers(resourceIndex)
@@ -1283,6 +1388,8 @@ their default clear values, which is functionally equivalent to there being no s
         setPushConstants:SetPipelineLayout(shadowPipeline:GetLayout())
         setPushConstants:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT + 
 constants:SHADER_STAGE_GEOMETRY_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
+                        //setPushConstants:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT + 
+//constants:SHADER_STAGE_FRAGMENT_BIT)
         commandBuffer:Record(setPushConstants)
                 
                 DrawIndirectCommand drawCommand
@@ -1299,6 +1406,9 @@ end
         EndRenderPassCommand endShadowRenderPass
         commandBuffer:Record(endShadowRenderPass)
             
+            //output "Flush 3"
+            //graphics:DEBUG_FlushCommands()
+            
             i = i + 1
         end
 
@@ -1308,12 +1418,12 @@ end
         
         // Now that scene geometry has been rendered, and shadow maps calculated, prepare for the lighting pass.
         // First, ensure that all writing to the scene's color attachments has finished before attempting to read any of it.
-        i = 0
-        repeat while i < 4
-            VulkanImage attachment = sceneFramebuffer:GetImageViews():Get(i):GetImage()
-        AttachmentWriteBarrier(commandBuffer, attachment)
-            i = i + 1
-        end
+        //i = 0
+        //repeat while i < 4
+            //VulkanImage attachment = sceneFramebuffer:GetImageViews():Get(i):GetImage()
+        //AttachmentWriteBarrier(commandBuffer, attachment)
+            //i = i + 1
+        //end
         
         // Also ensure all writing to the shadow cubemaps has finished, because the lighting stage needs that too.
         i = 0
@@ -1321,6 +1431,20 @@ end
             AttachmentWriteBarrier(commandBuffer, shadowFramebuffers:Get(i):GetImageViews():Get(0):GetImage())
             i = i + 1
         end
+        
+        // FOR TESTING ONLY
+        //VulkanMemoryBarrier memoryBarrier2
+            //memoryBarrier2:SetSourceStageMask(constants:PIPELINE_STAGE_ALL_GRAPHICS_BIT)
+            //memoryBarrier2:SetSourceAccessMask(constants:ACCESS_SHADER_WRITE_BIT + constants:ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
+            //memoryBarrier2:SetDestinationStageMask(constants:PIPELINE_STAGE_VERTEX_INPUT_BIT)
+            //memoryBarrier2:SetDestinationAccessMask(constants:ACCESS_MEMORY_READ_BIT)
+//
+            //PipelineBarrierCommand barrierCommand2
+            //barrierCommand2:SetMemoryBarrier(memoryBarrier2)
+            //commandBuffer:Record(barrierCommand2)
+        
+        //output "Flush 4"
+        //graphics:DEBUG_FlushCommands()
         
         // Begin the render pass for the lighting phase.
         VulkanFramebuffer lightFramebuffer = lightFramebuffers:Get(resourceIndex)
@@ -1375,6 +1499,9 @@ BindDescriptorSetCommand lightDescriptorBind
         EndRenderPassCommand endLightRenderPass
         commandBuffer:Record(endLightRenderPass)
         
+        //output "Flush 5"
+        //graphics:DEBUG_FlushCommands()
+        
         // Now that the scene geometry and lighting are finished, copy the result from the Painter3D's framebuffer to the swapchain image that will eventually be drawn to the screen.
         // First, ensure all writing to the light's output attachment is done before we proceed.
         VulkanImage lightAttachmentImage = lightFramebuffer:GetImageViews():Get(0):GetImage()
@@ -1423,6 +1550,9 @@ BindDescriptorSetCommand resultDescriptorBind
         // End the render pass.
         EndRenderPassCommand endResultRenderPass
         commandBuffer:Record(endResultRenderPass)
+        
+        //output "Flush 6"
+        //graphics:DEBUG_FlushCommands()
         
     end
     

@@ -159,5 +159,9 @@ Matrix4 modelMatrix)
     action GetTextureGroupID returns integer
         return textureGroupID
     end
+    
+    action DEBUG_OutputValidation()
+        instanceMapping:DEBUG_OutputValidation()
+    end
 
 end

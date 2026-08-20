@@ -595,6 +595,7 @@ end
             number uniform = nearClip + clipRange * power
 number d = 0.95 * (log - uniform) + uniform
 cascadeSplits:Add((d - nearClip) / clipRange)
+            output "Split " + i + " = " + cascadeSplits:Get(i)
             i = i + 1
         end
         
@@ -606,7 +607,11 @@ cascadeSplits:Add((d - nearClip) / clipRange)
         i = 0
         repeat while i < directionalCount
             DirectionalLight light = GetDirectionalLight(i)
-            Vector3 direction = light:GetDirection()
+            //Vector3 direction = light:GetDirection()
+            Vector3 direction
+            direction:Set(light:GetDirection())
+            direction:Normalize()
+            //direction:SetY(-direction:GetY())
             CascadeShadowData shadowData = light:GetShadowData()
             if shadowData = undefined
                 CascadeShadowData newData
@@ -706,9 +711,11 @@ cascadeSplits:Add((d - nearClip) / clipRange)
                 shadowCameraPosition:Set(frustumCenter):Add(calc)
                 
                 number dot = math:AbsoluteValue(direction:DotProduct(up))
+                output "Pre: " + direction:ToText() + " -- " + up:ToText() + ", dot = " + direction:DotProduct(up)
                 if dot = 1.0
                     up:Set(0, 0, 1)
                 end
+                output "Up = " + up:ToText()
                 
                 Matrix4 lightViewMatrix
                 lightViewMatrix:SetToLookAt(shadowCameraPosition, frustumCenter, up)
@@ -732,10 +739,34 @@ cascadeSplits:Add((d - nearClip) / clipRange)
                 lightOrthoMatrix:row3column0 = lightOrthoMatrix:row3column0 + roundOffset:GetX()
                 lightOrthoMatrix:row3column1 = lightOrthoMatrix:row3column0 + roundOffset:GetY()
                 
+                //output "Light Ortho Matrix: 
+//" + lightOrthoMatrix:ToText()
+                //output "View Matrix: 
+//" + lightViewMatrix:ToText()
+                
                 // For directional lights, only set the first matrix.
                 Matrix4 shadowDataMatrix = shadowData:GetProjectionMatrix(0)
-                shadowDataMatrix:Set(lightOrthoMatrix):Multiply(lightViewMatrix)
+                //shadowDataMatrix:Set(lightOrthoMatrix):Multiply(lightViewMatrix)
                 shadowData:SetSplitDistance((nearClip + splitDistance * clipRange) * 1.0)
+                
+                Matrix4 testView
+                SetToLookAt(testView, shadowCameraPosition, frustumCenter, up)
+                Matrix4 testOrtho
+                ProjectionToVulkanOrthographic(testOrtho, -10, 10, -10, 10, 0.0, maxExtents:GetZ() - minExtents:GetZ())
+                shadowDataMatrix:Set(testOrtho):Multiply(testView)
+                //ProjectionToVulkanOrthographic(testOrtho, minExtents:GetX(), maxExtents:GetX(), minExtents:GetY(), maxExtents:GetY(), 0.0, maxExtents:GetZ() - minExtents:GetZ())
+                //ProjectionToVulkanOrthographic(testOrtho, -shadowMapSize / 16, shadowMapSize / 16, -shadowMapSize / 16, shadowMapSize / 16, 0.0, maxExtents:GetZ() - minExtents:GetZ())
+                
+                
+                output "MinExtents: " + minExtents:ToText() + ", maxExtents: " + maxExtents:ToText()
+                output "ShadowCamPosition = " + shadowCameraPosition:ToText() + ", frustumCenter = " + frustumCenter:ToText() + ", Up = " + up:ToText()
+                
+                //output "Light Ortho Matrix: 
+//" + testOrtho:ToText()
+                //output "View Matrix: 
+//" + testView:ToText()
+                //output "Combined: 
+//" + shadowDataMatrix:ToText()
                 
                 j = j + 1
             end
@@ -777,6 +808,48 @@ cascadeSplits:Add((d - nearClip) / clipRange)
         matrix:row1column3 = ty
         matrix:row2column3 = tz
         matrix:row3column3 = 1
+    end
+    
+    private action SetToLookAt(Matrix4 matrix, Vector3 position, Vector3 target, Vector3 up) returns Matrix4
+        Vector3 tmpVec
+        tmpVec:Set(target):Subtract(position)
+        SetToLookAt(matrix, tmpVec, up)
+
+        Matrix4 tmpMat
+
+        matrix:Multiply(tmpMat:SetToTranslation(-1 * position:GetX(), -1 * position:GetY(), -1 * position:GetZ()))
+
+        return matrix
+    end
+    
+    private action SetToLookAt(Matrix4 matrix, Vector3 direction, Vector3 up) returns Matrix4
+        Vector3 vZ
+        Vector3 vX
+        Vector3 vY
+        vZ:Set(direction):Normalize()
+        //vX:Set(direction):Normalize()
+        //vX:CrossProduct(up):Normalize()
+        vX:Set(up):Normalize()
+        vX:CrossProduct(direction):Normalize()
+        //vY:Set(vX):CrossProduct(vZ):Normalize()
+        vY:Set(vZ):CrossProduct(vX):Normalize()
+
+        matrix:IdentityMatrix()
+
+        matrix:row0column0 = vX:GetX()
+        matrix:row0column1 = vX:GetY()
+        matrix:row0column2 = vX:GetZ()
+        matrix:row1column0 = vY:GetX()
+        matrix:row1column1 = vY:GetY()
+        matrix:row1column2 = vY:GetZ()
+        matrix:row2column0 = -1 * vZ:GetX()
+        matrix:row2column1 = -1 * vZ:GetY()
+        matrix:row2column2 = -1 * vZ:GetZ()
+        //matrix:row2column0 = vZ:GetX()
+        //matrix:row2column1 = vZ:GetY()
+        //matrix:row2column2 = vZ:GetZ()
+
+        return matrix
     end
 
     action GetMaxLights returns integer

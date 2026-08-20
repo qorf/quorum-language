@@ -75,11 +75,14 @@ layout(set = 2, binding = 0) uniform CascadeShadows
 float chebyshevUpperBound(vec2 moments, float t) {
     // Surface is fully lit if the current fragment is before the light occluder
     if (t <= moments.x)
-    return 1.0;
+		return 1.0;
+
+	//if (true)
+	//	return 0.0;
 
     // Compute variance
     float variance = moments.y - (moments.x * moments.x);
-    variance = max(variance, 0.00002); // Small epsilon to avoid divide by zero
+    variance = max(variance, 0.000000002); // Small epsilon to avoid divide by zero
 
     // Compute probabilistic upper bound
     float d = t - moments.x;
@@ -119,6 +122,7 @@ float calcDirectionalVisibility(vec4 worldPosition, uint lightIndex, uint cascad
 
     float visibility = chebyshevUpperBound(moments, depth);
     return visibility;
+	//return moments.x;
 }
 
 float distributionGGX(vec3 N, vec3 H, float roughness) {
@@ -210,7 +214,6 @@ vec3 calculateDirectionalLight(Light light, vec3 V, vec3 N, vec3 F0, vec3 albedo
 
 void main()
 {
-/*
 	vec4 rawAlbedo = texture(albedoSampler, v_samplerCoordinate);
 	vec3 albedo = rawAlbedo.rgb;
 	vec3 normal = texture(normalsSampler, v_samplerCoordinate).rgb;
@@ -231,22 +234,25 @@ void main()
 	
 	vec4 viewPos = sceneInfo.cameraViewMatrix * rawWorldPosition;
 	
+	//float DEBUG_moment = 0.0;
+	
     for (uint i = 0; i < sceneInfo.lightsCount; i++) {
         Light light = lights.array[i];
         if (light.isDirectional == 1) 
 		{
-			//uint cascadeIndex = 0;
-			//for (uint j = 0; j < SHADOW_MAP_CASCADE_COUNT - 1; ++j)
-			//{
-			//	CascadeShadow currentShadow = shadows.data[i * SHADOW_MAP_CASCADE_COUNT + j];
-			//	if (viewPos.z < currentShadow.splitDistance.x)
-			//	{
-			//		cascadeIndex = j + 1;
-			//	}
-			//}
+			uint cascadeIndex = 0;
+			for (uint j = 0; j < SHADOW_MAP_CASCADE_COUNT - 1; ++j)
+			{
+				CascadeShadow currentShadow = shadows.data[i * SHADOW_MAP_CASCADE_COUNT + j];
+				if (viewPos.z < currentShadow.splitDistance.x)
+				{
+					cascadeIndex = j + 1;
+				}
+			}
 		
-			//float shadow = calcDirectionalVisibility(vec4(worldPosition, 1), i, cascadeIndex);
-			float shadow = 1.0;
+			float shadow = calcDirectionalVisibility(vec4(worldPosition, 1), i, cascadeIndex);
+			//float shadow = 1.0;
+			//DEBUG_moment = calcDirectionalVisibility(vec4(worldPosition, 1), i, cascadeIndex);
             Lo += (calculateDirectionalLight(light, V, N, F0, albedo, metallic, roughness) * shadow);
         } 
 		else 
@@ -259,8 +265,9 @@ void main()
 
 	//outputColor = texture(albedoSampler, v_samplerCoordinate);
 	outputColor = vec4(color.rgb, rawAlbedo.a);
-	*/
-	outputColor = vec4(1.0, 0.5, 0.5, 1.0);
+	
+	//outputColor = vec4(1.0, 0.5, 0.5, 1.0);
+	//outputColor.r = DEBUG_moment;
 }
 ")
     end

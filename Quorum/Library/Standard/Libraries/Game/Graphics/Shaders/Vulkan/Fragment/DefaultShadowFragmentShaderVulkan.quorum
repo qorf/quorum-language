@@ -23,6 +23,7 @@ class DefaultShadowFragmentShaderVulkan is Shader
 		layout (location = 1) in flat uint v_entityID;
 		
 		layout(set = 0, binding = 1) uniform sampler immutableSampler;
+		//layout(set = 0, binding = 0) uniform sampler immutableSampler;
 		layout(set = 1, binding = 0) uniform texture2D globalTextures[];
 		
 		layout (location = 0) out vec2 outputMoments;
@@ -68,7 +69,6 @@ class DefaultShadowFragmentShaderVulkan is Shader
 		
 		void main()
 		{
-		/*
 			// Calculate albedo so we can get the alpha -- we need to know the opacity to know if this element casts shadows.
 		    Instances instances = pushConstants.instances;
 		    InstanceData instanceData = instances.data[v_entityID];
@@ -91,9 +91,8 @@ class DefaultShadowFragmentShaderVulkan is Shader
 			// If the color mostly transparent, discard the fragment.
 			if (sampledColor.a < 0.5)
 			{
-				discard;
+				//discard;
 			}
-			
 			float depth = gl_FragCoord.z;
 			float moment1 = depth;
 			float moment2 = depth * depth;
@@ -104,8 +103,8 @@ class DefaultShadowFragmentShaderVulkan is Shader
 			moment2 += 0.25 * (dx * dx + dy * dy);
 
 			outputMoments = vec2(moment1, moment2);
-			*/
-			outputMoments = vec2(1.0, 1.0);
+			
+			//outputMoments = vec2(1.0, 1.0);
 		}
 		
 		")

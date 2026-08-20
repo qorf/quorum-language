@@ -13,9 +13,11 @@ class DefaultShadowShaderProgram is ShaderProgram
         SetName(manager:DEFAULT_SHADOW_SHADER_PROGRAM)
 
         Shader vertex = manager:GetDefaultShadowVertexShader()
+        Shader geometry = manager:GetDefaultShadowGeometryShader()
         Shader fragment = manager:GetDefaultShadowFragmentShader()
 
         Add(vertex)
+        Add(geometry)
         Add(fragment)
         
         DefaultShadowShaderMappingVulkan mapping

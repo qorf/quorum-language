@@ -36,6 +36,7 @@ class DefaultShadowShaderMappingVulkan is VulkanShaderMapping
 
         // Create a binding for the first set. Set = 0, Binding = 0 will be an array of Matrix4s representing the different projection matrices for the cascading shadow maps.
         VulkanDescriptorSetLayoutBinding projectionsBinding = creator:AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_GEOMETRY_BIT, constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+        
         // Set = 0, Binding = 1 will be the immutable sampler for textures.
         VulkanDescriptorSetLayoutBinding samplerBinding = creator:AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_SAMPLER)
         Array<VulkanSampler> immutableSamplers
@@ -51,6 +52,7 @@ class DefaultShadowShaderMappingVulkan is VulkanShaderMapping
         VulkanPushConstantRange pushConstants
         pushConstants:SetSize(16)
         pushConstants:SetStage(constants:SHADER_STAGE_VERTEX_BIT + constants:SHADER_STAGE_GEOMETRY_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
+        //pushConstants:SetStage(constants:SHADER_STAGE_VERTEX_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
         pushConstants:Create()
         creator:SetPushConstantRange(pushConstants)
         
