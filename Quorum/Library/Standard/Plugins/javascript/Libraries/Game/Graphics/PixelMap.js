@@ -1243,4 +1243,9 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
         link.click();
         document.body.removeChild(link);
 	};
+
+    this.Save = function(file)
+    {
+        this.SaveToDownloads(file.GetNameNoExtension());
+    };
 }
