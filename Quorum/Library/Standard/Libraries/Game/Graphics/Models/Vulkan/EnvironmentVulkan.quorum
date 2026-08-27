@@ -521,9 +521,14 @@ end
                 else
                     light = pointLights:Get(i - directionalLights:GetSize())
                 end
-                CascadeShadowData shadowData = light:GetShadowData()
-            
-                integer j = 0
+                
+                integer cascadeIndex = 0
+                GameStateManager gameState
+            VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+            VulkanLightingProperties lightProperties = graphics:GetLightingProperties()
+                repeat while cascadeIndex < lightProperties:GetShadowMapCascadeCount()
+                    CascadeShadowData shadowData = light:GetShadowData(cascadeIndex)
+                    integer j = 0
                 repeat while j < 6
                     Matrix4 matrix = shadowData:GetProjectionMatrix(j)
                     cascadeShadowTransferArray:Set(index, matrix:row0column0)
@@ -552,6 +557,9 @@ end
                 cascadeShadowTransferArray:Set(index + 2, splitDistance)
                 cascadeShadowTransferArray:Set(index + 3, splitDistance)
             index = index + SHADOW_SPLIT_DISTANCE_WORD_SIZE
+                    
+                    cascadeIndex = cascadeIndex + 1
+                end
                 
             i = i + 1
         end
@@ -595,7 +603,6 @@ end
             number uniform = nearClip + clipRange * power
 number d = 0.95 * (log - uniform) + uniform
 cascadeSplits:Add((d - nearClip) / clipRange)
-            output "Split " + i + " = " + cascadeSplits:Get(i)
             i = i + 1
         end
         
@@ -612,17 +619,18 @@ cascadeSplits:Add((d - nearClip) / clipRange)
             direction:Set(light:GetDirection())
             direction:Normalize()
             //direction:SetY(-direction:GetY())
-            CascadeShadowData shadowData = light:GetShadowData()
-            if shadowData = undefined
-                CascadeShadowData newData
-                light:SetShadowData(newData)
-                shadowData = newData
-            end
             
             number lastSplitDistance = 0
             integer j = 0
             repeat while j < CASCADE_COUNT
                 number splitDistance = cascadeSplits:Get(j)
+                
+                CascadeShadowData shadowData = light:GetShadowData(j)
+            if shadowData = undefined
+                CascadeShadowData newData
+                light:SetShadowData(j, newData)
+                shadowData = newData
+            end
                 
                 // Create an orthographic projection matrix for each cascade. Begin by initializing values.
         Array<Vector3> frustumCorners
@@ -698,7 +706,7 @@ cascadeSplits:Add((d - nearClip) / clipRange)
                     k = k + 1
                 end
                 
-                sphereRadius = math:Ceiling(sphereRadius * 16.0) * 16
+                sphereRadius = math:Ceiling(sphereRadius * 16.0) / 16
                 
                 Vector3 maxExtents
                 maxExtents:Set(sphereRadius, sphereRadius, sphereRadius)
@@ -711,11 +719,9 @@ cascadeSplits:Add((d - nearClip) / clipRange)
                 shadowCameraPosition:Set(frustumCenter):Add(calc)
                 
                 number dot = math:AbsoluteValue(direction:DotProduct(up))
-                output "Pre: " + direction:ToText() + " -- " + up:ToText() + ", dot = " + direction:DotProduct(up)
                 if dot = 1.0
                     up:Set(0, 0, 1)
                 end
-                output "Up = " + up:ToText()
                 
                 Matrix4 lightViewMatrix
                 lightViewMatrix:SetToLookAt(shadowCameraPosition, frustumCenter, up)
@@ -739,34 +745,13 @@ cascadeSplits:Add((d - nearClip) / clipRange)
                 lightOrthoMatrix:row3column0 = lightOrthoMatrix:row3column0 + roundOffset:GetX()
                 lightOrthoMatrix:row3column1 = lightOrthoMatrix:row3column0 + roundOffset:GetY()
                 
-                //output "Light Ortho Matrix: 
-//" + lightOrthoMatrix:ToText()
-                //output "View Matrix: 
-//" + lightViewMatrix:ToText()
-                
-                // For directional lights, only set the first matrix.
+                // For directional lights, only set the first matrix in each cubemap.
                 Matrix4 shadowDataMatrix = shadowData:GetProjectionMatrix(0)
-                //shadowDataMatrix:Set(lightOrthoMatrix):Multiply(lightViewMatrix)
+                shadowDataMatrix:Set(lightOrthoMatrix):Multiply(lightViewMatrix)
                 shadowData:SetSplitDistance((nearClip + splitDistance * clipRange) * 1.0)
                 
-                Matrix4 testView
-                SetToLookAt(testView, shadowCameraPosition, frustumCenter, up)
-                Matrix4 testOrtho
-                ProjectionToVulkanOrthographic(testOrtho, -10, 10, -10, 10, 0.0, maxExtents:GetZ() - minExtents:GetZ())
-                shadowDataMatrix:Set(testOrtho):Multiply(testView)
-                //ProjectionToVulkanOrthographic(testOrtho, minExtents:GetX(), maxExtents:GetX(), minExtents:GetY(), maxExtents:GetY(), 0.0, maxExtents:GetZ() - minExtents:GetZ())
-                //ProjectionToVulkanOrthographic(testOrtho, -shadowMapSize / 16, shadowMapSize / 16, -shadowMapSize / 16, shadowMapSize / 16, 0.0, maxExtents:GetZ() - minExtents:GetZ())
-                
-                
-                output "MinExtents: " + minExtents:ToText() + ", maxExtents: " + maxExtents:ToText()
-                output "ShadowCamPosition = " + shadowCameraPosition:ToText() + ", frustumCenter = " + frustumCenter:ToText() + ", Up = " + up:ToText()
-                
-                //output "Light Ortho Matrix: 
-//" + testOrtho:ToText()
-                //output "View Matrix: 
-//" + testView:ToText()
-                //output "Combined: 
-//" + shadowDataMatrix:ToText()
+                //output "MinExtents: " + minExtents:ToText() + ", maxExtents: " + maxExtents:ToText()
+                //output "ShadowCamPosition = " + shadowCameraPosition:ToText() + ", frustumCenter = " + frustumCenter:ToText() + ", Up = " + up:ToText()
                 
                 j = j + 1
             end
@@ -896,6 +881,7 @@ cascadeSplits:Add((d - nearClip) / clipRange)
     
     action LightChanged(Light light)
         if light is PointLight or light is DirectionalLight
+            DirectionalLight dlight = cast(DirectionalLight, light)
             SetLightsDirty()
         elseif light is AmbientLight
             SetSceneDataDirty()

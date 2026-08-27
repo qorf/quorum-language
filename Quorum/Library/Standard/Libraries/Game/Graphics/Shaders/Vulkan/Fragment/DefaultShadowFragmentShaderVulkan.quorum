@@ -3,6 +3,8 @@ package Libraries.Game.Graphics.Shaders.Vulkan.Fragment
 use Libraries.Game.Graphics.Shaders.Shader
 use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Vulkan.VulkanLightingProperties
 
 class DefaultShadowFragmentShaderVulkan is Shader
     on create
@@ -11,6 +13,9 @@ class DefaultShadowFragmentShaderVulkan is Shader
         ShaderManager manager = gameState:GetShaderManager()
         SetName(manager:DEFAULT_SHADOW_FRAGMENT_SHADER)
         
+		VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+		VulkanLightingProperties lights = graphics:GetLightingProperties()
+		
         SetCode(GetVersionHeader() + "
 		
 		// Adds support for nonuniformEXT and unsized descriptor arrays.
@@ -19,8 +24,25 @@ class DefaultShadowFragmentShaderVulkan is Shader
 		#extension GL_EXT_buffer_reference2: enable
 		#extension GL_EXT_scalar_block_layout: require
 		
+		#define SHADOW_MAP_CASCADE_COUNT " + lights:GetShadowMapCascadeCount() + "
+		#define MAXIMUM_LIGHTS " + lights:GetMaximumLights() + "
+		
 		layout (location = 0) in vec2 v_textureCoordinates;
 		layout (location = 1) in flat uint v_entityID;
+		layout (location = 2) in flat uint v_cascadeIndex;
+		layout (location = 3) in vec4 v_worldPosition;
+		
+		struct CascadeShadow
+		{
+			// All lights will need to render to cubemaps, and each face has its own projection matrix.
+			mat4 matrix[6];
+			vec4 splitDistance;
+		};
+		
+		layout(set = 0, binding = 0) uniform CascadeShadows
+		{
+			CascadeShadow data[SHADOW_MAP_CASCADE_COUNT * MAXIMUM_LIGHTS];
+		} shadows;
 		
 		layout(set = 0, binding = 1) uniform sampler immutableSampler;
 		//layout(set = 0, binding = 0) uniform sampler immutableSampler;
@@ -88,12 +110,18 @@ class DefaultShadowFragmentShaderVulkan is Shader
 
 			vec4 sampledColor = texture(nonuniformEXT(sampler2D(globalTextures[textureIndex], immutableSampler)), v_textureCoordinates) * diffuse;
 
-			// If the color mostly transparent, discard the fragment.
+			// If the color is mostly transparent, discard the fragment.
 			if (sampledColor.a < 0.5)
 			{
 				//discard;
 			}
-			float depth = gl_FragCoord.z;
+			
+			uint lightIndex = pushConstants.lightIndex;
+			vec4 shadowPosition = shadows.data[lightIndex * SHADOW_MAP_CASCADE_COUNT + v_cascadeIndex].matrix[0] * v_worldPosition;
+			//gl_Position = shadows.data[lightIndex * SHADOW_MAP_CASCADE_COUNT + gl_InvocationID].matrix[j] * gl_in[i].gl_Position;
+			
+			//float depth = gl_FragCoord.z;
+			float depth = shadowPosition.z;
 			float moment1 = depth;
 			float moment2 = depth * depth;
 			

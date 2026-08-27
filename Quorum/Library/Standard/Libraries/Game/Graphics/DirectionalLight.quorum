@@ -14,6 +14,10 @@ class DirectionalLight is Light
     */
     action SetDirection(number directionX, number directionY, number directionZ)
         direction:Set(directionX, directionY, directionZ)
+        
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
     end
 
     /*
@@ -22,6 +26,10 @@ class DirectionalLight is Light
     */
     action SetDirection(Vector3 newDirection)
         direction:Set(newDirection)
+        
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
     end
 
     /*
@@ -68,6 +76,10 @@ class DirectionalLight is Light
 
     action SetIntensity(number intensity)
         me:intensity = intensity
+        
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
     end
 
 end

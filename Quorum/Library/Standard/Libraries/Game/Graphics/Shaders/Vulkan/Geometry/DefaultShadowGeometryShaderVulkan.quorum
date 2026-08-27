@@ -30,6 +30,8 @@ class DefaultShadowGeometryShaderVulkan is Shader
 		
 		layout (location = 0) out vec2 v_textureCoordinates;
 		layout (location = 1) out flat uint v_entityID;
+		layout (location = 2) out flat uint v_cascadeIndex;
+		layout (location = 3) out vec4 v_worldPosition;
 		
 		struct CascadeShadow
 		{
@@ -88,9 +90,12 @@ class DefaultShadowGeometryShaderVulkan is Shader
 				{
 					v_textureCoordinates = inTextureCoordinates[i];
 					v_entityID = inEntityID[i];
+					v_cascadeIndex = gl_InvocationID;
+					v_worldPosition = gl_in[i].gl_Position;
+					
 					//gl_Layer = cubeBaseIndex + (gl_InvocationID * 6 + j);
-					//gl_Layer = gl_InvocationID * 6 + j;
-					gl_Layer = 0;
+					gl_Layer = gl_InvocationID * 6 + j;
+					//gl_Layer = 0;
 					gl_Position = shadows.data[lightIndex * SHADOW_MAP_CASCADE_COUNT + gl_InvocationID].matrix[j] * gl_in[i].gl_Position;
 					EmitVertex();
 				}

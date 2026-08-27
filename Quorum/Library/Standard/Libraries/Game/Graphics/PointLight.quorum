@@ -17,6 +17,10 @@ class PointLight is Light, Item3D
     */
     action SetIntensity(number newIntensity)
         intensity = newIntensity
+        
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
     end
 
     /*
@@ -50,6 +54,70 @@ class PointLight is Light, Item3D
         SetPosition(newPosition)
 
         intensity = newIntensity
+    end
+    
+    action MoveX(number x)
+        parent:Item3D:MoveX(x)
+        
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
+    end
+    
+    action MoveY(number y)
+        parent:Item3D:MoveY(y)
+        
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
+    end
+    
+    action MoveZ(number z)
+        parent:Item3D:MoveZ(z)
+        
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
+    end
+    
+    action Move(number x, number y, number z)
+        parent:Item3D:Move(x, y, z)
+        
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
+    end
+    
+    action SetOffsetX(number x)
+        parent:Item3D:SetOffsetX(x)
+        
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
+    end
+    
+    action SetOffsetY(number y)
+        parent:Item3D:SetOffsetY(y)
+        
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
+    end
+    
+    action SetOffsetZ(number z)
+        parent:Item3D:SetOffsetZ(z)
+        
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
+    end
+    
+    action SetOffset(number x, number y, number z)
+        parent:Item3D:SetOffset(x, y, z)
+        
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
     end
 
 end

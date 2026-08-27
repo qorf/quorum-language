@@ -72,17 +72,18 @@ layout(set = 2, binding = 0) uniform CascadeShadows
 	CascadeShadow data[SHADOW_MAP_CASCADE_COUNT * MAXIMUM_LIGHTS];
 } shadows;
 
+//float chebyshevUpperBound(vec2 moments, float t, uint cascadeLevel) {
 float chebyshevUpperBound(vec2 moments, float t) {
     // Surface is fully lit if the current fragment is before the light occluder
     if (t <= moments.x)
 		return 1.0;
 
-	//if (true)
-	//	return 0.0;
+	//float minVariance = 0.00002 * max(1.0, cascadeLevel * 10.0);
 
     // Compute variance
     float variance = moments.y - (moments.x * moments.x);
-    variance = max(variance, 0.000000002); // Small epsilon to avoid divide by zero
+    //variance = max(variance, minVariance); // Small epsilon to avoid divide by zero
+	variance = max(variance, 0.00002); // Small epsilon to avoid divide by zero
 
     // Compute probabilistic upper bound
     float d = t - moments.x;
@@ -119,8 +120,10 @@ float calcDirectionalVisibility(vec4 worldPosition, uint lightIndex, uint cascad
 	//newNormal = texture(nonuniformEXT(sampler2D(globalTextures[material.normalMapIndex], immutableSampler)), textCoords).rgb;
     //vec2 moments = texture(shadowSampler, vec4(uv, matrixIndex, shadowIndex)).rg;
 	vec2 moments = texture(nonuniformEXT(shadowSamplers[lightIndex]), vec3(uv, 6 * cascadeIndex)).rg;
+	//vec2 moments = texelFetch(nonuniformEXT(shadowSamplers[lightIndex]), ivec3(uint(uv.x * 2048), uint(uv.y * 2048), 6 * cascadeIndex), 0).rg;
 
-    float visibility = chebyshevUpperBound(moments, depth);
+    //float visibility = chebyshevUpperBound(moments, depth, cascadeIndex);
+	float visibility = chebyshevUpperBound(moments, depth);
     return visibility;
 	//return moments.x;
 }
@@ -236,6 +239,7 @@ void main()
 	
 	//float DEBUG_moment = 0.0;
 	
+	//uint cascadeIndex = 0;
     for (uint i = 0; i < sceneInfo.lightsCount; i++) {
         Light light = lights.array[i];
         if (light.isDirectional == 1) 
@@ -244,7 +248,7 @@ void main()
 			for (uint j = 0; j < SHADOW_MAP_CASCADE_COUNT - 1; ++j)
 			{
 				CascadeShadow currentShadow = shadows.data[i * SHADOW_MAP_CASCADE_COUNT + j];
-				if (viewPos.z < currentShadow.splitDistance.x)
+				if (-viewPos.z > currentShadow.splitDistance.x)
 				{
 					cascadeIndex = j + 1;
 				}
@@ -268,6 +272,13 @@ void main()
 	
 	//outputColor = vec4(1.0, 0.5, 0.5, 1.0);
 	//outputColor.r = DEBUG_moment;
+	
+//	if (cascadeIndex == 0)
+//		outputColor = outputColor * vec4(1.0, 0.75, 0.75, 1.0);
+//	else if (cascadeIndex == 1)
+//		outputColor = outputColor * vec4(0.75, 1.0, 0.75, 1.0);
+//	else if (cascadeIndex == 2)
+//		outputColor = outputColor * vec4(0.75, 0.75, 1.0, 1.0);
 }
 ")
     end

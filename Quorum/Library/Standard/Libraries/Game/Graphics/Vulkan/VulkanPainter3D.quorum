@@ -439,7 +439,7 @@ outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
             projectionBinding:SetBinding(0)
             projectionBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
             projectionBinding:SetDescriptorCount(1)
-            projectionBinding:SetStageFlags(constants:SHADER_STAGE_GEOMETRY_BIT)
+            projectionBinding:SetStageFlags(constants:SHADER_STAGE_GEOMETRY_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
             shadowBindings:Add(projectionBinding)
             
             // Set = 0, Binding = 1 will be the immutable sampler for textures.
