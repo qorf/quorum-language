@@ -13,6 +13,8 @@ use Libraries.Game.Graphics.Models.Data.Material
 use Libraries.Compute.Vector4
 use Libraries.Game.Graphics.Model
 use Libraries.Game.Graphics.PixelMap
+use Libraries.Game.Collision.Shapes.Box
+use Libraries.Game.Collision.Shapes.HeightmapTerrainShape
 
 /*This is a default and very primitive Terrain class that can be used 
 to store data from a height map image. 
@@ -70,7 +72,12 @@ class Main is Game
 end */
 class Terrain is Model 
     BitwiseOperations ops
-    number heightScale = 30
+    number maxHeight = 0
+    number stickHeight = 30
+    number stickWidth = 1
+    number stickLength = 1
+    integer pixelWidth = 0
+    integer pixelLength = 0
     
     /*This action loads a height map from a gray scale image. The amount of 
 white in every pixel generates the height in the model. 
@@ -106,6 +113,11 @@ Attribute: Parameter File the file to process.*/
         Number32BitArray textureCoordinates
         textureCoordinates:SetSize(map:GetWidth() * map:GetHeight() * 2)
         
+        HeightmapTerrainShape terrainShape
+        terrainShape:SetTerrain(me)
+        
+        pixelWidth = map:GetWidth()
+        pixelLengh = map:GetHeight()
         
         //Loop through the pixel map and get all the coordinates
         i = 0
@@ -124,6 +136,10 @@ Attribute: Parameter File the file to process.*/
                 number x = j
                 number y = red
                 number z = i
+                
+                if y > maxHeight
+                    maxHeight = y
+                end
                 
                 //Tracking the indices
                 integer bump = (i * map:GetWidth() * 3)
@@ -205,6 +221,13 @@ Attribute: Parameter File the file to process.*/
             i = i + 1
         end
         
+        SetWidth(map:GetWidth())
+        SetHeight(maxHeight)
+        SetDepth(map:GetHeight())
+        
+        terrainShape:Set(GetWidth(), GetHeight(), GetDepth())
+        SetShape(terrainShape)
+        
         //Calculate the indices
         Integer32BitArray indices
         indices:SetSize((map:GetWidth() - 1) * (map:GetHeight() - 1) * 2 * 3)
@@ -272,7 +295,7 @@ Attribute: Parameter File the file to process.*/
     end
     
     private action CalculateValueFromRed(integer code) returns number
-return heightScale * ops:And(ops:ShiftRight(code, 24), 255) / 256.0
+return stickHeight * ops:And(ops:ShiftRight(code, 24), 255) / 256.0
 end
     
     private action FillVector(Vector3 vector, integer index, Number32BitArray vertices)
@@ -284,14 +307,38 @@ end
     /*This action get the amount to scale the height values. By default, 
 they are scaled by 30 * some amount of white in the pixel in the heightmap,
 which is itself scaled from 0 to 1. Thus, we have 0 to 30 by default. */
-    action GetHeightScale returns number
-        return heightScale
+    action GetStickHeight returns number
+        return stickHeight
     end
 
     /*This action get the amount to scale the height values. By default, 
 they are scaled by 30 * some amount of white in the pixel in the heightmap,
 which is itself scaled from 0 to 1. Thus, we have 0 to 30 by default. */
-    action SetHeightScale(number heightScale)
-        me:heightScale = heightScale
+    action SetHeightScale(number stickHeight)
+        me:stickHeight = stickHeight
     end
+    action GetStickWidth returns number
+        return stickWidth
+    end
+
+    action SetStickWidth(number stickWidth)
+        me:stickWidth = stickWidth
+    end
+
+    action GetStickLength returns number
+        return stickLength
+    end
+
+    action SetStickLength(number stickLength)
+        me:stickLength = stickLength
+    end
+
+    action GetPixelWidth returns integer
+        return pixelWidth
+    end
+
+    action GetPixelLength returns integer
+        return pixelLength
+    end
+
 end

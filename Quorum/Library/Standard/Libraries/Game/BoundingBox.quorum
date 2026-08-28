@@ -501,7 +501,36 @@ class BoundingBox
 
         return true
     end
+    
+    /*This clamps the bounding box to the min and max of the current bounding box. */
+action Clamp(BoundingBox box)
+        //first clamp the minimum
+        if me:GetMinimum():GetX() < box:GetMinimum():GetX()
+            me:GetMinimum():SetX(box:GetMinimum():GetX())
+        end
+        
+        if me:GetMinimum():GetY() < box:GetMinimum():GetY()
+            me:GetMinimum():SetY(box:GetMinimum():GetY())
+        end
+        
+        if me:GetMinimum():GetZ() < box:GetMinimum():GetZ()
+            me:GetMinimum():SetZ(box:GetMinimum():GetZ())
+        end
 
+        //Now clamp the maximum
+        if me:GetMaximum():GetX() > box:GetMaximum():GetX()
+            me:GetMaximum():SetX(box:GetMaximum():GetX())
+        end
+        
+        if me:GetMaximum():GetY() > box:GetMaximum():GetY()
+            me:GetMaximum():SetY(box:GetMaximum():GetY())
+        end
+        
+        if me:GetMaximum():GetZ() > box:GetMaximum():GetZ()
+            me:GetMaximum():SetZ(box:GetMaximum():GetZ())
+        end
+    end
+    
     action Combine(BoundingBox box1, BoundingBox box2)
         if box1:GetMinimum():GetX() < box2:GetMinimum():GetX()
             minimum:SetX(box1:GetMinimum():GetX())

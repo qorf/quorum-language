@@ -1,0 +1,98 @@
+package Libraries.Game.Collision.Shapes
+
+use Libraries.Compute.Vector3
+use Libraries.Game.Graphics.Worlds.Terrain
+use Libraries.Game.BoundingBox
+use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Containers.Array
+use Libraries.Compute.Matrix3
+use Libraries.Compute.Math
+
+class HeightmapTerrainShape is Box, ConcaveShape3D
+    Terrain terrain = undefined
+    Math math
+    
+    on create
+        SetType(parent:CollisionShape3D:TERRAIN)
+    end
+    
+    
+    action ComputeBoundingBox(BoundingBox boundingBox, PhysicsPosition3D transform)
+        parent:Box:ComputeBoundingBox(boundingBox, transform)
+        
+        
+        a = 5
+ end
+    
+    /*
+    This action returns a vector that records information about the box's
+    width, height, and depth without an offset.
+    */
+    //action GetHalfExtentsWithoutMargin returns Vector3
+        //Vector3 out
+        //out:Set(parent:CollisionShape3D:implicitShapeDimensions)
+        //return out
+    //end
+    
+    
+    BoundingBox tempTerrainBox
+    BoundingBox tempShapeBox
+    action ProcessAllTriangles(CollisionShape3D shape, PhysicsPosition3D terrainTransform, PhysicsPosition3D shapeTransform)
+        me:ComputeBoundingBox(tempTerrainBox, terrainTransform)
+        shape:ComputeBoundingBox(tempShapeBox, shapeTransform)
+        tempShapeBox:Clamp(tempTerrainBox)
+        
+        //Get where the bounding box is on the map.
+        number xPercentMin = (tempShapeBox:GetMinimum():GetX() - tempTerrainBox:GetMinimum():GetX()) /
+(tempTerrainBox:GetMaximum():GetX() - tempTerrainBox:GetMinimum():GetX()) 
+        number xPercentMax = (tempShapeBox:GetMaximum():GetX() - tempTerrainBox:GetMinimum():GetX()) /
+(tempTerrainBox:GetMaximum():GetX() - tempTerrainBox:GetMinimum():GetX())
+        number zPercentMin = (tempShapeBox:GetMinimum():GetZ() - tempTerrainBox:GetMinimum():GetZ()) /
+(tempTerrainBox:GetMaximum():GetZ() - tempTerrainBox:GetMinimum():GetZ()) 
+        number zPercentMax = (tempShapeBox:GetMaximum():GetZ() - tempTerrainBox:GetMinimum():GetZ()) /
+(tempTerrainBox:GetMaximum():GetZ() - tempTerrainBox:GetMinimum():GetZ())
+        
+        integer xmin = cast(integer, xPercentMin * terrain:GetPixelWidth())
+        integer xmax = cast(integer, xPercentMax * terrain:GetPixelWidth())
+        
+        integer zmin = cast(integer, zPercentMin * terrain:GetPixelLength())
+        integer zmax = cast(integer, zPercentMax * terrain:GetPixelLength())
+        
+        //xmin = 
+        
+        a = 5
+        
+ end
+    
+    
+    action Copy returns CollisionShape3D
+        HeightmapTerrainShape copy
+        copy:Set(parent:CollisionShape3D:implicitShapeDimensions)
+        copy:parent:CollisionShape3D:localScaling:Set(parent:CollisionShape3D:localScaling)
+        copy:SetTerrain(terrain)
+        return copy
+    end
+    
+    
+    private action Set(Vector3 halfExtents)
+        Vector3 margin
+        margin:Set(GetMargin(), GetMargin(), GetMargin())
+        parent:CollisionShape3D:implicitShapeDimensions:Set(halfExtents:GetX() * parent:CollisionShape3D:localScaling:GetX(), 
+                                                            halfExtents:GetY() * parent:CollisionShape3D:localScaling:GetY(), 
+                                                            halfExtents:GetZ() * parent:CollisionShape3D:localScaling:GetZ())
+        parent:CollisionShape3D:implicitShapeDimensions:Subtract(margin)
+    end
+    
+    action GetChildCount returns integer
+        return 1
+    end
+    
+    action GetTerrain returns Terrain
+        return terrain
+    end
+
+    action SetTerrain(Terrain terrain)
+        me:terrain = terrain
+    end
+
+end

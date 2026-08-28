@@ -17,6 +17,7 @@ class CollisionShape3D
     public constant integer BOX = 1
     public constant integer CYLINDER = 2
     public constant integer TRIANGLE = 3
+    public constant integer TERRAIN = 4
     Math math
 
     Vector3 localScaling
@@ -31,6 +32,7 @@ class CollisionShape3D
         localScaling:Set(1, 1, 1)
     end
 
+    /* This action is similar in bullet to what they call aabb, or the axis aligned bounding box. */
     blueprint action ComputeBoundingBox(BoundingBox boundingBox, PhysicsPosition3D transform)
     
     /*

@@ -11,6 +11,7 @@ use Libraries.Game.Collision.Shapes.Box
 use Libraries.Game.Collision.Shapes.Sphere
 use Libraries.Game.Collision.Shapes.Cylinder
 use Libraries.Game.Collision.CollisionPoint3D
+use Libraries.Game.Collision.Shapes.ConcaveShape3D
 use Libraries.Interface.Events.CollisionListener3D
 use Libraries.Compute.Matrix3
 use Libraries.Game.Collision.CollisionPointsResult3D
@@ -18,6 +19,7 @@ use Libraries.Compute.BitwiseOperations
 use Libraries.Game.Collision.Narrowphase.ConvexConvexPairSolver
 use Libraries.Game.Collision.PhysicsPosition3D
 use Libraries.Game.Physics.all
+use Libraries.Game.BoundingBox
 
 /*
 This class records which 3D objects are involved in the collision, can connect to
@@ -233,6 +235,15 @@ class CollisionEvent3D
             result:Initialize(itemA, itemB)
             CollideSpheres(collisionPoints, cast(Sphere, shapeA), transformA, cast(Sphere, shapeB), transformB, result)
         else
+            if shapeA:GetType() = shapeA:TERRAIN
+                ConcaveShape3D concave = cast(ConcaveShape3D, shapeA)
+                concave:ProcessAllTriangles(shapeB, transformA, transformB)
+            end
+            
+            if shapeB:GetType() = shapeB:TERRAIN
+                a = 5
+            end
+            
             result:Initialize(itemA, itemB)
             CollideConvexConvex(collisionPoints, shapeA, transformA, shapeB, transformB, result)
         end
