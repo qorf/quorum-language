@@ -24,14 +24,16 @@ to store data from a height map image.
 Attribute: Example
 
 use Libraries.Game.Game
+use Libraries.Game.Game
 use Libraries.Game.Graphics.PixelMap
 use Libraries.System.File
 use Libraries.Game.Graphics.Color
 use Libraries.Compute.BitwiseOperations
-use Libraries.Game.Graphics.Terrain
+use Libraries.Game.Graphics.Worlds.Terrain
 use Libraries.Game.Graphics.DirectionalLight
 use Libraries.Game.Graphics.PointLight
 use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.Worlds.Terrain
 
 class Main is Game
     Terrain terrain
@@ -71,7 +73,7 @@ class Main is Game
         Camera camera = GetCamera3D()
         camera:Move(0,0,2 * seconds)
     end
-end */
+end*/
 class Terrain is Model 
     BitwiseOperations ops
     number maxHeight = 0
