@@ -237,7 +237,8 @@ class CollisionEvent3D
         else
             if shapeA:GetType() = shapeA:TERRAIN
                 ConcaveShape3D concave = cast(ConcaveShape3D, shapeA)
-                concave:ProcessAllTriangles(shapeB, transformA, transformB)
+                concave:ProcessAllTriangles(collisionPoints, shapeB, transformA, transformB, result)
+                return now
             end
             
             if shapeB:GetType() = shapeB:TERRAIN

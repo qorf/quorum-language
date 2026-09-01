@@ -7,13 +7,30 @@ use Libraries.Game.Collision.PhysicsPosition3D
 use Libraries.Containers.Array
 use Libraries.Compute.Matrix3
 use Libraries.Compute.Math
+use Libraries.Compute.Matrix4
+use Libraries.Game.Collision.CollisionPointsResult3D
+use Libraries.Game.Collision.Narrowphase.ConvexConvexPairSolver
+use Libraries.Game.Collision.LocalCollisionPoints3D
 
 class HeightmapTerrainShape is Box, ConcaveShape3D
     Terrain terrain = undefined
     Math math
+    Array<Vector3> tempVertices
+    BoundingBox tempTerrainBox
+    BoundingBox tempShapeBox
+    BoundingBox tempTriangleBox
+    ConvexConvexPairSolver gjkPairDetector
     
     on create
         SetType(parent:CollisionShape3D:TERRAIN)
+        
+        //Setup some vertices for temporary storage
+        Vector3 v1
+        Vector3 v2
+        Vector3 v3
+        tempVertices:Add(v1)
+        tempVertices:Add(v2)
+        tempVertices:Add(v3)
     end
     
     
@@ -35,34 +52,91 @@ class HeightmapTerrainShape is Box, ConcaveShape3D
     //end
     
     
-    BoundingBox tempTerrainBox
-    BoundingBox tempShapeBox
-    action ProcessAllTriangles(CollisionShape3D shape, PhysicsPosition3D terrainTransform, PhysicsPosition3D shapeTransform)
+    
+    action ProcessAllTriangles(LocalCollisionPoints3D collisionPoints, CollisionShape3D shape, PhysicsPosition3D terrainTransform, 
+PhysicsPosition3D shapeTransform, CollisionPointsResult3D result)
         me:ComputeBoundingBox(tempTerrainBox, terrainTransform)
         shape:ComputeBoundingBox(tempShapeBox, shapeTransform)
         tempShapeBox:Clamp(tempTerrainBox)
         
         //Get where the bounding box is on the map.
-        number xPercentMin = (tempShapeBox:GetMinimum():GetX() - tempTerrainBox:GetMinimum():GetX()) /
-(tempTerrainBox:GetMaximum():GetX() - tempTerrainBox:GetMinimum():GetX()) 
-        number xPercentMax = (tempShapeBox:GetMaximum():GetX() - tempTerrainBox:GetMinimum():GetX()) /
-(tempTerrainBox:GetMaximum():GetX() - tempTerrainBox:GetMinimum():GetX())
-        number zPercentMin = (tempShapeBox:GetMinimum():GetZ() - tempTerrainBox:GetMinimum():GetZ()) /
-(tempTerrainBox:GetMaximum():GetZ() - tempTerrainBox:GetMinimum():GetZ()) 
-        number zPercentMax = (tempShapeBox:GetMaximum():GetZ() - tempTerrainBox:GetMinimum():GetZ()) /
-(tempTerrainBox:GetMaximum():GetZ() - tempTerrainBox:GetMinimum():GetZ())
+        Vector3 terrainDimensions = tempTerrainBox:GetDimensions()
+        Vector3 terrainOrigin = terrainTransform:GetOrigin()
+        number xPercentMin = (tempShapeBox:GetMinimum():GetX() - terrainOrigin:GetX()) /
+(terrainDimensions:GetX()) 
+        number xPercentMax = (tempShapeBox:GetMaximum():GetX() - terrainOrigin:GetX()) /
+(terrainDimensions:GetX())
+        number zPercentMin = (tempShapeBox:GetMinimum():GetZ() - terrainOrigin:GetZ()) /
+(terrainDimensions:GetZ()) 
+        number zPercentMax = (tempShapeBox:GetMaximum():GetZ() - terrainOrigin:GetZ()) /
+(terrainDimensions:GetZ())
         
         integer xmin = cast(integer, xPercentMin * terrain:GetPixelWidth())
-        integer xmax = cast(integer, xPercentMax * terrain:GetPixelWidth())
+        integer xmax = cast(integer, xPercentMax * terrain:GetPixelWidth()) + 1
         
         integer zmin = cast(integer, zPercentMin * terrain:GetPixelLength())
-        integer zmax = cast(integer, zPercentMax * terrain:GetPixelLength())
+        integer zmax = cast(integer, zPercentMax * terrain:GetPixelLength()) + 1
         
-        //xmin = 
+        Matrix4 terrainNormalTransform = terrain:GetTransform()
+        i = xmin
+        j = zmin
+        repeat while i <= xmax
+            repeat while j <= zmax
+                terrain:FillAtPixel(i, j, tempVertices, tempTriangleBox)
+                Vector3 value1 = terrainNormalTransform:TransformWorldCoordinate(tempTriangleBox:GetMinimum())
+                Vector3 value2 = terrainNormalTransform:TransformWorldCoordinate(tempTriangleBox:GetMaximum())
+                tempTriangleBox:Set(value1, value2)
+                
+                
+                boolean value = tempTriangleBox:Intersects(tempShapeBox)
+                if value
+                    output "Hit"
+                    //Basis here is zero unless the terrain is rotated. This case may not be accounted for.
+                    PhysicsPosition3D newPos
+                    newPos:GetOrigin():Add(tempTriangleBox:GetCenter())
+                    
+                    Box box
+                    box:ComputeBoundingBox(tempTriangleBox, newPos)
+                    CollideConvexConvex(collisionPoints, box, newPos, shape, shapeTransform, result)
+                    
+                    a = 5
+                else
+                    output "y: " + tempTriangleBox:GetCenterY()
+                end
+                
+                j = j + 1
+            end
+            
+            i = i + 1
+        end
+        
+        
+        
         
         a = 5
         
  end
+    
+    
+    private action CollideConvexConvex(LocalCollisionPoints3D collisionPoints, CollisionShape3D shapeA, PhysicsPosition3D transformA, 
+CollisionShape3D shapeB, PhysicsPosition3D transformB, CollisionPointsResult3D result)
+        result:SetCollisionPoints(collisionPoints)
+        number maximumDistanceSquared = 0
+
+        gjkPairDetector:SetMinkowskiA(shapeA)
+        gjkPairDetector:SetMinkowskiB(shapeB)
+        maximumDistanceSquared = shapeA:GetMargin() + shapeB:GetMargin() + collisionPoints:GetCollisionBreakingThreshold()
+        maximumDistanceSquared = maximumDistanceSquared * maximumDistanceSquared
+
+        PhysicsPosition3D inputTransformA
+        inputTransformA:Set(transformA)
+        PhysicsPosition3D inputTransformB
+        inputTransformB:Set(transformB)
+
+        gjkPairDetector:GetClosestPoints(inputTransformA, inputTransformB, maximumDistanceSquared, result, false)
+
+        result:RefreshCollisionPoints()        
+    end
     
     
     action Copy returns CollisionShape3D

@@ -15,6 +15,8 @@ use Libraries.Game.Graphics.Model
 use Libraries.Game.Graphics.PixelMap
 use Libraries.Game.Collision.Shapes.Box
 use Libraries.Game.Collision.Shapes.HeightmapTerrainShape
+use Libraries.Game.BoundingBox
+use Libraries.Compute.Math
 
 /*This is a default and very primitive Terrain class that can be used 
 to store data from a height map image. 
@@ -78,6 +80,8 @@ class Terrain is Model
     number stickLength = 1
     integer pixelWidth = 0
     integer pixelLength = 0
+    MeshData meshData
+    number collisionMargin = 0.04
     
     /*This action loads a height map from a gray scale image. The amount of 
 white in every pixel generates the height in the model. 
@@ -117,7 +121,7 @@ Attribute: Parameter File the file to process.*/
         terrainShape:SetTerrain(me)
         
         pixelWidth = map:GetWidth()
-        pixelLengh = map:GetHeight()
+        pixelLength = map:GetHeight()
         
         //Loop through the pixel map and get all the coordinates
         i = 0
@@ -221,6 +225,8 @@ Attribute: Parameter File the file to process.*/
             i = i + 1
         end
         
+        //This looks wrong but is not. The stick height is the y coordinate or the height from the map
+        //Height in the height map is really the x,y in the image, which is not the 3D height.
         SetWidth(map:GetWidth())
         SetHeight(maxHeight)
         SetDepth(map:GetHeight())
@@ -259,7 +265,6 @@ Attribute: Parameter File the file to process.*/
  end
         
         //Create a MeshData for the model
-        MeshData meshData
         meshData:SetVertices(vertices)
         meshData:SetIndices(indices)
         meshData:SetNormals(normals)
@@ -293,6 +298,101 @@ Attribute: Parameter File the file to process.*/
         ModelBlueprintVulkan bluey = manager:GetModelBlueprint(modelData)
         SetModelBlueprint(bluey)
     end
+    
+    /*This action fills the vertices for a single pixel at the position x,z. The position is put into two places,
+the first three vertices in the already filled vertices array, and the bounding box is computed. If any of 
+these objects are undefined, this will crash, as this action is an optimization to reduce memory and increase 
+reuse.
+
+Attribute: Parameter x the x in the pixel map
+Attribute: Parameter y the y in the pixel map, which translates to z in the heightmap.
+Attribute: Parameter vertices This array must be filled with exactly three vectors, representing the triangle created 
+in the mesh. 
+Attrbiute: Parameter box the location of the bounding box to fill from the triangle.*/
+    action FillAtPixel(integer x, integer y, Array<Vector3> vertices, BoundingBox box)
+        integer stride = 3
+        integer topLeft = x * pixelWidth + y
+                integer topRight = topLeft + 1
+                integer bottomLeft = (x + 1) * pixelWidth + y
+                integer bottomRight = bottomLeft + 1
+        
+        topLeft = topLeft * stride
+        topRight = topRight * stride
+        bottomLeft = bottomLeft * stride
+        bottomRight = bottomRight * stride
+        
+        Number32BitArray verticesNum32 = meshData:GetVertices()
+                //Cell Left
+                //indices:Set(position, topLeft)
+                //indices:Set(position + 1, bottomLeft)
+                //indices:Set(position + 2, topRight)
+        Vector3 tl = vertices:Get(0)
+        Vector3 bl = vertices:Get(1)
+        Vector3 tr = vertices:Get(2)
+        //find the position of the vertex, taking into account of stride of 3
+        //top left
+        tl:SetX(verticesNum32:Get(topLeft))
+        tl:SetY(verticesNum32:Get(topLeft + 1))
+        tl:SetZ(verticesNum32:Get(topLeft + 2))
+        
+        //bottom left
+        bl:SetX(verticesNum32:Get(bottomLeft))
+        bl:SetY(verticesNum32:Get(bottomLeft + 1))
+        bl:SetZ(verticesNum32:Get(bottomLeft + 2))
+        
+        //top right
+        tr:SetX(verticesNum32:Get(topRight))
+        tr:SetY(verticesNum32:Get(topRight + 1))
+        tr:SetZ(verticesNum32:Get(topRight + 2))
+        
+        Vector3 min = box:GetMinimum()
+        Vector3 max = box:GetMaximum()
+        
+        Vector3 vert = vertices:Get(0)
+        min:SetX(vert:GetX())
+        min:SetY(vert:GetY())
+        min:SetZ(vert:GetZ())
+        
+        max:SetX(vert:GetX())
+        max:SetY(vert:GetY())
+        max:SetZ(vert:GetZ())
+        
+        i = 1
+        repeat while i < 3
+            vert = vertices:Get(i)
+            newx = vert:GetX()
+            newy = vert:GetY()
+            newz = vert:GetZ()
+            
+            if newx < min:GetX()
+                min:SetX(newx)
+            elseif newx > max:GetX()
+                max:SetX(newx)
+            end
+            
+            
+            if newy < min:GetY()
+                min:SetY(newy)
+            elseif newy > max:GetY()
+                max:SetY(newy)
+            end
+            
+            
+            if newz < min:GetZ()
+                min:SetZ(newz)
+            elseif newz > max:GetZ()
+                max:SetZ(newx)
+            end
+            
+            i = i + 1
+        end
+        min:Add(-collisionMargin)
+        max:Add(collisionMargin)
+        
+        a = 5
+        
+    end
+    
     
     private action CalculateValueFromRed(integer code) returns number
 return stickHeight * ops:And(ops:ShiftRight(code, 24), 255) / 256.0
