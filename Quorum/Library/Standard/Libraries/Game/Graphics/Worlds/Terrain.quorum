@@ -81,7 +81,7 @@ class Terrain is Model
     number stickWidth = 1
     number stickLength = 1
     integer pixelWidth = 0
-    integer pixelLength = 0
+    integer pixelHeight = 0
     MeshData meshData
     number collisionMargin = 0.04
     
@@ -123,7 +123,7 @@ Attribute: Parameter File the file to process.*/
         terrainShape:SetTerrain(me)
         
         pixelWidth = map:GetWidth()
-        pixelLength = map:GetHeight()
+        pixelHeight = map:GetHeight()
         
         //Loop through the pixel map and get all the coordinates
         i = 0
@@ -312,6 +312,14 @@ Attribute: Parameter vertices This array must be filled with exactly three vecto
 in the mesh. 
 Attrbiute: Parameter box the location of the bounding box to fill from the triangle.*/
     action FillAtPixel(integer x, integer y, Array<Vector3> vertices, BoundingBox box)
+        if x > pixelWidth - 1
+            x = pixelWidth - 1
+        end
+        
+        if y > pixelHeight - 1
+            y = pixelHeight - 1
+        end
+        
         integer stride = 3
         integer topLeft = x * pixelWidth + y
                 integer topRight = topLeft + 1
@@ -333,6 +341,7 @@ Attrbiute: Parameter box the location of the bounding box to fill from the trian
         Vector3 tr = vertices:Get(2)
         //find the position of the vertex, taking into account of stride of 3
         //top left
+        
         tl:SetX(verticesNum32:Get(topLeft))
         tl:SetY(verticesNum32:Get(topLeft + 1))
         tl:SetZ(verticesNum32:Get(topLeft + 2))
@@ -439,8 +448,8 @@ which is itself scaled from 0 to 1. Thus, we have 0 to 30 by default. */
         return pixelWidth
     end
 
-    action GetPixelLength returns integer
-        return pixelLength
+    action GetPixelHeight returns integer
+        return pixelHeight
     end
 
 end

@@ -74,8 +74,8 @@ PhysicsPosition3D shapeTransform, CollisionPointsResult3D result)
         integer xmin = cast(integer, xPercentMin * terrain:GetPixelWidth())
         integer xmax = cast(integer, xPercentMax * terrain:GetPixelWidth()) + 1
         
-        integer zmin = cast(integer, zPercentMin * terrain:GetPixelLength())
-        integer zmax = cast(integer, zPercentMax * terrain:GetPixelLength()) + 1
+        integer zmin = cast(integer, zPercentMin * terrain:GetPixelHeight())
+        integer zmax = cast(integer, zPercentMax * terrain:GetPixelHeight()) + 1
         
         Matrix4 terrainNormalTransform = terrain:GetTransform()
         i = xmin
@@ -90,7 +90,7 @@ PhysicsPosition3D shapeTransform, CollisionPointsResult3D result)
                 
                 boolean value = tempTriangleBox:Intersects(tempShapeBox)
                 if value
-                    output "Hit"
+                    //output "Hit"
                     //Basis here is zero unless the terrain is rotated. This case may not be accounted for.
                     PhysicsPosition3D newPos
                     newPos:GetOrigin():Add(tempTriangleBox:GetCenter())
@@ -101,7 +101,7 @@ PhysicsPosition3D shapeTransform, CollisionPointsResult3D result)
                     
                     a = 5
                 else
-                    output "y: " + tempTriangleBox:GetCenterY()
+                    //output "y: " + tempTriangleBox:GetCenterY()
                 end
                 
                 j = j + 1
