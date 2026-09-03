@@ -39,10 +39,14 @@ class Vector3
     constant number ROUNDING_MARGIN = 0.000001
 
 
+    action ToText returns text
+        return "The vector3 is: [" + x + ", " + y + ", " + z + "]"
+    end
 
     action Output
-        output "The vector3 is: [" + x + ", " + y + ", " + z + "]"
+        output ToText()
     end
+    
     /*
     This action returns the x component of the vector.
 

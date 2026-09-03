@@ -84,6 +84,7 @@ PhysicsPosition3D shapeTransform, CollisionPointsResult3D result)
             repeat while j <= zmax
                 terrain:FillAtPixel(i, j, tempVertices, tempTriangleBox)
                 Vector3 value1 = terrainNormalTransform:TransformWorldCoordinate(tempTriangleBox:GetMinimum())
+                //value1:SetY(-100000)
                 Vector3 value2 = terrainNormalTransform:TransformWorldCoordinate(tempTriangleBox:GetMaximum())
                 tempTriangleBox:Set(value1, value2)
                 
@@ -107,6 +108,7 @@ PhysicsPosition3D shapeTransform, CollisionPointsResult3D result)
                 j = j + 1
             end
             
+            j = zmin
             i = i + 1
         end
         

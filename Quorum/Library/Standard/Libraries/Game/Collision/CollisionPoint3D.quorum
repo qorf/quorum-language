@@ -467,4 +467,26 @@ class CollisionPoint3D
     action SetLateralFrictionDirectionB(Vector3 direction)
         me:lateralFrictionDirection2 = direction
     end
+    
+    action ToText returns text
+        text result = "---------- CollisionPoint3D Properties ----------
+"
+        result = result + "--- normalWorldOnB: " + normalWorldOnB:ToText() + "
+"
+        
+result = result + "--- Distance: " + distance1 + "
+"
+        
+
+        
+result = result + "--- Friction: " + combinedFriction + "
+"
+        
+        result = result + "--- Restitution: " + combinedRestitution + "
+"
+result = result + "---------- END ----------
+"
+        return result
+    end
+    
 end

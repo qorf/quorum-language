@@ -237,6 +237,7 @@ class CollisionEvent3D
         else
             if shapeA:GetType() = shapeA:TERRAIN
                 ConcaveShape3D concave = cast(ConcaveShape3D, shapeA)
+                result:Initialize(itemA, itemB)
                 concave:ProcessAllTriangles(collisionPoints, shapeB, transformA, transformB, result)
                 return now
             end
@@ -247,6 +248,13 @@ class CollisionEvent3D
             
             result:Initialize(itemA, itemB)
             CollideConvexConvex(collisionPoints, shapeA, transformA, shapeB, transformB, result)
+            //
+            //if collisionPoints:GetPointCount() > 0
+                //CollisionPoint3D point = collisionPoints:GetCollisionPoint(0)
+                //output point:ToText()
+            //end
+            
+            a = 5
         end
 
     end

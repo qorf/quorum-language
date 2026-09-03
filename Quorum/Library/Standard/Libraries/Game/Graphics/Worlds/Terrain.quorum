@@ -321,9 +321,9 @@ Attrbiute: Parameter box the location of the bounding box to fill from the trian
         end
         
         integer stride = 3
-        integer topLeft = x * pixelWidth + y
+        integer topLeft = y * pixelWidth + x
                 integer topRight = topLeft + 1
-                integer bottomLeft = (x + 1) * pixelWidth + y
+                integer bottomLeft = (y + 1) * pixelWidth + x
                 integer bottomRight = bottomLeft + 1
         
         topLeft = topLeft * stride
@@ -392,7 +392,7 @@ Attrbiute: Parameter box the location of the bounding box to fill from the trian
             if newz < min:GetZ()
                 min:SetZ(newz)
             elseif newz > max:GetZ()
-                max:SetZ(newx)
+                max:SetZ(newz)
             end
             
             i = i + 1
