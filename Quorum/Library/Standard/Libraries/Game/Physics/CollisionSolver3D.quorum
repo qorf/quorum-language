@@ -435,7 +435,6 @@ class CollisionSolver3D
 
                     relativeVelocity = cp:GetWorldNormalOnB():DotProduct(velocity)
 
-
                     solverConstraint:SetPenetration(cp:GetDistance() + infoGlobal:GetLinearSlop())
                     if solverConstraint:GetPenetration() > 0
                         solverConstraint:SetPenetration(0)

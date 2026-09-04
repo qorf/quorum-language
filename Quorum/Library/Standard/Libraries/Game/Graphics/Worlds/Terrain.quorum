@@ -301,6 +301,7 @@ Attribute: Parameter File the file to process.*/
         SetModelBlueprint(bluey)
     end
     
+    
     /*This action fills the vertices for a single pixel at the position x,z. The position is put into two places,
 the first three vertices in the already filled vertices array, and the bounding box is computed. If any of 
 these objects are undefined, this will crash, as this action is an optimization to reduce memory and increase 
@@ -310,14 +311,15 @@ Attribute: Parameter x the x in the pixel map
 Attribute: Parameter y the y in the pixel map, which translates to z in the heightmap.
 Attribute: Parameter vertices This array must be filled with exactly three vectors, representing the triangle created 
 in the mesh. 
-Attrbiute: Parameter box the location of the bounding box to fill from the triangle.*/
-    action FillAtPixel(integer x, integer y, Array<Vector3> vertices, BoundingBox box)
-        if x > pixelWidth - 1
-            x = pixelWidth - 1
+Attrbiute: Parameter box the location of the bounding box to fill from the triangle.
+Attribute: Parameter leftTriangle Whether it is the left or right triangle in the mesh.*/
+    action FillAtPixel(integer x, integer y, Array<Vector3> vertices, BoundingBox box, boolean leftTriangle)
+        if x > pixelWidth - 2
+            x = pixelWidth - 2
         end
         
-        if y > pixelHeight - 1
-            y = pixelHeight - 1
+        if y > pixelHeight - 2
+            y = pixelHeight - 2
         end
         
         integer stride = 3
@@ -331,6 +333,17 @@ Attrbiute: Parameter box the location of the bounding box to fill from the trian
         bottomLeft = bottomLeft * stride
         bottomRight = bottomRight * stride
         
+        integer first = topLeft
+        integer second = bottomLeft
+        integer third = topRight
+        
+        if not leftTriangle
+            first = topRight
+            second = bottomLeft
+            third = bottomRight
+        end
+        
+        
         Number32BitArray verticesNum32 = meshData:GetVertices()
                 //Cell Left
                 //indices:Set(position, topLeft)
@@ -342,19 +355,19 @@ Attrbiute: Parameter box the location of the bounding box to fill from the trian
         //find the position of the vertex, taking into account of stride of 3
         //top left
         
-        tl:SetX(verticesNum32:Get(topLeft))
-        tl:SetY(verticesNum32:Get(topLeft + 1))
-        tl:SetZ(verticesNum32:Get(topLeft + 2))
+        tl:SetX(verticesNum32:Get(first))
+        tl:SetY(verticesNum32:Get(first + 1))
+        tl:SetZ(verticesNum32:Get(first + 2))
         
         //bottom left
-        bl:SetX(verticesNum32:Get(bottomLeft))
-        bl:SetY(verticesNum32:Get(bottomLeft + 1))
-        bl:SetZ(verticesNum32:Get(bottomLeft + 2))
+        bl:SetX(verticesNum32:Get(second))
+        bl:SetY(verticesNum32:Get(second + 1))
+        bl:SetZ(verticesNum32:Get(second + 2))
         
         //top right
-        tr:SetX(verticesNum32:Get(topRight))
-        tr:SetY(verticesNum32:Get(topRight + 1))
-        tr:SetZ(verticesNum32:Get(topRight + 2))
+        tr:SetX(verticesNum32:Get(third))
+        tr:SetY(verticesNum32:Get(third + 1))
+        tr:SetZ(verticesNum32:Get(third + 2))
         
         Vector3 min = box:GetMinimum()
         Vector3 max = box:GetMaximum()
@@ -399,9 +412,11 @@ Attrbiute: Parameter box the location of the bounding box to fill from the trian
         end
         min:Add(-collisionMargin)
         max:Add(collisionMargin)
-        
-        a = 5
-        
+    end
+    
+    
+    action FillAtPixel(integer x, integer y, Array<Vector3> vertices, BoundingBox box)
+        FillAtPixel(x, y, vertices, box, true)
     end
     
     

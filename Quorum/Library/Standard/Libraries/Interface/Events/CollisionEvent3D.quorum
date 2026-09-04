@@ -215,18 +215,6 @@ class CollisionEvent3D
         return nodeB
     end
 
-//    action CalculateTotalFriction(number friction1, number friction2) returns number
-//        return math:SquareRoot(friction1 * friction2)
-//    end
-//
-//    action CalculateTotalRestitution(number restitution1, number restitution2) returns number
-//        if restitution1 > restitution2
-//            return restitution1
-//        else
-//            return restitution2
-//        end
-//    end
-
     private action NarrowphaseEvaluation(LocalCollisionPoints3D collisionPoints, PhysicsPosition3D transformA, PhysicsPosition3D transformB)
         CollisionShape3D shapeA = itemA:GetShape()
         CollisionShape3D shapeB = itemB:GetShape()
@@ -243,7 +231,10 @@ class CollisionEvent3D
             end
             
             if shapeB:GetType() = shapeB:TERRAIN
-                a = 5
+                ConcaveShape3D concave = cast(ConcaveShape3D, shapeA)
+                result:Initialize(itemA, itemB)
+                concave:ProcessAllTriangles(collisionPoints, shapeA, transformB, transformA, result)
+                return now
             end
             
             result:Initialize(itemA, itemB)

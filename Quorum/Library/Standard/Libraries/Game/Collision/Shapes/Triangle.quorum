@@ -1,0 +1,314 @@
+package Libraries.Game.Collision.Shapes
+
+use Libraries.Compute.Vector3
+use Libraries.Containers.Array
+use Libraries.Game.BoundingBox
+use Libraries.Game.Collision.PhysicsPosition3D
+
+/*
+This class describes a single triangle in 3D. It is the convex shape used for
+the narrowphase collision check against the individual triangles of a concave
+shape, such as the triangles that make up a HeightmapTerrainShape. Unlike the
+other convex shapes, a triangle has no volume, so it cannot be used as the shape
+of a dynamic Item3D on its own.
+*/
+class Triangle is CollisionShape3D
+    Array<Vector3> vertices
+
+    on create
+        parent:CollisionShape3D:SetType(parent:CollisionShape3D:TRIANGLE)
+
+        Vector3 vertex0
+        Vector3 vertex1
+        Vector3 vertex2
+        vertices:Add(vertex0)
+        vertices:Add(vertex1)
+        vertices:Add(vertex2)
+    end
+
+    /*
+    This action sets the three corners of the triangle. The values of the passed
+    vectors are copied, so the vectors may be safely reused by the caller.
+    */
+    action Set(Vector3 point0, Vector3 point1, Vector3 point2)
+        vertices:Get(0):Set(point0)
+        vertices:Get(1):Set(point1)
+        vertices:Get(2):Set(point2)
+    end
+
+    /*
+    This action sets a single corner of the triangle. The value of the passed
+    vector is copied.
+    */
+    action SetVertex(integer index, Vector3 point)
+        vertices:Get(index):Set(point)
+    end
+
+    /*
+    This action returns the number of corners in the triangle, which is always
+    three.
+    */
+    action GetNumberVertices returns integer
+        return 3
+    end
+
+    /*
+    This action returns the corner of the triangle at the given index. This is
+    the vector stored by the triangle, not a copy of it, so changing it changes
+    the triangle.
+    */
+    action GetVertex(integer index) returns Vector3
+        return vertices:Get(index)
+    end
+
+    /*
+    This action copies the corner of the triangle at the given index into the
+    passed vector.
+    */
+    action GetVertex(integer index, Vector3 out)
+        out:Set(vertices:Get(index))
+    end
+
+    /*
+    This action returns the number of edges in the triangle, which is always
+    three.
+    */
+    action GetNumberEdges returns integer
+        return 3
+    end
+
+    /*
+    This action copies the two corners that make up the edge at the given index
+    into the passed vectors.
+    */
+    action GetEdge(integer index, Vector3 pointA, Vector3 pointB)
+        pointA:Set(vertices:Get(index))
+        pointB:Set(vertices:Get((index + 1) mod 3))
+    end
+
+    /*
+    This action finds the corner of the triangle that is furthest away in the
+    direction specified by "Vector3 vector", without an offset (margin). The
+    returned vector is a copy, because the caller is allowed to change it.
+    */
+    action LocalGetSupportingVertexWithoutMargin(Vector3 vector) returns Vector3
+        Vector3 vertex0 = vertices:Get(0)
+        Vector3 vertex1 = vertices:Get(1)
+        Vector3 vertex2 = vertices:Get(2)
+
+        number dot0 = vector:DotProduct(vertex0)
+        number dot1 = vector:DotProduct(vertex1)
+        number dot2 = vector:DotProduct(vertex2)
+
+        Vector3 out
+
+        //When two corners are equally far away, the one with the lower index is
+        //chosen, which is the same tie breaking that Bullet uses.
+        if dot0 < dot1
+            if dot1 < dot2
+                out:Set(vertex2)
+            else
+                out:Set(vertex1)
+            end
+        else
+            if dot0 < dot2
+                out:Set(vertex2)
+            else
+                out:Set(vertex0)
+            end
+        end
+
+        return out
+    end
+
+    /*
+    This action fills "Array<Vector3> supportVerticesOut" with the corner that is
+    furthest away for each of the directions in "Array<Vector3> vectors."
+    */
+    action BatchedUnitVectorGetSupportingVertexWithoutMargin(Array<Vector3> vectors, Array<Vector3> supportVerticesOut, integer numberVectors)
+        integer i = 0
+        repeat while i < numberVectors
+            supportVerticesOut:Get(i):Set(LocalGetSupportingVertexWithoutMargin(vectors:Get(i)))
+            i = i + 1
+        end
+    end
+
+    /*
+    This action finds the bounding box that would bound the triangle in its
+    current position. Because a triangle has no fixed extents to work from, the
+    box is found by asking the triangle for its furthest corner along each of the
+    six world axes, which is what Bullet calls the slow path.
+    */
+    action ComputeBoundingBox(BoundingBox boundingBox, PhysicsPosition3D transform)
+        number margin = GetMargin()
+
+        Vector3 support
+        Vector3 minimum
+        Vector3 maximum
+
+        SupportInWorld(transform, 1, 0, 0, support)
+        maximum:SetX(support:GetX() + margin)
+        SupportInWorld(transform, -1, 0, 0, support)
+        minimum:SetX(support:GetX() - margin)
+
+        SupportInWorld(transform, 0, 1, 0, support)
+        maximum:SetY(support:GetY() + margin)
+        SupportInWorld(transform, 0, -1, 0, support)
+        minimum:SetY(support:GetY() - margin)
+
+        SupportInWorld(transform, 0, 0, 1, support)
+        maximum:SetZ(support:GetZ() + margin)
+        SupportInWorld(transform, 0, 0, -1, support)
+        minimum:SetZ(support:GetZ() - margin)
+
+        boundingBox:Set(minimum, maximum)
+    end
+
+    /*
+    This action is used by "action ComputeBoundingBox." It takes a direction in
+    global coordinates, rotates it into the triangle's local coordinates, finds
+    the supporting corner along it, and puts that corner back into global
+    coordinates.
+    */
+    private action SupportInWorld(PhysicsPosition3D transform, number x, number y, number z, Vector3 out)
+        Vector3 direction
+        direction:Set(x, y, z)
+        direction:MultiplyByTranspose(transform:GetBasis())
+
+        out:Set(LocalGetSupportingVertex(direction))
+        transform:Transform(out)
+    end
+
+    /*
+    This action calculates the unit normal of the plane that the triangle lies
+    in, following the winding of the three corners, and stores it in the passed
+    vector.
+    */
+    action CalculateNormal(Vector3 normal)
+        Vector3 secondEdge
+
+        normal:Set(vertices:Get(1))
+        normal:Subtract(vertices:Get(0))
+
+        secondEdge:Set(vertices:Get(2))
+        secondEdge:Subtract(vertices:Get(0))
+
+        normal:CrossProduct(secondEdge)
+        normal:Normalize()
+    end
+
+    /*
+    This action returns the number of planes that bound the triangle, which is
+    always one.
+    */
+    action GetNumberPlanes returns integer
+        return 1
+    end
+
+    /*
+    This action stores the normal of the triangle's plane, along with a point
+    that lies on that plane, in the passed vectors. A triangle only has one
+    plane, so the index is ignored.
+    */
+    action GetPlaneEquation(integer index, Vector3 planeNormal, Vector3 planeSupport)
+        CalculateNormal(planeNormal)
+        planeSupport:Set(vertices:Get(0))
+    end
+
+    /*
+    This action stores the normal of the triangle's plane, along with a point
+    that lies on that plane, in the passed vectors. A triangle only has one
+    plane, so the index is ignored.
+    */
+    action GetPlane(Vector3 planeNormal, Vector3 planeSupport, integer index)
+        GetPlaneEquation(index, planeNormal, planeSupport)
+    end
+
+    /*
+    This action tests whether a point lies on the triangle, within the given
+    tolerance. The point must be close enough to the triangle's plane and must
+    also be on the inner side of all three of its edges.
+    */
+    action IsInside(Vector3 point, number tolerance) returns boolean
+        Vector3 normal
+        CalculateNormal(normal)
+
+        //How far the point sits off the plane of the triangle.
+        number distance = point:DotProduct(normal) - vertices:Get(0):DotProduct(normal)
+
+        if distance < -tolerance or distance > tolerance
+            return false
+        end
+
+        Vector3 pointA
+        Vector3 pointB
+        Vector3 edge
+        Vector3 edgeNormal
+
+        integer i = 0
+        repeat while i < 3
+            GetEdge(i, pointA, pointB)
+
+            edge:Set(pointB)
+            edge:Subtract(pointA)
+
+            //The edge normal points into the triangle, so a point on the outer
+            //side of any edge is not on the triangle.
+            edgeNormal:Set(edge)
+            edgeNormal:CrossProduct(normal)
+            edgeNormal:Normalize()
+
+            number edgeDistance = point:DotProduct(edgeNormal) - pointA:DotProduct(edgeNormal)
+            if edgeDistance < -tolerance
+                return false
+            end
+
+            i = i + 1
+        end
+
+        return true
+    end
+
+    /*
+    A triangle has no volume, so there is no meaningful moment of inertia to
+    calculate and the result is always zero. Bullet asserts here, because a
+    triangle is only ever used as part of a larger concave shape and never as
+    the shape of a body that moves on its own.
+    */
+    action CalculateLocalInertia(number mass, Vector3 inertia)
+        inertia:Set(0, 0, 0)
+    end
+
+    /*
+    This action returns how many directions the penetration depth solver should
+    prefer to search along. For a triangle these are the two faces of its plane.
+    */
+    action GetNumberPreferredPenetrationDirections returns integer
+        return 2
+    end
+
+    /*
+    This action stores one of the preferred penetration directions in the passed
+    vector. Index zero is the front face of the triangle and index one is the
+    back face.
+    */
+    action GetPreferredPenetrationDirection(integer index, Vector3 penetrationVector)
+        CalculateNormal(penetrationVector)
+
+        if index not= 0
+            penetrationVector:Scale(-1)
+        end
+    end
+
+    action Copy returns CollisionShape3D
+        Triangle triangle
+        triangle:Set(vertices:Get(0), vertices:Get(1), vertices:Get(2))
+        triangle:SetMargin(GetMargin())
+        triangle:parent:CollisionShape3D:localScaling:Set(parent:CollisionShape3D:localScaling)
+        return triangle
+    end
+
+    action GetChildCount returns integer
+        return 1
+    end
+end

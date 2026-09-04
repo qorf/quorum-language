@@ -21,6 +21,11 @@ class CollisionPointsResult3D
     integer partID1 = 0
     integer index0 = 0
     integer index1 = 0
+    
+    //These values are for terrain. The face normal in this context lets us tell terrain that you can never be below it.
+    Vector3 faceNormal
+    Vector3 adjustedNormal
+    boolean hasFaceNormal = false
 
     /*
     This action adds the bodies that are colliding into this CollisionPointsResult3D class.
@@ -32,6 +37,26 @@ class CollisionPointsResult3D
         me:body1 = body1
         rootTransformA:Set(body0:GetCollisionTransform())
         rootTransformB:Set(body1:GetCollisionTransform())
+    end
+    
+    /*
+    This action tells this CollisionPointsResult3D that the contacts it is about to
+    receive come from a one sided surface with a known normal, so that a contact
+    reported on an internal edge, or from underneath the surface, can be corrected.
+    Concave shapes set this before each of their pieces collides.
+    */
+    action SetFaceNormal(Vector3 normal)
+        faceNormal:Set(normal)
+        hasFaceNormal = true
+    end
+
+    /*
+    This action stops correcting contacts against a surface normal. It must be called
+    once a concave shape is done, because this class is shared with the ordinary
+    convex collision path, which has no surface normal to correct against.
+    */
+    action ClearFaceNormal
+        hasFaceNormal = false
     end
 
     /*
@@ -73,6 +98,25 @@ class CollisionPointsResult3D
     Attribute: Parameter depth The shortest distance from the collision point on B to the collision point on A.
     */
     action AddCollisionPoint(Vector3 normalOnBInWorld, Vector3 pointInWorld, number depth)
+        adjustedNormal:Set(normalOnBInWorld)
+
+        if hasFaceNormal
+            number alignment = adjustedNormal:DotProduct(faceNormal)
+
+            //A contact on an internal edge reports that edge's perpendicular rather than
+            //the surface normal, so the depth has to be re-measured along the surface.
+            depth = depth * alignment
+
+            //The surface is one sided, with no space underneath it, so an object found
+            //below it has passed through and has to come back out the top rather than be
+            //pushed further down.
+            if alignment < 0
+                depth = -depth
+            end
+
+            adjustedNormal:Set(faceNormal)
+        end
+        
         if depth > collisionPoints:GetCollisionBreakingThreshold()
             return now
         end
@@ -80,7 +124,7 @@ class CollisionPointsResult3D
         boolean isSwapped = collisionPoints:GetBody0() not= body0
 
         Vector3 pointA
-        pointA:Set(normalOnBInWorld)
+        pointA:Set(adjustedNormal)
         pointA:Scale(depth)
         pointA:Add(pointInWorld)
 
@@ -96,7 +140,7 @@ class CollisionPointsResult3D
         end
 
         CollisionPoint3D newPoint
-        newPoint:Initialize(localA, localB, normalOnBInWorld, depth)
+        newPoint:Initialize(localA, localB, adjustedNormal, depth)
 
         newPoint:GetWorldPositionOnA():Set(pointA)
         newPoint:GetWorldPositionOnB():Set(pointInWorld)

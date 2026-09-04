@@ -11,6 +11,7 @@ use Libraries.Compute.Matrix4
 use Libraries.Game.Collision.CollisionPointsResult3D
 use Libraries.Game.Collision.Narrowphase.ConvexConvexPairSolver
 use Libraries.Game.Collision.LocalCollisionPoints3D
+use Libraries.Game.Collision.CollisionPoint3D
 
 class HeightmapTerrainShape is Box, ConcaveShape3D
     Terrain terrain = undefined
@@ -20,6 +21,16 @@ class HeightmapTerrainShape is Box, ConcaveShape3D
     BoundingBox tempShapeBox
     BoundingBox tempTriangleBox
     ConvexConvexPairSolver gjkPairDetector
+    
+    
+    Triangle triangle
+    PhysicsPosition3D triangleTransform
+    Vector3 worldVertex0
+    Vector3 worldVertex1
+    Vector3 worldVertex2
+    Vector3 triangleNormal
+    Vector3 supportDirection
+    Vector3 supportPoint
     
     on create
         SetType(parent:CollisionShape3D:TERRAIN)
@@ -61,50 +72,61 @@ PhysicsPosition3D shapeTransform, CollisionPointsResult3D result)
         
         //Get where the bounding box is on the map.
         Vector3 terrainDimensions = tempTerrainBox:GetDimensions()
+        number scaleX = terrain:GetScaleX()
+        number scaleZ = terrain:GetScaleZ()
+        
         Vector3 terrainOrigin = terrainTransform:GetOrigin()
-        number xPercentMin = (tempShapeBox:GetMinimum():GetX() - terrainOrigin:GetX()) /
-(terrainDimensions:GetX()) 
-        number xPercentMax = (tempShapeBox:GetMaximum():GetX() - terrainOrigin:GetX()) /
-(terrainDimensions:GetX())
-        number zPercentMin = (tempShapeBox:GetMinimum():GetZ() - terrainOrigin:GetZ()) /
-(terrainDimensions:GetZ()) 
-        number zPercentMax = (tempShapeBox:GetMaximum():GetZ() - terrainOrigin:GetZ()) /
-(terrainDimensions:GetZ())
+        number originX = terrainOrigin:GetX()
+        number originZ = terrainOrigin:GetZ()
         
-        integer xmin = cast(integer, xPercentMin * terrain:GetPixelWidth())
-        integer xmax = cast(integer, xPercentMax * terrain:GetPixelWidth()) + 1
+        number xLocalMin = (tempShapeBox:GetMinimum():GetX() - originX) / scaleX
+        number xLocalMax = (tempShapeBox:GetMaximum():GetX() - originX) / scaleX
+        number zLocalMin = (tempShapeBox:GetMinimum():GetZ() - originZ) / scaleZ
+        number zLocalMax = (tempShapeBox:GetMaximum():GetZ() - originZ) / scaleZ
+
+        //Expand by a cell each way, as Bullet does, so a box that falls between
+        //grid points still tests the cells on either side of it.
+        integer xmin = cast(integer, math:Floor(xLocalMin)) - 1
+        integer xmax = cast(integer, math:Floor(xLocalMax)) + 1
+        integer zmin = cast(integer, math:Floor(zLocalMin)) - 1
+        integer zmax = cast(integer, math:Floor(zLocalMax)) + 1
+
+        if xmin < 0
+            xmin = 0
+        end
+
+        if zmin < 0
+            zmin = 0
+        end
+
+        if xmax > terrain:GetPixelWidth() - 2
+            xmax = terrain:GetPixelWidth() - 2
+        end
+
+        if zmax > terrain:GetPixelHeight() - 2
+            zmax = terrain:GetPixelHeight() - 2
+        end
         
-        integer zmin = cast(integer, zPercentMin * terrain:GetPixelHeight())
-        integer zmax = cast(integer, zPercentMax * terrain:GetPixelHeight()) + 1
+        //Vector3 terrainOrigin = tempTerrainBox:GetMinimum()
+        //number xPercentMin = (tempShapeBox:GetMinimum():GetX() - terrainOrigin:GetX()) /(terrainDimensions:GetX()) 
+        //number xPercentMax = (tempShapeBox:GetMaximum():GetX() - terrainOrigin:GetX()) /(terrainDimensions:GetX())
+        //number zPercentMin = (tempShapeBox:GetMinimum():GetZ() - terrainOrigin:GetZ()) /(terrainDimensions:GetZ()) 
+        //number zPercentMax = (tempShapeBox:GetMaximum():GetZ() - terrainOrigin:GetZ()) /(terrainDimensions:GetZ())
+        //
+        //integer xmin = cast(integer, xPercentMin * terrain:GetPixelWidth())
+        //integer xmax = cast(integer, xPercentMax * terrain:GetPixelWidth()) + 1
+        //
+        //integer zmin = cast(integer, zPercentMin * terrain:GetPixelHeight())
+        //integer zmax = cast(integer, zPercentMax * terrain:GetPixelHeight()) + 1
+        
         
         Matrix4 terrainNormalTransform = terrain:GetTransform()
         i = xmin
         j = zmin
         repeat while i <= xmax
             repeat while j <= zmax
-                terrain:FillAtPixel(i, j, tempVertices, tempTriangleBox)
-                Vector3 value1 = terrainNormalTransform:TransformWorldCoordinate(tempTriangleBox:GetMinimum())
-                //value1:SetY(-100000)
-                Vector3 value2 = terrainNormalTransform:TransformWorldCoordinate(tempTriangleBox:GetMaximum())
-                tempTriangleBox:Set(value1, value2)
-                
-                
-                boolean value = tempTriangleBox:Intersects(tempShapeBox)
-                if value
-                    //output "Hit"
-                    //Basis here is zero unless the terrain is rotated. This case may not be accounted for.
-                    PhysicsPosition3D newPos
-                    newPos:GetOrigin():Add(tempTriangleBox:GetCenter())
-                    
-                    Box box
-                    box:ComputeBoundingBox(tempTriangleBox, newPos)
-                    CollideConvexConvex(collisionPoints, box, newPos, shape, shapeTransform, result)
-                    
-                    a = 5
-                else
-                    //output "y: " + tempTriangleBox:GetCenterY()
-                end
-                
+                ProcessTriangle(collisionPoints, shape, shapeTransform, result, terrainNormalTransform, i, j, false)
+                ProcessTriangle(collisionPoints, shape, shapeTransform, result, terrainNormalTransform, i, j, true)
                 j = j + 1
             end
             
@@ -112,13 +134,118 @@ PhysicsPosition3D shapeTransform, CollisionPointsResult3D result)
             i = i + 1
         end
         
+        //output "cells: " + xmin + "," + xmax + ":" + zmin + "," + zmax + " points: " + collisionPoints:GetPointCount()
         
-        
-        
-        a = 5
-        
+        //integer p = 0
+        //output "Point Count: " + collisionPoints:GetPointCount()
+            //repeat while p < collisionPoints:GetPointCount()
+                //CollisionPoint3D point = collisionPoints:GetCollisionPoint(p)
+                //Vector3 n = point:GetWorldNormalOnB()
+                //output "  n " + n:GetX() + "," + n:GetY() + "," + n:GetZ() + " d " + point:GetDistance()
+                //p = p + 1
+            //end
  end
     
+    action ProcessTriangle(LocalCollisionPoints3D collisionPoints, CollisionShape3D shape, PhysicsPosition3D shapeTransform, 
+CollisionPointsResult3D result, Matrix4 terrainNormalTransform, integer x, integer z, boolean leftTriangle)
+
+        terrain:FillAtPixel(x, z, tempVertices, tempTriangleBox, leftTriangle)
+                Vector3 value1 = terrainNormalTransform:TransformWorldCoordinate(tempTriangleBox:GetMinimum())
+                //value1:SetY(-100000)
+                Vector3 value2 = terrainNormalTransform:TransformWorldCoordinate(tempTriangleBox:GetMaximum())
+                tempTriangleBox:Set(value1, value2)
+        
+        
+        terrainNormalTransform:TransformWorldCoordinate(tempVertices:Get(0), worldVertex0)
+        terrainNormalTransform:TransformWorldCoordinate(tempVertices:Get(1), worldVertex1)
+        terrainNormalTransform:TransformWorldCoordinate(tempVertices:Get(2), worldVertex2)
+        triangle:Set(worldVertex0, worldVertex1, worldVertex2)
+        triangle:SetMargin(GetMargin())
+                
+                
+        BoundingBox tempProxyBox
+    Box proxyBox
+    PhysicsPosition3D proxyPosition
+                boolean value = tempTriangleBox:Intersects(tempShapeBox)
+                if value
+                    //output "Hit"
+                    //Basis here is zero unless the terrain is rotated. This case may not be accounted for.
+            
+            //proxyPosition:GetOrigin():Set(tempTriangleBox:GetCenter())
+                    //Vector3 dimensions = tempTriangleBox:GetDimensions()
+                    //proxyBox:Set(dimensions:GetX(), dimensions:GetY(), dimensions:GetZ())
+                    //proxyBox:ComputeBoundingBox(tempProxyBox, proxyPosition)
+            
+            
+            //CollideConvexConvex(collisionPoints, proxyBox, proxyPosition, shape, shapeTransform, result)
+            
+            if not tempTriangleBox:Intersects(tempShapeBox)
+            return now
+        end
+        //If the whole object sits off one face of the triangle's plane, further away
+        //than a contact could reach, then it cannot be touching this triangle.
+        //if IsSeparatedFromTriangle(shape, shapeTransform, collisionPoints:GetCollisionBreakingThreshold())
+            //return now
+        //end
+        //Narrow phase. The triangle itself is the shape that collides, so the contact
+        //normal comes from the surface instead of from the face of a box.
+            
+            triangle:CalculateNormal(triangleNormal)
+        result:SetFaceNormal(triangleNormal)
+        CollideConvexConvex(collisionPoints, triangle, triangleTransform, shape, shapeTransform, result)
+            result:ClearFaceNormal()
+            
+            
+            
+            //
+                    //PhysicsPosition3D newPos
+                    //newPos:GetOrigin():Add(tempTriangleBox:GetCenter())
+            //        
+                    //Box box
+                    //box:ComputeBoundingBox(tempTriangleBox, newPos)
+                    //CollideConvexConvex(collisionPoints, box, newPos, shape, shapeTransform, result)
+                    
+                    a = 5
+                else
+                    //output "y: " + tempTriangleBox:GetCenterY()
+                end
+    end
+    
+    
+    
+    
+    
+    /*
+    This action checks whether the object is entirely off one face of the triangle's
+    plane, far enough away that no contact could reach it. Both facings have to be
+    checked, because the object may be on either side of the triangle.
+    */
+    private action IsSeparatedFromTriangle(CollisionShape3D shape, PhysicsPosition3D shapeTransform, number contactThreshold) returns boolean
+        triangle:CalculateNormal(triangleNormal)
+        if IsBeyondPlane(shape, shapeTransform, contactThreshold)
+            return true
+        end
+        triangleNormal:Scale(-1)
+        if IsBeyondPlane(shape, shapeTransform, contactThreshold)
+            return true
+        end
+        return false
+    end
+    
+    /*
+    This action is used by "action IsSeparatedFromTriangle." It finds the point on
+    the object that reaches furthest along the current triangle normal, and reports
+    whether even that point falls short of the triangle's plane.
+    */
+    private action IsBeyondPlane(CollisionShape3D shape, PhysicsPosition3D shapeTransform, number contactThreshold) returns boolean
+        supportDirection:Set(triangleNormal)
+        supportDirection:MultiplyByTranspose(shapeTransform:GetBasis())
+        supportPoint:Set(shape:LocalGetSupportingVertex(supportDirection))
+        shapeTransform:Transform(supportPoint)
+        number planeDistance = triangleNormal:DotProduct(triangle:GetVertex(0))
+        number pointDistance = triangleNormal:DotProduct(supportPoint)
+        return planeDistance - pointDistance > contactThreshold
+    end
     
     private action CollideConvexConvex(LocalCollisionPoints3D collisionPoints, CollisionShape3D shapeA, PhysicsPosition3D transformA, 
 CollisionShape3D shapeB, PhysicsPosition3D transformB, CollisionPointsResult3D result)
