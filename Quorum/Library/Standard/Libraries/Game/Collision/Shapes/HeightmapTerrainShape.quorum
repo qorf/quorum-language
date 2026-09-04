@@ -140,14 +140,16 @@ PhysicsPosition3D shapeTransform, CollisionPointsResult3D result)
             end
  end
     
+    /*Processes a single triangle from the x,y coordinates on the height map for either the left or right triangle. */
     action ProcessTriangle(LocalCollisionPoints3D collisionPoints, CollisionShape3D shape, PhysicsPosition3D shapeTransform, 
 CollisionPointsResult3D result, Matrix4 terrainNormalTransform, integer x, integer z, boolean leftTriangle)
-
         terrain:FillAtPixel(x, z, tempVertices, tempTriangleBox, leftTriangle)
                 Vector3 value1 = terrainNormalTransform:TransformWorldCoordinate(tempTriangleBox:GetMinimum())
                 Vector3 value2 = terrainNormalTransform:TransformWorldCoordinate(tempTriangleBox:GetMaximum())
                 tempTriangleBox:Set(value1, value2)
-        
+        if not tempTriangleBox:Intersects(tempShapeBox)
+            return now
+        end
         
         terrainNormalTransform:TransformWorldCoordinate(tempVertices:Get(0), worldVertex0)
         terrainNormalTransform:TransformWorldCoordinate(tempVertices:Get(1), worldVertex1)
@@ -155,14 +157,8 @@ CollisionPointsResult3D result, Matrix4 terrainNormalTransform, integer x, integ
         triangle:Set(worldVertex0, worldVertex1, worldVertex2)
         triangle:SetMargin(GetMargin())
                 
-        BoundingBox tempProxyBox
-    Box proxyBox
-    PhysicsPosition3D proxyPosition
-                boolean value = tempTriangleBox:Intersects(tempShapeBox)
-                if value
-            if not tempTriangleBox:Intersects(tempShapeBox)
-            return now
-        end
+                boolean hitTriangle = tempTriangleBox:Intersects(tempShapeBox)
+                if hitTriangle
             triangle:CalculateNormal(triangleNormal)
         result:SetFaceNormal(triangleNormal)
         CollideConvexConvex(collisionPoints, triangle, triangleTransform, shape, shapeTransform, result)
