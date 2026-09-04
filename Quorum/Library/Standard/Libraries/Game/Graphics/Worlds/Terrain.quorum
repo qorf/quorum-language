@@ -79,7 +79,7 @@ class Terrain is Model
     number maxHeight = 0
     number stickHeight = 30
     number stickWidth = 1
-    number stickLength = 1
+    number stickDepth = 1
     integer pixelWidth = 0
     integer pixelHeight = 0
     MeshData meshData
@@ -98,11 +98,9 @@ Attribute: Parameter text the path to the file to process.*/
     /*This action loads a height map from a gray scale image. The amount of 
 white in every pixel generates the height in the model. 
 
-Attribute: Parameter File the file to process.*/
-    action LoadHeightMap(File file)
-        PixelMap map
-        map:LoadPixelMap(file)
-        
+Attribute: Parameter text the path to the file to process.
+Attribute: Parameter key This is a key used by the cache. If this is called from the file version, it is the absolute path by default.*/
+    action LoadHeightMap(PixelMap map, text key)
         //Temporary storage
         Vector3 normal
         Vector3 temp
@@ -132,15 +130,9 @@ Attribute: Parameter File the file to process.*/
             repeat while j < map:GetWidth()
                 integer code = map:GetPixel(i, j)
             
-                //We ignore all the colors but red because they are all the same.
-            number alpha = ops:And(code, 255)
-        	    number blue = ops:And(ops:ShiftRight(code, 8), 255)
-            number green = ops:And(ops:ShiftRight(code, 16), 255)
-            number red = CalculateValueFromRed(code)
-            
-                //y is the height of the position. 
+                //y is the height of the position. This is the red (biggest chunk) and green (fine detail), giving a 16 bit size. 
                 number x = j
-                number y = red
+                number y = CalculateHeightFromPixel(code)
                 number z = i
                 
                 if y > maxHeight
@@ -166,14 +158,14 @@ Attribute: Parameter File the file to process.*/
                 //If there is no neighbor, just use the vertex value
                 //Left
                 if j - 1 >= 0
-                    left  = CalculateValueFromRed(map:GetPixel(i, j - 1))
+                    left  = CalculateHeightFromPixel(map:GetPixel(i, j - 1))
                 else
                     left  = y
                 end
                 
                 //Right
                 if j + 1 < map:GetWidth()
-                    right  = CalculateValueFromRed(map:GetPixel(i, j + 1))
+                    right  = CalculateHeightFromPixel(map:GetPixel(i, j + 1))
                 else
                     //Mirror
                     right  = y
@@ -182,13 +174,13 @@ Attribute: Parameter File the file to process.*/
                 //Top
                 if i - 1 >= 0
                     integer newCode = map:GetPixel(i - 1, j)
-                    bottom  = CalculateValueFromRed(map:GetPixel(i - 1, j))
+                    bottom  = CalculateHeightFromPixel(map:GetPixel(i - 1, j))
                 else
                     bottom = y
                 end
                 
                 if i + 1 < map:GetHeight()
-                    top  = CalculateValueFromRed(map:GetPixel(i + 1, j))
+                    top  = CalculateHeightFromPixel(map:GetPixel(i + 1, j))
                 else
                     top = y
                 end
@@ -291,7 +283,7 @@ Attribute: Parameter File the file to process.*/
         
         //The model data needs a unique ID, the meshes, and materials.
         ModelData modelData
-        modelData:SetID(file:GetAbsolutePath())
+        modelData:SetID(key)
         modelData:SetMeshes(meshes)
         modelData:SetMaterials(materials)
         
@@ -299,6 +291,18 @@ Attribute: Parameter File the file to process.*/
         ModelManagerVulkan manager
         ModelBlueprintVulkan bluey = manager:GetModelBlueprint(modelData)
         SetModelBlueprint(bluey)
+        
+    end
+    
+    
+    /*This action loads a height map from a gray scale image. The amount of 
+white in every pixel generates the height in the model. 
+
+Attribute: Parameter File the file to process.*/
+    action LoadHeightMap(File file)
+        PixelMap map
+        map:LoadPixelMap(file)
+        LoadHeightMap(map, file:GetAbsolutePath())
     end
     
     
@@ -414,15 +418,24 @@ Attribute: Parameter leftTriangle Whether it is the left or right triangle in th
         max:Add(collisionMargin)
     end
     
-    
     action FillAtPixel(integer x, integer y, Array<Vector3> vertices, BoundingBox box)
         FillAtPixel(x, y, vertices, box, true)
     end
     
+    /*
+    This action reads a height from a pixel, from 0 to the height scale.
+
+    The height is held across two channels, because one byte only allows 256 different
+    heights and generated terrain shows that as visible steps on a shallow slope. Red
+    carries the coarse part and green subdivides it, the way the digits of a number work,
+    which gives 65536 heights instead of 256.
+    */
+    private action CalculateHeightFromPixel(integer code) returns number
+        integer coarse = ops:And(ops:ShiftRight(code, 24), 255)
+        integer fine = ops:And(ops:ShiftRight(code, 16), 255)
+        return stickHeight * (coarse * 256 + fine) / 65536.0
+    end
     
-    private action CalculateValueFromRed(integer code) returns number
-return stickHeight * ops:And(ops:ShiftRight(code, 24), 255) / 256.0
-end
     
     private action FillVector(Vector3 vector, integer index, Number32BitArray vertices)
         vector:SetX(vertices:Get(index * 3))
@@ -452,11 +465,11 @@ which is itself scaled from 0 to 1. Thus, we have 0 to 30 by default. */
     end
 
     action GetStickLength returns number
-        return stickLength
+        return stickDepth
     end
 
-    action SetStickLength(number stickLength)
-        me:stickLength = stickLength
+    action SetStickDepth(number stickDepth)
+        me:stickDepth = stickDepth
     end
 
     action GetPixelWidth returns integer
