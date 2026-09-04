@@ -46,7 +46,25 @@ class HeightmapTerrainShape is Box, ConcaveShape3D
     
     
     action ComputeBoundingBox(BoundingBox boundingBox, PhysicsPosition3D transform)
-        parent:Box:ComputeBoundingBox(boundingBox, transform)
+        //The height map's vertices run from the origin out to its width, height and depth
+        //instead of being centred on it, so the box that bounds them has to be anchored at
+        //the origin the same way. A centred box covers only the quarter of the map nearest
+        //the origin and only the lower half of the height range.
+        number margin = GetMargin()
+        Vector3 origin = transform:GetOrigin()
+        //Expressed the same way ProcessAllTriangles maps world positions back to cells, so
+        //the bounding box and the cell search always agree on where the map is.
+        number spanX = terrain:GetPixelWidth() * terrain:GetScaleX()
+        number spanY = terrain:GetHeight() * terrain:GetScaleY()
+        number spanZ = terrain:GetPixelHeight() * terrain:GetScaleZ()
+        Vector3 minimum
+        minimum:Set(origin:GetX() - margin, origin:GetY() - margin, origin:GetZ() - margin)
+        Vector3 maximum
+        maximum:Set(origin:GetX() + spanX + margin,
+                    origin:GetY() + spanY + margin,
+                    origin:GetZ() + spanZ + margin)
+        boundingBox:Set(minimum, maximum)
+        boundingBox:CalculateDimensions()
  end
     
     action ProcessAllTriangles(LocalCollisionPoints3D collisionPoints, CollisionShape3D shape, PhysicsPosition3D terrainTransform, 
