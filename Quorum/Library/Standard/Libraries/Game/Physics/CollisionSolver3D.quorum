@@ -75,9 +75,19 @@ class CollisionSolver3D
     Attribute: Parameter relativeVelocity The relative velocity between two objects.
     */
     action RestitutionCurve(number relativeVelocity, number restitution) returns number
-        return restitution * -relativeVelocity
+        return RestitutionCurve(relativeVelocity, restitution, 0.2)
     end
 
+    action RestitutionCurve(number relativeVelocity, number restitution, number velocityThreshold) returns number
+        //Below this closing speed there is no bounce at all, so that resting objects
+        //settle instead of micro bouncing forever.
+        if math:AbsoluteValue(relativeVelocity) < velocityThreshold
+            return 0
+        end
+
+        return restitution * -relativeVelocity
+    end
+    
     /*
     This action finds the impulse to stop the two 3D objects from penetrating each other.
     */
@@ -131,11 +141,19 @@ class CollisionSolver3D
         relvel = vel1DotN - vel2DotN
 
         number positionalError = 0
-        if not solverInfo:SplitImpulse() or (contactConstraint:GetPenetration() > solverInfo:GetSplitImpulsePenetrationThreshold())
+        
+        number velocityError = contactConstraint:GetRestitution() - relvel
+
+        if contactConstraint:GetPenetration() > 0
+            
+            
+            //The objects have not touched yet, so there is no position error to correct.
+            //Instead the approach speed is limited to what exactly closes the gap in one
+            //step, which lands the object on the surface rather than inside it.
+            velocityError = velocityError - contactConstraint:GetPenetration() / solverInfo:GetTimeStep()
+        elseif not solverInfo:SplitImpulse() or (contactConstraint:GetPenetration() > solverInfo:GetSplitImpulsePenetrationThreshold())
             positionalError = -contactConstraint:GetPenetration() * solverInfo:GetErp() / solverInfo:GetTimeStep()
         end
-
-        number velocityError = contactConstraint:GetRestitution() - relvel
 
         number penetrationImpulse = positionalError * contactConstraint:GetJacobianDiagonalABInverse()
         number velocityImpulse = velocityError * contactConstraint:GetJacobianDiagonalABInverse()
@@ -349,7 +367,7 @@ class CollisionSolver3D
             repeat while j < manifold:GetPointCount()
                 CollisionPoint3D cp = manifold:GetCollisionPoint(j)
                 
-                if cp:GetDistance() <= 0
+                if cp:GetDistance() <= manifold:GetCollisionBreakingThreshold()
                     position1:Set(cp:GetWorldPositionOnA())
                     position2:Set(cp:GetWorldPositionOnB())
 
@@ -430,15 +448,9 @@ class CollisionSolver3D
                     else
                         velocity2:Set(0, 0, 0)
                     end
-
                     velocity:Set(velocity1):Subtract(velocity2)
-
                     relativeVelocity = cp:GetWorldNormalOnB():DotProduct(velocity)
-
                     solverConstraint:SetPenetration(cp:GetDistance() + infoGlobal:GetLinearSlop())
-                    if solverConstraint:GetPenetration() > 0
-                        solverConstraint:SetPenetration(0)
-                    end
 
                     solverConstraint:SetFriction(cp:GetCombinedFriction())
                     solverConstraint:SetRestitution(RestitutionCurve(relativeVelocity, cp:GetCombinedRestitution()))
@@ -446,10 +458,11 @@ class CollisionSolver3D
                         solverConstraint:SetRestitution(0)
                     end
 
-                    number penetrationVelocity = -solverConstraint:GetPenetration() / infoGlobal:GetTimeStep()
-
-                    if solverConstraint:GetRestitution() > penetrationVelocity
+                    if solverConstraint:GetPenetration() < 0
+number penetrationVelocity = -solverConstraint:GetPenetration() / infoGlobal:GetTimeStep()
+if solverConstraint:GetRestitution() > penetrationVelocity
                         solverConstraint:SetPenetration(0)
+                    end
                     end
 
                     Vector3 temp
@@ -560,13 +573,6 @@ class CollisionSolver3D
             j = j + 1
         end
 
-//        j = 0
-//        repeat while j < numJoints
-//            Joint3D joint = joints:Get(joints_offset + j)
-//            joint:GetInformation(infoGlobal)
-//            j = j + 1
-//        end
-
         integer numJointPool = tempSolverConstraintPool:GetSize()
         integer numFrictionPool = tempSolverFrictionConstraintPool:GetSize()
 
@@ -625,8 +631,6 @@ class CollisionSolver3D
             j = 0
             repeat while j < numJoints
                 Joint3D joint = joints:Get(joints_offset + j)
-                
-
                 //if itemA needs to have physics updated && itemA has collided with someone
                 if joint:GetItemA():GetCollisionGroupFlag() and joint:GetItemA():GetCollisionGroupIndex() >= 0
                     tempSolverBodyPool:Get(joint:GetItemA():GetCollisionGroupIndex()):WriteBackVelocity()

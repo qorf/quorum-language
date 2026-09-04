@@ -99,29 +99,26 @@ class CollisionPointsResult3D
     */
     action AddCollisionPoint(Vector3 normalOnBInWorld, Vector3 pointInWorld, number depth)
         adjustedNormal:Set(normalOnBInWorld)
+        boolean isSwapped = collisionPoints:GetBody0() not= body0
 
         if hasFaceNormal
             number alignment = adjustedNormal:DotProduct(faceNormal)
 
-            //A contact on an internal edge reports that edge's perpendicular rather than
-            //the surface normal, so the depth has to be re-measured along the surface.
-            depth = depth * alignment
-
-            //The surface is one sided, with no space underneath it, so an object found
-            //below it has passed through and has to come back out the top rather than be
-            //pushed further down.
-            if alignment < 0
-                depth = -depth
+            boolean inverted = alignment > 0
+            if isSwapped
+                inverted = alignment < 0
             end
 
-            adjustedNormal:Set(faceNormal)
+            if inverted
+                adjustedNormal:Scale(-1)
+            end
+
+            //adjustedNormal:Set(faceNormal)
         end
         
         if depth > collisionPoints:GetCollisionBreakingThreshold()
             return now
         end
-
-        boolean isSwapped = collisionPoints:GetBody0() not= body0
 
         Vector3 pointA
         pointA:Set(adjustedNormal)

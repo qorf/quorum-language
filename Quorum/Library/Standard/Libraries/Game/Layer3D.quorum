@@ -128,8 +128,8 @@ class Layer3D is Layer
 
     Vector3 gravity
 
-    number physicsTimeStep = 1.0 / 60.0
-    integer maxSubSteps = 1
+    number physicsTimeStep = 1.0 / 240.0
+    integer maxSubSteps = 4
 
 
     number localTime = 1.0 / 60.0
@@ -2693,11 +2693,12 @@ Painter3D painter = GetPainter()
             newItemAdded = false
         end
 
-        collisionManager:Collide()
 
         if physicsEnabled
             StepPhysics(seconds)
             SetScreenPositionsFromPhysicsPositions()
+        else
+            collisionManager:Collide()
         end
 
         integer i = 0
@@ -2878,9 +2879,13 @@ Painter3D painter = GetPainter()
     end
 
     action StepPhysics(number seconds)
+        
         integer numSimulationSubsteps = 0
         integer maxSubSteps = me:maxSubSteps
         number fixedTimeStep = physicsTimeStep
+        //output "FROM STEP PHYSICS: seconds" + seconds
+        //output "FROM STEP PHYSICS: max sub steps: " + maxSubSteps
+        //output "FROM STEP PHYSICS: Fixed Time Steps: " + fixedTimeStep
 
         if maxSubSteps not= 0
             localTime = localTime + seconds
@@ -2905,13 +2910,21 @@ Painter3D painter = GetPainter()
             if numSimulationSubsteps > maxSubSteps
                 clampedSimulationSteps = maxSubSteps
             end
+            
+            ApplyGravity()
 
             integer i = 0
             repeat while i < clampedSimulationSteps
+                collisionManager:Collide()
                 SolvePhysics(fixedTimeStep)
                 SynchronizeTransforms()
                 i = i + 1
             end
+        else
+            //On a frame too short to make up one fixed step nothing is integrated, so there
+            //are no new contacts to find. The transforms are still synchronized so that
+            //rendering interpolates across the leftover time.
+            SynchronizeTransforms()
         end
 
         if automaticallyClearForces
@@ -3150,7 +3163,7 @@ Painter3D painter = GetPainter()
                 predictedOrn:Normalize()
                 predictedTransform:SetRotation(predictedOrn)
 
-                body:GetCollisionTransform():Set(predictedTransform)
+                //body:GetCollisionTransform():Set(predictedTransform)
             end
 
              i = i + 1

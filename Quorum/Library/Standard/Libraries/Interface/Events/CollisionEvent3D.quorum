@@ -40,11 +40,6 @@ class CollisionEvent3D
     boolean touchingFlag = false
     boolean enabledFlag = false
 
-//    // physics fields for later
-//    number friction = 0
-//    number restitution = 1
-//    number tangentSpeed = 0
-
     boolean hasPhysicsResponse = true
 
     Math math
@@ -96,10 +91,6 @@ class CollisionEvent3D
         nodeB:previous = undefined
         nodeB:next = undefined
         nodeA:other = undefined
-
-//        friction = CalculateFriction(itemA:GetFriction(), itemB:GetFriction())
-//        restitution = CalculateRestitution(itemA:GetRestitution(), itemB:GetRestitution())
-        
     end
 
     action GetPrevious returns CollisionEvent3D
@@ -145,38 +136,6 @@ class CollisionEvent3D
     action GetChildIndexB returns integer
         return indexB
     end
-
-//    action SetFriction(number friction)
-//        me:friction = friction
-//    end
-//
-//    action GetFriction returns number
-//        return friction
-//    end
-//
-//    action ResetFriction
-//        friction = CalculateTotalFriction(itemA:GetFriction(), itemB:GetFriction())
-//    end
-//
-//    action SetRestitution(number restitution)
-//        me:restitution = restitution
-//    end
-//
-//    action GetRestitution returns number
-//        return restitution
-//    end
-//
-//    action ResetRestitution
-//        restitution = CalculateTotalRestitution(itemA:GetRestitution(), itemB:GetRestitution())
-//    end
-//
-//    action SetTangentSpeed(number speed)
-//        me:tangentSpeed = speed
-//    end
-//
-//    action GetTangentSpeed returns number
-//        return tangentSpeed
-//    end
 
     action DispatchCollision(Array<CollisionListener3D> listeners)
         enabledFlag = true
@@ -231,21 +190,14 @@ class CollisionEvent3D
             end
             
             if shapeB:GetType() = shapeB:TERRAIN
-                ConcaveShape3D concave = cast(ConcaveShape3D, shapeA)
-                result:Initialize(itemA, itemB)
+                ConcaveShape3D concave = cast(ConcaveShape3D, shapeB)
+                result:Initialize(itemB, itemA)
                 concave:ProcessAllTriangles(collisionPoints, shapeA, transformB, transformA, result)
                 return now
             end
             
             result:Initialize(itemA, itemB)
             CollideConvexConvex(collisionPoints, shapeA, transformA, shapeB, transformB, result)
-            //
-            //if collisionPoints:GetPointCount() > 0
-                //CollisionPoint3D point = collisionPoints:GetCollisionPoint(0)
-                //output point:ToText()
-            //end
-            
-            a = 5
         end
 
     end

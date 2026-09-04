@@ -30,7 +30,7 @@ class PhysicsProperties3D
     Vector3 inverseInertiaLocal
     number linearDamping = 0
     number angularDamping = 0
-    number friction = 0
+    number friction = 0.5
     number restitution = 0
 
     Vector3 interpolatedLinearVelocity
@@ -66,6 +66,16 @@ class PhysicsProperties3D
     Vector3 turnVelocity
 
     number angularFactor = 1
+    
+    
+on create
+        //A body has no moment of inertia until mass properties are given to it. A newly made
+        //Matrix3 is the identity, and an identity inverse inertia makes a body resist rotation
+        //about its own origin as though it had unit inertia. On a large static shape, whose
+        //contacts sit tens of metres from its origin, that lever arm squared dominates the
+        //contact constraint and swallows the impulse.
+        inverseInertiaWorld:Set(0, 0, 0, 0, 0, 0, 0, 0, 0)
+    end
 
     /*
     This action attaches a 3D item, which includes the shape, friction, 
@@ -558,9 +568,21 @@ class PhysicsProperties3D
                 SetMassProperties(mass, inertia)
             end
         else
-            mass = 0
-            inverseMass = 0
+            //mass = 0
+            //inverseMass = 0
+            
+Vector3 inertia
+            SetMassProperties(0, inertia)
             density = 0
+        end
+        
+        
+        
+//The moment of inertia in world terms is derived from the local one, so it has to
+        //be recalculated whenever the local one changes. Without this it keeps whatever it
+        //held before, and a Matrix3 that has never been written is the identity.
+        if me:item not= undefined
+            item:UpdateInertia()
         end
 
         force:SetZero()
@@ -1053,5 +1075,13 @@ class PhysicsProperties3D
         end
 
         inverseInertiaLocal:Set(x, y, z)
+        
+        
+//The world moment of inertia is derived from the local one, so a zero local inertia
+        //has to zero that as well. It is otherwise only recalculated when something moves the
+        //body, which never happens for a body that is placed once and then stays put.
+        if x = 0 and y = 0 and z = 0
+            inverseInertiaWorld:Set(0, 0, 0, 0, 0, 0, 0, 0, 0)
+        end
     end
 end

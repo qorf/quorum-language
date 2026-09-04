@@ -265,9 +265,52 @@ class ConvexConvexPairSolver
         end
 
         if isValid
+            
+            //Bullet corrects a known degeneracy of the penetration solver here, where the
+            //depth is right but the normal connecting the two contact points faces the
+            //opposite way. The support point of each shape toward the other is measured
+            //along both facings, and whichever facing actually separates the two shapes is
+            //the one that is kept.
+            Vector3 reversedNormal
+            reversedNormal:Set(normalInB):Scale(-1)
+
+            number d0 = SupportSeparationAlong(normalInB, localTransA, localTransB, margin)
+            number d1 = SupportSeparationAlong(reversedNormal, localTransA, localTransB, margin)
+
+            if d1 > d0
+                normalInB:Scale(-1)
+                lastUsedMethod = 10
+            end
+
             tmp:Set(pointOnB):Add(positionOffset)
             result:AddCollisionPoint(normalInB, tmp, distance)
         end
+    end
+    
+    
+    /*
+    This action is used by "action GetClosestPoints." It measures how far apart the two
+    shapes are along a facing, by taking the support point of each shape toward the other
+    and projecting the vector between them onto that facing.
+    */
+    private action SupportSeparationAlong(Vector3 direction, PhysicsPosition3D transformA, PhysicsPosition3D transformB, number margin) returns number
+        Vector3 axisInA
+        axisInA:Set(direction):Scale(-1):MultiplyByTranspose(transformA:GetBasis())
+        Vector3 axisInB
+        axisInB:Set(direction):MultiplyByTranspose(transformB:GetBasis())
+
+        Vector3 pointInA
+        pointInA:Set(minkowskiA:LocalGetSupportingVertexWithoutMargin(axisInA))
+        Vector3 pointInB
+        pointInB:Set(minkowskiB:LocalGetSupportingVertexWithoutMargin(axisInB))
+
+        transformA:Transform(pointInA)
+        transformB:Transform(pointInB)
+
+        Vector3 difference
+        difference:Set(pointInA):Subtract(pointInB)
+
+        return direction:DotProduct(difference) - margin
     end
 
     /*
