@@ -35,6 +35,7 @@ class ConvexConvexCollisionSolver
     constant integer EpaMaxIterations = 256
     constant number EpaInfaceEps = 0.01
     constant number EpaAccuracy = 0.001
+    ConvexConvexPenetrationSolver epa
 
     /*
     This action lets you know if two objects have collided or not.
@@ -55,7 +56,6 @@ class ConvexConvexCollisionSolver
         boolean collide = gjk:SearchOrigin()
         results:SetDistanceIterations(gjk:GetIterations() + 1)
         if collide
-            ConvexConvexPenetrationSolver epa
             epa:Set(gjk)
             number pd = epa:EvaluatePenetrationDepth()
             results:SetPenetrationIterations(epa:GetIterations() + 1)
