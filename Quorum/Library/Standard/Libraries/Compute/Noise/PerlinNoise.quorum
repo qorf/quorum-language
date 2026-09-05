@@ -1,0 +1,171 @@
+package Libraries.Compute.Noise
+
+use Libraries.Containers.Integer32BitArray
+use Libraries.Compute.Random
+use Libraries.Compute.BitwiseOperations
+use Libraries.Compute.Math
+
+/*
+The PerlinNoise class produces Perlin noise, the gradient noise described by Ken Perlin.
+
+The plane is covered by a lattice of whole numbered positions, each of which is given a
+direction. The noise at any point is found by asking the four corners of the cell the point
+falls in how far it lies along their direction, and blending those four answers together. The
+result is smooth everywhere and, because the corners always answer the same way, is the same
+every time a position is asked about.
+
+It is worth knowing that the noise is exactly zero at every crossing of the lattice. That is
+a property of how it is built rather than a fault, but it means noise sampled at whole
+positions with a frequency of one is flat everywhere. Set a frequency small enough that a
+lattice cell spans many samples.
+
+Attribute: Example
+
+    use Libraries.Compute.Noise.PerlinNoise
+
+    class Main
+        action Main
+            PerlinNoise noise
+            noise:SetSeed(1979)
+            noise:SetFrequency(0.02)
+            noise:SetOctaves(6)
+
+            number value = noise:GetAdditiveNoise(40, 90)
+        end
+    end
+*/
+class PerlinNoise is NoiseGenerator
+    Integer32BitArray permutation
+    BitwiseOperations ops
+    Math math
+
+    on create
+        Reseed()
+    end
+
+    /*
+    This action shuffles the table of directions the lattice corners answer with.
+
+    This is the only place the random sequence is touched. Sampling reads the table but never
+    advances it, which is what keeps GetNoise a pure function of position: were the sequence
+    drawn from while sampling, the answer at a place would depend on how many places had been
+    asked about before it, and two terrain tiles sharing an edge would disagree along it.
+    */
+    action Reseed
+        Random random
+        random:SetSeed(GetSeed())
+
+        permutation:SetSize(512)
+
+        integer i = 0
+        repeat while i < 256
+            permutation:Set(i, i)
+            i = i + 1
+        end
+
+        //Shuffle by swapping each entry with one at or before it, which visits every
+        //arrangement of the table with equal chance.
+        i = 255
+        repeat while i > 0
+            integer swap = random:RandomIntegerBetween(0, i)
+            integer held = permutation:Get(i)
+            permutation:Set(i, permutation:Get(swap))
+            permutation:Set(swap, held)
+            i = i - 1
+        end
+
+        //The table is written out twice. Sampling adds two entries together to reach a
+        //corner, and a doubled table means that sum can never run off the end, which saves
+        //wrapping it at each of the four corners of every sample.
+        i = 0
+        repeat while i < 256
+            permutation:Set(i + 256, permutation:Get(i))
+            i = i + 1
+        end
+    end
+
+    /*
+    This action returns the noise at a position, between -1 and 1.
+
+    Attribute: Parameter x The position along the first axis.
+    Attribute: Parameter y The position along the second axis.
+    */
+    action GetNoise(number x, number y) returns number
+        number flooredX = math:Floor(x)
+        number flooredY = math:Floor(y)
+
+        //Which cell of the lattice the point falls in. The table holds 256 entries, so the
+        //cell is wrapped to that. Taking the low bits of a negative number wraps it to the
+        //far end of the table, which is what lets the noise run in every direction.
+        integer cellX = ops:And(cast(integer, flooredX), 255)
+        integer cellY = ops:And(cast(integer, flooredY), 255)
+
+        //Where inside that cell the point sits, from 0 to 1 along each side.
+        number localX = x - flooredX
+        number localY = y - flooredY
+
+        //Ease the position before blending. This curve, 6t^5 - 15t^4 + 10t^3, is flat at both
+        //ends in both its slope and the change of its slope, so no crease shows where one
+        //cell meets the next.
+        number easedX = Fade(localX)
+        number easedY = Fade(localY)
+
+        integer left = permutation:Get(cellX) + cellY
+        integer right = permutation:Get(cellX + 1) + cellY
+
+        number lower = Interpolate(easedX, Gradient(permutation:Get(left), localX, localY),
+            Gradient(permutation:Get(right), localX - 1, localY))
+
+        number upper = Interpolate(easedX, Gradient(permutation:Get(left + 1), localX, localY - 1),
+            Gradient(permutation:Get(right + 1), localX - 1, localY - 1))
+
+        return Interpolate(easedY, lower, upper)
+    end
+
+    /*
+    This action eases a value from 0 to 1 so that it starts and stops gently.
+    */
+    private action Fade(number t) returns number
+        return t * t * t * (t * (t * 6 - 15) + 10)
+    end
+
+    /*
+    This action blends between two values by an amount from 0 to 1.
+    */
+    private action Interpolate(number amount, number start, number finish) returns number
+        return start + amount * (finish - start)
+    end
+
+    /*
+    This action asks how far a point lies along the direction a lattice corner was given.
+
+    The low three bits of the corner's table entry choose one of eight directions, four along
+    the diagonals and four along the axes. Because none of those directions is longer than the
+    diagonal of a unit square, the blended result can never leave the range -1 to 1.
+
+    Attribute: Parameter hash The corner's entry in the table.
+    Attribute: Parameter x How far the point is from the corner along the first axis.
+    Attribute: Parameter y How far the point is from the corner along the second axis.
+    */
+    private action Gradient(integer hash, number x, number y) returns number
+        integer direction = ops:And(hash, 7)
+
+        if direction = 0
+            return x + y
+        elseif direction = 1
+            return y - x
+        elseif direction = 2
+            return x - y
+        elseif direction = 3
+            return -x - y
+        elseif direction = 4
+            return x
+        elseif direction = 5
+            return -x
+        elseif direction = 6
+            return y
+        end
+
+        return -y
+    end
+end

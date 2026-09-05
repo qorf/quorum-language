@@ -1,0 +1,559 @@
+
+package Libraries.Compute.Noise
+
+use Libraries.Compute.Math
+
+/*
+The NoiseGenerator class is the parent of classes that produce coherent noise: numbers that
+change smoothly from place to place rather than jumping about, so that positions near each
+other give values near each other.
+
+A class inheriting from this one supplies GetNoise, which answers the noise at a position,
+and receives from here the ways of combining that noise across several scales at once. Those
+combinations turn a single smooth wobble into something with both broad shape and fine
+detail, and they are written in terms of GetNoise alone, so any noise placed under this class
+gains them without further work.
+
+There is one rule an implementation has to obey. GetNoise must be a pure function of its
+arguments: the same position gives the same answer every time it is asked, whatever was asked
+before it. A class that draws numbers from a random sequence while it samples breaks that
+rule, and with it every use that depends on two separate pieces of work agreeing about the
+same place, such as two terrain tiles meeting along a shared edge. Randomness belongs in
+Reseed, which runs once, and not in sampling, which runs everywhere.
+
+Every action here answers between -1 and 1. Use ToUnitRange to move an answer to between
+0 and 1 when something downstream wants it that way.
+
+Attribute: Example
+
+    use Libraries.Compute.Noise.PerlinNoise
+
+    class Main
+        action Main
+            PerlinNoise noise
+            noise:SetSeed(1979)
+            noise:SetFrequency(0.01)
+            noise:SetOctaves(5)
+
+            number value = noise:GetAdditiveNoise(120, 340)
+        end
+    end
+*/
+class NoiseGenerator
+    Math math
+
+    number seed = 0
+
+    /*How much of the noise fits into a unit of distance. Small values give broad, slow
+    features and large values give tight, busy ones.*/
+    number frequency = 0.01
+
+    /*How many copies of the noise are combined, each finer than the last.*/
+    integer octaves = 4
+
+    /*How much the frequency rises from one copy to the next. Two is usual, meaning each
+    copy has features half the size of the one before it.*/
+    number lacunarity = 2
+
+    /*How much of its height each copy keeps compared to the one before it. A half is usual,
+    so that the finer copies roughen the shape without burying it.*/
+    number persistence = 0.5
+
+    /*How strongly ridged noise gathers its detail onto the crests. Used by nothing else.*/
+    number ridgeGain = 2
+    
+    
+    /*How far the fold sits from zero. One is usual and puts the crease exactly where the
+    noise changes sign.*/
+    number ridgeOffset = 1
+
+    /*How freely an octave hands its allowance to the next, and how that allowance is bent
+    before it is used. The page these come from fixes them at one and a half and four fifths.*/
+    number ridgeWeightGain = 1.5
+    number ridgeWeightExponent = 0.8
+    
+    /*How hard steep ground is pushed toward the middle. Near a twentieth leaves rolling
+    country; near a half cuts the steep parts away sharply.*/
+    number slopeAlpha = 0.15
+
+    /*How far apart the two samples are that the slope is measured across.*/
+    number slopeSpacing = 1
+    
+    /*How coarse the noise that bends the coordinates is. Below the surface frequency it
+    gives broad sweeping bends; above it the surface turns jittery.*/
+    number warpFrequency = 0.004
+
+    /*How far the coordinates are bent, in the same units positions are given in. At zero the
+    surface is left exactly as it was.*/
+    number warpStrength = 40
+
+    /*
+    This action returns the noise at a position, between -1 and 1.
+
+    Every class inheriting from NoiseGenerator supplies this action, and it has to be a pure
+    function of its two arguments. The frequency is not applied here: this action answers the
+    noise at exactly the position given, and the combining actions below scale positions
+    before they call it.
+
+    Attribute: Parameter x The position along the first axis.
+    Attribute: Parameter y The position along the second axis.
+    Attribute: Returns The noise at that position, between -1 and 1.
+    */
+    blueprint action GetNoise(number x, number y) returns number
+
+    /*
+    This action rebuilds whatever an implementation derives from the seed, such as a table of
+    shuffled numbers. It runs when the seed changes, and it is the only place an
+    implementation may draw from a random sequence.
+    */
+    blueprint action Reseed
+
+    /*
+    This action adds several copies of the noise together, which is often called fractal
+    noise. Each copy is sampled at a higher frequency and a smaller height than the one
+    before, so the first gives the broad shape of the surface and the later ones roughen it.
+
+    The total is divided by the combined height of all the copies, so the answer stays
+    between -1 and 1 however many are used.
+
+    Attribute: Parameter x The position along the first axis.
+    Attribute: Parameter y The position along the second axis.
+    Attribute: Returns The combined noise, between -1 and 1.
+    */
+    action GetAdditiveNoise(number x, number y) returns number
+        number total = 0
+        number reach = 0
+        number amplitude = 1
+        number currentFrequency = frequency
+
+        integer i = 0
+        repeat while i < octaves
+            total = total + GetNoise(x * currentFrequency, y * currentFrequency) * amplitude
+            reach = reach + amplitude
+            amplitude = amplitude * persistence
+            currentFrequency = currentFrequency * lacunarity
+            i = i + 1
+        end
+
+        if reach = 0
+            return 0
+        end
+
+        return total / reach
+    end
+
+    /*
+    This action multiplies several copies of the noise together instead of adding them. Each
+    copy is moved to between 0 and 1 first, so that the product stays there, and the answer is
+    moved back to between -1 and 1 at the end to match the rest of this class.
+
+    Because numbers below one shrink when multiplied, the answer spends most of its time near
+    the bottom of its range and rises only where every copy happens to be high at the same
+    place. Used for terrain that reads as broad low ground broken by occasional high ground,
+    where additive noise gives rolling country everywhere instead.
+
+    Attribute: Parameter x The position along the first axis.
+    Attribute: Parameter y The position along the second axis.
+    Attribute: Returns The combined noise, between -1 and 1.
+    */
+    action GetMultiplicativeNoise(number x, number y) returns number
+        number total = 1
+        number currentFrequency = frequency
+
+        integer i = 0
+        repeat while i < octaves
+            number sample = (GetNoise(x * currentFrequency, y * currentFrequency) + 1) / 2
+            total = total * sample
+            currentFrequency = currentFrequency * lacunarity
+            i = i + 1
+        end
+
+        return total * 2 - 1
+    end
+
+    /*
+    This action folds the noise about zero before adding its octaves together, which turns
+    the places where the noise crossed zero into sharp crests instead of gentle slopes.
+
+    Additive noise wanders smoothly through zero and gives rounded hills. Taking the distance
+    from zero instead, and turning it upside down, leaves a value that is highest exactly
+    where the noise changed sign. Folding a smooth curve that way puts a corner in it, and it
+    is that corner, repeated at every scale, that reads as a ridge line. The result is squared
+    afterwards to draw the crests finer and settle the ground on either side of them.
+
+    Each octave is also held back by how high the octave before it stood, so that fine detail
+    gathers along the crests while the low ground between them stays smooth. Without that,
+    every scale ridges everywhere at once and the result reads as crumpled paper rather than
+    as mountains. How sharply detail is gathered is set by SetRidgeGain.
+
+    Attribute: Parameter x The position along the first axis.
+    Attribute: Parameter y The position along the second axis.
+    Attribute: Returns The combined noise, between -1 and 1.
+    */
+    action GetRidgedNoise(number x, number y) returns number
+        number total = 0
+        number reach = 0
+        number amplitude = 1
+        number currentFrequency = frequency
+
+        //The first octave stands on its own. Every one after it is held back by the last.
+        number weight = 1
+
+        integer i = 0
+        repeat while i < octaves
+            number folded = 1 - math:AbsoluteValue(GetNoise(x * currentFrequency, y * currentFrequency))
+            number signal = folded * folded * weight
+
+            //Carry the height of this octave forward as the allowance for the next one,
+            //kept between nothing and all of it so that a loud octave cannot let the one
+            //after it push the total past the range the shares below are counting on.
+            weight = signal * ridgeGain
+
+            if weight < 0
+                weight = 0
+            end
+
+            if weight > 1
+                weight = 1
+            end
+
+            total = total + signal * amplitude
+            reach = reach + amplitude
+            amplitude = amplitude * persistence
+            currentFrequency = currentFrequency * lacunarity
+            i = i + 1
+        end
+
+        if reach = 0
+            return 0
+        end
+
+        //Every octave landed between 0 and 1, so dividing by their combined height lands the
+        //total there too, and the last step moves it to the range the rest of this class uses.
+        return (total / reach) * 2 - 1
+    end
+    
+
+    /*
+    This action is the body of additive noise with the starting frequency handed in rather
+    than taken from the field, so that domain warping can raise its offsets at a scale of
+    their own without disturbing the scale the surface itself is built at.
+    */
+    private action AddOctaves(number x, number y, number startFrequency) returns number
+        number total = 0
+        number reach = 0
+        number amplitude = 1
+        number currentFrequency = startFrequency
+
+        integer i = 0
+        repeat while i < octaves
+            total = total + GetNoise(x * currentFrequency, y * currentFrequency) * amplitude
+            reach = reach + amplitude
+            amplitude = amplitude * persistence
+            currentFrequency = currentFrequency * lacunarity
+            i = i + 1
+        end
+
+        if reach = 0
+            return 0
+        end
+
+        return total / reach
+    end
+    
+    
+    /*
+    This action bends a position sideways before the surface is sampled at it, which is what
+    turns the even, soapy look of plain fractal noise into something with the folded, dragged
+    quality of real ground. Nothing about the surface changes; it is asked about somewhere
+    slightly different, and how far it is dragged is itself decided by noise.
+
+    Use it by bending a position and sampling with the result, which works with any of the
+    ways of combining octaves rather than only one:
+
+        number bentX = noise:GetWarpedX(x, y)
+        number bentY = noise:GetWarpedY(x, y)
+        number height = noise:GetRidgedNoise(bentX, bentY)
+
+    The bend is worked out from the position alone, so a bent surface is still the same
+    everywhere it is asked about, and two terrain tiles sharing an edge still meet along it.
+
+    Attribute: Parameter x The position along the first axis.
+    Attribute: Parameter y The position along the second axis.
+    Attribute: Returns The first axis of the bent position.
+    */
+    action GetWarpedX(number x, number y) returns number
+        return x + AddOctaves(x + 1731.7, y + 4021.3, warpFrequency) * warpStrength
+    end
+    
+    
+    /*
+    This action bends the second axis of a position. See GetWarpedX.
+
+    The far apart sampling positions here and in GetWarpedX are what keep the two bends from
+    resembling one another. Sampled at the same place they would move every position along a
+    single diagonal instead of in a swirl.
+    */
+    action GetWarpedY(number x, number y) returns number
+        return y + AddOctaves(x + 6803.1, y + 2417.9, warpFrequency) * warpStrength
+    end
+    
+    
+    /*
+    This action pushes a height toward the middle of its range in proportion to how steep the
+    ground is there, so that gentle country is left alone and cliffs are worn down. The
+    steepness is the length of the slope taken in both directions at once, and the height is
+    multiplied by a number that falls away as that steepness grows.
+
+    Attribute: Parameter height The height at the position.
+    Attribute: Parameter slopeX How fast the height is changing along the first axis.
+    Attribute: Parameter slopeY How fast the height is changing along the second axis.
+    */
+    action WeightBySlope(number height, number slopeX, number slopeY) returns number
+        number slope = math:SquareRoot(slopeX * slopeX + slopeY * slopeY)
+        return height * math:RaiseToPower(math:e, -slopeAlpha * slope)
+    end
+
+    /*
+    This action measures the slope of additive noise and wears the steep parts of it down.
+
+    The slope is taken across the position rather than from it, a step either way along each
+    axis, so that the answer does not lean toward one side. That costs five samples of the
+    surface where an unweighted height costs one, so it is the most expensive thing in this
+    class by some way.
+
+    Attribute: Parameter x The position along the first axis.
+    Attribute: Parameter y The position along the second axis.
+    Attribute: Returns The worn down height, between -1 and 1.
+    */
+    action GetSlopeWeightedNoise(number x, number y) returns number
+        number here = GetAdditiveNoise(x, y)
+
+        number slopeX = (GetAdditiveNoise(x + slopeSpacing, y) - GetAdditiveNoise(x - slopeSpacing, y)) / (2 * slopeSpacing)
+        number slopeY = (GetAdditiveNoise(x, y + slopeSpacing) - GetAdditiveNoise(x, y - slopeSpacing)) / (2 * slopeSpacing)
+
+        return WeightBySlope(here, slopeX, slopeY)
+    end
+
+    action GetSlopeAlpha returns number
+        return slopeAlpha
+    end
+
+    action SetSlopeAlpha(number slopeAlpha)
+        me:slopeAlpha = slopeAlpha
+    end
+
+    action GetSlopeSpacing returns number
+        return slopeSpacing
+    end
+
+    action SetSlopeSpacing(number slopeSpacing)
+        me:slopeSpacing = slopeSpacing
+    end
+
+    
+
+    action GetWarpFrequency returns number
+        return warpFrequency
+    end
+
+    action SetWarpFrequency(number warpFrequency)
+        me:warpFrequency = warpFrequency
+    end
+
+    action GetWarpStrength returns number
+        return warpStrength
+    end
+
+    action SetWarpStrength(number warpStrength)
+        me:warpStrength = warpStrength
+    end
+    
+    
+    /*
+    This action combines octaves the way a ridged multifractal does, folding the noise about
+    an offset, squaring what is left, and turning it upside down, so that the crease the fold
+    puts in at the noise's zero crossings becomes the floor of a sharp valley rather than the
+    top of a ridge. Ground between the valleys is left smooth.
+
+    That is the opposite way up from GetRidgedNoise, which puts crests at the crossings
+    instead. The two are worth thinking of as a pair: one cuts canyons into high ground, the
+    other raises ridges out of low ground.
+
+    Each octave is also held back by how high the one before it stood, bent by an exponent so
+    that the falling off is gradual rather than abrupt, which gathers fine detail near the
+    valley walls and leaves the ground between them smooth.
+
+    Attribute: Parameter x The position along the first axis.
+    Attribute: Parameter y The position along the second axis.
+    Attribute: Returns The combined noise, between -1 and 1.
+    */
+    action GetRidgedMultifractalNoise(number x, number y) returns number
+        number total = 0
+        number reach = 0
+        number amplitude = 1
+        number currentFrequency = frequency
+
+        //The first octave stands on its own. Every one after it is held back by the last.
+        number weight = 1
+
+        integer i = 0
+        repeat while i < octaves
+            number folded = ridgeOffset - math:AbsoluteValue(GetNoise(x * currentFrequency, y * currentFrequency))
+            number ridge = 1 - folded * folded
+
+            //An offset away from one can push this below nothing, which would let an octave
+            //subtract from the total instead of adding to it.
+            if ridge < 0
+                ridge = 0
+            end
+
+            total = total + ridge * amplitude * weight
+            reach = reach + amplitude
+
+            number carried = ridge * ridgeWeightGain
+
+            if carried < 0
+                carried = 0
+            end
+
+            if carried > 1
+                carried = 1
+            end
+
+            weight = math:RaiseToPower(carried, ridgeWeightExponent)
+
+            amplitude = amplitude * persistence
+            currentFrequency = currentFrequency * lacunarity
+            i = i + 1
+        end
+
+        if reach = 0
+            return 0
+        end
+
+        return (total / reach) * 2 - 1
+    end
+
+    /*
+    This action moves a value from between -1 and 1 to between 0 and 1, which is what things
+    like height maps expect. Values that stray outside the range are brought back to its edge
+    rather than allowed through, since a height above the top of a map wraps around into a
+    cliff.
+
+    Attribute: Parameter value A value between -1 and 1.
+    Attribute: Returns The same value expressed between 0 and 1.
+    */
+    action ToUnitRange(number value) returns number
+        number result = (value + 1) / 2
+
+        if result < 0
+            result = 0
+        end
+
+        if result > 1
+            result = 1
+        end
+
+        return result
+    end
+
+    action GetSeed returns number
+        return seed
+    end
+
+    /*
+    This action sets which noise gets generated. The same seed always gives the same noise,
+    so a world can be thrown away and rebuilt from its seed alone.
+
+    Attribute: Parameter seed The number that decides the noise.
+    */
+    action SetSeed(number seed)
+        me:seed = seed
+        Reseed()
+    end
+
+    action GetFrequency returns number
+        return frequency
+    end
+
+    /*
+    This action sets how much of the noise fits into a unit of distance. A frequency of a
+    hundredth means the noise takes about a hundred units to complete a feature.
+
+    Take care not to set this to a whole number while sampling at whole positions. Perlin
+    noise is exactly zero wherever its lattice crosses, and a frequency of one puts every
+    whole position on a crossing, so a height map sampled that way comes out perfectly flat.
+
+    Attribute: Parameter frequency How much noise fits into a unit of distance.
+    */
+    action SetFrequency(number frequency)
+        me:frequency = frequency
+    end
+
+    action GetOctaves returns integer
+        return octaves
+    end
+
+    /*
+    This action sets how many copies of the noise are combined. Each copy costs another
+    sample, so the work grows in step with this number, and copies finer than the spacing of
+    whatever is being filled in add cost without adding anything anyone can see.
+
+    Attribute: Parameter octaves How many copies to combine, at least one.
+    */
+    action SetOctaves(integer octaves)
+        if octaves < 1
+            octaves = 1
+        end
+
+        me:octaves = octaves
+    end
+
+    action GetLacunarity returns number
+        return lacunarity
+    end
+
+    /*
+    This action sets how much the frequency rises from one copy of the noise to the next.
+
+    Attribute: Parameter lacunarity The rise in frequency per copy, usually two.
+    */
+    action SetLacunarity(number lacunarity)
+        me:lacunarity = lacunarity
+    end
+
+    action GetPersistence returns number
+        return persistence
+    end
+
+    /*
+    This action sets how much of its height each copy of the noise keeps compared to the one
+    before it. Below a half the shape stays smooth, and above it the fine copies begin to
+    dominate and the result turns rough.
+
+    Attribute: Parameter persistence The share of height kept per copy, usually a half.
+    */
+    action SetPersistence(number persistence)
+        me:persistence = persistence
+    end
+
+    action GetRidgeGain returns number
+        return ridgeGain
+    end
+
+    /*
+    This action sets how strongly ridged noise gathers its detail onto the crests, and has no
+    effect on any of the other ways of combining octaves.
+
+    At one, an octave passes on exactly as much allowance as it stood tall, and detail thins
+    out gently down the flanks. Above that, allowance is granted more freely, so detail
+    reaches further down and the whole surface roughens. At zero, every octave after the first
+    is silenced and only the broadest ridge remains.
+
+    Attribute: Parameter ridgeGain How freely detail is granted to the crests, usually two.
+    */
+    action SetRidgeGain(number ridgeGain)
+        me:ridgeGain = ridgeGain
+    end
+end
