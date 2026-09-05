@@ -1,0 +1,453 @@
+package Libraries.Game.Collision.Narrowphase
+use Libraries.Containers.Integer32BitArray
+
+shared class ConvexConvexPenetrationSolverConstants
+    Integer32BitArray tetrahedronFaceVertices
+    Integer32BitArray tetrahedronEdgeLinks
+    Integer32BitArray bipyramidFaceVertices
+    Integer32BitArray bipyramidEdgeLinks
+    
+on create
+        tetrahedronFaceVertices:SetSize(12 * 3)
+        
+        
+        //tetrahedron_fidx:Add(0, 0, 2)
+        tetrahedronFaceVertices:Set(0, 0)
+        tetrahedronFaceVertices:Set(1, 0)
+        tetrahedronFaceVertices:Set(2, 2)
+        //tetrahedron_fidx:Add(0, 1, 1)
+        tetrahedronFaceVertices:Set(3, 0)
+        tetrahedronFaceVertices:Set(4, 1)
+        tetrahedronFaceVertices:Set(5, 1)
+        //tetrahedron_fidx:Add(0, 2, 0)
+        tetrahedronFaceVertices:Set(6, 0)
+        tetrahedronFaceVertices:Set(7, 2)
+        tetrahedronFaceVertices:Set(8, 0)
+//
+        //tetrahedron_fidx:Add(1, 0, 3)
+        tetrahedronFaceVertices:Set(9, 1)
+        tetrahedronFaceVertices:Set(10, 0)
+        tetrahedronFaceVertices:Set(11, 3)
+        //tetrahedron_fidx:Add(1, 1, 0)
+        tetrahedronFaceVertices:Set(12, 1)
+        tetrahedronFaceVertices:Set(13, 1)
+        tetrahedronFaceVertices:Set(14, 0)
+        //tetrahedron_fidx:Add(1, 2, 1)
+        tetrahedronFaceVertices:Set(15, 1)
+        tetrahedronFaceVertices:Set(16, 2)
+        tetrahedronFaceVertices:Set(17, 1)
+//
+        //tetrahedron_fidx:Add(2, 0, 3)
+        tetrahedronFaceVertices:Set(18, 2)
+        tetrahedronFaceVertices:Set(19, 0)
+        tetrahedronFaceVertices:Set(20, 3)
+        //tetrahedron_fidx:Add(2, 1, 1)
+        tetrahedronFaceVertices:Set(21, 2)
+        tetrahedronFaceVertices:Set(22, 1)
+        tetrahedronFaceVertices:Set(23, 1)
+        //tetrahedron_fidx:Add(2, 2, 2)
+        tetrahedronFaceVertices:Set(24, 2)
+        tetrahedronFaceVertices:Set(25, 2)
+        tetrahedronFaceVertices:Set(26, 2)
+//
+        //tetrahedron_fidx:Add(3, 0, 3)
+        tetrahedronFaceVertices:Set(27, 3)
+        tetrahedronFaceVertices:Set(28, 0)
+        tetrahedronFaceVertices:Set(29, 3)
+        //tetrahedron_fidx:Add(3, 1, 2)
+        tetrahedronFaceVertices:Set(30, 3)
+        tetrahedronFaceVertices:Set(31, 1)
+        tetrahedronFaceVertices:Set(32, 2)
+        //tetrahedron_fidx:Add(3, 2, 0)
+        tetrahedronFaceVertices:Set(33, 3)
+        tetrahedronFaceVertices:Set(34, 2)
+        tetrahedronFaceVertices:Set(35, 0)
+        
+        
+        //Next Call
+        
+        tetrahedronEdgeLinks:SetSize(24 * 3)
+        //tetrahedron_eidx:Add(0, 0, 0)
+        tetrahedronEdgeLinks:Set(0, 0)
+        tetrahedronEdgeLinks:Set(1, 0)
+        tetrahedronEdgeLinks:Set(2, 0)
+        //tetrahedron_eidx:Add(0, 1, 0)
+        tetrahedronEdgeLinks:Set(3, 0)
+        tetrahedronEdgeLinks:Set(4, 1)
+        tetrahedronEdgeLinks:Set(5, 0)
+        //tetrahedron_eidx:Add(0, 2, 2)
+        tetrahedronEdgeLinks:Set(6, 0)
+        tetrahedronEdgeLinks:Set(7, 2)
+        tetrahedronEdgeLinks:Set(8, 2)
+        //tetrahedron_eidx:Add(0, 3, 1)
+        tetrahedronEdgeLinks:Set(9, 0)
+        tetrahedronEdgeLinks:Set(10, 3)
+        tetrahedronEdgeLinks:Set(11, 1)
+//
+        //tetrahedron_eidx:Add(1, 0, 0)
+        tetrahedronEdgeLinks:Set(12, 1)
+        tetrahedronEdgeLinks:Set(13, 0)
+        tetrahedronEdgeLinks:Set(14, 0)
+        //tetrahedron_eidx:Add(1, 1, 1)
+        tetrahedronEdgeLinks:Set(15, 1)
+        tetrahedronEdgeLinks:Set(16, 1)
+        tetrahedronEdgeLinks:Set(17, 1)
+        //tetrahedron_eidx:Add(1, 2, 1)
+        tetrahedronEdgeLinks:Set(18, 1)
+        tetrahedronEdgeLinks:Set(19, 2)
+        tetrahedronEdgeLinks:Set(20, 1)
+        //tetrahedron_eidx:Add(1, 3, 1)
+        tetrahedronEdgeLinks:Set(21, 1)
+        tetrahedronEdgeLinks:Set(22, 3)
+        tetrahedronEdgeLinks:Set(23, 1)
+//
+        //tetrahedron_eidx:Add(2, 0, 0)
+        tetrahedronEdgeLinks:Set(24, 2)
+        tetrahedronEdgeLinks:Set(25, 0)
+        tetrahedronEdgeLinks:Set(26, 0)
+        //tetrahedron_eidx:Add(2, 1, 2)
+        tetrahedronEdgeLinks:Set(27, 2)
+        tetrahedronEdgeLinks:Set(28, 1)
+        tetrahedronEdgeLinks:Set(29, 2)
+        //tetrahedron_eidx:Add(2, 2, 3)
+        tetrahedronEdgeLinks:Set(30, 2)
+        tetrahedronEdgeLinks:Set(31, 2)
+        tetrahedronEdgeLinks:Set(32, 3)
+        //tetrahedron_eidx:Add(2, 3, 1)
+        tetrahedronEdgeLinks:Set(33, 2)
+        tetrahedronEdgeLinks:Set(34, 3)
+        tetrahedronEdgeLinks:Set(35, 1)
+//
+        //tetrahedron_eidx:Add(3, 0, 1)
+        tetrahedronEdgeLinks:Set(36, 3)
+        tetrahedronEdgeLinks:Set(37, 0)
+        tetrahedronEdgeLinks:Set(38, 1)
+        //tetrahedron_eidx:Add(3, 1, 0)
+        tetrahedronEdgeLinks:Set(39, 3)
+        tetrahedronEdgeLinks:Set(40, 1)
+        tetrahedronEdgeLinks:Set(41, 0)
+        //tetrahedron_eidx:Add(3, 2, 3)
+        tetrahedronEdgeLinks:Set(42, 3)
+        tetrahedronEdgeLinks:Set(43, 2)
+        tetrahedronEdgeLinks:Set(44, 3)
+        //tetrahedron_eidx:Add(3, 3, 2)
+        tetrahedronEdgeLinks:Set(45, 3)
+        tetrahedronEdgeLinks:Set(46, 3)
+        tetrahedronEdgeLinks:Set(47, 2)
+//
+        //tetrahedron_eidx:Add(4, 0, 2)
+        tetrahedronEdgeLinks:Set(48, 4)
+        tetrahedronEdgeLinks:Set(49, 0)
+        tetrahedronEdgeLinks:Set(50, 2)
+        //tetrahedron_eidx:Add(4, 1, 0)
+        tetrahedronEdgeLinks:Set(51, 4)
+        tetrahedronEdgeLinks:Set(52, 1)
+        tetrahedronEdgeLinks:Set(53, 0)
+        //tetrahedron_eidx:Add(4, 2, 1)
+        tetrahedronEdgeLinks:Set(54, 4)
+        tetrahedronEdgeLinks:Set(55, 2)
+        tetrahedronEdgeLinks:Set(56, 1)
+        //tetrahedron_eidx:Add(4, 3, 2)
+        tetrahedronEdgeLinks:Set(57, 4)
+        tetrahedronEdgeLinks:Set(58, 3)
+        tetrahedronEdgeLinks:Set(59, 2)
+//
+        //tetrahedron_eidx:Add(5, 0, 3)
+        tetrahedronEdgeLinks:Set(60, 5)
+        tetrahedronEdgeLinks:Set(61, 0)
+        tetrahedronEdgeLinks:Set(62, 3)
+        //tetrahedron_eidx:Add(5, 1, 0)
+        tetrahedronEdgeLinks:Set(63, 5)
+        tetrahedronEdgeLinks:Set(64, 1)
+        tetrahedronEdgeLinks:Set(65, 0)
+        //tetrahedron_eidx:Add(5, 2, 2)
+        tetrahedronEdgeLinks:Set(66, 5)
+        tetrahedronEdgeLinks:Set(67, 2)
+        tetrahedronEdgeLinks:Set(68, 2)
+        //tetrahedron_eidx:Add(5, 3, 2)
+        tetrahedronEdgeLinks:Set(69, 5)
+        tetrahedronEdgeLinks:Set(70, 3)
+        tetrahedronEdgeLinks:Set(71, 2)
+//
+        
+        //What was previously called Hexahedron_fidx
+        bipyramidFaceVertices:SetSize(18 * 3)
+        //hexahedron_fidx:Add(0, 0, 2)
+        bipyramidFaceVertices:Set(0,0)
+        bipyramidFaceVertices:Set(1,0)
+        bipyramidFaceVertices:Set(2,2)
+        //hexahedron_fidx:Add(0, 1, 0)
+        bipyramidFaceVertices:Set(3,0)
+        bipyramidFaceVertices:Set(4,1)
+        bipyramidFaceVertices:Set(5,0)
+        //hexahedron_fidx:Add(0, 2, 4)
+        bipyramidFaceVertices:Set(6,0)
+        bipyramidFaceVertices:Set(7,2)
+        bipyramidFaceVertices:Set(8,4)
+//
+        //hexahedron_fidx:Add(1, 0, 4)
+        bipyramidFaceVertices:Set(9,1)
+        bipyramidFaceVertices:Set(10,0)
+        bipyramidFaceVertices:Set(11,4)
+        //hexahedron_fidx:Add(1, 1, 1)
+        bipyramidFaceVertices:Set(12,1)
+        bipyramidFaceVertices:Set(13,1)
+        bipyramidFaceVertices:Set(14,1)
+        //hexahedron_fidx:Add(1, 2, 2)
+        bipyramidFaceVertices:Set(15,1)
+        bipyramidFaceVertices:Set(16,2)
+        bipyramidFaceVertices:Set(17,2)
+//
+        //hexahedron_fidx:Add(2, 0, 1)
+        bipyramidFaceVertices:Set(18,2)
+        bipyramidFaceVertices:Set(19,0)
+        bipyramidFaceVertices:Set(20,1)
+        //hexahedron_fidx:Add(2, 1, 4)
+        bipyramidFaceVertices:Set(21,2)
+        bipyramidFaceVertices:Set(22,1)
+        bipyramidFaceVertices:Set(23,4)
+        //hexahedron_fidx:Add(2, 2, 0)
+        bipyramidFaceVertices:Set(24,2)
+        bipyramidFaceVertices:Set(25,2)
+        bipyramidFaceVertices:Set(26,0)
+//
+        //hexahedron_fidx:Add(3, 0, 0)
+        bipyramidFaceVertices:Set(27,3)
+        bipyramidFaceVertices:Set(28,0)
+        bipyramidFaceVertices:Set(29,0)
+        //hexahedron_fidx:Add(3, 1, 3)
+        bipyramidFaceVertices:Set(30,3)
+        bipyramidFaceVertices:Set(31,1)
+        bipyramidFaceVertices:Set(32,3)
+        //hexahedron_fidx:Add(3, 2, 1)
+        bipyramidFaceVertices:Set(33,3)
+        bipyramidFaceVertices:Set(34,2)
+        bipyramidFaceVertices:Set(35,1)
+//
+        //hexahedron_fidx:Add(4, 0, 0)
+        bipyramidFaceVertices:Set(36,4)
+        bipyramidFaceVertices:Set(37,0)
+        bipyramidFaceVertices:Set(38,0)
+        //hexahedron_fidx:Add(4, 1, 2)
+        bipyramidFaceVertices:Set(39,4)
+        bipyramidFaceVertices:Set(40,1)
+        bipyramidFaceVertices:Set(41,2)
+        //hexahedron_fidx:Add(4, 2, 3)
+        bipyramidFaceVertices:Set(42,4)
+        bipyramidFaceVertices:Set(43,2)
+        bipyramidFaceVertices:Set(44,3)
+//
+        //hexahedron_fidx:Add(5, 0, 1)
+        bipyramidFaceVertices:Set(45,5)
+        bipyramidFaceVertices:Set(46,0)
+        bipyramidFaceVertices:Set(47,1)
+        //hexahedron_fidx:Add(5, 1, 3)
+        bipyramidFaceVertices:Set(48,5)
+        bipyramidFaceVertices:Set(49,1)
+        bipyramidFaceVertices:Set(50,3)
+        //hexahedron_fidx:Add(5, 2, 2)
+        bipyramidFaceVertices:Set(51,5)
+        bipyramidFaceVertices:Set(52,2)
+        bipyramidFaceVertices:Set(53,2)
+//
+        
+        //Now the bipyramidEdgeLinks
+        bipyramidEdgeLinks:SetSize(36 * 3)
+        ////hexahedron_eidx:Add(0, 0, 0)
+        bipyramidEdgeLinks:Set(0, 0)
+        bipyramidEdgeLinks:Set(1, 0)
+        bipyramidEdgeLinks:Set(2, 0)
+        //
+        ////hexahedron_eidx:Add(0, 1, 0)
+        bipyramidEdgeLinks:Set(3, 0)
+        bipyramidEdgeLinks:Set(4, 1)
+        bipyramidEdgeLinks:Set(5, 0)
+        ////hexahedron_eidx:Add(0, 2, 4)
+        bipyramidEdgeLinks:Set(6, 0)
+        bipyramidEdgeLinks:Set(7, 2)
+        bipyramidEdgeLinks:Set(8, 4)
+        ////hexahedron_eidx:Add(0, 3, 0)
+        bipyramidEdgeLinks:Set(9, 0)
+        bipyramidEdgeLinks:Set(10, 3)
+        bipyramidEdgeLinks:Set(11, 0)
+////
+        ////hexahedron_eidx:Add(1, 0, 0)
+        bipyramidEdgeLinks:Set(12, 1)
+        bipyramidEdgeLinks:Set(13, 0)
+        bipyramidEdgeLinks:Set(14, 0)
+        ////hexahedron_eidx:Add(1, 1, 1)
+        bipyramidEdgeLinks:Set(15, 1)
+        bipyramidEdgeLinks:Set(16, 1)
+        bipyramidEdgeLinks:Set(17, 1)
+        ////hexahedron_eidx:Add(1, 2, 2)
+        bipyramidEdgeLinks:Set(18, 1)
+        bipyramidEdgeLinks:Set(19, 2)
+        bipyramidEdgeLinks:Set(20, 2)
+        ////hexahedron_eidx:Add(1, 3, 1)
+        bipyramidEdgeLinks:Set(21, 1)
+        bipyramidEdgeLinks:Set(22, 3)
+        bipyramidEdgeLinks:Set(23, 1)
+////
+        ////hexahedron_eidx:Add(2, 0, 0)
+        bipyramidEdgeLinks:Set(24, 2)
+        bipyramidEdgeLinks:Set(25, 0)
+        bipyramidEdgeLinks:Set(26, 0)
+
+        
+        ////hexahedron_eidx:Add(2, 1, 2)
+        bipyramidEdgeLinks:Set(27, 2)
+        bipyramidEdgeLinks:Set(28, 1)
+        bipyramidEdgeLinks:Set(29, 2)
+
+        
+        ////hexahedron_eidx:Add(2, 2, 1)
+        bipyramidEdgeLinks:Set(30, 2)
+        bipyramidEdgeLinks:Set(31, 2)
+        bipyramidEdgeLinks:Set(32, 1)
+
+        
+        ////hexahedron_eidx:Add(2, 3, 2)
+        bipyramidEdgeLinks:Set(33, 2)
+        bipyramidEdgeLinks:Set(34, 3)
+        bipyramidEdgeLinks:Set(35, 2)
+////
+        ////hexahedron_eidx:Add(3, 0, 1)
+        ////hexahedron_eidx:Add(3, 1, 1)
+        ////hexahedron_eidx:Add(3, 2, 5)
+        ////hexahedron_eidx:Add(3, 3, 2)
+        
+        bipyramidEdgeLinks:Set(36, 3)
+        bipyramidEdgeLinks:Set(37, 0)
+        bipyramidEdgeLinks:Set(38, 1)
+
+        bipyramidEdgeLinks:Set(39, 3)
+        bipyramidEdgeLinks:Set(40, 1)
+        bipyramidEdgeLinks:Set(41, 1)
+
+        bipyramidEdgeLinks:Set(42, 3)
+        bipyramidEdgeLinks:Set(43, 2)
+        bipyramidEdgeLinks:Set(44, 5)
+
+        bipyramidEdgeLinks:Set(45, 3)
+        bipyramidEdgeLinks:Set(46, 3)
+        bipyramidEdgeLinks:Set(47, 2)
+        
+////
+        ////hexahedron_eidx:Add(4, 0, 1)
+        ////hexahedron_eidx:Add(4, 1, 0)
+        ////hexahedron_eidx:Add(4, 2, 2)
+        ////hexahedron_eidx:Add(4, 3, 0)
+        bipyramidEdgeLinks:Set(48, 4)
+        bipyramidEdgeLinks:Set(49, 0)
+        bipyramidEdgeLinks:Set(50, 1)
+
+        bipyramidEdgeLinks:Set(51, 4)
+        bipyramidEdgeLinks:Set(52, 1)
+        bipyramidEdgeLinks:Set(53, 0)
+
+        bipyramidEdgeLinks:Set(54, 4)
+        bipyramidEdgeLinks:Set(55, 2)
+        bipyramidEdgeLinks:Set(56, 2)
+
+        bipyramidEdgeLinks:Set(57, 4)
+        bipyramidEdgeLinks:Set(58, 3)
+        bipyramidEdgeLinks:Set(59, 0)
+////
+        ////hexahedron_eidx:Add(5, 0, 2)
+        ////hexahedron_eidx:Add(5, 1, 2)
+        ////hexahedron_eidx:Add(5, 2, 3)
+        ////hexahedron_eidx:Add(5, 3, 2)
+        bipyramidEdgeLinks:Set(60, 5)
+        bipyramidEdgeLinks:Set(61, 0)
+        bipyramidEdgeLinks:Set(62, 2)
+
+        bipyramidEdgeLinks:Set(63, 5)
+        bipyramidEdgeLinks:Set(64, 1)
+        bipyramidEdgeLinks:Set(65, 2)
+
+        bipyramidEdgeLinks:Set(66, 5)
+        bipyramidEdgeLinks:Set(67, 2)
+        bipyramidEdgeLinks:Set(68, 3)
+
+        bipyramidEdgeLinks:Set(69, 5)
+        bipyramidEdgeLinks:Set(70, 3)
+        bipyramidEdgeLinks:Set(71, 2)
+////
+        ////hexahedron_eidx:Add(6, 0, 3)
+        ////hexahedron_eidx:Add(6, 1, 1)
+        ////hexahedron_eidx:Add(6, 2, 5)
+        ////hexahedron_eidx:Add(6, 3, 0)
+        bipyramidEdgeLinks:Set(72, 6)
+        bipyramidEdgeLinks:Set(73, 0)
+        bipyramidEdgeLinks:Set(74, 3)
+
+        bipyramidEdgeLinks:Set(75, 6)
+        bipyramidEdgeLinks:Set(76, 1)
+        bipyramidEdgeLinks:Set(77, 1)
+
+        bipyramidEdgeLinks:Set(78, 6)
+        bipyramidEdgeLinks:Set(79, 2)
+        bipyramidEdgeLinks:Set(80, 5)
+
+        bipyramidEdgeLinks:Set(81, 6)
+        bipyramidEdgeLinks:Set(82, 3)
+        bipyramidEdgeLinks:Set(83, 0)
+////
+        ////hexahedron_eidx:Add(7, 0, 3)
+        ////hexahedron_eidx:Add(7, 1, 0)
+        ////hexahedron_eidx:Add(7, 2, 4)
+        ////hexahedron_eidx:Add(7, 3, 2)
+        bipyramidEdgeLinks:Set(84, 7)
+        bipyramidEdgeLinks:Set(85, 0)
+        bipyramidEdgeLinks:Set(86, 3)
+
+        bipyramidEdgeLinks:Set(87, 7)
+        bipyramidEdgeLinks:Set(88, 1)
+        bipyramidEdgeLinks:Set(89, 0)
+
+        bipyramidEdgeLinks:Set(90, 7)
+        bipyramidEdgeLinks:Set(91, 2)
+        bipyramidEdgeLinks:Set(92, 4)
+
+        bipyramidEdgeLinks:Set(93, 7)
+        bipyramidEdgeLinks:Set(94, 3)
+        bipyramidEdgeLinks:Set(95, 2)
+////
+        ////hexahedron_eidx:Add(8, 0, 5)
+        ////hexahedron_eidx:Add(8, 1, 1)
+        ////hexahedron_eidx:Add(8, 2, 4)
+        ////hexahedron_eidx:Add(8, 3, 1)
+        bipyramidEdgeLinks:Set(96, 8)
+        bipyramidEdgeLinks:Set(97, 0)
+        bipyramidEdgeLinks:Set(98, 5)
+
+        bipyramidEdgeLinks:Set(99, 8)
+        bipyramidEdgeLinks:Set(100, 1)
+        bipyramidEdgeLinks:Set(101, 1)
+
+        bipyramidEdgeLinks:Set(102, 8)
+        bipyramidEdgeLinks:Set(103, 2)
+        bipyramidEdgeLinks:Set(104, 4)
+
+        bipyramidEdgeLinks:Set(105, 8)
+        bipyramidEdgeLinks:Set(106, 3)
+        bipyramidEdgeLinks:Set(107, 1)
+    end
+    
+    action GetTetrahedronFaceVertices returns Integer32BitArray
+        return tetrahedronFaceVertices
+    end
+
+    action GetBipyramidFaceVertices returns Integer32BitArray
+        return bipyramidFaceVertices
+    end
+
+    action GetTetrahedronEdgeLinks returns Integer32BitArray
+        return tetrahedronEdgeLinks
+    end
+
+    action GetBipyramidEdgeLinks returns Integer32BitArray
+        return bipyramidEdgeLinks
+    end
+
+end
