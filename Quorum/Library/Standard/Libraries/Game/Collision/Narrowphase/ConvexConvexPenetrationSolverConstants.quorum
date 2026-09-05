@@ -6,8 +6,16 @@ shared class ConvexConvexPenetrationSolverConstants
     Integer32BitArray tetrahedronEdgeLinks
     Integer32BitArray bipyramidFaceVertices
     Integer32BitArray bipyramidEdgeLinks
+    Integer32BitArray mod3
     
 on create
+        mod3:SetSize(5)
+        mod3:Set(0, 0)
+        mod3:Set(1, 1)
+        mod3:Set(2, 2)
+        mod3:Set(3, 0)
+        mod3:Set(4, 1)
+        
         tetrahedronFaceVertices:SetSize(12 * 3)
         
         
@@ -450,4 +458,8 @@ on create
         return bipyramidEdgeLinks
     end
 
+    
+    action GetMod3 returns Integer32BitArray
+        return mod3
+    end
 end

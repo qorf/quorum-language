@@ -3,6 +3,7 @@ package Libraries.Game.Collision.Narrowphase
 use Libraries.Containers.Array
 use Libraries.Compute.Vector3
 use Libraries.Game.Collision.Narrowphase.ConvexConvexVertex
+use Libraries.Containers.Integer32BitArray
 
 /*
 This class stores the faces given in terms of vertices of the face of a polyhedron.
@@ -10,7 +11,7 @@ This class stores the faces given in terms of vertices of the face of a polyhedr
 class ConvexConvexFace 
     Array<ConvexConvexVertex> vertices
     Array<ConvexConvexFace> faces
-    Array<integer> edges
+    Integer32BitArray edges
     Vector3 normal
     number distance = 0
     integer mark = 0
@@ -43,7 +44,7 @@ class ConvexConvexFace
     /*
     This action returns all of the edges of the face.
     */
-    action GetEdges returns Array<integer>
+    action GetEdges returns Integer32BitArray
         return edges
     end
 

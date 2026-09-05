@@ -30,8 +30,6 @@ class ConvexConvexPenetrationSolver
     constant number EpaAccuracy = 0.001
     ConvexConvexPenetrationSolverConstants constants
 
-    Array<integer> mod3
-
     on create
         integer i = 0
         repeat 2 times
@@ -51,11 +49,11 @@ class ConvexConvexPenetrationSolver
             nearest:Add(v)
         end
 
-        mod3:Add(0)
-        mod3:Add(1)
-        mod3:Add(2)
-        mod3:Add(0)
-        mod3:Add(1)
+        //mod3:Add(0)
+        //mod3:Add(1)
+        //mod3:Add(2)
+        //mod3:Add(0)
+        //mod3:Add(1)
 
         //tetrahedron_fidx:Add(0, 0, 2)
         //tetrahedron_fidx:Add(0, 1, 1)
@@ -351,6 +349,7 @@ class ConvexConvexPenetrationSolver
     */
     action BuildHorizon(integer markid, ConvexConvexVertex w, ConvexConvexFace f, integer e, Array<ConvexConvexFace> cf, Array<ConvexConvexFace> ff) returns integer
         integer ne = 0
+Integer32BitArray mod3 = constants:GetMod3()
         if f:GetMark() not= markid
             integer e1 = mod3:Get(e + 1)
             if f:GetNormal():DotProduct(w:GetVertex()) + f:GetDistance() > 0
