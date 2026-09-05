@@ -2,6 +2,7 @@ package Libraries.Game.Collision.Narrowphase
 
 use Libraries.Compute.Vector3
 use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
 
 /*
 This class stores the result from the calculation in the class ConvexConvexSimplexSolver.
@@ -16,7 +17,7 @@ class ConvexConvexSubSimplexClosestResult
     boolean usedVertexC = false
     boolean usedVertexD = false
 
-    Array<number> barycentricCoordinates
+    Number32BitArray barycentricCoordinates
     boolean degenerate = false
 
     on create
@@ -138,7 +139,7 @@ class ConvexConvexSubSimplexClosestResult
     /*
     This action gets the numbers that will describe where the point of interest is with respect to the simplex.
     */
-    action GetBarycentricCoordinates returns Array<number>
+    action GetBarycentricCoordinates returns Number32BitArray
         return barycentricCoordinates
     end
 
