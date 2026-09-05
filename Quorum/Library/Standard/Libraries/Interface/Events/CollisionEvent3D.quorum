@@ -182,6 +182,10 @@ class CollisionEvent3D
             result:Initialize(itemA, itemB)
             CollideSpheres(collisionPoints, cast(Sphere, shapeA), transformA, cast(Sphere, shapeB), transformB, result)
         else
+            if shapeA:GetType() = shapeA:TERRAIN and shapeB:GetType() = shapeB:TERRAIN
+                return now
+            end
+            
             if shapeA:GetType() = shapeA:TERRAIN
                 ConcaveShape3D concave = cast(ConcaveShape3D, shapeA)
                 result:Initialize(itemA, itemB)
