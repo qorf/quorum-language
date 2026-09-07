@@ -14,6 +14,7 @@ use Libraries.Compute.BitwiseOperations
 use Libraries.Game.Physics.OrderIndex
 use Libraries.Game.Physics.ConstraintDescription3D
 use Libraries.Game.Physics.CollisionConstraint3D
+use Libraries.Containers.Integer32BitArray
 
 /*
 This class contains actions that is necessary to compute how objects will react
@@ -27,8 +28,8 @@ class CollisionSolver3D
     Array<SolverItem3D> tempSolverBodyPool      //objects are only added to here if the object has collided with some other object
     Array<SolverConstraint3D> tempSolverConstraintPool
     Array<SolverConstraint3D> tempSolverFrictionConstraintPool
-    Array<integer> orderTempConstraintPool
-    Array<integer> orderFrictionConstraintPool
+    Integer32BitArray orderTempConstraintPool
+    Integer32BitArray orderFrictionConstraintPool
 
     integer seed = 0
     Math math
