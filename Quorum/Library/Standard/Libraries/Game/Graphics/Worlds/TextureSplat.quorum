@@ -1,0 +1,75 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.System.File
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.Color
+
+/*    Stores the textures used for texture splatting. A TextureSplat can contain
+    separate textures for the red, green, blue, and alpha channels, along with
+    a splat texture used to control how textures are blended across a surface.
+
+    For example, a terrain could use the red channel for grass, the green
+    channel for dirt, the blue channel for rock, and the alpha channel for
+    another terrain material. Each channel texture can be assigned and
+    retrieved independently.*/
+class TextureSplat
+    Texture red = undefined
+    Texture green = undefined
+    Texture blue = undefined
+    Texture alpha = undefined
+    Texture splat = undefined
+    
+    /* This action gets the texture for the red channel, if any. */
+    action GetRed returns Texture
+        return red
+    end
+
+    /* This action sets the texture for the red channel. */
+    action SetRed(Texture red)
+        me:red = red
+    end
+
+    /* This action gets the texture for the green channel, if any. */
+    action GetGreen returns Texture
+        return green
+    end
+
+    /* This action sets the texture for the green channel. */
+    action SetGreen(Texture green)
+        me:green = green
+    end
+
+    /* This action gets the texture for the blue channel, if any. */
+    action GetBlue returns Texture
+        return blue
+    end
+
+    /* This action sets the texture for the red channel. */
+    action SetBlue(Texture blue)
+        me:blue = blue
+    end
+
+    /* This action gets the texture for the blue channel, if any. */
+    action GetAlpha returns Texture
+        return alpha
+    end
+
+    /* This action sets the texture for the alpha channel. */
+    action SetAlpha(Texture alpha)
+        me:alpha = alpha
+    end
+
+    /* This action gets the texture for the actual splat map, which combines
+ the red, green, blue, or alpha channels. If a channel is not defined, it is
+ not used. */
+    action GetSplat returns Texture
+        return splat
+    end
+
+    /* This action sets the texture for the actual splat map, which combines
+ the red, green, blue, or alpha channels. If a channel is not defined, it is
+ not used. */
+    action SetSplat(Texture splat)
+        me:splat = splat
+    end
+end

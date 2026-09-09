@@ -84,6 +84,7 @@ class Terrain is Model
     integer pixelHeight = 0
     MeshData meshData
     number collisionMargin = 0.04
+    TextureSplat textureSplat = undefined
     
     /*This action loads a height map from a gray scale image. The amount of 
 white in every pixel generates the height in the model. 
@@ -478,6 +479,14 @@ which is itself scaled from 0 to 1. Thus, we have 0 to 30 by default. */
 
     action GetPixelHeight returns integer
         return pixelHeight
+    end
+
+    action GetTextureSplat returns TextureSplat
+        return textureSplat
+    end
+
+    action SetTextureSplat(TextureSplat textureSplat)
+        me:textureSplat = textureSplat
     end
 
 end
