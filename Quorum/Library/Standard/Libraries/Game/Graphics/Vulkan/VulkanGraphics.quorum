@@ -481,61 +481,6 @@ currentFramebuffer = swapchainFramebuffers:Get(currentSwapchainIndex)
 
         DisplayCurrentImageNative(presentationQueue, swapchain, imageRenderCompleteSemaphores:Get(currentResourceIndex), currentSwapchainIndex)
     end
-    
-    action DEBUG_FlushCommands
-        // Abort early if rendering is paused.
-        if renderingPaused
-            return now
-        end
-        
-        // Stop recording commands.
-        currentRenderCommandBuffer:EndRecording()
-
-        VulkanFence fence
-        fence:Create(device, false)
-
-        // TO-DO: Recreating these arrays every frame is going to be an issue. Consider reusing them or making a pool for the SubmitInfo.
-        VulkanSubmitInfo submitInfo
-        Array<VulkanCommandBuffer> commandBuffers
-        Array<VulkanSemaphore> signalSemaphores
-        Array<VulkanSemaphore> waitSemaphores
-        Array<integer> waitDestinationStageMasks
-
-        commandBuffers:Add(currentRenderCommandBuffer)
-        //signalSemaphores:Add(imageRenderCompleteSemaphores:Get(currentResourceIndex))
-        //waitSemaphores:Add(imageAcquiredSemaphores:Get(currentResourceIndex))
-        waitDestinationStageMasks:Add(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
-        
-        submitInfo:SetCommandBuffers(commandBuffers)
-        submitInfo:SetSignalSemaphores(signalSemaphores)
-        submitInfo:SetWaitSemaphores(waitSemaphores)
-        submitInfo:SetWaitDestinationStageMasks(waitDestinationStageMasks)
-        submitInfo:SetFence(fence)
-
-        graphicsQueue:SubmitCommands(submitInfo)
-        
-        device:WaitUntilIdle()
-        
-        // Add extra wait time if needed.
-        integer secondsToWait = 3
-        Libraries.System.DateTime endTime
-        endTime:AddSeconds(secondsToWait)
-        integer endMinute = endTime:GetMinute()
-        integer endSec = endTime:GetSecond()
-        
-        boolean done = false
-        repeat until done
-            Libraries.System.DateTime newTime
-            integer newMinute = newTime:GetMinute()
-        integer newSec = newTime:GetSecond()
-            if (newMinute > endMinute) or (newMinute = endMinute and newSec >= endSec)
-                done = true
-            end
-        end
-        
-        currentRenderCommandBuffer:Reset()
-        currentRenderCommandBuffer:BeginRecording()
-    end
 
     private system action DisplayCurrentImageNative(VulkanQueue presentQueue, VulkanSwapchain swapchain, VulkanSemaphore waitSemaphore, integer imageIndex) returns boolean
 

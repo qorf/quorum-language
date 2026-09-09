@@ -110,9 +110,6 @@ class EnvironmentVulkan is Environment
     
     Array<VulkanDescriptorSet> lightDataDescriptorSets
     VulkanDescriptorSetLayout lightDataDescriptorSetLayout = undefined
-    //Array<VulkanDescriptorSet> shadowDataDescriptorSets
-    //Array<Array<VulkanFramebuffer>> shadowCubemapFramebuffers
-    //VulkanSampler shadowCubemapSampler = undefined
     
     // Used to check if the camera has changed since the previous update. If so, we need to update shadows.
     Matrix4 previousCameraTransform
@@ -139,10 +136,6 @@ class EnvironmentVulkan is Environment
             sceneDataMemories:Add(undefined)
             cascadeShadowMemories:Add(undefined)
             lightDataDescriptorSets:Add(undefined)
-            //shadowDataDescriptorSets:Add(undefined)
-            
-            //Array<VulkanFramebuffer> array
-            //shadowCubemapFramebuffers:Add(array)
         end
         
         lightMappingArray:SetSize(maxLights * LIGHTS_WORD_SIZE)
@@ -614,11 +607,9 @@ cascadeSplits:Add((d - nearClip) / clipRange)
         i = 0
         repeat while i < directionalCount
             DirectionalLight light = GetDirectionalLight(i)
-            //Vector3 direction = light:GetDirection()
             Vector3 direction
             direction:Set(light:GetDirection())
             direction:Normalize()
-            //direction:SetY(-direction:GetY())
             
             number lastSplitDistance = 0
             integer j = 0
@@ -750,9 +741,6 @@ cascadeSplits:Add((d - nearClip) / clipRange)
                 shadowDataMatrix:Set(lightOrthoMatrix):Multiply(lightViewMatrix)
                 shadowData:SetSplitDistance((nearClip + splitDistance * clipRange) * 1.0)
                 
-                //output "MinExtents: " + minExtents:ToText() + ", maxExtents: " + maxExtents:ToText()
-                //output "ShadowCamPosition = " + shadowCameraPosition:ToText() + ", frustumCenter = " + frustumCenter:ToText() + ", Up = " + up:ToText()
-                
                 j = j + 1
             end
             
@@ -766,12 +754,10 @@ cascadeSplits:Add((d - nearClip) / clipRange)
         matrix:IdentityMatrix()
         number x_orth = 2 / (right - left)
         number y_orth = 2 / (top - bottom)
-        //number z_orth = -2 / (far - near)
         number z_orth = -1 / (far - near)
 
         number tx = -1 * (right + left) / (right - left)
         number ty = -1 * (top + bottom) / (top - bottom)
-        //number tz = -1 * (far + near) / (far - near)
         number tz = -1 * (near) / (far - near)
 
         matrix:row0column0 = x_orth
@@ -812,11 +798,8 @@ cascadeSplits:Add((d - nearClip) / clipRange)
         Vector3 vX
         Vector3 vY
         vZ:Set(direction):Normalize()
-        //vX:Set(direction):Normalize()
-        //vX:CrossProduct(up):Normalize()
         vX:Set(up):Normalize()
         vX:CrossProduct(direction):Normalize()
-        //vY:Set(vX):CrossProduct(vZ):Normalize()
         vY:Set(vZ):CrossProduct(vX):Normalize()
 
         matrix:IdentityMatrix()
@@ -830,9 +813,6 @@ cascadeSplits:Add((d - nearClip) / clipRange)
         matrix:row2column0 = -1 * vZ:GetX()
         matrix:row2column1 = -1 * vZ:GetY()
         matrix:row2column2 = -1 * vZ:GetZ()
-        //matrix:row2column0 = vZ:GetX()
-        //matrix:row2column1 = vZ:GetY()
-        //matrix:row2column2 = vZ:GetZ()
 
         return matrix
     end
