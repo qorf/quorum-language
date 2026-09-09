@@ -54,23 +54,8 @@ class DefaultShadowGeometryShaderVulkan is Shader
 		
 		void main()
 		{
-		/*
-			for (int j = 0; j < 6 * SHADOW_MAP_CASCADE_COUNT; j++)
-			{
-				gl_Layer = j;
-				for (int i = 0; i < gl_in.length(); i++)
-				{
-					gl_Position = gl_in[i].gl_Position;
-					EmitVertex();
-				}
-				EndPrimitive();
-			}
-			//EndPrimitive();
-		*/
-		
 			uint isPoint = pushConstants.isPointLight;
 			uint lightIndex = pushConstants.lightIndex;
-			//uint cubeBaseIndex = lightIndex * 6 * SHADOW_MAP_CASCADE_COUNT;
 			
 			/*
 			If this is a directional light, we only need one frustum, not six. Output to the first face of each cubemap and ignore the other 5.
@@ -101,40 +86,6 @@ class DefaultShadowGeometryShaderVulkan is Shader
 				}
 			}
 			EndPrimitive();
-		
-			/*
-			uint corner = gl_PrimitiveIDIn % 2;
-			if (corner == 0)
-			{
-				v_textureCoordinates = inTextureCoordinates[0];
-				v_entityID = inEntityID[0];
-				gl_Layer = 0;
-				gl_Position = vec4(-0.5, -0.5, 0.25, 1.0);
-				EmitVertex();
-			}
-			else
-			{
-				v_textureCoordinates = inTextureCoordinates[0];
-				v_entityID = inEntityID[0];
-				gl_Layer = 0;
-				gl_Position = vec4(0.5, 0.5, 0.25, 1.0);
-				EmitVertex();
-			}
-			
-			v_textureCoordinates = inTextureCoordinates[1];
-			v_entityID = inEntityID[1];
-			gl_Layer = 0;
-			gl_Position = vec4(-0.5, 0.5, 0.25, 1.0);
-			EmitVertex();
-			
-			v_textureCoordinates = inTextureCoordinates[2];
-			v_entityID = inEntityID[2];
-			gl_Layer = 0;
-			gl_Position = vec4(0.5, -0.5, 0.25, 1.0);
-			EmitVertex();
-			
-			EndPrimitive();
-			*/
 		}
 		")
 	end

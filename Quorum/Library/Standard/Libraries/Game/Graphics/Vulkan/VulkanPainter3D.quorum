@@ -124,14 +124,10 @@ to allow for simultaneous rendering.*/
     Array<VulkanDescriptorSet> resultDescriptors
     
     // Resources for the shadow mapping stage.
-    //Array<VulkanFramebuffer> shadowCubemaps
     Array<VulkanDescriptorSet> shadowProjectionDescriptors
     boolean shadowProjectionResourcesLinked = false
     
     Array<Array<VulkanFramebuffer>> shadowCubemapFramebuffers
-    //Array<VulkanBuffer> cascadeShadowBuffers
-    //Array<VulkanNumber32BitMappedMemory> cascadeShadowMappings
-    //Number32BitArray cascadeShadowTransferArray = undefined
     
     
     // Used to create combined image-sampler descriptors. Accesses the individual values in a sampled image.
@@ -260,7 +256,7 @@ The attachments we need correspond to our phases of rendering:
         
         // Scene render attachments.
         VulkanAttachmentDescription positionAttachment
-        positionAttachment:SetFormat(constants:FORMAT_R16G16B16A16_SFLOAT)
+        positionAttachment:SetFormat(constants:FORMAT_R32G32B32A32_SFLOAT)
         positionAttachment:SetSamples(1)
         positionAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
         positionAttachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
@@ -496,27 +492,6 @@ outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
             
             lightsLayout:Create(device, lightsBindings)
             
-            //VulkanDescriptorSetLayout newDescriptorLayout
-            //lightShadowProjectionLayout = newDescriptorLayout
-            //Array<VulkanDescriptorSetLayoutBinding> shadowBindings
-            //
-            //VulkanDescriptorSetLayoutBinding projectionBinding
-            //projectionBinding:SetBinding(0)
-            //projectionBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-            //projectionBinding:SetDescriptorCount(1)
-            //projectionBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
-            //shadowBindings:Add(projectionBinding)
-            //
-            //VulkanDescriptorSetLayoutBinding cubemapBinding
-            //cubemapBinding:SetBinding(1)
-            //cubemapBinding:SetBindingFlags(constants:DESCRIPTOR_BINDING_DYNAMIC)
-            //cubemapBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
-            //cubemapBinding:SetDescriptorCount(lightProperties:GetMaximumLights())
-            //cubemapBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
-            //shadowBindings:Add(cubemapBinding)
-            //
-            //lightShadowProjectionLayout:CreateUpdateAfterBind(device, shadowBindings)
-            
             lightShadowProjectionLayout = lightProperties:GetShadowCubemapsDescriptorSetLayout()
         end
         
@@ -549,9 +524,24 @@ outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
             VulkanFramebuffer renderFramebuffer
             Array<VulkanImageView> renderImageViews
             
-            // The color attachments all have the same properties, so they can be quickly created in a loop.
+            // The position color attachment has a larger bit-depth than the other color attachments, so do that separately.
+            VulkanImageInfo positionImageInfo
+            positionImageInfo:SetWidth(swapchainWidth)
+            positionImageInfo:SetHeight(swapchainHeight)
+            positionImageInfo:SetFormat(constants:FORMAT_R32G32B32A32_SFLOAT)
+            positionImageInfo:SetUsage(constants:IMAGE_USAGE_COLOR_ATTACHMENT_BIT + constants:IMAGE_USAGE_SAMPLED_BIT)
+            VulkanImage positionImage
+            positionImage:Create(device, positionImageInfo)
+            
+            VulkanImageViewInfo positionImageViewInfo
+                positionImageViewInfo:SetFormat(positionImageInfo:GetFormat())
+                VulkanImageView positionImageView
+                positionImageView:Create(device, positionImage, positionImageViewInfo)
+                renderImageViews:Add(positionImageView)
+            
+            // The other color attachments all have the same properties, so they can be quickly created in a loop.
             integer j = 0
-            repeat while j < 4
+            repeat while j < 3
                 VulkanImageInfo imageInfo
             imageInfo:SetWidth(swapchainWidth)
             imageInfo:SetHeight(swapchainHeight)
@@ -1013,10 +1003,6 @@ Layer layer = layers:Next()
         end
     end
     
-    //Model DEBUG_model = undefined
-    //VulkanBuffer instanceData = undefined
-    //VulkanDrawQueue3DInstanceMappedMemory instanceMemory = undefined
-    
     action End
         VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
         // Abort if rendering is paused due to window minimization.
@@ -1031,28 +1017,10 @@ Layer layer = layers:Next()
         VulkanFramebuffer sceneFramebuffer = renderFramebuffers:Get(resourceIndex)
         VulkanConstants constants
         
-        //if DEBUG_model not= undefined and instanceData = undefined
-            //VulkanBuffer buffer
-            //instanceData = buffer
-            //
-            //buffer:CreateMappableBuffer(graphics:GetDevice(), (2 + 2 + 2 + 1 + 1 + 1 + 1 + 16) * 4, constants:BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)
-            //
-            //VulkanDrawQueue3DInstanceMappedMemory memory
-            //instanceMemory = memory
-            //instanceMemory:Create(instanceData)
-            //
-            //ModelBlueprintVulkan modelPrint = cast(ModelBlueprintVulkan, DEBUG_model:GetModelBlueprint())
-            //instanceMemory:PrepareForTransfers()
-            //instanceMemory:TransferInstanceData(modelPrint:GetMeshes():Get(0), undefined, undefined, DEBUG_model:GetTransform())
-        //end
-        
         ModelManagerVulkan modelManager = graphics:GetModelManager()
         VulkanTextureManager textureManager = graphics:GetTextureManager()
         VulkanShaderManager shaderManager = cast(VulkanShaderManager, gameState:GetShaderManager())
         VulkanLightingProperties lightProperties = graphics:GetLightingProperties()
-        
-        //output "Flush 1"
-        //graphics:DEBUG_FlushCommands()
         
         if sceneClearValues:IsEmpty()
             repeat 4 times
@@ -1111,9 +1079,6 @@ Number32BitArray projectionViewMatrix = MatrixToArray(camera:GetCombinedMatrix()
             currentPipeline = strategy:GetPipeline()
         end
         
-        //output "Flush 1D"
-        //graphics:DEBUG_FlushCommands()
-        
         i = 0
         repeat while i < drawQueues:GetSize()
             Array<VulkanDrawQueue3D> allQueues = drawQueues:Get(i)
@@ -1147,9 +1112,6 @@ Number32BitArray projectionViewMatrix = MatrixToArray(camera:GetCombinedMatrix()
                 currentBatches = undefined
             end
         end
-        
-        //output "Flush 1E"
-        //graphics:DEBUG_FlushCommands()
 
         // Create the command to begin the render pass.
         BeginRenderPassCommand beginRenderPass
@@ -1186,55 +1148,6 @@ BindDescriptorSetCommand cameraBind
             cameraBind:SetDescriptorSet(currentCameraDescriptor)
             commandBuffer:Record(cameraBind)
         
-        //i = 0
-        //repeat while i < drawQueues:GetSize()
-            //Array<VulkanDrawQueue3D> allQueues = drawQueues:Get(i)
-            //integer j = 0
-            //repeat while j < allQueues:GetSize()
-                //VulkanDrawQueue3D queue = allQueues:Get(j)
-                //if queue not= undefined
-                    //queue:Begin()
-                //end
-                //
-                //j = j + 1
-            //end
-            //i = i + 1
-        //end
-        
-        //Array<VulkanPainter3DBatch> currentBatches = pendingBatches
-        //repeat until currentBatches = undefined
-            //integer counter = 0
-            //repeat while counter < currentBatches:GetSize()
-                //VulkanPainter3DBatch batch = currentBatches:Get(counter)
-                //batch:ProcessBatch(me)
-                //batch:PrepareForNextFrame()
-                //
-                //counter = counter + 1
-            //end
-            //
-            //// After drawing all opaque geometry, repeat the process for transparent batches.
-            //if currentBatches = pendingBatches
-                //currentBatches = pendingTransparentBatches
-            //else
-                //currentBatches = undefined
-            //end
-        //end
-        
-        if not pendingBatches:IsEmpty() or not pendingTransparentBatches:IsEmpty()
-            // After ending the batches, we need to wait for data transfers to complete before any drawing can occur.
-            // Create a memory barrier that ensures that all commands after this must wait for the transfer stage of
-            // the pipeline to complete before operations in the vertex input stage can begin.
-            VulkanMemoryBarrier memoryBarrier
-            memoryBarrier:SetSourceStageMask(constants:PIPELINE_STAGE_TRANSFER_BIT)
-            memoryBarrier:SetSourceAccessMask(constants:ACCESS_MEMORY_WRITE_BIT)
-            memoryBarrier:SetDestinationStageMask(constants:PIPELINE_STAGE_VERTEX_INPUT_BIT)
-            memoryBarrier:SetDestinationAccessMask(constants:ACCESS_MEMORY_READ_BIT)
-
-            PipelineBarrierCommand barrierCommand
-            barrierCommand:SetMemoryBarrier(memoryBarrier)
-            //commandBuffer:Record(barrierCommand)
-        end
-        
         i = 0
         repeat while i < drawQueues:GetSize()
             VulkanDrawQueue3D drawQueue = GetCurrentDrawQueue(i)
@@ -1247,9 +1160,6 @@ BindDescriptorSetCommand cameraBind
                 
                 pushConstants:ResetWritePosition()
         pushConstants:AddBufferPointer(drawQueue:GetInstanceDataBuffer())
-                //pushConstants:AddBufferPointer(instanceData)
-                //drawQueue:GetInstanceDataBuffer():DEBUG_OutputPointerAddress()
-                //drawQueue:DEBUG_OutputValidation()
         
         SetPushConstantsCommand setPushConstants
         setPushConstants:SetData(pushConstants)
@@ -1270,33 +1180,9 @@ constants:SHADER_STAGE_FRAGMENT_BIT)
         EndRenderPassCommand endRenderPass
         commandBuffer:Record(endRenderPass)
         
-        //output "Flush 2"
-        //graphics:DEBUG_FlushCommands()
-        //output "Finished Flush 2..."
-        
         // Now, submit commands to render the shadow maps.
         // We intentionally do NOT put any additional barriers or waiting here, because the shadow stage is independent of the scene rendering.
         // Allow Vulkan to run this stage in parallel with the scene rendering.
-        
-        // NOTE: FOR TESTING, THESE BARRIERS HAVE MOVED HERE.
-        i = 0
-        repeat while i < 4
-            VulkanImage attachment = sceneFramebuffer:GetImageViews():Get(i):GetImage()
-        AttachmentWriteBarrier(commandBuffer, attachment)
-            i = i + 1
-        end
-        
-        // FOR TESTING ONLY
-        //VulkanMemoryBarrier memoryBarrier1
-            //memoryBarrier1:SetSourceStageMask(constants:PIPELINE_STAGE_ALL_GRAPHICS_BIT)
-            //memoryBarrier1:SetSourceAccessMask(constants:ACCESS_SHADER_WRITE_BIT + constants:ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
-            //memoryBarrier1:SetDestinationStageMask(constants:PIPELINE_STAGE_VERTEX_INPUT_BIT)
-            //memoryBarrier1:SetDestinationAccessMask(constants:ACCESS_MEMORY_READ_BIT)
-//
-            //PipelineBarrierCommand barrierCommand1
-            //barrierCommand1:SetMemoryBarrier(memoryBarrier1)
-            //commandBuffer:Record(barrierCommand1)
-        
         
         // Before we begin rendering the shadows, make sure we have all the framebuffers needed for the data in this stage.
         EnsureShadowCubemapFramebuffers(resourceIndex)
@@ -1388,8 +1274,6 @@ their default clear values, which is functionally equivalent to there being no s
         setPushConstants:SetPipelineLayout(shadowPipeline:GetLayout())
         setPushConstants:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT + 
 constants:SHADER_STAGE_GEOMETRY_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
-                        //setPushConstants:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT + 
-//constants:SHADER_STAGE_FRAGMENT_BIT)
         commandBuffer:Record(setPushConstants)
                 
                 DrawIndirectCommand drawCommand
@@ -1406,9 +1290,6 @@ end
         EndRenderPassCommand endShadowRenderPass
         commandBuffer:Record(endShadowRenderPass)
             
-            //output "Flush 3"
-            //graphics:DEBUG_FlushCommands()
-            
             i = i + 1
         end
 
@@ -1418,12 +1299,12 @@ end
         
         // Now that scene geometry has been rendered, and shadow maps calculated, prepare for the lighting pass.
         // First, ensure that all writing to the scene's color attachments has finished before attempting to read any of it.
-        //i = 0
-        //repeat while i < 4
-            //VulkanImage attachment = sceneFramebuffer:GetImageViews():Get(i):GetImage()
-        //AttachmentWriteBarrier(commandBuffer, attachment)
-            //i = i + 1
-        //end
+        i = 0
+        repeat while i < 4
+            VulkanImage attachment = sceneFramebuffer:GetImageViews():Get(i):GetImage()
+        AttachmentWriteBarrier(commandBuffer, attachment)
+            i = i + 1
+        end
         
         // Also ensure all writing to the shadow cubemaps has finished, because the lighting stage needs that too.
         i = 0
@@ -1431,20 +1312,6 @@ end
             AttachmentWriteBarrier(commandBuffer, shadowFramebuffers:Get(i):GetImageViews():Get(0):GetImage())
             i = i + 1
         end
-        
-        // FOR TESTING ONLY
-        //VulkanMemoryBarrier memoryBarrier2
-            //memoryBarrier2:SetSourceStageMask(constants:PIPELINE_STAGE_ALL_GRAPHICS_BIT)
-            //memoryBarrier2:SetSourceAccessMask(constants:ACCESS_SHADER_WRITE_BIT + constants:ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
-            //memoryBarrier2:SetDestinationStageMask(constants:PIPELINE_STAGE_VERTEX_INPUT_BIT)
-            //memoryBarrier2:SetDestinationAccessMask(constants:ACCESS_MEMORY_READ_BIT)
-//
-            //PipelineBarrierCommand barrierCommand2
-            //barrierCommand2:SetMemoryBarrier(memoryBarrier2)
-            //commandBuffer:Record(barrierCommand2)
-        
-        //output "Flush 4"
-        //graphics:DEBUG_FlushCommands()
         
         // Begin the render pass for the lighting phase.
         VulkanFramebuffer lightFramebuffer = lightFramebuffers:Get(resourceIndex)
@@ -1499,9 +1366,6 @@ BindDescriptorSetCommand lightDescriptorBind
         EndRenderPassCommand endLightRenderPass
         commandBuffer:Record(endLightRenderPass)
         
-        //output "Flush 5"
-        //graphics:DEBUG_FlushCommands()
-        
         // Now that the scene geometry and lighting are finished, copy the result from the Painter3D's framebuffer to the swapchain image that will eventually be drawn to the screen.
         // First, ensure all writing to the light's output attachment is done before we proceed.
         VulkanImage lightAttachmentImage = lightFramebuffer:GetImageViews():Get(0):GetImage()
@@ -1550,9 +1414,6 @@ BindDescriptorSetCommand resultDescriptorBind
         // End the render pass.
         EndRenderPassCommand endResultRenderPass
         commandBuffer:Record(endResultRenderPass)
-        
-        //output "Flush 6"
-        //graphics:DEBUG_FlushCommands()
         
     end
     
@@ -1603,7 +1464,6 @@ BindDescriptorSetCommand resultDescriptorBind
                 VulkanBuffer weightsBuffer = mesh:GetAnimationDataBuffer()
                 VulkanBuffer destinationVertices = resources:GetPostAnimationVertexBuffers():Get(j)
                 
-                // TO-DO: Set the push constants. Dispatch the work command.
                 animationPushConstants:ResetWritePosition()
                 animationPushConstants:AddBufferPointer(sourceVertices)
                 animationPushConstants:AddBufferPointer(weightsBuffer)
@@ -1752,193 +1612,6 @@ BindDescriptorSetCommand resultDescriptorBind
         end
         
         return array:Get(textureGroupID)
-    end
-    
-    private action UpdateCascadeShadowData
-        Matrix4 cameraView = camera:GetViewMatrix()
-        Matrix4 cameraProjection = camera:GetProjectionMatrix()
-        Matrix4 inverseCamera
-        inverseCamera:Set(cameraProjection):Multiply(cameraView):Inverse()
-        
-        integer directionalCount = environment:GetDirectionalLightCount()
-        integer pointCount = environment:GetPointLightCount()
-        
-        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
-        VulkanLightingProperties lightProperties = graphics:GetLightingProperties()
-        constant integer CASCADE_COUNT = lightProperties:GetShadowMapCascadeCount()
-        constant integer SHADOW_MAP_SIZE = lightProperties:GetShadowMapSize()
-        constant integer MATRIX_SIZE = 16
-        constant integer LIGHT_DATA_SIZE = 6 * MATRIX_SIZE + 1
-        
-        Array<number> cascadeSplits
-        number nearClip = camera:GetNear()
-            number farClip = camera:GetFar()
-            number clipRange = farClip - nearClip
-            number ratio = farClip / nearClip
-        
-        // Calculate split depths based on view camera frustum
-        // Based on method presented in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
-        integer i = 0
-        repeat while i < CASCADE_COUNT
-            number power = (i + 1.0) / CASCADE_COUNT
-            number log = nearClip * math:RaiseToPower(ratio, power)
-            number uniform = nearClip + clipRange * power
-number d = 0.95 * (log - uniform) + uniform
-cascadeSplits:Add((d - nearClip) / clipRange)
-            i = i + 1
-        end
-        
-        if pointCount > 0
-            alert("NYI: Point light shadows")
-        end
-        
-        integer lightCounter = 0
-        i = 0
-        repeat while i < directionalCount
-            DirectionalLight light = environment:GetDirectionalLight(i)
-            Vector3 direction = light:GetDirection()
-            
-            number lastSplitDistance = 0
-            integer j = 0
-            repeat while j < CASCADE_COUNT
-                number splitDistance = cascadeSplits:Get(j)
-                
-                // Create an orthographic projection matrix for each cascade. Begin by initializing values.
-        Array<Vector3> frustumCorners
-        integer k = 0
-        repeat while k < 8
-            number x = 1
-            number y = 1
-            number z = 0
-            integer kMod4 = k mod 4
-            if kMod4 = 0 or kMod4 = 3
-                x = -1
-            end
-            if kMod4 >= 2
-                y = -1
-            end
-            if k >= 4
-                z = 1
-            end
-            
-            Vector3 vector
-            vector:Set(x, y, z)
-            frustumCorners:Add(vector)
-            k = k + 1
-        end
-        
-        // Project the frustum corners into world space.
-        k = 0
-        repeat while k < 8
-            Vector3 corner = frustumCorners:Get(k)
-            Vector4 inverseCorner
-            inverseCorner:Set(corner, 1.0):Multiply(inverseCamera)
-            corner:Set(inverseCorner:GetX(), inverseCorner:GetY(), inverseCorner:GetZ()):Scale(1.0 / inverseCorner:GetW())
-            k = k + 1
-        end
-                
-                Vector3 frustumCenter
-                frustumCenter:Set(0, 0, 0)
-        k = 0
-        repeat while k < 4
-            Vector3 distance
-                    Vector3 farResult
-                    Vector3 nearResult
-                    Vector3 calc
-                    
-                    distance:Set(frustumCorners:Get(k + 4)):Subtract(frustumCorners:Get(k))
-                    
-                    calc:Set(distance):Scale(splitDistance)
-                    farResult:Set(frustumCorners:Get(k)):Add(calc)
-                    
-                    calc:Set(distance):Scale(lastSplitDistance)
-                    nearResult:Set(frustumCorners:Get(k)):Add(calc)
-                    
-                    frustumCorners:Set(k + 4, farResult)
-                    frustumCorners:Set(k, nearResult)
-                    frustumCenter:Add(farResult):Add(nearResult)
-            k = k + 1
-        end
-                
-                // Having added together the value of all points, divide by their total to get the average -- this results in the center of the frustum.
-                frustumCenter:Scale(1.0 / 8.0)
-                
-                Vector3 up
-                up:Set(0, 1, 0)
-                number sphereRadius = 0
-                k = 0
-                repeat while k < 8
-                    Vector3 calc
-                    calc:Set(frustumCorners:Get(k)):Subtract(frustumCenter)
-                    number distance = calc:Length()
-                    if distance > sphereRadius
-                        sphereRadius = distance
-                    end
-                    k = k + 1
-                end
-                
-                sphereRadius = math:Ceiling(sphereRadius * 16.0) * 16
-                
-                Vector3 maxExtents
-                maxExtents:Set(sphereRadius, sphereRadius, sphereRadius)
-                Vector3 minExtents
-                minExtents:Set(maxExtents):Scale(-1)
-                
-                Vector3 calc
-                calc:Set(direction):Scale(minExtents:GetZ())
-                Vector3 shadowCameraPosition
-                shadowCameraPosition:Set(frustumCenter):Add(calc)
-                
-                number dot = math:AbsoluteValue(direction:DotProduct(up))
-                if dot = 1.0
-                    up:Set(0, 0, 1)
-                end
-                
-                Matrix4 lightViewMatrix
-                lightViewMatrix:SetToLookAt(shadowCameraPosition, frustumCenter, up)
-                Matrix4 lightOrthoMatrix
-                ProjectionToVulkanOrthographic(lightOrthoMatrix, minExtents:GetX(), maxExtents:GetX(), minExtents:GetY(), maxExtents:GetY(), 0.0, maxExtents:GetZ() - minExtents:GetZ())
-                
-                j = j + 1
-            end
-            
-            lightCounter = lightCounter + 1
-            i = i + 1
-        end
-        
-    end
-    
-    private action ProjectionToVulkanOrthographic(Matrix4 matrix, number left, number right, number bottom, number top, number near, number far)
-        matrix:IdentityMatrix()
-        number x_orth = 2 / (right - left)
-        number y_orth = 2 / (top - bottom)
-        //number z_orth = -2 / (far - near)
-        number z_orth = -1 / (far - near)
-
-        number tx = -1 * (right + left) / (right - left)
-        number ty = -1 * (top + bottom) / (top - bottom)
-        //number tz = -1 * (far + near) / (far - near)
-        number tz = -1 * (near) / (far - near)
-
-        matrix:row0column0 = x_orth
-        matrix:row1column0 = 0
-        matrix:row2column0 = 0
-        matrix:row3column0 = 0
-
-        matrix:row0column1 = 0
-        matrix:row1column1 = y_orth
-        matrix:row2column1 = 0
-        matrix:row3column1 = 0
-
-        matrix:row0column2 = 0
-        matrix:row1column2 = 0
-        matrix:row2column2 = z_orth
-        matrix:row3column2 = 0
-
-        matrix:row0column3 = tx
-        matrix:row1column3 = ty
-        matrix:row2column3 = tz
-        matrix:row3column3 = 1
     end
     
     action SetSkybox(Skybox skybox)

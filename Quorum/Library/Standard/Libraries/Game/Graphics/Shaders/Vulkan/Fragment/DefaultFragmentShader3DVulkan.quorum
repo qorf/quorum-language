@@ -67,7 +67,6 @@ vec3 calculateNormal(Material material, mat3 tanBitanNormal, vec2 textCoords)
     vec3 newNormal = tanBitanNormal[2];
     if (material.hasNormalMap > 0)
     {
-        //newNormal = texture(textSampler[material.normalMapIdx], textCoords).rgb;
 		newNormal = texture(nonuniformEXT(sampler2D(globalTextures[material.normalMapIndex], immutableSampler)), textCoords).rgb;
         newNormal = normalize(newNormal * 2.0 - 1.0);
         newNormal = normalize(tanBitanNormal * newNormal);
@@ -133,7 +132,6 @@ void main()
     float metallicFactor = 0.0f;
     if (material.hasRoughMap > 0) 
 	{
-        //vec4 metRoughValue = texture(textSampler[material.roughMapIdx], inTextCoords);
 		vec4 pbrValues = texture(nonuniformEXT(sampler2D(globalTextures[material.roughMapIndex], immutableSampler)), v_textureCoords);
         roughnessFactor = pbrValues.g;
         metallicFactor = pbrValues.b;
@@ -145,12 +143,6 @@ void main()
     }
 	
 	outputPBR = vec4(0.5, roughnessFactor, metallicFactor, 1.0);
-	/*
-	outputPosition = v_position;
-	outputColor = vec4(0.5, 0.75, 0.4, 1.0);
-	outputNormal = vec4(0.0, 0.0, 1.0, 1.0);
-	outputPBR = vec4(0.5, 0.5, 0.5, 1.0);
-	*/
 	
 }"
 )

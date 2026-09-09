@@ -73,7 +73,6 @@ layout(push_constant) uniform PushConstants {
 void main()
 {
 	uint entityID = gl_InstanceIndex;
-	//uint entityID = 0;
 	v_entityID = entityID;
 	Instances instances = pushConstants.instances;
 	InstanceData instanceData = instances.data[entityID];
@@ -88,9 +87,6 @@ void main()
 	
 	vec3 inPos = vertex.position;
 	vec4 worldPosition = modelTransform * vec4(inPos, 1.0);
-//	vec4 worldPosition = vec4(1.0, 1.0, 1.0, 1.0);
-//	vec4 worldPosition = vec4(inPos, 1.0); // BREAKS
-//	vec4 worldPosition = modelTransform * vec4(1.0); // ALSO BREAKS
 
 	v_textureCoords = vertex.textureCoordinates;
 	v_hasDiffuseOverride = instanceData.diffuseColorOverride;
@@ -107,18 +103,6 @@ void main()
 	v_tangentBitangentNormal = mat3(outTangent, outBitangent, outNormal);
 
     gl_Position = camera.projectionViewMatrix * worldPosition;
-// 	/*
-//	v_textureCoords = vec2(1.0, 1.0);
-//	v_entityID = 0;
-//	v_hasDiffuseOverride = 0;
-//	v_diffuseOverride = 0;
-//	v_hasTextureOverride = 0;
-//	v_textureOverrideIndex = 0;
-//	v_position = vec4(1.0);
-//	v_tangentBitangentNormal = mat3(1.0);
-//	gl_Position = vec4(0.0);
-//	*/
-	
 }"
 )
     end

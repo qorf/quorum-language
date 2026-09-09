@@ -113,15 +113,13 @@ class DefaultShadowFragmentShaderVulkan is Shader
 			// If the color is mostly transparent, discard the fragment.
 			if (sampledColor.a < 0.5)
 			{
-				//discard;
+				discard;
 			}
 			
 			uint lightIndex = pushConstants.lightIndex;
 			vec4 shadowPosition = shadows.data[lightIndex * SHADOW_MAP_CASCADE_COUNT + v_cascadeIndex].matrix[0] * v_worldPosition;
-			//gl_Position = shadows.data[lightIndex * SHADOW_MAP_CASCADE_COUNT + gl_InvocationID].matrix[j] * gl_in[i].gl_Position;
 			
-			//float depth = gl_FragCoord.z;
-			float depth = shadowPosition.z;
+			float depth = gl_FragCoord.z;
 			float moment1 = depth;
 			float moment2 = depth * depth;
 			
@@ -131,8 +129,6 @@ class DefaultShadowFragmentShaderVulkan is Shader
 			moment2 += 0.25 * (dx * dx + dy * dy);
 
 			outputMoments = vec2(moment1, moment2);
-			
-			//outputMoments = vec2(1.0, 1.0);
 		}
 		
 		")
