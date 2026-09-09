@@ -16,6 +16,10 @@ class PerspectiveCamera is Camera
     
     boolean isVulkan = false
     boolean isVulkanCached = false
+    
+    on create
+        SetFar(100)
+    end
 
     /*
     This action will set the field of view of the camera to the given angle.

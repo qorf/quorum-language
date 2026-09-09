@@ -102,6 +102,9 @@ class Model is Item3D
     // The second boolean is true if the transparency can be automatically set by setting colors or other means, or false if it was set manually.
     boolean hasTransparency = false
     boolean transparencyAutoSet = true
+    
+    boolean castsShadows = true
+    
     on create
         SceneProperties properties
         modelType = properties:NONE
@@ -2562,4 +2565,13 @@ end
         parent:Item:UpdateAll(seconds)
         UpdateAnimationState(seconds)
     end
+    
+    action SetCastsShadows(boolean castsShadows)
+        me:castsShadows = castsShadows
+    end
+
+    action CastsShadows returns boolean
+        return castsShadows
+    end
+
 end

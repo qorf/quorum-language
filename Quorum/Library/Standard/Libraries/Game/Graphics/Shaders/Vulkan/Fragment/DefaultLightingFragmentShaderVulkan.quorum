@@ -3,6 +3,8 @@ package Libraries.Game.Graphics.Shaders.Vulkan.Fragment
 use Libraries.Game.Graphics.Shaders.Shader
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Vulkan.VulkanLightingProperties
 
 class DefaultLightingFragmentShaderVulkan is Shader
     
@@ -11,9 +13,17 @@ class DefaultLightingFragmentShaderVulkan is Shader
         GameStateManager gameState
         ShaderManager manager = gameState:GetShaderManager()
         SetName(manager:DEFAULT_LIGHTING_FRAGMENT_SHADER)
+		
+		VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+		VulkanLightingProperties lights = graphics:GetLightingProperties()
         
         SetCode(GetVersionHeader() + "
+// Adds support for nonuniformEXT and unsized descriptor arrays.
+#extension GL_EXT_nonuniform_qualifier : require
 #extension GL_EXT_scalar_block_layout: require
+
+#define SHADOW_MAP_CASCADE_COUNT " + lights:GetShadowMapCascadeCount() + "
+#define MAXIMUM_LIGHTS " + lights:GetMaximumLights() + "
 
 const float PI = 3.14159265359;
 
@@ -26,6 +36,7 @@ layout (set = 0, binding = 0) uniform sampler2D positionSampler;
 layout (set = 0, binding = 1) uniform sampler2D albedoSampler;
 layout (set = 0, binding = 2) uniform sampler2D normalsSampler;
 layout (set = 0, binding = 3) uniform sampler2D pbrSampler;
+layout (set = 2, binding = 1) uniform sampler2DArray shadowSamplers[];
 
 struct Light
 {
@@ -34,6 +45,12 @@ struct Light
 	uint isDirectional;
 	float intensity;
 	vec3 color;
+};
+
+struct CascadeShadow
+{
+	mat4 matrix[6];
+	vec4 splitDistance;
 };
 
 layout(scalar, set = 1, binding = 0) readonly buffer Lights
@@ -47,7 +64,69 @@ layout(scalar, set = 1, binding = 1) uniform SceneInfo
 	float ambientIntensity;
 	vec3 ambientColor;
 	uint lightsCount;
+	mat4 cameraViewMatrix;
 } sceneInfo;
+
+layout(set = 2, binding = 0) uniform CascadeShadows
+{
+	CascadeShadow data[SHADOW_MAP_CASCADE_COUNT * MAXIMUM_LIGHTS];
+} shadows;
+
+//float chebyshevUpperBound(vec2 moments, float t, uint cascadeLevel) {
+float chebyshevUpperBound(vec2 moments, float t) {
+    // Surface is fully lit if the current fragment is before the light occluder
+    if (t <= moments.x)
+		return 1.0;
+
+	//float minVariance = 0.00002 * max(1.0, cascadeLevel * 10.0);
+
+    // Compute variance
+    float variance = moments.y - (moments.x * moments.x);
+    //variance = max(variance, minVariance); // Small epsilon to avoid divide by zero
+	variance = max(variance, 0.00002); // Small epsilon to avoid divide by zero
+
+    // Compute probabilistic upper bound
+    float d = t - moments.x;
+    float p_max = variance / (variance + d * d);
+
+    // Reduce light bleeding
+    p_max = smoothstep(0.2, 1.0, p_max);
+
+    return p_max;
+}
+
+/*
+float calcVisibility(vec4 worldPosition, uint shadowIndex, uint matrixIndex) {
+    //vec4 shadowMapPosition = shadows.cascadeshadows[cascadeIndex].projViewMatrix * worldPosition;
+	vec4 shadowMapPosition = shadows.data[shadowIndex].matrix[matrixIndex] * worldPosition;
+
+    vec2 uv = vec2(shadowMapPosition.x * 0.5 + 0.5, (-shadowMapPosition.y) * 0.5 + 0.5);
+    float depth = shadowMapPosition.z;
+    vec2 moments = texture(shadowSampler, vec4(uv, matrixIndex, shadowIndex)).rg;
+
+    float visibility = chebyshevUpperBound(moments, depth);
+    return visibility;
+}
+*/
+
+float calcDirectionalVisibility(vec4 worldPosition, uint lightIndex, uint cascadeIndex) 
+{
+    //vec4 shadowMapPosition = shadows.cascadeshadows[cascadeIndex].projViewMatrix * worldPosition;
+	vec4 shadowMapPosition = shadows.data[lightIndex * SHADOW_MAP_CASCADE_COUNT + cascadeIndex].matrix[0] * worldPosition;
+
+    vec2 uv = vec2(shadowMapPosition.x * 0.5 + 0.5, (-shadowMapPosition.y) * 0.5 + 0.5);
+    float depth = shadowMapPosition.z;
+	
+	//newNormal = texture(nonuniformEXT(sampler2D(globalTextures[material.normalMapIndex], immutableSampler)), textCoords).rgb;
+    //vec2 moments = texture(shadowSampler, vec4(uv, matrixIndex, shadowIndex)).rg;
+	vec2 moments = texture(nonuniformEXT(shadowSamplers[lightIndex]), vec3(uv, 6 * cascadeIndex)).rg;
+	//vec2 moments = texelFetch(nonuniformEXT(shadowSamplers[lightIndex]), ivec3(uint(uv.x * 2048), uint(uv.y * 2048), 6 * cascadeIndex), 0).rg;
+
+    //float visibility = chebyshevUpperBound(moments, depth, cascadeIndex);
+	float visibility = chebyshevUpperBound(moments, depth);
+    return visibility;
+	//return moments.x;
+}
 
 float distributionGGX(vec3 N, vec3 H, float roughness) {
     float a = roughness * roughness;
@@ -141,7 +220,8 @@ void main()
 	vec4 rawAlbedo = texture(albedoSampler, v_samplerCoordinate);
 	vec3 albedo = rawAlbedo.rgb;
 	vec3 normal = texture(normalsSampler, v_samplerCoordinate).rgb;
-	vec3 worldPosition = texture(positionSampler, v_samplerCoordinate).rgb;
+	vec4 rawWorldPosition = texture(positionSampler, v_samplerCoordinate);
+	vec3 worldPosition = rawWorldPosition.xyz;
 	vec3 pbr = texture(pbrSampler, v_samplerCoordinate).rgb;
 	
 	float roughness = pbr.g;
@@ -154,11 +234,33 @@ void main()
     F0 = mix(F0, albedo, metallic);
 
     vec3 Lo = vec3(0.0);
+	
+	vec4 viewPos = sceneInfo.cameraViewMatrix * rawWorldPosition;
+	
+	//float DEBUG_moment = 0.0;
+	
+	//uint cascadeIndex = 0;
     for (uint i = 0; i < sceneInfo.lightsCount; i++) {
         Light light = lights.array[i];
-        if (light.isDirectional == 1) {
-            Lo += calculateDirectionalLight(light, V, N, F0, albedo, metallic, roughness);
-        } else {
+        if (light.isDirectional == 1) 
+		{
+			uint cascadeIndex = 0;
+			for (uint j = 0; j < SHADOW_MAP_CASCADE_COUNT - 1; ++j)
+			{
+				CascadeShadow currentShadow = shadows.data[i * SHADOW_MAP_CASCADE_COUNT + j];
+				if (-viewPos.z > currentShadow.splitDistance.x)
+				{
+					cascadeIndex = j + 1;
+				}
+			}
+		
+			float shadow = calcDirectionalVisibility(vec4(worldPosition, 1), i, cascadeIndex);
+			//float shadow = 1.0;
+			//DEBUG_moment = calcDirectionalVisibility(vec4(worldPosition, 1), i, cascadeIndex);
+            Lo += (calculateDirectionalLight(light, V, N, F0, albedo, metallic, roughness) * shadow);
+        } 
+		else 
+		{
             Lo += calculatePointLight(light, worldPosition, V, N, F0, albedo, metallic, roughness);
         }
     }
@@ -167,6 +269,16 @@ void main()
 
 	//outputColor = texture(albedoSampler, v_samplerCoordinate);
 	outputColor = vec4(color.rgb, rawAlbedo.a);
+	
+	//outputColor = vec4(1.0, 0.5, 0.5, 1.0);
+	//outputColor.r = DEBUG_moment;
+	
+//	if (cascadeIndex == 0)
+//		outputColor = outputColor * vec4(1.0, 0.75, 0.75, 1.0);
+//	else if (cascadeIndex == 1)
+//		outputColor = outputColor * vec4(0.75, 1.0, 0.75, 1.0);
+//	else if (cascadeIndex == 2)
+//		outputColor = outputColor * vec4(0.75, 0.75, 1.0, 1.0);
 }
 ")
     end

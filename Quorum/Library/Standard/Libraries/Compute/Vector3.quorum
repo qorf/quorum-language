@@ -38,11 +38,6 @@ class Vector3
     Math math
     constant number ROUNDING_MARGIN = 0.000001
 
-
-    action ToText returns text
-        return "The vector3 is: [" + x + ", " + y + ", " + z + "]"
-    end
-
     action Output
         output ToText()
     end
@@ -2651,6 +2646,21 @@ class Vector3
         y = 0
         z = 0
         return me
+    end
+    
+    /*This action returns the Vector as formatted text. The vector's component values will be placed
+between square brackets and are separated by commas and spaces.
+
+Attribute: Returns The value of the vector as text.
+
+Attribute: Example
+
+use Libraries.Compute.Vector3
+
+Vector3 vector
+output vector:ToText()*/
+    action ToText returns text
+        return "[" + x + ", " + y + ", " + z + "]"
     end
 
 end

@@ -2098,4 +2098,19 @@ class Vector2
         return me
     end
     
+    /*This action returns the Vector as formatted text. The vector's component values will be placed
+between square brackets and are separated by commas and spaces.
+
+Attribute: Returns The value of the vector as text.
+
+Attribute: Example
+
+use Libraries.Compute.Vector2
+
+Vector2 vector
+output vector:ToText()*/
+    action ToText returns text
+        return "[" + x + ", " + y + "]"
+    end
+    
 end

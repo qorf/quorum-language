@@ -1,0 +1,70 @@
+package Libraries.Game.Graphics.Vulkan
+
+use Libraries.Game.DesktopConfiguration
+use Libraries.Containers.Array
+
+/*This class holds configuration options for the lighting and shadow systems in Vulkan.
+The values here are "constant" in the sense that once the application begins they will
+not change, but their values are not set until the Game starts.
+
+It also holds the global descriptor set */
+class VulkanLightingProperties
+    
+    VulkanDevice device = undefined
+    
+    integer maximumLights = 16
+    integer shadowMapCascadeCount = 1
+    integer shadowMapSize = 4096
+    
+    VulkanDescriptorSetLayout shadowCubemapsLayout = undefined
+    
+    action Create(VulkanDevice device, DesktopConfiguration configuration)
+        me:device = device
+        
+        maximumLights = configuration:maximumLights
+        shadowMapCascadeCount = configuration:shadowMapCascadeCount
+        //shadowMapCascadeCount = 1
+        shadowMapSize = configuration:shadowMapSize
+    end
+    
+    action GetMaximumLights returns integer
+        return maximumLights
+    end
+
+    action GetShadowMapCascadeCount returns integer
+        return shadowMapCascadeCount
+    end
+
+    action GetShadowMapSize returns integer
+        return shadowMapSize
+    end
+
+    action GetShadowCubemapsDescriptorSetLayout returns VulkanDescriptorSetLayout
+        if shadowCubemapsLayout = undefined
+            VulkanConstants constants
+            Array<VulkanDescriptorSetLayoutBinding> bindings
+            
+            VulkanDescriptorSetLayoutBinding projectionBinding
+            projectionBinding:SetBinding(0)
+            projectionBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+            projectionBinding:SetDescriptorCount(1)
+            projectionBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+            bindings:Add(projectionBinding)
+            
+            VulkanDescriptorSetLayoutBinding cubemapBinding
+            cubemapBinding:SetBinding(1)
+            cubemapBinding:SetBindingFlags(constants:DESCRIPTOR_BINDING_DYNAMIC)
+            cubemapBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+            cubemapBinding:SetDescriptorCount(GetMaximumLights())
+            cubemapBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+            bindings:Add(cubemapBinding)
+
+            VulkanDescriptorSetLayout layout
+        layout:CreateUpdateAfterBind(device, bindings)
+        shadowCubemapsLayout = layout
+        end
+        
+        return shadowCubemapsLayout
+    end
+
+end

@@ -19,7 +19,6 @@ class DefaultVertexShader3DVulkan is Shader
 #extension GL_EXT_buffer_reference: require
 #extension GL_EXT_buffer_reference2: enable
 #extension GL_EXT_scalar_block_layout: require
-#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
 
 layout(location = 0) out vec2 v_textureCoords;
 layout(location = 1) flat out uint v_entityID;
@@ -74,7 +73,8 @@ layout(push_constant) uniform PushConstants {
 void main()
 {
 	uint entityID = gl_InstanceIndex;
-v_entityID = entityID;
+	//uint entityID = 0;
+	v_entityID = entityID;
 	Instances instances = pushConstants.instances;
 	InstanceData instanceData = instances.data[entityID];
 	
@@ -88,6 +88,9 @@ v_entityID = entityID;
 	
 	vec3 inPos = vertex.position;
 	vec4 worldPosition = modelTransform * vec4(inPos, 1.0);
+//	vec4 worldPosition = vec4(1.0, 1.0, 1.0, 1.0);
+//	vec4 worldPosition = vec4(inPos, 1.0); // BREAKS
+//	vec4 worldPosition = modelTransform * vec4(1.0); // ALSO BREAKS
 
 	v_textureCoords = vertex.textureCoordinates;
 	v_hasDiffuseOverride = instanceData.diffuseColorOverride;
@@ -102,8 +105,20 @@ v_entityID = entityID;
 	vec3 outTangent = inverseTransform * normalize(vertex.tangent);
 	vec3 outBitangent = inverseTransform * normalize(vertex.bitangent);
 	v_tangentBitangentNormal = mat3(outTangent, outBitangent, outNormal);
-	
+
     gl_Position = camera.projectionViewMatrix * worldPosition;
+// 	/*
+//	v_textureCoords = vec2(1.0, 1.0);
+//	v_entityID = 0;
+//	v_hasDiffuseOverride = 0;
+//	v_diffuseOverride = 0;
+//	v_hasTextureOverride = 0;
+//	v_textureOverrideIndex = 0;
+//	v_position = vec4(1.0);
+//	v_tangentBitangentNormal = mat3(1.0);
+//	gl_Position = vec4(0.0);
+//	*/
+	
 }"
 )
     end

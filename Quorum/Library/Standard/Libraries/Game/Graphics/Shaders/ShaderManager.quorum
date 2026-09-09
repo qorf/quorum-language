@@ -22,6 +22,10 @@ use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.DefaultLightingFragmentShade
 use Libraries.Game.Graphics.Shaders.Programs.CopyFromSamplerShaderProgram
 use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.CopyFromSamplerVertexShaderVulkan
 use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.CopyFromSamplerFragmentShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.DefaultShadowVertexShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Geometry.DefaultShadowGeometryShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.DefaultShadowFragmentShaderVulkan
+use Libraries.Game.Graphics.Shaders.Programs.DefaultShadowShaderProgram
 
 class ShaderManager
 
@@ -31,6 +35,10 @@ class ShaderManager
     public constant text DEFAULT_3D_SHADER_PROGRAM = "Default 3D Shader Program"
     public constant text DEFAULT_3D_VERTEX_SHADER = "Default 3D Vertex Shader"
     public constant text DEFAULT_3D_FRAGMENT_SHADER = "Default 3D Fragment Shader"
+    public constant text DEFAULT_SHADOW_VERTEX_SHADER = "Default Shadow Vertex Shader"
+    public constant text DEFAULT_SHADOW_GEOMETRY_SHADER = "Default Shadow Geometry Shader"
+    public constant text DEFAULT_SHADOW_FRAGMENT_SHADER = "Default Shadow Fragment Shader"
+    public constant text DEFAULT_SHADOW_SHADER_PROGRAM = "Default Shadow Shader Program"
     public constant text DEFAULT_LIGHTING_VERTEX_SHADER = "Default Lighting Vertex Shader"
     public constant text DEFAULT_LIGHTING_FRAGMENT_SHADER = "Default Lighting Fragment Shader"
     public constant text DEFAULT_LIGHTING_SHADER_PROGRAM = "Default Lighting Shader Program"
@@ -204,6 +212,66 @@ DefaultFragmentShader2DOpenGL shader
         end
 
         return GetShader(DEFAULT_3D_FRAGMENT_SHADER)
+    end
+    
+    action GetDefaultShadowShaderProgram returns ShaderProgram
+        ShaderProgram program = GetShaderProgram(DEFAULT_SHADOW_SHADER_PROGRAM)
+        if program = undefined
+            DefaultShadowShaderProgram default
+            // Compiling this program will automatically register it in the ShaderManager for future use.
+            default:Compile()
+            return default
+        else
+            return program
+        end
+    end
+
+    action GetDefaultShadowVertexShader returns Shader
+        if HasShader(DEFAULT_SHADOW_VERTEX_SHADER) = false
+            if IsVulkan()
+                DefaultShadowVertexShaderVulkan shader
+            // Compiling this shader will automatically register it in the ShaderManager for future use.
+            shader:Compile()
+            elseif IsOpenGL()
+alert("I cannot provide a shadow shader for OpenGL because it is not supported for this platform.")
+            else
+                alert("I couldn't create a shader because I couldn't determine what graphics library was being used!")
+            end
+        end
+
+        return GetShader(DEFAULT_SHADOW_VERTEX_SHADER)
+    end
+    
+    action GetDefaultShadowGeometryShader returns Shader
+        if HasShader(DEFAULT_SHADOW_GEOMETRY_SHADER) = false
+if IsVulkan()
+DefaultShadowGeometryShaderVulkan shader
+            // Compiling this shader will automatically register it in the ShaderManager for future use.
+            shader:Compile()
+            elseif IsOpenGL()
+                alert("I cannot provide a shadow shader for OpenGL because it is not supported for this platform.")
+            else
+                alert("I couldn't create a shader because I couldn't determine what graphics library was being used!")
+            end
+        end
+
+        return GetShader(DEFAULT_SHADOW_GEOMETRY_SHADER)
+    end
+
+    action GetDefaultShadowFragmentShader returns Shader
+        if HasShader(DEFAULT_SHADOW_FRAGMENT_SHADER) = false
+if IsVulkan()
+DefaultShadowFragmentShaderVulkan shader
+            // Compiling this shader will automatically register it in the ShaderManager for future use.
+            shader:Compile()
+            elseif IsOpenGL()
+                alert("I cannot provide a shadow shader for OpenGL because it is not supported for this platform.")
+            else
+                alert("I couldn't create a shader because I couldn't determine what graphics library was being used!")
+            end
+        end
+
+        return GetShader(DEFAULT_SHADOW_FRAGMENT_SHADER)
     end
     
     action GetDefaultLightingShaderProgram returns ShaderProgram

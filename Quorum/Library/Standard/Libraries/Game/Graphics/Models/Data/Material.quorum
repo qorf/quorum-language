@@ -7,8 +7,12 @@ class Material
     text normalMapPath = ""
     text metalRoughMap = ""
     Vector4 diffuse
+    Vector4 emissive
     number roughness = 0.0
     number metallic = 0.0
+    number bumpShading = 1.0
+    number opaque = 1.0
+    number refractiveIndex = 1.0
     
     action GetTexturePath returns text
         return texturePath
@@ -58,4 +62,35 @@ class Material
         me:normalMapPath = normalMapPath
     end
 
+    action GetEmissive returns Vector4
+        return emissive
+    end
+
+    action SetEmissive(Vector4 emissive)
+        me:emissive = emissive
+    end
+
+    action GetBumpShading returns number
+        return bumpShading
+    end
+
+    action SetBumpShading(number bumpShading)
+        me:bumpShading = bumpShading
+    end
+
+    action GetOpaque returns number
+        return opaque
+    end
+
+    action SetOpaque(number opaque)
+        me:opaque = opaque
+    end
+
+    action GetRefractiveIndex returns number
+        return refractiveIndex
+    end
+
+    action SetRefractiveIndex(number refractiveIndex)
+        me:refractiveIndex = refractiveIndex
+    end
 end

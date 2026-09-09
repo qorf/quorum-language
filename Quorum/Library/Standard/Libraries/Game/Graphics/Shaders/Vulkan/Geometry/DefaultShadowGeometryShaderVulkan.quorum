@@ -1,0 +1,141 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Geometry
+
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderManager
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Vulkan.VulkanLightingProperties
+
+class DefaultShadowGeometryShaderVulkan is Shader
+    on create
+        SetType(parent:Shader:GEOMETRY_SHADER)
+        GameStateManager gameState
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        ShaderManager shaderManager = gameState:GetShaderManager()
+        SetName(shaderManager:DEFAULT_SHADOW_GEOMETRY_SHADER)
+        
+        VulkanLightingProperties lights = graphics:GetLightingProperties()
+        
+        SetCode(GetVersionHeader() + "
+		
+		#define SHADOW_MAP_CASCADE_COUNT " + lights:GetShadowMapCascadeCount() + "
+		#define MAXIMUM_LIGHTS " + lights:GetMaximumLights() + "
+		
+		layout (triangles, invocations = SHADOW_MAP_CASCADE_COUNT) in;
+		layout (triangle_strip, max_vertices = 3) out;
+		
+		layout (location = 0) in vec2 inTextureCoordinates[];
+		layout (location = 1) in flat uint inEntityID[];
+		
+		layout (location = 0) out vec2 v_textureCoordinates;
+		layout (location = 1) out flat uint v_entityID;
+		layout (location = 2) out flat uint v_cascadeIndex;
+		layout (location = 3) out vec4 v_worldPosition;
+		
+		struct CascadeShadow
+		{
+			// All lights will need to render to cubemaps, and each face has its own projection matrix.
+			mat4 matrix[6];
+			vec4 splitDistance;
+		};
+		
+		layout(set = 0, binding = 0) uniform CascadeShadows
+		{
+			CascadeShadow data[SHADOW_MAP_CASCADE_COUNT * MAXIMUM_LIGHTS];
+		} shadows;
+		
+		layout(push_constant) uniform PushConstants {
+		   uint pointerPadding1;
+		   uint pointerPadding2;
+		   uint isPointLight;
+		   uint lightIndex;
+		} pushConstants;
+		
+		void main()
+		{
+		/*
+			for (int j = 0; j < 6 * SHADOW_MAP_CASCADE_COUNT; j++)
+			{
+				gl_Layer = j;
+				for (int i = 0; i < gl_in.length(); i++)
+				{
+					gl_Position = gl_in[i].gl_Position;
+					EmitVertex();
+				}
+				EndPrimitive();
+			}
+			//EndPrimitive();
+		*/
+		
+			uint isPoint = pushConstants.isPointLight;
+			uint lightIndex = pushConstants.lightIndex;
+			//uint cubeBaseIndex = lightIndex * 6 * SHADOW_MAP_CASCADE_COUNT;
+			
+			/*
+			If this is a directional light, we only need one frustum, not six. Output to the first face of each cubemap and ignore the other 5.
+			Each cubemap represents a different split of the cascade shadows.
+			
+			If this is a point light, we render to all six faces of each cubemap. If we have S splits and N < S, the Nth cubemap represents the Nth split of all
+			six frustums extending from a point light. Thus, the Nth invocation outputs to all six faces of the Nth cubemap.
+			*/
+		
+			// If this is a point light (isPoint = 1), the map size is 6 (cubemap). If it's not (isPoint = 0), the map size is 1 (single depth map).
+			uint mapSize = 1 + (isPoint * 5);
+			
+			// This geometry shader operates on triangles -- act once on each vertex of the incoming triangle.
+			for (int i = 0; i < 3; i++)
+			{
+				for (int j = 0; j < mapSize; j++)
+				{
+					v_textureCoordinates = inTextureCoordinates[i];
+					v_entityID = inEntityID[i];
+					v_cascadeIndex = gl_InvocationID;
+					v_worldPosition = gl_in[i].gl_Position;
+					
+					//gl_Layer = cubeBaseIndex + (gl_InvocationID * 6 + j);
+					gl_Layer = gl_InvocationID * 6 + j;
+					//gl_Layer = 0;
+					gl_Position = shadows.data[lightIndex * SHADOW_MAP_CASCADE_COUNT + gl_InvocationID].matrix[j] * gl_in[i].gl_Position;
+					EmitVertex();
+				}
+			}
+			EndPrimitive();
+		
+			/*
+			uint corner = gl_PrimitiveIDIn % 2;
+			if (corner == 0)
+			{
+				v_textureCoordinates = inTextureCoordinates[0];
+				v_entityID = inEntityID[0];
+				gl_Layer = 0;
+				gl_Position = vec4(-0.5, -0.5, 0.25, 1.0);
+				EmitVertex();
+			}
+			else
+			{
+				v_textureCoordinates = inTextureCoordinates[0];
+				v_entityID = inEntityID[0];
+				gl_Layer = 0;
+				gl_Position = vec4(0.5, 0.5, 0.25, 1.0);
+				EmitVertex();
+			}
+			
+			v_textureCoordinates = inTextureCoordinates[1];
+			v_entityID = inEntityID[1];
+			gl_Layer = 0;
+			gl_Position = vec4(-0.5, 0.5, 0.25, 1.0);
+			EmitVertex();
+			
+			v_textureCoordinates = inTextureCoordinates[2];
+			v_entityID = inEntityID[2];
+			gl_Layer = 0;
+			gl_Position = vec4(0.5, -0.5, 0.25, 1.0);
+			EmitVertex();
+			
+			EndPrimitive();
+			*/
+		}
+		")
+	end
+end

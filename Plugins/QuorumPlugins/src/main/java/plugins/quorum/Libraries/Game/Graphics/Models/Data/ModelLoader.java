@@ -669,13 +669,43 @@ public class ModelLoader {
                 roughnessArr[0] = 0.0f;
             }
 
+            Vector4_ emissive = new Vector4();
+            result = aiGetMaterialColor(aiMaterial, AI_MATKEY_COLOR_EMISSIVE,
+                    aiTextureType_NONE, 0, colour);
+            if(result == aiReturn_SUCCESS) {
+                emissive.Set(colour.r(), colour.g(), colour.b(), colour.a());
+            }
+
+            float[] opacityArr = new float[]{1.0f};
+            result = aiGetMaterialFloatArray(aiMaterial, AI_MATKEY_OPACITY, aiTextureType_NONE, 0, opacityArr, pMax);
+            if (result != aiReturn_SUCCESS) {
+                opacityArr[0] = 1.0f;
+            }
+
+            float[] refractiveIndexArr = new float[]{1.0f};
+            result = aiGetMaterialFloatArray(aiMaterial, AI_MATKEY_REFRACTI, aiTextureType_NONE, 0, refractiveIndexArr, pMax);
+            if (result != aiReturn_SUCCESS) {
+                refractiveIndexArr[0] = 1.0f;
+            }
+
+            float[] bumpScalingArr = new float[]{1.0f};
+            result = aiGetMaterialFloatArray(aiMaterial, AI_MATKEY_BUMPSCALING, aiTextureType_NONE, 0, bumpScalingArr, pMax);
+            if (result != aiReturn_SUCCESS) {
+                bumpScalingArr[0] = 1.0f;
+            }
+
             Material_ material = new Material();
             material.SetTexturePath(texturePath);
             material.SetDiffuse(diffuse);
+            material.SetEmissive(emissive);
             material.SetNormalMapPath(normalMapPath);
             material.SetMetalRoughMap(metallicRoughnessPath);
             material.SetMetallic(metallicArr[0]);
             material.SetRoughness(roughnessArr[0]);
+            material.SetOpaque(opacityArr[0]);
+            material.SetRefractiveIndex(refractiveIndexArr[0]);
+            material.SetBumpShading(bumpScalingArr[0]);
+
 
             return material;
         }
