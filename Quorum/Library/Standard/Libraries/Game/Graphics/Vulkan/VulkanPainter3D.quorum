@@ -103,7 +103,7 @@ VulkanSampler immutableSampler = undefined
     VulkanPushConstantBuffer pushConstants
     
     // Another push constant buffer, this time for the shadow mapping phase.
-    VulkanPushConstantBuffer shadowPushConstants
+    VulkanPushConstantBuffer shadowPushConstants = undefined
     
     integer DEFAULT_MAX_INSTANCES = 8192
     
@@ -137,13 +137,12 @@ to allow for simultaneous rendering.*/
     EnvironmentVulkan environment = undefined
     
     boolean renderShadows = true
+    boolean renderCascadesSeparately = false
     
 on create
         matrix4Array:SetSize(16)
         //Create the push constants buffer with a size of 8 bytes (one 64-bit pointer). 
         pushConstants:Create(8)
-        // The shadows need a pointer to a buffer (8-bytes) plus two additional uints (4-bytes each).
-        shadowPushConstants:Create(16)
     end
 
     action AreRenderPassesValid returns boolean
@@ -424,6 +423,10 @@ outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
         lightShadowDataDescriptors:Empty()
         resultDescriptors:Empty()
         
+        // Before creating any shadow resources, check which version of the shadow shader programs we're using.
+        // Calling this will lazy load the shaders if they haven't been created yet.
+        GetDefaultShadowProgram()
+        
         VulkanDescriptorSetLayout shadowProjectionLayout = undefined
         if shadowProjectionDescriptors:GetSize() < swapchain:GetImageCount()
             VulkanDescriptorSetLayout descriptorLayout
@@ -435,13 +438,16 @@ outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
             projectionBinding:SetBinding(0)
             projectionBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
             projectionBinding:SetDescriptorCount(1)
-            projectionBinding:SetStageFlags(constants:SHADER_STAGE_GEOMETRY_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
+            if renderCascadesSeparately = false
+                projectionBinding:SetStageFlags(constants:SHADER_STAGE_GEOMETRY_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
+            else
+                projectionBinding:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
+            end
             shadowBindings:Add(projectionBinding)
             
             // Set = 0, Binding = 1 will be the immutable sampler for textures.
         VulkanDescriptorSetLayoutBinding samplerBinding
             samplerBinding:SetBinding(1)
-            //samplerBinding:SetBinding(0)
             samplerBinding:SetDescriptorCount(1)
             samplerBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_SAMPLER)
             samplerBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
@@ -791,8 +797,28 @@ VulkanAttachmentReference depthReference) returns boolean
     
     action GetDefaultShadowProgram returns ShaderProgram
         if defaultShadowProgram = undefined
+            VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+            VulkanPhysicalDeviceFeatures features = graphics:GetPhysicalDevice():GetFeatures()
             ShaderManager shaders = gameState:GetShaderManager()
+            
+            VulkanPushConstantBuffer pushConstants
+            shadowPushConstants = pushConstants
+            
+            if features:HasGeometryShader()
             defaultShadowProgram = shaders:GetDefaultShadowShaderProgram()
+                renderCascadesSeparately = false
+                
+                // The shadows need a pointer to a buffer (8-bytes) plus two additional uints (4-bytes each).
+        shadowPushConstants:Create(16)
+            elseif features:HasShaderOutputLayer()
+                defaultShadowProgram = shaders:GetTwoStageShadowShaderProgram()
+                renderCascadesSeparately = true
+                
+                // If there's no available geometry shader, the push constants need to store two additional uints (4-bytes each).
+                shadowPushConstants:Create(24)
+            else
+                return undefined
+            end
         end
         
         return defaultShadowProgram
@@ -1253,9 +1279,16 @@ constants:SHADER_STAGE_FRAGMENT_BIT)
 commands. This is because performing the lighting render pass relies on the output from the shadow stage even if there are
 no shadows (the shaders expect the buffers to be present). A render pass with no draw will reset all cubemaps back to
 their default clear values, which is functionally equivalent to there being no shadows.*/
-            integer j = 0
             if IsRenderingShadows()
-            repeat while j < drawQueues:GetSize()
+                integer cascadeRenderCount = 0
+                integer cascadeRenderTotal = 1
+                if renderCascadesSeparately
+                    cascadeRenderTotal = lightProperties:GetShadowMapCascadeCount()
+                end
+                
+                repeat while cascadeRenderCount < cascadeRenderTotal
+                    integer j = 0
+                    repeat while j < drawQueues:GetSize()
                     VulkanDrawQueue3D drawQueue = GetCurrentDrawQueue(j)
             if drawQueue not= undefined and drawQueue:GetShadowDrawCommandCount() > 0
                         BindDescriptorSetCommand shadowTextureDescriptorBind
@@ -1272,8 +1305,17 @@ their default clear values, which is functionally equivalent to there being no s
         SetPushConstantsCommand setPushConstants
         setPushConstants:SetData(shadowPushConstants)
         setPushConstants:SetPipelineLayout(shadowPipeline:GetLayout())
-        setPushConstants:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT + 
+                            
+                            if renderCascadesSeparately
+                                shadowPushConstants:AddInteger32Bit(cascadeRenderCount)
+                                // TO-DO: Currently targeting face 0 only handles directional lights. Reconsider approach for point lights.
+                                shadowPushConstants:AddInteger32Bit(0)
+                                setPushConstants:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
+                            else
+                                setPushConstants:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT + 
 constants:SHADER_STAGE_GEOMETRY_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
+                            end
+                            
         commandBuffer:Record(setPushConstants)
                 
                 DrawIndirectCommand drawCommand
@@ -1284,6 +1326,9 @@ constants:SHADER_STAGE_GEOMETRY_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
                 
                 j = j + 1
 end
+                    
+                    cascadeRenderCount = cascadeRenderCount + 1
+                end
             end
             
             // End the render pass.

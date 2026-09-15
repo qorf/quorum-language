@@ -4,6 +4,8 @@ import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
 import quorum.Libraries.Containers.Array_;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDeviceFeatures;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDeviceFeatures_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanQueueFamily;
 
@@ -77,13 +79,18 @@ public class VulkanDevice
                 queueFamilies.Add(quorumFamily);
             }
 
-            VkPhysicalDeviceFeatures supportedFeatures = physicalDevice.GetDeviceFeatures();
+            VulkanPhysicalDeviceFeatures_ quorumFeatures = quorumPhysicalDevice.GetFeatures();
+            VkPhysicalDeviceFeatures supportedFeatures = ((VulkanPhysicalDeviceFeatures)quorumFeatures).plugin_.vulkanFeatures;
 
             // Extra features we'll use for 3D rendering, especially buffer device addressing (BDA) for pointer-like referencing to data on GPU.
             VkPhysicalDeviceVulkan12Features features12 = VkPhysicalDeviceVulkan12Features.calloc(stack);
             features12.sType$Default();
             features12.bufferDeviceAddress(true);
             features12.scalarBlockLayout(true);
+
+            // Also enable shader output layers, allowing vertex shaders to determine which face of cubemaps and other
+            // layered images will be rendered to.
+            features12.shaderOutputLayer(true);
 
             VkPhysicalDeviceFeatures2 features2 = VkPhysicalDeviceFeatures2.calloc(stack);
             features2.sType$Default();
@@ -100,15 +107,10 @@ public class VulkanDevice
 
             features2.pNext(features12.address());
 
-//            VkPhysicalDeviceBufferDeviceAddressFeatures bdaFeatures = VkPhysicalDeviceBufferDeviceAddressFeatures.calloc(stack);
-//            bdaFeatures.bufferDeviceAddress(true);
-//            features12.pNext(bdaFeatures.address());
-
             // We'll need an info struct for creating the logical device itself as well. We'll use all the queue info structs as part of this.
             VkDeviceCreateInfo deviceCreateInfo = VkDeviceCreateInfo.calloc(stack);
             deviceCreateInfo.sType$Default();
             deviceCreateInfo.ppEnabledExtensionNames(requiredExtensions);
-//            deviceCreateInfo.pEnabledFeatures(physicalDevice.GetDeviceFeatures());
             deviceCreateInfo.pQueueCreateInfos(queueCreationInfoBuffer);
             deviceCreateInfo.pNext(features2.address());
 
@@ -121,19 +123,6 @@ public class VulkanDevice
                 features12.descriptorBindingVariableDescriptorCount(true);
                 features12.descriptorIndexing(true);
                 features12.runtimeDescriptorArray(true);
-
-//                VkPhysicalDeviceDescriptorIndexingFeatures indexingFeatures = VkPhysicalDeviceDescriptorIndexingFeatures.calloc(stack);
-//                indexingFeatures.sType$Default();
-//                indexingFeatures.descriptorBindingPartiallyBound(true);
-//                indexingFeatures.descriptorBindingSampledImageUpdateAfterBind(true);
-//                indexingFeatures.descriptorBindingUpdateUnusedWhilePending(true);
-//                indexingFeatures.descriptorBindingVariableDescriptorCount(true);
-//                indexingFeatures.runtimeDescriptorArray(true);
-                //deviceCreateInfo.pNext(indexingFeatures);
-            }
-            else
-            {
-                //System.out.println("DIDN'T ENABLE INDEXING FEATURES!");
             }
 
             // Finally, we're ready to create the logical device object. Start by getting a pointer that we can use as a handle once the memory is allocated for it.

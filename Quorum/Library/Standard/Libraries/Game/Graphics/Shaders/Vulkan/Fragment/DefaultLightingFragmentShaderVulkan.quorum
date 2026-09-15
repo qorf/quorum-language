@@ -229,11 +229,12 @@ void main()
 	
 	vec4 viewPos = sceneInfo.cameraViewMatrix * rawWorldPosition;
 	
+	uint cascadeIndex = 0;
     for (uint i = 0; i < sceneInfo.lightsCount; i++) {
         Light light = lights.array[i];
         if (light.isDirectional == 1) 
 		{
-			uint cascadeIndex = 0;
+			//uint cascadeIndex = 0;
 			for (uint j = 0; j < SHADOW_MAP_CASCADE_COUNT - 1; ++j)
 			{
 				CascadeShadow currentShadow = shadows.data[i * SHADOW_MAP_CASCADE_COUNT + j];

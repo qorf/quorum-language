@@ -78,9 +78,7 @@ class DefaultShadowGeometryShaderVulkan is Shader
 					v_cascadeIndex = gl_InvocationID;
 					v_worldPosition = gl_in[i].gl_Position;
 					
-					//gl_Layer = cubeBaseIndex + (gl_InvocationID * 6 + j);
 					gl_Layer = gl_InvocationID * 6 + j;
-					//gl_Layer = 0;
 					gl_Position = shadows.data[lightIndex * SHADOW_MAP_CASCADE_COUNT + gl_InvocationID].matrix[j] * gl_in[i].gl_Position;
 					EmitVertex();
 				}

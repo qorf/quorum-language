@@ -26,6 +26,9 @@ use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.DefaultShadowVertexShaderVulka
 use Libraries.Game.Graphics.Shaders.Vulkan.Geometry.DefaultShadowGeometryShaderVulkan
 use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.DefaultShadowFragmentShaderVulkan
 use Libraries.Game.Graphics.Shaders.Programs.DefaultShadowShaderProgram
+use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.TwoStageShadowVertexShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.TwoStageShadowFragmentShaderVulkan
+use Libraries.Game.Graphics.Shaders.Programs.TwoStageShadowShaderProgram
 
 class ShaderManager
 
@@ -45,6 +48,9 @@ class ShaderManager
     public constant text COPY_FROM_SAMPLER_VERTEX_SHADER = "Copy From Sampler Vertex Shader"
     public constant text COPY_FROM_SAMPLER_FRAGMENT_SHADER = "Copy From Sampler Fragment Shader"
     public constant text COPY_FROM_SAMPLER_SHADER_PROGRAM = "Copy From Sampler Shader Program"
+    public constant text TWO_STAGE_SHADOW_VERTEX_SHADER = "Two Stage Shadow Vertex Shader"
+    public constant text TWO_STAGE_SHADOW_FRAGMENT_SHADER = "Two Stage Shadow Fragment Shader"
+    public constant text TWO_STAGE_SHADOW_SHADER_PROGRAM = "Two Stage Shadow Shader Program"
 
     // This type constant is used to indicate that the shader is a vertex shader. Every shader program must have a vertex shader as its first shader step.
     public constant integer VERTEX_SHADER = 1
@@ -272,6 +278,50 @@ DefaultShadowFragmentShaderVulkan shader
         end
 
         return GetShader(DEFAULT_SHADOW_FRAGMENT_SHADER)
+    end
+    
+    action GetTwoStageShadowShaderProgram returns ShaderProgram
+        ShaderProgram program = GetShaderProgram(TWO_STAGE_SHADOW_SHADER_PROGRAM)
+        if program = undefined
+            TwoStageShadowShaderProgram default
+            // Compiling this program will automatically register it in the ShaderManager for future use.
+            default:Compile()
+            return default
+        else
+            return program
+        end
+    end
+
+    action GetTwoStageShadowVertexShader returns Shader
+        if HasShader(TWO_STAGE_SHADOW_VERTEX_SHADER) = false
+            if IsVulkan()
+                TwoStageShadowVertexShaderVulkan shader
+            // Compiling this shader will automatically register it in the ShaderManager for future use.
+            shader:Compile()
+            elseif IsOpenGL()
+alert("I cannot provide a shadow shader for OpenGL because it is not supported for this platform.")
+            else
+                alert("I couldn't create a shader because I couldn't determine what graphics library was being used!")
+            end
+        end
+
+        return GetShader(TWO_STAGE_SHADOW_VERTEX_SHADER)
+    end
+
+    action GetTwoStageShadowFragmentShader returns Shader
+        if HasShader(TWO_STAGE_SHADOW_FRAGMENT_SHADER) = false
+if IsVulkan()
+TwoStageShadowFragmentShaderVulkan shader
+            // Compiling this shader will automatically register it in the ShaderManager for future use.
+            shader:Compile()
+            elseif IsOpenGL()
+                alert("I cannot provide a shadow shader for OpenGL because it is not supported for this platform.")
+            else
+                alert("I couldn't create a shader because I couldn't determine what graphics library was being used!")
+            end
+        end
+
+        return GetShader(TWO_STAGE_SHADOW_FRAGMENT_SHADER)
     end
     
     action GetDefaultLightingShaderProgram returns ShaderProgram

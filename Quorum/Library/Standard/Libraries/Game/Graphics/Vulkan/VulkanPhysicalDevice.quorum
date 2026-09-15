@@ -4,8 +4,8 @@ use Libraries.Containers.Array
 
 class VulkanPhysicalDevice
     VulkanInstance instance = undefined
+    VulkanPhysicalDeviceFeatures features = undefined
     boolean initialized = false
-
 
     /*
     This action creates a physical device optimized for rendering graphics and displaying them to the screen.
@@ -31,6 +31,10 @@ class VulkanPhysicalDevice
         if success
             initialized = true
         end
+        
+        VulkanPhysicalDeviceFeatures features
+        me:features = features
+        features:Create(me)
 
         return success
     end
@@ -49,6 +53,10 @@ be used anymore, so this should only be done to clean up resources when the devi
 
     action GetInstance returns VulkanInstance
         return instance
+    end
+
+    action GetFeatures returns VulkanPhysicalDeviceFeatures
+        return features
     end
 
 end

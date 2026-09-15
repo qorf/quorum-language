@@ -1,0 +1,124 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Vertex
+
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Vulkan.VulkanLightingProperties
+
+class TwoStageShadowVertexShaderVulkan is Shader
+    on create
+        SetType(parent:Shader:VERTEX_SHADER)
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
+        SetName(manager:TWO_STAGE_SHADOW_VERTEX_SHADER)
+		
+		VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+		VulkanLightingProperties lights = graphics:GetLightingProperties()
+        
+        SetCode(GetVersionHeader() + "
+
+// Adds support for dynamic buffer referencing via pointers and more intuitive layout of structs in memory.
+#extension GL_EXT_buffer_reference: require
+#extension GL_EXT_buffer_reference2: enable
+#extension GL_EXT_scalar_block_layout: require
+// Allow the vertex shader to set which layer of our 2D texture arrays we render to.
+#extension GL_ARB_shader_viewport_layer_array : enable
+
+#define SHADOW_MAP_CASCADE_COUNT " + lights:GetShadowMapCascadeCount() + "
+#define MAXIMUM_LIGHTS " + lights:GetMaximumLights() + "
+
+layout(location = 0) out vec2 v_textureCoords;
+layout(location = 1) flat out uint v_entityID;
+layout(location = 2) flat out uint v_cascadeIndex;
+
+struct CascadeShadow
+{
+	// All lights will need to render to cubemaps, and each face has its own projection matrix.
+	mat4 matrix[6];
+	vec4 splitDistance;
+};
+	
+layout(set = 0, binding = 0) uniform CascadeShadows
+{
+	CascadeShadow data[SHADOW_MAP_CASCADE_COUNT * MAXIMUM_LIGHTS];
+} shadows;
+		
+struct Vertex {
+	vec3 position;
+	vec3 normal;
+	vec3 tangent;
+	vec3 bitangent;
+	vec2 textureCoordinates;
+};
+
+layout(scalar, buffer_reference) buffer VertexBuffer {
+	Vertex[] vertices;
+};
+
+layout(std430, buffer_reference, buffer_reference_align=4) buffer IndexBuffer {
+	uint[] indices;
+};
+
+struct InstanceData {
+   VertexBuffer vertexBuffer;
+   IndexBuffer indexBuffer;
+   uint padding1;
+   uint padding2;
+   uint textureOverride;
+   uint textureIndex;
+   uint diffuseColorOverride;
+   uint diffuseColor;
+   mat4 modelTransform;
+};
+
+layout(scalar, buffer_reference) buffer Instances {
+   InstanceData[] data;
+};
+
+layout(push_constant) uniform PushConstants {
+   Instances instances;
+   uint isPointLight;
+   uint lightIndex;
+   uint targetCascade;
+   uint targetFace;
+} pushConstants;
+		
+void main()
+{
+	uint entityID = gl_InstanceIndex;
+	
+	Instances instances = pushConstants.instances;
+	InstanceData instanceData = instances.data[entityID];
+	
+	mat4 modelTransform = instanceData.modelTransform;
+	
+	VertexBuffer vertexBuffer = instanceData.vertexBuffer;
+	IndexBuffer indexBuffer = instanceData.indexBuffer;
+	
+	uint index = indexBuffer.indices[gl_VertexIndex];
+	Vertex vertex = vertexBuffer.vertices[index];
+	
+	vec3 inPos = vertex.position;
+	vec4 worldPosition = modelTransform * vec4(inPos, 1.0);
+	
+	v_textureCoords = vertex.textureCoordinates;
+	v_entityID = entityID;
+	
+	uint lightIndex = pushConstants.lightIndex;
+	uint targetCascade = pushConstants.targetCascade;
+	uint targetFace = pushConstants.targetFace;
+	
+	gl_Layer = int(lightIndex * SHADOW_MAP_CASCADE_COUNT * 6 + targetCascade * 6 + targetFace);
+	v_cascadeIndex = targetCascade;
+	
+	mat4 shadowProjection = shadows.data[lightIndex * SHADOW_MAP_CASCADE_COUNT + targetCascade].matrix[targetFace];
+	
+	//gl_Position = worldPosition;
+	gl_Position = shadowProjection * worldPosition;
+}
+")
+    end
+    
+    
+end
