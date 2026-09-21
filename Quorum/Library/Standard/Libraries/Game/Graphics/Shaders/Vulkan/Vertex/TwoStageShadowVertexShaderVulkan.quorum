@@ -114,7 +114,6 @@ void main()
 	
 	mat4 shadowProjection = shadows.data[lightIndex * SHADOW_MAP_CASCADE_COUNT + targetCascade].matrix[targetFace];
 	
-	//gl_Position = worldPosition;
 	gl_Position = shadowProjection * worldPosition;
 }
 ")

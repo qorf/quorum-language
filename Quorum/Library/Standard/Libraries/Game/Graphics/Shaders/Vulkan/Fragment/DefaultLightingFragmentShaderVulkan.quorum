@@ -106,7 +106,7 @@ float calcVisibility(vec4 worldPosition, uint shadowIndex, uint matrixIndex) {
 }
 */
 
-float calcDirectionalVisibility(vec4 worldPosition, uint lightIndex, uint cascadeIndex) 
+float calculateDirectionalVisibility(vec4 worldPosition, uint lightIndex, uint cascadeIndex) 
 {
 	vec4 shadowMapPosition = shadows.data[lightIndex * SHADOW_MAP_CASCADE_COUNT + cascadeIndex].matrix[0] * worldPosition;
 	vec3 shadowMapXYZ = shadowMapPosition.xyz / shadowMapPosition.w;
@@ -117,6 +117,34 @@ float calcDirectionalVisibility(vec4 worldPosition, uint lightIndex, uint cascad
 	vec2 moments = texture(nonuniformEXT(shadowSamplers[lightIndex]), vec3(uv, 6 * cascadeIndex)).rg;
 
 	float visibility = chebyshevUpperBound(moments, depth);
+    return visibility;
+}
+
+float calculatePointVisibility(vec4 worldPosition, uint lightIndex, uint cascadeIndex) 
+{
+	float minMoment = 1.0;
+	vec2 minMoments = vec2(1.0, 1.0);
+	float depth = 2.0;
+	
+	CascadeShadow shadow = shadows.data[lightIndex * SHADOW_MAP_CASCADE_COUNT + cascadeIndex];
+	for (uint i = 0; i < 6; i++)
+	{
+		vec4 shadowMapPosition = shadow.matrix[i] * worldPosition;
+		vec3 shadowMapXYZ = shadowMapPosition.xyz / shadowMapPosition.w;
+
+		vec2 uv = vec2(shadowMapXYZ.x * 0.5 + 0.5, (-shadowMapXYZ.y) * 0.5 + 0.5);
+		float testDepth = shadowMapXYZ.z;
+		vec2 moments = texture(nonuniformEXT(shadowSamplers[lightIndex]), vec3(uv, 6 * cascadeIndex + i)).rg;
+		
+		if (moments.x < minMoment)
+		{
+			minMoment = moments.x;
+			minMoments = moments;
+			depth = testDepth;
+		}
+	}
+
+	float visibility = chebyshevUpperBound(minMoments, depth);
     return visibility;
 }
 
@@ -229,27 +257,27 @@ void main()
 	
 	vec4 viewPos = sceneInfo.cameraViewMatrix * rawWorldPosition;
 	
-	uint cascadeIndex = 0;
     for (uint i = 0; i < sceneInfo.lightsCount; i++) {
         Light light = lights.array[i];
+		uint cascadeIndex = 0;
+		for (uint j = 0; j < SHADOW_MAP_CASCADE_COUNT - 1; ++j)
+		{
+			CascadeShadow currentShadow = shadows.data[i * SHADOW_MAP_CASCADE_COUNT + j];
+			if (-viewPos.z > currentShadow.splitDistance.x)
+			{
+				cascadeIndex = j + 1;
+			}
+		}
+		
         if (light.isDirectional == 1) 
 		{
-			//uint cascadeIndex = 0;
-			for (uint j = 0; j < SHADOW_MAP_CASCADE_COUNT - 1; ++j)
-			{
-				CascadeShadow currentShadow = shadows.data[i * SHADOW_MAP_CASCADE_COUNT + j];
-				if (-viewPos.z > currentShadow.splitDistance.x)
-				{
-					cascadeIndex = j + 1;
-				}
-			}
-		
-			float shadow = calcDirectionalVisibility(vec4(worldPosition, 1), i, cascadeIndex);
+			float shadow = calculateDirectionalVisibility(vec4(worldPosition, 1.0), i, cascadeIndex);
             Lo += (calculateDirectionalLight(light, V, N, F0, albedo, metallic, roughness) * shadow);
         } 
 		else 
 		{
-            Lo += calculatePointLight(light, worldPosition, V, N, F0, albedo, metallic, roughness);
+			float shadow = calculatePointVisibility(vec4(worldPosition, 1.0), i, cascadeIndex);
+            Lo += (calculatePointLight(light, worldPosition, V, N, F0, albedo, metallic, roughness) * shadow);
         }
     }
     vec3 ambient = sceneInfo.ambientColor * albedo * sceneInfo.ambientIntensity;

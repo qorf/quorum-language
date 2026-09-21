@@ -1280,10 +1280,18 @@ commands. This is because performing the lighting render pass relies on the outp
 no shadows (the shaders expect the buffers to be present). A render pass with no draw will reset all cubemaps back to
 their default clear values, which is functionally equivalent to there being no shadows.*/
             if IsRenderingShadows()
+                
+                // If the system supports geometry shaders, the cascade counting loop and face counting loop will both evaluate to limit = 1.
+                // In other words, when using geometry shaders, only 1 render command will be sent per light. Otherwise, CASCADE_COUNT * 1 will
+                // be sent for directional lights, and CASCADE_COUNT * 6 will be sent for point lights.
                 integer cascadeRenderCount = 0
                 integer cascadeRenderTotal = 1
+                integer totalFaces = 1
                 if renderCascadesSeparately
                     cascadeRenderTotal = lightProperties:GetShadowMapCascadeCount()
+                    if isPointLight = 1
+                        totalFaces = 6
+                    end
                 end
                 
                 repeat while cascadeRenderCount < cascadeRenderTotal
@@ -1291,7 +1299,9 @@ their default clear values, which is functionally equivalent to there being no s
                     repeat while j < drawQueues:GetSize()
                     VulkanDrawQueue3D drawQueue = GetCurrentDrawQueue(j)
             if drawQueue not= undefined and drawQueue:GetShadowDrawCommandCount() > 0
-                        BindDescriptorSetCommand shadowTextureDescriptorBind
+                            integer faceCounter = 0
+                            repeat while faceCounter < totalFaces
+                                BindDescriptorSetCommand shadowTextureDescriptorBind
             shadowTextureDescriptorBind:SetPipelineLayout(shadowPipelineLayout)
             shadowTextureDescriptorBind:SetDescriptorSet(textureManager:GetGlobalTextureDescriptorSet(j))
             shadowTextureDescriptorBind:SetSetIndex(1)
@@ -1308,8 +1318,7 @@ their default clear values, which is functionally equivalent to there being no s
                             
                             if renderCascadesSeparately
                                 shadowPushConstants:AddInteger32Bit(cascadeRenderCount)
-                                // TO-DO: Currently targeting face 0 only handles directional lights. Reconsider approach for point lights.
-                                shadowPushConstants:AddInteger32Bit(0)
+                                shadowPushConstants:AddInteger32Bit(faceCounter)
                                 setPushConstants:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
                             else
                                 setPushConstants:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT + 
@@ -1322,6 +1331,9 @@ constants:SHADER_STAGE_GEOMETRY_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
         drawCommand:SetDrawCommands(drawQueue:GetShadowDrawCommandBuffer())
         drawCommand:SetDrawCount(drawQueue:GetShadowDrawCommandCount())
         commandBuffer:Record(drawCommand)
+                                
+                                faceCounter = faceCounter + 1
+                            end
             end
                 
                 j = j + 1

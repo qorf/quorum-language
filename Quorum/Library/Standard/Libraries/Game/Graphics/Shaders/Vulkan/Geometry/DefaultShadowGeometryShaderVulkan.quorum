@@ -23,7 +23,10 @@ class DefaultShadowGeometryShaderVulkan is Shader
 		#define MAXIMUM_LIGHTS " + lights:GetMaximumLights() + "
 		
 		layout (triangles, invocations = SHADOW_MAP_CASCADE_COUNT) in;
-		layout (triangle_strip, max_vertices = 3) out;
+		// For directional lights, only 3 vertices are output per invocation (only one side of the cubemap is rendered to).
+		// For point lights, each invocation must render 3 vertices to each of six faces of a cubemap. 
+		// Thus the shader can produce a max of 18 vertices in an invocation.
+		layout (triangle_strip, max_vertices = 18) out;
 		
 		layout (location = 0) in vec2 inTextureCoordinates[];
 		layout (location = 1) in flat uint inEntityID[];
@@ -68,22 +71,23 @@ class DefaultShadowGeometryShaderVulkan is Shader
 			// If this is a point light (isPoint = 1), the map size is 6 (cubemap). If it's not (isPoint = 0), the map size is 1 (single depth map).
 			uint mapSize = 1 + (isPoint * 5);
 			
-			// This geometry shader operates on triangles -- act once on each vertex of the incoming triangle.
-			for (int i = 0; i < 3; i++)
+			for (int i = 0; i < mapSize; i++)
 			{
-				for (int j = 0; j < mapSize; j++)
+				gl_Layer = gl_InvocationID * 6 + i;
+			
+				// This geometry shader operates on triangles -- act once on each vertex of the incoming triangle.
+				for (int j = 0; j < 3; j++)
 				{
-					v_textureCoordinates = inTextureCoordinates[i];
-					v_entityID = inEntityID[i];
+					v_textureCoordinates = inTextureCoordinates[j];
+					v_entityID = inEntityID[j];
 					v_cascadeIndex = gl_InvocationID;
-					v_worldPosition = gl_in[i].gl_Position;
+					v_worldPosition = gl_in[j].gl_Position;
 					
-					gl_Layer = gl_InvocationID * 6 + j;
-					gl_Position = shadows.data[lightIndex * SHADOW_MAP_CASCADE_COUNT + gl_InvocationID].matrix[j] * gl_in[i].gl_Position;
+					gl_Position = shadows.data[lightIndex * SHADOW_MAP_CASCADE_COUNT + gl_InvocationID].matrix[i] * gl_in[j].gl_Position;
 					EmitVertex();
 				}
+				EndPrimitive();
 			}
-			EndPrimitive();
 		}
 		")
 	end
