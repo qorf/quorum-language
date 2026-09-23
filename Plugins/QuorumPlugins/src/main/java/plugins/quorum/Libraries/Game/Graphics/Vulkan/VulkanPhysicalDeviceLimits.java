@@ -6,9 +6,7 @@ public class VulkanPhysicalDeviceLimits {
     public java.lang.Object me_;
     VkPhysicalDeviceLimits limits = null;
 
-    public int GetMaxImageDimension1D() {
-        return limits.maxImageDimension1D();
-    }
+    public int GetMaxImageDimension1D() { return limits.maxImageDimension1D();}
     public int GetMaxImageDimension2D() {
         return limits.maxImageDimension2D();
     }
@@ -328,6 +326,18 @@ public class VulkanPhysicalDeviceLimits {
 
     public double GetLineWidthGranularity() {
         return limits.lineWidthGranularity();
+    }
+
+    public int GetFrameBufferColorSampleCount() {
+        return limits.framebufferColorSampleCounts();
+    }
+
+    public int GetFrameBufferDepthSampleCount() {
+        return limits.framebufferDepthSampleCounts();
+    }
+
+    public int GetFrameBufferStencilSampleCount() {
+        return limits.framebufferStencilSampleCounts();
     }
 
     public boolean GetStrictLines() {
