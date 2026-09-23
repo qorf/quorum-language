@@ -120,31 +120,37 @@ float calculateDirectionalVisibility(vec4 worldPosition, uint lightIndex, uint c
     return visibility;
 }
 
-float calculatePointVisibility(vec4 worldPosition, uint lightIndex, uint cascadeIndex) 
+float calculatePointVisibility(vec4 worldPosition, vec3 lightPosition, uint lightIndex, uint cascadeIndex) 
 {
-	float minMoment = 1.0;
-	vec2 minMoments = vec2(1.0, 1.0);
-	float depth = 2.0;
+	vec3 direction = worldPosition.rgb - lightPosition;
+	vec3 absDirection = abs(direction);
 	
+	// Determine which component is the largest
+    // 1.0 if true, 0.0 if false
+    float isX = float(absDirection.x >= absDirection.y && absDirection.x >= absDirection.z);
+    float isY = float(absDirection.y >= absDirection.z) * (1.0 - isX);
+    float isZ = 1.0 - isX - isY;
+
+	// Find the sign of the dominant component (1.0 for positive, 0.0 for negative)
+    // We sample the chosen component using dot products
+    float dominantSign = step(0.0, dot(direction, vec3(isX, isY, isZ)));
+	
+	// Map to a face of the cubemap.
+    // 0: Positive X, 1: Negative X, 2: Positive Y, 3: Negative Y, 4: Positive Z, 5: Negative Z 
+    uint axisOffset = uint(isY * 2.0 + isZ * 4.0);
+    uint signOffset = uint(1.0 - dominantSign); // Dominant sign is 0 if negative, or 1 if positive
+	uint targetFace = axisOffset + signOffset;
+
 	CascadeShadow shadow = shadows.data[lightIndex * SHADOW_MAP_CASCADE_COUNT + cascadeIndex];
-	for (uint i = 0; i < 6; i++)
-	{
-		vec4 shadowMapPosition = shadow.matrix[i] * worldPosition;
-		vec3 shadowMapXYZ = shadowMapPosition.xyz / shadowMapPosition.w;
+	vec4 shadowMapPosition = shadow.matrix[targetFace] * worldPosition;
+	vec3 shadowMapXYZ = shadowMapPosition.xyz / shadowMapPosition.w;
 
-		vec2 uv = vec2(shadowMapXYZ.x * 0.5 + 0.5, (-shadowMapXYZ.y) * 0.5 + 0.5);
-		float testDepth = shadowMapXYZ.z;
-		vec2 moments = texture(nonuniformEXT(shadowSamplers[lightIndex]), vec3(uv, 6 * cascadeIndex + i)).rg;
-		
-		if (moments.x < minMoment)
-		{
-			minMoment = moments.x;
-			minMoments = moments;
-			depth = testDepth;
-		}
-	}
+	vec2 uv = vec2(shadowMapXYZ.x * 0.5 + 0.5, (-shadowMapXYZ.y) * 0.5 + 0.5);
+    float depth = shadowMapXYZ.z;
+	
+	vec2 moments = texture(nonuniformEXT(shadowSamplers[lightIndex]), vec3(uv, 6 * cascadeIndex + targetFace)).rg;
 
-	float visibility = chebyshevUpperBound(minMoments, depth);
+	float visibility = chebyshevUpperBound(moments, depth);
     return visibility;
 }
 
@@ -260,23 +266,37 @@ void main()
     for (uint i = 0; i < sceneInfo.lightsCount; i++) {
         Light light = lights.array[i];
 		uint cascadeIndex = 0;
-		for (uint j = 0; j < SHADOW_MAP_CASCADE_COUNT - 1; ++j)
-		{
-			CascadeShadow currentShadow = shadows.data[i * SHADOW_MAP_CASCADE_COUNT + j];
-			if (-viewPos.z > currentShadow.splitDistance.x)
-			{
-				cascadeIndex = j + 1;
-			}
-		}
 		
         if (light.isDirectional == 1) 
 		{
+			for (uint j = 0; j < SHADOW_MAP_CASCADE_COUNT - 1; ++j)
+			{
+				CascadeShadow currentShadow = shadows.data[i * SHADOW_MAP_CASCADE_COUNT + j];
+				if (-viewPos.z > currentShadow.splitDistance.x)
+				{
+					cascadeIndex = j + 1;
+				}
+			}
+		
 			float shadow = calculateDirectionalVisibility(vec4(worldPosition, 1.0), i, cascadeIndex);
             Lo += (calculateDirectionalLight(light, V, N, F0, albedo, metallic, roughness) * shadow);
         } 
 		else 
 		{
-			float shadow = calculatePointVisibility(vec4(worldPosition, 1.0), i, cascadeIndex);
+			// The maximum distance along an axis from the light's position to the world position of the fragment.
+			vec3 absLightDist = abs(worldPosition.rgb - light.positionDirection);
+			float maxAlignedDist = max(absLightDist.x, max(absLightDist.y, absLightDist.z));
+		
+			for (uint j = 0; j < SHADOW_MAP_CASCADE_COUNT - 1; ++j)
+			{
+				CascadeShadow currentShadow = shadows.data[i * SHADOW_MAP_CASCADE_COUNT + j];
+				if (maxAlignedDist > currentShadow.splitDistance.x)
+				{
+					cascadeIndex = j + 1;
+				}
+			}
+		
+			float shadow = calculatePointVisibility(vec4(worldPosition, 1.0), light.positionDirection, i, cascadeIndex);
             Lo += (calculatePointLight(light, worldPosition, V, N, F0, albedo, metallic, roughness) * shadow);
         }
     }
