@@ -787,9 +787,11 @@ number d = 0.95 * (log - uniform) + uniform
                 shadowData = newData
             end
                 
+                //output "Last split distance = " + lastSplitDistance + ", maxDistance = " + maxDistance + ", distanceRange = " + distanceRange + ", minDistance = " + minDistance
                 Matrix4 shadowProjection
-                shadowProjection:SetToProjection(lastSplitDistance * maxDistance, splitDistance * maxDistance, 90, 1)
-                //SetToVulkanProjection(shadowProjection, lastSplitDistance, splitDistance, 90, 1)
+                //shadowProjection:SetToProjection(lastSplitDistance * maxDistance, splitDistance * maxDistance, 90, 1)
+                shadowProjection:SetToProjection(minDistance * maxDistance, splitDistance * maxDistance, 90, 1)
+                //SetToVulkanProjection(shadowProjection, lastSplitDistance * maxDistance, splitDistance * maxDistance, 90, 1)
                 
                 /*We need to set all six faces of our cubemap for point lights. To do this, we'll create a matrix that points to
 one of the six axis directions. In order, these will be: positive/negative x, positive/negative y, positive/negative z.*/
@@ -829,6 +831,7 @@ one of the six axis directions. In order, these will be: positive/negative x, po
                     k = k + 1
                 end
                 
+                lastSplitDistance = splitDistance
                 j = j + 1
             end
             
