@@ -169,8 +169,8 @@ class Box is CollisionShape3D
     This action returns a vector that records information about the box's
     width, height, and depth without an offset.
     */
+    Vector3 out
     action GetHalfExtentsWithoutMargin returns Vector3
-        Vector3 out
         out:Set(parent:CollisionShape3D:implicitShapeDimensions)
         return out
     end
