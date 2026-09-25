@@ -109,7 +109,7 @@ void main()
 	uint targetCascade = pushConstants.targetCascade;
 	uint targetFace = pushConstants.targetFace;
 	
-	gl_Layer = int(lightIndex * SHADOW_MAP_CASCADE_COUNT * 6 + targetCascade * 6 + targetFace);
+	gl_Layer = int(targetCascade * 6 + targetFace);
 	v_cascadeIndex = targetCascade;
 	
 	mat4 shadowProjection = shadows.data[lightIndex * SHADOW_MAP_CASCADE_COUNT + targetCascade].matrix[targetFace];
