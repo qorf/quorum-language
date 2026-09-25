@@ -1,6 +1,8 @@
 package Libraries.Game.Graphics.Vulkan
+use Libraries.Compute.BitwiseOperations
 
 class VulkanPhysicalDeviceLimits
+    BitwiseOperations ops
     system action GetMaxImageDimension1D returns integer
 system action GetMaxImageDimension2D returns integer
 system action GetMaxImageDimension3D returns integer
@@ -25,6 +27,144 @@ system action GetMaxDescriptorSetUniformBuffersDynamic returns integer
 system action GetMaxDescriptorSetStorageBuffers returns integer
 system action GetMaxDescriptorSetStorageBuffersDynamic returns integer
 system action GetMaxDescriptorSetSampledImages returns integer
+    
+    
+    /*This value is a combined code that shows which anti-aliasing options your graphics card supports for colors. 
+Each option, from normal 1x up to high-end 64x, has its own hidden bit inside this number. 
+To check if a specific setting like 4x is available, pass a value from the VulkanConstants class, such as 
+SAMPLE_COUNT_4_BIT.
+
+Attribute: Example
+
+
+use Libraries.Game.Game
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.GameDisplay
+use Libraries.Game.Graphics.Vulkan.VulkanPhysicalDeviceFeatures
+use Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice
+use Libraries.Game.Graphics.Vulkan.VulkanPhysicalDeviceLimits
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
+
+class Main is Game
+    action Main
+        UseVulkan(true)
+        StartGame()
+    end
+
+    action CreateGame
+        GameStateManager manager
+        VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+        VulkanPhysicalDeviceLimits limits = graphics:GetPhysicalDeviceLimits()
+        VulkanConstants constants
+        boolean has4SampleColorSupport = limits:HasFrameBufferColorSampleSupport(constants:SAMPLE_COUNT_4_BIT)
+        boolean has4SampleDepthSupport = limits:HasFrameBufferDepthSampleSupport(constants:SAMPLE_COUNT_4_BIT)
+        boolean has4SampleStencilSupport = limits:HasFrameBufferStencilSampleSupport(constants:SAMPLE_COUNT_4_BIT)
+        output "Four Sample Color Support: " + has4SampleColorSupport 
+        output "Four Sample Depth Support: " + has4SampleDepthSupport
+        output "Four Sample Stencil Support: " + has4SampleStencilSupport
+    end
+end */
+    action HasFrameBufferColorSampleSupport(integer amount) returns boolean
+        integer value = GetFrameBufferColorSampleCount()
+        integer result = ops:And(value, amount)
+        return result not= 0
+    end
+    
+    system action GetFrameBufferColorSampleCount returns integer
+    
+    
+    /*This value is a combined code that shows which anti-aliasing options your graphics card supports for depth and shadows. 
+Each option, from normal 1x up to high-end 64x, has its own hidden bit inside this number.  
+To check if a specific setting like 4x is available, pass a value from the VulkanConstants class, such as 
+SAMPLE_COUNT_4_BIT.
+
+Attribute: Example
+
+
+use Libraries.Game.Game
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.GameDisplay
+use Libraries.Game.Graphics.Vulkan.VulkanPhysicalDeviceFeatures
+use Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice
+use Libraries.Game.Graphics.Vulkan.VulkanPhysicalDeviceLimits
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
+
+class Main is Game
+    action Main
+        UseVulkan(true)
+        StartGame()
+    end
+
+    action CreateGame
+        GameStateManager manager
+        VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+        VulkanPhysicalDeviceLimits limits = graphics:GetPhysicalDeviceLimits()
+        VulkanConstants constants
+        boolean has4SampleColorSupport = limits:HasFrameBufferColorSampleSupport(constants:SAMPLE_COUNT_4_BIT)
+        boolean has4SampleDepthSupport = limits:HasFrameBufferDepthSampleSupport(constants:SAMPLE_COUNT_4_BIT)
+        boolean has4SampleStencilSupport = limits:HasFrameBufferStencilSampleSupport(constants:SAMPLE_COUNT_4_BIT)
+        output "Four Sample Color Support: " + has4SampleColorSupport 
+        output "Four Sample Depth Support: " + has4SampleDepthSupport
+        output "Four Sample Stencil Support: " + has4SampleStencilSupport
+    end
+end */
+    action HasFrameBufferDepthSampleSupport(integer amount) returns boolean
+        integer value = GetFrameBufferDepthSampleCount()
+        integer result = ops:And(value, amount)
+        return result not= 0
+    end
+    system action GetFrameBufferDepthSampleCount returns integer
+    
+    
+    /*This value is a combined code that shows which anti-aliasing options your graphics card supports for the stencil buffer, 
+which acts like a cardboard cutout stencil to mask out and shape where things are allowed to draw on screen. 
+Each option, from normal 1x up to high-end 64x, has its own hidden bit inside this number.  
+To check if a specific setting like 4x is available, pass a value from the VulkanConstants class, such as 
+SAMPLE_COUNT_4_BIT.
+
+Attribute: Example
+
+
+use Libraries.Game.Game
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.GameDisplay
+use Libraries.Game.Graphics.Vulkan.VulkanPhysicalDeviceFeatures
+use Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice
+use Libraries.Game.Graphics.Vulkan.VulkanPhysicalDeviceLimits
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
+
+class Main is Game
+    action Main
+        UseVulkan(true)
+        StartGame()
+    end
+
+    action CreateGame
+        GameStateManager manager
+        VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+        VulkanPhysicalDeviceLimits limits = graphics:GetPhysicalDeviceLimits()
+        VulkanConstants constants
+        boolean has4SampleColorSupport = limits:HasFrameBufferColorSampleSupport(constants:SAMPLE_COUNT_4_BIT)
+        boolean has4SampleDepthSupport = limits:HasFrameBufferDepthSampleSupport(constants:SAMPLE_COUNT_4_BIT)
+        boolean has4SampleStencilSupport = limits:HasFrameBufferStencilSampleSupport(constants:SAMPLE_COUNT_4_BIT)
+        output "Four Sample Color Support: " + has4SampleColorSupport 
+        output "Four Sample Depth Support: " + has4SampleDepthSupport
+        output "Four Sample Stencil Support: " + has4SampleStencilSupport
+    end
+end */
+    action HasFrameBufferStencilSampleSupport(integer amount) returns boolean
+        integer value = GetFrameBufferStencilSampleCount()
+        integer result = ops:And(value, amount)
+        return result not= 0
+    end
+    
+    system action GetFrameBufferStencilSampleCount returns integer
     
     
 system action GetMaxDescriptorSetStorageImages returns integer
