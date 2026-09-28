@@ -2879,7 +2879,6 @@ Painter3D painter = GetPainter()
     end
 
     action StepPhysics(number seconds)
-        
         integer numSimulationSubsteps = 0
         integer maxSubSteps = me:maxSubSteps
         number fixedTimeStep = physicsTimeStep
@@ -2892,6 +2891,9 @@ Painter3D painter = GetPainter()
             if localTime >= fixedTimeStep
                 numSimulationSubsteps = cast(integer, localTime / fixedTimeStep)
                 localTime = localTime - (numSimulationSubsteps * fixedTimeStep)
+            else
+                //Local time is too small. We do not need to do a physics step yet.
+                return now
             end
         else
             fixedTimeStep = seconds
@@ -2911,10 +2913,9 @@ Painter3D painter = GetPainter()
                 clampedSimulationSteps = maxSubSteps
             end
             
-            ApplyGravity()
-
             integer i = 0
             repeat while i < clampedSimulationSteps
+                ApplyGravity()
                 collisionManager:Collide()
                 SolvePhysics(fixedTimeStep)
                 SynchronizeTransforms()
@@ -3354,4 +3355,16 @@ action GetPainter returns Painter3D
         me:painter = painter
     end
     
+    action GetSubStepping returns boolean
+        return subStepping
+    end
+
+    action GetMaxSubSteps returns integer
+        return maxSubSteps
+    end
+
+    action SetMaxSubSteps(integer maxSubSteps)
+        me:maxSubSteps = maxSubSteps
+    end
+
 end
