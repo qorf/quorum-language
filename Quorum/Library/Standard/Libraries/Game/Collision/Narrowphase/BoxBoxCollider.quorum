@@ -488,27 +488,81 @@ CollisionPointsResult3D result)
     if count = 0
         return now
     end
-
-    // Contact reduction: deepest point first, then greedily choose points
-    // farthest from the already selected contacts, up to four total.
-        integer targetSelectedPoints = count
+        // Bullet-style cullPoints2: keep the deepest contact, then select
+    // contacts at evenly spaced angles around the polygon centroid.
+    integer targetSelectedPoints = count
     if targetSelectedPoints > 4
         targetSelectedPoints = 4
     end
-    Integer32BitArray selected
-        selected:SetSize(targetSelectedPoints)
-        integer numberSelectedPoints = 1
-    Integer32BitArray used
-        constant integer TRUE = 1
-        constant integer FALSE = 0
-        
-        used:SetSize(count)
+
+    Number32BitArray pointX
+    Number32BitArray pointY
+    Number32BitArray pointAngles
+    pointX:SetSize(count)
+    pointY:SetSize(count)
+    pointAngles:SetSize(count)
+
+    number centroidX = 0
+    number centroidY = 0
+
+    // Project the contact polygon into the reference face's 2D coordinates.
     i = 0
     repeat while i < count
-        used:Set(i, FALSE)
+        Vector3 relativePoint
+        relativePoint:Set(pointsOnB:Get(i))
+        relativePoint:Subtract(referenceFaceCenter)
+
+        number x = relativePoint:DotProduct(referenceAxes:Get(side1))
+        number y = relativePoint:DotProduct(referenceAxes:Get(side2))
+
+        pointX:Set(i, x)
+        pointY:Set(i, y)
+        centroidX = centroidX + x
+        centroidY = centroidY + y
         i = i + 1
     end
 
+    if count = 1
+        centroidX = pointX:Get(0)
+        centroidY = pointY:Get(0)
+    elseif count = 2
+        centroidX = centroidX / 2
+        centroidY = centroidY / 2
+    else
+        // Area-weighted polygon centroid, including the closing edge.
+        number twiceArea = 0
+        number centroidNumeratorX = 0
+        number centroidNumeratorY = 0
+
+        i = 0
+        repeat while i < count
+            integer nextIndex = (i + 1) mod count
+            number x0 = pointX:Get(i)
+            number y0 = pointY:Get(i)
+            number x1 = pointX:Get(nextIndex)
+            number y1 = pointY:Get(nextIndex)
+            number cross = x0 * y1 - x1 * y0
+
+            twiceArea = twiceArea + cross
+            centroidNumeratorX =
+                centroidNumeratorX + cross * (x0 + x1)
+            centroidNumeratorY =
+                centroidNumeratorY + cross * (y0 + y1)
+
+            i = i + 1
+        end
+
+        if math:AbsoluteValue(twiceArea) > EPSILON
+            centroidX = centroidNumeratorX / (3 * twiceArea)
+            centroidY = centroidNumeratorY / (3 * twiceArea)
+        else
+            // Degenerate polygon: use the arithmetic mean.
+            centroidX = centroidX / count
+            centroidY = centroidY / count
+        end
+    end
+
+    // Bullet cullPoints2 anchors its angular sampling at the deepest point.
     integer deepest = 0
     i = 1
     repeat while i < count
@@ -518,32 +572,63 @@ CollisionPointsResult3D result)
         i = i + 1
     end
 
-    selected:Set(0, deepest)
-        //Set 1s and 0s for optimization,  with 1 = true and 0 = false
-    used:Set(deepest, TRUE)
+    i = 0
+    repeat while i < count
+        number x = pointX:Get(i) - centroidX
+        number y = pointY:Get(i) - centroidY
 
+        // InverseTangent(x, y) returns the angle of Cartesian point (x, y).
+        if math:AbsoluteValue(x) + math:AbsoluteValue(y) > EPSILON
+            pointAngles:Set(i, math:InverseTangent(x, y))
+        else
+            pointAngles:Set(i, 0)
+        end
+
+        i = i + 1
+    end
+        //optimization for this action.
+constant integer TRUE = 1
+        constant integer FALSE = 0
+    Integer32BitArray selected
+    selected:SetSize(targetSelectedPoints)
+
+    Integer32BitArray available
+    available:SetSize(count)
+
+    i = 0
+    repeat while i < count
+        available:Set(i, TRUE)
+        i = i + 1
+    end
+
+    selected:Set(0, deepest)
+    available:Set(deepest, FALSE)
+
+    integer numberSelectedPoints = 1
     repeat while numberSelectedPoints < targetSelectedPoints
-        number bestDistance = -1
         integer bestIndex = -1
+        number bestDifference = 1.0e100
+
+        number targetAngle =
+            pointAngles:Get(deepest) +
+            numberSelectedPoints * (2 * math:pi / targetSelectedPoints)
+
+        if targetAngle > math:pi
+            targetAngle = targetAngle - 2 * math:pi
+        end
 
         i = 0
         repeat while i < count
-            if not (used:Get(i) = TRUE)
-                number nearestSelectedDistance = 1.0e100
-                integer j = 0
-                repeat while j < numberSelectedPoints
-                    Vector3 delta
-                    delta:Set(pointsOnB:Get(i))
-                    delta:Subtract(pointsOnB:Get(selected:Get(j)))
-                    number distance = delta:LengthSquared()
-                    if distance < nearestSelectedDistance
-                        nearestSelectedDistance = distance
-                    end
-                    j = j + 1
+            if available:Get(i) = TRUE
+                number difference =
+                    math:AbsoluteValue(pointAngles:Get(i) - targetAngle)
+
+                if difference > math:pi
+                    difference = 2 * math:pi - difference
                 end
 
-                if nearestSelectedDistance > bestDistance
-                    bestDistance = nearestSelectedDistance
+                if difference < bestDifference
+                    bestDifference = difference
                     bestIndex = i
                 end
             end
@@ -552,10 +637,9 @@ CollisionPointsResult3D result)
 
         if bestIndex >= 0
             selected:Set(numberSelectedPoints, bestIndex)
-                numberSelectedPoints = numberSelectedPoints + 1
-            used:Set(bestIndex, TRUE)
+            available:Set(bestIndex, FALSE)
+            numberSelectedPoints = numberSelectedPoints + 1
         else
-            // Defensive exit if the array has no unused point.
             return now
         end
     end
@@ -563,8 +647,7 @@ CollisionPointsResult3D result)
     i = 0
     repeat while i < numberSelectedPoints
         integer index = selected:Get(i)
-        result:AddCollisionPoint(
-            normalBtoA, pointsOnB:Get(index), depths:Get(index))
+        result:AddCollisionPoint(normalBtoA, pointsOnB:Get(index), depths:Get(index))
         i = i + 1
     end
 end
