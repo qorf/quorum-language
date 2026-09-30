@@ -13,12 +13,124 @@ use Libraries.Game.Physics.ConstraintDescription3D
 use Libraries.Game.Collision.PhysicsPosition3D
 use Libraries.Compute.Quaternion
 
-/*
-This is a joint that describes how much freedom can one object rotate about another object. 
-This joint is different than the ball and socket joint in that there is an angular limit to how much the rotating object can rotate.
-*/
-class ConeTwistJoint3D is Joint3D
+/*A joint that holds two 3D bodies together at a shared pivot while allowing
+limited rotation between them. The rotation is described as two swing angles
+and one twist angle. The swing limits form an elliptical cone, and the twist
+limit controls rotation around the joint frame's X axis.
 
+This joint corresponds to Bullet's btConeTwistConstraint. Bullet describes it
+as a fixed-translation joint with three rotational degrees of freedom, commonly
+used for ragdoll limbs.
+
+For example, in a ragdoll game, attach a character's upper arm to its torso with a
+ConeTwistJoint3D. Set positionA and positionB to the shoulder pivot and joint
+orientation in the torso's and upper arm's local coordinates. Initialize the
+joint with the torso and upper arm, then use SetLimits to let the arm swing
+forward, sideways, and twist within the desired range. The shared pivot keeps
+the shoulder connected while the limits prevent the arm from rotating through
+the torso.
+
+The swing spans and twist span are used as radians by this implementation.
+SetLimits also accepts softness, bias, and relaxation values that control how
+the solver handles motion near and beyond those limits.
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.DirectionalLight
+use Libraries.Game.Layer3D
+use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Game.Physics.Joints.ConeTwistJoint3D
+use Libraries.Compute.Vector3
+
+class Main is Game
+    Color color
+
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        EnablePhysics3D(true)
+        SetGravity3D(0, -9.8, 0)
+
+        // A floor gives the example a clear world reference.
+        Model floor
+        floor:LoadBox(12, 0.5, 8, color:Gray())
+        floor:SetPosition(0, -0.25, 0)
+        floor:EnablePhysics(true)
+        floor:SetUnmovable()
+        Add(floor)
+
+        // The torso is fixed in place to make the shoulder motion easy to see.
+        Model torso
+        torso:LoadBox(1.8, 2.5, 1, color:Blue())
+        torso:SetPosition(0, 4, 0)
+        torso:EnablePhysics(true)
+        torso:SetUnmovable()
+        Add(torso)
+
+        // The upper arm is dynamic. Its inner end meets the torso at x = 1.
+        Model upperArm
+        upperArm:LoadBox(2, 0.7, 0.7, color:Red())
+        upperArm:SetPosition(2.2, 4, 0)
+        upperArm:EnablePhysics(true)
+        upperArm:SetResponsive()
+        Add(upperArm)
+
+        // Mirror the dynamic arm on the other side of the torso.
+        Model leftArm
+        leftArm:LoadBox(2, 0.7, 0.7, color:Green())
+        leftArm:SetPosition(-2.2, 4, 0)
+        leftArm:EnablePhysics(true)
+        leftArm:SetResponsive()
+        Add(leftArm)
+
+        // Each frame locates the same shoulder pivot in that body's local space.
+        // Both frames use identity orientation, so their joint axes initially align.
+        PhysicsPosition3D frameOnTorso
+        frameOnTorso:SetToIdentity()
+        frameOnTorso:GetOrigin():Set(1, 0, 0)
+
+        PhysicsPosition3D frameOnArm
+        frameOnArm:SetToIdentity()
+        frameOnArm:GetOrigin():Set(-1.2, 0, 0)
+
+        ConeTwistJoint3D shoulder
+        shoulder:Initialize(torso, upperArm, frameOnTorso, frameOnArm)
+        // Angles are radians in this implementation: about 46 degrees of swing
+        // in each swing direction, and about 23 degrees of twist.
+        shoulder:SetLimits(0.8, 0.8, 0.4, 0.8, 0.3, 1.0)
+
+        PhysicsPosition3D frameOnLeftShoulder
+        frameOnLeftShoulder:SetToIdentity()
+        frameOnLeftShoulder:GetOrigin():Set(-1, 0, 0)
+
+        PhysicsPosition3D frameOnLeftArm
+        frameOnLeftArm:SetToIdentity()
+        frameOnLeftArm:GetOrigin():Set(1.2, 0, 0)
+
+        ConeTwistJoint3D leftShoulder
+        leftShoulder:Initialize(torso, leftArm, frameOnLeftShoulder, frameOnLeftArm)
+        leftShoulder:SetLimits(0.8, 0.8, 0.4, 0.8, 0.3, 1.0)
+
+        Layer3D layer = GetCurrentLayer3D()
+        layer:AddJoint(shoulder)
+        layer:AddJoint(leftShoulder)
+
+        DirectionalLight light
+        light:SetColor(0,1,0, 1)
+        light:SetDirection(0, -2, -1)
+        light:SetIntensity(10)
+        Add(light)
+
+        Camera camera = GetCamera3D()
+        camera:SetPosition(0, 4, -12)
+    end
+end*/
+class ConeTwistJoint3D is Joint3D
     ConstraintDescription3D jac0
     ConstraintDescription3D jac1
     ConstraintDescription3D jac2
@@ -490,12 +602,17 @@ class ConeTwistJoint3D is Joint3D
 
     /*
     This action sets the limits to the cone twist joint.
-    Attribute: Parameter inputSwingSpan1 The limit on the Z rotation axis of the joint in degrees.
-    Attribute: Parameter inputSwingSpan2 The limit on the Y rotation axis of the joint in degrees.
-    Attribute: Parameter inputTwistSpan The limit on the X rotation axis of the joint in degrees.
-    Attribute: Parameter inputSoftness At what fraction should the velocity limits starts to be solved. For example, if softness is 0.8, that means the physics will try to correct for the joint when the objects are at 0.8*(velocity limit range). Recommended values are from 0.8 to 1.
-    Attribute: Parameter inputBiasFactor Because during simulation, errors in position of the objects pile up due to rounding errors, this sets how much you want to correct for that error. Default value is 0.3, and the recommended range is [-0.3 to 0.3].
-    Attribute: Parameter inputRelaxationfactor How lenient are you with the objects going out of the limit range in fractions. (0 very lenient, 1 very hard). Default value is 1.
+    Attribute: Parameter inputSwingSpan1 The limit on the Z rotation axis of the joint in radians.
+    Attribute: Parameter inputSwingSpan2 The limit on the Y rotation axis of the joint in radians.
+    Attribute: Parameter inputTwistSpan The limit on the X rotation axis of the joint in radians.
+    Attribute: Parameter inputSoftness For the twist limit, the fraction of the
+    twist span at which correction begins. For example, 0.8 begins correcting
+    when the twist reaches about 80 percent of its limit. This value does not
+    change the swing-limit threshold.
+Attribute: Parameter inputBiasFactor Scales correction for angular limit
+    error. The default is 0.3; the recommended range is -0.3 to 0.3.
+Attribute: Parameter inputRelaxationfactor Scales the relative angular
+    velocity response while correcting a limit. The default is 1.0.
     */
     action SetLimits(number inputSwingSpan1, number inputSwingSpan2, number inputTwistSpan, number inputSoftness, number inputBiasFactor, number inputRelaxationfactor)
         swingSpan1 = inputSwingSpan1
