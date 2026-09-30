@@ -7,6 +7,8 @@ use Libraries.Game.Collision.PhysicsPosition3D
 use Libraries.Game.Collision.CollisionPointsResult3D
 use Libraries.Game.Collision.Shapes.Box
 use Libraries.Compute.Math
+use Libraries.Containers.Integer32BitArray
+use Libraries.Containers.Number32BitArray
 
 class BoxBoxCollider
     public constant number EPSILON = 0.00000011920928955078125
@@ -411,8 +413,7 @@ CollisionPointsResult3D result)
     end
     referenceFaceCenter:Add(referenceCenter)
 
-    Array<Vector3> polygon = MakeBoxFace(
-        incidentCenter, incidentAxes, incidentHalf, incidentOutward)
+    Array<Vector3> polygon = MakeBoxFace(incidentCenter, incidentAxes, incidentHalf, incidentOutward)
 
     integer side1 = 0
     integer side2 = 0
@@ -443,7 +444,9 @@ CollisionPointsResult3D result)
 
     // Keep penetrating points and their depths.
     Array<Vector3> pointsOnB
-    Array<number> depths
+    Number32BitArray depths
+        depths:SetSize(polygon:GetSize())
+        integer numDepths = 0
 
     integer i = 0
     repeat while i < polygon:GetSize()
@@ -474,7 +477,8 @@ CollisionPointsResult3D result)
 
         if depth <= 0
             pointsOnB:Add(pointOnB)
-            depths:Add(depth)
+            depths:Set(numDepths, depth)
+                numDepths = numDepths + 1
         end
 
         i = i + 1
@@ -487,11 +491,21 @@ CollisionPointsResult3D result)
 
     // Contact reduction: deepest point first, then greedily choose points
     // farthest from the already selected contacts, up to four total.
-    Array<integer> selected
-    Array<boolean> used
+        integer targetSelectedPoints = count
+    if targetSelectedPoints > 4
+        targetSelectedPoints = 4
+    end
+    Integer32BitArray selected
+        selected:SetSize(targetSelectedPoints)
+        integer numberSelectedPoints = 1
+    Integer32BitArray used
+        constant integer TRUE = 1
+        constant integer FALSE = 0
+        
+        used:SetSize(count)
     i = 0
     repeat while i < count
-        used:Add(false)
+        used:Set(i, FALSE)
         i = i + 1
     end
 
@@ -504,19 +518,20 @@ CollisionPointsResult3D result)
         i = i + 1
     end
 
-    selected:Add(deepest)
-    used:Set(deepest, true)
+    selected:Set(0, deepest)
+        //Set 1s and 0s for optimization,  with 1 = true and 0 = false
+    used:Set(deepest, TRUE)
 
-    repeat while selected:GetSize() < 4 and selected:GetSize() < count
+    repeat while numberSelectedPoints < targetSelectedPoints
         number bestDistance = -1
         integer bestIndex = -1
 
         i = 0
         repeat while i < count
-            if not used:Get(i)
+            if not (used:Get(i) = TRUE)
                 number nearestSelectedDistance = 1.0e100
                 integer j = 0
-                repeat while j < selected:GetSize()
+                repeat while j < numberSelectedPoints
                     Vector3 delta
                     delta:Set(pointsOnB:Get(i))
                     delta:Subtract(pointsOnB:Get(selected:Get(j)))
@@ -536,8 +551,9 @@ CollisionPointsResult3D result)
         end
 
         if bestIndex >= 0
-            selected:Add(bestIndex)
-            used:Set(bestIndex, true)
+            selected:Set(numberSelectedPoints, bestIndex)
+                numberSelectedPoints = numberSelectedPoints + 1
+            used:Set(bestIndex, TRUE)
         else
             // Defensive exit if the array has no unused point.
             return now
@@ -545,7 +561,7 @@ CollisionPointsResult3D result)
     end
 
     i = 0
-    repeat while i < selected:GetSize()
+    repeat while i < numberSelectedPoints
         integer index = selected:Get(i)
         result:AddCollisionPoint(
             normalBtoA, pointsOnB:Get(index), depths:Get(index))
