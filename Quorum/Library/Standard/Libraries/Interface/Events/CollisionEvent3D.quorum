@@ -181,6 +181,10 @@ class CollisionEvent3D
         if shapeA is Sphere and shapeB is Sphere
             result:Initialize(itemA, itemB)
             CollideSpheres(collisionPoints, cast(Sphere, shapeA), transformA, cast(Sphere, shapeB), transformB, result)
+        elseif shapeA:GetType() = shapeA:BOX and shapeB:GetType() = shapeB:BOX
+            result:Initialize(itemA, itemB)
+            //This needs to be changed to manage the full face.
+            CollideConvexConvex(collisionPoints, shapeA, transformA, shapeB, transformB, result)
         else
             if shapeA:GetType() = shapeA:TERRAIN and shapeB:GetType() = shapeB:TERRAIN
                 return now
