@@ -1,0 +1,36 @@
+
+package Libraries.Game.Collision.Narrowphase
+use Libraries.Game.Collision.LocalCollisionPoints3D
+use Libraries.Compute.Matrix3
+use Libraries.Containers.Array
+use Libraries.Compute.Vector3
+use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Game.Collision.CollisionPointsResult3D
+use Libraries.Game.Collision.Shapes.CollisionShape3D
+use Libraries.Compute.Math
+
+class ConvexConvexCollider
+    ConvexConvexPairSolver gjkPairDetector
+    
+    action CollideConvexConvex(LocalCollisionPoints3D collisionPoints, 
+CollisionShape3D shapeA, PhysicsPosition3D transformA, 
+CollisionShape3D shapeB, PhysicsPosition3D transformB, 
+CollisionPointsResult3D result)
+        result:SetCollisionPoints(collisionPoints)
+        number maximumDistanceSquared = 0
+
+        gjkPairDetector:SetMinkowskiA(shapeA)
+        gjkPairDetector:SetMinkowskiB(shapeB)
+        maximumDistanceSquared = shapeA:GetMargin() + shapeB:GetMargin() + collisionPoints:GetCollisionBreakingThreshold()
+        maximumDistanceSquared = maximumDistanceSquared * maximumDistanceSquared
+
+        PhysicsPosition3D inputTransformA
+        inputTransformA:Set(transformA)
+        PhysicsPosition3D inputTransformB
+        inputTransformB:Set(transformB)
+
+        gjkPairDetector:GetClosestPoints(inputTransformA, inputTransformB, maximumDistanceSquared, result, false)
+
+        result:RefreshCollisionPoints()        
+    end
+end

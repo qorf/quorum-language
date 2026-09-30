@@ -1,0 +1,36 @@
+package Libraries.Game.Collision.Narrowphase
+use Libraries.Game.Collision.LocalCollisionPoints3D
+use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Game.Collision.CollisionPointsResult3D
+use Libraries.Game.Collision.Shapes.Box
+use Libraries.Game.Collision.Shapes.Sphere
+use Libraries.Game.Collision.Shapes.CollisionShape3D
+
+shared class SharedNarrowSolver
+    BoxBoxCollider boxSolver
+    SphereSphereCollider sphereSolver
+    ConvexConvexCollider convexCollider
+    
+    action CollideBoxes(LocalCollisionPoints3D collisionPoints,
+Box itemA,PhysicsPosition3D transformA,
+Box itemB,PhysicsPosition3D transformB,
+CollisionPointsResult3D result)
+        boxSolver:CollideBoxes(collisionPoints, itemA, transformA, itemB, transformB, result)
+    end
+    
+    
+    action CollideSpheres(LocalCollisionPoints3D collisionPoints, 
+Sphere itemA, PhysicsPosition3D transformA, 
+Sphere itemB, PhysicsPosition3D transformB, 
+CollisionPointsResult3D result)
+        sphereSolver:CollideSpheres(collisionPoints, itemA, transformA, itemB, transformB, result)
+end
+    
+    
+    action CollideConvexConvex(LocalCollisionPoints3D collisionPoints, 
+CollisionShape3D itemA, PhysicsPosition3D transformA, 
+CollisionShape3D itemB, PhysicsPosition3D transformB, 
+CollisionPointsResult3D result)
+        convexCollider:CollideConvexConvex(collisionPoints, itemA, transformA, itemB, transformB, result)
+    end
+end
