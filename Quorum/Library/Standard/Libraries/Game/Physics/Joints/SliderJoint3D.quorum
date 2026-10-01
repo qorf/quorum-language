@@ -677,4 +677,20 @@ class SliderJoint3D is Joint3D
     action SetUpperAngularLimit(number upperLimit)
         me:upperAngLimit = upperLimit
     end
+
+    /*
+    This action configures the linear motor for this slider joint. The motor applies a force
+    along the slider axis to achieve a target velocity.
+    Attribute: Parameter enabled Whether to enable the linear motor
+    Attribute: Parameter targetVelocity The desired velocity along the slider axis
+    Attribute: Parameter maxForce The maximum force the motor can apply
+    */
+    action ConfigureLinearMotor(boolean enabled, number targetVelocity, number maxForce)
+        poweredLinMotor = enabled
+        targetLinMotorVelocity = targetVelocity
+        maxLinMotorForce = maxForce
+        if not enabled
+            accumulatedLinMotorImpulse = 0
+        end
+    end
 end
