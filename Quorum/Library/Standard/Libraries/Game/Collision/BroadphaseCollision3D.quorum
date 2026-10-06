@@ -1,4 +1,5 @@
 use Libraries.Containers.Array
+use Libraries.Containers.List
 use Libraries.Game.Game
 use Libraries.Interface.Item3D
 use Libraries.Compute.Vector3
@@ -241,6 +242,21 @@ class BroadphaseCollision3D
     action Query(BroadphaseCollision3D broadphase, BoundingBox boundingBox)
         tree:Query(broadphase, boundingBox)
     end
+    
+    
+    /*
+    This action finds the item nodes in the tree whose bounding boxes overlap
+    with the bounding box that is passed in.
+
+    Attribute: Parameter bounds The BoundingBox used to check for overlap with
+    the tree.
+
+    Attribute: Returns An array of item nodes whose bounding boxes overlap with
+    the given bounds.
+*/
+    action Query(BoundingBox bounds) returns List<Item3DNode>
+    return tree:Query(bounds)
+end
     
     /*
     This action returns the height of the tree.
