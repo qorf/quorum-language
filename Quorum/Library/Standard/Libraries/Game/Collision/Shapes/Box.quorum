@@ -9,6 +9,7 @@ use Libraries.Compute.Plane
 use Libraries.Compute.BitwiseOperations
 use Libraries.Compute.Matrix3
 use Libraries.Game.BoundingBox
+use Libraries.Game.Collision.RayCastResult3D
 
 /*
 This class describes the box shape in 3D.
@@ -44,6 +45,173 @@ class Box is CollisionShape3D
 
         localBoundingBoxMinimum:Set(1, 1, 1)
         localBoundingBoxMaximum:Set(-1, -1, -1)
+    end
+    
+    
+    /*
+    This action checks whether a straight line segment, called a ray, touches
+    this shape. The ray starts at "from" and ends at "to," both in world
+    space. The shape is placed in the world using "transform," which is
+    normally the collision transform of the item that owns the shape.
+
+    The result works as both an input and an output. Its fraction is the
+    farthest point along the ray that still counts as a hit, where 0 is
+    "from" and 1 is "to." This action only reports a hit that is closer than
+    the result's current fraction. When it finds one, it sets the result's
+    hit flag to true, and sets its fraction, its hit point in world space,
+    and its surface normal in world space. The normal has a length of 1 and
+    points back toward the start of the ray. When there is no closer hit,
+    the result is left unchanged.
+
+    Because of this, the same result can be passed to several shapes in a
+    row, and it will end up holding the closest hit among them. Call
+    SetToDefault on the result before the first shape so that any hit along
+    the whole ray counts.
+
+    This action does not set the result's hit body, because a shape does not
+    know which item it belongs to. The caller should set the hit body when
+    this action returns true.
+
+    Each kind of shape provides its own version of this action. The version
+    in CollisionShape3D never reports a hit and returns false.
+
+    Attribute: Parameter from The world-space point where the ray starts.
+    Attribute: Parameter to The world-space point where the ray ends.
+    Attribute: Parameter transform The position and rotation of this shape in the world.
+    Attribute: Parameter result Holds the closest hit found so far. It is updated if this shape is hit closer than the result's current fraction.
+    Attribute: Returns true if this shape was hit closer than the result's previous fraction, and false otherwise.
+
+    Attribute: Example
+
+        
+        use Libraries.Game.Collision.RayCastResult3D
+        use Libraries.Game.Collision.PhysicsPosition3D
+        use Libraries.Game.Collision.Shapes.Box
+        use Libraries.Compute.Vector3
+        // A 2 by 2 by 2 box centered at the world origin.
+        Box box
+        box:Set(2, 2, 2)
+        PhysicsPosition3D transform
+        transform:SetToIdentity()
+        // A ray straight down through the box.
+        Vector3 from
+        from:Set(0, 10, 0)
+        Vector3 to
+        to:Set(0, -10, 0)
+        RayCastResult3D result
+        result:SetToDefault()
+        if box:RayCast(from, to, transform, result)
+            // The ray reaches the top of the box (y = 1) after 9 of its
+            // 20 units, so this outputs a fraction of 0.45.
+            output "Hit at fraction " + result:GetFraction()
+        end
+    */
+    action RayCast(Vector3 from, Vector3 to, PhysicsPosition3D transform, RayCastResult3D result) returns boolean
+        // Move the ray into the box's own space. There the box is centered
+        // on the origin and lined up with the x, y, and z axes.
+        Vector3 localFrom
+        transform:InverseTransform(from, localFrom)
+        Vector3 localTo
+        transform:InverseTransform(to, localTo)
+        Vector3 localDelta
+        localDelta:Set(localTo)
+        localDelta:Subtract(localFrom)
+
+        // Copy the half extents, because GetHalfExtentsWithMargin returns a
+        // vector that later calls to it will change.
+        Vector3 half
+        half:Set(GetHalfExtentsWithMargin())
+
+        // A point is inside the box only if it lies between both faces on
+        // every axis. For each axis, find the stretch of the ray between that
+        // axis's two faces, then keep the part all three stretches share.
+        // That shared part runs from enter to leave, as fractions of the ray.
+        number enter = 0
+        number leave = 1
+        integer enterAxis = -1
+        number enterSign = 0
+        integer axis = 0
+        repeat while axis < 3
+            number origin = 0
+            number delta = 0
+            number extent = 0
+            if axis = 0
+                origin = localFrom:GetX()
+                delta = localDelta:GetX()
+                extent = half:GetX()
+            elseif axis = 1
+                origin = localFrom:GetY()
+                delta = localDelta:GetY()
+                extent = half:GetY()
+            else
+                origin = localFrom:GetZ()
+                delta = localDelta:GetZ()
+                extent = half:GetZ()
+            end
+
+            if math:AbsoluteValue(delta) < 0.0000001
+                // The ray runs parallel to these two faces, so it misses
+                // unless it already lies between them.
+                if origin < -extent or origin > extent
+                    return false
+                end
+            else
+                number first = (-extent - origin) / delta
+                number second = (extent - origin) / delta
+                // The ray enters through the face it reaches first. If it
+                // moves in the positive direction, that is the negative face,
+                // so the normal points in the negative direction.
+                number sign = -1
+                if first > second
+                    number swap = first
+                    first = second
+                    second = swap
+                    sign = 1
+                end
+                if first > enter
+                    enter = first
+                    enterAxis = axis
+                    enterSign = sign
+                end
+                if second < leave
+                    leave = second
+                end
+                if enter > leave
+                    return false
+                end
+            end
+            axis = axis + 1
+        end
+
+        // An enterAxis of -1 means the ray starts inside the box. Like
+        // Bullet, that does not count as a hit. Otherwise the hit must be
+        // closer than the closest one already in the result.
+        if enterAxis = -1 or enter >= result:GetFraction()
+            return false
+        end
+
+        result:SetHit(true)
+        result:SetFraction(enter)
+
+        // Hit point in world space: from + (to - from) * enter
+        Vector3 hitPoint = result:GetHitPointWorldSpace()
+        hitPoint:Set(to)
+        hitPoint:Subtract(from)
+        hitPoint:Scale(enter)
+        hitPoint:Add(from)
+
+        // Normal of the face the ray entered, rotated into world space.
+        Vector3 normal = result:GetHitNormalWorldSpace()
+        if enterAxis = 0
+            normal:Set(enterSign, 0, 0)
+        elseif enterAxis = 1
+            normal:Set(0, enterSign, 0)
+        else
+            normal:Set(0, 0, enterSign)
+        end
+        transform:GetBasis():Transform(normal)
+        normal:Normalize()
+        return true
     end
 
     /*
