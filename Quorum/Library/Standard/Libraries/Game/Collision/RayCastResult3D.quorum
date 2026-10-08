@@ -1,0 +1,110 @@
+package Libraries.Game.Collision
+
+use Libraries.Interface.Item3D
+use Libraries.Compute.Vector3
+
+/*
+Stores the result of a raycast through a physics scene. Check GetHit to see
+whether the ray touched an object. When it did, GetHitBody returns that object,
+GetHitPoint returns the contact position in world space, and GetHitNormal
+returns the surface direction at the contact point. GetFraction tells where
+the hit lies along the ray segment: 0 is the start and 1 is the end. If the
+ray hits nothing, hit is false, hitBody is undefined, and fraction is 1. The
+contact point and normal are only useful when hit is true.
+*/
+class RayCastResult3D
+    boolean hit = false
+    Item3D hitBody
+    Vector3 hitPointWorldSpace
+    Vector3 hitNormalWorldSpace
+    number fraction = 1.0
+    
+    /*Sets the raycast result to the default, which is 0,0,0 for all vectors, no hit, no body, and 
+1.0 for friction. */
+    action SetToDefault
+        hitBody = undefined
+        hit = false
+        hitPointWorldSpace:Set(0.0, 0.0, 0.0)
+        hitNormalWorldSpace:Set(0.0, 0.0, 0.0)
+        fraction = 1.0
+    end
+    
+    /*
+    Sets whether the ray touched an object. Set this to true when a hit is
+    found, or false when the ray does not touch anything.
+    */
+    action SetHit(boolean hit)
+        me:hit = hit
+    end
+
+    /*
+    Returns whether the ray touched an object. When this is false, the hit
+    body, contact point, and contact normal do not describe a hit.
+    */
+    action IsHit returns boolean
+        return hit
+    end
+
+    /*
+    Returns the object touched by the ray. This value is undefined when the
+    ray did not hit an object.
+    */
+    action GetHitBody returns Item3D
+        return hitBody
+    end
+
+    /*
+    Sets the object touched by the ray. Use undefined when the ray did not hit
+    an object.
+    */
+    action SetHitBody(Item3D hitBody)
+        me:hitBody = hitBody
+    end
+
+    /*
+    Returns the ray's contact position in world space. This value is useful
+    when the ray hit an object.
+    */
+    action GetHitPointWorldSpace returns Vector3
+        return hitPointWorldSpace
+    end
+
+    /*
+    Sets the ray's contact position in world space.
+    */
+    action SetHitPointWorldSpace(Vector3 hitPoint)
+        me:hitPointWorldSpace = hitPointWorldSpace
+    end
+
+    /*
+    Returns the surface direction at the contact point, in world space. This
+    value is useful when the ray hit an object.
+    */
+    action GetHitNormalWorldSpace returns Vector3
+        return hitNormalWorldSpace
+    end
+
+    /*
+    Sets the surface direction at the contact point, in world space.
+    */
+    action SetHitNormalWorldSpace(Vector3 hitNormalWorldSpace)
+        me:hitNormalWorldSpace = hitNormalWorldSpace
+    end
+
+    /*
+    Returns where the hit lies along the ray segment. A value of 0 is the
+    start of the segment, and 1 is the end. A value of 1 is also the default
+    when no hit has been found.
+    */
+    action GetFraction returns number
+        return fraction
+    end
+
+    /*
+    Sets where the hit lies along the ray segment. Use 0 for the start of the
+    segment and 1 for the end.
+    */
+    action SetFraction(number fraction)
+        me:fraction = fraction
+    end
+end
