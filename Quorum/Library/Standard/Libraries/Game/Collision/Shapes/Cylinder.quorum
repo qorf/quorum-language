@@ -9,6 +9,7 @@ use Libraries.Compute.BitwiseOperations
 use Libraries.Compute.Matrix3
 use Libraries.Game.BoundingBox
 use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Game.Collision.RayCastResult3D
 
 /*
 This class describes the cylinder shape in 3D.
@@ -47,7 +48,214 @@ class Cylinder is CollisionShape3D
         localBoundingBoxMinimum:Set(1, 1, 1)
         localBoundingBoxMaximum:Set(-1, -1, -1)
     end
+    
+    
 
+    /*
+    This action checks whether a straight line segment, called a ray, touches
+    this cylinder. The ray starts at "from" and ends at "to," both in world
+    space. The cylinder is placed in the world using "transform," which is
+    normally the collision transform of the item that owns the cylinder. In
+    its own space, the cylinder is centered on the origin. Its height runs
+    along the axis given by GetUpAxis, which is the y axis by default.
+
+    The ray can hit either the curved side of the cylinder or one of its two
+    flat caps. On a cap, the hit normal points straight along the cylinder's
+    axis. On the side, it points straight out from the axis. Either way, it
+    faces back toward the start of the ray. A ray that starts inside the
+    cylinder, or exactly on its surface, does not count as a hit. This
+    matches how Box and Sphere handle a ray that starts inside them.
+
+    The size used is the cylinder's size including its margin: GetRadius for
+    the side, and half of its height plus the margin for the caps.
+
+    The result works as both an input and an output. Its fraction is the
+    farthest point along the ray that still counts as a hit, where 0 is
+    "from" and 1 is "to." This action only reports a hit that is closer than
+    the result's current fraction. When it finds one, it sets the result's
+    hit flag to true, and sets its fraction, its hit point in world space,
+    and its surface normal in world space. When there is no closer hit, the
+    result is left unchanged. Call SetToDefault on the result before the
+    first shape so that any hit along the whole ray counts.
+
+    This action does not set the result's hit body, because a shape does not
+    know which item it belongs to. The caller should set the hit body when
+    this action returns true.
+
+    Attribute: Parameter from The world-space point where the ray starts.
+    Attribute: Parameter to The world-space point where the ray ends.
+    Attribute: Parameter transform The position and rotation of this cylinder in the world.
+    Attribute: Parameter result Holds the closest hit found so far. It is updated if this cylinder is hit closer than the result's current fraction.
+    Attribute: Returns true if this cylinder was hit closer than the result's previous fraction, and false otherwise.
+
+    Attribute: Example
+
+        use Libraries.Game.Collision.RayCastResult3D
+        use Libraries.Game.Collision.PhysicsPosition3D
+        use Libraries.Game.Collision.Shapes.Cylinder
+        use Libraries.Compute.Vector3
+        // A standing cylinder with a radius of 1 and a height of 4, centered
+        // at the world origin. Its caps are at y = 2 and y = -2.
+        Cylinder cylinder
+        cylinder:Set(2, 4, 2)
+        PhysicsPosition3D transform
+        transform:SetToIdentity()
+
+        // A ray straight down onto the top cap.
+        Vector3 from
+        from:Set(0, 10, 0)
+        Vector3 to
+        to:Set(0, -10, 0)
+        RayCastResult3D result
+        result:SetToDefault()
+        if cylinder:RayCast(from, to, transform, result)
+            // The ray reaches the top cap (y = 2) after 8 of its 20 units,
+            // so this outputs a fraction of 0.4. The normal is (0, 1, 0).
+            output "Cap hit at fraction " + result:GetFraction()
+        end
+
+        // A sideways ray into the curved side.
+        from:Set(-6, 1, 0)
+        to:Set(4, 1, 0)
+        result:SetToDefault()
+        if cylinder:RayCast(from, to, transform, result)
+            // The ray reaches the side (x = -1) after 5 of its 10 units, so
+            // this outputs a fraction of 0.5. The normal is (-1, 0, 0).
+            output "Side hit at fraction " + result:GetFraction()
+        end
+    */
+    action RayCast(Vector3 from, Vector3 to, PhysicsPosition3D transform, RayCastResult3D result) returns boolean
+        // Move the ray into the cylinder's own space. There the cylinder is
+        // centered on the origin, with its height along the up axis.
+        Vector3 localFrom
+        transform:InverseTransform(from, localFrom)
+        Vector3 localTo
+        transform:InverseTransform(to, localTo)
+        Vector3 localDelta
+        localDelta:Set(localTo)
+        localDelta:Subtract(localFrom)
+
+        // The up axis is the height. The other two axes are the round ones.
+        integer axis = upAxis
+        integer round1 = (upAxis + 1) mod 3
+        integer round2 = (upAxis + 2) mod 3
+        number radius = GetRadius()
+        number halfHeight = GetCoordinate(GetHalfExtentsWithMargin(), axis)
+
+        // A point is inside the cylinder only if it is between the two caps
+        // and also close enough to the axis. Find the stretch of the ray
+        // that meets each condition, then keep the part they share. It runs
+        // from enter to leave, as fractions of the ray. enterPart records
+        // which surface the ray came in through: -1 for none yet, 0 for a
+        // cap, or 1 for the side.
+        number enter = 0
+        number leave = 1
+        integer enterPart = -1
+        number capSign = 0
+
+        // The caps: the same slab test Box uses, along the up axis only.
+        number origin = GetCoordinate(localFrom, axis)
+        number delta = GetCoordinate(localDelta, axis)
+        if math:AbsoluteValue(delta) < 0.0000001
+            // The ray runs parallel to the caps, so it misses unless it
+            // already lies between them.
+            if origin < -halfHeight or origin > halfHeight
+                return false
+            end
+        else
+            number first = (-halfHeight - origin) / delta
+            number second = (halfHeight - origin) / delta
+            number sign = -1
+            if first > second
+                number swap = first
+                first = second
+                second = swap
+                sign = 1
+            end
+            if first > enter
+                enter = first
+                enterPart = 0
+                capSign = sign
+            end
+            if second < leave
+                leave = second
+            end
+            if enter > leave
+                return false
+            end
+        end
+
+        // The side: the same quadratic Sphere uses, but only on the two
+        // round axes, so it describes a tube with no ends. With a ray of
+        // from + delta * t, the tube is reached where
+        // a*t*t + 2*b*t + c = 0.
+        number from1 = GetCoordinate(localFrom, round1)
+        number from2 = GetCoordinate(localFrom, round2)
+        number delta1 = GetCoordinate(localDelta, round1)
+        number delta2 = GetCoordinate(localDelta, round2)
+        number a = delta1 * delta1 + delta2 * delta2
+        number b = from1 * delta1 + from2 * delta2
+        number c = from1 * from1 + from2 * from2 - radius * radius
+
+        if a < 0.0000001
+            // The ray runs parallel to the axis, so it misses unless it
+            // already lies within the radius.
+            if c > 0
+                return false
+            end
+        else
+            number discriminant = b * b - a * c
+            if discriminant < 0
+                return false
+            end
+            number root = math:SquareRoot(discriminant)
+            number first = (-b - root) / a
+            number second = (-b + root) / a
+            if first > enter
+                enter = first
+                enterPart = 1
+            end
+            if second < leave
+                leave = second
+            end
+            if enter > leave
+                return false
+            end
+        end
+
+        // An enterPart of -1 means the ray starts inside the cylinder, which
+        // does not count as a hit. Otherwise the hit must be closer than the
+        // closest one already in the result.
+        if enterPart = -1 or enter >= result:GetFraction()
+            return false
+        end
+
+        result:SetHit(true)
+        result:SetFraction(enter)
+
+        // Hit point in world space: from + (to - from) * enter
+        Vector3 hitPoint = result:GetHitPointWorldSpace()
+        hitPoint:Set(to)
+        hitPoint:Subtract(from)
+        hitPoint:Scale(enter)
+        hitPoint:Add(from)
+
+        // Normal in the cylinder's space, then rotated into world space.
+        Vector3 normal = result:GetHitNormalWorldSpace()
+        normal:Set(0, 0, 0)
+        if enterPart = 0
+            // A cap: straight along the axis.
+            SetCoordinate(normal, axis, capSign)
+        else
+            // The side: straight out from the axis through the hit point.
+            SetCoordinate(normal, round1, from1 + delta1 * enter)
+            SetCoordinate(normal, round2, from2 + delta2 * enter)
+        end
+        transform:GetBasis():Transform(normal)
+        normal:Normalize()
+        return true
+    end
+    
     /*
     This action approximates the inertia of the cylinder with an inertia of a
     box. The mass moment of inertia is also calculated relative to the local

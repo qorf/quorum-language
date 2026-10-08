@@ -12,6 +12,7 @@ use Libraries.Game.Collision.CollisionPointsResult3D
 use Libraries.Game.Collision.Narrowphase.ConvexConvexPairSolver
 use Libraries.Game.Collision.LocalCollisionPoints3D
 use Libraries.Game.Collision.CollisionPoint3D
+use Libraries.Game.Collision.RayCastResult3D
 
 class HeightmapTerrainShape is Box, ConcaveShape3D
     Terrain terrain = undefined
@@ -42,6 +43,188 @@ class HeightmapTerrainShape is Box, ConcaveShape3D
         tempVertices:Add(v1)
         tempVertices:Add(v2)
         tempVertices:Add(v3)
+    end
+    
+    
+    /*
+    This action checks whether a straight line segment, called a ray, touches
+    this terrain. The ray starts at "from" and ends at "to," both in world
+    space. The terrain's surface is made of two triangles for each square
+    cell of its height map, and the ray hits the first of those triangles it
+    reaches.
+
+    Where the terrain sits in the world comes from the terrain's own
+    transform, which includes its position, rotation, and scale. That is the
+    same transform used to draw it and to collide with it. The "transform"
+    parameter is accepted so that terrain can be used like any other shape,
+    but it is not used.
+
+    Rather than testing every triangle, this action walks across the height
+    map one cell at a time, in the order the ray passes over them, and tests
+    only the two triangles in each cell. It stops as soon as the cells left
+    to visit are all farther along the ray than the closest hit found so
+    far. A straight down ray, like the one a vehicle's suspension uses, only
+    visits one cell.
+
+    Either side of the terrain's surface can be hit, so a ray coming up from
+    underneath hits it as well. The hit normal is the normal of the triangle
+    that was hit, turned to face the ray. A ray that passes beyond the edges
+    of the height map does not hit anything out there.
+
+    The result works as both an input and an output. Its fraction is the
+    farthest point along the ray that still counts as a hit, where 0 is
+    "from" and 1 is "to." This action only reports a hit that is closer than
+    the result's current fraction. When it finds one, it sets the result's
+    hit flag to true, and sets its fraction, its hit point in world space,
+    and its surface normal in world space. When there is no closer hit, the
+    result is left unchanged. Call SetToDefault on the result before the
+    first shape so that any hit along the whole ray counts.
+
+    This action does not set the result's hit body, because a shape does not
+    know which item it belongs to. The caller should set the hit body when
+    this action returns true.
+
+    Attribute: Parameter from The world-space point where the ray starts.
+    Attribute: Parameter to The world-space point where the ray ends.
+    Attribute: Parameter transform Not used. The terrain's own transform places it in the world.
+    Attribute: Parameter result Holds the closest hit found so far. It is updated if this terrain is hit closer than the result's current fraction.
+    Attribute: Returns true if this terrain was hit closer than the result's previous fraction, and false otherwise.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Worlds.Terrain
+        use Libraries.Game.Collision.RayCastResult3D
+        use Libraries.Compute.Vector3
+        Terrain terrain
+        terrain:LoadHeightMap("Assets/HeightMap.png")
+        // A ray straight down from high above the terrain.
+        Vector3 from
+        from:Set(10, 100, 10)
+        Vector3 to
+        to:Set(10, -100, 10)
+        RayCastResult3D result
+        result:SetToDefault()
+        if terrain:GetShape():RayCast(from, to, terrain:GetCollisionTransform(), result)
+            output "The ground under (10, 10) is at a height of " + result:GetHitPointWorldSpace():GetY()
+        end
+    */
+    action RayCast(Vector3 from, Vector3 to, PhysicsPosition3D transform, RayCastResult3D result) returns boolean
+        if terrain = undefined
+            return false
+        end
+
+        // A height map with W by H points has W - 1 by H - 1 cells.
+        integer cellCountX = terrain:GetPixelWidth() - 1
+        integer cellCountZ = terrain:GetPixelHeight() - 1
+        if cellCountX < 1 or cellCountZ < 1
+            return false
+        end
+
+        // The terrain's matrix takes a point on the height map grid, written
+        // as (column, height, row), to the world. Its inverse brings the ray
+        // onto the grid, where each cell is one unit wide in x and z. It is
+        // copied first, because Inverse changes the matrix it is called on.
+        Matrix4 gridToWorld = terrain:GetTransform()
+        Matrix4 worldToGrid
+        worldToGrid:Set(gridToWorld)
+        worldToGrid:Inverse()
+
+        Vector3 gridFrom
+        worldToGrid:TransformWorldCoordinate(from, gridFrom)
+        Vector3 gridTo
+        worldToGrid:TransformWorldCoordinate(to, gridTo)
+
+        // The triangles are tested in world space, so they need no transform
+        // of their own. A new PhysicsPosition3D is the identity.
+        PhysicsPosition3D identity
+
+        // Set up a walk across the grid's cells in the order the ray passes
+        // over them, looking only at x and z. For each axis, "cross" is the
+        // fraction along the ray where it next moves into a new column or
+        // row, and "span" is how much farther along the ray the one after
+        // that is. An axis the ray does not move along never crosses, which
+        // is shown by a cross of 2, past the end of the ray.
+        integer cellX = cast(integer, math:Floor(gridFrom:GetX()))
+        integer cellZ = cast(integer, math:Floor(gridFrom:GetZ()))
+        number deltaX = gridTo:GetX() - gridFrom:GetX()
+        number deltaZ = gridTo:GetZ() - gridFrom:GetZ()
+
+        integer stepX = 0
+        number spanX = 0
+        number crossX = 2
+        if deltaX > 0.0000001
+            stepX = 1
+            spanX = 1 / deltaX
+            crossX = (cellX + 1 - gridFrom:GetX()) * spanX
+        elseif deltaX < -0.0000001
+            stepX = -1
+            spanX = -1 / deltaX
+            crossX = (gridFrom:GetX() - cellX) * spanX
+        end
+
+        integer stepZ = 0
+        number spanZ = 0
+        number crossZ = 2
+        if deltaZ > 0.0000001
+            stepZ = 1
+            spanZ = 1 / deltaZ
+            crossZ = (cellZ + 1 - gridFrom:GetZ()) * spanZ
+        elseif deltaZ < -0.0000001
+            stepZ = -1
+            spanZ = -1 / deltaZ
+            crossZ = (gridFrom:GetZ() - cellZ) * spanZ
+        end
+
+        boolean hitAnything = false
+        boolean walking = true
+        repeat while walking
+            // Cells beyond the edges of the height map have no triangles.
+            if cellX >= 0 and cellX < cellCountX and cellZ >= 0 and cellZ < cellCountZ
+                if RayCastCell(from, to, gridToWorld, identity, cellX, cellZ, true, result)
+                    hitAnything = true
+                end
+                if RayCastCell(from, to, gridToWorld, identity, cellX, cellZ, false, result)
+                    hitAnything = true
+                end
+            end
+
+            // Every point in the next cell is at least nextCross along the
+            // ray. Once that is no closer than the best hit so far, which is
+            // 1 if there is no hit, nothing left can be closer. This also
+            // stops a ray that does not move in x or z after its one cell.
+            number nextCross = crossX
+            if crossZ < nextCross
+                nextCross = crossZ
+            end
+
+            if nextCross >= result:GetFraction()
+                walking = false
+            elseif crossX < crossZ
+                cellX = cellX + stepX
+                crossX = crossX + spanX
+            else
+                cellZ = cellZ + stepZ
+                crossZ = crossZ + spanZ
+            end
+        end
+
+        return hitAnything
+    end
+
+    /*
+    This action is used by "action RayCast." It tests the ray against one of
+    the two triangles in the height map cell at x, z. The triangle's corners
+    are moved into world space first, so the triangle's hit point and normal
+    are already in world space, even if the terrain is rotated or scaled.
+    */
+    private action RayCastCell(Vector3 from, Vector3 to, Matrix4 gridToWorld, PhysicsPosition3D identity,
+            integer x, integer z, boolean leftTriangle, RayCastResult3D result) returns boolean
+        terrain:FillAtPixel(x, z, tempVertices, tempTriangleBox, leftTriangle)
+        gridToWorld:TransformWorldCoordinate(tempVertices:Get(0), worldVertex0)
+        gridToWorld:TransformWorldCoordinate(tempVertices:Get(1), worldVertex1)
+        gridToWorld:TransformWorldCoordinate(tempVertices:Get(2), worldVertex2)
+        triangle:Set(worldVertex0, worldVertex1, worldVertex2)
+        return triangle:RayCast(from, to, identity, result)
     end
     
     
