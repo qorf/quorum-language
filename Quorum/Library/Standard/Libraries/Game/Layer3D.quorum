@@ -49,6 +49,7 @@ use Libraries.Game.Graphics.Vulkan.VulkanPainter3D
 use Libraries.Game.Graphics.Models.Vulkan.EnvironmentVulkan
 use Libraries.Game.Graphics.Models.OpenGL.Attributes.EnvironmentOpenGL
 use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Collision.RayCastResult3D
 
 /*
 The Layer3D class is used to manage a number of 3D objects, as well as manage
@@ -177,6 +178,94 @@ class Layer3D is Layer
         painter:SetEnvironment(environment)
         painter:SetCamera(camera)
     end
+    
+    
+    /*
+    This action checks which item in this layer a straight line segment,
+    called a ray, touches first. The ray starts at "from" and ends at "to,"
+    both in world space. Every collidable item in the layer can be hit.
+
+    This is a physics query. It tests each item's collision shape, not its
+    drawn model, so it agrees with what the physics system considers solid.
+    It is different from the mouse picking this layer uses to find which item
+    is under the pointer.
+
+    The result is reset before the search begins. If the ray hits anything,
+    the result holds the item that was hit, the fraction of the way along the
+    ray where the hit happened (0 is "from" and 1 is "to"), the hit point in
+    world space, and the surface normal at that point.
+
+    Attribute: Parameter from The world-space point where the ray starts.
+    Attribute: Parameter to The world-space point where the ray ends.
+    Attribute: Parameter result Receives the closest hit. It is reset before the search begins.
+    Attribute: Returns true if the ray hit an item, and false otherwise.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Model
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Collision.RayCastResult3D
+        use Libraries.Compute.Vector3
+
+        class Main is Game
+            Model ground
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                EnablePhysics3D(true)
+                Color color
+                // A flat ground whose top surface is at y = 0.
+                ground:LoadBox(10, 1, 10, color:Gray())
+                ground:SetPosition(0, -0.5, 0)
+                ground:EnablePhysics(true)
+                ground:SetMass(0)
+                Add(ground)
+            end
+
+            action Update(number seconds)
+                // A ray straight down from 10 units above the ground.
+                Vector3 from
+                from:Set(0, 10, 0)
+                Vector3 to
+                to:Set(0, -10, 0)
+                RayCastResult3D result
+                if GetCurrentLayer3D():RayCast(from, to, result)
+                    // The ray reaches the top of the ground halfway down,
+                    // so this outputs a fraction of about 0.5.
+                    output "Hit at fraction " + result:GetFraction()
+                end
+            end
+        end
+    */
+    action RayCast(Vector3 from, Vector3 to, RayCastResult3D result) returns boolean
+        return collisionManager:RayCastPhysics(from, to, result)
+    end
+
+    /*
+    This action checks which item in this layer a straight line segment,
+    called a ray, touches first, skipping one item. The ray starts at "from"
+    and ends at "to," both in world space. Skipping an item is useful when
+    the ray starts on or inside something that should not count. For
+    example, a vehicle skips its own body when it checks the ground under
+    its wheels.
+
+    This is a physics query that tests collision shapes. See the other
+    RayCast action in this class for what the result holds.
+
+    Attribute: Parameter from The world-space point where the ray starts.
+    Attribute: Parameter to The world-space point where the ray ends.
+    Attribute: Parameter ignore An item the ray passes through, or undefined to test every item.
+    Attribute: Parameter result Receives the closest hit. It is reset before the search begins.
+    Attribute: Returns true if the ray hit an item, and false otherwise.
+    */
+    action RayCastPhysics(Vector3 from, Vector3 to, Item3D ignore, RayCastResult3D result) returns boolean
+        return collisionManager:RayCastPhysics(from, to, ignore, result)
+    end
+    
 
     /* This allows us to know if collisions are on or off for the layer. */
     action IsColliding returns boolean

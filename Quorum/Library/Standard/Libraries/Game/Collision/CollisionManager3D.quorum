@@ -7,6 +7,11 @@ use Libraries.Interface.Events.CollisionListener3D
 use Libraries.Language.Object
 use Libraries.Game.Collision.Item3DNode
 use Libraries.Game.Collision.CollisionEdge3D
+use Libraries.Compute.Vector3
+use Libraries.Game.BoundingBox
+use Libraries.Containers.List
+use Libraries.Containers.Iterator
+use Libraries.Game.Collision.Shapes.CollisionShape3D
 
 package Libraries.Game.Collision
 
@@ -32,6 +37,82 @@ class CollisionManager3D
     */
     action SetLayer(Layer3D layer)
         myLayer = layer
+    end
+    
+    
+    /*
+    This action checks which item a straight line segment, called a ray,
+    touches first. The ray starts at "from" and ends at "to," both in world
+    space. Every collidable item managed by this CollisionManager3D can be
+    hit. This is the same as calling RayCast with an ignored item of
+    undefined.
+
+    This is a physics query. It tests each item's collision shape, not its
+    drawn model, so it agrees with what the physics system considers solid.
+
+    Attribute: Parameter from The world-space point where the ray starts.
+    Attribute: Parameter to The world-space point where the ray ends.
+    Attribute: Parameter result Receives the closest hit. It is reset before the search begins.
+    Attribute: Returns true if the ray hit an item, and false otherwise.
+    */
+    action RayCastPhysics(Vector3 from, Vector3 to, RayCastResult3D result) returns boolean
+        Item3D none = undefined
+        return RayCastPhysics(from, to, none, result)
+    end
+
+    /*
+    This action checks which item a straight line segment, called a ray,
+    touches first, skipping one item. The ray starts at "from" and ends at
+    "to," both in world space. Skipping an item is useful when the ray starts
+    on or inside something that should not count. For example, a vehicle
+    skips its own body when it checks the ground under its wheels.
+
+    The result is reset before the search begins. If the ray hits anything,
+    the result holds the closest hit: the item that was hit, the fraction of
+    the way along the ray where the hit happened (0 is "from" and 1 is "to"),
+    the hit point in world space, and the surface normal at that point, which
+    faces back toward the start of the ray. If the ray hits nothing, the
+    result is left in its default state.
+
+    Only collidable items with a collision shape can be hit. A ray that
+    starts inside an item does not hit that item. Each kind of shape decides
+    how it is hit. See the RayCast action of Box, Sphere, Cylinder, Triangle,
+    and HeightmapTerrainShape for the details.
+
+    Attribute: Parameter from The world-space point where the ray starts.
+    Attribute: Parameter to The world-space point where the ray ends.
+    Attribute: Parameter ignore An item the ray passes through, or undefined to test every item.
+    Attribute: Parameter result Receives the closest hit. It is reset before the search begins.
+    Attribute: Returns true if the ray hit an item, and false otherwise.
+    */
+    action RayCastPhysics(Vector3 from, Vector3 to, Item3D ignore, RayCastResult3D result) returns boolean
+        result:SetToDefault()
+
+        // Only items whose bounding boxes overlap the box around the ray can
+        // be hit, so the broadphase narrows the search to those.
+        BoundingBox rayBounds
+        rayBounds:Set(from, to)
+        List<Item3DNode> candidates = broadphase:Query(rayBounds)
+
+        // Each shape only reports a hit closer than the result's current
+        // fraction, so after the loop the result holds the closest hit.
+        boolean hitAnything = false
+        Iterator<Item3DNode> iterator = candidates:GetIterator()
+        repeat while iterator:HasNext()
+            Item3D item = iterator:Next():GetItem()
+            if item not= ignore
+                CollisionShape3D shape = item:GetShape()
+                if shape not= undefined
+                    if shape:RayCast(from, to, item:GetCollisionTransform(), result)
+                        // A shape does not know which item owns it, so the
+                        // hit body is set here.
+                        result:SetHitBody(item)
+                        hitAnything = true
+                    end
+                end
+            end
+        end
+        return hitAnything
     end
 
     /*
