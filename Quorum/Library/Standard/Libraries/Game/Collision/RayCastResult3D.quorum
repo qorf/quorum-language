@@ -4,13 +4,14 @@ use Libraries.Interface.Item3D
 use Libraries.Compute.Vector3
 
 /*
-Stores the result of a raycast through a physics scene. Check GetHit to see
+Stores the result of a raycast through a physics scene. Check IsHit to see
 whether the ray touched an object. When it did, GetHitBody returns that object,
-GetHitPoint returns the contact position in world space, and GetHitNormal
-returns the surface direction at the contact point. GetFraction tells where
-the hit lies along the ray segment: 0 is the start and 1 is the end. If the
-ray hits nothing, hit is false, hitBody is undefined, and fraction is 1. The
-contact point and normal are only useful when hit is true.
+GetHitPointWorldSpace returns the contact position in world space, and
+GetHitNormalWorldSpace returns the surface direction at the contact point.
+GetFraction tells where the hit lies along the ray segment: 0 is the start and
+1 is the end. If the ray hits nothing, IsHit returns false, GetHitBody returns
+undefined, and GetFraction returns 1. The contact point and normal are only
+useful when IsHit returns true.
 */
 class RayCastResult3D
     boolean hit = false
@@ -20,7 +21,7 @@ class RayCastResult3D
     number fraction = 1.0
     
     /*Sets the raycast result to the default, which is 0,0,0 for all vectors, no hit, no body, and 
-1.0 for friction. */
+1.0 for fraction. */
     action SetToDefault
         hitBody = undefined
         hit = false
