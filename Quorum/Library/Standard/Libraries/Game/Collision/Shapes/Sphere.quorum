@@ -3,14 +3,140 @@ package Libraries.Game.Collision.Shapes
 use Libraries.Compute.Vector3
 use Libraries.Game.BoundingBox
 use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Game.Collision.RayCastResult3D
+use Libraries.Compute.Math
 
 /*
 This class describes the sphere shape in 3D.
 */
 class Sphere is CollisionShape3D
+    Math math
     on create
         parent:CollisionShape3D:SetType(parent:CollisionShape3D:SPHERE)
         parent:CollisionShape3D:localScaling:Set(1, 1, 1)
+    end
+    
+    
+    /*
+    This action checks whether a straight line segment, called a ray, touches
+    this sphere. The ray starts at "from" and ends at "to," both in world
+    space. The sphere's center is the origin of "transform," which is normally
+    the collision transform of the item that owns the sphere. A sphere looks
+    the same however it is turned, so only the transform's position matters.
+
+    The sphere is hit at the first point where the ray reaches its surface,
+    which is GetRadius away from the center. The hit normal points from the
+    center out through that point, so it faces back toward the start of the
+    ray. A ray that starts inside the sphere, or exactly on its surface, does
+    not count as a hit. This matches how Box handles a ray that starts inside
+    it.
+
+    The result works as both an input and an output. Its fraction is the
+    farthest point along the ray that still counts as a hit, where 0 is
+    "from" and 1 is "to." This action only reports a hit that is closer than
+    the result's current fraction. When it finds one, it sets the result's
+    hit flag to true, and sets its fraction, its hit point in world space,
+    and its surface normal in world space. When there is no closer hit, the
+    result is left unchanged. Call SetToDefault on the result before the
+    first shape so that any hit along the whole ray counts.
+
+    This action does not set the result's hit body, because a shape does not
+    know which item it belongs to. The caller should set the hit body when
+    this action returns true.
+
+    Attribute: Parameter from The world-space point where the ray starts.
+    Attribute: Parameter to The world-space point where the ray ends.
+    Attribute: Parameter transform The position of this sphere in the world. Its origin is the sphere's center.
+    Attribute: Parameter result Holds the closest hit found so far. It is updated if this sphere is hit closer than the result's current fraction.
+    Attribute: Returns true if this sphere was hit closer than the result's previous fraction, and false otherwise.
+
+    Attribute: Example
+
+        use Libraries.Game.Collision.RayCastResult3D
+        use Libraries.Game.Collision.PhysicsPosition3D
+        use Libraries.Game.Collision.Shapes.Sphere
+        use Libraries.Compute.Vector3
+        // A sphere with a radius of 2, centered at (3, 0, 0).
+        Sphere sphere
+        sphere:SetRadius(2)
+        PhysicsPosition3D transform
+        transform:SetToIdentity()
+        transform:GetOrigin():Set(3, 0, 0)
+        // A ray straight down through the center of the sphere.
+        Vector3 from
+        from:Set(3, 10, 0)
+        Vector3 to
+        to:Set(3, -10, 0)
+        RayCastResult3D result
+        result:SetToDefault()
+        if sphere:RayCast(from, to, transform, result)
+            // The ray reaches the top of the sphere (y = 2) after 8 of its
+            // 20 units, so this outputs a fraction of 0.4. The hit point is
+            // (3, 2, 0) and the normal is (0, 1, 0).
+            output "Hit at fraction " + result:GetFraction()
+        end
+    */
+    action RayCast(Vector3 from, Vector3 to, PhysicsPosition3D transform, RayCastResult3D result) returns boolean
+        Vector3 center = transform:GetOrigin()
+        number radius = GetRadius()
+
+        // A point on the ray is from + delta * t, where t runs from 0 to 1.
+        Vector3 delta
+        delta:Set(to)
+        delta:Subtract(from)
+
+        // The ray starts at "offset" when measured from the sphere's center.
+        Vector3 offset
+        offset:Set(from)
+        offset:Subtract(center)
+
+        // The ray touches the surface where its distance from the center is
+        // exactly the radius. Squaring both sides gives a quadratic in t:
+        // a*t*t + 2*b*t + c = 0.
+        number a = delta:DotProduct(delta)
+        number b = offset:DotProduct(delta)
+        number c = offset:DotProduct(offset) - radius * radius
+
+        // A ray with no length cannot hit anything.
+        if a < 0.0000001
+            return false
+        end
+
+        // If c is zero or less, the ray starts inside the sphere or on it.
+        // If b is positive, the ray points away from the center, so it can
+        // only get farther from the sphere.
+        if c <= 0 or b > 0
+            return false
+        end
+
+        // A negative discriminant means the line misses the sphere.
+        number discriminant = b * b - a * c
+        if discriminant < 0
+            return false
+        end
+
+        // The smaller root is where the ray first enters the sphere. Because
+        // c > 0 and b <= 0, it is never negative.
+        number enter = (-b - math:SquareRoot(discriminant)) / a
+        if enter > 1 or enter >= result:GetFraction()
+            return false
+        end
+
+        result:SetHit(true)
+        result:SetFraction(enter)
+
+        // Hit point in world space: from + delta * enter
+        Vector3 hitPoint = result:GetHitPointWorldSpace()
+        hitPoint:Set(delta)
+        hitPoint:Scale(enter)
+        hitPoint:Add(from)
+
+        // The normal points from the center out through the hit point.
+        Vector3 normal = result:GetHitNormalWorldSpace()
+        normal:Set(hitPoint)
+        normal:Subtract(center)
+        normal:Normalize()
+        return true
     end
 
     /*

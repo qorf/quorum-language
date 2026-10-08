@@ -4,6 +4,7 @@ use Libraries.Compute.Vector3
 use Libraries.Containers.Array
 use Libraries.Game.BoundingBox
 use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Game.Collision.RayCastResult3D
 
 /*
 This class describes a single triangle in 3D. It is the convex shape used for
@@ -24,6 +25,172 @@ class Triangle is CollisionShape3D
         vertices:Add(vertex0)
         vertices:Add(vertex1)
         vertices:Add(vertex2)
+    end
+    
+    
+    /*
+    This action checks whether a straight line segment, called a ray, touches
+    this triangle. The ray starts at "from" and ends at "to," both in world
+    space. The triangle's corners are described relative to "transform,"
+    which places them in the world. For a triangle that belongs to a concave
+    shape, such as a HeightmapTerrainShape, this is normally the collision
+    transform of the item that owns that shape.
+
+    A triangle is flat, so the ray hits it only if it crosses the triangle's
+    plane at a point that lies inside its three edges. Either side of the
+    triangle can be hit. The hit normal is always turned to face the side the
+    ray came from, whichever way the corners wind. A ray that only touches
+    the plane at its start or end point, or that lies flat in the plane, does
+    not count as a hit. The collision margin is not used, which matches
+    Bullet.
+
+    The result works as both an input and an output. Its fraction is the
+    farthest point along the ray that still counts as a hit, where 0 is
+    "from" and 1 is "to." This action only reports a hit that is closer than
+    the result's current fraction. When it finds one, it sets the result's
+    hit flag to true, and sets its fraction, its hit point in world space,
+    and its surface normal in world space. When there is no closer hit, the
+    result is left unchanged. Call SetToDefault on the result before the
+    first shape so that any hit along the whole ray counts.
+
+    This action does not set the result's hit body, because a shape does not
+    know which item it belongs to. The caller should set the hit body when
+    this action returns true.
+
+    Attribute: Parameter from The world-space point where the ray starts.
+    Attribute: Parameter to The world-space point where the ray ends.
+    Attribute: Parameter transform The position and rotation that place this triangle's corners in the world.
+    Attribute: Parameter result Holds the closest hit found so far. It is updated if this triangle is hit closer than the result's current fraction.
+    Attribute: Returns true if this triangle was hit closer than the result's previous fraction, and false otherwise.
+
+    Attribute: Example
+
+        use Libraries.Game.Collision.RayCastResult3D
+        use Libraries.Game.Collision.PhysicsPosition3D
+        use Libraries.Game.Collision.Shapes.Triangle
+        use Libraries.Compute.Vector3
+        // A flat triangle lying on the ground (y = 0).
+        Vector3 corner0
+        corner0:Set(0, 0, 0)
+        Vector3 corner1
+        corner1:Set(4, 0, 0)
+        Vector3 corner2
+        corner2:Set(0, 0, 4)
+        Triangle triangle
+        triangle:Set(corner0, corner1, corner2)
+        PhysicsPosition3D transform
+        transform:SetToIdentity()
+        // A ray straight down through the triangle.
+        Vector3 from
+        from:Set(1, 10, 1)
+        Vector3 to
+        to:Set(1, -10, 1)
+        RayCastResult3D result
+        result:SetToDefault()
+        if triangle:RayCast(from, to, transform, result)
+            // The ray crosses y = 0 halfway along, so this outputs a fraction
+            // of 0.5. The corners wind so that the triangle's own normal
+            // points down, but the reported normal is (0, 1, 0), facing the
+            // ray.
+            output "Hit at fraction " + result:GetFraction()
+        end
+    */
+    action RayCast(Vector3 from, Vector3 to, PhysicsPosition3D transform, RayCastResult3D result) returns boolean
+        // Move the ray into the triangle's own space, where its corners are
+        // described. Fractions along the ray are the same in both spaces.
+        Vector3 localFrom
+        transform:InverseTransform(from, localFrom)
+        Vector3 localTo
+        transform:InverseTransform(to, localTo)
+
+        Vector3 vertex0 = vertices:Get(0)
+        Vector3 vertex1 = vertices:Get(1)
+        Vector3 vertex2 = vertices:Get(2)
+
+        // The normal of the triangle's plane. It is not normalized yet,
+        // because the edge tolerance below is scaled by its length.
+        Vector3 normal
+        normal:Set(vertex1)
+        normal:Subtract(vertex0)
+        Vector3 secondEdge
+        secondEdge:Set(vertex2)
+        secondEdge:Subtract(vertex0)
+        normal:CrossProduct(secondEdge)
+
+        // How far each end of the ray sits above or below the plane. If
+        // both are on the same side, or either is exactly on the plane, the
+        // ray does not cross it.
+        number planeDistance = vertex0:DotProduct(normal)
+        number distanceFrom = normal:DotProduct(localFrom) - planeDistance
+        number distanceTo = normal:DotProduct(localTo) - planeDistance
+        if distanceFrom * distanceTo >= 0
+            return false
+        end
+
+        // Where along the ray it crosses the plane.
+        number enter = distanceFrom / (distanceFrom - distanceTo)
+        if enter >= result:GetFraction()
+            return false
+        end
+
+        // The crossing point must be inside all three edges. A small
+        // tolerance, scaled to the triangle's size, lets a ray that lands
+        // exactly on an edge still count as a hit.
+        number edgeTolerance = -0.0001 * normal:LengthSquared()
+
+        Vector3 point
+        point:Set(localTo)
+        point:Subtract(localFrom)
+        point:Scale(enter)
+        point:Add(localFrom)
+
+        Vector3 toVertex0
+        toVertex0:Set(vertex0)
+        toVertex0:Subtract(point)
+        Vector3 toVertex1
+        toVertex1:Set(vertex1)
+        toVertex1:Subtract(point)
+        Vector3 toVertex2
+        toVertex2:Set(vertex2)
+        toVertex2:Subtract(point)
+
+        Vector3 edgeCheck
+        edgeCheck:Set(toVertex0)
+        edgeCheck:CrossProduct(toVertex1)
+        if edgeCheck:DotProduct(normal) < edgeTolerance
+            return false
+        end
+        edgeCheck:Set(toVertex1)
+        edgeCheck:CrossProduct(toVertex2)
+        if edgeCheck:DotProduct(normal) < edgeTolerance
+            return false
+        end
+        edgeCheck:Set(toVertex2)
+        edgeCheck:CrossProduct(toVertex0)
+        if edgeCheck:DotProduct(normal) < edgeTolerance
+            return false
+        end
+
+        result:SetHit(true)
+        result:SetFraction(enter)
+
+        // Hit point in world space: from + (to - from) * enter
+        Vector3 hitPoint = result:GetHitPointWorldSpace()
+        hitPoint:Set(to)
+        hitPoint:Subtract(from)
+        hitPoint:Scale(enter)
+        hitPoint:Add(from)
+
+        // If the ray started behind the triangle, flip the normal so it
+        // faces the ray. Then rotate it into world space.
+        Vector3 hitNormal = result:GetHitNormalWorldSpace()
+        hitNormal:Set(normal)
+        if distanceFrom < 0
+            hitNormal:Scale(-1)
+        end
+        transform:GetBasis():Transform(hitNormal)
+        hitNormal:Normalize()
+        return true
     end
 
     /*
