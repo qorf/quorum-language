@@ -233,7 +233,7 @@ class Layer3D is Layer
                 Vector3 to
                 to:Set(0, -10, 0)
                 RayCastResult3D result
-                if GetCurrentLayer3D():RayCast(from, to, result)
+                if GetCurrentLayer3D():RayCastPhysics(from, to, result)
                     // The ray reaches the top of the ground halfway down,
                     // so this outputs a fraction of about 0.5.
                     output "Hit at fraction " + result:GetFraction()
@@ -241,7 +241,7 @@ class Layer3D is Layer
             end
         end
     */
-    action RayCast(Vector3 from, Vector3 to, RayCastResult3D result) returns boolean
+    action RayCastPhysics(Vector3 from, Vector3 to, RayCastResult3D result) returns boolean
         return collisionManager:RayCastPhysics(from, to, result)
     end
 

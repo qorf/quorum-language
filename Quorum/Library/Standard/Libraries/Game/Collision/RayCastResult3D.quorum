@@ -73,7 +73,7 @@ class RayCastResult3D
     Sets the ray's contact position in world space.
     */
     action SetHitPointWorldSpace(Vector3 hitPoint)
-        me:hitPointWorldSpace = hitPoint
+        me:hitPointWorldSpace:Set(hitPoint)
     end
 
     /*
@@ -88,7 +88,7 @@ class RayCastResult3D
     Sets the surface direction at the contact point, in world space.
     */
     action SetHitNormalWorldSpace(Vector3 hitNormalWorldSpace)
-        me:hitNormalWorldSpace = hitNormalWorldSpace
+        me:hitNormalWorldSpace:Set(hitNormalWorldSpace)
     end
 
     /*
