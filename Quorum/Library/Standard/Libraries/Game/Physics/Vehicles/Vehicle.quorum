@@ -55,7 +55,6 @@ class Vehicle is PhysicsBehavior3D
     constant number SIDE_CONTACT_DAMPING = 0.2
     Item3D chassis = undefined
     Array<Suspension> wheels
-    number steeringClamp = 0.30
     number currentSpeedKilometersPerHour = 0
     RayCastResult3D raycastResult
     
@@ -163,14 +162,18 @@ class Vehicle is PhysicsBehavior3D
     /*
     Sets how sharply this wheel turns the vehicle. The value is in radians.
     A value of 0 points the wheel straight ahead. Positive and negative values
-    turn it in opposite directions. The value is limited by the vehicle's
-    steering clamp.
-    Attribute: Parameter value The steering angle in radians
-    Attribute: Parameter wheelIndex The index of the wheel to steer
-*/
+    turn it in opposite directions. The angle is used as given, so keep it to
+    a sensible range. Most cars steer no more than about 0.5 radians (about
+    30 degrees) to each side. Only wheels with steering enabled turn. To
+    limit steering automatically, use a VehicleMovementBehavior and its
+    SetMaximumSteering action.
+
+    Attribute: Parameter value The steering angle in radians.
+    Attribute: Parameter wheelIndex The index of the wheel to steer.
+    */
     action SetSteering(number value, integer wheelIndex)
         Suspension wheel = wheels:Get(wheelIndex)
-        wheel:SetSteering(Clamp(value, -steeringClamp, steeringClamp))
+        wheel:SetSteering(value)
     end
 
     /*
@@ -186,20 +189,22 @@ class Vehicle is PhysicsBehavior3D
     end
 
     /*
-    Sets the braking limit for this wheel. The value limits how much the wheel
-    can slow the vehicle during a physics update. It is an impulse limit, not
-    a force in newtons. An impulse is a short push or pull that changes an
-    object's motion. The limit is the largest change this wheel can make in
-    one update. Negative values are treated as 0. Set it to 0 to release the
-    brake.
+    Sets the braking force for this wheel, in newtons. The brake slows the
+    wheel along the ground with at most this force, so the vehicle stops
+    without the wheel being pushed backward. The brake is only used while the
+    wheel has no engine force. Negative values are treated as 0. Set it to 0
+    to release the brake.
 
-    As a rough starting point, for a 1,200 kg car with four wheels on the
-    ground, try 750 for a soft brake or 3,000 for a hard brake. These values
-    need tuning for the vehicle's speed and tire grip.
+    As a starting point, divide the vehicle's mass times the slowing you want
+    by the number of braked wheels. For example, to slow an 800 kg vehicle
+    at 7.5 meters per second each second (about three quarters of gravity)
+    with four braked wheels, use 800 * 7.5 / 4 = 1500. Very strong brakes on
+    a tall vehicle can tip it forward, and grippy tires make that more
+    likely.
 
-    Attribute: Parameter force The braking impulse limit for this wheel
-    Attribute: Parameter wheelIndex The index of the wheel to brake
-*/
+    Attribute: Parameter force The braking force for this wheel, in newtons.
+    Attribute: Parameter wheelIndex The index of the wheel to brake.
+    */
     action SetBrake(number force, integer wheelIndex)
         Suspension wheel = wheels:Get(wheelIndex)
         wheel:SetBrake(math:MaximumOf(0, force))
@@ -430,7 +435,7 @@ chassis from the layer also removes the vehicle.*/
             contactNormalWorldSpace:Set(raycastResult:GetHitNormalWorldSpace())
             number hitDistance = rayLength * raycastResult:GetFraction()
             number travel = wheel:GetMaxSuspensionTravel()
-            wheel:SetSuspensionLength(Clamp(hitDistance - wheel:GetRadius(), wheel:GetRestLength() - travel, wheel:GetRestLength() + travel))
+            wheel:SetSuspensionLength(math:Clamp(hitDistance - wheel:GetRadius(), wheel:GetRestLength() - travel, wheel:GetRestLength() + travel))
 
             Vector3 chassisRelativePoint
             chassisRelativePoint:Set(contactPointWorldSpace)
@@ -455,7 +460,7 @@ chassis from the layer also removes the vehicle.*/
             end
             // Bullet scales its spring and damping response by the chassis mass.
             wheel:SetSuspensionForce((wheel:GetSuspensionStiffness() * compression - damping * normalSpeed) * chassis:GetMass())
-            wheel:SetSuspensionForce(Clamp(wheel:GetSuspensionForce(), 0, wheel:GetMaxSuspensionForce()))
+            wheel:SetSuspensionForce(math:Clamp(wheel:GetSuspensionForce(), 0, wheel:GetMaxSuspensionForce()))
 
             // Store suspension impulse for deferred application
             Vector3 suspensionImpulse = wheel:GetSuspensionImpulse()
@@ -724,8 +729,12 @@ chassis from the layer also removes the vehicle.*/
                 if wheel:GetEngineForce() not= 0
                     forwardImpulse = wheel:GetEngineForce() * timeStep
                 elseif forwardDenominator > MINIMUM_IMPULSE_DENOMINATOR and wheel:GetBrake() > 0
+                    // The brake is a force in newtons. Over one physics step it
+                    // can change the wheel's speed by at most force * timeStep.
+                    // Bullet uses a raw per-step impulse limit here instead.
+                    number brakeImpulse = wheel:GetBrake() * timeStep
                     forwardImpulse = -forwardVelocity / forwardDenominator / groundedWheels
-                    forwardImpulse = Clamp(forwardImpulse, -wheel:GetBrake(), wheel:GetBrake())
+                    forwardImpulse = math:Clamp(forwardImpulse, -brakeImpulse, brakeImpulse)
                 end
 
                 //output "[TIRE-SOLVE] wheelIndex=" + i + " front=" + wheel:frontWheel + " steering=" + wheel:steering + " contactPoint=(" + wheel:contactPointWS:GetX() + "," + wheel:contactPointWS:GetY() + "," + wheel:contactPointWS:GetZ() + ") relativeVelocity=(" + relativeVelocity:GetX() + "," + relativeVelocity:GetY() + "," + relativeVelocity:GetZ() + ") axle=(" + axle:GetX() + "," + axle:GetY() + "," + axle:GetZ() + ") forward=(" + forward:GetX() + "," + forward:GetY() + "," + forward:GetZ() + ") lateralSpeed=" + lateralVelocity + " forwardSpeed=" + forwardVelocity + " sideDenominator=" + sideDenominator + " forwardDenominator=" + forwardDenominator + " rawSideImpulse=" + sideImpulse + " rawForwardImpulse=" + forwardImpulse
@@ -840,24 +849,6 @@ chassis from the layer also removes the vehicle.*/
             totalTorque:Set(forwardTorque):Add(sideTorque)
         end
     end
-
-    /*
-    Returns the value limited to the given range. If the value is below the
-    lower limit, returns the lower limit. If it is above the upper limit,
-    returns the upper limit.
-    Attribute: Parameter value The number to limit
-    Attribute: Parameter lower The smallest value to return
-    Attribute: Parameter upper The largest value to return
-*/
-    private action Clamp(number value, number lower, number upper) returns number
-        if value < lower
-            return lower
-        elseif value > upper
-            return upper
-        end
-        return value
-    end
-
     
     /*
     Returns the item used as the vehicle's main body. The vehicle reads its

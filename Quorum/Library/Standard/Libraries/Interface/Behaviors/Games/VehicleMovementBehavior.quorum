@@ -1,0 +1,674 @@
+package Libraries.Interface.Behaviors.Games
+
+use Libraries.Game.Physics.Vehicles.Vehicle
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.KeyboardEvent
+use Libraries.Interface.Item3D
+use Libraries.Game.InputMonitor
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+
+/*
+A VehicleMovementBehavior drives a Vehicle. It turns three simple commands into
+engine, steering, and brake values for the vehicle's wheels:
+
+1. Throttle, from -1 to 1. Positive values drive forward and negative values
+   drive in reverse.
+2. Steering, from -1 to 1. Positive values turn left and negative values turn
+   right.
+3. Braking, from 0 to 1.
+
+By default, the commands come from the keyboard: the up and down arrows for
+throttle, the left and right arrows for steering, and the space bar for the
+brake. The keys can be changed. To drive the vehicle some other way, such as
+from a computer-controlled player, turn the keyboard off with
+SetUseKeyboard(false) and set the commands with SetThrottle, SetSteering,
+and SetBraking.
+
+A VehicleMovementBehavior is a Behavior, so the easiest way to use it is to add it
+to the vehicle's chassis with AddBehavior. The chassis then updates the
+behavior once per frame, before the physics runs, so the vehicle responds
+to input in the same frame. It can also be updated by hand, by
+calling its Update action from the game's Update action instead.
+
+Attribute: Example
+
+    use Libraries.Game.Physics.Vehicles.Vehicle
+    use Libraries.Game.Physics.Vehicles.VehicleMovementBehavior
+
+    // After the vehicle, its chassis, and its wheels are set up:
+    VehicleMovementBehavior movement
+    movement:SetVehicle(vehicle)
+    movement:SetEngineForce(4200)
+    movement:SetReverseForce(2800)
+    movement:AddDriveWheel(0)
+    movement:AddDriveWheel(1)
+    chassis:AddBehavior(movement)
+*/
+class VehicleMovementBehavior is Behavior
+    Math math
+    KeyboardEvent keys
+    InputMonitor monitor
+
+    Vehicle vehicle = undefined
+
+    // The commands the behavior is asked for, and the values it currently
+    // sends to the vehicle, which move toward the commands over time.
+    number throttle = 0
+    number steering = 0
+    number braking = 0
+    number currentThrottle = 0
+    number currentSteering = 0
+
+    // How the commands become forces and angles.
+    number engineForce = 1000
+    number reverseForce = 1000
+    number maximumSteering = 0.3
+    number brakeForce = 1500
+    number steeringSpeed = 0
+    number throttleSpeed = 0
+
+    // Which wheels are driven and braked. When empty, every wheel is used.
+    Array<integer> driveWheels
+    Array<integer> brakeWheels
+
+    // Keyboard input.
+    boolean useKeyboard = true
+    integer forwardKey = keys:W
+    integer reverseKey = keys:S
+    integer leftKey = keys:A
+    integer rightKey = keys:D
+    integer brakeKey = keys:SPACE
+
+    boolean active = true
+    boolean finished = false
+
+    /*
+    This action is called once per frame when the behavior has been added
+    to an item with AddBehavior. It can also be called by hand from a game's
+    Update action. It reads the keyboard, if the keyboard is turned on, and
+    then sends engine, steering, and brake values to the vehicle.
+
+    Attribute: Parameter seconds The time since the last frame, in seconds.
+    */
+    action Update(number seconds)
+        if vehicle = undefined
+            return now
+        end
+
+        if not active
+            throttle = 0
+            steering = 0
+            braking = 0
+        elseif useKeyboard
+            ReadKeyboard()
+        end
+
+        currentThrottle = MoveToward(currentThrottle, throttle, throttleSpeed * seconds)
+        currentSteering = MoveToward(currentSteering, steering, steeringSpeed * seconds)
+
+        ApplyToVehicle()
+    end
+
+    /*
+    This action returns whether the behavior is finished. A behavior
+    added with AddBehavior keeps running until Stop is called.
+
+    Attribute: Returns true if Stop has been called, and false otherwise.
+    */
+    action IsFinished returns boolean
+        return finished
+    end
+
+    /*
+    This action stops the behavior. If it was added to an item with
+    AddBehavior, the item removes it at the start of the next frame. The
+    vehicle's engine, steering, and brakes are released.
+    */
+    action Stop
+        finished = true
+        ReleaseVehicle()
+    end
+
+    /*
+    This action is called when the behavior is removed from an item. It
+    releases the vehicle's engine, steering, and brakes, so the vehicle does
+    not keep driving on its own.
+    */
+    action Dispose
+        ReleaseVehicle()
+    end
+
+    /*
+    Sets the commands from the keyboard. Holding both keys of a pair, such as
+    up and down, cancels them out.
+    */
+    private action ReadKeyboard
+        throttle = 0
+        if monitor:IsKeyPressed(forwardKey)
+            throttle = throttle + 1
+        end
+        if monitor:IsKeyPressed(reverseKey)
+            throttle = throttle - 1
+        end
+
+        steering = 0
+        if monitor:IsKeyPressed(leftKey)
+            steering = steering + 1
+        end
+        if monitor:IsKeyPressed(rightKey)
+            steering = steering - 1
+        end
+
+        braking = 0
+        if monitor:IsKeyPressed(brakeKey)
+            braking = 1
+        end
+    end
+
+    /*
+    Sends the current throttle, steering, and braking to the vehicle's
+    wheels. The vehicle only brakes a wheel that has no engine force, so
+    while braking, the drive wheels that are also braked get no engine force.
+    */
+    private action ApplyToVehicle
+        number force = 0
+        if currentThrottle > 0
+            force = currentThrottle * engineForce
+        elseif currentThrottle < 0
+            force = currentThrottle * reverseForce
+        end
+
+        number brake = braking * brakeForce
+        number angle = currentSteering * maximumSteering
+
+        integer count = vehicle:GetSuspensionSize()
+        integer i = 0
+        repeat while i < count
+            boolean braked = brake > 0 and IsBrakeWheel(i)
+
+            if braked
+                vehicle:SetEngineForce(0, i)
+                vehicle:SetBrake(brake, i)
+            else
+                vehicle:SetBrake(0, i)
+                if IsDriveWheel(i)
+                    vehicle:SetEngineForce(force, i)
+                else
+                    vehicle:SetEngineForce(0, i)
+                end
+            end
+
+            if vehicle:Get(i):IsSteeringEnabled()
+                vehicle:SetSteering(angle, i)
+            end
+            i = i + 1
+        end
+
+        if force not= 0 or brake > 0 or angle not= 0
+            WakeChassis()
+        end
+    end
+
+    /*
+    Sets every wheel's engine force, brake, and steering back to 0.
+    */
+    private action ReleaseVehicle
+        throttle = 0
+        steering = 0
+        braking = 0
+        currentThrottle = 0
+        currentSteering = 0
+
+        if vehicle = undefined
+            return now
+        end
+
+        integer i = 0
+        repeat while i < vehicle:GetSuspensionSize()
+            vehicle:SetEngineForce(0, i)
+            vehicle:SetBrake(0, i)
+            if vehicle:Get(i):IsSteeringEnabled()
+                vehicle:SetSteering(0, i)
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+    Wakes the chassis, so that a resting vehicle starts moving when it is
+    given a command.
+    */
+    private action WakeChassis
+        Item3D chassis = vehicle:GetChassis()
+        if chassis not= undefined
+            chassis:Simulate(true)
+        end
+    end
+
+    private action IsDriveWheel(integer index) returns boolean
+        return driveWheels:IsEmpty() or driveWheels:Has(index)
+    end
+
+    private action IsBrakeWheel(integer index) returns boolean
+        return brakeWheels:IsEmpty() or brakeWheels:Has(index)
+    end
+
+    /*
+    Moves a value toward a target by at most the given step. A step of 0 or
+    less moves straight to the target.
+    */
+    private action MoveToward(number value, number target, number step) returns number
+        if step <= 0
+            return target
+        end
+        if value < target
+            return math:MinimumOf(value + step, target)
+        end
+        return math:MaximumOf(value - step, target)
+    end
+
+    /*
+    This action returns the vehicle this behavior drives.
+
+    Attribute: Returns The vehicle, or undefined if none has been set.
+    */
+    action GetVehicle returns Vehicle
+        return vehicle
+    end
+
+    /*
+    This action sets the vehicle this behavior drives.
+
+    Attribute: Parameter vehicle The vehicle to drive.
+    */
+    action SetVehicle(Vehicle vehicle)
+        me:vehicle = vehicle
+    end
+
+    /*
+    This action returns the throttle command, from -1 for full reverse to 1
+    for full forward.
+
+    Attribute: Returns The throttle command.
+    */
+    action GetThrottle returns number
+        return throttle
+    end
+
+    /*
+    This action sets the throttle command, from -1 for full reverse to 1 for
+    full forward. Values outside that range are limited to it. When the
+    keyboard is turned on, the keyboard replaces this value every frame.
+
+    Attribute: Parameter throttle The throttle command.
+    */
+    action SetThrottle(number throttle)
+        me:throttle = math:Clamp(throttle, -1, 1)
+    end
+
+    /*
+    This action returns the steering command, from -1 for full right to 1
+    for full left.
+
+    Attribute: Returns The steering command.
+    */
+    action GetSteering returns number
+        return steering
+    end
+
+    /*
+    This action sets the steering command, from -1 for full right to 1 for
+    full left. Values outside that range are limited to it. When the keyboard
+    is turned on, the keyboard replaces this value every frame.
+
+    Attribute: Parameter steering The steering command.
+    */
+    action SetSteering(number steering)
+        me:steering = math:Clamp(steering, -1, 1)
+    end
+
+    /*
+    This action returns the braking command, from 0 for no brake to 1 for
+    full brake.
+
+    Attribute: Returns The braking command.
+    */
+    action GetBraking returns number
+        return braking
+    end
+
+    /*
+    This action sets the braking command, from 0 for no brake to 1 for full
+    brake. Values outside that range are limited to it. When the keyboard is
+    turned on, the keyboard replaces this value every frame.
+
+    Attribute: Parameter braking The braking command.
+    */
+    action SetBraking(number braking)
+        me:braking = math:Clamp(braking, 0, 1)
+    end
+
+    /*
+    This action returns the engine force used at full forward throttle.
+
+    Attribute: Returns The forward engine force.
+    */
+    action GetEngineForce returns number
+        return engineForce
+    end
+
+    /*
+    This action sets the engine force used at full forward throttle. The
+    default is 1000.
+
+    Attribute: Parameter force The forward engine force.
+    */
+    action SetEngineForce(number force)
+        engineForce = force
+    end
+
+    /*
+    This action returns the engine force used at full reverse throttle.
+
+    Attribute: Returns The reverse engine force, as a positive number.
+    */
+    action GetReverseForce returns number
+        return reverseForce
+    end
+
+    /*
+    This action sets the engine force used at full reverse throttle, as a
+    positive number. The default is 1000.
+
+    Attribute: Parameter force The reverse engine force.
+    */
+    action SetReverseForce(number force)
+        reverseForce = math:AbsoluteValue(force)
+    end
+
+    /*
+    This action returns the steering angle used at full steering, in
+    radians.
+
+    Attribute: Returns The largest steering angle.
+    */
+    action GetMaximumSteering returns number
+        return maximumSteering
+    end
+
+    /*
+    This action sets the steering angle used at full steering, in radians.
+    The default is 0.3. The vehicle may limit the angle further.
+
+    Attribute: Parameter angle The largest steering angle.
+    */
+    action SetMaximumSteering(number angle)
+        maximumSteering = math:AbsoluteValue(angle)
+    end
+
+    /*
+    This action returns the braking force applied to each braked wheel at
+    full braking, in newtons. The default is 1500.
+
+    The force relates to how quickly the vehicle slows down by this equation:
+
+        brake force = mass * deceleration / braked wheels
+
+    The mass is in kilograms, and the deceleration is in meters per second
+    each second. Turned around, the vehicle slows at about
+    brake force * braked wheels / mass. For example, with the default of 1500,
+    an 800 kilogram vehicle with four braked wheels slows at about
+    1500 * 4 / 800 = 2.5 meters per second each second, about a quarter of
+    gravity.
+
+    Attribute: Returns The braking force for each braked wheel, in newtons.
+    */
+    action GetBrakeForce returns number
+        return brakeForce
+    end
+
+    /*
+    This action sets the braking force applied to each braked wheel at full
+    braking, in newtons. The default is 1500.
+
+    To choose a value, multiply the vehicle's mass by how quickly it should
+    slow down, and divide by the number of braked wheels:
+
+        brake force = mass * deceleration / braked wheels
+
+    The mass is in kilograms, and the deceleration is in meters per second
+    each second. Gravity is about 9.8, so 4.9 gives a gentle stop and 7.5 to
+    9 gives a hard stop. For example, an 800 kilogram vehicle with four
+    braked wheels and a deceleration of 7.5 needs 800 * 7.5 / 4 = 1500.
+
+    Very strong brakes can tip a tall vehicle forward, especially with grippy
+    tires. If the vehicle flips when braking, lower this value.
+
+    Attribute: Parameter force The braking force for each braked wheel, in newtons.
+    */
+    action SetBrakeForce(number force)
+        brakeForce = math:AbsoluteValue(force)
+    end
+
+    /*
+    This action returns how fast the steering moves toward the steering
+    command, in steering units per second. 0 means it moves there at once.
+
+    Attribute: Returns The steering speed.
+    */
+    action GetSteeringSpeed returns number
+        return steeringSpeed
+    end
+
+    /*
+    This action sets how fast the steering moves toward the steering
+    command, in steering units per second, where 1 unit is full steering to
+    one side. For example, a speed of 2 takes half a second to turn from
+    straight ahead to full left. The default, 0, moves there at once.
+
+    Attribute: Parameter speed The steering speed.
+    */
+    action SetSteeringSpeed(number speed)
+        steeringSpeed = speed
+    end
+
+    /*
+    This action returns how fast the throttle moves toward the throttle
+    command, in throttle units per second. 0 means it moves there at once.
+
+    Attribute: Returns The throttle speed.
+    */
+    action GetThrottleSpeed returns number
+        return throttleSpeed
+    end
+
+    /*
+    This action sets how fast the throttle moves toward the throttle
+    command, in throttle units per second, where 1 unit is full throttle. The
+    default, 0, moves there at once.
+
+    Attribute: Parameter speed The throttle speed.
+    */
+    action SetThrottleSpeed(number speed)
+        throttleSpeed = speed
+    end
+
+    /*
+    This action makes the wheel at the given index a drive wheel, which the
+    engine force is applied to. If no drive wheels are added, every wheel is
+    a drive wheel.
+
+    Attribute: Parameter index The index of the wheel in the vehicle.
+    */
+    action AddDriveWheel(integer index)
+        if not driveWheels:Has(index)
+            driveWheels:Add(index)
+        end
+    end
+
+    /*
+    This action removes all drive wheels, so that every wheel is a drive
+    wheel again.
+    */
+    action EmptyDriveWheels
+        driveWheels:Empty()
+    end
+
+    /*
+    This action makes the wheel at the given index a brake wheel, which the
+    brake is applied to. If no brake wheels are added, every wheel is a brake
+    wheel.
+
+    Attribute: Parameter index The index of the wheel in the vehicle.
+    */
+    action AddBrakeWheel(integer index)
+        if not brakeWheels:Has(index)
+            brakeWheels:Add(index)
+        end
+    end
+
+    /*
+    This action removes all brake wheels, so that every wheel is a brake
+    wheel again.
+    */
+    action EmptyBrakeWheels
+        brakeWheels:Empty()
+    end
+
+    /*
+    This action returns whether the behavior is active. An inactive
+    behavior sends no throttle, steering, or brake to the vehicle.
+
+    Attribute: Returns true if the behavior is active, and false otherwise.
+    */
+    action IsActive returns boolean
+        return active
+    end
+
+    /*
+    This action turns the behavior on or off. While it is off, it sends no
+    throttle, steering, or brake to the vehicle and ignores the keyboard.
+    This is useful when the same keys are used for something else for a
+    while, such as operating a forklift's mast.
+
+    Attribute: Parameter active true to turn the behavior on, false to turn it off.
+    */
+    action SetActive(boolean active)
+        me:active = active
+    end
+
+    /*
+    This action returns whether the behavior reads the keyboard.
+
+    Attribute: Returns true if the keyboard is used, and false otherwise.
+    */
+    action IsUsingKeyboard returns boolean
+        return useKeyboard
+    end
+
+    /*
+    This action sets whether the behavior reads the keyboard. When it does,
+    the keyboard sets the throttle, steering, and braking commands every
+    frame. Turn it off to set the commands yourself.
+
+    Attribute: Parameter use true to read the keyboard, false to not.
+    */
+    action SetUseKeyboard(boolean useKeyboard)
+        me:useKeyboard = useKeyboard
+    end
+
+    /*
+    This action sets the key that drives forward. The default is the up
+    arrow. Use the constants in KeyboardEvent, such as keys:W.
+
+    Attribute: Parameter key The key code.
+    */
+    action SetForwardKey(integer key)
+        forwardKey = key
+    end
+
+    /*
+    This action returns the key that drives forward.
+
+    Attribute: Returns The key code.
+    */
+    action GetForwardKey returns integer
+        return forwardKey
+    end
+
+    /*
+    This action sets the key that drives in reverse. The default is the down
+    arrow.
+
+    Attribute: Parameter key The key code.
+    */
+    action SetReverseKey(integer key)
+        reverseKey = key
+    end
+
+    /*
+    This action returns the key that drives in reverse.
+
+    Attribute: Returns The key code.
+    */
+    action GetReverseKey returns integer
+        return reverseKey
+    end
+
+    /*
+    This action sets the key that steers left. The default is the left arrow.
+
+    Attribute: Parameter key The key code.
+    */
+    action SetLeftKey(integer key)
+        leftKey = key
+    end
+
+    /*
+    This action returns the key that steers left.
+
+    Attribute: Returns The key code.
+    */
+    action GetLeftKey returns integer
+        return leftKey
+    end
+
+    /*
+    This action sets the key that steers right. The default is the right
+    arrow.
+
+    Attribute: Parameter key The key code.
+    */
+    action SetRightKey(integer key)
+        rightKey = key
+    end
+
+    /*
+    This action returns the key that steers right.
+
+    Attribute: Returns The key code.
+    */
+    action GetRightKey returns integer
+        return rightKey
+    end
+
+    /*
+    This action sets the key that brakes. The default is the space bar.
+
+    Attribute: Parameter key The key code.
+    */
+    action SetBrakeKey(integer key)
+        brakeKey = key
+    end
+
+    /*
+    This action returns the key that brakes.
+
+    Attribute: Returns The key code.
+    */
+    action GetBrakeKey returns integer
+        return brakeKey
+    end
+end

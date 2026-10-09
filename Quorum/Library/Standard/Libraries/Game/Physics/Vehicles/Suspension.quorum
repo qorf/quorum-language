@@ -534,13 +534,9 @@ changes the wheel's direction only when steering is enabled.
         return steering
     end
 
-    /*
-Sets this wheel's steering angle in radians. The angle changes the wheel's
+    /*Sets this wheel's steering angle in radians. The angle changes the wheel's
 direction when steering is enabled, which can change the tire force at ground
-contact. This setter does not limit the angle. Vehicle.SetSteering limits
-it to the range set by steeringClamp, which defaults to about -0.30 to +0.30
-radians.
-*/
+contact. The angle is used as given and is not limited.*/
     action SetSteering(number steering)
         me:steering = steering
     end
@@ -565,16 +561,15 @@ reverse, and zero means no engine force.
     end
 
     /*
-Returns this wheel's braking limit. It caps the impulse used to slow the
-chassis along the wheel's forward direction. The limit is used when the wheel
-touches the ground and has no engine force. Zero means no braking.
+Returns this wheel's braking force, in newtons. The brake is used when the
+wheel touches the ground and has no engine force. Zero means no braking.
 */
     action GetBrake returns number
         return brake
     end
 
     /*
-Sets this wheel's braking limit. It caps the impulse used to slow the chassis
+Sets this wheel's braking force, in newtons. The brake slows the chassis
 along the wheel's forward direction when the wheel touches the ground and has
 no engine force. Use 0 or greater. This setter stores the value as given,
 while Vehicle.SetBrake changes negative values to 0.

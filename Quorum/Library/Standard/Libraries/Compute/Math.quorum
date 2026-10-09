@@ -635,4 +635,16 @@ shared class Math
         end
         return result
     end    
+    
+/*
+    Limits a value to the range from lower to upper.
+    */
+    action Clamp(number value, number lower, number upper) returns number
+        if value < lower
+            return lower
+        elseif value > upper
+            return upper
+        end
+        return value
+    end
 end
