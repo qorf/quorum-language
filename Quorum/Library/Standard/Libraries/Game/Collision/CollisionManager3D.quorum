@@ -41,6 +41,36 @@ class CollisionManager3D
     
     
     /*
+    Returns whether an item could have moved since the last step, so its
+    collisions need to be tested again. Items without physics are always
+    tested, because collision listeners rely on them. Unmovable items only
+    count when code has moved them. Other items count while they are awake,
+    or when code has moved them.
+    */
+    private action IsAwakeForCollision(Item3D item) returns boolean
+        if not item:IsPhysicsEnabled()
+            return true
+        end
+        if item:HasMoved()
+            return true
+        end
+        if item:IsUnmovable()
+            return false
+        end
+        return item:IsSimulated()
+    end
+
+    /*
+    Returns whether a pair needs its narrowphase this step. Like Bullet's
+    needsCollision, a pair where neither item is awake keeps its previous
+    contact points instead of being tested again.
+    */
+    private action NeedsNarrowphase(Item3D itemA, Item3D itemB) returns boolean
+        return IsAwakeForCollision(itemA) or IsAwakeForCollision(itemB)
+    end
+    
+    
+    /*
     This action checks which item a straight line segment, called a ray,
     touches first. The ray starts at "from" and ends at "to," both in world
     space. Every collidable item managed by this CollisionManager3D can be
@@ -295,7 +325,9 @@ class CollisionManager3D
                     collision = cNuke:GetNext()
                     Destroy(cNuke)
                 else
+                    if NeedsNarrowphase(itemA, itemB)
                     collision:DispatchCollision(listeners)
+                    end
                     collision = collision:GetNext()
                 end
             end
