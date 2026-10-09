@@ -1,0 +1,859 @@
+package Libraries.Game.Physics.Vehicles
+
+use Libraries.Game.Layer3D
+use Libraries.Interface.Item3D
+use Libraries.Containers.Array
+use Libraries.Compute.Vector3
+use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Compute.Math
+use Libraries.Compute.Matrix3
+use Libraries.Compute.Matrix4
+use Libraries.Containers.Iterator
+use Libraries.Game.Collision.RayCastResult3D
+use Libraries.Game.Physics.PhysicsBehavior3D
+
+
+/*
+    A vehicle in a physics game is a body that can move, turn, and react to the
+    ground and other objects. You can use this class to make vehicles that can react
+    in games involving physics. The word wheel and suspension are used here to mean the same
+    thing in this context. 
+
+    This vehicle's design is an example of a raycast vehicle. This means that it does 
+    not use physics for wheels and other pieces as you would normally setup. Instead, a
+    a raycast vehicle checks the ground beneath each wheel by sending a short
+    line downward. This is called a raycast. The distance to the ground helps 
+    decide how high the vehicle sits and how its wheels push against the ground. 
+    This lets it move over uneven ground without needing each wheel to be a full moving physics object.
+
+    You can add wheels, steer them, apply power to move forward or backward,
+    apply brakes, and check the vehicle's speed.
+*/
+class Vehicle is PhysicsBehavior3D
+    Math math
+    constant number COMPARE_TO_ZERO = math:RaiseToPower(2, -52)
+    constant number MINIMUM_IMPULSE_DENOMINATOR = 0.000001
+    constant number SIDE_CONTACT_DAMPING = 0.2
+    Item3D chassis = undefined
+    Array<Suspension> wheels
+    number steeringClamp = 0.30
+    number currentSpeedKilometersPerHour = 0
+    RayCastResult3D raycastResult
+    
+    /*
+        This action adds a wheel setup to the end of the vehicle's list.
+
+        Attribute: Parameter suspension The wheel setup to add.
+    */
+    action Add(Suspension suspension)
+        wheels:Add(suspension)
+    end
+    
+    /*
+        This action adds a wheel setup at a chosen place in the list. Places start
+        at 0. The new wheel is placed before the wheel already at that place.
+
+        Attribute: Parameter location The place where the wheel setup is added.
+        Attribute: Parameter suspension The wheel setup to add.
+    */
+    action Add(integer location, Suspension suspension)
+        wheels:Add(location, suspension)
+    end
+    
+    /*
+        This action adds a wheel setup after all the other wheel setups.
+
+        Attribute: Parameter suspension The wheel setup to add.
+    */
+    action AddToEnd(Suspension suspension)
+        wheels:AddToEnd(suspension)
+    end
+    
+    /*
+        This action adds a wheel setup at the start of the list. The other wheel
+        setups move one place to make room.
+
+        Attribute: Parameter suspension The wheel setup to add.
+    */
+    action AddToFront(Suspension suspension)
+        wheels:AddToFront(suspension)
+    end
+    
+    /*
+        This action tells you how many wheel setups are in the vehicle.
+
+        Attribute: Returns The number of wheel setups in the list.
+    */
+    action GetSuspensionSize returns integer
+        return wheels:GetSize()
+    end
+    
+    /*
+        This action gets the wheel setup at a place in the list. Places start at
+        0, so place 0 is the first wheel setup.
+
+        Attribute: Parameter location The place of the wheel setup.
+        Attribute: Returns The wheel setup at that place.
+    */
+    action Get(integer location) returns Suspension
+        return wheels:Get(location)
+    end
+    
+    /*
+        This action replaces the wheel setup at a place in the list. Places start
+        at 0. The place must already have a wheel setup.
+
+        Attribute: Parameter location The place to change.
+        Attribute: Parameter suspension The new wheel setup for that place.
+    */
+    action Set(integer location, Suspension suspension)
+        wheels:Set(location, suspension)
+    end
+    
+    /*
+        This action removes a wheel setup from a place in the list and returns
+        the removed setup. Places start at 0.
+
+        Attribute: Parameter location The place of the wheel setup to remove.
+        Attribute: Returns The wheel setup that was removed.
+    */
+    action RemoveAt(integer location) returns Suspension
+    return wheels:RemoveAt(location)
+    end
+    
+    /*
+        This action looks for a wheel setup and removes it from the list.
+
+        Attribute: Parameter suspension The wheel setup to remove.
+        Attribute: Returns True if it was removed, or false if it was not found.
+    */
+    action Remove(Suspension suspension) returns boolean
+        return wheels:Remove(suspension)
+    end
+    
+    /*
+        This action gives you an iterator for going through the vehicle's wheel
+        setups one at a time.
+
+        Attribute: Returns An iterator over the wheel setups.
+    */
+    action GetIterator returns Iterator<Suspension>
+        return wheels:GetIterator()
+    end
+    
+    /*
+    Sets how sharply this wheel turns the vehicle. The value is in radians.
+    A value of 0 points the wheel straight ahead. Positive and negative values
+    turn it in opposite directions. The value is limited by the vehicle's
+    steering clamp.
+    Attribute: Parameter value The steering angle in radians
+    Attribute: Parameter wheelIndex The index of the wheel to steer
+*/
+    action SetSteering(number value, integer wheelIndex)
+        Suspension wheel = wheels:Get(wheelIndex)
+        wheel:SetSteering(Clamp(value, -steeringClamp, steeringClamp))
+    end
+
+    /*
+    Sets the driving force for this wheel. Positive and negative values drive
+    in opposite directions. Set it to 0 to apply no engine force. The vehicle
+    uses this value during its next physics update.
+    Attribute: Parameter force The driving force for this wheel
+    Attribute: Parameter wheelIndex The index of the wheel
+*/
+    action SetEngineForce(number force, integer wheelIndex)
+     Suspension wheel = wheels:Get(wheelIndex)
+        wheel:SetEngineForce(force)
+    end
+
+    /*
+    Sets the braking limit for this wheel. The value limits how much the wheel
+    can slow the vehicle during a physics update. It is an impulse limit, not
+    a force in newtons. An impulse is a short push or pull that changes an
+    object's motion. The limit is the largest change this wheel can make in
+    one update. Negative values are treated as 0. Set it to 0 to release the
+    brake.
+
+    As a rough starting point, for a 1,200 kg car with four wheels on the
+    ground, try 750 for a soft brake or 3,000 for a hard brake. These values
+    need tuning for the vehicle's speed and tire grip.
+
+    Attribute: Parameter force The braking impulse limit for this wheel
+    Attribute: Parameter wheelIndex The index of the wheel to brake
+*/
+    action SetBrake(number force, integer wheelIndex)
+        Suspension wheel = wheels:Get(wheelIndex)
+        wheel:SetBrake(math:MaximumOf(0, force))
+    end
+
+    /*
+    Returns the vehicle's speed in kilometers per hour. The speed is the
+    magnitude of the chassis's movement, so it is always zero or positive,
+    whether the vehicle is moving forward or backward.
+*/
+    action GetSpeedKilometersPerHour returns number
+        return currentSpeedKilometersPerHour
+    end
+    
+    /*
+    Returns the vehicle's speed in miles per hour. The speed is always zero
+    or positive, whether the vehicle is moving forward or backward.
+*/
+action GetSpeedMilesPerHour returns number
+    return currentSpeedKilometersPerHour * 0.621371
+end
+
+    /*This action is called by the layer once for every physics step. It casts
+    a ray under each wheel, works out the suspension and tire forces, applies
+    them to the chassis as impulses, and updates how far each wheel has spun.
+    Most users never need to call it directly.
+
+    Attribute: Parameter timeStep The length of the physics step, in seconds.*/
+    action UpdatePhysics(number timeStep)
+if timeStep <= 0 or chassis = undefined
+            return now
+        end
+
+        //GetLinearVelocity():Length() is in meters per second
+        currentSpeedKilometersPerHour = chassis:GetLinearVelocity():Length() * 3.6
+        Vector3 angularBeforeUpdate
+        angularBeforeUpdate:Set(chassis:GetAngularVelocity())
+        integer i = 0
+        repeat while i < wheels:GetSize()
+            UpdateWheel(i, timeStep)
+            i = i + 1
+        end
+
+        ApplySuspensionImpulses()
+        Vector3 angularAfterSuspension
+        angularAfterSuspension:Set(chassis:GetAngularVelocity())
+        CalculateTireImpulses(timeStep)
+
+        // Apply all accumulated impulses after all wheels have been calculated
+        i = 0
+        repeat while i < wheels:GetSize()
+            ApplyStoredImpulses(i)
+            i = i + 1
+        end
+
+        // Like Bullet, spin the wheels last, using the chassis velocity after
+        // the suspension and tire impulses.
+        i = 0
+        repeat while i < wheels:GetSize()
+            UpdateWheelSpin(wheels:Get(i), timeStep)
+            i = i + 1
+        end
+    end
+    
+    
+    /*
+    This action is called by the layer once per frame, after physics, and
+    moves each wheel's visual item to match its wheel. Most users never need
+    to call it directly.
+
+    Attribute: Parameter seconds The time since the last frame, in seconds.
+    */
+    action UpdateAfterPhysics(number seconds)
+        if chassis = undefined
+            return now
+        end
+        integer i = 0
+        repeat while i < wheels:GetSize()
+            UpdateWheelVisual(wheels:Get(i))
+            i = i + 1
+        end
+    end
+
+    /*
+    Applies the spring force from each wheel that is touching the ground to
+    the chassis. The force pushes the chassis away from the ground and helps
+    support the vehicle's weight. It also affects how the vehicle responds
+    when a wheel's suspension is compressed.
+*/
+    private action ApplySuspensionImpulses
+        integer i = 0
+        repeat while i < wheels:GetSize()
+            Suspension wheel = wheels:Get(i)
+            if wheel:GetInContact()
+                // Bullet applies suspension impulses to the chassis before tire friction.
+                Vector3 torque
+                Vector3 suspensionChassisPoint = wheel:GetSuspensionChassisPoint()
+                torque:Set(suspensionChassisPoint)
+                Vector3 suspensionImpulse = wheel:GetSuspensionImpulse()
+                torque:CrossProduct(suspensionImpulse)
+                Vector3 before
+                before:Set(chassis:GetAngularVelocity())
+                chassis:ApplyImpulse(suspensionImpulse, suspensionChassisPoint)
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+    Transforms a vector from the vehicle's local space into world space using
+    the chassis rotation. This lets wheel positions and directions follow the
+    chassis as it turns. The vector is changed in place.
+    Attribute: Parameter vector The local-space vector to transform
+    Attribute: Parameter basis The chassis rotation used for the transformation
+*/
+    private action TransformByChassisBasis(Vector3 vector, Matrix3 basis)
+        number x = vector:GetX()
+        number y = vector:GetY()
+        number z = vector:GetZ()
+        vector:Set(basis:row0column0 * x + basis:row0column1 * y + basis:row0column2 * z, basis:row1column0 * x + basis:row1column1 * y + basis:row1column2 * z, basis:row2column0 * x + basis:row2column1 * y + basis:row2column2 * z)
+    end
+    
+    /*To use a vehicle, give it a chassis with SetChassis, add a Suspension for
+each wheel, and then add the vehicle to the same Layer3D as the chassis:
+
+    Vehicle vehicle
+    vehicle:SetChassis(chassis)
+    vehicle:Add(frontLeft)
+    vehicle:Add(frontRight)
+    vehicle:Add(rearLeft)
+    vehicle:Add(rearRight)
+    layer:Add(vehicle)
+
+From then on the layer updates the vehicle once for every physics step, and
+moves the wheels' visual items once per frame. Control it from the game's
+Update action with SetEngineForce, SetSteering, and SetBrake. Removing the
+chassis from the layer also removes the vehicle.*/
+    action GetItemsSize returns integer
+        if chassis = undefined
+            return 0
+        end
+        return 1
+    end
+    
+    /*
+    This action returns the vehicle's chassis for index 0, and undefined for
+    any other index.
+    */
+    action GetItem(integer index) returns Item3D
+        if index = 0
+            return chassis
+        end
+        return undefined
+    end
+
+    /*
+    Updates one wheel for the current physics step. Uses the wheel index to
+    find its setup, then updates its world position and directions, checks for
+    ground contact, and updates its suspension and visual position.
+    Attribute: Parameter wheelIndex The index of the wheel to update
+    Attribute: Parameter timeStep The time elapsed for this physics step, in seconds
+*/
+    private action UpdateWheel(integer wheelIndex, number timeStep)
+        Suspension wheel = Get(wheelIndex)
+        Vector3 chassisPos
+        chassisPos:Set(chassis:GetX(), chassis:GetY(), chassis:GetZ())
+
+        // Get chassis rotation and apply it to the connection point offset
+        Matrix3 chassisRotation = chassis:GetCenterOfMassTransform():GetBasis()
+        Vector3 rotatedOffset
+        rotatedOffset:Set(wheel:GetConnectionPoint())
+        TransformByChassisBasis(rotatedOffset, chassisRotation)
+
+        // Calculate hard point in world space: chassis position + rotated offset
+        Vector3 suspensionOriginWorldSpace = wheel:GetSuspensionOriginWorldSpace()
+        suspensionOriginWorldSpace:Set(chassisPos)
+        suspensionOriginWorldSpace:Add(rotatedOffset)
+
+        // Transform suspension direction from chassis-space to world-space
+        Vector3 directionWorldSpace = wheel:GetDirectionWorldSpace()
+        directionWorldSpace:Set(wheel:GetDirection())
+        TransformByChassisBasis(directionWorldSpace, chassisRotation)
+        directionWorldSpace:Normalize()
+
+        // Apply steering to axle in car space, then rotate to world space
+        Vector3 axleWorldSpace = wheel:GetAxleWorldSpace()
+        axleWorldSpace:Set(wheel:GetAxle())
+        if wheel:IsSteeringEnabled()
+            number cosine = math:Cosine(wheel:GetSteering())
+            number sine = math:Sine(wheel:GetSteering())
+            Vector3 axleCS = wheel:GetAxle()
+            // Rotation around Y axis (vertical in Quorum's Y-up): rotate in XZ plane
+            axleWorldSpace:Set(cosine * axleCS:GetX() - sine * axleCS:GetZ(), axleCS:GetY(), sine * axleCS:GetX() + cosine * axleCS:GetZ())
+        end
+
+        // Rotate axle by chassis rotation to get world space
+        TransformByChassisBasis(axleWorldSpace, chassisRotation)
+        axleWorldSpace:Normalize()
+
+        // Like Bullet, the ray reaches only to the bottom of a wheel at rest
+        // length, so a wheel hanging below its rest length is not in contact.
+        number rayLength = wheel:GetRestLength() + wheel:GetRadius()
+        Vector3 rayEnd
+        rayEnd:Set(directionWorldSpace)
+        rayEnd:Scale(rayLength)
+        rayEnd:Add(suspensionOriginWorldSpace)
+
+        // Sanity check: hard point should be near chassis (within reasonable bounds)
+        number hardPointY = suspensionOriginWorldSpace:GetY()
+        boolean hardPointValid = hardPointY > -1000 and hardPointY < 1000
+
+        boolean hitDetected = false
+        Layer3D layer = GetLayer()
+        if layer not= undefined and hardPointValid
+            layer:RayCastPhysics(suspensionOriginWorldSpace, rayEnd, chassis, raycastResult)
+            hitDetected = raycastResult:IsHit()
+        end
+
+        wheel:SetInContact(hitDetected)
+        wheel:SetSuspensionForce(0)
+        wheel:SetGroundBody(undefined)
+
+        if hitDetected
+            wheel:SetGroundBody(raycastResult:GetHitBody())
+            Vector3 contactPointWorldSpace = wheel:GetContactPointWorldSpace()
+            Vector3 contactNormalWorldSpace = wheel:GetContactNormalWorldSpace()
+            contactPointWorldSpace:Set(raycastResult:GetHitPointWorldSpace())
+            contactNormalWorldSpace:Set(raycastResult:GetHitNormalWorldSpace())
+            number hitDistance = rayLength * raycastResult:GetFraction()
+            number travel = wheel:GetMaxSuspensionTravel()
+            wheel:SetSuspensionLength(Clamp(hitDistance - wheel:GetRadius(), wheel:GetRestLength() - travel, wheel:GetRestLength() + travel))
+
+            Vector3 chassisRelativePoint
+            chassisRelativePoint:Set(contactPointWorldSpace)
+            chassisRelativePoint:Subtract(chassis:GetCenterOfMassTransform():GetOrigin())
+            Vector3 chassisVelocity = chassis:GetLinearVelocityAtLocalPoint(chassisRelativePoint)
+            Vector3 relativeVelocity
+            relativeVelocity:Set(chassisVelocity)
+            Vector3 groundRelativePoint
+            
+            Item3D groundBody = wheel:GetGroundBody()
+            if groundBody not= undefined
+                groundRelativePoint:Set(contactPointWorldSpace)
+                groundRelativePoint:Subtract(groundBody:GetCenterOfMassTransform():GetOrigin())
+                relativeVelocity:Subtract(groundBody:GetLinearVelocityAtLocalPoint(groundRelativePoint))
+            end
+
+            number normalSpeed = relativeVelocity:DotProduct(contactNormalWorldSpace)
+            number compression = wheel:GetRestLength() - wheel:GetSuspensionLength()
+            number damping = wheel:GetDampingRelaxation()
+            if normalSpeed < 0
+                damping = wheel:GetDampingCompression()
+            end
+            // Bullet scales its spring and damping response by the chassis mass.
+            wheel:SetSuspensionForce((wheel:GetSuspensionStiffness() * compression - damping * normalSpeed) * chassis:GetMass())
+            wheel:SetSuspensionForce(Clamp(wheel:GetSuspensionForce(), 0, wheel:GetMaxSuspensionForce()))
+
+            // Store suspension impulse for deferred application
+            Vector3 suspensionImpulse = wheel:GetSuspensionImpulse()
+            Vector3 suspensionChassisPoint = wheel:GetSuspensionChassisPoint()
+            suspensionImpulse:Set(contactNormalWorldSpace)
+            suspensionImpulse:Scale(wheel:GetSuspensionForce() * timeStep)
+            suspensionChassisPoint:Set(chassisRelativePoint)
+            wheel:GetSuspensionGroundPoint():Set(groundRelativePoint)
+        else
+            // Like Bullet, a wheel whose ray misses rests at its rest length,
+            // with its contact point at the end of the ray and its normal
+            // pointing back up the suspension.
+            wheel:SetSuspensionLength(wheel:GetRestLength())
+            wheel:GetContactPointWorldSpace():Set(rayEnd)
+            wheel:GetContactNormalWorldSpace():Set(directionWorldSpace):MakeOpposite()
+        end
+    end
+
+    /*
+    Updates how far a wheel has spun around its axle, following Bullet's
+    updateVehicle. A wheel on the ground spins at the speed its hard point
+    moves along the ground, divided by the wheel's radius. A wheel in the air
+    keeps its last spin, which slows a little each update.
+    Attribute: Parameter wheel The wheel to update
+    Attribute: Parameter timeStep The time elapsed for this physics step, in seconds
+*/
+    private action UpdateWheelSpin(Suspension wheel, number timeStep)
+        if wheel:GetInContact() and wheel:GetRadius() > 0
+            Vector3 relativePoint
+            relativePoint:Set(wheel:GetSuspensionOriginWorldSpace())
+            relativePoint:Subtract(chassis:GetCenterOfMassTransform():GetOrigin())
+            Vector3 velocity = chassis:GetLinearVelocityAtLocalPoint(relativePoint)
+
+            // Bullet projects the chassis forward axis onto the ground. This
+            // uses axle x up instead, so the spin direction follows steering
+            // and matches the axle the visual spins around.
+            Vector3 up
+            up:Set(wheel:GetDirectionWorldSpace())
+            up:MakeOpposite()
+            Vector3 rollDirection
+            rollDirection:Set(wheel:GetAxleWorldSpace())
+            rollDirection:CrossProduct(up)
+            Vector3 contactNormalWorldSpace = wheel:GetContactNormalWorldSpace()
+            Vector3 normalPart
+            normalPart:Set(contactNormalWorldSpace):Scale(rollDirection:DotProduct(contactNormalWorldSpace))
+            rollDirection:Subtract(normalPart)
+            if rollDirection:Length() > MINIMUM_IMPULSE_DENOMINATOR
+                rollDirection:Normalize()
+                wheel:SetDeltaRotation(rollDirection:DotProduct(velocity) * timeStep / wheel:GetRadius())
+            end
+        end
+
+        number rotation = wheel:GetWheelRotation() + wheel:GetDeltaRotation()
+        // Keep the angle small so it does not lose precision over time.
+        number fullTurn = 2 * math:pi
+        if rotation > fullTurn or rotation < -fullTurn
+            rotation = rotation - fullTurn * math:Round(rotation / fullTurn)
+        end
+        wheel:SetWheelRotation(rotation)
+        wheel:SetDeltaRotation(wheel:GetDeltaRotation() * 0.99)
+    end
+
+    /*
+    Moves and rotates a wheel's visual item to match the wheel. The item is
+    placed at the end of the suspension and rotated by the chassis rotation,
+    the steering angle, and the wheel's spin, starting from the pose it had
+    when it was given to the wheel. Children of the item are rotated with it.
+    Attribute: Parameter wheel The wheel whose visual to update
+*/
+    private action UpdateWheelVisual(Suspension wheel)
+        Item3D visual = wheel:GetVisual()
+        if visual = undefined
+            return now
+        end
+
+        Vector3 wheelPosition
+        wheelPosition:Set(wheel:GetDirectionWorldSpace())
+        wheelPosition:Scale(wheel:GetSuspensionLength())
+        wheelPosition:Add(wheel:GetSuspensionOriginWorldSpace())
+
+        // Safety check: don't set wheel to invalid positions
+        if wheelPosition:GetY() <= -1000 or wheelPosition:GetY() >= 1000
+            return now
+        end
+        visual:SetPosition(wheelPosition)
+
+        // Steering about chassis Y, matching the axle rotation in UpdateWheel.
+        number steeringAngle = 0
+        if wheel:IsSteeringEnabled()
+            steeringAngle = wheel:GetSteering()
+        end
+        number cosine = math:Cosine(steeringAngle)
+        number sine = math:Sine(steeringAngle)
+        Matrix3 steeringRotation
+        steeringRotation:Set(cosine, 0, -sine, 0, 1, 0, sine, 0, cosine)
+
+        // Spin about the unsteered chassis-space axle.
+        Vector3 axle
+        axle:Set(wheel:GetAxle())
+        Matrix3 spinRotation
+        spinRotation:Set(1, 0, 0, 0, 1, 0, 0, 0, 1)
+        if axle:Length() > MINIMUM_IMPULSE_DENOMINATOR
+            axle:Normalize()
+            SetToAxisRotation(spinRotation, axle, wheel:GetWheelRotation())
+        end
+
+        Matrix3 localRotation
+        MultiplyRotations(steeringRotation, spinRotation, localRotation)
+        Matrix3 wheelBasis
+        MultiplyRotations(chassis:GetCenterOfMassTransform():GetBasis(), localRotation, wheelBasis)
+
+        Matrix4 visualRotation
+        ToVisualRotation(wheelBasis, wheel:GetVisualRestRotation(), visualRotation)
+        visual:SetRotationTransform(visualRotation)
+
+        Array<Item3D> parts = wheel:GetVisualParts()
+        Array<Matrix4> restRotations = wheel:GetVisualPartRestRotations()
+        Array<Vector3> restPositions = wheel:GetVisualPartRestPositions()
+        integer i = 0
+        repeat while i < parts:GetSize()
+            Item3D part = parts:Get(i)
+            Matrix4 partRotation
+            ToVisualRotation(wheelBasis, restRotations:Get(i), partRotation)
+            part:SetRotationTransform(partRotation)
+
+            Vector3 partPosition
+            partPosition:Set(restPositions:Get(i))
+            TransformByChassisBasis(partPosition, wheelBasis)
+            part:SetPosition(partPosition)
+            i = i + 1
+        end
+    end
+
+    /*
+    Sets a matrix to a rotation of the given angle, in radians, around a unit
+    axis, using the right-hand rule like Bullet's quaternion rotations.
+    Attribute: Parameter result The matrix to set
+    Attribute: Parameter axis The unit axis to rotate around
+    Attribute: Parameter angle The rotation angle in radians
+*/
+    private action SetToAxisRotation(Matrix3 result, Vector3 axis, number angle)
+        number c = math:Cosine(angle)
+        number s = math:Sine(angle)
+        number t = 1 - c
+        number x = axis:GetX()
+        number y = axis:GetY()
+        number z = axis:GetZ()
+        result:Set(t * x * x + c, t * x * y - s * z, t * x * z + s * y, t * x * y + s * z, t * y * y + c, t * y * z - s * x, t * x * z - s * y, t * y * z + s * x, t * z * z + c)
+    end
+
+    /*
+    Stores left times right in result. The result must not be either input.
+    Attribute: Parameter left The first matrix
+    Attribute: Parameter right The second matrix
+    Attribute: Parameter result The matrix that receives the product
+*/
+    private action MultiplyRotations(Matrix3 left, Matrix3 right, Matrix3 result)
+        result:Set(left:row0column0 * right:row0column0 + left:row0column1 * right:row1column0 + left:row0column2 * right:row2column0, left:row0column0 * right:row0column1 + left:row0column1 * right:row1column1 + left:row0column2 * right:row2column1, left:row0column0 * right:row0column2 + left:row0column1 * right:row1column2 + left:row0column2 * right:row2column2, left:row1column0 * right:row0column0 + left:row1column1 * right:row1column0 + left:row1column2 * right:row2column0, left:row1column0 * right:row0column1 + left:row1column1 * right:row1column1 + left:row1column2 * right:row2column1, left:row1column0 * right:row0column2 + left:row1column1 * right:row1column2 + left:row1column2 * right:row2column2, left:row2column0 * right:row0column0 + left:row2column1 * right:row1column0 + left:row2column2 * right:row2column0, left:row2column0 * right:row0column1 + left:row2column1 * right:row1column1 + left:row2column2 * right:row2column1, left:row2column0 * right:row0column2 + left:row2column1 * right:row1column2 + left:row2column2 * right:row2column2)
+    end
+
+    /*
+    Converts a physics rotation to Item3D's rotation convention and applies it
+    on top of a visual's rest rotation. Item3D stores rotations with the
+    signs of m02, m12, m20, and m21 flipped compared with the physics basis,
+    the same conversion Item3D uses when it copies a physics rotation.
+    Attribute: Parameter basis The rotation in physics space
+    Attribute: Parameter rest The item's rotation when it was given to the wheel
+    Attribute: Parameter result The matrix that receives the item's rotation
+*/
+    private action ToVisualRotation(Matrix3 basis, Matrix4 rest, Matrix4 result)
+        Matrix3 converted
+        converted:Set(basis:row0column0, basis:row0column1, -basis:row0column2, basis:row1column0, basis:row1column1, -basis:row1column2, -basis:row2column0, -basis:row2column1, basis:row2column2)
+        Matrix3 restBasis
+        restBasis:Set(rest:row0column0, rest:row0column1, rest:row0column2, rest:row1column0, rest:row1column1, rest:row1column2, rest:row2column0, rest:row2column1, rest:row2column2)
+        Matrix3 product
+        MultiplyRotations(converted, restBasis, product)
+        result:IdentityMatrix()
+        result:row0column0 = product:row0column0
+        result:row0column1 = product:row0column1
+        result:row0column2 = product:row0column2
+        result:row1column0 = product:row1column0
+        result:row1column1 = product:row1column1
+        result:row1column2 = product:row1column2
+        result:row2column0 = product:row2column0
+        result:row2column1 = product:row2column1
+        result:row2column2 = product:row2column2
+    end
+
+    /*
+    Calculates the forward and sideways tire impulses for wheels touching the
+    ground. Engine force or braking affects forward motion. Tire grip limits
+    the combined forward and sideways impulses to help the wheels slide when
+    the requested grip is too strong. Stores the results for later application.
+    Attribute: Parameter timeStep The time elapsed for this physics step, in seconds
+*/
+    private action CalculateTireImpulses(number timeStep)
+        integer groundedWheels = 0
+        integer i = 0
+        repeat while i < wheels:GetSize()
+            Suspension wheel = wheels:Get(i)
+            wheel:GetTireImpulse():Set(0, 0, 0)
+            wheel:GetTireForwardImpulse():Set(0, 0, 0)
+            wheel:GetTireSideImpulse():Set(0, 0, 0)
+            if wheel:GetInContact() and wheel:GetGroundBody() not= undefined
+                groundedWheels = groundedWheels + 1
+            end
+            i = i + 1
+        end
+
+        if groundedWheels = 0
+            return now
+        end
+
+        boolean sliding = false
+        Array<number> skidInfo
+        Array<number> sideValues
+        Array<number> forwardValues
+        i = 0
+        repeat while i < wheels:GetSize()
+            skidInfo:Add(1.0)
+            sideValues:Add(0.0)
+            forwardValues:Add(0.0)
+            Suspension wheel = wheels:Get(i)
+            if wheel:GetInContact() and wheel:GetGroundBody() not= undefined
+                Vector3 axle
+                
+                Vector3 axleWorldSpace = wheel:GetAxleWorldSpace()
+                Vector3 contactNormalWorldSpace = wheel:GetContactNormalWorldSpace()
+                axle:Set(axleWorldSpace)
+                // Main supplies +X axles, while Bullet's ForkLift uses -X.
+                // Keep that port convention when building Bullet's wheel basis.
+                axle:MakeOpposite()
+                number axleNormal = axle:DotProduct(contactNormalWorldSpace)
+                Vector3 normalPart
+                normalPart:Set(contactNormalWorldSpace):Scale(axleNormal)
+                axle:Subtract(normalPart)
+                axle:Normalize()
+
+                Vector3 forward
+                forward:Set(contactNormalWorldSpace)
+                forward:CrossProduct(axle)
+                forward:Normalize()
+
+                Vector3 chassisPoint
+                Vector3 contactPointWorldSpace = wheel:GetContactPointWorldSpace()
+                chassisPoint:Set(contactPointWorldSpace)
+                chassisPoint:Subtract(chassis:GetCenterOfMassTransform():GetOrigin())
+                Vector3 relativeVelocity = chassis:GetLinearVelocityAtLocalPoint(chassisPoint)
+                Vector3 groundPoint
+                groundPoint:Set(contactPointWorldSpace)
+                groundPoint:Subtract(wheel:GetGroundBody():GetCenterOfMassTransform():GetOrigin())
+                relativeVelocity:Subtract(wheel:GetGroundBody():GetLinearVelocityAtLocalPoint(groundPoint))
+
+                number lateralVelocity = relativeVelocity:DotProduct(axle)
+                number forwardVelocity = relativeVelocity:DotProduct(forward)
+                number sideDenominator = chassis:ComputeImpulseDenominator(contactPointWorldSpace, axle) + wheel:GetGroundBody():ComputeImpulseDenominator(contactPointWorldSpace, axle)
+                number sideImpulse = 0
+                // Bullet's resolveSingleBilateral uses a fixed 0.2 contact damping
+                // and, unlike rolling friction, does not divide by grounded wheels.
+                if sideDenominator > MINIMUM_IMPULSE_DENOMINATOR
+                    sideImpulse = -SIDE_CONTACT_DAMPING * lateralVelocity / sideDenominator
+                end
+
+                number forwardDenominator = chassis:ComputeImpulseDenominator(contactPointWorldSpace, forward) + wheel:GetGroundBody():ComputeImpulseDenominator(contactPointWorldSpace, forward)
+                number forwardImpulse = 0
+                if wheel:GetEngineForce() not= 0
+                    forwardImpulse = wheel:GetEngineForce() * timeStep
+                elseif forwardDenominator > MINIMUM_IMPULSE_DENOMINATOR and wheel:GetBrake() > 0
+                    forwardImpulse = -forwardVelocity / forwardDenominator / groundedWheels
+                    forwardImpulse = Clamp(forwardImpulse, -wheel:GetBrake(), wheel:GetBrake())
+                end
+
+                //output "[TIRE-SOLVE] wheelIndex=" + i + " front=" + wheel:frontWheel + " steering=" + wheel:steering + " contactPoint=(" + wheel:contactPointWS:GetX() + "," + wheel:contactPointWS:GetY() + "," + wheel:contactPointWS:GetZ() + ") relativeVelocity=(" + relativeVelocity:GetX() + "," + relativeVelocity:GetY() + "," + relativeVelocity:GetZ() + ") axle=(" + axle:GetX() + "," + axle:GetY() + "," + axle:GetZ() + ") forward=(" + forward:GetX() + "," + forward:GetY() + "," + forward:GetZ() + ") lateralSpeed=" + lateralVelocity + " forwardSpeed=" + forwardVelocity + " sideDenominator=" + sideDenominator + " forwardDenominator=" + forwardDenominator + " rawSideImpulse=" + sideImpulse + " rawForwardImpulse=" + forwardImpulse
+
+                // Bullet weights forward traction by 0.5 and side traction by 1.0.
+                number maxImpulse = wheel:GetFrictionSlip() * wheel:GetSuspensionForce() * timeStep
+                number weightedForward = forwardImpulse * 0.5
+                number impulseLength = math:SquareRoot(weightedForward * weightedForward + sideImpulse * sideImpulse)
+                number wheelSkid = 1.0
+                if impulseLength > maxImpulse and impulseLength > 0
+                    wheelSkid = maxImpulse / impulseLength
+                    sliding = true
+                end
+                skidInfo:Set(i, wheelSkid)
+                sideValues:Set(i, sideImpulse)
+                forwardValues:Set(i, forwardImpulse)
+            end
+            i = i + 1
+        end
+
+        i = 0
+        repeat while i < wheels:GetSize()
+            Suspension wheel = wheels:Get(i)
+            if wheel:GetInContact() and wheel:GetGroundBody() not= undefined
+                number skid = skidInfo:Get(i)
+                number sideImpulse = sideValues:Get(i)
+                number forwardImpulse = forwardValues:Get(i)
+                // Match Bullet: only scale a wheel's impulses when the vehicle is
+                // sliding and that wheel has a nonzero side-friction impulse.
+                if sliding and sideImpulse not= 0 and skid < 1
+                    sideImpulse = sideImpulse * skid
+                    forwardImpulse = forwardImpulse * skid
+                end
+
+                Vector3 axle
+                Vector3 axleWorldSpace = wheel:GetAxleWorldSpace()
+                Vector3 contactPointWorldSpace = wheel:GetContactPointWorldSpace()
+                Vector3 contactNormalWorldSpace = wheel:GetContactNormalWorldSpace()
+                axle:Set(axleWorldSpace)
+                axle:MakeOpposite()
+                number axleNormal = axle:DotProduct(contactNormalWorldSpace)
+                Vector3 normalPart
+                normalPart:Set(contactNormalWorldSpace):Scale(axleNormal)
+                axle:Subtract(normalPart)
+                axle:Normalize()
+                Vector3 forward
+                forward:Set(contactNormalWorldSpace)
+                forward:CrossProduct(axle)
+                forward:Normalize()
+
+                Vector3 tireChassisPoint = wheel:GetTireChassisPoint()
+                Vector3 tireGroundPoint = wheel:GetTireGroundPoint()
+                wheel:GetTireSideImpulse():Set(axle):Scale(sideImpulse)
+                wheel:GetTireForwardImpulse():Set(forward):Scale(forwardImpulse)
+                wheel:GetTireImpulse():Set(wheel:GetTireSideImpulse()):Add(wheel:GetTireForwardImpulse())
+                tireChassisPoint:Set(contactPointWorldSpace)
+                tireChassisPoint:Subtract(chassis:GetCenterOfMassTransform():GetOrigin())
+                tireGroundPoint:Set(contactPointWorldSpace)
+                tireGroundPoint:Subtract(wheel:GetGroundBody():GetCenterOfMassTransform():GetOrigin())
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+    Applies the tire impulses calculated for one wheel. The forward impulse
+    pushes or slows the chassis. The sideways impulse affects the chassis and,
+    when the ground body can move, pushes that body in the opposite direction.
+    The wheel's roll influence adjusts how the sideways impulse affects the
+    chassis. Impulses are applied only if the wheel is touching the ground.
+    Attribute: Parameter wheelIndex The index of the wheel whose impulses to apply
+*/
+    private action ApplyStoredImpulses(integer wheelIndex)
+        Suspension wheel = Get(wheelIndex)
+        if wheel:GetInContact()
+            // Bullet applies forward tire impulse to the chassis only. Side
+            // friction is applied to both bodies and uses rollInfluence on the chassis.
+            Vector3 angularBefore
+            angularBefore:Set(chassis:GetAngularVelocity())
+            Vector3 forwardTorque
+            Vector3 tireChassisPoint = wheel:GetTireChassisPoint()
+            forwardTorque:Set(tireChassisPoint)
+            Vector3 tireForwardImpulse = wheel:GetTireForwardImpulse()
+            forwardTorque:CrossProduct(tireForwardImpulse)
+            if not tireForwardImpulse:IsZero(COMPARE_TO_ZERO)
+                chassis:ApplyImpulse(tireForwardImpulse, tireChassisPoint)
+            end
+            Vector3 sidePoint
+            Vector3 sideTorque
+            Vector3 tireSideImpulse = wheel:GetTireSideImpulse()
+            if not tireSideImpulse:IsZero(COMPARE_TO_ZERO)
+                // Match Bullet's ROLLING_INFLUENCE_FIX: scale the part of the
+                // offset along the chassis up axis, not the world Y axis.
+                Matrix3 chassisRotation = chassis:GetCenterOfMassTransform():GetBasis()
+                Vector3 chassisUp
+                chassisUp:Set(chassisRotation:row0column1, chassisRotation:row1column1, chassisRotation:row2column1)
+                Vector3 upPart
+                upPart:Set(chassisUp):Scale(chassisUp:DotProduct(tireChassisPoint) * (1 - wheel:GetRollInfluence()))
+                sidePoint:Set(tireChassisPoint)
+                sidePoint:Subtract(upPart)
+                sideTorque:Set(sidePoint)
+                sideTorque:CrossProduct(tireSideImpulse)
+                chassis:ApplyImpulse(tireSideImpulse, sidePoint)
+            end
+            if wheel:GetGroundBody() not= undefined and wheel:GetGroundBody():GetInverseMass() > 0 and not tireSideImpulse:IsZero(COMPARE_TO_ZERO)
+                Vector3 oppositeTireImpulse
+                oppositeTireImpulse:Set(tireSideImpulse)
+                oppositeTireImpulse:MakeOpposite()
+                wheel:GetGroundBody():ApplyImpulse(oppositeTireImpulse, wheel:GetTireGroundPoint())
+            end
+            Vector3 totalTorque
+            totalTorque:Set(forwardTorque):Add(sideTorque)
+        end
+    end
+
+    /*
+    Returns the value limited to the given range. If the value is below the
+    lower limit, returns the lower limit. If it is above the upper limit,
+    returns the upper limit.
+    Attribute: Parameter value The number to limit
+    Attribute: Parameter lower The smallest value to return
+    Attribute: Parameter upper The largest value to return
+*/
+    private action Clamp(number value, number lower, number upper) returns number
+        if value < lower
+            return lower
+        elseif value > upper
+            return upper
+        end
+        return value
+    end
+
+    
+    /*
+    Returns the item used as the vehicle's main body. The vehicle reads its
+    movement and applies suspension and tire impulses to this item.
+*/
+    action GetChassis returns Item3D
+        return chassis
+    end
+
+    /*
+    Sets the vehicle's main body. The vehicle reads its movement and applies
+    suspension and tire impulses to this item.
+    Attribute: Parameter chassis The item to use as the vehicle's main body
+*/
+    action SetChassis(Item3D chassis)
+        me:chassis = chassis
+    end
+end

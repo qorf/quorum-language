@@ -1,0 +1,311 @@
+package Libraries.Game.Physics
+
+use Libraries.Game.Layer3D
+use Libraries.Interface.Item3D
+use Libraries.Game.Physics.Joints.JointEdge3D
+
+/*
+A PhysicsBehavior3D takes part in a layer's physics
+without being an item itself. Joints, which connect two items, are physics
+behaviors. So is a vehicle, which pushes on its body every physics step to
+model its wheels and suspension.
+
+A behavior is added to a Layer3D in the same way as an item, using Add, and
+taken out using Remove. While it is in a layer, the layer calls its actions at
+set points in the game loop:
+
+1. AddedToLayer, once, when the behavior is added.
+2. UpdatePhysics, once for every physics step. Physics runs in fixed steps,
+   normally 1/60 of a second each, so this may run zero, one, or several
+   times in a single frame. It is called after the items have moved for that
+   step, so it sees where they are now.
+3. UpdateAfterPhysics, once per frame, after the items have been placed where
+   they will be drawn. This is the place to move anything that should follow
+   the physics, such as a vehicle's wheel models.
+4. RemovedFromLayer, once, when the behavior is removed.
+
+All of these actions do nothing by default, so a new behavior only needs to
+provide the ones it uses.
+
+A behavior can also report which items it uses, with GetItemCount and
+GetItem.
+
+Attribute: Example
+
+        class Wind is PhysicsBehavior3D
+        Item3D target = undefined
+        Vector3 force
+
+        action SetTarget(Item3D item)
+            target = item
+        end
+
+        action SetForce(number x, number y, number z)
+            force:Set(x, y, z)
+        end
+
+        action UpdatePhysics(number timeStep)
+            if target not= undefined
+                Vector3 impulse
+                impulse:Set(force)
+                impulse:Scale(timeStep)
+                target:ApplyLinearImpulseToCenter(impulse)
+            end
+        end
+
+        action GetItemsSize returns integer
+            if target = undefined
+                return 0
+            end
+            return 1
+        end
+
+        action GetItem(integer index) returns Item3D
+            if index = 0
+                return target
+            end
+            return undefined
+        end
+    end
+
+    // Then, in a game:
+    //     Wind wind
+    //     wind:SetTarget(box)
+    //     wind:SetForce(5, 0, 0)
+    //     layer:Add(box)
+    //     layer:Add(wind)
+*/
+class PhysicsBehavior3D
+    Layer3D layer = undefined
+    
+    
+    boolean inCollisionGroup = false
+    
+    /* This action returns whether or not this behavior acts like a joint. 
+
+   Attribute: Parameter true only if this acts as a joint like behavior.
+*/
+    action IsJoint returns boolean
+        return false
+    end
+    
+    
+    /*
+    This action returns whether this joint is been accounted for in a collision group.
+    Attribute: Returns true when the joint has already been assigned to a collision group, false if the joint is not
+    */
+    action InCollisionGroup returns boolean
+        return inCollisionGroup
+    end
+
+    /*
+    This action sets whether this joint is been accounted for in a collision group.
+    Attribute: Parameter flag True if the joint has been assigned to a collision group.
+    */
+    action SetInCollisionGroup(boolean flag)
+        me:inCollisionGroup = flag
+    end
+    
+    /*
+    This action returns how many edges this behavior uses to connect items.
+    An edge links an item to the behavior, so that when the physics system
+    gathers items that affect each other, it finds the behavior through the
+    item and also includes the item on the other end. Joints use one edge
+    for each of their two items. By default a behavior connects nothing, and
+    this returns 0.
+
+    Attribute: Returns The number of edges this behavior uses.
+    */
+    action GetEdgesSize returns integer
+        return 0
+    end
+
+    /*
+    This action returns one of this behavior's edges. Indexes start at 0 and
+    go up to one less than GetEdgeCount. By default it returns undefined.
+
+    Attribute: Parameter index The index of the edge.
+    Attribute: Returns The edge at that index.
+    */
+    action GetEdge(integer index) returns JointEdge3D
+        return undefined
+    end
+
+    /*
+    This action returns the item an edge is attached to: the item whose list
+    of joints holds the edge. By default it returns undefined.
+
+    Attribute: Parameter index The index of the edge.
+    Attribute: Returns The item the edge is attached to.
+    */
+    action GetEdgeItem(integer index) returns Item3D
+        return undefined
+    end
+
+    /*
+    This action returns the item at the other end of an edge. When the
+    physics system reaches this behavior through the edge's item, it also
+    includes this one. By default it returns undefined.
+
+    Attribute: Parameter index The index of the edge.
+    Attribute: Returns The item at the other end of the edge.
+    */
+    action GetEdgeOther(integer index) returns Item3D
+        return undefined
+    end
+
+    /*
+    This action attaches each of this behavior's edges to its item, using
+    GetEdgeCount, GetEdge, GetEdgeItem, and GetEdgeOther. A Layer3D calls it
+    when the behavior is added. Edges whose item is undefined are skipped.
+    Most users should never need to call or replace this action.
+    */
+    action LinkEdges
+        integer i = 0
+        repeat while i < GetEdgesSize()
+            JointEdge3D edge = GetEdge(i)
+            Item3D item = GetEdgeItem(i)
+            if edge not= undefined and item not= undefined
+                edge:SetOther(GetEdgeOther(i))
+                edge:SetPrevious(undefined)
+                edge:SetNext(item:GetJointList())
+                if item:GetJointList() not= undefined
+                    item:GetJointList():SetPrevious(edge)
+                end
+                item:SetJointList(edge)
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+    This action detaches each of this behavior's edges from its item, and
+    wakes the item, since it may now move differently. A Layer3D calls it
+    when the behavior is removed. Most users should never need to call or
+    replace this action.
+    */
+    action UnlinkEdges
+        integer i = 0
+        repeat while i < GetEdgesSize()
+            JointEdge3D edge = GetEdge(i)
+            Item3D item = GetEdgeItem(i)
+            if edge not= undefined and item not= undefined
+                item:Simulate(true)
+
+                if edge:GetPrevious() not= undefined
+                    edge:GetPrevious():SetNext(edge:GetNext())
+                end
+                if edge:GetNext() not= undefined
+                    edge:GetNext():SetPrevious(edge:GetPrevious())
+                end
+                if edge = item:GetJointList()
+                    item:SetJointList(edge:GetNext())
+                end
+
+                edge:SetPrevious(undefined)
+                edge:SetNext(undefined)
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+    This action is called by a Layer3D when this behavior is added to it,
+    before any physics steps run. Use it to connect the behavior to the items
+    it works with. By default it does nothing.
+
+    Most users never need to call this action directly.
+
+    Attribute: Parameter layer The layer this behavior was added to.
+    */
+    action AddedToLayer(Layer3D layer)
+    end
+
+    /*
+    This action is called by a Layer3D when this behavior is removed from it. After this, the
+    layer no longer calls the behavior. Use it to undo anything done in
+    AddedToLayer. By default it does nothing.
+
+    Most users never need to call this action directly.
+
+    Attribute: Parameter layer The layer this behavior was removed from.
+    */
+    action RemovedFromLayer(Layer3D layer)
+    end
+
+    /*
+    This action is called by a Layer3D once for every physics step, after
+    the items in the layer have moved for that step. Physics runs in fixed
+    steps, so this may be called zero, one, or several times in a frame.
+
+    Changes made here, such as impulses, take effect in the next physics
+    step. Because the step length is fixed, scale any force by the time step
+    and apply it as an impulse. By default this action does nothing.
+
+    Most users never need to call this action directly.
+
+    Attribute: Parameter timeStep The length of the physics step, in seconds.
+    */
+    action UpdatePhysics(number timeStep)
+    end
+
+    /*
+    This action is called by a Layer3D once per frame, after all of the
+    frame's physics steps have run and the items have been placed where they
+    will be drawn. It is called even on frames with no physics step. Use it
+    to move things that should follow the physics on screen. It should not
+    change the physics itself. By default it does nothing.
+
+    Most users never need to call this action directly.
+
+    Attribute: Parameter seconds The time since the last frame, in seconds.
+    */
+    action UpdateAfterPhysics(number seconds)
+    end
+
+    /*
+    This action returns how many items this behavior works with. A Layer3D
+    uses this, together with GetItem, to remove the behavior when one of its
+    items is removed. By default it returns 0.
+
+    Attribute: Returns The number of items this behavior uses.
+    */
+    action GetItemsSize returns integer
+        return 0
+    end
+
+    /*
+    This action returns one of the items this behavior works with. Indexes
+    start at 0 and go up to one less than GetItemCount. By default it returns
+    undefined.
+
+    Attribute: Parameter index The index of the item to return.
+    Attribute: Returns The item at that index.
+    */
+    action GetItem(integer index) returns Item3D
+        return undefined
+    end
+
+    /*
+    This action returns the layer this behavior is in, or undefined if it is
+    not in a layer.
+
+    Attribute: Returns The layer this behavior is in.
+    */
+    action GetLayer returns Layer3D
+        return layer
+    end
+
+    /*
+    This action records which layer this behavior is in. A Layer3D calls it
+    when the behavior is added or removed, separately from AddedToLayer and
+    RemovedFromLayer, so that GetLayer stays correct even when a subclass
+    replaces those actions. Most users should never need to call this action
+    directly.
+
+    Attribute: Parameter layer The layer this behavior is in, or undefined.
+    */
+    action SetLayer(Layer3D layer)
+        me:layer = layer
+    end
+end

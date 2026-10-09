@@ -1,0 +1,823 @@
+package Libraries.Game.Physics.Vehicles
+
+use Libraries.Interface.Item3D
+use Libraries.Compute.Vector3
+use Libraries.Compute.Matrix4
+use Libraries.Containers.Array
+
+/*The Suspension class stores the setup and current state for one vehicle
+wheel. Create a Suspension for each wheel, set its connection point,
+direction, axle, rest length, and radius, and add it to a Vehicle with Add.
+You can then set that wheel's spring, damping, steering, engine, and brake
+values. The vehicle updates each wheel during every physics step and uses
+the wheel state to calculate forces between the chassis and the ground.
+
+The wheel's connection point, suspension direction, and axle are relative to
+the chassis. Give the wheel an Item3D so it has a visible model in the scene.*/
+class Suspension
+    Item3D visual = undefined
+    boolean steeringEnabled = false
+    Vector3 axleRelativeToChassis
+    Vector3 directionRelativeToChassis
+    Vector3 connectionPointRelativeToChassis
+    
+    Vector3 suspensionOriginWorldSpace
+    Vector3 directionWorldSpace
+    Vector3 axleWorldSpace
+    Vector3 contactPointWorldSpace
+    Vector3 contactNormalWorldSpace
+    
+    //A set of values representing the suspension. The tuning values match
+    //Bullet's btVehicleTuning defaults, as does SetToDefaults.
+    number restLength = 1.3
+    number maxSuspensionTravel = 5
+    number radius = 0.4
+    number suspensionLength = 1.3
+    number suspensionStiffness = 5.88
+    number dampingCompression = 0.83
+    number dampingRelaxation = 0.88
+    number maxSuspensionForce = 6000
+    number frictionSlip = 10.5
+    number rollInfluence = 0.1
+    number steering = 0
+    number engineForce = 0
+    number brake = 0
+    number suspensionForce = 0
+    number wheelRotation = 0
+    number deltaRotation = 0
+    boolean inContact = false
+    Item3D groundBody = undefined
+
+    // Impulse storage for deferred application
+    Vector3 suspensionImpulse
+    Vector3 suspensionChassisPoint
+    Vector3 suspensionGroundPoint
+    Vector3 tireImpulse
+    Vector3 tireForwardImpulse
+    Vector3 tireSideImpulse
+    Vector3 tireChassisPoint
+    Vector3 tireGroundPoint
+
+    // The visual's rest pose, captured by SetVisual. The vehicle rotates the
+    // visual and its children from this pose each update.
+    Matrix4 visualRestRotation
+    Array<Item3D> visualParts
+    Array<Matrix4> visualPartRestRotations
+    Array<Vector3> visualPartRestPositions
+    
+    on create
+        contactNormalWorldSpace:Set(0, 1, 0)
+    end
+    
+    
+    /*
+Sets the wheel's suspension and driving settings to common starting values.
+This resets the tuning, steering, engine, brake, and contact state. It leaves
+the wheel's position, direction, axle, rest length, and radius unchanged.
+*/
+    action SetToDefaults
+        suspensionStiffness = 5.88
+        dampingCompression = 0.83
+        dampingRelaxation = 0.88
+        frictionSlip = 10.5
+        maxSuspensionForce = 6000
+        maxSuspensionTravel = 5
+        rollInfluence = 0.1
+
+        steering = 0
+        engineForce = 0
+        brake = 0
+        suspensionForce = 0
+        wheelRotation = 0
+        deltaRotation = 0
+        steeringEnabled = false
+        inContact = false
+        groundBody = undefined
+    end
+    
+    /*
+Returns the Item3D used to show this wheel in the scene. For example, this may
+be a cylinder or model positioned at the wheel's current world-space location. It is undefined by default.
+*/
+    action GetVisual returns Item3D
+        return visual
+    end
+
+    /*
+Sets the Item3D used to show this wheel in the scene. The vehicle updates this
+item's position and rotation to display the wheel. Before calling this action,
+orient the item (and any children) as it should look on an unsteered,
+unspun wheel of a chassis with no rotation. The vehicle uses that pose as the
+starting point when it applies steering, spin, and the chassis rotation.
+*/
+    action SetVisual(Item3D visual)
+        me:visual = visual
+        visualParts:Empty()
+        visualPartRestRotations:Empty()
+        visualPartRestPositions:Empty()
+        if visual not= undefined
+            visualRestRotation:Set(visual:GetRotationTransform())
+            CaptureRestPose(visual)
+        end
+    end
+
+    /*
+Records the rotation and parent-relative position of every child of the
+given item, so the vehicle can rotate them along with the wheel.
+Attribute: Parameter item The item whose children to record
+*/
+    private action CaptureRestPose(Item3D item)
+        integer i = 0
+        repeat while i < item:GetItemCount()
+            Item3D child = item:GetItem(i)
+            Matrix4 rotation
+            rotation:Set(child:GetRotationTransform())
+            visualParts:Add(child)
+            visualPartRestRotations:Add(rotation)
+            visualPartRestPositions:Add(child:GetPosition())
+            CaptureRestPose(child)
+            i = i + 1
+        end
+    end
+
+    /*
+Returns the visual's rotation at the time SetVisual was called.
+*/
+    action GetVisualRestRotation returns Matrix4
+        return visualRestRotation
+    end
+
+    /*
+Returns the visual's children, in the same order as the rest rotations and
+positions recorded by SetVisual.
+*/
+    action GetVisualParts returns Array<Item3D>
+        return visualParts
+    end
+
+    /*
+Returns each visual child's rotation at the time SetVisual was called.
+*/
+    action GetVisualPartRestRotations returns Array<Matrix4>
+        return visualPartRestRotations
+    end
+
+    /*
+Returns each visual child's position relative to its parent at the time
+SetVisual was called.
+*/
+    action GetVisualPartRestPositions returns Array<Vector3>
+        return visualPartRestPositions
+    end
+
+    /*
+Returns the wheel's suspension connection point in chassis space. This is a
+position offset from the chassis rigid body's local origin, measured in the
+vehicle's distance units. The vehicle rotates and adds this offset to the
+chassis position to find where the suspension ray starts in world space.
+*/
+    action GetConnectionPoint returns Vector3
+        return connectionPointRelativeToChassis
+    end
+
+    /*
+Sets the wheel's suspension connection point in chassis space. This is a
+position offset from the chassis rigid body's local origin, not a world
+position. The vehicle rotates and adds this offset to the chassis position
+to find where the suspension ray starts in world space.
+*/
+    action SetConnectionPoint(Vector3 connectionPointRelativeToChassis)
+        me:connectionPointRelativeToChassis = connectionPointRelativeToChassis
+    end
+
+    /*
+Returns the fixed suspension ray direction in chassis space. The direction is
+relative to the chassis axes, not the world axes. For example, (0, -1, 0)
+points down from the chassis. As the chassis moves or turns, the vehicle
+rotates this direction to find the ray's direction in world space.
+*/
+    action GetDirection returns Vector3
+        return directionRelativeToChassis
+    end
+
+    /*
+Sets the fixed suspension ray direction in chassis space. The direction is
+relative to the chassis axes, not the world axes. For example, (0, -1, 0)
+points down from the chassis. The vehicle rotates this direction with the
+chassis to find the ray's direction in world space.
+*/
+    action SetDirection(Vector3 directionRelativeToChassis)
+        me:directionRelativeToChassis:Set(directionRelativeToChassis)
+        directionRelativeToChassis:Normalize()
+    end
+
+    /*
+Returns the wheel axle direction in chassis space. It describes the
+side-to-side axis the wheel spins around, relative to the chassis: +X is
+right, +Y is up, and +Z is forward. The vehicle rotates this direction with
+the chassis to find the axle in world space. It also uses the axle to
+calculate the tire's sideways friction force.
+*/
+    action GetAxle returns Vector3
+        return axleRelativeToChassis
+    end
+
+    /*
+Sets the wheel axle direction in chassis space. The direction is relative to
+the chassis, not the world: +X is right, +Y is up, and +Z is forward. The
+vehicle rotates it with the chassis when calculating the wheel direction and
+sideways tire friction.
+*/
+    action SetAxle(Vector3 axleRelativeToChassis)
+        //Make a copy of it
+        me:axleRelativeToChassis:Set(axleRelativeToChassis)
+        axleRelativeToChassis:Normalize()
+    end
+
+    /*
+Returns the suspension's starting length. This value stays the same while
+the vehicle moves.
+*/
+    action GetRestLength returns number
+        return restLength
+    end
+
+    /*
+Sets the suspension's starting length.
+*/
+    action SetRestLength(number restLength)
+        me:restLength = restLength
+    end
+
+    /*
+Returns how far, in meters, the suspension can move from its rest length.
+When the wheel touches the ground, its suspension length is kept between
+the rest length minus this value and the rest length plus this value. The
+default is 5 meters.
+
+The default is 5 meters.
+*/
+    action GetMaxSuspensionTravel returns number
+        return maxSuspensionTravel
+    end
+
+    /*
+Sets how far, in meters, the suspension can move from its rest length.
+When the wheel touches the ground, its suspension length is kept between
+the rest length minus this value and the rest length plus this value.
+
+Because the vehicle only finds the ground within the rest length plus the
+wheel radius, a wheel never extends past its rest length. In practice, this
+value limits how far the wheel can be pushed up toward the chassis, and it
+only has an effect when it is smaller than the rest length. This is measured in meters.
+
+Attribute: Parameter maxSuspensionTravel The largest change from the rest length, in meters
+*/
+    action SetMaxSuspensionTravel(number maxSuspensionTravel)
+        me:maxSuspensionTravel = maxSuspensionTravel
+    end
+
+    /*
+Returns whether steering input changes this wheel's direction.
+*/
+    action IsSteeringEnabled returns boolean
+        return steeringEnabled
+    end
+
+    /*
+Enables steering to rotate this wheel's axle. When the wheel touches the
+ground, this can change the direction of its tire friction force.
+*/
+    action SetSteeringEnabled(boolean steeringEnabled)
+        me:steeringEnabled = steeringEnabled
+    end
+
+    /*
+Returns the suspension's current length. This value changes as the suspension
+compresses or extends.
+*/
+    action GetSuspensionLength returns number
+        return suspensionLength
+    end
+
+    /*
+Sets the suspension's current length. This value changes as the suspension compresses or extends.
+*/
+    action SetSuspensionLength(number suspensionLength)
+        me:suspensionLength = suspensionLength
+    end
+
+    /*
+Returns the radius of the wheel used by the suspension ray and to find the
+wheel's position from the ground contact point.
+*/
+    action GetRadius returns number
+        return radius
+    end
+
+    /*
+Sets the radius of the wheel used by the suspension ray and to find the
+wheel's position from the ground contact point.
+*/
+    action SetRadius(number radius)
+        me:radius = radius
+    end
+    
+    /*
+Returns the world-space starting point of the suspension ray. It is calculated
+from the wheel's connection point on the chassis and moves with the chassis.
+*/
+    action GetSuspensionOriginWorldSpace returns Vector3
+        return suspensionOriginWorldSpace
+    end
+
+    /*
+Sets the world-space starting point of the suspension ray. It is calculated
+from the wheel's connection point on the chassis and moves with the chassis.
+*/
+    action SetSuspensionOriginWorldSpace(Vector3 suspensionOriginWorldSpace)
+        me:suspensionOriginWorldSpace = suspensionOriginWorldSpace
+    end
+    
+    
+    /*
+Returns the suspension ray's direction in world space. This is the chassis-
+space suspension direction rotated to match the chassis's current orientation.
+*/
+    action GetDirectionWorldSpace returns Vector3
+        return directionWorldSpace
+    end
+
+    /*
+Sets the suspension ray's direction in world space. This is the chassis-
+space suspension direction rotated to match the chassis's current orientation.
+*/
+    action SetDirectionWorldSpace(Vector3 directionWorldSpace)
+        me:directionWorldSpace = directionWorldSpace
+    end
+    
+    /*
+Returns the wheel axle direction in world space. This is the chassis-space axle
+direction rotated to match the chassis's current orientation.
+*/
+    action GetAxleWorldSpace returns Vector3
+        return axleWorldSpace
+    end
+
+    /*
+Sets the wheel axle direction in world space. The vehicle uses this direction
+to calculate tire forces at the ground contact point.
+*/
+    action SetAxleWorldSpace(Vector3 axleWorldSpace)
+        me:axleWorldSpace = axleWorldSpace
+    end
+
+    /*
+Returns the wheel's contact point in world space. This is the exact point where
+the suspension ray hits the ground, such as (2, 0, 5) when the wheel touches a
+flat ground surface at X=2 and Z=5.
+*/
+    action GetContactPointWorldSpace returns Vector3
+        return contactPointWorldSpace
+    end
+
+    /*
+Sets the wheel's contact point in world space. For example, set this to
+(2, 0, 5) when the wheel touches a flat ground surface at X=2 and Z=5.
+*/
+    action SetContactPointWorldSpace(Vector3 contactPointWorldSpace)
+        me:contactPointWorldSpace = contactPointWorldSpace
+    end
+
+    /*
+Returns the ground surface's contact normal in world space. The normal points
+out from the surface at the contact point; for flat ground, it usually points
+up, such as (0, 1, 0).
+*/
+    action GetContactNormalWorldSpace returns Vector3
+        return contactNormalWorldSpace
+    end
+
+    /*
+Sets the ground surface's contact normal in world space. For example, use
+(0, 1, 0) for flat ground, or the upward-facing normal of a slope.
+*/
+    action SetContactNormalWorldSpace(Vector3 contactNormalWorldSpace)
+        me:contactNormalWorldSpace = contactNormalWorldSpace
+    end
+
+    /*
+Returns the suspension spring stiffness. Use 0 or greater. There is no
+upper limit. The default is 5.88, which is Bullet's default.
+
+Attribute: returns a positive number representing the stiffness
+*/
+    action GetSuspensionStiffness returns number
+        return suspensionStiffness
+    end
+
+    /*
+Sets the suspension spring stiffness. Use 0 or greater. There is no
+upper limit. The default is 5.88, which is Bullet's default.
+*/
+    action SetSuspensionStiffness(number suspensionStiffness)
+        me:suspensionStiffness = suspensionStiffness
+    end
+
+    /*
+Returns the damping used while the suspension compresses. Compression happens
+when a wheel moves up toward a chassis, such as when it rolls over a bump,
+making the suspension shorter. Damping resists this motion and reduces bounce.
+Use 0 or greater, although no upper limit is enforced. A common starting value might be around 0.83.
+*/
+    action GetDampingCompression returns number
+        return dampingCompression
+    end
+
+    /*
+Sets the damping used while the suspension compresses. Use 0 or greater, although no
+upper limit is enforced. This value controls how strongly the suspension
+resists shortening as the wheel moves up toward the chassis. A value of 0 means no
+compression damping.
+*/
+    action SetDampingCompression(number dampingCompression)
+        me:dampingCompression = dampingCompression
+    end
+
+    /*
+Returns the damping used while the suspension extends. Extension happens when
+the suspension gets longer, such as when the wheel moves down after passing
+over a bump. Damping resists this motion and reduces bouncing. Use 0 or
+greater with no enforced upper limit. A typical value might be around 0.88.
+*/
+    action GetDampingRelaxation returns number
+        return dampingRelaxation
+    end
+
+    /*
+Sets the damping used while the suspension extends. Use 0 or greater with no
+enforced upper limit. This value controls how strongly the suspension resists
+getting longer as the wheel moves down. A typical value might be around 0.88.
+*/
+    action SetDampingRelaxation(number dampingRelaxation)
+        me:dampingRelaxation = dampingRelaxation
+    end
+
+    /*
+Returns the maximum support force from this wheel's suspension. When the wheel
+is pressed against the ground, the spring and damper push the chassis away
+from the surface. This value caps that push at this wheel. Use 0 or greater.
+The setter does not enforce a range. A typical starting value might be around
+6000.
+*/
+    action GetMaxSuspensionForce returns number
+        return maxSuspensionForce
+    end
+
+    /*
+Sets the maximum support force from this wheel's suspension. The spring and
+damper use this cap when pushing the chassis away from the surface at this
+wheel. Use 0 or greater. The setter does not enforce a range. A typical
+starting value might be around 6000.
+*/
+    action SetMaxSuspensionForce(number maxSuspensionForce)
+        me:maxSuspensionForce = maxSuspensionForce
+    end
+
+    /*
+Returns this wheel's tire grip setting. It sets how much sideways and forward
+force the tire can transfer to the ground before it starts to slide. This is a
+simulation grip value, not a direct real-world friction coefficient. Use 0 or
+greater. No upper limit is enforced. A typical starting value might be around
+10.5.
+*/
+    action GetFrictionSlip returns number
+        return frictionSlip
+    end
+
+    /*
+Sets this wheel's tire grip setting. Higher values let the tire transfer more
+force before it starts to slide. Use 0 or greater. No upper limit is enforced.
+A typical starting value might be around 10.5.
+*/
+    action SetFrictionSlip(number frictionSlip)
+        me:frictionSlip = frictionSlip
+    end
+
+    /*
+Returns how much sideways tire force can roll the chassis. This setting scales
+the height of the force's application point. A value of 0 removes its roll
+leverage, while 1 uses the full height. Use 0 to 1 for normal behavior, though
+the setter does not enforce this range. A typical starting value might be
+around 0.1.
+*/
+    action GetRollInfluence returns number
+        return rollInfluence
+    end
+
+    /*
+Sets how much sideways tire force can roll the chassis. This scales the height
+of the force's application point, so lower values reduce chassis roll. Use 0 to
+1 for normal behavior, though the setter does not enforce this range. A
+typical starting value might be around 0.1.
+*/
+    action SetRollInfluence(number rollInfluence)
+        me:rollInfluence = rollInfluence
+    end
+
+    /*
+Returns this wheel's steering angle in radians. Zero means straight ahead.
+Positive and negative values turn the wheel in opposite directions. This angle
+changes the wheel's direction only when steering is enabled.
+*/
+    action GetSteering returns number
+        return steering
+    end
+
+    /*
+Sets this wheel's steering angle in radians. The angle changes the wheel's
+direction when steering is enabled, which can change the tire force at ground
+contact. This setter does not limit the angle. Vehicle.SetSteeringValue limits
+it to the range set by steeringClamp, which defaults to about -0.30 to +0.30
+radians.
+*/
+    action SetSteering(number steering)
+        me:steering = steering
+    end
+
+    /*
+Returns the engine force assigned to this wheel. When the wheel touches the
+ground, this force is applied along the tire's forward direction. Zero means
+no engine force. A negative value applies force in reverse.
+*/
+    action GetEngineForce returns number
+        return engineForce
+    end
+
+    /*
+Sets the engine force assigned to this wheel. When the wheel touches the
+ground, the vehicle turns this force into an impulse to drive the chassis.
+This setter does not limit the value. A negative value applies force in
+reverse, and zero means no engine force.
+*/
+    action SetEngineForce(number engineForce)
+        me:engineForce = engineForce
+    end
+
+    /*
+Returns this wheel's braking limit. It caps the impulse used to slow the
+chassis along the wheel's forward direction. The limit is used when the wheel
+touches the ground and has no engine force. Zero means no braking.
+*/
+    action GetBrake returns number
+        return brake
+    end
+
+    /*
+Sets this wheel's braking limit. It caps the impulse used to slow the chassis
+along the wheel's forward direction when the wheel touches the ground and has
+no engine force. Use 0 or greater. This setter stores the value as given,
+while Vehicle.SetBrake changes negative values to 0.
+*/
+    action SetBrake(number brake)
+        me:brake = brake
+    end
+
+    /*
+Returns the suspension force calculated for this wheel during the latest
+vehicle update. When the wheel is in contact, this force pushes the chassis
+away from the surface. It ranges from 0 to maxSuspensionForce. With no contact,
+it is 0.
+*/
+    action GetSuspensionForce returns number
+        return suspensionForce
+    end
+
+    /*
+Sets the suspension force value for this wheel. The vehicle normally
+calculates this value from spring compression and damping during each update.
+This setter does not clamp it, and the next vehicle update may replace it.
+*/
+    action SetSuspensionForce(number suspensionForce)
+        me:suspensionForce = suspensionForce
+    end
+
+    /*
+Returns this wheel's spin angle around its axle, in radians. Zero means no
+rotation. The vehicle updates this value from the wheel's rolling speed and
+uses it to rotate the wheel's visual item.
+*/
+    action GetWheelRotation returns number
+        return wheelRotation
+    end
+
+    /*
+Sets this wheel's spin angle around its axle, in radians.
+*/
+    action SetWheelRotation(number wheelRotation)
+        me:wheelRotation = wheelRotation
+    end
+
+    /*
+Returns how far, in radians, the wheel spun during the latest vehicle update.
+While the wheel is off the ground, it keeps spinning by this amount and slows
+down a little each update.
+*/
+    action GetDeltaRotation returns number
+        return deltaRotation
+    end
+
+    /*
+Sets how far, in radians, the wheel spins each update while off the ground.
+*/
+    action SetDeltaRotation(number deltaRotation)
+        me:deltaRotation = deltaRotation
+    end
+
+    /*
+Returns whether this wheel's suspension ray hit a collision object during the
+latest vehicle update. This means the ray found a surface, not that a solid
+wheel shape physically touched it.
+*/
+    action GetInContact returns boolean
+        return inContact
+    end
+
+    /*
+Sets whether this wheel is marked as having a suspension ray hit. The vehicle
+normally sets this from the raycast result, so the next update may replace this
+value.
+*/
+    action SetInContact(boolean inContact)
+        me:inContact = inContact
+    end
+    
+    /*
+Returns the object beneath this wheel when its suspension ray hits a surface.
+The vehicle uses this object to apply the wheel's forces to the ground. It is
+undefined for a physics step in which the suspension ray hits no ground object.
+*/
+    action GetGroundBody returns Item3D
+        return groundBody
+    end
+
+    /*
+Sets the object beneath this wheel. The vehicle uses it to apply the wheel's
+suspension and tire forces to the ground. Set this to undefined for a physics
+step in which the suspension ray hits no ground object.
+*/
+    action SetGroundBody(Item3D groundBody)
+        me:groundBody = groundBody
+    end
+
+    /*
+Returns the impulse produced by this wheel's suspension for the current
+physics step. It points along the ground contact's normal, and its size
+depends on the suspension force and the length of the physics step. The
+vehicle applies it to the chassis to push it away from the ground.
+*/
+    action GetSuspensionImpulse returns Vector3
+        return suspensionImpulse
+    end
+
+    /*
+Sets the impulse produced by this wheel's suspension for the current
+physics step. It points along the ground contact's normal, and its size
+depends on the suspension force and the length of the physics step. The
+vehicle applies it to the chassis to push it away from the ground.
+*/
+    action SetSuspensionImpulse(Vector3 suspensionImpulse)
+        me:suspensionImpulse = suspensionImpulse
+    end
+
+    /*
+Returns the point on the chassis where this wheel's suspension impulse is
+applied, measured from the chassis's center of mass. The vehicle uses this
+offset to apply the impulse at the wheel's ground contact point, which can
+also affect how the chassis turns.
+*/
+    action GetSuspensionChassisPoint returns Vector3
+        return suspensionChassisPoint
+    end
+
+    /*
+Sets the point on the chassis where this wheel's suspension impulse is
+applied, measured from the chassis's center of mass. The vehicle uses this
+offset to apply the impulse at the wheel's ground contact point, which can
+also affect how the chassis turns.
+*/
+    action SetSuspensionChassisPoint(Vector3 suspensionChassisPoint)
+        me:suspensionChassisPoint = suspensionChassisPoint
+    end
+
+    /*
+Returns the ground contact point for this wheel's suspension, measured from
+the ground body's center of mass. The vehicle uses this offset to find the
+ground body's velocity at the contact point when calculating suspension
+motion.
+*/
+    action GetSuspensionGroundPoint returns Vector3
+        return suspensionGroundPoint
+    end
+
+    /*
+Sets the ground contact point for this wheel's suspension, measured from the
+ground body's center of mass. The vehicle uses this offset to find the ground
+body's velocity at the contact point when calculating suspension motion.
+*/
+    action SetSuspensionGroundPoint(Vector3 suspensionGroundPoint)
+        me:suspensionGroundPoint = suspensionGroundPoint
+    end
+
+    /*
+Returns the total tire impulse for this wheel during the current physics step.
+It combines the forward impulse that drives or brakes the vehicle with the
+sideways impulse that helps the tire grip the ground. The vehicle applies
+these impulses at the wheel's ground contact point.
+*/
+    action GetTireImpulse returns Vector3
+        return tireImpulse
+    end
+
+    /*
+Sets the total tire impulse for this wheel during the current physics step.
+It combines the forward impulse that drives or brakes the vehicle with the
+sideways impulse that helps the tire grip the ground. The vehicle applies
+these impulses at the wheel's ground contact point.
+*/
+    action SetTireImpulse(Vector3 tireImpulse)
+        me:tireImpulse = tireImpulse
+    end
+
+    /*
+Returns this wheel's forward tire impulse for the current physics step. The
+vehicle calculates it from engine force or braking, then applies it to the
+chassis along the tire's forward direction to drive or slow the vehicle.
+*/
+    action GetTireForwardImpulse returns Vector3
+        return tireForwardImpulse
+    end
+
+    /*
+Sets this wheel's forward tire impulse for the current physics step. The
+vehicle applies it to the chassis along the tire's forward direction to drive
+or slow the vehicle.
+*/
+    action SetTireForwardImpulse(Vector3 tireForwardImpulse)
+        me:tireForwardImpulse = tireForwardImpulse
+    end
+
+    /*
+Returns this wheel's sideways tire impulse for the current physics step. The
+vehicle calculates it from the tire's grip and sideways motion, then applies
+it at the contact point to resist sliding and help steer the chassis.
+*/
+    action GetTireSideImpulse returns Vector3
+        return tireSideImpulse
+    end
+
+    /*
+Sets this wheel's sideways tire impulse for the current physics step. The
+vehicle applies it at the contact point to resist sliding and help steer the
+chassis.
+*/
+    action SetTireSideImpulse(Vector3 tireSideImpulse)
+        me:tireSideImpulse = tireSideImpulse
+    end
+
+    /*
+Returns the wheel's tire contact point relative to the chassis's center of
+mass. The vehicle uses this offset to apply tire impulses to the chassis at
+the contact point, which can also affect how the chassis turns.
+*/
+    action GetTireChassisPoint returns Vector3
+        return tireChassisPoint
+    end
+
+    /*
+Sets the wheel's tire contact point relative to the chassis's center of mass.
+The vehicle uses this offset to apply tire impulses to the chassis at the
+contact point, which can also affect how the chassis turns.
+*/
+    action SetTireChassisPoint(Vector3 tireChassisPoint)
+        me:tireChassisPoint = tireChassisPoint
+    end
+
+    /*
+Returns the wheel's tire contact point relative to the ground body's center
+of mass. The vehicle uses this offset to apply the sideways tire impulse to a
+movable ground body at the contact point.
+*/
+    action GetTireGroundPoint returns Vector3
+        return tireGroundPoint
+    end
+
+    /*
+Sets the wheel's tire contact point relative to the ground body's center of
+mass. The vehicle uses this offset to apply the sideways tire impulse to a
+movable ground body at the contact point.
+*/
+    action SetTireGroundPoint(Vector3 tireGroundPoint)
+        me:tireGroundPoint = tireGroundPoint
+    end
+end

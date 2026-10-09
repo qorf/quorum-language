@@ -7,13 +7,12 @@ use Libraries.Interface.Item3D
 /*
 This class has all of the possible joint types and blueprint actions for all 3D joints (also known as typed constraints).
 */
-class Joint3D
+class Joint3D is PhysicsBehavior3D
     public constant integer BallAndSocket = 0
     public constant integer Hinge = 1
     public constant integer Customizable = 2
     public constant integer Slider = 3
     public constant integer ConeTwist = 4
-
 
     integer type = 0
     Item3D itemA
@@ -24,23 +23,73 @@ class Joint3D
     Joint3D next = undefined
     JointEdge3D edgeA
     JointEdge3D edgeB
+    
+    on create
+        edgeA:SetJoint(me)
+        edgeB:SetJoint(me)
+    end
+    
+    
+    /* This action returns whether or not this behavior acts like a joint. 
 
-    boolean inCollisionGroup = false
-
+   Attribute: Parameter true only if this acts as a joint like behavior.
+*/
+    action IsJoint returns boolean
+        return true
+    end
+    
+    
     /*
-    This action returns whether this joint is been accounted for in a collision group.
-    Attribute: Returns true when the joint has already been assigned to a collision group, false if the joint is not
+    This action returns how many items this joint connects, which is always
+    2: item A and item B.
     */
-    action InCollisionGroup returns boolean
-        return inCollisionGroup
+    action GetItemsSize returns integer
+        return 2
     end
 
     /*
-    This action sets whether this joint is been accounted for in a collision group.
-    Attribute: Parameter flag True if the joint has been assigned to a collision group.
+    This action returns one of the items this joint connects. Index 0 is
+    item A and index 1 is item B. Any other index returns undefined.
     */
-    action SetInCollisionGroup(boolean flag)
-        me:inCollisionGroup = flag
+    action GetItem(integer index) returns Item3D
+        if index = 0
+            return itemA
+        elseif index = 1
+            return itemB
+        end
+        return undefined
+    end
+
+    /*
+    A joint has two edges: edge A, attached to item A, and edge B, attached
+    to item B.
+    */
+    action GetEdgesSize returns integer
+        return 2
+    end
+
+    action GetEdge(integer index) returns JointEdge3D
+        if index = 0
+            return edgeA
+        elseif index = 1
+            return edgeB
+        end
+        return undefined
+    end
+
+    /* Edge A is attached to item A, and edge B to item B. */
+    action GetEdgeItem(integer index) returns Item3D
+        return GetItem(index)
+    end
+
+    /* Each edge points to the item on the joint's other end. */
+    action GetEdgeOther(integer index) returns Item3D
+        if index = 0
+            return itemB
+        elseif index = 1
+            return itemA
+        end
+        return undefined
     end
 
     /*
