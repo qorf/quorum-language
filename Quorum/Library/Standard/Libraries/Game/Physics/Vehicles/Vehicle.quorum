@@ -28,6 +28,25 @@ use Libraries.Game.Physics.PhysicsBehavior3D
 
     You can add wheels, steer them, apply power to move forward or backward,
     apply brakes, and check the vehicle's speed.
+
+    To use a vehicle, give it a chassis with SetChassis, create a Suspension
+    for each wheel and add it with Add, and then add the vehicle to the same
+    Layer3D as the chassis:
+
+        Vehicle vehicle
+        vehicle:SetChassis(chassis)
+        vehicle:Add(frontLeft)
+        vehicle:Add(frontRight)
+        vehicle:Add(rearLeft)
+        vehicle:Add(rearRight)
+        layer:Add(vehicle)
+
+    From then on, the layer updates the vehicle once for every physics step
+    and moves the wheels' visual items once per frame. Control the vehicle
+    from the game's Update action with SetEngineForce, SetSteering, and
+    SetBrake. Before removing the chassis from the layer, remove the vehicle
+    with the layer's Remove action, or call RemoveBehaviorsUsing with the
+    chassis.
 */
 class Vehicle is PhysicsBehavior3D
     Math math

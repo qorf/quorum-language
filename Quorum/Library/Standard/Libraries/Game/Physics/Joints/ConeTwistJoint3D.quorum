@@ -117,8 +117,8 @@ class Main is Game
         leftShoulder:SetLimits(0.8, 0.8, 0.4, 0.8, 0.3, 1.0)
 
         Layer3D layer = GetCurrentLayer3D()
-        layer:AddJoint(shoulder)
-        layer:AddJoint(leftShoulder)
+        layer:Add(shoulder)
+        layer:Add(leftShoulder)
 
         DirectionalLight light
         light:SetColor(0,1,0, 1)

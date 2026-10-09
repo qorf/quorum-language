@@ -3453,10 +3453,24 @@ they were added. Behaviors must not be added or removed during this loop.*/
         end
     end
 
+    /*
+    This action adds a joint to the layer. It does the same thing as Add,
+    which works for every kind of PhysicsBehavior3D and should be used
+    instead.
+
+    Attribute: Parameter joint The joint to add.
+    */
     action AddJoint(Joint3D joint)
         Add(joint)
     end
 
+    /*
+    This action removes a joint from the layer. It does the same thing as
+    Remove, which works for every kind of PhysicsBehavior3D and should be
+    used instead.
+
+    Attribute: Parameter joint The joint to remove.
+    */
     action RemoveJoint(Joint3D joint)
         Remove(joint)
     end

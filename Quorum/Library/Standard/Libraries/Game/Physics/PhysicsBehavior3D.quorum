@@ -24,10 +24,14 @@ set points in the game loop:
    the physics, such as a vehicle's wheel models.
 4. RemovedFromLayer, once, when the behavior is removed.
 
+While the layer is calling UpdatePhysics or UpdateAfterPhysics, a behavior
+should not add or remove behaviors or items in that layer. Make those
+changes from the game's Update action instead.
+
 All of these actions do nothing by default, so a new behavior only needs to
 provide the ones it uses.
 
-A behavior can also report which items it uses, with GetItemCount and
+A behavior can also report which items it uses, with GetItemsSize and
 GetItem.
 
 Attribute: Example
@@ -81,26 +85,36 @@ class PhysicsBehavior3D
     
     boolean inCollisionGroup = false
     
-    /* This action returns whether or not this behavior acts like a joint. 
+    /*
+    This action returns whether this behavior is a joint, which connects two
+    items so that the physics system solves them together. By default it
+    returns false. Joint3D returns true.
 
-   Attribute: Parameter true only if this acts as a joint like behavior.
-*/
+    Attribute: Returns true if this behavior is a joint, and false otherwise.
+    */
     action IsJoint returns boolean
         return false
     end
     
     
     /*
-    This action returns whether this joint is been accounted for in a collision group.
-    Attribute: Returns true when the joint has already been assigned to a collision group, false if the joint is not
+    This action returns whether the physics system has already placed this
+    behavior in a group of items to solve together during the current
+    physics step. The layer clears this at the start of every step. Most
+    users never need to call this action.
+
+    Attribute: Returns true if the behavior is already in a group this step, and false otherwise.
     */
     action InCollisionGroup returns boolean
         return inCollisionGroup
     end
 
     /*
-    This action sets whether this joint is been accounted for in a collision group.
-    Attribute: Parameter flag True if the joint has been assigned to a collision group.
+    This action records whether the physics system has placed this behavior
+    in a group of items to solve together during the current physics step.
+    Most users never need to call this action.
+
+    Attribute: Parameter flag true if the behavior is now in a group.
     */
     action SetInCollisionGroup(boolean flag)
         me:inCollisionGroup = flag
@@ -122,7 +136,7 @@ class PhysicsBehavior3D
 
     /*
     This action returns one of this behavior's edges. Indexes start at 0 and
-    go up to one less than GetEdgeCount. By default it returns undefined.
+    go up to one less than GetEdgesSize. By default it returns undefined.
 
     Attribute: Parameter index The index of the edge.
     Attribute: Returns The edge at that index.
@@ -156,7 +170,7 @@ class PhysicsBehavior3D
 
     /*
     This action attaches each of this behavior's edges to its item, using
-    GetEdgeCount, GetEdge, GetEdgeItem, and GetEdgeOther. A Layer3D calls it
+    GetEdgesSize, GetEdge, GetEdgeItem, and GetEdgeOther. A Layer3D calls it
     when the behavior is added. Edges whose item is undefined are skipped.
     Most users should never need to call or replace this action.
     */
@@ -276,7 +290,7 @@ class PhysicsBehavior3D
 
     /*
     This action returns one of the items this behavior works with. Indexes
-    start at 0 and go up to one less than GetItemCount. By default it returns
+    start at 0 and go up to one less than GetItemsSize. By default it returns
     undefined.
 
     Attribute: Parameter index The index of the item to return.

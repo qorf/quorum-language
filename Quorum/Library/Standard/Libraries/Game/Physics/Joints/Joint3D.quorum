@@ -30,10 +30,13 @@ class Joint3D is PhysicsBehavior3D
     end
     
     
-    /* This action returns whether or not this behavior acts like a joint. 
+    /*
+    This action returns whether this behavior is a joint, which connects two
+    items so that the physics system solves them together. A Joint3D always
+    returns true.
 
-   Attribute: Parameter true only if this acts as a joint like behavior.
-*/
+    Attribute: Returns true if this behavior is a joint, and false otherwise.
+    */
     action IsJoint returns boolean
         return true
     end
