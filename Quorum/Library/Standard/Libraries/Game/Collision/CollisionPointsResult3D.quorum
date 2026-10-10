@@ -26,6 +26,13 @@ class CollisionPointsResult3D
     Vector3 faceNormal
     Vector3 adjustedNormal
     boolean hasFaceNormal = false
+    
+    // Reused for every contact point. LocalCollisionPoints3D copies the
+    // values into its own storage, so no reference to these is kept.
+    CollisionPoint3D scratchPoint
+    Vector3 scratchPointA
+    Vector3 scratchLocalA
+    Vector3 scratchLocalB
 
     /*
     This action adds the bodies that are colliding into this CollisionPointsResult3D class.
@@ -119,14 +126,14 @@ class CollisionPointsResult3D
         if depth > collisionPoints:GetCollisionBreakingThreshold()
             return now
         end
-
-        Vector3 pointA
+        
+        
+        Vector3 pointA = scratchPointA
         pointA:Set(adjustedNormal)
         pointA:Scale(depth)
         pointA:Add(pointInWorld)
-
-        Vector3 localA
-        Vector3 localB        
+        Vector3 localA = scratchLocalA
+        Vector3 localB = scratchLocalB
 
         if isSwapped
             rootTransformB:InverseTransform(pointA, localA)
@@ -135,8 +142,8 @@ class CollisionPointsResult3D
             rootTransformA:InverseTransform(pointA, localA)
             rootTransformB:InverseTransform(pointInWorld, localB)
         end
-
-        CollisionPoint3D newPoint
+        
+        CollisionPoint3D newPoint = scratchPoint
         newPoint:Initialize(localA, localB, adjustedNormal, depth)
 
         newPoint:GetWorldPositionOnA():Set(pointA)

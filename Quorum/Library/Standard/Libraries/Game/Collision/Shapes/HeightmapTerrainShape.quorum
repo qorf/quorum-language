@@ -33,6 +33,14 @@ class HeightmapTerrainShape is Box, ConcaveShape3D
     Vector3 supportDirection
     Vector3 supportPoint
     
+    // The corners of the box around the current triangle, in world space.
+    Vector3 triangleMinimum
+    Vector3 triangleMaximum
+
+    // How far the shape may be from a triangle's plane and still need the full
+    // collision test. Set by ProcessAllTriangles for the shape being tested.
+    number triangleRejectDistance = 0
+    
     on create
         SetType(parent:CollisionShape3D:TERRAIN)
         
@@ -256,6 +264,7 @@ PhysicsPosition3D shapeTransform, CollisionPointsResult3D result)
         shape:ComputeBoundingBox(tempShapeBox, shapeTransform)
         //tempShapeBox:Clamp(tempTerrainBox)
         number extraMargin = GetMargin() + collisionPoints:GetCollisionBreakingThreshold()
+        triangleRejectDistance = extraMargin
         tempShapeBox:GetMinimum():Add(-extraMargin)
         tempShapeBox:GetMaximum():Add(extraMargin)
         tempShapeBox:CalculateDimensions()
@@ -327,43 +336,67 @@ PhysicsPosition3D shapeTransform, CollisionPointsResult3D result)
     action ProcessTriangle(LocalCollisionPoints3D collisionPoints, CollisionShape3D shape, PhysicsPosition3D shapeTransform, 
 CollisionPointsResult3D result, Matrix4 terrainNormalTransform, integer x, integer z, boolean leftTriangle)
         terrain:FillAtPixel(x, z, tempVertices, tempTriangleBox, leftTriangle)
-                Vector3 value1 = terrainNormalTransform:TransformWorldCoordinate(tempTriangleBox:GetMinimum())
-                Vector3 value2 = terrainNormalTransform:TransformWorldCoordinate(tempTriangleBox:GetMaximum())
-                tempTriangleBox:Set(value1, value2)
-        if not tempTriangleBox:Intersects(tempShapeBox)
-            return now
-        end
-        
+
+        // Move the corners into the world first, then build the box around the
+        // triangle from them. This needs no new objects, and stays correct when
+        // the terrain is rotated.
         terrainNormalTransform:TransformWorldCoordinate(tempVertices:Get(0), worldVertex0)
         terrainNormalTransform:TransformWorldCoordinate(tempVertices:Get(1), worldVertex1)
         terrainNormalTransform:TransformWorldCoordinate(tempVertices:Get(2), worldVertex2)
+        SetTriangleBox(GetMargin())
+        if not tempTriangleBox:Intersects(tempShapeBox)
+            return now
+        end
+
         triangle:Set(worldVertex0, worldVertex1, worldVertex2)
         triangle:SetMargin(GetMargin())
-                
-                boolean hitTriangle = tempTriangleBox:Intersects(tempShapeBox)
-                if hitTriangle
-            triangle:CalculateNormal(triangleNormal)
+        triangle:CalculateNormal(triangleNormal)
+
+        // A shape near a cell usually touches only one or two of its
+        // triangles. Checking which side of the triangle's plane the shape is
+        // on costs two support points, and skips the full collision test for
+        // the triangles it cannot reach.
+        if IsSeparatedFromTriangle(shape, shapeTransform, triangleRejectDistance)
+            return now
+        end
+
         result:SetFaceNormal(triangleNormal)
         CollideConvexConvex(collisionPoints, triangle, triangleTransform, shape, shapeTransform, result)
-            result:ClearFaceNormal()
-                end
+        result:ClearFaceNormal()
     end
+
+    /*
+    Sets tempTriangleBox to the box around the three world corners of the
+    current triangle, grown by the given margin on every side.
+    */
+    private action SetTriangleBox(number margin)
+        triangleMinimum:Set(
+            math:MinimumOf(worldVertex0:GetX(), math:MinimumOf(worldVertex1:GetX(), worldVertex2:GetX())) - margin,
+            math:MinimumOf(worldVertex0:GetY(), math:MinimumOf(worldVertex1:GetY(), worldVertex2:GetY())) - margin,
+            math:MinimumOf(worldVertex0:GetZ(), math:MinimumOf(worldVertex1:GetZ(), worldVertex2:GetZ())) - margin)
+        triangleMaximum:Set(
+            math:MaximumOf(worldVertex0:GetX(), math:MaximumOf(worldVertex1:GetX(), worldVertex2:GetX())) + margin,
+            math:MaximumOf(worldVertex0:GetY(), math:MaximumOf(worldVertex1:GetY(), worldVertex2:GetY())) + margin,
+            math:MaximumOf(worldVertex0:GetZ(), math:MaximumOf(worldVertex1:GetZ(), worldVertex2:GetZ())) + margin)
+        tempTriangleBox:Set(triangleMinimum, triangleMaximum)
+    end
+    
     
     /*
     This action checks whether the object is entirely off one face of the triangle's
     plane, far enough away that no contact could reach it. Both facings have to be
     checked, because the object may be on either side of the triangle.
+    triangleNormal must already hold the triangle's normal, and holds it again
+    when this action returns.
     */
     private action IsSeparatedFromTriangle(CollisionShape3D shape, PhysicsPosition3D shapeTransform, number contactThreshold) returns boolean
-        triangle:CalculateNormal(triangleNormal)
         if IsBeyondPlane(shape, shapeTransform, contactThreshold)
             return true
         end
         triangleNormal:Scale(-1)
-        if IsBeyondPlane(shape, shapeTransform, contactThreshold)
-            return true
-        end
-        return false
+        boolean beyond = IsBeyondPlane(shape, shapeTransform, contactThreshold)
+        triangleNormal:Scale(-1)
+        return beyond
     end
     
     /*
