@@ -16,6 +16,11 @@ of a dynamic Item3D on its own.
 class Triangle is CollisionShape3D
     Array<Vector3> vertices
 
+    // The vector returned by LocalGetSupportingVertexWithoutMargin. It is
+    // reused by every call, because the collision solvers ask for supporting
+    // vertices many times per step and copy each result immediately.
+    Vector3 supportOut
+
     on create
         parent:CollisionShape3D:SetType(parent:CollisionShape3D:TRIANGLE)
 
@@ -256,7 +261,9 @@ class Triangle is CollisionShape3D
     /*
     This action finds the corner of the triangle that is furthest away in the
     direction specified by "Vector3 vector", without an offset (margin). The
-    returned vector is a copy, because the caller is allowed to change it.
+    returned vector is not one of the triangle's corners, so the caller is
+    allowed to change it, but it is reused by the next call, so copy it to
+    keep it.
     */
     action LocalGetSupportingVertexWithoutMargin(Vector3 vector) returns Vector3
         Vector3 vertex0 = vertices:Get(0)
@@ -267,7 +274,7 @@ class Triangle is CollisionShape3D
         number dot1 = vector:DotProduct(vertex1)
         number dot2 = vector:DotProduct(vertex2)
 
-        Vector3 out
+        Vector3 out = supportOut
 
         //When two corners are equally far away, the one with the lower index is
         //chosen, which is the same tie breaking that Bullet uses.

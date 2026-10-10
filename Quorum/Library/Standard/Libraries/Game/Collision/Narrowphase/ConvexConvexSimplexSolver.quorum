@@ -37,6 +37,33 @@ class ConvexConvexSimplexSolver
 
     Math math
 
+    // A very large value used by Reset to mark that there is no previous
+    // point. It is computed once in on create instead of on every reset.
+    number farAway = 0
+
+    // Temporary values reused by the actions below, which would otherwise
+    // create them on every GJK iteration. Each action uses its own set, so
+    // an action never overwrites values its caller is still using.
+    Vector3 simplexOrigin
+    Vector3 closestTemp1
+    Vector3 closestTemp2
+    Vector3 closestTemp3
+    Vector3 closestTemp4
+    Vector3 lineDifference
+    Vector3 lineDirection
+    Vector3 triangleAB
+    Vector3 triangleAC
+    Vector3 triangleAP
+    Vector3 triangleBP
+    Vector3 triangleCP
+    Vector3 triangleTemp1
+    Vector3 triangleTemp2
+    Vector3 planeTemp
+    Vector3 planeNormal
+    ConvexConvexSubSimplexClosestResult tetrahedronResult
+    Vector3 tetrahedronTemp
+    Vector3 tetrahedronClosest
+
     on create
         repeat VORONI_SIMPLEX_MAX_VERTICES times
             Vector3 v1
@@ -46,6 +73,7 @@ class ConvexConvexSimplexSolver
             simplexPointsP:Add(v2)
             simplexPointsQ:Add(v3)
         end
+        farAway = math:RaiseToPower(10, 30)
     end
 
     /*
@@ -99,18 +127,17 @@ class ConvexConvexSimplexSolver
                 cachedBC:SetBarycentricCoordinates(1, 0, 0, 0)
                 cachedValidClosest = cachedBC:IsValid()
             elseif numVertices = 2
-                Vector3 tmp
+                Vector3 tmp = closestTemp1
 
                 Vector3 from = simplexVectorW:Get(0)
                 Vector3 to = simplexVectorW:Get(1)
-                Vector3 nearest
 
-                Vector3 p
+                Vector3 p = simplexOrigin
                 p:Set(0, 0, 0)
-                Vector3 diff
+                Vector3 diff = lineDifference
                 diff:Set(p):Subtract(from)
 
-                Vector3 v
+                Vector3 v = lineDirection
                 v:Set(to):Subtract(from)
 
                 number t = v:DotProduct(diff)
@@ -135,9 +162,6 @@ class ConvexConvexSimplexSolver
 
                 cachedBC:SetBarycentricCoordinates(1 - t, t, 0, 0)
 
-                tmp:Set(v):Scale(t)
-                nearest:Set(from):Add(tmp)
-
                 tmp:Set(simplexPointsP:Get(1)):Subtract(simplexPointsP:Get(0))
                 tmp:Scale(t)
                 cachedP1:Set(simplexPointsP:Get(0)):Add(tmp)
@@ -152,11 +176,11 @@ class ConvexConvexSimplexSolver
 
                 cachedValidClosest = cachedBC:IsValid()
             elseif numVertices = 3
-                Vector3 tmp1
-                Vector3 tmp2
-                Vector3 tmp3
+                Vector3 tmp1 = closestTemp1
+                Vector3 tmp2 = closestTemp2
+                Vector3 tmp3 = closestTemp3
 
-                Vector3 p
+                Vector3 p = simplexOrigin
                 p:Set(0, 0, 0)
 
                 Vector3 a = simplexVectorW:Get(0)
@@ -180,12 +204,12 @@ class ConvexConvexSimplexSolver
                 ReduceVertices(cachedBC)
                 cachedValidClosest = cachedBC:IsValid()
             elseif numVertices = 4
-                Vector3 tmp1
-                Vector3 tmp2
-                Vector3 tmp3
-                Vector3 tmp4
+                Vector3 tmp1 = closestTemp1
+                Vector3 tmp2 = closestTemp2
+                Vector3 tmp3 = closestTemp3
+                Vector3 tmp4 = closestTemp4
 
-                Vector3 p
+                Vector3 p = simplexOrigin
                 p:Set(0, 0, 0)
 
                 Vector3 a = simplexVectorW:Get(0)
@@ -238,13 +262,13 @@ class ConvexConvexSimplexSolver
     private action ClosestPointTriangle(Vector3 p, Vector3 a, Vector3 b, Vector3 c, ConvexConvexSubSimplexClosestResult result) returns boolean
         result:UsedVerticesReset()
         
-        Vector3 ab
+        Vector3 ab = triangleAB
         ab:Set(b):Subtract(a)
 
-        Vector3 ac
+        Vector3 ac = triangleAC
         ac:Set(c):Subtract(a)
 
-        Vector3 ap
+        Vector3 ap = triangleAP
         ap:Set(p):Subtract(a)
 
         number d1 = ab:DotProduct(ap)
@@ -257,7 +281,7 @@ class ConvexConvexSimplexSolver
             return true
         end
 
-        Vector3 bp
+        Vector3 bp = triangleBP
         bp:Set(p):Subtract(b)
 
         number d3 = ab:DotProduct(bp)
@@ -280,7 +304,7 @@ class ConvexConvexSimplexSolver
             return true
         end
 
-        Vector3 cp
+        Vector3 cp = triangleCP
         cp:Set(p):Subtract(c)
 
         number d5 = ab:DotProduct(cp)
@@ -307,7 +331,7 @@ class ConvexConvexSimplexSolver
         if va <= 0 and (d4 - d3) >= 0 and (d5 - d6) >= 0
             number w = (d4 - d3) / ((d4 - d3) + (d5 - d6))
 
-            Vector3 tmp
+            Vector3 tmp = triangleTemp1
             tmp:Set(c):Subtract(b)
             result:GetClosestPointOnSimplex():Set(tmp):Scale(w):Add(b)
 
@@ -321,8 +345,8 @@ class ConvexConvexSimplexSolver
         number v = vb * denom
         number w = vc * denom
 
-        Vector3 tmp1
-        Vector3 tmp2
+        Vector3 tmp1 = triangleTemp1
+        Vector3 tmp2 = triangleTemp2
 
         tmp1:Set(ab):Scale(v)
         tmp2:Set(ac):Scale(w)
@@ -340,9 +364,9 @@ class ConvexConvexSimplexSolver
     that contains the points a, b, and c.
     */
     private action PointOutsideOfPlane(Vector3 p, Vector3 a, Vector3 b, Vector3 c, Vector3 d) returns integer
-        Vector3 tmp
+        Vector3 tmp = planeTemp
 
-        Vector3 normal
+        Vector3 normal = planeNormal
         normal:Set(b):Subtract(a)
         tmp:Set(c):Subtract(a)
         normal:CrossProduct(tmp)
@@ -368,11 +392,11 @@ class ConvexConvexSimplexSolver
     This action calculates the closest point from a tetrahedron to the origin.
     */
     private action ClosestPointTetrahedron(Vector3 p, Vector3 a, Vector3 b, Vector3 c, Vector3 d, ConvexConvexSubSimplexClosestResult finalResult) returns boolean
-        ConvexConvexSubSimplexClosestResult tempResult
+        ConvexConvexSubSimplexClosestResult tempResult = tetrahedronResult
         tempResult:Reset()
 
-        Vector3 tmp
-        Vector3 q
+        Vector3 tmp = tetrahedronTemp
+        Vector3 q = tetrahedronClosest
 
         finalResult:GetClosestPointOnSimplex():Set(p)
         finalResult:UsedVerticesReset()
@@ -490,11 +514,10 @@ class ConvexConvexSimplexSolver
     This action resets the ConvexConvexSimplexSolver.
     */
     action Reset
-        number value = math:RaiseToPower(10, 30)
         cachedValidClosest = false
         numVertices = 0
         needsUpdate = true
-        lastW:Set(value, value, value)
+        lastW:Set(farAway, farAway, farAway)
         cachedBC:Reset()
     end
 

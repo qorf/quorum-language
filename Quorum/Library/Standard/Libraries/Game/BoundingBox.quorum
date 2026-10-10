@@ -462,14 +462,14 @@ class BoundingBox
 
         // This is tested using the Separating Axis Theorem.
 
-        number lx = math:AbsoluteValue(center:GetX() - bounds:GetCenter():GetX())
-        number sumx = (dimensions:GetX() / 2) + (bounds:GetDimensions():GetX() / 2)
+        number lx = math:AbsoluteValue(center:GetX() - bounds:GetCenterX())
+        number sumx = (dimensions:GetX() / 2) + (bounds:GetWidth() / 2)
 
-        number ly = math:AbsoluteValue(center:GetY() - bounds:GetCenter():GetY())
-        number sumy = (dimensions:GetY() / 2) + (bounds:GetDimensions():GetY() / 2)
+        number ly = math:AbsoluteValue(center:GetY() - bounds:GetCenterY())
+        number sumy = (dimensions:GetY() / 2) + (bounds:GetHeight() / 2)
 
-        number lz = math:AbsoluteValue(center:GetZ() - bounds:GetCenter():GetZ())
-        number sumz = (dimensions:GetZ() / 2) + (bounds:GetDimensions():GetZ() / 2)
+        number lz = math:AbsoluteValue(center:GetZ() - bounds:GetCenterZ())
+        number sumz = (dimensions:GetZ() / 2) + (bounds:GetDepth() / 2)
         
         return lx <= sumx and ly <= sumy and lz <= sumz
     end

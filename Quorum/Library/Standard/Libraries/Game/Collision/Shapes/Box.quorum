@@ -23,6 +23,12 @@ class Box is CollisionShape3D
     boolean isLocalBoundingBoxValid = false
     Math math
 
+    // The vectors returned by the two supporting vertex actions. They are
+    // reused by every call, because the collision solvers ask for supporting
+    // vertices many times per step and copy each result immediately.
+    Vector3 supportOut
+    Vector3 marginSupportOut
+
     on create
         parent:CollisionShape3D:SetType(parent:CollisionShape3D:BOX)
 
@@ -217,10 +223,11 @@ class Box is CollisionShape3D
     /*
     This action finds the vertex with an offset (margin) of the 3D shape that is
     furthest away in a direction specified by "Vector3 vector" without an offset.
+    The returned vector is reused by the next call, so copy it to keep it.
     */
     action LocalGetSupportingVertexWithoutMargin(Vector3 vector) returns Vector3
         Vector3 halfExtents = GetHalfExtentsWithoutMargin()
-        Vector3 out
+        Vector3 out = supportOut
 
         out:Set(fsel(vector:GetX(), halfExtents:GetX(), -halfExtents:GetX()),
                 fsel(vector:GetY(), halfExtents:GetY(), -halfExtents:GetY()),
@@ -345,7 +352,8 @@ class Box is CollisionShape3D
 
     /*
     This action finds the vertex with an offset (margin) of the 3D shape that is
-    furthest away in a direction specified by "Vector3 vector".    
+    furthest away in a direction specified by "Vector3 vector".
+    The returned vector is reused by the next call, so copy it to keep it.
     */
     action LocalGetSupportingVertex(Vector3 vector) returns Vector3
         Vector3 halfExtents = GetHalfExtentsWithoutMargin()
@@ -355,7 +363,7 @@ class Box is CollisionShape3D
         halfExtents:SetY(halfExtents:GetY() + margin)
         halfExtents:SetZ(halfExtents:GetZ() + margin)
 
-        Vector3 out
+        Vector3 out = marginSupportOut
         out:Set(fsel(vector:GetX(), halfExtents:GetX(), -halfExtents:GetX()),
                 fsel(vector:GetY(), halfExtents:GetY(), -halfExtents:GetY()),
                 fsel(vector:GetZ(), halfExtents:GetZ(), -halfExtents:GetZ()))
