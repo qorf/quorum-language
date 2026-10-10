@@ -49,10 +49,57 @@ class BoxBoxCollider
     Vector3 halfExtentsB
     Vector3 boxCenterDelta
     Vector3 bestNormal
-    Vector3 testAxis
     Vector3 edgePointA
     Vector3 edgePointB
     Vector3 edgeBetween
+
+    // Bullet's tuning for the edge axes of the separating-axis test.
+    constant number ROTATION_FUDGE = 0.00001
+    constant number CROSS_AXIS_BIAS = 1.05
+
+    // Results of the separating-axis test. The index uses the order of the
+    // tests: 0 to 5 are the face axes A0, B0, A1, B1, A2, B2, and 6 to 14 are
+    // the edge pairs, 6 + 3 * (edge of A) + (edge of B).
+    integer winningAxisIndex = -1
+    number winningOverlap = 0
+    number bestAxisScore = 0
+    boolean bestNormalFlipped = false
+    number bestEdgeLength = 1
+
+    // B's axes expressed against A's. rIJ is A's axis I dotted with B's axis
+    // J, and aIJ is its absolute value. dAI and dBJ are the center offset
+    // along A's axis I and B's axis J, and hAI and hBJ are the half extents.
+    // Keeping these as plain numbers leaves the 15 tests free of vector math.
+    number r00 = 0
+    number r01 = 0
+    number r02 = 0
+    number r10 = 0
+    number r11 = 0
+    number r12 = 0
+    number r20 = 0
+    number r21 = 0
+    number r22 = 0
+    number a00 = 0
+    number a01 = 0
+    number a02 = 0
+    number a10 = 0
+    number a11 = 0
+    number a12 = 0
+    number a20 = 0
+    number a21 = 0
+    number a22 = 0
+    number dA0 = 0
+    number dA1 = 0
+    number dA2 = 0
+    number dB0 = 0
+    number dB1 = 0
+    number dB2 = 0
+    number hA0 = 0
+    number hA1 = 0
+    number hA2 = 0
+    number hB0 = 0
+    number hB1 = 0
+    number hB2 = 0
 
     on create
         integer i = 0
@@ -117,129 +164,16 @@ CollisionPointsResult3D result)
     centerDelta:Set(transformA:GetOrigin())
     centerDelta:Subtract(transformB:GetOrigin())
 
-    number minimumOverlap = 1.0e100
-    number bestAxisScore = 1.0e100
-    integer winningAxis = -1
-
     Vector3 normalBtoA = bestNormal
-    normalBtoA:Set(1, 0, 0)
 
-    number rotationFudge = 0.00001
-    number crossAxisBias = 1.05
-
-    integer i = 0
-    repeat while i < 15
-            Vector3 axis = testAxis
-        integer edgeA = -1
-        integer edgeB = -1
-
-        if i < 6
-            integer selectedAxisIndex = 0
-
-            if i mod 2 = 0
-                selectedAxisIndex = i / 2
-                axis:Set(axesA:Get(selectedAxisIndex))
-            else
-                selectedAxisIndex = (i - 1) / 2
-                axis:Set(axesB:Get(selectedAxisIndex))
-            end
-        else
-            integer edgePair = i - 6
-            edgeA = edgePair / 3
-            edgeB = edgePair mod 3
-
-                // CrossProduct(Vector3) changes the vector it is called on. axis
-                // holds a copy of A's edge axis first, so axesA is left unchanged
-                // for the remaining tests and for contact generation.
-                axis:Set(axesA:Get(edgeA)):CrossProduct(axesB:Get(edgeB))
-        end
-
-        number axisLength = axis:Length()
-
-        // Skip degenerate cross products from parallel or nearly parallel edges.
-        if axisLength > EPSILON
-            axis:Scale(1 / axisLength)
-
-            number radiusA =
-                math:AbsoluteValue(axis:DotProduct(axesA:Get(0))) * halfA:GetX() +
-                math:AbsoluteValue(axis:DotProduct(axesA:Get(1))) * halfA:GetY() +
-                math:AbsoluteValue(axis:DotProduct(axesA:Get(2))) * halfA:GetZ()
-
-            number radiusB =
-                math:AbsoluteValue(axis:DotProduct(axesB:Get(0))) * halfB:GetX() +
-                math:AbsoluteValue(axis:DotProduct(axesB:Get(1))) * halfB:GetY() +
-                math:AbsoluteValue(axis:DotProduct(axesB:Get(2))) * halfB:GetZ()
-
-            number signedDistance = centerDelta:DotProduct(axis)
-            number rawOverlap =
-                radiusA + radiusB - math:AbsoluteValue(signedDistance)
-
-            number testedOverlap = rawOverlap
-            number candidateScore = rawOverlap
-
-            if i >= 6
-                // Bullet adds rotationFudge to the four relative-rotation
-                // terms that contribute to this edge-cross-edge projection.
-                // In normalized world-axis space this is the corresponding
-                // extent padding divided by the original cross-axis length.
-                number paddingA = 0
-                number paddingB = 0
-
-                integer extentIndex = 0
-                repeat while extentIndex < 3
-                    if extentIndex not= edgeA
-                        paddingA = paddingA + GetBoxExtent(halfA, extentIndex)
-                    end
-                    if extentIndex not= edgeB
-                        paddingB = paddingB + GetBoxExtent(halfB, extentIndex)
-                    end
-                    extentIndex = extentIndex + 1
-                end
-
-                number crossAxisPadding =
-                    rotationFudge * (paddingA + paddingB) / axisLength
-
-                testedOverlap = rawOverlap + crossAxisPadding
-
-                // Bullet gives cross axes a 1.05 selection bias so a face
-                // axis wins close ties. The bias affects selection only;
-                // minimumOverlap retains the unweighted contact depth.
-                candidateScore = testedOverlap * crossAxisBias
-
-                // Bullet's cross-axis separation check allows SIMD_EPSILON
-                // before declaring a separating axis. Convert that tolerance
-                // to the normalized-axis units used here.
-                if testedOverlap < -(EPSILON / axisLength)
-                    result:RefreshCollisionPoints()
-                    return now
-                end
-            else
-                if testedOverlap < 0
-                    result:RefreshCollisionPoints()
-                    return now
-                end
-            end
-
-            if candidateScore < bestAxisScore
-                bestAxisScore = candidateScore
-                minimumOverlap = testedOverlap
-                winningAxis = i
-                normalBtoA:Set(axis)
-
-                // The result normal points from B toward A.
-                if signedDistance < 0
-                    normalBtoA:Scale(-1)
-                end
-            end
-        end
-
-        i = i + 1
-    end
-
-    if winningAxis < 0
+    boolean separated = FindSeparatingAxis(axesA, axesB, halfA, halfB, centerDelta, normalBtoA)
+    if separated
         result:RefreshCollisionPoints()
         return now
     end
+
+    integer winningAxis = winningAxisIndex
+    number minimumOverlap = winningOverlap
 
     if winningAxis < 6
         boolean referenceIsA = winningAxis mod 2 = 0
@@ -266,6 +200,219 @@ CollisionPointsResult3D result)
 
     result:RefreshCollisionPoints()
 end
+
+
+    /*
+    Looks for an axis that separates the two boxes, using the 15 candidate
+    axes of the separating-axis test: the three face axes of each box, then
+    the nine cross products of one edge from each. Returns true if the boxes
+    are apart. Otherwise it records the axis with the smallest overlap in
+    winningAxisIndex and winningOverlap, and stores the contact normal,
+    pointing from B toward A, in normal.
+
+    This follows Bullet's dBoxBox. B's axes are expressed against A's once,
+    and every test after that is arithmetic on those numbers.
+    */
+    private action FindSeparatingAxis(Array<Vector3> axesA, Array<Vector3> axesB,
+Vector3 halfA, Vector3 halfB, Vector3 centerDelta, Vector3 normal) returns boolean
+        Vector3 axisA0 = axesA:Get(0)
+        Vector3 axisA1 = axesA:Get(1)
+        Vector3 axisA2 = axesA:Get(2)
+        Vector3 axisB0 = axesB:Get(0)
+        Vector3 axisB1 = axesB:Get(1)
+        Vector3 axisB2 = axesB:Get(2)
+
+        r00 = axisA0:DotProduct(axisB0)
+        r01 = axisA0:DotProduct(axisB1)
+        r02 = axisA0:DotProduct(axisB2)
+        r10 = axisA1:DotProduct(axisB0)
+        r11 = axisA1:DotProduct(axisB1)
+        r12 = axisA1:DotProduct(axisB2)
+        r20 = axisA2:DotProduct(axisB0)
+        r21 = axisA2:DotProduct(axisB1)
+        r22 = axisA2:DotProduct(axisB2)
+
+        a00 = math:AbsoluteValue(r00)
+        a01 = math:AbsoluteValue(r01)
+        a02 = math:AbsoluteValue(r02)
+        a10 = math:AbsoluteValue(r10)
+        a11 = math:AbsoluteValue(r11)
+        a12 = math:AbsoluteValue(r12)
+        a20 = math:AbsoluteValue(r20)
+        a21 = math:AbsoluteValue(r21)
+        a22 = math:AbsoluteValue(r22)
+
+        dA0 = centerDelta:DotProduct(axisA0)
+        dA1 = centerDelta:DotProduct(axisA1)
+        dA2 = centerDelta:DotProduct(axisA2)
+        dB0 = centerDelta:DotProduct(axisB0)
+        dB1 = centerDelta:DotProduct(axisB1)
+        dB2 = centerDelta:DotProduct(axisB2)
+
+        hA0 = halfA:GetX()
+        hA1 = halfA:GetY()
+        hA2 = halfA:GetZ()
+        hB0 = halfB:GetX()
+        hB1 = halfB:GetY()
+        hB2 = halfB:GetZ()
+
+        bestAxisScore = 1.0e100
+        winningAxisIndex = -1
+        winningOverlap = 1.0e100
+        bestNormalFlipped = false
+        bestEdgeLength = 1
+
+        // Face axes, in the order A0, B0, A1, B1, A2, B2. Along one of A's
+        // axes, A reaches exactly its half extent, and B reaches the sum of
+        // its half extents weighted by how much each of its axes points that
+        // way. B's axes are the same with the boxes swapped.
+        if TestFaceAxis(0, hA0 + a00 * hB0 + a01 * hB1 + a02 * hB2, dA0)
+            return true
+        end
+        if TestFaceAxis(1, a00 * hA0 + a10 * hA1 + a20 * hA2 + hB0, dB0)
+            return true
+        end
+        if TestFaceAxis(2, hA1 + a10 * hB0 + a11 * hB1 + a12 * hB2, dA1)
+            return true
+        end
+        if TestFaceAxis(3, a01 * hA0 + a11 * hA1 + a21 * hA2 + hB1, dB1)
+            return true
+        end
+        if TestFaceAxis(4, hA2 + a20 * hB0 + a21 * hB1 + a22 * hB2, dA2)
+            return true
+        end
+        if TestFaceAxis(5, a02 * hA0 + a12 * hA1 + a22 * hA2 + hB2, dB2)
+            return true
+        end
+
+        // Edge pairs, A's edge i with B's edge j, at index 6 + 3 * i + j. Each
+        // call passes the numbers for the two other axes of A (i + 1 and
+        // i + 2) and of B (j + 1 and j + 2), wrapping around after 2.
+        //            index  rNext rAfter aNext aAfter hANext hAAfter bNext bAfter hBNext hBAfter dANext dAAfter
+        if TestEdgeAxis(6,  r10, r20, a10, a20, hA1, hA2, a01, a02, hB1, hB2, dA1, dA2)
+            return true
+        end
+        if TestEdgeAxis(7,  r11, r21, a11, a21, hA1, hA2, a02, a00, hB2, hB0, dA1, dA2)
+            return true
+        end
+        if TestEdgeAxis(8,  r12, r22, a12, a22, hA1, hA2, a00, a01, hB0, hB1, dA1, dA2)
+            return true
+        end
+        if TestEdgeAxis(9,  r20, r00, a20, a00, hA2, hA0, a11, a12, hB1, hB2, dA2, dA0)
+            return true
+        end
+        if TestEdgeAxis(10, r21, r01, a21, a01, hA2, hA0, a12, a10, hB2, hB0, dA2, dA0)
+            return true
+        end
+        if TestEdgeAxis(11, r22, r02, a22, a02, hA2, hA0, a10, a11, hB0, hB1, dA2, dA0)
+            return true
+        end
+        if TestEdgeAxis(12, r00, r10, a00, a10, hA0, hA1, a21, a22, hB1, hB2, dA0, dA1)
+            return true
+        end
+        if TestEdgeAxis(13, r01, r11, a01, a11, hA0, hA1, a22, a20, hB2, hB0, dA0, dA1)
+            return true
+        end
+        if TestEdgeAxis(14, r02, r12, a02, a12, hA0, hA1, a20, a21, hB0, hB1, dA0, dA1)
+            return true
+        end
+
+        // Build the normal only for the winning axis.
+        if winningAxisIndex < 6
+            if winningAxisIndex mod 2 = 0
+                normal:Set(axesA:Get(winningAxisIndex / 2))
+            else
+                normal:Set(axesB:Get((winningAxisIndex - 1) / 2))
+            end
+        else
+            integer edgePair = winningAxisIndex - 6
+            normal:Set(axesA:Get(edgePair / 3)):CrossProduct(axesB:Get(edgePair mod 3))
+            normal:Scale(1 / bestEdgeLength)
+        end
+
+        // The normal points from B toward A.
+        if bestNormalFlipped
+            normal:Scale(-1)
+        end
+
+        return false
+    end
+
+    /*
+    Tests one face axis. radiusSum is how far the two boxes reach along the
+    axis together, and signedDistance is how far apart their centers are along
+    it. Returns true if this axis separates the boxes.
+    */
+    private action TestFaceAxis(integer index, number radiusSum, number signedDistance) returns boolean
+        number overlap = radiusSum - math:AbsoluteValue(signedDistance)
+        if overlap < 0
+            return true
+        end
+        ConsiderAxis(index, overlap, overlap, signedDistance, 1)
+        return false
+    end
+
+    /*
+    Tests the cross product of A's edge i with B's edge j. The values passed
+    in belong to the two other axes of each box, in order: "next" is i + 1 (or
+    j + 1) and "after" is i + 2 (or j + 2), wrapping around after 2.
+
+    rNext and rAfter are R[i + 1][j] and R[i + 2][j], and aNext and aAfter
+    their absolute values. bNext and bAfter are the absolute values of
+    R[i][j + 1] and R[i][j + 2]. Returns true if this axis separates the boxes.
+    */
+    private action TestEdgeAxis(integer index,
+number rNext, number rAfter,
+number aNext, number aAfter,
+number hANext, number hAAfter,
+number bNext, number bAfter,
+number hBNext, number hBAfter,
+number dANext, number dAAfter) returns boolean
+        // A_i x B_j has the components (0, -R[i + 2][j], R[i + 1][j]) in A's
+        // frame, so its length comes from those two. This is more accurate
+        // than sqrt(1 - R[i][j] squared) when the edges are nearly parallel.
+        number axisLength = math:SquareRoot(rNext * rNext + rAfter * rAfter)
+
+        // Skip degenerate cross products from parallel or nearly parallel edges.
+        if axisLength <= EPSILON
+            return false
+        end
+
+        number radiusA = (hANext * aAfter + hAAfter * aNext) / axisLength
+        number radiusB = (hBNext * bAfter + hBAfter * bNext) / axisLength
+        number signedDistance = (dAAfter * rNext - dANext * rAfter) / axisLength
+        number rawOverlap = radiusA + radiusB - math:AbsoluteValue(signedDistance)
+
+        // Bullet adds rotationFudge to the four rotation terms in this
+        // projection, which comes to the two other half extents of each box,
+        // divided by the length of the cross product.
+        number padding = ROTATION_FUDGE * (hANext + hAAfter + hBNext + hBAfter) / axisLength
+        number testedOverlap = rawOverlap + padding
+
+        // Bullet allows SIMD_EPSILON before calling an edge axis separating.
+        if testedOverlap < -(EPSILON / axisLength)
+            return true
+        end
+
+        // The 1.05 bias makes a face axis win close ties. It affects only
+        // which axis wins; the depth kept is the unweighted overlap.
+        ConsiderAxis(index, testedOverlap, testedOverlap * CROSS_AXIS_BIAS, signedDistance, axisLength)
+        return false
+    end
+
+    /*
+    Keeps this axis if it has the lowest score so far.
+    */
+    private action ConsiderAxis(integer index, number overlap, number score, number signedDistance, number axisLength)
+        if score < bestAxisScore
+            bestAxisScore = score
+            winningOverlap = overlap
+            winningAxisIndex = index
+            bestNormalFlipped = signedDistance < 0
+            bestEdgeLength = axisLength
+        end
+    end
+
     
     
     /*
