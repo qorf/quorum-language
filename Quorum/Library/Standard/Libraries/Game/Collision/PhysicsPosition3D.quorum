@@ -168,11 +168,10 @@ class PhysicsPosition3D
     action InverseTransform(Vector3 in, Vector3 out)
         out:Set(in)
         out:Subtract(origin)
-        
-        Matrix3 matrix
-        matrix:Set(basis)
-        matrix:Transpose()
-        out:Multiply(matrix)
+        // Multiplying by the transpose of the rotation undoes the rotation.
+        // MultiplyByTranspose does this directly, without building a
+        // transposed copy of the matrix.
+        out:MultiplyByTranspose(basis)
     end
 
     /*

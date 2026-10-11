@@ -27,6 +27,12 @@ class LocalCollisionPoints3D
     // arrives while all four slots are full.
     Vector3 sortFromPoint
     Vector3 sortAcross
+
+    // Reused by RefreshCollisionPoints, which runs for every collision on
+    // every physics step.
+    Vector3 refreshDifference
+    Vector3 refreshProjectedDifference
+    Vector3 refreshProjectedPoint
     
     integer pointCount = 0
     
@@ -309,7 +315,7 @@ class LocalCollisionPoints3D
     Attribute: Parameter transformB The position of the second object.
     */
     action RefreshCollisionPoints(PhysicsPosition3D transformA, PhysicsPosition3D transformB)
-        Vector3 tmp
+        Vector3 tmp = refreshDifference
         integer i = GetPointCount() - 1
 
         repeat while i >= 0
@@ -331,8 +337,8 @@ class LocalCollisionPoints3D
         end
 
         number distance2 = 0
-        Vector3 projectedDifference
-        Vector3 projectedPoint
+        Vector3 projectedDifference = refreshProjectedDifference
+        Vector3 projectedPoint = refreshProjectedPoint
 
         i = GetPointCount() - 1
         repeat while i >= 0
