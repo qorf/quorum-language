@@ -23,6 +23,11 @@ class LocalCollisionPoints3D
     Math math
     Item3D body0
     Item3D body1
+    // Reused by SortCachedPoints, which runs every time a new contact
+    // arrives while all four slots are full.
+    Vector3 sortFromPoint
+    Vector3 sortAcross
+    
     integer pointCount = 0
     
     integer index1A = 0
@@ -49,14 +54,7 @@ class LocalCollisionPoints3D
         index1A = 0
     end
 
-    /*
-    This action returns the CollisionPoint3D and its index that will be replaced
-    when there are more than 4 CollisionPoint3Ds that needs to be stored inside
-    this LocalCollisionPoints3D.
-    Attribute: Parameter point The collision point that will be replaced.
-    Attribute: Returns the index of the collision point that will be replaced.
-    */
-    private action SortCachedPoints(CollisionPoint3D point) returns integer
+        private action SortCachedPoints(CollisionPoint3D point) returns integer
         integer maxPenetrationIndex = -1
         number maxPenetration = point:GetDistance()
         integer i = 0
@@ -69,78 +67,28 @@ class LocalCollisionPoints3D
             i = i + 1
         end
 
+        // For each slot that could be replaced, how large an area the new
+        // point covers together with the points that would remain. The
+        // deepest stored point is never replaced, so its area is not needed.
         number res0 = 0
         number res1 = 0
         number res2 = 0
         number res3 = 0
         if maxPenetrationIndex not= 0
-            Vector3 a0
-            a0:Set(point:GetLocalPointA())
-            a0:Subtract(points:Get(1):GetLocalPointA())
-
-            Vector3 b0
-            b0:Set(points:Get(3):GetLocalPointA())
-            b0:Subtract(points:Get(2):GetLocalPointA())
-
-            Vector3 cross
-            cross:Set(a0)
-            cross:CrossProduct(b0)
-
-            res0 = cross:LengthSquared()
+            res0 = AreaMeasure(point, 1, 2, 3)
         end
 
         if maxPenetrationIndex not= 1
-            Vector3 a1
-            a1:Set(point:GetLocalPointA())
-            a1:Subtract(points:Get(0):GetLocalPointA())
-
-            Vector3 b1
-            b1:Set(points:Get(3):GetLocalPointA())
-            b1:Subtract(points:Get(2):GetLocalPointA())
-
-            Vector3 cross
-            cross:Set(a1)
-            cross:CrossProduct(b1)
-            
-            res1 = cross:LengthSquared()
+            res1 = AreaMeasure(point, 0, 2, 3)
         end
 
         if maxPenetrationIndex not= 2
-            Vector3 a2
-            a2:Set(point:GetLocalPointA())
-            a2:Subtract(points:Get(0):GetLocalPointA())
-
-            Vector3 b2
-            b2:Set(points:Get(3):GetLocalPointA())
-            b2:Subtract(points:Get(1):GetLocalPointA())
-            
-            Vector3 cross
-            cross:Set(a2)
-            cross:CrossProduct(b2)
-
-            res2 = cross:LengthSquared()
+            res2 = AreaMeasure(point, 0, 1, 3)
         end
 
         if maxPenetrationIndex not= 3
-            Vector3 a3
-            a3:Set(point:GetLocalPointA())
-            a3:Subtract(points:Get(0):GetLocalPointA())
-            
-            Vector3 b3
-            b3:Set(points:Get(2):GetLocalPointA())
-            b3:Subtract(points:Get(1):GetLocalPointA())
-            
-            Vector3 cross
-            cross:Set(a3)
-            cross:CrossProduct(b3)
-
-            res3 = cross:LengthSquared()
+            res3 = AreaMeasure(point, 0, 1, 2)
         end
-
-        res0 = math:AbsoluteValue(res0)
-        res1 = math:AbsoluteValue(res1)
-        res2 = math:AbsoluteValue(res2)
-        res3 = math:AbsoluteValue(res3)
 
         integer maxIndex = -1
         number maxValue = 0
@@ -168,7 +116,21 @@ class LocalCollisionPoints3D
 
         return maxIndex
     end
-
+    
+/*
+    This action is used by "action SortCachedPoints." It returns the squared
+    length of (point - first) crossed with (third - second), using the local
+    points on object A. This grows with the area of the four sided shape the
+    new point makes with the three stored points at the given indexes, which
+    is the area that would be kept if the fourth slot were replaced.
+    */
+    private action AreaMeasure(CollisionPoint3D point, integer first, integer second, integer third) returns number
+        sortFromPoint:Set(point:GetLocalPointA()):Subtract(points:Get(first):GetLocalPointA())
+        sortAcross:Set(points:Get(third):GetLocalPointA()):Subtract(points:Get(second):GetLocalPointA())
+        sortFromPoint:CrossProduct(sortAcross)
+        return sortFromPoint:LengthSquared()
+    end
+    
     /*
     This action returns the first 3D object that is involved in the collision
     recorded in this LocalCollisionPoints3D.
