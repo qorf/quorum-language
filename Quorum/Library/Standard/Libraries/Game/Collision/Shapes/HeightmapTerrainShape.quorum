@@ -272,6 +272,10 @@ PhysicsPosition3D shapeTransform, CollisionPointsResult3D result)
         tempShapeBox:CalculateDimensions()
         
         result:SetCollisionPoints(collisionPoints)
+
+        // Gather the contacts from all the triangles, and store the best four
+        // at the end, instead of storing each triangle's contacts one by one.
+        result:BeginGathering()
         
         //Get where the bounding box is on the map.
         Vector3 terrainDimensions = tempTerrainBox:GetDimensions()
@@ -324,6 +328,7 @@ PhysicsPosition3D shapeTransform, CollisionPointsResult3D result)
             i = i + 1
         end
         
+        result:FinishGathering()
         result:RefreshCollisionPoints()
         
         integer p = 0
