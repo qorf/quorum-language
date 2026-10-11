@@ -9,7 +9,7 @@ use Libraries.Compute.Matrix3
 use Libraries.Compute.Math
 use Libraries.Compute.Matrix4
 use Libraries.Game.Collision.CollisionPointsResult3D
-use Libraries.Game.Collision.Narrowphase.ConvexConvexPairSolver
+use Libraries.Game.Collision.Narrowphase.SharedNarrowSolver
 use Libraries.Game.Collision.LocalCollisionPoints3D
 use Libraries.Game.Collision.CollisionPoint3D
 use Libraries.Game.Collision.RayCastResult3D
@@ -21,7 +21,9 @@ class HeightmapTerrainShape is Box, ConcaveShape3D
     BoundingBox tempTerrainBox
     BoundingBox tempShapeBox
     BoundingBox tempTriangleBox
-    ConvexConvexPairSolver gjkPairDetector
+    // The same shared solver CollisionEvent3D uses. Each triangle the shape
+    // might touch is handed to it.
+    SharedNarrowSolver narrowSolver
     
     
     Triangle triangle
@@ -361,7 +363,7 @@ CollisionPointsResult3D result, Matrix4 terrainNormalTransform, integer x, integ
         end
 
         result:SetFaceNormal(triangleNormal)
-        CollideConvexConvex(collisionPoints, triangle, triangleTransform, shape, shapeTransform, result)
+        narrowSolver:CollideTriangle(collisionPoints, triangle, triangleTransform, shape, shapeTransform, result)
         result:ClearFaceNormal()
     end
 
@@ -413,25 +415,6 @@ CollisionPointsResult3D result, Matrix4 terrainNormalTransform, integer x, integ
         number pointDistance = triangleNormal:DotProduct(supportPoint)
         return planeDistance - pointDistance > contactThreshold
     end
-    
-    private action CollideConvexConvex(LocalCollisionPoints3D collisionPoints, CollisionShape3D shapeA, PhysicsPosition3D transformA, 
-CollisionShape3D shapeB, PhysicsPosition3D transformB, CollisionPointsResult3D result)
-        result:SetCollisionPoints(collisionPoints)
-        number maximumDistanceSquared = 0
-
-        gjkPairDetector:SetMinkowskiA(shapeA)
-        gjkPairDetector:SetMinkowskiB(shapeB)
-        maximumDistanceSquared = shapeA:GetMargin() + shapeB:GetMargin() + collisionPoints:GetCollisionBreakingThreshold()
-        maximumDistanceSquared = maximumDistanceSquared * maximumDistanceSquared
-
-        PhysicsPosition3D inputTransformA
-        inputTransformA:Set(transformA)
-        PhysicsPosition3D inputTransformB
-        inputTransformB:Set(transformB)
-
-        gjkPairDetector:GetClosestPoints(inputTransformA, inputTransformB, maximumDistanceSquared, result, false)
-    end
-    
     
     action Copy returns CollisionShape3D
         HeightmapTerrainShape copy
