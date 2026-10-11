@@ -138,6 +138,11 @@ class BoxTriangleCollider is TriangleCollider3D
     PhysicsPosition3D boxTransform = undefined
 
     Math math
+    
+    // Read once at the start of each separating axis test, instead of once
+    // for each of the 13 directions.
+    number testMargin = 0
+    number testThreshold = 0
 
     on create
         integer i = 0
@@ -221,7 +226,7 @@ class BoxTriangleCollider is TriangleCollider3D
 
         ReportKept()
     end
-
+    
     /*
     This action runs the separating axis test over the 13 directions. It
     returns false if any of them shows a gap wider than the contact
@@ -234,22 +239,43 @@ class BoxTriangleCollider is TriangleCollider3D
     later direction must be strictly better to replace an earlier one. So
     when a box lies flat on a triangle, where the triangle's normal and a
     box axis tie, the triangle's normal is used.
+
+    Many of the distances along these directions are known without working
+    them out in full, which keeps the test quick:
+
+        Along the triangle's normal, all three corners are the same distance,
+        so only one is measured.
+
+        Along one of the box's axes, a corner's distance is just its x, y or
+        z, and the box reaches exactly its half size.
+
+        Along a box axis crossed with a triangle edge, both corners of that
+        edge are the same distance, because the edge is at a right angle to
+        the direction. Only the edge's first corner and the corner opposite
+        the edge are measured.
     */
     private action FindBestAxis returns boolean
         bestKind = NO_AXIS
         bestScore = 1.0e100
+        testMargin = GetTriangleMargin()
+        testThreshold = GetContactThreshold()
 
         if not localTriangle:IsDegenerate()
-            axis:Set(localTriangle:GetNormal())
-            if not TestAxis(TRIANGLE_FACE, -1, -1)
+            Vector3 normalAxis = localTriangle:GetNormal()
+            number along = normalAxis:DotProduct(localCorner0)
+            if not TestAxis(TRIANGLE_FACE, -1, -1, normalAxis, BoxReach(normalAxis), along, along)
                 return false
             end
         end
 
         integer k = 0
         repeat while k < 3
-            axis:Set(boxAxes:Get(k))
-            if not TestAxis(BOX_FACE, k, -1)
+            number value0 = GetComponent(localCorner0, k)
+            number value1 = GetComponent(localCorner1, k)
+            number value2 = GetComponent(localCorner2, k)
+            number low = math:MinimumOf(value0, math:MinimumOf(value1, value2))
+            number high = math:MaximumOf(value0, math:MaximumOf(value1, value2))
+            if not TestAxis(BOX_FACE, k, -1, boxAxes:Get(k), GetComponent(half, k), low, high)
                 return false
             end
             k = k + 1
@@ -259,10 +285,15 @@ class BoxTriangleCollider is TriangleCollider3D
         repeat while k < 3
             integer j = 0
             repeat while j < 3
-                axis:Set(boxAxes:Get(k)):CrossProduct(localTriangle:GetEdge(j))
-                if axis:LengthSquared() > SMALL_AXIS
-                    axis:Normalize()
-                    if not TestAxis(EDGE_PAIR, k, j)
+                SetToBoxAxisCrossEdge(k, localTriangle:GetEdge(j))
+                number lengthSquared = axis:LengthSquared()
+                if lengthSquared > SMALL_AXIS
+                    axis:Scale(1 / math:SquareRoot(lengthSquared))
+                    number first = axis:DotProduct(localTriangle:GetCorner(j))
+                    number opposite = axis:DotProduct(localTriangle:GetCorner((j + 2) mod 3))
+                    number low = math:MinimumOf(first, opposite)
+                    number high = math:MaximumOf(first, opposite)
+                    if not TestAxis(EDGE_PAIR, k, j, axis, BoxReach(axis), low, high)
                         return false
                     end
                 end
@@ -274,32 +305,29 @@ class BoxTriangleCollider is TriangleCollider3D
         return bestKind not= NO_AXIS
     end
 
+
+    
     /*
-    This action is used by "action FindBestAxis." It measures the box and the
-    triangle along the unit vector in axis. It returns false if they are
-    separated along it by more than the contact threshold. Otherwise it
-    returns true, and records the axis if it is the best so far.
+    This action is used by "action FindBestAxis." It compares the box and the
+    triangle along one unit direction. The box reaches boxReach to either
+    side of its center, and the triangle's corners cover low to high, before
+    its margin is added. It returns false if they are separated along the
+    direction by more than the contact threshold. Otherwise it returns true,
+    and records the direction if it is the best so far.
     */
-    private action TestAxis(integer kind, integer boxAxis, integer triangleEdge) returns boolean
-        number boxReach = half:GetX() * math:AbsoluteValue(axis:GetX()) +
-            half:GetY() * math:AbsoluteValue(axis:GetY()) +
-            half:GetZ() * math:AbsoluteValue(axis:GetZ())
-
-        number margin = GetTriangleMargin()
-        number low = localTriangle:GetProjectionMinimum(axis) - margin
-        number high = localTriangle:GetProjectionMaximum(axis) + margin
-
-        // The gap when the triangle is on the axis's positive side of the
-        // box, and when it is on the negative side. The larger is the real
-        // gap, and is negative when the two overlap.
-        number triangleAbove = low - boxReach
-        number triangleBelow = -boxReach - high
+    private action TestAxis(integer kind, integer boxAxis, integer triangleEdge, Vector3 direction,
+            number boxReach, number low, number high) returns boolean
+        // The gap when the triangle is on the direction's positive side of
+        // the box, and when it is on the negative side. The larger is the
+        // real gap, and is negative when the two overlap.
+        number triangleAbove = (low - testMargin) - boxReach
+        number triangleBelow = -boxReach - (high + testMargin)
         number separation = triangleAbove
         if triangleBelow > separation
             separation = triangleBelow
         end
 
-        if separation > GetContactThreshold()
+        if separation > testThreshold
             return false
         end
 
@@ -320,7 +348,7 @@ class BoxTriangleCollider is TriangleCollider3D
             bestKind = kind
             bestBoxAxis = boxAxis
             bestTriangleEdge = triangleEdge
-            bestNormal:Set(axis)
+            bestNormal:Set(direction)
             if triangleAbove >= triangleBelow
                 // The triangle is on the positive side, so the box is pushed
                 // toward the negative side.
@@ -329,6 +357,30 @@ class BoxTriangleCollider is TriangleCollider3D
         end
 
         return true
+    end
+    
+    /*
+    This action returns how far the box reaches from its center along a unit
+    direction: each half size times how much the direction lines up with
+    that axis.
+    */
+    private action BoxReach(Vector3 direction) returns number
+        return half:GetX() * math:AbsoluteValue(direction:GetX()) + half:GetY() * math:AbsoluteValue(direction:GetY()) + half:GetZ() * math:AbsoluteValue(direction:GetZ())
+    end
+    
+    /*
+    This action sets axis to the box axis at the given index crossed with the
+    given edge. Crossing with an axis of length one only moves the edge's
+    components around and changes some signs, so it is written out directly.
+    */
+    private action SetToBoxAxisCrossEdge(integer boxAxis, Vector3 edge)
+        if boxAxis = 0
+            axis:Set(0, -edge:GetZ(), edge:GetY())
+        elseif boxAxis = 1
+            axis:Set(edge:GetZ(), 0, -edge:GetX())
+        else
+            axis:Set(-edge:GetY(), edge:GetX(), 0)
+        end
     end
 
     /*
