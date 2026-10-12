@@ -45,15 +45,20 @@ public class ModelLoader {
         boolean hasAnimations = aiSceneCheck.mNumAnimations() > 0;
         aiReleaseImport(aiSceneCheck);
 
-        boolean vulkanLoading = quorumLoader.IsUsingLeftHandedCoordinates() && false;
+        boolean vulkanLoading = quorumLoader.IsUsingLeftHandedCoordinates();
+        // Most model files are right-handed and the world is left-handed, so z is
+        // flipped and each triangle's winding reversed, which keeps front faces
+        // clockwise. aiProcess_ConvertToLeftHanded is not used because it also
+        // flips texture v, which ProcessTextureCoordinates already does.
+        int leftHanded = vulkanLoading ? (aiProcess_MakeLeftHanded | aiProcess_FlipWindingOrder) : 0;
         if(hasAnimations) {
             flags = aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices |
                     aiProcess_Triangulate | aiProcess_FixInfacingNormals | aiProcess_CalcTangentSpace | aiProcess_LimitBoneWeights |
-                    (vulkanLoading ? aiProcess_ConvertToLeftHanded : 0);
+                    leftHanded;
         } else {
             flags = aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices |
                     aiProcess_Triangulate | aiProcess_FixInfacingNormals | aiProcess_CalcTangentSpace | aiProcess_LimitBoneWeights |
-                    aiProcess_PreTransformVertices | (vulkanLoading ? aiProcess_ConvertToLeftHanded : 0);
+                    aiProcess_PreTransformVertices | leftHanded;
         }
         AIScene aiScene = aiImportFile(path, flags);
         if (aiScene == null) {
