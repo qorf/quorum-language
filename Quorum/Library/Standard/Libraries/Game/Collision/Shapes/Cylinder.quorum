@@ -261,16 +261,31 @@ class Cylinder is CollisionShape3D
     box. The mass moment of inertia is also calculated relative to the local
     origin of the cylinder.
     */
+
     action CalculateLocalInertia(number mass, Vector3 inertia)
         Vector3 halfExtents = GetHalfExtentsWithMargin()
+        number radius = halfExtents:GetX()
+        number halfHeight = halfExtents:GetY()
+        if upAxis = 0
+            radius = halfExtents:GetY()
+            halfHeight = halfExtents:GetX()
+        elseif upAxis = 2
+            halfHeight = halfExtents:GetZ()
+        end
 
-        number lx = 2 * halfExtents:GetX()
-        number ly = 2 * halfExtents:GetY()
-        number lz = 2 * halfExtents:GetZ()
+        number radiusSquared = radius * radius
+        number heightSquared = 4 * halfHeight * halfHeight
+        number across = mass / 12 * heightSquared + mass / 4 * radiusSquared
+        number along = mass / 2 * radiusSquared
 
-        inertia:Set(mass / 12 * (ly * ly + lz * lz), mass / 12 * (lx * lx + lz * lz), mass / 12 * (lx * lx + ly * ly))
+        if upAxis = 0
+            inertia:Set(along, across, across)
+        elseif upAxis = 2
+            inertia:Set(across, across, along)
+        else
+            inertia:Set(across, along, across)
+        end
     end
-
     /*
     This action finds the bounding box that would bound the Cylinder in its
     current position.
@@ -348,10 +363,12 @@ class Cylinder is CollisionShape3D
     end
 
     /*
-    This action specified which axis does the cylinder's height aligns with.
+    This action specified which axis does the cylinder's height aligns with.If you use Set, you need to call SetupAxis after, as it is reset.
     */
     action SetUpAxis(integer upAxis)
         me:upAxis = upAxis
+        
+RecalculateLocalBoundingBox()
     end
 
     /*
@@ -729,11 +746,13 @@ class Cylinder is CollisionShape3D
     This action sets another cylinder to have the properties of the current
     cylinder.
     */
-    action Copy returns CollisionShape3D
+    
+action Copy returns CollisionShape3D
         Cylinder cylinder
-        cylinder:upAxis = upAxis
-        cylinder:Set(parent:CollisionShape3D:implicitShapeDimensions)
+        cylinder:SetMargin(GetMargin())
         cylinder:parent:CollisionShape3D:localScaling:Set(parent:CollisionShape3D:localScaling)
+        cylinder:parent:CollisionShape3D:implicitShapeDimensions:Set(parent:CollisionShape3D:implicitShapeDimensions)
+        cylinder:SetUpAxis(upAxis)
         return cylinder
     end
 

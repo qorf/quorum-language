@@ -309,9 +309,6 @@ class Box is CollisionShape3D
     action Set(number width, number height, number depth)
         Vector3 halfExtents
         halfExtents:Set(width / 2, height / 2, depth / 2)
-        Vector3 margin
-        margin:Set(GetMargin(), GetMargin(), GetMargin())
-        halfExtents:Add(margin)
         Set(halfExtents)
     end
 
@@ -589,7 +586,8 @@ class Box is CollisionShape3D
     */
     action Copy returns CollisionShape3D
         Box box
-        box:Set(parent:CollisionShape3D:implicitShapeDimensions)
+        box:SetMargin(GetMargin())
+        box:parent:CollisionShape3D:implicitShapeDimensions:Set(parent:CollisionShape3D:implicitShapeDimensions)
         box:parent:CollisionShape3D:localScaling:Set(parent:CollisionShape3D:localScaling)
         return box
     end

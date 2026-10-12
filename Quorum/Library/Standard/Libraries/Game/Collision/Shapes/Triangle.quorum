@@ -428,8 +428,8 @@ class Triangle is CollisionShape3D
 
             //The edge normal points into the triangle, so a point on the outer
             //side of any edge is not on the triangle.
-            edgeNormal:Set(edge)
-            edgeNormal:CrossProduct(normal)
+            edgeNormal:Set(normal)
+            edgeNormal:CrossProduct(edge)
             edgeNormal:Normalize()
 
             number edgeDistance = point:DotProduct(edgeNormal) - pointA:DotProduct(edgeNormal)

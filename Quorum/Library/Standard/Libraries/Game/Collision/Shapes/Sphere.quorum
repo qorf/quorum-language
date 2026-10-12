@@ -225,7 +225,8 @@ class Sphere is CollisionShape3D
     */
     action Copy returns CollisionShape3D
         Sphere sphere
-        sphere:Set(me:GetRadius())
+        //It's a sphere, so the unscaled x is fine because scaling is set after.
+        sphere:Set(parent:CollisionShape3D:implicitShapeDimensions:GetX())
         sphere:parent:CollisionShape3D:localScaling:Set(parent:CollisionShape3D:localScaling)
         return sphere
     end
