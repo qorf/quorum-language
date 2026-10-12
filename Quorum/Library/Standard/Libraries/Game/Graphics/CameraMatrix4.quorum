@@ -173,6 +173,90 @@ class CameraMatrix4 is Matrix4
     end
     
     /*
+    This action sets the matrix to an orthographic projection, which shows
+    everything at the same size however far away it is. The box between left
+    and right, bottom and top, and the near and far planes is mapped to the
+    screen. The coordinate system and depth range are the game's defaults,
+    from DeviceCoordinates.
+
+    Attribute: Parameter left The left edge of the visible area
+    Attribute: Parameter right The right edge of the visible area
+    Attribute: Parameter bottom The bottom edge of the visible area
+    Attribute: Parameter top The top edge of the visible area
+    Attribute: Parameter nearPlane The near plane
+    Attribute: Parameter farPlane The far plane
+    Attribute: Returns The matrix as an orthographic projection matrix
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.CameraMatrix4
+
+    CameraMatrix4 matrix
+    matrix:OrthographicProjection(0, 100, 0, 100, 0, 1)
+    */
+    action OrthographicProjection(number left, number right, number bottom, number top, number nearPlane, number farPlane) returns Matrix4
+        DeviceCoordinates ndc = undefined
+        if manager:GetGameGraphics() not= undefined
+            ndc = manager:GetGameGraphics():GetDeviceCoordinates()
+        else
+            DeviceCoordinates coords
+            ndc = coords
+        end
+        return OrthographicProjection(left, right, bottom, top, nearPlane, farPlane, ndc:GetDefaultCoordinateSpace(), ndc:GetDefaultDepthRange())
+    end
+
+    /*
+    This action sets the matrix to an orthographic projection with the given
+    coordinate system and depth range, using the constants in
+    DeviceCoordinates. In a left-handed system the camera looks along +z, so
+    depth grows as z grows. In a right-handed system it looks along -z, so
+    depth grows as z shrinks. The depth range is the range the near and far
+    planes are mapped to: 0 to 1 (Vulkan) or -1 to 1 (OpenGL).
+
+    Attribute: Parameter left The left edge of the visible area
+    Attribute: Parameter right The right edge of the visible area
+    Attribute: Parameter bottom The bottom edge of the visible area
+    Attribute: Parameter top The top edge of the visible area
+    Attribute: Parameter nearPlane The near plane
+    Attribute: Parameter farPlane The far plane
+    Attribute: Parameter coordinateSystem LEFT_HANDED or RIGHT_HANDED, from DeviceCoordinates
+    Attribute: Parameter depthRange DEPTH_ZERO_TO_ONE or DEPTH_NEGATIVE_ONE_TO_ONE, from DeviceCoordinates
+    Attribute: Returns The matrix as an orthographic projection matrix
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.CameraMatrix4
+    use Libraries.Game.Graphics.DeviceCoordinates
+
+    CameraMatrix4 matrix
+    DeviceCoordinates ndc
+    matrix:OrthographicProjection(0, 100, 0, 100, 0, 1, ndc:LEFT_HANDED, ndc:DEPTH_ZERO_TO_ONE)
+    */
+    action OrthographicProjection(number left, number right, number bottom, number top, number nearPlane, number farPlane,
+            integer coordinateSystem, integer depthRange) returns Matrix4
+        DeviceCoordinates ndc
+        IdentityMatrix()
+        parent:Matrix4:row0column0 = 2 / (right - left)
+        parent:Matrix4:row1column1 = 2 / (top - bottom)
+        parent:Matrix4:row0column3 = -1 * (right + left) / (right - left)
+        parent:Matrix4:row1column3 = -1 * (top + bottom) / (top - bottom)
+
+        number facing = 1
+        if coordinateSystem = ndc:RIGHT_HANDED
+            facing = -1
+        end
+
+        if depthRange = ndc:DEPTH_ZERO_TO_ONE
+            parent:Matrix4:row2column2 = facing / (farPlane - nearPlane)
+            parent:Matrix4:row2column3 = -1 * nearPlane / (farPlane - nearPlane)
+        else
+            parent:Matrix4:row2column2 = facing * 2 / (farPlane - nearPlane)
+            parent:Matrix4:row2column3 = -1 * (farPlane + nearPlane) / (farPlane - nearPlane)
+        end
+        return me
+    end
+
+    /*
     This action sets the matrix to look at another matrix with a direction and
     an up vector. When multiplied with a translation matrix, we get a camera
     model view matrix.

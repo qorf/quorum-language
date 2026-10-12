@@ -972,14 +972,17 @@ begin(createAttributes(attributes), primitiveType);
     LINES, or TRIANGLES - otherwise, an error will be thrown.
     */
     action BuildRectangle(Vector3 corner00, Vector3 corner10, Vector3 corner11, Vector3 corner01, Vector3 normal)
+        // The world is left-handed, so u runs from corner10 to corner00:
+        // left to right when the rectangle is seen from the side its normal
+        // points to.
         vertTemp1:Set(corner00, normal, undefined, undefined)
-        vertTemp1:SetTextureCoordinates(0, 1)
+        vertTemp1:SetTextureCoordinates(1, 1)
         vertTemp2:Set(corner10, normal, undefined, undefined)
-        vertTemp2:SetTextureCoordinates(1, 1)
+        vertTemp2:SetTextureCoordinates(0, 1)
         vertTemp3:Set(corner11, normal, undefined, undefined)
-        vertTemp3:SetTextureCoordinates(1, 0)
+        vertTemp3:SetTextureCoordinates(0, 0)
         vertTemp4:Set(corner01, normal, undefined, undefined)
-        vertTemp4:SetTextureCoordinates(0, 0)
+        vertTemp4:SetTextureCoordinates(1, 0)
         BuildRectangle(vertTemp1, vertTemp2, vertTemp3, vertTemp4)
     end
 
@@ -1311,7 +1314,8 @@ begin(createAttributes(attributes), primitiveType);
         integer counter = 0
         repeat while counter <= divisions
             angle = startAngle + step * counter
-            u = 1.0 - divisionStep * counter
+            // u grows with the angle, which is left to right seen from outside.
+            u = divisionStep * counter
             current1:SetPosition(math:Cosine(angle) * halfWidth, 0, math:Sine(angle) * halfDepth)
             current1:SetNormal(tempVector8:Set(current1:GetPosition()):Normalize())
             current1:GetPosition():SetY(-halfHeight)
@@ -1510,7 +1514,9 @@ begin(createAttributes(attributes), primitiveType);
             currEx:SetPosition(centerX, centerY, centerZ)
             currEx:GetPosition():Add(sxEx:GetX() * x + syEx:GetX() * y, sxEx:GetY() * x + syEx:GetY() * y,
                 sxEx:GetZ() * x + syEx:GetZ() * y)
-            currEx:SetTextureCoordinates(0.5 + 0.5 * x, 0.5 + 0.5 * y)
+            // u runs against the tangent, so the ellipse is not mirrored in the
+            // left-handed world.
+            currEx:SetTextureCoordinates(0.5 - 0.5 * x, 0.5 + 0.5 * y)
 
             i1 = AddVertex(currEx)
             
@@ -1528,7 +1534,7 @@ begin(createAttributes(attributes), primitiveType);
                 currIn:SetPosition(centerX, centerY, centerZ)
                 currIn:GetPosition():Add(sxIn:GetX() * x + syIn:GetX() * y, sxIn:GetY() * x + syIn:GetY() * y,
                     sxIn:GetZ() * x + syIn:GetZ() * y)
-                currIn:SetTextureCoordinates(0.5 + us * x, 0.5 + vs * y)
+                currIn:SetTextureCoordinates(0.5 - us * x, 0.5 + vs * y)
 
                 i2 = i1
                 i1 = AddVertex(currIn)
@@ -1594,7 +1600,8 @@ begin(createAttributes(attributes), primitiveType);
             integer iu = 0
             repeat while iu <= divisionsU
                 angleU = auo + stepU * iu
-                u = 1.0 - us * iu
+                // u grows with the angle, which is left to right seen from outside.
+                u = us * iu
 
                 curr1:GetPosition():Set(math:Cosine(angleU) * halfWidth * t, h, math:Sine(angleU) * halfDepth * t)
                 curr1:GetNormal():Set(curr1:GetPosition()):Normalize()

@@ -396,8 +396,7 @@ VulkanImageInfo imageInfo
         lightingProperties:Create(device, gameState:GetGame():GetDesktopConfiguration())
         
         DeviceCoordinates ndc = GetDeviceCoordinates()
-        //ndc:SetDefaultCoordinateSpace(ndc:LEFT_HANDED)
-        ndc:SetDefaultCoordinateSpace(ndc:RIGHT_HANDED)
+        ndc:SetDefaultCoordinateSpace(ndc:LEFT_HANDED)
         ndc:SetDefaultDepthRange(ndc:DEPTH_ZERO_TO_ONE)
 
         return true

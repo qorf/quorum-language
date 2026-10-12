@@ -78,7 +78,9 @@ class Camera
     private Math math
 
     on create
-        direction:Set(0, 0, -1)
+        // The world is left-handed, so a camera that has not been aimed looks
+        // into the screen, along +z.
+        direction:Set(0, 0, 1)
         up:Set(0, 1, 0)
 
         GameStateManager manager

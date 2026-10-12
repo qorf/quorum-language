@@ -7,7 +7,10 @@ text values which are used by the Scene system.
 shared class SceneProperties
 
     public constant text VERSION = "Version"
-    public constant number LASTEST_VERSION = 1.0
+    // Version 2 scenes are saved in the left-handed world. Scenes without a
+    // version were saved while OpenGL drew the world mirrored in z, and are
+    // converted when they are loaded.
+    public constant number LASTEST_VERSION = 2.0
 
     /*
     The following generic properties are used by a variety of elements of a scene.

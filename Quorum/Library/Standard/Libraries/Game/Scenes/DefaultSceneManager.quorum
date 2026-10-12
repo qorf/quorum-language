@@ -35,9 +35,20 @@ class DefaultSceneManager is SceneManager
     GameStateManager gameState
     HashTable<text, Texture> loadedTextures
 
+    // True while loading a scene saved before version 2, which needs its
+    // rotations and 2D cameras converted to the left-handed world.
+    boolean convertFromRightHanded = false
+
     action Load(Scene scene)
         Game game = gameState:GetGame()
         SceneProperties properties
+
+        number version = 1.0
+        JavaScriptObjectNotation data = scene:GetData()
+        if data:HasValue(properties:VERSION)
+            version = data:GetNumber(properties:VERSION)
+        end
+        convertFromRightHanded = version < 2.0
 
         // Modify any application-level properties.
         JavaScriptObjectNotation application = scene:GetApplicationProperties()
@@ -196,13 +207,13 @@ class DefaultSceneManager is SceneManager
                 // Don't check the keys if it was handled by custom loading.
             elseif key = properties:POSITION
                 Number32BitArray position = ConvertToNumber32BitArray(json:GetObject(key))
-                camera:SetPosition(position:Get(0), position:Get(1), position:Get(2))
+                camera:SetPosition(position:Get(0), position:Get(1), CameraZ(camera, position:Get(2)))
             elseif key = properties:DIRECTION
                 Number32BitArray direction = ConvertToNumber32BitArray(json:GetObject(key))
-                camera:SetDirection(direction:Get(0), direction:Get(1), direction:Get(2))
+                camera:SetDirection(direction:Get(0), direction:Get(1), CameraZ(camera, direction:Get(2)))
             elseif key = properties:UP
                 Number32BitArray up = ConvertToNumber32BitArray(json:GetObject(key))
-                camera:SetUp(up:Get(0), up:Get(1), up:Get(2))
+                camera:SetUp(up:Get(0), up:Get(1), CameraZ(camera, up:Get(2)))
             elseif key = properties:SIZE
                 Number32BitArray size = ConvertToNumber32BitArray(json:GetObject(key))
                 camera:SetWidth(size:Get(0))
@@ -221,6 +232,20 @@ class DefaultSceneManager is SceneManager
 
             counter = counter + 1
         end
+    end
+
+    /*
+    This action returns a z value for a camera being loaded. A 2D camera from a
+    scene saved before version 2 looks along -z, which the left-handed world
+    mirrors, so it is mirrored through the z = 0 plane, where 2D items are
+    drawn. The picture is the same from either side, so it only stops being
+    mirrored. 3D cameras are loaded as saved.
+    */
+    private action CameraZ(Camera camera, number z) returns number
+        if convertFromRightHanded and camera is OrthographicCamera
+            return -z
+        end
+        return z
     end
 
     /*
@@ -710,6 +735,17 @@ number restitution = 0
         end
 
         if transform not= undefined
+            if convertFromRightHanded
+                // Scenes saved before version 2 were placed while OpenGL drew
+                // the world mirrored in z. Mirroring the rotation once, by
+                // flipping the signs of m02, m12, m20, and m21, makes the item
+                // face the way it did when it was placed.
+                transform:Set(2, -transform:Get(2))
+                transform:Set(6, -transform:Get(6))
+                transform:Set(8, -transform:Get(8))
+                transform:Set(9, -transform:Get(9))
+            end
+
             Matrix4 matrix = item:GetRotationTransform()
             matrix:row0column0 = transform:Get(0)
             matrix:row0column1 = transform:Get(1)
@@ -829,6 +865,7 @@ number restitution = 0
     action Save(Array<Layer> layers) returns Scene
         SceneProperties properties
         JavaScriptObjectNotation json
+        json:Add(properties:VERSION, properties:LASTEST_VERSION)
         json:Add(properties:LAYERS, SaveLayers(layers))
         Scene scene
         scene:SetData(json)
