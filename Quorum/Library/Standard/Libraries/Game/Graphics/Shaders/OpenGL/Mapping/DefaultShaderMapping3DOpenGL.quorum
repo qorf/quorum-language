@@ -367,7 +367,7 @@ if graphics is OpenGLManager
                 OpenGLManager openGL = cast(OpenGLManager, graphics)
 openGL:SetCullFace(cullFace)
                 
-if cullFace = 0
+if cullFace = 0 or true
                 openGL:DisableProperty(constants:GL_CULL_FACE)
             else
                 openGL:EnableProperty(constants:GL_CULL_FACE)

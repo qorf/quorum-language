@@ -38,6 +38,7 @@ use Libraries.Game.Graphics.Vulkan.VulkanImageViewInfo
 use Libraries.Game.Graphics.Vulkan.VulkanRenderPass
 use Libraries.Game.Graphics.Vulkan.VulkanSampler
 use Libraries.Game.Graphics.Vulkan.VulkanSamplerInfo
+use Libraries.Game.Graphics.CameraMatrix4
 
 class EnvironmentVulkan is Environment
     
@@ -715,7 +716,7 @@ cascadeSplits:Add((d - nearClip) / clipRange)
                     up:Set(0, 0, 1)
                 end
                 
-                Matrix4 lightViewMatrix
+                CameraMatrix4 lightViewMatrix
                 lightViewMatrix:SetToLookAt(shadowCameraPosition, frustumCenter, up)
                 Matrix4 lightOrthoMatrix
                 ProjectionToVulkanOrthographic(lightOrthoMatrix, minExtents:GetX(), maxExtents:GetX(), minExtents:GetY(), maxExtents:GetY(), 0.0, maxExtents:GetZ() - minExtents:GetZ())
@@ -788,9 +789,9 @@ number d = 0.95 * (log - uniform) + uniform
             end
                 
                 //output "Last split distance = " + lastSplitDistance + ", maxDistance = " + maxDistance + ", distanceRange = " + distanceRange + ", minDistance = " + minDistance
-                Matrix4 shadowProjection
+                CameraMatrix4 shadowProjection
                 //shadowProjection:SetToProjection(lastSplitDistance * maxDistance, splitDistance * maxDistance, 90, 1)
-                shadowProjection:SetToProjection(minDistance * maxDistance, splitDistance * maxDistance, 90, 1)
+                shadowProjection:PerspectiveProjection(minDistance * maxDistance, splitDistance * maxDistance, 90, 1)
                 //SetToVulkanProjection(shadowProjection, lastSplitDistance * maxDistance, splitDistance * maxDistance, 90, 1)
                 
                 /*We need to set all six faces of our cubemap for point lights. To do this, we'll create a matrix that points to

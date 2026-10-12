@@ -199,7 +199,7 @@ public class DesktopOpenGL implements OpenGLManager {
 
     public void DeleteBuffer(int bufferID)
     {
-        glDeleteBuffer(bufferID);
+        //glDeleteBuffer(bufferID);
     }
     
     public void SetBuffer(int purpose, Number32BitBuffer_ buffer, int option)

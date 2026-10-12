@@ -1,0 +1,360 @@
+package Libraries.Game.Graphics
+
+use Libraries.Compute.Matrix4
+use Libraries.Game.GameStateManager
+use Libraries.Compute.Math
+use Libraries.Compute.Vector3
+
+class CameraMatrix4 is Matrix4
+    
+    GameStateManager manager
+    Math math
+    
+    /*
+    This action sets the matrix to a projection matrix with the near and far
+    planes, the field of view height, and the aspect ratio. 
+
+    Attribute: Author Amanda Austin
+
+    Attribute: Parameter nearPlane The near plane
+    Attribute: Parameter farPlane The far plane
+    Attribute: Parameter fieldOfViewHeight The height of the field of view
+    Attribute: Parameter aspectRatio the aspect ratio
+
+    Attribute: Returns The matrix as a projection matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix4
+
+    Matrix4 matrix
+
+    matrix:SetToProjection(0, 1, 10, 2)
+    
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row0column3 = matrix:row0column3
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row1column3 = matrix:row1column3
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
+    number row2column3 = matrix:row2column3
+    number row3column0 = matrix:row3column0
+    number row3column1 = matrix:row3column1
+    number row3column2 = matrix:row3column2
+    number row3column3 = matrix:row3column3
+
+    output "The new matrix is:"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
+    output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
+
+    */
+    action PerspectiveProjection(number nearPlane, number farPlane, number fieldOfViewHeight, number aspectRatio) returns Matrix4
+        if manager:GetGameGraphics() not= undefined
+            DeviceCoordinates ndc = manager:GetGameGraphics():GetDeviceCoordinates()
+            PerspectiveProjection(nearPlane, farPlane, fieldOfViewHeight, aspectRatio, ndc:GetDefaultCoordinateSpace(), ndc:GetDefaultDepthRange())
+        end
+        return me
+    end
+    
+    /*
+    This action sets the matrix to a projection matrix with the near and far
+    planes, the field of view height, and the aspect ratio. The coordinate system and
+    depth range used are defined by constants available in MatrixCoordinateSpace. 
+
+    Attribute: Parameter nearPlane The near plane
+    Attribute: Parameter farPlane The far plane
+    Attribute: Parameter fieldOfViewHeight The height of the field of view
+    Attribute: Parameter aspectRatio the aspect ratio
+    Attribute: Parameter coordinateSystem A constant from MatrixCoordinateSpace indicating which coordinate system the matrix is projecting to.
+    Attribute: Parameter depthRange A constant from MatrixCoordinateSpace indicating the depth range the matrix will project to.
+
+    Attribute: Returns The matrix as a projection matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix4
+    use Libraries.Game.Graphics.MatrixCoordinateSpace
+
+    Matrix4 matrix
+    MatrixCoordinateSpace space
+
+    matrix:SetToProjection(0, 1, 10, 2, space:LEFT_HANDED, space:DEPTH_ZERO_TO_ONE)
+    
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row0column3 = matrix:row0column3
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row1column3 = matrix:row1column3
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
+    number row2column3 = matrix:row2column3
+    number row3column0 = matrix:row3column0
+    number row3column1 = matrix:row3column1
+    number row3column2 = matrix:row3column2
+    number row3column3 = matrix:row3column3
+
+    output "The new matrix is:"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
+    output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
+
+    */
+    action PerspectiveProjection(number nearPlane, number farPlane, number fieldOfViewHeight, number aspectRatio, integer coordinateSystem, integer depthRange) returns Matrix4
+        DeviceCoordinates ndc = undefined
+        if manager:GetGameGraphics() not= undefined
+            ndc = manager:GetGameGraphics():GetDeviceCoordinates()
+        else
+            DeviceCoordinates coords
+            ndc = coords
+        end
+        
+        number l_fd = 1.0 / math:Tangent((fieldOfViewHeight * (math:pi / 180)) / 2.0)
+        number l_a1 = (farPlane + nearPlane) / (nearPlane - farPlane)
+        number l_a2 = (2 * farPlane * nearPlane) / (nearPlane - farPlane)
+
+        // Set the entries in the column that are the same across the different coordinate systems first.
+        //parent:Matrix4:row0column0 = -l_fd / aspectRatio
+        parent:Matrix4:row0column0 = l_fd / aspectRatio
+        parent:Matrix4:row1column0 = 0
+        parent:Matrix4:row2column0 = 0
+        parent:Matrix4:row3column0 = 0
+
+        parent:Matrix4:row0column1 = 0
+        parent:Matrix4:row1column1 = l_fd
+        parent:Matrix4:row2column1 = 0
+        parent:Matrix4:row3column1 = 0
+
+        parent:Matrix4:row0column2 = 0
+        parent:Matrix4:row1column2 = 0
+        
+        parent:Matrix4:row0column3 = 0
+        parent:Matrix4:row1column3 = 0
+        parent:Matrix4:row3column3 = 0
+        
+        number numerator1 = 0
+        number numerator2 = 0
+        number denominator = 0
+        if coordinateSystem = ndc:RIGHT_HANDED
+            //parent:Matrix4:row0column0 = -l_fd / aspectRatio
+            //parent:Matrix4:row0column0 = -l_fd / aspectRatio
+            denominator = farPlane - nearPlane
+            parent:Matrix4:row3column2 = 1
+            //denominator = nearPlane - farPlane
+            //parent:Matrix4:row3column2 = -1
+        else
+            //parent:Matrix4:row0column0 = l_fd / aspectRatio
+            denominator = farPlane - nearPlane
+            parent:Matrix4:row3column2 = 1
+        end
+        if depthRange = ndc:DEPTH_NEGATIVE_ONE_TO_ONE
+            numerator1 = farPlane + nearPlane
+            numerator2 = -2 * farPlane * nearPlane
+        else
+            numerator1 = farPlane
+            numerator2 = -farPlane * nearPlane
+        end
+        
+        parent:Matrix4:row2column2 = numerator1 / denominator
+        parent:Matrix4:row2column3 = numerator2 / denominator
+
+        return me
+    end
+    
+    /*
+    This action sets the matrix to look at another matrix with a direction and
+    an up vector. When multiplied with a translation matrix, we get a camera
+    model view matrix.
+
+    Attribute: Author Amanda Austin
+    
+    Attribute: Parameter direction The direction vector
+    Attribute: Parameter up The up vector
+
+    Attribute: Returns the matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix4
+    use Libraries.Compute.Vector3
+
+    Matrix4 matrix
+    Vector3 direction
+    Vector3 up
+
+    direction:Set(0, 0, 1)
+    up:Set(0, 1, 0)
+
+    matrix:SetToLookAt(direction, up)
+
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row0column3 = matrix:row0column3
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row1column3 = matrix:row1column3
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
+    number row2column3 = matrix:row2column3
+    number row3column0 = matrix:row3column0
+    number row3column1 = matrix:row3column1
+    number row3column2 = matrix:row3column2
+    number row3column3 = matrix:row3column3
+
+    output "The new matrix is:"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
+    output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
+
+    */
+    action SetToLookAt(Vector3 direction, Vector3 up) returns Matrix4
+        DeviceCoordinates ndc = undefined
+        if manager:GetGameGraphics() not= undefined
+            ndc = manager:GetGameGraphics():GetDeviceCoordinates()
+        else
+            DeviceCoordinates coords
+            ndc = coords
+        end
+        
+        Vector3 l_vex = parent:Matrix4:l_vex
+        Vector3 l_vey = parent:Matrix4:l_vey
+        Vector3 l_vez = parent:Matrix4:l_vez
+        
+        l_vez:Set(direction):Normalize()
+        
+        //if ndc:GetDefaultDepthRange() = ndc:DEPTH_ZERO_TO_ONE
+            //l_vex:Set(up):Normalize()
+        //l_vex:CrossProduct(direction):Normalize()
+            //l_vey:Set(l_vez):CrossProduct(l_vex):Normalize()
+        //else
+            //l_vex:Set(direction):Normalize()
+        //l_vex:CrossProduct(up):Normalize()
+            //l_vey:Set(l_vex):CrossProduct(l_vez):Normalize()
+        //end
+        l_vex:Set(up):Normalize()
+        l_vex:CrossProduct(direction):Normalize()
+            l_vey:Set(l_vez):CrossProduct(l_vex):Normalize()
+        
+
+        IdentityMatrix()
+
+        // TO-DO: Invert z axis for other-handed systems. Inverted order of elements in cross product can also potentially achieve this.
+        
+        parent:Matrix4:row0column0 = l_vex:GetX()
+        parent:Matrix4:row0column1 = l_vex:GetY()
+        parent:Matrix4:row0column2 = l_vex:GetZ()
+        parent:Matrix4:row1column0 = l_vey:GetX()
+        parent:Matrix4:row1column1 = l_vey:GetY()
+        parent:Matrix4:row1column2 = l_vey:GetZ()
+        //if ndc:GetDefaultCoordinateSpace() = ndc:RIGHT_HANDED
+            //parent:Matrix4:row2column0 = -1 * l_vez:GetX()
+        //parent:Matrix4:row2column1 = -1 * l_vez:GetY()
+        //parent:Matrix4:row2column2 = -1 * l_vez:GetZ()
+        //else
+            //parent:Matrix4:row2column0 = l_vez:GetX()
+        //parent:Matrix4:row2column1 = l_vez:GetY()
+        //parent:Matrix4:row2column2 = l_vez:GetZ()
+        //end
+        parent:Matrix4:row2column0 = l_vez:GetX()
+        parent:Matrix4:row2column1 = l_vez:GetY()
+        parent:Matrix4:row2column2 = l_vez:GetZ()
+
+        return me
+    end
+
+
+    /*
+    This action sets the matrix to look at another matrix with a direction,
+    target, and up vector. When multiplied with a translation matrix, we get a 
+    camera model view matrix.
+
+    Attribute: Author Amanda Austin
+    
+    Attribute: Parameter direction The direction vector
+    Attribute: Parameter target The target vector
+    Attribute: Parameter up The up vector
+
+    Attribute: Returns the matrix
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix4
+    use Libraries.Compute.Vector3
+
+    Matrix4 matrix
+    Vector3 direction
+    Vector3 target
+    Vector3 up
+
+    direction:Set(0, 0, 1)
+    target:Set(0, 0, 3)
+    up:Set(0, 1, 0)
+
+    matrix:SetToLookAt(direction, target, up)
+
+    number row0column0 = matrix:row0column0
+    number row0column1 = matrix:row0column1
+    number row0column2 = matrix:row0column2
+    number row0column3 = matrix:row0column3
+    number row1column0 = matrix:row1column0
+    number row1column1 = matrix:row1column1
+    number row1column2 = matrix:row1column2
+    number row1column3 = matrix:row1column3
+    number row2column0 = matrix:row2column0
+    number row2column1 = matrix:row2column1
+    number row2column2 = matrix:row2column2
+    number row2column3 = matrix:row2column3
+    number row3column0 = matrix:row3column0
+    number row3column1 = matrix:row3column1
+    number row3column2 = matrix:row3column2
+    number row3column3 = matrix:row3column3
+
+    output "The new matrix is:"
+    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
+    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
+    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
+    output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
+
+    */
+    action SetToLookAt(Vector3 position2, Vector3 target2, Vector3 up2) returns Matrix4
+        Vector3 position
+        //position:Set(-position2:GetX(), position2:GetY(), -position2:GetZ())
+        position:Set(position2)
+        Vector3 target
+        //target:Set(-target2:GetX(), target2:GetY(), -target2:GetZ())
+        target:Set(target2)
+        Vector3 up
+        //up:Set(-up2:GetX(), up2:GetY(), -up2:GetZ())
+        up:Set(up2)
+        
+        Vector3 tmpVec = parent:Matrix4:tmpVec
+        tmpVec:Set(target):Subtract(position)
+        SetToLookAt(tmpVec, up)
+
+        if parent:Matrix4:tmpMat = undefined
+            Matrix4 newMatrix
+            parent:Matrix4:tmpMat = newMatrix
+        end
+
+        me:Multiply(parent:Matrix4:tmpMat:SetToTranslation(-1 * position:GetX(), -1 * position:GetY(), -1 * position:GetZ()))
+
+        return me
+    end
+    
+    
+end

@@ -59,16 +59,17 @@ class PerspectiveCamera is Camera
         end
         
         number aspect = GetWidth() / GetHeight()
-        GetProjectionMatrix():SetToProjection(math:AbsoluteValue(GetNear()), math:AbsoluteValue(GetFar()), fieldOfView / zoom, aspect)
+        GetProjectionMatrix():PerspectiveProjection(math:AbsoluteValue(GetNear()), math:AbsoluteValue(GetFar()), fieldOfView / zoom, aspect)
         
         /*Due to differences in coordinate systems, we need to set the view differently between OpenGL and Vulkan.
 OpenGL uses the original Matrix4 calculations, while Vulkan uses a different implementation of SetToLookAt
 that inverts the order of cross products to flip the handedness.*/
-        if isVulkan
-            SetToLookAt(GetViewMatrix(), GetPosition(), calcVector:Set(GetPosition()):Add(GetDirection()), GetUp())
-        else
-            GetViewMatrix():SetToLookAt(GetPosition(), calcVector:Set(GetPosition()):Add(GetDirection()), GetUp())
-        end
+        //if isVulkan
+            //SetToLookAt(GetViewMatrix(), GetPosition(), calcVector:Set(GetPosition()):Add(GetDirection()), GetUp())
+        //else
+            //GetViewMatrix():SetToLookAt(GetPosition(), calcVector:Set(GetPosition()):Add(GetDirection()), GetUp())
+        //end
+        GetViewMatrix():SetToLookAt(GetPosition(), calcVector:Set(GetPosition()):Add(GetDirection()), GetUp())
         
         GetCombinedMatrix():Set(GetProjectionMatrix())
         GetCombinedMatrix():Multiply(GetViewMatrix())
@@ -174,12 +175,12 @@ that inverts the order of cross products to flip the handedness.*/
         matrix:row1column0 = vY:GetX()
         matrix:row1column1 = vY:GetY()
         matrix:row1column2 = vY:GetZ()
-        matrix:row2column0 = -1 * vZ:GetX()
-        matrix:row2column1 = -1 * vZ:GetY()
-        matrix:row2column2 = -1 * vZ:GetZ()
-        //matrix:row2column0 = vZ:GetX()
-        //matrix:row2column1 = vZ:GetY()
-        //matrix:row2column2 = vZ:GetZ()
+        //matrix:row2column0 = -1 * vZ:GetX()
+        //matrix:row2column1 = -1 * vZ:GetY()
+        //matrix:row2column2 = -1 * vZ:GetZ()
+        matrix:row2column0 = vZ:GetX()
+        matrix:row2column1 = vZ:GetY()
+        matrix:row2column2 = vZ:GetZ()
 
         return matrix
     end

@@ -1169,6 +1169,17 @@ Number32BitArray projectionViewMatrix = MatrixToArray(camera:GetCombinedMatrix()
         
         VulkanPipelineLayout pipelineLayout = currentPipeline:GetInfo():GetLayout()
                 
+        //output "Binding camera. View: 
+//" + camera:GetViewMatrix():ToText() + "
+//
+//Projection: 
+//" + camera:GetProjectionMatrix():ToText() + "
+//
+//Combined: 
+//" + camera:GetCombinedMatrix():ToText() + "
+//
+//---"
+        
 BindDescriptorSetCommand cameraBind
             cameraBind:SetPipelineLayout(pipelineLayout)
             cameraBind:SetDescriptorSet(currentCameraDescriptor)
@@ -1620,6 +1631,8 @@ BindDescriptorSetCommand resultDescriptorBind
         SetViewportCommand setViewport
             setViewport:SetPosition(viewportX, swapchain:GetImageHeight() - viewportY)
             setViewport:SetSize(viewportWidth, -viewportHeight)
+        //setViewport:SetPosition(viewportX, viewportY)
+            //setViewport:SetSize(viewportWidth, viewportHeight)
             commandBuffer:Record(setViewport)
         
         SetScissorCommand setScissor
@@ -1632,6 +1645,8 @@ BindDescriptorSetCommand resultDescriptorBind
         SetViewportCommand setViewport
             setViewport:SetPosition(0, swapchain:GetImageHeight())
             setViewport:SetSize(swapchain:GetImageWidth(), -swapchain:GetImageHeight())
+        //setViewport:SetPosition(0, 0)
+            //setViewport:SetSize(swapchain:GetImageWidth(), swapchain:GetImageHeight())
             commandBuffer:Record(setViewport)
         
         SetScissorCommand setScissor

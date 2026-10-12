@@ -28,22 +28,22 @@ class Camera
     /*
     The projection matrix of the camera.
     */
-    Matrix4 projection
+    CameraMatrix4 projection
 
     /*
     The view matrix of the camera.
     */
-    Matrix4 view
+    CameraMatrix4 view
 
     /*
     The combined projection and view matrix of the camera.
     */
-    Matrix4 combined
+    CameraMatrix4 combined
 
     /*
     The inverse of the combined projection and view matrix.
     */
-    Matrix4 inverseProjectionView
+    CameraMatrix4 inverseProjectionView
 
     /*
     The distance to the near clipping plane. Objects whose distance to the
@@ -1412,7 +1412,7 @@ class Camera
 
     use Libraries.Game.Game
     use Libraries.Game.Graphics.Camera
-    use Libraries.Compute.Matrix4
+    use Libraries.Game.Graphics.CameraMatrix4
 
     class Main is Game
 
@@ -1422,7 +1422,7 @@ class Camera
 
         action CreateGame
             Camera cam = GetCamera3D()
-            Matrix4 projection = cam:GetProjectionMatrix()
+            CameraMatrix4 projection = cam:GetProjectionMatrix()
         end
 
         action Update(number seconds)
@@ -1431,7 +1431,7 @@ class Camera
     end
 
     */
-    action GetProjectionMatrix returns Matrix4
+    action GetProjectionMatrix returns CameraMatrix4
         return projection
     end
 
@@ -1445,7 +1445,7 @@ class Camera
 
     use Libraries.Game.Game
     use Libraries.Game.Graphics.Camera
-    use Libraries.Compute.Matrix4
+    use Libraries.Game.Graphics.CameraMatrix4
 
     class Main is Game
 
@@ -1456,7 +1456,7 @@ class Camera
         action CreateGame
 
             Camera cam = GetCamera3D()
-            Matrix4 view = cam:GetViewMatrix()
+            CameraMatrix4 view = cam:GetViewMatrix()
         end
 
         action Update(number seconds)
@@ -1465,7 +1465,7 @@ class Camera
     end
 
     */
-    action GetViewMatrix returns Matrix4
+    action GetViewMatrix returns CameraMatrix4
         return view
     end
 
@@ -1480,7 +1480,7 @@ class Camera
 
     use Libraries.Game.Game
     use Libraries.Game.Graphics.Camera
-    use Libraries.Compute.Matrix4
+    use Libraries.Game.Graphics.CameraMatrix4
 
     class Main is Game
 
@@ -1491,7 +1491,7 @@ class Camera
         action CreateGame
 
             Camera cam = GetCamera3D()
-            Matrix4 combined = cam:GetCombinedMatrix()
+            CameraMatrix4 combined = cam:GetCombinedMatrix()
         end
 
         action Update(number seconds)
@@ -1500,7 +1500,7 @@ class Camera
     end
 
     */
-    action GetCombinedMatrix returns Matrix4
+    action GetCombinedMatrix returns CameraMatrix4
         return combined
     end
 
@@ -1515,7 +1515,7 @@ class Camera
 
     use Libraries.Game.Game
     use Libraries.Game.Graphics.Camera
-    use Libraries.Compute.Matrix4
+    use Libraries.Game.Graphics.CameraMatrix4
 
     class Main is Game
 
@@ -1526,7 +1526,7 @@ class Camera
         action CreateGame
 
             Camera cam = GetCamera3D()
-            Matrix4 inverse = cam:GetInverseCombinedMatrix()
+            CameraMatrix4 inverse = cam:GetInverseCombinedMatrix()
         end
 
         action Update(number seconds)
@@ -1535,7 +1535,7 @@ class Camera
     end
 
     */
-    action GetInverseCombinedMatrix returns Matrix4
+    action GetInverseCombinedMatrix returns CameraMatrix4
         return inverseProjectionView
     end
 

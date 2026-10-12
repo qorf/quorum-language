@@ -1381,159 +1381,6 @@ result = result + "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + 
     end
 
     /*
-    This action sets the matrix to a projection matrix with the near and far
-    planes, the field of view height, and the aspect ratio. 
-
-    Attribute: Author Amanda Austin
-
-    Attribute: Parameter nearPlane The near plane
-    Attribute: Parameter farPlane The far plane
-    Attribute: Parameter fieldOfViewHeight The height of the field of view
-    Attribute: Parameter aspectRatio the aspect ratio
-
-    Attribute: Returns The matrix as a projection matrix
-
-    Attribute: Example
-
-    use Libraries.Compute.Matrix4
-
-    Matrix4 matrix
-
-    matrix:SetToProjection(0, 1, 10, 2)
-    
-    number row0column0 = matrix:row0column0
-    number row0column1 = matrix:row0column1
-    number row0column2 = matrix:row0column2
-    number row0column3 = matrix:row0column3
-    number row1column0 = matrix:row1column0
-    number row1column1 = matrix:row1column1
-    number row1column2 = matrix:row1column2
-    number row1column3 = matrix:row1column3
-    number row2column0 = matrix:row2column0
-    number row2column1 = matrix:row2column1
-    number row2column2 = matrix:row2column2
-    number row2column3 = matrix:row2column3
-    number row3column0 = matrix:row3column0
-    number row3column1 = matrix:row3column1
-    number row3column2 = matrix:row3column2
-    number row3column3 = matrix:row3column3
-
-    output "The new matrix is:"
-    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
-    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
-    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
-    output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
-
-    */
-    action SetToProjection(number nearPlane, number farPlane, number fieldOfViewHeight, number aspectRatio) returns Matrix4
-        number l_fd = 1.0 / math:Tangent((fieldOfViewHeight * (math:pi / 180)) / 2.0)
-        number l_a1 = (farPlane + nearPlane) / (nearPlane - farPlane)
-        number l_a2 = (2 * farPlane * nearPlane) / (nearPlane - farPlane)
-
-        row0column0 = l_fd / aspectRatio
-        row1column0 = 0
-        row2column0 = 0
-        row3column0 = 0
-
-        row0column1 = 0
-        row1column1 = l_fd
-        row2column1 = 0
-        row3column1 = 0
-
-        row0column2 = 0
-        row1column2 = 0
-        row2column2 = l_a1
-        row3column2 = -1
-
-        row0column3 = 0
-        row1column3 = 0
-        row2column3 = l_a2
-        row3column3 = 0
-
-        return me
-    end
-
-    /*
-    Sets the matrix to a projection matrix with a near/far plane, and left, bottom, 
-    right and top specifying the points on the near plane that are mapped to the 
-    lower left and upper right corners of the viewport. This allows a projection
-    matrix to be created with an off-center vanishing point.
-
-    Attribute: Author Amanda Austin
-
-    Attribute: Parameter left The left point of the near plane
-    Attribute: Parameter right The right point of the near plane
-    Attribute: Parameter bottom The bottom of the near plane
-    Attribute: Parameter top The top of the near plane
-    Attribute: Parameter near The near plane
-    Attribute: Parameter far The far plane
-
-    Attribute: Returns The matrix as a projection matrix
-
-    Attribute: Example
-
-    use Libraries.Compute.Matrix4
-
-    Matrix4 matrix
-
-    matrix:SetToProjection(0, 10, 0, 10, 0, 1)
-
-    number row0column0 = matrix:row0column0
-    number row0column1 = matrix:row0column1
-    number row0column2 = matrix:row0column2
-    number row0column3 = matrix:row0column3
-    number row1column0 = matrix:row1column0
-    number row1column1 = matrix:row1column1
-    number row1column2 = matrix:row1column2
-    number row1column3 = matrix:row1column3
-    number row2column0 = matrix:row2column0
-    number row2column1 = matrix:row2column1
-    number row2column2 = matrix:row2column2
-    number row2column3 = matrix:row2column3
-    number row3column0 = matrix:row3column0
-    number row3column1 = matrix:row3column1
-    number row3column2 = matrix:row3column2
-    number row3column3 = matrix:row3column3
-
-    output "The new matrix is:"
-    output "|" + row0column0 + ", " + row0column1 + ", " + row0column2 + ", " + row0column3 + "|"
-    output "|" + row1column0 + ", " + row1column1 + ", " + row1column2 + ", " + row1column3 + "|"
-    output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
-    output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
-
-    */
-    action SetToProjection(number left, number right, number bottom, number top, number near, number far) returns Matrix4
-        number x = 2.0 * near / (right - left)
-        number y = 2.0 * near / (top - bottom)
-        number a = (right + left) / (right - left)
-        number b = (top + bottom) / (top - bottom)
-        number l_a1 = (far + near) / (near - far)
-        number l_a2 = (2 * far * near) / (near - far)
-        
-        row0column0 = x
-        row1column0 = 0
-        row2column0 = 0
-        row3column0 = 0
-
-        row0column1 = 0
-        row1column1 = y
-        row2column1 = 0
-        row3column1 = 0
-
-        row0column2 = a
-        row1column2 = b
-        row2column2 = l_a1
-        row3column2 = -1
-
-        row0column3 = 0
-        row1column3 = 0
-        row2column3 = l_a2
-        row3column3 = 0
-
-        return me
-    end
-
-    /*
     This action sets the matrix to an orthographic projection matrix with an
     origin at (x, y) with the given width and height. The near and far plane
     are set to 0 and 1, respectively.
@@ -2629,26 +2476,26 @@ result = result + "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + 
     output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
 
     */
-    action SetToLookAt(Vector3 direction, Vector3 up) returns Matrix4
-        l_vez:Set(direction):Normalize()
-        l_vex:Set(direction):Normalize()
-        l_vex:CrossProduct(up):Normalize()
-        l_vey:Set(l_vex):CrossProduct(l_vez):Normalize()
-
-        IdentityMatrix()
-
-        row0column0 = l_vex:GetX()
-        row0column1 = l_vex:GetY()
-        row0column2 = l_vex:GetZ()
-        row1column0 = l_vey:GetX()
-        row1column1 = l_vey:GetY()
-        row1column2 = l_vey:GetZ()
-        row2column0 = -1 * l_vez:GetX()
-        row2column1 = -1 * l_vez:GetY()
-        row2column2 = -1 * l_vez:GetZ()
-
-        return me
-    end
+    //action SetToLookAt(Vector3 direction, Vector3 up) returns Matrix4
+        //l_vez:Set(direction):Normalize()
+        //l_vex:Set(direction):Normalize()
+        //l_vex:CrossProduct(up):Normalize()
+        //l_vey:Set(l_vex):CrossProduct(l_vez):Normalize()
+//
+        //IdentityMatrix()
+//
+        //row0column0 = l_vex:GetX()
+        //row0column1 = l_vex:GetY()
+        //row0column2 = l_vex:GetZ()
+        //row1column0 = l_vey:GetX()
+        //row1column1 = l_vey:GetY()
+        //row1column2 = l_vey:GetZ()
+        //row2column0 = -1 * l_vez:GetX()
+        //row2column1 = -1 * l_vez:GetY()
+        //row2column2 = -1 * l_vez:GetZ()
+//
+        //return me
+    //end
 
 
     /*
@@ -2704,19 +2551,19 @@ result = result + "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + 
     output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
 
     */
-    action SetToLookAt(Vector3 position, Vector3 target, Vector3 up) returns Matrix4
-        tmpVec:Set(target):Subtract(position)
-        SetToLookAt(tmpVec, up)
-
-        if tmpMat = undefined
-            Matrix4 newMatrix
-            tmpMat = newMatrix
-        end
-
-        me:Multiply(tmpMat:SetToTranslation(-1 * position:GetX(), -1 * position:GetY(), -1 * position:GetZ()))
-
-        return me
-    end
+    //action SetToLookAt(Vector3 position, Vector3 target, Vector3 up) returns Matrix4
+        //tmpVec:Set(target):Subtract(position)
+        //SetToLookAt(tmpVec, up)
+//
+        //if tmpMat = undefined
+            //Matrix4 newMatrix
+            //tmpMat = newMatrix
+        //end
+//
+        //me:Multiply(tmpMat:SetToTranslation(-1 * position:GetX(), -1 * position:GetY(), -1 * position:GetZ()))
+//
+        //return me
+    //end
 
     /*
     This action sets the matrix to a world with the given position, forward, and

@@ -45,7 +45,7 @@ public class ModelLoader {
         boolean hasAnimations = aiSceneCheck.mNumAnimations() > 0;
         aiReleaseImport(aiSceneCheck);
 
-        boolean vulkanLoading = quorumLoader.IsUsingLeftHandedCoordinates();
+        boolean vulkanLoading = quorumLoader.IsUsingLeftHandedCoordinates() && false;
         if(hasAnimations) {
             flags = aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices |
                     aiProcess_Triangulate | aiProcess_FixInfacingNormals | aiProcess_CalcTangentSpace | aiProcess_LimitBoneWeights |

@@ -1,0 +1,39 @@
+package Libraries.Game.Graphics
+
+/*This class manages the default NDC (normalized device coordinates) used by the Game when
+performing projection calculations. Different graphics systems
+use different coordinate systems when translating world coordinates to screen space.
+When the CameraMatrix4 class calculates projections, if no coordinate system or depth range
+is specified, it uses the default NDC stored here.
+
+By default, OpenGL uses a right handed coordinate system for calculations, and Vulkan
+uses a left handed coordinate system. OpenGL maps its depth range from -1 to 1, and
+Vulkan maps its depth range from 0 to 1. These values are automatically set when a Game
+is created, so most users will never need to use this class directly.*/
+class DeviceCoordinates
+    
+    public constant integer LEFT_HANDED = 0
+    public constant integer RIGHT_HANDED = 1
+    public constant integer DEPTH_NEGATIVE_ONE_TO_ONE = 2
+    public constant integer DEPTH_ZERO_TO_ONE = 3
+    
+    integer defaultCoordinateSpace = LEFT_HANDED
+    integer defaultDepthRange = DEPTH_NEGATIVE_ONE_TO_ONE
+    
+    action GetDefaultCoordinateSpace returns integer
+        return defaultCoordinateSpace
+    end
+
+    action SetDefaultCoordinateSpace(integer defaultCoordinateSpace)
+        me:defaultCoordinateSpace = defaultCoordinateSpace
+    end
+
+    action GetDefaultDepthRange returns integer
+        return defaultDepthRange
+    end
+
+    action SetDefaultDepthRange(integer defaultDepthRange)
+        me:defaultDepthRange = defaultDepthRange
+    end
+
+end

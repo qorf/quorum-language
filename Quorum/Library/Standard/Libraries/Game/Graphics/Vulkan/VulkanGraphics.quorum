@@ -12,6 +12,7 @@ use Libraries.Containers.Array
 use Libraries.Game.GameDisplay
 use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
 use Libraries.Game.Graphics.Models.Vulkan.MaterialManagerVulkan
+use Libraries.Game.Graphics.DeviceCoordinates
 
 class VulkanGraphics is GraphicsManager
     
@@ -393,6 +394,11 @@ VulkanImageInfo imageInfo
         textureManager:Create(device, me)
         modelManager:Create(device, me)
         lightingProperties:Create(device, gameState:GetGame():GetDesktopConfiguration())
+        
+        DeviceCoordinates ndc = GetDeviceCoordinates()
+        //ndc:SetDefaultCoordinateSpace(ndc:LEFT_HANDED)
+        ndc:SetDefaultCoordinateSpace(ndc:RIGHT_HANDED)
+        ndc:SetDefaultDepthRange(ndc:DEPTH_ZERO_TO_ONE)
 
         return true
     end
