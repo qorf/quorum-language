@@ -34,6 +34,21 @@ class CollisionSolver3D
     integer seed = 0
     Math math
 
+    // How many entries of each pool are in use for the island being solved.
+    // The pools keep their objects between islands and between steps, and
+    // only grow when an island needs more than any island before it.
+    integer bodyCount = 0
+    integer constraintCount = 0
+    integer frictionCount = 0
+    
+    
+// Temporary values reused by the actions below, which would otherwise
+    // create them for every contact and every iteration.
+    Vector3 impulseTemp
+    Vector3 frictionTorqueAxis
+    Vector3 frictionVector
+    Vector3 setupTemp
+    Vector3 setupFrictionDirection
     on create
         repeat MAX_SOLVER_POINTS times
             OrderIndex i
@@ -68,6 +83,49 @@ class CollisionSolver3D
 
         solverItem:GetPushVelocity():Set(0, 0, 0)
         solverItem:GetTurnVelocity():Set(0, 0, 0)
+    end
+    
+    
+    /*
+    Returns the next unused SolverItem3D in the body pool, adding one if the
+    pool is full. The caller fills in every value through InitializeSolverItem.
+    */
+    private action NextSolverItem returns SolverItem3D
+        if bodyCount = tempSolverBodyPool:GetSize()
+            SolverItem3D item
+            tempSolverBodyPool:Add(item)
+        end
+        SolverItem3D result = tempSolverBodyPool:Get(bodyCount)
+        bodyCount = bodyCount + 1
+        return result
+    end
+
+    /*
+    Returns the next unused contact constraint, adding one if the pool is
+    full. The caller sets every value the solver reads.
+    */
+    private action NextContactConstraint returns SolverConstraint3D
+        if constraintCount = tempSolverConstraintPool:GetSize()
+            SolverConstraint3D constraint
+            tempSolverConstraintPool:Add(constraint)
+        end
+        SolverConstraint3D result = tempSolverConstraintPool:Get(constraintCount)
+        constraintCount = constraintCount + 1
+        return result
+    end
+
+    /*
+    Returns the next unused friction constraint, adding one if the pool is
+    full. The caller sets every value the solver reads.
+    */
+    private action NextFrictionConstraint returns SolverConstraint3D
+        if frictionCount = tempSolverFrictionConstraintPool:GetSize()
+            SolverConstraint3D constraint
+            tempSolverFrictionConstraintPool:Add(constraint)
+        end
+        SolverConstraint3D result = tempSolverFrictionConstraintPool:Get(frictionCount)
+        frictionCount = frictionCount + 1
+        return result
     end
     
     /*
@@ -119,7 +177,8 @@ class CollisionSolver3D
 
             normalImpulse = contactConstraint:GetAppliedPushImpulse() - oldNormalImpulse
 
-            Vector3 temp
+            
+Vector3 temp = impulseTemp
             temp:Set(contactConstraint:GetContactNormal()):Scale(body1:GetInverseMass())
             body1:InternalApplyPushImpulse(temp, contactConstraint:GetAngularComponentA(), normalImpulse)
 
@@ -169,8 +228,8 @@ class CollisionSolver3D
 
         normalImpulse = contactConstraint:GetAppliedImpulse() - oldNormalImpulse
 
-        Vector3 temp
         
+        Vector3 temp = impulseTemp
         temp:Set(contactConstraint:GetContactNormal()):Scale(body1:GetInverseMass())
         body1:InternalApplyImpulse(temp, contactConstraint:GetAngularComponentA(), normalImpulse)
 
@@ -213,8 +272,7 @@ class CollisionSolver3D
 
             j1 = contactConstraint:GetAppliedImpulse() - oldTangentImpulse
 
-            Vector3 temp
-            
+            Vector3 temp = impulseTemp
             temp:Set(contactConstraint:GetContactNormal()):Scale(body1:GetInverseMass())
             body1:InternalApplyImpulse(temp, contactConstraint:GetAngularComponentA(), j1)
 
@@ -231,9 +289,7 @@ class CollisionSolver3D
     */
     action AddFrictionConstraint(Vector3 normalAxis, integer solverBodyIDA, integer solverBodyIDB, integer frictionIndex, CollisionPoint3D cp, Vector3 relativePosition1, 
                                  Vector3 relativePosition2, Item3D body0, Item3D body1, number relaxation)
-        SolverConstraint3D solverConstraint
-        tempSolverFrictionConstraintPool:Add(solverConstraint)
-
+        SolverConstraint3D solverConstraint = NextFrictionConstraint()
         solverConstraint:GetContactNormal():Set(normalAxis)
 
         solverConstraint:SetBodyIDA(solverBodyIDA)
@@ -248,14 +304,14 @@ class CollisionSolver3D
         solverConstraint:SetAppliedPushImpulse(0)
         solverConstraint:SetPenetration(0)
 
-        Vector3 torqueAxis1
-        Matrix3 tempMatrix
+        
+Vector3 torqueAxis1 = frictionTorqueAxis
 
         torqueAxis1:Set(relativePosition1):CrossProduct(solverConstraint:GetContactNormal())
         solverConstraint:GetRelativePosition1CrossNormal():Set(torqueAxis1)
         if body0:IsPhysicsEnabled()
             solverConstraint:GetAngularComponentA():Set(torqueAxis1)
-            tempMatrix:Set(body0:GetInverseInertiaWorld()):Transform(solverConstraint:GetAngularComponentA())
+            body0:GetInverseInertiaWorld():Transform(solverConstraint:GetAngularComponentA())
         else
             solverConstraint:GetAngularComponentA():Set(0, 0, 0)
         end
@@ -264,12 +320,13 @@ class CollisionSolver3D
         solverConstraint:GetRelativePosition2CrossNormal():Set(torqueAxis1)
         if body1:IsPhysicsEnabled()
             solverConstraint:GetAngularComponentB():Set(torqueAxis1)
-            tempMatrix:Set(body1:GetInverseInertiaWorld()):Transform(solverConstraint:GetAngularComponentB())
+            body1:GetInverseInertiaWorld():Transform(solverConstraint:GetAngularComponentB())
         else
             solverConstraint:GetAngularComponentB():Set(0, 0, 0)
         end
 
-        Vector3 vector
+        
+Vector3 vector = frictionVector
         number denom0 = 0
         number denom1 = 0
         if body0:IsPhysicsEnabled()
@@ -298,8 +355,6 @@ class CollisionSolver3D
         Item3D obj0 = undefined //CollisionObject
         Item3D obj1 = undefined
 
-        PhysicsPosition3D tempTransform
-
         integer i = 0
 
         Vector3 relativePosition1
@@ -316,8 +371,6 @@ class CollisionSolver3D
         Vector3 frictionDirection2
         Vector3 vector
 
-        Matrix3 tempMatrix
-
         repeat while i < numManifolds
             manifold = manifoldPtr:Get(manifold_offset + i)
             obj0 = manifold:GetBody0()
@@ -327,40 +380,32 @@ class CollisionSolver3D
             integer solverBodyIDB = -1
 
             if manifold:GetPointCount() not= 0
-                if obj0:GetCollisionGroupFlag() //if this object's physics needs to be updated
-                    if obj0:GetCollisionGroupIndex() >= 0   //if this object has already been assigned a spot inside tempSolverBodyPool
+if obj0:GetCollisionGroupFlag() //if this object's physics needs to be updated
+                    if obj0:GetCollisionGroupIndex() >= 0   //if this object has already been assigned a spot in the body pool
                         solverBodyIDA = obj0:GetCollisionGroupIndex()
                     else
-                        solverBodyIDA = tempSolverBodyPool:GetSize()    //add this object to the end of the tempSolverBodyPool
-                        SolverItem3D solverBody
-                        tempSolverBodyPool:Add(solverBody)
-                        InitializeSolverItem(solverBody, obj0)
+                        solverBodyIDA = bodyCount
+                        InitializeSolverItem(NextSolverItem(), obj0)
                         obj0:SetCollisionGroupIndex(solverBodyIDA)
                     end
                 else    //if this object's physics doesn't need to be updated
-                    solverBodyIDA = tempSolverBodyPool:GetSize()
-                    SolverItem3D solverBody
-                    tempSolverBodyPool:Add(solverBody)
-                    InitializeSolverItem(solverBody, obj0)
+                    solverBodyIDA = bodyCount
+                    InitializeSolverItem(NextSolverItem(), obj0)
                 end
-
-                if obj1:GetCollisionGroupFlag()
+                
+if obj1:GetCollisionGroupFlag()
                     if obj1:GetCollisionGroupIndex() >= 0
                         solverBodyIDB = obj1:GetCollisionGroupIndex()
                     else
-                        solverBodyIDB = tempSolverBodyPool:GetSize()
-                        SolverItem3D solverBody
-                        tempSolverBodyPool:Add(solverBody)
-                        InitializeSolverItem(solverBody, obj1)
+                        solverBodyIDB = bodyCount
+                        InitializeSolverItem(NextSolverItem(), obj1)
                         obj1:SetCollisionGroupIndex(solverBodyIDB)
                     end
                 else
-                    solverBodyIDB = tempSolverBodyPool:GetSize()
-                    SolverItem3D solverBody
-                    tempSolverBodyPool:Add(solverBody)
-                    InitializeSolverItem(solverBody, obj1)
+                    solverBodyIDB = bodyCount
+                    InitializeSolverItem(NextSolverItem(), obj1)
                 end
-            end
+        end
 
             number relaxation = 0
 
@@ -372,18 +417,14 @@ class CollisionSolver3D
                     position1:Set(cp:GetWorldPositionOnA())
                     position2:Set(cp:GetWorldPositionOnB())
 
-                    tempTransform:Set(obj0:GetCollisionTransform())
-                    relativePosition1:Set(position1):Subtract(tempTransform:GetOrigin())
-                    tempTransform:Set(obj1:GetCollisionTransform())
-                    relativePosition2:Set(position2):Subtract(tempTransform:GetOrigin())
+relativePosition1:Set(position1):Subtract(obj0:GetCollisionTransform():GetOrigin())
+                    relativePosition2:Set(position2):Subtract(obj1:GetCollisionTransform():GetOrigin())
 
                     relaxation = 1
                     number relativeVelocity = 0
 
-                    integer frictionIndex = tempSolverConstraintPool:GetSize()
-
-                    SolverConstraint3D solverConstraint
-                    tempSolverConstraintPool:Add(solverConstraint)
+integer frictionIndex = constraintCount
+                    SolverConstraint3D solverConstraint = NextContactConstraint()
                     
                     solverConstraint:SetBodyIDA(solverBodyIDA)
                     solverConstraint:SetBodyIDB(solverBodyIDB)
@@ -395,8 +436,7 @@ class CollisionSolver3D
 
                     if obj0:IsPhysicsEnabled()
                         solverConstraint:GetAngularComponentA():Set(torqueAxis0)
-                        tempMatrix:Set(obj0:GetInverseInertiaWorld())
-                        tempMatrix:Transform(solverConstraint:GetAngularComponentA())
+                        obj0:GetInverseInertiaWorld():Transform(solverConstraint:GetAngularComponentA())
                     else
                         solverConstraint:GetAngularComponentA():Set(0, 0, 0)
                     end
@@ -405,8 +445,7 @@ class CollisionSolver3D
 
                     if obj1:IsPhysicsEnabled()
                         solverConstraint:GetAngularComponentB():Set(torqueAxis1)
-                        tempMatrix:Set(obj1:GetInverseInertiaWorld())
-                        tempMatrix:Transform(solverConstraint:GetAngularComponentB())
+                        obj1:GetInverseInertiaWorld():Transform(solverConstraint:GetAngularComponentB())
                     else
                         solverConstraint:GetAngularComponentB():Set(0, 0, 0)
                     end
@@ -466,7 +505,7 @@ if solverConstraint:GetRestitution() > penetrationVelocity
                     end
                     end
 
-                    Vector3 temp
+                    Vector3 temp = setupTemp
 
                     if infoGlobal:IsWarmStarting()
                         solverConstraint:SetAppliedImpulse(cp:GetAppliedImpulse() * infoGlobal:GetWarmStartingFactor())
@@ -484,10 +523,11 @@ if solverConstraint:GetRestitution() > penetrationVelocity
 
                     solverConstraint:SetAppliedPushImpulse(0)
 
-                    solverConstraint:SetFrictionIndex(tempSolverFrictionConstraintPool:GetSize())
+                    
+solverConstraint:SetFrictionIndex(frictionCount)
                     if not cp:IsLateralFrictionInitialized()
                         cp:GetLateralFrictionDirectionA():Set(cp:GetWorldNormalOnB()):Scale(relativeVelocity)
-                        Vector3 tempFrictionDirection
+                        Vector3 tempFrictionDirection = setupFrictionDirection
                         tempFrictionDirection:Set(cp:GetLateralFrictionDirectionA())
                         cp:GetLateralFrictionDirectionA():Set(velocity):Subtract(tempFrictionDirection)
 
@@ -520,14 +560,6 @@ if solverConstraint:GetRestitution() > penetrationVelocity
                     else
                         AddFrictionConstraint(cp:GetLateralFrictionDirectionA(), solverBodyIDA, solverBodyIDB, frictionIndex, cp, relativePosition1, relativePosition2, obj0, obj1, relaxation)
                         AddFrictionConstraint(cp:GetLateralFrictionDirectionB(), solverBodyIDA, solverBodyIDB, frictionIndex, cp, relativePosition1, relativePosition2, obj0, obj1, relaxation)
-                    end
-
-                    if solverConstraint:GetAngularComponentA():Length() > 5
-//                        output "Constraint A angular length = " + solverConstraint:GetAngularComponentA():Length()
-                    end
-
-                    if solverConstraint:GetAngularComponentB():Length() > 5
-//                        output "Constraint B angular length = " + solverConstraint:GetAngularComponentB():Length()
                     end
 
                     SolverConstraint3D frictionConstraint1 = tempSolverFrictionConstraintPool:Get(solverConstraint:GetFrictionIndex())
@@ -574,8 +606,8 @@ if solverConstraint:GetRestitution() > penetrationVelocity
             j = j + 1
         end
 
-        integer numJointPool = tempSolverConstraintPool:GetSize()
-        integer numFrictionPool = tempSolverFrictionConstraintPool:GetSize()
+integer numJointPool = constraintCount
+        integer numFrictionPool = frictionCount
 
         orderTempConstraintPool:SetSize(numJointPool)
         orderFrictionConstraintPool:SetSize(numFrictionPool)
@@ -599,8 +631,8 @@ if solverConstraint:GetRestitution() > penetrationVelocity
     and the constraints at these collision points in arrays.
     */
     action SolveGroupIterations(Array<Item3D> bodies, integer numBodies, Array<LocalCollisionPoints3D> manifoldPtr, integer manifold_offset, integer numManifolds, Array<Joint3D> joints, integer joints_offset, integer numJoints, CollisionSolverInformation3D infoGlobal) returns number
-        integer numConstraintPool = tempSolverConstraintPool:GetSize()
-        integer numFrictionPool = tempSolverFrictionConstraintPool:GetSize()
+        integer numConstraintPool = constraintCount
+        integer numFrictionPool = frictionCount
 
         integer iteration = 0
         repeat while iteration < infoGlobal:GetNumberIterations()
@@ -654,7 +686,7 @@ if solverConstraint:GetRestitution() > penetrationVelocity
                 j = j + 1
             end
 
-            integer numPoolConstraints = tempSolverConstraintPool:GetSize()
+            integer numPoolConstraints = constraintCount
             j = 0
             repeat while j < numPoolConstraints
                 SolverConstraint3D solverManifold = tempSolverConstraintPool:Get(orderTempConstraintPool:Get(j))
@@ -663,7 +695,7 @@ if solverConstraint:GetRestitution() > penetrationVelocity
                 j = j + 1
             end
 
-            integer numFrictionPoolConstraints = tempSolverFrictionConstraintPool:GetSize()
+            integer numFrictionPoolConstraints = frictionCount
             j = 0
             repeat while j < numFrictionPoolConstraints
                 SolverConstraint3D solverManifold = tempSolverFrictionConstraintPool:Get(orderFrictionConstraintPool:Get(j))
@@ -681,7 +713,7 @@ if solverConstraint:GetRestitution() > penetrationVelocity
         if infoGlobal:SplitImpulse()
             iteration = 0
             repeat while iteration < infoGlobal:GetNumberIterations()
-                integer numPoolConstraints = tempSolverConstraintPool:GetSize()
+                integer numPoolConstraints = constraintCount
                 integer j = 0
                 repeat while j < numPoolConstraints
                     SolverConstraint3D solverManifold = tempSolverConstraintPool:Get(orderTempConstraintPool:Get(j))
@@ -704,37 +736,36 @@ if solverConstraint:GetRestitution() > penetrationVelocity
         SolveGroupSetup(bodies, numBodies, manifoldPtr, manifold_offset, numManifolds, joints, joints_offset, numJoints, infoGlobal)
         SolveGroupIterations(bodies, numBodies, manifoldPtr, manifold_offset, numManifolds, joints, joints_offset, numJoints, infoGlobal)
 
-        integer numPoolConstraints = tempSolverConstraintPool:GetSize()
+        integer numPoolConstraints = constraintCount
         integer j = 0
-        repeat while j < numPoolConstraints
+repeat while j < numPoolConstraints
             SolverConstraint3D solverManifold = tempSolverConstraintPool:Get(j)
             CollisionPoint3D pt = solverManifold:GetOriginalContactPoint()
             pt:SetAppliedImpulse(solverManifold:GetAppliedImpulse())
             pt:SetAppliedImpulseLateralA(tempSolverFrictionConstraintPool:Get(solverManifold:GetFrictionIndex()):GetAppliedImpulse())
-            pt:SetAppliedImpulseLateralA(tempSolverFrictionConstraintPool:Get(solverManifold:GetFrictionIndex() + 1):GetAppliedImpulse())
-
+            pt:SetAppliedImpulseLateralB(tempSolverFrictionConstraintPool:Get(solverManifold:GetFrictionIndex() + 1):GetAppliedImpulse())
             j = j + 1
         end
-
-        if infoGlobal:SplitImpulse()
+        
+if infoGlobal:SplitImpulse()
             integer i = 0
-            repeat while i < tempSolverBodyPool:GetSize()
+            repeat while i < bodyCount
                 tempSolverBodyPool:Get(i):WriteBackVelocity(infoGlobal:GetTimeStep())
-
                 i = i + 1
             end
         else
             integer i = 0
-            repeat while i < tempSolverBodyPool:GetSize()
+            repeat while i < bodyCount
                 tempSolverBodyPool:Get(i):WriteBackVelocity()
-
                 i = i + 1
             end
         end
-
-        tempSolverBodyPool:Empty()
-        tempSolverConstraintPool:Empty()
-        tempSolverFrictionConstraintPool:Empty()
+        
+// Keep the objects for the next island. They are refilled as they
+        // are handed out again.
+        bodyCount = 0
+        constraintCount = 0
+        frictionCount = 0
 
         return 0
     end

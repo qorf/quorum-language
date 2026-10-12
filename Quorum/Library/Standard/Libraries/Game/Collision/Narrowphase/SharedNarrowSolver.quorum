@@ -1,0 +1,218 @@
+package Libraries.Game.Collision.Narrowphase
+use Libraries.Game.Collision.LocalCollisionPoints3D
+use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Game.Collision.CollisionPointsResult3D
+use Libraries.Game.Collision.Shapes.Box
+use Libraries.Game.Collision.Shapes.Triangle
+use Libraries.Game.Collision.Shapes.Cylinder
+use Libraries.Game.Collision.Shapes.Sphere
+use Libraries.Game.Collision.Shapes.CollisionShape3D
+
+shared class SharedNarrowSolver
+    BoxBoxCollider boxSolver
+    SphereSphereCollider sphereSolver
+    ConvexConvexCollider convexCollider
+    
+    // Colliders for a shape against a single triangle, used by CollideTriangle.
+    SphereTriangleCollider sphereTriangleSolver
+    BoxTriangleCollider boxTriangleSolver
+    CylinderTriangleCollider cylinderTriangleSolver
+
+    // The general collision test, for shapes against a triangle that have no
+    // collider of their own. It is kept apart from convexCollider because
+    // that one refreshes the collision's points, which CollideTriangle must not.
+    ConvexConvexPairSolver triangleFallback
+    
+    action CollideBoxes(LocalCollisionPoints3D collisionPoints,
+Box itemA,PhysicsPosition3D transformA,
+Box itemB,PhysicsPosition3D transformB,
+CollisionPointsResult3D result)
+        boxSolver:CollideBoxes(collisionPoints, itemA, transformA, itemB, transformB, result)
+    end
+    
+    
+    action CollideSpheres(LocalCollisionPoints3D collisionPoints, 
+Sphere itemA, PhysicsPosition3D transformA, 
+Sphere itemB, PhysicsPosition3D transformB, 
+CollisionPointsResult3D result)
+        sphereSolver:CollideSpheres(collisionPoints, itemA, transformA, itemB, transformB, result)
+end
+    
+    
+    action CollideConvexConvex(LocalCollisionPoints3D collisionPoints, 
+CollisionShape3D itemA, PhysicsPosition3D transformA, 
+CollisionShape3D itemB, PhysicsPosition3D transformB, 
+CollisionPointsResult3D result)
+        convexCollider:CollideConvexConvex(collisionPoints, itemA, transformA, itemB, transformB, result)
+    end
+    
+    
+    /*
+    This action tests any shape against a single triangle, with the triangle
+    as item A of the collision. Spheres, boxes and cylinders use their own
+    triangle colliders, and any other shape uses the general collision test.
+
+    It does not refresh the collision's points. A concave shape, such as
+    terrain, calls it once for each of its triangles that the shape might
+    touch, then calls RefreshCollisionPoints on the result once at the end.
+    Attribute: Parameter collisionPoints The collision's stored contact points.
+    Attribute: Parameter triangle The triangle, with its corners in its own space.
+    Attribute: Parameter triangleTransform Where the triangle is in the world.
+    Attribute: Parameter shape The other shape.
+    Attribute: Parameter shapeTransform Where the other shape is in the world.
+    Attribute: Parameter result Where contacts are reported. It must already be initialized with the triangle's item as item A.
+    */
+    action CollideTriangle(LocalCollisionPoints3D collisionPoints,
+            Triangle triangle, PhysicsPosition3D triangleTransform,
+            CollisionShape3D shape, PhysicsPosition3D shapeTransform,
+            CollisionPointsResult3D result)
+        // The shape's type is checked rather than its class, because terrain
+        // is a Box by class but has the TERRAIN type.
+        integer shapeType = shape:GetType()
+        if shapeType = shape:SPHERE
+            sphereTriangleSolver:Collide(collisionPoints, triangle, triangleTransform,
+                cast(Sphere, shape), shapeTransform, result, false)
+        elseif shapeType = shape:BOX
+            boxTriangleSolver:Collide(collisionPoints, triangle, triangleTransform,
+                cast(Box, shape), shapeTransform, result, false)
+        elseif shapeType = shape:CYLINDER
+            cylinderTriangleSolver:Collide(collisionPoints, triangle, triangleTransform,
+                cast(Cylinder, shape), shapeTransform, result, false)
+        else
+            result:SetCollisionPoints(collisionPoints)
+            triangleFallback:SetMinkowskiA(triangle)
+            triangleFallback:SetMinkowskiB(shape)
+            number reach = triangle:GetMargin() + shape:GetMargin() + collisionPoints:GetCollisionBreakingThreshold()
+            triangleFallback:GetClosestPoints(triangleTransform, shapeTransform, reach * reach, result, false)
+        end
+    end
+    
+    
+    /*
+    This action collides a sphere item with a single triangle item, where the
+    sphere is item A of the collision and the triangle is item B. It uses the
+    sphere's triangle collider, which finds at most one contact, at the point
+    on the triangle closest to the sphere's center. The collision's points are
+    refreshed afterward.
+    Attribute: Parameter collisionPoints The collision's stored contact points.
+    Attribute: Parameter sphere The sphere, which is item A.
+    Attribute: Parameter sphereTransform Where the sphere is in the world. Its origin is the sphere's center.
+    Attribute: Parameter triangle The triangle, which is item B, with its corners in its own space.
+    Attribute: Parameter triangleTransform Where the triangle is in the world.
+    Attribute: Parameter result Where contacts are reported. It must already be initialized with the sphere's item as item A and the triangle's item as item B.
+    */
+    action CollideSphereTriangle(LocalCollisionPoints3D collisionPoints,
+            Sphere sphere, PhysicsPosition3D sphereTransform,
+            Triangle triangle, PhysicsPosition3D triangleTransform,
+            CollisionPointsResult3D result)
+        sphereTriangleSolver:Collide(collisionPoints, triangle, triangleTransform, sphere, sphereTransform, result, true)
+        result:RefreshCollisionPoints()
+    end
+
+    /*
+    This action collides a single triangle item with a sphere item, where the
+    triangle is item A of the collision and the sphere is item B. It uses the
+    sphere's triangle collider, which finds at most one contact, at the point
+    on the triangle closest to the sphere's center. The collision's points are
+    refreshed afterward.
+    Attribute: Parameter collisionPoints The collision's stored contact points.
+    Attribute: Parameter triangle The triangle, which is item A, with its corners in its own space.
+    Attribute: Parameter triangleTransform Where the triangle is in the world.
+    Attribute: Parameter sphere The sphere, which is item B.
+    Attribute: Parameter sphereTransform Where the sphere is in the world. Its origin is the sphere's center.
+    Attribute: Parameter result Where contacts are reported. It must already be initialized with the triangle's item as item A and the sphere's item as item B.
+    */
+    action CollideTriangleSphere(LocalCollisionPoints3D collisionPoints,
+            Triangle triangle, PhysicsPosition3D triangleTransform,
+            Sphere sphere, PhysicsPosition3D sphereTransform,
+            CollisionPointsResult3D result)
+        sphereTriangleSolver:Collide(collisionPoints, triangle, triangleTransform, sphere, sphereTransform, result, false)
+        result:RefreshCollisionPoints()
+    end
+
+    /*
+    This action collides a box item with a single triangle item, where the box
+    is item A of the collision and the triangle is item B. It uses the box's
+    triangle collider, which finds up to four contacts, such as one under each
+    bottom corner of a box lying flat on the triangle. The collision's points
+    are refreshed afterward.
+    Attribute: Parameter collisionPoints The collision's stored contact points.
+    Attribute: Parameter box The box, which is item A.
+    Attribute: Parameter boxTransform Where the box is in the world. Its origin is the box's center.
+    Attribute: Parameter triangle The triangle, which is item B, with its corners in its own space.
+    Attribute: Parameter triangleTransform Where the triangle is in the world.
+    Attribute: Parameter result Where contacts are reported. It must already be initialized with the box's item as item A and the triangle's item as item B.
+    */
+    action CollideBoxTriangle(LocalCollisionPoints3D collisionPoints,
+            Box box, PhysicsPosition3D boxTransform,
+            Triangle triangle, PhysicsPosition3D triangleTransform,
+            CollisionPointsResult3D result)
+        boxTriangleSolver:Collide(collisionPoints, triangle, triangleTransform, box, boxTransform, result, true)
+        result:RefreshCollisionPoints()
+    end
+
+    /*
+    This action collides a single triangle item with a box item, where the
+    triangle is item A of the collision and the box is item B. It uses the
+    box's triangle collider, which finds up to four contacts, such as one
+    under each bottom corner of a box lying flat on the triangle. The
+    collision's points are refreshed afterward.
+    Attribute: Parameter collisionPoints The collision's stored contact points.
+    Attribute: Parameter triangle The triangle, which is item A, with its corners in its own space.
+    Attribute: Parameter triangleTransform Where the triangle is in the world.
+    Attribute: Parameter box The box, which is item B.
+    Attribute: Parameter boxTransform Where the box is in the world. Its origin is the box's center.
+    Attribute: Parameter result Where contacts are reported. It must already be initialized with the triangle's item as item A and the box's item as item B.
+    */
+    action CollideTriangleBox(LocalCollisionPoints3D collisionPoints,
+            Triangle triangle, PhysicsPosition3D triangleTransform,
+            Box box, PhysicsPosition3D boxTransform,
+            CollisionPointsResult3D result)
+        boxTriangleSolver:Collide(collisionPoints, triangle, triangleTransform, box, boxTransform, result, false)
+        result:RefreshCollisionPoints()
+    end
+
+    /*
+    This action collides a cylinder item with a single triangle item, where
+    the cylinder is item A of the collision and the triangle is item B. It
+    uses the cylinder's triangle collider, which finds up to four contacts for
+    a cylinder standing on a cap, up to two for one lying on its side, and
+    hands any other case to the general collision test, which finds one. The
+    collision's points are refreshed afterward.
+    Attribute: Parameter collisionPoints The collision's stored contact points.
+    Attribute: Parameter cylinder The cylinder, which is item A.
+    Attribute: Parameter cylinderTransform Where the cylinder is in the world. Its origin is the cylinder's center.
+    Attribute: Parameter triangle The triangle, which is item B, with its corners in its own space.
+    Attribute: Parameter triangleTransform Where the triangle is in the world.
+    Attribute: Parameter result Where contacts are reported. It must already be initialized with the cylinder's item as item A and the triangle's item as item B.
+    */
+    action CollideCylinderTriangle(LocalCollisionPoints3D collisionPoints,
+            Cylinder cylinder, PhysicsPosition3D cylinderTransform,
+            Triangle triangle, PhysicsPosition3D triangleTransform,
+            CollisionPointsResult3D result)
+        cylinderTriangleSolver:Collide(collisionPoints, triangle, triangleTransform, cylinder, cylinderTransform, result, true)
+        result:RefreshCollisionPoints()
+    end
+
+    /*
+    This action collides a single triangle item with a cylinder item, where
+    the triangle is item A of the collision and the cylinder is item B. It
+    uses the cylinder's triangle collider, which finds up to four contacts for
+    a cylinder standing on a cap, up to two for one lying on its side, and
+    hands any other case to the general collision test, which finds one. The
+    collision's points are refreshed afterward.
+    Attribute: Parameter collisionPoints The collision's stored contact points.
+    Attribute: Parameter triangle The triangle, which is item A, with its corners in its own space.
+    Attribute: Parameter triangleTransform Where the triangle is in the world.
+    Attribute: Parameter cylinder The cylinder, which is item B.
+    Attribute: Parameter cylinderTransform Where the cylinder is in the world. Its origin is the cylinder's center.
+    Attribute: Parameter result Where contacts are reported. It must already be initialized with the triangle's item as item A and the cylinder's item as item B.
+    */
+    action CollideTriangleCylinder(LocalCollisionPoints3D collisionPoints,
+            Triangle triangle, PhysicsPosition3D triangleTransform,
+            Cylinder cylinder, PhysicsPosition3D cylinderTransform,
+            CollisionPointsResult3D result)
+        cylinderTriangleSolver:Collide(collisionPoints, triangle, triangleTransform, cylinder, cylinderTransform, result, false)
+        result:RefreshCollisionPoints()
+    end
+end

@@ -1,0 +1,866 @@
+package Libraries.Game.Collision.Narrowphase
+use Libraries.Game.Collision.LocalCollisionPoints3D
+use Libraries.Compute.Matrix3
+use Libraries.Containers.Array
+use Libraries.Compute.Vector3
+use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Game.Collision.CollisionPointsResult3D
+use Libraries.Game.Collision.Shapes.Box
+use Libraries.Compute.Math
+use Libraries.Containers.Integer32BitArray
+use Libraries.Containers.Number32BitArray
+
+class BoxBoxCollider
+    public constant number EPSILON = 0.00000011920928955078125
+    Math math
+    
+    // Storage for face contacts. Every box-against-box pair goes through the
+    // one BoxBoxCollider owned by SharedNarrowSolver, so these are created
+    // once and reused. Clipping a four-sided face against four planes leaves
+    // at most eight points.
+    constant integer MAXIMUM_CLIP_POINTS = 8
+    Array<Vector3> clipBufferA
+    Array<Vector3> clipBufferB
+    Array<Vector3> contactPoints
+    Number32BitArray contactDepths
+    Number32BitArray contactX
+    Number32BitArray contactY
+    Number32BitArray contactAngles
+    Integer32BitArray selectedPoints
+    Integer32BitArray availablePoints
+
+    Vector3 faceCenter
+    Vector3 referenceCenter
+    Vector3 incidentCenter
+    Vector3 referenceHalf
+    Vector3 incidentHalf
+    Vector3 referenceOutward
+    Vector3 incidentOutward
+    Vector3 referenceFaceCenter
+    Vector3 separation
+    Vector3 relativePoint
+    
+    
+    // Storage for the separating-axis test and for edge contacts, reused for
+    // every pair in the same way.
+    Array<Vector3> axesOfA
+    Array<Vector3> axesOfB
+    Vector3 halfExtentsA
+    Vector3 halfExtentsB
+    Vector3 boxCenterDelta
+    Vector3 bestNormal
+    Vector3 edgePointA
+    Vector3 edgePointB
+    Vector3 edgeBetween
+
+    // Bullet's tuning for the edge axes of the separating-axis test.
+    constant number ROTATION_FUDGE = 0.00001
+    constant number CROSS_AXIS_BIAS = 1.05
+
+    // Results of the separating-axis test. The index uses the order of the
+    // tests: 0 to 5 are the face axes A0, B0, A1, B1, A2, B2, and 6 to 14 are
+    // the edge pairs, 6 + 3 * (edge of A) + (edge of B).
+    integer winningAxisIndex = -1
+    number winningOverlap = 0
+    number bestAxisScore = 0
+    boolean bestNormalFlipped = false
+    number bestEdgeLength = 1
+
+    // B's axes expressed against A's. rIJ is A's axis I dotted with B's axis
+    // J, and aIJ is its absolute value. dAI and dBJ are the center offset
+    // along A's axis I and B's axis J, and hAI and hBJ are the half extents.
+    // Keeping these as plain numbers leaves the 15 tests free of vector math.
+    number r00 = 0
+    number r01 = 0
+    number r02 = 0
+    number r10 = 0
+    number r11 = 0
+    number r12 = 0
+    number r20 = 0
+    number r21 = 0
+    number r22 = 0
+    number a00 = 0
+    number a01 = 0
+    number a02 = 0
+    number a10 = 0
+    number a11 = 0
+    number a12 = 0
+    number a20 = 0
+    number a21 = 0
+    number a22 = 0
+    number dA0 = 0
+    number dA1 = 0
+    number dA2 = 0
+    number dB0 = 0
+    number dB1 = 0
+    number dB2 = 0
+    number hA0 = 0
+    number hA1 = 0
+    number hA2 = 0
+    number hB0 = 0
+    number hB1 = 0
+    number hB2 = 0
+
+    on create
+        integer i = 0
+        repeat while i < MAXIMUM_CLIP_POINTS
+            Vector3 a
+            Vector3 b
+            Vector3 c
+            clipBufferA:Add(a)
+            clipBufferB:Add(b)
+            contactPoints:Add(c)
+            i = i + 1
+        end
+        contactDepths:SetSize(MAXIMUM_CLIP_POINTS)
+        contactX:SetSize(MAXIMUM_CLIP_POINTS)
+        contactY:SetSize(MAXIMUM_CLIP_POINTS)
+        contactAngles:SetSize(MAXIMUM_CLIP_POINTS)
+        selectedPoints:SetSize(MAXIMUM_CLIP_POINTS)
+        availablePoints:SetSize(MAXIMUM_CLIP_POINTS)
+        
+        
+        i = 0
+        repeat while i < 3
+            Vector3 axisOfA
+            Vector3 axisOfB
+            axesOfA:Add(axisOfA)
+            axesOfB:Add(axisOfB)
+            i = i + 1
+        end
+    end
+    
+    action CollideBoxes(LocalCollisionPoints3D collisionPoints,
+Box boxA,PhysicsPosition3D transformA,
+Box boxB,PhysicsPosition3D transformB,
+CollisionPointsResult3D result)
+    result:SetCollisionPoints(collisionPoints)
+
+    Matrix3 basisA = transformA:GetBasis()
+    Matrix3 basisB = transformB:GetBasis()
+    
+        Array<Vector3> axesA = axesOfA
+    Array<Vector3> axesB = axesOfB
+
+    axesA:Get(0):Set(basisA:row0column0, basisA:row1column0, basisA:row2column0)
+    axesA:Get(1):Set(basisA:row0column1, basisA:row1column1, basisA:row2column1)
+    axesA:Get(2):Set(basisA:row0column2, basisA:row1column2, basisA:row2column2)
+
+    axesB:Get(0):Set(basisB:row0column0, basisB:row1column0, basisB:row2column0)
+    axesB:Get(1):Set(basisB:row0column1, basisB:row1column1, basisB:row2column1)
+    axesB:Get(2):Set(basisB:row0column2, basisB:row1column2, basisB:row2column2)
+
+    // The same values as Box:GetHalfExtentsWithMargin, copied into vectors
+    // owned here. That action builds a new margin vector on every call, and
+    // returns the box's own internal vector rather than a copy.
+    number marginA = boxA:GetMargin()
+    number marginB = boxB:GetMargin()
+    Vector3 halfA = halfExtentsA
+    halfA:Set(boxA:GetHalfExtentsWithoutMargin()):Add(marginA, marginA, marginA)
+    Vector3 halfB = halfExtentsB
+    halfB:Set(boxB:GetHalfExtentsWithoutMargin()):Add(marginB, marginB, marginB)
+
+    Vector3 centerDelta = boxCenterDelta
+    centerDelta:Set(transformA:GetOrigin())
+    centerDelta:Subtract(transformB:GetOrigin())
+
+    Vector3 normalBtoA = bestNormal
+
+    boolean separated = FindSeparatingAxis(axesA, axesB, halfA, halfB, centerDelta, normalBtoA)
+    if separated
+        result:RefreshCollisionPoints()
+        return now
+    end
+
+    integer winningAxis = winningAxisIndex
+    number minimumOverlap = winningOverlap
+
+    if winningAxis < 6
+        boolean referenceIsA = winningAxis mod 2 = 0
+        integer referenceAxisIndex = winningAxis / 2
+
+        CollideBoxFaces(
+            transformA, transformB,
+            axesA, axesB,
+            halfA, halfB,
+            referenceIsA, referenceAxisIndex,
+            normalBtoA, result)
+    else
+        integer edgePair = winningAxis - 6
+        integer selectedEdgeA = edgePair / 3
+        integer selectedEdgeB = edgePair mod 3
+
+        CollideBoxEdges(
+            transformA, transformB,
+            axesA, axesB,
+            halfA, halfB,
+            selectedEdgeA, selectedEdgeB,
+            normalBtoA, minimumOverlap, result)
+    end
+
+    result:RefreshCollisionPoints()
+end
+
+
+    /*
+    Looks for an axis that separates the two boxes, using the 15 candidate
+    axes of the separating-axis test: the three face axes of each box, then
+    the nine cross products of one edge from each. Returns true if the boxes
+    are apart. Otherwise it records the axis with the smallest overlap in
+    winningAxisIndex and winningOverlap, and stores the contact normal,
+    pointing from B toward A, in normal.
+
+    This follows Bullet's dBoxBox. B's axes are expressed against A's once,
+    and every test after that is arithmetic on those numbers.
+    */
+    private action FindSeparatingAxis(Array<Vector3> axesA, Array<Vector3> axesB,
+Vector3 halfA, Vector3 halfB, Vector3 centerDelta, Vector3 normal) returns boolean
+        Vector3 axisA0 = axesA:Get(0)
+        Vector3 axisA1 = axesA:Get(1)
+        Vector3 axisA2 = axesA:Get(2)
+        Vector3 axisB0 = axesB:Get(0)
+        Vector3 axisB1 = axesB:Get(1)
+        Vector3 axisB2 = axesB:Get(2)
+
+        r00 = axisA0:DotProduct(axisB0)
+        r01 = axisA0:DotProduct(axisB1)
+        r02 = axisA0:DotProduct(axisB2)
+        r10 = axisA1:DotProduct(axisB0)
+        r11 = axisA1:DotProduct(axisB1)
+        r12 = axisA1:DotProduct(axisB2)
+        r20 = axisA2:DotProduct(axisB0)
+        r21 = axisA2:DotProduct(axisB1)
+        r22 = axisA2:DotProduct(axisB2)
+
+        a00 = math:AbsoluteValue(r00)
+        a01 = math:AbsoluteValue(r01)
+        a02 = math:AbsoluteValue(r02)
+        a10 = math:AbsoluteValue(r10)
+        a11 = math:AbsoluteValue(r11)
+        a12 = math:AbsoluteValue(r12)
+        a20 = math:AbsoluteValue(r20)
+        a21 = math:AbsoluteValue(r21)
+        a22 = math:AbsoluteValue(r22)
+
+        dA0 = centerDelta:DotProduct(axisA0)
+        dA1 = centerDelta:DotProduct(axisA1)
+        dA2 = centerDelta:DotProduct(axisA2)
+        dB0 = centerDelta:DotProduct(axisB0)
+        dB1 = centerDelta:DotProduct(axisB1)
+        dB2 = centerDelta:DotProduct(axisB2)
+
+        hA0 = halfA:GetX()
+        hA1 = halfA:GetY()
+        hA2 = halfA:GetZ()
+        hB0 = halfB:GetX()
+        hB1 = halfB:GetY()
+        hB2 = halfB:GetZ()
+
+        bestAxisScore = 1.0e100
+        winningAxisIndex = -1
+        winningOverlap = 1.0e100
+        bestNormalFlipped = false
+        bestEdgeLength = 1
+
+        // Face axes, in the order A0, B0, A1, B1, A2, B2. Along one of A's
+        // axes, A reaches exactly its half extent, and B reaches the sum of
+        // its half extents weighted by how much each of its axes points that
+        // way. B's axes are the same with the boxes swapped.
+        if TestFaceAxis(0, hA0 + a00 * hB0 + a01 * hB1 + a02 * hB2, dA0)
+            return true
+        end
+        if TestFaceAxis(1, a00 * hA0 + a10 * hA1 + a20 * hA2 + hB0, dB0)
+            return true
+        end
+        if TestFaceAxis(2, hA1 + a10 * hB0 + a11 * hB1 + a12 * hB2, dA1)
+            return true
+        end
+        if TestFaceAxis(3, a01 * hA0 + a11 * hA1 + a21 * hA2 + hB1, dB1)
+            return true
+        end
+        if TestFaceAxis(4, hA2 + a20 * hB0 + a21 * hB1 + a22 * hB2, dA2)
+            return true
+        end
+        if TestFaceAxis(5, a02 * hA0 + a12 * hA1 + a22 * hA2 + hB2, dB2)
+            return true
+        end
+
+        // Edge pairs, A's edge i with B's edge j, at index 6 + 3 * i + j. Each
+        // call passes the numbers for the two other axes of A (i + 1 and
+        // i + 2) and of B (j + 1 and j + 2), wrapping around after 2.
+        //            index  rNext rAfter aNext aAfter hANext hAAfter bNext bAfter hBNext hBAfter dANext dAAfter
+        if TestEdgeAxis(6,  r10, r20, a10, a20, hA1, hA2, a01, a02, hB1, hB2, dA1, dA2)
+            return true
+        end
+        if TestEdgeAxis(7,  r11, r21, a11, a21, hA1, hA2, a02, a00, hB2, hB0, dA1, dA2)
+            return true
+        end
+        if TestEdgeAxis(8,  r12, r22, a12, a22, hA1, hA2, a00, a01, hB0, hB1, dA1, dA2)
+            return true
+        end
+        if TestEdgeAxis(9,  r20, r00, a20, a00, hA2, hA0, a11, a12, hB1, hB2, dA2, dA0)
+            return true
+        end
+        if TestEdgeAxis(10, r21, r01, a21, a01, hA2, hA0, a12, a10, hB2, hB0, dA2, dA0)
+            return true
+        end
+        if TestEdgeAxis(11, r22, r02, a22, a02, hA2, hA0, a10, a11, hB0, hB1, dA2, dA0)
+            return true
+        end
+        if TestEdgeAxis(12, r00, r10, a00, a10, hA0, hA1, a21, a22, hB1, hB2, dA0, dA1)
+            return true
+        end
+        if TestEdgeAxis(13, r01, r11, a01, a11, hA0, hA1, a22, a20, hB2, hB0, dA0, dA1)
+            return true
+        end
+        if TestEdgeAxis(14, r02, r12, a02, a12, hA0, hA1, a20, a21, hB0, hB1, dA0, dA1)
+            return true
+        end
+
+        // Build the normal only for the winning axis.
+        if winningAxisIndex < 6
+            if winningAxisIndex mod 2 = 0
+                normal:Set(axesA:Get(winningAxisIndex / 2))
+            else
+                normal:Set(axesB:Get((winningAxisIndex - 1) / 2))
+            end
+        else
+            integer edgePair = winningAxisIndex - 6
+            normal:Set(axesA:Get(edgePair / 3)):CrossProduct(axesB:Get(edgePair mod 3))
+            normal:Scale(1 / bestEdgeLength)
+        end
+
+        // The normal points from B toward A.
+        if bestNormalFlipped
+            normal:Scale(-1)
+        end
+
+        return false
+    end
+
+    /*
+    Tests one face axis. radiusSum is how far the two boxes reach along the
+    axis together, and signedDistance is how far apart their centers are along
+    it. Returns true if this axis separates the boxes.
+    */
+    private action TestFaceAxis(integer index, number radiusSum, number signedDistance) returns boolean
+        number overlap = radiusSum - math:AbsoluteValue(signedDistance)
+        if overlap < 0
+            return true
+        end
+        ConsiderAxis(index, overlap, overlap, signedDistance, 1)
+        return false
+    end
+
+    /*
+    Tests the cross product of A's edge i with B's edge j. The values passed
+    in belong to the two other axes of each box, in order: "next" is i + 1 (or
+    j + 1) and "after" is i + 2 (or j + 2), wrapping around after 2.
+
+    rNext and rAfter are R[i + 1][j] and R[i + 2][j], and aNext and aAfter
+    their absolute values. bNext and bAfter are the absolute values of
+    R[i][j + 1] and R[i][j + 2]. Returns true if this axis separates the boxes.
+    */
+    private action TestEdgeAxis(integer index,
+number rNext, number rAfter,
+number aNext, number aAfter,
+number hANext, number hAAfter,
+number bNext, number bAfter,
+number hBNext, number hBAfter,
+number dANext, number dAAfter) returns boolean
+        // A_i x B_j has the components (0, -R[i + 2][j], R[i + 1][j]) in A's
+        // frame, so its length comes from those two. This is more accurate
+        // than sqrt(1 - R[i][j] squared) when the edges are nearly parallel.
+        number axisLength = math:SquareRoot(rNext * rNext + rAfter * rAfter)
+
+        // Skip degenerate cross products from parallel or nearly parallel edges.
+        if axisLength <= EPSILON
+            return false
+        end
+
+        number radiusA = (hANext * aAfter + hAAfter * aNext) / axisLength
+        number radiusB = (hBNext * bAfter + hBAfter * bNext) / axisLength
+        number signedDistance = (dAAfter * rNext - dANext * rAfter) / axisLength
+        number rawOverlap = radiusA + radiusB - math:AbsoluteValue(signedDistance)
+
+        // Bullet adds rotationFudge to the four rotation terms in this
+        // projection, which comes to the two other half extents of each box,
+        // divided by the length of the cross product.
+        number padding = ROTATION_FUDGE * (hANext + hAAfter + hBNext + hBAfter) / axisLength
+        number testedOverlap = rawOverlap + padding
+
+        // Bullet allows SIMD_EPSILON before calling an edge axis separating.
+        if testedOverlap < -(EPSILON / axisLength)
+            return true
+        end
+
+        // The 1.05 bias makes a face axis win close ties. It affects only
+        // which axis wins; the depth kept is the unweighted overlap.
+        ConsiderAxis(index, testedOverlap, testedOverlap * CROSS_AXIS_BIAS, signedDistance, axisLength)
+        return false
+    end
+
+    /*
+    Keeps this axis if it has the lowest score so far.
+    */
+    private action ConsiderAxis(integer index, number overlap, number score, number signedDistance, number axisLength)
+        if score < bestAxisScore
+            bestAxisScore = score
+            winningOverlap = overlap
+            winningAxisIndex = index
+            bestNormalFlipped = signedDistance < 0
+            bestEdgeLength = axisLength
+        end
+    end
+
+    
+    
+    /*
+Write one box face's four corners into the first four entries of corners.
+faceDirection points outward from the face.
+*/
+private action MakeBoxFace(Vector3 boxCenter,
+Array<Vector3> axes,
+Vector3 half,
+Vector3 faceDirection,
+Array<Vector3> corners)
+
+    integer normalIndex = 0
+    number bestAlignment =
+        math:AbsoluteValue(faceDirection:DotProduct(axes:Get(0)))
+
+    integer i = 1
+    repeat while i < 3
+        number alignment =
+            math:AbsoluteValue(faceDirection:DotProduct(axes:Get(i)))
+        if alignment > bestAlignment
+            bestAlignment = alignment
+            normalIndex = i
+        end
+        i = i + 1
+    end
+
+    integer side1 = 0
+    integer side2 = 0
+    if normalIndex = 0
+        side1 = 1
+        side2 = 2
+    else
+        if normalIndex = 1
+            side1 = 0
+            side2 = 2
+        else
+            side1 = 0
+            side2 = 1
+        end
+    end
+
+    number normalExtent = GetBoxExtent(half, normalIndex)
+    number extent1 = GetBoxExtent(half, side1)
+    number extent2 = GetBoxExtent(half, side2)
+
+    faceCenter:Set(axes:Get(normalIndex))
+    if faceDirection:DotProduct(faceCenter) < 0
+        faceCenter:Scale(-normalExtent)
+    else
+        faceCenter:Scale(normalExtent)
+    end
+    faceCenter:Add(boxCenter)
+
+    Vector3 axis1 = axes:Get(side1)
+    Vector3 axis2 = axes:Get(side2)
+    corners:Get(0):Set(faceCenter):MultiplyAndAdd(axis1, -extent1):MultiplyAndAdd(axis2, -extent2)
+    corners:Get(1):Set(faceCenter):MultiplyAndAdd(axis1, -extent1):MultiplyAndAdd(axis2, extent2)
+    corners:Get(2):Set(faceCenter):MultiplyAndAdd(axis1, extent1):MultiplyAndAdd(axis2, extent2)
+    corners:Get(3):Set(faceCenter):MultiplyAndAdd(axis1, extent1):MultiplyAndAdd(axis2, -extent2)
+end
+    
+    
+    private action CollideBoxFaces(PhysicsPosition3D transformA,
+PhysicsPosition3D transformB,
+Array<Vector3> axesA,
+Array<Vector3> axesB,
+Vector3 halfA,Vector3 halfB,
+boolean referenceIsA,
+integer referenceAxisIndex,
+Vector3 normalBtoA,
+CollisionPointsResult3D result)
+    // These name existing arrays. Declaring them without a value would make
+    // Quorum build two new arrays only to replace them.
+    Array<Vector3> referenceAxes = axesB
+    Array<Vector3> incidentAxes = axesA
+
+    if referenceIsA
+        referenceCenter:Set(transformA:GetOrigin())
+        incidentCenter:Set(transformB:GetOrigin())
+        referenceHalf:Set(halfA)
+        incidentHalf:Set(halfB)
+        referenceOutward:Set(normalBtoA):Scale(-1)
+        incidentOutward:Set(normalBtoA)
+        referenceAxes = axesA
+        incidentAxes = axesB
+    else
+        referenceCenter:Set(transformB:GetOrigin())
+        incidentCenter:Set(transformA:GetOrigin())
+        referenceHalf:Set(halfB)
+        incidentHalf:Set(halfA)
+        referenceOutward:Set(normalBtoA)
+        incidentOutward:Set(normalBtoA):Scale(-1)
+    end
+
+    number referenceExtent = GetBoxExtent(referenceHalf, referenceAxisIndex)
+
+    referenceFaceCenter:Set(referenceAxes:Get(referenceAxisIndex))
+    if referenceOutward:DotProduct(referenceFaceCenter) < 0
+        referenceFaceCenter:Scale(-referenceExtent)
+    else
+        referenceFaceCenter:Scale(referenceExtent)
+    end
+    referenceFaceCenter:Add(referenceCenter)
+
+    MakeBoxFace(incidentCenter, incidentAxes, incidentHalf, incidentOutward, clipBufferA)
+
+    integer side1 = 0
+    integer side2 = 0
+    if referenceAxisIndex = 0
+        side1 = 1
+        side2 = 2
+    else
+        if referenceAxisIndex = 1
+            side1 = 0
+            side2 = 2
+        else
+            side1 = 0
+            side2 = 1
+        end
+    end
+
+    number extent1 = GetBoxExtent(referenceHalf, side1)
+    number extent2 = GetBoxExtent(referenceHalf, side2)
+    Vector3 axis1 = referenceAxes:Get(side1)
+    Vector3 axis2 = referenceAxes:Get(side2)
+
+    // Clip back and forth between the two buffers. The result ends up in A.
+    integer clippedCount = ClipBoxPolygon(clipBufferA, 4, clipBufferB, referenceFaceCenter, axis1, extent1, 1)
+    clippedCount = ClipBoxPolygon(clipBufferB, clippedCount, clipBufferA, referenceFaceCenter, axis1, extent1, -1)
+    clippedCount = ClipBoxPolygon(clipBufferA, clippedCount, clipBufferB, referenceFaceCenter, axis2, extent2, 1)
+    clippedCount = ClipBoxPolygon(clipBufferB, clippedCount, clipBufferA, referenceFaceCenter, axis2, extent2, -1)
+
+    // Keep penetrating points and their depths.
+    integer count = 0
+    integer i = 0
+    repeat while i < clippedCount
+        Vector3 incidentPoint = clipBufferA:Get(i)
+        number depth = 0
+
+        if referenceIsA
+            separation:Set(referenceFaceCenter):Subtract(incidentPoint)
+            depth = separation:DotProduct(normalBtoA)
+            if depth <= 0
+                contactPoints:Get(count):Set(incidentPoint)
+            end
+        else
+            separation:Set(incidentPoint):Subtract(referenceFaceCenter)
+            depth = separation:DotProduct(normalBtoA)
+            if depth <= 0
+                contactPoints:Get(count):Set(incidentPoint):MultiplyAndAdd(normalBtoA, -depth)
+            end
+        end
+
+        if depth <= 0
+            contactDepths:Set(count, depth)
+            count = count + 1
+        end
+
+        i = i + 1
+    end
+
+    if count = 0
+        return now
+    end
+
+    // Two boxes resting face to face give four points, the most common case,
+    // and reduction only matters when there are more than four.
+    if count <= 4
+        i = 0
+        repeat while i < count
+            result:AddCollisionPoint(normalBtoA, contactPoints:Get(i), contactDepths:Get(i))
+            i = i + 1
+        end
+        return now
+    end
+
+    // Bullet-style cullPoints2: keep the deepest contact, then select
+    // contacts at evenly spaced angles around the polygon centroid.
+    integer targetSelectedPoints = 4
+
+    number centroidX = 0
+    number centroidY = 0
+
+    // Project the contact polygon into the reference face's 2D coordinates.
+    i = 0
+    repeat while i < count
+        relativePoint:Set(contactPoints:Get(i)):Subtract(referenceFaceCenter)
+        number x = relativePoint:DotProduct(axis1)
+        number y = relativePoint:DotProduct(axis2)
+        contactX:Set(i, x)
+        contactY:Set(i, y)
+        centroidX = centroidX + x
+        centroidY = centroidY + y
+        i = i + 1
+    end
+
+    // Area-weighted polygon centroid, including the closing edge. There are
+    // always more than four points here.
+    number twiceArea = 0
+    number centroidNumeratorX = 0
+    number centroidNumeratorY = 0
+
+    i = 0
+    repeat while i < count
+        integer nextIndex = (i + 1) mod count
+        number x0 = contactX:Get(i)
+        number y0 = contactY:Get(i)
+        number x1 = contactX:Get(nextIndex)
+        number y1 = contactY:Get(nextIndex)
+        number cross = x0 * y1 - x1 * y0
+
+        twiceArea = twiceArea + cross
+        centroidNumeratorX = centroidNumeratorX + cross * (x0 + x1)
+        centroidNumeratorY = centroidNumeratorY + cross * (y0 + y1)
+        i = i + 1
+    end
+
+    if math:AbsoluteValue(twiceArea) > EPSILON
+        centroidX = centroidNumeratorX / (3 * twiceArea)
+        centroidY = centroidNumeratorY / (3 * twiceArea)
+    else
+        // Degenerate polygon: use the arithmetic mean.
+        centroidX = centroidX / count
+        centroidY = centroidY / count
+    end
+
+    // Bullet cullPoints2 anchors its angular sampling at the deepest point.
+    integer deepest = 0
+    i = 1
+    repeat while i < count
+        if contactDepths:Get(i) < contactDepths:Get(deepest)
+            deepest = i
+        end
+        i = i + 1
+    end
+
+    i = 0
+    repeat while i < count
+        number x = contactX:Get(i) - centroidX
+        number y = contactY:Get(i) - centroidY
+
+        // InverseTangent(x, y) returns the angle of Cartesian point (x, y).
+        if math:AbsoluteValue(x) + math:AbsoluteValue(y) > EPSILON
+            contactAngles:Set(i, math:InverseTangent(x, y))
+        else
+            contactAngles:Set(i, 0)
+        end
+        i = i + 1
+    end
+
+    constant integer TRUE = 1
+    constant integer FALSE = 0
+
+    i = 0
+    repeat while i < count
+        availablePoints:Set(i, TRUE)
+        i = i + 1
+    end
+
+    selectedPoints:Set(0, deepest)
+    availablePoints:Set(deepest, FALSE)
+
+    integer numberSelectedPoints = 1
+    repeat while numberSelectedPoints < targetSelectedPoints
+        integer bestIndex = -1
+        number bestDifference = 1.0e100
+
+        number targetAngle =
+            contactAngles:Get(deepest) +
+            numberSelectedPoints * (2 * math:pi / targetSelectedPoints)
+
+        if targetAngle > math:pi
+            targetAngle = targetAngle - 2 * math:pi
+        end
+
+        i = 0
+        repeat while i < count
+            if availablePoints:Get(i) = TRUE
+                number difference =
+                    math:AbsoluteValue(contactAngles:Get(i) - targetAngle)
+
+                if difference > math:pi
+                    difference = 2 * math:pi - difference
+                end
+
+                if difference < bestDifference
+                    bestDifference = difference
+                    bestIndex = i
+                end
+            end
+            i = i + 1
+        end
+
+        if bestIndex >= 0
+            selectedPoints:Set(numberSelectedPoints, bestIndex)
+            availablePoints:Set(bestIndex, FALSE)
+            numberSelectedPoints = numberSelectedPoints + 1
+        else
+            return now
+        end
+    end
+
+    i = 0
+    repeat while i < numberSelectedPoints
+        integer index = selectedPoints:Get(i)
+        result:AddCollisionPoint(normalBtoA, contactPoints:Get(index), contactDepths:Get(index))
+        i = i + 1
+    end
+end
+    
+    /*
+Clip the first sourceCount points of source to
+sign * dot(point - planeCenter, planeAxis) <= extent, writing the clipped
+polygon into destination. Returns how many points were written. source and
+destination must be different arrays.
+*/
+private action ClipBoxPolygon(Array<Vector3> source,
+integer sourceCount,
+Array<Vector3> destination,
+Vector3 planeCenter,
+Vector3 planeAxis,
+number extent,
+number sign) returns integer
+    if sourceCount = 0
+        return 0
+    end
+
+    // sign * dot(point - planeCenter, planeAxis) - extent, written so that no
+    // temporary vector is needed for point - planeCenter.
+    number planeOffset = sign * planeCenter:DotProduct(planeAxis) + extent
+
+    Vector3 current = source:Get(0)
+    number currentDistance = sign * current:DotProduct(planeAxis) - planeOffset
+    number firstDistance = currentDistance
+
+    integer clippedCount = 0
+    integer i = 0
+    repeat while i < sourceCount
+        integer nextIndex = i + 1
+        number nextDistance = firstDistance
+        if nextIndex = sourceCount
+            nextIndex = 0
+        else
+            nextDistance = sign * source:Get(nextIndex):DotProduct(planeAxis) - planeOffset
+        end
+        Vector3 next = source:Get(nextIndex)
+
+        boolean currentInside = currentDistance <= 0
+        boolean nextInside = nextDistance <= 0
+
+        if currentInside
+            destination:Get(clippedCount):Set(current)
+            clippedCount = clippedCount + 1
+        end
+
+        if currentInside not= nextInside
+            number fraction = currentDistance / (currentDistance - nextDistance)
+            // current + (next - current) * fraction
+            destination:Get(clippedCount):Set(current):Scale(1 - fraction):MultiplyAndAdd(next, fraction)
+            clippedCount = clippedCount + 1
+        end
+
+        current = next
+        currentDistance = nextDistance
+        i = i + 1
+    end
+
+    return clippedCount
+end
+    
+    
+    
+    private action GetBoxExtent(Vector3 half, integer index) returns number
+    if index = 0
+        return half:GetX()
+    end
+    if index = 1
+        return half:GetY()
+    end
+    return half:GetZ()
+end
+    
+    
+    private action CollideBoxEdges(PhysicsPosition3D transformA,
+PhysicsPosition3D transformB,
+Array<Vector3> axesA,
+Array<Vector3> axesB,
+Vector3 halfA,Vector3 halfB,
+integer edgeA, integer edgeB,
+Vector3 normalBtoA,
+number penetration,
+CollisionPointsResult3D result)
+        Vector3 pointA = edgePointA
+    pointA:Set(transformA:GetOrigin())
+
+    Vector3 pointB = edgePointB
+    pointB:Set(transformB:GetOrigin())
+
+    // Offset the edge centers along their two non-edge axes.
+    integer i = 0
+    repeat while i < 3
+        if i not= edgeA
+            number extentA = GetBoxExtent(halfA, i)
+            number signA = 1
+            if normalBtoA:DotProduct(axesA:Get(i)) > 0
+                signA = -1
+            end
+            pointA:MultiplyAndAdd(axesA:Get(i), signA * extentA)
+        end
+
+        if i not= edgeB
+            number extentB = GetBoxExtent(halfB, i)
+            number signB = 1
+            if normalBtoA:DotProduct(axesB:Get(i)) < 0
+                signB = -1
+            end
+            pointB:MultiplyAndAdd(axesB:Get(i), signB * extentB)
+        end
+
+        i = i + 1
+    end
+
+    
+        // The edge directions are only read, so these name the axes directly.
+    Vector3 directionA = axesA:Get(edgeA)
+    Vector3 directionB = axesB:Get(edgeB)
+
+    Vector3 between = edgeBetween
+    between:Set(pointB)
+    between:Subtract(pointA)
+
+    number dotAB = directionA:DotProduct(directionB)
+    number q1 = directionA:DotProduct(between)
+    number q2 = -directionB:DotProduct(between)
+    number denominator = 1 - dotAB * dotAB
+
+    number alpha = 0
+    number beta = 0
+    if denominator > 0.0001
+        alpha = (q1 + dotAB * q2) / denominator
+        beta = (dotAB * q1 + q2) / denominator
+    end
+
+    // Apply both line parameters; the contact point is on B's edge.
+    pointA:MultiplyAndAdd(directionA, alpha)
+    pointB:MultiplyAndAdd(directionB, beta)
+
+    result:AddCollisionPoint(normalBtoA, pointB, -penetration)
+end
+end

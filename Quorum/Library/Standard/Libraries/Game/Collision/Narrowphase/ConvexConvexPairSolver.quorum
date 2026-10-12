@@ -30,6 +30,34 @@ class ConvexConvexPairSolver
 
     Math math
 
+    // Temporary values reused by GetClosestPoints and SupportSeparationAlong,
+    // which would otherwise create them on every call. Nothing outside this
+    // class keeps a reference to them: CollisionPointsResult3D and the
+    // penetration depth solver copy what they are given.
+    Vector3 pairTemp
+    Vector3 pairNormalInB
+    Vector3 pairPointOnA
+    Vector3 pairPointOnB
+    PhysicsPosition3D pairLocalTransformA
+    PhysicsPosition3D pairLocalTransformB
+    Vector3 pairPositionOffset
+    Vector3 pairSeparatingAxisInA
+    Vector3 pairSeparatingAxisInB
+    Vector3 pairSupportA
+    Vector3 pairSupportB
+    Vector3 pairWorldA
+    Vector3 pairWorldB
+    Vector3 pairDifference
+    Vector3 pairPenetrationPointOnA
+    Vector3 pairPenetrationPointOnB
+    Vector3 pairPenetrationNormal
+    Vector3 pairReversedNormal
+    Vector3 supportAxisInA
+    Vector3 supportAxisInB
+    Vector3 supportPointInA
+    Vector3 supportPointInB
+    Vector3 supportDifference
+
     on create
         me:cachedSeparatingAxis:Set(0, 0, 1)
     end
@@ -49,18 +77,18 @@ class ConvexConvexPairSolver
     This action finds the closest points on object A to B and on object B to A.
     */
     action GetClosestPoints(PhysicsPosition3D transformA, PhysicsPosition3D transformB, number maximumDistanceSquared, CollisionPointsResult3D result, boolean swapResults)
-        Vector3 tmp
+        Vector3 tmp = pairTemp
 
         number distance = 0
-        Vector3 normalInB
+        Vector3 normalInB = pairNormalInB
         normalInB:Set(0, 0, 0)
-        Vector3 pointOnA
-        Vector3 pointOnB
-        PhysicsPosition3D localTransA
+        Vector3 pointOnA = pairPointOnA
+        Vector3 pointOnB = pairPointOnB
+        PhysicsPosition3D localTransA = pairLocalTransformA
         localTransA:Set(transformA)
-        PhysicsPosition3D localTransB
+        PhysicsPosition3D localTransB = pairLocalTransformB
         localTransB:Set(transformB)
-        Vector3 positionOffset
+        Vector3 positionOffset = pairPositionOffset
         positionOffset:Set(localTransA:GetOrigin()):Add(localTransB:GetOrigin())
         positionOffset:Scale(0.5)
         localTransA:GetOrigin():Subtract(positionOffset)
@@ -93,19 +121,19 @@ class ConvexConvexPairSolver
 
         simplexSolver:Reset()
 
-        Vector3 separatingAxisInA
-        Vector3 separatingAxisInB
+        Vector3 separatingAxisInA = pairSeparatingAxisInA
+        Vector3 separatingAxisInB = pairSeparatingAxisInB
 
-        Vector3 pInA
-        Vector3 qInB
+        Vector3 pInA = pairSupportA
+        Vector3 qInB = pairSupportB
 
-        Vector3 pWorld
-        Vector3 qWorld
-        Vector3 w
+        Vector3 pWorld = pairWorldA
+        Vector3 qWorld = pairWorldB
+        Vector3 w = pairDifference
 
-        Vector3 tmpPointOnA
-        Vector3 tmpPointOnB
-        Vector3 tmpNormalInB
+        Vector3 tmpPointOnA = pairPenetrationPointOnA
+        Vector3 tmpPointOnB = pairPenetrationPointOnB
+        Vector3 tmpNormalInB = pairPenetrationNormal
 
         boolean continue = true
         repeat while continue
@@ -271,7 +299,7 @@ class ConvexConvexPairSolver
             //opposite way. The support point of each shape toward the other is measured
             //along both facings, and whichever facing actually separates the two shapes is
             //the one that is kept.
-            Vector3 reversedNormal
+            Vector3 reversedNormal = pairReversedNormal
             reversedNormal:Set(normalInB):Scale(-1)
 
             number d0 = SupportSeparationAlong(normalInB, localTransA, localTransB, margin)
@@ -294,20 +322,20 @@ class ConvexConvexPairSolver
     and projecting the vector between them onto that facing.
     */
     private action SupportSeparationAlong(Vector3 direction, PhysicsPosition3D transformA, PhysicsPosition3D transformB, number margin) returns number
-        Vector3 axisInA
+        Vector3 axisInA = supportAxisInA
         axisInA:Set(direction):Scale(-1):MultiplyByTranspose(transformA:GetBasis())
-        Vector3 axisInB
+        Vector3 axisInB = supportAxisInB
         axisInB:Set(direction):MultiplyByTranspose(transformB:GetBasis())
 
-        Vector3 pointInA
+        Vector3 pointInA = supportPointInA
         pointInA:Set(minkowskiA:LocalGetSupportingVertexWithoutMargin(axisInA))
-        Vector3 pointInB
+        Vector3 pointInB = supportPointInB
         pointInB:Set(minkowskiB:LocalGetSupportingVertexWithoutMargin(axisInB))
 
         transformA:Transform(pointInA)
         transformB:Transform(pointInB)
 
-        Vector3 difference
+        Vector3 difference = supportDifference
         difference:Set(pointInA):Subtract(pointInB)
 
         return direction:DotProduct(difference) - margin

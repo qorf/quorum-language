@@ -2,6 +2,7 @@ package Libraries.Game.Collision.Shapes
 
 use Libraries.Compute.Vector3
 use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Game.Collision.RayCastResult3D
 use Libraries.Containers.Array
 use Libraries.Compute.Math
 use Libraries.Game.BoundingBox
@@ -35,6 +36,69 @@ class CollisionShape3D
     /* This action is similar in bullet to what they call aabb, or the axis aligned bounding box. */
     blueprint action ComputeBoundingBox(BoundingBox boundingBox, PhysicsPosition3D transform)
     
+    
+/*
+    This action checks whether a straight line segment, called a ray, touches
+    this shape. The ray starts at "from" and ends at "to," both in world
+    space. The shape is placed in the world using "transform," which is
+    normally the collision transform of the item that owns the shape.
+
+    The result works as both an input and an output. Its fraction is the
+    farthest point along the ray that still counts as a hit, where 0 is
+    "from" and 1 is "to." This action only reports a hit that is closer than
+    the result's current fraction. When it finds one, it sets the result's
+    hit flag to true, and sets its fraction, its hit point in world space,
+    and its surface normal in world space. The normal has a length of 1 and
+    points back toward the start of the ray. When there is no closer hit,
+    the result is left unchanged.
+
+    Because of this, the same result can be passed to several shapes in a
+    row, and it will end up holding the closest hit among them. Call
+    SetToDefault on the result before the first shape so that any hit along
+    the whole ray counts.
+
+    This action does not set the result's hit body, because a shape does not
+    know which item it belongs to. The caller should set the hit body when
+    this action returns true.
+
+    Each kind of shape provides its own version of this action. The version
+    in CollisionShape3D never reports a hit and returns false.
+
+    Attribute: Parameter from The world-space point where the ray starts.
+    Attribute: Parameter to The world-space point where the ray ends.
+    Attribute: Parameter transform The position and rotation of this shape in the world.
+    Attribute: Parameter result Holds the closest hit found so far. It is updated if this shape is hit closer than the result's current fraction.
+    Attribute: Returns true if this shape was hit closer than the result's previous fraction, and false otherwise.
+
+    Attribute: Example
+
+        
+        use Libraries.Game.Collision.RayCastResult3D
+        use Libraries.Game.Collision.PhysicsPosition3D
+        use Libraries.Game.Collision.Shapes.Box
+        use Libraries.Compute.Vector3
+        // A 2 by 2 by 2 box centered at the world origin.
+        Box box
+        box:Set(2, 2, 2)
+        PhysicsPosition3D transform
+        transform:SetToIdentity()
+        // A ray straight down through the box.
+        Vector3 from
+        from:Set(0, 10, 0)
+        Vector3 to
+        to:Set(0, -10, 0)
+        RayCastResult3D result
+        result:SetToDefault()
+        if box:RayCast(from, to, transform, result)
+            // The ray reaches the top of the box (y = 1) after 9 of its
+            // 20 units, so this outputs a fraction of 0.45.
+            output "Hit at fraction " + result:GetFraction()
+        end
+    */
+action RayCast(Vector3 from, Vector3 to, 
+PhysicsPosition3D transform,RayCastResult3D result) returns boolean
+        return false
+end
     /*
     This action finds the center (relative to the object's local origin)
     and the radius of a sphere that would bound the object that is at its 

@@ -1,0 +1,536 @@
+package Libraries.Game.Collision.Narrowphase
+
+use Libraries.Compute.Vector3
+use Libraries.Compute.Math
+use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Game.Collision.Shapes.Triangle
+
+/*
+TriangleGeometry3D holds one triangle in world space, along with the values
+that the triangle colliders need over and over: its edges, its normal, the
+plane it lies in, and the three planes that stand up along its edges.
+
+A collider loads a triangle once, then asks for these values as many times as
+it needs. Every vector here is created once and reused, so loading a new
+triangle creates no objects.
+
+The corners are numbered 0, 1 and 2. Edge 0 runs from corner 0 to corner 1,
+edge 1 from corner 1 to corner 2, and edge 2 from corner 2 back to corner 0.
+The normal follows the winding of the corners, so it points toward a viewer
+who sees the corners in counterclockwise order.
+
+Each edge also has a side plane, which contains the edge and stands straight
+up from the triangle. Its normal lies in the triangle's plane and points into
+the triangle. A point is over the triangle, when seen along the normal, when
+it is on the inner side of all three side planes.
+
+Attribute: Example
+
+    use Libraries.Compute.Vector3
+    TriangleGeometry3D geometry
+    Vector3 a
+    a:Set(0, 0, 0)
+    Vector3 b
+    b:Set(1, 0, 0)
+    Vector3 c
+    c:Set(0, 0, -1)
+    geometry:Load(a, b, c)
+    Vector3 point
+    point:Set(0.25, 2, -0.25)
+    Vector3 closest
+    integer region = geometry:ClosestPoint(point, closest)
+    // closest is (0.25, 0, -0.25), and region is geometry:FACE.
+*/
+class TriangleGeometry3D
+    // The parts of the triangle that a closest point can land on. Edge i runs
+    // from corner i to corner i + 1, and corner i is corner i.
+    public constant integer FACE = 0
+    public constant integer EDGE_0 = 1
+    public constant integer EDGE_1 = 2
+    public constant integer EDGE_2 = 3
+    public constant integer CORNER_0 = 4
+    public constant integer CORNER_1 = 5
+    public constant integer CORNER_2 = 6
+
+    // A triangle whose normal, before it is made unit length, is shorter than
+    // this is treated as having no area. This is a squared length.
+    public constant number DEGENERATE_AREA = 0.000000000001
+
+    Vector3 corner0
+    Vector3 corner1
+    Vector3 corner2
+    Vector3 edge0
+    Vector3 edge1
+    Vector3 edge2
+    Vector3 normal
+    number planeOffset = 0
+    Vector3 sideNormal0
+    Vector3 sideNormal1
+    Vector3 sideNormal2
+    number sideOffset0 = 0
+    number sideOffset1 = 0
+    number sideOffset2 = 0
+    boolean degenerate = false
+
+    // Temporary values for ClosestPoint and the segment actions.
+    Vector3 cornerToPoint
+    Vector3 secondEdge
+    Vector3 segmentDirection
+    Vector3 segmentClosest
+    Vector3 firstDirection
+    Vector3 secondDirection
+    Vector3 startDifference
+    Vector3 pointsBetween
+
+    Math math
+
+    /*
+    This action loads a triangle whose corners are given in the triangle's own
+    space, and moves the corners into the world using the given transform. The
+    triangle itself is not changed.
+    Attribute: Parameter triangle The triangle to load.
+    Attribute: Parameter transform Where the triangle is in the world.
+    */
+    action Load(Triangle triangle, PhysicsPosition3D transform)
+        corner0:Set(triangle:GetVertex(0))
+        corner1:Set(triangle:GetVertex(1))
+        corner2:Set(triangle:GetVertex(2))
+        transform:Transform(corner0)
+        transform:Transform(corner1)
+        transform:Transform(corner2)
+        Calculate()
+    end
+
+    /*
+    This action loads a triangle whose corners are already in world space. The
+    values are copied, so the vectors may be reused by the caller.
+    */
+    action Load(Vector3 a, Vector3 b, Vector3 c)
+        corner0:Set(a)
+        corner1:Set(b)
+        corner2:Set(c)
+        Calculate()
+    end
+
+    /*
+    This action works out the edges, normal and planes from the corners.
+    */
+    private action Calculate
+        edge0:Set(corner1):Subtract(corner0)
+        edge1:Set(corner2):Subtract(corner1)
+        edge2:Set(corner0):Subtract(corner2)
+
+        // The normal is edge 0 crossed with the edge from corner 0 to corner 2,
+        // the same as Triangle:CalculateNormal.
+        secondEdge:Set(corner2):Subtract(corner0)
+        normal:Set(edge0):CrossProduct(secondEdge)
+
+        degenerate = normal:LengthSquared() < DEGENERATE_AREA
+        if degenerate
+            // There is no plane to speak of. Pick any direction so callers
+            // still get numbers, and let them check IsDegenerate.
+            normal:Set(0, 1, 0)
+            sideNormal0:Set(0, 0, 0)
+            sideNormal1:Set(0, 0, 0)
+            sideNormal2:Set(0, 0, 0)
+            sideOffset0 = 0
+            sideOffset1 = 0
+            sideOffset2 = 0
+            planeOffset = normal:DotProduct(corner0)
+            return now
+        end
+
+        normal:Normalize()
+        planeOffset = normal:DotProduct(corner0)
+
+        // The normal crossed with an edge lies in the triangle's plane, at a
+        // right angle to the edge, and points into the triangle.
+        sideNormal0:Set(normal):CrossProduct(edge0):Normalize()
+        sideNormal1:Set(normal):CrossProduct(edge1):Normalize()
+        sideNormal2:Set(normal):CrossProduct(edge2):Normalize()
+        sideOffset0 = sideNormal0:DotProduct(corner0)
+        sideOffset1 = sideNormal1:DotProduct(corner1)
+        sideOffset2 = sideNormal2:DotProduct(corner2)
+    end
+
+    /*
+    This action returns true if the triangle has no area, because its corners
+    are all on one line or in one place. A degenerate triangle has no normal or
+    side planes, so only ClosestPoint and the segment actions work with it.
+    */
+    action IsDegenerate returns boolean
+        return degenerate
+    end
+
+    /*
+    This action returns the corner at the given index, 0, 1 or 2, in world
+    space. This is the vector stored here, not a copy.
+    */
+    action GetCorner(integer index) returns Vector3
+        if index = 0
+            return corner0
+        elseif index = 1
+            return corner1
+        end
+        return corner2
+    end
+
+    /*
+    This action returns the edge at the given index, 0, 1 or 2. Edge i is the
+    vector from corner i to the next corner. This is the vector stored here,
+    not a copy.
+    */
+    action GetEdge(integer index) returns Vector3
+        if index = 0
+            return edge0
+        elseif index = 1
+            return edge1
+        end
+        return edge2
+    end
+
+    /*
+    This action returns the triangle's unit normal. This is the vector stored
+    here, not a copy.
+    */
+    action GetNormal returns Vector3
+        return normal
+    end
+
+    /*
+    This action returns how far the triangle's plane is from the origin along
+    the normal. A point p is on the plane when normal · p equals this value.
+    */
+    action GetPlaneOffset returns number
+        return planeOffset
+    end
+
+    /*
+    This action returns the inward normal of the side plane along the edge at
+    the given index. This is the vector stored here, not a copy.
+    */
+    action GetSideNormal(integer index) returns Vector3
+        if index = 0
+            return sideNormal0
+        elseif index = 1
+            return sideNormal1
+        end
+        return sideNormal2
+    end
+
+    /*
+    This action returns the offset of the side plane along the edge at the
+    given index. A point p is on the inner side of that plane when the side
+    normal · p is at least this value.
+    */
+    action GetSideOffset(integer index) returns number
+        if index = 0
+            return sideOffset0
+        elseif index = 1
+            return sideOffset1
+        end
+        return sideOffset2
+    end
+
+    /*
+    This action returns how far a point is from the triangle's plane, measured
+    along the normal. It is positive on the side the normal points to.
+    */
+    action PlaneDistance(Vector3 point) returns number
+        return normal:DotProduct(point) - planeOffset
+    end
+
+    /*
+    This action returns how far a point is inside the side plane at the given
+    index. It is positive on the inner side, the side the triangle is on.
+    */
+    action SideDistance(integer index, Vector3 point) returns number
+        return GetSideNormal(index):DotProduct(point) - GetSideOffset(index)
+    end
+
+    /*
+    This action returns the smallest value of axis · corner over the three
+    corners, which is the near end of the stretch of the axis that the
+    triangle covers. See GetProjectionMaximum for what the projection is and
+    how the two are used together.
+    Attribute: Parameter axis The direction to measure along.
+    Attribute: Returns the smallest value of axis · corner over the three corners.
+    */
+    action GetProjectionMinimum(Vector3 axis) returns number
+        number value = axis:DotProduct(corner0)
+        number other = axis:DotProduct(corner1)
+        if other < value
+            value = other
+        end
+        other = axis:DotProduct(corner2)
+        if other < value
+            value = other
+        end
+        return value
+    end
+
+    /*
+    This action returns the far end of the triangle's projection onto the
+    given axis, which is the farthest the triangle reaches in the direction
+    of the axis. Each corner is projected onto the axis by taking
+    axis · corner, and the largest of the three values is returned.
+    GetProjectionMinimum returns the smallest.
+
+    One way to picture it is a line through the origin pointing in the
+    axis's direction. Each corner casts a shadow onto that line, at a
+    position equal to its dot product with the axis. The minimum and maximum
+    are the two ends of the stretch of the line that the triangle's shadow
+    covers.
+
+    This is the basic step of the separating axis test. For a candidate axis,
+    the triangle's stretch, from GetProjectionMinimum to GetProjectionMaximum, is
+    compared with the other shape's stretch along the same axis. If the two
+    do not overlap, by more than the margin and contact threshold, the shapes
+    cannot be touching.
+
+    The values are distances only when the axis is unit length. For an axis
+    of any other length, they are scaled by that length. That is still fine
+    for comparing against another shape projected onto the same axis, but
+    they are not true distances.
+
+    For example, for the triangle with corners (0, 0, 0), (1, 0, 0) and
+    (0, 0, -1), the stretch along (1, 0, 0) is 0 to 1, along (0, 0, 1) it is
+    -1 to 0, and along its normal, (0, 1, 0), both ends are 0, because the
+    triangle is flat.
+    Attribute: Parameter axis The direction to measure along.
+    Attribute: Returns the largest value of axis · corner over the three corners.
+    */
+    action GetProjectionMaximum(Vector3 axis) returns number
+        number value = axis:DotProduct(corner0)
+        number other = axis:DotProduct(corner1)
+        if other > value
+            value = other
+        end
+        other = axis:DotProduct(corner2)
+        if other > value
+            value = other
+        end
+        return value
+    end
+
+    /*
+    This action finds the point on the triangle closest to the given point,
+    stores it in closest, and returns which part of the triangle it is on:
+    FACE, EDGE_0, EDGE_1, EDGE_2, CORNER_0, CORNER_1 or CORNER_2. A point
+    exactly on the line between two parts may be reported as either one.
+
+    The method is the one in Christer Ericson's Real-Time Collision Detection,
+    section 5.1.5, which is also what ConvexConvexSimplexSolver uses. For a
+    degenerate triangle, the closest point on its three edges is used instead.
+    Attribute: Parameter point The point to measure from.
+    Attribute: Parameter closest Where the closest point on the triangle is stored.
+    Attribute: Returns which part of the triangle the closest point is on.
+    */
+    action ClosestPoint(Vector3 point, Vector3 closest) returns integer
+        if degenerate
+            return ClosestPointOnEdges(point, closest)
+        end
+
+        // Corner 0's region.
+        cornerToPoint:Set(point):Subtract(corner0)
+        secondEdge:Set(corner2):Subtract(corner0)
+        number d1 = edge0:DotProduct(cornerToPoint)
+        number d2 = secondEdge:DotProduct(cornerToPoint)
+        if d1 <= 0 and d2 <= 0
+            closest:Set(corner0)
+            return CORNER_0
+        end
+
+        // Corner 1's region.
+        cornerToPoint:Set(point):Subtract(corner1)
+        number d3 = edge0:DotProduct(cornerToPoint)
+        number d4 = secondEdge:DotProduct(cornerToPoint)
+        if d3 >= 0 and d4 <= d3
+            closest:Set(corner1)
+            return CORNER_1
+        end
+
+        // Edge 0's region, between corners 0 and 1.
+        number vc = d1 * d4 - d3 * d2
+        if vc <= 0 and d1 >= 0 and d3 <= 0
+            number along0 = d1 / (d1 - d3)
+            closest:Set(corner0):MultiplyAndAdd(edge0, along0)
+            return EDGE_0
+        end
+
+        // Corner 2's region.
+        cornerToPoint:Set(point):Subtract(corner2)
+        number d5 = edge0:DotProduct(cornerToPoint)
+        number d6 = secondEdge:DotProduct(cornerToPoint)
+        if d6 >= 0 and d5 <= d6
+            closest:Set(corner2)
+            return CORNER_2
+        end
+
+        // Edge 2's region, between corners 2 and 0.
+        number vb = d5 * d2 - d1 * d6
+        if vb <= 0 and d2 >= 0 and d6 <= 0
+            number along2 = d2 / (d2 - d6)
+            closest:Set(corner0):MultiplyAndAdd(secondEdge, along2)
+            return EDGE_2
+        end
+
+        // Edge 1's region, between corners 1 and 2.
+        number va = d3 * d6 - d5 * d4
+        if va <= 0 and (d4 - d3) >= 0 and (d5 - d6) >= 0
+            number along1 = (d4 - d3) / ((d4 - d3) + (d5 - d6))
+            closest:Set(corner1):MultiplyAndAdd(edge1, along1)
+            return EDGE_1
+        end
+
+        // Inside the face.
+        number total = va + vb + vc
+        if total <= 0
+            // Only possible from rounding on a nearly flat triangle.
+            return ClosestPointOnEdges(point, closest)
+        end
+        number denominator = 1 / total
+        number v = vb * denominator
+        number w = vc * denominator
+        closest:Set(corner0):MultiplyAndAdd(edge0, v):MultiplyAndAdd(secondEdge, w)
+        return FACE
+    end
+
+    /*
+    This action is used by "action ClosestPoint" for triangles with no area.
+    It finds the closest point on any of the three edges, and reports it as
+    being on that edge, or on a corner if it is at the end of one.
+    */
+    private action ClosestPointOnEdges(Vector3 point, Vector3 closest) returns integer
+        integer bestRegion = CORNER_0
+        number bestDistance = -1
+
+        integer i = 0
+        repeat while i < 3
+            Vector3 start = GetCorner(i)
+            Vector3 finish = GetCorner((i + 1) mod 3)
+            number fraction = ClosestPointOnSegment(point, start, finish, segmentClosest)
+            number distance = segmentClosest:DistanceSquared(point)
+            if bestDistance < 0 or distance < bestDistance
+                bestDistance = distance
+                closest:Set(segmentClosest)
+                if fraction <= 0
+                    bestRegion = CORNER_0 + i
+                elseif fraction >= 1
+                    bestRegion = CORNER_0 + ((i + 1) mod 3)
+                else
+                    bestRegion = EDGE_0 + i
+                end
+            end
+            i = i + 1
+        end
+
+        return bestRegion
+    end
+
+    /*
+    This action finds the point on the segment from start to finish that is
+    closest to the given point, stores it in closest, and returns how far along
+    the segment it is, from 0 at start to 1 at finish.
+    */
+    action ClosestPointOnSegment(Vector3 point, Vector3 start, Vector3 finish, Vector3 closest) returns number
+        segmentDirection:Set(finish):Subtract(start)
+        number lengthSquared = segmentDirection:LengthSquared()
+        if lengthSquared <= 0
+            closest:Set(start)
+            return 0
+        end
+
+        number fraction = (point:DotProduct(segmentDirection) - start:DotProduct(segmentDirection)) / lengthSquared
+        if fraction < 0
+            fraction = 0
+        elseif fraction > 1
+            fraction = 1
+        end
+
+        closest:Set(start):MultiplyAndAdd(segmentDirection, fraction)
+        return fraction
+    end
+
+    /*
+    This action finds the closest pair of points between the segment from
+    start1 to finish1 and the segment from start2 to finish2. The points are
+    stored in closest1 and closest2, and the squared distance between them is
+    returned. Parallel segments give one of the closest pairs.
+
+    The method is the one in Christer Ericson's Real-Time Collision Detection,
+    section 5.1.9.
+    */
+    action ClosestPointsOnSegments(Vector3 start1, Vector3 finish1, Vector3 start2, Vector3 finish2,
+            Vector3 closest1, Vector3 closest2) returns number
+        constant number SMALL = 0.000000000001
+
+        firstDirection:Set(finish1):Subtract(start1)
+        secondDirection:Set(finish2):Subtract(start2)
+        startDifference:Set(start1):Subtract(start2)
+
+        number a = firstDirection:LengthSquared()
+        number e = secondDirection:LengthSquared()
+        number f = secondDirection:DotProduct(startDifference)
+
+        number s = 0
+        number t = 0
+
+        if a <= SMALL and e <= SMALL
+            // Both segments are points.
+            s = 0
+            t = 0
+        elseif a <= SMALL
+            // The first segment is a point.
+            s = 0
+            t = Clamp(f / e)
+        else
+            number c = firstDirection:DotProduct(startDifference)
+            if e <= SMALL
+                // The second segment is a point.
+                t = 0
+                s = Clamp(-c / a)
+            else
+                number b = firstDirection:DotProduct(secondDirection)
+                number denominator = a * e - b * b
+
+                // If the segments are not parallel, start from the closest
+                // point on the first line to the second line. Otherwise any
+                // s works, so start from 0.
+                if denominator > SMALL
+                    s = Clamp((b * f - c * e) / denominator)
+                else
+                    s = 0
+                end
+
+                t = (b * s + f) / e
+
+                // Keep t on the second segment, and move s to match.
+                if t < 0
+                    t = 0
+                    s = Clamp(-c / a)
+                elseif t > 1
+                    t = 1
+                    s = Clamp((b - c) / a)
+                end
+            end
+        end
+
+        closest1:Set(start1):MultiplyAndAdd(firstDirection, s)
+        closest2:Set(start2):MultiplyAndAdd(secondDirection, t)
+        pointsBetween:Set(closest1):Subtract(closest2)
+        return pointsBetween:LengthSquared()
+    end
+
+    /*
+    This action limits a value to the range 0 to 1.
+    */
+    private action Clamp(number value) returns number
+        if value < 0
+            return 0
+        elseif value > 1
+            return 1
+        end
+        return value
+    end
+end

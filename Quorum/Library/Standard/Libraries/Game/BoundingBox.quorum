@@ -434,8 +434,7 @@ class BoundingBox
         Vector3 min = bounds:GetMinimum()
         Vector3 max = bounds:GetMaximum()
 
-        return minimum:GetX() <= min:GetX() and minimum:GetY() <= min:GetY() and minimum:GetZ() <= min:GetZ()
-            and maximum:GetX() >= max:GetX() and maximum:GetX() >= max:GetY() and maximum:GetZ() >= max:GetZ()
+        return minimum:GetX() <= min:GetX() and minimum:GetY() <= min:GetY() and minimum:GetZ() <= min:GetZ() and maximum:GetX() >= max:GetX() and maximum:GetY() >= max:GetY() and maximum:GetZ() >= max:GetZ()
     end
 
     /*
@@ -462,14 +461,14 @@ class BoundingBox
 
         // This is tested using the Separating Axis Theorem.
 
-        number lx = math:AbsoluteValue(center:GetX() - bounds:GetCenter():GetX())
-        number sumx = (dimensions:GetX() / 2) + (bounds:GetDimensions():GetX() / 2)
+        number lx = math:AbsoluteValue(center:GetX() - bounds:GetCenterX())
+        number sumx = (dimensions:GetX() / 2) + (bounds:GetWidth() / 2)
 
-        number ly = math:AbsoluteValue(center:GetY() - bounds:GetCenter():GetY())
-        number sumy = (dimensions:GetY() / 2) + (bounds:GetDimensions():GetY() / 2)
+        number ly = math:AbsoluteValue(center:GetY() - bounds:GetCenterY())
+        number sumy = (dimensions:GetY() / 2) + (bounds:GetHeight() / 2)
 
-        number lz = math:AbsoluteValue(center:GetZ() - bounds:GetCenter():GetZ())
-        number sumz = (dimensions:GetZ() / 2) + (bounds:GetDimensions():GetZ() / 2)
+        number lz = math:AbsoluteValue(center:GetZ() - bounds:GetCenterZ())
+        number sumz = (dimensions:GetZ() / 2) + (bounds:GetDepth() / 2)
         
         return lx <= sumx and ly <= sumy and lz <= sumz
     end
@@ -529,6 +528,8 @@ action Clamp(BoundingBox box)
         if me:GetMaximum():GetZ() > box:GetMaximum():GetZ()
             me:GetMaximum():SetZ(box:GetMaximum():GetZ())
         end
+        
+        CalculateDimensions()
     end
     
     action Combine(BoundingBox box1, BoundingBox box2)
@@ -567,6 +568,7 @@ action Clamp(BoundingBox box)
         else
             maximum:SetZ(box2:GetMaximum():GetZ())
         end
+        
+        CalculateDimensions()
     end
-
 end

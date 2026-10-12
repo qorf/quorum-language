@@ -18,8 +18,10 @@ use Libraries.Game.Collision.CollisionPointsResult3D
 use Libraries.Compute.BitwiseOperations
 use Libraries.Game.Collision.Narrowphase.ConvexConvexPairSolver
 use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Game.Collision.Narrowphase.SharedNarrowSolver
 use Libraries.Game.Physics.all
 use Libraries.Game.BoundingBox
+use Libraries.Game.Collision.Shapes.Triangle
 
 /*
 This class records which 3D objects are involved in the collision, can connect to
@@ -53,6 +55,7 @@ class CollisionEvent3D
     LocalCollisionPoints3D collisionPoints
 
     boolean islandFlag = false
+    SharedNarrowSolver narrowSolver
 
     action HasPhysicsResponse returns boolean
         return hasPhysicsResponse
@@ -177,110 +180,74 @@ class CollisionEvent3D
     private action NarrowphaseEvaluation(LocalCollisionPoints3D collisionPoints, PhysicsPosition3D transformA, PhysicsPosition3D transformB)
         CollisionShape3D shapeA = itemA:GetShape()
         CollisionShape3D shapeB = itemB:GetShape()
+        integer typeA = shapeA:GetType()
+        integer typeB = shapeB:GetType()
 
-        if shapeA is Sphere and shapeB is Sphere
+        if typeA = shapeA:SPHERE and typeB = shapeB:SPHERE
             result:Initialize(itemA, itemB)
-            CollideSpheres(collisionPoints, cast(Sphere, shapeA), transformA, cast(Sphere, shapeB), transformB, result)
-        else
-            if shapeA:GetType() = shapeA:TERRAIN and shapeB:GetType() = shapeB:TERRAIN
-                return now
-            end
-            
-            if shapeA:GetType() = shapeA:TERRAIN
-                ConcaveShape3D concave = cast(ConcaveShape3D, shapeA)
-                result:Initialize(itemA, itemB)
-                concave:ProcessAllTriangles(collisionPoints, shapeB, transformA, transformB, result)
-                return now
-            end
-            
-            if shapeB:GetType() = shapeB:TERRAIN
-                ConcaveShape3D concave = cast(ConcaveShape3D, shapeB)
-                result:Initialize(itemB, itemA)
-                concave:ProcessAllTriangles(collisionPoints, shapeA, transformB, transformA, result)
-                return now
-            end
-            
-            result:Initialize(itemA, itemB)
-            CollideConvexConvex(collisionPoints, shapeA, transformA, shapeB, transformB, result)
-        end
-
-    end
-
-// ********************************************************************************************************************
-// Sphere-Sphere collision algorithm and helpers
-
-    private action CollideSpheres(LocalCollisionPoints3D collisionPoints, Sphere sphereA, PhysicsPosition3D transformA, Sphere sphereB, PhysicsPosition3D transformB, CollisionPointsResult3D result)
-        PhysicsPosition3D tempTransform1
-        PhysicsPosition3D tempTransform2
-
-        tempTransform1:Set(transformA)
-        tempTransform2:Set(transformB)
-
-        result:SetCollisionPoints(collisionPoints)
-
-        Vector3 diff
-        diff:Set(tempTransform1:GetOrigin())
-        diff:Subtract(tempTransform2:GetOrigin())
-
-        number length = diff:Length()
-        number radius0 = sphereA:GetRadius()
-        number radius1 = sphereB:GetRadius()
-
-        if length > radius0 + radius1
-            result:RefreshCollisionPoints()
+            narrowSolver:CollideSpheres(collisionPoints, cast(Sphere, shapeA), transformA, cast(Sphere, shapeB), transformB, result)
             return now
         end
 
-        number distance = length - (radius0 + radius1)
-        
-        Vector3 normalOnSurfaceB
-        normalOnSurfaceB:Set(1, 0, 0)
-        if length > 0.000000119209290
-            normalOnSurfaceB:Set(diff)
-            normalOnSurfaceB:Scale(1 / length)
+        if typeA = shapeA:BOX and typeB = shapeB:BOX
+            result:Initialize(itemA, itemB)
+            narrowSolver:CollideBoxes(collisionPoints, cast(Box, shapeA), transformA, cast(Box, shapeB), transformB, result)
+            return now
         end
 
-        Vector3 temp
+        if typeA = shapeA:TERRAIN and typeB = shapeB:TERRAIN
+            return now
+        end
 
-        Vector3 pos0
-        temp:Set(normalOnSurfaceB)
-        temp:Scale(radius0)
-        pos0:Set(tempTransform1:GetOrigin())
-        pos0:Subtract(temp)
+        if typeA = shapeA:TERRAIN
+            ConcaveShape3D concave = cast(ConcaveShape3D, shapeA)
+            result:Initialize(itemA, itemB)
+            concave:ProcessAllTriangles(collisionPoints, shapeB, transformA, transformB, result)
+            return now
+        end
 
-        Vector3 pos1
-        temp:Set(normalOnSurfaceB)
-        temp:Scale(radius1)
-        pos1:Set(tempTransform2:GetOrigin())
-        pos1:Add(temp)
+        if typeB = shapeB:TERRAIN
+            ConcaveShape3D concave = cast(ConcaveShape3D, shapeB)
+            result:Initialize(itemB, itemA)
+            concave:ProcessAllTriangles(collisionPoints, shapeA, transformB, transformA, result)
+            return now
+        end
 
-        result:AddCollisionPoint(normalOnSurfaceB, pos1, distance)
+        result:Initialize(itemA, itemB)
 
-        result:RefreshCollisionPoints()
-    end
+        // A single triangle against a sphere, box or cylinder uses that
+        // shape's triangle collider, in whichever order the items are.
+        if typeA = shapeA:TRIANGLE
+            Triangle triangleA = cast(Triangle, shapeA)
+            if typeB = shapeB:SPHERE
+                narrowSolver:CollideTriangleSphere(collisionPoints, triangleA, transformA, cast(Sphere, shapeB), transformB, result)
+                return now
+            elseif typeB = shapeB:BOX
+                narrowSolver:CollideTriangleBox(collisionPoints, triangleA, transformA, cast(Box, shapeB), transformB, result)
+                return now
+            elseif typeB = shapeB:CYLINDER
+                narrowSolver:CollideTriangleCylinder(collisionPoints, triangleA, transformA, cast(Cylinder, shapeB), transformB, result)
+                return now
+            end
+        end
 
-    ConvexConvexPairSolver gjkPairDetector
+        if typeB = shapeB:TRIANGLE
+            Triangle triangleB = cast(Triangle, shapeB)
+            if typeA = shapeA:SPHERE
+                narrowSolver:CollideSphereTriangle(collisionPoints, cast(Sphere, shapeA), transformA, triangleB, transformB, result)
+                return now
+            elseif typeA = shapeA:BOX
+                narrowSolver:CollideBoxTriangle(collisionPoints, cast(Box, shapeA), transformA, triangleB, transformB, result)
+                return now
+            elseif typeA = shapeA:CYLINDER
+                narrowSolver:CollideCylinderTriangle(collisionPoints, cast(Cylinder, shapeA), transformA, triangleB, transformB, result)
+                return now
+            end
+        end
 
-// ********************************************************************************************************************
-// GJK Collision Algorithm and Helpers
-
-    private action CollideConvexConvex(LocalCollisionPoints3D collisionPoints, CollisionShape3D shapeA, PhysicsPosition3D transformA, CollisionShape3D shapeB, PhysicsPosition3D transformB, CollisionPointsResult3D result)
-        result:SetCollisionPoints(collisionPoints)
-        number maximumDistanceSquared = 0
-
-        gjkPairDetector:SetMinkowskiA(shapeA)
-        gjkPairDetector:SetMinkowskiB(shapeB)
-        maximumDistanceSquared = shapeA:GetMargin() + shapeB:GetMargin() + collisionPoints:GetCollisionBreakingThreshold()
-        maximumDistanceSquared = maximumDistanceSquared * maximumDistanceSquared
-
-        PhysicsPosition3D inputTransformA
-        inputTransformA:Set(transformA)
-        PhysicsPosition3D inputTransformB
-        inputTransformB:Set(transformB)
-
-        gjkPairDetector:GetClosestPoints(inputTransformA, inputTransformB, maximumDistanceSquared, result, false)
-
-        result:RefreshCollisionPoints()        
+        // Every other pair, including a triangle against a triangle, uses the
+        // general collision test.
+        narrowSolver:CollideConvexConvex(collisionPoints, shapeA, transformA, shapeB, transformB, result)
     end
 
     action SetInCollisionGroup(boolean flag)

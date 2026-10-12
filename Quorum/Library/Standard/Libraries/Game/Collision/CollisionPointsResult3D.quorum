@@ -5,6 +5,9 @@ use Libraries.Compute.Vector3
 use Libraries.Interface.Item3D
 use Libraries.Compute.Matrix3
 use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Compute.Math
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
 
 /*
 This class stores the collision points between the two objects colliding in addition to
@@ -26,6 +29,27 @@ class CollisionPointsResult3D
     Vector3 faceNormal
     Vector3 adjustedNormal
     boolean hasFaceNormal = false
+    
+    // Reused for every contact point. LocalCollisionPoints3D copies the
+    // values into its own storage, so no reference to these is kept.
+    CollisionPoint3D scratchPoint
+    Vector3 scratchPointA
+    Vector3 scratchLocalA
+    Vector3 scratchLocalB
+
+    // Gathering, for concave shapes such as terrain. While gathering, each
+    // contact is buffered instead of stored, and FinishGathering stores at
+    // most four of them. The buffers are only made the first time they are
+    // needed, so collisions that never gather do not pay for them.
+    constant integer MAXIMUM_GATHERED = 64
+    boolean gathering = false
+    integer gatheredCount = 0
+    Array<Vector3> gatheredNormals = undefined
+    Array<Vector3> gatheredPoints = undefined
+    Number32BitArray gatheredDepths = undefined
+    Vector3 gatherEdge
+    Vector3 gatherAcross
+    Math math
 
     /*
     This action adds the bodies that are colliding into this CollisionPointsResult3D class.
@@ -120,13 +144,34 @@ class CollisionPointsResult3D
             return now
         end
 
-        Vector3 pointA
-        pointA:Set(adjustedNormal)
+        // While gathering, keep the point for FinishGathering. The face
+        // normal has already been applied above, because it belongs to the
+        // triangle this point came from. If the buffer is full, the point
+        // is stored right away instead.
+        if gathering and gatheredCount < MAXIMUM_GATHERED
+            gatheredNormals:Get(gatheredCount):Set(adjustedNormal)
+            gatheredPoints:Get(gatheredCount):Set(pointInWorld)
+            gatheredDepths:Set(gatheredCount, depth)
+            gatheredCount = gatheredCount + 1
+            return now
+        end
+
+        StoreCollisionPoint(adjustedNormal, pointInWorld, depth)
+    end
+
+    /*
+    This action stores one collision point in the collision's points, either
+    replacing a stored point it matches or adding it as a new one.
+    */
+    private action StoreCollisionPoint(Vector3 normal, Vector3 pointInWorld, number depth)
+        boolean isSwapped = collisionPoints:GetBody0() not= body0
+
+        Vector3 pointA = scratchPointA
+        pointA:Set(normal)
         pointA:Scale(depth)
         pointA:Add(pointInWorld)
-
-        Vector3 localA
-        Vector3 localB        
+        Vector3 localA = scratchLocalA
+        Vector3 localB = scratchLocalB
 
         if isSwapped
             rootTransformB:InverseTransform(pointA, localA)
@@ -135,9 +180,9 @@ class CollisionPointsResult3D
             rootTransformA:InverseTransform(pointA, localA)
             rootTransformB:InverseTransform(pointInWorld, localB)
         end
-
-        CollisionPoint3D newPoint
-        newPoint:Initialize(localA, localB, adjustedNormal, depth)
+        
+        CollisionPoint3D newPoint = scratchPoint
+        newPoint:Initialize(localA, localB, normal, depth)
 
         newPoint:GetWorldPositionOnA():Set(pointA)
         newPoint:GetWorldPositionOnB():Set(pointInWorld)
@@ -157,6 +202,149 @@ class CollisionPointsResult3D
         else
             insertIndex = collisionPoints:AddCollisionPoint(newPoint)
         end
+    end
+
+    /*
+    This action starts gathering. Until FinishGathering is called, points
+    passed to AddCollisionPoint are buffered instead of stored. Concave
+    shapes, such as terrain, use this so that the contacts from all of
+    their triangles are considered together, and only the best four are
+    stored, instead of each triangle's contacts being stored one at a time.
+    */
+    action BeginGathering
+        if gatheredPoints = undefined
+            Array<Vector3> normals
+            Array<Vector3> positions
+            integer i = 0
+            repeat while i < MAXIMUM_GATHERED
+                Vector3 normal
+                Vector3 position
+                normals:Add(normal)
+                positions:Add(position)
+                i = i + 1
+            end
+            gatheredNormals = normals
+            gatheredPoints = positions
+            Number32BitArray depths
+            depths:SetSize(MAXIMUM_GATHERED)
+            gatheredDepths = depths
+        end
+        gatheredCount = 0
+        gathering = true
+    end
+
+    /*
+    This action stops gathering and stores at most four of the gathered
+    points. If there are four or fewer, all of them are stored. Otherwise
+    the four are chosen to keep the deepest point and to spread out as
+    widely as possible: the deepest point, then the point farthest from it,
+    then the point that makes the largest triangle with those two, and
+    finally the point that reaches farthest outside that triangle. The points
+    can come from many triangles in any order, so this does not depend on
+    their order.
+    */
+    action FinishGathering
+        gathering = false
+        integer count = gatheredCount
+        gatheredCount = 0
+
+        if count <= 4
+            integer index = 0
+            repeat while index < count
+                StoreGathered(index)
+                index = index + 1
+            end
+            return now
+        end
+
+        // The deepest point.
+        integer first = 0
+        integer i = 1
+        repeat while i < count
+            if gatheredDepths:Get(i) < gatheredDepths:Get(first)
+                first = i
+            end
+            i = i + 1
+        end
+
+        // The point farthest from the deepest.
+        integer second = -1
+        number best = 0
+        i = 0
+        repeat while i < count
+            number distance = gatheredPoints:Get(i):DistanceSquared(gatheredPoints:Get(first))
+            if i not= first and distance > best
+                best = distance
+                second = i
+            end
+            i = i + 1
+        end
+
+        // The point making the largest triangle with the first two.
+        integer third = -1
+        if second >= 0
+            best = 0
+            i = 0
+            repeat while i < count
+                if i not= first and i not= second
+                    number area = GatheredArea(i, first, second)
+                    if area > best
+                        best = area
+                        third = i
+                    end
+                end
+                i = i + 1
+            end
+        end
+
+        // The point reaching farthest outside that triangle, measured by the
+        // largest triangle it makes with any of the triangle's sides.
+        integer fourth = -1
+        if third >= 0
+            best = 0
+            i = 0
+            repeat while i < count
+                if i not= first and i not= second and i not= third
+                    number reach = math:MaximumOf(GatheredArea(i, first, second),
+                        math:MaximumOf(GatheredArea(i, second, third), GatheredArea(i, third, first)))
+                    if reach > best
+                        best = reach
+                        fourth = i
+                    end
+                end
+                i = i + 1
+            end
+        end
+
+        StoreGathered(first)
+        if second >= 0
+            StoreGathered(second)
+        end
+        if third >= 0
+            StoreGathered(third)
+        end
+        if fourth >= 0
+            StoreGathered(fourth)
+        end
+    end
+
+    /*
+    This action stores the gathered point at the given index.
+    */
+    private action StoreGathered(integer index)
+        StoreCollisionPoint(gatheredNormals:Get(index), gatheredPoints:Get(index), gatheredDepths:Get(index))
+    end
+
+    /*
+    This action returns a value that grows with the area of the triangle made
+    by three gathered points: the squared length of (point - a) crossed with
+    (b - a).
+    */
+    private action GatheredArea(integer point, integer a, integer b) returns number
+        gatherEdge:Set(gatheredPoints:Get(point)):Subtract(gatheredPoints:Get(a))
+        gatherAcross:Set(gatheredPoints:Get(b)):Subtract(gatheredPoints:Get(a))
+        gatherEdge:CrossProduct(gatherAcross)
+        return gatherEdge:LengthSquared()
     end
 
     /*

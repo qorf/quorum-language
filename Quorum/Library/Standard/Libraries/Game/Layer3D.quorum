@@ -49,6 +49,8 @@ use Libraries.Game.Graphics.Vulkan.VulkanPainter3D
 use Libraries.Game.Graphics.Models.Vulkan.EnvironmentVulkan
 use Libraries.Game.Graphics.Models.OpenGL.Attributes.EnvironmentOpenGL
 use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Collision.RayCastResult3D
+use Libraries.Game.Physics.PhysicsBehavior3D
 
 /*
 The Layer3D class is used to manage a number of 3D objects, as well as manage
@@ -99,7 +101,7 @@ class Layer3D is Layer
     Array<MouseWheelListener> mouseWheelListeners
     Array<TouchListener> touchListeners
     Array<GestureListener> gestureListeners
-    Array<Joint3D> joints
+    Array<PhysicsBehavior3D> physicsBehaviors
     Camera camera = undefined
     Environment environment = undefined
     Skybox skybox = undefined
@@ -177,6 +179,157 @@ class Layer3D is Layer
         painter:SetEnvironment(environment)
         painter:SetCamera(camera)
     end
+    
+    
+    /*
+    This action adds a PhysicsBehavior3D to the layer. A behavior takes part
+    in the layer's physics without being an item. Joints, which connect two
+    items, are behaviors, and so are vehicles. While it is in the layer, the
+    layer calls the behavior during each physics step and each frame, as
+    described in PhysicsBehavior3D.
+
+    Attribute: Parameter behavior The behavior to add.
+    */
+    action Add(PhysicsBehavior3D behavior)
+        //if the behavior reports it is in the layer, don't add it to avoid an infinite loop
+        //This would not prevent all cases without a O(n) search, but should be sufficient.
+        Layer3D current = behavior:GetLayer()
+        if current = me
+            return now
+        elseif current not= undefined
+            current:Remove(behavior)
+        end
+        
+        physicsBehaviors:Add(behavior)
+        behavior:SetLayer(me)
+        behavior:LinkEdges()
+        behavior:AddedToLayer(me)
+    end
+
+    /*
+    This action removes a PhysicsBehavior3D from the layer. The layer stops
+    calling the behavior, and any items it connected, such as the two items
+    of a joint, are no longer held together.
+
+    Attribute: Parameter behavior The behavior to remove.
+    */
+    action Remove(PhysicsBehavior3D behavior)
+        if behavior:GetLayer() not= me
+            return now
+        end
+        behavior:RemovedFromLayer(me)
+        behavior:UnlinkEdges()
+        physicsBehaviors:Remove(behavior)
+        behavior:SetLayer(undefined)
+    end
+
+    /*
+    This action returns how many PhysicsBehavior3D objects are in this layer.
+
+    Attribute: Returns The number of behaviors in the layer.
+    */
+    action GetPhysicsBehaviorsSize returns integer
+        return physicsBehaviors:GetSize()
+    end
+
+    /*
+    This action returns one of the PhysicsBehavior3D objects in this layer.
+    Indexes start at 0.
+
+    Attribute: Parameter index The index of the behavior.
+    Attribute: Returns The behavior at that index.
+    */
+    action GetPhysicsBehavior(integer index) returns PhysicsBehavior3D
+        return physicsBehaviors:Get(index)
+    end
+    
+    
+    /*
+    This action checks which item in this layer a straight line segment,
+    called a ray, touches first. The ray starts at "from" and ends at "to,"
+    both in world space. Every collidable item in the layer can be hit.
+
+    This is a physics query. It tests each item's collision shape, not its
+    drawn model, so it agrees with what the physics system considers solid.
+    It is different from the mouse picking this layer uses to find which item
+    is under the pointer.
+
+    The result is reset before the search begins. If the ray hits anything,
+    the result holds the item that was hit, the fraction of the way along the
+    ray where the hit happened (0 is "from" and 1 is "to"), the hit point in
+    world space, and the surface normal at that point.
+
+    Attribute: Parameter from The world-space point where the ray starts.
+    Attribute: Parameter to The world-space point where the ray ends.
+    Attribute: Parameter result Receives the closest hit. It is reset before the search begins.
+    Attribute: Returns true if the ray hit an item, and false otherwise.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Model
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Collision.RayCastResult3D
+        use Libraries.Compute.Vector3
+
+        class Main is Game
+            Model ground
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                EnablePhysics3D(true)
+                Color color
+                // A flat ground whose top surface is at y = 0.
+                ground:LoadBox(10, 1, 10, color:Gray())
+                ground:SetPosition(0, -0.5, 0)
+                ground:EnablePhysics(true)
+                ground:SetMass(0)
+                Add(ground)
+            end
+
+            action Update(number seconds)
+                // A ray straight down from 10 units above the ground.
+                Vector3 from
+                from:Set(0, 10, 0)
+                Vector3 to
+                to:Set(0, -10, 0)
+                RayCastResult3D result
+                if GetCurrentLayer3D():RayCastPhysics(from, to, result)
+                    // The ray reaches the top of the ground halfway down,
+                    // so this outputs a fraction of about 0.5.
+                    output "Hit at fraction " + result:GetFraction()
+                end
+            end
+        end
+    */
+    action RayCastPhysics(Vector3 from, Vector3 to, RayCastResult3D result) returns boolean
+        return collisionManager:RayCastPhysics(from, to, result)
+    end
+
+    /*
+    This action checks which item in this layer a straight line segment,
+    called a ray, touches first, skipping one item. The ray starts at "from"
+    and ends at "to," both in world space. Skipping an item is useful when
+    the ray starts on or inside something that should not count. For
+    example, a vehicle skips its own body when it checks the ground under
+    its wheels.
+
+    This is a physics query that tests collision shapes. See the other
+    RayCast action in this class for what the result holds.
+
+    Attribute: Parameter from The world-space point where the ray starts.
+    Attribute: Parameter to The world-space point where the ray ends.
+    Attribute: Parameter ignore An item the ray passes through, or undefined to test every item.
+    Attribute: Parameter result Receives the closest hit. It is reset before the search begins.
+    Attribute: Returns true if the ray hit an item, and false otherwise.
+    */
+    action RayCastPhysics(Vector3 from, Vector3 to, Item3D ignore, RayCastResult3D result) returns boolean
+        return collisionManager:RayCastPhysics(from, to, ignore, result)
+    end
+    
 
     /* This allows us to know if collisions are on or off for the layer. */
     action IsColliding returns boolean
@@ -414,6 +567,13 @@ class Layer3D is Layer
     end
     */
     action Empty
+        //has to be done this way so that physics behaviors are informed that they were removed
+        if physicsBehaviors not= undefined
+            repeat while not physicsBehaviors:IsEmpty()
+            Remove(physicsBehaviors:Get(physicsBehaviors:GetSize() - 1))
+        end
+        end
+        
         Iterator<Item3D> it = items:GetIterator()
         repeat while it:HasNext()
             Item3D body = it:Next()
@@ -2697,6 +2857,7 @@ Painter3D painter = GetPainter()
         if physicsEnabled
             StepPhysics(seconds)
             SetScreenPositionsFromPhysicsPositions()
+            UpdateBehaviorsAfterPhysics(seconds)
         else
             collisionManager:Collide()
         end
@@ -2879,7 +3040,6 @@ Painter3D painter = GetPainter()
     end
 
     action StepPhysics(number seconds)
-        
         integer numSimulationSubsteps = 0
         integer maxSubSteps = me:maxSubSteps
         number fixedTimeStep = physicsTimeStep
@@ -2892,6 +3052,9 @@ Painter3D painter = GetPainter()
             if localTime >= fixedTimeStep
                 numSimulationSubsteps = cast(integer, localTime / fixedTimeStep)
                 localTime = localTime - (numSimulationSubsteps * fixedTimeStep)
+            else
+                //Local time is too small. We do not need to do a physics step yet.
+                return now
             end
         else
             fixedTimeStep = seconds
@@ -2911,12 +3074,12 @@ Painter3D painter = GetPainter()
                 clampedSimulationSteps = maxSubSteps
             end
             
-            ApplyGravity()
-
             integer i = 0
             repeat while i < clampedSimulationSteps
+                ApplyGravity()
                 collisionManager:Collide()
                 SolvePhysics(fixedTimeStep)
+                UpdatePhysicsBehaviors(fixedTimeStep)
                 SynchronizeTransforms()
                 i = i + 1
             end
@@ -2929,6 +3092,51 @@ Painter3D painter = GetPainter()
 
         if automaticallyClearForces
             ClearForces()
+        end
+    end
+
+    /*Calls UpdatePhysics on every behavior in the layer, in the order they
+were added. Behaviors must not be added or removed during this loop.*/
+    private action UpdatePhysicsBehaviors(number timeStep)
+        integer i = 0
+        repeat while i < physicsBehaviors:GetSize()
+            PhysicsBehavior3D behavior = physicsBehaviors:Get(i)
+                behavior:UpdatePhysics(timeStep)
+            i = i + 1
+        end
+    end
+    
+    /*
+    Removes every physics behavior that uses the given item, as reported by
+    the behavior's GetItemsSize and GetItem actions.
+    */
+    action RemoveBehaviorsUsing(Item3D item)
+        integer i = physicsBehaviors:GetSize() - 1
+        repeat while i >= 0
+            PhysicsBehavior3D behavior = physicsBehaviors:Get(i)
+            boolean uses = false
+            integer j = 0
+            repeat while j < behavior:GetItemsSize() and not uses
+                if behavior:GetItem(j) = item
+                    uses = true
+                end
+                j = j + 1
+            end
+            if uses
+                Remove(behavior)
+            end
+            i = i - 1
+        end
+    end
+
+    /*Calls UpdateAfterPhysics on every behavior in the layer, in the order
+they were added. Behaviors must not be added or removed during this loop.*/
+    private action UpdateBehaviorsAfterPhysics(number seconds)
+        integer i = 0
+        repeat while i < physicsBehaviors:GetSize()
+            PhysicsBehavior3D behavior = physicsBehaviors:Get(i)
+                behavior:UpdateAfterPhysics(seconds)
+            i = i + 1
         end
     end
 
@@ -2955,10 +3163,18 @@ Painter3D painter = GetPainter()
     CollisionSolverInformation3D solverInfo
 
     action SolvePhysics(number seconds)
+        
+        i = 0
+        repeat physicsBehaviors:GetSize() times
+            PhysicsBehavior3D behavior = physicsBehaviors:Get(i)
+            behavior:SetInCollisionGroup(false)
+            i = i + 1
+        end
+        
         solverInfo:SetTimeStep(seconds)
         island:SetSolverInformation(solverInfo)
 
-        integer i = 0
+        i = 0
         repeat items:GetSize() times
             Item3D body = items:Get(i)
             if body:IsPhysicsEnabled()
@@ -2972,13 +3188,6 @@ Painter3D painter = GetPainter()
         repeat until collision = undefined
             collision:SetInCollisionGroup(false)
             collision = collision:GetNext()
-        end
-
-        i = 0
-        repeat joints:GetSize() times
-            Joint3D joint = joints:Get(i)
-            joint:SetInCollisionGroup(false)
-            i = i + 1
         end
 
         i = 0
@@ -3244,70 +3453,26 @@ Painter3D painter = GetPainter()
         end
     end
 
+    /*
+    This action adds a joint to the layer. It does the same thing as Add,
+    which works for every kind of PhysicsBehavior3D and should be used
+    instead.
+
+    Attribute: Parameter joint The joint to add.
+    */
     action AddJoint(Joint3D joint)
-        joints:Add(joint)
-
-        joint:GetEdgeA():SetJoint(joint)    //add this joint to the beginning of the linked list for itemA
-        joint:GetEdgeA():SetOther(joint:GetItemB())
-        joint:GetEdgeA():SetPrevious(undefined)
-        joint:GetEdgeA():SetNext(joint:GetItemA():GetJointList())
-        if joint:GetItemA():GetJointList() not= undefined
-            joint:GetItemA():GetJointList():SetPrevious(joint:GetEdgeA())
-        end
-        joint:GetItemA():SetJointList(joint:GetEdgeA())
-
-        joint:GetEdgeB():SetJoint(joint)
-        joint:GetEdgeB():SetOther(joint:GetItemA())
-        joint:GetEdgeB():SetPrevious(undefined)
-        joint:GetEdgeB():SetNext(joint:GetItemB():GetJointList())
-        if joint:GetItemB():GetJointList() not= undefined
-            joint:GetItemB():GetJointList():SetPrevious(joint:GetEdgeB())
-        end
-        joint:GetItemB():SetJointList(joint:GetEdgeB())
-
-        //TODO: Collision filtering?
+        Add(joint)
     end
 
+    /*
+    This action removes a joint from the layer. It does the same thing as
+    Remove, which works for every kind of PhysicsBehavior3D and should be
+    used instead.
+
+    Attribute: Parameter joint The joint to remove.
+    */
     action RemoveJoint(Joint3D joint)
-        joints:Remove(joint)
-
-        Item3D itemA = joint:GetItemA()
-        Item3D itemB = joint:GetItemB()
-
-        itemA:Simulate(true)
-        itemB:Simulate(true)
-
-        if joint:GetEdgeA():GetPrevious() not= undefined
-            joint:GetEdgeA():GetPrevious():SetNext(joint:GetEdgeA():GetNext())
-        end
-
-        if joint:GetEdgeA():GetNext() not= undefined
-            joint:GetEdgeA():GetNext():SetPrevious(joint:GetEdgeA():GetPrevious())
-        end
-
-        if joint:GetEdgeA() = itemA:GetJointList()
-            itemA:SetJointList(joint:GetEdgeA():GetNext())
-        end
-
-        joint:GetEdgeA():SetPrevious(undefined)
-        joint:GetEdgeA():SetNext(undefined)
-
-        if joint:GetEdgeB():GetPrevious() not= undefined
-            joint:GetEdgeB():GetPrevious():SetNext(joint:GetEdgeB():GetNext())
-        end
-
-        if joint:GetEdgeB():GetNext() not= undefined
-            joint:GetEdgeB():GetNext():SetPrevious(joint:GetEdgeB():GetPrevious())
-        end
-
-        if joint:GetEdgeB() = itemB:GetJointList()
-            itemB:SetJointList(joint:GetEdgeB():GetNext())
-        end
-
-        joint:GetEdgeB():SetPrevious(undefined)
-        joint:GetEdgeB():SetNext(undefined)
-
-        //TODO: collision filtering?
+        Remove(joint)
     end
 
     action Resize(ResizeEvent event)
@@ -3354,4 +3519,16 @@ action GetPainter returns Painter3D
         me:painter = painter
     end
     
+    action GetSubStepping returns boolean
+        return subStepping
+    end
+
+    action GetMaxSubSteps returns integer
+        return maxSubSteps
+    end
+
+    action SetMaxSubSteps(integer maxSubSteps)
+        me:maxSubSteps = maxSubSteps
+    end
+
 end

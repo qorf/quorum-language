@@ -2,6 +2,8 @@ package Libraries.Game.Collision
 
 use Libraries.Interface.Item3D
 use Libraries.Containers.Array
+use Libraries.Containers.List
+use Libraries.Containers.Stack
 use Libraries.Compute.Vector3
 use Libraries.Containers.Stack
 use Libraries.Compute.Math
@@ -277,6 +279,32 @@ class DynamicBoundingVolumeTree3D
             end
         end
     end
+    
+    
+    /*
+Returns the item nodes whose bounding boxes overlap the given bounds. The tree
+checks only branches that may overlap, then adds each matching leaf node to the
+returned array.
+*/
+action Query(BoundingBox bounds) returns List<Item3DNode>
+    List<Item3DNode> results
+    Stack<DynamicBoundingVolumeTreeNode3D> nodeStack
+    nodeStack:Push(root)
+
+    repeat while not nodeStack:IsEmpty()
+        DynamicBoundingVolumeTreeNode3D node = nodeStack:Pop()
+        if node not= undefined and node:GetBoundingBox():TestOverlap(bounds)
+            if node:IsLeaf()
+                results:Add(node:GetItemNode())
+            else
+                nodeStack:Push(node:GetLeftChild())
+                nodeStack:Push(node:GetRightChild())
+            end
+        end
+    end
+
+    return results
+end
 
     /*
     This action computes the height of the tree

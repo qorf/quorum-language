@@ -1,0 +1,643 @@
+package Libraries.Game.Collision.Narrowphase
+
+use Libraries.Compute.Vector3
+use Libraries.Compute.Matrix3
+use Libraries.Compute.Math
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Game.Collision.LocalCollisionPoints3D
+use Libraries.Game.Collision.CollisionPointsResult3D
+use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Game.Collision.Shapes.Box
+use Libraries.Game.Collision.Shapes.Triangle
+use Libraries.Game.Collision.Narrowphase.TriangleCollider3D
+use Libraries.Game.Collision.Narrowphase.TriangleGeometry3D
+use Libraries.Game.Collision.Narrowphase.ContactClipper3D
+
+/*
+BoxTriangleCollider finds the contacts between a box and one triangle. It
+works in the box's own space, where the box is centered on the origin and
+lines up with the axes, so the triangle's corners are moved into that space
+first.
+
+It first looks for a direction that separates the two, using the separating
+axis test. A box and a triangle can only be separated along one of 13
+directions: the triangle's normal, the box's three axes, or one of the box's
+axes crossed with one of the triangle's three edges. If any of these shows a
+gap wider than the contact threshold, there is no contact. Otherwise, the
+direction with the smallest overlap is the one to push the two apart along,
+and it decides how the contacts are built:
+
+    The triangle's normal: the box face that points most toward the triangle
+    is cut down to the area over the triangle, and each of its corners that
+    reaches the triangle becomes a contact. This is the usual case for a box
+    resting on terrain, and gives up to four contacts.
+
+    One of the box's axes: the triangle is cut down to the area of the box
+    face, and each of its corners that reaches the box becomes a contact.
+    This is the case for a triangle smaller than the box face, or a box
+    resting on a triangle's corner.
+
+    An edge pair: one box edge crosses one triangle edge, and the closest
+    points between the two edges give a single contact.
+
+Edge directions are only chosen if they are clearly better than a face
+direction, since face contacts are steadier for a box at rest. This is the
+same preference BoxBoxCollider has.
+
+The triangle is thickened by its margin, as with the general collision test.
+The box is its full size, its half extents plus its margin, as in
+BoxBoxCollider. Its corners and edges are sharp, while the general test
+rounds them by the box's margin, so the two can differ slightly when a
+contact is at a corner or edge.
+
+Attribute: Example
+
+    use Libraries.Compute.Vector3
+    use Libraries.Interface.Item3D
+    use Libraries.Game.Collision.PhysicsPosition3D
+    use Libraries.Game.Collision.LocalCollisionPoints3D
+    use Libraries.Game.Collision.CollisionPointsResult3D
+    use Libraries.Game.Collision.Shapes.Box
+    use Libraries.Game.Collision.Shapes.Triangle
+
+    Item3D ground
+    Item3D crate
+    LocalCollisionPoints3D points
+    points:Set(ground, crate)
+    CollisionPointsResult3D result
+    result:Initialize(ground, crate)
+
+    Triangle triangle
+    Vector3 a
+    a:Set(-5, 0, 5)
+    Vector3 b
+    b:Set(5, 0, 5)
+    Vector3 c
+    c:Set(0, 0, -5)
+    triangle:Set(a, b, c)
+    PhysicsPosition3D triangleTransform
+
+    Box box
+    box:Set(0.5, 0.5, 0.5)
+    PhysicsPosition3D boxTransform
+    boxTransform:GetOrigin():Set(0, 0.28, 0)
+
+    BoxTriangleCollider collider
+    collider:Collide(points, triangle, triangleTransform, box, boxTransform, result, false)
+    // points now holds four contacts, one under each corner of the box.
+*/
+class BoxTriangleCollider is TriangleCollider3D
+    // The kinds of separating direction.
+    constant integer NO_AXIS = -1
+    constant integer TRIANGLE_FACE = 0
+    constant integer BOX_FACE = 1
+    constant integer EDGE_PAIR = 2
+
+    // An edge direction must beat a face direction by this factor to be
+    // chosen, the same tuning BoxBoxCollider uses.
+    constant number EDGE_PENALTY = 1.05
+
+    // A crossed axis shorter than this, squared, comes from a box axis and a
+    // triangle edge that are parallel, and is skipped.
+    constant number SMALL_AXIS = 0.000000000001
+
+    TriangleGeometry3D localTriangle
+    Array<Vector3> boxAxes
+    Array<Vector3> negativeBoxAxes
+    Vector3 half
+    Vector3 localCorner0
+    Vector3 localCorner1
+    Vector3 localCorner2
+
+    // The separating axis test.
+    Vector3 axis
+    Vector3 bestNormal
+    integer bestKind = -1
+    integer bestBoxAxis = -1
+    integer bestTriangleEdge = -1
+    number bestScore = 0
+
+    // Contact building.
+    Array<Vector3> polygon
+    Array<Vector3> clipped
+    Array<Vector3> keptPoints
+    Number32BitArray keptSeparations
+    Integer32BitArray chosen
+    integer keptCount = 0
+    Vector3 edgeStart
+    Vector3 edgeFinish
+    Vector3 closestOnBox
+    Vector3 closestOnTriangle
+    Vector3 between
+    Vector3 deepestCorner
+    Vector3 cornerNormal
+    Vector3 worldNormal
+    Vector3 worldPoint
+    PhysicsPosition3D boxTransform = undefined
+
+    Math math
+    
+    // Read once at the start of each separating axis test, instead of once
+    // for each of the 13 directions.
+    number testMargin = 0
+    number testThreshold = 0
+
+    on create
+        integer i = 0
+        repeat while i < 3
+            Vector3 positive
+            Vector3 negative
+            SetComponent(positive, i, 1)
+            SetComponent(negative, i, -1)
+            boxAxes:Add(positive)
+            negativeBoxAxes:Add(negative)
+            i = i + 1
+        end
+
+        ContactClipper3D contactClipper = GetClipper()
+        polygon = contactClipper:CreatePointArray()
+        clipped = contactClipper:CreatePointArray()
+        keptPoints = contactClipper:CreatePointArray()
+        keptSeparations:SetSize(contactClipper:MAXIMUM_POINTS)
+        chosen:SetSize(contactClipper:MAXIMUM_POINTS)
+    end
+
+    /*
+    This action tests a box against a triangle, and reports up to four
+    contacts if they are within the collision's contact threshold. It does
+    not refresh the collision's points, so it can be called for many
+    triangles in a row.
+    Attribute: Parameter collisionPoints The collision's stored contact points.
+    Attribute: Parameter triangle The triangle, with its corners in its own space.
+    Attribute: Parameter triangleTransform Where the triangle is in the world.
+    Attribute: Parameter box The box.
+    Attribute: Parameter transform Where the box is in the world. Its origin is the box's center.
+    Attribute: Parameter result Where contacts are reported. It must already be initialized with the collision's two items.
+    Attribute: Parameter boxIsItemA False when the triangle is item A, as terrain calls it, and true when the box is item A.
+    */
+    action Collide(LocalCollisionPoints3D collisionPoints, Triangle triangle, PhysicsPosition3D triangleTransform,
+            Box box, PhysicsPosition3D transform, CollisionPointsResult3D result, boolean boxIsItemA)
+        Begin(collisionPoints, result, boxIsItemA)
+        LoadTriangle(triangle, triangleTransform)
+        CollideLoaded(box, transform)
+    end
+
+    /*
+    This action tests a box against the triangle that is already loaded.
+    Begin and LoadTriangle must have been called first.
+    Attribute: Parameter box The box.
+    Attribute: Parameter transform Where the box is in the world.
+    */
+    action CollideLoaded(Box box, PhysicsPosition3D transform)
+        boxTransform = transform
+        number boxMargin = box:GetMargin()
+        half:Set(box:GetHalfExtentsWithoutMargin()):Add(boxMargin, boxMargin, boxMargin)
+
+        // Move the triangle into the box's space.
+        TriangleGeometry3D world = GetGeometry()
+        Matrix3 basis = transform:GetBasis()
+        Vector3 origin = transform:GetOrigin()
+        localCorner0:Set(world:GetCorner(0)):Subtract(origin):MultiplyByTranspose(basis)
+        localCorner1:Set(world:GetCorner(1)):Subtract(origin):MultiplyByTranspose(basis)
+        localCorner2:Set(world:GetCorner(2)):Subtract(origin):MultiplyByTranspose(basis)
+        localTriangle:Load(localCorner0, localCorner1, localCorner2)
+
+        if not FindBestAxis()
+            return now
+        end
+
+        keptCount = 0
+        if bestKind = TRIANGLE_FACE
+            CollideTriangleFace()
+        elseif bestKind = BOX_FACE
+            CollideBoxFace()
+        else
+            CollideEdges()
+        end
+
+        // A face direction can find no corners to use when the two only
+        // touch near an edge. The box's corner that reaches farthest toward
+        // the triangle is used instead.
+        if keptCount = 0 and bestKind not= EDGE_PAIR
+            KeepDeepestCorner()
+        end
+
+        ReportKept()
+    end
+    
+    /*
+    This action runs the separating axis test over the 13 directions. It
+    returns false if any of them shows a gap wider than the contact
+    threshold. Otherwise it returns true, and leaves the direction with the
+    smallest overlap in bestKind, bestBoxAxis, bestTriangleEdge and
+    bestNormal. bestNormal is a unit vector in the box's space, pointing from
+    the triangle toward the box.
+
+    The triangle's normal is tested first and the box's axes next, and a
+    later direction must be strictly better to replace an earlier one. So
+    when a box lies flat on a triangle, where the triangle's normal and a
+    box axis tie, the triangle's normal is used.
+
+    Many of the distances along these directions are known without working
+    them out in full, which keeps the test quick:
+
+        Along the triangle's normal, all three corners are the same distance,
+        so only one is measured.
+
+        Along one of the box's axes, a corner's distance is just its x, y or
+        z, and the box reaches exactly its half size.
+
+        Along a box axis crossed with a triangle edge, both corners of that
+        edge are the same distance, because the edge is at a right angle to
+        the direction. Only the edge's first corner and the corner opposite
+        the edge are measured.
+    */
+    private action FindBestAxis returns boolean
+        bestKind = NO_AXIS
+        bestScore = 1.0e100
+        testMargin = GetTriangleMargin()
+        testThreshold = GetContactThreshold()
+
+        if not localTriangle:IsDegenerate()
+            Vector3 normalAxis = localTriangle:GetNormal()
+            number along = normalAxis:DotProduct(localCorner0)
+            if not TestAxis(TRIANGLE_FACE, -1, -1, normalAxis, BoxReach(normalAxis), along, along)
+                return false
+            end
+        end
+
+        integer k = 0
+        repeat while k < 3
+            number value0 = GetComponent(localCorner0, k)
+            number value1 = GetComponent(localCorner1, k)
+            number value2 = GetComponent(localCorner2, k)
+            number low = math:MinimumOf(value0, math:MinimumOf(value1, value2))
+            number high = math:MaximumOf(value0, math:MaximumOf(value1, value2))
+            if not TestAxis(BOX_FACE, k, -1, boxAxes:Get(k), GetComponent(half, k), low, high)
+                return false
+            end
+            k = k + 1
+        end
+
+        k = 0
+        repeat while k < 3
+            integer j = 0
+            repeat while j < 3
+                SetToBoxAxisCrossEdge(k, localTriangle:GetEdge(j))
+                number lengthSquared = axis:LengthSquared()
+                if lengthSquared > SMALL_AXIS
+                    axis:Scale(1 / math:SquareRoot(lengthSquared))
+                    number first = axis:DotProduct(localTriangle:GetCorner(j))
+                    number opposite = axis:DotProduct(localTriangle:GetCorner((j + 2) mod 3))
+                    number low = math:MinimumOf(first, opposite)
+                    number high = math:MaximumOf(first, opposite)
+                    if not TestAxis(EDGE_PAIR, k, j, axis, BoxReach(axis), low, high)
+                        return false
+                    end
+                end
+                j = j + 1
+            end
+            k = k + 1
+        end
+
+        return bestKind not= NO_AXIS
+    end
+
+
+    
+    /*
+    This action is used by "action FindBestAxis." It compares the box and the
+    triangle along one unit direction. The box reaches boxReach to either
+    side of its center, and the triangle's corners cover low to high, before
+    its margin is added. It returns false if they are separated along the
+    direction by more than the contact threshold. Otherwise it returns true,
+    and records the direction if it is the best so far.
+    */
+    private action TestAxis(integer kind, integer boxAxis, integer triangleEdge, Vector3 direction,
+            number boxReach, number low, number high) returns boolean
+        // The gap when the triangle is on the direction's positive side of
+        // the box, and when it is on the negative side. The larger is the
+        // real gap, and is negative when the two overlap.
+        number triangleAbove = (low - testMargin) - boxReach
+        number triangleBelow = -boxReach - (high + testMargin)
+        number separation = triangleAbove
+        if triangleBelow > separation
+            separation = triangleBelow
+        end
+
+        if separation > testThreshold
+            return false
+        end
+
+        number overlap = -separation
+        number score = overlap
+        if kind = EDGE_PAIR
+            // Make an edge direction look a little worse, whether the two
+            // overlap (a larger overlap) or not (a smaller gap).
+            if overlap > 0
+                score = overlap * EDGE_PENALTY
+            else
+                score = overlap / EDGE_PENALTY
+            end
+        end
+
+        if score < bestScore
+            bestScore = score
+            bestKind = kind
+            bestBoxAxis = boxAxis
+            bestTriangleEdge = triangleEdge
+            bestNormal:Set(direction)
+            if triangleAbove >= triangleBelow
+                // The triangle is on the positive side, so the box is pushed
+                // toward the negative side.
+                bestNormal:Scale(-1)
+            end
+        end
+
+        return true
+    end
+    
+    /*
+    This action returns how far the box reaches from its center along a unit
+    direction: each half size times how much the direction lines up with
+    that axis.
+    */
+    private action BoxReach(Vector3 direction) returns number
+        return half:GetX() * math:AbsoluteValue(direction:GetX()) + half:GetY() * math:AbsoluteValue(direction:GetY()) + half:GetZ() * math:AbsoluteValue(direction:GetZ())
+    end
+    
+    /*
+    This action sets axis to the box axis at the given index crossed with the
+    given edge. Crossing with an axis of length one only moves the edge's
+    components around and changes some signs, so it is written out directly.
+    */
+    private action SetToBoxAxisCrossEdge(integer boxAxis, Vector3 edge)
+        if boxAxis = 0
+            axis:Set(0, -edge:GetZ(), edge:GetY())
+        elseif boxAxis = 1
+            axis:Set(edge:GetZ(), 0, -edge:GetX())
+        else
+            axis:Set(-edge:GetY(), edge:GetX(), 0)
+        end
+    end
+
+    /*
+    This action builds contacts when the triangle's normal is the best
+    direction. The box face that points most toward the triangle is cut down
+    to the area over the triangle, grown by the triangle's margin, and each
+    remaining corner that reaches the triangle's thickened surface is kept.
+    The kept points are on the box face.
+    */
+    private action CollideTriangleFace
+        // The face whose outward direction is most opposite bestNormal.
+        integer k = LargestComponent(bestNormal)
+        number faceSign = 1
+        if GetComponent(bestNormal, k) > 0
+            faceSign = -1
+        end
+        integer a = (k + 1) mod 3
+        integer b = (k + 2) mod 3
+        number faceAt = faceSign * GetComponent(half, k)
+        number halfA = GetComponent(half, a)
+        number halfB = GetComponent(half, b)
+
+        // The four corners of that face, in order around it.
+        SetPoint(polygon:Get(0), k, faceAt, a, halfA, b, halfB)
+        SetPoint(polygon:Get(1), k, faceAt, a, -halfA, b, halfB)
+        SetPoint(polygon:Get(2), k, faceAt, a, -halfA, b, -halfB)
+        SetPoint(polygon:Get(3), k, faceAt, a, halfA, b, -halfB)
+
+        number margin = GetTriangleMargin()
+        integer count = GetClipper():ClipToTriangle(polygon, 4, clipped, localTriangle, margin)
+
+        // The triangle's thickened surface on the box's side.
+        number surface = bestNormal:DotProduct(localCorner0) + margin
+        number threshold = GetContactThreshold()
+
+        integer i = 0
+        repeat while i < count
+            Vector3 point = clipped:Get(i)
+            number separation = bestNormal:DotProduct(point) - surface
+            if separation <= threshold
+                Keep(point, separation)
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+    This action builds contacts when one of the box's axes is the best
+    direction. The triangle is cut down to the area of the box face that
+    points toward it, and each remaining triangle point that reaches the box
+    is kept. The kept points are moved onto the box face, so that they are
+    on the box.
+    */
+    private action CollideBoxFace
+        integer k = bestBoxAxis
+        integer a = (k + 1) mod 3
+        integer b = (k + 2) mod 3
+        number halfA = GetComponent(half, a)
+        number halfB = GetComponent(half, b)
+
+        polygon:Get(0):Set(localCorner0)
+        polygon:Get(1):Set(localCorner1)
+        polygon:Get(2):Set(localCorner2)
+
+        // Keep the part of the triangle within the face's four sides, going
+        // back and forth between the two arrays.
+        ContactClipper3D contactClipper = GetClipper()
+        integer count = contactClipper:ClipAgainstPlane(polygon, 3, clipped, boxAxes:Get(a), -halfA)
+        count = contactClipper:ClipAgainstPlane(clipped, count, polygon, negativeBoxAxes:Get(a), -halfA)
+        count = contactClipper:ClipAgainstPlane(polygon, count, clipped, boxAxes:Get(b), -halfB)
+        count = contactClipper:ClipAgainstPlane(clipped, count, polygon, negativeBoxAxes:Get(b), -halfB)
+
+        // bestNormal points from the triangle toward the box, so the box
+        // face facing the triangle is where bestNormal · point = -half.
+        number face = -GetComponent(half, k)
+        number margin = GetTriangleMargin()
+        number threshold = GetContactThreshold()
+
+        integer i = 0
+        repeat while i < count
+            Vector3 point = polygon:Get(i)
+            number along = bestNormal:DotProduct(point)
+            number separation = face - along - margin
+            if separation <= threshold
+                closestOnBox:Set(point):MultiplyAndAdd(bestNormal, face - along)
+                Keep(closestOnBox, separation)
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+    This action builds the contact when an edge pair is the best direction.
+    The box edge used is the one along the chosen box axis that is nearest
+    the triangle, and the contact is at the closest points between it and the
+    chosen triangle edge.
+    */
+    private action CollideEdges
+        integer k = bestBoxAxis
+        integer j = bestTriangleEdge
+        integer a = (k + 1) mod 3
+        integer b = (k + 2) mod 3
+
+        // The triangle is on the side bestNormal points away from, so the
+        // nearest edge is on that side in each of the other two axes.
+        number edgeA = GetComponent(half, a)
+        if GetComponent(bestNormal, a) > 0
+            edgeA = -edgeA
+        end
+        number edgeB = GetComponent(half, b)
+        if GetComponent(bestNormal, b) > 0
+            edgeB = -edgeB
+        end
+        number halfK = GetComponent(half, k)
+        SetPoint(edgeStart, k, -halfK, a, edgeA, b, edgeB)
+        SetPoint(edgeFinish, k, halfK, a, edgeA, b, edgeB)
+
+        localTriangle:ClosestPointsOnSegments(edgeStart, edgeFinish,
+            localTriangle:GetCorner(j), localTriangle:GetCorner((j + 1) mod 3),
+            closestOnBox, closestOnTriangle)
+
+        between:Set(closestOnBox):Subtract(closestOnTriangle)
+        number separation = between:DotProduct(bestNormal) - GetTriangleMargin()
+        if separation <= GetContactThreshold()
+            Keep(closestOnBox, separation)
+        end
+    end
+
+    /*
+    This action is used when a face direction found no corners to use. It
+    takes the box's corner that reaches farthest toward the triangle, finds
+    the closest point on the triangle to it, and keeps it as a contact if it
+    is close enough. The direction from that point to the corner becomes the
+    contact's normal, unless the corner is past the triangle, in which case
+    bestNormal is kept.
+    */
+    private action KeepDeepestCorner
+        integer i = 0
+        repeat while i < 3
+            number value = GetComponent(half, i)
+            if GetComponent(bestNormal, i) > 0
+                value = -value
+            end
+            SetComponent(deepestCorner, i, value)
+            i = i + 1
+        end
+
+        localTriangle:ClosestPoint(deepestCorner, closestOnTriangle)
+        between:Set(deepestCorner):Subtract(closestOnTriangle)
+        number distance = between:Length()
+
+        cornerNormal:Set(bestNormal)
+        if distance > math:SMALLEST_STEP_32_BIT
+            between:Scale(1 / distance)
+            if between:DotProduct(bestNormal) >= 0
+                cornerNormal:Set(between)
+            else
+                // The corner has passed through the triangle.
+                distance = -distance
+            end
+        end
+
+        number separation = distance - GetTriangleMargin()
+        if separation <= GetContactThreshold()
+            bestNormal:Set(cornerNormal)
+            Keep(deepestCorner, separation)
+        end
+    end
+
+    /*
+    This action stores a contact point, in the box's space, and its
+    separation, to be reported by ReportKept.
+    */
+    private action Keep(Vector3 point, number separation)
+        if keptCount >= keptPoints:GetSize()
+            return now
+        end
+        keptPoints:Get(keptCount):Set(point)
+        keptSeparations:Set(keptCount, separation)
+        keptCount = keptCount + 1
+    end
+
+    /*
+    This action reports the kept contacts, choosing four of them if there are
+    more. Each is moved from the box's space into the world.
+    */
+    private action ReportKept
+        if keptCount = 0
+            return now
+        end
+
+        ContactClipper3D contactClipper = GetClipper()
+        integer count = contactClipper:ReduceToFour(keptPoints, keptSeparations, keptCount, bestNormal, chosen)
+
+        Matrix3 basis = boxTransform:GetBasis()
+        worldNormal:Set(bestNormal):Multiply(basis)
+
+        integer i = 0
+        repeat while i < count
+            integer index = chosen:Get(i)
+            worldPoint:Set(keptPoints:Get(index))
+            boxTransform:Transform(worldPoint)
+            AddContact(worldNormal, worldPoint, keptSeparations:Get(index))
+            i = i + 1
+        end
+    end
+
+    /*
+    This action returns the index, 0 for x, 1 for y or 2 for z, of the
+    component of the vector that is largest in size.
+    */
+    private action LargestComponent(Vector3 vector) returns integer
+        number x = math:AbsoluteValue(vector:GetX())
+        number y = math:AbsoluteValue(vector:GetY())
+        number z = math:AbsoluteValue(vector:GetZ())
+        if x >= y and x >= z
+            return 0
+        elseif y >= z
+            return 1
+        end
+        return 2
+    end
+
+    /*
+    This action sets the three components of a point, given by index.
+    */
+    private action SetPoint(Vector3 point, integer first, number firstValue, integer second, number secondValue,
+            integer third, number thirdValue)
+        SetComponent(point, first, firstValue)
+        SetComponent(point, second, secondValue)
+        SetComponent(point, third, thirdValue)
+    end
+
+    /*
+    This action returns a component of a vector by index: 0 for x, 1 for y
+    and 2 for z.
+    */
+    private action GetComponent(Vector3 vector, integer index) returns number
+        if index = 0
+            return vector:GetX()
+        elseif index = 1
+            return vector:GetY()
+        end
+        return vector:GetZ()
+    end
+
+    /*
+    This action sets a component of a vector by index: 0 for x, 1 for y and
+    2 for z.
+    */
+    private action SetComponent(Vector3 vector, integer index, number value)
+        if index = 0
+            vector:SetX(value)
+        elseif index = 1
+            vector:SetY(value)
+        else
+            vector:SetZ(value)
+        end
+    end
+end

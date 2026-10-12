@@ -1,0 +1,64 @@
+package Libraries.Game.Collision.Narrowphase
+use Libraries.Game.Collision.LocalCollisionPoints3D
+use Libraries.Compute.Matrix3
+use Libraries.Containers.Array
+use Libraries.Compute.Vector3
+use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Game.Collision.CollisionPointsResult3D
+use Libraries.Game.Collision.Shapes.Sphere
+use Libraries.Compute.Math
+
+class SphereSphereCollider
+    action CollideSpheres(LocalCollisionPoints3D collisionPoints, 
+Sphere sphereA, PhysicsPosition3D transformA, 
+Sphere sphereB, PhysicsPosition3D transformB, 
+CollisionPointsResult3D result)
+        PhysicsPosition3D tempTransform1
+        PhysicsPosition3D tempTransform2
+
+        tempTransform1:Set(transformA)
+        tempTransform2:Set(transformB)
+
+        result:SetCollisionPoints(collisionPoints)
+
+        Vector3 diff
+        diff:Set(tempTransform1:GetOrigin())
+        diff:Subtract(tempTransform2:GetOrigin())
+
+        number length = diff:Length()
+        number radius0 = sphereA:GetRadius()
+        number radius1 = sphereB:GetRadius()
+
+        if length > radius0 + radius1
+            result:RefreshCollisionPoints()
+            return now
+        end
+
+        number distance = length - (radius0 + radius1)
+        
+        Vector3 normalOnSurfaceB
+        normalOnSurfaceB:Set(1, 0, 0)
+        if length > 0.000000119209290
+            normalOnSurfaceB:Set(diff)
+            normalOnSurfaceB:Scale(1 / length)
+        end
+
+        Vector3 temp
+
+        Vector3 pos0
+        temp:Set(normalOnSurfaceB)
+        temp:Scale(radius0)
+        pos0:Set(tempTransform1:GetOrigin())
+        pos0:Subtract(temp)
+
+        Vector3 pos1
+        temp:Set(normalOnSurfaceB)
+        temp:Scale(radius1)
+        pos1:Set(tempTransform2:GetOrigin())
+        pos1:Add(temp)
+
+        result:AddCollisionPoint(normalOnSurfaceB, pos1, distance)
+
+        result:RefreshCollisionPoints()
+    end
+end

@@ -15,7 +15,7 @@ class SolverItem3D
     number angularFactor = 1
     number inverseMass = 0
     number friction = 0
-    Item3D originalItem
+    Item3D originalItem = undefined
     Vector3 linearVelocity
     Vector3 centerOfMassPosition
 
@@ -23,6 +23,16 @@ class SolverItem3D
     Vector3 turnVelocity
 
     Math math
+    // Temporary values reused by GetVelocityInLocalPoint and
+    // WriteBackVelocity(timeStep). Item3D copies transforms and velocities
+    // it is given, so no reference to these is kept.
+    Vector3 velocityTemp
+    PhysicsPosition3D predictedTransform
+    Vector3 positionTemp
+    Vector3 rotationAxis
+    Quaternion rotationChange
+    Quaternion currentRotation
+    Quaternion predictedRotation
 
     /*
     This action lets you know the linear velocity of a point "Vector3 relativePosition"
@@ -31,7 +41,7 @@ class SolverItem3D
     Attribute: Parameter velocity Where velocity will be stored.
     */
     action GetVelocityInLocalPoint(Vector3 relativePosition, Vector3 velocity)
-        Vector3 temp
+        Vector3 temp = velocityTemp
         temp:Set(angularVelocity):CrossProduct(relativePosition)
         velocity:Set(linearVelocity):Add(temp)
     end
@@ -46,11 +56,8 @@ class SolverItem3D
     */
     action InternalApplyImpulse(Vector3 linearComponent, Vector3 angularComponent, number impulseMagnitude)
         if inverseMass not= 0
-            Vector3 temp
-            temp:Set(linearComponent):Scale(impulseMagnitude):Add(linearVelocity)
-            linearVelocity:Set(temp)
-            temp:Set(angularComponent):Scale(impulseMagnitude * angularFactor):Add(angularVelocity)
-            angularVelocity:Set(temp)
+            linearVelocity:MultiplyAndAdd(linearComponent, impulseMagnitude)
+            angularVelocity:MultiplyAndAdd(angularComponent, impulseMagnitude * angularFactor)
         end
     end
 
@@ -64,11 +71,8 @@ class SolverItem3D
     */
     action InternalApplyPushImpulse(Vector3 linearComponent, Vector3 angularComponent, number impulseMagnitude)
         if inverseMass not= 0
-            Vector3 temp
-            temp:Set(linearComponent):Scale(impulseMagnitude):Add(pushVelocity)
-            pushVelocity:Set(temp)
-            temp:Set(angularComponent):Scale(impulseMagnitude * angularFactor):Add(turnVelocity)
-            turnVelocity:Set(temp)
+            pushVelocity:MultiplyAndAdd(linearComponent, impulseMagnitude)
+            turnVelocity:MultiplyAndAdd(angularComponent, impulseMagnitude * angularFactor)
         end
     end
 
@@ -94,15 +98,13 @@ class SolverItem3D
             originalItem:SetLinearVelocity(linearVelocity)
             originalItem:SetAngularVelocity(angularVelocity)
 
-            PhysicsPosition3D newTransform
             PhysicsPosition3D curTrans = originalItem:GetCollisionTransform()
             Vector3 linvel = pushVelocity
             Vector3 angvel = turnVelocity
-            PhysicsPosition3D predictedTransform = newTransform
-            Vector3 temp
+            Vector3 temp = positionTemp
             temp:Set(linvel):Scale(timeStep)
             predictedTransform:GetOrigin():Set(temp):Add(curTrans:GetOrigin())
-            Vector3 axis
+            Vector3 axis = rotationAxis
             number fAngle = angvel:Length()
 
             if fAngle * timeStep > 0.5 * math:pi
@@ -115,12 +117,12 @@ class SolverItem3D
                 axis:Set(angvel):Scale(math:Sine(0.5 * fAngle * timeStep) / fAngle)
             end
 
-            Quaternion dorn
+            Quaternion dorn = rotationChange
             dorn:Set(axis:GetX(), axis:GetY(), axis:GetZ(), math:Cosine(fAngle * timeStep * 0.5))
-            Quaternion orn0
+            Quaternion orn0 = currentRotation
             orn0:Set(curTrans:GetRotation())
 
-            Quaternion predictedOrn
+            Quaternion predictedOrn = predictedRotation
             predictedOrn:Set(dorn):Multiply(orn0)
             predictedOrn:Normalize()
 

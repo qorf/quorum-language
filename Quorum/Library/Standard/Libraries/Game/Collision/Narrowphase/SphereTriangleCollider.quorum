@@ -1,0 +1,131 @@
+package Libraries.Game.Collision.Narrowphase
+
+use Libraries.Compute.Vector3
+use Libraries.Compute.Math
+use Libraries.Game.Collision.LocalCollisionPoints3D
+use Libraries.Game.Collision.CollisionPointsResult3D
+use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Game.Collision.Shapes.Sphere
+use Libraries.Game.Collision.Shapes.Triangle
+use Libraries.Game.Collision.Narrowphase.TriangleCollider3D
+use Libraries.Game.Collision.Narrowphase.TriangleGeometry3D
+
+/*
+SphereTriangleCollider finds the contact between a sphere and one triangle.
+Because a sphere is round, the contact is always at the point on the triangle
+closest to the sphere's center, whether that point is on the triangle's face,
+along an edge or at a corner, so one closest point calculation is all that is
+needed. This is the same approach Bullet uses for a sphere against a triangle.
+It reports at most one contact.
+
+The triangle is treated as thickened by its margin, the same way the general
+collision test treats it, so a sphere comes to rest at the same height on
+either one.
+
+Attribute: Example
+
+    use Libraries.Compute.Vector3
+    use Libraries.Interface.Item3D
+    use Libraries.Game.Collision.PhysicsPosition3D
+    use Libraries.Game.Collision.LocalCollisionPoints3D
+    use Libraries.Game.Collision.CollisionPointsResult3D
+    use Libraries.Game.Collision.Shapes.Sphere
+    use Libraries.Game.Collision.Shapes.Triangle
+
+    Item3D ground
+    Item3D ball
+    LocalCollisionPoints3D points
+    points:Set(ground, ball)
+    CollisionPointsResult3D result
+    result:Initialize(ground, ball)
+
+    Triangle triangle
+    Vector3 a
+    a:Set(0, 0, 0)
+    Vector3 b
+    b:Set(1, 0, 0)
+    Vector3 c
+    c:Set(0, 0, -1)
+    triangle:Set(a, b, c)
+    PhysicsPosition3D triangleTransform
+
+    Sphere sphere
+    sphere:SetRadius(0.5)
+    PhysicsPosition3D sphereTransform
+    sphereTransform:GetOrigin():Set(0.25, 0.5, -0.25)
+
+    SphereTriangleCollider collider
+    collider:Collide(points, triangle, triangleTransform, sphere, sphereTransform, result, false)
+    // points now holds one contact, with the sphere resting on the triangle.
+*/
+class SphereTriangleCollider is TriangleCollider3D
+    Vector3 closest
+    Vector3 towardSphere
+    Vector3 pointOnSphere
+    Math math
+
+    /*
+    This action tests a sphere against a triangle, and reports a contact if
+    they are within the collision's contact threshold. It does not refresh the
+    collision's points, so it can be called for many triangles in a row.
+    Attribute: Parameter collisionPoints The collision's stored contact points.
+    Attribute: Parameter triangle The triangle, with its corners in its own space.
+    Attribute: Parameter triangleTransform Where the triangle is in the world.
+    Attribute: Parameter sphere The sphere.
+    Attribute: Parameter sphereTransform Where the sphere is in the world. Its origin is the sphere's center.
+    Attribute: Parameter result Where contacts are reported. It must already be initialized with the collision's two items.
+    Attribute: Parameter sphereIsItemA False when the triangle is item A, as terrain calls it, and true when the sphere is item A.
+    */
+    action Collide(LocalCollisionPoints3D collisionPoints, Triangle triangle, PhysicsPosition3D triangleTransform,
+            Sphere sphere, PhysicsPosition3D sphereTransform, CollisionPointsResult3D result, boolean sphereIsItemA)
+        Begin(collisionPoints, result, sphereIsItemA)
+        LoadTriangle(triangle, triangleTransform)
+        CollideLoaded(sphere:GetRadius(), sphereTransform:GetOrigin())
+    end
+
+    /*
+    This action tests a sphere with the given radius and center against the
+    triangle that is already loaded. Begin and LoadTriangle must have been
+    called first.
+    Attribute: Parameter radius The sphere's radius.
+    Attribute: Parameter center The sphere's center in world space.
+    */
+    action CollideLoaded(number radius, Vector3 center)
+        TriangleGeometry3D loaded = GetGeometry()
+        number margin = GetTriangleMargin()
+        number reach = radius + margin + GetContactThreshold()
+
+        // Far from the triangle's plane means far from the triangle. A
+        // degenerate triangle has no plane, so it skips this check.
+        number planeDistance = 0
+        if not loaded:IsDegenerate()
+            planeDistance = loaded:PlaneDistance(center)
+            if math:AbsoluteValue(planeDistance) > reach
+                return now
+            end
+        end
+
+        loaded:ClosestPoint(center, closest)
+        towardSphere:Set(center):Subtract(closest)
+        number distanceSquared = towardSphere:LengthSquared()
+        if distanceSquared > reach * reach
+            return now
+        end
+
+        number distance = math:SquareRoot(distanceSquared)
+        if distance > math:SMALLEST_STEP_32_BIT
+            towardSphere:Scale(1 / distance)
+        else
+            // The center is on the triangle, so use the face normal, on the
+            // side the center is on.
+            towardSphere:Set(loaded:GetNormal())
+            if planeDistance < 0
+                towardSphere:Scale(-1)
+            end
+        end
+
+        // The point on the sphere's surface that faces the triangle.
+        pointOnSphere:Set(center):MultiplyAndAdd(towardSphere, -radius)
+        AddContact(towardSphere, pointOnSphere, distance - radius - margin)
+    end
+end

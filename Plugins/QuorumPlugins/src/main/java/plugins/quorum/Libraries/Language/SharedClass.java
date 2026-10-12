@@ -10,10 +10,31 @@ import java.util.HashMap;
  */
 public class SharedClass {
     public final static HashMap<String, java.lang.Object> STATIC_OBJECTS = new  HashMap<String, java.lang.Object>();
+
+    /*
+        Fast path for Libraries.Compute.Math. Every Vector3, Matrix3, and
+        Quaternion has a Math field, so the compiled constructors ask for it
+        twice per object. Profiling showed those map lookups as about a fifth
+        of a physics-heavy game's frame time.
+
+        The compiler passes the key as a string constant, and Java interns
+        string constants, so a reference comparison against this constant
+        recognizes it with a single compare. Any other spelling of the same
+        text still works through the map.
+    */
+    private static final String MATH_KEY = "Libraries.Compute.Math";
+    private static java.lang.Object math = null;
+
     public static java.lang.Object GetStaticClass(String key) {
+        if (key == MATH_KEY) {
+            return math;
+        }
         return STATIC_OBJECTS.get(key);
     }
     public static void PutStaticClass(String key, java.lang.Object value) {
+        if (MATH_KEY.equals(key)) {
+            math = value;
+        }
         STATIC_OBJECTS.put(key, value);
     }
 

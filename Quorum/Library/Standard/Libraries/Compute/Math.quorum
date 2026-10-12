@@ -47,6 +47,24 @@ shared class Math
     public constant number oneOverPi = 0.318309886183790671537767526745028724  /* 1/pi */
     /* The value of 2.0 / pi. */
     public constant number twoOverPi = 0.636619772367581343075535053490057448  /* 2/pi */
+    
+    
+/*The smallest step a 32 bit decimal number can take away from 1.
+    A computer stores a decimal number using a fixed number of bits, which
+    are ones and zeros. A 32 bit number has only 23 bits for the digits
+    after the first one, so it cannot hold every value. Starting at 1, the
+    next bigger number it can hold is 1 plus this value, which is 1 divided
+    by 2 twenty-three times (2^-23). Anything closer together than this is treated
+    as the same number, so it is often used to decide when two values are
+    close enough to count as equal.*/
+    public constant number SMALLEST_STEP_32_BIT = 0.00000011920928955078125
+    /*The smallest step a 64 bit decimal number can take away from 1. A
+    number in Quorum uses 64 bits, which leaves 52 bits for the digits after
+    the first one. Starting at 1, the next bigger number it can hold is 1
+    plus this value, which is 1 divided by 2 fifty-two times (2^-52). This step is
+    much smaller than the one for 32 bit numbers, because there are more
+    bits to hold the digits.*/
+    public constant number SMALLEST_STEP_64_BIT = 0.0000000000000002220446049250313080847263336181640625
 
     /*
     This action calculates the floor of a number (it rounds it down).
@@ -635,4 +653,16 @@ shared class Math
         end
         return result
     end    
+    
+/*
+    Limits a value to the range from lower to upper.
+    */
+    action Clamp(number value, number lower, number upper) returns number
+        if value < lower
+            return lower
+        elseif value > upper
+            return upper
+        end
+        return value
+    end
 end
