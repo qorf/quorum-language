@@ -132,14 +132,8 @@ class BallAndSocketJoint3D is Joint3D
         rel_pos2:Subtract(parent:Joint3D:itemB:GetCenterOfMassTransform():GetOrigin())
 
         Vector3 vel1
-        vel1:Set(parent:Joint3D:itemA:GetLinearVelocityAtLocalPoint(rel_pos1))
-
         Vector3 vel2
-        vel2:Set(parent:Joint3D:itemB:GetLinearVelocityAtLocalPoint(rel_pos2))
-
         Vector3 vel
-        vel:Set(vel1)
-        vel:Subtract(vel2)
 
         number rel_vel = 0
         integer i = 0
@@ -157,6 +151,12 @@ class BallAndSocketJoint3D is Joint3D
                 normal:Set(0,0,1)
                 jacDiagABInv = 1/jac2:GetDiagonal()
             end
+            // Read the velocity again on each axis, so this axis sees the
+            // impulses already applied on the axes before it.
+            vel1:Set(parent:Joint3D:itemA:GetLinearVelocityAtLocalPoint(rel_pos1))
+            vel2:Set(parent:Joint3D:itemB:GetLinearVelocityAtLocalPoint(rel_pos2))
+            vel:Set(vel1)
+            vel:Subtract(vel2)
 
             rel_vel = normal:DotProduct(vel)
 

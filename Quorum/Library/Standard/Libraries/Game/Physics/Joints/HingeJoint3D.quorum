@@ -469,9 +469,10 @@ class HingeJoint3D is Joint3D
         end
 
         // solve angular positional correction
-        Vector3 angularError
-        angularError:Set(axisA:CrossProduct(axisB))
-        angularError:MakeOpposite()  //TODO: check
+Vector3 angularError
+        angularError:Set(axisA)
+        angularError:CrossProduct(axisB)
+        angularError:MakeOpposite()
         angularError:Scale(1.0/timeStep)
 
         number len2 = angularError:Length()

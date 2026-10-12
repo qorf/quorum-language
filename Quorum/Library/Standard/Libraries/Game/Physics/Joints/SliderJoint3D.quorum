@@ -354,10 +354,11 @@ class SliderJoint3D is Joint3D
         end
 
         // solve angular positional correction
-        Vector3 angularError
-        angularError:Set(axisA:CrossProduct(axisB))
+Vector3 angularError
+        angularError:Set(axisA)
+        angularError:CrossProduct(axisB)
         angularError:Scale(1.0/timeStep)
-
+        
         number len2 = angularError:Length()
 
 
@@ -473,12 +474,11 @@ class SliderJoint3D is Joint3D
         delta:Set(realPivotBInW)
         delta:Subtract(realPivotAInW)
 
-
-
         number projValue = sliderAxis:DotProduct(delta)
         projPivotInW:Set(sliderAxis)
+        
+projPivotInW:Scale(projValue)
         projPivotInW:Add(realPivotAInW)
-        projPivotInW:Scale(projValue)
 
         relPosA:Set(projPivotInW)
         tmp:Set(parent:Joint3D:itemA:GetCenterOfMassTransform():GetOrigin())

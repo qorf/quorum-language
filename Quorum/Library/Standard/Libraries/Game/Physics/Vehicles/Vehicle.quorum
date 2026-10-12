@@ -173,6 +173,9 @@ class Vehicle is PhysicsBehavior3D
     */
     action SetSteering(number value, integer wheelIndex)
         Suspension wheel = wheels:Get(wheelIndex)
+        if value not= wheel:GetSteering() and chassis not= undefined
+            chassis:Simulate(true)
+        end
         wheel:SetSteering(value)
     end
 
@@ -186,6 +189,9 @@ class Vehicle is PhysicsBehavior3D
     action SetEngineForce(number force, integer wheelIndex)
      Suspension wheel = wheels:Get(wheelIndex)
         wheel:SetEngineForce(force)
+        if force not= 0 and chassis not= undefined
+            chassis:Simulate(true)
+        end
     end
 
     /*
@@ -235,6 +241,17 @@ end
     Attribute: Parameter timeStep The length of the physics step, in seconds.*/
     action UpdatePhysics(number timeStep)
 if timeStep <= 0 or chassis = undefined
+            return now
+        end
+        
+        
+        // A sleeping chassis is at rest, so the vehicle leaves it alone, as
+        // Bullet does. Pushing it with the springs would wake it with their
+        // upward push but without the gravity that push was holding up, and
+        // the vehicle would drift until it fell asleep again. An engine force
+        // or a change in steering wakes the chassis.
+        if not chassis:IsSimulated()
+            currentSpeedKilometersPerHour = 0
             return now
         end
 
