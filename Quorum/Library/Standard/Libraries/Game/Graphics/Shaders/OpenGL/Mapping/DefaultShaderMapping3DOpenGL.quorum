@@ -208,7 +208,6 @@ class DefaultShaderMapping3DOpenGL is ShaderMapping
 
         // Set the projection-view transform
         tempMatrix4:Set(camera:GetCombinedMatrix())
-        InvertViewZ(tempMatrix4)
         program:SetShaderInputMatrix(projectionViewTransformID, tempMatrix4)
 
         // Set the camera position
@@ -288,10 +287,8 @@ class DefaultShaderMapping3DOpenGL is ShaderMapping
 
         // Setting uniform values for the shaders.
 
-        // Set the world transform. The z value is inverted as a lazy hack to invert from a right-handed system to a left-handed one. 
-        // This may change in the future.
+        // Set the world transform.
         tempMatrix4:Set(renderable:worldTransform)
-        InvertPositionZ(tempMatrix4)
         program:SetShaderInputMatrix(worldTransformID, tempMatrix4)
     end
 
@@ -549,7 +546,6 @@ openGL:SetDepthMask(mask)
         end
 
         tempVector3 = renderable:worldTransform:GetTranslation()
-        tempVector3:Scale(1, 1, -1)
         if attributes:HasAttribute(colorAttribute:GetAmbientLightValue())
             ColorAttribute ambientAttribute = cast(ColorAttribute, attributes:GetAttribute(colorAttribute:GetAmbientLightValue()))
             ambientCubemap:SetColor(ambientAttribute:color)
@@ -578,7 +574,7 @@ openGL:SetDepthMask(mask)
                 
                 if counter < max
                     glProgram:SetShaderInput(directionalLightColorID:Get(counter), color:GetRed(), color:GetGreen(), color:GetBlue())
-                    glProgram:SetShaderInput(directionalLightDirectionID:Get(counter), tempVector3:GetX(), tempVector3:GetY(), -tempVector3:GetZ())
+                    glProgram:SetShaderInput(directionalLightDirectionID:Get(counter), tempVector3:GetX(), tempVector3:GetY(), tempVector3:GetZ())
                 else
                     ambientCubemap:Add(color, tempVector3)
                 end
@@ -612,7 +608,7 @@ openGL:SetDepthMask(mask)
 
                 if counter < max
                     glProgram:SetShaderInput(pointLightColorID:Get(counter), color:GetRed() * intensity, color:GetGreen() * intensity, color:GetBlue() * intensity)
-                    glProgram:SetShaderInput(pointLightPositionID:Get(counter), position:GetX(), position:GetY(), -position:GetZ())
+                    glProgram:SetShaderInput(pointLightPositionID:Get(counter), position:GetX(), position:GetY(), position:GetZ())
                 else
                     ambientCubemap:Add(color, position, tempVector3, intensity)
                 end
@@ -693,19 +689,5 @@ OpenGLShaderProgram glProgram = cast(OpenGLShaderProgram, program:GetShaderProgr
             enableAlphaTest = enable
             glProgram:SetShaderInput(enableAlphaTestID, enable)
         end
-    end
-
-    private action InvertPositionZ(Matrix4 matrix)
-        matrix:row2column3 = -matrix:row2column3
-    end
-    
-    private action InvertViewZ(Matrix4 matrix)
-        matrix:row0column0 = -matrix:row0column0
-        matrix:row0column1 = -matrix:row0column1
-        matrix:row0column3 = -matrix:row0column3
-
-        matrix:row1column2 = -matrix:row1column2
-        matrix:row2column2 = -matrix:row2column2
-        matrix:row3column2 = -matrix:row3column2
     end
 end
