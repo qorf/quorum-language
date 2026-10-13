@@ -5,11 +5,18 @@ use Libraries.Game.Graphics.Light
 use Libraries.Interface.Item3D
 
 class PointLight is Light, Item3D
-    
+
     /*
     How bright the light is.
     */
     number intensity = 0
+
+    /*
+    The light level below which a point light is treated as having no
+    effect. Anything dimmer is treated as no light. It decides how far the
+    light reaches, as returned by GetRange.
+    */
+    constant number MINIMUM_ILLUMINATION_THRESHOLD = 0.0003
 
     /*
     This action will set the intensity of this light, which indicates how bright
@@ -29,6 +36,29 @@ class PointLight is Light, Item3D
     */
     action GetIntensity returns number
         return intensity
+    end
+
+    /*
+    This action returns how far this light reaches. A point light's
+    brightness falls with the square of the distance, so it never reaches
+    zero. Instead, the light is treated as reaching as far as its brightest
+    color, at its intensity, stays above MINIMUM_ILLUMINATION_THRESHOLD.
+    That distance is the square root of the brightest color times the
+    intensity, divided by the threshold. Shadows from this light are only
+    made within this distance.
+
+    Attribute: Returns How far this light reaches.
+    */
+    action GetRange returns number
+        Color lightColor = GetColor()
+        number brightest = lightColor:GetRed()
+        if lightColor:GetGreen() > brightest
+            brightest = lightColor:GetGreen()
+        end
+        if lightColor:GetBlue() > brightest
+            brightest = lightColor:GetBlue()
+        end
+        return parent:Item3D:math:SquareRoot(brightest * intensity / MINIMUM_ILLUMINATION_THRESHOLD)
     end
 
     /*
