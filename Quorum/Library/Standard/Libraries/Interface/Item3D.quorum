@@ -88,6 +88,11 @@ class Item3D is Item
     Math math
     Layer3D layer = undefined
 
+    // True after this item has told its layer it moved, until the layer
+    // clears it with SetReportedMove(false). This way the layer hears about
+    // an item once, however many times it moves before the layer handles it.
+    boolean moveReported = false
+
     boolean collidable = false
 
     boolean collideWithChildren = false
@@ -310,6 +315,7 @@ class Item3D is Item
             box:Set(width, height, depth)
             SetShape(box)
         end
+        NotifyResized()
     end
 
     /*
@@ -332,6 +338,7 @@ class Item3D is Item
             box:Set(width, height, depth)
             SetShape(box)
         end
+        NotifyResized()
     end
 
     /*
@@ -354,6 +361,7 @@ class Item3D is Item
             box:Set(width, height, depth)
             SetShape(box)
         end
+        NotifyResized()
     end
 
     /*
@@ -381,6 +389,7 @@ class Item3D is Item
         Box box
         box:Set(width, height, depth)
         SetShape(box)
+        NotifyResized()
     end
 
     /*
@@ -409,6 +418,7 @@ class Item3D is Item
         Box box
         box:Set(width, height, depth)
         SetShape(box)
+        NotifyResized()
     end
 
     /*
@@ -653,6 +663,7 @@ class Item3D is Item
             children:Get(counter):SetOffsetX(x + xAmount)
             counter = counter + 1
         end
+        NotifyMoved()
     end
 
     /* 
@@ -687,6 +698,7 @@ class Item3D is Item
             children:Get(counter):SetOffsetY(y + yAmount)
             counter = counter + 1
         end
+        NotifyMoved()
     end
 
     /* 
@@ -722,6 +734,7 @@ class Item3D is Item
             children:Get(counter):SetOffsetZ(z + zAmount)
             counter = counter + 1
         end
+        NotifyMoved()
     end
 
     /* 
@@ -759,6 +772,7 @@ class Item3D is Item
             children:Get(counter):SetOffset(x + xAmount, y + yAmount, z + zAmount)
             counter = counter + 1
         end
+        NotifyMoved()
     end
 
     /* 
@@ -1041,6 +1055,7 @@ class Item3D is Item
     action SetRotationTransform(Matrix4 source)
         rotationMatrix:Set(source)
         transformDirty = true
+        NotifyMoved()
     end
 
     /*  
@@ -1627,6 +1642,7 @@ class Item3D is Item
         if rotateChildren
             RotateChildren(vector, degrees)
         end
+        NotifyMoved()
     end
 
     /*
@@ -2055,6 +2071,7 @@ class Item3D is Item
                 collisionTransform:GetBasis():Set(tempMatrix)
             end
         end
+        NotifyMoved()
     end
 
     action GetYaw returns number
@@ -2157,6 +2174,7 @@ class Item3D is Item
                 counter = counter + 1
             end
         end
+        NotifyMoved()
     end
 
     /*
@@ -2262,6 +2280,7 @@ class Item3D is Item
         if scaleChildren and not children:IsEmpty()
             ScaleChildren(scaleX, scaleY, scaleZ)
         end
+        NotifyMoved()
     end
 
     private action ScaleChildren(number newScaleX, number newScaleY, number newScaleZ)
@@ -2359,6 +2378,7 @@ class Item3D is Item
     */
     action SetLayer(Layer3D parentLayer)
         layer = parentLayer
+        moveReported = false
 
         integer i = 0
         repeat children:GetSize() times
@@ -2393,6 +2413,60 @@ class Item3D is Item
     */
     action GetLayer returns Layer3D
         return layer
+    end
+
+    /*
+    This action tells the item's layer that its position, rotation or scale
+    has changed, unless it already has and the layer has not cleared the
+    report yet. The item calls it itself whenever it moves. Code that
+    changes GetTransform() directly should call it too.
+    */
+    action NotifyMoved
+        if moveReported or layer = undefined
+            return now
+        end
+        moveReported = true
+        layer:ItemMoved(me)
+    end
+
+    /*
+    This action returns true if the item has reported a move that its layer
+    has not cleared yet.
+
+    Attribute: Returns True if a move report is waiting.
+    */
+    action HasReportedMove returns boolean
+        return moveReported
+    end
+
+    /*
+    This action sets whether the item has a move report waiting. A layer
+    sets it back to false once it has handled the move, so the item reports
+    its next move.
+
+    Attribute: Parameter value False once the move has been handled.
+    */
+    action SetReportedMove(boolean value)
+        moveReported = value
+    end
+
+    /*
+    This action tells the item's layer that physics started or stopped
+    simulating the item. The item's PhysicsProperties3D calls it.
+    */
+    action SimulationChanged
+        if layer not= undefined
+            layer:ItemSimulationChanged(me)
+        end
+    end
+
+    /*
+    This action tells the item's layer that its size changed.
+    */
+    private action NotifyResized
+        if layer not= undefined
+            layer:ItemResized(me)
+        end
     end
 
     action SynchronizeNodes
@@ -2633,6 +2707,10 @@ class Item3D is Item
             properties:SetItem(me)
             interpolationTransform:Set(collisionTransform)
             collisionTransform0:Set(collisionTransform)
+        end
+
+        if layer not= undefined
+            layer:ItemPhysicsChanged(me)
         end
     end
 

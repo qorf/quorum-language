@@ -1,0 +1,81 @@
+package Libraries.Game.Graphics.Trees
+
+/*
+Octree3D is a render tree that divides space into cubes, and each cube into
+eight smaller cubes, as needed. It is a good choice for a scene spread out
+in every direction, such as space, or a city with tall buildings.
+
+Set the region the cubes cover with SetRegion, ideally before adding items.
+Items outside the region still work, but are tested one by one.
+
+Its two parts are RenderCellTree3D grids that split all three directions.
+The cubes themselves are made and searched by RenderCellTree3D, which
+QuadTree3D also uses. The cubes are loose, so an item is placed by its
+center and size alone, and moving an item rarely changes the tree.
+Everything else, the actions every render tree has, comes from
+StaticDynamicRenderTree3D.
+
+Attribute: Example
+
+use Libraries.Game.Graphics.Trees.Octree3D
+use Libraries.Interface.Item3D
+use Libraries.Containers.Array
+
+Octree3D tree
+tree:SetRegion(-100, -100, -100, 100, 100, 100)
+Item3D box
+box:SetDimensions(1, 1, 1)
+tree:Add(box)
+Array<Item3D> found
+tree:CollectInSphere(0, 0, 0, 5, found)
+output found:GetSize()
+*/
+class Octree3D is StaticDynamicRenderTree3D
+    RenderCellTree3D staticCells
+    RenderCellTree3D dynamicCells
+
+    on create
+        staticCells:SetSplitsHeight(true)
+        dynamicCells:SetSplitsHeight(true)
+        SetParts(staticCells, dynamicCells)
+    end
+
+    /*
+    This action sets the region of the world the cubes cover. The top cube
+    is as big as the region's largest side, centered on the region. Items
+    already in the tree are placed again.
+
+    Attribute: Parameter minimumX The smallest x of the region.
+    Attribute: Parameter minimumY The smallest y of the region.
+    Attribute: Parameter minimumZ The smallest z of the region.
+    Attribute: Parameter maximumX The largest x of the region.
+    Attribute: Parameter maximumY The largest y of the region.
+    Attribute: Parameter maximumZ The largest z of the region.
+    */
+    action SetRegion(number minimumX, number minimumY, number minimumZ, number maximumX, number maximumY, number maximumZ)
+        staticCells:SetRegion(minimumX, minimumY, minimumZ, maximumX, maximumY, maximumZ)
+        dynamicCells:SetRegion(minimumX, minimumY, minimumZ, maximumX, maximumY, maximumZ)
+    end
+
+    /*
+    This action sets how many times a cube can be divided. Each level halves
+    the size. Deeper cubes fit small items more tightly, but searches visit
+    more cubes. The default is 8. Items already in the tree are placed
+    again.
+
+    Attribute: Parameter depth The deepest level, at least 0.
+    */
+    action SetMaximumDepth(integer depth)
+        staticCells:SetMaximumDepth(depth)
+        dynamicCells:SetMaximumDepth(depth)
+    end
+
+    /*
+    This action returns how many times a cube can be divided.
+
+    Attribute: Returns The deepest level a cube can be at.
+    */
+    action GetMaximumDepth returns integer
+        return staticCells:GetMaximumDepth()
+    end
+end

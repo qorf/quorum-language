@@ -1,0 +1,465 @@
+package Libraries.Game.Graphics.Trees
+
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+use Libraries.Interface.Item3D
+use Libraries.Game.BoundingBox
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.PointLight
+use Libraries.Game.Graphics.DirectionalLight
+use Libraries.Compute.Matrix4
+use Libraries.Compute.Vector3
+
+/*
+RenderTree3D keeps track of where every drawable item in a 3D scene is, so
+that drawing and shadows only handle the items that matter. It answers these
+questions:
+
+- Which items can the camera see? (CollectVisible)
+- Which items could cast a shadow into one cascade of a directional light's
+  shadows? (CollectDirectionalShadowCasters)
+- Which items are within a point light's reach? (CollectPointShadowCasters)
+- Which items overlap a box or a sphere? (CollectInBox, CollectInSphere)
+
+This class only describes what a render tree does. Its actions are blank.
+Use one of the kinds of render tree, which can be swapped for one another
+because they all have these actions:
+
+- DynamicVolumeRenderTree3D, a tree of boxes that fit around the items, like
+  the one physics uses. A good choice for most scenes, and for scenes whose
+  items are spread unevenly or move a lot.
+- QuadTree3D, which divides the ground into squares. A good choice for a
+  scene that is mostly flat and spread out, such as terrain and the things
+  on it.
+- Octree3D, which divides space into cubes. A good choice for a scene spread
+  out in every direction, such as space or a tall city.
+
+Each answer is added to an Array the caller passes in. The caller empties the
+array when it starts a new frame or pass, with Empty(false) so the array
+keeps its storage and no new one is made. The answers include hidden items;
+the caller can leave them out with IsShowing or IsShowingWithParents.
+
+A render tree does not watch items for changes. Whoever owns it, such as
+Layer3D, calls Moved for each item whose position, rotation or scale has
+changed, once per frame before drawing, and EndFrame after drawing.
+
+Only items with bounds can be added. An item whose bounds cannot be found,
+such as one that draws itself, is not added, and Add returns false. Its owner
+draws it every frame, without asking the tree.
+
+The few actions here that are not blank are the same for every kind of
+tree: the Add and CollectVisible actions that fill in a missing value and
+pass the request on, IsShowing and IsShowingWithParents, and the private
+helper that finds an item's bounds, used by Add.
+
+Attribute: Example
+
+use Libraries.Game.Graphics.Trees.RenderTree3D
+use Libraries.Game.Graphics.Trees.DynamicVolumeRenderTree3D
+use Libraries.Interface.Item3D
+use Libraries.Containers.Array
+
+DynamicVolumeRenderTree3D volumeTree
+RenderTree3D tree = volumeTree
+Item3D box
+box:SetDimensions(1, 1, 1)
+tree:Add(box)
+Array<Item3D> found
+tree:CollectInSphere(0, 0, 0, 5, found)
+output found:GetSize()
+*/
+class RenderTree3D
+    Vector3 minimum
+    Vector3 maximum
+
+    /*
+    This action adds an item that is not expected to move.
+
+    Attribute: Parameter item The item to add.
+    Attribute: Returns True if the item was added. False if it was already in
+    the tree, or has no bounds the tree can find.
+    */
+    action Add(Item3D item) returns boolean
+        return Add(item, true)
+    end
+
+    /*
+    This action adds an item, using bounds the tree finds for it: a box of
+    the item's width, height and depth, centered on the item. For an item
+    whose shape is not centered on it, such as a model whose origin is at
+    its feet, use the Add action that takes bounds instead.
+
+    Attribute: Parameter item The item to add.
+    Attribute: Parameter isStatic True if the item is not expected to move.
+    Attribute: Returns True if the item was added. False if it was already in
+    the tree, or has no bounds the tree can find.
+    */
+    action Add(Item3D item, boolean isStatic) returns boolean
+        if item = undefined or Has(item)
+            return false
+        end
+        BoundingBox local = GetBounds(item)
+        if local = undefined
+            return false
+        end
+        return Add(item, local, isStatic)
+    end
+
+    /*
+    This action adds an item that is not expected to move, with the given
+    bounds in its own coordinates.
+
+    Attribute: Parameter item The item to add.
+    Attribute: Parameter localBounds The item's bounds in its own coordinates.
+    Attribute: Returns True if the item was added, false if it was already in
+    the tree.
+    */
+    action Add(Item3D item, BoundingBox localBounds) returns boolean
+        return Add(item, localBounds, true)
+    end
+
+    /*
+    This action adds an item with the given bounds in its own coordinates.
+    Use it for items whose bounds the tree cannot find, such as terrain
+    chunks. A terrain chunk should give bounds that hold every level of
+    detail, so changing the level does not change the tree.
+
+    Attribute: Parameter item The item to add.
+    Attribute: Parameter localBounds The item's bounds in its own coordinates.
+    Attribute: Parameter isStatic True if the item is not expected to move.
+    Attribute: Returns True if the item was added, false if it was already in
+    the tree.
+    */
+    action Add(Item3D item, BoundingBox localBounds, boolean isStatic) returns boolean
+        return false
+    end
+
+    /*
+    This action removes an item. If the item is a point light, anything the
+    tree remembered for it is also forgotten.
+
+    Attribute: Parameter item The item to remove.
+    Attribute: Returns True if the item was in the tree.
+    */
+    action Remove(Item3D item) returns boolean
+        return false
+    end
+
+    /*
+    This action removes every item.
+    */
+    action Empty
+    end
+
+    /*
+    This action returns true if the item is in the tree.
+
+    Attribute: Parameter item The item to look for.
+    Attribute: Returns True if the item is in the tree.
+    */
+    action Has(Item3D item) returns boolean
+        return false
+    end
+
+    /*
+    This action returns the leaf that holds an item, or undefined if the
+    item is not in the tree. Finding it means a lookup in a hash table, so
+    an owner that tells the tree about moves every frame should get each
+    item's leaf once, after adding the item, keep it, and pass it to
+    Moved(leaf) instead of the item. The leaf must not be used after the
+    item is removed, and its setters must not be called from outside the
+    tree.
+
+    Attribute: Parameter item The item to find.
+    Attribute: Returns The item's leaf, or undefined if it is not in the tree.
+    */
+    action GetLeaf(Item3D item) returns RenderTreeNode3D
+        return undefined
+    end
+
+    /*
+    This action tells the tree an item's position, rotation or scale has
+    changed. It looks up the item's leaf each time. Moved(leaf) does not.
+
+    Attribute: Parameter item The item that moved.
+    */
+    action Moved(Item3D item)
+    end
+
+    /*
+    This action does the same as Moved(item), for the leaf GetLeaf returned
+    for that item, without looking it up. A leaf whose item has been
+    removed is ignored.
+
+    Attribute: Parameter leaf The leaf GetLeaf returned for the item.
+    */
+    action Moved(RenderTreeNode3D leaf)
+    end
+
+    /*
+    This action changes an item's bounds in its own coordinates, for example
+    when its mesh or its level of detail changes.
+
+    Attribute: Parameter item The item whose bounds changed.
+    Attribute: Parameter localBounds The item's new bounds in its own
+    coordinates.
+    */
+    action SetLocalBounds(Item3D item, BoundingBox localBounds)
+    end
+
+    /*
+    This action ends a frame. Call it once per frame, after drawing.
+    */
+    action EndFrame
+    end
+
+    /*
+    This action adds the items the camera can see to the results.
+
+    Attribute: Parameter camera The camera.
+    Attribute: Parameter results The array to add the items to.
+    */
+    action CollectVisible(Camera camera, Array<Item3D> results)
+        CollectVisible(camera:GetCombinedMatrix(), results)
+    end
+
+    /*
+    This action adds the items inside the view of the given view-projection
+    matrix to the results.
+
+    Attribute: Parameter viewProjection The view-projection matrix.
+    Attribute: Parameter results The array to add the items to.
+    */
+    action CollectVisible(Matrix4 viewProjection, Array<Item3D> results)
+    end
+
+    /*
+    This action adds the items that could cast a shadow into one cascade of
+    a directional light's shadows to the results. Each cascade covers part
+    of the camera's view and is drawn in its own pass, so this is asked once
+    per cascade.
+
+    The cascade's view-projection matrix comes from the light's shadow data,
+    which EnvironmentVulkan updates each frame, so ask after it has. A light
+    without shadow data for the cascade, such as in OpenGL, adds nothing.
+
+    Attribute: Parameter light The directional light.
+    Attribute: Parameter cascade Which cascade, counting from 0.
+    Attribute: Parameter results The array to add the items to.
+    */
+    action CollectDirectionalShadowCasters(DirectionalLight light, integer cascade, Array<Item3D> results)
+    end
+
+    /*
+    This action adds the items within a point light's reach, as given by its
+    GetRange action, to the results.
+
+    Attribute: Parameter light The point light.
+    Attribute: Parameter results The array to add the items to.
+    */
+    action CollectPointShadowCasters(PointLight light, Array<Item3D> results)
+    end
+
+    /*
+    This action adds the items overlapping a box to the results.
+
+    Attribute: Parameter box The box, in world coordinates.
+    Attribute: Parameter results The array to add the items to.
+    */
+    action CollectInBox(BoundingBox box, Array<Item3D> results)
+    end
+
+    /*
+    This action adds the items overlapping a sphere to the results.
+
+    Attribute: Parameter x The x coordinate of the sphere's center.
+    Attribute: Parameter y The y coordinate of the sphere's center.
+    Attribute: Parameter z The z coordinate of the sphere's center.
+    Attribute: Parameter radius The sphere's radius.
+    Attribute: Parameter results The array to add the items to.
+    */
+    action CollectInSphere(number x, number y, number z, number radius, Array<Item3D> results)
+    end
+
+    /*
+    This action returns the first leaf in the tree's own order, or undefined
+    when the tree is empty. With GetNextLeaf, it visits every item once,
+    without making any objects. The order comes from how the tree is built,
+    not from when items were added, and it changes as items move.
+
+    Attribute: Returns The first leaf, or undefined.
+    */
+    action GetFirstLeaf returns RenderTreeNode3D
+        return undefined
+    end
+
+    /*
+    This action returns the leaf after the given one in the tree's own
+    order, or undefined after the last. It follows the links between the
+    tree's nodes, so it takes a few steps however many items there are.
+
+    To visit every item while some may be removed, get the next leaf before
+    handling the current one. Removing the current item is then safe.
+    Removing other items, or adding items, can change the tree's shape, so
+    some items may be missed or visited twice in that walk.
+
+    Attribute: Parameter leaf A leaf in this tree.
+    Attribute: Returns The next leaf, or undefined.
+    */
+    action GetNextLeaf(RenderTreeNode3D leaf) returns RenderTreeNode3D
+        return undefined
+    end
+
+    /*
+    This action returns an iterator over every item in the tree, in the
+    tree's own order. It makes a new iterator each time. Code that runs
+    every frame can use GetFirstLeaf and GetNextLeaf instead, which make
+    nothing.
+
+    Attribute: Returns An iterator over the items.
+    */
+    action GetIterator returns Iterator<Item3D>
+        RenderTreeIterator3D iterator
+        iterator:SetTree(me)
+        return iterator
+    end
+
+    /*
+    This action returns true if the item is showing. It does not look at
+    the item's parents, so an item whose parent is hidden still counts as
+    showing.
+
+    Attribute: Parameter item The item.
+    Attribute: Returns True if the item is showing.
+    */
+    action IsShowing(Item3D item) returns boolean
+        return item:IsShowing()
+    end
+
+    /*
+    This action returns true if the item and all of its parents are showing.
+    Layer3D draws by walking down from each item, so a hidden parent hides
+    its children. The tree holds items on their own, so this checks upward
+    instead.
+
+    Attribute: Parameter item The item.
+    Attribute: Returns True if the item and all of its parents are showing.
+    */
+    action IsShowingWithParents(Item3D item) returns boolean
+        Item3D current = item
+        repeat while current not= undefined
+            if not current:IsShowing()
+                return false
+            end
+            current = current:GetParent()
+        end
+        return true
+    end
+
+    /*
+    This action returns how many items are in the tree.
+
+    Attribute: Returns The number of items.
+    */
+    action GetSize returns integer
+        return 0
+    end
+
+    /*
+    This action returns how many items are in the static part of the tree,
+    which holds items that are not moving.
+
+    Attribute: Returns The number of static items.
+    */
+    action GetStaticSize returns integer
+        return 0
+    end
+
+    /*
+    This action returns how many items are in the dynamic part of the tree,
+    which holds items that are moving.
+
+    Attribute: Returns The number of dynamic items.
+    */
+    action GetDynamicSize returns integer
+        return 0
+    end
+
+    /*
+    This action returns true if the item is in the static part of the tree,
+    and false if it is in the dynamic part or not in the tree.
+
+    Attribute: Parameter item The item.
+    Attribute: Returns True if the item is static.
+    */
+    action IsStatic(Item3D item) returns boolean
+        return false
+    end
+
+    /*
+    This action returns how many levels the static part has below its top,
+    or -1 when it is empty. What a level is depends on the kind of tree.
+
+    Attribute: Returns The number of levels.
+    */
+    action GetStaticHeight returns integer
+        return -1
+    end
+
+    /*
+    This action returns how many levels the dynamic part has below its top,
+    or -1 when it is empty.
+
+    Attribute: Returns The number of levels.
+    */
+    action GetDynamicHeight returns integer
+        return -1
+    end
+
+    /*
+    This action returns a number that goes up by one every time the static
+    part changes. Items in the static part never move, so anything worked
+    out from them stays correct until this number changes.
+
+    Use it to keep work that depends only on static items, such as a list of
+    the static items within a light's reach, or data prepared for drawing
+    static items. Save the number when doing the work, and redo the work
+    only when GetStaticVersion returns a different number.
+
+    Attribute: Returns The static version.
+    */
+    action GetStaticVersion returns integer
+        return 0
+    end
+
+    /*
+    This action returns an item's bounds in its own coordinates, or undefined
+    if it has none the tree can find.
+
+    They are a box of the item's width, height and depth, centered on the
+    item. A model gets its width, height and depth from its blueprint when
+    it is loaded, so this works for models too. An item with no size has no
+    bounds. A negative size, which a blueprint with a bug in its measuring
+    could give, is also treated as no bounds. Flat bounds, such as a plane's,
+    are allowed, though BoundingBox:IsValid would reject them.
+
+    Attribute: Parameter item The item to find bounds for.
+    Attribute: Returns The item's bounds in its own coordinates, or undefined.
+    */
+    private action GetBounds(Item3D item) returns BoundingBox
+        number halfWidth = item:GetWidth() / 2
+        number halfHeight = item:GetHeight() / 2
+        number halfDepth = item:GetDepth() / 2
+        if halfWidth < 0 or halfHeight < 0 or halfDepth < 0
+            return undefined
+        end
+        if halfWidth = 0 and halfHeight = 0 and halfDepth = 0
+            return undefined
+        end
+        BoundingBox box
+        minimum:Set(-halfWidth, -halfHeight, -halfDepth)
+        maximum:Set(halfWidth, halfHeight, halfDepth)
+        box:Set(minimum, maximum)
+        return box
+    end
+end

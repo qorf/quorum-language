@@ -713,6 +713,7 @@ Vector3 inertia
     Attribute: Parameter flag True if you want to simulate the object.
     */
     action Simulate(boolean flag)
+        boolean before = simulated
         if flag
             if not simulated
                 simulated = true
@@ -725,6 +726,12 @@ Vector3 inertia
             angularVelocity:SetZero()
             force:SetZero()
             torque:SetZero()
+        end
+
+        // Tell the item, and through it the item's layer, when the body
+        // wakes or falls asleep.
+        if before not= simulated and item not= undefined
+            item:SimulationChanged()
         end
     end
 

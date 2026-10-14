@@ -1,0 +1,533 @@
+package Libraries.Game.Graphics.Trees
+
+use Libraries.Game.BoundingBox
+use Libraries.Interface.Item3D
+use Libraries.Compute.Math
+use Libraries.Compute.Matrix4
+use Libraries.Compute.Vector3
+
+/*
+RenderTreeNode3D is the record a render tree keeps for each item: the item,
+its bounds, and which half of the tree it is in. It is called a leaf.
+
+In a RenderBoundingVolumeTree3D, nodes are also the tree itself. A node is
+either a leaf, which holds one drawable item and the box around it, or a
+branch, which holds two children and the box around both. The parent, left,
+right and height fields are used only there.
+
+In a RenderCellTree3D, used by QuadTree3D and Octree3D, a leaf instead records
+the cell it is in and its place in that cell's list, so it can be removed
+without searching.
+
+Only the tree classes in this package should change a node. The node also
+does the box calculations the trees need, such as finding its item's bounds
+in the world, so each tree asks the node rather than sharing private
+helpers.
+
+A node's box can be read two ways. GetBounds returns the node's own box,
+not a copy, so changing it changes the node. The tree uses it to update
+boxes in place without making new objects. GetBoundsCopy returns a new box
+with the same corners, which can be changed freely, but makes a new object
+on every call.
+
+Attribute: Example
+
+use Libraries.Game.Graphics.Trees.DynamicVolumeRenderTree3D
+use Libraries.Game.Graphics.Trees.RenderTreeNode3D
+use Libraries.Interface.Item3D
+
+DynamicVolumeRenderTree3D tree
+Item3D box
+box:SetDimensions(1, 1, 1)
+tree:Add(box)
+
+// Keep the leaf, so moves need no lookup.
+RenderTreeNode3D leaf = tree:GetLeaf(box)
+box:SetPosition(2, 0, 0)
+tree:Moved(leaf)
+output leaf:GetBounds():GetCenterX()
+*/
+class RenderTreeNode3D
+    // The box this node covers. For a leaf in the dynamic half of the tree it
+    // is a little bigger than the item, so small moves do not change the tree.
+    BoundingBox bounds
+
+    RenderTreeNode3D parentNode = undefined
+    RenderTreeNode3D left = undefined
+    RenderTreeNode3D right = undefined
+
+    // How many levels are below this node. A leaf is 0.
+    integer height = 0
+
+    // The item a leaf holds. Branches hold no item.
+    Item3D item = undefined
+
+    // Whether the leaf is in the static half of the tree.
+    boolean isStatic = false
+
+    // The frame the leaf last moved on, used to move still items back to
+    // the static half.
+    integer lastMovedFrame = 0
+
+    // The last frame the owner handed this leaf's item to be drawn, kept by
+    // the owner, such as Layer3D, so an item found by more than one search
+    // in a frame is only drawn once.
+    integer lastDrawnFrame = -1
+
+    // The cell of a RenderCellTree3D the leaf is in, and its place in the
+    // cell's list of leaves. A leaf in the cell tree's list of leaves outside
+    // its region has no cell, but still has a place in that list.
+    RenderTreeCell3D cell = undefined
+    integer cellIndex = -1
+
+    // The item's bounds in its own coordinates, as a center and half sizes.
+    // They are turned into world bounds each time the item moves.
+    number localCenterX = 0
+    number localCenterY = 0
+    number localCenterZ = 0
+    number localHalfX = 0
+    number localHalfY = 0
+    number localHalfZ = 0
+
+    Math math
+
+    /*
+    This action returns the box this node covers. The box itself is
+    returned, not a copy, so changing it changes the node. The tree uses
+    this to update boxes in place without making new objects. To look at
+    the box without any risk of changing the node, use GetBoundsCopy.
+
+    Attribute: Returns The node's own box, not a copy.
+    */
+    action GetBounds returns BoundingBox
+        return bounds
+    end
+
+    /*
+    This action returns a new box with the same corners as the box this
+    node covers. Changing the copy does not change the node. Each call makes
+    a new object, so code that runs every frame should use GetBounds
+    instead, and only read from it.
+
+    Attribute: Returns A copy of the node's box.
+    */
+    action GetBoundsCopy returns BoundingBox
+        return bounds:Copy()
+    end
+
+    /*
+    This action returns the branch above this node, or undefined if this node
+    is the root or is in a RenderCellTree3D.
+
+    Attribute: Returns The branch above this node, or undefined.
+    */
+    action GetParentNode returns RenderTreeNode3D
+        return parentNode
+    end
+
+    /*
+    This action sets the branch above this node.
+
+    Attribute: Parameter node The branch above this node, or undefined for the
+    root.
+    */
+    action SetParentNode(RenderTreeNode3D node)
+        parentNode = node
+    end
+
+    /*
+    This action returns the first child of a branch, or undefined for a leaf.
+
+    Attribute: Returns The first child, or undefined.
+    */
+    action GetLeft returns RenderTreeNode3D
+        return left
+    end
+
+    /*
+    This action sets the first child of a branch.
+
+    Attribute: Parameter node The first child, or undefined to make this node a
+    leaf.
+    */
+    action SetLeft(RenderTreeNode3D node)
+        left = node
+    end
+
+    /*
+    This action returns the second child of a branch, or undefined for a leaf.
+
+    Attribute: Returns The second child, or undefined.
+    */
+    action GetRight returns RenderTreeNode3D
+        return right
+    end
+
+    /*
+    This action sets the second child of a branch.
+
+    Attribute: Parameter node The second child, or undefined for a leaf.
+    */
+    action SetRight(RenderTreeNode3D node)
+        right = node
+    end
+
+    /*
+    This action returns how many levels are below this node. A leaf is 0.
+
+    Attribute: Returns The number of levels below this node.
+    */
+    action GetHeight returns integer
+        return height
+    end
+
+    /*
+    This action sets how many levels are below this node.
+
+    Attribute: Parameter value The number of levels below this node.
+    */
+    action SetHeight(integer value)
+        height = value
+    end
+
+    /*
+    This action returns the item a leaf holds, or undefined for a branch or
+    for a leaf whose item has been removed.
+
+    Attribute: Returns The item, or undefined.
+    */
+    action GetItem returns Item3D
+        return item
+    end
+
+    /*
+    This action sets the item a leaf holds.
+
+    Attribute: Parameter value The item.
+    */
+    action SetItem(Item3D value)
+        item = value
+    end
+
+    /*
+    This action returns true if the leaf is in the static half of the tree.
+
+    Attribute: Returns True if the leaf is static.
+    */
+    action IsStatic returns boolean
+        return isStatic
+    end
+
+    /*
+    This action sets whether the leaf is in the static half of the tree.
+
+    Attribute: Parameter value True if the leaf is static.
+    */
+    action SetStatic(boolean value)
+        isStatic = value
+    end
+
+    /*
+    This action returns the frame the leaf last moved on. The tree uses it to
+    move still items back to the static half.
+
+    Attribute: Returns The frame number.
+    */
+    action GetLastMovedFrame returns integer
+        return lastMovedFrame
+    end
+
+    /*
+    This action sets the frame the leaf last moved on.
+
+    Attribute: Parameter frame The frame number.
+    */
+    action SetLastMovedFrame(integer frame)
+        lastMovedFrame = frame
+    end
+
+    /*
+    This action returns the last frame the leaf's item was handed to be
+    drawn, or -1 if it never has been. The tree does not use this. It is
+    kept for the tree's owner, such as Layer3D, so an item found by more than
+    one search in a frame is only drawn once.
+
+    Attribute: Returns The frame number, or -1.
+    */
+    action GetLastDrawnFrame returns integer
+        return lastDrawnFrame
+    end
+
+    /*
+    This action sets the last frame the leaf's item was handed to be drawn.
+
+    Attribute: Parameter frame The frame number.
+    */
+    action SetLastDrawnFrame(integer frame)
+        lastDrawnFrame = frame
+    end
+
+    /*
+    This action returns the RenderCellTree3D cell the leaf is in, or
+    undefined if it is in none.
+
+    Attribute: Returns The cell, or undefined.
+    */
+    action GetCell returns RenderTreeCell3D
+        return cell
+    end
+
+    /*
+    This action sets the RenderCellTree3D cell the leaf is in.
+
+    Attribute: Parameter value The cell, or undefined if the leaf is in none.
+    */
+    action SetCell(RenderTreeCell3D value)
+        cell = value
+    end
+
+    /*
+    This action returns the leaf's place in its cell's list of leaves, or in
+    the cell tree's list of leaves outside its region, or -1 if it is in
+    neither.
+
+    Attribute: Returns The leaf's place, or -1.
+    */
+    action GetCellIndex returns integer
+        return cellIndex
+    end
+
+    /*
+    This action sets the leaf's place in its cell's list of leaves, or in the
+    cell tree's list of leaves outside its region.
+
+    Attribute: Parameter index The leaf's place, or -1 if it is in neither.
+    */
+    action SetCellIndex(integer index)
+        cellIndex = index
+    end
+
+    /*
+    This action returns the x coordinate of the center of the item's bounds,
+    in the item's own coordinates. It is set with SetLocalBounds.
+
+    Attribute: Returns The x coordinate of the center.
+    */
+    action GetLocalCenterX returns number
+        return localCenterX
+    end
+
+    /*
+    This action returns the y coordinate of the center of the item's bounds,
+    in the item's own coordinates. It is set with SetLocalBounds.
+
+    Attribute: Returns The y coordinate of the center.
+    */
+    action GetLocalCenterY returns number
+        return localCenterY
+    end
+
+    /*
+    This action returns the z coordinate of the center of the item's bounds,
+    in the item's own coordinates. It is set with SetLocalBounds.
+
+    Attribute: Returns The z coordinate of the center.
+    */
+    action GetLocalCenterZ returns number
+        return localCenterZ
+    end
+
+    /*
+    This action returns half the size of the item's bounds along x, in the
+    item's own coordinates. It is set with SetLocalBounds.
+
+    Attribute: Returns Half the size along x.
+    */
+    action GetLocalHalfX returns number
+        return localHalfX
+    end
+
+    /*
+    This action returns half the size of the item's bounds along y, in the
+    item's own coordinates. It is set with SetLocalBounds.
+
+    Attribute: Returns Half the size along y.
+    */
+    action GetLocalHalfY returns number
+        return localHalfY
+    end
+
+    /*
+    This action returns half the size of the item's bounds along z, in the
+    item's own coordinates. It is set with SetLocalBounds.
+
+    Attribute: Returns Half the size along z.
+    */
+    action GetLocalHalfZ returns number
+        return localHalfZ
+    end
+
+    /*
+    This action returns true if this node is a leaf, which holds an item,
+    and false if it is a branch.
+
+    Attribute: Returns True if this node is a leaf.
+    */
+    action IsLeaf returns boolean
+        return left = undefined
+    end
+
+    /*
+    This action clears the node so it can be reused for another item or
+    branch.
+    */
+    action Reset
+        parentNode = undefined
+        left = undefined
+        right = undefined
+        height = 0
+        item = undefined
+        isStatic = false
+        lastMovedFrame = 0
+        lastDrawnFrame = -1
+        cell = undefined
+        cellIndex = -1
+        bounds:Invalidate()
+    end
+
+    /*
+    This action sets the item's bounds in its own coordinates. They are kept
+    as a center and half sizes, and turned into world bounds each time the
+    item moves.
+
+    Attribute: Parameter local The item's bounds in its own coordinates.
+    */
+    action SetLocalBounds(BoundingBox local)
+        localCenterX = local:GetCenterX()
+        localCenterY = local:GetCenterY()
+        localCenterZ = local:GetCenterZ()
+        localHalfX = local:GetWidth() / 2
+        localHalfY = local:GetHeight() / 2
+        localHalfZ = local:GetDepth() / 2
+    end
+
+    /*
+    This action sets the node's box to the item's bounds, made bigger by
+    the margin on every side.
+
+    Attribute: Parameter itemBounds The item's bounds in the world.
+    Attribute: Parameter margin How much bigger to make the box on every side.
+    */
+    action SetBounds(BoundingBox itemBounds, number margin)
+        Vector3 itemMinimum = itemBounds:GetMinimum()
+        Vector3 itemMaximum = itemBounds:GetMaximum()
+        bounds:GetMinimum():Set(itemMinimum:GetX() - margin, itemMinimum:GetY() - margin, itemMinimum:GetZ() - margin)
+        bounds:GetMaximum():Set(itemMaximum:GetX() + margin, itemMaximum:GetY() + margin, itemMaximum:GetZ() + margin)
+        bounds:CalculateDimensions()
+    end
+
+    /*
+    This action returns true if the node's box holds all of the given box.
+    Equal edges count as inside, so a flat item, such as a plane, fits a
+    box of the same size.
+
+    Attribute: Parameter box The box to test.
+    Attribute: Returns True if the node's box holds all of it.
+    */
+    action Contains(BoundingBox box) returns boolean
+        Vector3 outerMinimum = bounds:GetMinimum()
+        Vector3 outerMaximum = bounds:GetMaximum()
+        Vector3 innerMinimum = box:GetMinimum()
+        Vector3 innerMaximum = box:GetMaximum()
+        return outerMinimum:GetX() <= innerMinimum:GetX() and
+            outerMinimum:GetY() <= innerMinimum:GetY() and
+            outerMinimum:GetZ() <= innerMinimum:GetZ() and
+            innerMaximum:GetX() <= outerMaximum:GetX() and
+            innerMaximum:GetY() <= outerMaximum:GetY() and
+            innerMaximum:GetZ() <= outerMaximum:GetZ()
+    end
+
+    /*
+    This action returns true if the node's box has the same corners as the
+    given box.
+
+    Attribute: Parameter box The box to compare with.
+    Attribute: Returns True if the corners are the same.
+    */
+    action HasBounds(BoundingBox box) returns boolean
+        return bounds:GetMinimum():GetX() = box:GetMinimum():GetX() and
+            bounds:GetMinimum():GetY() = box:GetMinimum():GetY() and
+            bounds:GetMinimum():GetZ() = box:GetMinimum():GetZ() and
+            bounds:GetMaximum():GetX() = box:GetMaximum():GetX() and
+            bounds:GetMaximum():GetY() = box:GetMaximum():GetY() and
+            bounds:GetMaximum():GetZ() = box:GetMaximum():GetZ()
+    end
+
+    /*
+    This action returns the squared distance from a point to the nearest
+    point of the node's box, which is 0 when the point is inside it.
+
+    Attribute: Parameter x The point's x coordinate.
+    Attribute: Parameter y The point's y coordinate.
+    Attribute: Parameter z The point's z coordinate.
+    Attribute: Returns The squared distance.
+    */
+    action DistanceSquared(number x, number y, number z) returns number
+        Vector3 boxMinimum = bounds:GetMinimum()
+        Vector3 boxMaximum = bounds:GetMaximum()
+        number dx = 0
+        number dy = 0
+        number dz = 0
+        if x < boxMinimum:GetX()
+            dx = boxMinimum:GetX() - x
+        elseif x > boxMaximum:GetX()
+            dx = x - boxMaximum:GetX()
+        end
+        if y < boxMinimum:GetY()
+            dy = boxMinimum:GetY() - y
+        elseif y > boxMaximum:GetY()
+            dy = y - boxMaximum:GetY()
+        end
+        if z < boxMinimum:GetZ()
+            dz = boxMinimum:GetZ() - z
+        elseif z > boxMaximum:GetZ()
+            dz = z - boxMaximum:GetZ()
+        end
+        return dx * dx + dy * dy + dz * dz
+    end
+
+    /*
+    This action puts the leaf's item's bounds in world coordinates into the
+    given box.
+
+    The item's bounds in its own coordinates are a center and half sizes.
+    The world center is the item's transform applied to the center. The
+    world half size on each axis is the sum of the absolute values of the
+    transform's entries in that row, each times the matching half size. This
+    is the smallest axis-aligned box around the turned box, and needs no
+    corners. The transform includes the item's scale and its parent's offset.
+
+    Attribute: Parameter out The box to put the world bounds in.
+    */
+    action CalculateWorldBounds(BoundingBox out)
+        Matrix4 transform = item:GetTransform()
+
+        number worldX = transform:row0column0 * localCenterX + transform:row0column1 * localCenterY +
+            transform:row0column2 * localCenterZ + transform:row0column3
+        number worldY = transform:row1column0 * localCenterX + transform:row1column1 * localCenterY +
+            transform:row1column2 * localCenterZ + transform:row1column3
+        number worldZ = transform:row2column0 * localCenterX + transform:row2column1 * localCenterY +
+            transform:row2column2 * localCenterZ + transform:row2column3
+
+        number halfX = math:AbsoluteValue(transform:row0column0) * localHalfX + math:AbsoluteValue(transform:row0column1) * localHalfY +
+            math:AbsoluteValue(transform:row0column2) * localHalfZ
+        number halfY = math:AbsoluteValue(transform:row1column0) * localHalfX + math:AbsoluteValue(transform:row1column1) * localHalfY +
+            math:AbsoluteValue(transform:row1column2) * localHalfZ
+        number halfZ = math:AbsoluteValue(transform:row2column0) * localHalfX + math:AbsoluteValue(transform:row2column1) * localHalfY +
+            math:AbsoluteValue(transform:row2column2) * localHalfZ
+
+        out:GetMinimum():Set(worldX - halfX, worldY - halfY, worldZ - halfZ)
+        out:GetMaximum():Set(worldX + halfX, worldY + halfY, worldZ + halfZ)
+        out:CalculateDimensions()
+    end
+end

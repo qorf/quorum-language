@@ -1,0 +1,830 @@
+package Libraries.Game.Graphics.Trees
+
+use Libraries.Game.BoundingBox
+use Libraries.Containers.Array
+use Libraries.Interface.Item3D
+
+/*
+RenderCellTree3D is a loose quadtree or loose octree: a part of a render
+tree that divides a region of the world into cells, each split into smaller
+cells as needed. QuadTree3D uses it without splitting the height, so each
+cell is a square column as tall as the region and splits into 4. Octree3D
+uses it splitting all three directions, so each cell is a cube and splits
+into 8. SetSplitsHeight chooses between the two.
+
+Each item is placed in one cell, chosen from its size and its center: the
+smallest cell at least as big as the item, among those containing its
+center. Because cells are tested with a box twice their size (they are
+"loose"), the item always fits in that box. Placing an item takes the same
+few steps however many items there are, and moving an item only changes the
+tree if its center moves to another cell or it changes size a lot.
+
+Cells are made only when an item needs them, and are kept after they empty.
+Each cell counts the leaves in it and below it, so searches skip empty
+cells.
+
+Items outside the region are kept in a separate list and tested one by one,
+so they are still found. The region is set with SetRegion, ideally before
+any items are added.
+
+The margin comes from RenderTreePart3D, and the box calculations are actions
+on RenderTreeNode3D and RenderTreeCell3D.
+
+Attribute: Example
+
+use Libraries.Game.Graphics.Trees.RenderCellTree3D
+use Libraries.Game.Graphics.Trees.RenderTreeNode3D
+use Libraries.Interface.Item3D
+use Libraries.Game.BoundingBox
+use Libraries.Containers.Array
+
+Item3D item
+RenderTreeNode3D leaf
+leaf:SetItem(item)
+
+BoundingBox box
+box:Extend(1, 1, 1)
+box:Extend(-1, -1, -1)
+
+RenderCellTree3D cells
+cells:SetRegion(-100, -100, -100, 100, 100, 100)
+cells:Add(leaf, box)
+Array<Item3D> found
+cells:Collect(0, 0, 0, 5, found)
+output found:GetSize()
+*/
+class RenderCellTree3D is RenderTreePart3D
+    // True for an octree, which splits the height too. False for a quadtree.
+    boolean splitsHeight = true
+
+    // The deepest a cell can be below the top cell. Each level halves the
+    // cell size.
+    integer maximumDepth = 8
+
+    // The region the cells cover.
+    number regionMinimumX = -512
+    number regionMinimumY = -512
+    number regionMinimumZ = -512
+    number regionMaximumX = 512
+    number regionMaximumY = 512
+    number regionMaximumZ = 512
+
+    // The top cell, made when the first leaf is placed.
+    RenderTreeCell3D root = undefined
+
+    // The leaves of items that do not fit in the region.
+    Array<RenderTreeNode3D> outsideLeaves
+
+    // How many leaves the tree holds, including those outside the region.
+    integer leafCount = 0
+
+    // The deepest level any cell has been made at.
+    integer deepest = -1
+
+    // Reused by the searches, as stacks of cells still to visit.
+    Array<RenderTreeCell3D> stack
+    Array<RenderTreeCell3D> subtreeStack
+
+    // Reused when every leaf has to be placed again.
+    Array<RenderTreeNode3D> replaceLeaves
+
+    /*
+    This action sets whether cells split the height too, as in an octree, or
+    only across, as in a quadtree. Leaves already in the tree are placed again.
+
+    Attribute: Parameter value True for an octree, false for a quadtree.
+    */
+    action SetSplitsHeight(boolean value)
+        splitsHeight = value
+        Rebuild()
+    end
+
+    /*
+    This action returns true if cells split the height too, as in an octree,
+    and false if they split only across, as in a quadtree.
+
+    Attribute: Returns True if cells split the height.
+    */
+    action SplitsHeight returns boolean
+        return splitsHeight
+    end
+
+    /*
+    This action sets the deepest a cell can be below the top cell. Each level
+    halves the cell size. Deeper cells fit small items more tightly, but
+    searches visit more cells. The default is 8. Leaves already in the tree are
+    placed again.
+
+    Attribute: Parameter depth The deepest level, at least 0.
+    */
+    action SetMaximumDepth(integer depth)
+        if depth < 0
+            maximumDepth = 0
+        else
+            maximumDepth = depth
+        end
+        Rebuild()
+    end
+
+    /*
+    This action returns the deepest a cell can be below the top cell.
+
+    Attribute: Returns The deepest level.
+    */
+    action GetMaximumDepth returns integer
+        return maximumDepth
+    end
+
+    /*
+    This action sets the region of the world the cells cover. The top cell is
+    as big as the region's largest side, centered on the region. A quadtree's
+    cells are as tall as the region. Items outside the region still work, but
+    are tested one by one. Leaves already in the tree are placed again.
+
+    Attribute: Parameter minimumX The smallest x of the region.
+    Attribute: Parameter minimumY The smallest y of the region.
+    Attribute: Parameter minimumZ The smallest z of the region.
+    Attribute: Parameter maximumX The largest x of the region.
+    Attribute: Parameter maximumY The largest y of the region.
+    Attribute: Parameter maximumZ The largest z of the region.
+    */
+    action SetRegion(number minimumX, number minimumY, number minimumZ, number maximumX, number maximumY, number maximumZ)
+        regionMinimumX = minimumX
+        regionMinimumY = minimumY
+        regionMinimumZ = minimumZ
+        regionMaximumX = maximumX
+        regionMaximumY = maximumY
+        regionMaximumZ = maximumZ
+        Rebuild()
+    end
+
+    /*
+    This action returns how many leaves the tree holds, including those
+    outside the region.
+
+    Attribute: Returns The number of leaves.
+    */
+    action GetSize returns integer
+        return leafCount
+    end
+
+    /*
+    This action returns the deepest level any cell has been made at, or -1
+    when the tree is empty.
+
+    Attribute: Returns The deepest level made.
+    */
+    action GetHeight returns integer
+        if leafCount = 0
+            return -1
+        end
+        return deepest
+    end
+
+    /*
+    This action adds a leaf, with a box around the given bounds of its item,
+    and places it in the cell its box belongs in.
+
+    Attribute: Parameter leaf The leaf to add. Its item must already be set.
+    Attribute: Parameter itemBounds The item's bounds in the world.
+    */
+    action Add(RenderTreeNode3D leaf, BoundingBox itemBounds)
+        leaf:SetBounds(itemBounds, GetMargin())
+        Place(leaf)
+        leafCount = leafCount + 1
+    end
+
+    /*
+    This action removes a leaf from its cell, or from the list of leaves
+    outside the region. The leaf itself is not reused here, since it belongs
+    to the render tree.
+
+    Attribute: Parameter leaf The leaf to remove.
+    */
+    action Remove(RenderTreeNode3D leaf)
+        Unplace(leaf)
+        leafCount = leafCount - 1
+    end
+
+    /*
+    This action updates a leaf whose item has moved. With a margin, nothing
+    changes while the item stays inside the leaf's box. Otherwise the leaf's
+    box is set to the new bounds, and it moves to another cell only if the new
+    bounds belong in one.
+
+    Attribute: Parameter leaf The leaf whose item moved.
+    Attribute: Parameter itemBounds The item's new bounds in the world.
+    Attribute: Returns True if the leaf moved to another cell.
+    */
+    action Move(RenderTreeNode3D leaf, BoundingBox itemBounds) returns boolean
+        if GetMargin() > 0 and leaf:Contains(itemBounds)
+            return false
+        end
+
+        RenderTreeCell3D current = leaf:GetCell()
+        leaf:SetBounds(itemBounds, GetMargin())
+        RenderTreeCell3D target = FindCell(leaf:GetBounds())
+        if target = current and current not= undefined
+            return false
+        end
+
+        // Unplace uses the leaf's recorded place, which the new bounds do not
+        // change, so it can be taken out and placed again.
+        Unplace(leaf)
+        PlaceIn(leaf, target)
+        return true
+    end
+
+    /*
+    This action removes every leaf and every cell. The leaves themselves are
+    not changed, since they belong to the render tree.
+    */
+    action Empty
+        root = undefined
+        outsideLeaves:Empty()
+        leafCount = 0
+        deepest = -1
+    end
+
+    /*
+    This action adds to the results every item whose box is at least partly
+    inside the volume. A cell whose loose box is entirely inside the volume
+    adds all of its items without testing them, and a cell entirely outside is
+    skipped with everything below it.
+
+    Attribute: Parameter volume The volume, such as a camera's view.
+    Attribute: Parameter results The array to add the items to.
+    */
+    action Collect(CullingVolume3D volume, Array<Item3D> results)
+        integer outside = volume:OUTSIDE
+        integer inside = volume:INSIDE
+
+        integer i = 0
+        repeat while i < outsideLeaves:GetSize()
+            RenderTreeNode3D leaf = outsideLeaves:Get(i)
+            if volume:Test(leaf:GetBounds()) not= outside
+                results:Add(leaf:GetItem())
+            end
+            i = i + 1
+        end
+
+        if root = undefined
+            return now
+        end
+        stack:Empty(false)
+        stack:Add(root)
+        repeat while not stack:IsEmpty()
+            RenderTreeCell3D cell = stack:RemoveFromEnd()
+            if cell:GetCount() > 0
+                integer result = volume:Test(cell:GetBounds())
+                if result = inside
+                    AddAll(cell, results)
+                elseif result not= outside
+                    i = 0
+                    repeat while i < cell:GetLeafCount()
+                        RenderTreeNode3D leaf = cell:GetLeaf(i)
+                        if volume:Test(leaf:GetBounds()) not= outside
+                            results:Add(leaf:GetItem())
+                        end
+                        i = i + 1
+                    end
+                    PushChildren(cell)
+                end
+            end
+        end
+    end
+
+    /*
+    This action adds to the results every item whose box overlaps the given
+    box. Cells whose loose box does not overlap it are skipped with everything
+    below them.
+
+    Attribute: Parameter box The box, in world coordinates.
+    Attribute: Parameter results The array to add the items to.
+    */
+    action Collect(BoundingBox box, Array<Item3D> results)
+        integer i = 0
+        repeat while i < outsideLeaves:GetSize()
+            RenderTreeNode3D leaf = outsideLeaves:Get(i)
+            if leaf:GetBounds():TestOverlap(box)
+                results:Add(leaf:GetItem())
+            end
+            i = i + 1
+        end
+
+        if root = undefined
+            return now
+        end
+        stack:Empty(false)
+        stack:Add(root)
+        repeat while not stack:IsEmpty()
+            RenderTreeCell3D cell = stack:RemoveFromEnd()
+            if cell:GetCount() > 0 and cell:GetBounds():TestOverlap(box)
+                i = 0
+                repeat while i < cell:GetLeafCount()
+                    RenderTreeNode3D leaf = cell:GetLeaf(i)
+                    if leaf:GetBounds():TestOverlap(box)
+                        results:Add(leaf:GetItem())
+                    end
+                    i = i + 1
+                end
+                PushChildren(cell)
+            end
+        end
+    end
+
+    /*
+    This action adds to the results every item whose box overlaps the sphere
+    with the given center and radius, such as a point light's reach. Cells
+    whose loose box is out of reach are skipped with everything below them.
+
+    Attribute: Parameter x The x coordinate of the sphere's center.
+    Attribute: Parameter y The y coordinate of the sphere's center.
+    Attribute: Parameter z The z coordinate of the sphere's center.
+    Attribute: Parameter radius The sphere's radius.
+    Attribute: Parameter results The array to add the items to.
+    */
+    action Collect(number x, number y, number z, number radius, Array<Item3D> results)
+        number radiusSquared = radius * radius
+        integer i = 0
+        repeat while i < outsideLeaves:GetSize()
+            RenderTreeNode3D leaf = outsideLeaves:Get(i)
+            if leaf:DistanceSquared(x, y, z) <= radiusSquared
+                results:Add(leaf:GetItem())
+            end
+            i = i + 1
+        end
+
+        if root = undefined
+            return now
+        end
+        stack:Empty(false)
+        stack:Add(root)
+        repeat while not stack:IsEmpty()
+            RenderTreeCell3D cell = stack:RemoveFromEnd()
+            if cell:GetCount() > 0 and cell:DistanceSquared(x, y, z) <= radiusSquared
+                i = 0
+                repeat while i < cell:GetLeafCount()
+                    RenderTreeNode3D leaf = cell:GetLeaf(i)
+                    if leaf:DistanceSquared(x, y, z) <= radiusSquared
+                        results:Add(leaf:GetItem())
+                    end
+                    i = i + 1
+                end
+                PushChildren(cell)
+            end
+        end
+    end
+
+    /*
+    This action returns the first leaf in the tree's order, or undefined
+    when the tree is empty. The leaves outside the region come first, then
+    each cell's own leaves followed by its children's, starting from the top
+    cell.
+
+    Attribute: Returns The first leaf, or undefined.
+    */
+    action GetFirstLeaf returns RenderTreeNode3D
+        if not outsideLeaves:IsEmpty()
+            return outsideLeaves:Get(0)
+        end
+        if root = undefined
+            return undefined
+        end
+        return FirstLeafFrom(root)
+    end
+
+    /*
+    This action returns the leaf after the given one, or undefined after the
+    last leaf.
+
+    The next leaf is the next one in the same cell's list, if there is one.
+    Otherwise it is the first leaf in the cell's children, and failing that,
+    the first leaf in a later sibling of the cell or of a cell above it.
+    Only parent and child links are followed, and cells with no leaves in
+    them or below them are skipped by their counts.
+
+    Attribute: Parameter leaf A leaf in this tree.
+    Attribute: Returns The next leaf, or undefined.
+    */
+    action GetNextLeaf(RenderTreeNode3D leaf) returns RenderTreeNode3D
+        RenderTreeCell3D cell = leaf:GetCell()
+        integer index = leaf:GetCellIndex()
+
+        // A leaf with no cell is either outside the region or not in the tree.
+        if cell = undefined
+            if index < 0
+                return undefined
+            end
+            if index + 1 < outsideLeaves:GetSize()
+                return outsideLeaves:Get(index + 1)
+            end
+            if root = undefined
+                return undefined
+            end
+            return FirstLeafFrom(root)
+        end
+
+        if index + 1 < cell:GetLeafCount()
+            return cell:GetLeaf(index + 1)
+        end
+        RenderTreeNode3D below = FirstLeafInChildren(cell, 0)
+        if below not= undefined
+            return below
+        end
+        return FirstLeafAfter(cell)
+    end
+
+    /*
+    This action adds to the search stack the children of a cell that hold
+    leaves.
+
+    Attribute: Parameter cell The cell whose children to add.
+    */
+    private action PushChildren(RenderTreeCell3D cell)
+        integer c = 0
+        repeat while c < cell:GetChildCount()
+            RenderTreeCell3D child = cell:GetChild(c)
+            if child:GetCount() > 0
+                stack:Add(child)
+            end
+            c = c + 1
+        end
+    end
+
+    /*
+    This action adds every item in a cell and its children to the results,
+    without testing them.
+
+    Attribute: Parameter start The cell to start from.
+    Attribute: Parameter results The array to add the items to.
+    */
+    private action AddAll(RenderTreeCell3D start, Array<Item3D> results)
+        subtreeStack:Empty(false)
+        subtreeStack:Add(start)
+        repeat while not subtreeStack:IsEmpty()
+            RenderTreeCell3D cell = subtreeStack:RemoveFromEnd()
+            integer i = 0
+            repeat while i < cell:GetLeafCount()
+                results:Add(cell:GetLeaf(i):GetItem())
+                i = i + 1
+            end
+            integer c = 0
+            repeat while c < cell:GetChildCount()
+                RenderTreeCell3D child = cell:GetChild(c)
+                if child:GetCount() > 0
+                    subtreeStack:Add(child)
+                end
+                c = c + 1
+            end
+        end
+    end
+
+    /*
+    This action returns the first leaf in a cell or below it, or undefined
+    if there is none.
+
+    Attribute: Parameter cell The cell to start from.
+    Attribute: Returns The first leaf, or undefined.
+    */
+    private action FirstLeafFrom(RenderTreeCell3D cell) returns RenderTreeNode3D
+        if cell:GetCount() = 0
+            return undefined
+        end
+        if cell:GetLeafCount() > 0
+            return cell:GetLeaf(0)
+        end
+        return FirstLeafInChildren(cell, 0)
+    end
+
+    /*
+    This action returns the first leaf in a cell's children, starting from
+    the given child, or undefined if there is none.
+
+    Attribute: Parameter cell The cell whose children to look in.
+    Attribute: Parameter start The first child to look in, counting from 0.
+    Attribute: Returns The first leaf found, or undefined.
+    */
+    private action FirstLeafInChildren(RenderTreeCell3D cell, integer start) returns RenderTreeNode3D
+        integer child = start
+        repeat while child < cell:GetChildCount()
+            RenderTreeNode3D found = FirstLeafFrom(cell:GetChild(child))
+            if found not= undefined
+                return found
+            end
+            child = child + 1
+        end
+        return undefined
+    end
+
+    /*
+    This action returns the first leaf in the cells that come after a cell
+    and everything below it: its later siblings, then the later siblings of
+    each cell above it.
+
+    Attribute: Parameter cell The cell whose leaves, and children's leaves,
+    have all been visited.
+    Attribute: Returns The next leaf, or undefined if there are no more.
+    */
+    private action FirstLeafAfter(RenderTreeCell3D cell) returns RenderTreeNode3D
+        RenderTreeCell3D node = cell
+        RenderTreeCell3D above = node:GetParentCell()
+        repeat while above not= undefined
+            RenderTreeNode3D found = FirstLeafInChildren(above, ChildPosition(above, node) + 1)
+            if found not= undefined
+                return found
+            end
+            node = above
+            above = node:GetParentCell()
+        end
+        return undefined
+    end
+
+    /*
+    This action returns where a child is in its parent's list of children.
+    A cell has at most 8 children, so this is a short search.
+
+    Attribute: Parameter owner The parent cell.
+    Attribute: Parameter child The child to find.
+    Attribute: Returns The child's place, counting from 0, or -1 if it is
+    not a child of the owner.
+    */
+    private action ChildPosition(RenderTreeCell3D owner, RenderTreeCell3D child) returns integer
+        integer position = 0
+        repeat while position < owner:GetChildCount()
+            if owner:GetChild(position) = child
+                return position
+            end
+            position = position + 1
+        end
+        return -1
+    end
+
+    /*
+    This action places a leaf by its box: in a cell, or in the list of leaves
+    outside the region.
+
+    Attribute: Parameter leaf The leaf to place. Its box must already be set.
+    */
+    private action Place(RenderTreeNode3D leaf)
+        PlaceIn(leaf, FindCell(leaf:GetBounds()))
+    end
+
+    /*
+    This action puts a leaf in the given cell, or in the list of leaves
+    outside the region if the cell is undefined.
+
+    Attribute: Parameter leaf The leaf to put somewhere.
+    Attribute: Parameter cell The cell to put it in, or undefined for the list
+    of leaves outside the region.
+    */
+    private action PlaceIn(RenderTreeNode3D leaf, RenderTreeCell3D cell)
+        if cell = undefined
+            leaf:SetCell(undefined)
+            leaf:SetCellIndex(outsideLeaves:GetSize())
+            outsideLeaves:Add(leaf)
+        else
+            cell:AddLeaf(leaf)
+            cell:AddToCount(1)
+        end
+    end
+
+    /*
+    This action takes a leaf out of its cell, or out of the list of leaves
+    outside the region. The last leaf in that list takes its place, so nothing
+    is shifted.
+
+    Attribute: Parameter leaf The leaf to take out.
+    */
+    private action Unplace(RenderTreeNode3D leaf)
+        RenderTreeCell3D cell = leaf:GetCell()
+        if cell not= undefined
+            cell:RemoveLeaf(leaf)
+            cell:AddToCount(-1)
+            return now
+        end
+
+        integer index = leaf:GetCellIndex()
+        if index < 0
+            return now
+        end
+        RenderTreeNode3D last = outsideLeaves:RemoveFromEnd()
+        if last not= leaf
+            outsideLeaves:Set(index, last)
+            last:SetCellIndex(index)
+        end
+        leaf:SetCellIndex(-1)
+    end
+
+    /*
+    This action returns the cell a box belongs in, making cells as needed, or
+    undefined if the box does not fit in the region.
+
+    The box's size is its largest side, counting the height only in an octree.
+    Starting from the top cell, it goes down into the child holding the box's
+    center while that child is at least as big as the box.
+
+    Attribute: Parameter box The box to find a cell for, in world coordinates.
+    Attribute: Returns The cell, or undefined if the box is outside the region.
+    */
+    private action FindCell(BoundingBox box) returns RenderTreeCell3D
+        number x = box:GetCenterX()
+        number y = box:GetCenterY()
+        number z = box:GetCenterZ()
+        number extent = box:GetWidth()
+        if box:GetDepth() > extent
+            extent = box:GetDepth()
+        end
+        if splitsHeight and box:GetHeight() > extent
+            extent = box:GetHeight()
+        end
+
+        // A quadtree's cells are as tall as the region, so the whole box must
+        // be within the region's height.
+        if not splitsHeight
+            if box:GetMinimum():GetY() < regionMinimumY or box:GetMaximum():GetY() > regionMaximumY
+                return undefined
+            end
+        end
+
+        RenderTreeCell3D cell = GetRoot()
+        number half = cell:GetSize() / 2
+        if extent > cell:GetSize() or
+                x < cell:GetCenterX() - half or x > cell:GetCenterX() + half or
+                z < cell:GetCenterZ() - half or z > cell:GetCenterZ() + half
+            return undefined
+        end
+        if splitsHeight
+            if y < cell:GetCenterY() - half or y > cell:GetCenterY() + half
+                return undefined
+            end
+        end
+
+        repeat while cell:GetDepth() < maximumDepth and extent <= cell:GetSize() / 2
+            if not cell:HasChildren()
+                Split(cell)
+            end
+            cell = cell:GetChild(ChildIndex(cell, x, y, z))
+        end
+        return cell
+    end
+
+    /*
+    This action returns which child of a cell holds a point. The children are
+    numbered with 1 for the larger x, 2 for the larger z, and, in an octree, 4
+    for the larger y.
+
+    Attribute: Parameter cell The cell whose children to choose from.
+    Attribute: Parameter x The point's x coordinate.
+    Attribute: Parameter y The point's y coordinate.
+    Attribute: Parameter z The point's z coordinate.
+    Attribute: Returns The child's number, from 0 to 3, or 0 to 7 in an octree.
+    */
+    private action ChildIndex(RenderTreeCell3D cell, number x, number y, number z) returns integer
+        integer index = 0
+        if x >= cell:GetCenterX()
+            index = index + 1
+        end
+        if z >= cell:GetCenterZ()
+            index = index + 2
+        end
+        if splitsHeight and y >= cell:GetCenterY()
+            index = index + 4
+        end
+        return index
+    end
+
+    /*
+    This action splits a cell into 4 children, or 8 in an octree, each half its
+    size, numbered as ChildIndex expects.
+
+    Attribute: Parameter cell The cell to split.
+    */
+    private action Split(RenderTreeCell3D cell)
+        integer childCount = 4
+        if splitsHeight
+            childCount = 8
+        end
+        number childSize = cell:GetSize() / 2
+        number quarter = cell:GetSize() / 4
+
+        integer i = 0
+        repeat while i < childCount
+            number x = cell:GetCenterX() - quarter
+            if i mod 2 = 1
+                x = cell:GetCenterX() + quarter
+            end
+            number z = cell:GetCenterZ() - quarter
+            if i mod 4 >= 2
+                z = cell:GetCenterZ() + quarter
+            end
+            number y = cell:GetCenterY()
+            number bottom = regionMinimumY
+            number top = regionMaximumY
+            if splitsHeight
+                y = cell:GetCenterY() - quarter
+                if i >= 4
+                    y = cell:GetCenterY() + quarter
+                end
+                bottom = y - childSize
+                top = y + childSize
+            end
+
+            RenderTreeCell3D child
+            child:SetPlace(x, y, z, childSize, bottom, top)
+            child:SetDepth(cell:GetDepth() + 1)
+            child:SetParentCell(cell)
+            cell:AddChild(child)
+            i = i + 1
+        end
+
+        if cell:GetDepth() + 1 > deepest
+            deepest = cell:GetDepth() + 1
+        end
+    end
+
+    /*
+    This action returns the top cell, making it if needed. It is a square
+    (quadtree) or cube (octree) centered on the region, as big as the region's
+    largest side.
+
+    Attribute: Returns The top cell.
+    */
+    private action GetRoot returns RenderTreeCell3D
+        if root = undefined
+            number x = (regionMinimumX + regionMaximumX) / 2
+            number y = (regionMinimumY + regionMaximumY) / 2
+            number z = (regionMinimumZ + regionMaximumZ) / 2
+            number sideLength = regionMaximumX - regionMinimumX
+            if regionMaximumZ - regionMinimumZ > sideLength
+                sideLength = regionMaximumZ - regionMinimumZ
+            end
+            number bottom = regionMinimumY
+            number top = regionMaximumY
+            if splitsHeight
+                if regionMaximumY - regionMinimumY > sideLength
+                    sideLength = regionMaximumY - regionMinimumY
+                end
+                bottom = y - sideLength
+                top = y + sideLength
+            end
+
+            RenderTreeCell3D cell
+            cell:SetPlace(x, y, z, sideLength, bottom, top)
+            root = cell
+            if deepest < 0
+                deepest = 0
+            end
+        end
+        return root
+    end
+
+    /*
+    This action places every leaf again, after the region, the maximum depth or
+    the kind of tree changes. The leaves keep their boxes.
+    */
+    private action Rebuild
+        if leafCount = 0
+            root = undefined
+            deepest = -1
+            return now
+        end
+
+        replaceLeaves:Empty(false)
+        integer i = 0
+        repeat while i < outsideLeaves:GetSize()
+            replaceLeaves:Add(outsideLeaves:Get(i))
+            i = i + 1
+        end
+        if root not= undefined
+            subtreeStack:Empty(false)
+            subtreeStack:Add(root)
+            repeat while not subtreeStack:IsEmpty()
+                RenderTreeCell3D cell = subtreeStack:RemoveFromEnd()
+                i = 0
+                repeat while i < cell:GetLeafCount()
+                    replaceLeaves:Add(cell:GetLeaf(i))
+                    i = i + 1
+                end
+                integer c = 0
+                repeat while c < cell:GetChildCount()
+                    subtreeStack:Add(cell:GetChild(c))
+                    c = c + 1
+                end
+            end
+        end
+
+        root = undefined
+        deepest = -1
+        outsideLeaves:Empty()
+        i = 0
+        repeat while i < replaceLeaves:GetSize()
+            RenderTreeNode3D leaf = replaceLeaves:Get(i)
+            leaf:SetCell(undefined)
+            leaf:SetCellIndex(-1)
+            Place(leaf)
+            i = i + 1
+        end
+        replaceLeaves:Empty()
+    end
+end

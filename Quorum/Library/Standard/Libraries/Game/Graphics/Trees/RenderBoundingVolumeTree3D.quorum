@@ -1,0 +1,570 @@
+package Libraries.Game.Graphics.Trees
+
+use Libraries.Game.BoundingBox
+use Libraries.Containers.Array
+use Libraries.Interface.Item3D
+
+/*
+RenderBoundingVolumeTree3D is a dynamic bounding volume tree for drawing: a
+binary tree of boxes, where each leaf holds one drawable item and each branch
+holds the box around its two children. A search can skip a whole branch when
+its box is out of view.
+
+The algorithm is the one used by the physics tree, DynamicBoundingVolumeTree3D,
+which comes from Box2D and Bullet. Adding a leaf walks down from the root,
+choosing the child whose box grows least, measured by perimeter. Removing
+replaces the leaf's parent with its sibling. Both refit the boxes above and
+rebalance with rotations, so the tree stays shallow. This class is a separate
+copy rather than a shared one, so that drawing can change without any risk to
+physics. A fix to the shared algorithm in either class should be checked in
+the other.
+
+DynamicVolumeRenderTree3D uses two of these, as the parts of a
+StaticDynamicRenderTree3D: a static half with no margin, and a dynamic half
+whose leaves are made a little bigger than their items, so small moves need
+no change to the tree.
+
+The leaves belong to the render tree, which moves them between the two
+halves. This class creates and reuses only the branch nodes. The margin comes
+from RenderTreePart3D, and the box calculations are actions on
+RenderTreeNode3D.
+
+Attribute: Example
+
+use Libraries.Game.Graphics.Trees.RenderBoundingVolumeTree3D
+use Libraries.Game.Graphics.Trees.RenderTreeNode3D
+use Libraries.Interface.Item3D
+use Libraries.Game.BoundingBox
+use Libraries.Containers.Array
+
+Item3D item
+RenderTreeNode3D leaf
+leaf:SetItem(item)
+
+BoundingBox box
+box:Extend(1, 1, 1)
+box:Extend(-1, -1, -1)
+
+RenderBoundingVolumeTree3D tree
+tree:Add(leaf, box)
+Array<Item3D> found
+tree:Collect(box, found)
+output found:GetSize()
+*/
+class RenderBoundingVolumeTree3D is RenderTreePart3D
+    RenderTreeNode3D root = undefined
+
+    integer leafCount = 0
+
+    // Branch nodes that have been removed, kept for reuse so the tree does
+    // not create objects while items move. An Array, not a List, because a
+    // List creates a node object for every Add.
+    Array<RenderTreeNode3D> freeNodes
+
+    // Reused by the searches, as stacks of nodes still to visit. They are
+    // emptied with Empty(false), which keeps their storage, so searching
+    // creates no objects once the stacks have grown to fit the tree.
+    Array<RenderTreeNode3D> stack
+    Array<RenderTreeNode3D> subtreeStack
+
+    BoundingBox combined
+
+    /*
+    This action returns how many items, or leaves, the tree holds.
+
+    Attribute: Returns The number of leaves.
+    */
+    action GetSize returns integer
+        return leafCount
+    end
+
+    /*
+    This action returns how many levels the tree has below its root, or -1
+    when it is empty.
+
+    Attribute: Returns The number of levels.
+    */
+    action GetHeight returns integer
+        if root = undefined
+            return -1
+        end
+        return root:GetHeight()
+    end
+
+    /*
+    This action adds a leaf, with a box around the given bounds of its item.
+
+    Attribute: Parameter leaf The leaf to add. Its item must already be set.
+    Attribute: Parameter itemBounds The item's bounds in the world.
+    */
+    action Add(RenderTreeNode3D leaf, BoundingBox itemBounds)
+        leaf:SetBounds(itemBounds, GetMargin())
+        AddLeaf(leaf)
+        leafCount = leafCount + 1
+    end
+
+    /*
+    This action removes a leaf. The leaf itself is not reused here, since it
+    belongs to the render tree.
+
+    Attribute: Parameter leaf The leaf to remove.
+    */
+    action Remove(RenderTreeNode3D leaf)
+        RemoveLeaf(leaf)
+        leafCount = leafCount - 1
+    end
+
+    /*
+    This action removes every leaf. The branch nodes are dropped rather than
+    kept for reuse, since emptying is rare.
+    */
+    action Empty
+        root = undefined
+        leafCount = 0
+        freeNodes:Empty()
+    end
+
+    /*
+    This action updates a leaf whose item has moved. If the item's new bounds
+    are still inside the leaf's box, nothing changes. Otherwise the leaf is
+    removed, given a new box, and added again.
+
+    Attribute: Parameter leaf The leaf whose item moved.
+    Attribute: Parameter itemBounds The item's new bounds in the world.
+    Attribute: Returns True if the leaf was moved in the tree.
+    */
+    action Move(RenderTreeNode3D leaf, BoundingBox itemBounds) returns boolean
+        if leaf:Contains(itemBounds)
+            return false
+        end
+        RemoveLeaf(leaf)
+        leaf:SetBounds(itemBounds, GetMargin())
+        AddLeaf(leaf)
+        return true
+    end
+
+    /*
+    This action adds to the results every item whose box is at least partly
+    inside the volume. A branch entirely inside the volume adds all of its
+    items without testing them, and a branch entirely outside is skipped.
+
+    Attribute: Parameter volume The volume, such as a camera's view.
+    Attribute: Parameter results The array to add the items to.
+    */
+    action Collect(CullingVolume3D volume, Array<Item3D> results)
+        if root = undefined
+            return now
+        end
+
+        // Read once here, since reading a constant is an action call.
+        integer inside = volume:INSIDE
+        integer intersecting = volume:INTERSECTING
+
+        stack:Empty(false)
+        stack:Add(root)
+        repeat while not stack:IsEmpty()
+            RenderTreeNode3D node = stack:RemoveFromEnd()
+            integer result = volume:Test(node:GetBounds())
+            if result = inside
+                AddAll(node, results)
+            elseif result = intersecting
+                if node:IsLeaf()
+                    results:Add(node:GetItem())
+                else
+                    stack:Add(node:GetLeft())
+                    stack:Add(node:GetRight())
+                end
+            end
+        end
+    end
+
+    /*
+    This action adds to the results every item whose box overlaps the given
+    box.
+
+    Attribute: Parameter box The box, in world coordinates.
+    Attribute: Parameter results The array to add the items to.
+    */
+    action Collect(BoundingBox box, Array<Item3D> results)
+        if root = undefined
+            return now
+        end
+        stack:Empty(false)
+        stack:Add(root)
+        repeat while not stack:IsEmpty()
+            RenderTreeNode3D node = stack:RemoveFromEnd()
+            if node:GetBounds():TestOverlap(box)
+                if node:IsLeaf()
+                    results:Add(node:GetItem())
+                else
+                    stack:Add(node:GetLeft())
+                    stack:Add(node:GetRight())
+                end
+            end
+        end
+    end
+
+    /*
+    This action adds to the results every item whose box overlaps the sphere
+    with the given center and radius, such as a point light's reach.
+
+    Attribute: Parameter x The x coordinate of the sphere's center.
+    Attribute: Parameter y The y coordinate of the sphere's center.
+    Attribute: Parameter z The z coordinate of the sphere's center.
+    Attribute: Parameter radius The sphere's radius.
+    Attribute: Parameter results The array to add the items to.
+    */
+    action Collect(number x, number y, number z, number radius, Array<Item3D> results)
+        if root = undefined
+            return now
+        end
+        number radiusSquared = radius * radius
+        stack:Empty(false)
+        stack:Add(root)
+        repeat while not stack:IsEmpty()
+            RenderTreeNode3D node = stack:RemoveFromEnd()
+            if node:DistanceSquared(x, y, z) <= radiusSquared
+                if node:IsLeaf()
+                    results:Add(node:GetItem())
+                else
+                    stack:Add(node:GetLeft())
+                    stack:Add(node:GetRight())
+                end
+            end
+        end
+    end
+
+    /*
+    This action returns the leftmost leaf, the first in the tree's order, or
+    undefined when the tree is empty.
+
+    Attribute: Returns The first leaf, or undefined.
+    */
+    action GetFirstLeaf returns RenderTreeNode3D
+        if root = undefined
+            return undefined
+        end
+        return LeftmostLeaf(root)
+    end
+
+    /*
+    This action returns the leaf after the given one, going from left to
+    right, or undefined after the last leaf.
+
+    It climbs from the leaf while it is a right child. The first time it is
+    a left child, the next leaf is the leftmost leaf of its right sibling.
+    If it reaches the root first, the given leaf was the last. Only parent
+    and child links are followed, so each step takes at most the tree's
+    height, and on average about two moves.
+
+    Attribute: Parameter leaf A leaf in this tree.
+    Attribute: Returns The next leaf, or undefined.
+    */
+    action GetNextLeaf(RenderTreeNode3D leaf) returns RenderTreeNode3D
+        RenderTreeNode3D node = leaf
+        RenderTreeNode3D above = node:GetParentNode()
+        repeat while above not= undefined and above:GetRight() = node
+            node = above
+            above = node:GetParentNode()
+        end
+        if above = undefined
+            return undefined
+        end
+        return LeftmostLeaf(above:GetRight())
+    end
+
+    /*
+    This action adds every item below the given node to the results, without
+    testing them.
+
+    Attribute: Parameter start The node to start from.
+    Attribute: Parameter results The array to add the items to.
+    */
+    private action AddAll(RenderTreeNode3D start, Array<Item3D> results)
+        subtreeStack:Empty(false)
+        subtreeStack:Add(start)
+        repeat while not subtreeStack:IsEmpty()
+            RenderTreeNode3D node = subtreeStack:RemoveFromEnd()
+            if node:IsLeaf()
+                results:Add(node:GetItem())
+            else
+                subtreeStack:Add(node:GetLeft())
+                subtreeStack:Add(node:GetRight())
+            end
+        end
+    end
+
+    /*
+    This action returns the leftmost leaf at or below a node, by following
+    left children down.
+
+    Attribute: Parameter start The node to start from.
+    Attribute: Returns The leftmost leaf below it, or the node itself if it
+    is a leaf.
+    */
+    private action LeftmostLeaf(RenderTreeNode3D start) returns RenderTreeNode3D
+        RenderTreeNode3D node = start
+        repeat while not node:IsLeaf()
+            node = node:GetLeft()
+        end
+        return node
+    end
+
+    /*
+    This action returns a branch node, reusing a removed one if there is one.
+
+    Attribute: Returns A branch node, cleared and ready to use.
+    */
+    private action NewBranch returns RenderTreeNode3D
+        if not freeNodes:IsEmpty()
+            return freeNodes:RemoveFromEnd()
+        end
+        RenderTreeNode3D node
+        return node
+    end
+
+    /*
+    This action clears a branch node that is no longer in the tree and keeps
+    it for reuse.
+
+    Attribute: Parameter node The branch node to keep.
+    */
+    private action FreeBranch(RenderTreeNode3D node)
+        node:Reset()
+        freeNodes:Add(node)
+    end
+
+    /*
+    This action places a leaf in the tree. It walks down from the root, at each
+    branch comparing the cost of making the leaf a sibling of the branch here
+    with the cost of going down into either child. The cost is how much the
+    boxes above would grow, measured by perimeter, as in the physics tree.
+
+    Attribute: Parameter leaf The leaf to place. Its box must already be set.
+    */
+    private action AddLeaf(RenderTreeNode3D leaf)
+        leaf:SetParentNode(undefined)
+        leaf:SetLeft(undefined)
+        leaf:SetRight(undefined)
+        leaf:SetHeight(0)
+
+        if root = undefined
+            root = leaf
+            return now
+        end
+
+        BoundingBox leafBounds = leaf:GetBounds()
+        RenderTreeNode3D sibling = root
+        boolean found = false
+        repeat while not sibling:IsLeaf() and not found
+            number perimeter = sibling:GetBounds():GetPerimeter()
+            combined:Combine(sibling:GetBounds(), leafBounds)
+            number combinedPerimeter = combined:GetPerimeter()
+
+            // The cost of making the leaf a sibling of this branch.
+            number cost = 2 * combinedPerimeter
+            // The cost every box above pays, wherever the leaf goes.
+            number inheritedCost = 2 * (combinedPerimeter - perimeter)
+
+            number leftCost = DescendCost(sibling:GetLeft(), leafBounds, inheritedCost)
+            number rightCost = DescendCost(sibling:GetRight(), leafBounds, inheritedCost)
+
+            if cost < leftCost and cost < rightCost
+                found = true
+            elseif leftCost < rightCost
+                sibling = sibling:GetLeft()
+            else
+                sibling = sibling:GetRight()
+            end
+        end
+
+        // Put a new branch where the sibling was, holding the sibling and
+        // the leaf.
+        RenderTreeNode3D oldParent = sibling:GetParentNode()
+        RenderTreeNode3D branch = NewBranch()
+        branch:SetParentNode(oldParent)
+        branch:GetBounds():Combine(leafBounds, sibling:GetBounds())
+        branch:SetHeight(sibling:GetHeight() + 1)
+        branch:SetLeft(sibling)
+        branch:SetRight(leaf)
+        sibling:SetParentNode(branch)
+        leaf:SetParentNode(branch)
+        ReplaceChild(oldParent, sibling, branch)
+
+        Refit(branch)
+    end
+
+    /*
+    This action returns the cost of going down into a child when adding a
+    leaf.
+
+    Attribute: Parameter child The child that might be gone down into.
+    Attribute: Parameter leafBounds The box of the leaf being added.
+    Attribute: Parameter inheritedCost The cost every box above pays, wherever
+    the leaf goes.
+    Attribute: Returns The cost of going down into the child.
+    */
+    private action DescendCost(RenderTreeNode3D child, BoundingBox leafBounds, number inheritedCost) returns number
+        combined:Combine(leafBounds, child:GetBounds())
+        if child:IsLeaf()
+            return combined:GetPerimeter() + inheritedCost
+        end
+        return (combined:GetPerimeter() - child:GetBounds():GetPerimeter()) + inheritedCost
+    end
+
+    /*
+    This action takes a leaf out of the tree. Its parent branch is removed,
+    and the leaf's sibling takes the parent's place.
+
+    Attribute: Parameter leaf The leaf to take out.
+    */
+    private action RemoveLeaf(RenderTreeNode3D leaf)
+        if leaf = root
+            root = undefined
+            leaf:SetParentNode(undefined)
+            return now
+        end
+
+        RenderTreeNode3D branch = leaf:GetParentNode()
+        RenderTreeNode3D grandparent = branch:GetParentNode()
+        RenderTreeNode3D sibling = branch:GetLeft()
+        if sibling = leaf
+            sibling = branch:GetRight()
+        end
+
+        sibling:SetParentNode(grandparent)
+        ReplaceChild(grandparent, branch, sibling)
+        FreeBranch(branch)
+        leaf:SetParentNode(undefined)
+
+        if grandparent not= undefined
+            Refit(grandparent)
+        end
+    end
+
+    /*
+    This action walks from a branch up to the root, rebalancing each branch
+    and recomputing its box and height.
+
+    Attribute: Parameter start The branch to start from.
+    */
+    private action Refit(RenderTreeNode3D start)
+        RenderTreeNode3D node = start
+        repeat while node not= undefined
+            node = Balance(node)
+            node:SetHeight(1 + Larger(node:GetLeft():GetHeight(), node:GetRight():GetHeight()))
+            node:GetBounds():Combine(node:GetLeft():GetBounds(), node:GetRight():GetBounds())
+            node = node:GetParentNode()
+        end
+    end
+
+    /*
+    This action puts a new child in place of an old one.
+
+    Attribute: Parameter owner The branch holding the old child, or undefined
+    if the old child was the root.
+    Attribute: Parameter oldChild The child being replaced.
+    Attribute: Parameter newChild The child to put in its place.
+    */
+    private action ReplaceChild(RenderTreeNode3D owner, RenderTreeNode3D oldChild, RenderTreeNode3D newChild)
+        if owner = undefined
+            root = newChild
+        elseif owner:GetLeft() = oldChild
+            owner:SetLeft(newChild)
+        else
+            owner:SetRight(newChild)
+        end
+    end
+
+    /*
+    This action returns the larger of two whole numbers.
+
+    Attribute: Parameter first The first number.
+    Attribute: Parameter second The second number.
+    Attribute: Returns The larger of the two.
+    */
+    private action Larger(integer first, integer second) returns integer
+        if first > second
+            return first
+        end
+        return second
+    end
+
+    /*
+    This action rebalances the branch a when one of its children is more
+    than one level taller than the other, by rotating the taller child up
+    into a's place. This is the rotation from Box2D, as in the physics tree.
+
+    Attribute: Parameter a The branch to rebalance.
+    Attribute: Returns The branch now in a's place.
+    */
+    private action Balance(RenderTreeNode3D a) returns RenderTreeNode3D
+        if a:IsLeaf() or a:GetHeight() < 2
+            return a
+        end
+
+        RenderTreeNode3D b = a:GetLeft()
+        RenderTreeNode3D c = a:GetRight()
+        integer balance = c:GetHeight() - b:GetHeight()
+
+        // The right child, c, is too tall: rotate it up.
+        if balance > 1
+            RenderTreeNode3D f = c:GetLeft()
+            RenderTreeNode3D g = c:GetRight()
+            c:SetLeft(a)
+            c:SetParentNode(a:GetParentNode())
+            a:SetParentNode(c)
+            ReplaceChild(c:GetParentNode(), a, c)
+
+            if f:GetHeight() > g:GetHeight()
+                c:SetRight(f)
+                a:SetRight(g)
+                g:SetParentNode(a)
+                a:GetBounds():Combine(b:GetBounds(), g:GetBounds())
+                c:GetBounds():Combine(a:GetBounds(), f:GetBounds())
+                a:SetHeight(1 + Larger(b:GetHeight(), g:GetHeight()))
+                c:SetHeight(1 + Larger(a:GetHeight(), f:GetHeight()))
+            else
+                c:SetRight(g)
+                a:SetRight(f)
+                f:SetParentNode(a)
+                a:GetBounds():Combine(b:GetBounds(), f:GetBounds())
+                c:GetBounds():Combine(a:GetBounds(), g:GetBounds())
+                a:SetHeight(1 + Larger(b:GetHeight(), f:GetHeight()))
+                c:SetHeight(1 + Larger(a:GetHeight(), g:GetHeight()))
+            end
+            return c
+        end
+
+        // The left child, b, is too tall: rotate it up.
+        if balance < -1
+            RenderTreeNode3D d = b:GetLeft()
+            RenderTreeNode3D e = b:GetRight()
+            b:SetLeft(a)
+            b:SetParentNode(a:GetParentNode())
+            a:SetParentNode(b)
+            ReplaceChild(b:GetParentNode(), a, b)
+
+            if d:GetHeight() > e:GetHeight()
+                b:SetRight(d)
+                a:SetLeft(e)
+                e:SetParentNode(a)
+                a:GetBounds():Combine(c:GetBounds(), e:GetBounds())
+                b:GetBounds():Combine(a:GetBounds(), d:GetBounds())
+                a:SetHeight(1 + Larger(c:GetHeight(), e:GetHeight()))
+                b:SetHeight(1 + Larger(a:GetHeight(), d:GetHeight()))
+            else
+                b:SetRight(e)
+                a:SetLeft(d)
+                d:SetParentNode(a)
+                a:GetBounds():Combine(c:GetBounds(), d:GetBounds())
+                b:GetBounds():Combine(a:GetBounds(), e:GetBounds())
+                a:SetHeight(1 + Larger(c:GetHeight(), d:GetHeight()))
+                b:SetHeight(1 + Larger(a:GetHeight(), e:GetHeight()))
+            end
+            return b
+        end
+
+        return a
+    end
+end

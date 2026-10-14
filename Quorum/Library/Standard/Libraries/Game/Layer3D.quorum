@@ -1214,6 +1214,47 @@ CollisionEdge3D edge = item:GetCollisionList()
     end
 
     /*
+    This action is called by an item on this layer, or one of its
+    children, the first time it moves, turns or changes scale after its
+    move report was cleared with SetReportedMove(false). It does nothing
+    here. A layer that keeps its own record of where its items are, such as
+    one that culls, can fill it in.
+
+    Attribute: Parameter item The item that moved.
+    */
+    action ItemMoved(Item3D item)
+    end
+
+    /*
+    This action is called by an item on this layer, or one of its
+    children, when its width, height or depth changes, such as when a model
+    finishes loading. It does nothing here.
+
+    Attribute: Parameter item The item whose size changed.
+    */
+    action ItemResized(Item3D item)
+    end
+
+    /*
+    This action is called by an item on this layer when its physics is
+    turned on or off. It does nothing here.
+
+    Attribute: Parameter item The item whose physics changed.
+    */
+    action ItemPhysicsChanged(Item3D item)
+    end
+
+    /*
+    This action is called by an item on this layer when physics starts or
+    stops simulating it, that is, when it wakes or falls asleep. It does
+    nothing here.
+
+    Attribute: Parameter item The item that woke or fell asleep.
+    */
+    action ItemSimulationChanged(Item3D item)
+    end
+
+    /*
     This action will update all of the items contained within this Layer. The
     given number of seconds will be passed to each updated item. This is
     automatically called by the Game class as needed. Most users will never need

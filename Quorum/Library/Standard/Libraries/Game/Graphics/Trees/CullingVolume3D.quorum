@@ -1,0 +1,202 @@
+package Libraries.Game.Graphics.Trees
+
+use Libraries.Compute.Matrix4
+use Libraries.Compute.Math
+use Libraries.Containers.Number32BitArray
+use Libraries.Game.BoundingBox
+
+/*
+CullingVolume3D is the region a camera or a light can see, as a set of planes
+facing inward. A box is inside the volume if it is on the inner side of every
+plane.
+
+The planes are taken from a view-projection matrix, the matrix that turns a
+world position into a position on the screen. A point is visible when, after
+the matrix, its x and y are between -w and w and its z is no more than w.
+Each of those five limits is one plane. Building the planes this way works
+for any camera or light, left-handed or right-handed, perspective or
+orthographic, because it uses only what the matrix does.
+
+There is no near plane. OpenGL and Vulkan put it in different places (z of
+-w or 0), and leaving it out means the volume does not need to know which
+graphics system is running. For a camera, the four side planes already
+reject everything behind it, so the only extra items are ones between the
+camera and its near plane, a very small space. For a directional light's
+shadows, the near plane must be left out anyway: items between the light and
+its shadow area still cast shadows into it.
+
+The library's Frustum class is not used. Its box test, BoundsInFrustum, is
+commented out, and it builds its planes from corners that assume OpenGL's
+depth range in a fixed order, which may no longer face inward in the
+left-handed world.
+
+Attribute: Example
+
+use Libraries.Game.Graphics.Trees.CullingVolume3D
+use Libraries.Compute.Matrix4
+use Libraries.Game.BoundingBox
+use Libraries.Compute.Vector3
+
+// A new Matrix4 does nothing to a point, so this volume holds x and y
+// from -1 to 1, and z up to 1.
+Matrix4 matrix
+CullingVolume3D volume
+volume:Set(matrix)
+
+Vector3 minimum
+Vector3 maximum
+minimum:Set(-0.5, -0.5, 0)
+maximum:Set(0.5, 0.5, 0.5)
+BoundingBox box
+box:Set(minimum, maximum)
+output volume:Test(box) = volume:INSIDE
+*/
+class CullingVolume3D
+    public constant integer OUTSIDE = 0
+    public constant integer INTERSECTING = 1
+    public constant integer INSIDE = 2
+
+    // Four numbers for each plane, a, b, c and d. A point (x, y, z) is on the
+    // inner side when a * x + b * y + c * z + d >= 0. A Number32BitArray holds
+    // plain numbers, where an Array<number> would wrap each one in an object.
+    // 32 bits is the precision the graphics card works in anyway.
+    Number32BitArray planes
+    integer planeCount = 0
+
+    // The same values as OUTSIDE, INTERSECTING and INSIDE, kept in fields.
+    // Reading a constant is an action call, which Test would otherwise make
+    // for every box it tests.
+    integer outside = OUTSIDE
+    integer intersecting = INTERSECTING
+    integer inside = INSIDE
+    Math math
+
+    on create
+        planes:SetSize(20)
+    end
+
+    /*
+    This action sets the volume from a view-projection matrix, such as a
+    camera's combined matrix or a light's shadow matrix.
+
+    Attribute: Parameter matrix The view-projection matrix to read the planes
+    from.
+    */
+    action Set(Matrix4 matrix)
+        planeCount = 0
+
+        // Left and right: -w <= x <= w.
+        AddPlane(matrix:row3column0 + matrix:row0column0, matrix:row3column1 + matrix:row0column1,
+            matrix:row3column2 + matrix:row0column2, matrix:row3column3 + matrix:row0column3)
+        AddPlane(matrix:row3column0 - matrix:row0column0, matrix:row3column1 - matrix:row0column1,
+            matrix:row3column2 - matrix:row0column2, matrix:row3column3 - matrix:row0column3)
+
+        // Bottom and top: -w <= y <= w.
+        AddPlane(matrix:row3column0 + matrix:row1column0, matrix:row3column1 + matrix:row1column1,
+            matrix:row3column2 + matrix:row1column2, matrix:row3column3 + matrix:row1column3)
+        AddPlane(matrix:row3column0 - matrix:row1column0, matrix:row3column1 - matrix:row1column1,
+            matrix:row3column2 - matrix:row1column2, matrix:row3column3 - matrix:row1column3)
+
+        // Far: z <= w.
+        AddPlane(matrix:row3column0 - matrix:row2column0, matrix:row3column1 - matrix:row2column1,
+            matrix:row3column2 - matrix:row2column2, matrix:row3column3 - matrix:row2column3)
+    end
+
+    /*
+    This action adds a plane, scaled so (a, b, c) has length 1. A plane with
+    no direction, which a broken matrix can produce, is skipped. A point (x, y,
+    z) is on the inner side of the plane when a * x + b * y + c * z + d is 0 or
+    more.
+
+    Attribute: Parameter a How much the plane depends on x.
+    Attribute: Parameter b How much the plane depends on y.
+    Attribute: Parameter c How much the plane depends on z.
+    Attribute: Parameter d How far the plane is from the origin.
+    */
+    private action AddPlane(number a, number b, number c, number d)
+        number length = math:SquareRoot(a * a + b * b + c * c)
+        if length = 0
+            return now
+        end
+        integer i = planeCount * 4
+        planes:Set(i, a / length)
+        planes:Set(i + 1, b / length)
+        planes:Set(i + 2, c / length)
+        planes:Set(i + 3, d / length)
+        planeCount = planeCount + 1
+    end
+
+    /*
+    This action tests a box against the volume and returns OUTSIDE,
+    INTERSECTING or INSIDE.
+
+    For each plane, the box's corner farthest along the plane's direction is
+    tested first. If even that corner is on the outer side, the whole box is
+    outside. Otherwise the opposite corner is tested. If it is on the outer
+    side, the box crosses the plane. A box is inside only if it crosses no
+    plane.
+
+    Attribute: Parameter box The box to test, in world coordinates.
+    Attribute: Returns OUTSIDE, INTERSECTING or INSIDE.
+    */
+    action Test(BoundingBox box) returns integer
+        number minX = box:GetMinimum():GetX()
+        number minY = box:GetMinimum():GetY()
+        number minZ = box:GetMinimum():GetZ()
+        number maxX = box:GetMaximum():GetX()
+        number maxY = box:GetMaximum():GetY()
+        number maxZ = box:GetMaximum():GetZ()
+
+        boolean crosses = false
+        integer p = 0
+        repeat while p < planeCount
+            integer i = p * 4
+            number a = planes:Get(i)
+            number b = planes:Get(i + 1)
+            number c = planes:Get(i + 2)
+            number d = planes:Get(i + 3)
+
+            number farX = minX
+            number nearX = maxX
+            if a >= 0
+                farX = maxX
+                nearX = minX
+            end
+            number farY = minY
+            number nearY = maxY
+            if b >= 0
+                farY = maxY
+                nearY = minY
+            end
+            number farZ = minZ
+            number nearZ = maxZ
+            if c >= 0
+                farZ = maxZ
+                nearZ = minZ
+            end
+
+            if a * farX + b * farY + c * farZ + d < 0
+                return outside
+            end
+            if a * nearX + b * nearY + c * nearZ + d < 0
+                crosses = true
+            end
+            p = p + 1
+        end
+
+        if crosses
+            return intersecting
+        end
+        return inside
+    end
+
+    /*
+    This action returns how many planes the volume has: 5, or fewer if the
+    matrix gave a plane with no direction.
+
+    Attribute: Returns The number of planes.
+    */
+    action GetPlaneCount returns integer
+        return planeCount
+    end
+end
