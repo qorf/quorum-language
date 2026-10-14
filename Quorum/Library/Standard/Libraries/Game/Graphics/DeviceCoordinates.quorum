@@ -6,10 +6,7 @@ use different coordinate systems when translating world coordinates to screen sp
 When the CameraMatrix4 class calculates projections, if no coordinate system or depth range
 is specified, it uses the default NDC stored here.
 
-By default, OpenGL uses a right handed coordinate system for calculations, and Vulkan
-uses a left handed coordinate system. OpenGL maps its depth range from -1 to 1, and
-Vulkan maps its depth range from 0 to 1. These values are automatically set when a Game
-is created, so most users will never need to use this class directly.*/
+By default, Quorum expects left handed device coordinates.*/
 class DeviceCoordinates
     
     public constant integer LEFT_HANDED = 0

@@ -18,9 +18,15 @@ class SPIRVShaderCompiler
     private constant integer SHADERC_TESS_CONTROL_SHADER = 4
     private constant integer SHADERC_TESS_EVALUATION_SHADER = 5
     private constant integer SHADERC_INFER_FROM_SOURCE = 6
+    
+    private constant boolean DEFAULT_OPTIMIZE_SHADERS = true
 
     action Compile(text shaderName, text shaderCode, integer shaderType) returns ByteArray
-        return CompileNative(shaderName, shaderCode, ConvertToShadercType(shaderType))
+        return CompileNative(shaderName, shaderCode, ConvertToShadercType(shaderType), DEFAULT_OPTIMIZE_SHADERS)
+    end
+    
+    action Compile(text shaderName, text shaderCode, integer shaderType, boolean optimizeShader) returns ByteArray
+        return CompileNative(shaderName, shaderCode, ConvertToShadercType(shaderType), optimizeShader)
     end
 
     action Compile(File file, integer shaderType) returns ByteArray
@@ -54,6 +60,6 @@ class SPIRVShaderCompiler
         return SHADERC_INFER_FROM_SOURCE
     end
 
-    private system action CompileNative(text shaderName, text shaderCode, integer shaderType) returns ByteArray
+    private system action CompileNative(text shaderName, text shaderCode, integer shaderType, boolean optimizeShader) returns ByteArray
 
 end
