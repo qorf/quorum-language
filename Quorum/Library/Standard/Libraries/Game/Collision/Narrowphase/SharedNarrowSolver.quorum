@@ -86,6 +86,26 @@ CollisionPointsResult3D result)
             triangleFallback:GetClosestPoints(triangleTransform, shapeTransform, reach * reach, result, false)
         end
     end
+
+    /*
+    This action prepares for a run of CollideTriangle calls with the same
+    shape, such as the triangles of a terrain under one box, so the shape's
+    fixed values are read once. Call ReleaseShape after the run.
+
+    Attribute: Parameter shape The shape about to be tested against many triangles.
+    */
+    action PrepareShape(CollisionShape3D shape)
+        if shape:GetType() = shape:BOX
+            boxTriangleSolver:PrepareBox(cast(Box, shape))
+        end
+    end
+
+    /*
+    This action ends a run of CollideTriangle calls started by PrepareShape.
+    */
+    action ReleaseShape
+        boxTriangleSolver:ReleaseBox()
+    end
     
     
     /*

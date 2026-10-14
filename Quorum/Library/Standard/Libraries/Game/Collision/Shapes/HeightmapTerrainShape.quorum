@@ -291,12 +291,16 @@ PhysicsPosition3D shapeTransform, CollisionPointsResult3D result)
         number zLocalMin = (tempShapeBox:GetMinimum():GetZ() - originZ) / scaleZ
         number zLocalMax = (tempShapeBox:GetMaximum():GetZ() - originZ) / scaleZ
 
-        //Expand by a cell each way, as Bullet does, so a box that falls between
-        //grid points still tests the cells on either side of it.
-        integer xmin = cast(integer, math:Floor(xLocalMin)) - 1
-        integer xmax = cast(integer, math:Floor(xLocalMax)) + 1
-        integer zmin = cast(integer, math:Floor(zLocalMin)) - 1
-        integer zmax = cast(integer, math:Floor(zLocalMax)) + 1
+        // Cell i covers the grid from i to i + 1, so the cells from
+        // floor(min) to floor(max) cover the shape's box. The box has already
+        // been grown by the margin and the contact threshold, so nothing
+        // within reach lies outside these cells. Bullet widens its range by a
+        // cell each way because it rounds the box's corners to the nearest
+        // grid point instead of flooring them, and stops one short of its end.
+        integer xmin = cast(integer, math:Floor(xLocalMin))
+        integer xmax = cast(integer, math:Floor(xLocalMax))
+        integer zmin = cast(integer, math:Floor(zLocalMin))
+        integer zmax = cast(integer, math:Floor(zLocalMax))
 
         if xmin < 0
             xmin = 0
@@ -315,6 +319,10 @@ PhysicsPosition3D shapeTransform, CollisionPointsResult3D result)
         end
         
         Matrix4 terrainNormalTransform = terrain:GetTransform()
+
+        // The shape is the same for every triangle, so its fixed values are
+        // read once for the whole loop.
+        narrowSolver:PrepareShape(shape)
         i = xmin
         j = zmin
         repeat while i <= xmax
@@ -327,6 +335,7 @@ PhysicsPosition3D shapeTransform, CollisionPointsResult3D result)
             j = zmin
             i = i + 1
         end
+        narrowSolver:ReleaseShape()
         
         result:FinishGathering()
         result:RefreshCollisionPoints()
