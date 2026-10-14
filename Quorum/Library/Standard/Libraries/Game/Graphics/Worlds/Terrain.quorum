@@ -481,6 +481,28 @@ which is itself scaled from 0 to 1. Thus, we have 0 to 30 by default. */
         return pixelHeight
     end
 
+    /*
+    This action fills in the box around the terrain's mesh, in its own
+    coordinates. The mesh starts at the terrain's position, at one corner,
+    and runs one unit per height sample across and deep, as tall as its
+    highest point. The terrain's scale is in its transform, so it is not
+    applied here.
+
+    Attribute: Parameter local The box to fill in.
+    Attribute: Returns True, or false if the terrain has not been built yet.
+    */
+    action GetRenderBounds(BoundingBox local) returns boolean
+        if GetPixelWidth() <= 0 or GetPixelHeight() <= 0
+            return false
+        end
+        Vector3 minimum
+        minimum:Set(0, 0, 0)
+        Vector3 maximum
+        maximum:Set(GetPixelWidth() - 1, GetHeight(), GetPixelHeight() - 1)
+        local:Set(minimum, maximum)
+        return true
+    end
+
     action GetTextureSplat returns TextureSplat
         return textureSplat
     end

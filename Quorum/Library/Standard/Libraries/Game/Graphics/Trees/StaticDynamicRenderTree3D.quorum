@@ -9,6 +9,8 @@ use Libraries.Game.Graphics.PointLight
 use Libraries.Game.Graphics.DirectionalLight
 use Libraries.Game.Graphics.CascadeShadowData
 use Libraries.Compute.Matrix4
+use Libraries.Compute.Vector3
+use Libraries.Game.Graphics.Camera
 
 /*
 StaticDynamicRenderTree3D is the work shared by DynamicVolumeRenderTree3D,
@@ -341,6 +343,36 @@ class StaticDynamicRenderTree3D is RenderTree3D
         volume:Set(data:GetProjectionMatrix(0))
         staticPart:Collect(volume, results)
         dynamicPart:Collect(volume, results)
+    end
+
+    /*
+    This action adds the items that could cast a shadow from a directional
+    light into view to the results: those within the light's shadow
+    distance of the camera, or, if it has none, those that could cast a
+    shadow into any of its cascades. See RenderTree3D.
+
+    Attribute: Parameter light The directional light.
+    Attribute: Parameter camera The camera the shadow distance is measured
+    from.
+    Attribute: Parameter results The array to add the items to.
+    */
+    action CollectDirectionalShadowCasters(DirectionalLight light, Camera camera, Array<Item3D> results)
+        number distance = light:GetShadowDistance()
+        if distance > 0
+            Vector3 center = camera:GetPosition()
+            if volume:SetShadowColumn(light:GetDirection(), center:GetX(), center:GetY(), center:GetZ(), distance)
+                staticPart:Collect(volume, results)
+                dynamicPart:Collect(volume, results)
+            end
+            return now
+        end
+
+        // The light has shadow data for each cascade, and none past the last.
+        integer cascade = 0
+        repeat while light:GetShadowData(cascade) not= undefined
+            CollectDirectionalShadowCasters(light, cascade, results)
+            cascade = cascade + 1
+        end
     end
 
     /*

@@ -2,6 +2,7 @@ package Libraries.Game.Graphics.Trees
 
 use Libraries.Compute.Matrix4
 use Libraries.Compute.Math
+use Libraries.Compute.Vector3
 use Libraries.Containers.Number32BitArray
 use Libraries.Game.BoundingBox
 
@@ -100,6 +101,87 @@ class CullingVolume3D
         // Far: z <= w.
         AddPlane(matrix:row3column0 - matrix:row2column0, matrix:row3column1 - matrix:row2column1,
             matrix:row3column2 - matrix:row2column2, matrix:row3column3 - matrix:row2column3)
+    end
+
+    /*
+    This action sets the volume to the column of space that can cast a
+    directional light's shadow within a distance of a point, such as the
+    camera.
+
+    The column is a square, twice the distance wide, centered on the point
+    and running along the light's direction. Toward the light it has no
+    end, so a tall object far toward the light is still inside it. Away
+    from the light, it ends the distance past the point, since anything
+    farther is behind whatever its shadow would fall on.
+
+    Its five planes face inward, as those read from a matrix do: two at the
+    distance on either side of the point, along a direction across the
+    light; two the same, along the other direction across the light; and
+    one the distance past the point, along the light.
+
+    Attribute: Parameter direction The direction the light shines in. It
+    does not need to be unit length.
+    Attribute: Parameter x The x coordinate of the column's center.
+    Attribute: Parameter y The y coordinate of the column's center.
+    Attribute: Parameter z The z coordinate of the column's center.
+    Attribute: Parameter distance How far the column reaches to each side,
+    and past the center.
+    Attribute: Returns False if the direction has no length, in which case
+    the volume is left empty and finds nothing.
+    */
+    action SetShadowColumn(Vector3 direction, number x, number y, number z, number distance) returns boolean
+        planeCount = 0
+
+        number forwardX = direction:GetX()
+        number forwardY = direction:GetY()
+        number forwardZ = direction:GetZ()
+        number length = math:SquareRoot(forwardX * forwardX + forwardY * forwardY + forwardZ * forwardZ)
+        if length = 0
+            return false
+        end
+        forwardX = forwardX / length
+        forwardY = forwardY / length
+        forwardZ = forwardZ / length
+
+        // A direction across the light: up crossed with the light's
+        // direction, using z as up if the light points nearly straight up
+        // or down.
+        number upX = 0
+        number upY = 1
+        number upZ = 0
+        if math:AbsoluteValue(forwardY) > 0.99
+            upY = 0
+            upZ = 1
+        end
+        number rightX = upY * forwardZ - upZ * forwardY
+        number rightY = upZ * forwardX - upX * forwardZ
+        number rightZ = upX * forwardY - upY * forwardX
+        number rightLength = math:SquareRoot(rightX * rightX + rightY * rightY + rightZ * rightZ)
+        rightX = rightX / rightLength
+        rightY = rightY / rightLength
+        rightZ = rightZ / rightLength
+
+        // The other direction across the light, at right angles to both.
+        number sideX = forwardY * rightZ - forwardZ * rightY
+        number sideY = forwardZ * rightX - forwardX * rightZ
+        number sideZ = forwardX * rightY - forwardY * rightX
+
+        // How far the center is along each direction.
+        number rightAt = rightX * x + rightY * y + rightZ * z
+        number sideAt = sideX * x + sideY * y + sideZ * z
+        number forwardAt = forwardX * x + forwardY * y + forwardZ * z
+
+        // A point is inside when each of these is 0 or more for it, as for
+        // the planes read from a matrix. The first is the point's distance
+        // along the right direction, minus the center's, plus the distance,
+        // so it is 0 or more for points no more than the distance to the
+        // left of the center. The others work the same way.
+        AddPlane(rightX, rightY, rightZ, distance - rightAt)
+        AddPlane(-rightX, -rightY, -rightZ, distance + rightAt)
+        AddPlane(sideX, sideY, sideZ, distance - sideAt)
+        AddPlane(-sideX, -sideY, -sideZ, distance + sideAt)
+        AddPlane(-forwardX, -forwardY, -forwardZ, distance + forwardAt)
+        return true
     end
 
     /*

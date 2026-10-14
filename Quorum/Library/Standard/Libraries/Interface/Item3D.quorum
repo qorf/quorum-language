@@ -473,6 +473,43 @@ class Item3D is Item
     end
 
     /*
+    This action fills in the box around this item's shape, in its own
+    coordinates, for a layer that culls what it draws. It returns false if
+    the item has no shape to cull by.
+
+    This version gives a box of the item's width, height and depth,
+    centered on the item. A model gets its width, height and depth from its
+    blueprint when it loads, so this works for most models. An item whose
+    shape is not centered on it, such as a terrain, whose mesh starts at its
+    corner, should replace this action with one that gives its real box.
+
+    An item with no size has no box, and neither has one with a negative
+    size, which a blueprint with a bug in its measuring could give. A flat
+    box, such as a plane's, is allowed.
+
+    Attribute: Parameter local The box to fill in.
+    Attribute: Returns True if the box was filled in, false if the item has
+    none.
+    */
+    action GetRenderBounds(BoundingBox local) returns boolean
+        number halfWidth = width / 2
+        number halfHeight = height / 2
+        number halfDepth = depth / 2
+        if halfWidth < 0 or halfHeight < 0 or halfDepth < 0
+            return false
+        end
+        if halfWidth = 0 and halfHeight = 0 and halfDepth = 0
+            return false
+        end
+        Vector3 minimum
+        minimum:Set(-halfWidth, -halfHeight, -halfDepth)
+        Vector3 maximum
+        maximum:Set(halfWidth, halfHeight, halfDepth)
+        local:Set(minimum, maximum)
+        return true
+    end
+
+    /*
     GetDimensions will return a Vector3 object containing the width, height, and
     depth of this Item3D object. 
 

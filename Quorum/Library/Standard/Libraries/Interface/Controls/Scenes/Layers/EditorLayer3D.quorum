@@ -223,28 +223,4 @@ class EditorLayer3D is Layer3D, EditorLayer
         end
     end
 
-    /*
-        This action adds an item to layer so that it gets drawn to the screen. This action
-        also adds the item to an input group so that certain keys and events will trigger when
-        the user interacts with the Scene Editor.
-    */
-    action Add(integer index, Item3D item)
-        parent:Layer3D:Add(index, item)
-        if item:HasProperty(constants:EDITOR_TAG) = false and item:GetInputGroup() = ""
-            item:SetInputGroup(constants:SCENE_ITEM3D_INPUT_GROUP)
-        end
-    end
-
-    /*
-        This action adds an item to layer so that it gets drawn to the screen. This action
-        also adds the item to an input group so that certain keys and events will trigger when
-        the user interacts with the Scene Editor.
-    */
-    action AddToFront(Item3D item)
-        parent:Layer3D:AddToFront(item)
-        if item:HasProperty(constants:EDITOR_TAG) = false and item:GetInputGroup() = ""
-            item:SetInputGroup(constants:SCENE_ITEM3D_INPUT_GROUP)
-        end
-    end
-    
 end

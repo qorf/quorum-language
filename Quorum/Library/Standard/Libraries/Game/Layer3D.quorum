@@ -51,6 +51,9 @@ use Libraries.Game.Graphics.Models.OpenGL.Attributes.EnvironmentOpenGL
 use Libraries.Game.Graphics.Vulkan.VulkanGraphics
 use Libraries.Game.Collision.RayCastResult3D
 use Libraries.Game.Physics.PhysicsBehavior3D
+use Libraries.Game.Graphics.Trees.RenderTree3D
+use Libraries.Game.Graphics.Trees.DynamicVolumeRenderTree3D
+use Libraries.Game.Graphics.Trees.RenderTreeNode3D
 
 /*
 The Layer3D class is used to manage a number of 3D objects, as well as manage
@@ -95,7 +98,33 @@ end
 */
 class Layer3D is Layer
 
-    Array<Item3D> items
+    // Every item added to the layer. Their children are reached through
+    // them. The tree also finds what the camera can see.
+    RenderTree3D renderTree = undefined
+    DynamicVolumeRenderTree3D defaultRenderTree
+
+    // The items with physics, split by whether physics is moving them. They
+    // use the same kind of tree as the rendering tree, only to hold their
+    // items, so physics visits only the bodies that are awake.
+    RenderTree3D awakeBodies = undefined
+    RenderTree3D sleepingBodies = undefined
+    DynamicVolumeRenderTree3D defaultAwakeBodies
+    DynamicVolumeRenderTree3D defaultSleepingBodies
+
+    // Bodies put in a group during the last physics step, so their group
+    // flags can be cleared without visiting every body.
+    Array<Item3D> grouped
+
+    // Bodies that woke or fell asleep, moved to the matching physics tree
+    // once no walk of the trees is under way.
+    Array<Item3D> changedBodies
+
+    // Items that reported a move since collisions were last found.
+    Array<Item3D> movedItems
+
+    // The bounds given to items with no shape: a box of no size at the
+    // item's own position, so every item is in the rendering tree.
+    BoundingBox emptyBounds
     Array<MouseListener> mouseListeners
     Array<MouseMovementListener> mouseMovementListeners
     Array<MouseWheelListener> mouseWheelListeners
@@ -154,6 +183,10 @@ class Layer3D is Layer
     Item3DDepthComparison depthSorter
 
     on create
+        renderTree = defaultRenderTree
+        awakeBodies = defaultAwakeBodies
+        sleepingBodies = defaultSleepingBodies
+
         SetName("Layer3D")
 
         PerspectiveCamera cam
@@ -360,8 +393,8 @@ class Layer3D is Layer
     /*
     This action will add an Item3D to this Layer. It will be updated along with
     the rest of the layer, and will be drawn on the screen (if it is visible and
-    possible to draw the given Item3D). The Item3D will be added to the back of
-    the layer's internal array of items.
+    possible to draw the given Item3D). The layer keeps its items in a tree, so
+    they have no order.
 
     Attribute: Parameter item The Item3D to be added to the layer.
 
@@ -407,123 +440,11 @@ class Layer3D is Layer
         EnsureCorrectThread()
 
         item:SetLayer(me)
-        items:Add(item)
+        AddToRenderTree(item)
+        if item:IsPhysicsEnabled()
+            AddBody(item)
+        end
         EnableItemLighting(item)
-        newItemAdded = true
-
-        Accessibility accessibility = manager:GetAccessibility()
-        if accessibility not= undefined
-            accessibility:Add(item)
-        end
-    end
-
-    /*
-    This action will add an Item3D to this Layer's array of items at the index
-    location. It will be updated along with the rest of the layer, and will be 
-    drawn on the screen (if it is visible and possible to draw the given Item3D).
-
-    Attribute: Parameter index The index to store the item at in the layer's array of items.
-    Attribute: Parameter item The Item3D to be added to this layer.
-
-    Attribute: Example
-
-    use Libraries.Game.Game
-    use Libraries.Game.Layer3D
-    use Libraries.Interface.Item3D
-    use Libraries.Game.Graphics.Model
-    use Libraries.Game.Graphics.Color
-
-    class Main is Game
-
-        action Main
-            StartGame()
-        end
-
-        action CreateGame
-            // Item3D objects aren't visible, but can still be used for game logic.
-            Item3D area
-            area:SetDimensions(5, 5, 5)
-            area:SetPosition(0, 10, 10)
-
-            // Models inherit from Item2D, so they can be added too.
-            Model box
-            Color color
-            box:LoadBox(3, 3, 3, color:Green())
-            box:SetPosition(0, 0, 2)
-
-            Layer3D layer
-            layer:Add(0, area)
-            layer:Add(1, box)
-            AddLayer(layer)
-        end
-
-        action Update(number seconds)
-        end
-    end
-    */
-    action Add(integer index, Item3D item)
-        EnsureCorrectThread()
-
-        item:SetLayer(me)
-        items:Add(index, item)
-        newItemAdded = true
-
-        Accessibility accessibility = manager:GetAccessibility()
-        if accessibility not= undefined
-            accessibility:Add(item)
-        end
-    end
-
-    /*
-    This action will add an Item3D to this layer's array of items at index 0. 
-    It will be updated along with the rest of the layer, and will be drawn on 
-    the screen (if it is visible and possible to draw the given Item3D). Adding
-    an item to the front will cause it to be drawn and updated before other
-    items in the layer, and other drawn items will appear to be on top of it.
-
-    Attribute: Parameter item The item to add to the front of the layer's item array.
-
-    Attribute: Example
-
-    use Libraries.Game.Game
-    use Libraries.Game.Layer3D
-    use Libraries.Interface.Item3D
-    use Libraries.Game.Graphics.Model
-    use Libraries.Game.Graphics.Color
-
-    class Main is Game
-
-        action Main
-            StartGame()
-        end
-
-        action CreateGame
-            // Item3D objects aren't visible, but can still be used for game logic.
-            Item3D area
-            area:SetDimensions(5, 5, 5)
-            area:SetPosition(0, 0, 5)
-
-            // Models inherit from Item3D, so they can be added too.
-            Model cylinder
-            Color color
-            cylinder:LoadCylinder(3, 3, 3, color:Teal())
-            cylinder:SetPosition(1, 0, 1)
-
-            Layer3D layer
-            layer:AddToFront(area)
-            layer:AddToFront(cylinder)
-            AddLayer(layer)
-        end
-
-        action Update(number seconds)
-        end
-    end
-    */
-    action AddToFront(Item3D item)
-        EnsureCorrectThread()
-
-        item:SetLayer(me)
-        items:AddToFront(item)
         newItemAdded = true
 
         Accessibility accessibility = manager:GetAccessibility()
@@ -570,13 +491,16 @@ class Layer3D is Layer
         //has to be done this way so that physics behaviors are informed that they were removed
         if physicsBehaviors not= undefined
             repeat while not physicsBehaviors:IsEmpty()
-            Remove(physicsBehaviors:Get(physicsBehaviors:GetSize() - 1))
+                Remove(physicsBehaviors:Get(physicsBehaviors:GetSize() - 1))
+            end
         end
-        end
-        
-        Iterator<Item3D> it = items:GetIterator()
-        repeat while it:HasNext()
-            Item3D body = it:Next()
+
+        // The next leaf is found before an item is handled, since handling it
+        // takes it off the layer.
+        RenderTreeNode3D leaf = renderTree:GetFirstLeaf()
+        repeat while leaf not= undefined
+            RenderTreeNode3D upcoming = renderTree:GetNextLeaf(leaf)
+            Item3D body = leaf:GetItem()
             CollisionEdge3D edge = body:GetCollisionList()
             repeat while edge not= undefined
                 CollisionEdge3D edge0 = edge
@@ -584,12 +508,18 @@ class Layer3D is Layer
                 collisionManager:Destroy(edge0:GetCollision())
             end
             body:SetCollisionList(undefined)
-
             body:DestroyNodes(collisionManager:GetBroadphase())
             body:SetCollidable(false)
             body:SetLayer(undefined)
+            leaf = upcoming
         end
-        items:Empty()
+
+        renderTree:Empty()
+        awakeBodies:Empty()
+        sleepingBodies:Empty()
+        grouped:Empty()
+        changedBodies:Empty()
+        movedItems:Empty()
     end
 
     /*
@@ -634,20 +564,21 @@ class Layer3D is Layer
         EnsureCorrectThread()
 
         if IsColliding()
-CollisionEdge3D edge = item:GetCollisionList()
-        repeat while edge not= undefined
-            CollisionEdge3D edge0 = edge
-            edge = edge:GetNext()
-            collisionManager:Destroy(edge0:GetCollision())
-        end
-        item:SetCollisionList(undefined)
+            CollisionEdge3D edge = item:GetCollisionList()
+            repeat while edge not= undefined
+                CollisionEdge3D edge0 = edge
+                edge = edge:GetNext()
+                collisionManager:Destroy(edge0:GetCollision())
+            end
+            item:SetCollisionList(undefined)
 
-        item:DestroyNodes(collisionManager:GetBroadphase())
-        item:SetCollidable(false)
+            item:DestroyNodes(collisionManager:GetBroadphase())
+            item:SetCollidable(false)
         end
 
         item:SetLayer(undefined)
-        items:Remove(item)
+        renderTree:Remove(item)
+        RemoveBody(item)
         DisableItemLighting(item)
 
         Accessibility accessibility = manager:GetAccessibility()
@@ -657,333 +588,9 @@ CollisionEdge3D edge = item:GetCollisionList()
     end
 
     /*
-    This action will remove an Item3D at the index location from this layer's 
-    array of items, and return the item that was removed.
-
-    Attribute: Parameter index The index to remove an item from in this layer's array of items.
-
-    Attribute: Returns The item that was removed from the item array in the layer.
-
-    Attribute: Example
-
-    use Libraries.Game.Game
-    use Libraries.Game.Layer3D
-    use Libraries.Interface.Item3D
-    use Libraries.Game.Graphics.Model
-    use Libraries.Game.Graphics.Color
-
-    class Main is Game
-
-        action Main
-            StartGame()
-        end
-
-        action CreateGame
-            Color color
-            Model cube
-            cube:LoadBox(3, 3, 3, color:Maroon())
-            cube:SetPosition(0, 0, 2)
-
-            Layer3D layer
-            layer:Add(cube)
-            AddLayer(layer)
-
-            Item3D item = layer:RemoveAt(0)
-        end
-
-        action Update(number seconds)
-        end
-    end
-    */
-    action RemoveAt(integer index) returns Item3D
-        EnsureCorrectThread()
-
-        Item3D item = items:RemoveAt(index)
-
-        if IsColliding()
-CollisionEdge3D edge = item:GetCollisionList()
-        repeat while edge not= undefined
-            CollisionEdge3D edge0 = edge
-            edge = edge:GetNext()
-            collisionManager:Destroy(edge0:GetCollision())
-        end
-        item:SetCollisionList(undefined)
-
-        item:DestroyNodes(collisionManager:GetBroadphase())
-        item:SetCollidable(false)
-            
-        end
-        
-        item:SetLayer(undefined)
-
-        Accessibility accessibility = manager:GetAccessibility()
-        if accessibility not= undefined
-            accessibility:Remove(item)
-        end
-
-        return item
-    end 
-
-    /*
-    This action will remove an Item3D from the front of the array of items in
-    this layer, and return the item that was removed. This is functionally the
-    same as calling "RemoveAt(0)".
-
-    Attribute: Returns The item that was removed from the front of the layer's item array.
-    
-    Attribute: Example
-
-    use Libraries.Game.Game
-    use Libraries.Game.Layer3D
-    use Libraries.Interface.Item3D
-    use Libraries.Game.Graphics.Model
-    use Libraries.Game.Graphics.Color
-
-    class Main is Game
-
-        action Main
-            StartGame()
-        end
-
-        action CreateGame
-            Color color
-            Model cylinder
-            cylinder:LoadCylinder(2, 4, 2, color:Pink())
-            cylinder:SetPosition(0, 0, 2)
-
-            Layer3D layer
-            layer:Add(cylinder)
-            AddLayer(layer)
-
-            Item3D item = layer:RemoveFromFront()
-        end
-
-        action Update(number seconds)
-        end
-    end
-    */
-    action RemoveFromFront returns Item3D
-        EnsureCorrectThread()
-
-        Item3D item = items:RemoveFromFront()
-
-        if IsColliding()
-CollisionEdge3D edge = item:GetCollisionList()
-        repeat while edge not= undefined
-            CollisionEdge3D edge0 = edge
-            edge = edge:GetNext()
-            collisionManager:Destroy(edge0:GetCollision())
-        end
-        item:SetCollisionList(undefined)
-
-        item:DestroyNodes(collisionManager:GetBroadphase())
-        item:SetCollidable(false)
-        end
-        
-
-        item:SetLayer(undefined)
-
-        Accessibility accessibility = manager:GetAccessibility()
-        if accessibility not= undefined
-            accessibility:Remove(item)
-        end
-
-        return item
-    end
-
-   /*
-    This action will remove an Item3D from the end of the array of items in
-    this layer, and return the item that was removed.
-
-    Attribute: Returns The item that was removed from the end of the layer's item array.
-    
-    Attribute: Example
-
-    use Libraries.Game.Game
-    use Libraries.Game.Layer3D
-    use Libraries.Interface.Item3D
-    use Libraries.Game.Graphics.Model
-    use Libraries.Game.Graphics.Color
-
-    class Main is Game
-
-        action Main
-            StartGame()
-        end
-
-        action CreateGame
-            Color color
-            Model cylinder
-            cylinder:LoadCylinder(2, 4, 2, color:Pink())
-            cylinder:SetPosition(0, 0, 2)
-
-            Layer3D layer
-            layer:Add(cylinder)
-            AddLayer(layer)
-
-            Item3D item = layer:RemoveFromEnd()
-        end
-
-        action Update(number seconds)
-        end
-    end
-    */
-    action RemoveFromEnd returns Item3D
-        EnsureCorrectThread()
-
-        Item3D item = items:RemoveFromEnd()
-
-        if IsColliding()
-CollisionEdge3D edge = item:GetCollisionList()
-        repeat while edge not= undefined
-            CollisionEdge3D edge0 = edge
-            edge = edge:GetNext()
-            collisionManager:Destroy(edge0:GetCollision())
-        end
-        item:SetCollisionList(undefined)
-
-        item:DestroyNodes(collisionManager:GetBroadphase())
-        item:SetCollidable(false)
-        end
-
-        item:SetLayer(undefined)
-
-        Accessibility accessibility = manager:GetAccessibility()
-        if accessibility not= undefined
-            accessibility:Remove(item)
-        end
-
-        return item
-    end
-
-    /*
-    This action will get an Item3D stored in the layer at the given index in the
-    layer's internal array of items.
-
-    Attribute: Parameter index The index to retrieve an item from in the layer's array of items.
-
-    Attribute: Returns The Item3D stored at the index in the array.
-
-    Attribute: Example
-
-    use Libraries.Game.Game
-    use Libraries.Game.Layer3D
-    use Libraries.Interface.Item3D
-    use Libraries.Game.Graphics.Model
-    use Libraries.Game.Graphics.Color
-
-    class Main is Game
-
-        action Main
-            StartGame()
-        end
-
-        action CreateGame
-            Color color
-            Model sphere
-            sphere:LoadSphere(3, 3, 3, color:White())
-            sphere:SetPosition(0, 0, 2)
-
-            Layer3D layer
-            layer:Add(sphere)
-            AddLayer(layer)
-
-            Item3D item = layer:Get(0)
-        end
-
-        action Update(number seconds)
-        end
-    end
-    */
-    action Get(integer index) returns Item3D
-        return items:Get(index)
-    end
-
-    /*
-    This action will return the Item3D at the front of the layer's array of
-    items. This is functionally the same as calling "Get(0)".
-
-    Attribute: Returns The first item in the layer's array of items.
-
-    Attribute: Example
-
-    use Libraries.Game.Game
-    use Libraries.Game.Layer3D
-    use Libraries.Interface.Item3D
-    use Libraries.Game.Graphics.Model
-    use Libraries.Game.Graphics.Color
-
-    class Main is Game
-
-        action Main
-            StartGame()
-        end
-
-        action CreateGame
-            Color color
-            Model cube
-            cube:LoadBox(2, 2, 2, color:Yellow())
-            cube:SetPosition(0, 0, 2)
-
-            Layer3D layer
-            layer:Add(cube)
-            AddLayer(layer)
-
-            Item3D item = layer:GetFromFront()
-        end
-
-        action Update(number seconds)
-        end
-    end
-    */
-    action GetFromFront returns Item3D
-        return items:GetFromFront()
-    end
-
-    /*
-    This action will return the item stored at the end of the layer's array of
-    items.
-
-    Attribute: Returns The last item in the layer's array of items.
-
-    Attribute: Example
-
-    use Libraries.Game.Game
-    use Libraries.Game.Layer3D
-    use Libraries.Interface.Item3D
-    use Libraries.Game.Graphics.Model
-    use Libraries.Game.Graphics.Color
-
-    class Main is Game
-
-        action Main
-            StartGame()
-        end
-
-        action CreateGame
-            Color color
-            Model sphere
-            sphere:LoadSphere(2, 2, 2, color:Green())
-            sphere:SetPosition(0, 0, 2)
-
-            Layer3D layer
-            layer:Add(sphere)
-            AddLayer(layer)
-
-            Item3D item = layer:GetFromEnd()
-        end
-
-        action Update(number seconds)
-        end
-    end
-    */
-    action GetFromEnd returns Item3D
-        return items:GetFromEnd()
-    end
-
-    /*
     This action will return an iterator of all the Item3D's stored inside this
-    layer's array of items.
+    layer. The items come in the order of the layer's tree, which is not the
+    order they were added in, and can change as they move.
 
     Attribute: Returns An iterator containing all Item3D's stored in this layer.
 
@@ -1019,14 +626,14 @@ CollisionEdge3D edge = item:GetCollisionList()
     end
     */
     action GetIterator returns Iterator<Item3D>
-        return items:GetIterator()
+        return renderTree:GetIterator()
     end
 
     /*
     This action will return the number of items that have been added to this
     layer.
 
-    Attribute: Returns The number of items stored in this layer's array of items.
+    Attribute: Returns The number of items stored in this layer.
 
     Attribute: Example
 
@@ -1060,12 +667,12 @@ CollisionEdge3D edge = item:GetCollisionList()
     end
     */
     action GetSize returns integer
-        return items:GetSize()
+        return renderTree:GetSize()
     end
 
     /*
-    This action will return false if there are items stored in this layer's array
-    of items, or true if there are none.
+    This action will return false if there are items stored in this layer, or
+    true if there are none.
 
     Attribute: Returns Whether or not any items are stored in this layer.
 
@@ -1105,17 +712,15 @@ CollisionEdge3D edge = item:GetCollisionList()
     end
     */
     action IsEmpty returns boolean
-        return items:IsEmpty()
+        return renderTree:GetSize() = 0
     end
 
     /*
-    This action will set the value of the given index in the layer's array of 
-    items to be the given Item3D. The previous value will be overwritten. If the
-    index does not exist in the array (e.g., the given index is larger than the 
-    number of items stored in this layer), an error will be thrown.
+    This action returns true if the given item was added to this layer. It
+    does not look for children of the layer's items.
 
-    Attribute: Parameter index What index to set inside the layer's array of items.
-    Attribute: Parameter item The item to store at the given index in the array.
+    Attribute: Parameter item The item to look for.
+    Attribute: Returns True if the item was added to this layer.
 
     Attribute: Example
 
@@ -1124,59 +729,21 @@ CollisionEdge3D edge = item:GetCollisionList()
     use Libraries.Interface.Item3D
 
     class Main is Game
-
         action Main
             StartGame()
         end
 
         action CreateGame
-            Item3D item1
-            Item3D item2
-            Item3D item3
-
-            Layer3D layer
-            layer:Add(item1)
-            layer:Add(item2)
-            layer:Set(1, item3)
-            AddLayer(layer)
-        end
-
-        action Update(number seconds)
+            Item3D item
+            Layer3D layer = GetCurrentLayer3D()
+            output layer:Has(item)
+            layer:Add(item)
+            output layer:Has(item)
         end
     end
-
     */
-    action Set(integer index, Item3D item)
-        /*
-        Before overwriting the old data in the array, we want to make sure that
-        any lights in the item's hierarchy are removed from the environment.
-        */
-        Item3D oldItem = items:Get(index)
-        if oldItem not= undefined
-            item:SetLayer(undefined)
-            DisableItemLighting(oldItem)
-
-            Accessibility accessibility = manager:GetAccessibility()
-            if accessibility not= undefined
-                accessibility:Remove(item)
-            end
-        end
-
-        items:Set(index, item)
-
-        /*
-        We now also add the new item's lighting data to the environment.
-        */
-        if item not= undefined
-            item:SetLayer(me)
-            newItemAdded = true
-            EnableItemLighting(item)
-
-            Accessibility accessibility = manager:GetAccessibility()
-            if accessibility not= undefined
-                accessibility:Add(item)
-            end
-        end
+    action Has(Item3D item) returns boolean
+        return renderTree:Has(item)
     end
 
     /*
@@ -1216,42 +783,59 @@ CollisionEdge3D edge = item:GetCollisionList()
     /*
     This action is called by an item on this layer, or one of its
     children, the first time it moves, turns or changes scale after its
-    move report was cleared with SetReportedMove(false). It does nothing
-    here. A layer that keeps its own record of where its items are, such as
-    one that culls, can fill it in.
+    move report was cleared. The layer keeps it until collisions are next
+    found, so its collision box can be brought up to date, and then clears
+    its report.
 
     Attribute: Parameter item The item that moved.
     */
     action ItemMoved(Item3D item)
+        movedItems:Add(item)
     end
 
     /*
     This action is called by an item on this layer, or one of its
     children, when its width, height or depth changes, such as when a model
-    finishes loading. It does nothing here.
+    finishes loading. An item added to the layer is placed in the rendering
+    tree again, with its new bounds. A child is left alone, since only the
+    items added to the layer are in the tree.
 
     Attribute: Parameter item The item whose size changed.
     */
     action ItemResized(Item3D item)
+        if renderTree:Remove(item)
+            AddToRenderTree(item)
+        end
     end
 
     /*
     This action is called by an item on this layer when its physics is
-    turned on or off. It does nothing here.
+    turned on or off. An item added to the layer is put in, or taken out of,
+    the trees physics uses.
 
     Attribute: Parameter item The item whose physics changed.
     */
     action ItemPhysicsChanged(Item3D item)
+        if not renderTree:Has(item)
+            return now
+        end
+        if item:IsPhysicsEnabled()
+            AddBody(item)
+        else
+            RemoveBody(item)
+        end
     end
 
     /*
     This action is called by an item on this layer when physics starts or
-    stops simulating it, that is, when it wakes or falls asleep. It does
-    nothing here.
+    stops simulating it, that is, when it wakes or falls asleep. The item is
+    moved to the matching physics tree once no walk of the trees is under
+    way.
 
     Attribute: Parameter item The item that woke or fell asleep.
     */
     action ItemSimulationChanged(Item3D item)
+        changedBodies:Add(item)
     end
 
     /*
@@ -1261,10 +845,13 @@ CollisionEdge3D edge = item:GetCollisionList()
     to use this action directly.
     */
     action Update(number seconds)
-        integer counter = 0
-        repeat items:GetSize() times
-            items:Get(counter):UpdateAll(seconds)
-            counter = counter + 1
+        // The next leaf is found before an item is updated, so an item can
+        // remove itself while it updates.
+        RenderTreeNode3D leaf = renderTree:GetFirstLeaf()
+        repeat while leaf not= undefined
+            RenderTreeNode3D upcoming = renderTree:GetNextLeaf(leaf)
+            leaf:GetItem():UpdateAll(seconds)
+            leaf = upcoming
         end
     end
 
@@ -1300,10 +887,10 @@ Painter3D painter = GetPainter()
         
         painter:Begin()
 
-        integer counter = 0
-        repeat items:GetSize() times
-            items:Get(counter):Draw(painter)
-            counter = counter + 1
+        RenderTreeNode3D leaf = renderTree:GetFirstLeaf()
+        repeat while leaf not= undefined
+            leaf:GetItem():Draw(painter)
+            leaf = renderTree:GetNextLeaf(leaf)
         end
 
         painter:End()
@@ -1403,9 +990,10 @@ Painter3D painter = GetPainter()
         independently of this action.
         */
         Array<Item3D> allItems
-        repeat items:GetSize() times
-            GetChildrenHierarchy(items:Get(counter), allItems)
-            counter = counter + 1
+        RenderTreeNode3D leaf = renderTree:GetFirstLeaf()
+        repeat while leaf not= undefined
+            GetChildrenHierarchy(leaf:GetItem(), allItems)
+            leaf = renderTree:GetNextLeaf(leaf)
         end
         counter = 0
 
@@ -1514,9 +1102,10 @@ Painter3D painter = GetPainter()
         independently of this action.
         */
         Array<Item3D> allItems
-        repeat items:GetSize() times
-            GetChildrenHierarchy(items:Get(counter), allItems)
-            counter = counter + 1
+        RenderTreeNode3D leaf = renderTree:GetFirstLeaf()
+        repeat while leaf not= undefined
+            GetChildrenHierarchy(leaf:GetItem(), allItems)
+            leaf = renderTree:GetNextLeaf(leaf)
         end
         counter = 0
 
@@ -1581,9 +1170,10 @@ Painter3D painter = GetPainter()
         independently of this action.
         */
         Array<Item3D> allItems
-        repeat items:GetSize() times
-            GetChildrenHierarchy(items:Get(counter), allItems)
-            counter = counter + 1
+        RenderTreeNode3D leaf = renderTree:GetFirstLeaf()
+        repeat while leaf not= undefined
+            GetChildrenHierarchy(leaf:GetItem(), allItems)
+            leaf = renderTree:GetNextLeaf(leaf)
         end
         counter = 0
 
@@ -1685,9 +1275,10 @@ Painter3D painter = GetPainter()
         independently of this action.
         */
         Array<Item3D> allItems
-        repeat items:GetSize() times
-            GetChildrenHierarchy(items:Get(counter), allItems)
-            counter = counter + 1
+        RenderTreeNode3D leaf = renderTree:GetFirstLeaf()
+        repeat while leaf not= undefined
+            GetChildrenHierarchy(leaf:GetItem(), allItems)
+            leaf = renderTree:GetNextLeaf(leaf)
         end
         counter = 0
 
@@ -1790,6 +1381,139 @@ Painter3D painter = GetPainter()
             GetChildrenHierarchy(item:GetItem(counter), array)
             counter = counter + 1
         end
+    end
+
+    /*
+    This action adds an item to the rendering tree, with the box its
+    GetRenderBounds action gives. An item with no box is added with a box
+    of no size at its own position, so every item is in the tree.
+
+    Attribute: Parameter item The item to add.
+    */
+    private action AddToRenderTree(Item3D item)
+        if renderTree:Has(item)
+            return now
+        end
+        if not renderTree:Add(item)
+            renderTree:Add(item, emptyBounds)
+        end
+    end
+
+    /*
+    This action puts an item with physics in the awake or sleeping tree, by
+    whether physics is simulating it. An item already in either is left
+    where it is.
+
+    Attribute: Parameter item The item.
+    */
+    private action AddBody(Item3D item)
+        if awakeBodies:Has(item) or sleepingBodies:Has(item)
+            return now
+        end
+        if item:IsSimulated()
+            AddToPhysicsTree(awakeBodies, item)
+        else
+            AddToPhysicsTree(sleepingBodies, item)
+        end
+    end
+
+    /*
+    This action takes an item out of both physics trees.
+
+    Attribute: Parameter item The item.
+    */
+    private action RemoveBody(Item3D item)
+        awakeBodies:Remove(item)
+        sleepingBodies:Remove(item)
+    end
+
+    /*
+    This action adds an item to one of the physics trees. The trees only
+    hold the bodies, so an item with no box is added with a box of no size.
+
+    Attribute: Parameter tree The awake or sleeping tree.
+    Attribute: Parameter item The item.
+    */
+    private action AddToPhysicsTree(RenderTree3D tree, Item3D item)
+        if not tree:Add(item)
+            tree:Add(item, emptyBounds)
+        end
+    end
+
+    /*
+    This action moves each body that woke or fell asleep into the physics
+    tree that matches whether physics is simulating it now. A body that
+    changed more than once ends up where its last change put it. Bodies that
+    are in neither tree, such as children with physics, are left alone.
+    */
+    private action MoveChangedBodies
+        integer i = 0
+        repeat while i < changedBodies:GetSize()
+            Item3D body = changedBodies:Get(i)
+            if body:IsPhysicsEnabled()
+                if body:IsSimulated()
+                    if sleepingBodies:Remove(body)
+                        AddToPhysicsTree(awakeBodies, body)
+                    end
+                else
+                    if awakeBodies:Remove(body)
+                        AddToPhysicsTree(sleepingBodies, body)
+                    end
+                end
+            end
+            i = i + 1
+        end
+        changedBodies:Empty(false)
+    end
+
+    /*
+    This action notes that a body was put in a group this step, so its group
+    flag is cleared next step and its collision box is moved after this
+    step. Unmovable bodies, such as terrain, are left out. Their flag is
+    cleared right after each group is solved, so they can join many groups
+    in one step, and they do not move.
+
+    Attribute: Parameter body The body put in a group.
+    */
+    private action AddToGrouped(Item3D body)
+        if not body:IsUnmovable()
+            grouped:Add(body)
+        end
+    end
+
+    /*
+    This action brings the collision boxes of the items that reported a
+    move up to date: those without physics, and bodies marked as moved, as
+    when their position is set. Awake bodies moved by physics were brought
+    up to date after each physics step. An item that has left the layer is
+    skipped.
+    */
+    private action SynchronizeMovedItems
+        integer i = 0
+        repeat while i < movedItems:GetSize()
+            Item3D item = movedItems:Get(i)
+            if item:GetLayer() = me
+                if not item:IsPhysicsEnabled()
+                    item:SynchronizeNodes()
+                elseif item:HasMoved()
+                    item:SynchronizeNodes()
+                end
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+    This action clears the move report of every item that reported one, so
+    each reports its next move, and empties the list.
+    */
+    private action ClearMovedItems
+        integer i = 0
+        repeat while i < movedItems:GetSize()
+            movedItems:Get(i):SetReportedMove(false)
+            i = i + 1
+        end
+        movedItems:Empty(false)
     end
 
     /*
@@ -2887,6 +2611,7 @@ Painter3D painter = GetPainter()
     */
     action TestForCollisions(number seconds)
         if not collide
+            ClearMovedItems()
             return now
         end
         if newItemAdded
@@ -2894,22 +2619,30 @@ Painter3D painter = GetPainter()
             newItemAdded = false
         end
 
-
         if physicsEnabled
+            MoveChangedBodies()
             StepPhysics(seconds)
             SetScreenPositionsFromPhysicsPositions()
             UpdateBehaviorsAfterPhysics(seconds)
+
+            // Collision boxes are brought up to date for the items the game
+            // moved. The awake bodies were already brought up to date after
+            // each physics step, since every one of them was in a group, so a
+            // body is only done again if it is marked as moved, as when its
+            // position is set.
+            SynchronizeMovedItems()
         else
             collisionManager:Collide()
-        end
 
-        integer i = 0
-        repeat while i < items:GetSize()
-            Item3D item = items:Get(i)
-            item:SynchronizeNodes()
-
-            i = i + 1
+            // Without physics, every item's collision box is brought up to
+            // date.
+            RenderTreeNode3D leaf = renderTree:GetFirstLeaf()
+            repeat while leaf not= undefined
+                leaf:GetItem():SynchronizeNodes()
+                leaf = renderTree:GetNextLeaf(leaf)
+            end
         end
+        ClearMovedItems()
 
         collisionManager:FindNewCollisions()
     end
@@ -3047,12 +2780,12 @@ Painter3D painter = GetPainter()
 
         requireSimulation = flag
         if requireSimulation
-            integer i = 0
-            repeat items:GetSize() times
-                Item3D item = items:Get(i)
-                item:Simulate(true)
-                i = i + 1
+            RenderTreeNode3D leaf = sleepingBodies:GetFirstLeaf()
+            repeat while leaf not= undefined
+                leaf:GetItem():Simulate(true)
+                leaf = sleepingBodies:GetNextLeaf(leaf)
             end
+            MoveChangedBodies()
         end
     end
 
@@ -3069,14 +2802,14 @@ Painter3D painter = GetPainter()
     end
 
     action ClearForces
-        integer i = 0
-        repeat items:GetSize() times
-            Item3D body = items:Get(i)
+        RenderTreeNode3D leaf = awakeBodies:GetFirstLeaf()
+        repeat while leaf not= undefined
+            Item3D body = leaf:GetItem()
             if body:IsPhysicsEnabled()
                 body:GetForce():SetZero()
                 body:GetTorque():SetZero()
             end
-            i = i + 1
+            leaf = awakeBodies:GetNextLeaf(leaf)
         end
     end
 
@@ -3100,7 +2833,7 @@ Painter3D painter = GetPainter()
         else
             fixedTimeStep = seconds
             localTime = seconds
-            if math:AbsoluteValue(seconds) < 0.00000011920928955078125
+            if math:AbsoluteValue(seconds) < math:SMALLEST_STEP_32_BIT
                 numSimulationSubsteps = 0
                 maxSubSteps = 0
             else
@@ -3181,49 +2914,29 @@ they were added. Behaviors must not be added or removed during this loop.*/
         end
     end
 
-    private action PredictUnconstrainedMotion(number seconds)
-        PhysicsPosition3D temp
-
-        integer i = 0
-        repeat items:GetSize() times
-            Item3D item = items:Get(i)
-            if item:IsPhysicsEnabled()
-                if item:IsResponsive() and item:IsSimulated()
-                    temp:Set(item:GetInterpolationWorldTransform())
-                    item:IntegrateVelocities(seconds)
-                    item:ApplyDamping(seconds)
-                    item:PredictIntegratedTransform(seconds, temp)
-                end
-            end
-            i = i + 1
-        end
-    end
-
     CollisionGroup3D island
     Stack<Item3D> stack
     CollisionSolverInformation3D solverInfo
 
     action SolvePhysics(number seconds)
-        
         i = 0
-        repeat physicsBehaviors:GetSize() times
+        repeat while i < physicsBehaviors:GetSize()
             PhysicsBehavior3D behavior = physicsBehaviors:Get(i)
             behavior:SetInCollisionGroup(false)
             i = i + 1
         end
-        
+
         solverInfo:SetTimeStep(seconds)
         island:SetSolverInformation(solverInfo)
 
+        // Only bodies that were grouped in the last step can still be
+        // flagged, so only they are cleared.
         i = 0
-        repeat items:GetSize() times
-            Item3D body = items:Get(i)
-            if body:IsPhysicsEnabled()
-                body:SetCollisionGroupFlag(false)
-            end
-            body:GetCollisionTransform():Set(body:GetCollisionTransform())
+        repeat while i < grouped:GetSize()
+            grouped:Get(i):SetCollisionGroupFlag(false)
             i = i + 1
         end
+        grouped:Empty(false)
 
         CollisionEvent3D collision = collisionManager:GetCollisionList()
         repeat until collision = undefined
@@ -3231,10 +2944,11 @@ they were added. Behaviors must not be added or removed during this loop.*/
             collision = collision:GetNext()
         end
 
-        i = 0
-        repeat items:GetSize() times
-            
-            Item3D seed = items:Get(i)
+        // Groups start only from awake bodies. A sleeping body is reached
+        // through a contact or a joint with an awake one, which wakes it.
+        RenderTreeNode3D leaf = awakeBodies:GetFirstLeaf()
+        repeat while leaf not= undefined
+            Item3D seed = leaf:GetItem()
             if not seed:IsPhysicsEnabled()
                 // continue with loop -- this item does not need physics solved
             elseif seed:GetCollisionGroupFlag()
@@ -3248,11 +2962,11 @@ they were added. Behaviors must not be added or removed during this loop.*/
                 stack:Empty()
                 stack:Push(seed)
                 seed:SetCollisionGroupFlag(true)
+                AddToGrouped(seed)
 
                 repeat while not stack:IsEmpty()
                     Item3D body = stack:Pop()
                     island:Add(body)
-
                     body:Simulate(true)
 
                     if body:IsUnmovable()
@@ -3276,14 +2990,12 @@ they were added. Behaviors must not be added or removed during this loop.*/
                                 boolean physicsA = collision1:GetItemA():IsPhysicsEnabled()
                                 boolean physicsB = collision1:GetItemB():IsPhysicsEnabled()
                                 boolean sensor = not physicsA or not physicsB
-
                                 if sensor
                                     // continue with group -- one or both items
                                     // does not have physics enabled
                                 else
                                     island:Add(collision1)
                                     collision1:SetInCollisionGroup(true)
-
                                     Item3D other = edge:GetOther()
                                     if other:GetCollisionGroupFlag()
                                         // continue with group -- the other item
@@ -3291,6 +3003,7 @@ they were added. Behaviors must not be added or removed during this loop.*/
                                     else
                                         stack:Push(other)
                                         other:SetCollisionGroupFlag(true)
+                                        AddToGrouped(other)
                                     end
                                 end
                             end
@@ -3298,29 +3011,24 @@ they were added. Behaviors must not be added or removed during this loop.*/
                         end
 
                         JointEdge3D jointEdge = body:GetJointList()  //gets the joints that are associated with the current body, starting with the first joint
-                        //output "currently finding the collision and joints for item " + body:GetDescription()
                         repeat while jointEdge not= undefined
-                            Joint3D joint = jointEdge:GetJoint()  
+                            Joint3D joint = jointEdge:GetJoint()
                             if joint:InCollisionGroup()
-                                //output "found a joint that has already been set"
                                 // continue with group -- the joint has already been
                                 // accounted for in the collision group
                             else
                                 Item3D other = jointEdge:GetOther()
-
                                 island:Add(joint)
-                                //output "Added a joint to CollisionGroup3D"
                                 joint:SetInCollisionGroup(true)
-
                                 if other:GetCollisionGroupFlag()
                                     // continue with group -- the other item is
                                     // already in the group
                                 else
                                     stack:Push(other)
                                     other:SetCollisionGroupFlag(true)
+                                    AddToGrouped(other)
                                 end
                             end
-
                             jointEdge = jointEdge:GetNext()
                         end
 
@@ -3333,6 +3041,7 @@ they were added. Behaviors must not be added or removed during this loop.*/
                             else
                                 stack:Push(child)
                                 child:SetCollisionGroupFlag(true)
+                                AddToGrouped(child)
                             end
                             k = k + 1
                         end
@@ -3350,15 +3059,18 @@ they were added. Behaviors must not be added or removed during this loop.*/
                     j = j + 1
                 end
             end
-            i = i + 1
+            leaf = awakeBodies:GetNextLeaf(leaf)
         end
 
+        // Bodies that woke or fell asleep are moved to the matching tree now
+        // that the walk is over, before the awake bodies are moved.
+        MoveChangedBodies()
         IntegrateTransforms(seconds)
 
         i = 0
-        repeat items:GetSize() times
-            Item3D body = items:Get(i)
-            if not body:IsPhysicsEnabled() 
+        repeat while i < grouped:GetSize()
+            Item3D body = grouped:Get(i)
+            if not body:IsPhysicsEnabled()
                 // do nothing -- physics is not enabled for this item
             elseif (not body:GetCollisionGroupFlag()) and body:GetResponsiveness() not= body:GetPhysicsProperties():UNMOVABLE
                 // do nothing -- this item was never a part of a physics group
@@ -3378,9 +3090,9 @@ they were added. Behaviors must not be added or removed during this loop.*/
     action SynchronizeTransforms
         PhysicsPosition3D predictedTransform
 
-        integer i = 0
-        repeat items:GetSize() times
-            Item3D body = items:Get(i)
+        RenderTreeNode3D leaf = awakeBodies:GetFirstLeaf()
+        repeat while leaf not= undefined
+            Item3D body = leaf:GetItem()
             if body:IsPhysicsEnabled() and body:IsResponsive()
                 PhysicsPosition3D curTrans
                 curTrans:Set(body:GetInterpolationWorldTransform())
@@ -3416,31 +3128,27 @@ they were added. Behaviors must not be added or removed during this loop.*/
                 //body:GetCollisionTransform():Set(predictedTransform)
             end
 
-             i = i + 1
+            leaf = awakeBodies:GetNextLeaf(leaf)
         end
     end
 
     action ApplyGravity
-        integer i = 0
-        repeat while i < items:GetSize()
-            Item3D item = items:Get(i)
-            if item:IsPhysicsEnabled()
-                if item:IsSimulated()
-                    if item:IsResponsive()
+        RenderTreeNode3D leaf = awakeBodies:GetFirstLeaf()
+        repeat while leaf not= undefined
+            Item3D item = leaf:GetItem()
+            if item:IsPhysicsEnabled() and item:IsSimulated() and item:IsResponsive()
                         Vector3 force
                         force:Set(gravity):Scale(1.0 / item:GetInverseMass())
                         item:ApplyForceToCenter(force)
-                    end
-                end
             end
-            i = i + 1
+            leaf = awakeBodies:GetNextLeaf(leaf)
         end
     end
 
     action SaveKinematicState(number timeStep)
-        integer i = 0
-        repeat while i < items:GetSize()
-            Item3D item = items:Get(i)
+        RenderTreeNode3D leaf = awakeBodies:GetFirstLeaf()
+        repeat while leaf not= undefined
+            Item3D item = leaf:GetItem()
             if item:IsPhysicsEnabled()
                 if item:IsSimulated()
                     if item:IsResponsive()
@@ -3448,53 +3156,39 @@ they were added. Behaviors must not be added or removed during this loop.*/
                     end
                 end
             end
-
-            i = i + 1
+            leaf = awakeBodies:GetNextLeaf(leaf)
         end
     end
 
     action IntegrateTransforms(number timeStep)
-        Vector3 temp
-        PhysicsPosition3D tempTrans
-
         PhysicsPosition3D predictedTransform
 
-        integer i = 0
-        repeat while i < items:GetSize()
-            Item3D item = items:Get(i)
+        RenderTreeNode3D leaf = awakeBodies:GetFirstLeaf()
+        repeat while leaf not= undefined
+            Item3D item = leaf:GetItem()
             if item:IsPhysicsEnabled()
                 item:SetTimeOfImpact(1)
 
                 if item:IsSimulated() and item:IsResponsive()
                     item:PredictIntegratedTransform(timeStep, predictedTransform)
-                    temp:Set(predictedTransform:GetOrigin())
-                    tempTrans:Set(item:GetCollisionTransform())
-                    temp:Subtract(tempTrans:GetOrigin())
-                    number squareMotion = temp:LengthSquared()
-
-                    //Continuous Collision Detection stuff for later...
-
                     item:ProceedToTransform(predictedTransform)
                 end
             end
-
-            i = i + 1
+            leaf = awakeBodies:GetNextLeaf(leaf)
         end
     end
 
     action SetScreenPositionsFromPhysicsPositions
-        integer i = 0
-        repeat while i < items:GetSize()
-            Item3D item = items:Get(i)
+        RenderTreeNode3D leaf = awakeBodies:GetFirstLeaf()
+        repeat while leaf not= undefined
+            Item3D item = leaf:GetItem()
             // Physics only moves items that are awake and can respond, the
-            // same test IntegrateTransforms uses. A sleeping or unmovable
-            // item's physics position has not changed, so it is not copied
-            // again. Bullet does the same, copying only active bodies.
+            // same test IntegrateTransforms uses. Bullet does the same,
+            // copying only active bodies.
             if item:IsPhysicsEnabled() and item:IsSimulated() and item:IsResponsive()
                 item:SetScreenPositionFromPhysicsPosition()
             end
-
-            i = i + 1
+            leaf = awakeBodies:GetNextLeaf(leaf)
         end
     end
 

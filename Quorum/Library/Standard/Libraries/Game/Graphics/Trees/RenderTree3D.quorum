@@ -43,14 +43,12 @@ A render tree does not watch items for changes. Whoever owns it, such as
 Layer3D, calls Moved for each item whose position, rotation or scale has
 changed, once per frame before drawing, and EndFrame after drawing.
 
-Only items with bounds can be added. An item whose bounds cannot be found,
-such as one that draws itself, is not added, and Add returns false. Its owner
-draws it every frame, without asking the tree.
+An item's bounds come from its GetRenderBounds action, unless they are
+given to Add. An item with no bounds is not added, and Add returns false.
 
 The few actions here that are not blank are the same for every kind of
 tree: the Add and CollectVisible actions that fill in a missing value and
-pass the request on, IsShowing and IsShowingWithParents, and the private
-helper that finds an item's bounds, used by Add.
+pass the request on, and IsShowing and IsShowingWithParents.
 
 Attribute: Example
 
@@ -69,8 +67,6 @@ tree:CollectInSphere(0, 0, 0, 5, found)
 output found:GetSize()
 */
 class RenderTree3D
-    Vector3 minimum
-    Vector3 maximum
 
     /*
     This action adds an item that is not expected to move.
@@ -84,10 +80,10 @@ class RenderTree3D
     end
 
     /*
-    This action adds an item, using bounds the tree finds for it: a box of
-    the item's width, height and depth, centered on the item. For an item
-    whose shape is not centered on it, such as a model whose origin is at
-    its feet, use the Add action that takes bounds instead.
+    This action adds an item, using the bounds its GetRenderBounds action
+    gives. Most items give a box of their width, height and depth, centered
+    on them, and items shaped otherwise, such as terrain, give their own.
+    To use other bounds, use the Add action that takes bounds instead.
 
     Attribute: Parameter item The item to add.
     Attribute: Parameter isStatic True if the item is not expected to move.
@@ -98,8 +94,8 @@ class RenderTree3D
         if item = undefined or Has(item)
             return false
         end
-        BoundingBox local = GetBounds(item)
-        if local = undefined
+        BoundingBox local
+        if not item:GetRenderBounds(local)
             return false
         end
         return Add(item, local, isStatic)
@@ -243,11 +239,37 @@ class RenderTree3D
     which EnvironmentVulkan updates each frame, so ask after it has. A light
     without shadow data for the cascade, such as in OpenGL, adds nothing.
 
+    A layer that wants every caster for a light, using the light's shadow
+    distance, can use the action that takes a camera instead.
+
     Attribute: Parameter light The directional light.
     Attribute: Parameter cascade Which cascade, counting from 0.
     Attribute: Parameter results The array to add the items to.
     */
     action CollectDirectionalShadowCasters(DirectionalLight light, integer cascade, Array<Item3D> results)
+    end
+
+    /*
+    This action adds the items that could cast a shadow from a directional
+    light into view to the results, using the light's own limits.
+
+    If the light has a shadow distance (see
+    DirectionalLight:SetShadowDistance), the items found are those in the
+    column of space running from the camera toward the light, as wide as
+    twice the distance. Objects on screen are not limited by this. A layer
+    finds those with CollectVisible.
+
+    If the light has no shadow distance, the items found are those that
+    could cast a shadow into any of the light's cascades, the same as
+    calling the action that takes a cascade for each one. A light without
+    shadow data, such as in OpenGL, then adds nothing.
+
+    Attribute: Parameter light The directional light.
+    Attribute: Parameter camera The camera the shadow distance is measured
+    from.
+    Attribute: Parameter results The array to add the items to.
+    */
+    action CollectDirectionalShadowCasters(DirectionalLight light, Camera camera, Array<Item3D> results)
     end
 
     /*
@@ -432,34 +454,4 @@ class RenderTree3D
         return 0
     end
 
-    /*
-    This action returns an item's bounds in its own coordinates, or undefined
-    if it has none the tree can find.
-
-    They are a box of the item's width, height and depth, centered on the
-    item. A model gets its width, height and depth from its blueprint when
-    it is loaded, so this works for models too. An item with no size has no
-    bounds. A negative size, which a blueprint with a bug in its measuring
-    could give, is also treated as no bounds. Flat bounds, such as a plane's,
-    are allowed, though BoundingBox:IsValid would reject them.
-
-    Attribute: Parameter item The item to find bounds for.
-    Attribute: Returns The item's bounds in its own coordinates, or undefined.
-    */
-    private action GetBounds(Item3D item) returns BoundingBox
-        number halfWidth = item:GetWidth() / 2
-        number halfHeight = item:GetHeight() / 2
-        number halfDepth = item:GetDepth() / 2
-        if halfWidth < 0 or halfHeight < 0 or halfDepth < 0
-            return undefined
-        end
-        if halfWidth = 0 and halfHeight = 0 and halfDepth = 0
-            return undefined
-        end
-        BoundingBox box
-        minimum:Set(-halfWidth, -halfHeight, -halfDepth)
-        maximum:Set(halfWidth, halfHeight, halfDepth)
-        box:Set(minimum, maximum)
-        return box
-    end
 end

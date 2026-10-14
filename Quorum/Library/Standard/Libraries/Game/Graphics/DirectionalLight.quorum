@@ -8,6 +8,10 @@ class DirectionalLight is Light
     Vector3 direction
     number intensity = 5
 
+    // How far from the camera this light's shadow casters are looked for
+    // when a layer culls, or 0 for no limit. See SetShadowDistance.
+    number shadowDistance = 50
+
     /*
     This action will set the direction the light points in. It takes three
     number values, which represent the three values of a 3-dimensional vector.
@@ -46,6 +50,7 @@ class DirectionalLight is Light
     action Copy returns DirectionalLight
         DirectionalLight copy
         copy:SetLight(GetColor(), GetDirection())
+        copy:SetShadowDistance(shadowDistance)
         return copy
     end
 
@@ -80,6 +85,40 @@ class DirectionalLight is Light
         if GetEnvironment() not= undefined
             GetEnvironment():LightChanged(me)
         end
+    end
+
+    /*
+    This action sets how far from the camera this light's shadows are kept
+    when a layer culls what it draws. An object that is off screen is only
+    drawn into this light's shadows if it could cast a shadow within this
+    distance of the camera. Objects on screen are drawn either way. The
+    default is 50.
+
+    A smaller distance means fewer objects are drawn into the shadows. A
+    distance of 0 means there is no limit, and every object that could cast
+    a shadow into the camera's view is drawn into them.
+
+    This does not change how the shadows themselves are drawn.
+
+    Attribute: Parameter distance How far from the camera shadow casters are
+    kept, in world units, or 0 for no limit.
+    */
+    action SetShadowDistance(number distance)
+        if distance < 0
+            shadowDistance = 0
+        else
+            shadowDistance = distance
+        end
+    end
+
+    /*
+    This action returns how far from the camera this light's shadow casters
+    are kept when a layer culls, or 0 if there is no limit.
+
+    Attribute: Returns The shadow distance.
+    */
+    action GetShadowDistance returns number
+        return shadowDistance
     end
 
 end
