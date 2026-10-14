@@ -106,11 +106,6 @@ class EnvironmentVulkan is Environment
     constant integer PROJECTION_MATRIX_INDEX = 0
     constant integer SPLIT_DISTANCE_INDEX = PROJECTION_MATRIX_INDEX + SHADOW_PROJECTION_CUBE_WORD_SIZE
     
-    // The minimum calculated illumination value for point lights in the fragment shader that is expected to have an impact on fragments.
-    // Anything less than this value is treated as zero light. This value is used to calculate the maximum distance that point lights
-    // are expected to illuminate, which is needed for the clipping distances of cascading shadow maps for point lights.
-    constant number MINIMUM_ILLUMINATION_THRESHOLD = 0.0003
-    
     integer maxLights = -1
     VulkanLightingProperties lightingProperties = undefined
     
@@ -753,19 +748,9 @@ cascadeSplits:Add((d - nearClip) / clipRange)
         i = 0
         repeat while i < pointCount
             PointLight light = GetPointLight(i)
-            number intensity = light:GetIntensity()
             Vector3 lightPosition = light:GetPosition()
-            
-            Color color = light:GetColor()
-            number maxColor = color:GetRed()
-            if color:GetGreen() > maxColor
-                maxColor = color:GetGreen()
-            end
-            if color:GetBlue() > maxColor
-                maxColor = color:GetBlue()
-            end
-            
-            number maxDistance = math:SquareRoot(maxColor * intensity / MINIMUM_ILLUMINATION_THRESHOLD)
+
+            number maxDistance = light:GetRange()
             // Begin with a very small start distance. This will be the first "near" clip value, so we want it to be very close to the point light's source, but it can't be zero.
             number minDistance = 0.001
             
@@ -873,7 +858,7 @@ one of the six axis directions. In order, these will be: positive/negative x, po
         matrix:IdentityMatrix()
         number x_orth = 2 / (right - left)
         number y_orth = 2 / (top - bottom)
-        number z_orth = -1 / (far - near)
+        number z_orth = 1 / (far - near)
 
         number tx = -1 * (right + left) / (right - left)
         number ty = -1 * (top + bottom) / (top - bottom)

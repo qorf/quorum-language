@@ -26,7 +26,7 @@ public class SharedClass {
     private static java.lang.Object math = null;
 
     public static java.lang.Object GetStaticClass(String key) {
-        if (key == MATH_KEY) {
+        if (key.equals(MATH_KEY)) {
             return math;
         }
         return STATIC_OBJECTS.get(key);

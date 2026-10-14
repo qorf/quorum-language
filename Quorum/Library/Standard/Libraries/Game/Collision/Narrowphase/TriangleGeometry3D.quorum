@@ -72,6 +72,11 @@ class TriangleGeometry3D
     number sideOffset2 = 0
     boolean degenerate = false
 
+    // True once the side normals and offsets have been worked out for the
+    // loaded triangle. They are worked out the first time they are asked
+    // for, since many triangles are rejected before they are needed.
+    boolean sidesReady = false
+
     // Temporary values for ClosestPoint and the segment actions.
     Vector3 cornerToPoint
     Vector3 secondEdge
@@ -136,21 +141,29 @@ class TriangleGeometry3D
             sideOffset0 = 0
             sideOffset1 = 0
             sideOffset2 = 0
+            sidesReady = true
             planeOffset = normal:DotProduct(corner0)
             return now
         end
 
         normal:Normalize()
         planeOffset = normal:DotProduct(corner0)
+        sidesReady = false
+    end
 
-        // The normal crossed with an edge lies in the triangle's plane, at a
-        // right angle to the edge, and points into the triangle.
+    /*
+    This action works out the side normals and offsets of a triangle that is
+    not degenerate. The normal crossed with an edge lies in the triangle's
+    plane, at a right angle to the edge, and points into the triangle.
+    */
+    private action CalculateSides
         sideNormal0:Set(normal):CrossProduct(edge0):Normalize()
         sideNormal1:Set(normal):CrossProduct(edge1):Normalize()
         sideNormal2:Set(normal):CrossProduct(edge2):Normalize()
         sideOffset0 = sideNormal0:DotProduct(corner0)
         sideOffset1 = sideNormal1:DotProduct(corner1)
         sideOffset2 = sideNormal2:DotProduct(corner2)
+        sidesReady = true
     end
 
     /*
@@ -210,6 +223,9 @@ class TriangleGeometry3D
     the given index. This is the vector stored here, not a copy.
     */
     action GetSideNormal(integer index) returns Vector3
+        if not sidesReady
+            CalculateSides()
+        end
         if index = 0
             return sideNormal0
         elseif index = 1
@@ -224,6 +240,9 @@ class TriangleGeometry3D
     normal · p is at least this value.
     */
     action GetSideOffset(integer index) returns number
+        if not sidesReady
+            CalculateSides()
+        end
         if index = 0
             return sideOffset0
         elseif index = 1

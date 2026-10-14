@@ -107,6 +107,11 @@ class BoxTriangleCollider is TriangleCollider3D
     Array<Vector3> boxAxes
     Array<Vector3> negativeBoxAxes
     Vector3 half
+
+    // The box whose size is in half, set by PrepareBox, so a run of
+    // triangles against the same box reads its size once. Undefined when no
+    // box is prepared.
+    Box preparedBox = undefined
     Vector3 localCorner0
     Vector3 localCorner1
     Vector3 localCorner2
@@ -192,8 +197,9 @@ class BoxTriangleCollider is TriangleCollider3D
     */
     action CollideLoaded(Box box, PhysicsPosition3D transform)
         boxTransform = transform
-        number boxMargin = box:GetMargin()
-        half:Set(box:GetHalfExtentsWithoutMargin()):Add(boxMargin, boxMargin, boxMargin)
+        if box not= preparedBox
+            SetHalfSize(box)
+        end
 
         // Move the triangle into the box's space.
         TriangleGeometry3D world = GetGeometry()
@@ -225,6 +231,37 @@ class BoxTriangleCollider is TriangleCollider3D
         end
 
         ReportKept()
+    end
+
+    /*
+    This action reads a box's size once, before it is tested against many
+    triangles in a row. Until ReleaseBox is called, CollideLoaded uses the
+    size read here for this box, so the box must not change size in
+    between.
+
+    Attribute: Parameter box The box about to be tested.
+    */
+    action PrepareBox(Box box)
+        SetHalfSize(box)
+        preparedBox = box
+    end
+
+    /*
+    This action ends a run of triangles started by PrepareBox.
+    */
+    action ReleaseBox
+        preparedBox = undefined
+    end
+
+    /*
+    This action sets half to the box's full half size: its half extents
+    plus its margin.
+
+    Attribute: Parameter box The box.
+    */
+    private action SetHalfSize(Box box)
+        number boxMargin = box:GetMargin()
+        half:Set(box:GetHalfExtentsWithoutMargin()):Add(boxMargin, boxMargin, boxMargin)
     end
     
     /*

@@ -272,7 +272,7 @@ void main()
 			for (uint j = 0; j < SHADOW_MAP_CASCADE_COUNT - 1; ++j)
 			{
 				CascadeShadow currentShadow = shadows.data[i * SHADOW_MAP_CASCADE_COUNT + j];
-				if (-viewPos.z > currentShadow.splitDistance.x)
+				if (viewPos.z > currentShadow.splitDistance.x)
 				{
 					cascadeIndex = j + 1;
 				}
