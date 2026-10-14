@@ -858,7 +858,7 @@ one of the six axis directions. In order, these will be: positive/negative x, po
         matrix:IdentityMatrix()
         number x_orth = 2 / (right - left)
         number y_orth = 2 / (top - bottom)
-        number z_orth = -1 / (far - near)
+        number z_orth = 1 / (far - near)
 
         number tx = -1 * (right + left) / (right - left)
         number ty = -1 * (top + bottom) / (top - bottom)
