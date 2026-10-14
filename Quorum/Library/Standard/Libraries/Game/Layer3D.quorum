@@ -3445,7 +3445,11 @@ they were added. Behaviors must not be added or removed during this loop.*/
         integer i = 0
         repeat while i < items:GetSize()
             Item3D item = items:Get(i)
-            if item:IsPhysicsEnabled()
+            // Physics only moves items that are awake and can respond, the
+            // same test IntegrateTransforms uses. A sleeping or unmovable
+            // item's physics position has not changed, so it is not copied
+            // again. Bullet does the same, copying only active bodies.
+            if item:IsPhysicsEnabled() and item:IsSimulated() and item:IsResponsive()
                 item:SetScreenPositionFromPhysicsPosition()
             end
 
