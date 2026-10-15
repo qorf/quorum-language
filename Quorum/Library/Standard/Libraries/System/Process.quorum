@@ -221,6 +221,11 @@ class Process
         Attribute: Returns the directory in which to run the process.
     */
     system action GetDirectory returns File
+    
+    /*This returns the exit code from the process
+
+Attribute: Returns the exit code */
+    system action GetExit returns integer
 
     /*
         Sets the directory in which the process will be run.

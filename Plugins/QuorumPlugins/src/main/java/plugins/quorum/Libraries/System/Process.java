@@ -246,6 +246,10 @@ public class Process {
             }
         }
 
+        public int GetExit() {
+            return exit;
+        }
+
         /**
          * @return the stream
          */
