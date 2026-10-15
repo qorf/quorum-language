@@ -11,7 +11,7 @@ public class SPIRVShaderCompiler
 {
     public Object me_;
 
-    public ByteArray_ CompileNative(String shaderName, String code, int shaderType)
+    public ByteArray_ CompileNative(String shaderName, String code, int shaderType, boolean optimizeShaders)
     {
         ByteArray resultArray = null;
 
@@ -24,9 +24,10 @@ public class SPIRVShaderCompiler
             compilerHandle = Shaderc.shaderc_compiler_initialize();
             optionsHandle = Shaderc.shaderc_compile_options_initialize();
 
-            // Note: For tricky shader debugging, disabling optimization can prevent the compiler from stripping out
+            // For tricky shader debugging, disabling optimization can prevent the compiler from stripping out
             // code that doesn't contribute to final outputs or removing intermediate values that would be easier to debug.
-            Shaderc.shaderc_compile_options_set_optimization_level(optionsHandle, 0);
+            if (!optimizeShaders)
+                Shaderc.shaderc_compile_options_set_optimization_level(optionsHandle, 0);
 
             long result = Shaderc.shaderc_compile_into_spv(compilerHandle, code, shaderType, shaderName, "main", optionsHandle);
 

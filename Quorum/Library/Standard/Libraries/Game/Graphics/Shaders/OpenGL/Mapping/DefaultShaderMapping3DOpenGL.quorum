@@ -124,7 +124,7 @@ class DefaultShaderMapping3DOpenGL is ShaderMapping
     overridden by materials of individual renderables.
     This will default to GL_BACK (i.e. the system will not render the back faces of objects)
     */
-    integer defaultCullFace = -1
+    integer defaultCullFace = constants:GL_FRONT
 
     /*
     What function should be used to determine if a drawn object is in front of another or not
@@ -214,12 +214,6 @@ class DefaultShaderMapping3DOpenGL is ShaderMapping
         program:SetShaderInput(cameraPositionID, camera:GetPosition():GetX(), camera:GetPosition():GetY(), camera:GetPosition():GetZ(), 1.1881 / (camera:GetFar() * camera:GetFar()))
 
         lightsSet = false
-
-        // TO-DO: If the GL values are moved to a constants class, this doesn't need to be done as part of the Begin call, it can be in "on create" instead
-        if defaultCullFace = -1
-            GraphicsManager graphics = manager:GetGameGraphics()
-            defaultCullFace = constants:GL_BACK
-        end
 
         if defaultDepthFunction = -1
             GraphicsManager graphics = manager:GetGameGraphics()
@@ -364,7 +358,7 @@ if graphics is OpenGLManager
                 OpenGLManager openGL = cast(OpenGLManager, graphics)
 openGL:SetCullFace(cullFace)
                 
-if cullFace = 0 or true
+if cullFace = 0
                 openGL:DisableProperty(constants:GL_CULL_FACE)
             else
                 openGL:EnableProperty(constants:GL_CULL_FACE)
