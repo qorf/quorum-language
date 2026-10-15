@@ -126,8 +126,10 @@ class CullingVolume3D
     Attribute: Parameter z The z coordinate of the column's center.
     Attribute: Parameter distance How far the column reaches to each side,
     and past the center.
-    Attribute: Returns False if the direction has no length, in which case
-    the volume is left empty and finds nothing.
+    Attribute: Returns False if the direction has no length. The volume is
+    then left with no planes, and since a box is only outside when a plane
+    rules it out, Test says every box is inside. Do not search with the
+    volume when this returns false.
     */
     action SetShadowColumn(Vector3 direction, number x, number y, number z, number distance) returns boolean
         planeCount = 0
