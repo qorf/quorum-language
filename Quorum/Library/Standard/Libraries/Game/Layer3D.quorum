@@ -54,11 +54,18 @@ use Libraries.Game.Physics.PhysicsBehavior3D
 use Libraries.Game.Graphics.Trees.RenderTree3D
 use Libraries.Game.Graphics.Trees.DynamicVolumeRenderTree3D
 use Libraries.Game.Graphics.Trees.RenderTreeNode3D
+use Libraries.Game.Graphics.Model
 
 /*
 The Layer3D class is used to manage a number of 3D objects, as well as manage
 input. The Layer2D effectively consists of a 3D "world", where all objects added
 to it exist in the same space and can interact with each other.
+
+The layer only draws what the camera can see, and, in Vulkan, what could
+cast a shadow into view. It finds these with a render tree, which holds a
+box around each item added to the layer (see Item3D:GetRenderBounds). An
+item's children are drawn with it, so a child is not drawn when its parent's
+box is out of view, even if the child itself would be in view.
 
 Attribute: Author William Allee
 
@@ -119,12 +126,24 @@ class Layer3D is Layer
     // once no walk of the trees is under way.
     Array<Item3D> changedBodies
 
-    // Items that reported a move since collisions were last found.
+    // Items that reported a move since the rendering tree was last told.
     Array<Item3D> movedItems
 
     // The bounds given to items with no shape: a box of no size at the
     // item's own position, so every item is in the rendering tree.
     BoundingBox emptyBounds
+
+    // Reused every frame while drawing. Emptied with Empty(false), which
+    // keeps their storage.
+    Array<Item3D> found
+    Array<Item3D> transparentItems
+    Array<Item3D> sortSpace
+
+    // Sorts transparent models from farthest to nearest.
+    Item3DBackToFrontComparison backToFront
+
+    // Counts frames, so an item found by more than one search is drawn once.
+    integer frame = 0
     Array<MouseListener> mouseListeners
     Array<MouseMovementListener> mouseMovementListeners
     Array<MouseWheelListener> mouseWheelListeners
@@ -784,8 +803,8 @@ class Layer3D is Layer
     This action is called by an item on this layer, or one of its
     children, the first time it moves, turns or changes scale after its
     move report was cleared. The layer keeps it until collisions are next
-    found, so its collision box can be brought up to date, and then clears
-    its report.
+    found, so its collision box can be brought up to date. Then it tells the
+    rendering tree the item moved, and clears its report.
 
     Attribute: Parameter item The item that moved.
     */
@@ -856,10 +875,12 @@ class Layer3D is Layer
     end
 
     /*
-    This action will draw all items in this Layer on the screen (if they can be
-    drawn and they aren't hidden). If the Layer is currently hidden, then this
-    action will do nothing. This is automatically called by the Game class as 
-    needed. Most users will never need to use this action directly.
+    This action draws the items in this layer that the camera can see, if
+    the layer is showing. In Vulkan, it also draws the items that are out of
+    view but could cast a shadow into it, so their shadows still show.
+    Transparent models are drawn last, from farthest to nearest, so each
+    blends over what is behind it. This is automatically called by the Game
+    class as needed. Most users will never need to use this action directly.
     */
     action Draw
         if not IsShowing()
@@ -884,16 +905,98 @@ Painter3D painter = GetPainter()
                 vulkan:SetViewport(GetViewportX(), GetViewportY(), GetViewportWidth(), GetViewportHeight())
             end
         end
-        
-        painter:Begin()
 
-        RenderTreeNode3D leaf = renderTree:GetFirstLeaf()
-        repeat while leaf not= undefined
-            leaf:GetItem():Draw(painter)
-            leaf = renderTree:GetNextLeaf(leaf)
+        // Moves are usually handed to the tree while collisions are found.
+        // This catches any left, such as when the game has collisions off.
+        UpdateRenderTree()
+
+        painter:Begin()
+        frame = frame + 1
+
+        found:Empty(false)
+        renderTree:CollectVisible(camera, found)
+        DrawFound(painter, false)
+
+        if painter is VulkanPainter3D
+            found:Empty(false)
+            CollectShadowCasters()
+            DrawFound(painter, true)
         end
 
+        DrawTransparent(painter)
+
         painter:End()
+        renderTree:EndFrame()
+    end
+
+    /*
+    This action returns the render tree the layer uses to find what to draw.
+    It holds every item added to the layer.
+
+    Attribute: Returns The layer's render tree.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer3D
+    use Libraries.Game.Graphics.Trees.RenderTree3D
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Layer3D layer = GetCurrentLayer3D()
+            RenderTree3D tree = layer:GetRenderTree()
+            output tree:GetSize()
+        end
+    end
+    */
+    action GetRenderTree returns RenderTree3D
+        return renderTree
+    end
+
+    /*
+    This action changes the kind of render tree the layer uses to find what
+    to draw, such as to a QuadTree3D or an Octree3D, which can be faster for
+    a large, flat world. Every item on the layer is moved into the new tree,
+    and the old tree is emptied. The new tree should be empty to begin with.
+
+    Attribute: Parameter tree The render tree to use.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Layer3D
+    use Libraries.Game.Graphics.Trees.QuadTree3D
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            QuadTree3D tree
+            tree:SetRegion(-100, -10, -100, 100, 50, 100)
+            Layer3D layer = GetCurrentLayer3D()
+            layer:SetRenderTree(tree)
+        end
+    end
+    */
+    action SetRenderTree(RenderTree3D tree)
+        if tree = undefined or tree = renderTree
+            return now
+        end
+
+        RenderTree3D oldTree = renderTree
+        renderTree = tree
+        RenderTreeNode3D leaf = oldTree:GetFirstLeaf()
+        repeat while leaf not= undefined
+            AddToRenderTree(leaf:GetItem())
+            leaf = oldTree:GetNextLeaf(leaf)
+        end
+        oldTree:Empty()
     end
 
     /*
@@ -1504,16 +1607,138 @@ Painter3D painter = GetPainter()
     end
 
     /*
-    This action clears the move report of every item that reported one, so
-    each reports its next move, and empties the list.
+    This action tells the rendering tree about every item that reported a
+    move, so the tree knows where it is now. Each item's report is cleared,
+    so it reports its next move, and the list is emptied. A child, or an
+    item that has left the layer, is not in the tree and is skipped by it.
     */
-    private action ClearMovedItems
+    private action UpdateRenderTree
         integer i = 0
         repeat while i < movedItems:GetSize()
-            movedItems:Get(i):SetReportedMove(false)
+            Item3D item = movedItems:Get(i)
+            renderTree:Moved(item)
+            item:SetReportedMove(false)
             i = i + 1
         end
         movedItems:Empty(false)
+    end
+
+    /*
+    This action draws each found item that has not been drawn yet this
+    frame. Drawing an item draws its children too. Transparent models the
+    camera can see are set aside, to be drawn last by DrawTransparent.
+
+    Attribute: Parameter painter The layer's painter.
+    Attribute: Parameter shadowCastersOnly True if the items are out of view
+    and only drawn for their shadows, so models that cast no shadow are
+    skipped, and transparent ones are drawn right away, since their order
+    does not matter.
+    */
+    private action DrawFound(Painter3D painter, boolean shadowCastersOnly)
+        integer i = 0
+        repeat while i < found:GetSize()
+            Item3D item = found:Get(i)
+            RenderTreeNode3D leaf = renderTree:GetLeaf(item)
+            if leaf not= undefined and leaf:GetLastDrawnFrame() not= frame
+                if shadowCastersOnly
+                    if CastsShadows(item)
+                        leaf:SetLastDrawnFrame(frame)
+                        item:Draw(painter)
+                    end
+                else
+                    leaf:SetLastDrawnFrame(frame)
+                    if IsTransparent(item)
+                        transparentItems:Add(item)
+                    else
+                        item:Draw(painter)
+                    end
+                end
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+    This action adds to the found items every item that could cast a shadow
+    into view: for each directional light, those its CollectDirectionalShadowCasters
+    search finds, which uses the light's shadow distance, and for each point
+    light, those within its reach.
+    */
+    private action CollectShadowCasters
+        Iterator<DirectionalLight> directionalLights = GetDirectionalLights()
+        repeat while directionalLights:HasNext()
+            renderTree:CollectDirectionalShadowCasters(directionalLights:Next(), camera, found)
+        end
+
+        Iterator<PointLight> pointLights = GetPointLights()
+        repeat while pointLights:HasNext()
+            renderTree:CollectPointShadowCasters(pointLights:Next(), found)
+        end
+    end
+
+    /*
+    This action returns true if an item could cast a shadow. Only a model
+    can be told not to, with SetCastsShadows. Any other item might have
+    models among its children, so it is drawn.
+
+    Attribute: Parameter item The item.
+    Attribute: Returns False if the item is a model that casts no shadow.
+    */
+    private action CastsShadows(Item3D item) returns boolean
+        if item is Model
+            Model model = cast(Model, item)
+            return model:CastsShadows()
+        end
+        return true
+    end
+
+    /*
+    This action returns true if an item is a model with transparency, so it
+    must be drawn after the models behind it.
+
+    Attribute: Parameter item The item.
+    Attribute: Returns True if the item is a transparent model.
+    */
+    private action IsTransparent(Item3D item) returns boolean
+        if item is Model
+            Model model = cast(Model, item)
+            return model:HasTransparency()
+        end
+        return false
+    end
+
+    /*
+    This action draws the transparent models set aside while drawing, from
+    farthest to nearest, so each blends over what is behind it.
+
+    The models are sorted by the distance from the camera to each model's
+    position. A model's position is usually its center. Two transparent
+    models that overlap in depth can still blend in the wrong order, since
+    each is drawn whole.
+
+    Attribute: Parameter painter The layer's painter.
+    */
+    private action DrawTransparent(Painter3D painter)
+        if transparentItems:IsEmpty()
+            return now
+        end
+
+        // Sorting needs a second array at least as large to work in. It only
+        // grows, since making it smaller makes a new array.
+        if sortSpace:GetSize() < transparentItems:GetSize()
+            sortSpace:SetSize(transparentItems:GetSize())
+        end
+
+        Vector3 eye = camera:GetPosition()
+        backToFront:SetOrigin(eye:GetX(), eye:GetY(), eye:GetZ())
+        transparentItems:Sort(backToFront, sortSpace)
+
+        integer i = 0
+        repeat while i < transparentItems:GetSize()
+            transparentItems:Get(i):Draw(painter)
+            i = i + 1
+        end
+        transparentItems:Empty(false)
     end
 
     /*
@@ -2611,7 +2836,7 @@ Painter3D painter = GetPainter()
     */
     action TestForCollisions(number seconds)
         if not collide
-            ClearMovedItems()
+            UpdateRenderTree()
             return now
         end
         if newItemAdded
@@ -2642,7 +2867,7 @@ Painter3D painter = GetPainter()
                 leaf = renderTree:GetNextLeaf(leaf)
             end
         end
-        ClearMovedItems()
+        UpdateRenderTree()
 
         collisionManager:FindNewCollisions()
     end

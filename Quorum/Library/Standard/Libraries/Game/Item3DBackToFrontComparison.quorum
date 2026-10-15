@@ -1,0 +1,87 @@
+package Libraries.Game
+
+use Libraries.Interface.Item3D
+use Libraries.Containers.Support.Comparison
+
+/*
+Item3DBackToFrontComparison sorts 3D items from farthest to nearest from a
+point, such as the camera. Layer3D uses it to draw transparent models after
+everything else, farthest first, so each blends over what is behind it.
+
+Distances are measured to each item's position, and compared squared, so
+no square roots are needed.
+
+Attribute: Example
+
+use Libraries.Game.Item3DBackToFrontComparison
+use Libraries.Interface.Item3D
+use Libraries.Containers.Array
+
+Item3D near
+near:SetPosition(0, 0, 2)
+Item3D far
+far:SetPosition(0, 0, 10)
+
+Array<Item3D> items
+items:Add(near)
+items:Add(far)
+
+Item3DBackToFrontComparison backToFront
+backToFront:SetOrigin(0, 0, 0)
+items:Sort(backToFront)
+output items:Get(0):GetZ()
+*/
+class Item3DBackToFrontComparison is Comparison
+    number originX = 0
+    number originY = 0
+    number originZ = 0
+
+    /*
+    This action sets the point distances are measured from.
+
+    Attribute: Parameter x The point's x coordinate.
+    Attribute: Parameter y The point's y coordinate.
+    Attribute: Parameter z The point's z coordinate.
+    */
+    action SetOrigin(number x, number y, number z)
+        originX = x
+        originY = y
+        originZ = z
+    end
+
+    /*
+    This action compares two items by their distance from the origin. The
+    farther item comes first.
+
+    Attribute: Parameter a The first item.
+    Attribute: Parameter b The second item.
+    Attribute: Returns -1 if a is farther, 1 if b is farther, or 0 if they
+    are the same distance.
+    */
+    action Compare(Object a, Object b) returns integer
+        Item3D left = cast(Item3D, a)
+        Item3D right = cast(Item3D, b)
+        number leftDistance = DistanceSquared(left)
+        number rightDistance = DistanceSquared(right)
+        if leftDistance > rightDistance
+            return -1
+        elseif leftDistance = rightDistance
+            return 0
+        end
+        return 1
+    end
+
+    /*
+    This action returns the squared distance from the origin to an item's
+    position.
+
+    Attribute: Parameter item The item.
+    Attribute: Returns The squared distance.
+    */
+    private action DistanceSquared(Item3D item) returns number
+        number dx = item:GetGlobalX() - originX
+        number dy = item:GetGlobalY() - originY
+        number dz = item:GetGlobalZ() - originZ
+        return dx * dx + dy * dy + dz * dz
+    end
+end
