@@ -17,10 +17,10 @@ it adds to the scene. A brighter light reaches farther before it becomes
 too dim to notice.
 
 When shadows are drawn, a point light casts shadows in every direction
-around it. Its range, set with SetRange, says how far from the light those
-shadows reach, and so which objects are drawn into its shadows. A smaller
-range is faster. Without a range, the light works one out from its
-intensity, which for a bright light can be very far. See GetRange.
+around it. Its culling range, set with SetCullingRange, says how far from
+the light objects are drawn into its shadows. A smaller culling range is
+faster. Without one, the light's whole reach is used, which for a bright
+light can be very far. See GetRange and GetCullingRange.
 
 Attribute: Example
 
@@ -47,7 +47,7 @@ class Main is Game
         lamp:SetColor(color:Yellow())
         lamp:SetPosition(0, 3, 5)
         lamp:SetIntensity(10)
-        lamp:SetRange(15)
+        lamp:SetCullingRange(15)
         Add(lamp)
     end
 
@@ -63,11 +63,11 @@ class PointLight is Light, Item3D
     number intensity = 0
 
     /*
-    How far this light's shadows reach, as set with SetRange, or 0 if it has
-    not been set, in which case it is worked out from the intensity. See
-    GetRange.
+    How far from the light objects are drawn into its shadows, as set with
+    SetCullingRange, or 0 if it has not been set, in which case the light's
+    whole reach is used. See GetCullingRange.
     */
-    number range = 0
+    number cullingRange = 0
 
     /*
     The light level below which a point light is treated as having no
@@ -97,50 +97,55 @@ class PointLight is Light, Item3D
     end
 
     /*
-    This action sets how far this light's shadows reach, measured from the
-    light. Shadows from this light are only made within this distance, and
-    only objects within it are drawn into its shadows, which makes a
-    smaller range faster.
+    This action sets how far from the light objects are drawn into its
+    shadows when a layer culls what it draws. Only objects within this
+    distance of the light are drawn into its shadows, so a smaller culling
+    range is faster.
 
-    The light's brightness still falls with the square of the distance, as
-    before, so surfaces past the range are still lit a little, without
-    shadows from this light. Choose a range where the light has become dim.
+    It does not change how far the light shines. Its brightness still falls
+    with the square of the distance, so surfaces past the culling range are
+    still lit a little, without shadows from objects past it. Choose a
+    distance where the light has become dim.
 
-    A range of 0 lets the light work out its own range from its intensity.
-    See GetRange.
+    A culling range of 0 uses the light's whole reach, from GetRange.
 
-    Attribute: Parameter newRange How far the shadows reach, in world units,
-    or 0 for the light to work it out.
+    Attribute: Parameter range How far from the light, in world units, or 0
+    to use the light's whole reach.
     */
-    action SetRange(number newRange)
-        if newRange < 0
-            range = 0
+    action SetCullingRange(number range)
+        if range < 0
+            cullingRange = 0
         else
-            range = newRange
-        end
-
-        if GetEnvironment() not= undefined
-            GetEnvironment():LightChanged(me)
+            cullingRange = range
         end
     end
 
     /*
-    This action returns how far this light's shadows reach, measured from
-    the light. Objects past this distance are not drawn into its shadows. If
-    a range was set with SetRange, that is returned. Otherwise the light
-    works out its own range. A point light's brightness falls with the
-    square of the distance, so it never reaches zero. Instead, the light is
-    treated as reaching as far as its brightest color, at its intensity,
-    stays above MINIMUM_ILLUMINATION_THRESHOLD. That distance is the square
-    root of the brightest color times the intensity, divided by the
-    threshold.
+    This action returns how far from the light objects are drawn into its
+    shadows: the culling range set with SetCullingRange, or, if none was
+    set, the light's whole reach from GetRange.
 
-    Attribute: Returns How far this light's shadows reach.
+    Attribute: Returns The culling range.
+    */
+    action GetCullingRange returns number
+        if cullingRange > 0
+            return cullingRange
+        end
+        return GetRange()
+    end
+
+    /*
+    This action returns how far this light reaches. A point light's
+    brightness falls with the square of the distance, so it never reaches
+    zero. Instead, the light is treated as reaching as far as its brightest
+    color, at its intensity, stays above MINIMUM_ILLUMINATION_THRESHOLD.
+    That distance is the square root of the brightest color times the
+    intensity, divided by the threshold. Shadows from this light are only
+    made within this distance.
+
+    Attribute: Returns How far this light reaches.
     */
     action GetRange returns number
-        if range > 0
-            return range
-        end
         Color lightColor = GetColor()
         number brightest = lightColor:GetRed()
         if lightColor:GetGreen() > brightest
@@ -160,7 +165,7 @@ class PointLight is Light, Item3D
         PointLight copy
         copy:SetLight(GetColor(), GetPosition(), intensity)
         copy:SetOffset(GetOffsetX(), GetOffsetY(), GetOffsetZ())
-        copy:SetRange(range)
+        copy:SetCullingRange(cullingRange)
         return copy
     end
 

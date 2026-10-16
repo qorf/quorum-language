@@ -20,9 +20,10 @@ it adds to the scene.
 
 When shadows are drawn, a directional light can cast shadows from objects
 that are off screen, such as a tree behind the camera whose shadow falls
-in front of it. Its range, set with SetRange, says how far from the camera
-those objects are looked for. A smaller range is faster. A range of 0 lets
-the light work this out from its shadow cascades.
+in front of it. Its culling range, set with SetCullingRange, says how far
+from the camera those objects are looked for. A smaller culling range is
+faster. A culling range of 0 lets the light work this out from its shadow
+cascades.
 
 Attribute: Example
 
@@ -49,7 +50,7 @@ class Main is Game
         sun:SetColor(color:White())
         sun:SetDirection(-1, -4, 2)
         sun:SetIntensity(2.5)
-        sun:SetRange(40)
+        sun:SetCullingRange(40)
         Add(sun)
     end
 
@@ -61,9 +62,9 @@ class DirectionalLight is Light
     Vector3 direction
     number intensity = 5
 
-    // How far this light's shadows reach, measured from the camera, or 0
-    // for the light to work out its own range. See SetRange.
-    number range = 50
+    // How far from the camera objects are drawn into this light's shadows,
+    // or 0 for the light to work it out. See SetCullingRange.
+    number cullingRange = 50
 
     /*
     This action will set the direction the light points in. It takes three
@@ -103,7 +104,7 @@ class DirectionalLight is Light
     action Copy returns DirectionalLight
         DirectionalLight copy
         copy:SetLight(GetColor(), GetDirection())
-        copy:SetRange(range)
+        copy:SetCullingRange(cullingRange)
         return copy
     end
 
@@ -141,37 +142,38 @@ class DirectionalLight is Light
     end
 
     /*
-    This action sets how far this light's shadows reach, measured from the
-    camera, since a directional light such as the sun has no position. An
-    object that is off screen is only drawn into this light's shadows if it
-    could cast a shadow within this distance of the camera. Objects on
-    screen are drawn either way. A smaller range means fewer objects are
-    drawn into the shadows, which is faster. The default is 50.
+    This action sets how far from the camera objects are drawn into this
+    light's shadows when a layer culls what it draws. It is measured from
+    the camera, since a directional light such as the sun has no position.
+    An object that is off screen is only drawn into this light's shadows if
+    it could cast a shadow within this distance of the camera. Objects on
+    screen are drawn either way. A smaller culling range means fewer objects
+    are drawn into the shadows, which is faster. The default is 50.
 
-    A range of 0 lets the light work out its own range: as far as its
-    shadow cascades reach, which is as far as the camera can see.
+    A culling range of 0 lets the light work it out: as far as its shadow
+    cascades reach, which is as far as the camera can see.
 
     This does not change how the shadows themselves are drawn.
 
-    Attribute: Parameter newRange How far the shadows reach, in world units,
-    or 0 for the light to work it out.
+    Attribute: Parameter range How far from the camera, in world units, or
+    0 for the light to work it out.
     */
-    action SetRange(number newRange)
-        if newRange < 0
-            range = 0
+    action SetCullingRange(number range)
+        if range < 0
+            cullingRange = 0
         else
-            range = newRange
+            cullingRange = range
         end
     end
 
     /*
-    This action returns how far this light's shadows reach, measured from
-    the camera, or 0 if the light works out its own range from its shadow
+    This action returns how far from the camera objects are drawn into this
+    light's shadows, or 0 if the light works it out from its shadow
     cascades.
 
-    Attribute: Returns The range, or 0.
+    Attribute: Returns The culling range, or 0.
     */
-    action GetRange returns number
-        return range
+    action GetCullingRange returns number
+        return cullingRange
     end
 end

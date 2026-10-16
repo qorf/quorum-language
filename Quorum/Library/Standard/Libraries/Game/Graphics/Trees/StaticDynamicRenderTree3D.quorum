@@ -351,19 +351,19 @@ class StaticDynamicRenderTree3D is RenderTree3D
 
     /*
     This action adds the items that could cast a shadow from a directional
-    light into view to the result: those within the light's range of the
-    camera, or, if it has none, those that could cast a shadow into any of
-    its cascades. See RenderTree3D.
+    light into view to the result: those within the light's culling range
+    of the camera, or, if it has none, those that could cast a shadow into
+    any of its cascades. See RenderTree3D.
 
     Attribute: Parameter light The directional light.
-    Attribute: Parameter camera The camera the light's range is measured
-    from.
+    Attribute: Parameter camera The camera the light's culling range is
+    measured from.
     Attribute: Parameter result The result to add the items to. It puts
     each item in its visible or invisible list by whether the camera can
     see it.
     */
     action CollectDirectionalShadowCasters(DirectionalLight light, Camera camera, RenderTree3DResult result)
-        number range = light:GetRange()
+        number range = light:GetCullingRange()
         if range > 0
             Vector3 center = camera:GetPosition()
             if volume:SetShadowColumn(light:GetDirection(), center:GetX(), center:GetY(), center:GetZ(), range)
@@ -382,9 +382,9 @@ class StaticDynamicRenderTree3D is RenderTree3D
     end
 
     /*
-    This action adds the items within a point light's reach to the result.
-    Static items are found once and remembered, until the light moves, its
-    reach changes, or the static part changes.
+    This action adds the items within a point light's culling range to the
+    result. Static items are found once and remembered, until the light
+    moves, its culling range changes, or the static part changes.
 
     Attribute: Parameter light The point light.
     Attribute: Parameter result The result to add the items to. It puts
@@ -395,7 +395,7 @@ class StaticDynamicRenderTree3D is RenderTree3D
         number x = light:GetGlobalX()
         number y = light:GetGlobalY()
         number z = light:GetGlobalZ()
-        number range = light:GetRange()
+        number range = light:GetCullingRange()
 
         ShadowCasterCache3D cache = pointLightCasters:GetValue(light)
         if cache = undefined

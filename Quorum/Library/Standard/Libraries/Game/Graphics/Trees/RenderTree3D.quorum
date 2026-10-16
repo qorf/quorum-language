@@ -266,19 +266,19 @@ class RenderTree3D
     This action adds the items that could cast a shadow from a directional
     light into view to the result, using the light's own limits.
 
-    If the light has a range (see DirectionalLight:SetRange), the items
-    found are those in the column of space running from the camera toward
-    the light, as wide as twice the range. Objects on screen are not limited
-    by this. A layer finds those with CollectVisible.
+    If the light has a culling range (see DirectionalLight:SetCullingRange),
+    the items found are those in the column of space running from the
+    camera toward the light, as wide as twice the culling range. Objects on
+    screen are not limited by this. A layer finds those with CollectVisible.
 
-    If the light has no range, the items found are those that
-    could cast a shadow into any of the light's cascades, the same as
+    If the light has no culling range, the items found are those that could
+    cast a shadow into any of the light's cascades, the same as
     calling the action that takes a cascade for each one. A light without
     shadow data, such as in OpenGL, then adds nothing.
 
     Attribute: Parameter light The directional light.
-    Attribute: Parameter camera The camera the light's range is measured
-    from.
+    Attribute: Parameter camera The camera the light's culling range is
+    measured from.
     Attribute: Parameter result The result to add the items to. It puts
     each item in its visible or invisible list by whether the camera can
     see it.
@@ -287,8 +287,8 @@ class RenderTree3D
     end
 
     /*
-    This action adds the items within a point light's reach, as given by its
-    GetRange action, to the result.
+    This action adds the items within a point light's culling range, as
+    given by its GetCullingRange action, to the result.
 
     Attribute: Parameter light The point light.
     Attribute: Parameter result The result to add the items to. It puts

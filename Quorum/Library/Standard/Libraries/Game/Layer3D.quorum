@@ -1675,7 +1675,7 @@ Painter3D painter = GetPainter()
     /*
     This action adds to the found items every item that could cast a shadow
     into view: for each directional light, those its CollectDirectionalShadowCasters
-    search finds, which uses the light's range, and for each point
+    search finds, which uses the light's culling range, and for each point
     light, those within its reach.
     */
     private action CollectShadowCasters
