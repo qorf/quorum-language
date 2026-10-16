@@ -1,0 +1,182 @@
+package Libraries.Game.Graphics.Trees
+
+use Libraries.Containers.Array
+use Libraries.Interface.Item3D
+use Libraries.Game.Graphics.Camera
+use Libraries.Compute.Matrix4
+
+/*
+RenderTree3DResult holds what a render tree finds for one frame of drawing,
+in two lists:
+
+- visible: items inside the camera's view, which are drawn on screen.
+- invisible: items the camera cannot see that can still change the
+  picture, such as an object behind the camera whose shadow falls into
+  view.
+
+A layer keeps one RenderTree3DResult and empties it at the start of each
+frame, so its arrays are reused instead of made again.
+
+Attribute: Example
+
+use Libraries.Game.Graphics.Trees.RenderTree3DResult
+use Libraries.Game.Graphics.Trees.DynamicVolumeRenderTree3D
+use Libraries.Interface.Item3D
+use Libraries.Compute.Matrix4
+
+DynamicVolumeRenderTree3D tree
+Item3D box
+box:SetDimensions(1, 1, 1)
+tree:Add(box)
+
+// A new Matrix4 does nothing to a point, so its view is the space from
+// -1 to 1 around the origin, where the box is.
+Matrix4 view
+RenderTree3DResult result
+result:SetViewProjection(view)
+tree:CollectVisible(view, result)
+output result:GetVisible():GetSize()
+*/
+class RenderTree3DResult
+    Array<Item3D> visible
+    Array<Item3D> invisible
+    Camera camera = undefined
+    integer frame = 0
+    integer searchCount = 0
+
+    // The view to sort items by when there is no camera, such as in a test
+    // with no game window.
+    Matrix4 viewProjection = undefined
+
+    // The camera's view, worked out the first time Add is called in a
+    // frame, and the frame it was worked out for.
+    CullingVolume3D view
+    integer viewFrame = -1
+
+    // Read once, since reading a constant is an action call.
+    integer outside = 0
+
+    on create
+        outside = view:OUTSIDE
+    end
+    
+    action AddToVisible(Item3D item)
+        visible:Add(item)
+    end
+    
+    
+    action AddToInvisible(Item3D item)
+        invisible:Add(item)
+    end
+
+    /*
+    This action adds a leaf's item to this result, unless it was already
+    added with this result's frame and search count. An item the camera can
+    see, even in part, goes in the visible list. Any other item goes in the
+    invisible list. So each item is added at most once, in one list, however
+    many searches find it.
+
+    The camera, or with no camera the view-projection matrix, must be set
+    first. The layer sets the frame and search count before searching, and
+    must give each new filling of a result a frame and search count that no
+    other filling of this tree used.
+
+    Attribute: Parameter leaf The leaf whose item was found.
+    */
+    action Add(RenderTreeNode3D leaf)
+        if leaf:GetAddedFrame() = frame and leaf:GetAddedSearch() = searchCount
+            return now
+        end
+        leaf:SetAddedFrame(frame)
+        leaf:SetAddedSearch(searchCount)
+
+        if viewFrame not= frame
+            if camera not= undefined
+                view:Set(camera:GetCombinedMatrix())
+            else
+                view:Set(viewProjection)
+            end
+            viewFrame = frame
+        end
+
+        if view:Test(leaf:GetBounds()) not= outside
+            AddToVisible(leaf:GetItem())
+        else
+            AddToInvisible(leaf:GetItem())
+        end
+    end
+
+    /*
+    This action returns the view-projection matrix used to sort items when
+    no camera is set, or undefined if none was given.
+
+    Attribute: Returns The view-projection matrix, or undefined.
+    */
+    action GetViewProjection returns Matrix4
+        return viewProjection
+    end
+
+    /*
+    This action sets the view-projection matrix used to sort items into the
+    visible and invisible lists when no camera is set, such as in a test
+    with no game window. A camera, if set, is used instead.
+
+    Attribute: Parameter matrix The view-projection matrix.
+    */
+    action SetViewProjection(Matrix4 matrix)
+        viewProjection = matrix
+    end
+
+    /*
+    This action returns the items inside the camera's view.
+
+    Attribute: Returns The array of visible items.
+    */
+    action GetVisible returns Array<Item3D>
+        return visible
+    end
+
+    /*
+    This action returns the items outside the camera's view that can still
+    change the picture, such as shadow casters.
+
+    Attribute: Returns The array of invisible items.
+    */
+    action GetInvisible returns Array<Item3D>
+        return invisible
+    end
+
+    /*
+    This action empties both lists, keeping their storage, so they can be
+    filled again next frame without making new arrays.
+    */
+    action Empty
+        visible:Empty(false)
+        invisible:Empty(false)
+    end
+
+    action GetCamera returns Camera
+        return camera
+    end
+
+    action SetCamera(Camera camera)
+        me:camera = camera
+    end
+
+    action GetFrame returns integer
+        return frame
+    end
+
+    action SetFrame(integer frame)
+        me:frame = frame
+    end
+
+    action GetSearchCount returns integer
+        return searchCount
+    end
+
+    action SetSearchCount(integer searchCount)
+        me:searchCount = searchCount
+    end
+
+end

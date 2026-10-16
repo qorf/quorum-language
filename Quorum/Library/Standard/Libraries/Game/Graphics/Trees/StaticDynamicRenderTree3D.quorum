@@ -314,55 +314,61 @@ class StaticDynamicRenderTree3D is RenderTree3D
 
     /*
     This action adds the items inside the view of the given view-projection
-    matrix to the results.
+    matrix to the result.
 
     Attribute: Parameter viewProjection The view-projection matrix.
-    Attribute: Parameter results The array to add the items to.
+    Attribute: Parameter result The result to add the items to. It puts
+    each item in its visible or invisible list by whether the camera can
+    see it.
     */
-    action CollectVisible(Matrix4 viewProjection, Array<Item3D> results)
+    action CollectVisible(Matrix4 viewProjection, RenderTree3DResult result)
         volume:Set(viewProjection)
-        staticPart:Collect(volume, results)
-        dynamicPart:Collect(volume, results)
+        staticPart:Collect(volume, result)
+        dynamicPart:Collect(volume, result)
     end
 
     /*
     This action adds the items that could cast a shadow into one cascade of
-    a directional light's shadows to the results. A light without shadow
+    a directional light's shadows to the result. A light without shadow
     data for the cascade, such as in OpenGL, adds nothing.
 
     Attribute: Parameter light The directional light.
     Attribute: Parameter cascade Which cascade, counting from 0.
-    Attribute: Parameter results The array to add the items to.
+    Attribute: Parameter result The result to add the items to. It puts
+    each item in its visible or invisible list by whether the camera can
+    see it.
     */
-    action CollectDirectionalShadowCasters(DirectionalLight light, integer cascade, Array<Item3D> results)
+    action CollectDirectionalShadowCasters(DirectionalLight light, integer cascade, RenderTree3DResult result)
         CascadeShadowData data = light:GetShadowData(cascade)
         if data = undefined
             return now
         end
         // A directional light's cascade uses only the first of its matrices.
         volume:Set(data:GetProjectionMatrix(0))
-        staticPart:Collect(volume, results)
-        dynamicPart:Collect(volume, results)
+        staticPart:Collect(volume, result)
+        dynamicPart:Collect(volume, result)
     end
 
     /*
     This action adds the items that could cast a shadow from a directional
-    light into view to the results: those within the light's shadow
-    distance of the camera, or, if it has none, those that could cast a
-    shadow into any of its cascades. See RenderTree3D.
+    light into view to the result: those within the light's range of the
+    camera, or, if it has none, those that could cast a shadow into any of
+    its cascades. See RenderTree3D.
 
     Attribute: Parameter light The directional light.
-    Attribute: Parameter camera The camera the shadow distance is measured
+    Attribute: Parameter camera The camera the light's range is measured
     from.
-    Attribute: Parameter results The array to add the items to.
+    Attribute: Parameter result The result to add the items to. It puts
+    each item in its visible or invisible list by whether the camera can
+    see it.
     */
-    action CollectDirectionalShadowCasters(DirectionalLight light, Camera camera, Array<Item3D> results)
-        number distance = light:GetShadowDistance()
-        if distance > 0
+    action CollectDirectionalShadowCasters(DirectionalLight light, Camera camera, RenderTree3DResult result)
+        number range = light:GetRange()
+        if range > 0
             Vector3 center = camera:GetPosition()
-            if volume:SetShadowColumn(light:GetDirection(), center:GetX(), center:GetY(), center:GetZ(), distance)
-                staticPart:Collect(volume, results)
-                dynamicPart:Collect(volume, results)
+            if volume:SetShadowColumn(light:GetDirection(), center:GetX(), center:GetY(), center:GetZ(), range)
+                staticPart:Collect(volume, result)
+                dynamicPart:Collect(volume, result)
             end
             return now
         end
@@ -370,20 +376,22 @@ class StaticDynamicRenderTree3D is RenderTree3D
         // The light has shadow data for each cascade, and none past the last.
         integer cascade = 0
         repeat while light:GetShadowData(cascade) not= undefined
-            CollectDirectionalShadowCasters(light, cascade, results)
+            CollectDirectionalShadowCasters(light, cascade, result)
             cascade = cascade + 1
         end
     end
 
     /*
-    This action adds the items within a point light's reach to the results.
+    This action adds the items within a point light's reach to the result.
     Static items are found once and remembered, until the light moves, its
     reach changes, or the static part changes.
 
     Attribute: Parameter light The point light.
-    Attribute: Parameter results The array to add the items to.
+    Attribute: Parameter result The result to add the items to. It puts
+    each item in its visible or invisible list by whether the camera can
+    see it.
     */
-    action CollectPointShadowCasters(PointLight light, Array<Item3D> results)
+    action CollectPointShadowCasters(PointLight light, RenderTree3DResult result)
         number x = light:GetGlobalX()
         number y = light:GetGlobalY()
         number z = light:GetGlobalZ()
@@ -408,12 +416,16 @@ class StaticDynamicRenderTree3D is RenderTree3D
             cache:Set(x, y, z, range, staticVersion)
         end
 
+        // The cache holds items, so each one's leaf is looked up to add it.
         integer index = 0
         repeat while index < statics:GetSize()
-            results:Add(statics:Get(index))
+            RenderTreeNode3D leaf = leaves:GetValue(statics:Get(index))
+            if leaf not= undefined
+                result:Add(leaf)
+            end
             index = index + 1
         end
-        dynamicPart:Collect(x, y, z, range, results)
+        dynamicPart:Collect(x, y, z, range, result)
     end
 
     /*

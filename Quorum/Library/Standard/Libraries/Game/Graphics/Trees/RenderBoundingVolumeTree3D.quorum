@@ -144,14 +144,17 @@ class RenderBoundingVolumeTree3D is RenderTreePart3D
     end
 
     /*
-    This action adds to the results every item whose box is at least partly
+    This action adds to the result every item whose box is at least partly
     inside the volume. A branch entirely inside the volume adds all of its
     items without testing them, and a branch entirely outside is skipped.
+    The result decides which of its lists each item goes in, and skips items
+    it already has.
 
-    Attribute: Parameter volume The volume, such as a camera's view.
-    Attribute: Parameter results The array to add the items to.
+    Attribute: Parameter volume The volume, such as a camera's view or a
+    light's shadow column.
+    Attribute: Parameter result The result to add the items to.
     */
-    action Collect(CullingVolume3D volume, Array<Item3D> results)
+    action Collect(CullingVolume3D volume, RenderTree3DResult result)
         if root = undefined
             return now
         end
@@ -164,12 +167,12 @@ class RenderBoundingVolumeTree3D is RenderTreePart3D
         stack:Add(root)
         repeat while not stack:IsEmpty()
             RenderTreeNode3D node = stack:RemoveFromEnd()
-            integer result = volume:Test(node:GetBounds())
-            if result = inside
-                AddAll(node, results)
-            elseif result = intersecting
+            integer placement = volume:Test(node:GetBounds())
+            if placement = inside
+                AddAll(node, result)
+            elseif placement = intersecting
                 if node:IsLeaf()
-                    results:Add(node:GetItem())
+                    result:Add(node)
                 else
                     stack:Add(node:GetLeft())
                     stack:Add(node:GetRight())
@@ -235,6 +238,38 @@ class RenderBoundingVolumeTree3D is RenderTreePart3D
     end
 
     /*
+    This action adds to the result every item whose box overlaps the sphere
+    with the given center and radius, such as a point light's reach. The
+    result decides which of its lists each item goes in, and skips items it
+    already has.
+
+    Attribute: Parameter x The x coordinate of the sphere's center.
+    Attribute: Parameter y The y coordinate of the sphere's center.
+    Attribute: Parameter z The z coordinate of the sphere's center.
+    Attribute: Parameter radius The sphere's radius.
+    Attribute: Parameter result The result to add the items to.
+    */
+    action Collect(number x, number y, number z, number radius, RenderTree3DResult result)
+        if root = undefined
+            return now
+        end
+        number radiusSquared = radius * radius
+        stack:Empty(false)
+        stack:Add(root)
+        repeat while not stack:IsEmpty()
+            RenderTreeNode3D node = stack:RemoveFromEnd()
+            if node:DistanceSquared(x, y, z) <= radiusSquared
+                if node:IsLeaf()
+                    result:Add(node)
+                else
+                    stack:Add(node:GetLeft())
+                    stack:Add(node:GetRight())
+                end
+            end
+        end
+    end
+
+    /*
     This action returns the leftmost leaf, the first in the tree's order, or
     undefined when the tree is empty.
 
@@ -274,19 +309,19 @@ class RenderBoundingVolumeTree3D is RenderTreePart3D
     end
 
     /*
-    This action adds every item below the given node to the results, without
-    testing them.
+    This action adds every item below the given node to the result, without
+    testing them against the volume.
 
     Attribute: Parameter start The node to start from.
-    Attribute: Parameter results The array to add the items to.
+    Attribute: Parameter result The result to add the items to.
     */
-    private action AddAll(RenderTreeNode3D start, Array<Item3D> results)
+    private action AddAll(RenderTreeNode3D start, RenderTree3DResult result)
         subtreeStack:Empty(false)
         subtreeStack:Add(start)
         repeat while not subtreeStack:IsEmpty()
             RenderTreeNode3D node = subtreeStack:RemoveFromEnd()
             if node:IsLeaf()
-                results:Add(node:GetItem())
+                result:Add(node)
             else
                 subtreeStack:Add(node:GetLeft())
                 subtreeStack:Add(node:GetRight())

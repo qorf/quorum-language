@@ -4,12 +4,70 @@ use Libraries.Compute.Vector3
 use Libraries.Game.Graphics.Light
 use Libraries.Interface.Item3D
 
+/*
+A PointLight lights a 3D scene from one point, the way a light bulb, a
+lamp or a campfire does. It shines out equally in every direction, and its
+light gets dimmer the farther it travels: twice as far away, an object gets
+a quarter of the light. A point light is an Item3D, so it can be placed
+anywhere with SetPosition, and it can be added to another item, such as a
+lantern carried by a character, so that it moves along with it.
+
+The intensity sets how bright the light is, and the color sets what color
+it adds to the scene. A brighter light reaches farther before it becomes
+too dim to notice.
+
+When shadows are drawn, a point light casts shadows in every direction
+around it. Its range, set with SetRange, says how far from the light those
+shadows reach, and so which objects are drawn into its shadows. A smaller
+range is faster. Without a range, the light works one out from its
+intensity, which for a bright light can be very far. See GetRange.
+
+Attribute: Example
+
+use Libraries.Game.Game
+use Libraries.Game.Graphics.PointLight
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Color
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        Color color
+
+        Model box
+        box:LoadBox(2, 2, 2, color:Orange())
+        box:SetPosition(0, 0, 5)
+        Add(box)
+
+        // A warm lamp hanging just above the box.
+        PointLight lamp
+        lamp:SetColor(color:Yellow())
+        lamp:SetPosition(0, 3, 5)
+        lamp:SetIntensity(10)
+        lamp:SetRange(15)
+        Add(lamp)
+    end
+
+    action Update(number seconds)
+    end
+end
+*/
 class PointLight is Light, Item3D
 
     /*
     How bright the light is.
     */
     number intensity = 0
+
+    /*
+    How far this light's shadows reach, as set with SetRange, or 0 if it has
+    not been set, in which case it is worked out from the intensity. See
+    GetRange.
+    */
+    number range = 0
 
     /*
     The light level below which a point light is treated as having no
@@ -39,17 +97,50 @@ class PointLight is Light, Item3D
     end
 
     /*
-    This action returns how far this light reaches. A point light's
-    brightness falls with the square of the distance, so it never reaches
-    zero. Instead, the light is treated as reaching as far as its brightest
-    color, at its intensity, stays above MINIMUM_ILLUMINATION_THRESHOLD.
-    That distance is the square root of the brightest color times the
-    intensity, divided by the threshold. Shadows from this light are only
-    made within this distance.
+    This action sets how far this light's shadows reach, measured from the
+    light. Shadows from this light are only made within this distance, and
+    only objects within it are drawn into its shadows, which makes a
+    smaller range faster.
 
-    Attribute: Returns How far this light reaches.
+    The light's brightness still falls with the square of the distance, as
+    before, so surfaces past the range are still lit a little, without
+    shadows from this light. Choose a range where the light has become dim.
+
+    A range of 0 lets the light work out its own range from its intensity.
+    See GetRange.
+
+    Attribute: Parameter newRange How far the shadows reach, in world units,
+    or 0 for the light to work it out.
+    */
+    action SetRange(number newRange)
+        if newRange < 0
+            range = 0
+        else
+            range = newRange
+        end
+
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
+    end
+
+    /*
+    This action returns how far this light's shadows reach, measured from
+    the light. Objects past this distance are not drawn into its shadows. If
+    a range was set with SetRange, that is returned. Otherwise the light
+    works out its own range. A point light's brightness falls with the
+    square of the distance, so it never reaches zero. Instead, the light is
+    treated as reaching as far as its brightest color, at its intensity,
+    stays above MINIMUM_ILLUMINATION_THRESHOLD. That distance is the square
+    root of the brightest color times the intensity, divided by the
+    threshold.
+
+    Attribute: Returns How far this light's shadows reach.
     */
     action GetRange returns number
+        if range > 0
+            return range
+        end
         Color lightColor = GetColor()
         number brightest = lightColor:GetRed()
         if lightColor:GetGreen() > brightest
@@ -69,6 +160,7 @@ class PointLight is Light, Item3D
         PointLight copy
         copy:SetLight(GetColor(), GetPosition(), intensity)
         copy:SetOffset(GetOffsetX(), GetOffsetY(), GetOffsetZ())
+        copy:SetRange(range)
         return copy
     end
 

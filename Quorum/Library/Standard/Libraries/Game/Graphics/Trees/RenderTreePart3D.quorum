@@ -110,13 +110,15 @@ class RenderTreePart3D
     end
 
     /*
-    This action adds to the results every item whose box is at least partly
-    inside the volume.
+    This action adds to the result every item whose box is at least partly
+    inside the volume. The result decides which of its lists each item goes
+    in, and skips items it already has.
 
-    Attribute: Parameter volume The volume, such as a camera's view.
-    Attribute: Parameter results The array to add the items to.
+    Attribute: Parameter volume The volume, such as a camera's view or a
+    light's shadow column.
+    Attribute: Parameter result The result to add the items to.
     */
-    action Collect(CullingVolume3D volume, Array<Item3D> results)
+    action Collect(CullingVolume3D volume, RenderTree3DResult result)
     end
 
     /*
@@ -139,6 +141,21 @@ class RenderTreePart3D
     Attribute: Parameter results The array to add the items to.
     */
     action Collect(number x, number y, number z, number radius, Array<Item3D> results)
+    end
+
+    /*
+    This action adds to the result every item whose box overlaps the sphere
+    with the given center and radius, such as a point light's reach. The
+    result decides which of its lists each item goes in, and skips items it
+    already has.
+
+    Attribute: Parameter x The x coordinate of the sphere's center.
+    Attribute: Parameter y The y coordinate of the sphere's center.
+    Attribute: Parameter z The z coordinate of the sphere's center.
+    Attribute: Parameter radius The sphere's radius.
+    Attribute: Parameter result The result to add the items to.
+    */
+    action Collect(number x, number y, number z, number radius, RenderTree3DResult result)
     end
 
     /*

@@ -3,14 +3,67 @@ package Libraries.Game.Graphics
 use Libraries.Game.Graphics.Light
 use Libraries.Compute.Vector3
 
+/*
+A DirectionalLight lights a 3D scene from one direction, the way the sun
+does. Its light has no starting point and does not get dimmer with
+distance: every object in the scene is lit from the same direction and
+with the same brightness, wherever it is. That makes it a good choice for
+sunlight or moonlight outdoors.
+
+The direction is the way the light shines, not where it comes from. A
+direction of (0, -1, 0) shines straight down. A direction that also points
+a little sideways, such as (-1, -4, 2), makes the light fall at an angle,
+like the sun in the morning or afternoon, so shadows are longer.
+
+The intensity sets how bright the light is, and the color sets what color
+it adds to the scene.
+
+When shadows are drawn, a directional light can cast shadows from objects
+that are off screen, such as a tree behind the camera whose shadow falls
+in front of it. Its range, set with SetRange, says how far from the camera
+those objects are looked for. A smaller range is faster. A range of 0 lets
+the light work this out from its shadow cascades.
+
+Attribute: Example
+
+use Libraries.Game.Game
+use Libraries.Game.Graphics.DirectionalLight
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Color
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        Color color
+
+        Model box
+        box:LoadBox(2, 2, 2, color:Orange())
+        box:SetPosition(0, 0, 5)
+        Add(box)
+
+        // A sun high in the sky, shining down and a little to the side.
+        DirectionalLight sun
+        sun:SetColor(color:White())
+        sun:SetDirection(-1, -4, 2)
+        sun:SetIntensity(2.5)
+        sun:SetRange(40)
+        Add(sun)
+    end
+
+    action Update(number seconds)
+    end
+end
+*/
 class DirectionalLight is Light
-    
     Vector3 direction
     number intensity = 5
 
-    // How far from the camera this light's shadow casters are looked for
-    // when a layer culls, or 0 for no limit. See SetShadowDistance.
-    number shadowDistance = 50
+    // How far this light's shadows reach, measured from the camera, or 0
+    // for the light to work out its own range. See SetRange.
+    number range = 50
 
     /*
     This action will set the direction the light points in. It takes three
@@ -50,7 +103,7 @@ class DirectionalLight is Light
     action Copy returns DirectionalLight
         DirectionalLight copy
         copy:SetLight(GetColor(), GetDirection())
-        copy:SetShadowDistance(shadowDistance)
+        copy:SetRange(range)
         return copy
     end
 
@@ -88,37 +141,37 @@ class DirectionalLight is Light
     end
 
     /*
-    This action sets how far from the camera this light's shadows are kept
-    when a layer culls what it draws. An object that is off screen is only
-    drawn into this light's shadows if it could cast a shadow within this
-    distance of the camera. Objects on screen are drawn either way. The
-    default is 50.
+    This action sets how far this light's shadows reach, measured from the
+    camera, since a directional light such as the sun has no position. An
+    object that is off screen is only drawn into this light's shadows if it
+    could cast a shadow within this distance of the camera. Objects on
+    screen are drawn either way. A smaller range means fewer objects are
+    drawn into the shadows, which is faster. The default is 50.
 
-    A smaller distance means fewer objects are drawn into the shadows. A
-    distance of 0 means there is no limit, and every object that could cast
-    a shadow into the camera's view is drawn into them.
+    A range of 0 lets the light work out its own range: as far as its
+    shadow cascades reach, which is as far as the camera can see.
 
     This does not change how the shadows themselves are drawn.
 
-    Attribute: Parameter distance How far from the camera shadow casters are
-    kept, in world units, or 0 for no limit.
+    Attribute: Parameter newRange How far the shadows reach, in world units,
+    or 0 for the light to work it out.
     */
-    action SetShadowDistance(number distance)
-        if distance < 0
-            shadowDistance = 0
+    action SetRange(number newRange)
+        if newRange < 0
+            range = 0
         else
-            shadowDistance = distance
+            range = newRange
         end
     end
 
     /*
-    This action returns how far from the camera this light's shadow casters
-    are kept when a layer culls, or 0 if there is no limit.
+    This action returns how far this light's shadows reach, measured from
+    the camera, or 0 if the light works out its own range from its shadow
+    cascades.
 
-    Attribute: Returns The shadow distance.
+    Attribute: Returns The range, or 0.
     */
-    action GetShadowDistance returns number
-        return shadowDistance
+    action GetRange returns number
+        return range
     end
-
 end

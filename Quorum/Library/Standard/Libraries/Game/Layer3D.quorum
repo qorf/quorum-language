@@ -55,6 +55,7 @@ use Libraries.Game.Graphics.Trees.RenderTree3D
 use Libraries.Game.Graphics.Trees.DynamicVolumeRenderTree3D
 use Libraries.Game.Graphics.Trees.RenderTreeNode3D
 use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Trees.RenderTree3DResult
 
 /*
 The Layer3D class is used to manage a number of 3D objects, as well as manage
@@ -135,7 +136,7 @@ class Layer3D is Layer
 
     // Reused every frame while drawing. Emptied with Empty(false), which
     // keeps their storage.
-    Array<Item3D> found
+    RenderTree3DResult found
     Array<Item3D> transparentItems
     Array<Item3D> sortSpace
 
@@ -912,21 +913,69 @@ Painter3D painter = GetPainter()
 
         painter:Begin()
         frame = frame + 1
-
-        found:Empty(false)
+found:SetCamera(camera)
+        found:SetFrame(frame)
+        found:SetSearchCount(0)
+        found:Empty()
+        
         renderTree:CollectVisible(camera, found)
-        DrawFound(painter, false)
 
         if painter is VulkanPainter3D
-            found:Empty(false)
             CollectShadowCasters()
-            DrawFound(painter, true)
         end
 
-        DrawTransparent(painter)
+        DrawFound(painter, found:GetInvisible())
+        DrawFound(painter, found:GetVisible())
 
         painter:End()
         renderTree:EndFrame()
+    end
+    
+    /* This action returns the percent of items that were culled in the frustrum on the last frame
+of animation. The number returned is between 0 (no culling) and 1 (Everything is culled).
+
+Attribute: Returns The percent of items culled in the last frame of animation. */
+    action GetCullPercentage returns number
+        if found = undefined
+            return 0.0
+        end
+        Array<Item3D> visible = found:GetVisible()
+        Array<Item3D> invisible = found:GetInvisible()
+        integer size = 0
+        if visible not= undefined
+            size = size + visible:GetSize()
+        end
+        if invisible not= undefined
+            size = size + invisible:GetSize()
+        end
+        
+        integer total = 0
+        if renderTree not= undefined
+            total = renderTree:GetSize()
+        end
+        
+        if total = 0
+            return 0.0
+        end
+        number result = cast(number, total - size) / cast(number, total)
+        return result
+    end
+    
+    /*
+    This action draws each found item that has not been drawn yet this
+    frame. Drawing an item draws its children too. Transparent models the
+    camera can see are set aside, to be drawn last by DrawTransparent.
+
+    Attribute: Parameter painter The layer's painter.
+    Attribute: The array to draw
+    */
+    private action DrawFound(Painter3D painter, Array<Item3D> items)
+        integer i = 0
+        repeat while i < items:GetSize()
+            Item3D item = items:Get(i)
+            item:Draw(painter)
+            i = i + 1
+        end
     end
 
     /*
@@ -1624,44 +1673,9 @@ Painter3D painter = GetPainter()
     end
 
     /*
-    This action draws each found item that has not been drawn yet this
-    frame. Drawing an item draws its children too. Transparent models the
-    camera can see are set aside, to be drawn last by DrawTransparent.
-
-    Attribute: Parameter painter The layer's painter.
-    Attribute: Parameter shadowCastersOnly True if the items are out of view
-    and only drawn for their shadows, so models that cast no shadow are
-    skipped, and transparent ones are drawn right away, since their order
-    does not matter.
-    */
-    private action DrawFound(Painter3D painter, boolean shadowCastersOnly)
-        integer i = 0
-        repeat while i < found:GetSize()
-            Item3D item = found:Get(i)
-            RenderTreeNode3D leaf = renderTree:GetLeaf(item)
-            if leaf not= undefined and leaf:GetLastDrawnFrame() not= frame
-                if shadowCastersOnly
-                    if CastsShadows(item)
-                        leaf:SetLastDrawnFrame(frame)
-                        item:Draw(painter)
-                    end
-                else
-                    leaf:SetLastDrawnFrame(frame)
-                    if IsTransparent(item)
-                        transparentItems:Add(item)
-                    else
-                        item:Draw(painter)
-                    end
-                end
-            end
-            i = i + 1
-        end
-    end
-
-    /*
     This action adds to the found items every item that could cast a shadow
     into view: for each directional light, those its CollectDirectionalShadowCasters
-    search finds, which uses the light's shadow distance, and for each point
+    search finds, which uses the light's range, and for each point
     light, those within its reach.
     */
     private action CollectShadowCasters
@@ -1707,39 +1721,6 @@ Painter3D painter = GetPainter()
         return false
     end
 
-    /*
-    This action draws the transparent models set aside while drawing, from
-    farthest to nearest, so each blends over what is behind it.
-
-    The models are sorted by the distance from the camera to each model's
-    position. A model's position is usually its center. Two transparent
-    models that overlap in depth can still blend in the wrong order, since
-    each is drawn whole.
-
-    Attribute: Parameter painter The layer's painter.
-    */
-    private action DrawTransparent(Painter3D painter)
-        if transparentItems:IsEmpty()
-            return now
-        end
-
-        // Sorting needs a second array at least as large to work in. It only
-        // grows, since making it smaller makes a new array.
-        if sortSpace:GetSize() < transparentItems:GetSize()
-            sortSpace:SetSize(transparentItems:GetSize())
-        end
-
-        Vector3 eye = camera:GetPosition()
-        backToFront:SetOrigin(eye:GetX(), eye:GetY(), eye:GetZ())
-        transparentItems:Sort(backToFront, sortSpace)
-
-        integer i = 0
-        repeat while i < transparentItems:GetSize()
-            transparentItems:Get(i):Draw(painter)
-            i = i + 1
-        end
-        transparentItems:Empty(false)
-    end
 
     /*
     This action will test if the given ray intersects with an Item3D. This

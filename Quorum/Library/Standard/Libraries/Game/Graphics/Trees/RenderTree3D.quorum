@@ -21,6 +21,12 @@ questions:
 - Which items are within a point light's reach? (CollectPointShadowCasters)
 - Which items overlap a box or a sphere? (CollectInBox, CollectInSphere)
 
+The first three are asked while drawing, and add what they find to a
+RenderTree3DResult. The result puts each item in its visible list if the
+camera can see it, or its invisible list if not, and adds each item only
+once, however many searches find it. The last two answer general
+questions, and put what they find in an array.
+
 This class only describes what a render tree does. Its actions are blank.
 Use one of the kinds of render tree, which can be swapped for one another
 because they all have these actions:
@@ -34,9 +40,10 @@ because they all have these actions:
 - Octree3D, which divides space into cubes. A good choice for a scene spread
   out in every direction, such as space or a tall city.
 
-Each answer is added to an Array the caller passes in. The caller empties the
-array when it starts a new frame or pass, with Empty(false) so the array
-keeps its storage and no new one is made. The answers include hidden items;
+Each answer is added to a RenderTree3DResult or an Array the caller passes
+in. The caller empties it when it starts a new frame or pass, with the
+result's Empty action or the array's Empty(false), so the storage is kept
+and nothing new is made. The answers include hidden items;
 the caller can leave them out with IsShowing or IsShowingWithParents.
 
 A render tree does not watch items for changes. Whoever owns it, such as
@@ -210,28 +217,32 @@ class RenderTree3D
     end
 
     /*
-    This action adds the items the camera can see to the results.
+    This action adds the items the camera can see to the result.
 
     Attribute: Parameter camera The camera.
-    Attribute: Parameter results The array to add the items to.
+    Attribute: Parameter result The result to add the items to. It puts
+    each item in its visible or invisible list by whether the camera can
+    see it.
     */
-    action CollectVisible(Camera camera, Array<Item3D> results)
-        CollectVisible(camera:GetCombinedMatrix(), results)
+    action CollectVisible(Camera camera, RenderTree3DResult result)
+        CollectVisible(camera:GetCombinedMatrix(), result)
     end
 
     /*
     This action adds the items inside the view of the given view-projection
-    matrix to the results.
+    matrix to the result.
 
     Attribute: Parameter viewProjection The view-projection matrix.
-    Attribute: Parameter results The array to add the items to.
+    Attribute: Parameter result The result to add the items to. It puts
+    each item in its visible or invisible list by whether the camera can
+    see it.
     */
-    action CollectVisible(Matrix4 viewProjection, Array<Item3D> results)
+    action CollectVisible(Matrix4 viewProjection, RenderTree3DResult result)
     end
 
     /*
     This action adds the items that could cast a shadow into one cascade of
-    a directional light's shadows to the results. Each cascade covers part
+    a directional light's shadows to the result. Each cascade covers part
     of the camera's view and is drawn in its own pass, so this is asked once
     per cascade.
 
@@ -244,42 +255,47 @@ class RenderTree3D
 
     Attribute: Parameter light The directional light.
     Attribute: Parameter cascade Which cascade, counting from 0.
-    Attribute: Parameter results The array to add the items to.
+    Attribute: Parameter result The result to add the items to. It puts
+    each item in its visible or invisible list by whether the camera can
+    see it.
     */
-    action CollectDirectionalShadowCasters(DirectionalLight light, integer cascade, Array<Item3D> results)
+    action CollectDirectionalShadowCasters(DirectionalLight light, integer cascade, RenderTree3DResult result)
     end
 
     /*
     This action adds the items that could cast a shadow from a directional
-    light into view to the results, using the light's own limits.
+    light into view to the result, using the light's own limits.
 
-    If the light has a shadow distance (see
-    DirectionalLight:SetShadowDistance), the items found are those in the
-    column of space running from the camera toward the light, as wide as
-    twice the distance. Objects on screen are not limited by this. A layer
-    finds those with CollectVisible.
+    If the light has a range (see DirectionalLight:SetRange), the items
+    found are those in the column of space running from the camera toward
+    the light, as wide as twice the range. Objects on screen are not limited
+    by this. A layer finds those with CollectVisible.
 
-    If the light has no shadow distance, the items found are those that
+    If the light has no range, the items found are those that
     could cast a shadow into any of the light's cascades, the same as
     calling the action that takes a cascade for each one. A light without
     shadow data, such as in OpenGL, then adds nothing.
 
     Attribute: Parameter light The directional light.
-    Attribute: Parameter camera The camera the shadow distance is measured
+    Attribute: Parameter camera The camera the light's range is measured
     from.
-    Attribute: Parameter results The array to add the items to.
+    Attribute: Parameter result The result to add the items to. It puts
+    each item in its visible or invisible list by whether the camera can
+    see it.
     */
-    action CollectDirectionalShadowCasters(DirectionalLight light, Camera camera, Array<Item3D> results)
+    action CollectDirectionalShadowCasters(DirectionalLight light, Camera camera, RenderTree3DResult result)
     end
 
     /*
     This action adds the items within a point light's reach, as given by its
-    GetRange action, to the results.
+    GetRange action, to the result.
 
     Attribute: Parameter light The point light.
-    Attribute: Parameter results The array to add the items to.
+    Attribute: Parameter result The result to add the items to. It puts
+    each item in its visible or invisible list by whether the camera can
+    see it.
     */
-    action CollectPointShadowCasters(PointLight light, Array<Item3D> results)
+    action CollectPointShadowCasters(PointLight light, RenderTree3DResult result)
     end
 
     /*

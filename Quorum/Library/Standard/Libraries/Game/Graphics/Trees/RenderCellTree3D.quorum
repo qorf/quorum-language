@@ -247,15 +247,17 @@ class RenderCellTree3D is RenderTreePart3D
     end
 
     /*
-    This action adds to the results every item whose box is at least partly
+    This action adds to the result every item whose box is at least partly
     inside the volume. A cell whose loose box is entirely inside the volume
     adds all of its items without testing them, and a cell entirely outside is
-    skipped with everything below it.
+    skipped with everything below it. The result decides which of its lists
+    each item goes in, and skips items it already has.
 
-    Attribute: Parameter volume The volume, such as a camera's view.
-    Attribute: Parameter results The array to add the items to.
+    Attribute: Parameter volume The volume, such as a camera's view or a
+    light's shadow column.
+    Attribute: Parameter result The result to add the items to.
     */
-    action Collect(CullingVolume3D volume, Array<Item3D> results)
+    action Collect(CullingVolume3D volume, RenderTree3DResult result)
         integer outside = volume:OUTSIDE
         integer inside = volume:INSIDE
 
@@ -263,7 +265,7 @@ class RenderCellTree3D is RenderTreePart3D
         repeat while i < outsideLeaves:GetSize()
             RenderTreeNode3D leaf = outsideLeaves:Get(i)
             if volume:Test(leaf:GetBounds()) not= outside
-                results:Add(leaf:GetItem())
+                result:Add(leaf)
             end
             i = i + 1
         end
@@ -276,15 +278,15 @@ class RenderCellTree3D is RenderTreePart3D
         repeat while not stack:IsEmpty()
             RenderTreeCell3D cell = stack:RemoveFromEnd()
             if cell:GetCount() > 0
-                integer result = volume:Test(cell:GetBounds())
-                if result = inside
-                    AddAll(cell, results)
-                elseif result not= outside
+                integer placement = volume:Test(cell:GetBounds())
+                if placement = inside
+                    AddAll(cell, result)
+                elseif placement not= outside
                     i = 0
                     repeat while i < cell:GetLeafCount()
                         RenderTreeNode3D leaf = cell:GetLeaf(i)
                         if volume:Test(leaf:GetBounds()) not= outside
-                            results:Add(leaf:GetItem())
+                            result:Add(leaf)
                         end
                         i = i + 1
                     end
@@ -377,6 +379,50 @@ class RenderCellTree3D is RenderTreePart3D
     end
 
     /*
+    This action adds to the result every item whose box overlaps the sphere
+    with the given center and radius, such as a point light's reach. The
+    result decides which of its lists each item goes in, and skips items it
+    already has.
+
+    Attribute: Parameter x The x coordinate of the sphere's center.
+    Attribute: Parameter y The y coordinate of the sphere's center.
+    Attribute: Parameter z The z coordinate of the sphere's center.
+    Attribute: Parameter radius The sphere's radius.
+    Attribute: Parameter result The result to add the items to.
+    */
+    action Collect(number x, number y, number z, number radius, RenderTree3DResult result)
+        number radiusSquared = radius * radius
+        integer i = 0
+        repeat while i < outsideLeaves:GetSize()
+            RenderTreeNode3D leaf = outsideLeaves:Get(i)
+            if leaf:DistanceSquared(x, y, z) <= radiusSquared
+                result:Add(leaf)
+            end
+            i = i + 1
+        end
+
+        if root = undefined
+            return now
+        end
+        stack:Empty(false)
+        stack:Add(root)
+        repeat while not stack:IsEmpty()
+            RenderTreeCell3D cell = stack:RemoveFromEnd()
+            if cell:GetCount() > 0 and cell:DistanceSquared(x, y, z) <= radiusSquared
+                i = 0
+                repeat while i < cell:GetLeafCount()
+                    RenderTreeNode3D leaf = cell:GetLeaf(i)
+                    if leaf:DistanceSquared(x, y, z) <= radiusSquared
+                        result:Add(leaf)
+                    end
+                    i = i + 1
+                end
+                PushChildren(cell)
+            end
+        end
+    end
+
+    /*
     This action returns the first leaf in the tree's order, or undefined
     when the tree is empty. The leaves outside the region come first, then
     each cell's own leaves followed by its children's, starting from the top
@@ -453,20 +499,20 @@ class RenderCellTree3D is RenderTreePart3D
     end
 
     /*
-    This action adds every item in a cell and its children to the results,
-    without testing them.
+    This action adds every item in a cell and its children to the result,
+    without testing them against the volume.
 
     Attribute: Parameter start The cell to start from.
-    Attribute: Parameter results The array to add the items to.
+    Attribute: Parameter result The result to add the items to.
     */
-    private action AddAll(RenderTreeCell3D start, Array<Item3D> results)
+    private action AddAll(RenderTreeCell3D start, RenderTree3DResult result)
         subtreeStack:Empty(false)
         subtreeStack:Add(start)
         repeat while not subtreeStack:IsEmpty()
             RenderTreeCell3D cell = subtreeStack:RemoveFromEnd()
             integer i = 0
             repeat while i < cell:GetLeafCount()
-                results:Add(cell:GetLeaf(i):GetItem())
+                result:Add(cell:GetLeaf(i))
                 i = i + 1
             end
             integer c = 0

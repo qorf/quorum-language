@@ -74,6 +74,11 @@ class RenderTreeNode3D
     // in a frame is only drawn once.
     integer lastDrawnFrame = -1
 
+    // The frame and search count of the RenderTree3DResult this leaf's item
+    // was last added to, so a result skips an item it already has.
+    integer addedFrame = -1
+    integer addedSearch = -1
+
     // The cell of a RenderCellTree3D the leaf is in, and its place in the
     // cell's list of leaves. A leaf in the cell tree's list of leaves outside
     // its region has no cell, but still has a place in that list.
@@ -268,6 +273,45 @@ class RenderTreeNode3D
     end
 
     /*
+    This action returns the frame of the result this leaf's item was last
+    added to, or -1 if it never has been.
+
+    Attribute: Returns The frame number, or -1.
+    */
+    action GetAddedFrame returns integer
+        return addedFrame
+    end
+
+    /*
+    This action sets the frame of the result this leaf's item was added to.
+
+    Attribute: Parameter frame The result's frame number.
+    */
+    action SetAddedFrame(integer frame)
+        addedFrame = frame
+    end
+
+    /*
+    This action returns the search count of the result this leaf's item was
+    last added to, or -1 if it never has been.
+
+    Attribute: Returns The search count, or -1.
+    */
+    action GetAddedSearch returns integer
+        return addedSearch
+    end
+
+    /*
+    This action sets the search count of the result this leaf's item was
+    added to.
+
+    Attribute: Parameter search The result's search count.
+    */
+    action SetAddedSearch(integer search)
+        addedSearch = search
+    end
+
+    /*
     This action returns the RenderCellTree3D cell the leaf is in, or
     undefined if it is in none.
 
@@ -390,6 +434,8 @@ class RenderTreeNode3D
         isStatic = false
         lastMovedFrame = 0
         lastDrawnFrame = -1
+        addedFrame = -1
+        addedSearch = -1
         cell = undefined
         cellIndex = -1
         bounds:Invalidate()
