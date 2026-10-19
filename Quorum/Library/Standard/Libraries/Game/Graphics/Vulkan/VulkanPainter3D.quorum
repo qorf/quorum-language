@@ -151,6 +151,11 @@ to allow for simultaneous rendering.*/
     boolean shadowProjectionResourcesLinked = false
     
     Array<Array<VulkanFramebuffer>> shadowCubemapFramebuffers
+
+    // For each frame slot, each light's shadow map view, in light order,
+    // so the maps can be linked into new lighting descriptor sets when the
+    // passes are made again (Item 30).
+    Array<Array<VulkanImageView>> shadowMapViews
     
     
     // Used to create combined image-sampler descriptors. Accesses the individual values in a sampled image.
@@ -166,6 +171,23 @@ to allow for simultaneous rendering.*/
     // draw them or empty the batches, and they would pile up frame after frame.
     boolean framePaused = false
     boolean renderCascadesSeparately = false
+
+    // MSAA (Item 27): the sample count the scene pass was last built with,
+    // and the multisampled images it draws into, shared by every frame's
+    // framebuffer (they are transient, and each frame's scene pass waits
+    // for the previous one's writes).
+    integer sceneSampleCount = 1
+
+    // The swapchain size the framebuffers below were made at. When the
+    // window is resized, the swapchain changes size and Begin makes them
+    // again (Item 28).
+    integer framebufferWidth = 0
+    integer framebufferHeight = 0
+
+    // Every image, and its view, made for those framebuffers (G-buffer,
+    // depth, lighting, MSAA), so they can be freed when they are made again.
+    Array<VulkanImage> sizedImages
+    Array<VulkanImageView> sizedImageViews
     
 on create
         matrix4Array:SetSize(16)
@@ -210,6 +232,9 @@ if lightRenderPass not= undefined
                 lightFramebuffers:RemoveFromEnd():Dispose()
             end
         end
+
+        // The images behind those framebuffers go too (Item 28).
+        ReleaseSizedImages()
         
         integer counter = 0
         repeat while counter < shadowCubemapFramebuffers:GetSize()
@@ -231,7 +256,11 @@ VulkanSwapchain swapchain = graphics:GetSwapchain()
         VulkanShaderManager shaderManager = cast(VulkanShaderManager, gameState:GetShaderManager())
         VulkanLightingProperties lightProperties = graphics:GetLightingProperties()
         VulkanConstants constants
-        
+
+        // The scene pass's sample count: 1, or the MSAA count (Item 27).
+        sceneSampleCount = graphics:GetUsableMultisampleCount()
+        boolean multisampled = sceneSampleCount > 1
+
         // Make sure we have an array of framebuffers for each image available in the swapchain.
         repeat while shadowCubemapFramebuffers:GetSize() < swapchain:GetImageCount()
             Array<VulkanFramebuffer> array
@@ -279,83 +308,66 @@ The attachments we need correspond to our phases of rendering:
         Array<VulkanAttachmentDescription> lightAttachmentDescriptions
         Array<VulkanAttachmentReference> lightColorAttachmentReferences
         Array<VulkanAttachmentDescription> resultAttachmentDescriptions
-        Array<VulkanAttachmentReference> resultColorAttachmentReferences
         
-        // Scene render attachments.
-        VulkanAttachmentDescription positionAttachment
-        positionAttachment:SetFormat(constants:FORMAT_R32G32B32A32_SFLOAT)
-        positionAttachment:SetSamples(1)
-        positionAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
-        positionAttachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
-        positionAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
-        positionAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-        sceneAttachmentDescriptions:Add(positionAttachment)
-        
-        VulkanAttachmentDescription albedoAttachment
-        albedoAttachment:SetFormat(constants:FORMAT_R16G16B16A16_SFLOAT)
-        albedoAttachment:SetSamples(1)
-        albedoAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
-        albedoAttachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
-        albedoAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
-        albedoAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-        sceneAttachmentDescriptions:Add(albedoAttachment)
-        
-        VulkanAttachmentDescription normalsAttachment
-        normalsAttachment:SetFormat(constants:FORMAT_R16G16B16A16_SFLOAT)
-        normalsAttachment:SetSamples(1)
-        normalsAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
-        normalsAttachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
-        normalsAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
-        normalsAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-        sceneAttachmentDescriptions:Add(normalsAttachment)
-        
-        VulkanAttachmentDescription pbrAttachment
-        pbrAttachment:SetFormat(constants:FORMAT_R16G16B16A16_SFLOAT)
-        pbrAttachment:SetSamples(1)
-        pbrAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
-        pbrAttachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
-        pbrAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
-        pbrAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-        sceneAttachmentDescriptions:Add(pbrAttachment)
-        
+        // Scene render attachments. Without MSAA, the scene is drawn straight
+        // into the four G-buffer images (attachments 0 to 3) and depth (4).
+        // With MSAA (Item 27), it is drawn into multisampled copies
+        // (attachments 5 to 8, and a multisampled depth at 4), which the
+        // subpass resolves into the four G-buffer images as it finishes. The
+        // lighting pass reads the G-buffer images either way.
+        integer positionFormat = constants:FORMAT_R32G32B32A32_SFLOAT
+        integer gBufferFormat = constants:FORMAT_R16G16B16A16_SFLOAT
+        sceneAttachmentDescriptions:Add(MakeSceneColorAttachment(positionFormat, 1, multisampled))
+        repeat 3 times
+            sceneAttachmentDescriptions:Add(MakeSceneColorAttachment(gBufferFormat, 1, multisampled))
+        end
+
         VulkanAttachmentDescription depthDescription
         depthDescription:SetFormat(constants:FORMAT_D32_SFLOAT)
-        depthDescription:SetSamples(constants:SAMPLE_COUNT_1_BIT)
+        depthDescription:SetSamples(sceneSampleCount)
         depthDescription:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
         depthDescription:SetStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
-depthDescription:SetStencilLoadOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
-depthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
+        depthDescription:SetStencilLoadOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
+        depthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
         depthDescription:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
         depthDescription:SetFinalLayout(constants:IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
         sceneAttachmentDescriptions:Add(depthDescription)
-        
-        //Now, create the attachment references for the position, albedo, normals, PBR properties, and depth.
-        VulkanAttachmentReference positionReference
-        positionReference:SetAttachmentIndex(0)
-        positionReference:SetLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-        sceneColorAttachmentReferences:Add(positionReference)
-        
-        VulkanAttachmentReference albedoReference
-        albedoReference:SetAttachmentIndex(1)
-        albedoReference:SetLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-        sceneColorAttachmentReferences:Add(albedoReference)
-        
-        VulkanAttachmentReference normalsReference
-        normalsReference:SetAttachmentIndex(2)
-        normalsReference:SetLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-        sceneColorAttachmentReferences:Add(normalsReference)
-        
-        VulkanAttachmentReference pbrReference
-        pbrReference:SetAttachmentIndex(3)
-        pbrReference:SetLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-        sceneColorAttachmentReferences:Add(pbrReference)
-        
+
+        Array<VulkanAttachmentReference> sceneResolveReferences = undefined
+        if multisampled
+            sceneAttachmentDescriptions:Add(MakeSceneColorAttachment(positionFormat, sceneSampleCount, false))
+            repeat 3 times
+                sceneAttachmentDescriptions:Add(MakeSceneColorAttachment(gBufferFormat, sceneSampleCount, false))
+            end
+            Array<VulkanAttachmentReference> resolveReferences
+            sceneResolveReferences = resolveReferences
+        end
+
+        // Position, albedo, normals and PBR: drawn into 0 to 3, or into 5 to
+        // 8 and resolved into 0 to 3.
+        integer gBufferIndex = 0
+        repeat while gBufferIndex < 4
+            VulkanAttachmentReference colorReference
+            if multisampled
+                colorReference:SetAttachmentIndex(5 + gBufferIndex)
+                VulkanAttachmentReference resolveReference
+                resolveReference:SetAttachmentIndex(gBufferIndex)
+                resolveReference:SetLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+                sceneResolveReferences:Add(resolveReference)
+            else
+                colorReference:SetAttachmentIndex(gBufferIndex)
+            end
+            colorReference:SetLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+            sceneColorAttachmentReferences:Add(colorReference)
+            gBufferIndex = gBufferIndex + 1
+        end
+
         VulkanAttachmentReference sceneDepthReference
         sceneDepthReference:SetAttachmentIndex(4)
         sceneDepthReference:SetLayout(constants:IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
-        
+
         // Now that we have all of the required attachment info, create the scene render pass.
-        CreateRenderPass(sceneRenderPass, sceneAttachmentDescriptions, sceneColorAttachmentReferences, sceneDepthReference)
+        CreateRenderPass(sceneRenderPass, sceneAttachmentDescriptions, sceneColorAttachmentReferences, sceneDepthReference, sceneResolveReferences)
         
         // Shadow render attachments.
         VulkanAttachmentDescription momentsAttachment
@@ -399,7 +411,7 @@ shadowDepthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE
         lightColorAttachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
         lightColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
         lightColorAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-        lightAttachmentDescriptions:Add(albedoAttachment)
+        lightAttachmentDescriptions:Add(lightColorAttachment)
         
         VulkanAttachmentReference lightColorReference
         lightColorReference:SetAttachmentIndex(0)
@@ -409,42 +421,12 @@ shadowDepthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE
         // Now, create the lighting render pass.
         CreateRenderPass(lightRenderPass, lightAttachmentDescriptions, lightColorAttachmentReferences, undefined)
         
-        // Final result rendering attachments.
-        VulkanAttachmentDescription outputColorAttachment
-        outputColorAttachment:SetFormat(graphics:GetSwapchain():GetImageViewInfo():GetFormat())
-        outputColorAttachment:SetSamples(constants:SAMPLE_COUNT_1_BIT)
-        outputColorAttachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
-        outputColorAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
-        outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
-            outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
-        
-        // We need to manage the starting state of the output buffer differently depending on whether this is the first layer or not
-        // (i.e. if it's the first layer it needs to be cleared, otherwise we don't want to erase work from previous layers)
-        if isFirstPass
-outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
-            outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
-        else
-outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
-            outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_LOAD)
-        end
-
-        resultAttachmentDescriptions:Add(outputColorAttachment)
-
-        VulkanAttachmentReference outputColorReference
-        outputColorReference:SetAttachmentIndex(0)
-        outputColorReference:SetLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-
-        resultColorAttachmentReferences:Add(outputColorReference)
-        
-        // Note that we don't have to create another depth description, we can use the existing one as it has identical properties as what we need.
-        resultAttachmentDescriptions:Add(depthDescription)
-        
-        // While we didn't need a description, we do need a new depth reference which points to a different attachment index.
-        VulkanAttachmentReference depthReference
-        depthReference:SetAttachmentIndex(1)
-        depthReference:SetLayout(constants:IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
-        
-        CreateRenderPass(resultRenderPass, resultAttachmentDescriptions, resultColorAttachmentReferences, depthReference)
+        // Final result rendering attachments: the same as the swapchain's
+        // framebuffers, with or without 2D MSAA (Item 29). The first layer
+        // clears; later layers draw on what earlier layers drew.
+        VulkanSubpassDescription resultSubpass = graphics:MakeSwapchainSubpass(isFirstPass, resultAttachmentDescriptions)
+        CreateRenderPass(resultRenderPass, resultAttachmentDescriptions, resultSubpass:GetColorAttachments(),
+            resultSubpass:GetDepthStencilAttachment(), resultSubpass:GetResolveAttachments())
         
         shadowProjectionDescriptors:Empty()
         lightDescriptors:Empty()
@@ -554,6 +536,23 @@ outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
         integer i = 0
         integer swapchainWidth = swapchain:GetImageWidth()
         integer swapchainHeight = swapchain:GetImageHeight()
+        framebufferWidth = swapchainWidth
+        framebufferHeight = swapchainHeight
+
+        // With MSAA, the multisampled images every frame draws into: position,
+        // albedo, normals, PBR, and depth (Item 27).
+        Array<VulkanImageView> multisampledViews
+        VulkanImageView multisampledDepthView = undefined
+        if multisampled
+            multisampledViews:Add(MakeMultisampledView(device, constants:FORMAT_R32G32B32A32_SFLOAT,
+                constants:IMAGE_USAGE_COLOR_ATTACHMENT_BIT, constants:IMAGE_ASPECT_COLOR_BIT, swapchainWidth, swapchainHeight))
+            repeat 3 times
+                multisampledViews:Add(MakeMultisampledView(device, constants:FORMAT_R16G16B16A16_SFLOAT,
+                    constants:IMAGE_USAGE_COLOR_ATTACHMENT_BIT, constants:IMAGE_ASPECT_COLOR_BIT, swapchainWidth, swapchainHeight))
+            end
+            multisampledDepthView = MakeMultisampledView(device, constants:FORMAT_D32_SFLOAT,
+                constants:IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, constants:IMAGE_ASPECT_DEPTH_BIT, swapchainWidth, swapchainHeight)
+        end
         repeat while i < swapchain:GetImageCount()
             VulkanFramebuffer renderFramebuffer
             Array<VulkanImageView> renderImageViews
@@ -571,6 +570,7 @@ outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
                 positionImageViewInfo:SetFormat(positionImageInfo:GetFormat())
                 VulkanImageView positionImageView
                 positionImageView:Create(device, positionImage, positionImageViewInfo)
+                KeepSizedImage(positionImage, positionImageView)
                 renderImageViews:Add(positionImageView)
             
             // The other color attachments all have the same properties, so they can be quickly created in a loop.
@@ -588,28 +588,42 @@ outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
                 imageViewInfo:SetFormat(imageInfo:GetFormat())
                 VulkanImageView imageView
                 imageView:Create(device, image, imageViewInfo)
+                KeepSizedImage(image, imageView)
                 renderImageViews:Add(imageView)
                 
                 j = j + 1
             end
             
-            // Also create an image for depth usage.
-            VulkanImageInfo depthImageInfo
-        depthImageInfo:SetWidth(swapchainWidth)
-        depthImageInfo:SetHeight(swapchainHeight)
-        depthImageInfo:SetUsage(constants:IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-        depthImageInfo:SetFormat(constants:FORMAT_D32_SFLOAT)
-        
-        VulkanImage depthImage
-        depthImage:Create(device, depthImageInfo)
-        
-        VulkanImageViewInfo depthViewInfo
-        depthViewInfo:SetAspectMask(constants:IMAGE_ASPECT_DEPTH_BIT)
-        depthViewInfo:SetFormat(depthImageInfo:GetFormat())
-        
-        VulkanImageView depthImageView
-        depthImageView:Create(device, depthImage, depthViewInfo)
-            renderImageViews:Add(depthImageView)
+            // Depth: the shared multisampled one with MSAA, or this frame's own.
+            if multisampled
+                renderImageViews:Add(multisampledDepthView)
+            else
+                VulkanImageInfo depthImageInfo
+                depthImageInfo:SetWidth(swapchainWidth)
+                depthImageInfo:SetHeight(swapchainHeight)
+                depthImageInfo:SetUsage(constants:IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+                depthImageInfo:SetFormat(constants:FORMAT_D32_SFLOAT)
+
+                VulkanImage depthImage
+                depthImage:Create(device, depthImageInfo)
+
+                VulkanImageViewInfo depthViewInfo
+                depthViewInfo:SetAspectMask(constants:IMAGE_ASPECT_DEPTH_BIT)
+                depthViewInfo:SetFormat(depthImageInfo:GetFormat())
+
+                VulkanImageView depthImageView
+                depthImageView:Create(device, depthImage, depthViewInfo)
+                KeepSizedImage(depthImage, depthImageView)
+                renderImageViews:Add(depthImageView)
+            end
+
+            // With MSAA, the multisampled G-buffer images come after depth,
+            // at 5 to 8.
+            integer multisampledIndex = 0
+            repeat while multisampledIndex < multisampledViews:GetSize()
+                renderImageViews:Add(multisampledViews:Get(multisampledIndex))
+                multisampledIndex = multisampledIndex + 1
+            end
             
             renderFramebuffer:Create(device, renderImageViews, sceneRenderPass)
             renderFramebuffers:Add(renderFramebuffer)
@@ -630,6 +644,7 @@ outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
                 imageViewInfo:SetFormat(imageInfo:GetFormat())
                 VulkanImageView imageView
                 imageView:Create(device, image, imageViewInfo)
+                KeepSizedImage(image, imageView)
                 lightImageViews:Add(imageView)
             
             lightFramebuffer:Create(device, lightImageViews, lightRenderPass)
@@ -688,7 +703,22 @@ outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
             
             i = i + 1
         end
-        
+
+        // The descriptor sets above are new. Link the shadow projection
+        // buffers into them again (Begin does it while this is false), and
+        // the shadow maps that already exist (Item 30).
+        shadowProjectionResourcesLinked = false
+        integer slot = 0
+        repeat while slot < shadowMapViews:GetSize() and slot < lightShadowDataDescriptors:GetSize()
+            Array<VulkanImageView> views = shadowMapViews:Get(slot)
+            integer light = 0
+            repeat while light < views:GetSize()
+                LinkShadowMap(slot, light, views:Get(light))
+                light = light + 1
+            end
+            slot = slot + 1
+        end
+
         return true
     end
     
@@ -696,23 +726,41 @@ outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
 Array<VulkanAttachmentDescription> attachmentDescriptions,
 Array<VulkanAttachmentReference> colorReferences,
 VulkanAttachmentReference depthReference) returns boolean
+        return CreateRenderPass(renderPass, attachmentDescriptions, colorReferences, depthReference, undefined)
+    end
+
+    /*
+    This action makes a render pass with one subpass. With resolve
+    references, the subpass resolves each multisampled color attachment
+    into the matching single-sample one as it finishes (Item 27).
+    */
+    private action CreateRenderPass(VulkanRenderPass renderPass,
+Array<VulkanAttachmentDescription> attachmentDescriptions,
+Array<VulkanAttachmentReference> colorReferences,
+VulkanAttachmentReference depthReference,
+Array<VulkanAttachmentReference> resolveReferences) returns boolean
         VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
         VulkanConstants constants
-        
+
         VulkanSubpassDescription subpass
         subpass:SetPipelineBindPoint(constants:PIPELINE_BIND_POINT_GRAPHICS)
         subpass:SetColorAttachments(colorReferences)
         subpass:SetDepthStencilAttachment(depthReference)
+        if resolveReferences not= undefined
+            subpass:SetResolveAttachments(resolveReferences)
+        end
 
         Array<VulkanSubpassDescription> subpassDescriptions
         subpassDescriptions:Add(subpass)
-        
+
         VulkanSubpassDependency dependency
         dependency:SetSourceSubpass(constants:SUBPASS_EXTERNAL)
         dependency:SetDestinationSubpass(0)
         dependency:SetSourceStageMask(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT + constants:PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT)
         dependency:SetDestinationStageMask(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT + constants:PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT)
-        dependency:SetSourceAccessMask(constants:ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)
+        // Color writes too, so a pass waits for the previous frame's writes
+        // to attachments they share, such as the MSAA images (Item 27).
+        dependency:SetSourceAccessMask(constants:ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT + constants:ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
         dependency:SetDestinationAccessMask(constants:ACCESS_COLOR_ATTACHMENT_WRITE_BIT + constants:ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)
 
         Array<VulkanSubpassDependency> subpassDependencies
@@ -721,7 +769,153 @@ VulkanAttachmentReference depthReference) returns boolean
         boolean success = renderPass:Create(graphics:GetDevice(), attachmentDescriptions, subpassDescriptions, subpassDependencies)
         return success
     end
+
+    /*
+    This action describes one of the scene pass's color attachments.
+
+    Attribute: Parameter format The image format.
+    Attribute: Parameter samples 1, or the MSAA sample count.
+    Attribute: Parameter resolveTarget True for a G-buffer image that a multisampled one resolves into.
+    Attribute: Returns The attachment description.
+    */
+    private action MakeSceneColorAttachment(integer format, integer samples, boolean resolveTarget) returns VulkanAttachmentDescription
+        VulkanConstants constants
+        VulkanAttachmentDescription attachment
+        attachment:SetFormat(format)
+        attachment:SetSamples(samples)
+        if resolveTarget
+            // Only the resolve writes it, so its old contents don't matter,
+            // and it is stored for the lighting pass.
+            attachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_DONT_CARE)
+            attachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
+        elseif samples > 1
+            // Multisampled: cleared, drawn and resolved, never stored, so it
+            // can stay in the GPU's tile memory.
+            attachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
+            attachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
+        else
+            attachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
+            attachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
+        end
+        attachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
+        attachment:SetFinalLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+        return attachment
+    end
+
+    /*
+    This action makes one multisampled image for MSAA, and a view of it. It
+    is transient, and asks for lazily allocated memory, which tile-based
+    GPUs (Apple's, and phones') keep in tile memory only; other GPUs give it
+    ordinary memory.
+
+    Attribute: Parameter device The Vulkan device.
+    Attribute: Parameter format The image format.
+    Attribute: Parameter usage Color or depth attachment usage.
+    Attribute: Parameter aspect The color or depth aspect, for the view.
+    Attribute: Parameter width The width in pixels.
+    Attribute: Parameter height The height in pixels.
+    Attribute: Returns The image's view.
+    */
+    private action MakeMultisampledView(VulkanDevice device, integer format, integer usage, integer aspect,
+            integer width, integer height) returns VulkanImageView
+        VulkanConstants constants
+        VulkanImageInfo info
+        info:SetWidth(width)
+        info:SetHeight(height)
+        info:SetFormat(format)
+        info:SetSamples(sceneSampleCount)
+        info:SetUsage(usage + constants:IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT)
+        info:SetPreferredMemoryFlags(constants:MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT)
+        VulkanImage image
+        if not image:Create(device, info)
+            alert("I couldn't make a multisampled image for MSAA with " + sceneSampleCount + " samples.")
+        end
+
+        VulkanImageViewInfo viewInfo
+        viewInfo:SetFormat(format)
+        viewInfo:SetAspectMask(aspect)
+        VulkanImageView view
+        view:Create(device, image, viewInfo)
+        KeepSizedImage(image, view)
+        return view
+    end
+
+    /*
+    This action remembers an image, and its view, made for the painter's
+    framebuffers, so ReleaseSizedImages can free them when the framebuffers
+    are made again (Item 28).
+
+    Attribute: Parameter image The image.
+    Attribute: Parameter view Its view.
+    */
+    private action KeepSizedImage(VulkanImage image, VulkanImageView view)
+        sizedImages:Add(image)
+        sizedImageViews:Add(view)
+    end
+
+    /*
+    This action frees every image, and view, made for the painter's
+    framebuffers: views first, then images. It is called once the
+    framebuffers using them are gone, after the device has finished with
+    them (Begin waits for it).
+    */
+    private action ReleaseSizedImages
+        integer i = 0
+        repeat while i < sizedImageViews:GetSize()
+            sizedImageViews:Get(i):Dispose()
+            i = i + 1
+        end
+        i = 0
+        repeat while i < sizedImages:GetSize()
+            sizedImages:Get(i):Dispose()
+            i = i + 1
+        end
+        sizedImageViews:Empty()
+        sizedImages:Empty()
+    end
+
+    /*
+    This action returns true if a pipeline must be made (again): it doesn't
+    exist yet, or it was made for a different sample count than its pass
+    now uses (Items 27 and 29).
+
+    Attribute: Parameter pipeline The pipeline, or undefined.
+    Attribute: Parameter samples The sample count of the pass it draws in.
+    Attribute: Returns True if it must be made.
+    */
+    private action NeedsPipeline(VulkanPipeline pipeline, integer samples) returns boolean
+        if pipeline = undefined
+            return true
+        end
+        return pipeline:GetInfo():GetRasterizationSamples() not= samples
+    end
     
+    /*
+    This action links one light's shadow map into a frame slot's lighting
+    descriptor set (set 2, binding 1, at the light's place in the array).
+
+    Attribute: Parameter resourceIndex The frame slot.
+    Attribute: Parameter lightIndex The light's place.
+    Attribute: Parameter view The light's shadow map view.
+    */
+    private action LinkShadowMap(integer resourceIndex, integer lightIndex, VulkanImageView view)
+        VulkanConstants constants
+        VulkanDescriptorSet shadowProjectionSet = lightShadowDataDescriptors:Get(resourceIndex)
+
+        VulkanDescriptorResourcesInfo shadowOutputResources
+        VulkanDescriptorImageInfo shadowOutputInfo
+        shadowOutputInfo:SetImageView(view)
+        shadowOutputInfo:SetSampler(shadowSampler)
+        shadowOutputInfo:SetImageLayout(constants:IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+        Array<VulkanDescriptorImageInfo> shadowOutputImages
+        shadowOutputImages:Add(shadowOutputInfo)
+        shadowOutputResources:SetImageInfo(shadowOutputImages)
+        shadowOutputResources:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+        shadowOutputResources:SetDestinationBinding(1)
+        shadowOutputResources:SetDestinationArrayElement(lightIndex)
+        shadowProjectionSet:LinkResources(shadowOutputResources)
+    end
+
     private action EnsureShadowCubemapFramebuffers(integer resourceIndex)
         integer totalLights = environment:GetDirectionalLightCount() + environment:GetPointLightCount()
         if totalLights > environment:GetMaxLights()
@@ -787,21 +981,14 @@ VulkanAttachmentReference depthReference) returns boolean
             framebuffers:Add(shadowFramebuffer)
             
             
-            // Also link up the shadow stage attachment as a descriptor input to the lighting stage.
-            VulkanDescriptorSet shadowProjectionSet = lightShadowDataDescriptors:Get(resourceIndex)
-            
-            VulkanDescriptorResourcesInfo shadowOutputResources
-            VulkanDescriptorImageInfo shadowOutputInfo
-            shadowOutputInfo:SetImageView(shadowImageView)
-            shadowOutputInfo:SetSampler(shadowSampler)
-            shadowOutputInfo:SetImageLayout(constants:IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-            Array<VulkanDescriptorImageInfo> shadowOutputImages
-            shadowOutputImages:Add(shadowOutputInfo)
-            shadowOutputResources:SetImageInfo(shadowOutputImages)
-            shadowOutputResources:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
-            shadowOutputResources:SetDestinationBinding(1)
-            shadowOutputResources:SetDestinationArrayElement(i)
-            shadowProjectionSet:LinkResources(shadowOutputResources)
+            // Remember the map, and link it into the lighting stage's
+            // descriptor set (Item 30).
+            repeat while shadowMapViews:GetSize() <= resourceIndex
+                Array<VulkanImageView> views
+                shadowMapViews:Add(views)
+            end
+            shadowMapViews:Get(resourceIndex):Add(shadowImageView)
+            LinkShadowMap(resourceIndex, i, shadowImageView)
             
             i = i + 1
         end
@@ -1010,6 +1197,27 @@ if batches:HasKey(schematic)
             environment:SetCamera(camera)
         end
         
+        // If the window was resized (Item 28), or the game's MSAA sample
+        // count changed (Item 27), since the passes and framebuffers were
+        // made, make them again at the swapchain's size. Earlier frames may
+        // still be using the old framebuffers, so wait for the device first.
+        // The old passes are let go rather than disposed, since
+        // VulkanRenderPass:Dispose isn't written yet; their framebuffers and
+        // images are freed in RegenerateRenderPasses.
+        if AreRenderPassesValid()
+            VulkanSwapchain currentSwapchain = graphics:GetSwapchain()
+            boolean resized = currentSwapchain:GetImageWidth() not= framebufferWidth or
+                currentSwapchain:GetImageHeight() not= framebufferHeight
+            if resized or graphics:GetUsableMultisampleCount() not= sceneSampleCount or
+                resultRenderPass:GetSampleCount() not= graphics:GetSwapchainSampleCount()
+                graphics:GetDevice():WaitUntilIdle()
+                sceneRenderPass = undefined
+                shadowRenderPass = undefined
+                lightRenderPass = undefined
+                resultRenderPass = undefined
+            end
+        end
+
         // If the render pass isn't defined and valid, regenerate it.
         // We'll have to determine if this is the first painter in the Game as part of this.
         if not AreRenderPassesValid()
@@ -1160,6 +1368,10 @@ Layer layer = layers:Next()
                 sceneClearValues:AddColor(0, 0, 0, 0)
             end
             sceneClearValues:AddDepthStencil(1, 0)
+            // The multisampled G-buffer copies, with MSAA (Item 27).
+            repeat 4 times
+                sceneClearValues:AddColor(0, 0, 0, 0)
+            end
         end
         if shadowClearValues:IsEmpty()
             shadowClearValues:AddColor(1, 1)
@@ -1206,7 +1418,7 @@ Number32BitArray projectionViewMatrix = MatrixToArray(camera:GetCombinedMatrix()
         ShaderProgram currentProgram = GetDefaultProgram()
         VulkanPipeline currentPipeline = GetDefaultPipeline()
         
-        if currentPipeline = undefined
+        if NeedsPipeline(currentPipeline, sceneSampleCount)
             VulkanShaderProgram strategy = cast(VulkanShaderProgram, currentProgram:GetShaderProgramStrategy())
             strategy:CreatePipeline(sceneRenderPass)
             currentPipeline = strategy:GetPipeline()
@@ -1344,7 +1556,7 @@ constants:SHADER_STAGE_FRAGMENT_BIT)
             Array<VulkanDrawQueue3D> programQueues = GetCurrentProgramQueues(program)
             if HasDrawCommands(programQueues)
                 VulkanShaderProgram programStrategy = cast(VulkanShaderProgram, program:GetShaderProgramStrategy())
-                if programStrategy:GetPipeline() = undefined
+                if NeedsPipeline(programStrategy:GetPipeline(), sceneSampleCount)
                     programStrategy:CreatePipeline(sceneRenderPass)
                 end
                 VulkanPipeline programPipeline = programStrategy:GetPipeline()
@@ -1652,7 +1864,7 @@ BindDescriptorSetCommand lightDescriptorBind
         // TO-DO: Support custom shaders for 3D.
         VulkanPipeline resultPipeline = GetCopyFromSamplerPipeline()
         
-        if resultPipeline = undefined
+        if NeedsPipeline(resultPipeline, resultRenderPass:GetSampleCount())
             VulkanShaderProgram strategy = cast(VulkanShaderProgram, GetCopyFromSamplerProgram():GetShaderProgramStrategy())
             strategy:CreatePipeline(resultRenderPass)
             resultPipeline = strategy:GetPipeline()
@@ -1996,7 +2208,7 @@ BindDescriptorSetCommand resultDescriptorBind
         ShaderProgram program = shaders:GetSkyboxShaderProgram()
         VulkanShaderProgram strategy = cast(VulkanShaderProgram, program:GetShaderProgramStrategy())
         VulkanPipeline pipeline = strategy:GetPipeline()
-        if pipeline = undefined
+        if NeedsPipeline(pipeline, resultRenderPass:GetSampleCount())
             strategy:CreatePipeline(resultRenderPass)
             pipeline = strategy:GetPipeline()
         end

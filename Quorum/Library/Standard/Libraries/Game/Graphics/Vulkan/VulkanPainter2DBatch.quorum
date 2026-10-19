@@ -242,8 +242,15 @@ vertexMappedMemory:Dispose()
         indexOutputBuffer:Dispose()
     end
     
+    /*
+    This action returns the batch's pipeline: its program's current one,
+    which is made again if the 2D sample count changes (Item 29).
+
+    Attribute: Returns The pipeline.
+    */
     action GetPipeline returns VulkanPipeline
-        return pipeline
+        VulkanShaderProgram strategy = cast(VulkanShaderProgram, program:GetShaderProgramStrategy())
+        return strategy:GetPipeline()
     end
 
     action GetVertexWritePosition returns integer

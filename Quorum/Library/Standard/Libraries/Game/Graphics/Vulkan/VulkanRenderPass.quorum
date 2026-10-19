@@ -6,8 +6,22 @@ class VulkanRenderPass
     VulkanDevice device = undefined
     boolean initialized = false
 
+    // The most samples any attachment has: 1, or the MSAA sample count for
+    // a multisampled pass (Item 27). Pipelines made for this pass use it.
+    integer sampleCount = 1
+
     action Create(VulkanDevice device, Array<VulkanAttachmentDescription> attachments,
         Array<VulkanSubpassDescription> subpasses, Array<VulkanSubpassDependency> subpassDependencies) returns boolean
+        sampleCount = 1
+        integer i = 0
+        repeat while i < attachments:GetSize()
+            integer samples = attachments:Get(i):GetSamples()
+            if samples > sampleCount
+                sampleCount = samples
+            end
+            i = i + 1
+        end
+
         boolean success = CreateNative(device, attachments, subpasses, subpassDependencies)
         if success
             me:device = device
@@ -26,6 +40,17 @@ class VulkanRenderPass
 
     action GetDevice returns VulkanDevice
         return device
+    end
+
+    /*
+    This action returns how many samples per pixel the pass draws with: 1,
+    or the MSAA sample count for a multisampled pass. Pipelines drawing in
+    the pass must use the same count.
+
+    Attribute: Returns The sample count.
+    */
+    action GetSampleCount returns integer
+        return sampleCount
     end
 
 end

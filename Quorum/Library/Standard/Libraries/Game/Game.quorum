@@ -185,6 +185,12 @@ class Game
     GraphicsManager gl20 = undefined
     GameStateManager manager
     FocusManager focusManager
+
+    // MSAA for 3D under Vulkan (Item 27), passed to the graphics when they
+    // start. 1 is off.
+    integer multisampleCount = 1
+    // MSAA for 2D and the screen's final image under Vulkan (Item 29).
+    integer multisampleCount2D = 1
     Accessibility accessibility = undefined
     EditManager editManager
     InterfaceOptions interfaceOptions = undefined
@@ -290,6 +296,9 @@ class Game
         elseif graphics is VulkanGraphics
             VulkanShaderManager shaderManager
             me:shaderManager = shaderManager
+            VulkanGraphics vulkan = cast(VulkanGraphics, graphics)
+            vulkan:SetMultisampleCount(multisampleCount)
+            vulkan:SetMultisampleCount2D(multisampleCount2D)
         end
 
         if application is DesktopApplication
@@ -2048,9 +2057,12 @@ if gl20 is OpenGLManager
 
     /*
     This action enables or disables vSync in the game. Passing a value of true
-    enables it, a value of false disables it. vSync is enabled by default. 
-    This action should be called before calling StartGame(). This option is only
-    used when the game is run on desktops.
+    enables it, a value of false disables it. vSync is disabled by default.
+    With vSync on, each frame is shown at the display's refresh, so frames don't
+    tear and the game runs no faster than the display. With it off, frames are
+    shown as soon as they're ready, which can tear (under Vulkan, the IMMEDIATE
+    present mode). This action should be called before calling StartGame(). This
+    option is only used when the game is run on desktops.
 
     Attribute: Parameter vSync Whether or not vSync should be enabled.
 
@@ -3775,6 +3787,122 @@ if gl20 is OpenGLManager
     */
     action GetSkybox returns Skybox
         return GetCurrentLayer3D():GetSkybox()
+    end
+
+    /*
+    This action turns multisample anti-aliasing (MSAA) for 3D on or off.
+    MSAA smooths the stair-stepped edges of 3D models by testing several
+    points in each pixel along their edges. 1 turns it off, which is the
+    default. 4 is the usual choice: it costs little on most graphics
+    hardware. 2 and 8 are also possible, if the device supports them;
+    otherwise the highest count it can do below is used. It works with the
+    Vulkan renderer only; OpenGL ignores it. It can be called at any time,
+    such as from a settings menu, and takes effect at the next frame.
+
+    Attribute: Parameter samples How many samples per pixel: 1 (off), 2, 4 or 8.
+
+    Attribute: Example
+    use Libraries.Game.Game
+
+    class Main is Game
+        action Main
+            UseVulkan(true)
+            StartGame()
+        end
+
+        action CreateGame
+            SetMultisampling(4)
+        end
+    end
+    */
+    action SetMultisampling(integer samples)
+        multisampleCount = samples
+        if manager:GetGameGraphics() is VulkanGraphics
+            VulkanGraphics vulkan = cast(VulkanGraphics, manager:GetGameGraphics())
+            vulkan:SetMultisampleCount(samples)
+        end
+    end
+
+    /*
+    This action returns how many samples per pixel MSAA was asked to use (see
+    SetMultisampling).
+
+    Attribute: Returns The count asked for; 1 means MSAA is off.
+
+    Attribute: Example
+    use Libraries.Game.Game
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            SetMultisampling(4)
+            output "MSAA samples: " + GetMultisampling()
+        end
+    end
+    */
+    action GetMultisampling returns integer
+        return multisampleCount
+    end
+
+    /*
+    This action turns multisample anti-aliasing (MSAA) on or off for 2D, and
+    for everything drawn on the screen's final image. It smooths the edges
+    of 2D items that are turned or scaled. Shapes drawn from textures, such
+    as circles and text, and controls are already smooth, and don't change.
+    1 turns it off, which is the default; 4 is the usual choice. It works
+    with the Vulkan renderer only; OpenGL ignores it. It is separate from
+    SetMultisampling, which smooths 3D models. It takes effect at the next
+    frame.
+
+    Attribute: Parameter samples How many samples per pixel: 1 (off), 2, 4 or 8.
+
+    Attribute: Example
+    use Libraries.Game.Game
+
+    class Main is Game
+        action Main
+            UseVulkan(true)
+            StartGame()
+        end
+
+        action CreateGame
+            SetMultisampling2D(4)
+        end
+    end
+    */
+    action SetMultisampling2D(integer samples)
+        multisampleCount2D = samples
+        if manager:GetGameGraphics() is VulkanGraphics
+            VulkanGraphics vulkan = cast(VulkanGraphics, manager:GetGameGraphics())
+            vulkan:SetMultisampleCount2D(samples)
+        end
+    end
+
+    /*
+    This action returns how many samples per pixel 2D MSAA was asked to use
+    (see SetMultisampling2D).
+
+    Attribute: Returns The count asked for; 1 means it's off.
+
+    Attribute: Example
+    use Libraries.Game.Game
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            SetMultisampling2D(4)
+            output "2D MSAA samples: " + GetMultisampling2D()
+        end
+    end
+    */
+    action GetMultisampling2D returns integer
+        return multisampleCount2D
     end
 
     action SetSimulationThreshold2D(number threshold)

@@ -14,6 +14,7 @@ use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
 use Libraries.Game.Graphics.Models.Vulkan.MaterialManagerVulkan
 use Libraries.Game.Graphics.DeviceCoordinates
 
+use Libraries.Game.DesktopConfiguration
 class VulkanGraphics is GraphicsManager
     
 VulkanConstants constants
@@ -27,6 +28,24 @@ VulkanConstants constants
     VulkanSwapchain swapchain = undefined
     VulkanCommandPool commandPool = undefined
     VulkanRenderPass renderPass = undefined
+
+    // MSAA for 3D (Item 27): how many samples per pixel the game asked for.
+    // 1 is off. GetUsableMultisampleCount gives the count the device can do.
+    integer multisampleCount = 1
+    boolean warnedAboutSampleCount = false
+
+    // MSAA for everything drawn on the swapchain image: 2D layers, and the
+    // 3D layers' final copy and sky (Item 29). 1 is off.
+    integer multisampleCount2D = 1
+    boolean warnedAboutSampleCount2D = false
+
+    // The sample count the swapchain's framebuffers were last made with,
+    // and with MSAA, the multisampled color image every pass on them draws
+    // into and resolves from. The depth image (depthBufferImage) is
+    // multisampled too, then.
+    integer swapchainSampleCount = 1
+    VulkanImage multisampledColorImage = undefined
+    VulkanImageView multisampledColorView = undefined
 
     // Resources used to control rendering for each of the images of the swapchain.
     Array<VulkanCommandBuffer> renderCommandBuffers
@@ -204,6 +223,19 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
             swapchainInfo:SetQueueFamilyIndices(queueFamilyIndices)
         end
 
+        // vSync, from DesktopConfiguration: on shows each frame at the
+        // display's refresh (FIFO); off, the default, shows frames as soon as
+        // they're ready (IMMEDIATE), which can tear. The swapchain falls back
+        // to FIFO if the device doesn't offer IMMEDIATE.
+        DesktopConfiguration desktop = gameState:GetGame():GetDesktopConfiguration()
+        if desktop not= undefined
+            if desktop:vSyncEnabled
+                swapchainInfo:SetPresentMode(constants:PRESENT_MODE_FIFO)
+            else
+                swapchainInfo:SetPresentMode(constants:PRESENT_MODE_IMMEDIATE)
+            end
+        end
+
         success = swapchain:Create(device, surface, swapchainInfo)
         if not success
             return false
@@ -250,109 +282,11 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
                 return false
             end
 
-        /*
-        Create the RenderPass that will be used for the Framebuffers. The actual RenderPasses used during rendering are held by the Painters.
-        The RenderPass provided to the Framebuffers will indicate how rendering to the buffers will be performed. Pipelines using the
-        Framebuffers must either exactly match the RenderPass, or be compatible with it. More details here:
-        https://registry.khronos.org/vulkan/specs/1.3-extensions/html/chap8.html#renderpass-compatibility
-        */
-        VulkanAttachmentDescription outputColorAttachment
-        outputColorAttachment:SetFormat(swapchainInfo:GetImageViewInfo():GetFormat())
-        outputColorAttachment:SetSamples(constants:SAMPLE_COUNT_1_BIT)
-        outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
-        outputColorAttachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
-        outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
-        outputColorAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
-
-        Array<VulkanAttachmentDescription> attachmentDescriptions
-        attachmentDescriptions:Add(outputColorAttachment)
-
-
-        VulkanAttachmentReference outputColorReference
-        outputColorReference:SetAttachmentIndex(0)
-        outputColorReference:SetLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-
-        Array<VulkanAttachmentReference> attachmentReferences
-        attachmentReferences:Add(outputColorReference)
-        
-VulkanAttachmentDescription depthDescription
-        depthDescription:SetFormat(constants:FORMAT_D32_SFLOAT)
-        depthDescription:SetSamples(constants:SAMPLE_COUNT_1_BIT)
-        depthDescription:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
-        depthDescription:SetStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
-depthDescription:SetStencilLoadOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
-depthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
-        depthDescription:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
-        depthDescription:SetFinalLayout(constants:IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
-        
-        VulkanAttachmentReference depthReference
-        depthReference:SetAttachmentIndex(1)
-        depthReference:SetLayout(constants:IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
-        
-        attachmentDescriptions:Add(depthDescription)
-
-
-        VulkanSubpassDescription subpass
-        subpass:SetPipelineBindPoint(constants:PIPELINE_BIND_POINT_GRAPHICS)
-        subpass:SetColorAttachments(attachmentReferences)
-        subpass:SetDepthStencilAttachment(depthReference)
-
-        Array<VulkanSubpassDescription> subpassDescriptions
-        subpassDescriptions:Add(subpass)
-        
-VulkanSubpassDependency dependency
-        dependency:SetSourceSubpass(constants:SUBPASS_EXTERNAL)
-        dependency:SetDestinationSubpass(0)
-        dependency:SetSourceStageMask(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT + constants:PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT)
-        dependency:SetDestinationStageMask(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT + constants:PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT)
-        dependency:SetSourceAccessMask(constants:ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)
-        dependency:SetDestinationAccessMask(constants:ACCESS_COLOR_ATTACHMENT_WRITE_BIT + constants:ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)
-
-        Array<VulkanSubpassDependency> subpassDependencies
-        subpassDependencies:Add(dependency)
-
-        VulkanRenderPass renderPass
-        me:renderPass = renderPass
-        success = renderPass:Create(device, attachmentDescriptions, subpassDescriptions, subpassDependencies)
+        // The render pass, depth image and framebuffers for the swapchain's
+        // images, and with 2D MSAA the multisampled color image (Item 29).
+        success = MakeSwapchainFramebuffers()
         if not success
             return false
-        end
-        
-VulkanImageInfo imageInfo
-        imageInfo:SetWidth(swapchain:GetImageWidth())
-        imageInfo:SetHeight(swapchain:GetImageHeight())
-        imageInfo:SetUsage(constants:IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-        imageInfo:SetFormat(constants:FORMAT_D32_SFLOAT)
-        
-        VulkanImage depthImage
-        depthBufferImage = depthImage
-        depthImage:Create(device, imageInfo)
-        
-        VulkanImageViewInfo viewInfo
-        viewInfo:SetAspectMask(constants:IMAGE_ASPECT_DEPTH_BIT)
-        viewInfo:SetFormat(imageInfo:GetFormat())
-        
-        VulkanImageView depthImageView
-        depthBufferImageView = depthImageView
-        depthImageView:Create(device, depthImage, viewInfo)
-
-        Array<VulkanFramebuffer> swapchainFramebuffers
-        me:swapchainFramebuffers = swapchainFramebuffers
-        i = 0
-        repeat while i < swapchain:GetImageCount()
-            VulkanImageView imageView = swapchain:GetImageView(i)
-            Array<VulkanImageView> imageViewArray
-            imageViewArray:Add(imageView)
-            imageViewArray:Add(depthBufferImageView)
-
-            VulkanFramebuffer framebuffer
-            success = framebuffer:Create(device, imageViewArray, renderPass)
-            if not success
-                return false
-            end
-
-            swapchainFramebuffers:Add(framebuffer)
-            i = i + 1
         end
 
 
@@ -425,6 +359,21 @@ VulkanImageInfo imageInfo
         // Abort early if rendering is paused.
         if renderingPaused
             return now
+        end
+
+        // If the 2D sample count changed, remake the swapchain's
+        // framebuffers for it (Item 29), as a resize would. The painters
+        // see their passes no longer match, and remake them.
+        if GetUsableMultisampleCount2D() not= swapchainSampleCount
+            device:WaitUntilIdle()
+            integer old = 0
+            repeat while old < swapchainFramebuffers:GetSize()
+                swapchainFramebuffers:Get(old):Dispose()
+                old = old + 1
+            end
+            if not MakeSwapchainFramebuffers()
+                alert("I couldn't remake the screen's framebuffers for " + swapchainSampleCount + " samples per pixel.")
+            end
         end
 
         // Make sure the next image in the swapchain is valid. Window resizing in particular can make the swapchain "out of date", in which case we'll need to regenerate it.
@@ -510,51 +459,19 @@ boolean success = swapchain:Create(device, surface, info)
             alert("Failed to regenerate swapchain!")
         end
         
-// Also regenerate the depth buffer image and image view at the new size.
-        depthBufferImage:Dispose()
-        depthBufferImageView:Dispose()
-        
-VulkanImageInfo imageInfo
-        imageInfo:SetWidth(swapchain:GetImageWidth())
-        imageInfo:SetHeight(swapchain:GetImageHeight())
-        imageInfo:SetUsage(constants:IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-        imageInfo:SetFormat(constants:FORMAT_D32_SFLOAT)
-        
-        VulkanImage depthImage
-        depthBufferImage = depthImage
-        depthImage:Create(device, imageInfo)
-        
-        VulkanImageViewInfo viewInfo
-        viewInfo:SetAspectMask(constants:IMAGE_ASPECT_DEPTH_BIT)
-        viewInfo:SetFormat(imageInfo:GetFormat())
-        
-        VulkanImageView depthImageView
-        depthBufferImageView = depthImageView
-        depthImageView:Create(device, depthImage, viewInfo)
-        
-        // Create new framebuffers for the swapchain's new images.
-        swapchainFramebuffers:Empty()
+        // The depth image, multisampled image and framebuffers at the new
+        // size (Item 29).
+        if not MakeSwapchainFramebuffers()
+            alert("Failed to create framebuffers during swapchain regeneration!")
+        end
+
+        // While it's technically allowed to reuse the previous semaphores, it's possible for a semaphore to be signalled in a way that can't
+        // be reset by a SUBOPTIMAL result when preparing frames. For safety, we generate new ones here.
         i = 0
         repeat while i < swapchain:GetImageCount()
-            VulkanImageView imageView = swapchain:GetImageView(i)
-            Array<VulkanImageView> imageViewArray
-            imageViewArray:Add(imageView)
-            imageViewArray:Add(depthBufferImageView)
-
-            VulkanFramebuffer framebuffer
-            success = framebuffer:Create(device, imageViewArray, renderPass)
-            if not success
-                alert("Failed to create framebuffer during swapchain regeneration!")
-            end
-
-            swapchainFramebuffers:Add(framebuffer)
-            
-// While it's technically allowed to reuse the previous semaphores, it's possible for a semaphore to be signalled in a way that can't
-        // be reset by a SUBOPTIMAL result when preparing frames. For safety, we generate new ones here.
             VulkanSemaphore newSemaphore
-success = newSemaphore:Create(device)
+            success = newSemaphore:Create(device)
             imageAcquiredSemaphores:Set(i, newSemaphore)
-            
             i = i + 1
         end
     end
@@ -586,6 +503,324 @@ success = newSemaphore:Create(device)
     action SetClearScreenColor(number red, number green, number blue, number alpha)
         VulkanClearValue value = clearValues:Get(0)
         value:SetColor(red, green, blue, alpha)
+    end
+
+    /*
+    This action sets how many samples per pixel 3D scenes are drawn with,
+    for multisample anti-aliasing (MSAA): 1 turns it off; 2, 4 or 8 smooth
+    the stair-stepped edges of 3D models, 4 being the usual choice. If the
+    device can't do the count, the highest count it can do below it is
+    used. It takes effect at the next frame.
+
+    Attribute: Parameter samples 1, 2, 4 or 8.
+    */
+    action SetMultisampleCount(integer samples)
+        if samples < 1
+            samples = 1
+        end
+        multisampleCount = samples
+        warnedAboutSampleCount = false
+    end
+
+    /*
+    This action returns how many samples per pixel the game asked for.
+
+    Attribute: Returns The count asked for; 1 means MSAA is off.
+    */
+    action GetMultisampleCount returns integer
+        return multisampleCount
+    end
+
+    /*
+    This action returns how many samples per pixel 3D scenes are really
+    drawn with: the count asked for, or the highest count the device's
+    framebuffers can do below it, for both color and depth.
+
+    Attribute: Returns The count in use, 1 for no MSAA.
+    */
+    action GetUsableMultisampleCount returns integer
+        integer samples = FindUsableSampleCount(multisampleCount)
+        if samples not= multisampleCount and multisampleCount > 1 and not warnedAboutSampleCount
+            output "MSAA: " + multisampleCount + " samples asked for; this device can do " + samples + ", so " + samples + " are used."
+            warnedAboutSampleCount = true
+        end
+        return samples
+    end
+
+    /*
+    This action sets how many samples per pixel are used for everything
+    drawn on the screen's own image: 2D layers, and the final picture of 3D
+    layers. 1 turns it off; 4 is the usual choice. It smooths the edges of
+    turned or scaled 2D items. If the device can't do the count, the highest
+    count it can do below it is used. It takes effect at the next frame.
+
+    Attribute: Parameter samples 1, 2, 4 or 8.
+    */
+    action SetMultisampleCount2D(integer samples)
+        if samples < 1
+            samples = 1
+        end
+        multisampleCount2D = samples
+        warnedAboutSampleCount2D = false
+    end
+
+    /*
+    This action returns how many samples per pixel 2D MSAA was asked to use.
+
+    Attribute: Returns The count asked for; 1 means it's off.
+    */
+    action GetMultisampleCount2D returns integer
+        return multisampleCount2D
+    end
+
+    /*
+    This action returns how many samples per pixel the screen's image is
+    really drawn with: the 2D count asked for, or less if the device can't
+    do it.
+
+    Attribute: Returns The count in use, 1 for none.
+    */
+    action GetUsableMultisampleCount2D returns integer
+        integer samples = FindUsableSampleCount(multisampleCount2D)
+        if samples not= multisampleCount2D and multisampleCount2D > 1 and not warnedAboutSampleCount2D
+            output "2D MSAA: " + multisampleCount2D + " samples asked for; this device can do " + samples + ", so " + samples + " are used."
+            warnedAboutSampleCount2D = true
+        end
+        return samples
+    end
+
+    /*
+    This action returns the sample count the swapchain's framebuffers are
+    made with now. Every pass drawing on them must use it.
+
+    Attribute: Returns The sample count.
+    */
+    action GetSwapchainSampleCount returns integer
+        return swapchainSampleCount
+    end
+
+    /*
+    This action returns the highest power of two, no more than the count
+    asked for, that the device's framebuffers can do for color and depth.
+
+    Attribute: Parameter requested The count asked for.
+    Attribute: Returns The usable count, 1 if none.
+    */
+    private action FindUsableSampleCount(integer requested) returns integer
+        if requested <= 1 or physicalDevice = undefined
+            return 1
+        end
+        VulkanPhysicalDeviceLimits limits = physicalDevice:GetLimits()
+        integer samples = 1
+        repeat while samples * 2 <= requested and samples < 64
+            samples = samples * 2
+        end
+        repeat while samples > 1 and not (limits:HasFrameBufferColorSampleSupport(samples) and limits:HasFrameBufferDepthSampleSupport(samples))
+            samples = samples / 2
+        end
+        return samples
+    end
+
+    /*
+    This action describes the attachments of a pass that draws on the
+    swapchain image, and returns its one subpass. The 2D painter, the 3D
+    painter's result pass, and the swapchain's framebuffers all use it, so
+    they always match. Without MSAA the attachments are [swapchain image,
+    depth]; with 2D MSAA (Item 29) they are [multisampled color, multisampled
+    depth, swapchain image], and the subpass resolves the multisampled color
+    into the swapchain image as it ends. Either way the clear color is at 0
+    and depth at 1.
+
+    Attribute: Parameter firstLayer True if the pass is the frame's first, which clears the image; false to draw on what earlier layers drew.
+    Attribute: Parameter descriptions An empty array, which is filled with the attachments.
+    Attribute: Returns The subpass.
+    */
+    action MakeSwapchainSubpass(boolean firstLayer, Array<VulkanAttachmentDescription> descriptions) returns VulkanSubpassDescription
+        integer format = swapchain:GetImageViewInfo():GetFormat()
+        integer samples = swapchainSampleCount
+
+        VulkanAttachmentDescription color
+        color:SetFormat(format)
+        color:SetSamples(samples)
+        color:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
+        if firstLayer
+            color:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
+            color:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
+        elseif samples > 1
+            color:SetInitialLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+            color:SetLoadOp(constants:ATTACHMENT_LOAD_OP_LOAD)
+        else
+            color:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
+            color:SetLoadOp(constants:ATTACHMENT_LOAD_OP_LOAD)
+        end
+        if samples > 1
+            // Kept between layers, so the next layer's pass can load it.
+            color:SetFinalLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+        else
+            color:SetFinalLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
+        end
+        descriptions:Add(color)
+
+        VulkanAttachmentDescription depth
+        depth:SetFormat(constants:FORMAT_D32_SFLOAT)
+        depth:SetSamples(samples)
+        depth:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
+        depth:SetStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
+        depth:SetStencilLoadOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
+        depth:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
+        depth:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
+        depth:SetFinalLayout(constants:IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+        descriptions:Add(depth)
+
+        VulkanSubpassDescription subpass
+        subpass:SetPipelineBindPoint(constants:PIPELINE_BIND_POINT_GRAPHICS)
+
+        Array<VulkanAttachmentReference> colorReferences
+        VulkanAttachmentReference colorReference
+        colorReference:SetAttachmentIndex(0)
+        colorReference:SetLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+        colorReferences:Add(colorReference)
+        subpass:SetColorAttachments(colorReferences)
+
+        VulkanAttachmentReference depthReference
+        depthReference:SetAttachmentIndex(1)
+        depthReference:SetLayout(constants:IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+        subpass:SetDepthStencilAttachment(depthReference)
+
+        if samples > 1
+            // The swapchain image, written only by the resolve.
+            VulkanAttachmentDescription target
+            target:SetFormat(format)
+            target:SetSamples(constants:SAMPLE_COUNT_1_BIT)
+            target:SetLoadOp(constants:ATTACHMENT_LOAD_OP_DONT_CARE)
+            target:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
+            target:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
+            target:SetFinalLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
+            descriptions:Add(target)
+
+            Array<VulkanAttachmentReference> resolveReferences
+            VulkanAttachmentReference resolveReference
+            resolveReference:SetAttachmentIndex(2)
+            resolveReference:SetLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+            resolveReferences:Add(resolveReference)
+            subpass:SetResolveAttachments(resolveReferences)
+        end
+        return subpass
+    end
+
+    /*
+    This action makes, at the swapchain's size and the 2D sample count, the
+    render pass the swapchain's framebuffers are made with, the depth image,
+    the multisampled color image (with 2D MSAA), and one framebuffer per
+    swapchain image. Old images are freed. The old framebuffers must already
+    be disposed, and the device idle.
+
+    Attribute: Returns True if everything was made.
+    */
+    private action MakeSwapchainFramebuffers returns boolean
+        swapchainSampleCount = GetUsableMultisampleCount2D()
+        boolean multisampled = swapchainSampleCount > 1
+
+        Array<VulkanAttachmentDescription> attachmentDescriptions
+        Array<VulkanSubpassDescription> subpassDescriptions
+        subpassDescriptions:Add(MakeSwapchainSubpass(true, attachmentDescriptions))
+
+        VulkanSubpassDependency dependency
+        dependency:SetSourceSubpass(constants:SUBPASS_EXTERNAL)
+        dependency:SetDestinationSubpass(0)
+        dependency:SetSourceStageMask(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT + constants:PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT)
+        dependency:SetDestinationStageMask(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT + constants:PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT)
+        dependency:SetSourceAccessMask(constants:ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT + constants:ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
+        dependency:SetDestinationAccessMask(constants:ACCESS_COLOR_ATTACHMENT_WRITE_BIT + constants:ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)
+        Array<VulkanSubpassDependency> subpassDependencies
+        subpassDependencies:Add(dependency)
+
+        // The old pass is let go: VulkanRenderPass:Dispose isn't written yet.
+        VulkanRenderPass pass
+        renderPass = pass
+        if not renderPass:Create(device, attachmentDescriptions, subpassDescriptions, subpassDependencies)
+            return false
+        end
+
+        if depthBufferImageView not= undefined
+            depthBufferImageView:Dispose()
+            depthBufferImage:Dispose()
+        end
+        if multisampledColorView not= undefined
+            multisampledColorView:Dispose()
+            multisampledColorImage:Dispose()
+            multisampledColorView = undefined
+            multisampledColorImage = undefined
+        end
+
+        integer width = swapchain:GetImageWidth()
+        integer height = swapchain:GetImageHeight()
+
+        VulkanImageInfo depthInfo
+        depthInfo:SetWidth(width)
+        depthInfo:SetHeight(height)
+        depthInfo:SetFormat(constants:FORMAT_D32_SFLOAT)
+        depthInfo:SetSamples(swapchainSampleCount)
+        if multisampled
+            // Cleared by every pass and never kept, so it can stay in tile
+            // memory where the GPU has it.
+            depthInfo:SetUsage(constants:IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT + constants:IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT)
+            depthInfo:SetPreferredMemoryFlags(constants:MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT)
+        else
+            depthInfo:SetUsage(constants:IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+        end
+        VulkanImage depthImage
+        depthBufferImage = depthImage
+        if not depthImage:Create(device, depthInfo)
+            return false
+        end
+        VulkanImageViewInfo depthViewInfo
+        depthViewInfo:SetAspectMask(constants:IMAGE_ASPECT_DEPTH_BIT)
+        depthViewInfo:SetFormat(constants:FORMAT_D32_SFLOAT)
+        VulkanImageView depthView
+        depthBufferImageView = depthView
+        depthView:Create(device, depthImage, depthViewInfo)
+
+        if multisampled
+            // Kept between layers in a frame, so not transient.
+            VulkanImageInfo colorInfo
+            colorInfo:SetWidth(width)
+            colorInfo:SetHeight(height)
+            colorInfo:SetFormat(swapchain:GetImageViewInfo():GetFormat())
+            colorInfo:SetSamples(swapchainSampleCount)
+            colorInfo:SetUsage(constants:IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+            VulkanImage colorImage
+            multisampledColorImage = colorImage
+            if not colorImage:Create(device, colorInfo)
+                return false
+            end
+            VulkanImageViewInfo colorViewInfo
+            colorViewInfo:SetFormat(colorInfo:GetFormat())
+            VulkanImageView colorView
+            multisampledColorView = colorView
+            colorView:Create(device, colorImage, colorViewInfo)
+        end
+
+        swapchainFramebuffers:Empty()
+        integer i = 0
+        repeat while i < swapchain:GetImageCount()
+            Array<VulkanImageView> views
+            if multisampled
+                views:Add(multisampledColorView)
+                views:Add(depthBufferImageView)
+                views:Add(swapchain:GetImageView(i))
+            else
+                views:Add(swapchain:GetImageView(i))
+                views:Add(depthBufferImageView)
+            end
+            VulkanFramebuffer framebuffer
+            if not framebuffer:Create(device, views, renderPass)
+                return false
+            end
+            swapchainFramebuffers:Add(framebuffer)
+            i = i + 1
+        end
+        return true
     end
     
     /*

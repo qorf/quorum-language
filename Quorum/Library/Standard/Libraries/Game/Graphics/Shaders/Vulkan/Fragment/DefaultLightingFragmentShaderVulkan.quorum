@@ -249,6 +249,18 @@ void main()
 	vec4 rawWorldPosition = texture(positionSampler, v_samplerCoordinate);
 	vec3 worldPosition = rawWorldPosition.xyz;
 	vec3 pbr = texture(pbrSampler, v_samplerCoordinate).rgb;
+
+	// With MSAA (Item 27), an edge pixel's G-buffer values are averages of
+	// its samples, and samples where nothing was drawn hold zeros. Geometry
+	// writes a position w of 1, so w is the share of the pixel covered.
+	// Dividing by it gives the model's own values back, so silhouettes
+	// against the sky are lit correctly and have no dark halo. Without MSAA,
+	// coverage is exactly 1 or 0, and nothing changes.
+	float coverage = rawWorldPosition.w;
+	float uncover = coverage > 0.0001 ? 1.0 / coverage : 0.0;
+	albedo = albedo * uncover;
+	worldPosition = worldPosition * uncover;
+	pbr = pbr * uncover;
 	
 	float roughness = pbr.g;
 	float metallic = pbr.b;
@@ -261,7 +273,7 @@ void main()
 
     vec3 Lo = vec3(0.0);
 	
-	vec4 viewPos = sceneInfo.cameraViewMatrix * rawWorldPosition;
+	vec4 viewPos = sceneInfo.cameraViewMatrix * vec4(worldPosition, 1.0);
 	
     for (uint i = 0; i < sceneInfo.lightsCount; i++) {
         Light light = lights.array[i];

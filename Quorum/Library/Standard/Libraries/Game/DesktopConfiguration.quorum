@@ -24,7 +24,14 @@ class DesktopConfiguration is ApplicationConfiguration
     /* Initial y coordinate where the window will appear on screen. -1 for center. */
     public integer y = -1
 
-    /* If true, the application will use vSync. */
+    /*
+    If true, the application uses vSync: each frame is shown at the display's
+    refresh, so frames don't tear and the game runs no faster than the display.
+    If false (the default), frames are shown as soon as they're ready. Under
+    Vulkan that is the IMMEDIATE present mode, which can tear (the swapchain
+    uses FIFO instead if the device doesn't offer it); under OpenGL it is a swap
+    interval of 0.
+    */
     public boolean vSyncEnabled = false
 
     /* The title of the application. */

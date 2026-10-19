@@ -56,6 +56,9 @@ class VulkanShaderProgram is ShaderProgramStrategy
         
         VulkanDevice device = renderPass:GetDevice()
         VulkanPipelineInfo info = GetShaderMapping():CreatePipelineInfo(me, device)
+        // A pipeline must use the same sample count as the pass it draws in:
+        // 1, except in the scene pass with MSAA on (Item 27).
+        info:SetRasterizationSamples(renderPass:GetSampleCount())
         Array<Shader> shaders = parent:ShaderProgramStrategy:shaders
         
         GameStateManager gameState

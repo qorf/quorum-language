@@ -171,6 +171,23 @@ public class VulkanSwapchain
                 swapchainCreateInfo.preTransform(createInfo.GetPreTransform());
             }
 
+            // Use the requested present mode only if the surface offers it.
+            // FIFO is always available (the Vulkan spec requires it), so it's
+            // the fallback, and the Quorum side is told what was used.
+            int requestedMode = createInfo.GetPresentMode();
+            IntBuffer modeCount = stack.mallocInt(1);
+            KHRSurface.vkGetPhysicalDeviceSurfacePresentModesKHR(vulkanPhysicalDevice, vulkanSurfacePointer, modeCount, null);
+            IntBuffer modes = stack.mallocInt(modeCount.get(0));
+            KHRSurface.vkGetPhysicalDeviceSurfacePresentModesKHR(vulkanPhysicalDevice, vulkanSurfacePointer, modeCount, modes);
+            boolean supported = false;
+            for (int m = 0; m < modeCount.get(0); m++)
+            {
+                if (modes.get(m) == requestedMode)
+                    supported = true;
+            }
+            if (!supported)
+                createInfo.SetPresentMode(KHRSurface.VK_PRESENT_MODE_FIFO_KHR);
+
             swapchainCreateInfo.presentMode(createInfo.GetPresentMode());
 
             // Set the array of indices for the queue families, if we have them. Only needed for concurrent access
