@@ -300,7 +300,9 @@ void main()
             Lo += (calculatePointLight(light, worldPosition, V, N, F0, albedo, metallic, roughness) * shadow);
         }
     }
-    vec3 ambient = sceneInfo.ambientColor * albedo * sceneInfo.ambientIntensity;
+    // The PBR image's first channel is ambient occlusion (1 for none), so
+    // cracks and hollows get less ambient light. Direct light is unchanged.
+    vec3 ambient = sceneInfo.ambientColor * albedo * sceneInfo.ambientIntensity * pbr.r;
     vec3 color = ambient + Lo;
 
 	outputColor = vec4(color.rgb, rawAlbedo.a);

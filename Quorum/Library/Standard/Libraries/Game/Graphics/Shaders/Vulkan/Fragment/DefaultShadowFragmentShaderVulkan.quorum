@@ -59,6 +59,10 @@ class DefaultShadowFragmentShaderVulkan is Shader
 			uint roughMapIndex;
 			float roughness;
 			float metallic;
+			uint flags;
+			float textureScale;
+			uint reserved1;
+			uint reserved2;
 		};
 		
 		layout(scalar, buffer_reference) buffer Materials
@@ -110,8 +114,10 @@ class DefaultShadowFragmentShaderVulkan is Shader
 
 			vec4 sampledColor = texture(nonuniformEXT(sampler2D(globalTextures[textureIndex], immutableSampler)), v_textureCoordinates) * diffuse;
 
-			// If the color is mostly transparent, discard the fragment.
-			if (sampledColor.a < 0.5)
+			// If the color is mostly transparent, discard the fragment. A
+			// texture set's alpha is height, not opacity, so it is never
+			// discarded.
+			if ((material.flags & 1u) == 0u && sampledColor.a < 0.5)
 			{
 				discard;
 			}

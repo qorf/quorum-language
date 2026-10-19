@@ -1,6 +1,7 @@
 package Libraries.Game.Graphics.Models.Data
 
 use Libraries.Compute.Vector4
+use Libraries.System.File
 
 class Material
     text texturePath = ""
@@ -13,6 +14,16 @@ class Material
     number bumpShading = 1.0
     number opaque = 1.0
     number refractiveIndex = 1.0
+
+    // The new way: a texture set, separate maps that each hold one property,
+    // as AmbientCG and Poly Haven give them. Only the Vulkan renderer reads
+    // these. The color map's path being set is what marks a texture set.
+    text colorMapPath = ""
+    text roughnessMapPath = ""
+    text ambientOcclusionMapPath = ""
+    text heightMapPath = ""
+    boolean normalMapIsDirectX = false
+    number textureScale = 1.0
     
     action GetTexturePath returns text
         return texturePath
@@ -92,5 +103,194 @@ class Material
 
     action SetRefractiveIndex(number refractiveIndex)
         me:refractiveIndex = refractiveIndex
+    end
+
+    /*
+    This action returns the path of the texture set's color (albedo) map.
+
+    Attribute: Returns The path, or "" if the material doesn't use a texture set.
+    */
+    action GetColorMapPath returns text
+        return colorMapPath
+    end
+
+    /*
+    This action sets the path of the texture set's color (albedo) map. Setting
+    it makes the material a texture set, which the Vulkan renderer draws with
+    the set's normal, roughness, ambient occlusion and height maps, instead
+    of the texture path and metal-rough map.
+
+    Attribute: Parameter path The color map's file path.
+    */
+    action SetColorMapPath(text path)
+        colorMapPath = path
+    end
+
+    /*
+    This action returns the path of the texture set's roughness map.
+
+    Attribute: Returns The path, or "" if none.
+    */
+    action GetRoughnessMapPath returns text
+        return roughnessMapPath
+    end
+
+    /*
+    This action sets the path of the texture set's roughness map: a gray
+    image, black for smooth and white for rough. Without one, the roughness
+    factor is used everywhere.
+
+    Attribute: Parameter path The roughness map's file path.
+    */
+    action SetRoughnessMapPath(text path)
+        roughnessMapPath = path
+    end
+
+    /*
+    This action returns the path of the texture set's ambient occlusion map.
+
+    Attribute: Returns The path, or "" if none.
+    */
+    action GetAmbientOcclusionMapPath returns text
+        return ambientOcclusionMapPath
+    end
+
+    /*
+    This action sets the path of the texture set's ambient occlusion map: a
+    gray image, darker where little surrounding light reaches, such as in
+    cracks. It darkens only ambient light.
+
+    Attribute: Parameter path The ambient occlusion map's file path.
+    */
+    action SetAmbientOcclusionMapPath(text path)
+        ambientOcclusionMapPath = path
+    end
+
+    /*
+    This action returns the path of the texture set's height map.
+
+    Attribute: Returns The path, or "" if none.
+    */
+    action GetHeightMapPath returns text
+        return heightMapPath
+    end
+
+    /*
+    This action sets the path of the texture set's height map (often called
+    displacement): a gray image, lighter where the surface stands higher. It
+    doesn't move the surface; terrain uses it to blend materials, so stones
+    show through sand.
+
+    Attribute: Parameter path The height map's file path.
+    */
+    action SetHeightMapPath(text path)
+        heightMapPath = path
+    end
+
+    /*
+    This action sets whether the normal map uses the DirectX convention,
+    where green points down, rather than the OpenGL convention, where green
+    points up. Texture sets often come with both, named NormalDX and
+    NormalGL. The default is OpenGL.
+
+    Attribute: Parameter directX True for a DirectX normal map.
+    */
+    action SetNormalMapDirectX(boolean directX)
+        normalMapIsDirectX = directX
+    end
+
+    /*
+    This action returns true if the normal map uses the DirectX convention.
+
+    Attribute: Returns True for DirectX, false for OpenGL.
+    */
+    action IsNormalMapDirectX returns boolean
+        return normalMapIsDirectX
+    end
+
+    /*
+    This action returns how many world units one tile of the material covers
+    when it is laid on terrain by world position.
+
+    Attribute: Returns The size of one tile, in world units.
+    */
+    action GetTextureScale returns number
+        return textureScale
+    end
+
+    /*
+    This action sets how many world units one tile of the material covers
+    when it is laid on terrain by world position. Models use their own
+    texture coordinates and ignore it.
+
+    Attribute: Parameter size The size of one tile, in world units. It must be more than 0.
+    */
+    action SetTextureScale(number size)
+        if size <= 0
+            alert("A material's texture scale must be more than 0, but was given " + size + ".")
+        end
+        textureScale = size
+    end
+
+    /*
+    This action returns true if the material is a texture set (the new way),
+    which is true once a color map is set.
+
+    Attribute: Returns True for a texture set.
+    */
+    action UsesTextureSet returns boolean
+        return colorMapPath not= ""
+    end
+
+    /*
+    This action fills in a texture set from a folder of maps named the way
+    AmbientCG and Poly Haven name them: name_Color.png, name_NormalGL.png
+    (or name_NormalDX.png), name_Roughness.png, name_AmbientOcclusion.png
+    and name_Displacement.png. Maps that aren't there are left out. The
+    color map must be there.
+
+    Attribute: Parameter folder The folder holding the maps.
+    Attribute: Parameter name The start of the maps' file names, such as "Rocks002_1K-PNG".
+
+    Attribute: Example
+    use Libraries.Game.Graphics.Models.Data.Material
+
+    Material rock
+    rock:SetTextureSet("Textures/Rocks002_1K-PNG", "Rocks002_1K-PNG")
+    */
+    action SetTextureSet(text folder, text name)
+        text start = folder + "/" + name + "_"
+        if not FileExists(start + "Color.png")
+            alert("I couldn't find the texture set's color map, " + start + "Color.png.")
+        end
+        SetColorMapPath(start + "Color.png")
+        if FileExists(start + "NormalGL.png")
+            SetNormalMapPath(start + "NormalGL.png")
+            SetNormalMapDirectX(false)
+        elseif FileExists(start + "NormalDX.png")
+            SetNormalMapPath(start + "NormalDX.png")
+            SetNormalMapDirectX(true)
+        end
+        if FileExists(start + "Roughness.png")
+            SetRoughnessMapPath(start + "Roughness.png")
+        end
+        if FileExists(start + "AmbientOcclusion.png")
+            SetAmbientOcclusionMapPath(start + "AmbientOcclusion.png")
+        end
+        if FileExists(start + "Displacement.png")
+            SetHeightMapPath(start + "Displacement.png")
+        end
+    end
+
+    /*
+    This action returns true if a file exists.
+
+    Attribute: Parameter path The file's path.
+    Attribute: Returns True if it exists.
+    */
+    private action FileExists(text path) returns boolean
+        File file
+        file:SetPath(path)
+        return file:Exists()
     end
 end

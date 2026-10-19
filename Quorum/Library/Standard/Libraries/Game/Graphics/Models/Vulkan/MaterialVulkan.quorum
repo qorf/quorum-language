@@ -15,6 +15,11 @@ use Libraries.Game.Graphics.SharedTextureManager
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Vulkan.VulkanNumber32BitMappedMemory
 use Libraries.Game.Graphics.Vulkan.Commands.CopyBufferCommand
+use Libraries.Game.Graphics.PixelMap
+use Libraries.Game.Graphics.Format
+use Libraries.Game.Graphics.Color
+use Libraries.System.File
+use Libraries.Compute.Math
 
 class MaterialVulkan
     
@@ -24,13 +29,16 @@ class MaterialVulkan
     
     /*The buffer for an individual material holds this data:
 Diffuse color (RGBA8888, 4 bytes)
-Texture index (uint, 4 bytes)
+Texture index (uint, 4 bytes); for a texture set, its albedo-height texture
 Has Normal Map? (uint, 4 bytes, 0 or 1 for boolean logic)
 Has Rough Map? (uint, 4 bytes, 0 or 1 for boolean logic)
-Normal map index (uint, 4 bytes)
+Normal map index (uint, 4 bytes); for a texture set, its normal-roughness texture
 Rough map index (uint, 4 bytes)
 Roughness Factor (float, 4 bytes)
-Metallic Factor (float, 4 bytes)*/
+Metallic Factor (float, 4 bytes)
+Flags (uint, 4 bytes): 1 if the material is a texture set
+Texture scale (float, 4 bytes): world units per tile, for terrain
+Two reserved words (uint, 4 bytes each), 0*/
     constant integer DIFFUSE_INDEX = 0
     constant integer TEXTURE_INDEX = 1
     constant integer HAS_NORMAL_MAP_INDEX = 2
@@ -39,8 +47,14 @@ Metallic Factor (float, 4 bytes)*/
     constant integer ROUGH_MAP_INDEX = 5
     constant integer ROUGH_FACTOR_INDEX = 6
     constant integer METALLIC_FACTOR_INDEX = 7
-    
-    constant integer MATERIAL_BYTE_SIZE = 4 * 8
+    constant integer FLAGS_INDEX = 8
+    constant integer TEXTURE_SCALE_INDEX = 9
+    constant integer RESERVED_INDEX_1 = 10
+    constant integer RESERVED_INDEX_2 = 11
+
+    constant integer TEXTURE_SET_FLAG = 1
+
+    constant integer MATERIAL_BYTE_SIZE = 4 * 12
     
     VulkanBuffer stagingBuffer = undefined
     VulkanBuffer materialBuffer = undefined
@@ -51,6 +65,13 @@ Metallic Factor (float, 4 bytes)*/
     Texture preloadTexture = undefined
     Texture preloadNormalMap = undefined
     Texture preloadRoughMap = undefined
+
+    // For a texture set: whether this material is one, and its two packed
+    // textures, kept after loading so terrain can find their places.
+    boolean usesTextureSet = false
+    Texture albedoHeightTexture = undefined
+    Texture normalRoughnessTexture = undefined
+    number textureScale = 1
     
     integer textureGroupIndex = -1
     
@@ -58,6 +79,11 @@ Metallic Factor (float, 4 bytes)*/
     action Preload(VulkanDevice device, Material data)
         me:device = device
         preloadData = data
+
+        if data:UsesTextureSet()
+            PreloadTextureSet(data)
+            return now
+        end
         
         text texturePath = data:GetTexturePath()
         text normalPath = data:GetNormalMapPath()
@@ -90,6 +116,111 @@ Metallic Factor (float, 4 bytes)*/
         
     end
     
+    /*
+    This action packs a texture set into two textures, as Terrain3D does,
+    and sends them to the texture manager:
+    - albedo-height: the color map's red, green and blue, and the height
+      map's gray in alpha (middle gray if there's none);
+    - normal-roughness: the normal map (flat if there's none, and turned to
+      the OpenGL convention if it's DirectX), with the ambient occlusion map
+      folded into the normals' length, and the roughness map's gray in alpha
+      (the roughness factor if there's none).
+    All maps must be the same size as the color map.
+
+    Attribute: Parameter data The material, a texture set.
+    */
+    private action PreloadTextureSet(Material data)
+        usesTextureSet = true
+        textureScale = data:GetTextureScale()
+
+        PixelMap albedoHeight = LoadMap(data:GetColorMapPath())
+        integer width = albedoHeight:GetWidth()
+        integer height = albedoHeight:GetHeight()
+
+        if data:GetHeightMapPath() = ""
+            albedoHeight:SetChannel(3, 128)
+        else
+            PixelMap heights = LoadMatchingMap(data:GetHeightMapPath(), width, height)
+            albedoHeight:CopyGrayValue(heights, 3)
+            heights:Dispose()
+        end
+
+        PixelMap normalRoughness = undefined
+        if data:GetNormalMapPath() = ""
+            PixelMap flat
+            Format format
+            format:SetValue(format:RGBA8888)
+            flat:CreatePixelMap(width, height, format)
+            Color color
+            flat:Fill(color:CustomColor(128 / 255.0, 128 / 255.0, 1, 1))
+            normalRoughness = flat
+        else
+            normalRoughness = LoadMatchingMap(data:GetNormalMapPath(), width, height)
+            if data:IsNormalMapDirectX()
+                normalRoughness:InvertChannel(1)
+            end
+        end
+
+        if data:GetAmbientOcclusionMapPath() not= ""
+            PixelMap occlusion = LoadMatchingMap(data:GetAmbientOcclusionMapPath(), width, height)
+            normalRoughness:ScaleNormalsByOcclusion(occlusion)
+            occlusion:Dispose()
+        end
+
+        if data:GetRoughnessMapPath() = ""
+            Math math
+            normalRoughness:SetChannel(3, cast(integer, math:Round(math:Clamp(data:GetRoughness(), 0, 1) * 255)))
+        else
+            PixelMap roughness = LoadMatchingMap(data:GetRoughnessMapPath(), width, height)
+            normalRoughness:CopyGrayValue(roughness, 3)
+            roughness:Dispose()
+        end
+
+        Texture albedo
+        albedo:LoadFromPixelMap(albedoHeight)
+        Texture normals
+        normals:LoadFromPixelMap(normalRoughness)
+        albedoHeightTexture = albedo
+        normalRoughnessTexture = normals
+        preloadTexture = albedo
+        preloadNormalMap = normals
+    end
+
+    /*
+    This action loads an image file into a PixelMap.
+
+    Attribute: Parameter path The file's path.
+    Attribute: Returns The PixelMap.
+    */
+    private action LoadMap(text path) returns PixelMap
+        File file
+        file:SetPath(path)
+        if not file:Exists()
+            alert("I couldn't find the texture set map " + path + ".")
+        end
+        PixelMap map
+        map:LoadPixelMap(file)
+        return map
+    end
+
+    /*
+    This action loads an image file into a PixelMap, and checks it is the
+    expected size.
+
+    Attribute: Parameter path The file's path.
+    Attribute: Parameter width The width it must have.
+    Attribute: Parameter height The height it must have.
+    Attribute: Returns The PixelMap.
+    */
+    private action LoadMatchingMap(text path, integer width, integer height) returns PixelMap
+        PixelMap map = LoadMap(path)
+        if map:GetWidth() not= width or map:GetHeight() not= height
+            alert("The texture set map " + path + " is " + map:GetWidth() + " by " + map:GetHeight() +
+                ", but the color map is " + width + " by " + height + ". All maps in a set must be the same size.")
+        end
+        return map
+    end
+
     /*Loads the material's data into host-visible memory, in preparation for transfer to the GPU later. Must be done after preload,
 because texture information must be processed in advance to prevent placeholder texture IDs from being inserted into the buffer.
 Ensure the VulkanTextureManager processes its pending resources between calling Preload and Load (this happens automatically when using the
@@ -156,6 +287,14 @@ default material loading system, as part of the model load system).*/
         end
         dataArray:Set(ROUGH_FACTOR_INDEX, data:GetRoughness())
         dataArray:Set(METALLIC_FACTOR_INDEX, data:GetMetallic())
+        if usesTextureSet
+            dataArray:Set(FLAGS_INDEX, utility:EncodeIntegerAsNumber(TEXTURE_SET_FLAG))
+        else
+            dataArray:Set(FLAGS_INDEX, utility:EncodeIntegerAsNumber(0))
+        end
+        dataArray:Set(TEXTURE_SCALE_INDEX, data:GetTextureScale())
+        dataArray:Set(RESERVED_INDEX_1, utility:EncodeIntegerAsNumber(0))
+        dataArray:Set(RESERVED_INDEX_2, utility:EncodeIntegerAsNumber(0))
         
         VulkanNumber32BitMappedMemory mapping = stagingBuffer:MapToNumber32BitMemory()
         mapping:Set(dataArray)
@@ -220,4 +359,43 @@ default material loading system, as part of the model load system).*/
         return textureGroupIndex
     end
 
+    /*
+    This action returns true if the material was loaded from a texture set.
+
+    Attribute: Returns True for a texture set.
+    */
+    action UsesTextureSet returns boolean
+        return usesTextureSet
+    end
+
+    /*
+    This action returns a texture set's packed albedo-height texture: color
+    in red, green and blue, height in alpha.
+
+    Attribute: Returns The texture, or undefined if the material isn't a texture set.
+    */
+    action GetAlbedoHeightTexture returns Texture
+        return albedoHeightTexture
+    end
+
+    /*
+    This action returns a texture set's packed normal-roughness texture:
+    the normal in red, green and blue (its length carrying ambient
+    occlusion), roughness in alpha.
+
+    Attribute: Returns The texture, or undefined if the material isn't a texture set.
+    */
+    action GetNormalRoughnessTexture returns Texture
+        return normalRoughnessTexture
+    end
+
+    /*
+    This action returns how many world units one tile of the material covers
+    on terrain.
+
+    Attribute: Returns The size of one tile, in world units.
+    */
+    action GetTextureScale returns number
+        return textureScale
+    end
 end

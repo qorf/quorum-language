@@ -365,6 +365,60 @@ class PixelMap is Disposable
     system action SetPixel(integer x, integer y, integer code)
 
     /*
+    This action copies one channel of another PixelMap of the same size into
+    one channel of this one, pixel by pixel. Channels are 0 red, 1 green,
+    2 blue and 3 alpha. Both PixelMaps must be in the RGBA8888 format, which
+    all loaded images are when using the Vulkan renderer. Nothing is blended.
+
+    Attribute: Parameter source The PixelMap to copy from.
+    Attribute: Parameter sourceChannel The channel to copy, 0 to 3.
+    Attribute: Parameter destinationChannel The channel to copy into, 0 to 3.
+    */
+    system action CopyChannel(PixelMap source, integer sourceChannel, integer destinationChannel)
+
+    /*
+    This action copies the gray value of another PixelMap of the same size
+    into one channel of this one. A gray image's value is read from alpha
+    when its red, green and blue are all full (how a one-channel image is
+    loaded), and from red otherwise. Both must be RGBA8888. Nothing is
+    blended.
+
+    Attribute: Parameter source The gray PixelMap to copy from.
+    Attribute: Parameter destinationChannel The channel to copy into, 0 to 3.
+    */
+    system action CopyGrayValue(PixelMap source, integer destinationChannel)
+
+    /*
+    This action sets one channel of every pixel to the same value. This
+    PixelMap must be RGBA8888. Nothing is blended.
+
+    Attribute: Parameter channel The channel to set, 0 to 3.
+    Attribute: Parameter value The value, 0 to 255.
+    */
+    system action SetChannel(integer channel, integer value)
+
+    /*
+    This action replaces one channel of every pixel with 255 minus its
+    value, such as to turn a DirectX normal map into an OpenGL one by
+    inverting green. This PixelMap must be RGBA8888.
+
+    Attribute: Parameter channel The channel to invert, 0 to 3.
+    */
+    system action InvertChannel(integer channel)
+
+    /*
+    This action treats this PixelMap as a normal map and folds an ambient
+    occlusion map into it, Terrain3D's way: each normal is made unit length
+    and then scaled by the square root of the occlusion times one half, plus
+    one half. A shader reads the occlusion back as twice the normal's length
+    minus one, and the direction by normalizing. Only red, green and blue
+    change. Both must be RGBA8888 and the same size.
+
+    Attribute: Parameter occlusion The gray ambient occlusion PixelMap.
+    */
+    system action ScaleNormalsByOcclusion(PixelMap occlusion)
+
+    /*
     This action takes a screenshot of the Game window at the given coordinates and stores it in
     this PixelMap.
 
