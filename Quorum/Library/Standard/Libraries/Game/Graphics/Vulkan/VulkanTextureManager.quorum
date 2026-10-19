@@ -10,6 +10,7 @@ use Libraries.Game.Graphics.Vulkan.Commands.PipelineBarrierCommand
 use Libraries.Game.Graphics.Vulkan.Commands.CopyBufferToImageCommand
 use Libraries.Containers.HashTable
 use Libraries.Containers.Queue
+use Libraries.Game.Graphics.SharedTextureManager
 
 class VulkanTextureManager
 
@@ -17,13 +18,13 @@ class VulkanTextureManager
     // The pending pixel maps are the sets of pixel data associated with the load commands.
     Array<Texture> pendingTextures
     Array<PixelMap> pendingPixelMaps
+    // For each waiting texture, whether its PixelMap is disposed once
+    // copied (Item 34).
+    Array<boolean> pendingDisposeFlags
     // Cube textures waiting to be made (Item 26), each with its six sides.
     Array<Texture> pendingCubeTextures
     Array<Array<PixelMap>> pendingCubeSides
 
-    // An array of staging buffers used for transferring texture data from host memory to GPU memory.
-    // Disposed of after the transfers have finished.
-    Array<VulkanBuffer> stagingBuffers
 
     // Staging buffers for textures loaded again after their first load: for
     // each texture, one per frame in flight. A frame slot's buffer is only
@@ -44,7 +45,8 @@ class VulkanTextureManager
     HashTable<Texture, integer> textureToIndexTable
     // The next index to store a texture at in the global array.
     integer nextTextureID = 0
-    // TO-DO: NYI, whenever a Texture is disposed, store its index here. New textures reuse previously freed IDs before using a new index.
+    // Places of disposed textures, given back once no frame can still draw
+    // with them (Item 34). New textures take these first.
     Queue<integer> recycledTextureIDs
 
     /*
@@ -126,8 +128,21 @@ class VulkanTextureManager
     end
 
     action RequestLoad(Texture texture, PixelMap pixelMap)
+        RequestLoad(texture, pixelMap, false)
+    end
+
+    /*
+    This action asks for a texture to be loaded from a PixelMap during the
+    next frame.
+
+    Attribute: Parameter texture The texture.
+    Attribute: Parameter pixelMap Its pixels.
+    Attribute: Parameter disposeAfter True to dispose the PixelMap once it has been copied.
+    */
+    action RequestLoad(Texture texture, PixelMap pixelMap, boolean disposeAfter)
         pendingTextures:Add(texture)
         pendingPixelMaps:Add(pixelMap)
+        pendingDisposeFlags:Add(disposeAfter)
     end
 
     /*
@@ -178,11 +193,16 @@ class VulkanTextureManager
             else
                 LoadNewTexture(texture, pixelMap, commandBuffer, graphics)
             end
+            // The pixels are in a staging buffer now (Item 34).
+            if pendingDisposeFlags:Get(i)
+                pixelMap:Dispose()
+            end
             i = i + 1
         end
 
         pendingTextures:Empty()
         pendingPixelMaps:Empty()
+        pendingDisposeFlags:Empty()
 
         i = 0
         repeat while i < pendingCubeTextures:GetSize()
@@ -205,6 +225,19 @@ class VulkanTextureManager
     */
     private action LoadNewTexture(Texture texture, PixelMap pixelMap, VulkanCommandBuffer commandBuffer, VulkanGraphics graphics)
         VulkanDevice device = graphics:GetDevice()
+
+        // A texture loaded again at a new size keeps its place, so
+        // materials that hold it still show it. Frames in flight may be
+        // drawing from that place, so wait for them before freeing the old
+        // image and linking the new one there (Item 34).
+        integer keptIndex = texture:GetVulkanTextureIndex()
+        VulkanImageView oldView = texture:GetVulkanImageView()
+        if oldView not= undefined
+            device:WaitUntilIdle()
+            VulkanImage oldImage = oldView:GetImage()
+            oldView:Dispose()
+            oldImage:Dispose()
+        end
         VulkanConstants constants
         BitwiseOperations bits
 
@@ -267,8 +300,8 @@ class VulkanTextureManager
         transitionForReadCommand:SetMemoryBarrier(readTransition)
         commandBuffer:Record(transitionForReadCommand)
 
-        // We need to hold onto the buffer to be disposed after the transfer is done.
-        stagingBuffers:Add(buffer)
+        // The copy above is the buffer's only use (Item 34).
+        graphics:Retire(buffer)
 
 
         // Now we need an ImageView to encapsulate the Image. The view will be accessed to get information about the related image.
@@ -282,9 +315,14 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
         // Finally, associate the image view with the texture.
         texture:SetVulkanImageView(view)
 
-        // Also store the texture in our global array and associate our resources.
-        if not recycledTextureIDs:IsEmpty()
-            // TO-DO: Handle this case. This gets complicated by the question of releasing texture IDs that might be in use for previous frames.
+        // The texture's place in the global array: its own if it had one,
+        // else a given-back one, else a new one (Item 34).
+        if keptIndex >= 0
+            globalTextureArray:Set(keptIndex, texture)
+        elseif not recycledTextureIDs:IsEmpty()
+            integer recycled = recycledTextureIDs:RemoveFromFront()
+            globalTextureArray:Set(recycled, texture)
+            texture:SetVulkanTextureIndex(recycled)
         else
             globalTextureArray:Add(texture)
             texture:SetVulkanTextureIndex(nextTextureID)
@@ -368,6 +406,9 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
         end
         VulkanBuffer staging = buffers:Get(slot)
         if staging = undefined or staging:GetSize() not= byteSize
+            // A buffer of another size from before is freed once its last
+            // copy has run (Item 34).
+            graphics:Retire(staging)
             VulkanBuffer newStaging
             newStaging:CreateTransferSourceBuffer(device, byteSize)
             newStaging:BeginMapping()
@@ -543,6 +584,14 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
         VulkanConstants constants
         BitwiseOperations bits
 
+        // A cube made again replaces the old one, which earlier frames may
+        // still draw (Item 34).
+        VulkanImageView oldCube = texture:GetVulkanImageView()
+        if oldCube not= undefined
+            graphics:Retire(oldCube)
+            graphics:Retire(oldCube:GetImage())
+        end
+
         integer size = sides:Get(0):GetWidth()
         integer i = 0
         repeat while i < 6
@@ -584,7 +633,7 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
             buffer:CreateTransferSourceBuffer(device, size * size * 4)
             buffer:BeginMapping()
             TransferPixelData(sides:Get(i), buffer)
-            stagingBuffers:Add(buffer)
+            graphics:Retire(buffer)
 
             CopyBufferToImageCommand copyCommand
             copyCommand:SetImageWidth(size)
@@ -595,6 +644,13 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
             copyCommand:SetSourceBuffer(buffer)
             copyCommand:SetDestinationImage(image)
             commandBuffer:Record(copyCommand)
+            i = i + 1
+        end
+
+        // The sides' pixels are copied, and nothing else keeps them (Item 34).
+        i = 0
+        repeat while i < 6
+            sides:Get(i):Dispose()
             i = i + 1
         end
 
@@ -619,6 +675,104 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
         viewInfo:SetLayerCount(6)
         view:Create(device, image, viewInfo)
         texture:SetVulkanImageView(view)
+    end
+
+    /*
+    This action frees a texture: it is taken out of the waiting lists, and
+    its image, view and place in the global array are freed once no frame
+    on the GPU still draws with them. Texture:Dispose calls it.
+
+    Attribute: Parameter texture The texture.
+    */
+    action ReleaseTexture(Texture texture)
+        integer i = pendingTextures:GetSize() - 1
+        repeat while i >= 0
+            if pendingTextures:Get(i) = texture
+                if pendingDisposeFlags:Get(i)
+                    pendingPixelMaps:Get(i):Dispose()
+                end
+                pendingTextures:RemoveAt(i)
+                pendingPixelMaps:RemoveAt(i)
+                pendingDisposeFlags:RemoveAt(i)
+            end
+            i = i - 1
+        end
+        i = pendingCubeTextures:GetSize() - 1
+        repeat while i >= 0
+            if pendingCubeTextures:Get(i) = texture
+                Array<PixelMap> sides = pendingCubeSides:Get(i)
+                integer side = 0
+                repeat while side < sides:GetSize()
+                    sides:Get(side):Dispose()
+                    side = side + 1
+                end
+                pendingCubeTextures:RemoveAt(i)
+                pendingCubeSides:RemoveAt(i)
+            end
+            i = i - 1
+        end
+
+        GameStateManager manager
+        VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+        VulkanImageView view = texture:GetVulkanImageView()
+        if view not= undefined
+            graphics:Retire(view)
+            graphics:Retire(view:GetImage())
+            texture:SetVulkanImageView(undefined)
+        end
+        if updateStagingBuffers:HasKey(texture)
+            Array<VulkanBuffer> buffers = updateStagingBuffers:RemoveKey(texture)
+            i = 0
+            repeat while i < buffers:GetSize()
+                graphics:Retire(buffers:Get(i))
+                i = i + 1
+            end
+        end
+        if mipLevelTable:HasKey(texture)
+            mipLevelTable:RemoveKey(texture)
+        end
+
+        integer index = texture:GetVulkanTextureIndex()
+        if index >= 0
+            VulkanTextureIndexRelease release
+            release:Set(me, index)
+            graphics:Retire(release)
+            texture:SetVulkanTextureIndex(-1)
+        end
+    end
+
+    /*
+    This action gives a disposed texture's place back, once no frame can
+    draw with it: its slot shows the unit texture until the place is used
+    again, and the next new texture takes it. VulkanTextureIndexRelease
+    calls it.
+
+    Attribute: Parameter index The place in the global texture array.
+    */
+    action RecycleTextureIndex(integer index)
+        SharedTextureManager sharedManager
+        Texture unit = sharedManager:GetUnitTexture()
+        VulkanImageView unitView = unit:GetVulkanImageView()
+        if unitView not= undefined
+            VulkanConstants constants
+            VulkanDescriptorSet set = globalTextureDescriptorSets:Get(index / descriptorSetEntries)
+            VulkanDescriptorResourcesInfo resourcesInfo
+            resourcesInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_SAMPLED_IMAGE)
+            resourcesInfo:SetDestinationArrayElement(index mod descriptorSetEntries)
+            resourcesInfo:AddImageInfo(undefined, unitView, constants:IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+            set:LinkResources(resourcesInfo)
+        end
+        globalTextureArray:Set(index, undefined)
+        recycledTextureIDs:AddToEnd(index)
+    end
+
+    /*
+    This action returns how many textures have a place in the global array.
+
+    Attribute: Returns The number of textures.
+    */
+    action GetTextureCount returns integer
+        return nextTextureID - recycledTextureIDs:GetSize()
     end
 
     private system action TransferPixelData(PixelMap pixelMap, VulkanBuffer buffer)

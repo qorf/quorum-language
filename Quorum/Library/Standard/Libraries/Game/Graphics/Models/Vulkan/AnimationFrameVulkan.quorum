@@ -10,6 +10,8 @@ use Libraries.Containers.Number32BitArray
 use Libraries.Game.Graphics.Vulkan.VulkanNumber32BitMappedMemory
 use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
 use Libraries.Game.Graphics.Vulkan.Commands.CopyBufferCommand
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
 
 class AnimationFrameVulkan
     
@@ -72,12 +74,11 @@ class AnimationFrameVulkan
         
         dataBuffer:CreateTransferDestinationBuffer(device, stagingBuffer:GetSize(), constants:BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)
         
-        //TODO: These cause a crash in some cases, for reasons unclear. Go back and figure this out later.
-        //stagingBuffer:StopMapping()
+        // TransferBuffers retires the staging buffer (Item 33).
     end
     
     action HasData returns boolean
-        return stagingBuffer not= undefined or dataBuffer not= undefined
+        return dataBuffer not= undefined
     end
     
     action IsReady returns boolean
@@ -101,10 +102,31 @@ class AnimationFrameVulkan
         commandBuffer:Record(copyCommand)
         
         dataTransferred = true
+
+        // The copy is the staging buffer's only use (Item 33).
+        GameStateManager gameState
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        graphics:Retire(stagingBuffer)
+        stagingBuffer = undefined
     end
     
     action GetBuffer returns VulkanBuffer
         return dataBuffer
+    end
+
+
+    /*
+    This action frees the frame's GPU buffers once no frame on the GPU
+    still uses them. Its blueprint calls it when no model uses the
+    blueprint any more.
+    */
+    action Release
+        GameStateManager gameState
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        graphics:Retire(stagingBuffer)
+        graphics:Retire(dataBuffer)
+        stagingBuffer = undefined
+        dataBuffer = undefined
     end
 
 end

@@ -484,6 +484,12 @@ boolean success = swapchain:Create(device, surface, info)
         // be reset by a SUBOPTIMAL result when preparing frames. For safety, we generate new ones here.
         i = 0
         repeat while i < swapchain:GetImageCount()
+            // The old semaphore may still have a signal pending from the
+            // acquire that found the swapchain out of date, so it is freed
+            // a few frames later rather than now (Item 32).
+            if i < imageAcquiredSemaphores:GetSize()
+                Retire(imageAcquiredSemaphores:Get(i))
+            end
             VulkanSemaphore newSemaphore
             success = newSemaphore:Create(device)
             imageAcquiredSemaphores:Set(i, newSemaphore)
@@ -750,7 +756,8 @@ boolean success = swapchain:Create(device, surface, info)
         Array<VulkanSubpassDependency> subpassDependencies
         subpassDependencies:Add(dependency)
 
-        // The old pass is let go: VulkanRenderPass:Dispose isn't written yet.
+        // The old pass is freed once no frame uses it (Item 32).
+        Retire(renderPass)
         VulkanRenderPass pass
         renderPass = pass
         if not renderPass:Create(device, attachmentDescriptions, subpassDescriptions, subpassDependencies)
@@ -1255,7 +1262,9 @@ Attribute: Returns True if the application has paused rendering, or false if it 
         number megabytes = allocator:GetAllocatedBytes() / (1024.0 * 1024.0)
         megabytes = cast(integer, megabytes * 10) / 10.0
         return "GPU memory: " + megabytes + " MB in " + allocator:GetAllocationCount() +
-            " allocations; waiting to be freed: " + retired:GetSize()
+            " allocations; waiting to be freed: " + retired:GetSize() +
+            "; model blueprints: " + modelManager:GetCachedBlueprintCount() +
+            "; textures: " + textureManager:GetTextureCount()
     end
 
     action GetLightingProperties returns VulkanLightingProperties

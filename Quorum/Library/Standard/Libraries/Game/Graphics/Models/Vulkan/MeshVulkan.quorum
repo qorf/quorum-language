@@ -13,6 +13,8 @@ use Libraries.Game.Graphics.Vulkan.Commands.CopyBufferCommand
 use Libraries.Game.Graphics.Models.Data.AnimationMeshData
 use Libraries.Game.NumberUtilities
 use Libraries.Containers.Array
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
 
 class MeshVulkan
     
@@ -143,14 +145,12 @@ Each vertex is made of 14 32-bit components:
             animationDataBuffer:CreateTransferDestinationBuffer(device, animationDataStagingBuffer:GetSize(), constants:BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)
         end
         
-        //TODO: These cause a crash in some cases, for reasons unclear. Go back and figure this out later.
-        //vertexStagingBuffer:StopMapping()
-        //indexStagingBuffer:StopMapping()
-        //animationDataStagingBuffer:StopMapping()
+        // The staging buffers stay mapped until their copy is recorded;
+        // TransferBuffers then retires them (Item 33).
     end
     
     action HasData returns boolean
-        return vertexStagingBuffer not= undefined or vertexBuffer not= undefined
+        return vertexBuffer not= undefined
     end
     
     action IsReady returns boolean
@@ -158,7 +158,7 @@ Each vertex is made of 14 32-bit components:
     end
     
     action HasAnimations returns boolean
-        return animationDataStagingBuffer not= undefined or animationDataBuffer not= undefined
+        return animationDataBuffer not= undefined
     end
     
     action GetDevice returns VulkanDevice
@@ -193,6 +193,18 @@ Each vertex is made of 14 32-bit components:
         end
         
         dataTransferred = true
+
+        // The copies above are the staging buffers' only use. They are
+        // freed once this frame has finished on the GPU (Item 33).
+        GameStateManager gameState
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        graphics:Retire(vertexStagingBuffer)
+        graphics:Retire(indexStagingBuffer)
+        graphics:Retire(animationDataStagingBuffer)
+        vertexStagingBuffer = undefined
+        indexStagingBuffer = undefined
+        animationDataStagingBuffer = undefined
+        vertexMapping = undefined
     end
 
     /*
@@ -323,7 +335,7 @@ Each vertex is made of 14 32-bit components:
         VulkanBuffer staging = updateStagingBuffers:Get(slot)
         if staging = undefined
             VulkanBuffer newStaging
-            newStaging:CreateTransferSourceBuffer(device, vertexStagingBuffer:GetSize())
+            newStaging:CreateTransferSourceBuffer(device, vertexBuffer:GetSize())
             updateStagingBuffers:Set(slot, newStaging)
             updateMappings:Set(slot, newStaging:MapToNumber32BitMemory())
             staging = newStaging
@@ -383,28 +395,54 @@ Each vertex is made of 14 32-bit components:
     
     /*Returns the size of the vertex buffer in bytes.*/
     action GetVertexBufferSize returns integer
-        if dataTransferred
-            return vertexBuffer:GetSize()
-        elseif vertexStagingBuffer not= undefined
-            return vertexStagingBuffer:GetSize()
-        else
+        if vertexBuffer = undefined
             return 0
         end
+        return vertexBuffer:GetSize()
     end
     
     /*Returns the size of the index buffer in bytes.*/
     action GetIndexBufferSize returns integer
-        if dataTransferred
-            return indexBuffer:GetSize()
-        elseif indexStagingBuffer not= undefined
-            return indexStagingBuffer:GetSize()
-        else
+        if indexBuffer = undefined
             return 0
         end
+        return indexBuffer:GetSize()
     end
 
     action GetAnimationDataBuffer returns VulkanBuffer
         return animationDataBuffer
+    end
+
+
+    /*
+    This action frees the mesh's GPU buffers once no frame on the GPU still
+    uses them. The model manager calls it when the mesh's blueprint is no
+    longer used by any model. The mesh can't be drawn or updated afterwards.
+    */
+    action Release
+        GameStateManager gameState
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        graphics:Retire(vertexStagingBuffer)
+        graphics:Retire(indexStagingBuffer)
+        graphics:Retire(animationDataStagingBuffer)
+        graphics:Retire(vertexBuffer)
+        graphics:Retire(indexBuffer)
+        graphics:Retire(animationDataBuffer)
+        integer i = 0
+        repeat while i < updateStagingBuffers:GetSize()
+            graphics:Retire(updateStagingBuffers:Get(i))
+            i = i + 1
+        end
+        updateStagingBuffers:Empty()
+        updateMappings:Empty()
+        vertexStagingBuffer = undefined
+        indexStagingBuffer = undefined
+        animationDataStagingBuffer = undefined
+        vertexBuffer = undefined
+        indexBuffer = undefined
+        animationDataBuffer = undefined
+        vertexMapping = undefined
+        pendingVertices = undefined
     end
 
 end

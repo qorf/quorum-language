@@ -92,6 +92,10 @@ VulkanSampler immutableSampler = undefined
     // batches and transparentBatches.
     HashTable<ShaderProgram, HashTable<ModelBlueprint, VulkanPainter3DBatch>> programBatches
     HashTable<ShaderProgram, HashTable<ModelBlueprint, VulkanPainter3DBatch>> programTransparentBatches
+
+    // The model manager's release count when batches were last checked
+    // for released blueprints (Item 33).
+    integer releasesSeen = 0
     
     // Arrays of draw queues. There is one array per swapchain image, and each array contains up to as many draw queues as there are texture groups in the VulkanTextureManager.
     // Used to bulk store instance data and draw indirect commands.
@@ -156,6 +160,11 @@ to allow for simultaneous rendering.*/
     // so the maps can be linked into new lighting descriptor sets when the
     // passes are made again (Item 30).
     Array<Array<VulkanImageView>> shadowMapViews
+
+    // How many calls in a row the current slot had more shadow maps than
+    // lights. Past SHADOW_MAP_KEEP_CALLS, the extra maps are freed (Item 35).
+    integer extraShadowMapCalls = 0
+    constant integer SHADOW_MAP_KEEP_CALLS = 180
     
     
     // Used to create combined image-sampler descriptors. Accesses the individual values in a sampled image.
@@ -200,18 +209,7 @@ on create
     end
 
     action RegenerateRenderPasses(boolean isFirstPass) returns boolean
-        if me:sceneRenderPass not= undefined
-            sceneRenderPass:Dispose()
-        end
-if lightRenderPass not= undefined
-            lightRenderPass:Dispose()
-        end
-        if resultRenderPass not= undefined
-            resultRenderPass:Dispose()
-        end
-        if shadowRenderPass not= undefined
-            shadowRenderPass:Dispose()
-        end
+        // Begin has already retired any old passes (Item 32).
 
         VulkanRenderPass sceneRender
         sceneRenderPass = sceneRender
@@ -236,18 +234,8 @@ if lightRenderPass not= undefined
         // The images behind those framebuffers go too (Item 28).
         ReleaseSizedImages()
         
-        integer counter = 0
-        repeat while counter < shadowCubemapFramebuffers:GetSize()
-            Array<VulkanFramebuffer> framebuffers
-            integer i = 0
-            repeat while i < framebuffers:GetSize()
-                VulkanFramebuffer buffer = framebuffers:Get(i)
-                buffer:Dispose()
-                i = i + 1
-            end
-            framebuffers:Empty()
-            counter = counter + 1
-        end
+        // Shadow maps don't depend on the window's size, so they are kept
+        // (Item 30); Item 35 frees them when lights are removed.
 
         VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
 VulkanSwapchain swapchain = graphics:GetSwapchain()
@@ -428,10 +416,10 @@ shadowDepthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE
         CreateRenderPass(resultRenderPass, resultAttachmentDescriptions, resultSubpass:GetColorAttachments(),
             resultSubpass:GetDepthStencilAttachment(), resultSubpass:GetResolveAttachments())
         
-        shadowProjectionDescriptors:Empty()
-        lightDescriptors:Empty()
-        lightShadowDataDescriptors:Empty()
-        resultDescriptors:Empty()
+        // The descriptor sets, and the layouts they're made from, are made
+        // the first time only. On later calls the sets are kept, and the
+        // loop below links the new images into the lighting and result
+        // sets. The shadow sets don't depend on the window's size (Item 32).
         
         // Before creating any shadow resources, check which version of the shadow shader programs we're using.
         // Calling this will lazy load the shaders if they haven't been created yet.
@@ -704,9 +692,9 @@ shadowDepthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE
             i = i + 1
         end
 
-        // The descriptor sets above are new. Link the shadow projection
-        // buffers into them again (Begin does it while this is false), and
-        // the shadow maps that already exist (Item 30).
+        // The shadow sets are kept (Item 32), so this only links again what
+        // is already linked. It is kept in case the sets are ever made again
+        // (Item 30).
         shadowProjectionResourcesLinked = false
         integer slot = 0
         repeat while slot < shadowMapViews:GetSize() and slot < lightShadowDataDescriptors:GetSize()
@@ -916,83 +904,142 @@ Array<VulkanAttachmentReference> resolveReferences) returns boolean
         shadowProjectionSet:LinkResources(shadowOutputResources)
     end
 
-    private action EnsureShadowCubemapFramebuffers(integer resourceIndex)
-        integer totalLights = environment:GetDirectionalLightCount() + environment:GetPointLightCount()
+    /*
+    This action makes sure the frame slot has a shadow map, with its
+    framebuffer, for each light, sized for the light's type: one layer per
+    cascade for a directional light, six per cascade for a point light.
+    Maps that no longer fit their light are replaced, and maps past the
+    light count are freed once unused for a while. Old maps are freed when
+    no frame still draws with them (Item 35).
+
+    Attribute: Parameter resourceIndex The frame slot.
+    */
+    private action EnsureShadowMaps(integer resourceIndex)
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        VulkanLightingProperties lightProperties = graphics:GetLightingProperties()
+        integer cascades = lightProperties:GetShadowMapCascadeCount()
+
+        integer directionalCount = environment:GetDirectionalLightCount()
+        integer totalLights = directionalCount + environment:GetPointLightCount()
         if totalLights > environment:GetMaxLights()
             totalLights = environment:GetMaxLights()
         end
-        
-        Array<VulkanFramebuffer> framebuffers = shadowCubemapFramebuffers:Get(resourceIndex)
-        
-        if framebuffers:GetSize() >= totalLights
-            return now
+
+        repeat while shadowMapViews:GetSize() <= resourceIndex
+            Array<VulkanImageView> newViews
+            shadowMapViews:Add(newViews)
         end
-        
+        Array<VulkanFramebuffer> framebuffers = shadowCubemapFramebuffers:Get(resourceIndex)
+        Array<VulkanImageView> views = shadowMapViews:Get(resourceIndex)
+
+        integer i = 0
+        repeat while i < totalLights
+            integer layers = cascades * 6
+            if i < directionalCount
+                layers = cascades
+            end
+            if i >= framebuffers:GetSize()
+                VulkanFramebuffer made = MakeShadowMap(layers)
+                framebuffers:Add(made)
+                views:Add(made:GetImageViews():Get(0))
+                LinkShadowMap(resourceIndex, i, made:GetImageViews():Get(0))
+            else
+                VulkanFramebuffer existing = framebuffers:Get(i)
+                if existing:GetImageViews():Get(0):GetInfo():GetLayerCount() not= layers
+                    RetireShadowMap(existing, graphics)
+                    VulkanFramebuffer remade = MakeShadowMap(layers)
+                    framebuffers:Set(i, remade)
+                    views:Set(i, remade:GetImageViews():Get(0))
+                    LinkShadowMap(resourceIndex, i, remade:GetImageViews():Get(0))
+                end
+            end
+            i = i + 1
+        end
+
+        if framebuffers:GetSize() > totalLights
+            extraShadowMapCalls = extraShadowMapCalls + 1
+            if extraShadowMapCalls >= SHADOW_MAP_KEEP_CALLS
+                repeat while framebuffers:GetSize() > totalLights
+                    RetireShadowMap(framebuffers:RemoveFromEnd(), graphics)
+                    views:RemoveFromEnd()
+                end
+            end
+        else
+            extraShadowMapCalls = 0
+        end
+    end
+
+    /*
+    This action makes one shadow map: a color image (the depth moments)
+    and a depth image, each with the given number of layers, their views,
+    and a framebuffer for the shadow pass. The color view comes first in
+    the framebuffer.
+
+    Attribute: Parameter layers How many layers each image has.
+    Attribute: Returns The framebuffer.
+    */
+    private action MakeShadowMap(integer layers) returns VulkanFramebuffer
         VulkanConstants constants
         VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
         VulkanDevice device = graphics:GetDevice()
-        VulkanLightingProperties lightProperties = graphics:GetLightingProperties()
-        
-        integer i = framebuffers:GetSize()
-        repeat while i < totalLights
-            // Create a framebuffer for the shadow pass.
-            VulkanFramebuffer shadowFramebuffer
-            Array<VulkanImageView> shadowImageViews
-            
-            VulkanImageInfo shadowImageInfo
-        shadowImageInfo:SetWidth(lightProperties:GetShadowMapSize())
-        shadowImageInfo:SetHeight(lightProperties:GetShadowMapSize())
-        shadowImageInfo:SetFormat(constants:FORMAT_R32G32_SFLOAT)
-        shadowImageInfo:SetUsage(constants:IMAGE_USAGE_COLOR_ATTACHMENT_BIT + constants:IMAGE_USAGE_SAMPLED_BIT)
-            shadowImageInfo:SetArrayLayers(6 * lightProperties:GetShadowMapCascadeCount())
-        VulkanImage shadowImage
-        shadowImage:Create(device, shadowImageInfo)
-            
-            VulkanImageViewInfo shadowImageViewInfo
-            shadowImageViewInfo:SetFormat(shadowImageInfo:GetFormat())
-            shadowImageViewInfo:SetViewType(constants:IMAGE_VIEW_TYPE_2D_ARRAY)
-            shadowImageViewInfo:SetLayerCount(6 * lightProperties:GetShadowMapCascadeCount())
-            VulkanImageView shadowImageView
-            shadowImageView:Create(device, shadowImage, shadowImageViewInfo)
-            shadowImageViews:Add(shadowImageView)
-            
-            // Also create an image for depth usage.
-            VulkanImageInfo shadowDepthImageInfo
-        shadowDepthImageInfo:SetWidth(lightProperties:GetShadowMapSize())
-        shadowDepthImageInfo:SetHeight(lightProperties:GetShadowMapSize())
-        shadowDepthImageInfo:SetUsage(constants:IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-        shadowDepthImageInfo:SetFormat(constants:FORMAT_D32_SFLOAT)
-            shadowDepthImageInfo:SetArrayLayers(6 * lightProperties:GetShadowMapCascadeCount())
-        
-        VulkanImage shadowDepthImage
-        shadowDepthImage:Create(device, shadowDepthImageInfo)
-        
-        VulkanImageViewInfo shadowDepthViewInfo
-        shadowDepthViewInfo:SetAspectMask(constants:IMAGE_ASPECT_DEPTH_BIT)
-        shadowDepthViewInfo:SetFormat(shadowDepthImageInfo:GetFormat())
-            shadowDepthViewInfo:SetViewType(constants:IMAGE_VIEW_TYPE_2D_ARRAY)
-            shadowDepthViewInfo:SetLayerCount(6 * lightProperties:GetShadowMapCascadeCount())
-        
-        VulkanImageView shadowDepthImageView
-        shadowDepthImageView:Create(device, shadowDepthImage, shadowDepthViewInfo)
-            shadowImageViews:Add(shadowDepthImageView)
-            
-            shadowFramebuffer:Create(device, shadowImageViews, shadowRenderPass)
-            framebuffers:Add(shadowFramebuffer)
-            
-            
-            // Remember the map, and link it into the lighting stage's
-            // descriptor set (Item 30).
-            repeat while shadowMapViews:GetSize() <= resourceIndex
-                Array<VulkanImageView> views
-                shadowMapViews:Add(views)
-            end
-            shadowMapViews:Get(resourceIndex):Add(shadowImageView)
-            LinkShadowMap(resourceIndex, i, shadowImageView)
-            
+        integer size = graphics:GetLightingProperties():GetShadowMapSize()
+
+        VulkanImageInfo colorInfo
+        colorInfo:SetWidth(size)
+        colorInfo:SetHeight(size)
+        colorInfo:SetFormat(constants:FORMAT_R32G32_SFLOAT)
+        colorInfo:SetUsage(constants:IMAGE_USAGE_COLOR_ATTACHMENT_BIT + constants:IMAGE_USAGE_SAMPLED_BIT)
+        colorInfo:SetArrayLayers(layers)
+        VulkanImage colorImage
+        colorImage:Create(device, colorInfo)
+        VulkanImageViewInfo colorViewInfo
+        colorViewInfo:SetFormat(colorInfo:GetFormat())
+        colorViewInfo:SetViewType(constants:IMAGE_VIEW_TYPE_2D_ARRAY)
+        colorViewInfo:SetLayerCount(layers)
+        VulkanImageView colorView
+        colorView:Create(device, colorImage, colorViewInfo)
+
+        VulkanImageInfo depthInfo
+        depthInfo:SetWidth(size)
+        depthInfo:SetHeight(size)
+        depthInfo:SetUsage(constants:IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+        depthInfo:SetFormat(constants:FORMAT_D32_SFLOAT)
+        depthInfo:SetArrayLayers(layers)
+        VulkanImage depthImage
+        depthImage:Create(device, depthInfo)
+        VulkanImageViewInfo depthViewInfo
+        depthViewInfo:SetAspectMask(constants:IMAGE_ASPECT_DEPTH_BIT)
+        depthViewInfo:SetFormat(depthInfo:GetFormat())
+        depthViewInfo:SetViewType(constants:IMAGE_VIEW_TYPE_2D_ARRAY)
+        depthViewInfo:SetLayerCount(layers)
+        VulkanImageView depthView
+        depthView:Create(device, depthImage, depthViewInfo)
+
+        Array<VulkanImageView> attachments
+        attachments:Add(colorView)
+        attachments:Add(depthView)
+        VulkanFramebuffer framebuffer
+        framebuffer:Create(device, attachments, shadowRenderPass)
+        return framebuffer
+    end
+
+    /*
+    This action frees a shadow map's framebuffer, views and images once no
+    frame on the GPU still uses them.
+
+    Attribute: Parameter framebuffer The shadow map's framebuffer.
+    Attribute: Parameter graphics The Vulkan graphics.
+    */
+    private action RetireShadowMap(VulkanFramebuffer framebuffer, VulkanGraphics graphics)
+        Array<VulkanImageView> attachments = framebuffer:GetImageViews()
+        graphics:Retire(framebuffer)
+        integer i = 0
+        repeat while i < attachments:GetSize()
+            VulkanImageView view = attachments:Get(i)
+            graphics:Retire(view)
+            graphics:Retire(view:GetImage())
             i = i + 1
         end
-        
     end
     
     action GetDefaultProgram returns ShaderProgram
@@ -1201,8 +1248,7 @@ if batches:HasKey(schematic)
         // count changed (Item 27), since the passes and framebuffers were
         // made, make them again at the swapchain's size. Earlier frames may
         // still be using the old framebuffers, so wait for the device first.
-        // The old passes are let go rather than disposed, since
-        // VulkanRenderPass:Dispose isn't written yet; their framebuffers and
+        // The old passes are retired (Item 32); their framebuffers and
         // images are freed in RegenerateRenderPasses.
         if AreRenderPassesValid()
             VulkanSwapchain currentSwapchain = graphics:GetSwapchain()
@@ -1211,6 +1257,10 @@ if batches:HasKey(schematic)
             if resized or graphics:GetUsableMultisampleCount() not= sceneSampleCount or
                 resultRenderPass:GetSampleCount() not= graphics:GetSwapchainSampleCount()
                 graphics:GetDevice():WaitUntilIdle()
+                graphics:Retire(sceneRenderPass)
+                graphics:Retire(shadowRenderPass)
+                graphics:Retire(lightRenderPass)
+                graphics:Retire(resultRenderPass)
                 sceneRenderPass = undefined
                 shadowRenderPass = undefined
                 lightRenderPass = undefined
@@ -1454,6 +1504,13 @@ Number32BitArray projectionViewMatrix = MatrixToArray(camera:GetCombinedMatrix()
             programIndex = programIndex + 1
         end
         
+        // Drop batches whose blueprint no model uses any more (Item 33).
+        ModelManagerVulkan releaseManager = graphics:GetModelManager()
+        if releaseManager:GetReleaseCount() not= releasesSeen
+            releasesSeen = releaseManager:GetReleaseCount()
+            RemoveReleasedBatches()
+        end
+
         Array<VulkanPainter3DBatch> currentBatches = pendingBatches
         repeat until currentBatches = undefined
             integer counter = 0
@@ -1519,9 +1576,12 @@ BindDescriptorSetCommand cameraBind
             cameraBind:SetDescriptorSet(currentCameraDescriptor)
             commandBuffer:Record(cameraBind)
         
+        // One queue per texture group used so far, with undefined for
+        // groups never used (#22: this counted frame slots before).
+        Array<VulkanDrawQueue3D> defaultQueues = drawQueues:Get(currentSwapchainIndex)
         i = 0
-        repeat while i < drawQueues:GetSize()
-            VulkanDrawQueue3D drawQueue = GetCurrentDrawQueue(i)
+        repeat while i < defaultQueues:GetSize()
+            VulkanDrawQueue3D drawQueue = defaultQueues:Get(i)
             if drawQueue not= undefined and drawQueue:GetDrawCommandCount() > 0
                 BindDescriptorSetCommand texturesBind
             texturesBind:SetPipelineLayout(pipelineLayout)
@@ -1609,7 +1669,7 @@ constants:SHADER_STAGE_FRAGMENT_BIT)
         // Allow Vulkan to run this stage in parallel with the scene rendering.
         
         // Before we begin rendering the shadows, make sure we have all the framebuffers needed for the data in this stage.
-        EnsureShadowCubemapFramebuffers(resourceIndex)
+        EnsureShadowMaps(resourceIndex)
         
         Array<VulkanFramebuffer> shadowFramebuffers = shadowCubemapFramebuffers:Get(resourceIndex)
         
@@ -1636,9 +1696,12 @@ constants:SHADER_STAGE_FRAGMENT_BIT)
         // order as before, then each custom program's. Every model casts
         // shadows with the default shadow program, whatever program draws it.
         Array<VulkanDrawQueue3D> shadowQueues
+        // This frame's default queues, one per texture group used (#22).
+        VulkanGraphics queueGraphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        Array<VulkanDrawQueue3D> defaultShadowQueues = drawQueues:Get(queueGraphics:GetCurrentResourceIndex())
         integer queueCounter = 0
-        repeat while queueCounter < drawQueues:GetSize()
-            shadowQueues:Add(GetCurrentDrawQueue(queueCounter))
+        repeat while queueCounter < defaultShadowQueues:GetSize()
+            shadowQueues:Add(defaultShadowQueues:Get(queueCounter))
             queueCounter = queueCounter + 1
         end
         programIndex = 0
@@ -2308,6 +2371,51 @@ BindDescriptorSetCommand resultDescriptorBind
         return set
     end
     
+    /*
+    This action removes, from every batch table, the batches whose
+    blueprint has been released (Item 33).
+    */
+    private action RemoveReleasedBatches
+        RemoveReleasedBatches(batches)
+        RemoveReleasedBatches(transparentBatches)
+        Iterator<HashTable<ModelBlueprint, VulkanPainter3DBatch>> tables = programBatches:GetValueIterator()
+        repeat while tables:HasNext()
+            RemoveReleasedBatches(tables:Next())
+        end
+        tables = programTransparentBatches:GetValueIterator()
+        repeat while tables:HasNext()
+            RemoveReleasedBatches(tables:Next())
+        end
+    end
+
+    /*
+    This action removes, from one batch table, the batches whose blueprint
+    has been released.
+
+    Attribute: Parameter table A table of batches by blueprint.
+    */
+    private action RemoveReleasedBatches(HashTable<ModelBlueprint, VulkanPainter3DBatch> table)
+        Array<ModelBlueprint> released
+        Iterator<ModelBlueprint> keys = table:GetKeyIterator()
+        repeat while keys:HasNext()
+            ModelBlueprint key = keys:Next()
+            if key is ModelBlueprintVulkan
+                ModelBlueprintVulkan vulkanKey = cast(ModelBlueprintVulkan, key)
+                if vulkanKey:IsReleased()
+                    released:Add(key)
+                end
+            end
+        end
+        integer i = 0
+        repeat while i < released:GetSize()
+            VulkanPainter3DBatch batch = table:RemoveKey(released:Get(i))
+            if batch not= undefined
+                batch:Dispose()
+            end
+            i = i + 1
+        end
+    end
+
     action SetEnvironment(Environment environment)
         me:environment = cast(EnvironmentVulkan, environment)
     end

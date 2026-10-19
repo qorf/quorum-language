@@ -141,7 +141,8 @@ class EnvironmentVulkan is Environment
         
         lightMappingArray:SetSize(maxLights * LIGHTS_WORD_SIZE)
         sceneDataMappingArray:SetSize(SCENE_DATA_WORD_SIZE)
-        cascadeShadowTransferArray:SetSize(SHADOW_DATA_WORD_SIZE * maxLights)
+        // Every light has one entry per cascade (Item 35).
+        cascadeShadowTransferArray:SetSize(SHADOW_DATA_WORD_SIZE * maxLights * lightingProperties:GetShadowMapCascadeCount())
     end
     
     action Update
@@ -470,12 +471,12 @@ end
                 // If there's no lighting at all, set ambient light to full white (all pixels receive full color)
                 if pointLights:IsEmpty() and directionalLights:IsEmpty()
                     sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX, 1.0)
-                sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX, 1.0)
-                sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX, 1.0)
+                    sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX + 1, 1.0)
+                    sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX + 2, 1.0)
                 else
                     sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX, 0.0)
-                sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX, 0.0)
-                sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX, 0.0)
+                    sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX + 1, 0.0)
+                    sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX + 2, 0.0)
                 end
             end
             sceneDataMappingArray:Set(AMBIENT_LIGHT_INTENSITY_INDEX, 1.0)
@@ -508,7 +509,12 @@ end
             
             integer index = 0
         integer i = 0
-        repeat while i < directionalLights:GetSize() + pointLights:GetSize()
+        // At most maxLights fit in the shadow data (Item 35).
+        integer shadowLightCount = directionalLights:GetSize() + pointLights:GetSize()
+        if shadowLightCount > maxLights
+            shadowLightCount = maxLights
+        end
+        repeat while i < shadowLightCount
                 Light light = undefined
                 if i < directionalLights:GetSize()
                     light = directionalLights:Get(i)

@@ -94,6 +94,9 @@ public class PixelMap {
             int width = (int) nativeData[1];
             int height = (int) nativeData[2];
             ByteBuffer convertedBuffer = ConvertToRGBA8888(pixelPointer, (int)nativeData[3], width, height, (byte) 255);
+            // The converted pixels live in Java's memory. The native ones
+            // aren't used again, so free them now (Item 34).
+            Free(nativeData[0]);
             LoadFromByteBuffer(convertedBuffer, width, height, FORMAT_RGBA8888);
             return;
         }

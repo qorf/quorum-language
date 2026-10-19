@@ -16,14 +16,13 @@ public class VulkanTextureManager
     {
         PixelMap pluginMap = ((quorum.Libraries.Game.Graphics.PixelMap)quorumMap).plugin_;
         VulkanBuffer pluginBuffer = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer)quorumBuffer).plugin_;
-        ByteBuffer pixelBytes = pluginMap.GetPixels();
+        // A duplicate from the start, so the PixelMap's own position never
+        // moves and the same pixels can be copied again (Item 34).
+        ByteBuffer pixelBytes = pluginMap.GetPixels().duplicate();
+        pixelBytes.position(0);
 
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            ByteBuffer byteBuffer = MemoryUtil.memByteBuffer(pluginBuffer.GetMappedMemoryPointer(), quorumBuffer.GetSize());
-            byteBuffer.put(pixelBytes);
-            byteBuffer.flip();
-        }
+        ByteBuffer target = MemoryUtil.memByteBuffer(pluginBuffer.GetMappedMemoryPointer(), quorumBuffer.GetSize());
+        target.put(pixelBytes);
     }
     public void TransferPixelDataWithMipMaps(PixelMap_ quorumMap, VulkanBuffer_ quorumBuffer, int levels, boolean packedNormals)
     {

@@ -753,6 +753,14 @@ class Skybox
                 VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
                 VulkanTextureManager textureManager = graphics:GetTextureManager()
                 textureManager:RequestCubeLoad(cubeMap, vulkanSides)
+                // The texture manager disposes the sides once the cube is
+                // made, so they're let go here. Loading one side again
+                // waits for all six again (Item 34).
+                integer sideIndex = 0
+                repeat while sideIndex < 6
+                    vulkanSides:Set(sideIndex, undefined)
+                    sideIndex = sideIndex + 1
+                end
             end
         elseif manager:GetApplication() is WebApplication
             LoadSide(file, cubeMap, side)

@@ -93,6 +93,9 @@ end
     end
     
     action SetFromBlueprint(ModelBlueprint schematic)
+        // Buffers made for a previous blueprint go first (Item 33).
+        Release()
+
         // If the blueprint has animations, create one buffer per mesh to store post-animation transformed vertices.
         if schematic:HasAnimations()
             GameStateManager manager
@@ -126,6 +129,26 @@ end
     
     action GetPostAnimationVertexBuffers returns Array<VulkanBuffer>
         return postAnimationVertexBuffers
+    end
+
+
+    /*
+    This action frees the model's own GPU buffers (the vertices of an
+    animated model after animation) once no frame on the GPU still uses
+    them. Model:Dispose calls it, and so does loading another blueprint.
+    */
+    action Release
+        if postAnimationVertexBuffers = undefined
+            return now
+        end
+        GameStateManager manager
+        VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+        integer i = 0
+        repeat while i < postAnimationVertexBuffers:GetSize()
+            graphics:Retire(postAnimationVertexBuffers:Get(i))
+            i = i + 1
+        end
+        postAnimationVertexBuffers = undefined
     end
 
 end

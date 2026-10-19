@@ -2160,6 +2160,7 @@ end
 
     */
     action Load(ModelBlueprint loader, Matrix4 matrix)
+        ModelBlueprint previous = modelBlueprint
         SetModelBlueprint(loader)
         if matrix not= undefined
             GetTransform():Set(matrix)
@@ -2167,7 +2168,70 @@ end
 
         resources:SetFromBlueprint(loader)
 
+        // Under Vulkan, blueprints count the models using them, so one no
+        // model uses can be freed (Item 33).
+        if previous not= loader
+            if loader is ModelBlueprintVulkan
+                ModelManagerVulkan modelManager = GetModelManager()
+                modelManager:AddUser(cast(ModelBlueprintVulkan, loader))
+            end
+            if previous not= undefined
+                if previous is ModelBlueprintVulkan
+                    ModelManagerVulkan previousManager = GetModelManager()
+                    previousManager:RemoveUser(cast(ModelBlueprintVulkan, previous))
+                end
+            end
+        end
+
         SetDimensions(GetCachedDimensions(loader))
+    end
+
+    /*
+    This action frees the graphics memory this model uses. Under Vulkan,
+    the model's own buffers are freed, and its blueprint (the meshes loaded
+    from a file or made from model data) is freed too once no other model
+    uses it. Boxes, planes, spheres and cylinders stay cached for reuse.
+    Under OpenGL it does nothing yet.
+
+    Remove the model from the game first. A disposed model draws nothing
+    until it is loaded again.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+
+    class Main is Game
+        Model car
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            car:Load("Models/Car.obj")
+            Add(car)
+        end
+
+        action Update(number seconds)
+            // When the car is no longer needed:
+            // Remove(car)
+            // car:Dispose()
+        end
+    end
+    */
+    action Dispose
+        if resources is ModelResourcesVulkan
+            ModelResourcesVulkan vulkanResources = cast(ModelResourcesVulkan, resources)
+            vulkanResources:Release()
+            if modelBlueprint not= undefined
+                if modelBlueprint is ModelBlueprintVulkan
+                    ModelManagerVulkan modelManager = GetModelManager()
+                    modelManager:RemoveUser(cast(ModelBlueprintVulkan, modelBlueprint))
+                end
+            end
+            modelBlueprint = undefined
+            resources = undefined
+        end
     end
 
     /*

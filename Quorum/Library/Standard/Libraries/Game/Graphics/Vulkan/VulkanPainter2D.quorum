@@ -92,9 +92,7 @@ on create
     end
 
     action RegenerateRenderPass(boolean isFirstPass) returns boolean
-        if renderPass not= undefined
-            renderPass:Dispose()
-        end
+        // Begin has already retired any old pass (Item 32).
 
         VulkanRenderPass pass
         renderPass = pass
@@ -198,6 +196,18 @@ VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
             return now
         end
         
+        // The copies below overwrite output buffers that the previous
+        // frame's draws may still be reading. Make them wait for those
+        // reads (Item 32).
+        VulkanConstants barrierConstants
+        VulkanMemoryBarrier readBarrier
+        readBarrier:SetSourceStageMask(barrierConstants:PIPELINE_STAGE_VERTEX_INPUT_BIT)
+        readBarrier:SetDestinationStageMask(barrierConstants:PIPELINE_STAGE_TRANSFER_BIT)
+        readBarrier:SetDestinationAccessMask(barrierConstants:ACCESS_TRANSFER_WRITE_BIT)
+        PipelineBarrierCommand readBarrierCommand
+        readBarrierCommand:SetMemoryBarrier(readBarrier)
+        commandBuffer:Record(readBarrierCommand)
+
         Iterator<Array<VulkanPainter2DBatch>> arrays = batches:GetValueIterator()
         VulkanPipeline defaultPipeline = GetDefaultPipeline()
         repeat while arrays:HasNext()
@@ -239,9 +249,9 @@ VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
         
         // If the 2D sample count changed (Item 29), the swapchain's
         // framebuffers were remade for it; make this painter's pass match.
-        // The old pass is let go, since VulkanRenderPass:Dispose isn't
-        // written yet.
+        // The old pass is retired (Item 32).
         if IsRenderPassValid() and renderPass:GetSampleCount() not= graphics:GetSwapchainSampleCount()
+            graphics:Retire(renderPass)
             renderPass = undefined
         end
 

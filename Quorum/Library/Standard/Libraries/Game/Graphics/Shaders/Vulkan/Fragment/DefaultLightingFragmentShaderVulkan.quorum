@@ -114,7 +114,8 @@ float calculateDirectionalVisibility(vec4 worldPosition, uint lightIndex, uint c
 	vec2 uv = vec2(shadowMapXYZ.x * 0.5 + 0.5, (-shadowMapXYZ.y) * 0.5 + 0.5);
     float depth = shadowMapXYZ.z;
 	
-	vec2 moments = texture(nonuniformEXT(shadowSamplers[lightIndex]), vec3(uv, 6 * cascadeIndex)).rg;
+	// A directional light's map has one layer per cascade (Item 35).
+	vec2 moments = texture(nonuniformEXT(shadowSamplers[lightIndex]), vec3(uv, cascadeIndex)).rg;
 
 	float visibility = chebyshevUpperBound(moments, depth);
     return visibility;

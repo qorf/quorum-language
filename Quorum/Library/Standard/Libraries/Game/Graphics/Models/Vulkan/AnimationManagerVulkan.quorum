@@ -74,4 +74,15 @@ class AnimationManagerVulkan
     end
     
     
+
+    /*
+    This action takes a frame out of the list waiting to be copied, if it
+    is there (Item 33).
+
+    Attribute: Parameter frame The frame.
+    */
+    action RemovePendingAnimationFrame(AnimationFrameVulkan frame)
+        pendingFrames:Remove(frame)
+    end
+
 end

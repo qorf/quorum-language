@@ -109,7 +109,9 @@ void main()
 	uint targetCascade = pushConstants.targetCascade;
 	uint targetFace = pushConstants.targetFace;
 	
-	gl_Layer = int(targetCascade * 6 + targetFace);
+	// Six layers per cascade for a point light, one for a directional
+	// light (Item 35).
+	gl_Layer = int(targetCascade * (1 + pushConstants.isPointLight * 5) + targetFace);
 	v_cascadeIndex = targetCascade;
 	
 	mat4 shadowProjection = shadows.data[lightIndex * SHADOW_MAP_CASCADE_COUNT + targetCascade].matrix[targetFace];

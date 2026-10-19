@@ -683,7 +683,16 @@ class Texture is Disposable
                 data:Prepare()
             end
 
-            textureManager:RequestLoad(me, data:ConsumePixelMap())
+            // Pixels this texture read from a file itself are disposed once
+            // copied (Item 34). Pixels the caller passed in (LoadFromPixelMap)
+            // are kept: under Vulkan, callers such as texture updates and
+            // terrain splat maps reuse them, even though OpenGL disposes them.
+            boolean disposeAfter = false
+            if data is FileTextureData
+                FileTextureData fileData = cast(FileTextureData, data)
+                disposeAfter = fileData:GetFile() not= undefined and fileData:DisposePixelMap()
+            end
+            textureManager:RequestLoad(me, data:ConsumePixelMap(), disposeAfter)
 
             return now
         end
@@ -976,7 +985,18 @@ class Texture is Disposable
     Use this when you are completely finished with a Texture and no longer intend
     to use it.
     */
-    system action Dispose
+    action Dispose
+        // Under Vulkan, the texture manager frees the image once no frame
+        // on the GPU still draws with it (Item 34).
+        if manager:GetGameGraphics() is VulkanGraphics
+            VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+            VulkanTextureManager textureManager = graphics:GetTextureManager()
+            textureManager:ReleaseTexture(me)
+        end
+        DisposeNative()
+    end
+
+    private system action DisposeNative
 
     /*
     This action will create a new Texture with a white line that connects an
@@ -1620,6 +1640,12 @@ class Texture is Disposable
     */
     action SetVulkanTextureIndex(integer vulkanTextureIndex)
         me:vulkanTextureIndex = vulkanTextureIndex
+        // A texture with no place has no group either (Item 34).
+        if vulkanTextureIndex < 0
+            vulkanTextureGroupIndex = -1
+            vulkanTextureLocalIndex = -1
+            return now
+        end
         
         if manager:GetGameGraphics() is VulkanGraphics
             VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())

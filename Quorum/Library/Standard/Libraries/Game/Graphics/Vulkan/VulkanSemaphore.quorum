@@ -1,6 +1,6 @@
 package Libraries.Game.Graphics.Vulkan
 
-class VulkanSemaphore
+class VulkanSemaphore is VulkanRetirable
 
     VulkanDevice device = undefined
     boolean initialized = false
@@ -19,5 +19,14 @@ class VulkanSemaphore
     private system action CreateNative(VulkanDevice device) returns boolean
     
     system action Dispose
+
+
+    /*
+    This action frees the semaphore once VulkanGraphics:Retire knows no
+    frame still uses it (Item 32). It is the same as Dispose.
+    */
+    action Release
+        Dispose()
+    end
 
 end

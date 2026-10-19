@@ -6,6 +6,7 @@ use Libraries.Game.Graphics.Models.Data.Material
 use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
 use Libraries.Game.Graphics.Vulkan.VulkanConstants
 use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Array
 use Libraries.Game.NumberUtilities
 use Libraries.Compute.Vector4
 use Libraries.Game.GameStateManager
@@ -74,6 +75,18 @@ Two reserved words (uint, 4 bytes each), 0*/
     number textureScale = 1
     
     integer textureGroupIndex = -1
+
+    // The textures this material uses that it got from the material
+    // manager (files and texture sets, not the unit texture), given back
+    // in Release (Item 34).
+    Array<Texture> usedTextures
+
+    // A texture set's packed pixels, disposed once both textures are
+    // copied (Item 34).
+    PixelMap packedAlbedoHeight = undefined
+    PixelMap packedNormalRoughness = undefined
+
+    boolean released = false
     
     // Ensures all data in the material that needs to be pre-processed, such as textures, are sent to their appropriate managers.
     action Preload(VulkanDevice device, Material data)
@@ -95,26 +108,19 @@ Two reserved words (uint, 4 bytes each), 0*/
             preloadTexture = sharedTextures:GetUnitTexture()
         else
             // Mipmaps keep distant models from shimmering (Item 25).
-            Texture texture
-            texture:LoadFromFile(texturePath, true)
-            preloadTexture = texture
+            preloadTexture = UseFileTexture(texturePath, false)
         end
         if normalPath = undefined or normalPath = ""
             // Do nothing, no normal map is used.
         else
             // A normal map's mipmaps average directions, so far normals
             // stay real normals.
-            Texture normal
-            normal:SetPackedNormalMipMaps(true)
-            normal:LoadFromFile(normalPath, true)
-            preloadNormalMap = normal
+            preloadNormalMap = UseFileTexture(normalPath, true)
         end
         if roughPath = undefined or roughPath = ""
             // Do nothing, no rough map is used.
         else
-            Texture rough
-            rough:LoadFromFile(roughPath, true)
-            preloadRoughMap = rough
+            preloadRoughMap = UseFileTexture(roughPath, false)
         end
         
         
@@ -136,6 +142,23 @@ Two reserved words (uint, 4 bytes each), 0*/
     private action PreloadTextureSet(Material data)
         usesTextureSet = true
         textureScale = data:GetTextureScale()
+
+        // A set already packed for another material is shared (Item 34).
+        ModelManagerVulkan models
+        MaterialManagerVulkan materials = models:GetMaterialManager()
+        text setKey = "set:" + data:GetColorMapPath() + "|" + data:GetHeightMapPath() + "|" +
+            data:GetNormalMapPath() + "|" + data:IsNormalMapDirectX() + "|" +
+            data:GetAmbientOcclusionMapPath() + "|" + data:GetRoughnessMapPath() + "|" + data:GetRoughness()
+        Texture sharedAlbedo = materials:UseSharedTexture(setKey + ":albedo")
+        if sharedAlbedo not= undefined
+            albedoHeightTexture = sharedAlbedo
+            normalRoughnessTexture = materials:UseSharedTexture(setKey + ":normal")
+            usedTextures:Add(albedoHeightTexture)
+            usedTextures:Add(normalRoughnessTexture)
+            preloadTexture = albedoHeightTexture
+            preloadNormalMap = normalRoughnessTexture
+            return now
+        end
 
         PixelMap albedoHeight = LoadMap(data:GetColorMapPath())
         integer width = albedoHeight:GetWidth()
@@ -191,6 +214,12 @@ Two reserved words (uint, 4 bytes each), 0*/
         normalRoughnessTexture = normals
         preloadTexture = albedo
         preloadNormalMap = normals
+        materials:AddSharedTexture(setKey + ":albedo", albedo)
+        materials:AddSharedTexture(setKey + ":normal", normals)
+        usedTextures:Add(albedo)
+        usedTextures:Add(normals)
+        packedAlbedoHeight = albedoHeight
+        packedNormalRoughness = normalRoughness
     end
 
     /*
@@ -306,6 +335,18 @@ default material loading system, as part of the model load system).*/
         VulkanNumber32BitMappedMemory mapping = stagingBuffer:MapToNumber32BitMemory()
         mapping:Set(dataArray)
         stagingBuffer:StopMapping()
+
+        // A texture set's packed pixels have been copied by now: the
+        // texture manager runs before the material manager every frame
+        // (Item 34).
+        if packedAlbedoHeight not= undefined and albedoHeightTexture:GetVulkanTextureIndex() >= 0
+            packedAlbedoHeight:Dispose()
+            packedAlbedoHeight = undefined
+        end
+        if packedNormalRoughness not= undefined and normalRoughnessTexture:GetVulkanTextureIndex() >= 0
+            packedNormalRoughness:Dispose()
+            packedNormalRoughness = undefined
+        end
         
         preloadData = undefined
         preloadTexture = undefined
@@ -348,6 +389,12 @@ default material loading system, as part of the model load system).*/
         commandBuffer:Record(copyCommand)
         
         dataTransferred = true
+
+        // The copy is the staging buffer's only use (Item 34).
+        GameStateManager gameState
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        graphics:Retire(stagingBuffer)
+        stagingBuffer = undefined
     end
     
     action GetBuffer returns VulkanBuffer
@@ -405,4 +452,74 @@ default material loading system, as part of the model load system).*/
     action GetTextureScale returns number
         return textureScale
     end
+
+    /*
+    This action returns the texture for an image file, shared with every
+    material using the same file, loading it the first time (Item 34).
+
+    Attribute: Parameter path The file's path.
+    Attribute: Parameter packedNormals True for a normal map.
+    Attribute: Returns The texture.
+    */
+    private action UseFileTexture(text path, boolean packedNormals) returns Texture
+        ModelManagerVulkan models
+        MaterialManagerVulkan materials = models:GetMaterialManager()
+        text key = path
+        if packedNormals
+            key = path + ":normal"
+        end
+        Texture texture = materials:UseSharedTexture(key)
+        if texture = undefined
+            Texture loaded
+            loaded:SetPackedNormalMipMaps(packedNormals)
+            loaded:LoadFromFile(path, true)
+            materials:AddSharedTexture(key, loaded)
+            texture = loaded
+        end
+        usedTextures:Add(texture)
+        return texture
+    end
+
+    /*
+    This action frees the material: its GPU buffers once no frame on the
+    GPU still uses them, and its textures through the material manager,
+    which disposes each when no other material uses it. Its blueprint calls
+    it when no model uses the blueprint any more. Doing it twice does
+    nothing.
+    */
+    action Release
+        if released
+            return now
+        end
+        released = true
+        ModelManagerVulkan models
+        MaterialManagerVulkan materials = models:GetMaterialManager()
+        materials:RemovePendingMaterial(me)
+
+        GameStateManager gameState
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        graphics:Retire(stagingBuffer)
+        graphics:Retire(materialBuffer)
+        stagingBuffer = undefined
+        materialBuffer = undefined
+
+        integer i = 0
+        repeat while i < usedTextures:GetSize()
+            materials:ReleaseSharedTexture(usedTextures:Get(i))
+            i = i + 1
+        end
+        usedTextures:Empty()
+
+        if packedAlbedoHeight not= undefined
+            packedAlbedoHeight:Dispose()
+            packedAlbedoHeight = undefined
+        end
+        if packedNormalRoughness not= undefined
+            packedNormalRoughness:Dispose()
+            packedNormalRoughness = undefined
+        end
+        albedoHeightTexture = undefined
+        normalRoughnessTexture = undefined
+    end
+
 end

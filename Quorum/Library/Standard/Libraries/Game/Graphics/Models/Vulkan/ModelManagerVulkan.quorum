@@ -53,6 +53,10 @@ shared class ModelManagerVulkan
     // Meshes that already live on the GPU and have new vertex data waiting.
     Array<MeshVulkan> pendingUpdates
 
+    // How many blueprints have been released. Painters compare it with the
+    // count they last saw, to drop batches for released blueprints (Item 33).
+    integer releaseCount = 0
+
     VulkanDevice device = undefined
 
     // Hash tables for retrieving the vertex buffer and index buffer indices in the global mesh arrays.
@@ -342,6 +346,88 @@ left + DELIMITER + bottom + DELIMITER + right + DELIMITER + top + DELIMITER + do
         end
     end
     
+    /*
+    This action counts a model as using a blueprint. Model:Load calls it.
+
+    Attribute: Parameter schematic The blueprint the model loaded.
+    */
+    action AddUser(ModelBlueprintVulkan schematic)
+        schematic:AddUser()
+    end
+
+    /*
+    This action counts one fewer model using a blueprint. When no model
+    uses it, it is taken out of the cache and its GPU memory is freed, once
+    no frame on the GPU still uses it. Primitive blueprints (boxes, planes,
+    spheres and cylinders) stay cached, since they are small and often used
+    again. Model:Load and Model:Dispose call it.
+
+    Attribute: Parameter schematic The blueprint a model no longer uses.
+    */
+    action RemoveUser(ModelBlueprintVulkan schematic)
+        if schematic:RemoveUser() > 0 or schematic:IsReleased()
+            return now
+        end
+        text key = schematic:GetKey()
+        if key not= undefined and key:StartsWith(PRIMITIVE_KEY)
+            return now
+        end
+
+        if key not= undefined and cachedBlueprints:HasKey(key)
+            if cachedBlueprints:GetValue(key) = schematic
+                cachedBlueprints:RemoveKey(key)
+            end
+        end
+
+        // Meshes and frames never copied must not be copied now.
+        Array<MeshVulkan> meshes = schematic:GetMeshes()
+        if meshes not= undefined
+            integer i = 0
+            repeat while i < meshes:GetSize()
+                pendingMeshes:Remove(meshes:Get(i))
+                pendingUpdates:Remove(meshes:Get(i))
+                i = i + 1
+            end
+        end
+        Array<Array<AnimationFrameVulkan>> allFrames = schematic:GetAnimationFrames()
+        if allFrames not= undefined
+            integer k = 0
+            repeat while k < allFrames:GetSize()
+                Array<AnimationFrameVulkan> frames = allFrames:Get(k)
+                integer j = 0
+                repeat while j < frames:GetSize()
+                    animationManager:RemovePendingAnimationFrame(frames:Get(j))
+                    j = j + 1
+                end
+                k = k + 1
+            end
+        end
+        if schematic:GetBindPoseAnimationFrame() not= undefined
+            animationManager:RemovePendingAnimationFrame(schematic:GetBindPoseAnimationFrame())
+        end
+
+        schematic:Release()
+        releaseCount = releaseCount + 1
+    end
+
+    /*
+    This action returns how many blueprints have been released so far.
+
+    Attribute: Returns The number of released blueprints.
+    */
+    action GetReleaseCount returns integer
+        return releaseCount
+    end
+
+    /*
+    This action returns how many blueprints are cached.
+
+    Attribute: Returns The number of cached blueprints.
+    */
+    action GetCachedBlueprintCount returns integer
+        return cachedBlueprints:GetSize()
+    end
+
     action GetMaterialManager returns MaterialManagerVulkan
         return materialManager
     end
