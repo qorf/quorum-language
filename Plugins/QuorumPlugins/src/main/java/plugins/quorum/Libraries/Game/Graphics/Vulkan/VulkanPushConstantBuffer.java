@@ -70,4 +70,11 @@ public class VulkanPushConstantBuffer
     {
         return buffer;
     }
+
+    public void Dispose()
+    {
+        if (buffer != null)
+            MemoryUtil.memFree(buffer);
+        buffer = null;
+    }
 }

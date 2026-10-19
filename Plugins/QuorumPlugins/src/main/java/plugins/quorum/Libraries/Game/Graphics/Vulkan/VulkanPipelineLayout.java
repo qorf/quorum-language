@@ -10,7 +10,7 @@ import quorum.Libraries.Game.Graphics.Vulkan.VulkanPushConstantRange_;
 import java.nio.LongBuffer;
 
 import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
-import static org.lwjgl.vulkan.VK10.vkCreatePipelineLayout;
+import static org.lwjgl.vulkan.VK10.*;
 
 public class VulkanPipelineLayout
 {
@@ -69,5 +69,14 @@ public class VulkanPipelineLayout
     public long GetLayoutHandle()
     {
         return layoutHandle;
+    }
+
+    public void DisposeNative(VulkanDevice_ quorumDevice)
+    {
+        if (layoutHandle == 0L)
+            return;
+        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
+        vkDestroyPipelineLayout(pluginDevice.GetDevice(), layoutHandle, null);
+        layoutHandle = 0L;
     }
 }

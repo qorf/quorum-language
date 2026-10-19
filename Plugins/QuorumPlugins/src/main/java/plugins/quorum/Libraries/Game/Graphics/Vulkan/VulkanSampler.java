@@ -8,7 +8,7 @@ import quorum.Libraries.Game.Graphics.Vulkan.VulkanSamplerInfo_;
 import java.nio.LongBuffer;
 
 import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
-import static org.lwjgl.vulkan.VK10.vkCreateSampler;
+import static org.lwjgl.vulkan.VK10.*;
 
 public class VulkanSampler
 {
@@ -58,5 +58,14 @@ public class VulkanSampler
     public long GetSamplerHandle()
     {
         return samplerHandle;
+    }
+
+    public void DisposeNative(VulkanDevice_ quorumDevice)
+    {
+        if (samplerHandle == 0L)
+            return;
+        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
+        vkDestroySampler(pluginDevice.GetDevice(), samplerHandle, null);
+        samplerHandle = 0L;
     }
 }

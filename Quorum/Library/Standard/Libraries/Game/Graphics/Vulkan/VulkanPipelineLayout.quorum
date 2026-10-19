@@ -2,7 +2,7 @@ package Libraries.Game.Graphics.Vulkan
 
 use Libraries.Containers.Array
 
-class VulkanPipelineLayout
+class VulkanPipelineLayout is VulkanRetirable
 VulkanPushConstantRange  pushConstants
     VulkanDevice device = undefined
     boolean initialized = false    
@@ -27,4 +27,35 @@ action GetPushConstants returns VulkanPushConstantRange
     action SetPushConstants(VulkanPushConstantRange pushConstants)
         me:pushConstants = pushConstants
     end
+
+    /*
+    This action frees the layout. Doing it twice does nothing.
+    */
+    action Dispose
+        if not initialized
+            return now
+        end
+        DisposeNative(device)
+        initialized = false
+    end
+
+    private system action DisposeNative(VulkanDevice device)
+
+    /*
+    This action returns true if the layout has been made and not freed.
+
+    Attribute: Returns True if the layout exists.
+    */
+    action IsInitialized returns boolean
+        return initialized
+    end
+
+    /*
+    This action frees the object once VulkanGraphics:Retire knows no frame
+    on the GPU still uses it (Item 31). It is the same as Dispose.
+    */
+    action Release
+        Dispose()
+    end
+
 end

@@ -60,10 +60,14 @@ public class VulkanImageView
 
     public void Dispose()
     {
+        if (vulkanImageViewHandle == 0L)
+            return;
+
         VulkanDevice_ quorumDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanImageView_)me_).Get_Libraries_Game_Graphics_Vulkan_VulkanImageView__device_();
         VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
         VkDevice vulkanDevice = pluginDevice.GetDevice();
 
         vkDestroyImageView(vulkanDevice, vulkanImageViewHandle, null);
+        vulkanImageViewHandle = 0L;
     }
 }

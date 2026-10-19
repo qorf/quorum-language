@@ -1,7 +1,7 @@
 package Libraries.Game.Graphics.Vulkan
 use Libraries.Containers.Array
 
-class VulkanRenderPass
+class VulkanRenderPass is VulkanRetirable
 
     VulkanDevice device = undefined
     boolean initialized = false
@@ -34,9 +34,21 @@ class VulkanRenderPass
     private system action CreateNative(VulkanDevice device, Array<VulkanAttachmentDescription> attachments,
         Array<VulkanSubpassDescription> subpasses, Array<VulkanSubpassDependency> subpassDependencies) returns boolean
 
+    /*
+    This action frees the render pass. Doing it twice does nothing.
+    Pipelines and framebuffers made with it keep working; only recording
+    a new use of the pass needs it. The GPU must have finished every frame
+    that used it: use VulkanGraphics:Retire unless the device is idle.
+    */
     action Dispose
-        alert("NYI")
+        if not initialized
+            return now
+        end
+        DisposeNative(device)
+        initialized = false
     end
+
+    private system action DisposeNative(VulkanDevice device)
 
     action GetDevice returns VulkanDevice
         return device
@@ -51,6 +63,15 @@ class VulkanRenderPass
     */
     action GetSampleCount returns integer
         return sampleCount
+    end
+
+
+    /*
+    This action frees the object once VulkanGraphics:Retire knows no frame
+    on the GPU still uses it (Item 31). It is the same as Dispose.
+    */
+    action Release
+        Dispose()
     end
 
 end

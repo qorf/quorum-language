@@ -9,7 +9,7 @@ import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
 import java.nio.LongBuffer;
 
 import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
-import static org.lwjgl.vulkan.VK10.vkCreateDescriptorPool;
+import static org.lwjgl.vulkan.VK10.*;
 
 public class VulkanDescriptorPool
 {
@@ -126,5 +126,14 @@ public class VulkanDescriptorPool
     public long GetPoolHandle()
     {
         return poolHandle;
+    }
+
+    public void DisposeNative(VulkanDevice_ quorumDevice)
+    {
+        if (poolHandle == 0L)
+            return;
+        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
+        vkDestroyDescriptorPool(pluginDevice.GetDevice(), poolHandle, null);
+        poolHandle = 0L;
     }
 }

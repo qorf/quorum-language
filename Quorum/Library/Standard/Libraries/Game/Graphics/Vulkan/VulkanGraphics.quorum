@@ -79,6 +79,14 @@ VulkanImage depthBufferImage = undefined
     */
     integer currentSwapchainIndex = - 1
     integer currentResourceIndex = -1
+
+    // Counts frames: BeginNextFrame adds one (Item 31). Objects handed to
+    // Retire are freed by frame number.
+    integer frameNumber = 0
+
+    // Objects waiting until no frame on the GPU can use them, oldest first
+    // (Item 31).
+    Array<VulkanRetirable> retired
     VulkanFramebuffer currentFramebuffer = undefined
     
     // The clear color, or in otherwords, the background color of the screen.
@@ -342,11 +350,16 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
     */
     action BeginNextFrame
         currentResourceIndex = (currentResourceIndex + 1) mod swapchain:GetImageCount()
+        frameNumber = frameNumber + 1
         currentRenderCommandBuffer = renderCommandBuffers:Get(currentResourceIndex)
         currentRenderFence = renderFences:Get(currentResourceIndex)     
 
         // Ensure that all work associated with this image has previously finished.
         currentRenderFence:Wait()
+
+        // Frame frameNumber - N, the last to use this slot, has now
+        // finished, so whatever was retired by then can be freed (Item 31).
+        ReleaseRetired(false)
         
         GameDisplay display = gameState:GetGameDisplay()
         if display is DesktopDisplay
@@ -366,6 +379,7 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
         // see their passes no longer match, and remake them.
         if GetUsableMultisampleCount2D() not= swapchainSampleCount
             device:WaitUntilIdle()
+            ReleaseRetired(true)
             integer old = 0
             repeat while old < swapchainFramebuffers:GetSize()
                 swapchainFramebuffers:Get(old):Dispose()
@@ -390,7 +404,7 @@ currentFramebuffer = swapchainFramebuffers:Get(currentSwapchainIndex)
         currentRenderFence:Reset()
 
         // Reset the render command buffer. In this case, we'll instruct the command buffer not to release memory (it might reuse it, depending on local implementation, or just ditch it anyway)
-        currentRenderCommandBuffer:Reset()
+        currentRenderCommandBuffer:Reset(false)
         
         // Begin recording commands for our chosen command buffer.
         currentRenderCommandBuffer:BeginRecording()
@@ -421,7 +435,7 @@ currentFramebuffer = swapchainFramebuffers:Get(currentSwapchainIndex)
         Array<integer> waitDestinationStageMasks
 
         commandBuffers:Add(currentRenderCommandBuffer)
-        signalSemaphores:Add(imageRenderCompleteSemaphores:Get(currentResourceIndex))
+        signalSemaphores:Add(imageRenderCompleteSemaphores:Get(currentSwapchainIndex))
         waitSemaphores:Add(imageAcquiredSemaphores:Get(currentResourceIndex))
         waitDestinationStageMasks:Add(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
         
@@ -433,13 +447,14 @@ currentFramebuffer = swapchainFramebuffers:Get(currentSwapchainIndex)
 
         graphicsQueue:SubmitCommands(submitInfo)
 
-        DisplayCurrentImageNative(presentationQueue, swapchain, imageRenderCompleteSemaphores:Get(currentResourceIndex), currentSwapchainIndex)
+        DisplayCurrentImageNative(presentationQueue, swapchain, imageRenderCompleteSemaphores:Get(currentSwapchainIndex), currentSwapchainIndex)
     end
 
     private system action DisplayCurrentImageNative(VulkanQueue presentQueue, VulkanSwapchain swapchain, VulkanSemaphore waitSemaphore, integer imageIndex) returns boolean
 
     private action RegenerateSwapchain
         device:WaitUntilIdle()
+        ReleaseRetired(true)
         
         integer i = 0
         repeat while i < swapchainFramebuffers:GetSize()
@@ -666,7 +681,7 @@ boolean success = swapchain:Create(device, surface, info)
         depth:SetSamples(samples)
         depth:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
         depth:SetStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
-        depth:SetStencilLoadOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
+        depth:SetStencilLoadOp(constants:ATTACHMENT_LOAD_OP_DONT_CARE)
         depth:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
         depth:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
         depth:SetFinalLayout(constants:IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
@@ -1147,6 +1162,100 @@ Attribute: Returns True if the application has paused rendering, or false if it 
 
     action GetComputeQueue returns VulkanQueue
         return computeQueue
+    end
+
+    /*
+    This action hands over a Vulkan object that is no longer needed, but
+    that frames already recorded may still be using on the GPU. It is freed
+    (its Release action) once every such frame has finished: after the
+    swapchain image count's worth of frames. Retiring undefined does
+    nothing. The object must not be used again after it is retired.
+
+    Attribute: Parameter item The object to free.
+
+    Attribute: Example
+    // VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+    // graphics:Retire(oldPipeline)
+    */
+    action Retire(VulkanRetirable item)
+        if item = undefined
+            return now
+        end
+        integer slots = 3
+        if swapchain not= undefined
+            slots = swapchain:GetImageCount()
+        end
+        item:SetRetireFrame(frameNumber + slots)
+        retired:Add(item)
+    end
+
+    /*
+    This action returns how many retired objects are still waiting to be
+    freed.
+
+    Attribute: Returns The number of objects.
+    */
+    action GetRetiredCount returns integer
+        return retired:GetSize()
+    end
+
+    /*
+    This action frees retired objects, oldest first: those whose frame has
+    come, or every one if the device is idle and nothing has been recorded
+    this frame.
+
+    Attribute: Parameter everything True to free every retired object.
+    */
+    private action ReleaseRetired(boolean everything)
+        integer released = 0
+        boolean releasing = true
+        repeat while releasing and released < retired:GetSize()
+            VulkanRetirable item = retired:Get(released)
+            if everything or item:GetRetireFrame() <= frameNumber
+                item:Release()
+                released = released + 1
+            else
+                releasing = false
+            end
+        end
+
+        if released = 0
+            return now
+        end
+        if released = retired:GetSize()
+            retired:Empty()
+            return now
+        end
+
+        // Move the ones still waiting to the front, keeping their order.
+        integer i = released
+        repeat while i < retired:GetSize()
+            retired:Set(i - released, retired:Get(i))
+            i = i + 1
+        end
+        repeat released times
+            retired:RemoveFromEnd()
+        end
+    end
+
+    /*
+    This action returns a line describing the GPU memory in use: the bytes
+    and number of buffers and images allocated, and how many retired
+    objects are still waiting to be freed. Later memory Items add their
+    own counts.
+
+    Attribute: Returns The report.
+
+    Attribute: Example
+    // VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+    // output graphics:GetMemoryReport()
+    */
+    action GetMemoryReport returns text
+        VulkanMemoryAllocator allocator = device:GetMemoryAllocator()
+        number megabytes = allocator:GetAllocatedBytes() / (1024.0 * 1024.0)
+        megabytes = cast(integer, megabytes * 10) / 10.0
+        return "GPU memory: " + megabytes + " MB in " + allocator:GetAllocationCount() +
+            " allocations; waiting to be freed: " + retired:GetSize()
     end
 
     action GetLightingProperties returns VulkanLightingProperties

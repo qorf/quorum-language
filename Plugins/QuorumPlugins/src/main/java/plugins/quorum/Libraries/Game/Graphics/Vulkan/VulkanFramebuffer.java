@@ -72,10 +72,14 @@ public class VulkanFramebuffer
 
     public void Dispose()
     {
+        if (framebufferHandle == 0L)
+            return;
+
         VulkanDevice_ quorumDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanFramebuffer_)me_).Get_Libraries_Game_Graphics_Vulkan_VulkanFramebuffer__device_();
         VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
         VkDevice vulkanDevice = pluginDevice.GetDevice();
 
         vkDestroyFramebuffer(vulkanDevice, framebufferHandle, null);
+        framebufferHandle = 0L;
     }
 }

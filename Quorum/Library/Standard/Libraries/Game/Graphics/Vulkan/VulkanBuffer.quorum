@@ -1,7 +1,7 @@
 package Libraries.Game.Graphics.Vulkan
 use Libraries.Compute.BitwiseOperations
 
-class VulkanBuffer
+class VulkanBuffer is VulkanRetirable
 
     VulkanDevice device = undefined
     integer size = 0
@@ -163,4 +163,13 @@ class VulkanBuffer
     end
     
     system action DEBUG_OutputPointerAddress
+
+    /*
+    This action frees the object once VulkanGraphics:Retire knows no frame
+    on the GPU still uses it (Item 31). It is the same as Dispose.
+    */
+    action Release
+        Dispose()
+    end
+
 end

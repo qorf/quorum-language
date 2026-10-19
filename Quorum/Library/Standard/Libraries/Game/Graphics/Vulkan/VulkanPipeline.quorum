@@ -3,7 +3,7 @@ package Libraries.Game.Graphics.Vulkan
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Shaders.Shader
 
-class VulkanPipeline
+class VulkanPipeline is VulkanRetirable
 
     VulkanDevice device = undefined
     VulkanRenderPass renderPass = undefined
@@ -29,9 +29,27 @@ class VulkanPipeline
 
     private system action CreateNative(VulkanDevice device, VulkanRenderPass renderPass, VulkanPipelineCache cache, Array<Shader> shaders, VulkanPipelineInfo info) returns boolean
 
+    /*
+    This action frees the pipeline and the pipeline layout made for it.
+    Doing it twice does nothing. The GPU must have finished every frame
+    that used the pipeline: use VulkanGraphics:Retire unless the device is
+    idle.
+    */
     action Dispose
-        alert("NYI")
+        if not initialized
+            return now
+        end
+        DisposeNative(device)
+        if info not= undefined
+            VulkanPipelineLayout layout = info:GetLayout()
+            if layout not= undefined
+                layout:Dispose()
+            end
+        end
+        initialized = false
     end
+
+    private system action DisposeNative(VulkanDevice device)
 
     action GetDevice returns VulkanDevice
         return device
@@ -51,6 +69,15 @@ class VulkanPipeline
     
     action GetLayout returns VulkanPipelineLayout
         return info:GetLayout()
+    end
+
+
+    /*
+    This action frees the object once VulkanGraphics:Retire knows no frame
+    on the GPU still uses it (Item 31). It is the same as Dispose.
+    */
+    action Release
+        Dispose()
     end
 
 end

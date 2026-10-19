@@ -16,6 +16,7 @@ use Libraries.Game.Graphics.Vulkan.VulkanPipelineCache
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
 use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
 
 class VulkanShaderProgram is ShaderProgramStrategy
     
@@ -45,8 +46,13 @@ class VulkanShaderProgram is ShaderProgramStrategy
     end
     
     action CreatePipeline(VulkanRenderPass renderPass)
+        // Frames already recorded may still draw with the old pipeline, so
+        // it is freed once they finish (Item 31).
         if pipeline not= undefined
-            pipeline:Dispose()
+            GameStateManager retireState
+            VulkanGraphics retireGraphics = cast(VulkanGraphics, retireState:GetGameGraphics())
+            retireGraphics:Retire(pipeline)
+            pipeline = undefined
         end
         
         Compile()

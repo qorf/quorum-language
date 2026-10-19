@@ -21,6 +21,9 @@ public class VulkanPipeline
     private long vulkanPipelineLayoutHandle = 0L;
     private long vulkanPipelineHandle = 0L;
 
+    // True if CreateNative made its own empty layout, which Dispose frees.
+    private boolean ownsLayout = false;
+
     public boolean CreateNative(VulkanDevice_ quorumDevice, VulkanRenderPass_ quorumRenderPass, VulkanPipelineCache_ quorumCache, Array_ quorumShaders, VulkanPipelineInfo_ info)
     {
         try (MemoryStack stack = MemoryStack.stackPush())
@@ -189,6 +192,7 @@ public class VulkanPipeline
                 }
 
                 vulkanPipelineLayoutHandle = handleBuffer.get(0);
+                ownsLayout = true;
             }
             else
             {
@@ -229,6 +233,18 @@ public class VulkanPipeline
     public long GetPipelineHandle()
     {
         return vulkanPipelineHandle;
+    }
+
+    public void DisposeNative(VulkanDevice_ quorumDevice)
+    {
+        VkDevice vulkanDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_.GetDevice();
+        if (vulkanPipelineHandle != 0L)
+            vkDestroyPipeline(vulkanDevice, vulkanPipelineHandle, null);
+        if (ownsLayout && vulkanPipelineLayoutHandle != 0L)
+            vkDestroyPipelineLayout(vulkanDevice, vulkanPipelineLayoutHandle, null);
+        vulkanPipelineHandle = 0L;
+        vulkanPipelineLayoutHandle = 0L;
+        ownsLayout = false;
     }
 
 

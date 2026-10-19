@@ -1,6 +1,6 @@
 package Libraries.Game.Graphics.Vulkan
 
-class VulkanSampler
+class VulkanSampler is VulkanRetirable
 
     VulkanDevice device = undefined
     VulkanSamplerInfo info = undefined
@@ -18,5 +18,27 @@ class VulkanSampler
     end
 
     private system action CreateNative(VulkanDevice device, VulkanSamplerInfo info) returns boolean
+
+    /*
+    This action frees the sampler. Doing it twice does nothing.
+    */
+    action Dispose
+        if not initialized
+            return now
+        end
+        DisposeNative(device)
+        initialized = false
+    end
+
+    private system action DisposeNative(VulkanDevice device)
+
+
+    /*
+    This action frees the object once VulkanGraphics:Retire knows no frame
+    on the GPU still uses it (Item 31). It is the same as Dispose.
+    */
+    action Release
+        Dispose()
+    end
 
 end

@@ -1,6 +1,6 @@
 package Libraries.Game.Graphics.Vulkan
 
-class VulkanImageView
+class VulkanImageView is VulkanRetirable
 
     VulkanDevice device = undefined
     VulkanImage image = undefined
@@ -31,5 +31,14 @@ class VulkanImageView
     end
     
 system action Dispose
+
+
+    /*
+    This action frees the object once VulkanGraphics:Retire knows no frame
+    on the GPU still uses it (Item 31). It is the same as Dispose.
+    */
+    action Release
+        Dispose()
+    end
 
 end

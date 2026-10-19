@@ -92,10 +92,17 @@ public class VulkanImage
 
     public void Dispose()
     {
+        // Images wrapped from the swapchain have no VMA memory and aren't
+        // ours to free. A second Dispose does nothing.
+        if (vulkanImageHandle == 0L || vulkanMemoryHandle == 0L)
+            return;
+
         VulkanDevice_ quorumDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanImage_)me_).GetDevice();
         VulkanMemoryAllocator pluginMemoryAllocator = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanMemoryAllocator)quorumDevice.GetMemoryAllocator()).plugin_;
 
         vmaDestroyImage(pluginMemoryAllocator.GetAllocatorPointer(), vulkanImageHandle, vulkanMemoryHandle);
+        vulkanImageHandle = 0L;
+        vulkanMemoryHandle = 0L;
     }
 
 }

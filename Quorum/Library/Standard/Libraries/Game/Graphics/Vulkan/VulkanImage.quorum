@@ -1,7 +1,7 @@
 package Libraries.Game.Graphics.Vulkan
 use Libraries.Compute.BitwiseOperations
 
-class VulkanImage
+class VulkanImage is VulkanRetirable
 
     VulkanDevice device = undefined
     integer width = 0
@@ -57,5 +57,14 @@ class VulkanImage
     end
     
     system action Dispose
+
+
+    /*
+    This action frees the object once VulkanGraphics:Retire knows no frame
+    on the GPU still uses it (Item 31). It is the same as Dispose.
+    */
+    action Release
+        Dispose()
+    end
 
 end

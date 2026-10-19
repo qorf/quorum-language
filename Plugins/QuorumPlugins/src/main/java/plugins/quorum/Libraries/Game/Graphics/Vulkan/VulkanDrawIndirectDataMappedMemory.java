@@ -41,6 +41,8 @@ public class VulkanDrawIndirectDataMappedMemory
 
     public void Dispose()
     {
-        drawBuffer.free();
+        // The memory belongs to the VulkanBuffer, which VMA frees; only the
+        // view of it is dropped here.
+        drawBuffer = null;
     }
 }
