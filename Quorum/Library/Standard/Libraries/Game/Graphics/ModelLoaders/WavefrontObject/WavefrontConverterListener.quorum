@@ -187,7 +187,7 @@ class WavefrontConverterListener is WavefrontObjectListener
                 vector:SetX(cast(number, terminal:value))
             elseif textureIndex = 1
                 Vector3 vector = currentTexture:GetVector()
-                vector:SetY(cast(number, terminal:value))
+                vector:SetY(1.0 - cast(number, terminal:value))
             elseif textureIndex = 2
                 Vector3 vector = currentTexture:GetVector()
                 vector:SetZ(cast(number, terminal:value))

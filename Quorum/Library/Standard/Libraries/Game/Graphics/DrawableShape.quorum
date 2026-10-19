@@ -703,10 +703,10 @@ mesh = GenerateMesh(vertices:GetSize(), indices:GetSize())
         end
         number convertedTextureID = utilities:EncodeIntegerAsNumber(textureID)
 
-        // Vertices are set to negative Z to reverse draw order.
-        number negatedZ = -drawable:GetGlobalZ()
+        //Get the drawable's global position (local position plus position of parent objects).
         number globalX = drawable:GetGlobalX()
         number globalY = drawable:GetGlobalY()
+        number globalZ = drawable:GetGlobalZ()
 
         if UsesScaleOrRotation() = false
             integer i = 0
@@ -715,7 +715,7 @@ mesh = GenerateMesh(vertices:GetSize(), indices:GetSize())
             repeat while i < vertices:GetSize()
                 SetVertexData(i + X_OFFSET, cast(integer, basePositions:Get(baseIndex) + globalX + PIXEL_SNAP_THRESHOLD))
                 SetVertexData(i + Y_OFFSET, cast(integer, basePositions:Get(baseIndex + 1) + globalY + PIXEL_SNAP_THRESHOLD))
-                SetVertexData(i + Z_OFFSET, negatedZ)
+                SetVertexData(i + Z_OFFSET, globalZ)
                 if areTextureVerticesValid
                     SetVertexData(i + TEXTURE_OFFSET, convertedTextureID)
                 end
@@ -751,7 +751,7 @@ mesh = GenerateMesh(vertices:GetSize(), indices:GetSize())
 
                 SetVertexData(i + X_OFFSET, localX + worldOriginX)
                 SetVertexData(i + Y_OFFSET, localY + worldOriginY)
-                SetVertexData(i + Z_OFFSET, negatedZ)
+                SetVertexData(i + Z_OFFSET, globalZ)
                 if areTextureVerticesValid
                     SetVertexData(i + TEXTURE_OFFSET, convertedTextureID)
                 end
