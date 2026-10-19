@@ -40,11 +40,19 @@ layout (set = 2, binding = 1) uniform sampler2DArray shadowSamplers[];
 
 struct Light
 {
-	// The position of a PointLight, or the direction of a DirectionalLight
+	// A point light's or spotlight's position, or a directional light's direction
 	vec3 positionDirection;
-	uint isDirectional;
+	// 0 point, 1 directional, 2 spot (Item 37)
+	uint lightType;
 	float intensity;
 	vec3 color;
+	// A spotlight's direction, in world space
+	vec3 spotDirection;
+	// Where a point light or spotlight fades to nothing
+	float range;
+	float cosInner;
+	float cosOuter;
+	vec2 spare;
 };
 
 struct CascadeShadow
@@ -191,18 +199,11 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
-vec3 calculatePointLight(Light light, vec3 worldPos, vec3 V, vec3 N, vec3 F0, vec3 albedo, float metallic, float roughness) {
-    vec3 tmpSub = light.positionDirection - worldPos;
-    vec3 L = normalize(tmpSub - worldPos);
+// The light a surface reflects toward the eye from one light, given the
+// direction to the light and the light's strength there (Cook-Torrance).
+vec3 lightContribution(vec3 L, vec3 radiance, vec3 V, vec3 N, vec3 F0, vec3 albedo, float metallic, float roughness) {
     vec3 H = normalize(V + L);
 
-    // Calculate distance and attenuation
-    float distance = length(tmpSub);
-    float attenuation = 1.0 / (distance * distance);
-    float intensity = 10.0f;
-    vec3 radiance = light.color * light.intensity * attenuation;
-
-    // Cook-Torrance BRDF
     float NDF = distributionGGX(N, H, roughness);
     float G = geometrySmith(N, V, L, roughness);
     vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
@@ -219,27 +220,48 @@ vec3 calculatePointLight(Light light, vec3 worldPos, vec3 V, vec3 N, vec3 F0, ve
     return (kD * albedo / PI + specular) * radiance * NdotL;
 }
 
+// How much of a light's strength reaches a distance: the inverse square,
+// faded smoothly to nothing at the light's range (Item 37).
+float rangeAttenuation(float distance, float range) {
+    float inverseSquare = 1.0 / max(distance * distance, 0.0001);
+    if (range <= 0.0) {
+        return inverseSquare;
+    }
+    float ratio = distance / range;
+    float window = clamp(1.0 - ratio * ratio * ratio * ratio, 0.0, 1.0);
+    return inverseSquare * window * window;
+}
+
+vec3 calculatePointLight(Light light, vec3 worldPos, vec3 V, vec3 N, vec3 F0, vec3 albedo, float metallic, float roughness) {
+    vec3 toLight = light.positionDirection - worldPos;
+    float distance = length(toLight);
+    // The direction to the light (Item 37: this subtracted worldPos twice).
+    vec3 L = toLight / max(distance, 0.0001);
+    vec3 radiance = light.color * light.intensity * rangeAttenuation(distance, light.range);
+    return lightContribution(L, radiance, V, N, F0, albedo, metallic, roughness);
+}
+
+vec3 calculateSpotLight(Light light, vec3 worldPos, vec3 V, vec3 N, vec3 F0, vec3 albedo, float metallic, float roughness) {
+    vec3 toLight = light.positionDirection - worldPos;
+    float distance = length(toLight);
+    vec3 L = toLight / max(distance, 0.0001);
+
+    // Full strength inside the inner angle, fading to nothing at the outer.
+    float cosAngle = dot(-L, light.spotDirection);
+    float cone = clamp((cosAngle - light.cosOuter) / max(light.cosInner - light.cosOuter, 0.0001), 0.0, 1.0);
+    if (cone <= 0.0) {
+        return vec3(0.0);
+    }
+    cone = cone * cone;
+
+    vec3 radiance = light.color * light.intensity * rangeAttenuation(distance, light.range) * cone;
+    return lightContribution(L, radiance, V, N, F0, albedo, metallic, roughness);
+}
+
 vec3 calculateDirectionalLight(Light light, vec3 V, vec3 N, vec3 F0, vec3 albedo, float metallic, float roughness) {
     vec3 L = normalize(-light.positionDirection);
-    vec3 H = normalize(V + L);
-
     vec3 radiance = light.color * light.intensity;
-
-    // Cook-Torrance BRDF
-    float NDF = distributionGGX(N, H, roughness);
-    float G = geometrySmith(N, V, L, roughness);
-    vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
-
-    vec3 numerator = NDF * G * F;
-    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
-    vec3 specular = numerator / denominator;
-
-    vec3 kS = F;
-    vec3 kD = vec3(1.0) - kS;
-    kD *= 1.0 - metallic;
-
-    float NdotL = max(dot(N, L), 0.0);
-    return (kD * albedo / PI + specular) * radiance * NdotL;
+    return lightContribution(L, radiance, V, N, F0, albedo, metallic, roughness);
 }
 
 void main()
@@ -280,7 +302,7 @@ void main()
         Light light = lights.array[i];
 		uint cascadeIndex = 0;
 		
-        if (light.isDirectional == 1) 
+        if (light.lightType == 1u)
 		{
 			for (uint j = 0; j < SHADOW_MAP_CASCADE_COUNT - 1; ++j)
 			{
@@ -293,8 +315,13 @@ void main()
 		
 			float shadow = calculateDirectionalVisibility(vec4(worldPosition, 1.0), i, cascadeIndex);
             Lo += (calculateDirectionalLight(light, V, N, F0, albedo, metallic, roughness) * shadow);
-        } 
-		else 
+        }
+        else if (light.lightType == 2u)
+		{
+			// Spotlights cast no shadows yet (Item 37).
+            Lo += calculateSpotLight(light, worldPosition, V, N, F0, albedo, metallic, roughness);
+		}
+		else
 		{
 			// The maximum distance along an axis from the light's position to the world position of the fragment.
 			vec3 absLightDist = abs(worldPosition.rgb - light.positionDirection);

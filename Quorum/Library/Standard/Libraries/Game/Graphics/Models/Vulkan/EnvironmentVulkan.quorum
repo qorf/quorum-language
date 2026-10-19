@@ -5,6 +5,7 @@ use Libraries.Game.Graphics.Light
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.DirectionalLight
 use Libraries.Game.Graphics.PointLight
+use Libraries.Game.Graphics.SpotLight
 use Libraries.Game.Graphics.AmbientLight
 use Libraries.Containers.Iterator
 use Libraries.Game.Graphics.Vulkan.VulkanDevice
@@ -46,6 +47,10 @@ class EnvironmentVulkan is Environment
     
     Array<PointLight> pointLights
     Array<DirectionalLight> directionalLights
+    Array<SpotLight> spotLights
+
+    // For working out a spotlight's cone (Item 37).
+    Math lightMath
     AmbientLight ambientLight = undefined
     
     Camera camera = undefined
@@ -71,18 +76,30 @@ class EnvironmentVulkan is Environment
     Array<VulkanNumber32BitMappedMemory> cascadeShadowMemories
     Number32BitArray cascadeShadowTransferArray
     
-    /*Lights store these components in the buffer:
-* Position/Direction (Vec3, 3 * 4 bytes)
-* IsDirectional (uint, 4 byte)
-* Intensity (float, 4 bytes)
-* RGB Color (Vec3, 3 * 4 bytes)*/
-    constant integer LIGHTS_WORD_SIZE = 8
+    /*Lights store these components in the buffer, 16 words each (Item 37):
+* Position (a point or spotlight) or direction (a directional light) (Vec3)
+* Type (uint): 0 point, 1 directional, 2 spot
+* Intensity (float)
+* RGB Color (Vec3)
+* Spot direction, in world space (Vec3)
+* Range (float): where the light fades to nothing; 0 for directional
+* Cosine of the inner and outer cone angles (2 floats)
+* Two spare words*/
+    constant integer LIGHTS_WORD_SIZE = 16
     constant integer LIGHTS_BYTE_SIZE = LIGHTS_WORD_SIZE * 4
-    
+
     constant integer POSITION_DIRECTION_INDEX = 0
-    constant integer IS_DIRECTIONAL_INDEX = 3
+    constant integer TYPE_INDEX = 3
     constant integer INTENSITY_INDEX = 4
     constant integer COLOR_INDEX = 5
+    constant integer SPOT_DIRECTION_INDEX = 8
+    constant integer RANGE_INDEX = 11
+    constant integer COS_INNER_INDEX = 12
+    constant integer COS_OUTER_INDEX = 13
+
+    constant integer POINT_LIGHT_TYPE = 0
+    constant integer DIRECTIONAL_LIGHT_TYPE = 1
+    constant integer SPOT_LIGHT_TYPE = 2
     
     constant integer SCENE_DATA_WORD_SIZE = 24
     constant integer SCENE_DATA_BYTE_SIZE = SCENE_DATA_WORD_SIZE * 4
@@ -157,6 +174,18 @@ or a:row3column0 not= b:row3column0 or a:row3column1 not= b:row3column1 or a:row
             previousCameraTransform:Set(cameraTransform)
             SetSceneDataDirty()
         end
+
+        // A point light or spotlight may belong to a model that moves or
+        // turns without telling the environment, such as a headlight on a
+        // car. Re-pack the lights every frame while there are any; their
+        // shadow projections are left as they are (Item 37).
+        if not pointLights:IsEmpty() or not spotLights:IsEmpty()
+            integer slot = 0
+            repeat while slot < lightsDirty:GetSize()
+                lightsDirty:Set(slot, true)
+                slot = slot + 1
+            end
+        end
     end
     
     private action SetLightsDirty
@@ -198,10 +227,12 @@ or a:row3column0 not= b:row3column0 or a:row3column1 not= b:row3column1 or a:row
             Add(cast(PointLight, light))
         elseif light is DirectionalLight
             Add(cast(DirectionalLight, light))
+        elseif light is SpotLight
+            Add(cast(SpotLight, light))
         elseif light is AmbientLight
             SetAmbientLight(cast(AmbientLight, light))
         else
-            alert("I can only add PointLights or DirectionalLights.")
+            alert("I can only add PointLights, DirectionalLights or SpotLights.")
         end
     end
 
@@ -247,6 +278,8 @@ end
             Remove(cast(PointLight, light))
         elseif light is DirectionalLight
             Remove(cast(DirectionalLight, light))
+        elseif light is SpotLight
+            Remove(cast(SpotLight, light))
         end
 end
 
@@ -287,6 +320,26 @@ end
 end
 
     /*
+    Adds a SpotLight to this environment.
+    */
+    action Add(SpotLight light)
+        spotLights:Add(light)
+        light:SetEnvironment(me)
+        SetDirty()
+    end
+
+    /*
+    This action will remove the given SpotLight from the Environment. If
+    the light was not present in the Environment before using this action,
+    it will have no effect.
+    */
+    action Remove(SpotLight light)
+        spotLights:Remove(light)
+        light:SetEnvironment(undefined)
+        SetDirty()
+    end
+
+    /*
     This action will add ambient lighting to the Environment.
     */
     action SetAmbientLight(AmbientLight light)
@@ -318,7 +371,7 @@ end
     be ignored during rendering. 
     */
     action ContainsLighting returns boolean
-        return (not pointLights:IsEmpty()) or (not directionalLights:IsEmpty()) or ambientLight not= undefined
+        return (not pointLights:IsEmpty()) or (not directionalLights:IsEmpty()) or (not spotLights:IsEmpty()) or ambientLight not= undefined
 end
 
     /*
@@ -348,6 +401,18 @@ end
     action GetPointLight(integer index) returns PointLight
         return pointLights:Get(index)
 end
+
+    action GetSpotLightIterator returns Iterator<SpotLight>
+        return spotLights:GetIterator()
+    end
+
+    action GetSpotLightCount returns integer
+        return spotLights:GetSize()
+    end
+
+    action GetSpotLight(integer index) returns SpotLight
+        return spotLights:Get(index)
+    end
     
     action GetDevice returns VulkanDevice
         return device
@@ -357,6 +422,35 @@ end
         return sceneDataDirty:Get(resourceIndex) = true or lightsDirty:Get(resourceIndex) = true
     end
     
+    /*
+    This action sets one light record in the transfer array to zeros, so no
+    value from a light that was there before is left behind (Item 37).
+
+    Attribute: Parameter index Where the record starts.
+    */
+    private action ClearLightRecord(integer index)
+        integer word = 0
+        repeat while word < LIGHTS_WORD_SIZE
+            lightMappingArray:Set(index + word, 0)
+            word = word + 1
+        end
+    end
+
+    /*
+    This action writes a light's intensity and color into its record
+    (Item 37).
+
+    Attribute: Parameter index Where the record starts.
+    Attribute: Parameter intensity The light's intensity.
+    Attribute: Parameter color The light's color.
+    */
+    private action WriteIntensityAndColor(integer index, number intensity, Color color)
+        lightMappingArray:Set(index + INTENSITY_INDEX, intensity)
+        lightMappingArray:Set(index + COLOR_INDEX, color:GetRed())
+        lightMappingArray:Set(index + COLOR_INDEX + 1, color:GetGreen())
+        lightMappingArray:Set(index + COLOR_INDEX + 2, color:GetBlue())
+    end
+
     action UpdateBuffers(integer resourceIndex)
         VulkanBuffer lightsBuffer = lightsBuffers:Get(resourceIndex)
         VulkanBuffer sceneDataBuffer = sceneDataBuffers:Get(resourceIndex)
@@ -407,46 +501,79 @@ end
         if lightsDirty:Get(resourceIndex)
             NumberUtilities utility
             
-            integer index = 0
-        integer i = 0
-        repeat while i < directionalLights:GetSize()
-            DirectionalLight light = directionalLights:Get(i)
-            Vector3 direction = light:GetDirection()
-            Color color = light:GetColor()
-            
-            lightMappingArray:Set(index + POSITION_DIRECTION_INDEX, direction:GetX())
-            lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 1, direction:GetY())
-            lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 2, direction:GetZ())
-            lightMappingArray:Set(index + IS_DIRECTIONAL_INDEX, utility:EncodeIntegerAsNumber(1))
-            lightMappingArray:Set(index + INTENSITY_INDEX, light:GetIntensity())
-            lightMappingArray:Set(index + COLOR_INDEX, color:GetRed())
-            lightMappingArray:Set(index + COLOR_INDEX + 1, color:GetGreen())
-            lightMappingArray:Set(index + COLOR_INDEX + 2, color:GetBlue())
-            
-            index = index + LIGHTS_WORD_SIZE
-            i = i + 1
-        end
-        
-        i = 0
-        repeat while i < pointLights:GetSize()
-            PointLight light = pointLights:Get(i)
-            Color color = light:GetColor()
-            
-            lightMappingArray:Set(index + POSITION_DIRECTION_INDEX, light:GetX())
-            lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 1, light:GetY())
-            lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 2, light:GetZ())
-            lightMappingArray:Set(index + IS_DIRECTIONAL_INDEX, utility:EncodeIntegerAsNumber(0))
-            lightMappingArray:Set(index + INTENSITY_INDEX, light:GetIntensity())
-            lightMappingArray:Set(index + COLOR_INDEX, color:GetRed())
-            lightMappingArray:Set(index + COLOR_INDEX + 1, color:GetGreen())
-            lightMappingArray:Set(index + COLOR_INDEX + 2, color:GetBlue())
-            
-            index = index + LIGHTS_WORD_SIZE
-            i = i + 1
-        end
-        
-        lightsMemory:Set(lightMappingArray)
-        lightsDirty:Set(resourceIndex, false)
+            // Directional lights first, then point lights, then
+            // spotlights. Shadows count lights in the same order, so
+            // directional and point lights keep their places (Item 37).
+            integer written = 0
+            integer i = 0
+            repeat while i < directionalLights:GetSize() and written < maxLights
+                DirectionalLight light = directionalLights:Get(i)
+                Vector3 direction = light:GetDirection()
+                integer index = written * LIGHTS_WORD_SIZE
+                ClearLightRecord(index)
+                lightMappingArray:Set(index + POSITION_DIRECTION_INDEX, direction:GetX())
+                lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 1, direction:GetY())
+                lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 2, direction:GetZ())
+                lightMappingArray:Set(index + TYPE_INDEX, utility:EncodeIntegerAsNumber(DIRECTIONAL_LIGHT_TYPE))
+                WriteIntensityAndColor(index, light:GetIntensity(), light:GetColor())
+                written = written + 1
+                i = i + 1
+            end
+
+            i = 0
+            repeat while i < pointLights:GetSize() and written < maxLights
+                PointLight light = pointLights:Get(i)
+                integer index = written * LIGHTS_WORD_SIZE
+                ClearLightRecord(index)
+                // The world position, so a light that belongs to another
+                // item is placed correctly (Item 37).
+                Matrix4 transform = light:GetTransform()
+                lightMappingArray:Set(index + POSITION_DIRECTION_INDEX, transform:row0column3)
+                lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 1, transform:row1column3)
+                lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 2, transform:row2column3)
+                lightMappingArray:Set(index + TYPE_INDEX, utility:EncodeIntegerAsNumber(POINT_LIGHT_TYPE))
+                WriteIntensityAndColor(index, light:GetIntensity(), light:GetColor())
+                lightMappingArray:Set(index + RANGE_INDEX, light:GetRange())
+                written = written + 1
+                i = i + 1
+            end
+
+            i = 0
+            repeat while i < spotLights:GetSize() and written < maxLights
+                SpotLight light = spotLights:Get(i)
+                integer index = written * LIGHTS_WORD_SIZE
+                ClearLightRecord(index)
+                Matrix4 transform = light:GetTransform()
+                lightMappingArray:Set(index + POSITION_DIRECTION_INDEX, transform:row0column3)
+                lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 1, transform:row1column3)
+                lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 2, transform:row2column3)
+                lightMappingArray:Set(index + TYPE_INDEX, utility:EncodeIntegerAsNumber(SPOT_LIGHT_TYPE))
+                WriteIntensityAndColor(index, light:GetIntensity(), light:GetColor())
+
+                // The cone's direction turned by the light's world rotation,
+                // then made length 1 again (the transform may be scaled).
+                Vector3 localDirection = light:GetDirection()
+                number x = transform:row0column0 * localDirection:GetX() + transform:row0column1 * localDirection:GetY() + transform:row0column2 * localDirection:GetZ()
+                number y = transform:row1column0 * localDirection:GetX() + transform:row1column1 * localDirection:GetY() + transform:row1column2 * localDirection:GetZ()
+                number z = transform:row2column0 * localDirection:GetX() + transform:row2column1 * localDirection:GetY() + transform:row2column2 * localDirection:GetZ()
+                number length = lightMath:SquareRoot(x * x + y * y + z * z)
+                if length > 0.000001
+                    x = x / length
+                    y = y / length
+                    z = z / length
+                end
+                lightMappingArray:Set(index + SPOT_DIRECTION_INDEX, x)
+                lightMappingArray:Set(index + SPOT_DIRECTION_INDEX + 1, y)
+                lightMappingArray:Set(index + SPOT_DIRECTION_INDEX + 2, z)
+                lightMappingArray:Set(index + RANGE_INDEX, light:GetRange())
+                lightMappingArray:Set(index + COS_INNER_INDEX, lightMath:Cosine(lightMath:DegreesToRadians(light:GetInnerAngle())))
+                lightMappingArray:Set(index + COS_OUTER_INDEX, lightMath:Cosine(lightMath:DegreesToRadians(light:GetOuterAngle())))
+                written = written + 1
+                i = i + 1
+            end
+
+            lightsMemory:Set(lightMappingArray)
+            lightsDirty:Set(resourceIndex, false)
         end
         
         if sceneDataDirty:Get(resourceIndex)
@@ -469,7 +596,7 @@ end
                 sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX + 2, color:GetBlue())
             else
                 // If there's no lighting at all, set ambient light to full white (all pixels receive full color)
-                if pointLights:IsEmpty() and directionalLights:IsEmpty()
+                if pointLights:IsEmpty() and directionalLights:IsEmpty() and spotLights:IsEmpty()
                     sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX, 1.0)
                     sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX + 1, 1.0)
                     sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX + 2, 1.0)
@@ -480,7 +607,11 @@ end
                 end
             end
             sceneDataMappingArray:Set(AMBIENT_LIGHT_INTENSITY_INDEX, 1.0)
-            sceneDataMappingArray:Set(LIGHT_COUNT_INDEX, utility:EncodeIntegerAsNumber(pointLights:GetSize() + directionalLights:GetSize()))
+            integer shaderLightCount = pointLights:GetSize() + directionalLights:GetSize() + spotLights:GetSize()
+            if shaderLightCount > maxLights
+                shaderLightCount = maxLights
+            end
+            sceneDataMappingArray:Set(LIGHT_COUNT_INDEX, utility:EncodeIntegerAsNumber(shaderLightCount))
             
             Matrix4 matrix = camera:GetViewMatrix()
                     sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX, matrix:row0column0)
@@ -875,7 +1006,7 @@ one of the six axis directions. In order, these will be: positive/negative x, po
     end
     
     action LightChanged(Light light)
-        if light is PointLight or light is DirectionalLight
+        if light is PointLight or light is DirectionalLight or light is SpotLight
             SetLightsDirty()
         elseif light is AmbientLight
             SetSceneDataDirty()

@@ -1,0 +1,272 @@
+package Libraries.Game.Graphics
+
+use Libraries.Compute.Vector3
+use Libraries.Game.Graphics.Light
+use Libraries.Interface.Item3D
+
+/*
+A SpotLight lights a 3D scene from one point, in a cone, the way a torch, a
+car's headlight or a stage light does. Inside its inner angle the light is
+at full strength; between the inner and outer angles it fades; outside the
+outer angle it gives no light. Like a point light, it gets dimmer the
+farther it travels, and it gives no light past its range.
+
+A spotlight is an Item3D, so it can be placed with SetPosition, and added
+to another item, such as a car, so that it moves and turns with it. Its
+direction is given in its own space: when the item it belongs to turns,
+the cone turns with it.
+
+Under Vulkan, spotlights don't cast shadows yet. Under OpenGL they are not
+drawn yet.
+
+Attribute: Example
+
+use Libraries.Game.Game
+use Libraries.Game.Graphics.SpotLight
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Color
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        Color color
+
+        Model floor
+        floor:LoadBox(20, 0.2, 20, color:White())
+        Add(floor)
+
+        // A lamp above the floor, shining straight down.
+        SpotLight lamp
+        lamp:SetPosition(0, 6, 0)
+        lamp:SetDirection(0, -1, 0)
+        lamp:SetConeAngles(20, 30)
+        lamp:SetIntensity(40)
+        lamp:SetRange(15)
+        Add(lamp)
+    end
+end
+*/
+class SpotLight is Light, Item3D
+
+    /*
+    How bright the light is.
+    */
+    number intensity = 0
+
+    /*
+    How far the light reaches, as set with SetRange, or 0 to work it out
+    from the intensity and color, as a PointLight does. See GetRange.
+    */
+    number range = 0
+
+    /*
+    The cone's half-angles, in degrees: full strength inside the inner
+    angle, fading to nothing at the outer one.
+    */
+    number innerAngle = 20
+    number outerAngle = 30
+
+    /*
+    The direction the cone points, in the light's own space, of length 1.
+    */
+    Vector3 direction
+
+    /*
+    The light level below which the light is treated as having no effect,
+    as for a PointLight. It decides GetRange when no range is set.
+    */
+    constant number MINIMUM_ILLUMINATION_THRESHOLD = 0.0003
+
+    on create
+        direction:Set(0, -1, 0)
+    end
+
+    /*
+    This action sets how bright the light is.
+
+    Attribute: Parameter newIntensity The light's intensity.
+    */
+    action SetIntensity(number newIntensity)
+        intensity = newIntensity
+        NotifyChanged()
+    end
+
+    /*
+    This action returns how bright the light is.
+
+    Attribute: Returns The light's intensity.
+    */
+    action GetIntensity returns number
+        return intensity
+    end
+
+    /*
+    This action sets how far the light reaches. It fades smoothly to nothing
+    at this distance. A range of 0 works the range out from the intensity
+    and color instead (see GetRange).
+
+    Attribute: Parameter newRange How far the light reaches, in world units, or 0.
+    */
+    action SetRange(number newRange)
+        if newRange < 0
+            range = 0
+        else
+            range = newRange
+        end
+        NotifyChanged()
+    end
+
+    /*
+    This action returns how far the light reaches: the range set with
+    SetRange, or, if none was set, the distance at which its brightest
+    color, at its intensity, falls below MINIMUM_ILLUMINATION_THRESHOLD.
+
+    Attribute: Returns How far the light reaches, in world units.
+    */
+    action GetRange returns number
+        if range > 0
+            return range
+        end
+        Color lightColor = GetColor()
+        number brightest = lightColor:GetRed()
+        if lightColor:GetGreen() > brightest
+            brightest = lightColor:GetGreen()
+        end
+        if lightColor:GetBlue() > brightest
+            brightest = lightColor:GetBlue()
+        end
+        return parent:Item3D:math:SquareRoot(brightest * intensity / MINIMUM_ILLUMINATION_THRESHOLD)
+    end
+
+    /*
+    This action sets the cone's half-angles, in degrees, measured from the
+    direction the light points. Inside the inner angle the light is at full
+    strength; it fades between the two, and gives no light past the outer
+    angle. The outer angle is kept between 1 and 89 degrees, and the inner
+    angle between 0 and the outer angle.
+
+    Attribute: Parameter inner The angle of full strength, in degrees.
+    Attribute: Parameter outer The angle where the light ends, in degrees.
+    */
+    action SetConeAngles(number inner, number outer)
+        outerAngle = outer
+        if outerAngle < 1
+            outerAngle = 1
+        elseif outerAngle > 89
+            outerAngle = 89
+        end
+        innerAngle = inner
+        if innerAngle < 0
+            innerAngle = 0
+        elseif innerAngle > outerAngle
+            innerAngle = outerAngle
+        end
+        NotifyChanged()
+    end
+
+    /*
+    This action returns the angle of full strength, in degrees.
+
+    Attribute: Returns The inner half-angle.
+    */
+    action GetInnerAngle returns number
+        return innerAngle
+    end
+
+    /*
+    This action returns the angle where the light ends, in degrees.
+
+    Attribute: Returns The outer half-angle.
+    */
+    action GetOuterAngle returns number
+        return outerAngle
+    end
+
+    /*
+    This action sets the direction the cone points, in the light's own
+    space. It is made length 1. A direction of zero length is ignored.
+
+    Attribute: Parameter x The direction along x.
+    Attribute: Parameter y The direction along y.
+    Attribute: Parameter z The direction along z.
+    */
+    action SetDirection(number x, number y, number z)
+        number length = parent:Item3D:math:SquareRoot(x * x + y * y + z * z)
+        if length < 0.000001
+            return now
+        end
+        direction:Set(x / length, y / length, z / length)
+        NotifyChanged()
+    end
+
+    /*
+    This action sets the direction the cone points, in the light's own
+    space. It is made length 1.
+
+    Attribute: Parameter newDirection The direction.
+    */
+    action SetDirection(Vector3 newDirection)
+        SetDirection(newDirection:GetX(), newDirection:GetY(), newDirection:GetZ())
+    end
+
+    /*
+    This action returns the direction the cone points, in the light's own
+    space. Change it with SetDirection, not by changing the vector.
+
+    Attribute: Returns The direction, of length 1.
+    */
+    action GetDirection returns Vector3
+        return direction
+    end
+
+    /*
+    This action sets the color, position, direction, intensity and outer
+    angle of the light at once. The inner angle becomes two thirds of the
+    outer one.
+
+    Attribute: Parameter newColor The color, or undefined to keep it.
+    Attribute: Parameter newPosition The position.
+    Attribute: Parameter newDirection The direction, in the light's own space.
+    Attribute: Parameter newIntensity The intensity.
+    Attribute: Parameter newOuterAngle The angle where the light ends, in degrees.
+    */
+    action SetLight(Color newColor, Vector3 newPosition, Vector3 newDirection, number newIntensity, number newOuterAngle)
+        if newColor not= undefined
+            SetColor(newColor)
+        end
+        SetPosition(newPosition)
+        SetDirection(newDirection)
+        SetConeAngles(newOuterAngle * 2 / 3, newOuterAngle)
+        SetIntensity(newIntensity)
+    end
+
+    /*
+    This action makes a copy of this light: color, position, offsets,
+    direction, cone angles, intensity and range.
+
+    Attribute: Returns The copy.
+    */
+    action Copy returns SpotLight
+        SpotLight copy
+        copy:SetColor(GetColor())
+        copy:SetPosition(GetPosition())
+        copy:SetOffset(GetOffsetX(), GetOffsetY(), GetOffsetZ())
+        copy:SetDirection(direction)
+        copy:SetConeAngles(innerAngle, outerAngle)
+        copy:SetIntensity(intensity)
+        copy:SetRange(range)
+        return copy
+    end
+
+    /*
+    This action tells the light's environment that the light has changed.
+    */
+    private action NotifyChanged
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
+    end
+end
