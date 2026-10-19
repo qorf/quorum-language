@@ -104,7 +104,11 @@ Two reserved words (uint, 4 bytes each), 0*/
         
         if texturePath = undefined or texturePath = ""
             // Simply requesting the unit texture from the manager is enough to ensure it will be sent to the texture manager for loading, if it hasn't been already.
-            SharedTextureManager sharedTextures
+            // The game's one shared manager, so every material uses the same
+            // unit texture. Declaring a SharedTextureManager here made a new
+            // manager, and a new white texture, for every material.
+            GameStateManager unitState
+            SharedTextureManager sharedTextures = unitState:GetSharedTextureManager()
             preloadTexture = sharedTextures:GetUnitTexture()
         else
             // Mipmaps keep distant models from shimmering (Item 25).

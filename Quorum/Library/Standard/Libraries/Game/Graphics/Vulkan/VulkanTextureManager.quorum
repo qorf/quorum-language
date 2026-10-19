@@ -750,7 +750,8 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
     Attribute: Parameter index The place in the global texture array.
     */
     action RecycleTextureIndex(integer index)
-        SharedTextureManager sharedManager
+        GameStateManager unitState
+        SharedTextureManager sharedManager = unitState:GetSharedTextureManager()
         Texture unit = sharedManager:GetUnitTexture()
         VulkanImageView unitView = unit:GetVulkanImageView()
         if unitView not= undefined
