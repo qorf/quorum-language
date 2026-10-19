@@ -94,22 +94,26 @@ Two reserved words (uint, 4 bytes each), 0*/
             SharedTextureManager sharedTextures
             preloadTexture = sharedTextures:GetUnitTexture()
         else
+            // Mipmaps keep distant models from shimmering (Item 25).
             Texture texture
-            texture:LoadFromFile(texturePath)
+            texture:LoadFromFile(texturePath, true)
             preloadTexture = texture
         end
         if normalPath = undefined or normalPath = ""
             // Do nothing, no normal map is used.
         else
+            // A normal map's mipmaps average directions, so far normals
+            // stay real normals.
             Texture normal
-            normal:LoadFromFile(normalPath)
+            normal:SetPackedNormalMipMaps(true)
+            normal:LoadFromFile(normalPath, true)
             preloadNormalMap = normal
         end
         if roughPath = undefined or roughPath = ""
             // Do nothing, no rough map is used.
         else
             Texture rough
-            rough:LoadFromFile(roughPath)
+            rough:LoadFromFile(roughPath, true)
             preloadRoughMap = rough
         end
         
@@ -176,10 +180,13 @@ Two reserved words (uint, 4 bytes each), 0*/
             roughness:Dispose()
         end
 
+        // Both get mipmaps (Item 25). The normals' mipmaps keep the
+        // ambient occlusion carried in their length.
         Texture albedo
-        albedo:LoadFromPixelMap(albedoHeight)
+        albedo:LoadFromPixelMap(albedoHeight, albedoHeight:GetFormat(), true)
         Texture normals
-        normals:LoadFromPixelMap(normalRoughness)
+        normals:SetPackedNormalMipMaps(true)
+        normals:LoadFromPixelMap(normalRoughness, normalRoughness:GetFormat(), true)
         albedoHeightTexture = albedo
         normalRoughnessTexture = normals
         preloadTexture = albedo

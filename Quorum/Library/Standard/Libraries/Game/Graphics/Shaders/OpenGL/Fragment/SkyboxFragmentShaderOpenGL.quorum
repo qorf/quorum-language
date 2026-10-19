@@ -1,0 +1,49 @@
+package Libraries.Game.Graphics.Shaders.OpenGL.Fragment
+
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.ShaderManager
+
+/*
+SkyboxFragmentShaderOpenGL colors each pixel of the sky from a cube map, in
+the direction the camera looks through that pixel (see Skybox:UpdateView).
+
+Attribute: Example
+use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.SkyboxFragmentShaderOpenGL
+SkyboxFragmentShaderOpenGL shader
+shader:Compile()
+*/
+class SkyboxFragmentShaderOpenGL is Shader
+    on create
+        SetType(parent:Shader:FRAGMENT_SHADER)
+        GameStateManager manager
+        ShaderManager shaderManager = manager:GetShaderManager()
+        SetName(shaderManager:SKYBOX_FRAGMENT_SHADER)
+        SetCode(GetVersionHeader() + "
+
+#ifdef GL_ES
+    precision mediump float;
+#endif
+
+in vec2 v_screen;
+layout (location = 0) out vec4 outputColor;
+
+uniform samplerCube u_skybox;
+// The camera's directions, from Skybox:UpdateView.
+uniform vec3 u_right;
+uniform vec3 u_up;
+uniform vec3 u_forward;
+// The sky's rotation, and 1, or -1 to mirror it.
+uniform mat4 u_rotation;
+uniform float u_inverter;
+
+void main()
+{
+    vec3 direction = u_forward + v_screen.x * u_right + v_screen.y * u_up;
+    direction = direction * mat3(u_rotation);
+    direction.x = direction.x * u_inverter;
+    outputColor = vec4(texture(u_skybox, direction).rgb, 1.0);
+}
+")
+    end
+end

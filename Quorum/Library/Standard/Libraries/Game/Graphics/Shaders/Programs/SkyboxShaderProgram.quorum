@@ -1,0 +1,42 @@
+package Libraries.Game.Graphics.Shaders.Programs
+
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.SkyboxShaderMappingOpenGL
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.SkyboxShaderMappingVulkan
+
+/*
+SkyboxShaderProgram draws a Skybox behind a 3D scene, in OpenGL or Vulkan.
+It covers the screen with one triangle and colors each pixel from the sky's
+cube map, in the direction the camera looks through it. The painters use it
+for a layer's skybox (Layer3D:SetSkybox); games don't need to use it
+directly.
+
+Attribute: Example
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
+
+GameStateManager gameState
+ShaderManager manager = gameState:GetShaderManager()
+ShaderProgram program = manager:GetSkyboxShaderProgram()
+*/
+class SkyboxShaderProgram is ShaderProgram
+    on create
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
+        SetName(manager:SKYBOX_SHADER_PROGRAM)
+        Shader vertex = manager:GetSkyboxVertexShader()
+        Shader fragment = manager:GetSkyboxFragmentShader()
+        Add(vertex)
+        Add(fragment)
+        if IsVulkanProgram()
+            SkyboxShaderMappingVulkan mapping
+            SetShaderMapping(mapping)
+        else
+            SkyboxShaderMappingOpenGL mapping
+            SetShaderMapping(mapping)
+        end
+    end
+end

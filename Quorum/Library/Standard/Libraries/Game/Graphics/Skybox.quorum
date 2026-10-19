@@ -3,11 +3,19 @@ package Libraries.Game.Graphics
 use Libraries.System.File
 use Libraries.Compute.Matrix4
 use Libraries.Compute.Vector3
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+use Libraries.Game.GameStateManager
+use Libraries.Game.WebApplication
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Vulkan.VulkanTextureManager
 
 class Skybox
 
-    // OpenGL constants for the sides of the cube map.
-    // Note that positive Z in OpenGL is negative Z in Quorum, and vice versa.
+    // OpenGL's names for the sides of a cube map. The load actions pass
+    // these as they always have (front as negative z, back as positive z,
+    // from before Quorum's world was left-handed); LoadCubeSide puts each
+    // file on the face the renderer needs (Item 26).
     constant integer GL_TEXTURE_CUBE_MAP_POSITIVE_X = 34069
     constant integer GL_TEXTURE_CUBE_MAP_NEGATIVE_X = 34070
     constant integer GL_TEXTURE_CUBE_MAP_POSITIVE_Y = 34071
@@ -20,6 +28,16 @@ class Skybox
     
     // Used to invert the skybox. A value of -1 inverts the box, while a value of 1 leaves it as it is.
     number inverter = 1
+
+    // Under Vulkan, each side's pixels, kept until all six are loaded and
+    // the cube can be made: right, left, up, down, front, back.
+    Array<PixelMap> vulkanSides
+
+    // The camera's directions for drawing the sky, from UpdateView.
+    Vector3 viewRight
+    Vector3 viewUp
+    Vector3 viewForward
+    Math math
 
     /*
     Flags to indicate which sides are loaded. A Skybox can only be rendered if
@@ -128,19 +146,14 @@ class Skybox
 
     */
     action Load(File right, File left, File up, File down, File forward, File back)
-        if cubeMap = undefined
-            Texture texture
-            cubeMap = texture
-            InitializeCubeMap(texture)
-        end    
+        PrepareCubeMap()
 
-        LoadSide(right, cubeMap, GL_TEXTURE_CUBE_MAP_POSITIVE_X)
-        LoadSide(left, cubeMap, GL_TEXTURE_CUBE_MAP_NEGATIVE_X)
-        LoadSide(up, cubeMap, GL_TEXTURE_CUBE_MAP_POSITIVE_Y)
-        LoadSide(down, cubeMap, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y)
-        // Note that positive Z in OpenGL is negative Z in Quorum, and vice versa.
-        LoadSide(forward, cubeMap, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)
-        LoadSide(back, cubeMap, GL_TEXTURE_CUBE_MAP_POSITIVE_Z)
+        LoadCubeSide(right, GL_TEXTURE_CUBE_MAP_POSITIVE_X)
+        LoadCubeSide(left, GL_TEXTURE_CUBE_MAP_NEGATIVE_X)
+        LoadCubeSide(up, GL_TEXTURE_CUBE_MAP_POSITIVE_Y)
+        LoadCubeSide(down, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y)
+        LoadCubeSide(forward, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)
+        LoadCubeSide(back, GL_TEXTURE_CUBE_MAP_POSITIVE_Z)
     end
 
     /*
@@ -228,13 +241,9 @@ class Skybox
 
     */
     action LoadRight(File image)
-        if cubeMap = undefined
-            Texture texture
-            cubeMap = texture
-            InitializeCubeMap(texture)
-        end
+        PrepareCubeMap()
 
-        LoadSide(image, cubeMap, GL_TEXTURE_CUBE_MAP_POSITIVE_X)
+        LoadCubeSide(image, GL_TEXTURE_CUBE_MAP_POSITIVE_X)
     end
 
     /*
@@ -322,13 +331,9 @@ class Skybox
 
     */
     action LoadLeft(File image)
-        if cubeMap = undefined
-            Texture texture
-            cubeMap = texture
-            InitializeCubeMap(texture)
-        end
+        PrepareCubeMap()
 
-        LoadSide(image, cubeMap, GL_TEXTURE_CUBE_MAP_NEGATIVE_X)
+        LoadCubeSide(image, GL_TEXTURE_CUBE_MAP_NEGATIVE_X)
     end
 
     /*
@@ -416,13 +421,9 @@ class Skybox
 
     */
     action LoadTop(File image)
-        if cubeMap = undefined
-            Texture texture
-            cubeMap = texture
-            InitializeCubeMap(texture)
-        end
+        PrepareCubeMap()
 
-        LoadSide(image, cubeMap, GL_TEXTURE_CUBE_MAP_POSITIVE_Y)
+        LoadCubeSide(image, GL_TEXTURE_CUBE_MAP_POSITIVE_Y)
     end
 
     /*
@@ -510,13 +511,9 @@ class Skybox
 
     */
     action LoadBottom(File image)
-        if cubeMap = undefined
-            Texture texture
-            cubeMap = texture
-            InitializeCubeMap(texture)
-        end
+        PrepareCubeMap()
 
-        LoadSide(image, cubeMap, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y)
+        LoadCubeSide(image, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y)
     end
 
     /*
@@ -604,14 +601,9 @@ class Skybox
 
     */
     action LoadFront(File image)
-        if cubeMap = undefined
-            Texture texture
-            cubeMap = texture
-            InitializeCubeMap(texture)
-        end
+        PrepareCubeMap()
 
-        // Note that positive Z in OpenGL is negative Z in Quorum, and vice versa.
-        LoadSide(image, cubeMap, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)
+        LoadCubeSide(image, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)
     end
 
     /*
@@ -699,14 +691,9 @@ class Skybox
 
     */
     action LoadBack(File image)
-        if cubeMap = undefined
-            Texture texture
-            cubeMap = texture
-            InitializeCubeMap(texture)
-        end
+        PrepareCubeMap()
 
-        // Note that positive Z in OpenGL is negative Z in Quorum, and vice versa.
-        LoadSide(image, cubeMap, GL_TEXTURE_CUBE_MAP_POSITIVE_Z)
+        LoadCubeSide(image, GL_TEXTURE_CUBE_MAP_POSITIVE_Z)
     end
 
     /*
@@ -725,6 +712,134 @@ class Skybox
     private system action LoadSide(File file, Texture texture, integer side)
 
     /*
+    This action makes the cube map's Texture the first time a side is
+    loaded. Under OpenGL it becomes a GL cube texture; under Vulkan it waits
+    for all six sides.
+    */
+    private action PrepareCubeMap
+        if cubeMap not= undefined
+            return now
+        end
+        Texture texture
+        cubeMap = texture
+        if UsingVulkan()
+            vulkanSides:SetSize(6)
+        else
+            InitializeCubeMap(texture)
+        end
+    end
+
+    /*
+    This action loads one side, given by its OpenGL constant as the load
+    actions always have, onto the face the renderer needs:
+    - Vulkan: the side's pixels are kept, and once all six are in, the
+      texture manager makes the cube.
+    - OpenGL on the desktop: front and back are swapped onto positive and
+      negative z, which Quorum's left-handed world needs; the other sides
+      are unchanged.
+    - The web: unchanged, since it still draws with its own skybox shader.
+
+    Attribute: Parameter file The image file.
+    Attribute: Parameter side One of the GL_TEXTURE_CUBE_MAP constants above.
+    */
+    private action LoadCubeSide(File file, integer side)
+        GameStateManager manager
+        if UsingVulkan()
+            PixelMap map
+            map:LoadPixelMap(file)
+            vulkanSides:Set(GetVulkanLayer(side), map)
+            RecordSource(file, side)
+            if HasAllVulkanSides()
+                VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+                VulkanTextureManager textureManager = graphics:GetTextureManager()
+                textureManager:RequestCubeLoad(cubeMap, vulkanSides)
+            end
+        elseif manager:GetApplication() is WebApplication
+            LoadSide(file, cubeMap, side)
+        else
+            integer face = side
+            if side = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+                face = GL_TEXTURE_CUBE_MAP_POSITIVE_Z
+            elseif side = GL_TEXTURE_CUBE_MAP_POSITIVE_Z
+                face = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+            end
+            LoadSide(file, cubeMap, face)
+            RecordSource(file, side)
+        end
+    end
+
+    /*
+    This action returns a side's layer in a Vulkan cube image, whose layers
+    are +x, -x, +y, -y, +z, -z: right, left, up, down, front, back.
+
+    Attribute: Parameter side One of the GL_TEXTURE_CUBE_MAP constants above.
+    Attribute: Returns The layer, 0 to 5.
+    */
+    private action GetVulkanLayer(integer side) returns integer
+        if side = GL_TEXTURE_CUBE_MAP_POSITIVE_X
+            return 0
+        elseif side = GL_TEXTURE_CUBE_MAP_NEGATIVE_X
+            return 1
+        elseif side = GL_TEXTURE_CUBE_MAP_POSITIVE_Y
+            return 2
+        elseif side = GL_TEXTURE_CUBE_MAP_NEGATIVE_Y
+            return 3
+        elseif side = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+            return 4
+        end
+        return 5
+    end
+
+    /*
+    This action returns true once every side's pixels are in, under Vulkan.
+
+    Attribute: Returns True if all six sides are loaded.
+    */
+    private action HasAllVulkanSides returns boolean
+        integer i = 0
+        repeat while i < 6
+            if vulkanSides:Get(i) = undefined
+                return false
+            end
+            i = i + 1
+        end
+        return true
+    end
+
+    /*
+    This action remembers which file a side was loaded from. (Skybox.java
+    did this, by OpenGL face, before the faces were swapped.)
+
+    Attribute: Parameter file The image file.
+    Attribute: Parameter side One of the GL_TEXTURE_CUBE_MAP constants above.
+    */
+    private action RecordSource(File file, integer side)
+        if side = GL_TEXTURE_CUBE_MAP_POSITIVE_X
+            rightSource = file
+        elseif side = GL_TEXTURE_CUBE_MAP_NEGATIVE_X
+            leftSource = file
+        elseif side = GL_TEXTURE_CUBE_MAP_POSITIVE_Y
+            upSource = file
+        elseif side = GL_TEXTURE_CUBE_MAP_NEGATIVE_Y
+            downSource = file
+        elseif side = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+            frontSource = file
+        else
+            backSource = file
+        end
+    end
+
+    /*
+    This action returns true if the game draws with Vulkan.
+
+    Attribute: Returns True under Vulkan.
+    */
+    private action UsingVulkan returns boolean
+        GameStateManager manager
+        return manager:GetGameGraphics() is VulkanGraphics
+    end
+
+    /*
     Whether this Skybox has been loaded or not yet. On most platforms, this is
     true immediately after calling the Load action. On the web, this is true at
     some point in time after Load is called, due to the nature of how image
@@ -733,6 +848,133 @@ class Skybox
     action IsLoaded returns boolean
         return rightSource not= undefined and leftSource not= undefined and upSource not= undefined and
             downSource not= undefined and frontSource not= undefined and backSource not= undefined
+    end
+
+    /*
+    This action returns the cube map texture holding the six sides. It is
+    used by the painters to draw the sky.
+
+    Attribute: Returns The cube map, or undefined if no side is loaded yet.
+    */
+    action GetCubeMap returns Texture
+        return cubeMap
+    end
+
+    /*
+    This action returns the Skybox's rotation, as set by Rotate and
+    SetToRotation.
+
+    Attribute: Returns The rotation.
+    */
+    action GetRotation returns Matrix4
+        return transform
+    end
+
+    /*
+    This action returns 1 if the sky is shown as it is, or -1 if it is
+    mirrored left to right (see InvertSkybox).
+
+    Attribute: Returns 1 or -1.
+    */
+    action GetInverter returns number
+        return inverter
+    end
+
+    /*
+    This action works out, from a camera, the three vectors the painters'
+    sky shaders need to find the direction through each pixel: the camera's
+    forward direction, and its right and up directions, each as long as the
+    view reaches at a distance of 1. A pixel at screen position (x, y), each
+    from -1 at the left or bottom to 1 at the right or top, looks along
+    forward + x × right + y × up. Using the camera's directions instead of
+    its matrices keeps the sky the same in every renderer, and moving the
+    camera never moves the sky. The painters call it each time they draw the
+    sky; read the results with GetViewRight, GetViewUp and GetViewForward.
+
+    Attribute: Parameter camera The camera the sky is seen from.
+    Attribute: Returns True if the camera can show a sky, false for an orthographic camera.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+
+    class Main is Game
+        Skybox skybox
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            skybox:Load("Skybox/right.jpg", "Skybox/left.jpg", "Skybox/top.jpg", "Skybox/bottom.jpg", "Skybox/front.jpg", "Skybox/back.jpg")
+            SetSkybox(skybox)
+            if skybox:UpdateView(GetCamera3D())
+                output "The camera looks along z " + skybox:GetViewForward():GetZ()
+            end
+        end
+    end
+    */
+    action UpdateView(Camera camera) returns boolean
+        if not (camera is PerspectiveCamera)
+            return false
+        end
+        PerspectiveCamera perspective = cast(PerspectiveCamera, camera)
+        number zoom = perspective:GetZoom()
+        if zoom <= 0
+            zoom = 1
+        end
+        // The same field of view the camera's projection uses (vertical).
+        number halfHeight = math:Tangent(math:DegreesToRadians(perspective:GetFieldOfView() / zoom) / 2)
+        number aspect = 1
+        if camera:GetHeight() > 0
+            aspect = camera:GetWidth() / camera:GetHeight()
+        end
+
+        viewForward:Set(camera:GetDirection())
+        viewForward:Normalize()
+        // In Quorum's left-handed world, up × forward points right.
+        viewRight:Set(camera:GetUp())
+        viewRight:CrossProduct(viewForward)
+        viewRight:Normalize()
+        // Made again from the other two, in case the camera's up isn't
+        // exactly square to its direction.
+        viewUp:Set(viewForward)
+        viewUp:CrossProduct(viewRight)
+        viewUp:Normalize()
+
+        viewRight:Scale(halfHeight * aspect)
+        viewUp:Scale(halfHeight)
+        return true
+    end
+
+    /*
+    This action returns the camera's right direction from the last
+    UpdateView, as long as the view reaches sideways at a distance of 1.
+
+    Attribute: Returns The right vector.
+    */
+    action GetViewRight returns Vector3
+        return viewRight
+    end
+
+    /*
+    This action returns the camera's up direction from the last UpdateView,
+    as long as the view reaches upward at a distance of 1.
+
+    Attribute: Returns The up vector.
+    */
+    action GetViewUp returns Vector3
+        return viewUp
+    end
+
+    /*
+    This action returns the camera's forward direction from the last
+    UpdateView, of length 1.
+
+    Attribute: Returns The forward vector.
+    */
+    action GetViewForward returns Vector3
+        return viewForward
     end
 
     /*
@@ -749,6 +991,7 @@ class Skybox
         downSource = undefined
         frontSource = undefined
         backSource = undefined
+        vulkanSides:Empty()
     end
 
     /*
@@ -944,12 +1187,8 @@ class Skybox
     end
 
     /*
-    The InvertSkybox action sets whether or not the images of the Skybox should
-    be inverted when used. If this is true, images will appear to be flipped
-    around the y-axis (or in other words, appear to be drawn backwards). If this
-    is set to false, then the images will appear to be drawn in the correct
-    direction, but the left image will appear on the right, and the right image
-    will appear on the left. By default, this value is set to true.
+    The InvertSkybox action sets whether the Skybox's images are shown as
+    they are (true, the default) or mirrored left to right (false).
 
     Attribute: Parameter invert Whether or not the Skybox should be inverted.
 

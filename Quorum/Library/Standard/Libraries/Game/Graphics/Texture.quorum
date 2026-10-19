@@ -58,6 +58,12 @@ class Texture is Disposable
 
     TextureData data = undefined
 
+    // Whether this texture holds packed normals: normals in red, green and
+    // blue, with ambient occlusion in their length, as a texture set's
+    // normal-roughness texture does (Item 24). Its mipmaps then average
+    // the normals' directions and lengths separately (Item 25).
+    boolean packedNormalMipMaps = false
+
     GameStateManager manager
     OpenGLConstants constants
 
@@ -130,6 +136,62 @@ class Texture is Disposable
         File file
         file:SetPath(filePath)
         LoadFromFile(file)
+    end
+
+    /*
+    This action loads a Texture from a file path, and makes mipmaps for it
+    if asked: smaller copies the renderer uses when the texture is far away
+    or seen at an angle, so it doesn't shimmer. Mipmaps suit textures on 3D
+    models and ground. They cost a third more memory, and are not needed
+    for 2D images drawn at their own size.
+
+    Attribute: Parameter filePath The image file's path.
+    Attribute: Parameter useMipMaps True to make mipmaps.
+
+    Attribute: Example
+    use Libraries.Game.Graphics.Texture
+    Texture ground
+    ground:LoadFromFile("Textures/grass.png", true)
+    */
+    action LoadFromFile(text filePath, boolean useMipMaps)
+        File file
+        file:SetPath(filePath)
+        LoadFromFile(file, undefined, useMipMaps)
+    end
+
+    /*
+    This action returns true if the texture was loaded asking for mipmaps.
+
+    Attribute: Returns True if the texture uses mipmaps.
+    */
+    action UsesMipMaps returns boolean
+        if data = undefined
+            return false
+        end
+        return data:UseMipMaps()
+    end
+
+    /*
+    This action says whether the texture holds packed normals, as a texture
+    set's normal-roughness texture does. If it does, its mipmaps keep each
+    normal a real direction, and keep the ambient occlusion carried in the
+    normals' length. Set it before loading. Only the Vulkan renderer uses
+    it.
+
+    Attribute: Parameter packed True for packed normals.
+    */
+    action SetPackedNormalMipMaps(boolean packed)
+        packedNormalMipMaps = packed
+    end
+
+    /*
+    This action returns true if the texture holds packed normals (see
+    SetPackedNormalMipMaps).
+
+    Attribute: Returns True for packed normals.
+    */
+    action HasPackedNormalMipMaps returns boolean
+        return packedNormalMipMaps
     end
 
     /*

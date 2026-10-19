@@ -3,6 +3,7 @@ package Libraries.Game.Graphics.Vulkan
 use Libraries.Game.Graphics.Painter3D
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.Skybox
+use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Model
 use Libraries.Game.Graphics.Environment
 use Libraries.Game.GameStateManager
@@ -117,6 +118,15 @@ VulkanSampler immutableSampler = undefined
     
     // Another push constant buffer, this time for the shadow mapping phase.
     VulkanPushConstantBuffer shadowPushConstants = undefined
+
+    // The layer's skybox (Item 26), drawn first in the result pass. Each
+    // frame slot has its own descriptor set for the cube, linked again only
+    // when the cube's view changes.
+    Skybox skybox = undefined
+    VulkanPushConstantBuffer skyboxPushConstants = undefined
+    VulkanDescriptorSetLayout skyboxLayout = undefined
+    Array<VulkanDescriptorSet> skyboxDescriptors
+    Array<VulkanImageView> skyboxLinkedViews
     
     integer DEFAULT_MAX_INSTANCES = 8192
     
@@ -1635,6 +1645,10 @@ BindDescriptorSetCommand lightDescriptorBind
         beginResultRender:SetRenderArea(swapchain:GetImageWidth(), swapchain:GetImageHeight())
         commandBuffer:Record(beginResultRender)
 
+        // The sky goes down first. The lit image is copied over it with its
+        // alpha, which is 0 where nothing was drawn, so the sky shows there.
+        RecordSkybox(commandBuffer, swapchain, resourceIndex)
+
         // TO-DO: Support custom shaders for 3D.
         VulkanPipeline resultPipeline = GetCopyFromSamplerPipeline()
         
@@ -1949,8 +1963,137 @@ BindDescriptorSetCommand resultDescriptorBind
     end
     
     action SetSkybox(Skybox skybox)
-//        output "NYI: VulkanPainter3D SetSkybox"
-//        alert("NYI")
+        me:skybox = skybox
+    end
+
+    /*
+    This action draws the skybox, if the layer has one that is loaded and
+    the camera is a perspective camera: the skybox program's full-screen
+    triangle, with the camera's directions and the sky's rotation in push
+    constants, and the cube in its own descriptor set.
+
+    Attribute: Parameter commandBuffer The frame's command buffer, in the result pass.
+    Attribute: Parameter swapchain The swapchain.
+    Attribute: Parameter resourceIndex The frame slot.
+    */
+    private action RecordSkybox(VulkanCommandBuffer commandBuffer, VulkanSwapchain swapchain, integer resourceIndex)
+        if skybox = undefined or camera = undefined
+            return now
+        end
+        if not skybox:IsLoaded()
+            return now
+        end
+        Texture cube = skybox:GetCubeMap()
+        if cube = undefined or cube:GetVulkanImageView() = undefined
+            return now
+        end
+        if not skybox:UpdateView(camera)
+            return now
+        end
+        VulkanConstants constants
+
+        ShaderManager shaders = gameState:GetShaderManager()
+        ShaderProgram program = shaders:GetSkyboxShaderProgram()
+        VulkanShaderProgram strategy = cast(VulkanShaderProgram, program:GetShaderProgramStrategy())
+        VulkanPipeline pipeline = strategy:GetPipeline()
+        if pipeline = undefined
+            strategy:CreatePipeline(resultRenderPass)
+            pipeline = strategy:GetPipeline()
+        end
+        VulkanPipelineLayout layout = pipeline:GetInfo():GetLayout()
+
+        BindPipelineCommand bindPipeline
+        bindPipeline:SetPipeline(pipeline)
+        commandBuffer:Record(bindPipeline)
+        SetResultViewportAndScissor(commandBuffer, swapchain)
+
+        BindDescriptorSetCommand bindCube
+        bindCube:SetPipelineLayout(layout)
+        bindCube:SetDescriptorSet(GetSkyboxDescriptor(resourceIndex, cube:GetVulkanImageView()))
+        commandBuffer:Record(bindCube)
+
+        if skyboxPushConstants = undefined
+            VulkanPushConstantBuffer buffer
+            buffer:Create(112)
+            skyboxPushConstants = buffer
+        end
+        Vector3 right = skybox:GetViewRight()
+        Vector3 up = skybox:GetViewUp()
+        Vector3 forward = skybox:GetViewForward()
+        skyboxPushConstants:ResetWritePosition()
+        skyboxPushConstants:AddNumber32Bit(right:GetX())
+        skyboxPushConstants:AddNumber32Bit(right:GetY())
+        skyboxPushConstants:AddNumber32Bit(right:GetZ())
+        skyboxPushConstants:AddNumber32Bit(skybox:GetInverter())
+        skyboxPushConstants:AddNumber32Bit(up:GetX())
+        skyboxPushConstants:AddNumber32Bit(up:GetY())
+        skyboxPushConstants:AddNumber32Bit(up:GetZ())
+        skyboxPushConstants:AddNumber32Bit(0)
+        skyboxPushConstants:AddNumber32Bit(forward:GetX())
+        skyboxPushConstants:AddNumber32Bit(forward:GetY())
+        skyboxPushConstants:AddNumber32Bit(forward:GetZ())
+        skyboxPushConstants:AddNumber32Bit(0)
+        skyboxPushConstants:AddMatrix4(skybox:GetRotation())
+
+        SetPushConstantsCommand setPushConstants
+        setPushConstants:SetData(skyboxPushConstants)
+        setPushConstants:SetPipelineLayout(layout)
+        setPushConstants:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+        commandBuffer:Record(setPushConstants)
+
+        DrawCommand drawSky
+        drawSky:SetVertexCount(3)
+        commandBuffer:Record(drawSky)
+    end
+
+    /*
+    This action returns a frame slot's descriptor set for the sky's cube,
+    making it the first time, and linking it to the cube's view when the
+    view changes. A slot's set is only changed after its previous frame has
+    finished with it.
+
+    Attribute: Parameter resourceIndex The frame slot.
+    Attribute: Parameter view The cube's image view.
+    Attribute: Returns The descriptor set.
+    */
+    private action GetSkyboxDescriptor(integer resourceIndex, VulkanImageView view) returns VulkanDescriptorSet
+        VulkanConstants constants
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        if skyboxLayout = undefined
+            VulkanDescriptorSetLayout layout
+            Array<VulkanDescriptorSetLayoutBinding> bindings
+            VulkanDescriptorSetLayoutBinding samplerBinding
+            samplerBinding:SetBinding(0)
+            samplerBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+            samplerBinding:SetDescriptorCount(1)
+            samplerBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+            bindings:Add(samplerBinding)
+            layout:Create(graphics:GetDevice(), bindings)
+            skyboxLayout = layout
+        end
+
+        VulkanDescriptorSetManager descriptorSetManager = graphics:GetDescriptorSetManager()
+        repeat while skyboxDescriptors:GetSize() <= resourceIndex
+            VulkanDescriptorSet newSet = descriptorSetManager:CreateDescriptorSet(skyboxLayout)
+            skyboxDescriptors:Add(newSet)
+            skyboxLinkedViews:Add(undefined)
+        end
+
+        VulkanDescriptorSet set = skyboxDescriptors:Get(resourceIndex)
+        if skyboxLinkedViews:Get(resourceIndex) not= view
+            VulkanDescriptorResourcesInfo resources
+            VulkanDescriptorImageInfo image
+            image:SetImageView(view)
+            image:SetSampler(resultSampler)
+            image:SetImageLayout(constants:IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+            Array<VulkanDescriptorImageInfo> images
+            images:Add(image)
+            resources:SetImageInfo(images)
+            resources:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+            set:LinkResources(resources)
+            skyboxLinkedViews:Set(resourceIndex, view)
+        end
+        return set
     end
     
     action SetEnvironment(Environment environment)

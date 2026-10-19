@@ -17,6 +17,9 @@ class VulkanTextureManager
     // The pending pixel maps are the sets of pixel data associated with the load commands.
     Array<Texture> pendingTextures
     Array<PixelMap> pendingPixelMaps
+    // Cube textures waiting to be made (Item 26), each with its six sides.
+    Array<Texture> pendingCubeTextures
+    Array<Array<PixelMap>> pendingCubeSides
 
     // An array of staging buffers used for transferring texture data from host memory to GPU memory.
     // Disposed of after the transfers have finished.
@@ -28,6 +31,10 @@ class VulkanTextureManager
     // copying from it. They are reused while the texture's size stays the
     // same.
     HashTable<Texture, Array<VulkanBuffer>> updateStagingBuffers
+
+    // How many mip levels each loaded texture's image has (Item 25). An
+    // update in place needs the same count.
+    HashTable<Texture, integer> mipLevelTable
 
     VulkanDevice device = undefined
 
@@ -79,6 +86,23 @@ class VulkanTextureManager
         
         VulkanSampler immutableSampler
         VulkanSamplerInfo defaultInfo
+        // Blend between the two nearest mip levels (Item 25). A texture
+        // with one level is read as before.
+        defaultInfo:SetMipMapMode(constants:SAMPLER_MIPMAP_MODE_LINEAR)
+        // Anisotropic filtering keeps textures seen at a low angle, like
+        // ground, sharp. VulkanDevice turns the feature on when the device
+        // has it.
+        VulkanPhysicalDevice physicalDevice = graphics:GetPhysicalDevice()
+        VulkanPhysicalDeviceFeatures features = physicalDevice:GetFeatures()
+        if features:HasSamplerAnisotropy()
+            VulkanPhysicalDeviceLimits limits = physicalDevice:GetLimits()
+            number anisotropy = limits:GetMaxSamplerAnisotropy()
+            if anisotropy > 16
+                anisotropy = 16
+            end
+            defaultInfo:SetAnisotropyEnable(true)
+            defaultInfo:SetMaxAnisotropy(anisotropy)
+        end
         immutableSampler:Create(device, defaultInfo)
         defaultSampler = immutableSampler
     end
@@ -106,8 +130,32 @@ class VulkanTextureManager
         pendingPixelMaps:Add(pixelMap)
     end
 
+    /*
+    This action asks for a cube texture to be made from six square images of
+    the same size, in the order right, left, up, down, front, back (the
+    +x, -x, +y, -y, +z, -z layers). It is made during the next frame. The
+    texture gets its own image view and no place in the global texture
+    array; a shader reads it through its own descriptor set.
+
+    Attribute: Parameter texture The texture to hold the cube.
+    Attribute: Parameter sides The six images.
+    */
+    action RequestCubeLoad(Texture texture, Array<PixelMap> sides)
+        if sides:GetSize() not= 6
+            alert("A cube texture needs 6 images, but was given " + sides:GetSize() + ".")
+        end
+        Array<PixelMap> copy
+        integer i = 0
+        repeat while i < 6
+            copy:Add(sides:Get(i))
+            i = i + 1
+        end
+        pendingCubeTextures:Add(texture)
+        pendingCubeSides:Add(copy)
+    end
+
     action ProcessPendingTextures
-        if pendingTextures:IsEmpty()
+        if pendingTextures:IsEmpty() and pendingCubeTextures:IsEmpty()
             return now
         end
         GameStateManager manager
@@ -135,6 +183,14 @@ class VulkanTextureManager
 
         pendingTextures:Empty()
         pendingPixelMaps:Empty()
+
+        i = 0
+        repeat while i < pendingCubeTextures:GetSize()
+            LoadCubeTexture(pendingCubeTextures:Get(i), pendingCubeSides:Get(i), commandBuffer, graphics)
+            i = i + 1
+        end
+        pendingCubeTextures:Empty()
+        pendingCubeSides:Empty()
     end
 
     /*
@@ -159,11 +215,12 @@ class VulkanTextureManager
         // With the Vulkan system, we now convert all textures to RGBA8888.
         //Format format = pixelMap:GetFormat()
         //integer formatValue = format:GetValue()
+        integer levels = GetMipLevelCount(texture, width, height)
 
         VulkanBuffer buffer
-        buffer:CreateTransferSourceBuffer(device, width * height * pixelSize)
+        buffer:CreateTransferSourceBuffer(device, GetMipChainByteSize(width, height, levels))
         buffer:BeginMapping()
-        TransferPixelData(pixelMap, buffer)
+        WritePixels(texture, pixelMap, buffer, levels)
         //buffer:StopMapping()
 
         VulkanImage image
@@ -172,6 +229,7 @@ class VulkanTextureManager
         imageInfo:SetHeight(height)
         imageInfo:SetUsage(bits:Or(constants:IMAGE_USAGE_TRANSFER_DESTINATION_BIT, constants:IMAGE_USAGE_SAMPLED_BIT))
         imageInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
+        imageInfo:SetMipLevels(levels)
         image:Create(device, imageInfo)
 
         // We'll need this as part of the buffer-to-image copy, in order to ensure the image is in the right format to accept the 
@@ -184,19 +242,14 @@ class VulkanTextureManager
         memoryBarrier:SetDestinationStageMask(constants:PIPELINE_STAGE_TRANSFER_BIT)
         memoryBarrier:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
         memoryBarrier:SetImage(image)
+        memoryBarrier:SetLevelCount(levels)
 
         PipelineBarrierCommand transitionForTransferCommand
         transitionForTransferCommand:SetMemoryBarrier(memoryBarrier)
         commandBuffer:Record(transitionForTransferCommand)
 
-        // Now send the command to copy the buffer to the image.
-        CopyBufferToImageCommand copyCommand
-        copyCommand:SetImageWidth(width)
-        copyCommand:SetImageHeight(height)
-        copyCommand:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
-        copyCommand:SetSourceBuffer(buffer)
-        copyCommand:SetDestinationImage(image)
-        commandBuffer:Record(copyCommand)
+        // Now copy each level from the buffer into the image.
+        RecordLevelCopies(commandBuffer, buffer, image, width, height, levels)
 
         // Once the copy is finished, we'll need to transition the image's layout from a state for receiving data, and into a new state fit for reading from the shader.
         VulkanImageMemoryBarrier readTransition
@@ -208,6 +261,7 @@ class VulkanTextureManager
         readTransition:SetDestinationStageMask(constants:PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
         readTransition:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
         readTransition:SetImage(image)
+        readTransition:SetLevelCount(levels)
 
         PipelineBarrierCommand transitionForReadCommand
         transitionForReadCommand:SetMemoryBarrier(readTransition)
@@ -221,7 +275,9 @@ class VulkanTextureManager
         VulkanImageView view
         VulkanImageViewInfo viewInfo
 viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
+        viewInfo:SetLevelCount(levels)
         view:Create(device, image, viewInfo)
+        mipLevelTable:Add(texture, levels)
 
         // Finally, associate the image view with the texture.
         texture:SetVulkanImageView(view)
@@ -263,7 +319,15 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
             return false
         end
         VulkanImage image = view:GetImage()
-        return image:GetWidth() = pixelMap:GetWidth() and image:GetHeight() = pixelMap:GetHeight()
+        if image:GetWidth() not= pixelMap:GetWidth() or image:GetHeight() not= pixelMap:GetHeight()
+            return false
+        end
+        // A texture that now asks for mipmaps (or no longer does) needs a
+        // new image with the right number of levels.
+        if not mipLevelTable:HasKey(texture)
+            return false
+        end
+        return mipLevelTable:GetValue(texture) = GetMipLevelCount(texture, image:GetWidth(), image:GetHeight())
     end
 
     /*
@@ -283,7 +347,8 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
         VulkanConstants constants
         integer width = pixelMap:GetWidth()
         integer height = pixelMap:GetHeight()
-        integer byteSize = width * height * 4
+        integer levels = GetMipLevelCount(texture, width, height)
+        integer byteSize = GetMipChainByteSize(width, height, levels)
 
         // This frame slot's staging buffer for the texture. The slot's fence
         // was waited on at the start of the frame, so the GPU is done with it.
@@ -309,7 +374,7 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
             buffers:Set(slot, newStaging)
             staging = newStaging
         end
-        TransferPixelData(pixelMap, staging)
+        WritePixels(texture, pixelMap, staging, levels)
 
         VulkanImageView view = texture:GetVulkanImageView()
         VulkanImage image = view:GetImage()
@@ -325,17 +390,12 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
         toTransfer:SetDestinationStageMask(constants:PIPELINE_STAGE_TRANSFER_BIT)
         toTransfer:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
         toTransfer:SetImage(image)
+        toTransfer:SetLevelCount(levels)
         PipelineBarrierCommand toTransferCommand
         toTransferCommand:SetMemoryBarrier(toTransfer)
         commandBuffer:Record(toTransferCommand)
 
-        CopyBufferToImageCommand copyCommand
-        copyCommand:SetImageWidth(width)
-        copyCommand:SetImageHeight(height)
-        copyCommand:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
-        copyCommand:SetSourceBuffer(staging)
-        copyCommand:SetDestinationImage(image)
-        commandBuffer:Record(copyCommand)
+        RecordLevelCopies(commandBuffer, staging, image, width, height, levels)
 
         // Then back to the layout for reading, and this frame's drawing waits
         // for the copy, exactly as after a first load.
@@ -348,12 +408,227 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
         toRead:SetDestinationStageMask(constants:PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
         toRead:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
         toRead:SetImage(image)
+        toRead:SetLevelCount(levels)
         PipelineBarrierCommand toReadCommand
         toReadCommand:SetMemoryBarrier(toRead)
         commandBuffer:Record(toReadCommand)
     end
 
+    /*
+    This action returns how many mip levels a texture's image gets: 1 if it
+    didn't ask for mipmaps, or else one for each halving of its larger side
+    down to 1, plus the full size.
+
+    Attribute: Parameter texture The texture.
+    Attribute: Parameter width The full size's width.
+    Attribute: Parameter height The full size's height.
+    Attribute: Returns The number of levels.
+    */
+    private action GetMipLevelCount(Texture texture, integer width, integer height) returns integer
+        if not texture:UsesMipMaps()
+            return 1
+        end
+        integer size = width
+        if height > size
+            size = height
+        end
+        integer levels = 1
+        repeat while size > 1
+            size = size / 2
+            levels = levels + 1
+        end
+        return levels
+    end
+
+    /*
+    This action returns one side of a mip level: the full side halved once
+    per level, but never under 1.
+
+    Attribute: Parameter size The full size's side.
+    Attribute: Parameter level The level, 0 for the full size.
+    Attribute: Returns The level's side.
+    */
+    private action GetLevelSize(integer size, integer level) returns integer
+        integer result = size
+        integer i = 0
+        repeat while i < level and result > 1
+            result = result / 2
+            i = i + 1
+        end
+        return result
+    end
+
+    /*
+    This action returns how many bytes every level together takes, at 4
+    bytes a pixel, which is the staging buffer's size.
+
+    Attribute: Parameter width The full size's width.
+    Attribute: Parameter height The full size's height.
+    Attribute: Parameter levels How many levels.
+    Attribute: Returns The size in bytes.
+    */
+    private action GetMipChainByteSize(integer width, integer height, integer levels) returns integer
+        integer total = 0
+        integer level = 0
+        repeat while level < levels
+            total = total + GetLevelSize(width, level) * GetLevelSize(height, level) * 4
+            level = level + 1
+        end
+        return total
+    end
+
+    /*
+    This action writes a texture's pixels into a staging buffer: the full
+    size, then, if it has more levels, each smaller level after it.
+
+    Attribute: Parameter texture The texture.
+    Attribute: Parameter pixelMap Its pixels.
+    Attribute: Parameter buffer The staging buffer, mapped, of GetMipChainByteSize bytes.
+    Attribute: Parameter levels How many levels.
+    */
+    private action WritePixels(Texture texture, PixelMap pixelMap, VulkanBuffer buffer, integer levels)
+        if levels = 1
+            TransferPixelData(pixelMap, buffer)
+        else
+            TransferPixelDataWithMipMaps(pixelMap, buffer, levels, texture:HasPackedNormalMipMaps())
+        end
+    end
+
+    /*
+    This action records one copy per mip level, from where WritePixels put
+    each level in the buffer into that level of the image. The image must
+    be in the layout for receiving copies.
+
+    Attribute: Parameter commandBuffer The frame's command buffer, recording.
+    Attribute: Parameter buffer The staging buffer.
+    Attribute: Parameter image The image.
+    Attribute: Parameter width The full size's width.
+    Attribute: Parameter height The full size's height.
+    Attribute: Parameter levels How many levels.
+    */
+    private action RecordLevelCopies(VulkanCommandBuffer commandBuffer, VulkanBuffer buffer, VulkanImage image,
+            integer width, integer height, integer levels)
+        VulkanConstants constants
+        integer offset = 0
+        integer level = 0
+        repeat while level < levels
+            integer levelWidth = GetLevelSize(width, level)
+            integer levelHeight = GetLevelSize(height, level)
+            CopyBufferToImageCommand copyCommand
+            copyCommand:SetImageWidth(levelWidth)
+            copyCommand:SetImageHeight(levelHeight)
+            copyCommand:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
+            copyCommand:SetBufferOffset(offset)
+            copyCommand:SetMipLevel(level)
+            copyCommand:SetSourceBuffer(buffer)
+            copyCommand:SetDestinationImage(image)
+            commandBuffer:Record(copyCommand)
+            offset = offset + levelWidth * levelHeight * 4
+            level = level + 1
+        end
+    end
+
+    /*
+    This action makes a cube image from six sides: a six-layer image that
+    can be viewed as a cube, one staging buffer and copy per side, and a
+    cube view, set on the texture.
+
+    Attribute: Parameter texture The texture to hold the cube.
+    Attribute: Parameter sides The six images, right, left, up, down, front, back.
+    Attribute: Parameter commandBuffer The frame's command buffer, recording.
+    Attribute: Parameter graphics The Vulkan graphics.
+    */
+    private action LoadCubeTexture(Texture texture, Array<PixelMap> sides, VulkanCommandBuffer commandBuffer, VulkanGraphics graphics)
+        VulkanDevice device = graphics:GetDevice()
+        VulkanConstants constants
+        BitwiseOperations bits
+
+        integer size = sides:Get(0):GetWidth()
+        integer i = 0
+        repeat while i < 6
+            PixelMap side = sides:Get(i)
+            if side:GetWidth() not= size or side:GetHeight() not= size
+                alert("A skybox's six images must be square and the same size. The first is " + size + " by " + size +
+                    ", but image " + (i + 1) + " is " + side:GetWidth() + " by " + side:GetHeight() + ".")
+            end
+            i = i + 1
+        end
+
+        VulkanImage image
+        VulkanImageInfo imageInfo
+        imageInfo:SetWidth(size)
+        imageInfo:SetHeight(size)
+        imageInfo:SetArrayLayers(6)
+        imageInfo:SetFlags(constants:IMAGE_CREATE_CUBE_COMPATIBLE_BIT)
+        imageInfo:SetUsage(bits:Or(constants:IMAGE_USAGE_TRANSFER_DESTINATION_BIT, constants:IMAGE_USAGE_SAMPLED_BIT))
+        imageInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
+        image:Create(device, imageInfo)
+
+        VulkanImageMemoryBarrier toTransfer
+        toTransfer:SetNewLayout(constants:IMAGE_LAYOUT_TRANSFER_DESTINATION_OPTIMAL)
+        toTransfer:SetSourceAccessMask(0)
+        toTransfer:SetDestinationAccessMask(constants:ACCESS_TRANSFER_WRITE_BIT)
+        toTransfer:SetSourceStageMask(constants:PIPELINE_STAGE_TOP_OF_PIPE_BIT)
+        toTransfer:SetDestinationStageMask(constants:PIPELINE_STAGE_TRANSFER_BIT)
+        toTransfer:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
+        toTransfer:SetLayerCount(6)
+        toTransfer:SetImage(image)
+        PipelineBarrierCommand toTransferCommand
+        toTransferCommand:SetMemoryBarrier(toTransfer)
+        commandBuffer:Record(toTransferCommand)
+
+        // One staging buffer and copy per side, into its layer.
+        i = 0
+        repeat while i < 6
+            VulkanBuffer buffer
+            buffer:CreateTransferSourceBuffer(device, size * size * 4)
+            buffer:BeginMapping()
+            TransferPixelData(sides:Get(i), buffer)
+            stagingBuffers:Add(buffer)
+
+            CopyBufferToImageCommand copyCommand
+            copyCommand:SetImageWidth(size)
+            copyCommand:SetImageHeight(size)
+            copyCommand:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
+            copyCommand:SetBaseArrayLayer(i)
+            copyCommand:SetLayerCount(1)
+            copyCommand:SetSourceBuffer(buffer)
+            copyCommand:SetDestinationImage(image)
+            commandBuffer:Record(copyCommand)
+            i = i + 1
+        end
+
+        VulkanImageMemoryBarrier toRead
+        toRead:SetOldLayout(constants:IMAGE_LAYOUT_TRANSFER_DESTINATION_OPTIMAL)
+        toRead:SetNewLayout(constants:IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+        toRead:SetSourceAccessMask(constants:ACCESS_TRANSFER_WRITE_BIT)
+        toRead:SetDestinationAccessMask(constants:ACCESS_SHADER_READ_BIT)
+        toRead:SetSourceStageMask(constants:PIPELINE_STAGE_TRANSFER_BIT)
+        toRead:SetDestinationStageMask(constants:PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
+        toRead:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
+        toRead:SetLayerCount(6)
+        toRead:SetImage(image)
+        PipelineBarrierCommand toReadCommand
+        toReadCommand:SetMemoryBarrier(toRead)
+        commandBuffer:Record(toReadCommand)
+
+        VulkanImageView view
+        VulkanImageViewInfo viewInfo
+        viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
+        viewInfo:SetViewType(constants:IMAGE_VIEW_TYPE_CUBE)
+        viewInfo:SetLayerCount(6)
+        view:Create(device, image, viewInfo)
+        texture:SetVulkanImageView(view)
+    end
+
     private system action TransferPixelData(PixelMap pixelMap, VulkanBuffer buffer)
+
+    /*
+    This action writes a texture's pixels into a staging buffer followed by
+    each smaller mip level, made by averaging 2 by 2 pixels. For packed
+    normals, directions and lengths are averaged separately.
+    */
+    private system action TransferPixelDataWithMipMaps(PixelMap pixelMap, VulkanBuffer buffer, integer levels, boolean packedNormals)
 
     action GetGlobalTextureDescriptorSetLayout returns VulkanDescriptorSetLayout
         return globalTextureDescriptorSetLayout

@@ -1,0 +1,56 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Mapping
+
+use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfo
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfoCreator
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
+use Libraries.Game.Graphics.Vulkan.VulkanPushConstantRange
+
+/*
+SkyboxShaderMappingVulkan describes the sky's Vulkan pipeline:
+- one combined cube sampler in descriptor set 0;
+- 112 bytes of push constants for the fragment shader (see
+  SkyboxFragmentShaderVulkan);
+- no depth test, no culling, opaque blending, and a dynamic viewport.
+
+The VulkanPainter3D fills in the data when it draws the sky.
+
+Attribute: Example
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.SkyboxShaderMappingVulkan
+SkyboxShaderMappingVulkan mapping
+*/
+class SkyboxShaderMappingVulkan is VulkanShaderMapping
+
+    /*
+    This action makes the pipeline description for the sky.
+
+    Attribute: Parameter program The skybox program.
+    Attribute: Parameter device The Vulkan device.
+    Attribute: Returns The pipeline description.
+    */
+    action CreatePipelineInfo(VulkanShaderProgram program, VulkanDevice device) returns VulkanPipelineInfo
+        VulkanConstants constants
+        VulkanPipelineInfoCreator creator
+        creator:Begin(device)
+
+        creator:AddOpaqueColorBlendAttachmentState()
+        creator:AddDynamicViewport()
+        creator:AddDynamicScissor()
+        creator:AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+
+        VulkanPushConstantRange pushConstants
+        pushConstants:SetSize(112)
+        pushConstants:SetStage(constants:SHADER_STAGE_FRAGMENT_BIT)
+        pushConstants:Create()
+        creator:SetPushConstantRange(pushConstants)
+
+        VulkanPipelineInfo info = creator:Finish()
+        // The sky is drawn first in the result pass, under everything, so
+        // it needs no depth.
+        info:SetDepthTestEnable(false)
+        info:SetDepthWriteEnable(false)
+        info:SetCullMode(constants:CULL_MODE_NONE)
+        return info
+    end
+end

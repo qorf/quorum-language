@@ -1,0 +1,49 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Fragment
+
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.ShaderManager
+
+/*
+SkyboxFragmentShaderVulkan colors each pixel of the sky from a cube map, in
+the direction the camera looks through that pixel (see Skybox:UpdateView). The
+camera's directions, the sky's rotation and its inverter come in push
+constants; the cube map in its own descriptor set.
+
+Attribute: Example
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.SkyboxFragmentShaderVulkan
+SkyboxFragmentShaderVulkan shader
+shader:Compile()
+*/
+class SkyboxFragmentShaderVulkan is Shader
+    on create
+        SetType(parent:Shader:FRAGMENT_SHADER)
+        GameStateManager manager
+        ShaderManager shaderManager = manager:GetShaderManager()
+        SetName(shaderManager:SKYBOX_FRAGMENT_SHADER)
+        SetCode(GetVersionHeader() + "
+
+layout (location = 0) in vec2 v_screen;
+layout (location = 0) out vec4 outputColor;
+
+layout (set = 0, binding = 0) uniform samplerCube u_skybox;
+
+// 112 bytes. The right vector's w is the inverter: 1, or -1 to mirror.
+layout (push_constant) uniform SkyboxConstants
+{
+    vec4 right;
+    vec4 up;
+    vec4 forward;
+    mat4 rotation;
+} sky;
+
+void main()
+{
+    vec3 direction = sky.forward.xyz + v_screen.x * sky.right.xyz + v_screen.y * sky.up.xyz;
+    direction = direction * mat3(sky.rotation);
+    direction.x = direction.x * sky.right.w;
+    outputColor = vec4(texture(u_skybox, direction).rgb, 1.0);
+}
+")
+    end
+end

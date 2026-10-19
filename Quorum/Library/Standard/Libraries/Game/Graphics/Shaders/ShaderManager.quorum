@@ -29,6 +29,11 @@ use Libraries.Game.Graphics.Shaders.Programs.DefaultShadowShaderProgram
 use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.TwoStageShadowVertexShaderVulkan
 use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.TwoStageShadowFragmentShaderVulkan
 use Libraries.Game.Graphics.Shaders.Programs.TwoStageShadowShaderProgram
+use Libraries.Game.Graphics.Shaders.Programs.SkyboxShaderProgram
+use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.SkyboxVertexShaderOpenGL
+use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.SkyboxFragmentShaderOpenGL
+use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.SkyboxVertexShaderVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.SkyboxFragmentShaderVulkan
 
 class ShaderManager
 
@@ -51,6 +56,9 @@ class ShaderManager
     public constant text TWO_STAGE_SHADOW_VERTEX_SHADER = "Two Stage Shadow Vertex Shader"
     public constant text TWO_STAGE_SHADOW_FRAGMENT_SHADER = "Two Stage Shadow Fragment Shader"
     public constant text TWO_STAGE_SHADOW_SHADER_PROGRAM = "Two Stage Shadow Shader Program"
+    public constant text SKYBOX_VERTEX_SHADER = "Skybox Vertex Shader"
+    public constant text SKYBOX_FRAGMENT_SHADER = "Skybox Fragment Shader"
+    public constant text SKYBOX_SHADER_PROGRAM = "Skybox Shader Program"
 
     // This type constant is used to indicate that the shader is a vertex shader. Every shader program must have a vertex shader as its first shader step.
     public constant integer VERTEX_SHADER = 1
@@ -410,6 +418,67 @@ CopyFromSamplerFragmentShaderVulkan shader
         end
 
         return GetShader(COPY_FROM_SAMPLER_FRAGMENT_SHADER)
+    end
+
+    /*
+    This action returns the program that draws a Skybox, for OpenGL or
+    Vulkan, compiling it the first time.
+
+    Attribute: Returns The skybox shader program.
+    */
+    action GetSkyboxShaderProgram returns ShaderProgram
+        ShaderProgram program = GetShaderProgram(SKYBOX_SHADER_PROGRAM)
+        if program = undefined
+            SkyboxShaderProgram default
+            // Compiling this program will automatically register it in the ShaderManager for future use.
+            default:Compile()
+            return default
+        else
+            return program
+        end
+    end
+
+    /*
+    This action returns the skybox's vertex shader for the renderer in use.
+
+    Attribute: Returns The skybox vertex shader.
+    */
+    action GetSkyboxVertexShader returns Shader
+        if HasShader(SKYBOX_VERTEX_SHADER) = false
+            if IsVulkan()
+                SkyboxVertexShaderVulkan shader
+                shader:Compile()
+            elseif IsOpenGL()
+                SkyboxVertexShaderOpenGL shader
+                shader:Compile()
+            else
+                alert("I couldn't create a shader because I couldn't determine what graphics library was being used!")
+            end
+        end
+
+        return GetShader(SKYBOX_VERTEX_SHADER)
+    end
+
+    /*
+    This action returns the skybox's fragment shader for the renderer in
+    use.
+
+    Attribute: Returns The skybox fragment shader.
+    */
+    action GetSkyboxFragmentShader returns Shader
+        if HasShader(SKYBOX_FRAGMENT_SHADER) = false
+            if IsVulkan()
+                SkyboxFragmentShaderVulkan shader
+                shader:Compile()
+            elseif IsOpenGL()
+                SkyboxFragmentShaderOpenGL shader
+                shader:Compile()
+            else
+                alert("I couldn't create a shader because I couldn't determine what graphics library was being used!")
+            end
+        end
+
+        return GetShader(SKYBOX_FRAGMENT_SHADER)
     end
 
     action AddReloadableMesh(Mesh mesh)

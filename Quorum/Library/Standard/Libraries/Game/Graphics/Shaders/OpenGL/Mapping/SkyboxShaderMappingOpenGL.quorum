@@ -1,0 +1,80 @@
+package Libraries.Game.Graphics.Shaders.OpenGL.Mapping
+
+use Libraries.Compute.Vector3
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.Skybox
+use Libraries.Game.Graphics.OpenGL.OpenGLConstants
+use Libraries.Game.Graphics.OpenGL.OpenGLManager
+use Libraries.Game.Graphics.Shaders.ShaderMapping
+use Libraries.Game.Graphics.Shaders.OpenGL.OpenGLShaderProgram
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
+
+/*
+SkyboxShaderMappingOpenGL gives the OpenGL sky shaders what they need: the
+camera's directions, the sky's rotation and inverter, and its cube map on
+texture unit 0. Begin also sets the depth test so the sky only fills pixels
+nothing else was drawn on. Give it the skybox with SetSkybox first.
+
+Attribute: Example
+use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.SkyboxShaderMappingOpenGL
+SkyboxShaderMappingOpenGL mapping
+*/
+class SkyboxShaderMappingOpenGL is ShaderMapping
+    Skybox skybox = undefined
+    OpenGLConstants constants
+
+    /*
+    This action sets the skybox the next Begin draws.
+
+    Attribute: Parameter skybox The skybox.
+    */
+    action SetSkybox(Skybox skybox)
+        me:skybox = skybox
+    end
+
+    /*
+    This action sets the shader inputs and the graphics state for the sky.
+
+    Attribute: Parameter program The skybox program, already begun.
+    Attribute: Parameter camera The camera the sky is seen from.
+    */
+    action Begin(ShaderProgram program, Camera camera)
+        GameStateManager manager
+        OpenGLManager graphics = cast(OpenGLManager, manager:GetGameGraphics())
+        OpenGLShaderProgram glProgram = cast(OpenGLShaderProgram, program:GetShaderProgramStrategy())
+
+        skybox:UpdateView(camera)
+        Vector3 right = skybox:GetViewRight()
+        Vector3 up = skybox:GetViewUp()
+        Vector3 forward = skybox:GetViewForward()
+        glProgram:SetShaderInput("u_right", right:GetX(), right:GetY(), right:GetZ())
+        glProgram:SetShaderInput("u_up", up:GetX(), up:GetY(), up:GetZ())
+        glProgram:SetShaderInput("u_forward", forward:GetX(), forward:GetY(), forward:GetZ())
+        glProgram:SetShaderInputMatrix("u_rotation", skybox:GetRotation())
+        glProgram:SetShaderInput("u_inverter", skybox:GetInverter())
+
+        // The cube map, on texture unit 0.
+        skybox:GetCubeMap():Bind(0)
+        glProgram:SetShaderInput("u_skybox", 0)
+
+        // The triangle is at depth 1, so it only shows where nothing nearer
+        // was drawn, and it doesn't write depth.
+        graphics:EnableProperty(constants:GL_DEPTH_TEST)
+        graphics:SetDepthFunction(constants:GL_LEQUAL)
+        graphics:SetDepthMask(false)
+        graphics:DisableProperty(constants:GL_CULL_FACE)
+        graphics:DisableProperty(constants:GL_BLEND)
+    end
+
+    /*
+    This action puts back the depth writes the sky turned off.
+
+    Attribute: Parameter program The skybox program.
+    */
+    action End(ShaderProgram program)
+        GameStateManager manager
+        OpenGLManager graphics = cast(OpenGLManager, manager:GetGameGraphics())
+        graphics:SetDepthMask(true)
+    end
+end
