@@ -22,6 +22,13 @@ class VulkanTextureManager
     // Disposed of after the transfers have finished.
     Array<VulkanBuffer> stagingBuffers
 
+    // Staging buffers for textures loaded again after their first load: for
+    // each texture, one per frame in flight. A frame slot's buffer is only
+    // written after that slot's fence has been waited on, so the GPU is done
+    // copying from it. They are reused while the texture's size stays the
+    // same.
+    HashTable<Texture, Array<VulkanBuffer>> updateStagingBuffers
+
     VulkanDevice device = undefined
 
     // A host-accessible mirror of the global texture resource that is presented to the GPU.
@@ -100,117 +107,250 @@ class VulkanTextureManager
     end
 
     action ProcessPendingTextures
-        if pendingTextures:IsEmpty() = false
-            GameStateManager manager
-            VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
-            VulkanDevice device = graphics:GetDevice()
-            VulkanCommandBuffer commandBuffer = graphics:GetCurrentRenderCommandBuffer()
-            VulkanConstants constants
-            BitwiseOperations bits
-
-            integer i = 0
-            repeat while i < pendingTextures:GetSize()
-                Texture texture = pendingTextures:Get(i)
-                PixelMap pixelMap = pendingPixelMaps:Get(i)                
-
-                integer width = pixelMap:GetWidth()
-                integer height = pixelMap:GetHeight()
-
-                integer pixelSize = 4
-                // With the Vulkan system, we now convert all textures to RGBA8888.
-                //Format format = pixelMap:GetFormat()
-                //integer formatValue = format:GetValue()
-
-                VulkanBuffer buffer
-                buffer:CreateTransferSourceBuffer(device, width * height * pixelSize)
-                buffer:BeginMapping()
-                TransferPixelData(pixelMap, buffer)
-                //buffer:StopMapping()
-
-                VulkanImage image
-                VulkanImageInfo imageInfo
-                imageInfo:SetWidth(width)
-                imageInfo:SetHeight(height)
-                imageInfo:SetUsage(bits:Or(constants:IMAGE_USAGE_TRANSFER_DESTINATION_BIT, constants:IMAGE_USAGE_SAMPLED_BIT))
-                imageInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
-                image:Create(device, imageInfo)
-
-                // We'll need this as part of the buffer-to-image copy, in order to ensure the image is in the right format to accept the 
-                // buffer data before we send it.
-                VulkanImageMemoryBarrier memoryBarrier
-                memoryBarrier:SetNewLayout(constants:IMAGE_LAYOUT_TRANSFER_DESTINATION_OPTIMAL)
-                memoryBarrier:SetSourceAccessMask(0)
-                memoryBarrier:SetDestinationAccessMask(constants:ACCESS_TRANSFER_WRITE_BIT)
-                memoryBarrier:SetSourceStageMask(constants:PIPELINE_STAGE_TOP_OF_PIPE_BIT)
-                memoryBarrier:SetDestinationStageMask(constants:PIPELINE_STAGE_TRANSFER_BIT)
-                memoryBarrier:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
-                memoryBarrier:SetImage(image)
-
-                PipelineBarrierCommand transitionForTransferCommand
-                transitionForTransferCommand:SetMemoryBarrier(memoryBarrier)
-                commandBuffer:Record(transitionForTransferCommand)
-
-                // Now send the command to copy the buffer to the image.
-                CopyBufferToImageCommand copyCommand
-                copyCommand:SetImageWidth(width)
-                copyCommand:SetImageHeight(height)
-                copyCommand:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
-                copyCommand:SetSourceBuffer(buffer)
-                copyCommand:SetDestinationImage(image)
-                commandBuffer:Record(copyCommand)
-
-                // Once the copy is finished, we'll need to transition the image's layout from a state for receiving data, and into a new state fit for reading from the shader.
-                VulkanImageMemoryBarrier readTransition
-                readTransition:SetOldLayout(constants:IMAGE_LAYOUT_TRANSFER_DESTINATION_OPTIMAL)
-                readTransition:SetNewLayout(constants:IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-                readTransition:SetSourceAccessMask(constants:ACCESS_TRANSFER_WRITE_BIT)
-                readTransition:SetDestinationAccessMask(constants:ACCESS_SHADER_READ_BIT)
-                readTransition:SetSourceStageMask(constants:PIPELINE_STAGE_TRANSFER_BIT)
-                readTransition:SetDestinationStageMask(constants:PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
-                readTransition:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
-                readTransition:SetImage(image)
-
-                PipelineBarrierCommand transitionForReadCommand
-                transitionForReadCommand:SetMemoryBarrier(readTransition)
-                commandBuffer:Record(transitionForReadCommand)
-
-                // We need to hold onto the buffer to be disposed after the transfer is done.
-                stagingBuffers:Add(buffer)
-
-
-                // Now we need an ImageView to encapsulate the Image. The view will be accessed to get information about the related image.
-                VulkanImageView view
-                VulkanImageViewInfo viewInfo
-viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
-                view:Create(device, image, viewInfo)
-
-                // Finally, associate the image view with the texture.
-                texture:SetVulkanImageView(view)
-
-                // Also store the texture in our global array and associate our resources.
-                if not recycledTextureIDs:IsEmpty()
-                    // TO-DO: Handle this case. This gets complicated by the question of releasing texture IDs that might be in use for previous frames.
-                else
-                    globalTextureArray:Add(texture)
-                    texture:SetVulkanTextureIndex(nextTextureID)
-                    nextTextureID = nextTextureID + 1
-                end
-
-                VulkanDescriptorSet globalTextureDescriptorSet = GetDescriptorSetForIndex(texture:GetVulkanTextureIndex())
-                
-                VulkanDescriptorResourcesInfo resourcesInfo
-                resourcesInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_SAMPLED_IMAGE)
-                resourcesInfo:SetDestinationArrayElement(texture:GetVulkanTextureLocalIndex())
-                
-                resourcesInfo:AddImageInfo(undefined, view, constants:IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-                globalTextureDescriptorSet:LinkResources(resourcesInfo)
-
-                i = i + 1
-            end
-
-            pendingTextures:Empty()
-            pendingPixelMaps:Empty()
+        if pendingTextures:IsEmpty()
+            return now
         end
+        GameStateManager manager
+        VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+
+        // While the window is minimized, the frame's command buffer is not
+        // recording, so nothing can be recorded. Keep the waiting textures
+        // for the next frame that really draws.
+        if graphics:IsRenderingPaused()
+            return now
+        end
+
+        VulkanCommandBuffer commandBuffer = graphics:GetCurrentRenderCommandBuffer()
+        integer i = 0
+        repeat while i < pendingTextures:GetSize()
+            Texture texture = pendingTextures:Get(i)
+            PixelMap pixelMap = pendingPixelMaps:Get(i)
+            if CanUpdateInPlace(texture, pixelMap)
+                UpdateTexture(texture, pixelMap, commandBuffer, graphics)
+            else
+                LoadNewTexture(texture, pixelMap, commandBuffer, graphics)
+            end
+            i = i + 1
+        end
+
+        pendingTextures:Empty()
+        pendingPixelMaps:Empty()
+    end
+
+    /*
+    This action loads a texture into a new image: a staging buffer, a copy,
+    a view, the next global index, and its place in the descriptor set. This
+    is how every load worked before textures could be updated in place.
+
+    Attribute: Parameter texture The texture.
+    Attribute: Parameter pixelMap Its pixels.
+    Attribute: Parameter commandBuffer The frame's command buffer, recording.
+    Attribute: Parameter graphics The Vulkan graphics.
+    */
+    private action LoadNewTexture(Texture texture, PixelMap pixelMap, VulkanCommandBuffer commandBuffer, VulkanGraphics graphics)
+        VulkanDevice device = graphics:GetDevice()
+        VulkanConstants constants
+        BitwiseOperations bits
+
+        integer width = pixelMap:GetWidth()
+        integer height = pixelMap:GetHeight()
+
+        integer pixelSize = 4
+        // With the Vulkan system, we now convert all textures to RGBA8888.
+        //Format format = pixelMap:GetFormat()
+        //integer formatValue = format:GetValue()
+
+        VulkanBuffer buffer
+        buffer:CreateTransferSourceBuffer(device, width * height * pixelSize)
+        buffer:BeginMapping()
+        TransferPixelData(pixelMap, buffer)
+        //buffer:StopMapping()
+
+        VulkanImage image
+        VulkanImageInfo imageInfo
+        imageInfo:SetWidth(width)
+        imageInfo:SetHeight(height)
+        imageInfo:SetUsage(bits:Or(constants:IMAGE_USAGE_TRANSFER_DESTINATION_BIT, constants:IMAGE_USAGE_SAMPLED_BIT))
+        imageInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
+        image:Create(device, imageInfo)
+
+        // We'll need this as part of the buffer-to-image copy, in order to ensure the image is in the right format to accept the 
+        // buffer data before we send it.
+        VulkanImageMemoryBarrier memoryBarrier
+        memoryBarrier:SetNewLayout(constants:IMAGE_LAYOUT_TRANSFER_DESTINATION_OPTIMAL)
+        memoryBarrier:SetSourceAccessMask(0)
+        memoryBarrier:SetDestinationAccessMask(constants:ACCESS_TRANSFER_WRITE_BIT)
+        memoryBarrier:SetSourceStageMask(constants:PIPELINE_STAGE_TOP_OF_PIPE_BIT)
+        memoryBarrier:SetDestinationStageMask(constants:PIPELINE_STAGE_TRANSFER_BIT)
+        memoryBarrier:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
+        memoryBarrier:SetImage(image)
+
+        PipelineBarrierCommand transitionForTransferCommand
+        transitionForTransferCommand:SetMemoryBarrier(memoryBarrier)
+        commandBuffer:Record(transitionForTransferCommand)
+
+        // Now send the command to copy the buffer to the image.
+        CopyBufferToImageCommand copyCommand
+        copyCommand:SetImageWidth(width)
+        copyCommand:SetImageHeight(height)
+        copyCommand:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
+        copyCommand:SetSourceBuffer(buffer)
+        copyCommand:SetDestinationImage(image)
+        commandBuffer:Record(copyCommand)
+
+        // Once the copy is finished, we'll need to transition the image's layout from a state for receiving data, and into a new state fit for reading from the shader.
+        VulkanImageMemoryBarrier readTransition
+        readTransition:SetOldLayout(constants:IMAGE_LAYOUT_TRANSFER_DESTINATION_OPTIMAL)
+        readTransition:SetNewLayout(constants:IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+        readTransition:SetSourceAccessMask(constants:ACCESS_TRANSFER_WRITE_BIT)
+        readTransition:SetDestinationAccessMask(constants:ACCESS_SHADER_READ_BIT)
+        readTransition:SetSourceStageMask(constants:PIPELINE_STAGE_TRANSFER_BIT)
+        readTransition:SetDestinationStageMask(constants:PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
+        readTransition:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
+        readTransition:SetImage(image)
+
+        PipelineBarrierCommand transitionForReadCommand
+        transitionForReadCommand:SetMemoryBarrier(readTransition)
+        commandBuffer:Record(transitionForReadCommand)
+
+        // We need to hold onto the buffer to be disposed after the transfer is done.
+        stagingBuffers:Add(buffer)
+
+
+        // Now we need an ImageView to encapsulate the Image. The view will be accessed to get information about the related image.
+        VulkanImageView view
+        VulkanImageViewInfo viewInfo
+viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
+        view:Create(device, image, viewInfo)
+
+        // Finally, associate the image view with the texture.
+        texture:SetVulkanImageView(view)
+
+        // Also store the texture in our global array and associate our resources.
+        if not recycledTextureIDs:IsEmpty()
+            // TO-DO: Handle this case. This gets complicated by the question of releasing texture IDs that might be in use for previous frames.
+        else
+            globalTextureArray:Add(texture)
+            texture:SetVulkanTextureIndex(nextTextureID)
+            nextTextureID = nextTextureID + 1
+        end
+
+        VulkanDescriptorSet globalTextureDescriptorSet = GetDescriptorSetForIndex(texture:GetVulkanTextureIndex())
+        
+        VulkanDescriptorResourcesInfo resourcesInfo
+        resourcesInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_SAMPLED_IMAGE)
+        resourcesInfo:SetDestinationArrayElement(texture:GetVulkanTextureLocalIndex())
+        
+        resourcesInfo:AddImageInfo(undefined, view, constants:IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+        globalTextureDescriptorSet:LinkResources(resourcesInfo)
+    end
+
+    /*
+    This action returns true if a texture can take new pixels in its existing
+    image: it was loaded before (it has an index and a view), and the new
+    pixels are the same size.
+
+    Attribute: Parameter texture The texture.
+    Attribute: Parameter pixelMap The new pixels.
+    Attribute: Returns True to update in place, false to load as a new texture.
+    */
+    private action CanUpdateInPlace(Texture texture, PixelMap pixelMap) returns boolean
+        if texture:GetVulkanTextureIndex() < 0
+            return false
+        end
+        VulkanImageView view = texture:GetVulkanImageView()
+        if view = undefined
+            return false
+        end
+        VulkanImage image = view:GetImage()
+        return image:GetWidth() = pixelMap:GetWidth() and image:GetHeight() = pixelMap:GetHeight()
+    end
+
+    /*
+    This action copies new pixels into a texture's existing image. The
+    texture keeps its image, view, index and place in the descriptor set, so
+    nothing that refers to it changes. Earlier frames may still be reading
+    the image, so the copy waits for their fragment shaders first, and this
+    frame's drawing waits for the copy.
+
+    Attribute: Parameter texture The texture, already loaded at this size.
+    Attribute: Parameter pixelMap The new pixels.
+    Attribute: Parameter commandBuffer The frame's command buffer, recording.
+    Attribute: Parameter graphics The Vulkan graphics.
+    */
+    private action UpdateTexture(Texture texture, PixelMap pixelMap, VulkanCommandBuffer commandBuffer, VulkanGraphics graphics)
+        VulkanDevice device = graphics:GetDevice()
+        VulkanConstants constants
+        integer width = pixelMap:GetWidth()
+        integer height = pixelMap:GetHeight()
+        integer byteSize = width * height * 4
+
+        // This frame slot's staging buffer for the texture. The slot's fence
+        // was waited on at the start of the frame, so the GPU is done with it.
+        integer slot = graphics:GetCurrentResourceIndex()
+        VulkanSwapchain swapchain = graphics:GetSwapchain()
+        integer slotCount = swapchain:GetImageCount()
+        Array<VulkanBuffer> buffers = undefined
+        if updateStagingBuffers:HasKey(texture)
+            buffers = updateStagingBuffers:GetValue(texture)
+        else
+            Array<VulkanBuffer> newBuffers
+            updateStagingBuffers:Add(texture, newBuffers)
+            buffers = newBuffers
+        end
+        repeat while buffers:GetSize() < slotCount
+            buffers:Add(undefined)
+        end
+        VulkanBuffer staging = buffers:Get(slot)
+        if staging = undefined or staging:GetSize() not= byteSize
+            VulkanBuffer newStaging
+            newStaging:CreateTransferSourceBuffer(device, byteSize)
+            newStaging:BeginMapping()
+            buffers:Set(slot, newStaging)
+            staging = newStaging
+        end
+        TransferPixelData(pixelMap, staging)
+
+        VulkanImageView view = texture:GetVulkanImageView()
+        VulkanImage image = view:GetImage()
+
+        // Earlier frames may still be reading the image in their fragment
+        // shaders. Wait for them, and change the layout for the copy.
+        VulkanImageMemoryBarrier toTransfer
+        toTransfer:SetOldLayout(constants:IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+        toTransfer:SetNewLayout(constants:IMAGE_LAYOUT_TRANSFER_DESTINATION_OPTIMAL)
+        toTransfer:SetSourceAccessMask(constants:ACCESS_SHADER_READ_BIT)
+        toTransfer:SetDestinationAccessMask(constants:ACCESS_TRANSFER_WRITE_BIT)
+        toTransfer:SetSourceStageMask(constants:PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
+        toTransfer:SetDestinationStageMask(constants:PIPELINE_STAGE_TRANSFER_BIT)
+        toTransfer:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
+        toTransfer:SetImage(image)
+        PipelineBarrierCommand toTransferCommand
+        toTransferCommand:SetMemoryBarrier(toTransfer)
+        commandBuffer:Record(toTransferCommand)
+
+        CopyBufferToImageCommand copyCommand
+        copyCommand:SetImageWidth(width)
+        copyCommand:SetImageHeight(height)
+        copyCommand:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
+        copyCommand:SetSourceBuffer(staging)
+        copyCommand:SetDestinationImage(image)
+        commandBuffer:Record(copyCommand)
+
+        // Then back to the layout for reading, and this frame's drawing waits
+        // for the copy, exactly as after a first load.
+        VulkanImageMemoryBarrier toRead
+        toRead:SetOldLayout(constants:IMAGE_LAYOUT_TRANSFER_DESTINATION_OPTIMAL)
+        toRead:SetNewLayout(constants:IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+        toRead:SetSourceAccessMask(constants:ACCESS_TRANSFER_WRITE_BIT)
+        toRead:SetDestinationAccessMask(constants:ACCESS_SHADER_READ_BIT)
+        toRead:SetSourceStageMask(constants:PIPELINE_STAGE_TRANSFER_BIT)
+        toRead:SetDestinationStageMask(constants:PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
+        toRead:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
+        toRead:SetImage(image)
+        PipelineBarrierCommand toReadCommand
+        toReadCommand:SetMemoryBarrier(toRead)
+        commandBuffer:Record(toReadCommand)
     end
 
     private system action TransferPixelData(PixelMap pixelMap, VulkanBuffer buffer)

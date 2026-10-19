@@ -86,9 +86,22 @@ VulkanSampler immutableSampler = undefined
     Array<VulkanPainter3DBatch> pendingBatches
     Array<VulkanPainter3DBatch> pendingTransparentBatches
     
+    // Batches for models drawn with their own shader program instead of the
+    // default one. There is one table per program, keyed by blueprint like
+    // batches and transparentBatches.
+    HashTable<ShaderProgram, HashTable<ModelBlueprint, VulkanPainter3DBatch>> programBatches
+    HashTable<ShaderProgram, HashTable<ModelBlueprint, VulkanPainter3DBatch>> programTransparentBatches
+    
     // Arrays of draw queues. There is one array per swapchain image, and each array contains up to as many draw queues as there are texture groups in the VulkanTextureManager.
     // Used to bulk store instance data and draw indirect commands.
     Array<Array<VulkanDrawQueue3D>> drawQueues
+    
+    // Draw queues for models drawn with their own shader program. For each
+    // program there is one array per swapchain image, laid out like
+    // drawQueues. customPrograms keeps the programs in the order they were
+    // first used, so they are drawn in the same order every frame.
+    HashTable<ShaderProgram, Array<Array<VulkanDrawQueue3D>>> programDrawQueues
+    Array<ShaderProgram> customPrograms
     
     // An array of models with active animations. These will be pre-processed in a compute shader to calculate the current position of their vertices before rendering.
     Array<Model> animatedModels
@@ -137,6 +150,11 @@ to allow for simultaneous rendering.*/
     EnvironmentVulkan environment = undefined
     
     boolean renderShadows = true
+    
+    // Whether the current frame is paused because the window is minimized.
+    // Set in Begin. While it is true, Render ignores models, since End won't
+    // draw them or empty the batches, and they would pile up frame after frame.
+    boolean framePaused = false
     boolean renderCascadesSeparately = false
     
 on create
@@ -862,6 +880,11 @@ VulkanAttachmentReference depthReference) returns boolean
     end
     
     private action GetBatch(Model model) returns VulkanPainter3DBatch
+        ShaderProgram program = GetCustomProgram(model)
+        if program not= undefined
+            return GetProgramBatch(model, program)
+        end
+        
         boolean isTransparent = model:HasTransparency()
         ModelBlueprintVulkan schematic = cast(ModelBlueprintVulkan, model:GetModelBlueprint())
         if not isTransparent
@@ -885,6 +908,79 @@ if batches:HasKey(schematic)
         end
     end
 
+    /*
+    This action returns the shader program a model asks to be drawn with,
+    or undefined if it should be drawn with the default program. A model
+    given the default program itself is drawn with the default batches.
+
+    Attribute: Parameter model The model being drawn.
+    Attribute: Returns The model's own program, or undefined for the default.
+    */
+    private action GetCustomProgram(Model model) returns ShaderProgram
+        ShaderProgram program = model:GetShaderProgram()
+        if program = undefined
+            return undefined
+        end
+        ShaderProgram defaultOne = GetDefaultProgram()
+        if program = defaultOne
+            return undefined
+        end
+        return program
+    end
+    
+    /*
+    This action finds or makes the batch for a model drawn with its own
+    shader program. The first time a program is seen, it is checked.
+
+    Attribute: Parameter model The model being drawn.
+    Attribute: Parameter program The model's own shader program.
+    Attribute: Returns The batch for the model's blueprint and program.
+    */
+    private action GetProgramBatch(Model model, ShaderProgram program) returns VulkanPainter3DBatch
+        boolean isTransparent = model:HasTransparency()
+        ModelBlueprintVulkan schematic = cast(ModelBlueprintVulkan, model:GetModelBlueprint())
+        
+        HashTable<ShaderProgram, HashTable<ModelBlueprint, VulkanPainter3DBatch>> tables = programBatches
+        if isTransparent
+            tables = programTransparentBatches
+        end
+        
+        HashTable<ModelBlueprint, VulkanPainter3DBatch> table = undefined
+        if tables:HasKey(program)
+            table = tables:GetValue(program)
+        else
+            CheckCustomProgram(program)
+            HashTable<ModelBlueprint, VulkanPainter3DBatch> newTable
+            tables:Add(program, newTable)
+            table = newTable
+        end
+        
+        if table:HasKey(schematic)
+            return table:GetValue(schematic)
+        end
+        VulkanPainter3DBatch batch
+        batch:Create(schematic, isTransparent, program)
+        table:Add(schematic, batch)
+        return batch
+    end
+    
+    /*
+    This action makes sure a custom program can draw 3D models: it is
+    compiled, and its shader mapping uses the default 3D resources, so its
+    layout matches what the painter binds.
+
+    Attribute: Parameter program The program to check.
+    */
+    private action CheckCustomProgram(ShaderProgram program)
+        if not program:IsCompiled()
+            program:Compile()
+        end
+        VulkanShaderProgram strategy = cast(VulkanShaderProgram, program:GetShaderProgramStrategy())
+        if not strategy:GetShaderMapping():UsesDefaultResources3D()
+            alert("I can't draw 3D models with the shader program " + program:GetName() + " because its shader mapping doesn't use the default 3D resources. A DefaultShaderMapping3DVulkan does.")
+        end
+    end
+
     private action NewBatch(Model model, boolean isTransparent) returns VulkanPainter3DBatch
         VulkanPainter3DBatch batch
         ModelBlueprintVulkan blue = cast(ModelBlueprintVulkan, model:GetModelBlueprint())
@@ -895,7 +991,8 @@ if batches:HasKey(schematic)
     action Begin
         VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
         // Abort if rendering is paused due to window minimization.
-        if graphics:IsRenderingPaused()
+        framePaused = graphics:IsRenderingPaused()
+        if framePaused
             return now
         end
         
@@ -1120,6 +1217,21 @@ Number32BitArray projectionViewMatrix = MatrixToArray(camera:GetCombinedMatrix()
             i = i + 1
         end
         
+        // Also reset this frame's queues for custom shader programs.
+        integer programIndex = 0
+        repeat while programIndex < customPrograms:GetSize()
+            Array<VulkanDrawQueue3D> programQueues = GetCurrentProgramQueues(customPrograms:Get(programIndex))
+            integer queueIndex = 0
+            repeat while queueIndex < programQueues:GetSize()
+                VulkanDrawQueue3D programQueue = programQueues:Get(queueIndex)
+                if programQueue not= undefined
+                    programQueue:Begin()
+                end
+                queueIndex = queueIndex + 1
+            end
+            programIndex = programIndex + 1
+        end
+        
         Array<VulkanPainter3DBatch> currentBatches = pendingBatches
         repeat until currentBatches = undefined
             integer counter = 0
@@ -1212,6 +1324,59 @@ constants:SHADER_STAGE_FRAGMENT_BIT)
             end
             i = i + 1
         end
+        
+        // Then draw the models that have their own shader programs, one
+        // program at a time. Their layout matches the default program's, so
+        // the same camera, textures and push constant are used.
+        programIndex = 0
+        repeat while programIndex < customPrograms:GetSize()
+            ShaderProgram program = customPrograms:Get(programIndex)
+            Array<VulkanDrawQueue3D> programQueues = GetCurrentProgramQueues(program)
+            if HasDrawCommands(programQueues)
+                VulkanShaderProgram programStrategy = cast(VulkanShaderProgram, program:GetShaderProgramStrategy())
+                if programStrategy:GetPipeline() = undefined
+                    programStrategy:CreatePipeline(sceneRenderPass)
+                end
+                VulkanPipeline programPipeline = programStrategy:GetPipeline()
+                VulkanPipelineLayout programLayout = programPipeline:GetInfo():GetLayout()
+                
+                BindPipelineCommand bindProgramPipeline
+                bindProgramPipeline:SetPipeline(programPipeline)
+                commandBuffer:Record(bindProgramPipeline)
+                
+                BindDescriptorSetCommand programCameraBind
+                programCameraBind:SetPipelineLayout(programLayout)
+                programCameraBind:SetDescriptorSet(currentCameraDescriptor)
+                commandBuffer:Record(programCameraBind)
+                
+                integer group = 0
+                repeat while group < programQueues:GetSize()
+                    VulkanDrawQueue3D programQueue = programQueues:Get(group)
+                    if programQueue not= undefined and programQueue:GetDrawCommandCount() > 0
+                        BindDescriptorSetCommand programTexturesBind
+                        programTexturesBind:SetPipelineLayout(programLayout)
+                        programTexturesBind:SetDescriptorSet(textureManager:GetGlobalTextureDescriptorSet(group))
+                        programTexturesBind:SetSetIndex(1)
+                        commandBuffer:Record(programTexturesBind)
+                        
+                        pushConstants:ResetWritePosition()
+                        pushConstants:AddBufferPointer(programQueue:GetInstanceDataBuffer())
+                        SetPushConstantsCommand programPushConstants
+                        programPushConstants:SetData(pushConstants)
+                        programPushConstants:SetPipelineLayout(programPipeline:GetLayout())
+                        programPushConstants:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
+                        commandBuffer:Record(programPushConstants)
+                        
+                        DrawIndirectCommand programDraw
+                        programDraw:SetDrawCommands(programQueue:GetDrawCommandBuffer())
+                        programDraw:SetDrawCount(programQueue:GetDrawCommandCount())
+                        commandBuffer:Record(programDraw)
+                    end
+                    group = group + 1
+                end
+            end
+            programIndex = programIndex + 1
+        end
 
         // End the render pass.
         EndRenderPassCommand endRenderPass
@@ -1244,6 +1409,26 @@ constants:SHADER_STAGE_FRAGMENT_BIT)
         VulkanPipelineLayout shadowPipelineLayout = shadowPipeline:GetInfo():GetLayout()
         
         integer shadowMapSize = lightProperties:GetShadowMapSize()
+        
+        // The queues the shadow pass draws: the default ones, in the same
+        // order as before, then each custom program's. Every model casts
+        // shadows with the default shadow program, whatever program draws it.
+        Array<VulkanDrawQueue3D> shadowQueues
+        integer queueCounter = 0
+        repeat while queueCounter < drawQueues:GetSize()
+            shadowQueues:Add(GetCurrentDrawQueue(queueCounter))
+            queueCounter = queueCounter + 1
+        end
+        programIndex = 0
+        repeat while programIndex < customPrograms:GetSize()
+            Array<VulkanDrawQueue3D> programQueues = GetCurrentProgramQueues(customPrograms:Get(programIndex))
+            queueCounter = 0
+            repeat while queueCounter < programQueues:GetSize()
+                shadowQueues:Add(programQueues:Get(queueCounter))
+                queueCounter = queueCounter + 1
+            end
+            programIndex = programIndex + 1
+        end
         
         i = 0
         repeat while i < totalLightCount
@@ -1307,14 +1492,14 @@ their default clear values, which is functionally equivalent to there being no s
                 
                 repeat while cascadeRenderCount < cascadeRenderTotal
                     integer j = 0
-                    repeat while j < drawQueues:GetSize()
-                    VulkanDrawQueue3D drawQueue = GetCurrentDrawQueue(j)
+                    repeat while j < shadowQueues:GetSize()
+                    VulkanDrawQueue3D drawQueue = shadowQueues:Get(j)
             if drawQueue not= undefined and drawQueue:GetShadowDrawCommandCount() > 0
                             integer faceCounter = 0
                             repeat while faceCounter < totalFaces
                                 BindDescriptorSetCommand shadowTextureDescriptorBind
             shadowTextureDescriptorBind:SetPipelineLayout(shadowPipelineLayout)
-            shadowTextureDescriptorBind:SetDescriptorSet(textureManager:GetGlobalTextureDescriptorSet(j))
+            shadowTextureDescriptorBind:SetDescriptorSet(textureManager:GetGlobalTextureDescriptorSet(drawQueue:GetTextureGroupID()))
             shadowTextureDescriptorBind:SetSetIndex(1)
             commandBuffer:Record(shadowTextureDescriptorBind)
                         
@@ -1658,10 +1843,69 @@ BindDescriptorSetCommand resultDescriptorBind
     action GetCurrentDrawQueue(integer textureGroupID) returns VulkanDrawQueue3D
         GameStateManager manager
         VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
-        VulkanDevice device = graphics:GetDevice()
+        integer resourceIndex = graphics:GetCurrentResourceIndex()
+        return GetQueueForGroup(drawQueues:Get(resourceIndex), textureGroupID)
+    end
+    
+    /*
+    This action returns this frame's draw queue for a shader program and a
+    texture group, making it if needed.
+
+    Attribute: Parameter program The shader program, or undefined for the default.
+    Attribute: Parameter textureGroupID The texture group the queue draws from.
+    Attribute: Returns The draw queue.
+    */
+    action GetCurrentDrawQueue(ShaderProgram program, integer textureGroupID) returns VulkanDrawQueue3D
+        if program = undefined
+            return GetCurrentDrawQueue(textureGroupID)
+        end
+        return GetQueueForGroup(GetCurrentProgramQueues(program), textureGroupID)
+    end
+    
+    /*
+    This action returns this frame's array of draw queues for a custom
+    shader program, indexed by texture group. The first time a program is
+    used, its arrays are made and it is added to customPrograms.
+
+    Attribute: Parameter program A custom shader program.
+    Attribute: Returns The program's draw queues for this frame.
+    */
+    private action GetCurrentProgramQueues(ShaderProgram program) returns Array<VulkanDrawQueue3D>
+        GameStateManager manager
+        VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
         integer resourceIndex = graphics:GetCurrentResourceIndex()
         
-        Array<VulkanDrawQueue3D> array = drawQueues:Get(resourceIndex)
+        Array<Array<VulkanDrawQueue3D>> perImage = undefined
+        if programDrawQueues:HasKey(program)
+            perImage = programDrawQueues:GetValue(program)
+        else
+            Array<Array<VulkanDrawQueue3D>> newPerImage
+            programDrawQueues:Add(program, newPerImage)
+            customPrograms:Add(program)
+            perImage = newPerImage
+        end
+        
+        repeat while perImage:GetSize() <= resourceIndex
+            Array<VulkanDrawQueue3D> queueArray
+            perImage:Add(queueArray)
+        end
+        return perImage:Get(resourceIndex)
+    end
+    
+    /*
+    This action returns the draw queue for a texture group from one frame's
+    array of queues, making it if needed. Missing entries before it are
+    filled with undefined.
+
+    Attribute: Parameter array One frame's draw queues, indexed by texture group.
+    Attribute: Parameter textureGroupID The texture group the queue draws from.
+    Attribute: Returns The draw queue.
+    */
+    private action GetQueueForGroup(Array<VulkanDrawQueue3D> array, integer textureGroupID) returns VulkanDrawQueue3D
+        GameStateManager manager
+        VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+        VulkanDevice device = graphics:GetDevice()
+        
         // Elements are indexed in the array to match their texture group index.
         // If there's not enough entries, we'll create a new element at the index we care about,
         // and we'll pad out any extra values beforehand with undefined values.
@@ -1686,6 +1930,24 @@ BindDescriptorSetCommand resultDescriptorBind
         return array:Get(textureGroupID)
     end
     
+    /*
+    This action returns true if any queue in the array has draw commands.
+
+    Attribute: Parameter queues One frame's draw queues.
+    Attribute: Returns True if there is something to draw.
+    */
+    private action HasDrawCommands(Array<VulkanDrawQueue3D> queues) returns boolean
+        integer i = 0
+        repeat while i < queues:GetSize()
+            VulkanDrawQueue3D queue = queues:Get(i)
+            if queue not= undefined and queue:GetDrawCommandCount() > 0
+                return true
+            end
+            i = i + 1
+        end
+        return false
+    end
+    
     action SetSkybox(Skybox skybox)
 //        output "NYI: VulkanPainter3D SetSkybox"
 //        alert("NYI")
@@ -1696,7 +1958,7 @@ BindDescriptorSetCommand resultDescriptorBind
     end
     
     action Render(Model model)
-        if model = undefined or model:GetModelBlueprint() = undefined
+        if framePaused or model = undefined or model:GetModelBlueprint() = undefined
             return now
         end
         

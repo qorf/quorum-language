@@ -9,6 +9,7 @@ use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Models.Vulkan.MaterialVulkan
 use Libraries.Game.Graphics.Models.Data.AnimationState
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
 
 class VulkanPainter3DBatch
     
@@ -20,6 +21,10 @@ class VulkanPainter3DBatch
     
     boolean isTransparent = false
     
+    // The shader program this batch's models are drawn with, or undefined
+    // for the default program.
+    ShaderProgram program = undefined
+    
     // How many frames have passed without using this batch. Can be used to determine if a batch hasn't been used in a long time and can be disposed.
     integer age = 0
     
@@ -29,8 +34,21 @@ class VulkanPainter3DBatch
     Array<integer> drawQueueUses
     
     action Create(ModelBlueprintVulkan schematic, boolean isTransparent)
+        Create(schematic, isTransparent, undefined)
+    end
+    
+    /*
+    This action sets up the batch for one blueprint, drawn with the given
+    shader program.
+
+    Attribute: Parameter schematic The blueprint whose models this batch draws.
+    Attribute: Parameter isTransparent True if the models have transparency.
+    Attribute: Parameter program The shader program to draw with, or undefined for the default.
+    */
+    action Create(ModelBlueprintVulkan schematic, boolean isTransparent, ShaderProgram program)
         me:schematic = schematic
         me:isTransparent = isTransparent
+        me:program = program
         
         Array<MeshVulkan> meshes = schematic:GetMeshes()
         meshesPerModel = meshes:GetSize()
@@ -40,6 +58,15 @@ class VulkanPainter3DBatch
             totalVertices = totalVertices + meshes:Get(i):GetVertexCount()
             i = i + 1
         end
+    end
+    
+    /*
+    This action returns the shader program the batch is drawn with.
+
+    Attribute: Returns The program, or undefined for the default program.
+    */
+    action GetProgram returns ShaderProgram
+        return program
     end
     
     action IsTransparent returns boolean
@@ -120,9 +147,9 @@ class VulkanPainter3DBatch
                     
                     VulkanDrawQueue3D queue = undefined
                     if textureOverride not= undefined
-                        queue = painter:GetCurrentDrawQueue(textureOverride:GetVulkanTextureGroupIndex())
+                        queue = painter:GetCurrentDrawQueue(program, textureOverride:GetVulkanTextureGroupIndex())
                     else
-                        queue = painter:GetCurrentDrawQueue(baseTextureGroup)
+                        queue = painter:GetCurrentDrawQueue(program, baseTextureGroup)
                     end
                     
                     // Each animated model potentially uses a different vertex buffer and must be drawn separately.
@@ -152,10 +179,10 @@ class VulkanPainter3DBatch
                     
                     VulkanDrawQueue3D queue = undefined
                     if textureOverride not= undefined
-                        queue = painter:GetCurrentDrawQueue(textureOverride:GetVulkanTextureGroupIndex())
+                        queue = painter:GetCurrentDrawQueue(program, textureOverride:GetVulkanTextureGroupIndex())
                         IncrementUses(textureOverride:GetVulkanTextureGroupIndex())
                     else
-                        queue = painter:GetCurrentDrawQueue(baseTextureGroup)
+                        queue = painter:GetCurrentDrawQueue(program, baseTextureGroup)
                         IncrementUses(baseTextureGroup)
                     end
                     
@@ -166,7 +193,7 @@ class VulkanPainter3DBatch
                 
                 j = 0
                 repeat while j < drawQueueUses:GetSize()
-                    VulkanDrawQueue3D queue = painter:GetCurrentDrawQueue(j)
+                    VulkanDrawQueue3D queue = painter:GetCurrentDrawQueue(program, j)
                     if drawQueueUses:Get(j) > 0
                         queue:AddDrawIndirectCommand(mesh:GetIndexCount(), drawQueueUses:Get(j), castsShadows)
                         drawQueueUses:Set(j, 0)

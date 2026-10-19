@@ -28,6 +28,9 @@ use Libraries.Game.Graphics.Models.Data.AnimationFrame
 use Libraries.Compute.Vector4
 use Libraries.Game.Graphics.Models.Data.AnimationMeshData
 use Libraries.Compute.Matrix4
+use Libraries.Game.Graphics.Vulkan.VulkanMemoryBarrier
+use Libraries.Game.Graphics.Vulkan.VulkanSwapchain
+use Libraries.Game.Graphics.Vulkan.Commands.PipelineBarrierCommand
 
 shared class ModelManagerVulkan
     
@@ -47,6 +50,8 @@ shared class ModelManagerVulkan
     
     // An array containing any meshes that are awaiting data transfers to GPU.
     Array<MeshVulkan> pendingMeshes
+    // Meshes that already live on the GPU and have new vertex data waiting.
+    Array<MeshVulkan> pendingUpdates
 
     VulkanDevice device = undefined
 
@@ -74,16 +79,50 @@ shared class ModelManagerVulkan
     end
     
     action ProcessPendingResources
+        GameStateManager manager
+        VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+        
+        // While the window is minimized, the frame's command buffer is not
+        // recording, so nothing can be recorded. Keep all waiting work for the
+        // next frame that really draws.
+        if graphics:IsRenderingPaused()
+            return now
+        end
+        
+        boolean copied = false
+        VulkanConstants constants
+        VulkanCommandBuffer commandBuffer = graphics:GetCurrentRenderCommandBuffer()
+        
+        if pendingUpdates:IsEmpty() = false
+            // Earlier frames may still be drawing from these vertex buffers.
+            // Make the copies wait until those reads are done.
+            VulkanMemoryBarrier beforeCopy
+            beforeCopy:SetSourceStageMask(constants:PIPELINE_STAGE_VERTEX_INPUT_BIT + constants:PIPELINE_STAGE_VERTEX_SHADER_BIT)
+            beforeCopy:SetSourceAccessMask(0)
+            beforeCopy:SetDestinationStageMask(constants:PIPELINE_STAGE_TRANSFER_BIT)
+            beforeCopy:SetDestinationAccessMask(constants:ACCESS_TRANSFER_WRITE_BIT)
+            PipelineBarrierCommand beforeCommand
+            beforeCommand:SetMemoryBarrier(beforeCopy)
+            commandBuffer:Record(beforeCommand)
+            
+            integer slot = graphics:GetCurrentResourceIndex()
+            VulkanSwapchain swapchain = graphics:GetSwapchain()
+            integer slotCount = swapchain:GetImageCount()
+            integer u = 0
+            repeat while u < pendingUpdates:GetSize()
+                MeshVulkan updated = pendingUpdates:Get(u)
+                updated:RecordUpdate(commandBuffer, slot, slotCount)
+                u = u + 1
+            end
+            pendingUpdates:Empty()
+            copied = true
+        end
+        
         if pendingMeshes:IsEmpty() = false
-            GameStateManager manager
-            VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
-            VulkanCommandBuffer commandBuffer = graphics:GetCurrentRenderCommandBuffer()
-            VulkanConstants constants
-
             integer i = 0
             repeat while i < pendingMeshes:GetSize()
                 MeshVulkan mesh = pendingMeshes:Get(i)
-if mesh:HasData()
+                if mesh:HasData()
                     mesh:TransferBuffers(commandBuffer)
                 end
 
@@ -107,10 +146,34 @@ if mesh:HasData()
             end
 
             pendingMeshes:Empty()
+            copied = true
+        end
+        
+        if copied
+            // Drawing in this frame must wait until the copies are finished.
+            VulkanMemoryBarrier afterCopy
+            afterCopy:SetSourceStageMask(constants:PIPELINE_STAGE_TRANSFER_BIT)
+            afterCopy:SetSourceAccessMask(constants:ACCESS_TRANSFER_WRITE_BIT)
+            afterCopy:SetDestinationStageMask(constants:PIPELINE_STAGE_VERTEX_INPUT_BIT + constants:PIPELINE_STAGE_VERTEX_SHADER_BIT)
+            afterCopy:SetDestinationAccessMask(constants:ACCESS_VERTEX_ATTRIBUTE_READ_BIT + constants:ACCESS_SHADER_READ_BIT + constants:ACCESS_MEMORY_READ_BIT)
+            PipelineBarrierCommand afterCommand
+            afterCommand:SetMemoryBarrier(afterCopy)
+            commandBuffer:Record(afterCommand)
         end
         
         materialManager:ProcessPendingResources()
         animationManager:ProcessPendingResources()
+    end
+    
+    /*
+    This action adds a mesh to the list of meshes whose new vertex data is
+    copied at the start of the next frame. MeshVulkan:UpdateVertices calls it;
+    other code should not need to.
+
+    Attribute: Parameter mesh The mesh with waiting vertex data.
+    */
+    action QueueMeshUpdate(MeshVulkan mesh)
+        pendingUpdates:Add(mesh)
     end
     
 action GetModelBlueprint(File file) returns ModelBlueprintVulkan
