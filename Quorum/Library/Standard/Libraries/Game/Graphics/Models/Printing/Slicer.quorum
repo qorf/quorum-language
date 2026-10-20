@@ -1,6 +1,78 @@
 package Libraries.Game.Graphics.Models.Printing
+
+use Libraries.Containers.Array
 use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.System.File
 
 class Slicer
-    system action Slice(Number32BitArray vertices)
-end
+		Array<File> settingsFiles
+		Array<File> filamentFiles
+
+		action AddSettingsFile(File file)
+			settingsFiles:Add(file)
+		end
+
+		action AddFilamentFile(File file)
+			filamentFiles:Add(file)
+		end
+
+		action ClearSettings
+			settingsFiles:Empty()
+			filamentFiles:Empty()
+		end
+
+
+    system action Slice(Number32BitArray vertices, Integer32BitArray indices, File outputFolder) returns File
+			if outputFolder = undefined
+				// alert
+			end
+			// if given, but doesn't exist: create it
+			if outputFolder:Exists() = false
+				outputFolder:CreateDirectories()
+			end
+			
+			if vertices = undefined
+				// alert
+			end
+			if vertices:GetSize() = 0 or vertices:GetSize() mod 3 not= 0
+				// alert
+			end
+
+			Number32BitArray newVertices
+			newVertices:SetSize(vertices:GetSize())
+			AppendVertices(vertices, newVertices, 0)
+
+			Integer32BitArray newIndices = indices
+			if newIndices = undefined or newIndices:GetSize() = 0
+				newIndices = AddIndices(vertices:GetSize() / 3)
+			end
+			if newIndices:GetSize() = 0 or newIndices:GetSize() mod 3 not= 0
+				// alert
+			end
+
+			text gcodePath = SliceJava(newVertices, newIndices, settingsFiles, filamentFiles, outputFolder)
+
+			File gcodeFile
+			gcodeFile:SetAbsolutePath(gcodePath)
+			return gcodeFile
+		end // Slice function
+
+		private action AppendVertices(Number32BitArray original, Number32BitArray new)
+			//
+		end
+
+		action AddIndices(integer count) returns Integer32BitArray
+			Integer32BitArray arr
+			arr:SetSize(count)
+			integer i = 0
+			repeat while i < count
+				arr:Set(i, i)
+				i = i + 1
+			end
+			return arr
+		end
+
+	private system action SliceJava(Number32BitArray vertices, Integer32BitArray indices, text settings, text filaments, text outputFolder) returns text
+
+end		// Slicer class
