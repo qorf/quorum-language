@@ -206,6 +206,8 @@ class Game
 
     // Variables for the Layer system.
     private Array<Layer> layers
+    // Reused each frame, so a camera shared by several layers is placed once.
+    private Array<Camera> followedCameras
     private Layer2D currentLayer2D = undefined
     private Layer3D currentLayer3D = undefined
 
@@ -259,7 +261,8 @@ class Game
     The StartGame action will start your game. Specifically, it does this:
     1. Creates the Game window.
     2. Calls the CreateGame() action.
-    3. Repeatedly calls Update() until Exit() is called or the window is closed.
+    3. Repeatedly calls Update(), runs the physics, and calls UpdateAfterPhysics(),
+       until Exit() is called or the window is closed.
 
     If you are using any actions to change the starting settings of the window,
     call those before calling StartGame().
@@ -839,6 +842,8 @@ if gl20 is OpenGLManager
         if collide
             TestForCollisions(seconds)
         end
+        UpdateFollowingCameras(seconds)
+        UpdateAfterPhysics(seconds)
 
         if accessibility not= undefined
             accessibility:Update()
@@ -1204,6 +1209,57 @@ if gl20 is OpenGLManager
     end
 
     /*
+    The UpdateAfterPhysics action is called once on every frame, after Update
+    and after the physics has run, when every item is where it will be drawn.
+    It is called even on frames too short for a physics step. This is the
+    place for anything that should follow physics items on screen, such as a
+    light carried by a body. Placed in Update instead, which runs before the
+    physics, they would aim at where the items were, and the items would seem
+    to jitter. For a camera that simply chases an item, Camera:Follow does
+    this without any code here; following cameras have already been placed
+    when this action is called, so they can still be adjusted here.
+
+    Things that change the physics, such as forces and steering, still belong
+    in Update, so they act in the same frame. Changes made here take effect in
+    the next frame's physics. By default this action does nothing.
+
+    Attribute: Parameter seconds The number of seconds that have passed since the last frame.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Model
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Graphics.Camera
+
+        class Main is Game
+            Model ball
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                EnablePhysics3D(true)
+                Color color
+                ball:LoadBox(1, 1, 1, color:Red())
+                ball:SetPosition(0, 10, 0)
+                ball:EnablePhysics(true)
+                Add(ball)
+            end
+
+            // The camera follows the falling box from behind and above.
+            action UpdateAfterPhysics(number seconds)
+                Camera camera = GetCamera3D()
+                camera:SetPosition(ball:GetX(), ball:GetY() + 5, ball:GetZ() - 10)
+                camera:LookAt(ball:GetX(), ball:GetY(), ball:GetZ())
+            end
+        end
+    */
+    action UpdateAfterPhysics(number seconds)
+    end
+
+    /*
     CreateGame is called when you first start the game, and is useful for setting
     up things that need to be initialized before they can be used, like loading
     Drawables.
@@ -1301,6 +1357,29 @@ if gl20 is OpenGLManager
     */
     action OnExit returns boolean
         return true
+    end
+
+    /*
+    This action places every camera that follows an item (see
+    Camera:Follow), once a frame, after the physics and before the game's
+    UpdateAfterPhysics, so the game can still adjust a camera there. A camera
+    shared by several layers is placed only once.
+    */
+    private action UpdateFollowingCameras(number seconds)
+        followedCameras:Empty()
+        integer i = 0
+        repeat while i < layers:GetSize()
+            Layer layer = layers:Get(i)
+            if layer is Layer3D
+                Layer3D layer3D = cast(Layer3D, layer)
+                Camera camera = layer3D:GetCamera()
+                if camera not= undefined and camera:IsFollowing() and not followedCameras:Has(camera)
+                    camera:UpdateFollow(seconds)
+                    followedCameras:Add(camera)
+                end
+            end
+            i = i + 1
+        end
     end
 
     /*

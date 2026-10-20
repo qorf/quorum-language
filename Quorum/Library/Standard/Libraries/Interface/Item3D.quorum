@@ -102,6 +102,7 @@ class Item3D is Item
     PhysicsPosition3D collisionTransform        //projected position
     PhysicsPosition3D collisionTransform0       //previous position
     PhysicsPosition3D interpolationTransform
+    PhysicsPosition3D drawnTransform            //where the item is drawn, between the last two physics steps
 
     CollisionShape3D shape = undefined
     Array<Item3DNode> nodes
@@ -549,6 +550,8 @@ class Item3D is Item
         if updateTransform
             collisionTransform:GetOrigin():Add(xAmount, 0, 0)
             collisionTransform0:Set(collisionTransform)
+            interpolationTransform:Set(collisionTransform)
+            drawnTransform:Set(collisionTransform)
         end
 
         x = x + xAmount
@@ -574,6 +577,8 @@ class Item3D is Item
         if updateTransform
             collisionTransform:GetOrigin():Add(0, yAmount, 0)
             collisionTransform0:Set(collisionTransform)
+            interpolationTransform:Set(collisionTransform)
+            drawnTransform:Set(collisionTransform)
         end
 
         y = y + yAmount
@@ -599,6 +604,8 @@ class Item3D is Item
         if updateTransform
             collisionTransform:GetOrigin():Add(0, 0, zAmount)
             collisionTransform0:Set(collisionTransform)
+            interpolationTransform:Set(collisionTransform)
+            drawnTransform:Set(collisionTransform)
         end
         //transform:Translate(0, 0, -zAmount)
 
@@ -628,6 +635,8 @@ class Item3D is Item
         if updateTransform
             collisionTransform:GetOrigin():Add(xAmount, yAmount, zAmount)
             collisionTransform0:Set(collisionTransform)
+            interpolationTransform:Set(collisionTransform)
+            drawnTransform:Set(collisionTransform)
         end
         //transform:Translate(xAmount, yAmount, -zAmount)
 
@@ -660,6 +669,8 @@ class Item3D is Item
         if updateTransform
             collisionTransform:GetOrigin():Add(vector)
             collisionTransform0:Set(collisionTransform)
+            interpolationTransform:Set(collisionTransform)
+            drawnTransform:Set(collisionTransform)
         end
         //transform:Translate(vector:GetX(), vector:GetY(), vector:GetZ() * -1)
 
@@ -691,6 +702,8 @@ class Item3D is Item
             if updateTransform
                 collisionTransform:GetOrigin():Add(adjust, 0, 0)
                 collisionTransform0:Set(collisionTransform)
+                interpolationTransform:Set(collisionTransform)
+                drawnTransform:Set(collisionTransform)
             end
         end
 
@@ -726,6 +739,8 @@ class Item3D is Item
             if updateTransform
                 collisionTransform:GetOrigin():Add(0, adjust, 0)
                 collisionTransform0:Set(collisionTransform)
+                interpolationTransform:Set(collisionTransform)
+                drawnTransform:Set(collisionTransform)
             end
         end
 
@@ -761,6 +776,8 @@ class Item3D is Item
             if updateTransform
                 collisionTransform:GetOrigin():Add(0, 0, adjust)
                 collisionTransform0:Set(collisionTransform)
+                interpolationTransform:Set(collisionTransform)
+                drawnTransform:Set(collisionTransform)
             end
             //transform:Translate(0, 0, -adjust)
         end
@@ -797,6 +814,8 @@ class Item3D is Item
             if updateTransform
                 collisionTransform:GetOrigin():Add(xAmount - offsetX, yAmount - offsetY, zAmount - offsetZ)
                 collisionTransform0:Set(collisionTransform)
+                interpolationTransform:Set(collisionTransform)
+                drawnTransform:Set(collisionTransform)
             end
             //transform:Translate(xAmount - offsetX, yAmount - offsetY, -(zAmount - offsetZ))
         end
@@ -1675,6 +1694,8 @@ class Item3D is Item
                 tempMatrix:row2column1 = rotationMatrix:row2column1 / scale:GetZ()
                 tempMatrix:row2column2 = rotationMatrix:row2column2 / scale:GetZ()
                 collisionTransform:GetBasis():Set(tempMatrix)
+                interpolationTransform:GetBasis():Set(tempMatrix)
+                drawnTransform:GetBasis():Set(tempMatrix)
             end
         end
         if rotateChildren
@@ -2107,6 +2128,8 @@ class Item3D is Item
                 tempMatrix:row2column1 = rotationMatrix:row2column1 / scale:GetZ()
                 tempMatrix:row2column2 = rotationMatrix:row2column2 / scale:GetZ()
                 collisionTransform:GetBasis():Set(tempMatrix)
+                interpolationTransform:GetBasis():Set(tempMatrix)
+                drawnTransform:GetBasis():Set(tempMatrix)
             end
         end
         NotifyMoved()
@@ -2749,6 +2772,7 @@ class Item3D is Item
             properties:SetItem(me)
             interpolationTransform:Set(collisionTransform)
             collisionTransform0:Set(collisionTransform)
+            drawnTransform:Set(collisionTransform)
         end
 
         if layer not= undefined
@@ -3260,7 +3284,34 @@ class Item3D is Item
         properties:GetInterpolatedLinearVelocity():Set(properties:GetLinearVelocity())
         properties:GetInterpolatedAngularVelocity():Set(properties:GetAngularVelocity())
         collisionTransform:Set(transform)
+        drawnTransform:Set(transform)
         UpdateInertia()
+    end
+
+    /*
+    This action returns where a physics item is drawn. Physics moves items
+    in fixed steps, and frames rarely line up with them, so the layer draws
+    each awake item between its last two steps, the way Bullet does, to keep
+    its motion smooth. It is the same as GetCenterOfMassTransform right after
+    the item is placed. Use it to place things that should follow the item
+    on screen, such as a camera or a wheel model. Physics code should use
+    GetCenterOfMassTransform instead.
+
+    Attribute: Returns The transform the item is drawn with.
+    */
+    action GetDrawnTransform returns PhysicsPosition3D
+        return drawnTransform
+    end
+
+    /*
+    This action sets where a physics item is drawn, without moving it in the
+    physics. The layer calls it after each physics step and on every frame
+    between steps. Most users never need to call it.
+
+    Attribute: Parameter transform The transform to draw the item with.
+    */
+    action SetDrawnTransform(PhysicsPosition3D transform)
+        drawnTransform:Set(transform)
     end
 
     action UpdateInertia
@@ -3503,8 +3554,10 @@ class Item3D is Item
         Vector3 vector
         shape:GetLocalScaling(vector)
 
+        // The item is drawn where the layer placed it between the last two
+        // physics steps (see GetDrawnTransform), not at the last step itself.
         Matrix3 tempMatrix
-        tempMatrix:Set(collisionTransform:GetBasis())
+        tempMatrix:Set(drawnTransform:GetBasis())
 
         // Physics and drawing share one coordinate system, since the position
         // is copied unchanged below, so the rotation is copied unchanged too.
@@ -3531,9 +3584,9 @@ class Item3D is Item
 //        transform:Set(matrix)
         transformDirty = true
 
-        me:x = collisionTransform:GetOrigin():GetX()
-        me:y = collisionTransform:GetOrigin():GetY()
-        me:z = collisionTransform:GetOrigin():GetZ()
+        me:x = drawnTransform:GetOrigin():GetX()
+        me:y = drawnTransform:GetOrigin():GetY()
+        me:z = drawnTransform:GetOrigin():GetZ()
 
         SetOffset(offsetX, offsetY, offsetZ)
 

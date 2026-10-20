@@ -386,8 +386,10 @@ chassis from the layer also removes the vehicle.*/
 */
     private action UpdateWheel(integer wheelIndex, number timeStep)
         Suspension wheel = Get(wheelIndex)
+        // The physics position, not where the chassis is drawn (GetX, GetY
+        // and GetZ), which is between the last two steps.
         Vector3 chassisPos
-        chassisPos:Set(chassis:GetX(), chassis:GetY(), chassis:GetZ())
+        chassisPos:Set(chassis:GetCenterOfMassTransform():GetOrigin())
 
         // Get chassis rotation and apply it to the connection point offset
         Matrix3 chassisRotation = chassis:GetCenterOfMassTransform():GetBasis()
@@ -553,10 +555,22 @@ chassis from the layer also removes the vehicle.*/
             return now
         end
 
+        // The wheel follows the chassis where it is drawn, between the last
+        // two physics steps, so the two move together on screen. Its place
+        // on the chassis comes from the last step's suspension length.
+        PhysicsPosition3D drawnChassis = chassis:GetDrawnTransform()
+        Matrix3 drawnBasis = drawnChassis:GetBasis()
+        Vector3 direction
+        direction:Set(wheel:GetDirection())
+        TransformByChassisBasis(direction, drawnBasis)
+        direction:Normalize()
+        direction:Scale(wheel:GetSuspensionLength())
+
         Vector3 wheelPosition
-        wheelPosition:Set(wheel:GetDirectionWorldSpace())
-        wheelPosition:Scale(wheel:GetSuspensionLength())
-        wheelPosition:Add(wheel:GetSuspensionOriginWorldSpace())
+        wheelPosition:Set(wheel:GetConnectionPoint())
+        TransformByChassisBasis(wheelPosition, drawnBasis)
+        wheelPosition:Add(drawnChassis:GetOrigin())
+        wheelPosition:Add(direction)
 
         // Safety check: don't set wheel to invalid positions
         if wheelPosition:GetY() <= -1000 or wheelPosition:GetY() >= 1000
@@ -587,7 +601,7 @@ chassis from the layer also removes the vehicle.*/
         Matrix3 localRotation
         MultiplyRotations(steeringRotation, spinRotation, localRotation)
         Matrix3 wheelBasis
-        MultiplyRotations(chassis:GetCenterOfMassTransform():GetBasis(), localRotation, wheelBasis)
+        MultiplyRotations(drawnBasis, localRotation, wheelBasis)
 
         Matrix4 visualRotation
         ToVisualRotation(wheelBasis, wheel:GetVisualRestRotation(), visualRotation)

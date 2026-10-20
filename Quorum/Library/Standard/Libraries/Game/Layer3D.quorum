@@ -3033,7 +3033,10 @@ Painter3D painter = GetPainter()
                 numSimulationSubsteps = cast(integer, localTime / fixedTimeStep)
                 localTime = localTime - (numSimulationSubsteps * fixedTimeStep)
             else
-                //Local time is too small. We do not need to do a physics step yet.
+                //Local time is too small. We do not need to do a physics step yet. The
+                //awake items are still drawn further along between the last two steps
+                //(see SetScreenPositionsFromPhysicsPositions). Forces are kept for the
+                //next step, so nothing the game applied is lost.
                 return now
             end
         else
@@ -3060,15 +3063,11 @@ Painter3D painter = GetPainter()
                 collisionManager:Collide()
                 SolvePhysics(fixedTimeStep)
                 UpdatePhysicsBehaviors(fixedTimeStep)
-                SynchronizeTransforms()
                 i = i + 1
             end
-        else
-            //On a frame too short to make up one fixed step nothing is integrated, so there
-            //are no new contacts to find. The transforms are still synchronized so that
-            //rendering interpolates across the leftover time.
-            SynchronizeTransforms()
         end
+        //Where each awake item is drawn, between its last two steps, is worked out
+        //once a frame, after the steps, in SetScreenPositionsFromPhysicsPositions.
 
         if automaticallyClearForces
             ClearForces()
@@ -3293,49 +3292,72 @@ they were added. Behaviors must not be added or removed during this loop.*/
         collisionManager:FindNewCollisions()
     end
 
+    /*
+    This action works out where each awake body is drawn, between its last
+    two physics steps. SetScreenPositionsFromPhysicsPositions does this for
+    every awake body once a frame, so this is only needed by code that wants
+    the drawn transforms brought up to date at another time.
+    */
     action SynchronizeTransforms
-        PhysicsPosition3D predictedTransform
-
         RenderTreeNode3D leaf = awakeBodies:GetFirstLeaf()
         repeat while leaf not= undefined
             Item3D body = leaf:GetItem()
             if body:IsPhysicsEnabled() and body:IsResponsive()
-                PhysicsPosition3D curTrans
-                curTrans:Set(body:GetInterpolationWorldTransform())
-                Vector3 linvel
-                linvel:Set(body:GetInterpolatedLinearVelocity())
-                Vector3 angvel
-                angvel:Set(body:GetInterpolatedAngularVelocity())
-                number timestep = localTime * body:GetTimeOfImpact()
-                
-                predictedTransform:GetOrigin():Set(linvel):Scale(timestep):Add(curTrans:GetOrigin())
-                Vector3 axis
-                number fangle = angvel:Length()
-
-                if fangle * timestep > 0.5 * math:pi / 2
-                    fangle = (0.5 * math:pi / 2) / timestep
-                end
-
-                if fangle < 0.001
-                    axis:Set(angvel):Scale(0.5 * timestep - (timestep * timestep * timestep) * (0.020833333333) * fangle * fangle)
-                else
-                    axis:Set(angvel):Scale(math:Sine(0.5 * fangle * timestep) / fangle)
-                end
-                Quaternion dorn
-                dorn:Set(axis:GetX(), axis:GetY(), axis:GetZ(), math:Cosine(fangle * timestep * 0.5))
-                Quaternion orn0
-                orn0:Set(curTrans:GetRotation())
-
-                Quaternion predictedOrn
-                predictedOrn:Set(dorn):Multiply(orn0)
-                predictedOrn:Normalize()
-                predictedTransform:SetRotation(predictedOrn)
-
-                //body:GetCollisionTransform():Set(predictedTransform)
+                UpdateDrawnTransform(body)
             end
-
             leaf = awakeBodies:GetNextLeaf(leaf)
         end
+    end
+
+    // Reused by UpdateDrawnTransform, so no transform is made for each body.
+    PhysicsPosition3D drawnPose
+
+    /*
+    This action works out where a body is drawn and gives it to the body
+    with SetDrawnTransform. It never moves the body in the physics. Like
+    Bullet's default (latency interpolation), the body is drawn the leftover
+    time before its latest step, which is at most one step behind it, so it
+    is never drawn past where the physics has actually been, such as inside
+    the ground. With variable steps (no fixed step), it is drawn where it is.
+
+    Attribute: Parameter body An awake physics body.
+    */
+    private action UpdateDrawnTransform(Item3D body)
+        PhysicsPosition3D curTrans
+        curTrans:Set(body:GetInterpolationWorldTransform())
+        Vector3 linvel
+        linvel:Set(body:GetInterpolatedLinearVelocity())
+        Vector3 angvel
+        angvel:Set(body:GetInterpolatedAngularVelocity())
+        number timestep = 0
+        if maxSubSteps not= 0
+            timestep = localTime - physicsTimeStep
+        end
+        
+        drawnPose:GetOrigin():Set(linvel):Scale(timestep):Add(curTrans:GetOrigin())
+        Vector3 axis
+        number fangle = angvel:Length()
+
+        if fangle * timestep > 0.5 * math:pi / 2
+            fangle = (0.5 * math:pi / 2) / timestep
+        end
+
+        if fangle < 0.001
+            axis:Set(angvel):Scale(0.5 * timestep - (timestep * timestep * timestep) * (0.020833333333) * fangle * fangle)
+        else
+            axis:Set(angvel):Scale(math:Sine(0.5 * fangle * timestep) / fangle)
+        end
+        Quaternion dorn
+        dorn:Set(axis:GetX(), axis:GetY(), axis:GetZ(), math:Cosine(fangle * timestep * 0.5))
+        Quaternion orn0
+        orn0:Set(curTrans:GetRotation())
+
+        Quaternion predictedOrn
+        predictedOrn:Set(dorn):Multiply(orn0)
+        predictedOrn:Normalize()
+        drawnPose:SetRotation(predictedOrn)
+
+        body:SetDrawnTransform(drawnPose)
     end
 
     action ApplyGravity
@@ -3392,6 +3414,9 @@ they were added. Behaviors must not be added or removed during this loop.*/
             // same test IntegrateTransforms uses. Bullet does the same,
             // copying only active bodies.
             if item:IsPhysicsEnabled() and item:IsSimulated() and item:IsResponsive()
+                // Where it is drawn, between its last two physics steps, is
+                // worked out here, once a frame, since only drawing uses it.
+                UpdateDrawnTransform(item)
                 item:SetScreenPositionFromPhysicsPosition()
             end
             leaf = awakeBodies:GetNextLeaf(leaf)

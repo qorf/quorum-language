@@ -7,6 +7,7 @@ use Libraries.Compute.Vector3
 use Libraries.Compute.Ray
 use Libraries.Compute.Math
 use Libraries.Game.GameStateManager
+use Libraries.Interface.Item3D
 
 class Camera 
     
@@ -76,6 +77,22 @@ class Camera
 
     private Vector3 calcVector
     private Math math
+
+    // Following an item (see Follow). Distances are in world units.
+    private Item3D followItem = undefined
+    private number distanceBehind = 10
+    private number distanceAbove = 4
+    private number followAngle = 0
+    private number aimHeight = 0
+    private boolean followTurning = true
+    private number followSmoothing = 0
+    // True until the camera has been placed exactly once, so a new follow,
+    // or a jump, doesn't ease in from wherever the camera was.
+    private boolean followJump = true
+    // The item's last level heading, kept for when it points straight up or
+    // down and has none.
+    private number headingX = 0
+    private number headingZ = 1
 
     on create
         // The world is left-handed, so a camera that has not been aimed looks
@@ -1801,5 +1818,310 @@ class Camera
 
         up:Set(direction):CrossProduct(calcVector):Normalize()
         up:Rotate(direction, -roll)
+    end
+
+    /*
+    The Follow action makes the camera chase an item. Every frame, after the
+    physics has run and every item is where it will be drawn, the camera
+    places itself behind and above the item and aims at it. Behind means
+    opposite the way the item faces, its local z axis, and only the level
+    part of that direction is used, so the camera doesn't tip as the item
+    climbs a hill. The distances are the defaults, 10 behind and 4 above,
+    unless they have been set with SetDistanceBehind and SetDistanceAbove.
+
+    While the camera follows, it places itself every frame, so positions set
+    with SetPosition or LookAt are replaced. Use StopFollowing to place the
+    camera yourself again.
+
+    Attribute: Parameter item The item to follow.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Model
+        use Libraries.Game.Graphics.Color
+
+        class Main is Game
+            Model box
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Color color
+                box:LoadBox(1, 1, 1, color:Red())
+                Add(box)
+                GetCamera3D():Follow(box)
+            end
+
+            action Update(number seconds)
+                box:Move(0, 0, 2 * seconds)
+            end
+        end
+    */
+    action Follow(Item3D item)
+        followItem = item
+        followJump = true
+    end
+
+    /*
+    This action makes the camera chase an item, as Follow(Item3D) does, at
+    the given distance behind it and height above it.
+
+    Attribute: Parameter item The item to follow.
+    Attribute: Parameter behind How far behind the item the camera stays, in world units. A negative number puts the camera in front.
+    Attribute: Parameter above How far above the item's center the camera stays, in world units. A negative number puts it below.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Model
+        use Libraries.Game.Graphics.Color
+
+        class Main is Game
+            Model car
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Color color
+                car:LoadBox(2, 1, 4, color:Blue())
+                Add(car)
+                // 12 units behind the car and 5 above it.
+                GetCamera3D():Follow(car, 12, 5)
+            end
+        end
+    */
+    action Follow(Item3D item, number behind, number above)
+        distanceBehind = behind
+        distanceAbove = above
+        Follow(item)
+    end
+
+    /*
+    This action stops the camera following its item. It stays where it is,
+    and can be placed by hand again.
+    */
+    action StopFollowing
+        followItem = undefined
+    end
+
+    /*
+    This action returns whether the camera is following an item.
+
+    Attribute: Returns True if the camera is following an item.
+    */
+    action IsFollowing returns boolean
+        return followItem not= undefined
+    end
+
+    /*
+    This action returns the item the camera follows, or undefined if it
+    doesn't follow one.
+
+    Attribute: Returns The item being followed.
+    */
+    action GetFollowItem returns Item3D
+        return followItem
+    end
+
+    /*
+    This action sets how far behind its item a following camera stays, in
+    world units. A negative number puts the camera in front of the item.
+
+    Attribute: Parameter distance The distance behind the item.
+    */
+    action SetDistanceBehind(number distance)
+        distanceBehind = distance
+    end
+
+    /*
+    This action returns how far behind its item a following camera stays.
+
+    Attribute: Returns The distance behind the item, in world units.
+    */
+    action GetDistanceBehind returns number
+        return distanceBehind
+    end
+
+    /*
+    This action sets how far above its item's center a following camera
+    stays, in world units. A negative number puts the camera below it.
+
+    Attribute: Parameter distance The height above the item.
+    */
+    action SetDistanceAbove(number distance)
+        distanceAbove = distance
+    end
+
+    /*
+    This action returns how far above its item's center a following camera
+    stays.
+
+    Attribute: Returns The height above the item, in world units.
+    */
+    action GetDistanceAbove returns number
+        return distanceAbove
+    end
+
+    /*
+    This action turns a following camera around its item, in degrees. At 0
+    the camera is behind the item, at 90 it is to one side, and at 180 it is
+    in front, looking back at it. This also suits a model that was built
+    facing a different way.
+
+    Attribute: Parameter degrees The angle around the item.
+    */
+    action SetFollowAngle(number degrees)
+        followAngle = degrees
+    end
+
+    /*
+    This action returns the angle, in degrees, a following camera is turned
+    around its item. 0 is behind it.
+
+    Attribute: Returns The angle around the item.
+    */
+    action GetFollowAngle returns number
+        return followAngle
+    end
+
+    /*
+    This action sets how far above its item's center a following camera
+    aims, in world units, for example at a character's head rather than its
+    middle. 0 aims at the center.
+
+    Attribute: Parameter height The height of the point the camera aims at.
+    */
+    action SetAimHeight(number height)
+        aimHeight = height
+    end
+
+    /*
+    This action returns how far above its item's center a following camera
+    aims.
+
+    Attribute: Returns The height of the point the camera aims at, in world units.
+    */
+    action GetAimHeight returns number
+        return aimHeight
+    end
+
+    /*
+    This action sets whether a following camera turns with its item. When
+    true, the camera stays behind the item as it turns, like a chase camera.
+    When false, it keeps one direction in the world, which suits a side-on
+    or top-down view.
+
+    Attribute: Parameter turning True to turn with the item.
+    */
+    action SetFollowTurning(boolean turning)
+        followTurning = turning
+    end
+
+    /*
+    This action returns whether a following camera turns with its item.
+
+    Attribute: Returns True if the camera turns with the item.
+    */
+    action IsFollowTurning returns boolean
+        return followTurning
+    end
+
+    /*
+    This action sets how long a following camera takes to catch up with its
+    item, in seconds. At 0 the camera stays exactly in place behind the item.
+    Larger numbers let it ease after the item, like a camera operator: after
+    this many seconds it has closed most of the gap. Values from 0.2 to 0.5
+    work well. It behaves the same at any frame rate.
+
+    Attribute: Parameter seconds How long the camera takes to catch up.
+    */
+    action SetFollowSmoothing(number seconds)
+        followSmoothing = seconds
+    end
+
+    /*
+    This action returns how long a following camera takes to catch up with
+    its item, in seconds.
+
+    Attribute: Returns How long the camera takes to catch up.
+    */
+    action GetFollowSmoothing returns number
+        return followSmoothing
+    end
+
+    /*
+    This action places a following camera exactly behind its item on the
+    next frame, without easing there. Use it after moving the item somewhere
+    new at once, such as when a player respawns, so the camera doesn't sweep
+    across the world to catch up.
+    */
+    action JumpToFollowPosition
+        followJump = true
+    end
+
+    /*
+    This action places a following camera behind and above its item and aims
+    it. The game calls it once a frame, after the physics, when every item
+    is where it will be drawn. Most users never need to call it.
+
+    Attribute: Parameter seconds The time since the last frame, in seconds.
+    */
+    action UpdateFollow(number seconds)
+        if followItem = undefined
+            return now
+        end
+
+        number targetX = followItem:GetGlobalX()
+        number targetY = followItem:GetGlobalY()
+        number targetZ = followItem:GetGlobalZ()
+
+        // The level part of the way the item faces (its local z axis). For
+        // a physics item this is its drawn rotation, which moves smoothly.
+        if followTurning
+            Matrix4 rotation = followItem:GetRotationTransform()
+            number forwardX = rotation:row0column2
+            number forwardZ = rotation:row2column2
+            number flat = math:SquareRoot(forwardX * forwardX + forwardZ * forwardZ)
+            if flat > 0.0001
+                headingX = forwardX / flat
+                headingZ = forwardZ / flat
+            end
+        else
+            headingX = 0
+            headingZ = 1
+        end
+
+        // Turn the heading about the vertical axis by the follow angle.
+        number radians = math:DegreesToRadians(followAngle)
+        number cosine = math:Cosine(radians)
+        number sine = math:Sine(radians)
+        number faceX = headingX * cosine - headingZ * sine
+        number faceZ = headingX * sine + headingZ * cosine
+
+        number wantX = targetX - faceX * distanceBehind
+        number wantY = targetY + distanceAbove
+        number wantZ = targetZ - faceZ * distanceBehind
+
+        if followJump or followSmoothing <= 0
+            SetPosition(wantX, wantY, wantZ)
+            followJump = false
+        else
+            // Close the same share of the gap each second at any frame rate:
+            // after followSmoothing seconds, about 63% of it.
+            number blend = 1 - math:RaiseToPower(math:e, -seconds / followSmoothing)
+            Vector3 current = GetPosition()
+            SetPosition(current:GetX() + (wantX - current:GetX()) * blend,
+                current:GetY() + (wantY - current:GetY()) * blend,
+                current:GetZ() + (wantZ - current:GetZ()) * blend)
+        end
+
+        // Up first, so no roll builds up over time.
+        SetUp(0, 1, 0)
+        LookAt(targetX, targetY + aimHeight, targetZ)
     end
 end
