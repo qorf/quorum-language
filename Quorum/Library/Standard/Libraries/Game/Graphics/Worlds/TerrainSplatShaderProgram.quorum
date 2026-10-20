@@ -1,0 +1,96 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.DefaultShaderMapping3DVulkan
+
+/*
+TerrainSplatShaderProgram draws terrain with texture splatting. It uses the
+default 3D vertex shader, the TerrainSplatFragmentShader, and the default
+3D shader mapping, so it fits anywhere the default 3D program does.
+
+Compile it with InstallAsProgram and give it to the terrain's models with
+SetShaderProgram (WorldTerrain's SetSplatProgram does this). Only those
+models are then drawn with it.
+
+InstallAsDefault is the older prototype: it compiles the program under the
+default 3D program's name, so every model is drawn with it, and its
+fragment shader draws models that aren't terrain as the default shader
+would. It is kept for now as a fallback, for painters that ignore
+SetShaderProgram.
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Game.Graphics.Worlds.TerrainSplatShaderProgram
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        TerrainSplatShaderProgram program
+        program:InstallAsProgram(4)
+    end
+end
+*/
+class TerrainSplatShaderProgram is ShaderProgram
+    TerrainSplatFragmentShader splatFragment
+
+    /*
+    This action compiles the program under the default 3D program's name,
+    so the painter draws every 3D model with it. It must be called before the
+    first frame is drawn, such as in CreateGame, since the painter keeps the
+    default program it finds first.
+
+    Attribute: Parameter layerRepeat How many world units one tile of each ground texture covers.
+    Attribute: Returns True if the program is now the default 3D program.
+    */
+    action InstallAsDefault(number layerRepeat) returns boolean
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
+        SetUp(manager:DEFAULT_3D_SHADER_PROGRAM, layerRepeat)
+        Compile()
+        ShaderProgram installed = me
+        return manager:GetShaderProgram(manager:DEFAULT_3D_SHADER_PROGRAM) = installed
+    end
+
+    /*
+    This action compiles the program under its own name, for giving to
+    models with SetShaderProgram once the painter honors it.
+
+    Attribute: Parameter layerRepeat How many world units one tile of each ground texture covers.
+    */
+    action InstallAsProgram(number layerRepeat)
+        SetUp("Terrain Splat Shader Program", layerRepeat)
+        Compile()
+    end
+
+    /*
+    This action returns the program's fragment shader.
+
+    Attribute: Returns The splat fragment shader.
+    */
+    action GetSplatFragmentShader returns TerrainSplatFragmentShader
+        return splatFragment
+    end
+
+    /*
+    This action names the program and gives it its shaders and mapping, the
+    same way DefaultShaderProgram3D does.
+
+    Attribute: Parameter programName The name to register the program under.
+    Attribute: Parameter layerRepeat How many world units one tile of each ground texture covers.
+    */
+    private action SetUp(text programName, number layerRepeat)
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
+        SetName(programName)
+        splatFragment:SetLayerRepeat(layerRepeat)
+        Add(manager:GetDefaultVertexShader3D())
+        Add(splatFragment)
+        DefaultShaderMapping3DVulkan mapping
+        SetShaderMapping(mapping)
+    end
+end

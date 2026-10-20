@@ -1,5 +1,6 @@
 package Libraries.Interface.Behaviors.Scenes.Palette
 
+use Libraries.Interface.Controls.Scenes.Blueprints.TerrainBlueprint
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.DragAndDropEvent
 use Libraries.Interface.Item
@@ -78,6 +79,15 @@ end
                 
                 currentPreview:SetX(hitX)
                 currentPreview:SetZ(hitZ)
+            end
+        elseif schematic is TerrainBlueprint
+            // A terrain has no preview to move around: its icon follows the
+            // pointer, and dropping it adds the terrain, flat, at the origin.
+            if dropEvent:eventType = dropEvent:DROPPED
+                if palette:GetDraggedItem() not= undefined
+                    palette:GetDraggedItem():Show()
+                end
+                editor:AddTerrain(cast(TerrainBlueprint, schematic))
             end
         elseif dropEvent:eventType = dropEvent:DRAGGED_OFF_DESTINATION
             if editor:GetSelectedLayer() is EditorLayer3D

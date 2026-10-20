@@ -1,0 +1,1743 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Containers.Array
+use Libraries.Containers.Integer32BitArray
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Iterator
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Compute.Math
+use Libraries.Compute.Vector3
+use Libraries.Compute.BitwiseOperations
+use Libraries.Compute.Noise.NoiseGenerator
+use Libraries.Game.Graphics.PixelMap
+use Libraries.System.File
+use Libraries.System.FileWriter
+
+/*
+TerrainData holds all of the heights for a terrain. The heights are split
+into square regions, each a TerrainRegion, laid side by side like tiles. Only
+the regions that are added use any memory, so a world can have land in a few
+places and nothing in between.
+
+Heights are found in two ways:
+1. By sample. A sample is one point on the ground's grid, numbered across (x)
+   and deep (z) from the world's origin. Sample (0, 0) is at the origin, and
+   samples run into negative numbers on the other side. TerrainData works out
+   which region holds a sample.
+2. By world position. The vertex spacing says how far apart the samples are,
+   so a world position is turned into the sample at or just below it.
+
+Every change to a height is recorded in the edited area, a rectangle of
+samples that covers everything changed since the area was last cleared. A
+terrain uses it to rebuild only the parts of its mesh that changed.
+
+The regions sit in a grid of 32 by 32 locations, from -16 to 15 along each
+axis, so the region at location (0, 0) starts at the origin. With the default
+region size of 256, the world can be up to 8192 samples across.
+
+This class is modeled on Terrain3DData from Terrain3D, which uses the same
+grid of regions, the same default region size, and the same idea of an edited
+area.
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.TerrainData
+
+TerrainData data
+data:AddRegion(0, 0)
+data:SetHeight(10.5, 20.25, 3)
+output data:GetHeight(10.5, 20.25)
+*/
+class TerrainData
+    // The number of region locations along each side of the grid of regions.
+    // Locations run from -16 to 15.
+    integer regionMapSize = 32
+
+    // How many samples run along each side of every region.
+    integer regionSize = 256
+
+    // How far apart the samples are, in world units, along x and z.
+    number vertexSpacing = 1
+
+    // Every region location, one row after another. A location with no
+    // region holds undefined.
+    Array<TerrainRegion> regionMap
+
+    // The regions that have been added, in the order they were added.
+    Array<TerrainRegion> regions
+
+    // Which region locations are saved in the folder the terrain was last
+    // saved to or loaded from: 1 if saved, 0 if not, in the same order as
+    // the region map. And that folder's path, so saving to a different
+    // folder starts a fresh list.
+    Integer32BitArray savedMap
+    Number32BitArray savedLowest
+    Number32BitArray savedHighest
+    text savedFolderPath = ""
+
+    // The rectangle of samples whose splat weights changed since the splat
+    // edited area was last cleared. Splat changes don't change the ground's
+    // shape, so they are kept apart from the edited area.
+    boolean hasSplatEditedArea = false
+    integer splatMinimumX = 0
+    integer splatMinimumZ = 0
+    integer splatMaximumX = 0
+    integer splatMaximumZ = 0
+
+    // The rectangle of samples changed since the edited area was last cleared.
+    boolean hasEditedArea = false
+    integer editedMinimumX = 0
+    integer editedMinimumZ = 0
+    integer editedMaximumX = 0
+    integer editedMaximumZ = 0
+
+    Math math
+    BitwiseOperations bits
+
+    on create
+        regionMap:SetSize(regionMapSize * regionMapSize)
+        savedMap:SetSize(regionMapSize * regionMapSize)
+        savedLowest:SetSize(regionMapSize * regionMapSize)
+        savedHighest:SetSize(regionMapSize * regionMapSize)
+    end
+
+    /*
+    This action sets how many samples run along each side of every region.
+    It can only be changed while there are no regions. The size must be 64,
+    128, 256, 512, 1024 or 2048, the sizes Terrain3D allows. The default is
+    256.
+
+    Attribute: Parameter size The number of samples along each side of a region.
+    */
+    action SetRegionSize(integer size)
+        if regions:GetSize() > 0
+            alert("The region size can only be changed before any regions are added.")
+        end
+        if size not= 64 and size not= 128 and size not= 256 and size not= 512 and size not= 1024 and size not= 2048
+            alert("The region size must be 64, 128, 256, 512, 1024 or 2048, but was given " + size + ".")
+        end
+        regionSize = size
+    end
+
+    /*
+    This action returns how many samples run along each side of every region.
+
+    Attribute: Returns The number of samples along each side of a region.
+    */
+    action GetRegionSize returns integer
+        return regionSize
+    end
+
+    /*
+    This action sets how far apart the samples are, in world units, along x
+    and z. The default is 1. A larger spacing spreads the same samples over
+    more ground.
+
+    Attribute: Parameter spacing The distance between neighboring samples. It must be more than 0.
+    */
+    action SetVertexSpacing(number spacing)
+        if spacing <= 0
+            alert("The vertex spacing must be more than 0, but was given " + spacing + ".")
+        end
+        vertexSpacing = spacing
+    end
+
+    /*
+    This action returns how far apart the samples are, in world units.
+
+    Attribute: Returns The distance between neighboring samples.
+    */
+    action GetVertexSpacing returns number
+        return vertexSpacing
+    end
+
+    /*
+    This action returns the number of regions that have been added.
+
+    Attribute: Returns The number of regions.
+    */
+    action GetRegionCount returns integer
+        return regions:GetSize()
+    end
+
+    /*
+    This action returns one of the regions that have been added, in the order
+    they were added.
+
+    Attribute: Parameter index Which region, from 0 to one less than GetRegionCount.
+    Attribute: Returns The region.
+    */
+    action GetRegionAtIndex(integer index) returns TerrainRegion
+        return regions:Get(index)
+    end
+
+    /*
+    This action returns true if a location is inside the grid of regions,
+    from -16 to 15 along each axis.
+
+    Attribute: Parameter locationX The region location along x.
+    Attribute: Parameter locationZ The region location along z.
+    Attribute: Returns True if the location is inside the grid.
+    */
+    action IsInRegionMap(integer locationX, integer locationZ) returns boolean
+        integer half = regionMapSize / 2
+        return locationX >= -half and locationX < half and locationZ >= -half and locationZ < half
+    end
+
+    /*
+    This action returns true if there is a region at a location.
+
+    Attribute: Parameter locationX The region location along x.
+    Attribute: Parameter locationZ The region location along z.
+    Attribute: Returns True if a region has been added there.
+    */
+    action HasRegion(integer locationX, integer locationZ) returns boolean
+        return GetRegion(locationX, locationZ) not= undefined
+    end
+
+    /*
+    This action returns the region at a location.
+
+    Attribute: Parameter locationX The region location along x.
+    Attribute: Parameter locationZ The region location along z.
+    Attribute: Returns The region, or undefined if there is none there.
+    */
+    action GetRegion(integer locationX, integer locationZ) returns TerrainRegion
+        if not IsInRegionMap(locationX, locationZ)
+            return undefined
+        end
+        return regionMap:Get(GetRegionMapIndex(locationX, locationZ))
+    end
+
+    /*
+    This action adds a flat region, with every height 0, at a location. The
+    whole region is added to the edited area.
+
+    Attribute: Parameter locationX The region location along x, from -16 to 15.
+    Attribute: Parameter locationZ The region location along z, from -16 to 15.
+    Attribute: Returns The new region.
+    */
+    action AddRegion(integer locationX, integer locationZ) returns TerrainRegion
+        if not IsInRegionMap(locationX, locationZ)
+            alert("The region location (" + locationX + ", " + locationZ + ") is outside the grid of regions, which runs from " +
+                -(regionMapSize / 2) + " to " + (regionMapSize / 2 - 1) + ".")
+        end
+        if HasRegion(locationX, locationZ)
+            alert("There is already a region at (" + locationX + ", " + locationZ + ").")
+        end
+
+        TerrainRegion region = AddRegionQuietly(locationX, locationZ)
+        AddRegionToEditedArea(locationX, locationZ)
+        return region
+    end
+
+    /*
+    This action removes the region at a location, if there is one. The space
+    it covered is added to the edited area.
+
+    Attribute: Parameter locationX The region location along x.
+    Attribute: Parameter locationZ The region location along z.
+    */
+    action RemoveRegion(integer locationX, integer locationZ)
+        TerrainRegion region = GetRegion(locationX, locationZ)
+        if region = undefined
+            return now
+        end
+        UnloadRegion(locationX, locationZ)
+        AddRegionToEditedArea(locationX, locationZ)
+    end
+
+    /*
+    This action puts a region location back the way a copy says it was, for
+    undo and redo. If the copy is undefined, there was no region there, so
+    any region there now is removed. Otherwise the region there is made the
+    same as the copy, and one is added first if there isn't one. Either way,
+    the whole region is added to the edited area and the splat edited area,
+    and the region is marked as modified, since it no longer matches what
+    was saved.
+
+    Attribute: Parameter locationX The region location along x.
+    Attribute: Parameter locationZ The region location along z.
+    Attribute: Parameter copy A copy of the region from TerrainRegion's Copy, or undefined for no region.
+    */
+    action RestoreRegion(integer locationX, integer locationZ, TerrainRegion copy)
+        if copy = undefined
+            RemoveRegion(locationX, locationZ)
+        else
+            TerrainRegion region = GetRegion(locationX, locationZ)
+            if region = undefined
+                region = AddRegionQuietly(locationX, locationZ)
+            end
+            region:CopyFrom(copy)
+            region:SetModified(true)
+            AddRegionToEditedArea(locationX, locationZ)
+        end
+        integer firstX = locationX * regionSize
+        integer firstZ = locationZ * regionSize
+        AddToSplatEditedArea(firstX, firstZ, firstX + regionSize - 1, firstZ + regionSize - 1)
+    end
+
+    /*
+    This action returns the sample at or just below a world position along x.
+
+    Attribute: Parameter worldX A position along the x axis, in world units.
+    Attribute: Returns The sample's number along x.
+    */
+    action GetSampleX(number worldX) returns integer
+        return cast(integer, math:Floor(worldX / vertexSpacing))
+    end
+
+    /*
+    This action returns the sample at or just below a world position along z.
+
+    Attribute: Parameter worldZ A position along the z axis, in world units.
+    Attribute: Returns The sample's number along z.
+    */
+    action GetSampleZ(number worldZ) returns integer
+        return cast(integer, math:Floor(worldZ / vertexSpacing))
+    end
+
+    /*
+    This action returns which region location holds a sample, along one axis.
+    It works the same way along x and z. Samples below 0 belong to regions
+    below 0, so sample -1 is in region -1, not region 0.
+
+    Attribute: Parameter sample A sample's number along one axis.
+    Attribute: Returns The region location along that axis.
+    */
+    action GetRegionLocation(integer sample) returns integer
+        return cast(integer, math:Floor(cast(number, sample) / regionSize))
+    end
+
+    /*
+    This action returns true if there is a region holding a sample.
+
+    Attribute: Parameter x The sample's number along x.
+    Attribute: Parameter z The sample's number along z.
+    Attribute: Returns True if the sample has a height.
+    */
+    action HasSample(integer x, integer z) returns boolean
+        return HasRegion(GetRegionLocation(x), GetRegionLocation(z))
+    end
+
+    /*
+    This action returns the height of a sample.
+
+    Attribute: Parameter x The sample's number along x.
+    Attribute: Parameter z The sample's number along z.
+    Attribute: Returns The height in world units, or 0 if no region holds the sample.
+    */
+    action GetSampleHeight(integer x, integer z) returns number
+        integer locationX = GetRegionLocation(x)
+        integer locationZ = GetRegionLocation(z)
+        TerrainRegion region = GetRegion(locationX, locationZ)
+        if region = undefined
+            return 0
+        end
+        return region:GetHeight(x - locationX * regionSize, z - locationZ * regionSize)
+    end
+
+    /*
+    This action sets the height of a sample, and adds the sample to the
+    edited area. If no region holds the sample, nothing changes.
+
+    Attribute: Parameter x The sample's number along x.
+    Attribute: Parameter z The sample's number along z.
+    Attribute: Parameter height The new height, in world units.
+    */
+    action SetSampleHeight(integer x, integer z, number height)
+        integer locationX = GetRegionLocation(x)
+        integer locationZ = GetRegionLocation(z)
+        TerrainRegion region = GetRegion(locationX, locationZ)
+        if region = undefined
+            return now
+        end
+        region:SetHeight(x - locationX * regionSize, z - locationZ * regionSize, height)
+        AddToEditedArea(x, z, x, z)
+    end
+
+    /*
+    This action returns true if there is a region under a world position.
+
+    Attribute: Parameter worldX A position along the x axis, in world units.
+    Attribute: Parameter worldZ A position along the z axis, in world units.
+    Attribute: Returns True if the ground has a height there.
+    */
+    action HasHeight(number worldX, number worldZ) returns boolean
+        return HasSample(GetSampleX(worldX), GetSampleZ(worldZ))
+    end
+
+    /*
+    This action returns the height of the sample at or just below a world
+    position. It does not blend between samples.
+
+    Attribute: Parameter worldX A position along the x axis, in world units.
+    Attribute: Parameter worldZ A position along the z axis, in world units.
+    Attribute: Returns The height in world units, or 0 if there is no region there.
+    */
+    action GetHeight(number worldX, number worldZ) returns number
+        return GetSampleHeight(GetSampleX(worldX), GetSampleZ(worldZ))
+    end
+
+    /*
+    This action sets the height of the sample at or just below a world
+    position. If there is no region there, nothing changes.
+
+    Attribute: Parameter worldX A position along the x axis, in world units.
+    Attribute: Parameter worldZ A position along the z axis, in world units.
+    Attribute: Parameter height The new height, in world units.
+    */
+    action SetHeight(number worldX, number worldZ, number height)
+        SetSampleHeight(GetSampleX(worldX), GetSampleZ(worldZ), height)
+    end
+
+    /*
+    This action returns the height of the ground at a world position, between
+    the samples. It follows the same two triangles per grid cell that the
+    terrain's mesh and collision shape use, so the answer is on the ground as
+    it is drawn and as the physics sees it.
+
+    Each cell runs from one sample to the next along x and z. Its left
+    triangle has the corners at the cell's own sample, the next sample along
+    x, and the next sample along z. Its right triangle has the other three
+    corners. Terrain3D's GetSurfaceHeight blends all four corners instead,
+    which can differ slightly from the drawn triangles.
+
+    Past the last sample of the world, where a corner has no region, that
+    corner is treated as the same height as the cell's own sample.
+
+    Attribute: Parameter worldX A position along the x axis, in world units.
+    Attribute: Parameter worldZ A position along the z axis, in world units.
+    Attribute: Returns The height in world units, or 0 if there is no region there.
+    */
+    action GetSurfaceHeight(number worldX, number worldZ) returns number
+        number gridX = worldX / vertexSpacing
+        number gridZ = worldZ / vertexSpacing
+        integer x = cast(integer, math:Floor(gridX))
+        integer z = cast(integer, math:Floor(gridZ))
+        if not HasSample(x, z)
+            return 0
+        end
+
+        // How far across the cell the position is, from 0 to 1.
+        number fractionX = gridX - x
+        number fractionZ = gridZ - z
+
+        number topLeft = GetSampleHeight(x, z)
+        number topRight = GetSampleHeightOr(x + 1, z, topLeft)
+        number bottomLeft = GetSampleHeightOr(x, z + 1, topLeft)
+        if fractionX + fractionZ <= 1
+            return topLeft + fractionX * (topRight - topLeft) + fractionZ * (bottomLeft - topLeft)
+        end
+
+        number bottomRight = GetSampleHeightOr(x + 1, z + 1, topLeft)
+        return bottomRight + (1 - fractionX) * (bottomLeft - bottomRight) + (1 - fractionZ) * (topRight - bottomRight)
+    end
+
+    /*
+    This action returns which way the ground faces at a world position, as a
+    vector one unit long. Flat ground faces straight up, (0, 1, 0). Like
+    Terrain3D, it compares the height here with the height one sample further
+    along x and one sample further along z.
+
+    Attribute: Parameter worldX A position along the x axis, in world units.
+    Attribute: Parameter worldZ A position along the z axis, in world units.
+    Attribute: Returns A new vector pointing away from the ground, or straight up if there is no region there.
+    */
+    action GetNormal(number worldX, number worldZ) returns Vector3
+        Vector3 normal
+        if not HasHeight(worldX, worldZ)
+            normal:Set(0, 1, 0)
+            return normal
+        end
+
+        number height = GetSurfaceHeight(worldX, worldZ)
+        number heightAlongX = GetSurfaceHeight(worldX + vertexSpacing, worldZ)
+        number heightAlongZ = GetSurfaceHeight(worldX, worldZ + vertexSpacing)
+        normal:Set(height - heightAlongX, vertexSpacing, height - heightAlongZ)
+        normal:Normalize()
+        return normal
+    end
+
+    /*
+    This action returns true if the ground at a world position is as steep
+    as the smallest angle or steeper, and no steeper than the largest angle.
+    Angles are measured in degrees from flat, so 0 is flat ground and 90 is
+    a wall. This is the same test Terrain3D uses to keep painting or
+    placing things to slopes within a range.
+
+    Attribute: Parameter worldX A position along the x axis, in world units.
+    Attribute: Parameter worldZ A position along the z axis, in world units.
+    Attribute: Parameter minimumDegrees The smallest slope allowed, from 0 to 90.
+    Attribute: Parameter maximumDegrees The largest slope allowed, from 0 to 90.
+    Attribute: Returns True if the slope is in the range, or false if there is no region there.
+    */
+    action IsInSlope(number worldX, number worldZ, number minimumDegrees, number maximumDegrees) returns boolean
+        if not HasHeight(worldX, worldZ)
+            return false
+        end
+        number lowest = math:Clamp(minimumDegrees, 0, 90)
+        number highest = math:Clamp(maximumDegrees, 0, 90)
+        if highest - lowest > 89.99
+            return true
+        end
+
+        number slope = GetSlope(worldX, worldZ)
+        return lowest <= slope and slope <= highest
+    end
+
+    /*
+    This action returns how steep the ground is at a world position, in
+    degrees from flat. 0 is flat ground and 90 is a wall.
+
+    Attribute: Parameter worldX A position along the x axis, in world units.
+    Attribute: Parameter worldZ A position along the z axis, in world units.
+    Attribute: Returns The slope in degrees, or 0 if there is no region there.
+    */
+    action GetSlope(number worldX, number worldZ) returns number
+        Vector3 normal = GetNormal(worldX, worldZ)
+        // The normal is one unit long, so its y is the cosine of the angle
+        // between it and straight up.
+        number upness = math:Clamp(normal:GetY(), -1, 1)
+        return math:RadiansToDegrees(math:InverseCosine(upness))
+    end
+
+    /*
+    This action changes the heights in a circle around a world position. The
+    center changes by the full amount, and the change fades smoothly to
+    nothing at the edge of the circle. A negative amount lowers the ground.
+    Samples with no region are left alone. This is a simple tool for trying
+    out editing; brushes like Terrain3D's will replace it.
+
+    Attribute: Parameter worldX The circle's center along x, in world units.
+    Attribute: Parameter worldZ The circle's center along z, in world units.
+    Attribute: Parameter radius The circle's radius, in world units.
+    Attribute: Parameter amount How much to raise the center, in world units.
+    */
+    action RaiseArea(number worldX, number worldZ, number radius, number amount)
+        if radius <= 0
+            return now
+        end
+        integer firstX = GetSampleX(worldX - radius)
+        integer lastX = GetSampleX(worldX + radius) + 1
+        integer firstZ = GetSampleZ(worldZ - radius)
+        integer lastZ = GetSampleZ(worldZ + radius) + 1
+
+        integer z = firstZ
+        repeat while z <= lastZ
+            integer x = firstX
+            repeat while x <= lastX
+                number dx = x * vertexSpacing - worldX
+                number dz = z * vertexSpacing - worldZ
+                number distance = math:SquareRoot(dx * dx + dz * dz)
+                if distance < radius and HasSample(x, z)
+                    // A smooth curve from 1 at the center to 0 at the edge.
+                    number t = distance / radius
+                    number weight = 1 - t * t * (3 - 2 * t)
+                    SetSampleHeight(x, z, GetSampleHeight(x, z) + amount * weight)
+                end
+                x = x + 1
+            end
+            z = z + 1
+        end
+    end
+
+    /*
+    This action finds where a ray first meets the ground, for picking a point
+    on the terrain with the mouse. It walks along the ray half a sample at a
+    time, only over the part of the ray between the terrain's lowest and
+    highest heights, and once it passes from above the ground to below it,
+    it narrows down the crossing. The ground is the same surface
+    GetSurfaceHeight gives, made of the same triangles as the mesh. Places
+    with no region are skipped, so the ray can pass over a gap and hit
+    ground beyond it. It needs no physics or collision.
+
+    A ray that starts below the ground only finds a place where it comes up
+    through the ground and goes back down.
+
+    Attribute: Parameter origin Where the ray starts, in world units.
+    Attribute: Parameter direction The direction of the ray. It need not be of length 1.
+    Attribute: Parameter maximumDistance How far along the ray to look, in world units.
+    Attribute: Returns The point where the ray meets the ground, or undefined if it doesn't within the distance.
+    */
+    action RayCast(Vector3 origin, Vector3 direction, number maximumDistance) returns Vector3
+        if regions:GetSize() = 0
+            return undefined
+        end
+        number length = direction:Length()
+        if length = 0
+            return undefined
+        end
+        number originX = origin:GetX()
+        number originY = origin:GetY()
+        number originZ = origin:GetZ()
+        number directionX = direction:GetX() / length
+        number directionY = direction:GetY() / length
+        number directionZ = direction:GetZ() / length
+
+        // Only the part of the ray between the lowest and highest ground
+        // can meet it.
+        number low = GetLowestHeight() - 1
+        number high = GetHighestHeight() + 1
+        number start = 0
+        number finish = maximumDistance
+        if directionY = 0
+            if originY < low or originY > high
+                return undefined
+            end
+        else
+            number lowDistance = (low - originY) / directionY
+            number highDistance = (high - originY) / directionY
+            start = math:MaximumOf(0, math:MinimumOf(lowDistance, highDistance))
+            finish = math:MinimumOf(finish, math:MaximumOf(lowDistance, highDistance))
+            if start > finish
+                return undefined
+            end
+        end
+
+        number step = vertexSpacing / 2
+        boolean hasPrevious = false
+        number previousDistance = 0
+        number previousAbove = 0
+        number distance = start
+        repeat while distance <= finish
+            number x = originX + directionX * distance
+            number z = originZ + directionZ * distance
+            if HasHeight(x, z)
+                number above = originY + directionY * distance - GetSurfaceHeight(x, z)
+                if hasPrevious and previousAbove > 0 and above <= 0
+                    // The ground is crossed between the last two points.
+                    // Halve the gap until the crossing is found closely.
+                    number nearer = previousDistance
+                    number further = distance
+                    repeat 24 times
+                        number middle = (nearer + further) / 2
+                        number middleX = originX + directionX * middle
+                        number middleZ = originZ + directionZ * middle
+                        boolean middleAbove = true
+                        if HasHeight(middleX, middleZ)
+                            middleAbove = originY + directionY * middle > GetSurfaceHeight(middleX, middleZ)
+                        end
+                        if middleAbove
+                            nearer = middle
+                        else
+                            further = middle
+                        end
+                    end
+                    Vector3 hit
+                    hit:Set(originX + directionX * further, originY + directionY * further, originZ + directionZ * further)
+                    return hit
+                end
+                hasPrevious = true
+                previousDistance = distance
+                previousAbove = above
+            else
+                hasPrevious = false
+            end
+            distance = distance + step
+        end
+        return undefined
+    end
+
+    /*
+    This action packs four splat weights into one number, the way a
+    PixelMap pixel holds red, green, blue and alpha. Each weight is from 0 to
+    1 and says how much of one ground texture to show; they are usually
+    made to add up to 1. Weights outside 0 to 1 are limited to it.
+
+    Attribute: Parameter red The weight of the first texture.
+    Attribute: Parameter green The weight of the second texture.
+    Attribute: Parameter blue The weight of the third texture.
+    Attribute: Parameter alpha The weight of the fourth texture.
+    Attribute: Returns The packed weights.
+    */
+    action PackSplat(number red, number green, number blue, number alpha) returns integer
+        integer code = bits:ShiftLeft(GetSplatByte(red), 24)
+        code = bits:Or(code, bits:ShiftLeft(GetSplatByte(green), 16))
+        code = bits:Or(code, bits:ShiftLeft(GetSplatByte(blue), 8))
+        return bits:Or(code, GetSplatByte(alpha))
+    end
+
+    /*
+    This action reads one weight back out of packed splat weights.
+
+    Attribute: Parameter code The packed weights.
+    Attribute: Parameter channel 0 for red, 1 for green, 2 for blue, 3 for alpha.
+    Attribute: Returns The weight, from 0 to 1.
+    */
+    action GetSplatWeight(integer code, integer channel) returns number
+        integer shift = 24 - 8 * channel
+        return bits:And(bits:ShiftRight(code, shift), 255) / 255.0
+    end
+
+    /*
+    This action returns the packed splat weights of a sample.
+
+    Attribute: Parameter x The sample's number along x.
+    Attribute: Parameter z The sample's number along z.
+    Attribute: Returns The packed weights, or all red if no region holds the sample.
+    */
+    action GetSampleSplat(integer x, integer z) returns integer
+        integer locationX = GetRegionLocation(x)
+        integer locationZ = GetRegionLocation(z)
+        TerrainRegion region = GetRegion(locationX, locationZ)
+        if region = undefined
+            return bits:ShiftLeft(255, 24)
+        end
+        return region:GetSplat(x - locationX * regionSize, z - locationZ * regionSize)
+    end
+
+    /*
+    This action sets the packed splat weights of a sample, and adds it to
+    the splat edited area. If no region holds the sample, nothing changes.
+
+    Attribute: Parameter x The sample's number along x.
+    Attribute: Parameter z The sample's number along z.
+    Attribute: Parameter code The packed weights, as made by PackSplat.
+    */
+    action SetSampleSplat(integer x, integer z, integer code)
+        integer locationX = GetRegionLocation(x)
+        integer locationZ = GetRegionLocation(z)
+        TerrainRegion region = GetRegion(locationX, locationZ)
+        if region = undefined
+            return now
+        end
+        region:SetSplat(x - locationX * regionSize, z - locationZ * regionSize, code)
+        AddToSplatEditedArea(x, z, x, z)
+    end
+
+    /*
+    This action copies splat weights from an image into the terrain, adding
+    regions wherever they are needed. Each pixel's red, green, blue and alpha
+    are the weights of the four textures. The pixels are read in the same
+    order as ImportHeightMap, so a splat map the same size as a height map
+    lines up with it.
+
+    Attribute: Parameter map The splat map image.
+    Attribute: Parameter startX The sample along x where the image's first pixel goes.
+    Attribute: Parameter startZ The sample along z where the image's first pixel goes.
+    */
+    action ImportSplatMap(PixelMap map, integer startX, integer startZ)
+        integer depth = map:GetHeight()
+        integer width = map:GetWidth()
+        AddRegionsFor(startX, startZ, startX + width - 1, startZ + depth - 1)
+        integer z = 0
+        repeat while z < depth
+            integer x = 0
+            repeat while x < width
+                SetSampleSplat(startX + x, startZ + z, map:GetPixel(z, x))
+                x = x + 1
+            end
+            z = z + 1
+        end
+    end
+
+    /*
+    This action gives a rectangle of samples splat weights by how steep the
+    ground is, like Terrain3D's auto shader. Ground flatter than the low
+    angle gets only the flat texture, ground steeper than the high angle only
+    the slope texture, and in between the two are blended smoothly. Other
+    textures' weights become 0. Samples with no region are skipped.
+
+    Attribute: Parameter startX The first sample along x.
+    Attribute: Parameter startZ The first sample along z.
+    Attribute: Parameter width How many samples to set along x.
+    Attribute: Parameter depth How many samples to set along z.
+    Attribute: Parameter flatChannel The texture for flat ground: 0 red, 1 green, 2 blue, 3 alpha.
+    Attribute: Parameter slopeChannel The texture for steep ground.
+    Attribute: Parameter lowDegrees The slope, in degrees from flat, where the slope texture starts.
+    Attribute: Parameter highDegrees The slope where the flat texture is gone. It must be more than lowDegrees.
+    */
+    action GenerateSplatBySlope(integer startX, integer startZ, integer width, integer depth,
+            integer flatChannel, integer slopeChannel, number lowDegrees, number highDegrees)
+        if highDegrees <= lowDegrees
+            alert("The high angle, " + highDegrees + ", must be more than the low angle, " + lowDegrees + ".")
+        end
+        integer z = startZ
+        repeat while z < startZ + depth
+            integer x = startX
+            repeat while x < startX + width
+                if HasSample(x, z)
+                    number slope = GetSlope(x * vertexSpacing, z * vertexSpacing)
+                    number t = math:Clamp((slope - lowDegrees) / (highDegrees - lowDegrees), 0, 1)
+                    t = t * t * (3 - 2 * t)
+                    SetSampleSplat(x, z, PackChannels(flatChannel, 1 - t, slopeChannel, t))
+                end
+                x = x + 1
+            end
+            z = z + 1
+        end
+    end
+
+    /*
+    This action paints one texture onto the ground in a circle around a
+    world position. Each sample's weights move toward showing only that
+    texture, by the strength at the center, fading smoothly to nothing at
+    the edge of the circle. A strength of 1 paints the center completely.
+    Samples with no region are left alone.
+
+    Attribute: Parameter worldX The circle's center along x, in world units.
+    Attribute: Parameter worldZ The circle's center along z, in world units.
+    Attribute: Parameter radius The circle's radius, in world units.
+    Attribute: Parameter channel The texture to paint: 0 red, 1 green, 2 blue, 3 alpha.
+    Attribute: Parameter strength How far to move toward that texture at the center, from 0 to 1.
+    */
+    action PaintSplat(number worldX, number worldZ, number radius, integer channel, number strength)
+        if radius <= 0
+            return now
+        end
+        integer firstX = GetSampleX(worldX - radius)
+        integer lastX = GetSampleX(worldX + radius) + 1
+        integer firstZ = GetSampleZ(worldZ - radius)
+        integer lastZ = GetSampleZ(worldZ + radius) + 1
+
+        integer z = firstZ
+        repeat while z <= lastZ
+            integer x = firstX
+            repeat while x <= lastX
+                number dx = x * vertexSpacing - worldX
+                number dz = z * vertexSpacing - worldZ
+                number distance = math:SquareRoot(dx * dx + dz * dz)
+                if distance < radius and HasSample(x, z)
+                    number t = distance / radius
+                    number amount = math:Clamp(strength, 0, 1) * (1 - t * t * (3 - 2 * t))
+                    integer code = GetSampleSplat(x, z)
+                    boolean paintRed = channel = 0
+                    boolean paintGreen = channel = 1
+                    boolean paintBlue = channel = 2
+                    boolean paintAlpha = channel = 3
+                    number red = Toward(GetSplatWeight(code, 0), paintRed, amount)
+                    number green = Toward(GetSplatWeight(code, 1), paintGreen, amount)
+                    number blue = Toward(GetSplatWeight(code, 2), paintBlue, amount)
+                    number alpha = Toward(GetSplatWeight(code, 3), paintAlpha, amount)
+                    SetSampleSplat(x, z, PackSplat(red, green, blue, alpha))
+                end
+                x = x + 1
+            end
+            z = z + 1
+        end
+    end
+
+    /*
+    This action returns true if any splat weights have changed since the
+    splat edited area was last cleared.
+
+    Attribute: Returns True if there is a splat edited area.
+    */
+    action HasSplatEditedArea returns boolean
+        return hasSplatEditedArea
+    end
+
+    /*
+    This action returns the smallest sample along x in the splat edited area.
+
+    Attribute: Returns The smallest x, or 0 if there is no splat edited area.
+    */
+    action GetSplatEditedMinimumX returns integer
+        return splatMinimumX
+    end
+
+    /*
+    This action returns the smallest sample along z in the splat edited area.
+
+    Attribute: Returns The smallest z, or 0 if there is no splat edited area.
+    */
+    action GetSplatEditedMinimumZ returns integer
+        return splatMinimumZ
+    end
+
+    /*
+    This action returns the largest sample along x in the splat edited area.
+
+    Attribute: Returns The largest x, or 0 if there is no splat edited area.
+    */
+    action GetSplatEditedMaximumX returns integer
+        return splatMaximumX
+    end
+
+    /*
+    This action returns the largest sample along z in the splat edited area.
+
+    Attribute: Returns The largest z, or 0 if there is no splat edited area.
+    */
+    action GetSplatEditedMaximumZ returns integer
+        return splatMaximumZ
+    end
+
+    /*
+    This action grows the splat edited area to cover a rectangle of samples.
+
+    Attribute: Parameter minimumX The rectangle's smallest sample along x.
+    Attribute: Parameter minimumZ The rectangle's smallest sample along z.
+    Attribute: Parameter maximumX The rectangle's largest sample along x.
+    Attribute: Parameter maximumZ The rectangle's largest sample along z.
+    */
+    action AddToSplatEditedArea(integer minimumX, integer minimumZ, integer maximumX, integer maximumZ)
+        if not hasSplatEditedArea
+            splatMinimumX = minimumX
+            splatMinimumZ = minimumZ
+            splatMaximumX = maximumX
+            splatMaximumZ = maximumZ
+            hasSplatEditedArea = true
+            return now
+        end
+        if minimumX < splatMinimumX
+            splatMinimumX = minimumX
+        end
+        if minimumZ < splatMinimumZ
+            splatMinimumZ = minimumZ
+        end
+        if maximumX > splatMaximumX
+            splatMaximumX = maximumX
+        end
+        if maximumZ > splatMaximumZ
+            splatMaximumZ = maximumZ
+        end
+    end
+
+    /*
+    This action empties the splat edited area, usually after the terrain's
+    splat textures have been rebuilt to match.
+    */
+    action ClearSplatEditedArea
+        hasSplatEditedArea = false
+        splatMinimumX = 0
+        splatMinimumZ = 0
+        splatMaximumX = 0
+        splatMaximumZ = 0
+    end
+
+    /*
+    This action returns the lowest height in any region. It uses each
+    region's height range, so after heights have been lowered it may be lower
+    than the true lowest.
+
+    Attribute: Returns The lowest height in world units, or 0 if there are no regions.
+    */
+    action GetLowestHeight returns number
+        if regions:GetSize() = 0
+            return 0
+        end
+        number lowest = regions:Get(0):GetLowestHeight()
+        integer i = 1
+        repeat while i < regions:GetSize()
+            number height = regions:Get(i):GetLowestHeight()
+            if height < lowest
+                lowest = height
+            end
+            i = i + 1
+        end
+        return lowest
+    end
+
+    /*
+    This action returns the highest height in any region. It uses each
+    region's height range, so after heights have been lowered it may be
+    higher than the true highest.
+
+    Attribute: Returns The highest height in world units, or 0 if there are no regions.
+    */
+    action GetHighestHeight returns number
+        if regions:GetSize() = 0
+            return 0
+        end
+        number highest = regions:Get(0):GetHighestHeight()
+        integer i = 1
+        repeat while i < regions:GetSize()
+            number height = regions:Get(i):GetHighestHeight()
+            if height > highest
+                highest = height
+            end
+            i = i + 1
+        end
+        return highest
+    end
+
+    /*
+    This action copies the heights from a height map image into the terrain,
+    adding regions wherever they are needed. The image uses the same format
+    as Terrain: each pixel's red and green together hold a height from 0 to
+    1, with red as the coarse part and green as the fine part. Each height is
+    then multiplied by the height scale, and the offset is added to it, like
+    Terrain3D's import.
+
+    The image's pixels are read in the same order Terrain reads them, so a
+    height map gives the same ground in both.
+
+    Attribute: Parameter map The height map image.
+    Attribute: Parameter startX The sample along x where the image's first pixel goes.
+    Attribute: Parameter startZ The sample along z where the image's first pixel goes.
+    Attribute: Parameter heightScale What each height from 0 to 1 is multiplied by.
+    Attribute: Parameter offset What is added to each height after it is scaled.
+    */
+    action ImportHeightMap(PixelMap map, integer startX, integer startZ, number heightScale, number offset)
+        integer depth = map:GetHeight()
+        integer width = map:GetWidth()
+        AddRegionsFor(startX, startZ, startX + width - 1, startZ + depth - 1)
+
+        integer z = 0
+        repeat while z < depth
+            integer x = 0
+            repeat while x < width
+                // Terrain reads the first number of GetPixel as z and the
+                // second as x, so the same is done here.
+                number height = GetHeightFromPixel(map:GetPixel(z, x))
+                SetSampleHeight(startX + x, startZ + z, height * heightScale + offset)
+                x = x + 1
+            end
+            z = z + 1
+        end
+    end
+
+    /*
+    This action fills a rectangle of samples with heights from a noise
+    generator, adding regions wherever they are needed. The noise is read at
+    each sample's number, using the generator's additive noise, so the
+    generator's frequency decides how far apart its hills are in samples.
+    The noise is moved to between 0 and 1, multiplied by the height scale,
+    and then the offset is added to it.
+
+    Attribute: Parameter noise The noise generator to read heights from.
+    Attribute: Parameter startX The first sample along x.
+    Attribute: Parameter startZ The first sample along z.
+    Attribute: Parameter width How many samples to fill along x.
+    Attribute: Parameter depth How many samples to fill along z.
+    Attribute: Parameter heightScale What each height from 0 to 1 is multiplied by.
+    Attribute: Parameter offset What is added to each height after it is scaled.
+    */
+    action GenerateHeights(NoiseGenerator noise, integer startX, integer startZ, integer width, integer depth,
+            number heightScale, number offset)
+        AddRegionsFor(startX, startZ, startX + width - 1, startZ + depth - 1)
+
+        integer z = 0
+        repeat while z < depth
+            integer x = 0
+            repeat while x < width
+                integer sampleX = startX + x
+                integer sampleZ = startZ + z
+                number height = noise:ToUnitRange(noise:GetAdditiveNoise(sampleX, sampleZ))
+                SetSampleHeight(sampleX, sampleZ, height * heightScale + offset)
+                x = x + 1
+            end
+            z = z + 1
+        end
+    end
+
+    /*
+    This action saves the whole terrain to a folder, which is made if it does
+    not exist. Like Terrain3D, each region's heights are saved to their own
+    image, named for its location, such as "region_-1_2.png". A region whose
+    splat weights have been painted also saves them, as
+    "region_-1_2_splat.png"; an unpainted region doesn't, since loading gives
+    it the default weights. A JSON file named "terrain.json" holds the region
+    size, the vertex spacing, and for every saved region its location and the
+    height range its image covers. Every region is marked as unmodified
+    afterward.
+
+    Regions that were saved to the same folder earlier, and have been
+    unloaded since, stay listed in "terrain.json".
+
+    Saving uses PixelMap, so it needs a running game.
+
+    Attribute: Parameter folder The folder to save into.
+    */
+    action Save(File folder)
+        UseSaveFolder(folder)
+        integer i = 0
+        repeat while i < regions:GetSize()
+            SaveRegionImage(folder, regions:Get(i))
+            i = i + 1
+        end
+        SaveSettings(folder)
+    end
+
+    /*
+    This action loads a whole terrain saved by Save. The terrain must not have
+    any regions yet. The whole loaded terrain becomes the edited area.
+
+    Loading uses PixelMap, so it needs a running game.
+
+    Attribute: Parameter folder The folder the terrain was saved into.
+    */
+    action Load(File folder)
+        LoadSettings(folder)
+        integer i = 0
+        repeat while i < savedMap:GetSize()
+            if savedMap:Get(i) = 1
+                integer locationX = GetLocationXFromMapIndex(i)
+                integer locationZ = GetLocationZFromMapIndex(i)
+                LoadRegion(folder, locationX, locationZ)
+                AddRegionToEditedArea(locationX, locationZ)
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+    This action reads "terrain.json" from a folder: the region size, the
+    vertex spacing, and which regions are saved there, with their height
+    ranges. No regions are loaded, so a game can load just the ones it needs
+    with LoadRegion. The terrain must not have any regions yet.
+
+    The file is read with the standard library's JavaScriptObjectNotation.
+    It looks like this:
+
+    {
+        "format": "TerrainData",
+        "version": 2,
+        "regionSize": 64,
+        "vertexSpacing": 0.5,
+        "regions": [
+            {"x": -1, "z": 2, "lowest": -3.25, "highest": 7.5}
+        ]
+    }
+
+    Attribute: Parameter folder The folder the terrain was saved into.
+    */
+    action LoadSettings(File folder)
+        if regions:GetSize() > 0
+            alert("Saved settings can only be loaded into TerrainData that has no regions yet.")
+        end
+        File settings = GetFileInFolder(folder, "terrain.json")
+        if not settings:Exists()
+            alert("There is no saved terrain in " + folder:GetPath() + ", since it has no terrain.json.")
+        end
+
+        JavaScriptObjectNotation json
+        json:Read(settings)
+        if not json:HasValue("format")
+            alert("The file " + settings:GetPath() + " is not a saved terrain, since it has no format.")
+        end
+        if json:GetValue("format") not= "TerrainData"
+            alert("The file " + settings:GetPath() + " is not a saved terrain.")
+        end
+        integer version = cast(integer, GetJsonNumber(json, "version"))
+        if version not= 2
+            alert("The file " + settings:GetPath() + " is version " + version + ", but only version 2 can be read.")
+        end
+
+        UseSaveFolder(folder)
+        SetRegionSize(cast(integer, GetJsonNumber(json, "regionSize")))
+        SetVertexSpacing(GetJsonNumber(json, "vertexSpacing"))
+
+        // When the standard library reads "regions": [...], the value under
+        // "regions" holds the array as its one child, which GetArray returns.
+        // The region objects are the array's children.
+        JavaScriptObjectNotation holder = json:GetObject("regions")
+        if holder = undefined
+            return now
+        end
+        JavaScriptObjectNotation list = holder
+        if holder:IsArrayObject()
+            list = holder:GetArray()
+        end
+        integer i = 0
+        repeat while i < list:GetSize()
+            JavaScriptObjectNotation item = list:Get(i)
+            integer locationX = cast(integer, GetJsonNumber(item, "x"))
+            integer locationZ = cast(integer, GetJsonNumber(item, "z"))
+            if IsInRegionMap(locationX, locationZ)
+                integer index = GetRegionMapIndex(locationX, locationZ)
+                savedMap:Set(index, 1)
+                savedLowest:Set(index, GetJsonNumber(item, "lowest"))
+                savedHighest:Set(index, GetJsonNumber(item, "highest"))
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+    This action writes "terrain.json" to a folder: the region size, the vertex
+    spacing, and the location and height range of every region whose image
+    has been saved to this folder. See LoadSettings for what it looks like.
+
+    Attribute: Parameter folder The folder to save into.
+    */
+    action SaveSettings(File folder)
+        UseSaveFolder(folder)
+
+        JavaScriptObjectNotation json
+        json:SetPrettyPrint(true)
+        json:Add("format", "TerrainData")
+        json:Add("version", 2)
+        json:Add("regionSize", regionSize)
+        json:Add("vertexSpacing", vertexSpacing)
+
+        JavaScriptObjectNotation list
+        list:SetPrettyPrint(true)
+        list:SetArray()
+        integer i = 0
+        repeat while i < savedMap:GetSize()
+            if savedMap:Get(i) = 1
+                JavaScriptObjectNotation item
+                item:Add("x", GetLocationXFromMapIndex(i))
+                item:Add("z", GetLocationZFromMapIndex(i))
+                item:Add("lowest", savedLowest:Get(i))
+                item:Add("highest", savedHighest:Get(i))
+                list:Add(item)
+            end
+            i = i + 1
+        end
+        json:Add("regions", list)
+
+        FileWriter writer
+        writer:OpenForWrite(GetFileInFolder(folder, "terrain.json"))
+        writer:Write(json:ToText())
+        writer:Close()
+    end
+
+    /*
+    This action saves one region's image to a folder, which is made if it
+    does not exist, updates "terrain.json" to match, and marks the region as
+    unmodified.
+
+    Saving uses PixelMap, so it needs a running game.
+
+    Attribute: Parameter folder The folder to save into.
+    Attribute: Parameter region The region to save.
+    */
+    action SaveRegion(File folder, TerrainRegion region)
+        UseSaveFolder(folder)
+        SaveRegionImage(folder, region)
+        SaveSettings(folder)
+    end
+
+    /*
+    This action loads one saved region from a folder and adds it to the
+    terrain. Unlike AddRegion, it does not add to the edited area, since the
+    region is being brought back rather than changed. The settings must have
+    been read first, with LoadSettings or Load.
+
+    Loading uses PixelMap, so it needs a running game.
+
+    Attribute: Parameter folder The folder the terrain was saved into.
+    Attribute: Parameter locationX The region location along x.
+    Attribute: Parameter locationZ The region location along z.
+    Attribute: Returns The loaded region.
+    */
+    action LoadRegion(File folder, integer locationX, integer locationZ) returns TerrainRegion
+        if HasRegion(locationX, locationZ)
+            alert("There is already a region at (" + locationX + ", " + locationZ + ").")
+        end
+        if not HasSavedRegion(locationX, locationZ)
+            alert("There is no saved region at (" + locationX + ", " + locationZ + ").")
+        end
+        integer index = GetRegionMapIndex(locationX, locationZ)
+
+        PixelMap image
+        image:LoadPixelMap(GetFileInFolder(folder, GetRegionFileName(locationX, locationZ)))
+        TerrainRegion region = AddRegionQuietly(locationX, locationZ)
+        region:SetHeightsFromImage(image, savedLowest:Get(index), savedHighest:Get(index))
+
+        // Terrain saved before splat weights existed has no splat images,
+        // and stays all red.
+        File splatFile = GetFileInFolder(folder, GetSplatFileName(locationX, locationZ))
+        if splatFile:Exists()
+            PixelMap splatImage
+            splatImage:LoadPixelMap(splatFile)
+            region:SetSplatFromImage(splatImage)
+        end
+        return region
+    end
+
+    /*
+    This action takes a region out of the terrain without saving it, and
+    without adding to the edited area. Save it first with SaveRegion if it
+    has been modified.
+
+    Attribute: Parameter locationX The region location along x.
+    Attribute: Parameter locationZ The region location along z.
+    */
+    action UnloadRegion(integer locationX, integer locationZ)
+        TerrainRegion region = GetRegion(locationX, locationZ)
+        if region = undefined
+            return now
+        end
+        regionMap:Set(GetRegionMapIndex(locationX, locationZ), undefined)
+        regions:Remove(region)
+    end
+
+    /*
+    This action takes every region location with no region in memory off
+    the list of saved regions, so the next save's "terrain.json" leaves them
+    out and Load won't bring them back. Their image files are left in the
+    folder, unused; nothing is deleted.
+
+    It is for terrains kept wholly in memory, like a terrain editor's, where
+    a region missing from memory was removed on purpose. Don't use it while
+    streaming, where most saved regions are not in memory.
+
+    Attribute: Returns How many regions were taken off the list.
+    */
+    action ForgetRegionsNotLoaded returns integer
+        integer forgotten = 0
+        integer i = 0
+        repeat while i < savedMap:GetSize()
+            if savedMap:Get(i) = 1 and regionMap:Get(i) = undefined
+                savedMap:Set(i, 0)
+                forgotten = forgotten + 1
+            end
+            i = i + 1
+        end
+        return forgotten
+    end
+
+    /*
+    This action returns true if a region at a location has been saved to, or
+    listed in, the folder the terrain was last saved to or loaded from.
+
+    Attribute: Parameter locationX The region location along x.
+    Attribute: Parameter locationZ The region location along z.
+    Attribute: Returns True if the region is saved.
+    */
+    action HasSavedRegion(integer locationX, integer locationZ) returns boolean
+        if not IsInRegionMap(locationX, locationZ)
+            return false
+        end
+        return savedMap:Get(GetRegionMapIndex(locationX, locationZ)) = 1
+    end
+
+    /*
+    This action returns the lowest height of a saved region, as recorded
+    when it was last saved.
+
+    Attribute: Parameter locationX The region location along x.
+    Attribute: Parameter locationZ The region location along z.
+    Attribute: Returns The lowest height, or 0 if the region isn't saved.
+    */
+    action GetSavedLowestHeight(integer locationX, integer locationZ) returns number
+        if not HasSavedRegion(locationX, locationZ)
+            return 0
+        end
+        return savedLowest:Get(GetRegionMapIndex(locationX, locationZ))
+    end
+
+    /*
+    This action returns the highest height of a saved region, as recorded
+    when it was last saved.
+
+    Attribute: Parameter locationX The region location along x.
+    Attribute: Parameter locationZ The region location along z.
+    Attribute: Returns The highest height, or 0 if the region isn't saved.
+    */
+    action GetSavedHighestHeight(integer locationX, integer locationZ) returns number
+        if not HasSavedRegion(locationX, locationZ)
+            return 0
+        end
+        return savedHighest:Get(GetRegionMapIndex(locationX, locationZ))
+    end
+
+    /*
+    This action returns true if a region at a location is loaded, or is
+    saved and could be loaded. Where neither is true, there is no ground.
+
+    Attribute: Parameter locationX The region location along x.
+    Attribute: Parameter locationZ The region location along z.
+    Attribute: Returns True if the region exists.
+    */
+    action HasRegionAnywhere(integer locationX, integer locationZ) returns boolean
+        return HasRegion(locationX, locationZ) or HasSavedRegion(locationX, locationZ)
+    end
+
+    /*
+    This action returns the name of the image file a region's splat weights
+    are saved in, such as "region_-1_2_splat.png" for the region at location
+    (-1, 2).
+
+    Attribute: Parameter locationX The region location along x.
+    Attribute: Parameter locationZ The region location along z.
+    Attribute: Returns The file name.
+    */
+    action GetSplatFileName(integer locationX, integer locationZ) returns text
+        return "region_" + locationX + "_" + locationZ + "_splat.png"
+    end
+
+    /*
+    This action returns the name of the image file a region's heights are
+    saved in, such as "region_-1_2.png" for the region at location (-1, 2).
+
+    Attribute: Parameter locationX The region location along x.
+    Attribute: Parameter locationZ The region location along z.
+    Attribute: Returns The file name.
+    */
+    action GetRegionFileName(integer locationX, integer locationZ) returns text
+        return "region_" + locationX + "_" + locationZ + ".png"
+    end
+
+    /*
+    This action returns true if any heights have changed since the edited
+    area was last cleared.
+
+    Attribute: Returns True if there is an edited area.
+    */
+    action HasEditedArea returns boolean
+        return hasEditedArea
+    end
+
+    /*
+    This action returns the smallest sample number along x in the edited
+    area.
+
+    Attribute: Returns The edited area's smallest x, or 0 if there is no edited area.
+    */
+    action GetEditedMinimumX returns integer
+        return editedMinimumX
+    end
+
+    /*
+    This action returns the smallest sample number along z in the edited
+    area.
+
+    Attribute: Returns The edited area's smallest z, or 0 if there is no edited area.
+    */
+    action GetEditedMinimumZ returns integer
+        return editedMinimumZ
+    end
+
+    /*
+    This action returns the largest sample number along x in the edited area.
+
+    Attribute: Returns The edited area's largest x, or 0 if there is no edited area.
+    */
+    action GetEditedMaximumX returns integer
+        return editedMaximumX
+    end
+
+    /*
+    This action returns the largest sample number along z in the edited area.
+
+    Attribute: Returns The edited area's largest z, or 0 if there is no edited area.
+    */
+    action GetEditedMaximumZ returns integer
+        return editedMaximumZ
+    end
+
+    /*
+    This action grows the edited area to cover a rectangle of samples.
+
+    Attribute: Parameter minimumX The rectangle's smallest sample along x.
+    Attribute: Parameter minimumZ The rectangle's smallest sample along z.
+    Attribute: Parameter maximumX The rectangle's largest sample along x.
+    Attribute: Parameter maximumZ The rectangle's largest sample along z.
+    */
+    action AddToEditedArea(integer minimumX, integer minimumZ, integer maximumX, integer maximumZ)
+        if not hasEditedArea
+            editedMinimumX = minimumX
+            editedMinimumZ = minimumZ
+            editedMaximumX = maximumX
+            editedMaximumZ = maximumZ
+            hasEditedArea = true
+            return now
+        end
+        if minimumX < editedMinimumX
+            editedMinimumX = minimumX
+        end
+        if minimumZ < editedMinimumZ
+            editedMinimumZ = minimumZ
+        end
+        if maximumX > editedMaximumX
+            editedMaximumX = maximumX
+        end
+        if maximumZ > editedMaximumZ
+            editedMaximumZ = maximumZ
+        end
+    end
+
+    /*
+    This action empties the edited area, usually after the terrain has been
+    rebuilt to match the heights.
+    */
+    action ClearEditedArea
+        hasEditedArea = false
+        editedMinimumX = 0
+        editedMinimumZ = 0
+        editedMaximumX = 0
+        editedMaximumZ = 0
+    end
+
+    /*
+    This action adds a flat region at every location that covers part of a
+    rectangle of samples and does not have a region yet.
+
+    Attribute: Parameter minimumX The rectangle's smallest sample along x.
+    Attribute: Parameter minimumZ The rectangle's smallest sample along z.
+    Attribute: Parameter maximumX The rectangle's largest sample along x.
+    Attribute: Parameter maximumZ The rectangle's largest sample along z.
+    */
+    private action AddRegionsFor(integer minimumX, integer minimumZ, integer maximumX, integer maximumZ)
+        integer firstX = GetRegionLocation(minimumX)
+        integer lastX = GetRegionLocation(maximumX)
+        integer firstZ = GetRegionLocation(minimumZ)
+        integer lastZ = GetRegionLocation(maximumZ)
+
+        integer locationZ = firstZ
+        repeat while locationZ <= lastZ
+            integer locationX = firstX
+            repeat while locationX <= lastX
+                if not HasRegion(locationX, locationZ)
+                    AddRegion(locationX, locationZ)
+                end
+                locationX = locationX + 1
+            end
+            locationZ = locationZ + 1
+        end
+    end
+
+    /*
+    This action makes a flat region at a location and puts it in the region
+    map, without adding to the edited area.
+
+    Attribute: Parameter locationX The region location along x, from -16 to 15.
+    Attribute: Parameter locationZ The region location along z, from -16 to 15.
+    Attribute: Returns The new region.
+    */
+    private action AddRegionQuietly(integer locationX, integer locationZ) returns TerrainRegion
+        if not IsInRegionMap(locationX, locationZ)
+            alert("The region location (" + locationX + ", " + locationZ + ") is outside the grid of regions, which runs from " +
+                -(regionMapSize / 2) + " to " + (regionMapSize / 2 - 1) + ".")
+        end
+        TerrainRegion region
+        region:SetRegionSize(regionSize)
+        region:SetLocation(locationX, locationZ)
+        regionMap:Set(GetRegionMapIndex(locationX, locationZ), region)
+        regions:Add(region)
+        return region
+    end
+
+    /*
+    This action notes the folder the terrain is being saved to or loaded
+    from. If it is a different folder than before, the list of saved regions
+    starts again, since the old list was about the other folder.
+
+    Attribute: Parameter folder The folder.
+    */
+    private action UseSaveFolder(File folder)
+        if not folder:Exists()
+            folder:CreateDirectories()
+        end
+        text path = folder:GetAbsolutePath()
+        if path not= savedFolderPath
+            integer i = 0
+            repeat while i < savedMap:GetSize()
+                savedMap:Set(i, 0)
+                i = i + 1
+            end
+            savedFolderPath = path
+        end
+    end
+
+    /*
+    This action saves one region's image to a folder and records it as
+    saved, with the height range the image covers, and marks the region as
+    unmodified. It does not write "terrain.json".
+
+    Attribute: Parameter folder The folder to save into.
+    Attribute: Parameter region The region to save.
+    */
+    private action SaveRegionImage(File folder, TerrainRegion region)
+        // GetHeightImage works out the exact height range first, so the
+        // range is read after the image is made.
+        PixelMap image = region:GetHeightImage()
+        image:Save(GetFileInFolder(folder, GetRegionFileName(region:GetLocationX(), region:GetLocationZ())))
+        // A region that was never painted saves no splat image: loading
+        // gives it the default weights anyway (Quorum Studio plan, step 2).
+        if region:IsSplatPainted()
+            PixelMap splatImage = region:GetSplatImage()
+            splatImage:Save(GetFileInFolder(folder, GetSplatFileName(region:GetLocationX(), region:GetLocationZ())))
+        end
+
+        integer index = GetRegionMapIndex(region:GetLocationX(), region:GetLocationZ())
+        savedMap:Set(index, 1)
+        savedLowest:Set(index, region:GetLowestHeight())
+        savedHighest:Set(index, region:GetHighestHeight())
+        region:SetModified(false)
+    end
+
+    /*
+    This action returns a number from a JSON object, whether it was written
+    as a whole number, like 64, or with a decimal point, like 0.5. The
+    standard library's GetNumber and GetInteger each only accept one kind.
+
+    Attribute: Parameter json The JSON object.
+    Attribute: Parameter key The name of the value.
+    Attribute: Returns The value.
+    */
+    private action GetJsonNumber(JavaScriptObjectNotation json, text key) returns number
+        Iterator<JavaScriptObjectNotation> children = json:GetIterator()
+        repeat while children:HasNext()
+            JavaScriptObjectNotation child = children:Next()
+            if child:GetKey() = key
+                if child:IsInteger()
+                    return child:GetInteger()
+                elseif child:IsNumber()
+                    return child:GetNumber()
+                end
+            end
+        end
+        alert("The saved terrain has no number named " + key + ".")
+        return 0
+    end
+
+    /*
+    This action returns the region location along x for a place in the
+    region map.
+
+    Attribute: Parameter index The place in the region map.
+    Attribute: Returns The region location along x.
+    */
+    private action GetLocationXFromMapIndex(integer index) returns integer
+        return index mod regionMapSize - regionMapSize / 2
+    end
+
+    /*
+    This action returns the region location along z for a place in the
+    region map.
+
+    Attribute: Parameter index The place in the region map.
+    Attribute: Returns The region location along z.
+    */
+    private action GetLocationZFromMapIndex(integer index) returns integer
+        return index / regionMapSize - regionMapSize / 2
+    end
+
+    /*
+    This action returns a file inside a folder. The file keeps the folder's
+    working directory, so a folder given relative to a project, as a scene
+    gives it, finds its files.
+
+    Attribute: Parameter folder The folder.
+    Attribute: Parameter name The file's name.
+    Attribute: Returns The file.
+    */
+    private action GetFileInFolder(File folder, text name) returns File
+        File file
+        file:SetWorkingDirectory(folder:GetWorkingDirectory())
+        if folder:GetPath() = ""
+            file:SetPath(name)
+        else
+            file:SetPath(folder:GetPath() + "/" + name)
+        end
+        return file
+    end
+
+    /*
+    This action turns a weight from 0 to 1 into a byte from 0 to 255,
+    rounding to the nearest.
+
+    Attribute: Parameter weight The weight.
+    Attribute: Returns The byte.
+    */
+    private action GetSplatByte(number weight) returns integer
+        return cast(integer, math:Round(math:Clamp(weight, 0, 1) * 255))
+    end
+
+    /*
+    This action packs splat weights where two channels have weights and the
+    rest are 0. If both are the same channel, their weights are added.
+
+    Attribute: Parameter first The first channel, 0 to 3.
+    Attribute: Parameter firstWeight The first channel's weight.
+    Attribute: Parameter second The second channel, 0 to 3.
+    Attribute: Parameter secondWeight The second channel's weight.
+    Attribute: Returns The packed weights.
+    */
+    private action PackChannels(integer first, number firstWeight, integer second, number secondWeight) returns integer
+        number red = 0
+        number green = 0
+        number blue = 0
+        number alpha = 0
+        integer channel = 0
+        repeat while channel < 4
+            number weight = 0
+            if channel = first
+                weight = weight + firstWeight
+            end
+            if channel = second
+                weight = weight + secondWeight
+            end
+            if channel = 0
+                red = weight
+            elseif channel = 1
+                green = weight
+            elseif channel = 2
+                blue = weight
+            else
+                alpha = weight
+            end
+            channel = channel + 1
+        end
+        return PackSplat(red, green, blue, alpha)
+    end
+
+    /*
+    This action moves one weight part of the way toward 1 if it is the
+    texture being painted, or toward 0 if it isn't.
+
+    Attribute: Parameter weight The weight now.
+    Attribute: Parameter isPainted True if this is the texture being painted.
+    Attribute: Parameter amount How far to move, from 0 to 1.
+    Attribute: Returns The new weight.
+    */
+    private action Toward(number weight, boolean isPainted, number amount) returns number
+        number target = 0
+        if isPainted
+            target = 1
+        end
+        return weight + (target - weight) * amount
+    end
+
+    /*
+    This action returns the height of a sample, or a fallback height if no
+    region holds it.
+
+    Attribute: Parameter x The sample's number along x.
+    Attribute: Parameter z The sample's number along z.
+    Attribute: Parameter fallback The height to use if there is no region there.
+    Attribute: Returns The sample's height, or the fallback.
+    */
+    private action GetSampleHeightOr(integer x, integer z, number fallback) returns number
+        if HasSample(x, z)
+            return GetSampleHeight(x, z)
+        end
+        return fallback
+    end
+
+    /*
+    This action adds the square of samples a region location covers to the
+    edited area.
+
+    Attribute: Parameter locationX The region location along x.
+    Attribute: Parameter locationZ The region location along z.
+    */
+    private action AddRegionToEditedArea(integer locationX, integer locationZ)
+        integer firstX = locationX * regionSize
+        integer firstZ = locationZ * regionSize
+        AddToEditedArea(firstX, firstZ, firstX + regionSize - 1, firstZ + regionSize - 1)
+    end
+
+    /*
+    This action returns where a region location is stored in the region map.
+
+    Attribute: Parameter locationX The region location along x, from -16 to 15.
+    Attribute: Parameter locationZ The region location along z, from -16 to 15.
+    Attribute: Returns The place in the region map.
+    */
+    private action GetRegionMapIndex(integer locationX, integer locationZ) returns integer
+        integer half = regionMapSize / 2
+        return (locationZ + half) * regionMapSize + (locationX + half)
+    end
+
+    /*
+    This action reads a height from 0 to 1 from one pixel of a height map.
+    Red holds the coarse part and green the fine part, like the digits of a
+    number, which gives 65536 different heights. This matches Terrain, and is
+    what ImportHeightMap uses for each pixel.
+
+    Attribute: Parameter code The pixel, as read by PixelMap's GetPixel.
+    Attribute: Returns The height, from 0 to just under 1.
+    */
+    action GetHeightFromPixel(integer code) returns number
+        integer coarse = bits:And(bits:ShiftRight(code, 24), 255)
+        integer fine = bits:And(bits:ShiftRight(code, 16), 255)
+        return (coarse * 256 + fine) / 65536.0
+    end
+end

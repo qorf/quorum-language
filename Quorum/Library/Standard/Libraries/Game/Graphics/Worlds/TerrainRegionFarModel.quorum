@@ -1,0 +1,537 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Compute.Vector3
+use Libraries.Compute.Vector4
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
+use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
+use Libraries.Game.Graphics.Models.Vulkan.MeshVulkan
+
+/*
+A TerrainRegionFarModel draws one region with less detail, for when it is
+far from the camera. It uses only every few samples, the step, so a region
+of 64 samples with a step of 4 is drawn with 17 by 17 vertices instead of 65
+by 65. Far away, the difference can't be seen, and drawing costs much less.
+This is the same idea as the outer rings of Terrain3D's clipmap, which have
+fewer vertices the farther out they are.
+
+Where a far model meets a region drawn in full detail, or a far model built
+when its neighbor wasn't loaded, their edges don't line up exactly, which
+would leave thin cracks. So every edge of a far model has a skirt: a short
+strip that hangs straight down from the edge, out of sight from above, and
+fills any crack.
+
+A far model only draws. It is never collided with, since only the ground
+near the player needs collision.
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Game.Graphics.Worlds.TerrainData
+use Libraries.Game.Graphics.Worlds.TerrainRegionFarModel
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        TerrainData data
+        data:AddRegion(0, 0)
+        TerrainRegionFarModel model
+        model:Build(data, data:GetRegion(0, 0), undefined, 4, 4, 1)
+        Add(model)
+    end
+end
+*/
+class TerrainRegionFarModel is TerrainPatch
+    // Which region this model draws, at its location.
+    integer locationX = 0
+    integer locationZ = 0
+
+    // How many samples apart the model's vertices are, and how far its
+    // skirts hang down, in world units.
+    integer step = 4
+    number skirtDepth = 1
+
+    // How many times this model has been built, so each build's mesh gets its
+    // own name.
+    integer buildCount = 0
+
+    // Whether the ground this model draws has changed since it was built.
+    boolean needsRebuild = false
+
+    // Whether the model is drawn with texture splatting, and which samples
+    // the terrain's splat texture covers, as in TerrainRegionModel.
+    boolean usesSplat = false
+    integer splatStartX = 0
+    integer splatStartZ = 0
+    integer splatWidth = 1
+    integer splatDepth = 1
+
+    // The blueprint this model last loaded, and the region size, step and
+    // splat setting it was built with. A rebuild with the same ones updates
+    // that blueprint's mesh in place instead of making a new one.
+    ModelBlueprintVulkan loadedBlueprint = undefined
+    integer loadedRegionSize = 0
+    integer loadedStep = 0
+    boolean loadedWithSplat = false
+
+    // Whether rebuilds may update the mesh in place, as in TerrainRegionModel.
+    boolean inPlaceUpdates = true
+
+    // Whether the last build updated the mesh in place.
+    boolean builtInPlace = false
+
+    /*
+    This action builds the model for one region, and places it in the world.
+    The region's heights must be loaded while it is built, but not after.
+
+    Building again updates the mesh in place when the region size, step and
+    splat setting are unchanged. Otherwise it makes a new mesh, and the
+    renderer cannot yet free the old one. See VulkanChanges.md.
+
+    Attribute: Parameter data The heights of the whole terrain.
+    Attribute: Parameter region The region this model draws.
+    Attribute: Parameter texture The texture laid over the ground, or undefined for none.
+    Attribute: Parameter textureRepeat How far apart, in world units, the texture repeats.
+    Attribute: Parameter sampleStep How many samples apart the vertices are. It must divide the region size evenly.
+    Attribute: Parameter depth How far the skirts hang down, in world units.
+    */
+    action Build(TerrainData data, TerrainRegion region, Texture texture, number textureRepeat, integer sampleStep, number depth)
+        integer regionSize = data:GetRegionSize()
+        if sampleStep < 1
+            alert("The far step must be at least 1, but was given " + sampleStep + ".")
+        end
+        if (regionSize mod sampleStep) not= 0
+            alert("The far step must divide the region size, " + regionSize + ", evenly, but was given " + sampleStep + ".")
+        end
+        locationX = region:GetLocationX()
+        locationZ = region:GetLocationZ()
+        step = sampleStep
+        skirtDepth = depth
+
+        Measure(data, locationX * regionSize, locationZ * regionSize, regionSize)
+        MeshData mesh = BuildMesh(regionSize, data:GetVertexSpacing(), textureRepeat)
+        builtInPlace = UpdateMeshInPlace(mesh, regionSize)
+        if not builtInPlace
+            LoadMesh(mesh)
+            loadedRegionSize = regionSize
+            loadedStep = step
+            loadedWithSplat = usesSplat
+        end
+        if texture not= undefined
+            GetResources():SetTexture(texture)
+        end
+
+        // Sizes for culling, in the model's own grid. The skirts reach below
+        // the lowest height, so the model sits that much lower.
+        SetWidth(regionSize + 1)
+        SetHeight(GetTopHeight() - GetBaseHeight() + skirtDepth)
+        SetDepth(regionSize + 1)
+        SetCollidable(false)
+
+        PlaceInWorld()
+        needsRebuild = false
+    end
+
+    /*
+    This action places the model in the world and scales it to the vertex
+    spacing, the same as any TerrainPatch, but lower by the skirt depth,
+    since its vertices are measured up from the bottom of its skirts.
+    */
+    action PlaceInWorld
+        parent:TerrainPatch:PlaceInWorld()
+        SetY(GetBaseHeight() - skirtDepth)
+    end
+
+    /*
+    This action sets whether the model is drawn with texture splatting. It
+    takes effect the next time the model is built.
+
+    Attribute: Parameter splat True to draw with texture splatting.
+    */
+    action SetUsesSplat(boolean splat)
+        usesSplat = splat
+    end
+
+    /*
+    This action sets whether building again may update the existing mesh in
+    place, rather than making a new one. It is on by default.
+
+    Attribute: Parameter inPlace True to update meshes in place when possible.
+    */
+    action SetInPlaceUpdates(boolean inPlace)
+        inPlaceUpdates = inPlace
+    end
+
+    /*
+    This action returns true if the last build updated the existing mesh in
+    place, or false if it loaded a new mesh.
+
+    Attribute: Returns True if the last build was an update in place.
+    */
+    action WasBuiltInPlace returns boolean
+        return builtInPlace
+    end
+
+    /*
+    This action sets which samples the terrain's splat texture covers, so
+    the model's texture coordinates point at the right pixels. It takes
+    effect the next time the model is built.
+
+    Attribute: Parameter startX The first sample along x the splat texture covers.
+    Attribute: Parameter startZ The first sample along z the splat texture covers.
+    Attribute: Parameter width How many samples the splat texture covers along x.
+    Attribute: Parameter depth How many samples the splat texture covers along z.
+    */
+    action SetSplatArea(integer startX, integer startZ, integer width, integer depth)
+        splatStartX = startX
+        splatStartZ = startZ
+        splatWidth = width
+        splatDepth = depth
+    end
+
+    /*
+    This action returns the region location this model draws, along x.
+
+    Attribute: Returns The region location along x.
+    */
+    action GetLocationX returns integer
+        return locationX
+    end
+
+    /*
+    This action returns the region location this model draws, along z.
+
+    Attribute: Returns The region location along z.
+    */
+    action GetLocationZ returns integer
+        return locationZ
+    end
+
+    /*
+    This action marks whether the ground this model draws has changed since
+    it was built, so it must be rebuilt before it is shown again.
+
+    Attribute: Parameter rebuild True if the model must be rebuilt.
+    */
+    action SetNeedsRebuild(boolean rebuild)
+        needsRebuild = rebuild
+    end
+
+    /*
+    This action returns true if the model must be rebuilt before it is shown
+    again.
+
+    Attribute: Returns True if the model is out of date.
+    */
+    action NeedsRebuild returns boolean
+        return needsRebuild
+    end
+
+    /*
+    This action builds the coarse mesh: a grid of vertices every step
+    samples, from the region's first sample to the first sample of the next
+    region, so neighboring far models meet. Then a skirt on each of its four
+    edges. Heights where no region is loaded come from the nearest sample in
+    this region, as in TerrainPatch.
+
+    Attribute: Parameter regionSize The number of samples along each side of a region.
+    Attribute: Parameter spacing The distance between samples in the world, used for texture coordinates.
+    Attribute: Parameter textureRepeat How far apart, in world units, the texture repeats.
+    Attribute: Returns The mesh.
+    */
+    private action BuildMesh(integer regionSize, number spacing, number textureRepeat) returns MeshData
+        integer side = regionSize / step + 1
+        integer gridCount = side * side
+        // Each of the four edges has a copy of its vertices for the skirt.
+        integer vertexCount = gridCount + 4 * side
+        integer firstX = GetFirstSampleX()
+        integer firstZ = GetFirstSampleZ()
+        // Vertices are measured up from the bottom of the skirts.
+        number bottom = GetBaseHeight() - skirtDepth
+
+        Number32BitArray vertices
+        vertices:SetSize(vertexCount * 3)
+        Number32BitArray normals
+        normals:SetSize(vertexCount * 3)
+        Number32BitArray tangents
+        tangents:SetSize(vertexCount * 3)
+        Number32BitArray bitangents
+        bitangents:SetSize(vertexCount * 3)
+        Number32BitArray textureCoordinates
+        textureCoordinates:SetSize(vertexCount * 2)
+
+        Vector3 normal
+        Vector3 tangent
+        Vector3 bitangent
+
+        integer row = 0
+        repeat while row < side
+            integer column = 0
+            repeat while column < side
+                integer x = column * step
+                integer z = row * step
+                integer vertex = row * side + column
+
+                // The slope from the neighbors one step away on each side,
+                // read across region edges where they are loaded.
+                number dx = GetPatchHeight(x + step, z) - GetPatchHeight(x - step, z)
+                number dz = GetPatchHeight(x, z + step) - GetPatchHeight(x, z - step)
+                normal:Set(-dx, 2 * step, -dz)
+                normal:Normalize()
+                tangent:Set(2 * step, dx, 0)
+                tangent:Normalize()
+                bitangent:Set(normal)
+                bitangent:CrossProduct(tangent)
+
+                // With splatting, the texture coordinates are the vertex's
+                // place in the terrain's splat texture, as in
+                // TerrainRegionModel.
+                number u = (firstX + x) * spacing / textureRepeat
+                number v = (firstZ + z) * spacing / textureRepeat
+                if usesSplat
+                    u = (firstX + x - splatStartX + 0.5) / splatWidth
+                    v = (firstZ + z - splatStartZ + 0.5) / splatDepth
+                end
+                SetVertex(vertices, normals, tangents, bitangents, textureCoordinates, vertex,
+                    x, GetPatchHeight(x, z) - bottom, z, normal, tangent, bitangent, u, v)
+                column = column + 1
+            end
+            row = row + 1
+        end
+
+        // The skirts: each edge's vertices again, lowered by the skirt depth.
+        // Edge 0 is the first row, 1 the last row, 2 the first column and 3
+        // the last column.
+        integer edge = 0
+        repeat while edge < 4
+            integer i = 0
+            repeat while i < side
+                integer source = GetEdgeVertex(edge, i, side)
+                integer lowered = gridCount + edge * side + i
+                CopyVertexLowered(vertices, normals, tangents, bitangents, textureCoordinates, source, lowered)
+                i = i + 1
+            end
+            edge = edge + 1
+        end
+
+        // Two triangles per grid cell, in the same order as the full models,
+        // then two strips per edge, each drawn facing both ways, since the
+        // skirts can be seen from either side.
+        Integer32BitArray indices
+        indices:SetSize((side - 1) * (side - 1) * 6 + 4 * (side - 1) * 12)
+        integer index = 0
+        row = 0
+        repeat while row < side - 1
+            integer column = 0
+            repeat while column < side - 1
+                integer topLeft = row * side + column
+                integer topRight = topLeft + 1
+                integer bottomLeft = (row + 1) * side + column
+                integer bottomRight = bottomLeft + 1
+                index = AddTriangle(indices, index, topLeft, bottomLeft, topRight)
+                index = AddTriangle(indices, index, topRight, bottomLeft, bottomRight)
+                column = column + 1
+            end
+            row = row + 1
+        end
+
+        edge = 0
+        repeat while edge < 4
+            integer i = 0
+            repeat while i < side - 1
+                integer upperA = GetEdgeVertex(edge, i, side)
+                integer upperB = GetEdgeVertex(edge, i + 1, side)
+                integer lowerA = gridCount + edge * side + i
+                integer lowerB = lowerA + 1
+                index = AddTriangle(indices, index, upperA, lowerA, upperB)
+                index = AddTriangle(indices, index, upperB, lowerA, lowerB)
+                index = AddTriangle(indices, index, upperA, upperB, lowerA)
+                index = AddTriangle(indices, index, upperB, lowerB, lowerA)
+                i = i + 1
+            end
+            edge = edge + 1
+        end
+
+        MeshData mesh
+        mesh:SetVertices(vertices)
+        mesh:SetIndices(indices)
+        mesh:SetNormals(normals)
+        mesh:SetTangents(tangents)
+        mesh:SetBitangents(bitangents)
+        mesh:SetTextureCoordinates(textureCoordinates)
+        mesh:SetMaterialIndex(0)
+        return mesh
+    end
+
+    /*
+    This action returns the grid vertex at a place along one of the grid's
+    edges.
+
+    Attribute: Parameter edge 0 for the first row, 1 the last row, 2 the first column, 3 the last column.
+    Attribute: Parameter i The place along the edge, from 0 to one less than the side.
+    Attribute: Parameter side The number of vertices along each side of the grid.
+    Attribute: Returns The vertex's number in the grid.
+    */
+    private action GetEdgeVertex(integer edge, integer i, integer side) returns integer
+        if edge = 0
+            return i
+        elseif edge = 1
+            return (side - 1) * side + i
+        elseif edge = 2
+            return i * side
+        end
+        return i * side + side - 1
+    end
+
+    /*
+    This action writes one vertex: its position, normal, tangent, bitangent
+    and texture coordinates.
+
+    Attribute: Parameter vertices The positions, three numbers per vertex.
+    Attribute: Parameter normals The normals, three numbers per vertex.
+    Attribute: Parameter tangents The tangents, three numbers per vertex.
+    Attribute: Parameter bitangents The bitangents, three numbers per vertex.
+    Attribute: Parameter textureCoordinates The texture coordinates, two numbers per vertex.
+    Attribute: Parameter vertex Which vertex.
+    Attribute: Parameter x The position along x, in the model's grid.
+    Attribute: Parameter y The height above the bottom of the skirts.
+    Attribute: Parameter z The position along z, in the model's grid.
+    Attribute: Parameter normal The normal.
+    Attribute: Parameter tangent The tangent.
+    Attribute: Parameter bitangent The bitangent.
+    Attribute: Parameter u The texture coordinate across.
+    Attribute: Parameter v The texture coordinate down.
+    */
+    private action SetVertex(Number32BitArray vertices, Number32BitArray normals, Number32BitArray tangents,
+            Number32BitArray bitangents, Number32BitArray textureCoordinates, integer vertex,
+            number x, number y, number z, Vector3 normal, Vector3 tangent, Vector3 bitangent, number u, number v)
+        integer position = vertex * 3
+        vertices:Set(position, x)
+        vertices:Set(position + 1, y)
+        vertices:Set(position + 2, z)
+        normals:Set(position, normal:GetX())
+        normals:Set(position + 1, normal:GetY())
+        normals:Set(position + 2, normal:GetZ())
+        tangents:Set(position, tangent:GetX())
+        tangents:Set(position + 1, tangent:GetY())
+        tangents:Set(position + 2, tangent:GetZ())
+        bitangents:Set(position, bitangent:GetX())
+        bitangents:Set(position + 1, bitangent:GetY())
+        bitangents:Set(position + 2, bitangent:GetZ())
+        textureCoordinates:Set(vertex * 2, u)
+        textureCoordinates:Set(vertex * 2 + 1, v)
+    end
+
+    /*
+    This action copies a vertex to another place, lowered by the skirt
+    depth. Its normal, tangent, bitangent and texture coordinates stay the
+    same, so the skirt is lit like the edge above it.
+
+    Attribute: Parameter vertices The positions, three numbers per vertex.
+    Attribute: Parameter normals The normals, three numbers per vertex.
+    Attribute: Parameter tangents The tangents, three numbers per vertex.
+    Attribute: Parameter bitangents The bitangents, three numbers per vertex.
+    Attribute: Parameter textureCoordinates The texture coordinates, two numbers per vertex.
+    Attribute: Parameter source The vertex to copy.
+    Attribute: Parameter target Where to put the copy.
+    */
+    private action CopyVertexLowered(Number32BitArray vertices, Number32BitArray normals, Number32BitArray tangents,
+            Number32BitArray bitangents, Number32BitArray textureCoordinates, integer source, integer target)
+        integer i = 0
+        repeat while i < 3
+            vertices:Set(target * 3 + i, vertices:Get(source * 3 + i))
+            normals:Set(target * 3 + i, normals:Get(source * 3 + i))
+            tangents:Set(target * 3 + i, tangents:Get(source * 3 + i))
+            bitangents:Set(target * 3 + i, bitangents:Get(source * 3 + i))
+            i = i + 1
+        end
+        vertices:Set(target * 3 + 1, vertices:Get(source * 3 + 1) - skirtDepth)
+        textureCoordinates:Set(target * 2, textureCoordinates:Get(source * 2))
+        textureCoordinates:Set(target * 2 + 1, textureCoordinates:Get(source * 2 + 1))
+    end
+
+    /*
+    This action adds one triangle to the list of triangles.
+
+    Attribute: Parameter indices The list of triangles, three vertices each.
+    Attribute: Parameter index Where in the list to put the triangle.
+    Attribute: Parameter a The first corner.
+    Attribute: Parameter b The second corner.
+    Attribute: Parameter c The third corner.
+    Attribute: Returns Where the next triangle goes.
+    */
+    private action AddTriangle(Integer32BitArray indices, integer index, integer a, integer b, integer c) returns integer
+        indices:Set(index, a)
+        indices:Set(index + 1, b)
+        indices:Set(index + 2, c)
+        return index + 3
+    end
+
+    /*
+    This action gives the loaded mesh new vertices, if it can be done in
+    place: a mesh has been loaded, in-place updates are on, and the region
+    size, step and splat setting match what the mesh was built with. The
+    triangles depend on the region size and step, and the material on the
+    splat setting.
+
+    Attribute: Parameter mesh The newly built mesh.
+    Attribute: Parameter regionSize The number of samples along each side of a region.
+    Attribute: Returns True if the mesh was updated, or false if it must be loaded instead.
+    */
+    private action UpdateMeshInPlace(MeshData mesh, integer regionSize) returns boolean
+        if inPlaceUpdates = false or loadedBlueprint = undefined
+            return false
+        end
+        if loadedRegionSize not= regionSize or loadedStep not= step or loadedWithSplat not= usesSplat
+            return false
+        end
+        MeshVulkan loadedMesh = loadedBlueprint:GetMeshes():Get(0)
+        loadedMesh:UpdateVertices(mesh)
+        return true
+    end
+
+    /*
+    This action turns a mesh into a model blueprint and loads it. Each build
+    gets its own name, since the renderer keeps blueprints by name.
+
+    Attribute: Parameter mesh The mesh to load.
+    */
+    private action LoadMesh(MeshData mesh)
+        buildCount = buildCount + 1
+
+        Array<MeshData> meshes
+        meshes:Add(mesh)
+
+        // A plain white material. The texture is set on the model instead, so
+        // every region shares one copy of it.
+        Material material
+        Vector4 diffuse
+        diffuse:Set(1, 1, 1, 1)
+        material:SetDiffuse(diffuse)
+        // A negative metallic value marks terrain for the splat shader.
+        if usesSplat
+            material:SetMetallic(-1)
+            material:SetRoughness(0.9)
+        end
+        Array<Material> materials
+        materials:Add(material)
+
+        ModelData modelData
+        modelData:SetID(GetName() + " far region " + locationX + ", " + locationZ + " build " + buildCount)
+        modelData:SetMeshes(meshes)
+        modelData:SetMaterials(materials)
+
+        ModelManagerVulkan manager
+        ModelBlueprintVulkan farBlueprint = manager:GetModelBlueprint(modelData)
+        Load(farBlueprint)
+        loadedBlueprint = farBlueprint
+    end
+end

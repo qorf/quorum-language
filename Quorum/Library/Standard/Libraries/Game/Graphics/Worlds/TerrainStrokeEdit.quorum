@@ -1,0 +1,225 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Containers.Array
+use Libraries.Interface.Undo.Edit
+
+/*
+A TerrainStrokeEdit undoes and redoes one TerrainStroke. It holds a copy of
+every region the stroke touched from before the stroke and from after it.
+Undo puts the "before" copies back, and Redo the "after" copies. A copy can
+be undefined, meaning there was no region there, so strokes that add or
+remove regions undo too.
+
+It is an Edit from the standard library's undo system, so it can go into an
+EditManager, the way Quorum Studio's editors keep their undo lists. A
+TerrainEditHistory keeps these edits with a limit on how much memory they
+use.
+
+Undo and Redo change the TerrainData and add the regions to its edited
+areas. They don't redraw anything: afterward, call the WorldTerrain's
+Rebuild, as after any edit.
+
+Each region copy holds 8 bytes per sample, about 0.5 MB for a 256 by 256
+region, and an edit holds two copies of each region it touched.
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.TerrainStroke
+use Libraries.Game.Graphics.Worlds.TerrainStrokeEdit
+
+// After a stroke, as in TerrainStroke's example:
+TerrainStrokeEdit edit = stroke:End()
+if edit not= undefined
+    output edit:GetUndoName()
+    edit:Undo()
+    edit:Redo()
+end
+*/
+class TerrainStrokeEdit is Edit
+    TerrainData data = undefined
+    text name = ""
+    boolean changesShape = false
+    boolean changesSplat = false
+
+    Array<integer> locationsX
+    Array<integer> locationsZ
+    Array<TerrainRegion> beforeCopies
+    Array<TerrainRegion> afterCopies
+
+    // Whether the stroke is currently undone.
+    boolean undone = false
+
+    /*
+    This action fills in the edit. TerrainStroke's End calls it; other code
+    should not need to.
+
+    Attribute: Parameter data The terrain the stroke changed.
+    Attribute: Parameter name What the stroke did, such as "raise".
+    Attribute: Parameter changesShape True if the stroke changed heights or regions.
+    Attribute: Parameter changesSplat True if the stroke changed splat weights or regions.
+    Attribute: Parameter locationsX The touched regions' locations along x.
+    Attribute: Parameter locationsZ The touched regions' locations along z, in the same order.
+    Attribute: Parameter beforeCopies Copies of the regions from before the stroke, undefined where there was none.
+    Attribute: Parameter afterCopies Copies of the regions from after the stroke, undefined where there is none.
+    */
+    action Setup(TerrainData data, text name, boolean changesShape, boolean changesSplat,
+            Array<integer> locationsX, Array<integer> locationsZ,
+            Array<TerrainRegion> beforeCopies, Array<TerrainRegion> afterCopies)
+        me:data = data
+        me:name = name
+        me:changesShape = changesShape
+        me:changesSplat = changesSplat
+        me:locationsX = locationsX
+        me:locationsZ = locationsZ
+        me:beforeCopies = beforeCopies
+        me:afterCopies = afterCopies
+        undone = false
+    end
+
+    /*
+    This action puts every region the stroke touched back the way it was
+    before the stroke.
+    */
+    action Undo
+        Restore(beforeCopies)
+        undone = true
+    end
+
+    /*
+    This action puts every region the stroke touched back the way it was
+    after the stroke.
+    */
+    action Redo
+        Restore(afterCopies)
+        undone = false
+    end
+
+    /*
+    This action returns true if the stroke can be undone: it is not undone
+    already.
+
+    Attribute: Returns True if Undo can be called.
+    */
+    action CanUndo returns boolean
+        return not undone
+    end
+
+    /*
+    This action returns true if the stroke can be redone: it has been
+    undone.
+
+    Attribute: Returns True if Redo can be called.
+    */
+    action CanRedo returns boolean
+        return undone
+    end
+
+    /*
+    This action returns a name for undoing the stroke, such as
+    "Undo raise".
+
+    Attribute: Returns The name.
+    */
+    action GetUndoName returns text
+        return "Undo " + name
+    end
+
+    /*
+    This action returns a name for redoing the stroke, such as
+    "Redo raise".
+
+    Attribute: Returns The name.
+    */
+    action GetRedoName returns text
+        return "Redo " + name
+    end
+
+    /*
+    This action returns what the stroke did, such as "raise".
+
+    Attribute: Returns The name.
+    */
+    action GetName returns text
+        return name
+    end
+
+    /*
+    This action returns true if the stroke changed the ground's shape, so
+    meshes must be rebuilt after undoing or redoing it.
+
+    Attribute: Returns True if heights or regions changed.
+    */
+    action ChangesShape returns boolean
+        return changesShape
+    end
+
+    /*
+    This action returns true if the stroke changed splat weights, so the
+    splat texture must be rebuilt after undoing or redoing it.
+
+    Attribute: Returns True if splat weights or regions changed.
+    */
+    action ChangesSplat returns boolean
+        return changesSplat
+    end
+
+    /*
+    This action returns how many regions the stroke touched.
+
+    Attribute: Returns The number of regions.
+    */
+    action GetRegionCount returns integer
+        return locationsX:GetSize()
+    end
+
+    /*
+    This action returns about how many bytes the edit's region copies use.
+
+    Attribute: Returns The size in bytes.
+    */
+    action GetMemorySize returns integer
+        return GetCopiesSize(beforeCopies) + GetCopiesSize(afterCopies)
+    end
+
+    /*
+    This action lets go of the region copies. The edit can't be undone or
+    redone afterward.
+    */
+    action Dispose
+        beforeCopies:Empty()
+        afterCopies:Empty()
+        locationsX:Empty()
+        locationsZ:Empty()
+    end
+
+    /*
+    This action puts the touched regions back from a list of copies.
+
+    Attribute: Parameter copies The copies, in the same order as the locations.
+    */
+    private action Restore(Array<TerrainRegion> copies)
+        integer i = 0
+        repeat while i < locationsX:GetSize()
+            data:RestoreRegion(locationsX:Get(i), locationsZ:Get(i), copies:Get(i))
+            i = i + 1
+        end
+    end
+
+    /*
+    This action adds up the memory used by a list of region copies.
+
+    Attribute: Parameter copies The copies.
+    Attribute: Returns The size in bytes.
+    */
+    private action GetCopiesSize(Array<TerrainRegion> copies) returns integer
+        integer total = 0
+        integer i = 0
+        repeat while i < copies:GetSize()
+            TerrainRegion copy = copies:Get(i)
+            if copy not= undefined
+                total = total + copy:GetMemorySize()
+            end
+            i = i + 1
+        end
+        return total
+    end
+end

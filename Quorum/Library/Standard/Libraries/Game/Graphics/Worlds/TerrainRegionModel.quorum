@@ -1,0 +1,476 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Compute.Vector3
+use Libraries.Compute.Vector4
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
+use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
+use Libraries.Game.Graphics.Models.Vulkan.MeshVulkan
+
+/*
+A TerrainRegionModel draws one TerrainRegion. A WorldTerrain makes one for
+each region, so a large terrain is drawn as many smaller pieces. Each piece
+can be culled on its own, and a change to the ground only needs the pieces
+it touched rebuilt.
+
+It is a TerrainPatch, so it can also be what the physics engine collides
+with. When a WorldTerrain uses full collision, each region model has a
+collision shape for its whole region. When it uses dynamic collision, the
+region models only draw, and a TerrainCollision keeps small collision pieces
+near the player instead.
+
+The mesh covers its region's samples and reaches one sample into the next
+region along x and along z, where there is one, so neighboring pieces share
+their edges and there are no gaps between them. Normals are worked out from
+the TerrainData as well, across region edges, so the lighting matches where
+two pieces meet.
+
+In Terrain3D, drawing is done by Terrain3DMesher and collision by
+Terrain3DCollision.
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Game.Graphics.Worlds.TerrainData
+use Libraries.Game.Graphics.Worlds.TerrainRegionModel
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        TerrainData data
+        data:AddRegion(0, 0)
+        TerrainRegionModel model
+        model:Build(data, data:GetRegion(0, 0), undefined, 4, false)
+        model:PlaceInWorld()
+        Add(model)
+    end
+end
+*/
+class TerrainRegionModel is TerrainPatch
+    // Which region this model draws.
+    TerrainRegion terrainRegion = undefined
+
+    // Whether the model has a collision shape for its whole region.
+    boolean hasCollisionShape = true
+
+    // How many times this model has been built, so each build's mesh gets its
+    // own name.
+    integer buildCount = 0
+
+    // Whether the ground this model draws has changed while it was out of the
+    // game, so it must be rebuilt before it is shown again.
+    boolean needsRebuild = false
+
+    // Whether the model is drawn with texture splatting. If so, its texture
+    // coordinates are each vertex's place in the terrain's splat texture, and
+    // its material is marked as terrain for the splat shader. The splat
+    // texture covers splatWidth by splatDepth samples, starting at sample
+    // (splatStartX, splatStartZ).
+    boolean usesSplat = false
+    integer splatStartX = 0
+    integer splatStartZ = 0
+    integer splatWidth = 1
+    integer splatDepth = 1
+
+    // The blueprint this model last loaded, and the grid size and splat
+    // setting it was built with. A rebuild with the same grid size and splat
+    // setting updates that blueprint's mesh in place instead of making a new
+    // one, so no GPU memory is used up.
+    ModelBlueprintVulkan loadedBlueprint = undefined
+    integer loadedCountX = 0
+    integer loadedCountZ = 0
+    boolean loadedWithSplat = false
+
+    // Whether rebuilds may update the mesh in place. Turning it off goes back
+    // to making a new mesh every time, for comparison.
+    boolean inPlaceUpdates = true
+
+    // Whether the last build updated the mesh in place.
+    boolean builtInPlace = false
+
+    /*
+    This action builds the model's mesh, and its collision shape if asked,
+    for one region. Call PlaceInWorld afterward, once physics has been set
+    up, to place and scale the model to match the TerrainData's vertex
+    spacing.
+
+    Building again updates the mesh in place when the region's grid size and
+    splat setting are unchanged. Otherwise it makes a new mesh, and the
+    renderer cannot yet free the old one, so its memory stays in use. See
+    VulkanChanges.md.
+
+    Attribute: Parameter data The heights of the whole terrain.
+    Attribute: Parameter region The region this model draws.
+    Attribute: Parameter texture The texture laid over the ground, or undefined for none.
+    Attribute: Parameter textureRepeat How far apart, in world units, the texture repeats.
+    Attribute: Parameter withCollision True to give the model a collision shape for its whole region.
+    */
+    action Build(TerrainData data, TerrainRegion region, Texture texture, number textureRepeat, boolean withCollision)
+        terrainRegion = region
+        hasCollisionShape = withCollision
+        BuildMeshAndShape(data, texture, textureRepeat)
+    end
+
+    /*
+    This action builds the model again from the current heights, after they
+    have changed, and moves it to its new height. It keeps its physics
+    settings, and keeps or leaves out its collision shape as it was built.
+    It must have been built with Build first.
+
+    A rebuild updates the mesh in place when the region's grid size and
+    splat setting are unchanged, which is the usual case for edits. Otherwise
+    it makes a new mesh, and the old one is freed.
+
+    Attribute: Parameter texture The texture laid over the ground, or undefined for none.
+    Attribute: Parameter textureRepeat How far apart, in world units, the texture repeats.
+    */
+    action Rebuild(Texture texture, number textureRepeat)
+        if terrainRegion = undefined
+            alert("A TerrainRegionModel must be built with Build before it can be rebuilt.")
+        end
+        BuildMeshAndShape(GetTerrainData(), texture, textureRepeat)
+        PlaceInWorld()
+        needsRebuild = false
+    end
+
+    /*
+    This action sets the region this model draws, without rebuilding it.
+    When a streamed region is loaded again, it is a new TerrainRegion at the
+    same location, and the model built for it before can be reused.
+
+    Attribute: Parameter region The region, at the same location as before.
+    */
+    action SetTerrainRegion(TerrainRegion region)
+        terrainRegion = region
+    end
+
+    /*
+    This action marks whether the ground this model draws has changed while
+    it was out of the game, so it must be rebuilt before it is shown again.
+
+    Attribute: Parameter rebuild True if the model must be rebuilt.
+    */
+    action SetNeedsRebuild(boolean rebuild)
+        needsRebuild = rebuild
+    end
+
+    /*
+    This action returns true if the model must be rebuilt before it is shown
+    again.
+
+    Attribute: Returns True if the model is out of date.
+    */
+    action NeedsRebuild returns boolean
+        return needsRebuild
+    end
+
+    /*
+    This action sets whether the model is drawn with texture splatting. It
+    takes effect the next time the model is built.
+
+    Attribute: Parameter splat True to draw with texture splatting.
+    */
+    action SetUsesSplat(boolean splat)
+        usesSplat = splat
+    end
+
+    /*
+    This action sets whether rebuilding may update the existing mesh in
+    place, rather than making a new one. It is on by default.
+
+    Attribute: Parameter inPlace True to update meshes in place when possible.
+    */
+    action SetInPlaceUpdates(boolean inPlace)
+        inPlaceUpdates = inPlace
+    end
+
+    /*
+    This action returns true if the last build updated the existing mesh in
+    place, or false if it loaded a new mesh.
+
+    Attribute: Returns True if the last build was an update in place.
+    */
+    action WasBuiltInPlace returns boolean
+        return builtInPlace
+    end
+
+    /*
+    This action sets which samples the terrain's splat texture covers, so
+    the model's texture coordinates point at the right pixels. It takes
+    effect the next time the model is built.
+
+    Attribute: Parameter startX The first sample along x the splat texture covers.
+    Attribute: Parameter startZ The first sample along z the splat texture covers.
+    Attribute: Parameter width How many samples the splat texture covers along x.
+    Attribute: Parameter depth How many samples the splat texture covers along z.
+    */
+    action SetSplatArea(integer startX, integer startZ, integer width, integer depth)
+        splatStartX = startX
+        splatStartZ = startZ
+        splatWidth = width
+        splatDepth = depth
+    end
+
+    /*
+    This action returns true if the model is drawn with texture splatting.
+
+    Attribute: Returns True if the model uses texture splatting.
+    */
+    action UsesSplat returns boolean
+        return usesSplat
+    end
+
+    /*
+    This action returns the region this model draws.
+
+    Attribute: Returns The region, or undefined if the model has not been built.
+    */
+    action GetTerrainRegion returns TerrainRegion
+        return terrainRegion
+    end
+
+    /*
+    This action returns true if the model has a collision shape for its
+    whole region.
+
+    Attribute: Returns True if the model can be collided with.
+    */
+    action HasCollisionShape returns boolean
+        return hasCollisionShape
+    end
+
+    /*
+    This action measures the region, builds and loads its mesh, and gives
+    the model its collision shape if it should have one.
+
+    Attribute: Parameter data The heights of the whole terrain.
+    Attribute: Parameter texture The texture laid over the ground, or undefined for none.
+    Attribute: Parameter textureRepeat How far apart, in world units, the texture repeats.
+    */
+    private action BuildMeshAndShape(TerrainData data, Texture texture, number textureRepeat)
+        integer regionSize = data:GetRegionSize()
+        integer locationX = terrainRegion:GetLocationX()
+        integer locationZ = terrainRegion:GetLocationZ()
+        Measure(data, locationX * regionSize, locationZ * regionSize, regionSize)
+
+        MeshData mesh = BuildMesh(data:GetVertexSpacing(), textureRepeat, regionSize)
+        boolean updated = UpdateMeshInPlace(mesh)
+        builtInPlace = updated
+        if not updated
+            LoadMesh(mesh, locationX, locationZ)
+        end
+        if texture not= undefined
+            GetResources():SetTexture(texture)
+        end
+
+        // Loading a mesh gives the model its mesh's sizes, and with them a
+        // plain box shape. With full collision, the terrain's own shape
+        // replaces it. Without, the model is kept out of collisions.
+        if hasCollisionShape
+            ApplyCollisionShape()
+        else
+            // Loading sets the sizes from the mesh, but an update in place
+            // does not, so set the height, the only size an edit changes.
+            if updated
+                SetHeight(GetTopHeight() - GetBaseHeight())
+            end
+            SetCollidable(false)
+        end
+    end
+
+    /*
+    This action builds the mesh's vertices, normals, tangents, texture
+    coordinates and triangles. The vertices and normals are worked out the
+    same way as Terrain's, so the two look alike.
+
+    Attribute: Parameter spacing The distance between samples in the world, used for texture coordinates.
+    Attribute: Parameter textureRepeat How far apart, in world units, the texture repeats.
+    Attribute: Parameter regionSize The number of samples along each side of a region, used for splat map coordinates.
+    Attribute: Returns The mesh.
+    */
+    private action BuildMesh(number spacing, number textureRepeat, integer regionSize) returns MeshData
+        integer countX = GetPixelWidth()
+        integer countZ = GetPixelHeight()
+        integer firstX = GetFirstSampleX()
+        integer firstZ = GetFirstSampleZ()
+        number base = GetBaseHeight()
+
+        integer vertexCount = countX * countZ
+        Number32BitArray vertices
+        vertices:SetSize(vertexCount * 3)
+        Number32BitArray normals
+        normals:SetSize(vertexCount * 3)
+        Number32BitArray tangents
+        tangents:SetSize(vertexCount * 3)
+        Number32BitArray bitangents
+        bitangents:SetSize(vertexCount * 3)
+        Number32BitArray textureCoordinates
+        textureCoordinates:SetSize(vertexCount * 2)
+
+        Vector3 normal
+        Vector3 tangent
+        Vector3 bitangent
+
+        integer row = 0
+        repeat while row < countZ
+            integer column = 0
+            repeat while column < countX
+                integer position = (row * countX + column) * 3
+                integer uvPosition = (row * countX + column) * 2
+
+                vertices:Set(position, column)
+                vertices:Set(position + 1, GetPatchHeight(column, row) - base)
+                vertices:Set(position + 2, row)
+
+                // The slope from the neighbors on each side. They are read
+                // across region edges, so normals match where pieces meet.
+                number dx = GetPatchHeight(column + 1, row) - GetPatchHeight(column - 1, row)
+                number dz = GetPatchHeight(column, row + 1) - GetPatchHeight(column, row - 1)
+
+                normal:Set(-dx, 2, -dz)
+                normal:Normalize()
+                normals:Set(position, normal:GetX())
+                normals:Set(position + 1, normal:GetY())
+                normals:Set(position + 2, normal:GetZ())
+
+                tangent:Set(2, dx, 0)
+                tangent:Normalize()
+                tangents:Set(position, tangent:GetX())
+                tangents:Set(position + 1, tangent:GetY())
+                tangents:Set(position + 2, tangent:GetZ())
+
+                bitangent:Set(normal)
+                bitangent:CrossProduct(tangent)
+                bitangents:Set(position, bitangent:GetX())
+                bitangents:Set(position + 1, bitangent:GetY())
+                bitangents:Set(position + 2, bitangent:GetZ())
+
+                // Texture coordinates come from the world position, so the
+                // texture lines up across region edges. With splatting, they
+                // are the vertex's place in the terrain's splat texture
+                // instead, at the middle of the vertex's own pixel.
+                if usesSplat
+                    textureCoordinates:Set(uvPosition, (firstX + column - splatStartX + 0.5) / splatWidth)
+                    textureCoordinates:Set(uvPosition + 1, (firstZ + row - splatStartZ + 0.5) / splatDepth)
+                else
+                    textureCoordinates:Set(uvPosition, (firstX + column) * spacing / textureRepeat)
+                    textureCoordinates:Set(uvPosition + 1, (firstZ + row) * spacing / textureRepeat)
+                end
+
+                column = column + 1
+            end
+            row = row + 1
+        end
+
+        // Two triangles per cell, in the same order as Terrain and as
+        // FillAtPixel.
+        Integer32BitArray indices
+        indices:SetSize((countX - 1) * (countZ - 1) * 6)
+        integer index = 0
+        row = 0
+        repeat while row < countZ - 1
+            integer column = 0
+            repeat while column < countX - 1
+                integer topLeft = row * countX + column
+                integer topRight = topLeft + 1
+                integer bottomLeft = (row + 1) * countX + column
+                integer bottomRight = bottomLeft + 1
+
+                indices:Set(index, topLeft)
+                indices:Set(index + 1, bottomLeft)
+                indices:Set(index + 2, topRight)
+
+                indices:Set(index + 3, topRight)
+                indices:Set(index + 4, bottomLeft)
+                indices:Set(index + 5, bottomRight)
+
+                index = index + 6
+                column = column + 1
+            end
+            row = row + 1
+        end
+
+        MeshData mesh
+        mesh:SetVertices(vertices)
+        mesh:SetIndices(indices)
+        mesh:SetNormals(normals)
+        mesh:SetTangents(tangents)
+        mesh:SetBitangents(bitangents)
+        mesh:SetTextureCoordinates(textureCoordinates)
+        mesh:SetMaterialIndex(0)
+        return mesh
+    end
+
+    /*
+    This action gives the loaded mesh new vertices, if it can be done in
+    place: a mesh has been loaded, in-place updates are on, and the grid size
+    and splat setting match what the mesh was built with. The triangles
+    depend on the grid size, and the material on the splat setting, so both
+    must match.
+
+    Attribute: Parameter mesh The newly built mesh.
+    Attribute: Returns True if the mesh was updated, or false if it must be loaded instead.
+    */
+    private action UpdateMeshInPlace(MeshData mesh) returns boolean
+        if inPlaceUpdates = false or loadedBlueprint = undefined
+            return false
+        end
+        if loadedCountX not= GetPixelWidth() or loadedCountZ not= GetPixelHeight() or loadedWithSplat not= usesSplat
+            return false
+        end
+        MeshVulkan loadedMesh = loadedBlueprint:GetMeshes():Get(0)
+        loadedMesh:UpdateVertices(mesh)
+        return true
+    end
+
+    /*
+    This action turns a mesh into a model blueprint and loads it. Each build
+    gets its own name, since the renderer keeps blueprints by name.
+
+    Attribute: Parameter mesh The mesh to load.
+    Attribute: Parameter locationX The region's x location, used in the name.
+    Attribute: Parameter locationZ The region's z location, used in the name.
+    */
+    private action LoadMesh(MeshData mesh, integer locationX, integer locationZ)
+        buildCount = buildCount + 1
+
+        Array<MeshData> meshes
+        meshes:Add(mesh)
+
+        // A plain white material. The texture is set on the model instead, so
+        // every region shares one copy of it.
+        Material material
+        Vector4 diffuse
+        diffuse:Set(1, 1, 1, 1)
+        material:SetDiffuse(diffuse)
+        // A negative metallic value marks terrain for the splat shader.
+        if usesSplat
+            material:SetMetallic(-1)
+            material:SetRoughness(0.9)
+        end
+        Array<Material> materials
+        materials:Add(material)
+
+        ModelData modelData
+        modelData:SetID(GetName() + " region " + locationX + ", " + locationZ + " build " + buildCount)
+        modelData:SetMeshes(meshes)
+        modelData:SetMaterials(materials)
+
+        ModelManagerVulkan manager
+        ModelBlueprintVulkan regionBlueprint = manager:GetModelBlueprint(modelData)
+        Load(regionBlueprint)
+
+        loadedBlueprint = regionBlueprint
+        loadedCountX = GetPixelWidth()
+        loadedCountZ = GetPixelHeight()
+        loadedWithSplat = usesSplat
+    end
+end

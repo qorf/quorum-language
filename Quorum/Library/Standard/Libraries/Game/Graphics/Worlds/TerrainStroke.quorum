@@ -1,0 +1,723 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Compute.Math
+
+/*
+A TerrainStroke is one use of a TerrainBrush on a TerrainData: everything
+from pressing the mouse button (or a key) to letting it go. Begin starts it,
+Apply is called as the brush moves, usually once a frame, and End finishes
+it.
+
+Apply is given how many seconds have passed since the last call, so a
+stroke does the same thing at any frame rate. If the brush moved a long way
+since the last call, the stroke applies it at points along the way, a
+quarter of the brush's size apart, so fast strokes leave no gaps.
+
+The first time a stroke touches a region, it keeps a copy of that region as
+it was. End makes a TerrainStrokeEdit from those copies, which can undo and
+redo the whole stroke. Cancel puts everything back right away instead.
+
+Changed heights go into the TerrainData's edited area, and changed splat
+weights into its splat edited area, so a WorldTerrain's Rebuild redraws only
+what the stroke touched.
+
+This follows Terrain3D's editor, whose strokes also start, operate as the
+mouse moves, and stop, keeping a copy of each region they touch for undo.
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.TerrainData
+use Libraries.Game.Graphics.Worlds.TerrainBrush
+use Libraries.Game.Graphics.Worlds.TerrainStroke
+use Libraries.Game.Graphics.Worlds.TerrainStrokeEdit
+use Libraries.Game.Graphics.Worlds.TerrainTool
+
+TerrainData data
+data:AddRegion(0, 0)
+TerrainTool tools
+TerrainBrush brush
+brush:SetTool(tools:SCULPT, tools:ADD)
+brush:SetSize(10)
+brush:SetStrength(4)
+
+TerrainStroke stroke
+stroke:Begin(data, brush)
+stroke:Apply(50, 50, 0.5)
+stroke:Apply(60, 50, 0.5)
+TerrainStrokeEdit edit = stroke:End()
+edit:Undo()
+*/
+class TerrainStroke
+    TerrainData data = undefined
+    TerrainBrush brush = undefined
+    TerrainTool tools
+    Math math
+
+    boolean active = false
+    boolean changed = false
+
+    // What the edit made at the end will be called, and what it changes.
+    text editName = ""
+    boolean editChangesShape = false
+    boolean editChangesSplat = false
+
+    // Where the brush was last applied.
+    boolean hasLast = false
+    number lastX = 0
+    number lastZ = 0
+
+    // The region locations the stroke has touched, and a copy of each
+    // region from before it was touched. A copy is undefined if there was no
+    // region there.
+    Array<integer> touchedX
+    Array<integer> touchedZ
+    Array<TerrainRegion> beforeCopies
+
+    /*
+    This action starts a stroke. The brush's settings are read as the stroke
+    goes, so changing the brush during a stroke changes the rest of it.
+
+    Attribute: Parameter data The terrain to change.
+    Attribute: Parameter brush The brush to use.
+    */
+    action Begin(TerrainData data, TerrainBrush brush)
+        if active
+            alert("A terrain stroke can't begin while it is already going. Call End or Cancel first.")
+        end
+        if brush:GetTool() = tools:SCULPT and brush:GetOperation() = tools:GRADIENT and not brush:HasGradient()
+            alert("A ramp brush needs its ramp set with SetGradient before a stroke begins.")
+        end
+        me:data = data
+        me:brush = brush
+        editName = brush:GetName()
+        editChangesShape = tools:ChangesShape(brush:GetTool())
+        editChangesSplat = tools:ChangesSplat(brush:GetTool())
+        StartLists()
+    end
+
+    /*
+    This action starts an operation that isn't made with a brush, such as
+    generating hills, placing a stamp or eroding an area, so it can be undone
+    like a stroke. Call CopyArea for the area the operation will change,
+    then change the TerrainData directly, then call End for the edit.
+
+    Attribute: Parameter data The terrain the operation will change.
+    Attribute: Parameter name What the operation does, such as "stamp a mountain", for the edit's undo name.
+    Attribute: Parameter changesShape True if the operation changes heights.
+    Attribute: Parameter changesSplat True if the operation changes splat weights.
+    */
+    action BeginOperation(TerrainData data, text name, boolean changesShape, boolean changesSplat)
+        if active
+            alert("A terrain operation can't begin while a stroke is going. Call End or Cancel first.")
+        end
+        me:data = data
+        me:brush = undefined
+        editName = name
+        editChangesShape = changesShape
+        editChangesSplat = changesSplat
+        StartLists()
+        // An operation is taken to change something; End makes an edit for it.
+        changed = true
+    end
+
+    /*
+    This action keeps a copy of every region covering a rectangle of
+    samples, for undoing an operation started with BeginOperation. Call it
+    before changing anything in the rectangle. It can be called more than
+    once; a region is only copied the first time.
+
+    Attribute: Parameter minimumX The rectangle's smallest sample along x.
+    Attribute: Parameter minimumZ The rectangle's smallest sample along z.
+    Attribute: Parameter maximumX The rectangle's largest sample along x.
+    Attribute: Parameter maximumZ The rectangle's largest sample along z.
+    */
+    action CopyArea(integer minimumX, integer minimumZ, integer maximumX, integer maximumZ)
+        if not active
+            alert("A terrain operation must begin before its area is copied.")
+        end
+        CopyRegionsFor(minimumX, minimumZ, maximumX, maximumZ, false)
+    end
+
+    /*
+    This action makes the stroke active with empty lists of touched regions.
+    */
+    private action StartLists
+        active = true
+        changed = false
+        hasLast = false
+
+        Array<integer> newTouchedX
+        Array<integer> newTouchedZ
+        Array<TerrainRegion> newBeforeCopies
+        touchedX = newTouchedX
+        touchedZ = newTouchedZ
+        beforeCopies = newBeforeCopies
+    end
+
+    /*
+    This action returns true if the stroke has begun and not yet ended.
+
+    Attribute: Returns True while the stroke is going.
+    */
+    action IsActive returns boolean
+        return active
+    end
+
+    /*
+    This action returns true if the stroke has changed the terrain so far.
+
+    Attribute: Returns True if anything has changed.
+    */
+    action HasChanged returns boolean
+        return changed
+    end
+
+    /*
+    This action returns how many regions the stroke has touched so far.
+
+    Attribute: Returns The number of regions copied for undo.
+    */
+    action GetTouchedRegionCount returns integer
+        return touchedX:GetSize()
+    end
+
+    /*
+    This action applies the brush at a world position. If the brush moved
+    more than its spacing since the last call, it is applied at even steps
+    along the way, sharing out the time between them.
+
+    Attribute: Parameter worldX The brush's center along x, in world units.
+    Attribute: Parameter worldZ The brush's center along z, in world units.
+    Attribute: Parameter seconds How long the brush has been held here, usually the time since the last call.
+    */
+    action Apply(number worldX, number worldZ, number seconds)
+        if not active or brush = undefined
+            alert("A terrain stroke must begin, with a brush, before it can be applied.")
+        end
+        number time = seconds
+        if time < 0
+            time = 0
+        end
+
+        if not hasLast
+            Dab(worldX, worldZ, time)
+        else
+            number moveX = worldX - lastX
+            number moveZ = worldZ - lastZ
+            number distance = math:SquareRoot(moveX * moveX + moveZ * moveZ)
+            number spacing = brush:GetSpacing()
+            if distance <= spacing
+                Dab(worldX, worldZ, time)
+            else
+                integer steps = cast(integer, math:Ceiling(distance / spacing))
+                integer step = 1
+                repeat while step <= steps
+                    number fraction = cast(number, step) / steps
+                    Dab(lastX + moveX * fraction, lastZ + moveZ * fraction, time / steps)
+                    step = step + 1
+                end
+            end
+        end
+        hasLast = true
+        lastX = worldX
+        lastZ = worldZ
+    end
+
+    /*
+    This action finishes the stroke and returns an edit that can undo and
+    redo it. If the stroke changed nothing, it returns undefined.
+
+    Attribute: Returns The edit, or undefined if nothing changed.
+    */
+    action End returns TerrainStrokeEdit
+        if not active
+            alert("A terrain stroke must begin before it can end.")
+        end
+        active = false
+        if not changed
+            return undefined
+        end
+
+        Array<TerrainRegion> afterCopies
+        integer i = 0
+        repeat while i < touchedX:GetSize()
+            TerrainRegion region = data:GetRegion(touchedX:Get(i), touchedZ:Get(i))
+            if region = undefined
+                afterCopies:Add(undefined)
+            else
+                afterCopies:Add(region:Copy())
+            end
+            i = i + 1
+        end
+
+        TerrainStrokeEdit edit
+        edit:Setup(data, editName, editChangesShape, editChangesSplat, touchedX, touchedZ, beforeCopies, afterCopies)
+        return edit
+    end
+
+    /*
+    This action stops the stroke and puts every region it touched back the
+    way it was, as if it never happened.
+    */
+    action Cancel
+        if not active
+            return now
+        end
+        integer i = 0
+        repeat while i < touchedX:GetSize()
+            data:RestoreRegion(touchedX:Get(i), touchedZ:Get(i), beforeCopies:Get(i))
+            i = i + 1
+        end
+        active = false
+        changed = false
+    end
+
+    /*
+    This action applies the brush once, centered at a world position.
+
+    Attribute: Parameter centerX The brush's center along x, in world units.
+    Attribute: Parameter centerZ The brush's center along z, in world units.
+    Attribute: Parameter seconds How long the brush is held here.
+    */
+    private action Dab(number centerX, number centerZ, number seconds)
+        integer tool = brush:GetTool()
+        integer operation = brush:GetOperation()
+
+        if tool = tools:REGION
+            DabRegion(centerX, centerZ, operation)
+            return now
+        end
+
+        // The first dab of a stroke that flattens to its starting height
+        // reads that height.
+        if tool = tools:HEIGHT and brush:FlattensToStart() and not hasLast
+            brush:SetTargetHeight(data:GetSurfaceHeight(centerX, centerZ))
+        end
+
+        // A shape can be turned, so its square reaches further than the
+        // circle: up to the radius times the square root of 2.
+        number reach = brush:GetSize()
+        if brush:HasShape()
+            reach = reach * 1.4143
+        end
+        integer firstX = data:GetSampleX(centerX - reach)
+        integer lastSampleX = data:GetSampleX(centerX + reach) + 1
+        integer firstZ = data:GetSampleZ(centerZ - reach)
+        integer lastSampleZ = data:GetSampleZ(centerZ + reach) + 1
+        integer width = lastSampleX - firstX + 1
+        integer depth = lastSampleZ - firstZ + 1
+        number spacing = data:GetVertexSpacing()
+
+        CopyRegionsFor(firstX, firstZ, lastSampleX, lastSampleZ, false)
+
+        // Each sample's weight, worked out before anything changes, so
+        // smoothing and the slope range see the ground as it was at the start
+        // of this dab. Samples with no region get 0.
+        Number32BitArray weights
+        weights:SetSize(width * depth)
+        integer row = 0
+        repeat while row < depth
+            integer column = 0
+            repeat while column < width
+                integer x = firstX + column
+                integer z = firstZ + row
+                number weight = 0
+                if data:HasSample(x, z)
+                    weight = brush:GetWeight(x * spacing - centerX, z * spacing - centerZ)
+                    if weight > 0 and brush:UsesSlopeRange()
+                        if not brush:IsSlopeAllowed(data:GetSlope(x * spacing, z * spacing))
+                            weight = 0
+                        end
+                    end
+                end
+                weights:Set(row * width + column, weight)
+                column = column + 1
+            end
+            row = row + 1
+        end
+
+        if tool = tools:TEXTURE
+            DabTexture(firstX, firstZ, width, depth, weights, operation, seconds)
+        else
+            DabHeight(firstX, firstZ, width, depth, weights, tool, operation, seconds, spacing)
+        end
+    end
+
+    /*
+    This action changes heights for one dab of a SCULPT or HEIGHT brush.
+
+    Attribute: Parameter firstX The first sample along x the dab covers.
+    Attribute: Parameter firstZ The first sample along z the dab covers.
+    Attribute: Parameter width How many samples the dab covers along x.
+    Attribute: Parameter depth How many samples the dab covers along z.
+    Attribute: Parameter weights The brush's weight at each sample, one row after another.
+    Attribute: Parameter tool The brush's tool.
+    Attribute: Parameter operation The brush's operation.
+    Attribute: Parameter seconds How long the brush is held here.
+    Attribute: Parameter spacing The distance between samples, in world units.
+    */
+    private action DabHeight(integer firstX, integer firstZ, integer width, integer depth, Number32BitArray weights,
+            integer tool, integer operation, number seconds, number spacing)
+        boolean smoothing = tool = tools:SCULPT and operation = tools:AVERAGE
+
+        // For smoothing, every goal is worked out before any height changes.
+        Number32BitArray averages = undefined
+        if smoothing
+            Number32BitArray newAverages
+            averages = newAverages
+            averages:SetSize(width * depth)
+            integer averageRow = 0
+            repeat while averageRow < depth
+                integer averageColumn = 0
+                repeat while averageColumn < width
+                    integer place = averageRow * width + averageColumn
+                    if weights:Get(place) > 0
+                        averages:Set(place, GetAverageHeight(firstX + averageColumn, firstZ + averageRow))
+                    else
+                        averages:Set(place, 0)
+                    end
+                    averageColumn = averageColumn + 1
+                end
+                averageRow = averageRow + 1
+            end
+        end
+
+        number strength = brush:GetStrength()
+        integer row = 0
+        repeat while row < depth
+            integer column = 0
+            repeat while column < width
+                number weight = weights:Get(row * width + column)
+                if weight > 0
+                    integer x = firstX + column
+                    integer z = firstZ + row
+                    number height = data:GetSampleHeight(x, z)
+                    number newHeight = height
+                    if tool = tools:SCULPT and operation = tools:ADD
+                        newHeight = height + strength * seconds * weight
+                    elseif tool = tools:SCULPT and operation = tools:SUBTRACT
+                        newHeight = height - strength * seconds * weight
+                    elseif smoothing
+                        newHeight = height + (averages:Get(row * width + column) - height) * GetFraction(weight, seconds)
+                    elseif tool = tools:SCULPT and operation = tools:GRADIENT
+                        number goal = brush:GetGradientHeight(x * spacing, z * spacing)
+                        newHeight = height + (goal - height) * GetFraction(weight, seconds)
+                    elseif tool = tools:HEIGHT
+                        newHeight = height + (brush:GetTargetHeight() - height) * GetFraction(weight, seconds)
+                    end
+                    if newHeight not= height
+                        data:SetSampleHeight(x, z, newHeight)
+                        changed = true
+                    end
+                end
+                column = column + 1
+            end
+            row = row + 1
+        end
+    end
+
+    /*
+    This action changes splat weights for one dab of a TEXTURE brush.
+
+    Attribute: Parameter firstX The first sample along x the dab covers.
+    Attribute: Parameter firstZ The first sample along z the dab covers.
+    Attribute: Parameter width How many samples the dab covers along x.
+    Attribute: Parameter depth How many samples the dab covers along z.
+    Attribute: Parameter weights The brush's weight at each sample, one row after another.
+    Attribute: Parameter operation The brush's operation.
+    Attribute: Parameter seconds How long the brush is held here.
+    */
+    private action DabTexture(integer firstX, integer firstZ, integer width, integer depth, Number32BitArray weights,
+            integer operation, number seconds)
+        boolean blending = operation = tools:AVERAGE
+
+        // For blending, every goal is worked out before any weight changes:
+        // four numbers per sample, red, green, blue and alpha.
+        Number32BitArray goals = undefined
+        if blending
+            Number32BitArray newGoals
+            goals = newGoals
+            goals:SetSize(width * depth * 4)
+            integer goalRow = 0
+            repeat while goalRow < depth
+                integer goalColumn = 0
+                repeat while goalColumn < width
+                    if weights:Get(goalRow * width + goalColumn) > 0
+                        FillAverageSplat(firstX + goalColumn, firstZ + goalRow, goals, (goalRow * width + goalColumn) * 4)
+                    end
+                    goalColumn = goalColumn + 1
+                end
+                goalRow = goalRow + 1
+            end
+        end
+
+        integer layer = brush:GetLayer()
+        integer row = 0
+        repeat while row < depth
+            integer column = 0
+            repeat while column < width
+                number weight = weights:Get(row * width + column)
+                if weight > 0
+                    integer x = firstX + column
+                    integer z = firstZ + row
+                    number fraction = GetFraction(weight, seconds)
+                    integer code = data:GetSampleSplat(x, z)
+                    number red = data:GetSplatWeight(code, 0)
+                    number green = data:GetSplatWeight(code, 1)
+                    number blue = data:GetSplatWeight(code, 2)
+                    number alpha = data:GetSplatWeight(code, 3)
+                    number redGoal = 0
+                    number greenGoal = 0
+                    number blueGoal = 0
+                    number alphaGoal = 0
+                    if blending
+                        integer start = (row * width + column) * 4
+                        redGoal = goals:Get(start)
+                        greenGoal = goals:Get(start + 1)
+                        blueGoal = goals:Get(start + 2)
+                        alphaGoal = goals:Get(start + 3)
+                    elseif layer = 0
+                        redGoal = 1
+                    elseif layer = 1
+                        greenGoal = 1
+                    elseif layer = 2
+                        blueGoal = 1
+                    else
+                        alphaGoal = 1
+                    end
+                    integer newCode = data:PackSplat(MoveWeight(red, redGoal, fraction), MoveWeight(green, greenGoal, fraction),
+                        MoveWeight(blue, blueGoal, fraction), MoveWeight(alpha, alphaGoal, fraction))
+                    if newCode not= code
+                        data:SetSampleSplat(x, z, newCode)
+                        changed = true
+                    end
+                end
+                column = column + 1
+            end
+            row = row + 1
+        end
+    end
+
+    /*
+    This action adds or removes the region under the brush's center, for a
+    REGION brush.
+
+    Attribute: Parameter centerX The brush's center along x, in world units.
+    Attribute: Parameter centerZ The brush's center along z, in world units.
+    Attribute: Parameter operation ADD to add a region, SUBTRACT to remove one.
+    */
+    private action DabRegion(number centerX, number centerZ, integer operation)
+        integer locationX = data:GetRegionLocation(data:GetSampleX(centerX))
+        integer locationZ = data:GetRegionLocation(data:GetSampleZ(centerZ))
+        if not data:IsInRegionMap(locationX, locationZ)
+            return now
+        end
+        boolean exists = data:HasRegion(locationX, locationZ)
+        if operation = tools:ADD and not exists
+            CopyRegion(locationX, locationZ, true)
+            data:AddRegion(locationX, locationZ)
+            changed = true
+        elseif operation = tools:SUBTRACT and exists
+            CopyRegion(locationX, locationZ, true)
+            data:RemoveRegion(locationX, locationZ)
+            changed = true
+        else
+            return now
+        end
+        // The region's splat weights changed too (a new region is all the
+        // first texture), so a splat texture covering it is brought up to
+        // date as well.
+        integer size = data:GetRegionSize()
+        data:AddToSplatEditedArea(locationX * size, locationZ * size, locationX * size + size - 1, locationZ * size + size - 1)
+    end
+
+    /*
+    This action keeps a copy of every region covering a rectangle of
+    samples that the stroke hasn't touched yet.
+
+    Attribute: Parameter minimumX The rectangle's smallest sample along x.
+    Attribute: Parameter minimumZ The rectangle's smallest sample along z.
+    Attribute: Parameter maximumX The rectangle's largest sample along x.
+    Attribute: Parameter maximumZ The rectangle's largest sample along z.
+    Attribute: Parameter includeEmpty True to also note locations with no region, for adding and removing regions.
+    */
+    private action CopyRegionsFor(integer minimumX, integer minimumZ, integer maximumX, integer maximumZ, boolean includeEmpty)
+        integer firstLocationX = data:GetRegionLocation(minimumX)
+        integer lastLocationX = data:GetRegionLocation(maximumX)
+        integer firstLocationZ = data:GetRegionLocation(minimumZ)
+        integer lastLocationZ = data:GetRegionLocation(maximumZ)
+        integer locationZ = firstLocationZ
+        repeat while locationZ <= lastLocationZ
+            integer locationX = firstLocationX
+            repeat while locationX <= lastLocationX
+                CopyRegion(locationX, locationZ, includeEmpty)
+                locationX = locationX + 1
+            end
+            locationZ = locationZ + 1
+        end
+    end
+
+    /*
+    This action keeps a copy of the region at a location, if the stroke
+    hasn't touched it yet.
+
+    Attribute: Parameter locationX The region location along x.
+    Attribute: Parameter locationZ The region location along z.
+    Attribute: Parameter includeEmpty True to note the location even if there is no region there.
+    */
+    private action CopyRegion(integer locationX, integer locationZ, boolean includeEmpty)
+        integer i = 0
+        repeat while i < touchedX:GetSize()
+            if touchedX:Get(i) = locationX and touchedZ:Get(i) = locationZ
+                return now
+            end
+            i = i + 1
+        end
+        TerrainRegion region = data:GetRegion(locationX, locationZ)
+        if region = undefined
+            if includeEmpty and data:IsInRegionMap(locationX, locationZ)
+                touchedX:Add(locationX)
+                touchedZ:Add(locationZ)
+                beforeCopies:Add(undefined)
+            end
+            return now
+        end
+        touchedX:Add(locationX)
+        touchedZ:Add(locationZ)
+        beforeCopies:Add(region:Copy())
+    end
+
+    /*
+    This action returns how far a value moves toward its goal: 1 minus e to
+    the power of minus strength times seconds times weight. Applying it
+    twice for half the time moves exactly as far as once for the whole time,
+    which is what makes a stroke the same at any frame rate.
+
+    Attribute: Parameter weight The brush's weight at the sample.
+    Attribute: Parameter seconds How long the brush is held.
+    Attribute: Returns The fraction of the way to move, from 0 to just under 1.
+    */
+    private action GetFraction(number weight, number seconds) returns number
+        number exponent = brush:GetStrength() * seconds * weight
+        if exponent <= 0
+            return 0
+        end
+        return 1 - math:RaiseNaturalNumberToPower(-exponent)
+    end
+
+    /*
+    This action returns how far around a sample smoothing and blending look,
+    in samples: a quarter of the brush's size, from 1 to 3. A wider brush
+    smooths broader shapes; 1 means the sample and its eight neighbors.
+
+    Attribute: Returns The radius in samples.
+    */
+    private action GetAverageRadius returns integer
+        number samples = brush:GetSize() / data:GetVertexSpacing() / 4
+        return cast(integer, math:Clamp(math:Round(samples), 1, 3))
+    end
+
+    /*
+    This action returns the average height of the samples with regions in
+    the square around a sample, GetAverageRadius samples each way.
+
+    Attribute: Parameter x The sample along x.
+    Attribute: Parameter z The sample along z.
+    Attribute: Returns The average height.
+    */
+    private action GetAverageHeight(integer x, integer z) returns number
+        integer radius = GetAverageRadius()
+        number total = 0
+        integer count = 0
+        integer offsetZ = -radius
+        repeat while offsetZ <= radius
+            integer offsetX = -radius
+            repeat while offsetX <= radius
+                if data:HasSample(x + offsetX, z + offsetZ)
+                    total = total + data:GetSampleHeight(x + offsetX, z + offsetZ)
+                    count = count + 1
+                end
+                offsetX = offsetX + 1
+            end
+            offsetZ = offsetZ + 1
+        end
+        if count = 0
+            return data:GetSampleHeight(x, z)
+        end
+        return total / count
+    end
+
+    /*
+    This action writes the average splat weights of the samples with regions
+    in the square around a sample, GetAverageRadius samples each way, into
+    four places of an array: red, green, blue and alpha.
+
+    Attribute: Parameter x The sample along x.
+    Attribute: Parameter z The sample along z.
+    Attribute: Parameter goals The array to write into.
+    Attribute: Parameter start Where in the array the four weights go.
+    */
+    private action FillAverageSplat(integer x, integer z, Number32BitArray goals, integer start)
+        number red = 0
+        number green = 0
+        number blue = 0
+        number alpha = 0
+        integer count = 0
+        integer radius = GetAverageRadius()
+        integer offsetZ = -radius
+        repeat while offsetZ <= radius
+            integer offsetX = -radius
+            repeat while offsetX <= radius
+                if data:HasSample(x + offsetX, z + offsetZ)
+                    integer code = data:GetSampleSplat(x + offsetX, z + offsetZ)
+                    red = red + data:GetSplatWeight(code, 0)
+                    green = green + data:GetSplatWeight(code, 1)
+                    blue = blue + data:GetSplatWeight(code, 2)
+                    alpha = alpha + data:GetSplatWeight(code, 3)
+                    count = count + 1
+                end
+                offsetX = offsetX + 1
+            end
+            offsetZ = offsetZ + 1
+        end
+        if count = 0
+            count = 1
+        end
+        goals:Set(start, red / count)
+        goals:Set(start + 1, green / count)
+        goals:Set(start + 2, blue / count)
+        goals:Set(start + 3, alpha / count)
+    end
+
+    /*
+    This action moves a splat weight part of the way toward a goal. Weights
+    are stored as whole steps of 1/255, so a small move could round back to
+    where it started, and a slow brush at a high frame rate would never
+    change anything. So if the move rounds to no change while the goal is a
+    different step, the weight moves one whole step toward it instead.
+
+    Attribute: Parameter weight The weight now, from 0 to 1.
+    Attribute: Parameter goal The weight to move toward, from 0 to 1.
+    Attribute: Parameter fraction How far to move, from 0 to 1.
+    Attribute: Returns The new weight.
+    */
+    private action MoveWeight(number weight, number goal, number fraction) returns number
+        if fraction <= 0
+            return weight
+        end
+        number moved = weight + (goal - weight) * fraction
+        number step = 1 / 255.0
+        number start = math:Round(weight * 255)
+        number target = math:Round(goal * 255)
+        if math:Round(moved * 255) = start and target not= start
+            if target > start
+                return (start + 1) * step
+            else
+                return (start - 1) * step
+            end
+        end
+        return moved
+    end
+end

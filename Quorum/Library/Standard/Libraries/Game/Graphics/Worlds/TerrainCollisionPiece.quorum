@@ -1,0 +1,60 @@
+package Libraries.Game.Graphics.Worlds
+
+/*
+A TerrainCollisionPiece is a small square of ground that the physics engine
+can collide with, but that is never drawn. A TerrainCollision keeps a few of
+them near the player, and moves them as the player moves, so only the
+ground nearby costs anything in physics.
+
+It is a TerrainPatch with no mesh, kept hidden. Its collision shape reads
+the heights straight from the TerrainData.
+
+This matches the collision shapes Terrain3DCollision makes in its dynamic
+mode, which are 16 samples across by default.
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.TerrainData
+use Libraries.Game.Graphics.Worlds.TerrainCollisionPiece
+
+TerrainData data
+data:AddRegion(0, 0)
+TerrainCollisionPiece piece
+piece:Place(data, 32, 48, 16)
+*/
+class TerrainCollisionPiece is TerrainPatch
+    on create
+        // A piece only collides. It has no mesh, so it is never drawn.
+        Hide()
+        SetName("Terrain Collision Piece")
+    end
+
+    /*
+    This action moves the piece to cover a square of samples, and gives it
+    the collision shape for the ground there. Physics settings, such as
+    friction, are kept. A piece that is in a game should be removed from it
+    before being placed, and added again after, so the physics engine sees
+    its new shape and position.
+
+    Attribute: Parameter data The heights of the whole terrain.
+    Attribute: Parameter firstX The square's first sample along x.
+    Attribute: Parameter firstZ The square's first sample along z.
+    Attribute: Parameter size How many cells the square covers along each side.
+    */
+    action Place(TerrainData data, integer firstX, integer firstZ, integer size)
+        Measure(data, firstX, firstZ, size)
+        ApplyCollisionShape()
+        PlaceInWorld()
+    end
+
+    /*
+    This action returns true if the piece covers the square starting at a
+    sample.
+
+    Attribute: Parameter firstX The square's first sample along x.
+    Attribute: Parameter firstZ The square's first sample along z.
+    Attribute: Returns True if the piece starts at that sample.
+    */
+    action Covers(integer firstX, integer firstZ) returns boolean
+        return GetTerrainData() not= undefined and GetFirstSampleX() = firstX and GetFirstSampleZ() = firstZ
+    end
+end

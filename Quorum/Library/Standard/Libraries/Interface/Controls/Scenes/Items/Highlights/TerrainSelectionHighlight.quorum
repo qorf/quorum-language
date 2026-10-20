@@ -1,0 +1,154 @@
+package Libraries.Interface.Controls.Scenes.Items.Highlights
+
+use Libraries.Game.Graphics.Color
+use Libraries.Compute.Vector3
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.Scenes.SceneConstants
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+use Libraries.Interface.Controls.Scenes.Items.Highlights.SelectionHighlight3D
+
+/*
+    TerrainSelectionHighlight is the SelectionHighlight for a terrain. It is
+    a box over the whole terrain, from its lowest to its highest ground, so
+    a flat terrain is covered by a thin slab, as a plane is. A terrain's
+    heights are world positions, so the editor's move, turn and scale keys
+    don't move it: they leave the terrain and its highlight where they are,
+    and say so once each time the terrain is selected.
+*/
+class TerrainSelectionHighlight is SelectionHighlight3D
+
+    EditorTerrain terrain = undefined
+
+    // True while the highlight places itself, so its own moves go through.
+    boolean placing = false
+
+    // Whether the user has been told, since the terrain was selected, that
+    // a terrain stays at the origin.
+    boolean told = false
+
+    /*
+        Loads a box over the whole terrain.
+
+        Attribute: Parameter terrain The terrain being selected
+        Attribute: Parameter controller The scene editor
+    */
+    action LoadTerrain(EditorTerrain terrain, SceneEditor controller)
+        Color color = undefined
+        SceneConstants constants = GetConstants()
+        if IsFocused()
+            color = constants:SELECTION_HIGHLIGHT_SELECTED_COLOR
+        else
+            color = constants:SELECTION_HIGHLIGHT_UNSELECTED_COLOR
+        end
+        number padding = constants:SELECTION_HIGHLIGHT_PADDING_3D
+
+        number minimumX = terrain:GetMinimumX()
+        number maximumX = terrain:GetMaximumX()
+        number minimumZ = terrain:GetMinimumZ()
+        number maximumZ = terrain:GetMaximumZ()
+        number lowest = terrain:GetWorldTerrain():GetData():GetLowestHeight()
+        number highest = terrain:GetWorldTerrain():GetData():GetHighestHeight()
+
+        LoadBox(maximumX - minimumX + padding, highest - lowest + padding, maximumZ - minimumZ + padding, color)
+
+        placing = true
+        SetPosition((minimumX + maximumX) / 2, (lowest + highest) / 2, (minimumZ + maximumZ) / 2)
+        placing = false
+
+        me:terrain = terrain
+        SetSceneEditor(controller)
+    end
+
+    /*
+        Returns the terrain that is being selected.
+    */
+    action GetItem returns Item
+        return terrain
+    end
+
+    /*
+        Returns the terrain that is being selected.
+    */
+    action GetEditorTerrain returns EditorTerrain
+        return terrain
+    end
+
+    action GainedSelection
+        parent:SelectionHighlight3D:GainedSelection()
+        told = false
+    end
+
+    // A terrain isn't moved, turned or scaled. The Set calls use these
+    // Move calls too, so they are covered.
+
+    action MoveX(number x)
+        if placing
+            parent:Model:MoveX(x)
+        else
+            TellStaysAtOrigin()
+        end
+    end
+
+    action MoveY(number y)
+        if placing
+            parent:Model:MoveY(y)
+        else
+            TellStaysAtOrigin()
+        end
+    end
+
+    action MoveZ(number z)
+        if placing
+            parent:Model:MoveZ(z)
+        else
+            TellStaysAtOrigin()
+        end
+    end
+
+    action Move(number x, number y, number z)
+        if placing
+            parent:Model:Move(x, y, z)
+        else
+            TellStaysAtOrigin()
+        end
+    end
+
+    action Move(Vector3 vector)
+        if placing
+            parent:Model:Move(vector)
+        else
+            TellStaysAtOrigin()
+        end
+    end
+
+    action SetRotation(Vector3 rotation)
+        TellStaysAtOrigin()
+    end
+
+    action SetRotation(number newYaw, number newPitch, number newRoll)
+        TellStaysAtOrigin()
+    end
+
+    action Scale(Vector3 vector)
+        TellStaysAtOrigin()
+    end
+
+    action Scale(number x, number y, number z)
+        TellStaysAtOrigin()
+    end
+
+    action ResetScale
+    end
+
+    /*
+        Says, once each time the terrain is selected, that a terrain stays at
+        the origin.
+    */
+    private action TellStaysAtOrigin
+        if not told and GetSceneEditor() not= undefined
+            told = true
+            NotifyAccessibility("A terrain stays at the origin. It can't be moved, turned or scaled.")
+        end
+    end
+end

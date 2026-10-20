@@ -18,6 +18,7 @@ use Libraries.Interface.Controls.Scenes.Blueprints.CustomModelBlueprint
 use Libraries.Interface.Controls.Scenes.Blueprints.ModelBlueprint
 use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprintComparison
 use Libraries.Interface.Controls.Scenes.Blueprints.PointLightBlueprint
+use Libraries.Interface.Controls.Scenes.Blueprints.TerrainBlueprint
 use Libraries.Interface.Controls.Scenes.Assets.AssetPack
 use Libraries.Interface.Controls.Tree
 use Libraries.Interface.Controls.Scenes.SceneEditor
@@ -77,6 +78,7 @@ class ScenePalette is Tree
     text customCubeThumbnailLocation = ""
     text customSphereThumbnailLocation = ""
     text customCylinderThumbnailLocation = ""
+    text terrainThumbnailLocation = ""
 
     Texture pointLightTexture = undefined
     Texture audio3DTexture = undefined
@@ -178,6 +180,13 @@ class ScenePalette is Tree
     */
     action SetDefaultCustomCylinderThumbnail(text file)
         me:customCylinderThumbnailLocation = file
+    end
+
+    /*
+        Sets the image file used as the palette icon for a terrain.
+    */
+    action SetDefaultTerrainThumbnail(text file)
+        me:terrainThumbnailLocation = file
     end
 
     /*
@@ -316,6 +325,19 @@ class ScenePalette is Tree
                 audio:SetModelTexture(LoadDefaultIcon():GetTexture())
             end
             primitives3D:Add(audio)
+
+            // A flat terrain, added at once at the origin.
+            TerrainBlueprint terrain
+            terrain:SetName("Terrain")
+            terrain:SetDescription("Ground for the scene, made of height map regions. It starts flat, 128 by 128 units.")
+            if terrainThumbnailLocation not= ""
+                Drawable terrainThumbnail
+                terrainThumbnail:Load(terrainThumbnailLocation)
+                terrain:SetPaletteIcon(terrainThumbnail)
+            else
+                terrain:SetPaletteIcon(LoadDefaultIcon())
+            end
+            primitives3D:Add(terrain)
 
             LoadAssetPack(primitives3D)
 

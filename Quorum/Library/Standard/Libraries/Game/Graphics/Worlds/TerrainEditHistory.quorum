@@ -1,0 +1,238 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Containers.Array
+
+/*
+A TerrainEditHistory keeps the undo and redo lists for editing a terrain:
+one TerrainStrokeEdit per stroke. It works like the standard library's
+EditManager, with one addition: a limit on how much memory the edits may
+use. Each edit holds copies of whole regions, so a long editing session
+could otherwise use a lot of memory. When the edits go over the limit, the
+oldest ones are let go, so they can no longer be undone. The newest edit is
+always kept.
+
+Adding a new edit empties the redo list, as in any editor: once something
+new is done, what was undone can't be redone.
+
+Undo and Redo change the TerrainData. Afterward, call the WorldTerrain's
+Rebuild to redraw what changed.
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.TerrainEditHistory
+use Libraries.Game.Graphics.Worlds.TerrainStrokeEdit
+
+TerrainEditHistory history
+// After each stroke:
+history:Add(stroke:End())
+// When the user asks to undo:
+if history:CanUndo()
+    output history:Undo():GetUndoName()
+end
+*/
+class TerrainEditHistory
+    Array<TerrainStrokeEdit> undoList
+    Array<TerrainStrokeEdit> redoList
+
+    // The most memory the edits may use, in bytes. The default is 256 MB.
+    integer memoryLimit = 268435456
+
+    /*
+    This action adds the edit from a finished stroke to the undo list, and
+    empties the redo list. If the edits then use more memory than the
+    limit, the oldest are let go. An undefined edit, from a stroke that
+    changed nothing, is ignored.
+
+    Attribute: Parameter edit The edit, or undefined.
+    */
+    action Add(TerrainStrokeEdit edit)
+        if edit = undefined
+            return now
+        end
+        DisposeAll(redoList)
+        undoList:Add(edit)
+        Trim()
+    end
+
+    /*
+    This action undoes the newest edit, and moves it to the redo list.
+
+    Attribute: Returns The edit that was undone, or undefined if there was nothing to undo.
+    */
+    action Undo returns TerrainStrokeEdit
+        if undoList:IsEmpty()
+            return undefined
+        end
+        TerrainStrokeEdit edit = undoList:Get(undoList:GetSize() - 1)
+        undoList:RemoveAt(undoList:GetSize() - 1)
+        edit:Undo()
+        redoList:Add(edit)
+        return edit
+    end
+
+    /*
+    This action redoes the most recently undone edit, and moves it back to
+    the undo list.
+
+    Attribute: Returns The edit that was redone, or undefined if there was nothing to redo.
+    */
+    action Redo returns TerrainStrokeEdit
+        if redoList:IsEmpty()
+            return undefined
+        end
+        TerrainStrokeEdit edit = redoList:Get(redoList:GetSize() - 1)
+        redoList:RemoveAt(redoList:GetSize() - 1)
+        edit:Redo()
+        undoList:Add(edit)
+        return edit
+    end
+
+    /*
+    This action returns true if there is an edit to undo.
+
+    Attribute: Returns True if Undo would do something.
+    */
+    action CanUndo returns boolean
+        return not undoList:IsEmpty()
+    end
+
+    /*
+    This action returns true if there is an edit to redo.
+
+    Attribute: Returns True if Redo would do something.
+    */
+    action CanRedo returns boolean
+        return not redoList:IsEmpty()
+    end
+
+    /*
+    This action returns the name of what Undo would do, such as
+    "Undo raise".
+
+    Attribute: Returns The name, or "Nothing to undo".
+    */
+    action GetUndoName returns text
+        if undoList:IsEmpty()
+            return "Nothing to undo"
+        end
+        return undoList:Get(undoList:GetSize() - 1):GetUndoName()
+    end
+
+    /*
+    This action returns the name of what Redo would do, such as
+    "Redo raise".
+
+    Attribute: Returns The name, or "Nothing to redo".
+    */
+    action GetRedoName returns text
+        if redoList:IsEmpty()
+            return "Nothing to redo"
+        end
+        return redoList:Get(redoList:GetSize() - 1):GetRedoName()
+    end
+
+    /*
+    This action returns how many edits can be undone.
+
+    Attribute: Returns The number of edits in the undo list.
+    */
+    action GetUndoCount returns integer
+        return undoList:GetSize()
+    end
+
+    /*
+    This action returns how many edits can be redone.
+
+    Attribute: Returns The number of edits in the redo list.
+    */
+    action GetRedoCount returns integer
+        return redoList:GetSize()
+    end
+
+    /*
+    This action returns about how much memory all the edits use.
+
+    Attribute: Returns The size in bytes.
+    */
+    action GetMemorySize returns integer
+        return GetListSize(undoList) + GetListSize(redoList)
+    end
+
+    /*
+    This action sets the most memory the edits may use. If they already use
+    more, the oldest are let go now.
+
+    Attribute: Parameter bytes The limit in bytes. It must be more than 0.
+    */
+    action SetMemoryLimit(integer bytes)
+        if bytes <= 0
+            alert("The memory limit for terrain edits must be more than 0, but was given " + bytes + ".")
+        end
+        memoryLimit = bytes
+        Trim()
+    end
+
+    /*
+    This action returns the most memory the edits may use.
+
+    Attribute: Returns The limit in bytes.
+    */
+    action GetMemoryLimit returns integer
+        return memoryLimit
+    end
+
+    /*
+    This action lets go of every edit, so nothing can be undone or redone.
+    */
+    action Empty
+        DisposeAll(undoList)
+        DisposeAll(redoList)
+    end
+
+    /*
+    This action lets go of the oldest edits while the edits use more memory
+    than the limit. Redo edits go first, then the oldest undo edits. The
+    newest undo edit is always kept.
+    */
+    private action Trim
+        repeat while GetMemorySize() > memoryLimit and not redoList:IsEmpty()
+            TerrainStrokeEdit oldestRedo = redoList:Get(0)
+            redoList:RemoveAt(0)
+            oldestRedo:Dispose()
+        end
+        repeat while GetMemorySize() > memoryLimit and undoList:GetSize() > 1
+            TerrainStrokeEdit oldest = undoList:Get(0)
+            undoList:RemoveAt(0)
+            oldest:Dispose()
+        end
+    end
+
+    /*
+    This action lets go of every edit in a list and empties it.
+
+    Attribute: Parameter list The list.
+    */
+    private action DisposeAll(Array<TerrainStrokeEdit> list)
+        integer i = 0
+        repeat while i < list:GetSize()
+            list:Get(i):Dispose()
+            i = i + 1
+        end
+        list:Empty()
+    end
+
+    /*
+    This action adds up the memory used by a list of edits.
+
+    Attribute: Parameter list The list.
+    Attribute: Returns The size in bytes.
+    */
+    private action GetListSize(Array<TerrainStrokeEdit> list) returns integer
+        integer total = 0
+        integer i = 0
+        repeat while i < list:GetSize()
+            total = total + list:Get(i):GetMemorySize()
+            i = i + 1
+        end
+        return total
+    end
+end

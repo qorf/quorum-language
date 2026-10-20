@@ -1,5 +1,6 @@
 package Libraries.Interface.Behaviors.Scenes.Palette
 
+use Libraries.Interface.Controls.Scenes.Blueprints.TerrainBlueprint
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.DragAndDropEvent
 use Libraries.Interface.Item2D
@@ -57,6 +58,13 @@ class PaletteItemStartDragBehavior is Behavior
             dragPreview:Load(modelBlueprint:GetPaletteIcon())
             Layer2D layer = item:GetLayer()
             
+            dragPreview:SetPosition(dragEvent:GetX() - dragPreview:GetWidth()/2, dragEvent:GetY() - dragPreview:GetWidth()/2)
+            palette:SetDraggedItem(dragPreview)
+        elseif schematic is TerrainBlueprint
+            // A terrain is dragged as its icon, as a model is.
+            TerrainBlueprint terrainBlueprint = cast(TerrainBlueprint, schematic)
+            Drawable dragPreview
+            dragPreview:Load(terrainBlueprint:GetPaletteIcon())
             dragPreview:SetPosition(dragEvent:GetX() - dragPreview:GetWidth()/2, dragEvent:GetY() - dragPreview:GetWidth()/2)
             palette:SetDraggedItem(dragPreview)
         else

@@ -81,6 +81,11 @@ use Libraries.Interface.Controls.Scenes.Dialogs.PointLightPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.Audio3DPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.SceneEditorFindDialog
+use Libraries.Containers.Iterator
+use Libraries.Interface.Controls.Scenes.Blueprints.TerrainBlueprint
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
 
 
 /*
@@ -501,6 +506,8 @@ action Update(number seconds)
             return now
         end
 
+        UpdateTerrains()
+
         Camera camera = GetSelectedLayer():GetCamera()
         boolean moved = false
         boolean isCursor = false
@@ -791,17 +798,24 @@ action Update(number seconds)
             repeat while counter < filteredItems:GetSize()
                 Item3D item = cast(Item3D, filteredItems:Get(counter))
                 SelectionHighlight3D highlight = undefined
-                if item is EditorPointLight
-                    PointLightSelectionHighlight light
-                    highlight = light
-                elseif item is EditorAudio3D
-                    Audio3DSelectionHighlight light
-                    highlight = light
+                if item is EditorTerrain
+                    // A terrain isn't a model, so it has its own highlight.
+                    TerrainSelectionHighlight terrainHighlight
+                    terrainHighlight:LoadTerrain(cast(EditorTerrain, item), me)
+                    highlight = terrainHighlight
                 else
-                    ModelSelectionHighlight model
-                    highlight = model
+                    if item is EditorPointLight
+                        PointLightSelectionHighlight light
+                        highlight = light
+                    elseif item is EditorAudio3D
+                        Audio3DSelectionHighlight light
+                        highlight = light
+                    else
+                        ModelSelectionHighlight model
+                        highlight = model
+                    end
+                    highlight:Load(cast(EditorModel, item), me)
                 end
-                highlight:Load(cast(EditorModel, item), me)
                 filterHighlights:Add(highlight)
                 layer:Add(highlight)
     
@@ -1010,6 +1024,13 @@ action Update(number seconds)
     end
 
     action CreateItemPreview(ItemBlueprint schematic, File asset) returns ItemPreview
+        // A terrain has no preview to place: it is added flat, at the
+        // origin, at once.
+        if schematic is TerrainBlueprint
+            AddTerrain(cast(TerrainBlueprint, schematic))
+            return undefined
+        end
+
         if schematic is DrawableBlueprint
             DrawableBlueprint drawableBlueprint = cast(DrawableBlueprint, schematic)
             if not (GetSelectedLayer() is EditorLayer2D)
@@ -1118,6 +1139,136 @@ action Update(number seconds)
             ItemPreview2D preview2D = cast(ItemPreview2D, preview)
             EditorLayer2D layer = cast(EditorLayer2D, GetSelectedLayer())
             layer:Remove(preview2D)
+        end
+    end
+
+    /*
+    This action adds a new, flat terrain to the scene's 3D layer. Its files
+    are saved at once into the project, in a new folder, Terrains/Terrain1
+    (then Terrain2, and so on), and the scene refers to its terrain.json. It
+    is then selected and announced. Adding it can be undone. A terrain needs
+    Vulkan, and a scene that is in a project.
+
+    Attribute: Parameter schematic The terrain's blueprint, from the palette.
+    Attribute: Returns The terrain, or undefined if it couldn't be added.
+    */
+    action AddTerrain(TerrainBlueprint schematic) returns EditorTerrain
+        if not (manager:GetGameGraphics() is VulkanGraphics)
+            NotifyAccessibility(me, "A terrain needs Vulkan, so it can't be added here.")
+            return undefined
+        end
+        if projectLocation = undefined
+            NotifyAccessibility(me, "A terrain is saved in the scene's project, but this scene isn't in a project.")
+            return undefined
+        end
+        EditorLayer3D layer = FindLayer3D()
+        if layer = undefined
+            NotifyAccessibility(me, "A terrain needs a 3D layer, and this scene has none.")
+            return undefined
+        end
+
+        // The first free folder: Terrains/Terrain1, Terrains/Terrain2, ...
+        text folderPath = ""
+        integer count = 1
+        repeat while folderPath = ""
+            File candidateFolder
+            candidateFolder:SetWorkingDirectory(projectLocation:GetAbsolutePath())
+            candidateFolder:SetPath("Terrains/Terrain" + count)
+            if not candidateFolder:Exists()
+                folderPath = "Terrains/Terrain" + count
+            end
+            count = count + 1
+        end
+        File terrainFile
+        terrainFile:SetWorkingDirectory(projectLocation:GetAbsolutePath())
+        terrainFile:SetPath(folderPath + "/terrain.json")
+
+        EditorTerrain terrain
+        terrain:SetSceneEditor(me)
+        text name = schematic:GetName()
+        terrain:SetName(name + GetNextNamePostfix(name))
+        IncrementNameCount(name)
+        terrain:SetDescription(schematic:GetDescription())
+        terrain:CreateFlat(terrainFile, schematic:GetRegionsAcross(), schematic:GetRegionSize(), schematic:GetVertexSpacing())
+
+        Add(layer, terrain)
+        Array<Item> selected
+        selected:Add(terrain)
+        SetFilteredItems(selected, true)
+
+        number width = schematic:GetRegionsAcross() * schematic:GetRegionSize() * schematic:GetVertexSpacing()
+        NotifyAccessibility(terrain, "Placed " + terrain:GetName() + ", flat, " + width + " by " + width +
+            " units, saved in " + folderPath + ".")
+        return terrain
+    end
+
+    /*
+    This action makes a 3D layer the selected layer, if it isn't already,
+    and returns it.
+
+    Attribute: Returns The 3D layer, or undefined if the scene has none.
+    */
+    private action FindLayer3D returns EditorLayer3D
+        if GetSelectedLayer() is EditorLayer3D
+            return cast(EditorLayer3D, GetSelectedLayer())
+        end
+        integer counter = 0
+        repeat while counter < layers:GetSize()
+            EditorLayer layer = layers:Get(counter)
+            if layer is EditorLayer3D
+                SetSelectedLayer(layer)
+                return cast(EditorLayer3D, layer)
+            end
+            counter = counter + 1
+        end
+        return undefined
+    end
+
+    /*
+    This action keeps each terrain in the 3D layers up to date, once a frame,
+    with the editor camera's place. Painted ground textures only show once
+    the renderer has them ready, which this checks.
+    */
+    private action UpdateTerrains
+        integer counter = 0
+        repeat while counter < layers:GetSize()
+            EditorLayer editorLayer = layers:Get(counter)
+            if editorLayer is EditorLayer3D
+                EditorLayer3D layer = cast(EditorLayer3D, editorLayer)
+                Camera camera = layer:GetCamera()
+                Iterator<Item3D> items = layer:GetIterator()
+                repeat while items:HasNext()
+                    Item3D item = items:Next()
+                    if item is EditorTerrain
+                        EditorTerrain terrain = cast(EditorTerrain, item)
+                        terrain:Update(layer, camera:GetPosition():GetX(), camera:GetPosition():GetZ())
+                    end
+                end
+            end
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action saves the files of each terrain whose ground has changed
+    since it was last saved. Saving the scene calls it.
+    */
+    private action SaveChangedTerrains
+        integer counter = 0
+        repeat while counter < layers:GetSize()
+            EditorLayer editorLayer = layers:Get(counter)
+            if editorLayer is EditorLayer3D
+                EditorLayer3D layer = cast(EditorLayer3D, editorLayer)
+                Iterator<Item3D> items = layer:GetIterator()
+                repeat while items:HasNext()
+                    Item3D item = items:Next()
+                    if item is EditorTerrain
+                        EditorTerrain terrain = cast(EditorTerrain, item)
+                        terrain:SaveIfChanged()
+                    end
+                end
+            end
+            counter = counter + 1
         end
     end
 
@@ -1873,6 +2024,9 @@ action Update(number seconds)
     end
 
     action Save
+        // A terrain's heights and painting live in its own files.
+        SaveChangedTerrains()
+
         Array<EditorLayer> layers = GetSceneLayers()
         Scene scene = Save(layers)
         scene:GetData():SetPrettyPrint(true)
@@ -1929,6 +2083,10 @@ action Update(number seconds)
         elseif type = "PointLight"
             EditorPointLight light
             return light
+        elseif type = "Terrain"
+            EditorTerrain terrain
+            terrain:SetSceneEditor(me)
+            return terrain
         end
 
         return parent:DefaultSceneManager:CreateItem3D(type)

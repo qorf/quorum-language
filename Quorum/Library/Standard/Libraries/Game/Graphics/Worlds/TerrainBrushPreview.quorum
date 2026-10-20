@@ -1,0 +1,259 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
+use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
+use Libraries.Game.Graphics.Models.Vulkan.MeshVulkan
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Compute.Vector4
+use Libraries.Compute.Math
+
+/*
+A TerrainBrushPreview shows where a terrain brush is and how big it is: a
+thin ring at the brush's edge, and a fainter ring at half its size, where
+the default falloff is at half strength. Both rings follow the ground, a
+little above it, so they can be seen over hills and in hollows.
+
+Call Place every frame the brush moves or the ground under it changes. The
+rings' mesh is made once and then updated in place, so moving the preview
+uses no new memory. It doesn't cast shadows.
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Game.Graphics.Worlds.TerrainBrushPreview
+use Libraries.Game.Graphics.Worlds.TerrainData
+
+class Main is Game
+    TerrainData data
+    TerrainBrushPreview preview
+
+    action Main
+        UseVulkan(true)
+        StartGame()
+    end
+
+    action CreateGame
+        data:AddRegion(0, 0)
+        preview:Place(data, 20, 20, 5)
+        Add(preview)
+    end
+end
+*/
+class TerrainBrushPreview is Model
+    // How many straight pieces make up each ring.
+    integer segments = 48
+
+    // How far above the ground the rings float, in world units.
+    number lift = 0.15
+
+    boolean loaded = false
+    MeshVulkan ringMesh = undefined
+    Math math
+
+    // The arrays the mesh is built from, made once and filled again for
+    // each Place.
+    Number32BitArray vertices
+    Number32BitArray normals
+    Number32BitArray tangents
+    Number32BitArray bitangents
+    Number32BitArray textureCoordinates
+    Integer32BitArray indices
+
+    on create
+        integer vertexCount = segments * 4
+        vertices:SetSize(vertexCount * 3)
+        normals:SetSize(vertexCount * 3)
+        tangents:SetSize(vertexCount * 3)
+        bitangents:SetSize(vertexCount * 3)
+        textureCoordinates:SetSize(vertexCount * 2)
+        integer i = 0
+        repeat while i < vertexCount
+            normals:Set(i * 3, 0)
+            normals:Set(i * 3 + 1, 1)
+            normals:Set(i * 3 + 2, 0)
+            tangents:Set(i * 3, 1)
+            tangents:Set(i * 3 + 1, 0)
+            tangents:Set(i * 3 + 2, 0)
+            bitangents:Set(i * 3, 0)
+            bitangents:Set(i * 3 + 1, 0)
+            bitangents:Set(i * 3 + 2, 1)
+            textureCoordinates:Set(i * 2, 0)
+            textureCoordinates:Set(i * 2 + 1, 0)
+            i = i + 1
+        end
+
+        // Two rings, each a strip of quads. Every quad is drawn from both
+        // sides, so the ring shows whichever way the renderer culls.
+        indices:SetSize(2 * segments * 12)
+        integer index = 0
+        integer ring = 0
+        repeat while ring < 2
+            integer first = ring * segments * 2
+            integer segment = 0
+            repeat while segment < segments
+                integer following = (segment + 1) mod segments
+                integer innerA = first + segment * 2
+                integer outerA = innerA + 1
+                integer innerB = first + following * 2
+                integer outerB = innerB + 1
+                index = AddQuad(index, innerA, outerA, innerB, outerB)
+                index = AddQuad(index, innerA, innerB, outerA, outerB)
+                segment = segment + 1
+            end
+            ring = ring + 1
+        end
+    end
+
+    /*
+    This action moves the preview to a brush's center and size, shaping the
+    rings to the ground. Parts of the rings over places with no region sit
+    at the height of the ground under the center.
+
+    Attribute: Parameter data The terrain the brush is over.
+    Attribute: Parameter centerX The brush's center along x, in world units.
+    Attribute: Parameter centerZ The brush's center along z, in world units.
+    Attribute: Parameter radius The brush's size, in world units.
+    */
+    action Place(TerrainData data, number centerX, number centerZ, number radius)
+        number centerHeight = 0
+        if data:HasHeight(centerX, centerZ)
+            centerHeight = data:GetSurfaceHeight(centerX, centerZ)
+        end
+        number lowest = centerHeight
+        number highest = centerHeight
+
+        // First pass: each vertex's offset and ground height. The height is
+        // kept in the y place for now.
+        number width = math:MaximumOf(0.08, radius * 0.03)
+        integer ring = 0
+        repeat while ring < 2
+            number ringRadius = radius
+            number ringWidth = width
+            if ring = 1
+                ringRadius = radius / 2
+                ringWidth = width * 0.6
+            end
+            integer segment = 0
+            repeat while segment < segments
+                number angle = 2 * math:pi * segment / segments
+                number cosine = math:Cosine(angle)
+                number sine = math:Sine(angle)
+                integer side = 0
+                repeat while side < 2
+                    number edgeRadius = ringRadius - ringWidth / 2
+                    if side = 1
+                        edgeRadius = ringRadius + ringWidth / 2
+                    end
+                    number offsetX = cosine * edgeRadius
+                    number offsetZ = sine * edgeRadius
+                    number height = centerHeight
+                    if data:HasHeight(centerX + offsetX, centerZ + offsetZ)
+                        height = data:GetSurfaceHeight(centerX + offsetX, centerZ + offsetZ)
+                    end
+                    if height < lowest
+                        lowest = height
+                    end
+                    if height > highest
+                        highest = height
+                    end
+                    integer place = ring * segments * 2 + segment * 2 + side
+                    vertices:Set(place * 3, offsetX)
+                    vertices:Set(place * 3 + 1, height)
+                    vertices:Set(place * 3 + 2, offsetZ)
+                    side = side + 1
+                end
+                segment = segment + 1
+            end
+            ring = ring + 1
+        end
+
+        // The model sits halfway between the lowest and highest ground, so
+        // its bounds are centered on it, and the heights become offsets.
+        number middle = (lowest + highest) / 2
+        integer vertex = 0
+        repeat while vertex < segments * 4
+            vertices:Set(vertex * 3 + 1, vertices:Get(vertex * 3 + 1) + lift - middle)
+            vertex = vertex + 1
+        end
+
+        MeshData mesh
+        mesh:SetVertices(vertices)
+        mesh:SetIndices(indices)
+        mesh:SetNormals(normals)
+        mesh:SetTangents(tangents)
+        mesh:SetBitangents(bitangents)
+        mesh:SetTextureCoordinates(textureCoordinates)
+        mesh:SetMaterialIndex(0)
+
+        if not loaded
+            LoadRings(mesh)
+            loaded = true
+        else
+            ringMesh:UpdateVertices(mesh)
+        end
+
+        SetPosition(centerX, middle, centerZ)
+        SetWidth(2 * (radius + width))
+        SetHeight(highest - lowest + 2 * lift)
+        SetDepth(2 * (radius + width))
+    end
+
+    /*
+    This action adds two triangles for one quad to the list of indices.
+
+    Attribute: Parameter index Where in the list to add them.
+    Attribute: Parameter a The quad's first corner.
+    Attribute: Parameter b The quad's second corner.
+    Attribute: Parameter c The quad's third corner.
+    Attribute: Parameter d The quad's fourth corner, opposite the first.
+    Attribute: Returns Where in the list the next triangles go.
+    */
+    private action AddQuad(integer index, integer a, integer b, integer c, integer d) returns integer
+        indices:Set(index, a)
+        indices:Set(index + 1, b)
+        indices:Set(index + 2, c)
+        indices:Set(index + 3, c)
+        indices:Set(index + 4, b)
+        indices:Set(index + 5, d)
+        return index + 6
+    end
+
+    /*
+    This action turns the rings' mesh into a blueprint and loads it, the
+    first time the preview is placed. It is bright yellow and doesn't cast
+    shadows.
+
+    Attribute: Parameter mesh The rings' mesh.
+    */
+    private action LoadRings(MeshData mesh)
+        Array<MeshData> meshes
+        meshes:Add(mesh)
+
+        Material material
+        Vector4 diffuse
+        diffuse:Set(1, 1, 1, 1)
+        material:SetDiffuse(diffuse)
+        Array<Material> materials
+        materials:Add(material)
+
+        ModelData modelData
+        modelData:SetID("Terrain brush preview " + GetHashCode())
+        modelData:SetMeshes(meshes)
+        modelData:SetMaterials(materials)
+
+        ModelManagerVulkan manager
+        ModelBlueprintVulkan ringBlueprint = manager:GetModelBlueprint(modelData)
+        Load(ringBlueprint)
+        ringMesh = ringBlueprint:GetMeshes():Get(0)
+
+        Color color
+        GetResources():SetColor(color:CustomColor(1, 0.85, 0.1, 1))
+        SetCastsShadows(false)
+    end
+end

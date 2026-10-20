@@ -1,0 +1,93 @@
+package Libraries.Interface.Controls.Scenes.Blueprints
+
+use Libraries.Game.Graphics.TextureRegion
+use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
+
+/*
+    The TerrainBlueprint is the palette's entry for a terrain. Adding it to a
+    scene makes a new, flat terrain at the origin, saved at once into the
+    scene's project. By default it is 2 by 2 regions of 64 samples, 1 unit
+    apart, so 128 by 128 units centered on the origin. A new terrain has no
+    painting and no materials.
+*/
+class TerrainBlueprint is ItemBlueprint
+
+    TextureRegion paletteIcon = undefined
+    integer regionsAcross = 2
+    integer regionSize = 64
+    number vertexSpacing = 1
+
+    /*
+        This action returns the texture to be used as an icon in a palette
+
+        Attribute: Returns A texture for an icon for a terrain
+    */
+    action GetPaletteIcon returns TextureRegion
+        return paletteIcon
+    end
+
+    /*
+        This action sets the texture to be used as an icon in a palette
+
+        Attribute: Parameter paletteIcon An icon texture for a terrain
+    */
+    action SetPaletteIcon(TextureRegion paletteIcon)
+        me:paletteIcon = paletteIcon
+    end
+
+    /*
+        This action returns how many regions a new terrain has along x and along z.
+
+        Attribute: Returns The number of regions across
+    */
+    action GetRegionsAcross returns integer
+        return regionsAcross
+    end
+
+    /*
+        This action sets how many regions a new terrain has along x and along z.
+
+        Attribute: Parameter count The number of regions across, 1 or more
+    */
+    action SetRegionsAcross(integer count)
+        regionsAcross = count
+    end
+
+    /*
+        This action returns how many samples are along each side of a new terrain's regions.
+
+        Attribute: Returns The region size
+    */
+    action GetRegionSize returns integer
+        return regionSize
+    end
+
+    /*
+        This action sets how many samples are along each side of a new terrain's regions:
+        64, 128, 256, 512, 1024 or 2048.
+
+        Attribute: Parameter size The region size
+    */
+    action SetRegionSize(integer size)
+        regionSize = size
+    end
+
+    /*
+        This action returns how far apart a new terrain's samples are, in world units.
+
+        Attribute: Returns The spacing
+    */
+    action GetVertexSpacing returns number
+        return vertexSpacing
+    end
+
+    /*
+        This action sets how far apart a new terrain's samples are, in world units.
+
+        Attribute: Parameter spacing The spacing
+    */
+    action SetVertexSpacing(number spacing)
+        vertexSpacing = spacing
+    end
+
+end

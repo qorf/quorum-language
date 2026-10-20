@@ -23,6 +23,7 @@ use Libraries.Interface.Controls.Scenes.Items.EditorItem3D
 use Libraries.Interface.Controls.Scenes.SceneConstants
 use Libraries.Interface.Controls.Scenes.Items.EditorCursor
 use Libraries.Game.Item3DDepthComparison
+use Libraries.Game.Graphics.Worlds.TerrainItem
 
 /*
     This behavior is used to select an item in the scene editor. The input expected 
@@ -56,21 +57,46 @@ class SelectScene3DItemBehavior is Behavior
         Item3D temp = undefined
         Array<Item> targetArray
         
+        // A terrain is picked where the ray meets its ground, not by a box:
+        // its box would be all its regions.
+        TerrainItem nearestTerrain = undefined
+        number nearestTerrainDistance = 0
+
         Iterator<Item3D> items = layer:GetIterator()
-     repeat while items:HasNext()
+        repeat while items:HasNext()
             temp = items:Next()
             if temp:HasProperty(constants:EDITOR_TAG) = false
-            if RayIntersectsItem(ray, temp)
-                targetArray:Add(temp)
+                if temp is TerrainItem
+                    TerrainItem terrain = cast(TerrainItem, temp)
+                    Vector3 hit = terrain:GetWorldTerrain():GetData():RayCast(origin, ray:GetDirection(), camera:GetFar())
+                    if hit not= undefined
+                        number distance = hit:Distance(origin)
+                        if nearestTerrain = undefined or distance < nearestTerrainDistance
+                            nearestTerrain = terrain
+                            nearestTerrainDistance = distance
+                        end
+                    end
+                elseif RayIntersectsItem(ray, temp)
+                    targetArray:Add(temp)
+                end
             end
-end
-end
+        end
         
         Array<Item> result
         if targetArray:GetSize() not= 0
             depthSorter:SetOrigin(origin)
             targetArray:Sort(depthSorter)
-            result:Add(targetArray:Get(0))
+            Item3D nearest = cast(Item3D, targetArray:Get(0))
+
+            // The nearest item wins, unless the ground is hit before the
+            // item's center.
+            if nearestTerrain not= undefined and nearestTerrainDistance < origin:Distance(nearest:GetGlobalX(), nearest:GetGlobalY(), nearest:GetGlobalZ())
+                result:Add(nearestTerrain)
+            else
+                result:Add(nearest)
+            end
+        elseif nearestTerrain not= undefined
+            result:Add(nearestTerrain)
         end
         
         if not result:IsEmpty()

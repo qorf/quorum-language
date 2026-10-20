@@ -1,0 +1,604 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Compute.Math
+use Libraries.Compute.BitwiseOperations
+use Libraries.Game.Graphics.PixelMap
+use Libraries.Game.Graphics.Format
+use Libraries.Game.Graphics.Blending
+
+/*
+A TerrainRegion holds the heights for one square piece of a terrain. A
+terrain is made of many regions laid side by side, like tiles on a floor, and
+TerrainData keeps track of them. Splitting the ground this way means a large
+world only stores the pieces that are actually used, and an edit only has to
+rebuild the piece it touched.
+
+Each region holds a square of height samples, region size by region size. A
+sample is one point on the ground, and its height is in world units, so a
+height of 2.5 is 2.5 units above zero. Samples are found by their place in
+the region, from 0 to one less than the region size, across (x) and deep (z).
+
+Each region also knows its location: which tile it is in the grid of regions.
+The region at location (0, 0) starts at the world's origin, the one at (1, 0)
+is next to it along x, and the one at (-1, 0) is on the other side.
+
+This class is modeled on Terrain3DRegion from Terrain3D, which also stores
+its heights one region at a time.
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.TerrainRegion
+
+TerrainRegion region
+region:SetRegionSize(64)
+region:SetHeight(10, 20, 3.5)
+output region:GetHeight(10, 20)
+*/
+class TerrainRegion
+    // How many samples run along each side of the region.
+    integer regionSize = 0
+
+    // Which tile this region is in the grid of regions.
+    integer locationX = 0
+    integer locationZ = 0
+
+    // The heights, one row of samples after another. The sample at (x, z) is
+    // at z * regionSize + x.
+    Number32BitArray heights
+
+    // How much of each of up to four ground textures to show at each
+    // sample, for texture splatting, in the same order as the heights. Each
+    // value packs four weights from 0 to 255, red, green, blue and alpha,
+    // the same way a PixelMap pixel does, so it can go straight into an
+    // image. A new region is all red, the first texture.
+    Integer32BitArray splats
+
+    // The lowest and highest heights in the region. Setting a height can only
+    // widen this range. CalculateHeightRange finds the exact range again.
+    number lowestHeight = 0
+    number highestHeight = 0
+
+    // Whether the heights have changed since the region was last saved.
+    boolean modified = false
+
+    // Whether the splat weights have been painted, or loaded from a saved
+    // splat image, rather than left as the default. An unpainted region
+    // saves no splat image (Quorum Studio plan, step 2).
+    boolean splatPainted = false
+
+    // The largest level a saved pixel can hold: 24 bits, across red, green
+    // and blue.
+    integer largestPixelLevel = 16777215
+
+    Math math
+    BitwiseOperations bits
+
+    /*
+    This action sets how many samples run along each side of the region, and
+    makes every height 0. Any heights the region held before are lost.
+
+    Attribute: Parameter size The number of samples along each side. It must be at least 2.
+    */
+    action SetRegionSize(integer size)
+        if size < 2
+            alert("A terrain region needs at least 2 samples along each side, but was given " + size + ".")
+        end
+        regionSize = size
+        heights:SetSize(size * size)
+        splats:SetSize(size * size)
+        Fill(0)
+        FillSplat(bits:ShiftLeft(255, 24))
+        // The default weights aren't painting, so a new region saves no
+        // splat image.
+        splatPainted = false
+    end
+
+    /*
+    This action returns how many samples run along each side of the region.
+
+    Attribute: Returns The number of samples along each side, or 0 if no size has been set.
+    */
+    action GetRegionSize returns integer
+        return regionSize
+    end
+
+    /*
+    This action sets which tile this region is in the grid of regions.
+
+    Attribute: Parameter x The region's place along the x axis.
+    Attribute: Parameter z The region's place along the z axis.
+    */
+    action SetLocation(integer x, integer z)
+        locationX = x
+        locationZ = z
+    end
+
+    /*
+    This action returns the region's place along the x axis in the grid of
+    regions.
+
+    Attribute: Returns The region's x location.
+    */
+    action GetLocationX returns integer
+        return locationX
+    end
+
+    /*
+    This action returns the region's place along the z axis in the grid of
+    regions.
+
+    Attribute: Returns The region's z location.
+    */
+    action GetLocationZ returns integer
+        return locationZ
+    end
+
+    /*
+    This action returns true if a sample position is inside the region.
+
+    Attribute: Parameter x The sample's place across the region.
+    Attribute: Parameter z The sample's place deep into the region.
+    Attribute: Returns True if both are from 0 to one less than the region size.
+    */
+    action Contains(integer x, integer z) returns boolean
+        return x >= 0 and x < regionSize and z >= 0 and z < regionSize
+    end
+
+    /*
+    This action returns the height of one sample.
+
+    Attribute: Parameter x The sample's place across the region.
+    Attribute: Parameter z The sample's place deep into the region.
+    Attribute: Returns The height, in world units.
+    */
+    action GetHeight(integer x, integer z) returns number
+        CheckSample(x, z)
+        return heights:Get(z * regionSize + x)
+    end
+
+    /*
+    This action sets the height of one sample, and marks the region as
+    modified. If the height is outside the region's height range, the range
+    grows to include it.
+
+    Attribute: Parameter x The sample's place across the region.
+    Attribute: Parameter z The sample's place deep into the region.
+    Attribute: Parameter height The new height, in world units.
+    */
+    action SetHeight(integer x, integer z, number height)
+        CheckSample(x, z)
+        heights:Set(z * regionSize + x, height)
+        if height < lowestHeight
+            lowestHeight = height
+        end
+        if height > highestHeight
+            highestHeight = height
+        end
+        modified = true
+    end
+
+    /*
+    This action sets every sample to the same height, and marks the region as
+    modified.
+
+    Attribute: Parameter height The height, in world units.
+    */
+    action Fill(number height)
+        integer i = 0
+        integer count = heights:GetSize()
+        repeat while i < count
+            heights:Set(i, height)
+            i = i + 1
+        end
+        lowestHeight = height
+        highestHeight = height
+        modified = true
+    end
+
+    /*
+    This action returns the lowest height in the region. After heights have
+    been lowered, the true lowest may be higher than this until
+    CalculateHeightRange is called.
+
+    Attribute: Returns The lowest height, in world units.
+    */
+    action GetLowestHeight returns number
+        return lowestHeight
+    end
+
+    /*
+    This action returns the highest height in the region. After heights have
+    been lowered, the true highest may be lower than this until
+    CalculateHeightRange is called.
+
+    Attribute: Returns The highest height, in world units.
+    */
+    action GetHighestHeight returns number
+        return highestHeight
+    end
+
+    /*
+    This action looks at every sample to find the exact lowest and highest
+    heights in the region.
+    */
+    action CalculateHeightRange
+        // A region with no size has no heights. Its array can't be asked its
+        // size until it has one.
+        if regionSize = 0
+            lowestHeight = 0
+            highestHeight = 0
+            return now
+        end
+        integer count = heights:GetSize()
+        if count = 0
+            lowestHeight = 0
+            highestHeight = 0
+            return now
+        end
+
+        lowestHeight = heights:Get(0)
+        highestHeight = lowestHeight
+        integer i = 1
+        repeat while i < count
+            number height = heights:Get(i)
+            if height < lowestHeight
+                lowestHeight = height
+            end
+            if height > highestHeight
+                highestHeight = height
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+    This action returns true if the heights have changed since the region was
+    last marked as unmodified, such as after it was saved.
+
+    Attribute: Returns True if the region has changed.
+    */
+    action IsModified returns boolean
+        return modified
+    end
+
+    /*
+    This action marks whether the region has changed since it was last saved.
+
+    Attribute: Parameter modified True if the region has changed.
+    */
+    action SetModified(boolean modified)
+        me:modified = modified
+    end
+
+    /*
+    This action makes a separate copy of the region: its size, location,
+    heights, splat weights, height range, and modified and painted flags. Changing one
+    afterward doesn't change the other. Undo uses copies to put a region back
+    the way it was.
+
+    Attribute: Returns The copy.
+    */
+    action Copy returns TerrainRegion
+        TerrainRegion copy
+        TerrainRegion self = me
+        copy:CopyFrom(self)
+        return copy
+    end
+
+    /*
+    This action makes this region the same as another one: its size,
+    location, heights, splat weights, height range, and modified and painted
+    flags. The other region is not changed.
+
+    Attribute: Parameter other The region to copy from.
+    */
+    action CopyFrom(TerrainRegion other)
+        integer size = other:GetRegionSize()
+        if size not= regionSize
+            regionSize = size
+            heights:SetSize(size * size)
+            splats:SetSize(size * size)
+        end
+        locationX = other:GetLocationX()
+        locationZ = other:GetLocationZ()
+        integer i = 0
+        integer count = size * size
+        repeat while i < count
+            heights:Set(i, other:GetHeightAt(i))
+            splats:Set(i, other:GetSplatAt(i))
+            i = i + 1
+        end
+        lowestHeight = other:GetLowestHeight()
+        highestHeight = other:GetHighestHeight()
+        modified = other:IsModified()
+        splatPainted = other:IsSplatPainted()
+    end
+
+    /*
+    This action returns a height by its place in the region's list of
+    samples, z times the region size plus x. It is quicker than GetHeight
+    for going through every sample.
+
+    Attribute: Parameter index The sample's place in the list.
+    Attribute: Returns The height, in world units.
+    */
+    action GetHeightAt(integer index) returns number
+        return heights:Get(index)
+    end
+
+    /*
+    This action returns packed splat weights by the sample's place in the
+    region's list of samples, z times the region size plus x.
+
+    Attribute: Parameter index The sample's place in the list.
+    Attribute: Returns The packed splat weights.
+    */
+    action GetSplatAt(integer index) returns integer
+        return splats:Get(index)
+    end
+
+    /*
+    This action returns about how many bytes the region's heights and splat
+    weights take up: 8 for each sample.
+
+    Attribute: Returns The size in bytes.
+    */
+    action GetMemorySize returns integer
+        return regionSize * regionSize * 8
+    end
+
+    /*
+    This action returns the splat weights at one sample: how much of each of
+    up to four ground textures to show there, packed into one number the
+    way a PixelMap pixel is, red in the highest byte, then green, blue and
+    alpha. TerrainData's GetSplatWeight reads one weight from it.
+
+    Attribute: Parameter x The sample's place across the region.
+    Attribute: Parameter z The sample's place deep into the region.
+    Attribute: Returns The packed splat weights.
+    */
+    action GetSplat(integer x, integer z) returns integer
+        CheckSample(x, z)
+        return splats:Get(z * regionSize + x)
+    end
+
+    /*
+    This action sets the splat weights at one sample, and marks the region
+    as modified.
+
+    Attribute: Parameter x The sample's place across the region.
+    Attribute: Parameter z The sample's place deep into the region.
+    Attribute: Parameter code The packed splat weights, as made by TerrainData's PackSplat.
+    */
+    action SetSplat(integer x, integer z, integer code)
+        CheckSample(x, z)
+        splats:Set(z * regionSize + x, code)
+        modified = true
+        splatPainted = true
+    end
+
+    /*
+    This action sets every sample's splat weights to the same value, and
+    marks the region as modified and painted.
+
+    Attribute: Parameter code The packed splat weights.
+    */
+    action FillSplat(integer code)
+        integer i = 0
+        integer count = regionSize * regionSize
+        repeat while i < count
+            splats:Set(i, code)
+            i = i + 1
+        end
+        modified = true
+        splatPainted = true
+    end
+
+    /*
+    This action returns whether the region's splat weights have been
+    painted, or loaded from a saved splat image, rather than left as the
+    default. A region that isn't painted saves no splat image, since loading
+    gives it the default weights anyway.
+
+    Attribute: Returns True if the splat weights are painted.
+    */
+    action IsSplatPainted returns boolean
+        return splatPainted
+    end
+
+    /*
+    This action sets whether the region's splat weights count as painted.
+    Setting it to false doesn't change the weights; it only stops the next
+    save writing a splat image for the region.
+
+    Attribute: Parameter painted True if the splat weights are painted.
+    */
+    action SetSplatPainted(boolean painted)
+        splatPainted = painted
+    end
+
+    /*
+    This action makes an image of the region's splat weights, for saving
+    with PixelMap's Save. Each pixel is one sample's packed weights,
+    exactly, so nothing is lost. It is laid out like GetHeightImage: the
+    first number given to PixelMap's SetPixel is the sample's z.
+
+    Like PixelMap itself, this needs a running game.
+
+    Attribute: Returns A new image, region size by region size.
+    */
+    action GetSplatImage returns PixelMap
+        PixelMap map
+        Format format
+        format:SetValue(format:RGBA8888)
+        map:CreatePixelMap(regionSize, regionSize, format)
+
+        // PixelMap blends each pixel it sets with what is there, by default,
+        // and a weight of 0 in alpha would wipe the pixel. So blending is off
+        // while the weights are written, then put back.
+        Blending previousBlending = map:GetBlending()
+        Blending noBlending
+        noBlending:SetValue(noBlending:NONE)
+        map:SetBlending(noBlending)
+
+        integer z = 0
+        repeat while z < regionSize
+            integer x = 0
+            repeat while x < regionSize
+                map:SetPixel(z, x, splats:Get(z * regionSize + x))
+                x = x + 1
+            end
+            z = z + 1
+        end
+        map:SetBlending(previousBlending)
+        return map
+    end
+
+    /*
+    This action reads the region's splat weights from an image made by
+    GetSplatImage. It does not mark the region as modified, since it is
+    used when loading, but it marks the weights as painted, so they are
+    saved again.
+
+    Attribute: Parameter map The image, which must be region size by region size.
+    */
+    action SetSplatFromImage(PixelMap map)
+        if map:GetWidth() not= regionSize or map:GetHeight() not= regionSize
+            alert("A splat image for a region of size " + regionSize + " must be " + regionSize + " by " + regionSize +
+                " pixels, but it is " + map:GetWidth() + " by " + map:GetHeight() + ".")
+        end
+        integer z = 0
+        repeat while z < regionSize
+            integer x = 0
+            repeat while x < regionSize
+                splats:Set(z * regionSize + x, map:GetPixel(z, x))
+                x = x + 1
+            end
+            z = z + 1
+        end
+        splatPainted = true
+    end
+
+    /*
+    This action makes an image of the region's heights, for saving with
+    PixelMap's Save. Each pixel holds one sample's height as a level from 0
+    to 16777215 between the region's lowest and highest heights: red holds
+    the coarsest part, then green, then blue, and alpha is always full. The
+    exact height range is worked out first, and must be saved alongside the
+    image to read it back.
+
+    Red and green are the coarse and fine parts in the same way Terrain
+    reads a height map, and the image is laid out the same way: the first
+    number given to PixelMap's SetPixel is the sample's z. So a saved region
+    can also be loaded as an ordinary 16-bit height map.
+
+    Like PixelMap itself, this needs a running game.
+
+    Attribute: Returns A new image, region size by region size.
+    */
+    action GetHeightImage returns PixelMap
+        CalculateHeightRange()
+        PixelMap map
+        Format format
+        format:SetValue(format:RGBA8888)
+        map:CreatePixelMap(regionSize, regionSize, format)
+
+        integer z = 0
+        repeat while z < regionSize
+            integer x = 0
+            repeat while x < regionSize
+                map:SetPixel(z, x, GetPixelFromHeight(GetHeight(x, z), lowestHeight, highestHeight))
+                x = x + 1
+            end
+            z = z + 1
+        end
+        return map
+    end
+
+    /*
+    This action reads the region's heights from an image made by
+    GetHeightImage, given the height range that was saved with it. The
+    region is marked as unmodified, since it now matches what was saved.
+
+    Attribute: Parameter map The image, which must be region size by region size.
+    Attribute: Parameter lowest The region's lowest height when it was saved.
+    Attribute: Parameter highest The region's highest height when it was saved.
+    */
+    action SetHeightsFromImage(PixelMap map, number lowest, number highest)
+        if map:GetWidth() not= regionSize or map:GetHeight() not= regionSize
+            alert("A height image for a region of size " + regionSize + " must be " + regionSize + " by " + regionSize +
+                " pixels, but it is " + map:GetWidth() + " by " + map:GetHeight() + ".")
+        end
+
+        integer z = 0
+        repeat while z < regionSize
+            integer x = 0
+            repeat while x < regionSize
+                heights:Set(z * regionSize + x, GetHeightFromPixel(map:GetPixel(z, x), lowest, highest))
+                x = x + 1
+            end
+            z = z + 1
+        end
+        lowestHeight = lowest
+        highestHeight = highest
+        modified = false
+    end
+
+    /*
+    This action packs a height into a pixel, as a level from 0 to 16777215
+    between a lowest and a highest height. Heights outside the range are
+    limited to it. Red holds the coarsest part of the level, then green, then
+    blue, and alpha is always full.
+
+    Attribute: Parameter height The height to pack.
+    Attribute: Parameter lowest The height that becomes level 0.
+    Attribute: Parameter highest The height that becomes the top level.
+    Attribute: Returns The pixel, ready for PixelMap's SetPixel.
+    */
+    action GetPixelFromHeight(number height, number lowest, number highest) returns integer
+        number fraction = 0
+        if highest > lowest
+            fraction = math:Clamp((height - lowest) / (highest - lowest), 0, 1)
+        end
+        integer level = cast(integer, math:Round(fraction * largestPixelLevel))
+
+        integer red = bits:ShiftRight(level, 16)
+        integer green = bits:And(bits:ShiftRight(level, 8), 255)
+        integer blue = bits:And(level, 255)
+        integer code = bits:ShiftLeft(red, 24)
+        code = bits:Or(code, bits:ShiftLeft(green, 16))
+        code = bits:Or(code, bits:ShiftLeft(blue, 8))
+        return bits:Or(code, 255)
+    end
+
+    /*
+    This action reads a height back from a pixel made by GetPixelFromHeight.
+
+    Attribute: Parameter code The pixel, as read by PixelMap's GetPixel.
+    Attribute: Parameter lowest The height that level 0 stands for.
+    Attribute: Parameter highest The height that the top level stands for.
+    Attribute: Returns The height.
+    */
+    action GetHeightFromPixel(integer code, number lowest, number highest) returns number
+        integer red = bits:And(bits:ShiftRight(code, 24), 255)
+        integer green = bits:And(bits:ShiftRight(code, 16), 255)
+        integer blue = bits:And(bits:ShiftRight(code, 8), 255)
+        integer level = red * 65536 + green * 256 + blue
+        return lowest + (highest - lowest) * level / cast(number, largestPixelLevel)
+    end
+
+    /*
+    This action stops with an error if a sample position is outside the
+    region, so a mistake is found where it happens rather than as a wrong
+    height somewhere else.
+
+    Attribute: Parameter x The sample's place across the region.
+    Attribute: Parameter z The sample's place deep into the region.
+    */
+    private action CheckSample(integer x, integer z)
+        if not Contains(x, z)
+            alert("The sample (" + x + ", " + z + ") is outside a terrain region of size " + regionSize + ".")
+        end
+    end
+end

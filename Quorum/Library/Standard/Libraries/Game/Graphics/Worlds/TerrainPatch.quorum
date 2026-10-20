@@ -1,0 +1,333 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Containers.Array
+use Libraries.Compute.Vector3
+use Libraries.Game.BoundingBox
+use Libraries.Game.Collision.Shapes.HeightmapTerrainShape
+
+/*
+A TerrainPatch is a rectangle of a terrain's samples that the physics engine
+can collide with. It is the shared part of TerrainRegionModel, which draws a
+whole region, and TerrainCollisionPiece, which only collides with a small
+square near the player.
+
+It is a Terrain, so the physics engine's HeightmapTerrainShape works with it
+unchanged. The shape asks the terrain for the corners of each triangle, and
+this class answers by reading the heights straight from the TerrainData, so
+the answers always match the current heights.
+
+A patch covers the samples from its first sample up to its size along x and
+z, and reaches one sample further, into whatever comes next, where that
+sample exists. That way neighboring patches share their edges and there are
+no gaps between them.
+
+The patch's own grid has one unit between samples. The vertex spacing is
+applied as its x and z scale, the way HeightmapTerrainShape expects. The
+patch sits at the lowest height it covers, and its heights are measured up
+from there, so the shape's box, which starts at the patch's position, holds
+all of the ground.
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.TerrainData
+use Libraries.Game.Graphics.Worlds.TerrainPatch
+
+TerrainData data
+data:AddRegion(0, 0)
+TerrainPatch patch
+patch:Measure(data, 0, 0, 16)
+patch:ApplyCollisionShape()
+patch:PlaceInWorld()
+*/
+class TerrainPatch is Terrain
+    // Where the heights come from.
+    TerrainData terrainData = undefined
+
+    // The first sample of the patch, along x and z, counted from the world's
+    // origin.
+    integer firstSampleX = 0
+    integer firstSampleZ = 0
+
+    // How many samples the patch covers along x and z. This is its size,
+    // plus one where it reaches into what comes next.
+    integer sampleCountX = 0
+    integer sampleCountZ = 0
+
+    // The lowest and highest heights the patch covers. The patch sits at the
+    // lowest, and its heights are measured up from it.
+    number baseHeight = 0
+    number topHeight = 0
+
+    // How far the edges of a triangle's box are pushed out, for the collision
+    // shape. This matches Terrain.
+    number triangleMargin = 0.04
+
+    /*
+    This action sets which samples the patch covers and finds the lowest and
+    highest heights among them. It reaches one sample past its size along x,
+    and along z, where that sample has a height.
+
+    Attribute: Parameter data The heights of the whole terrain.
+    Attribute: Parameter firstX The patch's first sample along x.
+    Attribute: Parameter firstZ The patch's first sample along z.
+    Attribute: Parameter size How many cells the patch covers along each side.
+    */
+    action Measure(TerrainData data, integer firstX, integer firstZ, integer size)
+        terrainData = data
+        firstSampleX = firstX
+        firstSampleZ = firstZ
+
+        sampleCountX = size
+        if data:HasSample(firstX + size, firstZ)
+            sampleCountX = size + 1
+        end
+        sampleCountZ = size
+        if data:HasSample(firstX, firstZ + size)
+            sampleCountZ = size + 1
+        end
+
+        baseHeight = GetPatchHeight(0, 0)
+        topHeight = baseHeight
+        integer row = 0
+        repeat while row < sampleCountZ
+            integer column = 0
+            repeat while column < sampleCountX
+                number height = GetPatchHeight(column, row)
+                if height < baseHeight
+                    baseHeight = height
+                end
+                if height > topHeight
+                    topHeight = height
+                end
+                column = column + 1
+            end
+            row = row + 1
+        end
+    end
+
+    /*
+    This action gives the patch its sizes and its collision shape, from the
+    last call to Measure. Once its width, height and depth are all set,
+    Item3D gives it a plain box shape, so the terrain shape is set after
+    them.
+    */
+    action ApplyCollisionShape
+        SetWidth(sampleCountX)
+        SetHeight(topHeight - baseHeight)
+        SetDepth(sampleCountZ)
+
+        HeightmapTerrainShape terrainShape
+        terrainShape:SetTerrain(me)
+        terrainShape:Set(GetWidth(), GetHeight(), GetDepth())
+        SetShape(terrainShape)
+    end
+
+    /*
+    This action places the patch in the world and scales it to the vertex
+    spacing. It is called after physics has been set up, the same order a
+    game uses for Terrain.
+    */
+    action PlaceInWorld
+        number spacing = terrainData:GetVertexSpacing()
+        SetScale(spacing, 1, spacing)
+        SetPosition(firstSampleX * spacing, baseHeight, firstSampleZ * spacing)
+    end
+
+    /*
+    This action returns true if a change to a rectangle of samples would
+    change this patch. Its heights reach one sample past its size, and the
+    normals of anything drawn from it read one sample further on each side,
+    so the rectangle is compared against the patch grown by one sample, and
+    by two on the far sides.
+
+    Attribute: Parameter minimumX The rectangle's smallest sample along x.
+    Attribute: Parameter minimumZ The rectangle's smallest sample along z.
+    Attribute: Parameter maximumX The rectangle's largest sample along x.
+    Attribute: Parameter maximumZ The rectangle's largest sample along z.
+    Attribute: Returns True if the patch should be rebuilt.
+    */
+    action IsAffectedBy(integer minimumX, integer minimumZ, integer maximumX, integer maximumZ) returns boolean
+        if terrainData = undefined
+            return false
+        end
+        return maximumX >= firstSampleX - 1 and minimumX <= firstSampleX + sampleCountX and
+            maximumZ >= firstSampleZ - 1 and minimumZ <= firstSampleZ + sampleCountZ
+    end
+
+    /*
+    This action returns the TerrainData the patch reads its heights from.
+
+    Attribute: Returns The terrain's data, or undefined if the patch has not been measured.
+    */
+    action GetTerrainData returns TerrainData
+        return terrainData
+    end
+
+    /*
+    This action returns the patch's first sample along x.
+
+    Attribute: Returns The first sample along x.
+    */
+    action GetFirstSampleX returns integer
+        return firstSampleX
+    end
+
+    /*
+    This action returns the patch's first sample along z.
+
+    Attribute: Returns The first sample along z.
+    */
+    action GetFirstSampleZ returns integer
+        return firstSampleZ
+    end
+
+    /*
+    This action returns how many samples the patch covers along x. The
+    collision shape reads this, as it does for Terrain.
+
+    Attribute: Returns The number of samples along x.
+    */
+    action GetPixelWidth returns integer
+        return sampleCountX
+    end
+
+    /*
+    This action returns how many samples the patch covers along z. The
+    collision shape reads this, as it does for Terrain.
+
+    Attribute: Returns The number of samples along z.
+    */
+    action GetPixelHeight returns integer
+        return sampleCountZ
+    end
+
+    /*
+    This action returns the lowest height the patch covers, which is the
+    height it sits at.
+
+    Attribute: Returns The lowest height, in world units.
+    */
+    action GetBaseHeight returns number
+        return baseHeight
+    end
+
+    /*
+    This action returns the highest height the patch covers.
+
+    Attribute: Returns The highest height, in world units.
+    */
+    action GetTopHeight returns number
+        return topHeight
+    end
+
+    /*
+    This action returns the height of a sample, counted from the patch's
+    first sample. Samples outside the patch can be asked for, which is how
+    normals at the edges are worked out. Where no region holds a sample, the
+    nearest sample inside the patch is used instead, so the ground is
+    treated as continuing flat past the edge of the world.
+
+    Attribute: Parameter column The sample's column, counted from the patch's first sample.
+    Attribute: Parameter row The sample's row, counted from the patch's first sample.
+    Attribute: Returns The height, in world units.
+    */
+    action GetPatchHeight(integer column, integer row) returns number
+        integer sampleX = firstSampleX + column
+        integer sampleZ = firstSampleZ + row
+        if not terrainData:HasSample(sampleX, sampleZ)
+            if column < 0
+                column = 0
+            end
+            if column > sampleCountX - 1
+                column = sampleCountX - 1
+            end
+            if row < 0
+                row = 0
+            end
+            if row > sampleCountZ - 1
+                row = sampleCountZ - 1
+            end
+            sampleX = firstSampleX + column
+            sampleZ = firstSampleZ + row
+        end
+        return terrainData:GetSampleHeight(sampleX, sampleZ)
+    end
+
+    /*
+    This action fills in the three corners of one triangle of the ground, in
+    the patch's own grid, and the box around them. The collision shape calls
+    it for each triangle it tests. The heights are read from the TerrainData,
+    so they are always the current ones.
+
+    Each grid cell is split into two triangles: the left one is the top left,
+    bottom left and top right corners, and the right one is the top right,
+    bottom left and bottom right corners. This matches Terrain and the meshes
+    TerrainRegionModel draws.
+
+    Attribute: Parameter x The cell's column. Cells past the last one use the last one.
+    Attribute: Parameter y The cell's row, which is along z.
+    Attribute: Parameter vertices Exactly three vectors, which are filled with the triangle's corners.
+    Attribute: Parameter box The box to fill in around the triangle, pushed out by a small margin.
+    Attribute: Parameter leftTriangle True for the left triangle of the cell, false for the right one.
+    */
+    action FillAtPixel(integer x, integer y, Array<Vector3> vertices, BoundingBox box, boolean leftTriangle)
+        if x > sampleCountX - 2
+            x = sampleCountX - 2
+        end
+        if y > sampleCountZ - 2
+            y = sampleCountZ - 2
+        end
+
+        if leftTriangle
+            FillCorner(vertices:Get(0), x, y)
+            FillCorner(vertices:Get(1), x, y + 1)
+            FillCorner(vertices:Get(2), x + 1, y)
+        else
+            FillCorner(vertices:Get(0), x + 1, y)
+            FillCorner(vertices:Get(1), x, y + 1)
+            FillCorner(vertices:Get(2), x + 1, y + 1)
+        end
+
+        Vector3 minimum = box:GetMinimum()
+        Vector3 maximum = box:GetMaximum()
+        Vector3 first = vertices:Get(0)
+        minimum:Set(first:GetX(), first:GetY(), first:GetZ())
+        maximum:Set(first:GetX(), first:GetY(), first:GetZ())
+        integer i = 1
+        repeat while i < 3
+            Vector3 corner = vertices:Get(i)
+            if corner:GetX() < minimum:GetX()
+                minimum:SetX(corner:GetX())
+            end
+            if corner:GetX() > maximum:GetX()
+                maximum:SetX(corner:GetX())
+            end
+            if corner:GetY() < minimum:GetY()
+                minimum:SetY(corner:GetY())
+            end
+            if corner:GetY() > maximum:GetY()
+                maximum:SetY(corner:GetY())
+            end
+            if corner:GetZ() < minimum:GetZ()
+                minimum:SetZ(corner:GetZ())
+            end
+            if corner:GetZ() > maximum:GetZ()
+                maximum:SetZ(corner:GetZ())
+            end
+            i = i + 1
+        end
+        minimum:Add(-triangleMargin)
+        maximum:Add(triangleMargin)
+    end
+
+    /*
+    This action sets a vector to one corner of the patch, in the patch's own
+    grid: its column, its height above the base, and its row.
+
+    Attribute: Parameter corner The vector to set.
+    Attribute: Parameter column The corner's column, along x.
+    Attribute: Parameter row The corner's row, along z.
+    */
+    private action FillCorner(Vector3 corner, integer column, integer row)
+        corner:Set(column, GetPatchHeight(column, row) - baseHeight, row)
+    end
+end

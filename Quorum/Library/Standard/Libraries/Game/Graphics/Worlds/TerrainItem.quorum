@@ -1,0 +1,262 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Interface.Item3D
+use Libraries.System.File
+use Libraries.Game.Layer3D
+
+/*
+A TerrainItem is a terrain as an item: it holds a WorldTerrain loaded from a
+terrain's folder, and its region models are its children. So a terrain can
+go into a layer, be saved in a scene, and be loaded with LoadScene, like a
+model. Quorum Studio's scene editor adds one from its palette.
+
+A terrain's heights are world positions, so a TerrainItem stays at the
+origin: it isn't moved, turned or scaled. Its region models have collision
+by default, so physics objects land on it.
+
+A terrain is loaded from its terrain.json file, which TerrainData's Save
+writes into the terrain's folder beside the region images. A new terrain,
+made with CreateFlat, is flat and plain: it has no painting and no
+materials. It needs Vulkan.
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Game.Graphics.Worlds.TerrainItem
+
+class Main is Game
+    TerrainItem ground
+
+    action Main
+        UseVulkan(true)
+        StartGame()
+    end
+
+    action CreateGame
+        EnablePhysics3D(true)
+        ground:Load("Terrains/Terrain1/terrain.json")
+        Add(ground)
+        output "The ground at the origin is at height " + ground:GetWorldTerrain():GetData():GetHeight(0, 0)
+    end
+end
+*/
+class TerrainItem is Item3D
+    WorldTerrain terrain
+    // The terrain.json file's path, as given to Load or CreateFlat, so a
+    // scene can save it as it was written.
+    text terrainFile = ""
+    boolean collision = true
+
+    /*
+    This action loads a terrain from its terrain.json file, and makes its
+    region models, as the item's children.
+
+    Attribute: Parameter path The terrain.json file's path.
+    */
+    action Load(text path)
+        File file
+        file:SetPath(path)
+        Load(file)
+    end
+
+    /*
+    This action loads a terrain from its terrain.json file, and makes its
+    region models, as the item's children. The item must not have a terrain
+    loaded already.
+
+    Attribute: Parameter file The terrain.json file.
+    */
+    action Load(File file)
+        CheckEmpty()
+        terrainFile = file:GetPath()
+        terrain:GetData():Load(GetFolder(file))
+        BuildModels()
+    end
+
+    /*
+    This action makes a new, flat terrain at height 0, centered on the
+    origin, saves it into the folder of the terrain.json file given, and
+    makes its region models. The folder is made if it isn't there. The
+    terrain has no painting and no materials, so it draws plain.
+
+    Attribute: Parameter file Where the terrain.json file goes.
+    Attribute: Parameter regionsAcross How many regions along x and along z.
+    Attribute: Parameter regionSize How many samples along each side of a region: 64, 128, 256, 512, 1024 or 2048.
+    Attribute: Parameter spacing How far apart the samples are, in world units.
+    */
+    action CreateFlat(File file, integer regionsAcross, integer regionSize, number spacing)
+        CheckEmpty()
+        if regionsAcross < 1
+            alert("A terrain needs at least one region across, but was given " + regionsAcross + ".")
+        end
+        terrainFile = file:GetPath()
+        TerrainData data = terrain:GetData()
+        data:SetRegionSize(regionSize)
+        data:SetVertexSpacing(spacing)
+        integer first = -(regionsAcross / 2)
+        integer x = 0
+        repeat while x < regionsAcross
+            integer z = 0
+            repeat while z < regionsAcross
+                data:AddRegion(first + x, first + z)
+                z = z + 1
+            end
+            x = x + 1
+        end
+        data:Save(GetFolder(file))
+        BuildModels()
+    end
+
+    /*
+    This action saves the terrain's heights, and any painting, back into its
+    folder.
+    */
+    action SaveTerrain
+        if terrainFile = ""
+            alert("The terrain can't be saved, because it wasn't loaded from or made into a terrain.json file.")
+        end
+        File file
+        file:SetPath(terrainFile)
+        terrain:GetData():Save(GetFolder(file))
+    end
+
+    /*
+    This action returns the terrain.json file's path, as given to Load or
+    CreateFlat.
+
+    Attribute: Returns The path, or an empty text if no terrain is loaded.
+    */
+    action GetTerrainFile returns text
+        return terrainFile
+    end
+
+    /*
+    This action returns the WorldTerrain the item holds, to read heights,
+    edit the ground, or update its collision.
+
+    Attribute: Returns The WorldTerrain.
+    */
+    action GetWorldTerrain returns WorldTerrain
+        return terrain
+    end
+
+    /*
+    This action sets whether the terrain's region models have collision
+    shapes, so physics objects land on them. Set it before Load or
+    CreateFlat. Quorum Studio's editor turns it off, since it only draws.
+
+    Attribute: Parameter enabled True for collision, the default.
+    */
+    action SetCollision(boolean enabled)
+        collision = enabled
+    end
+
+    /*
+    This action returns whether the terrain's region models have collision
+    shapes.
+
+    Attribute: Returns True for collision.
+    */
+    action HasCollision returns boolean
+        return collision
+    end
+
+    /*
+    This action sets how much the ground's surface resists things sliding on
+    it. Set it before Load or CreateFlat.
+
+    Attribute: Parameter friction The friction.
+    */
+    action SetFriction(number friction)
+        terrain:SetFriction(friction)
+    end
+
+    /*
+    This action returns how much the ground's surface resists things sliding
+    on it.
+
+    Attribute: Returns The friction.
+    */
+    action GetFriction returns number
+        return terrain:GetFriction()
+    end
+
+    /*
+    This action keeps the terrain up to date, and should be called once a
+    frame, with where the camera or player is. Ground textures that are
+    painted onto the terrain only show once the renderer has them ready,
+    which this checks. A plain terrain needs nothing from it, so calling it
+    costs little.
+
+    Attribute: Parameter layer The layer the terrain is in.
+    Attribute: Parameter x Where the camera or player is, along x.
+    Attribute: Parameter z Where the camera or player is, along z.
+    Attribute: Returns True if anything about the terrain changed.
+    */
+    action Update(Layer3D layer, number x, number z) returns boolean
+        return terrain:Update(layer, x, z)
+    end
+
+    /*
+    This action makes the terrain's region models and adds them to the item.
+    */
+    private action BuildModels
+        if collision
+            terrain:SetCollisionMode(terrain:COLLISION_FULL)
+        else
+            terrain:SetCollisionMode(terrain:COLLISION_DISABLED)
+        end
+        terrain:SetName(GetName())
+        terrain:Build()
+        integer i = 0
+        repeat while i < terrain:GetRegionModelCount()
+            Add(terrain:GetRegionModel(i))
+            i = i + 1
+        end
+    end
+
+    /*
+    This action makes the terrain's region models again, after the terrain's
+    look or its regions have changed: its old region models are taken out of
+    the item, and the new ones added. Build frees the old models.
+    */
+    private action RebuildModels
+        integer i = 0
+        repeat while i < terrain:GetRegionModelCount()
+            Remove(terrain:GetRegionModel(i))
+            i = i + 1
+        end
+        BuildModels()
+    end
+
+    /*
+    This action stops a second terrain being loaded into the same item.
+    */
+    private action CheckEmpty
+        if terrain:GetData():GetRegionCount() > 0
+            alert("This TerrainItem already holds a terrain. Use a new TerrainItem for another.")
+        end
+    end
+
+    /*
+    This action returns the folder holding a terrain.json file, keeping the
+    file's working directory, so a path relative to a project still works.
+
+    Attribute: Parameter file The terrain.json file.
+    Attribute: Returns The folder.
+    */
+    private action GetFolder(File file) returns File
+        text name = "terrain.json"
+        text path = file:GetPath()
+        if not path:EndsWith(name)
+            alert("A terrain is loaded from its terrain.json file, but was given " + path + ".")
+        end
+        text folderPath = path:GetSubtext(0, path:GetSize() - name:GetSize())
+        if folderPath:EndsWith("/")
+            folderPath = folderPath:GetSubtext(0, folderPath:GetSize() - 1)
+        end
+        File folder
+        folder:SetWorkingDirectory(file:GetWorkingDirectory())
+        folder:SetPath(folderPath)
+        return folder
+    end
+end

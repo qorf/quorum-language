@@ -1,0 +1,1945 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.PixelMap
+use Libraries.Game.Graphics.Format
+use Libraries.Game.Graphics.Blending
+use Libraries.Game.Layer3D
+use Libraries.Containers.Integer32BitArray
+use Libraries.System.File
+use Libraries.Compute.Math
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Game.Graphics.Models.Vulkan.MaterialVulkan
+use Libraries.Game.Graphics.Models.Vulkan.MaterialManagerVulkan
+use Libraries.Compute.BitwiseOperations
+
+/*
+A WorldTerrain is ground for a large world. It holds a TerrainData, which
+has all of the heights, split into regions. Build makes one TerrainRegionModel
+for each region, which draws that region and gives it a collision shape.
+
+The models are not added to the game automatically, so a game can add them
+however it likes, for example to a particular layer. After Build, add each
+one with GetRegionModelCount and GetRegionModel.
+
+Collision works in one of three ways, as in Terrain3D:
+1. COLLISION_FULL, the default here: every region model has a collision
+   shape for its whole region.
+2. COLLISION_DYNAMIC, Terrain3D's default: the region models only draw, and
+   a TerrainCollision keeps small collision pieces near a target, such as
+   the player. Call Update every frame with the target's position.
+3. COLLISION_DISABLED: no collision at all.
+
+Far regions can be drawn with less detail, by setting a far radius before
+StartStreaming. Regions past the draw radius and within the far radius are
+drawn by a TerrainRegionFarModel, which uses only every few samples, so the
+world has a horizon at little cost.
+
+For a world larger than should be in memory at once, call StartStreaming
+instead of Build. Then only regions near the target are loaded, from a
+folder the world was saved in, and only those within the draw radius are
+drawn. Update loads and unloads regions, and adds and removes their models
+from the layer, a little each frame. A region's model is kept when it is
+taken out, and used again when the region comes back unchanged.
+
+This class plays the part of the Terrain3D node in Terrain3D, which holds a
+Terrain3DData and builds the drawing and collision for it.
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Game.Graphics.Worlds.WorldTerrain
+use Libraries.Game.Graphics.Worlds.TerrainData
+use Libraries.Compute.Noise.PerlinNoise
+
+class Main is Game
+    WorldTerrain terrain
+
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        EnablePhysics3D(true)
+        PerlinNoise noise
+        noise:SetFrequency(0.02)
+        TerrainData data = terrain:GetData()
+        data:SetRegionSize(64)
+        data:GenerateHeights(noise, -128, -128, 256, 256, 10, 0)
+
+        terrain:SetTexture("Textures/grass.png")
+        terrain:Build()
+        integer i = 0
+        repeat while i < terrain:GetRegionModelCount()
+            Add(terrain:GetRegionModel(i))
+            i = i + 1
+        end
+    end
+end
+*/
+class WorldTerrain
+    // The ways the terrain can be collided with. See the class description.
+    public constant integer COLLISION_DISABLED = 0
+    public constant integer COLLISION_DYNAMIC = 1
+    public constant integer COLLISION_FULL = 2
+
+    TerrainData terrainData
+    Array<TerrainRegionModel> regionModels
+    TerrainCollision collision
+    integer collisionMode = 2
+
+    // The texture laid over the ground, shared by every region, and how far
+    // apart in world units it repeats.
+    Texture texture = undefined
+    number textureRepeat = 4
+
+    // The name given to the region models, followed by each one's location.
+    text name = "World Terrain"
+
+    // How much the ground grips what rests on it, given to every region.
+    number friction = 1
+
+    // Streaming. While streaming, only regions near the target are loaded,
+    // and those within drawRadius world units are drawn. Every region model
+    // ever made is kept in modelMap by location, in the same order as
+    // TerrainData's region map, and activeMap marks which are in the layer:
+    // 1 if so, 0 if not. At most buildsPerUpdate models are built or rebuilt
+    // in one update.
+    TerrainStreamer streamer
+    boolean streaming = false
+    number drawRadius = 100
+    integer buildsPerUpdate = 1
+    Layer3D drawLayer = undefined
+    Array<TerrainRegionModel> modelMap
+    Integer32BitArray activeMap
+
+    // Distant terrain. While streaming with a far radius more than 0,
+    // regions between the draw radius and the far radius are drawn by a
+    // TerrainRegionFarModel, with a vertex every farStep samples and skirts
+    // skirtDepth units deep. Far models are kept by location in farModelMap,
+    // and farActiveMap marks which are in the layer, like the full models.
+    number farRadius = 0
+    integer farStep = 4
+    number skirtDepth = 1
+
+    // A color the far models' texture is multiplied by, or undefined for
+    // none. Useful for seeing which regions are drawn with less detail.
+    Color farTint = undefined
+    Array<TerrainRegionFarModel> farModels
+    Array<TerrainRegionFarModel> farModelMap
+    Integer32BitArray farActiveMap
+
+    // Texture splatting. While splatting is true, the ground is drawn with
+    // the four textures of textureSplat, blended by the splat weights in the
+    // TerrainData. The weights of the whole terrain go into one splat
+    // texture, splatTexture, covering splatWidth by splatDepth samples from
+    // sample (splatStartX, splatStartZ), with a copy of its pixels kept in
+    // splatPixels so a change only needs the changed pixels updated. One
+    // texture for everything keeps the terrain to five textures, which
+    // matters because the renderer binds textures in small groups (31 on
+    // some devices), and only works properly with the first group. layerColor
+    // carries the four ground textures' places to the splat shader through
+    // each model's color override; it is made once every texture has a
+    // place, which happens during a frame.
+    TextureSplat textureSplat = undefined
+    boolean splatting = false
+    Texture splatTexture = undefined
+    integer splatStartX = 0
+    integer splatStartZ = 0
+    integer splatWidth = 0
+    integer splatDepth = 0
+    Integer32BitArray splatPixels
+    integer splatRebuildCount = 0
+
+    // The size the splat texture was made at, and how many times it has been
+    // loaded again at that size. While the size stays the same, the same
+    // Texture is loaded again, which the renderer updates in place.
+    integer splatTextureWidth = 0
+    integer splatTextureDepth = 0
+    integer splatUpdateCount = 0
+    Color layerColor = undefined
+    boolean layersReady = false
+
+    // Texture sets for the ground layers (library item 24). A layer with a
+    // Material in layerMaterials is drawn from the set's two packed
+    // textures, color and height, and normal, roughness and ambient
+    // occlusion, with height blending between layers. A layer without one
+    // uses textureSplat's plain texture. When any layer has a Material, the
+    // color override can't hold every texture's place, so layerTable, a 4
+    // by 1 texture, holds each layer's places and tile size, and layerColor
+    // holds the table's place and heightBlendSoftness instead.
+    Array<Material> layerMaterials
+    Array<MaterialVulkan> layerLoaded
+    Texture layerTable = undefined
+    number heightBlendSoftness = 0.2
+
+    // The shader program the terrain's models are drawn with while
+    // splatting, or undefined to leave them with the default program.
+    ShaderProgram splatProgram = undefined
+
+    // Whether region models update their meshes in place when rebuilt, and
+    // how many builds so far updated a mesh in place or loaded a new one.
+    boolean inPlaceUpdates = true
+    integer inPlaceBuildCount = 0
+    integer newMeshBuildCount = 0
+
+    // The region map's size, matching TerrainData's.
+    integer mapSize = 32
+
+    Math math
+
+    on create
+        modelMap:SetSize(mapSize * mapSize)
+        activeMap:SetSize(mapSize * mapSize)
+        farModelMap:SetSize(mapSize * mapSize)
+        farActiveMap:SetSize(mapSize * mapSize)
+        layerMaterials:SetSize(4)
+        layerLoaded:SetSize(4)
+    end
+
+    /*
+    This action returns the terrain's data, which holds all of its heights.
+    Change the heights here, then call Build.
+
+    Attribute: Returns The terrain's data.
+    */
+    action GetData returns TerrainData
+        return terrainData
+    end
+
+    /*
+    This action loads a texture from a file and lays it over the ground. It
+    takes effect the next time Build is called. The texture gets mipmaps,
+    so the ground doesn't shimmer in the distance.
+
+    Attribute: Parameter path The texture file's path.
+    */
+    action SetTexture(text path)
+        Texture loaded
+        loaded:LoadFromFile(path, true)
+        texture = loaded
+    end
+
+    /*
+    This action lays a texture over the ground. It takes effect the next time
+    Build is called.
+
+    Attribute: Parameter texture The texture, or undefined for none.
+    */
+    action SetTexture(Texture texture)
+        me:texture = texture
+    end
+
+    /*
+    This action returns the texture laid over the ground.
+
+    Attribute: Returns The texture, or undefined if there is none.
+    */
+    action GetTexture returns Texture
+        return texture
+    end
+
+    /*
+    This action sets how far apart, in world units, the texture repeats. A
+    larger value stretches the texture over more ground. The default is 4.
+
+    Attribute: Parameter distance The distance between repeats. It must be more than 0.
+    */
+    action SetTextureRepeat(number distance)
+        if distance <= 0
+            alert("The texture repeat must be more than 0, but was given " + distance + ".")
+        end
+        textureRepeat = distance
+    end
+
+    /*
+    This action returns how far apart, in world units, the texture repeats.
+
+    Attribute: Returns The distance between repeats.
+    */
+    action GetTextureRepeat returns number
+        return textureRepeat
+    end
+
+    /*
+    This action sets the name given to the region models. Each model is named
+    this, followed by its region's location.
+
+    Attribute: Parameter name The name.
+    */
+    action SetName(text name)
+        me:name = name
+    end
+
+    /*
+    This action returns the name given to the region models.
+
+    Attribute: Returns The name.
+    */
+    action GetName returns text
+        return name
+    end
+
+    /*
+    This action sets how much the ground grips what rests on it. It takes
+    effect the next time Build is called. The default is 1.
+
+    Attribute: Parameter friction The friction.
+    */
+    action SetFriction(number friction)
+        me:friction = friction
+    end
+
+    /*
+    This action returns how much the ground grips what rests on it.
+
+    Attribute: Returns The friction.
+    */
+    action GetFriction returns number
+        return friction
+    end
+
+    /*
+    This action sets how the terrain can be collided with:
+    COLLISION_DISABLED, COLLISION_DYNAMIC or COLLISION_FULL. It takes effect
+    the next time Build is called. The default is COLLISION_FULL.
+
+    Attribute: Parameter mode The collision mode.
+    */
+    action SetCollisionMode(integer mode)
+        if mode < 0 or mode > 2
+            alert("The collision mode must be COLLISION_DISABLED, COLLISION_DYNAMIC or COLLISION_FULL, but was given " + mode + ".")
+        end
+        collisionMode = mode
+    end
+
+    /*
+    This action returns how the terrain can be collided with.
+
+    Attribute: Returns COLLISION_DISABLED, COLLISION_DYNAMIC or COLLISION_FULL.
+    */
+    action GetCollisionMode returns integer
+        return collisionMode
+    end
+
+    /*
+    This action sets whether rebuilt region models update their meshes in
+    place, instead of making new ones. It is on by default, and affects
+    models made after it is set. Turning it off is only useful for comparing
+    with the old behavior.
+
+    Attribute: Parameter inPlace True to update meshes in place when possible.
+    */
+    action SetInPlaceUpdates(boolean inPlace)
+        inPlaceUpdates = inPlace
+    end
+
+    /*
+    This action returns whether rebuilt region models update their meshes in
+    place.
+
+    Attribute: Returns True if meshes are updated in place when possible.
+    */
+    action UsesInPlaceUpdates returns boolean
+        return inPlaceUpdates
+    end
+
+    /*
+    This action returns how many region and far model builds so far updated
+    an existing mesh in place, using no new GPU memory.
+
+    Attribute: Returns The number of builds that updated a mesh in place.
+    */
+    action GetInPlaceBuildCount returns integer
+        return inPlaceBuildCount
+    end
+
+    /*
+    This action returns how many region and far model builds so far loaded a
+    new mesh. Each one uses GPU memory that can't yet be freed, so while
+    editing this should stay the same.
+
+    Attribute: Returns The number of builds that loaded a new mesh.
+    */
+    action GetNewMeshBuildCount returns integer
+        return newMeshBuildCount
+    end
+
+    /*
+    This action counts one model build as an update in place or a new mesh.
+
+    Attribute: Parameter inPlace True if the build updated a mesh in place.
+    */
+    private action CountBuild(boolean inPlace)
+        if inPlace
+            inPlaceBuildCount = inPlaceBuildCount + 1
+        else
+            newMeshBuildCount = newMeshBuildCount + 1
+        end
+    end
+
+    /*
+    This action returns the TerrainCollision that keeps collision near a
+    target in COLLISION_DYNAMIC mode. Its shape size and radius can be
+    changed here.
+
+    Attribute: Returns The terrain's dynamic collision.
+    */
+    action GetCollision returns TerrainCollision
+        return collision
+    end
+
+    /*
+    This action keeps the terrain up to date around a target, usually the
+    player or camera. Call it every frame, after Build or StartStreaming.
+    While streaming, it loads and unloads regions, and adds and removes
+    their models from the layer, a little at a time. In COLLISION_DYNAMIC
+    mode, it keeps collision near the target, which only takes work when
+    the target moves into a new square of the collision grid.
+
+    Attribute: Parameter layer The layer to put the collision pieces in, usually the game's current 3D layer.
+    Attribute: Parameter targetX The target's position along x, in world units.
+    Attribute: Parameter targetZ The target's position along z, in world units.
+    Attribute: Returns True if any regions, region models or collision pieces changed.
+    */
+    action Update(Layer3D layer, number targetX, number targetZ) returns boolean
+        boolean changed = false
+        if splatting and not layersReady
+            if CheckLayersReady()
+                changed = true
+            end
+        end
+        if streaming
+            if streamer:Update(targetX, targetZ)
+                changed = true
+            end
+            if UpdateDrawnModels(targetX, targetZ, buildsPerUpdate)
+                changed = true
+            end
+        end
+        if collisionMode = COLLISION_DYNAMIC
+            if collision:Update(layer, targetX, targetZ)
+                changed = true
+            end
+        end
+        return changed
+    end
+
+    /*
+    This action makes a model for every region in the data, with a mesh, and
+    with a collision shape in COLLISION_FULL mode. Then it clears the data's
+    edited area. Any models from an earlier build are replaced, so remove
+    them from the game first.
+
+    Their meshes are freed, so remove them from the game first.
+    */
+    action Build
+        // Models from an earlier build are freed (Item 33).
+        integer old = 0
+        repeat while old < regionModels:GetSize()
+            regionModels:Get(old):Dispose()
+            old = old + 1
+        end
+        regionModels:Empty()
+        if splatting
+            PrepareSplatTexture()
+        end
+        integer i = 0
+        repeat while i < terrainData:GetRegionCount()
+            regionModels:Add(MakeRegionModel(terrainData:GetRegionAtIndex(i)))
+            i = i + 1
+        end
+
+        collision:SetTerrainData(terrainData)
+        collision:SetFriction(friction)
+        collision:Refresh()
+        terrainData:ClearEditedArea()
+        terrainData:ClearSplatEditedArea()
+    end
+
+    /*
+    This action brings the region models up to date after heights have
+    changed. Only the models touched by the data's edited area are rebuilt,
+    and then the edited area is cleared. The models stay in the game, so
+    nothing needs to be added or removed.
+
+    Regions added to or removed from the data since the last Build are not
+    handled here. Call Build again for those.
+
+    Each rebuilt model gets a new mesh, and the renderer cannot yet free the
+    old one, so its memory stays in use. See VulkanChanges.md.
+
+    Attribute: Returns How many region models and splat textures were rebuilt.
+    */
+    action Rebuild returns integer
+        // Splat changes only need the splat textures of the regions they
+        // touch made again; the meshes stay as they are.
+        integer texturesRebuilt = 0
+        if splatting and terrainData:HasSplatEditedArea()
+            texturesRebuilt = UpdateSplatTexture()
+        end
+        if not terrainData:HasEditedArea()
+            return texturesRebuilt
+        end
+        integer minimumX = terrainData:GetEditedMinimumX()
+        integer minimumZ = terrainData:GetEditedMinimumZ()
+        integer maximumX = terrainData:GetEditedMaximumX()
+        integer maximumZ = terrainData:GetEditedMaximumZ()
+
+        integer rebuilt = 0
+        integer i = 0
+        repeat while i < regionModels:GetSize()
+            TerrainRegionModel model = regionModels:Get(i)
+            if model:IsAffectedBy(minimumX, minimumZ, maximumX, maximumZ)
+                model:Rebuild(GetDrawTexture(model:GetTerrainRegion()), textureRepeat)
+                CountBuild(model:WasBuiltInPlace())
+                rebuilt = rebuilt + 1
+            end
+            i = i + 1
+        end
+
+        // While streaming, models out of the layer that the change touches,
+        // such as one sharing an edge, are rebuilt when they come back. Far
+        // models the change touches are rebuilt before they are next shown;
+        // one being shown now is taken out, so the next update rebuilds it.
+        if streaming
+            i = 0
+            repeat while i < modelMap:GetSize()
+                TerrainRegionModel cached = modelMap:Get(i)
+                if cached not= undefined and activeMap:Get(i) = 0
+                    if cached:IsAffectedBy(minimumX, minimumZ, maximumX, maximumZ)
+                        cached:SetNeedsRebuild(true)
+                    end
+                end
+
+                TerrainRegionFarModel far = farModelMap:Get(i)
+                if far not= undefined
+                    if far:IsAffectedBy(minimumX, minimumZ, maximumX, maximumZ)
+                        far:SetNeedsRebuild(true)
+                        if farActiveMap:Get(i) = 1
+                            drawLayer:Remove(far)
+                            farModels:Remove(far)
+                            farActiveMap:Set(i, 0)
+                        end
+                    end
+                end
+                i = i + 1
+            end
+        end
+
+        // Collision pieces near the target also follow the new heights.
+        if collisionMode = COLLISION_DYNAMIC
+            collision:Rebuild(minimumX, minimumZ, maximumX, maximumZ)
+        end
+        terrainData:ClearEditedArea()
+        return rebuilt + texturesRebuilt
+    end
+
+    /*
+    This action brings the region models up to date after regions have been
+    added to or removed from the data, such as by a terrain editor's region
+    brush or by undoing one. It is for terrain made with Build; a streaming
+    terrain keeps its models up to date in Update.
+
+    Models whose region is gone are taken out of the layer. Regions with no
+    model get one, put in the layer. If a new region lies outside the area
+    the splat texture covers, the splat texture is made again to cover it,
+    and every model's texture coordinates are rebuilt to match.
+
+    Call Rebuild afterward, so the neighbors of added and removed regions,
+    whose meshes reach one sample into them, are rebuilt too.
+
+    Attribute: Parameter layer The layer the region models are drawn in.
+    Attribute: Returns How many models were added or removed.
+    */
+    action UpdateRegionModels(Layer3D layer) returns integer
+        if streaming
+            alert("UpdateRegionModels is for terrain made with Build. A streaming terrain keeps its models up to date in Update.")
+        end
+        integer changes = 0
+
+        // Take out models whose region is gone. A region added again at the
+        // same place is a new region, so the model is pointed at it.
+        integer i = regionModels:GetSize() - 1
+        repeat while i >= 0
+            TerrainRegionModel kept = regionModels:Get(i)
+            TerrainRegion modelRegion = kept:GetTerrainRegion()
+            TerrainRegion current = terrainData:GetRegion(modelRegion:GetLocationX(), modelRegion:GetLocationZ())
+            if current = undefined
+                layer:Remove(kept)
+                kept:Dispose()
+                regionModels:RemoveAt(i)
+                changes = changes + 1
+            elseif current not= modelRegion
+                kept:SetTerrainRegion(current)
+            end
+            i = i - 1
+        end
+
+        // Make models for regions that have none.
+        boolean outsideSplat = false
+        integer size = terrainData:GetRegionSize()
+        i = 0
+        repeat while i < terrainData:GetRegionCount()
+            TerrainRegion dataRegion = terrainData:GetRegionAtIndex(i)
+            if not HasModelFor(dataRegion)
+                if splatting and splatTexture not= undefined
+                    integer firstX = dataRegion:GetLocationX() * size
+                    integer firstZ = dataRegion:GetLocationZ() * size
+                    if firstX < splatStartX or firstZ < splatStartZ or firstX + size > splatStartX + splatWidth - 1 or
+                            firstZ + size > splatStartZ + splatDepth - 1
+                        outsideSplat = true
+                    end
+                end
+                TerrainRegionModel made = MakeRegionModel(dataRegion)
+                regionModels:Add(made)
+                layer:Add(made)
+                changes = changes + 1
+            end
+            i = i + 1
+        end
+
+        if outsideSplat
+            PrepareSplatTexture()
+            i = 0
+            repeat while i < regionModels:GetSize()
+                TerrainRegionModel moved = regionModels:Get(i)
+                moved:SetSplatArea(splatStartX, splatStartZ, splatWidth, splatDepth)
+                moved:Rebuild(GetDrawTexture(moved:GetTerrainRegion()), textureRepeat)
+                CountBuild(moved:WasBuiltInPlace())
+                i = i + 1
+            end
+        end
+        return changes
+    end
+
+    /*
+    This action returns true if one of the region models from Build draws a
+    region.
+
+    Attribute: Parameter region The region.
+    Attribute: Returns True if a model draws it.
+    */
+    private action HasModelFor(TerrainRegion region) returns boolean
+        integer i = 0
+        repeat while i < regionModels:GetSize()
+            if regionModels:Get(i):GetTerrainRegion() = region
+                return true
+            end
+            i = i + 1
+        end
+        return false
+    end
+
+    /*
+    This action starts streaming the terrain from a folder it was saved in,
+    in place of Build. Any regions already loaded are unloaded first, and
+    changed ones are saved to the folder. Then the folder's terrain.json is
+    read, every saved region near the target is loaded, and those within the
+    draw radius get models in the layer. After this, call Update every frame.
+
+    Regions are loaded within the draw radius plus one and a half regions, so
+    every drawn region's neighbors are loaded too. A region's mesh reaches
+    into its neighbors, so it is only drawn once they are loaded.
+
+    Attribute: Parameter folder The folder the terrain was saved in, with TerrainData's Save.
+    Attribute: Parameter layer The layer to draw the region models in, usually the game's current 3D layer.
+    Attribute: Parameter targetX The target's position along x, in world units.
+    Attribute: Parameter targetZ The target's position along z, in world units.
+    */
+    action StartStreaming(File folder, Layer3D layer, number targetX, number targetZ)
+        streamer:SetTerrainData(terrainData)
+        streamer:SetFolder(folder)
+        if terrainData:GetRegionCount() > 0
+            streamer:UnloadAll()
+        end
+        terrainData:LoadSettings(folder)
+
+        streaming = true
+        drawLayer = layer
+        // Models from an earlier build are freed (Item 33).
+        integer old = 0
+        repeat while old < regionModels:GetSize()
+            regionModels:Get(old):Dispose()
+            old = old + 1
+        end
+        regionModels:Empty()
+        streamer:SetLoadRadius(drawRadius + 1.5 * streamer:GetRegionWorldSize())
+        streamer:LoadAllNear(targetX, targetZ)
+        if splatting
+            PrepareSplatTexture()
+        end
+        UpdateDrawnModels(targetX, targetZ, mapSize * mapSize)
+
+        collision:SetTerrainData(terrainData)
+        collision:SetFriction(friction)
+        collision:Refresh()
+        terrainData:ClearEditedArea()
+        terrainData:ClearSplatEditedArea()
+    end
+
+    /*
+    This action returns true if the terrain is streaming its regions.
+
+    Attribute: Returns True after StartStreaming.
+    */
+    action IsStreaming returns boolean
+        return streaming
+    end
+
+    /*
+    This action returns the TerrainStreamer that loads and unloads regions
+    while streaming.
+
+    Attribute: Returns The streamer.
+    */
+    action GetStreamer returns TerrainStreamer
+        return streamer
+    end
+
+    /*
+    This action sets how near, in world units, a region must be to the
+    target to be drawn while streaming. Set it before StartStreaming. The
+    default is 100.
+
+    Attribute: Parameter radius The draw radius. It must be more than 0.
+    */
+    action SetDrawRadius(number radius)
+        if radius <= 0
+            alert("The draw radius must be more than 0, but was given " + radius + ".")
+        end
+        drawRadius = radius
+    end
+
+    /*
+    This action returns how near, in world units, a region must be to the
+    target to be drawn while streaming.
+
+    Attribute: Returns The draw radius.
+    */
+    action GetDrawRadius returns number
+        return drawRadius
+    end
+
+    /*
+    This action sets how many region models may be built or rebuilt in one
+    update while streaming. The default is 1.
+
+    Attribute: Parameter count The number of models. It must be at least 1.
+    */
+    action SetBuildsPerUpdate(integer count)
+        if count < 1
+            alert("At least 1 model must be built per update, but was given " + count + ".")
+        end
+        buildsPerUpdate = count
+    end
+
+    /*
+    This action sets the shader program the terrain's region and far models
+    are drawn with while splatting, such as a TerrainSplatShaderProgram
+    compiled with InstallAsProgram. Set it before Build or StartStreaming.
+
+    Attribute: Parameter program The splat program.
+    */
+    action SetSplatProgram(ShaderProgram program)
+        splatProgram = program
+    end
+
+    /*
+    This action returns the shader program the terrain's models are drawn
+    with while splatting.
+
+    Attribute: Returns The splat program, or undefined if none was set.
+    */
+    action GetSplatProgram returns ShaderProgram
+        return splatProgram
+    end
+
+    /*
+    This action gives a region or far model the shader program it should be
+    drawn with: the splat program while splatting, or the default otherwise.
+
+    Attribute: Parameter model The model to set up.
+    */
+    private action ApplyProgram(TerrainPatch model)
+        if splatting
+            model:SetShaderProgram(splatProgram)
+        else
+            model:SetShaderProgram(undefined)
+        end
+    end
+
+    /*
+    This action draws the ground with texture splatting: up to four ground
+    textures, from the TextureSplat's red, green, blue and alpha textures,
+    blended by each sample's splat weights in the TerrainData. A missing
+    texture uses the red one. Its splat map is not used, since each region
+    makes its own from the TerrainData. Set it before Build or
+    StartStreaming. The default is undefined, which draws the plain texture
+    set with SetTexture.
+
+    The models need a shader that does the blending: give them one with
+    SetSplatProgram, such as a TerrainSplatShaderProgram.
+
+    With splatting, the far tint is not used, since the models' color
+    override carries the ground textures' places.
+
+    Attribute: Parameter splat The four ground textures, or undefined for none.
+    */
+    action SetTextureSplat(TextureSplat splat)
+        if splat not= undefined and splat:GetRed() = undefined
+            alert("A TextureSplat for the terrain needs at least a red texture.")
+        end
+        textureSplat = splat
+        splatting = splat not= undefined or HasLayerMaterials()
+        layersReady = false
+    end
+
+    /*
+    This action draws one ground layer with a texture set: a Material made
+    with SetTextureSet, such as an AmbientCG set. The layer then has the
+    set's color, bumps, roughness and ambient occlusion, and blends with the
+    other texture set layers by height, so stones show through grass at
+    their edges rather than fading into it. Layers without a Material use
+    the plain textures from SetTextureSplat.
+
+    The set is loaded and packed right away, which takes a moment for each
+    set. Call this before Build or StartStreaming, and before any labels
+    are made: the splat shader can only find textures loaded early (see
+    VulkanChanges.md #22). It needs the Vulkan renderer and a splat program
+    (SetSplatProgram).
+
+    The Material's texture scale (SetTextureScale) is how many world units
+    one tile covers, from 0.25 to 63.75.
+
+    Attribute: Parameter layer The layer: 0 for red, 1 green, 2 blue, 3 alpha, matching the splat weights.
+    Attribute: Parameter material A texture set Material, or undefined to go back to the plain texture.
+    */
+    action SetLayerMaterial(integer layer, Material material)
+        if layer < 0 or layer > 3
+            alert("A ground layer must be 0 to 3, but was given " + layer + ".")
+        end
+        if material not= undefined and not material:UsesTextureSet()
+            alert("A ground layer's Material must be a texture set (SetTextureSet). Plain textures go in SetTextureSplat.")
+        end
+        layerMaterials:Set(layer, material)
+        if material = undefined
+            layerLoaded:Set(layer, undefined)
+        else
+            GameStateManager gameState
+            VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+            MaterialManagerVulkan materials = graphics:GetMaterialManager()
+            layerLoaded:Set(layer, materials:GetMaterial(material))
+        end
+        splatting = textureSplat not= undefined or HasLayerMaterials()
+        layerTable = undefined
+        layersReady = false
+    end
+
+    /*
+    This action returns a ground layer's texture set.
+
+    Attribute: Parameter layer The layer: 0 for red, 1 green, 2 blue, 3 alpha.
+    Attribute: Returns The Material, or undefined if the layer uses a plain texture.
+    */
+    action GetLayerMaterial(integer layer) returns Material
+        return layerMaterials:Get(layer)
+    end
+
+    /*
+    This action returns true if any ground layer has a texture set.
+
+    Attribute: Returns True if a layer has a Material.
+    */
+    action HasLayerMaterials returns boolean
+        integer i = 0
+        repeat while i < 4
+            if layerMaterials:Get(i) not= undefined
+                return true
+            end
+            i = i + 1
+        end
+        return false
+    end
+
+    /*
+    This action sets how softly texture set layers blend where they meet.
+    Near 0, the higher layer at each point wins outright, for crisp stones
+    in grass. Near 1, the layers fade into each other, much like plain
+    weight blending. It takes effect when the layers become ready, so set it
+    before Build or StartStreaming.
+
+    Attribute: Parameter softness From 0.01 to 1. The default is 0.2.
+    */
+    action SetHeightBlendSoftness(number softness)
+        heightBlendSoftness = math:Clamp(softness, 0.01, 1)
+        layersReady = false
+    end
+
+    /*
+    This action returns how softly texture set layers blend where they meet.
+
+    Attribute: Returns The softness, from 0.01 to 1.
+    */
+    action GetHeightBlendSoftness returns number
+        return heightBlendSoftness
+    end
+
+    /*
+    This action returns the 4 by 1 texture that tells the splat shader each
+    texture set layer's texture places and tile size.
+
+    Attribute: Returns The layer table, or undefined if no layer has a Material or it hasn't been made.
+    */
+    action GetLayerTable returns Texture
+        return layerTable
+    end
+
+    /*
+    This action returns the ground textures used for texture splatting.
+
+    Attribute: Returns The TextureSplat, or undefined if splatting is off.
+    */
+    action GetTextureSplat returns TextureSplat
+        return textureSplat
+    end
+
+    /*
+    This action returns the terrain's splat texture, which holds the splat
+    weights of the whole terrain.
+
+    Attribute: Returns The splat texture, or undefined if splatting is off or it hasn't been made.
+    */
+    action GetSplatTexture returns Texture
+        return splatTexture
+    end
+
+    /*
+    This action returns how many splat textures have been made, including
+    the first. Each one uses another of the renderer's texture places. A new
+    one is only made when the splat area changes size; other changes update
+    the existing one (see GetSplatUpdateCount).
+
+    Attribute: Returns The number of splat textures made.
+    */
+    action GetSplatTextureCount returns integer
+        return splatRebuildCount
+    end
+
+    /*
+    This action returns the packed splat weights the splat texture was last
+    made from at a sample, for checking that painting reaches the texture.
+
+    Attribute: Parameter sampleX The sample along x.
+    Attribute: Parameter sampleZ The sample along z.
+    Attribute: Returns The packed weights, or -1 if the sample is outside the splat texture.
+    */
+    action GetSplatPixel(integer sampleX, integer sampleZ) returns integer
+        integer x = sampleX - splatStartX
+        integer z = sampleZ - splatStartZ
+        if x < 0 or z < 0 or x >= splatWidth or z >= splatDepth
+            return -1
+        end
+        return splatPixels:Get(z * splatWidth + x)
+    end
+
+    /*
+    This action returns how many times the splat texture has been loaded
+    again at the same size, such as after painting. Each of these keeps the
+    texture's place in the renderer.
+
+    Attribute: Returns The number of updates.
+    */
+    action GetSplatUpdateCount returns integer
+        return splatUpdateCount
+    end
+
+    /*
+    This action returns true once every ground texture has its place in the
+    renderer, so the splat shader can draw them. Until then, splatted ground
+    is drawn a plain green.
+
+    Attribute: Returns True if the ground textures are ready.
+    */
+    action AreLayersReady returns boolean
+        return layersReady
+    end
+
+    /*
+    This action sets how far, in world units, regions are drawn with less
+    detail while streaming. Regions past the draw radius and within this
+    radius are drawn by far models. Set it before StartStreaming. The default
+    is 0, which draws nothing past the draw radius.
+
+    Attribute: Parameter radius The far radius, or 0 for none.
+    */
+    action SetFarRadius(number radius)
+        if radius < 0
+            alert("The far radius can't be less than 0, but was given " + radius + ".")
+        end
+        farRadius = radius
+    end
+
+    /*
+    This action returns how far, in world units, regions are drawn with less
+    detail while streaming.
+
+    Attribute: Returns The far radius, or 0 for none.
+    */
+    action GetFarRadius returns number
+        return farRadius
+    end
+
+    /*
+    This action sets how many samples apart the vertices of far models are.
+    It must divide the region size evenly. The default is 4. Set it before
+    StartStreaming.
+
+    Attribute: Parameter step The number of samples between vertices.
+    */
+    action SetFarStep(integer step)
+        if step < 1
+            alert("The far step must be at least 1, but was given " + step + ".")
+        end
+        farStep = step
+    end
+
+    /*
+    This action returns how many samples apart the vertices of far models
+    are.
+
+    Attribute: Returns The number of samples between vertices.
+    */
+    action GetFarStep returns integer
+        return farStep
+    end
+
+    /*
+    This action sets how far, in world units, the skirts of far models hang
+    down. Deeper skirts hide larger cracks between far models and their
+    neighbors. The default is 1. Set it before StartStreaming.
+
+    Attribute: Parameter depth The skirt depth. It must be more than 0.
+    */
+    action SetSkirtDepth(number depth)
+        if depth <= 0
+            alert("The skirt depth must be more than 0, but was given " + depth + ".")
+        end
+        skirtDepth = depth
+    end
+
+    /*
+    This action sets a color the far models' texture is multiplied by, so it
+    is easy to see which regions are drawn with less detail. Far models
+    already built are changed too. Pass undefined for no tint, which is the
+    default.
+
+    Attribute: Parameter tint The color, or undefined for none.
+    */
+    action SetFarTint(Color tint)
+        farTint = tint
+        // With splatting, the color override carries the ground textures'
+        // places instead, so there is no tint.
+        if splatting
+            return now
+        end
+        integer i = 0
+        repeat while i < farModelMap:GetSize()
+            TerrainRegionFarModel far = farModelMap:Get(i)
+            if far not= undefined
+                far:GetResources():SetColor(farTint)
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+    This action returns the color the far models' texture is multiplied by.
+
+    Attribute: Returns The color, or undefined for none.
+    */
+    action GetFarTint returns Color
+        return farTint
+    end
+
+    /*
+    This action returns how deep, in world units, the skirts of far models
+    hang down.
+
+    Attribute: Returns The skirt depth.
+    */
+    action GetSkirtDepth returns number
+        return skirtDepth
+    end
+
+    /*
+    This action returns how many far models are in the layer.
+
+    Attribute: Returns The number of far models being drawn.
+    */
+    action GetFarModelCount returns integer
+        return farModels:GetSize()
+    end
+
+    /*
+    This action returns true if a loaded region can be drawn: each of its
+    eight neighbors is either loaded or doesn't exist. A region's mesh
+    reaches into its neighbors along x and z, and its normals read one
+    sample into every neighbor, so they must be there first.
+
+    Attribute: Parameter locationX The region location along x.
+    Attribute: Parameter locationZ The region location along z.
+    Attribute: Returns True if the region can be drawn.
+    */
+    action IsDrawable(integer locationX, integer locationZ) returns boolean
+        if not terrainData:HasRegion(locationX, locationZ)
+            return false
+        end
+        integer dz = -1
+        repeat while dz <= 1
+            integer dx = -1
+            repeat while dx <= 1
+                integer x = locationX + dx
+                integer z = locationZ + dz
+                if terrainData:HasSavedRegion(x, z) and not terrainData:HasRegion(x, z)
+                    return false
+                end
+                dx = dx + 1
+            end
+            dz = dz + 1
+        end
+        return true
+    end
+
+    /*
+    This action returns how many region models the last Build made.
+
+    Attribute: Returns The number of region models.
+    */
+    action GetRegionModelCount returns integer
+        return regionModels:GetSize()
+    end
+
+    /*
+    This action returns one of the region models the last Build made.
+
+    Attribute: Parameter index Which model, from 0 to one less than GetRegionModelCount.
+    Attribute: Returns The region model.
+    */
+    action GetRegionModel(integer index) returns TerrainRegionModel
+        return regionModels:Get(index)
+    end
+
+    /*
+    This action makes a region model with its mesh, and its physics in
+    COLLISION_FULL mode, placed in the world. It is not added to a layer.
+
+    Attribute: Parameter region The region to draw.
+    Attribute: Returns The new model.
+    */
+    private action MakeRegionModel(TerrainRegion region) returns TerrainRegionModel
+        TerrainRegionModel model
+        model:SetName(name + " (" + region:GetLocationX() + ", " + region:GetLocationZ() + ")")
+        boolean withCollision = collisionMode = COLLISION_FULL
+        model:SetUsesSplat(splatting)
+        model:SetInPlaceUpdates(inPlaceUpdates)
+        model:SetSplatArea(splatStartX, splatStartZ, splatWidth, splatDepth)
+        model:Build(terrainData, region, GetDrawTexture(region), textureRepeat, withCollision)
+        ApplyProgram(model)
+        CountBuild(model:WasBuiltInPlace())
+        if splatting and layersReady
+            model:GetResources():SetColor(layerColor)
+        end
+
+        // The same order a game uses for Terrain: physics first, then the
+        // scale and position.
+        if withCollision
+            model:EnablePhysics(true)
+            model:SetMass(0)
+            model:SetFriction(friction)
+        end
+        model:PlaceInWorld()
+        return model
+    end
+
+    /*
+    This action takes models out of the layer whose regions were unloaded or
+    have moved out of reach, and puts models in for loaded regions that have
+    come within the draw radius and can be drawn. Models are kept by
+    location and used again. A region is taken out half a region past the
+    draw radius, so one at the edge doesn't go in and out over and over.
+
+    Attribute: Parameter targetX The target's position along x, in world units.
+    Attribute: Parameter targetZ The target's position along z, in world units.
+    Attribute: Parameter limit The most models to build or rebuild.
+    Attribute: Returns True if any model was added or removed.
+    */
+    private action UpdateDrawnModels(number targetX, number targetZ, integer limit) returns boolean
+        boolean changed = false
+        number removeRadius = drawRadius + streamer:GetRegionWorldSize() / 2
+
+        integer i = regionModels:GetSize() - 1
+        repeat while i >= 0
+            TerrainRegionModel model = regionModels:Get(i)
+            TerrainRegion region = model:GetTerrainRegion()
+            integer locationX = region:GetLocationX()
+            integer locationZ = region:GetLocationZ()
+            if not terrainData:HasRegion(locationX, locationZ) or
+                    streamer:GetDistanceToRegion(locationX, locationZ, targetX, targetZ) > removeRadius
+                drawLayer:Remove(model)
+                regionModels:RemoveAt(i)
+                activeMap:Set(GetMapIndex(locationX, locationZ), 0)
+                changed = true
+            end
+            i = i - 1
+        end
+
+        integer builds = 0
+        i = 0
+        repeat while i < terrainData:GetRegionCount()
+            TerrainRegion region = terrainData:GetRegionAtIndex(i)
+            integer locationX = region:GetLocationX()
+            integer locationZ = region:GetLocationZ()
+            integer index = GetMapIndex(locationX, locationZ)
+            if activeMap:Get(index) = 0 and
+                    streamer:GetDistanceToRegion(locationX, locationZ, targetX, targetZ) <= drawRadius and
+                    IsDrawable(locationX, locationZ)
+                TerrainRegionModel model = modelMap:Get(index)
+                boolean ready = false
+                if model = undefined
+                    if builds < limit
+                        model = MakeRegionModel(region)
+                        modelMap:Set(index, model)
+                        builds = builds + 1
+                        ready = true
+                    end
+                else
+                    model:SetTerrainRegion(region)
+                    if not model:NeedsRebuild()
+                        ready = true
+                    elseif builds < limit
+                        model:Rebuild(GetDrawTexture(region), textureRepeat)
+                        CountBuild(model:WasBuiltInPlace())
+                        builds = builds + 1
+                        ready = true
+                    end
+                end
+                if ready
+                    // Layer3D's Remove turns an item's collision off and its
+                    // Add doesn't turn it back on, so a model coming back is
+                    // set up again: colliding only if it has a collision
+                    // shape for its region.
+                    model:SetCollidable(model:HasCollisionShape())
+                    drawLayer:Add(model)
+                    regionModels:Add(model)
+                    activeMap:Set(index, 1)
+                    changed = true
+                end
+            end
+            i = i + 1
+        end
+
+        if farRadius > 0
+            if UpdateFarModels(targetX, targetZ, limit - builds)
+                changed = true
+            end
+        end
+        if changed
+            FreeFarCachedModels(targetX, targetZ)
+        end
+        return changed
+    end
+
+    /*
+    This action frees cached region models that aren't being drawn and are
+    more than twice the draw radius from the target. They are built again
+    if the target comes back (Item 33).
+
+    Attribute: Parameter targetX The target's position along x, in world units.
+    Attribute: Parameter targetZ The target's position along z, in world units.
+    */
+    private action FreeFarCachedModels(number targetX, number targetZ)
+        number keepRadius = drawRadius * 2 + streamer:GetRegionWorldSize()
+        integer i = 0
+        repeat while i < modelMap:GetSize()
+            TerrainRegionModel cached = modelMap:Get(i)
+            if cached not= undefined and activeMap:Get(i) = 0
+                TerrainRegion region = cached:GetTerrainRegion()
+                if streamer:GetDistanceToRegion(region:GetLocationX(), region:GetLocationZ(), targetX, targetZ) > keepRadius
+                    cached:Dispose()
+                    modelMap:Set(i, undefined)
+                end
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+    This action takes far models out of the layer where a region is now drawn
+    in full, or has gone out of reach, and puts far models in for regions
+    within the far radius that aren't drawn in full. A far model that hasn't
+    been built yet, or is out of date, is built first, which counts against
+    the limit.
+
+    Attribute: Parameter targetX The target's position along x, in world units.
+    Attribute: Parameter targetZ The target's position along z, in world units.
+    Attribute: Parameter limit The most far models to build.
+    Attribute: Returns True if any far model was added or removed.
+    */
+    private action UpdateFarModels(number targetX, number targetZ, integer limit) returns boolean
+        boolean changed = false
+        number width = streamer:GetRegionWorldSize()
+        number removeRadius = farRadius + width / 2
+
+        integer i = farModels:GetSize() - 1
+        repeat while i >= 0
+            TerrainRegionFarModel shown = farModels:Get(i)
+            integer shownX = shown:GetLocationX()
+            integer shownZ = shown:GetLocationZ()
+            integer shownIndex = GetMapIndex(shownX, shownZ)
+            if activeMap:Get(shownIndex) = 1 or not terrainData:HasRegionAnywhere(shownX, shownZ) or
+                    streamer:GetDistanceToRegion(shownX, shownZ, targetX, targetZ) > removeRadius
+                drawLayer:Remove(shown)
+                farModels:RemoveAt(i)
+                farActiveMap:Set(shownIndex, 0)
+                changed = true
+            end
+            i = i - 1
+        end
+
+        // Only the region locations the far radius can reach are looked at.
+        integer firstX = ClampLocation(cast(integer, math:Floor((targetX - farRadius) / width)))
+        integer lastX = ClampLocation(cast(integer, math:Floor((targetX + farRadius) / width)))
+        integer firstZ = ClampLocation(cast(integer, math:Floor((targetZ - farRadius) / width)))
+        integer lastZ = ClampLocation(cast(integer, math:Floor((targetZ + farRadius) / width)))
+
+        integer builds = 0
+        integer locationZ = firstZ
+        repeat while locationZ <= lastZ
+            integer locationX = firstX
+            repeat while locationX <= lastX
+                integer index = GetMapIndex(locationX, locationZ)
+                if activeMap:Get(index) = 0 and farActiveMap:Get(index) = 0 and
+                        terrainData:HasRegionAnywhere(locationX, locationZ) and
+                        streamer:GetDistanceToRegion(locationX, locationZ, targetX, targetZ) <= farRadius
+                    TerrainRegionFarModel far = farModelMap:Get(index)
+                    boolean ready = false
+                    if far = undefined or far:NeedsRebuild()
+                        if builds < limit
+                            far = BuildFarModel(locationX, locationZ)
+                            builds = builds + 1
+                            ready = true
+                        end
+                    else
+                        ready = true
+                    end
+                    if ready
+                        far:SetCollidable(false)
+                        drawLayer:Add(far)
+                        farModels:Add(far)
+                        farActiveMap:Set(index, 1)
+                        changed = true
+                    end
+                end
+                locationX = locationX + 1
+            end
+            locationZ = locationZ + 1
+        end
+        return changed
+    end
+
+    /*
+    This action builds, or rebuilds, the far model for a region. If the
+    region isn't loaded, it is loaded just long enough to build from, and
+    then unloaded again, since the far model doesn't need it afterward.
+
+    Attribute: Parameter locationX The region location along x.
+    Attribute: Parameter locationZ The region location along z.
+    Attribute: Returns The far model, kept in farModelMap.
+    */
+    private action BuildFarModel(integer locationX, integer locationZ) returns TerrainRegionFarModel
+        integer index = GetMapIndex(locationX, locationZ)
+        TerrainRegionFarModel far = farModelMap:Get(index)
+        if far = undefined
+            TerrainRegionFarModel made
+            made:SetName(name + " far (" + locationX + ", " + locationZ + ")")
+            far = made
+            farModelMap:Set(index, far)
+        end
+
+        boolean loadedHere = false
+        TerrainRegion region = terrainData:GetRegion(locationX, locationZ)
+        if region = undefined
+            region = terrainData:LoadRegion(streamer:GetFolder(), locationX, locationZ)
+            loadedHere = true
+        end
+        far:SetUsesSplat(splatting)
+        far:SetInPlaceUpdates(inPlaceUpdates)
+        far:SetSplatArea(splatStartX, splatStartZ, splatWidth, splatDepth)
+        far:Build(terrainData, region, GetDrawTexture(region), textureRepeat, farStep, skirtDepth)
+        ApplyProgram(far)
+        CountBuild(far:WasBuiltInPlace())
+        if splatting
+            if layersReady
+                far:GetResources():SetColor(layerColor)
+            else
+                far:GetResources():SetColor(undefined)
+            end
+        else
+            far:GetResources():SetColor(farTint)
+        end
+        if loadedHere
+            terrainData:UnloadRegion(locationX, locationZ)
+        end
+        return far
+    end
+
+    /*
+    This action keeps a region location inside the region map, from -16 to
+    15.
+
+    Attribute: Parameter location A region location along one axis.
+    Attribute: Returns The nearest location inside the region map.
+    */
+    private action ClampLocation(integer location) returns integer
+        integer half = mapSize / 2
+        if location < -half
+            return -half
+        end
+        if location > half - 1
+            return half - 1
+        end
+        return location
+    end
+
+    /*
+    This action returns where a region location is kept in modelMap and
+    activeMap, the same place TerrainData's region map uses.
+
+    Attribute: Parameter locationX The region location along x, from -16 to 15.
+    Attribute: Parameter locationZ The region location along z, from -16 to 15.
+    Attribute: Returns The place in the maps.
+    */
+    private action GetMapIndex(integer locationX, integer locationZ) returns integer
+        integer half = mapSize / 2
+        return (locationZ + half) * mapSize + (locationX + half)
+    end
+
+    /*
+    This action returns the texture a region's models are drawn with: the
+    terrain's splat texture while splatting, or the plain texture.
+
+    Attribute: Parameter region The region.
+    Attribute: Returns The texture.
+    */
+    private action GetDrawTexture(TerrainRegion region) returns Texture
+        if not splatting
+            return texture
+        end
+        if splatTexture = undefined
+            PrepareSplatTexture()
+        end
+        return splatTexture
+    end
+
+    /*
+    This action works out which samples the splat texture covers: every
+    region location that has a region, loaded or saved, from the first to
+    the last along each axis, plus one more sample on the far sides. Then it
+    fills splatPixels with the splat weights of every region in that area,
+    loading saved regions just long enough to read them, and makes the
+    texture. Regions added later outside this area aren't covered.
+    */
+    private action PrepareSplatTexture
+        integer size = terrainData:GetRegionSize()
+        integer half = mapSize / 2
+        boolean found = false
+        integer firstX = 0
+        integer lastX = 0
+        integer firstZ = 0
+        integer lastZ = 0
+        integer locationZ = -half
+        repeat while locationZ < half
+            integer locationX = -half
+            repeat while locationX < half
+                if terrainData:HasRegionAnywhere(locationX, locationZ)
+                    if not found
+                        firstX = locationX
+                        lastX = locationX
+                        firstZ = locationZ
+                        lastZ = locationZ
+                        found = true
+                    end
+                    if locationX < firstX
+                        firstX = locationX
+                    end
+                    if locationX > lastX
+                        lastX = locationX
+                    end
+                    if locationZ < firstZ
+                        firstZ = locationZ
+                    end
+                    if locationZ > lastZ
+                        lastZ = locationZ
+                    end
+                end
+                locationX = locationX + 1
+            end
+            locationZ = locationZ + 1
+        end
+
+        splatStartX = firstX * size
+        splatStartZ = firstZ * size
+        splatWidth = (lastX - firstX + 1) * size + 1
+        splatDepth = (lastZ - firstZ + 1) * size + 1
+        splatPixels:SetSize(splatWidth * splatDepth)
+
+        // Everything starts as the first texture, which is also what places
+        // with no region get.
+        integer red = terrainData:PackSplat(1, 0, 0, 0)
+        integer i = 0
+        repeat while i < splatWidth * splatDepth
+            splatPixels:Set(i, red)
+            i = i + 1
+        end
+
+        locationZ = firstZ
+        repeat while locationZ <= lastZ
+            integer locationX = firstX
+            repeat while locationX <= lastX
+                TerrainRegion region = terrainData:GetRegion(locationX, locationZ)
+                if region not= undefined
+                    CopyRegionSplat(region)
+                elseif streaming and terrainData:HasSavedRegion(locationX, locationZ)
+                    TerrainRegion loaded = terrainData:LoadRegion(streamer:GetFolder(), locationX, locationZ)
+                    CopyRegionSplat(loaded)
+                    terrainData:UnloadRegion(locationX, locationZ)
+                end
+                locationX = locationX + 1
+            end
+            locationZ = locationZ + 1
+        end
+        CopyFarEdges()
+        MakeSplatTexture()
+    end
+
+    /*
+    This action copies one region's splat weights into splatPixels.
+
+    Attribute: Parameter region The region, which must be loaded.
+    */
+    private action CopyRegionSplat(TerrainRegion region)
+        integer size = terrainData:GetRegionSize()
+        integer offsetX = region:GetLocationX() * size - splatStartX
+        integer offsetZ = region:GetLocationZ() * size - splatStartZ
+        integer z = 0
+        repeat while z < size
+            integer x = 0
+            repeat while x < size
+                splatPixels:Set((offsetZ + z) * splatWidth + offsetX + x, region:GetSplat(x, z))
+                x = x + 1
+            end
+            z = z + 1
+        end
+    end
+
+    /*
+    This action fills the splat texture's last column and last row, which
+    are one sample past the last regions, by copying the ones before them.
+    */
+    private action CopyFarEdges
+        integer z = 0
+        repeat while z < splatDepth
+            splatPixels:Set(z * splatWidth + splatWidth - 1, splatPixels:Get(z * splatWidth + splatWidth - 2))
+            z = z + 1
+        end
+        integer x = 0
+        repeat while x < splatWidth
+            splatPixels:Set((splatDepth - 1) * splatWidth + x, splatPixels:Get((splatDepth - 2) * splatWidth + x))
+            x = x + 1
+        end
+    end
+
+    /*
+    This action makes a new splat texture from splatPixels and gives it to
+    every terrain model. The texture is laid out the way the models' texture
+    coordinates expect: the first number given to PixelMap's SetPixel is
+    the sample's x, and rows run from the last sample along z to the first,
+    since the renderer flips texture coordinates along v.
+
+    While the splat area's size is unchanged, the same Texture is loaded
+    again. The renderer updates it in place (library item 20, Item20.md), so
+    it keeps its first place among the textures, which the splat shader
+    needs. A new Texture is made only when the size changes, such as when
+    regions are added outside the area; that one takes a new place.
+    */
+    private action MakeSplatTexture
+        PixelMap map
+        Format format
+        format:SetValue(format:RGBA8888)
+        map:CreatePixelMap(splatWidth, splatDepth, format)
+
+        // PixelMap blends each pixel it sets with what is there, by default.
+        // A splat pixel's alpha is a weight (sand), usually 0, and blending a
+        // pixel with alpha 0 over an empty map leaves it empty, which wiped
+        // every weight. So blending is off while the weights are written,
+        // then put back. The setting is shared by all PixelMaps.
+        Blending previousBlending = map:GetBlending()
+        Blending noBlending
+        noBlending:SetValue(noBlending:NONE)
+        map:SetBlending(noBlending)
+
+        integer z = 0
+        repeat while z < splatDepth
+            integer x = 0
+            repeat while x < splatWidth
+                // Rows are written bottom to top. PixelMap's first row becomes
+                // the texture's top (v = 0), but the renderer turns every
+                // mesh's v into 1 - v (MeshVulkan), so sample z is read from
+                // row depth - 1 - z. Writing it there keeps the paint under
+                // the brush; written top to bottom, the map was mirrored
+                // along z.
+                map:SetPixel(x, splatDepth - 1 - z, splatPixels:Get(z * splatWidth + x))
+                x = x + 1
+            end
+            z = z + 1
+        end
+        map:SetBlending(previousBlending)
+
+        if splatTexture not= undefined and splatTextureWidth = splatWidth and splatTextureDepth = splatDepth
+            splatTexture:LoadFromPixelMap(map)
+            splatUpdateCount = splatUpdateCount + 1
+        else
+            Texture made
+            made:LoadFromPixelMap(map)
+            splatTexture = made
+            splatTextureWidth = splatWidth
+            splatTextureDepth = splatDepth
+            splatRebuildCount = splatRebuildCount + 1
+            GiveSplatTextureToModels()
+        end
+    end
+
+    /*
+    This action checks whether every ground texture has its place in the
+    renderer yet. Once they all do, it makes layerColor from those places
+    and gives it to every terrain model, so the splat shader can find the
+    textures.
+
+    Attribute: Returns True if the textures just became ready.
+    */
+    private action CheckLayersReady returns boolean
+        if HasLayerMaterials()
+            return CheckLayerTableReady()
+        end
+        Texture red = textureSplat:GetRed()
+        Texture green = textureSplat:GetGreen()
+        Texture blue = textureSplat:GetBlue()
+        Texture alpha = textureSplat:GetAlpha()
+        if green = undefined
+            green = red
+        end
+        if blue = undefined
+            blue = red
+        end
+        if alpha = undefined
+            alpha = red
+        end
+
+        integer redIndex = red:GetVulkanTextureIndex()
+        integer greenIndex = green:GetVulkanTextureIndex()
+        integer blueIndex = blue:GetVulkanTextureIndex()
+        integer alphaIndex = alpha:GetVulkanTextureIndex()
+        if redIndex < 0 or greenIndex < 0 or blueIndex < 0 or alphaIndex < 0
+            return false
+        end
+        if redIndex > 254 or greenIndex > 254 or blueIndex > 254 or alphaIndex > 254
+            alert("The splat shader can only find ground textures among the first 255 textures loaded.")
+        end
+
+        // The color override is packed by multiplying each part by 255 and
+        // dropping the fraction, so adding a half keeps each place exact.
+        Color color
+        layerColor = color:CustomColor((redIndex + 0.5) / 255.0, (greenIndex + 0.5) / 255.0,
+            (blueIndex + 0.5) / 255.0, (alphaIndex + 0.5) / 255.0)
+        layersReady = true
+        GiveLayerColorToModels()
+        return true
+    end
+
+    /*
+    This action gives layerColor to every terrain model there is: those
+    from Build, and every full and far model kept while streaming.
+    */
+    private action GiveLayerColorToModels
+        integer i = 0
+        repeat while i < regionModels:GetSize()
+            regionModels:Get(i):GetResources():SetColor(layerColor)
+            i = i + 1
+        end
+        i = 0
+        repeat while i < modelMap:GetSize()
+            TerrainRegionModel model = modelMap:Get(i)
+            if model not= undefined
+                model:GetResources():SetColor(layerColor)
+            end
+            TerrainRegionFarModel far = farModelMap:Get(i)
+            if far not= undefined
+                far:GetResources():SetColor(layerColor)
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+    This action is CheckLayersReady for when a layer has a texture set. It
+    waits until every layer's textures have places in the renderer, then
+    makes the layer table, a 4 by 1 texture whose pixel for each layer
+    holds:
+    - red: the place of its color texture (a set's albedo-height);
+    - green: the place of its normal-roughness texture, or 255 for a plain
+      texture, which has none;
+    - blue: its tile size in quarters of a world unit, or 0 to use the
+      shader's layer repeat;
+    - alpha: 255.
+    Once the table has its own place, layerColor is made from it: red is
+    the table's place, green the height blend softness, and alpha 255,
+    which tells the shader to use the table. (In the plain way, alpha is a
+    texture's place, never 255.)
+
+    Attribute: Returns True if the layers just became ready.
+    */
+    private action CheckLayerTableReady returns boolean
+        if layerTable = undefined
+            Integer32BitArray pixels
+            pixels:SetSize(4)
+            BitwiseOperations bits
+            integer layer = 0
+            repeat while layer < 4
+                Texture albedo = GetLayerColorTexture(layer)
+                Texture normals = GetLayerNormalTexture(layer)
+                if albedo = undefined
+                    alert("Ground layer " + layer + " has no texture: give the terrain a TextureSplat with a red texture, or a Material for layer 0.")
+                end
+                integer albedoPlace = albedo:GetVulkanTextureIndex()
+                if albedoPlace < 0
+                    return false
+                end
+                integer normalPlace = 255
+                if normals not= undefined
+                    normalPlace = normals:GetVulkanTextureIndex()
+                    if normalPlace < 0
+                        return false
+                    end
+                    WarnIfNotFound(normals, "ground layer " + layer + "'s normal-roughness texture")
+                end
+                WarnIfNotFound(albedo, "ground layer " + layer + "'s color texture")
+                integer code = bits:ShiftLeft(albedoPlace, 24)
+                code = bits:Or(code, bits:ShiftLeft(normalPlace, 16))
+                code = bits:Or(code, bits:ShiftLeft(GetLayerTileQuarters(layer), 8))
+                pixels:Set(layer, bits:Or(code, 255))
+                layer = layer + 1
+            end
+
+            PixelMap map
+            Format format
+            format:SetValue(format:RGBA8888)
+            map:CreatePixelMap(4, 1, format)
+            // Blending would change pixels as they are written (see
+            // MakeSplatTexture), so it is off.
+            Blending previousBlending = map:GetBlending()
+            Blending noBlending
+            noBlending:SetValue(noBlending:NONE)
+            map:SetBlending(noBlending)
+            layer = 0
+            repeat while layer < 4
+                map:SetPixel(layer, 0, pixels:Get(layer))
+                layer = layer + 1
+            end
+            map:SetBlending(previousBlending)
+            Texture table
+            table:LoadFromPixelMap(map)
+            layerTable = table
+            return false
+        end
+
+        integer tablePlace = layerTable:GetVulkanTextureIndex()
+        if tablePlace < 0
+            return false
+        end
+        WarnIfNotFound(layerTable, "the ground layer table")
+
+        Color color
+        layerColor = color:CustomColor((tablePlace + 0.5) / 255.0, (math:Round(heightBlendSoftness * 254) + 0.5) / 255.0,
+            0, 1)
+        layersReady = true
+        GiveLayerColorToModels()
+        output "Ground layers ready: layer table at texture place " + tablePlace + "."
+        return true
+    end
+
+    /*
+    This action writes a warning if a texture's place is past what the
+    splat shader can reach: it must be among the first 255 textures, and in
+    the renderer's first group of textures (VulkanChanges.md #22).
+
+    Attribute: Parameter texture The texture.
+    Attribute: Parameter name What to call it in the warning.
+    */
+    private action WarnIfNotFound(Texture texture, text name)
+        if texture:GetVulkanTextureIndex() > 254 or texture:GetVulkanTextureGroupIndex() not= 0
+            output "Warning: " + name + " is at texture place " + texture:GetVulkanTextureIndex() + ", in group " +
+                texture:GetVulkanTextureGroupIndex() + ". The splat shader may not find it; load the ground layers before any labels."
+        end
+    end
+
+    /*
+    This action returns the texture a ground layer's color comes from: a
+    texture set's albedo-height texture, or the TextureSplat's plain
+    texture. A layer with neither uses layer 0's.
+
+    Attribute: Parameter layer The layer, 0 to 3.
+    Attribute: Returns The texture, or undefined if layer 0 has none either.
+    */
+    private action GetLayerColorTexture(integer layer) returns Texture
+        MaterialVulkan loaded = layerLoaded:Get(layer)
+        if loaded not= undefined
+            return loaded:GetAlbedoHeightTexture()
+        end
+        Texture plain = GetPlainLayerTexture(layer)
+        if plain = undefined and layer not= 0
+            return GetLayerColorTexture(0)
+        end
+        return plain
+    end
+
+    /*
+    This action returns a ground layer's normal-roughness texture, the same
+    way GetLayerColorTexture finds its color texture.
+
+    Attribute: Parameter layer The layer, 0 to 3.
+    Attribute: Returns The texture, or undefined for a plain texture.
+    */
+    private action GetLayerNormalTexture(integer layer) returns Texture
+        MaterialVulkan loaded = layerLoaded:Get(layer)
+        if loaded not= undefined
+            return loaded:GetNormalRoughnessTexture()
+        end
+        if GetPlainLayerTexture(layer) = undefined and layer not= 0
+            return GetLayerNormalTexture(0)
+        end
+        return undefined
+    end
+
+    /*
+    This action returns a ground layer's tile size for the layer table, in
+    quarters of a world unit, or 0 for a plain texture, which uses the
+    splat shader's layer repeat.
+
+    Attribute: Parameter layer The layer, 0 to 3.
+    Attribute: Returns The tile size in quarters, 0 to 255.
+    */
+    private action GetLayerTileQuarters(integer layer) returns integer
+        Material material = layerMaterials:Get(layer)
+        if material = undefined
+            if GetPlainLayerTexture(layer) = undefined and layer not= 0
+                return GetLayerTileQuarters(0)
+            end
+            return 0
+        end
+        integer quarters = cast(integer, math:Round(material:GetTextureScale() * 4))
+        if quarters < 1
+            return 1
+        end
+        if quarters > 255
+            return 255
+        end
+        return quarters
+    end
+
+    /*
+    This action returns the TextureSplat's plain texture for a layer.
+
+    Attribute: Parameter layer The layer, 0 to 3.
+    Attribute: Returns The texture, or undefined if there is none.
+    */
+    private action GetPlainLayerTexture(integer layer) returns Texture
+        if textureSplat = undefined
+            return undefined
+        end
+        if layer = 0
+            return textureSplat:GetRed()
+        elseif layer = 1
+            return textureSplat:GetGreen()
+        elseif layer = 2
+            return textureSplat:GetBlue()
+        end
+        return textureSplat:GetAlpha()
+    end
+
+    /*
+    This action copies the splat weights the splat edited area covers from
+    the TerrainData into splatPixels, makes a new splat texture, and clears
+    the splat edited area. Only loaded samples are copied; changes are only
+    made near the player, where regions are loaded.
+
+    Attribute: Returns 1, for the one splat texture made.
+    */
+    private action UpdateSplatTexture returns integer
+        if splatTexture = undefined
+            PrepareSplatTexture()
+            terrainData:ClearSplatEditedArea()
+            return 1
+        end
+        integer minimumX = terrainData:GetSplatEditedMinimumX()
+        integer minimumZ = terrainData:GetSplatEditedMinimumZ()
+        integer maximumX = terrainData:GetSplatEditedMaximumX()
+        integer maximumZ = terrainData:GetSplatEditedMaximumZ()
+
+        integer sampleZ = minimumZ
+        repeat while sampleZ <= maximumZ
+            integer sampleX = minimumX
+            repeat while sampleX <= maximumX
+                integer x = sampleX - splatStartX
+                integer z = sampleZ - splatStartZ
+                if x >= 0 and x < splatWidth and z >= 0 and z < splatDepth and terrainData:HasSample(sampleX, sampleZ)
+                    splatPixels:Set(z * splatWidth + x, terrainData:GetSampleSplat(sampleX, sampleZ))
+                end
+                sampleX = sampleX + 1
+            end
+            sampleZ = sampleZ + 1
+        end
+        CopyFarEdges()
+        MakeSplatTexture()
+        terrainData:ClearSplatEditedArea()
+        return 1
+    end
+
+    /*
+    This action gives the splat texture to every terrain model there is:
+    those from Build, and every full and far model kept while streaming.
+    */
+    private action GiveSplatTextureToModels
+        integer i = 0
+        repeat while i < regionModels:GetSize()
+            regionModels:Get(i):GetResources():SetTexture(splatTexture)
+            i = i + 1
+        end
+        i = 0
+        repeat while i < modelMap:GetSize()
+            TerrainRegionModel model = modelMap:Get(i)
+            if model not= undefined
+                model:GetResources():SetTexture(splatTexture)
+            end
+            TerrainRegionFarModel far = farModelMap:Get(i)
+            if far not= undefined
+                far:GetResources():SetTexture(splatTexture)
+            end
+            i = i + 1
+        end
+    end
+end

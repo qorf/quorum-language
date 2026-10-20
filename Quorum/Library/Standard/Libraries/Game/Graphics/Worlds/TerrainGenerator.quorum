@@ -1,0 +1,916 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Containers.Number32BitArray
+use Libraries.Compute.Math
+use Libraries.Compute.Random
+use Libraries.Compute.Noise.PerlinNoise
+
+/*
+A TerrainGenerator makes and changes terrain in bulk, for building test
+worlds quickly. It has four kinds of tool:
+
+1. **Presets** fill a rectangle of samples with ground from noise: rolling
+   hills, mountains, plateaus, canyons, or flat ground. The same seed always
+   gives the same ground, and the noise is laid out by world position, so a
+   preset looks the same at any vertex spacing.
+2. **Stamps** press a shape into the ground in one go, like Ghost Recon
+   Wildlands' "stamp a mountain in one click": a hill, a mountain, a mesa, a
+   crater or a ridge. A stamp can be any size and turned to any angle, and
+   any square of numbers can be used as a shape.
+3. **Erosion** wears the ground the way weather does. Rain erosion sends
+   drops of water downhill, each picking up ground where it speeds up and
+   dropping it where it slows down, which carves channels and fills hollows.
+   Slope settling lets ground slide off slopes steeper than a set angle.
+   Both move ground around rather than adding or removing it.
+4. **Auto paint** sets the splat weights by rules: rock on steep slopes,
+   sand on low ground, dirt in hollows, and grass everywhere else, using the
+   red (grass), green (rock), blue (dirt) and alpha (sand) layers.
+
+Everything works on samples that already have regions; it never adds
+regions. Changes go into the TerrainData's edited areas, so a WorldTerrain's
+Rebuild redraws them. To make them undoable, wrap them in a TerrainStroke
+with BeginOperation, CopyArea and End.
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.TerrainData
+use Libraries.Game.Graphics.Worlds.TerrainGenerator
+
+TerrainData data
+data:SetRegionSize(64)
+data:AddRegion(0, 0)
+TerrainGenerator generator
+generator:GeneratePreset(data, generator:PRESET_MOUNTAINS, 0, 0, 64, 64, 40)
+generator:Stamp(data, generator:MakeStampShape(generator:STAMP_CRATER, 65), 65, 16, 16, 10, 0, 6, generator:STAMP_ADD)
+generator:Erode(data, 0, 0, 63, 63, 1000)
+generator:AutoPaint(data, 0, 0, 63, 63)
+*/
+class TerrainGenerator
+    public constant integer PRESET_ROLLING_HILLS = 0
+    public constant integer PRESET_MOUNTAINS = 1
+    public constant integer PRESET_PLATEAUS = 2
+    public constant integer PRESET_CANYONS = 3
+    public constant integer PRESET_FLAT = 4
+
+    public constant integer STAMP_HILL = 0
+    public constant integer STAMP_MOUNTAIN = 1
+    public constant integer STAMP_MESA = 2
+    public constant integer STAMP_CRATER = 3
+    public constant integer STAMP_RIDGE = 4
+
+    // How a stamp meets the ground: added to it, taken from it, or raised
+    // to it (the ground stays where it is already higher).
+    public constant integer STAMP_ADD = 0
+    public constant integer STAMP_SUBTRACT = 1
+    public constant integer STAMP_RAISE = 2
+
+    number seed = 2026
+
+    // Auto paint's rules.
+    number rockLowDegrees = 25
+    number rockHighDegrees = 40
+    number sandHeight = 3
+    number sandFade = 1.5
+    integer hollowRadius = 4
+    number hollowDepth = 0.4
+
+    // Rain erosion's settings, after Hans Theobald Beyer's droplet method.
+    number inertia = 0.05
+    number capacityFactor = 4
+    number minimumCapacity = 0.01
+    number depositRate = 0.3
+    number erodeRate = 0.3
+    number evaporation = 0.01
+    number gravity = 4
+    integer maximumSteps = 64
+
+    // Ground a drop picks up, and what it leaves when it stops, is shared
+    // among the samples within this many samples of it, so drops don't dig
+    // pits or pile up spikes at single samples.
+    number spreadRadius = 2
+
+    // Slope settling's steepest stable slope, in degrees.
+    number settleDegrees = 40
+
+    Math math
+
+    /*
+    This action sets the seed for presets, stamps' detail and rain erosion.
+    The same seed always gives the same result.
+
+    Attribute: Parameter seed The seed.
+    */
+    action SetSeed(number seed)
+        me:seed = seed
+    end
+
+    /*
+    This action returns the seed.
+
+    Attribute: Returns The seed.
+    */
+    action GetSeed returns number
+        return seed
+    end
+
+    /*
+    This action returns how many presets there are.
+
+    Attribute: Returns The number of presets.
+    */
+    action GetPresetCount returns integer
+        return 5
+    end
+
+    /*
+    This action returns a preset's name, for menus and speech.
+
+    Attribute: Parameter preset The preset, such as PRESET_MOUNTAINS.
+    Attribute: Returns The name.
+    */
+    action GetPresetName(integer preset) returns text
+        if preset = PRESET_ROLLING_HILLS
+            return "rolling hills"
+        elseif preset = PRESET_MOUNTAINS
+            return "mountains"
+        elseif preset = PRESET_PLATEAUS
+            return "plateaus"
+        elseif preset = PRESET_CANYONS
+            return "canyons"
+        end
+        return "flat"
+    end
+
+    /*
+    This action fills a rectangle of samples with ground from a preset,
+    from 0 up to the given height. Samples with no region are skipped.
+
+    Attribute: Parameter data The terrain.
+    Attribute: Parameter preset The preset, such as PRESET_ROLLING_HILLS.
+    Attribute: Parameter startX The first sample along x.
+    Attribute: Parameter startZ The first sample along z.
+    Attribute: Parameter width How many samples along x.
+    Attribute: Parameter depth How many samples along z.
+    Attribute: Parameter height The tallest the ground can be, in world units.
+    */
+    action GeneratePreset(TerrainData data, integer preset, integer startX, integer startZ, integer width, integer depth, number height)
+        PerlinNoise noise
+        noise:SetSeed(seed)
+        if preset = PRESET_ROLLING_HILLS
+            noise:SetFrequency(0.012)
+            noise:SetOctaves(5)
+        elseif preset = PRESET_MOUNTAINS
+            noise:SetFrequency(0.006)
+            noise:SetOctaves(6)
+        elseif preset = PRESET_PLATEAUS
+            noise:SetFrequency(0.01)
+            noise:SetOctaves(4)
+        elseif preset = PRESET_CANYONS
+            noise:SetFrequency(0.008)
+            noise:SetOctaves(5)
+        end
+        number spacing = data:GetVertexSpacing()
+
+        integer z = startZ
+        repeat while z < startZ + depth
+            integer x = startX
+            repeat while x < startX + width
+                if data:HasSample(x, z)
+                    number worldX = x * spacing
+                    number worldZ = z * spacing
+                    number level = 0
+                    if preset = PRESET_ROLLING_HILLS
+                        level = noise:ToUnitRange(noise:GetAdditiveNoise(worldX, worldZ))
+                    elseif preset = PRESET_MOUNTAINS
+                        // Ridged noise, pushed down so valleys are wide and
+                        // peaks stand out.
+                        level = math:RaiseToPower(noise:ToUnitRange(noise:GetRidgedNoise(worldX, worldZ)), 1.5)
+                    elseif preset = PRESET_PLATEAUS
+                        level = Terrace(noise:ToUnitRange(noise:GetAdditiveNoise(worldX, worldZ)), 5)
+                    elseif preset = PRESET_CANYONS
+                        level = noise:ToUnitRange(noise:GetRidgedMultifractalNoise(worldX, worldZ))
+                    end
+                    data:SetSampleHeight(x, z, level * height)
+                end
+                x = x + 1
+            end
+            z = z + 1
+        end
+    end
+
+    /*
+    This action turns a level from 0 to 1 into flat steps: most of each step
+    is level, and the last fifth rises steeply to the next, like plateaus
+    and cliffs.
+
+    Attribute: Parameter level The level, from 0 to 1.
+    Attribute: Parameter steps How many steps from 0 to 1.
+    Attribute: Returns The stepped level.
+    */
+    action Terrace(number level, integer steps) returns number
+        number scaled = level * steps
+        number whole = math:Floor(scaled)
+        number rise = Smooth((scaled - whole - 0.8) / 0.2)
+        return (whole + rise) / steps
+    end
+
+    /*
+    This action returns how many stamp shapes there are.
+
+    Attribute: Returns The number of stamp shapes.
+    */
+    action GetStampCount returns integer
+        return 5
+    end
+
+    /*
+    This action returns a stamp shape's name, for menus and speech.
+
+    Attribute: Parameter stamp The shape, such as STAMP_CRATER.
+    Attribute: Returns The name.
+    */
+    action GetStampName(integer stamp) returns text
+        if stamp = STAMP_HILL
+            return "hill"
+        elseif stamp = STAMP_MOUNTAIN
+            return "mountain"
+        elseif stamp = STAMP_MESA
+            return "mesa"
+        elseif stamp = STAMP_CRATER
+            return "crater"
+        end
+        return "ridge"
+    end
+
+    /*
+    This action returns how a stamp shape is usually pressed into the ground:
+    a crater is added, since it has a dip below the ground; the others are
+    raised to, so they keep their own shape over bumpy ground rather than
+    adding the bumps to it, and leave ground that is already higher alone.
+
+    Attribute: Parameter stamp The shape.
+    Attribute: Returns STAMP_ADD or STAMP_RAISE.
+    */
+    action GetStampMode(integer stamp) returns integer
+        if stamp = STAMP_CRATER
+            return STAMP_ADD
+        end
+        return STAMP_RAISE
+    end
+
+    /*
+    This action makes a stamp shape: a square of numbers, one row after
+    another, mostly from 0 to 1. A crater's middle goes below 0. The middle
+    of the square is the stamp's center, and its edges are the stamp's
+    radius away.
+
+    Attribute: Parameter stamp The shape, such as STAMP_MOUNTAIN.
+    Attribute: Parameter width How many numbers along each side. Odd numbers put a value exactly at the center.
+    Attribute: Returns The shape.
+    */
+    action MakeStampShape(integer stamp, integer width) returns Number32BitArray
+        PerlinNoise noise
+        noise:SetSeed(seed)
+        noise:SetFrequency(4)
+        noise:SetOctaves(4)
+
+        Number32BitArray shape
+        shape:SetSize(width * width)
+        integer row = 0
+        repeat while row < width
+            integer column = 0
+            repeat while column < width
+                // Positions from -1 to 1 across the square.
+                number across = 2.0 * column / (width - 1) - 1
+                number deep = 2.0 * row / (width - 1) - 1
+                number distance = math:SquareRoot(across * across + deep * deep)
+                number value = 0
+                if stamp = STAMP_HILL
+                    value = 1 - Smooth(distance)
+                elseif stamp = STAMP_MOUNTAIN
+                    // A peak, with ridges from the noise that fade out near
+                    // the top and at the foot.
+                    number peak = math:RaiseToPower(math:MaximumOf(0, 1 - distance), 1.6)
+                    number detail = noise:ToUnitRange(noise:GetRidgedNoise(across, deep))
+                    value = peak * (0.7 + 0.3 * detail) * (1 - Smooth((distance - 0.8) / 0.2))
+                elseif stamp = STAMP_MESA
+                    value = 1 - Smooth((distance - 0.45) / 0.25)
+                elseif stamp = STAMP_CRATER
+                    // A rim at 70% of the radius, and a bowl below the ground
+                    // inside it.
+                    number rim = math:RaiseNaturalNumberToPower(-((distance - 0.7) * (distance - 0.7)) / 0.02)
+                    number bowl = 0.6 * (1 - Smooth(distance / 0.65))
+                    value = (rim - bowl) * (1 - Smooth((distance - 0.85) / 0.15))
+                else
+                    // A ridge along x, narrow across z, tapering at its ends.
+                    value = (1 - Smooth(math:AbsoluteValue(deep) / 0.35)) * (1 - Smooth(math:AbsoluteValue(across)))
+                end
+                shape:Set(row * width + column, value)
+                column = column + 1
+            end
+            row = row + 1
+        end
+        return shape
+    end
+
+    /*
+    This action presses a shape into the ground. The shape covers the square
+    around a center, a radius away on each side, turned by an angle. Each
+    sample under it changes by the shape's value there times the height:
+    added (STAMP_ADD), taken away (STAMP_SUBTRACT), or with STAMP_RAISE, the
+    ground is raised to the shape standing on the ground under the center,
+    and left alone where it is already higher. Samples with no region are
+    skipped.
+
+    Attribute: Parameter data The terrain.
+    Attribute: Parameter shape The shape, width by width numbers, one row after another.
+    Attribute: Parameter width How many numbers along each side of the shape.
+    Attribute: Parameter centerX The center along x, in world units.
+    Attribute: Parameter centerZ The center along z, in world units.
+    Attribute: Parameter radius Half the width of the square the shape covers, in world units.
+    Attribute: Parameter degrees How far to turn the shape, in degrees.
+    Attribute: Parameter height The height of a shape value of 1, in world units.
+    Attribute: Parameter mode STAMP_ADD, STAMP_SUBTRACT or STAMP_RAISE.
+    */
+    action Stamp(TerrainData data, Number32BitArray shape, integer width, number centerX, number centerZ, number radius,
+            number degrees, number height, integer mode)
+        if radius <= 0
+            return now
+        end
+        number baseHeight = 0
+        if data:HasHeight(centerX, centerZ)
+            baseHeight = data:GetSurfaceHeight(centerX, centerZ)
+        end
+        number spacing = data:GetVertexSpacing()
+        number reach = radius * 1.4143
+        integer firstX = data:GetSampleX(centerX - reach)
+        integer lastX = data:GetSampleX(centerX + reach) + 1
+        integer firstZ = data:GetSampleZ(centerZ - reach)
+        integer lastZ = data:GetSampleZ(centerZ + reach) + 1
+        number radians = math:DegreesToRadians(degrees)
+        number cosine = math:Cosine(radians)
+        number sine = math:Sine(radians)
+
+        integer z = firstZ
+        repeat while z <= lastZ
+            integer x = firstX
+            repeat while x <= lastX
+                if data:HasSample(x, z)
+                    number offsetX = x * spacing - centerX
+                    number offsetZ = z * spacing - centerZ
+                    // Turn the offset back, so the shape turns forward.
+                    number turnedX = offsetX * cosine + offsetZ * sine
+                    number turnedZ = offsetZ * cosine - offsetX * sine
+                    if turnedX > -radius and turnedX < radius and turnedZ > -radius and turnedZ < radius
+                        number value = SampleShape(shape, width, (turnedX / radius + 1) / 2, (turnedZ / radius + 1) / 2)
+                        number current = data:GetSampleHeight(x, z)
+                        number changed = current
+                        if mode = STAMP_ADD
+                            changed = current + value * height
+                        elseif mode = STAMP_SUBTRACT
+                            changed = current - value * height
+                        else
+                            changed = math:MaximumOf(current, baseHeight + value * height)
+                        end
+                        if changed not= current
+                            data:SetSampleHeight(x, z, changed)
+                        end
+                    end
+                end
+                x = x + 1
+            end
+            z = z + 1
+        end
+    end
+
+    /*
+    This action reads a shape between its numbers, blending the four
+    nearest.
+
+    Attribute: Parameter shape The shape.
+    Attribute: Parameter width How many numbers along each side.
+    Attribute: Parameter across Where to read along the shape's rows, from 0 to 1.
+    Attribute: Parameter deep Where to read down the shape's columns, from 0 to 1.
+    Attribute: Returns The blended value.
+    */
+    action SampleShape(Number32BitArray shape, integer width, number across, number deep) returns number
+        number column = math:Clamp(across, 0, 1) * (width - 1)
+        number row = math:Clamp(deep, 0, 1) * (width - 1)
+        integer column0 = cast(integer, math:Floor(column))
+        integer row0 = cast(integer, math:Floor(row))
+        integer column1 = cast(integer, math:MinimumOf(column0 + 1, width - 1))
+        integer row1 = cast(integer, math:MinimumOf(row0 + 1, width - 1))
+        number blendColumn = column - column0
+        number blendRow = row - row0
+        number top = shape:Get(row0 * width + column0) * (1 - blendColumn) + shape:Get(row0 * width + column1) * blendColumn
+        number bottom = shape:Get(row1 * width + column0) * (1 - blendColumn) + shape:Get(row1 * width + column1) * blendColumn
+        return top * (1 - blendRow) + bottom * blendRow
+    end
+
+    /*
+    This action wears a rectangle of ground as weather would: rain erosion
+    with a number of drops, then a few passes of slope settling to soften
+    what the rain left too steep. Ground only moves within the rectangle and
+    one sample around it.
+
+    Attribute: Parameter data The terrain.
+    Attribute: Parameter minimumX The rectangle's smallest sample along x.
+    Attribute: Parameter minimumZ The rectangle's smallest sample along z.
+    Attribute: Parameter maximumX The rectangle's largest sample along x.
+    Attribute: Parameter maximumZ The rectangle's largest sample along z.
+    Attribute: Parameter drops How many drops of rain to send down the ground.
+    */
+    action Erode(TerrainData data, integer minimumX, integer minimumZ, integer maximumX, integer maximumZ, integer drops)
+        Erode(data, minimumX, minimumZ, maximumX, maximumZ, minimumX, minimumZ, maximumX, maximumZ, drops)
+    end
+
+    /*
+    This action wears ground as Erode does, but the drops of rain start in
+    one rectangle and may run on through a larger one around it. Ground
+    picked up under a brush is then carried downhill and away, rather than
+    all settling back inside the brush, so eroding one spot again and again
+    keeps carving instead of leveling it. Slope settling covers the larger
+    rectangle.
+
+    Attribute: Parameter data The terrain.
+    Attribute: Parameter startMinimumX The smallest sample along x where drops start.
+    Attribute: Parameter startMinimumZ The smallest sample along z where drops start.
+    Attribute: Parameter startMaximumX The largest sample along x where drops start.
+    Attribute: Parameter startMaximumZ The largest sample along z where drops start.
+    Attribute: Parameter minimumX The smallest sample along x drops may reach. Ground moves within this rectangle and one sample around it.
+    Attribute: Parameter minimumZ The smallest sample along z drops may reach.
+    Attribute: Parameter maximumX The largest sample along x drops may reach.
+    Attribute: Parameter maximumZ The largest sample along z drops may reach.
+    Attribute: Parameter drops How many drops of rain to send.
+    */
+    action Erode(TerrainData data, integer startMinimumX, integer startMinimumZ, integer startMaximumX, integer startMaximumZ,
+            integer minimumX, integer minimumZ, integer maximumX, integer maximumZ, integer drops)
+        ErodeWithRain(data, startMinimumX, startMinimumZ, startMaximumX, startMaximumZ, minimumX, minimumZ, maximumX, maximumZ, drops)
+        Settle(data, minimumX, minimumZ, maximumX, maximumZ, 3, settleDegrees)
+    end
+
+    /*
+    This action sends drops of rain down a rectangle of ground. Each drop
+    starts at a random sample, rolls downhill, picks up ground where it can
+    carry more (it is fast, or the ground falls away steeply), and drops
+    ground where it can carry less (it slows, or the ground rises). When it
+    leaves the rectangle, reaches ground with no region, or runs dry, it
+    drops what it carries. So ground is moved, not added or taken away.
+
+    Ground picked up, and what a drop leaves when it stops, is shared among
+    the samples near it (spreadRadius), as in Beyer's method, so single
+    samples aren't dug into pits or piled into spikes.
+
+    Attribute: Parameter data The terrain.
+    Attribute: Parameter minimumX The rectangle's smallest sample along x.
+    Attribute: Parameter minimumZ The rectangle's smallest sample along z.
+    Attribute: Parameter maximumX The rectangle's largest sample along x.
+    Attribute: Parameter maximumZ The rectangle's largest sample along z.
+    Attribute: Parameter drops How many drops.
+    */
+    action ErodeWithRain(TerrainData data, integer minimumX, integer minimumZ, integer maximumX, integer maximumZ, integer drops)
+        ErodeWithRain(data, minimumX, minimumZ, maximumX, maximumZ, minimumX, minimumZ, maximumX, maximumZ, drops)
+    end
+
+    /*
+    This action sends drops of rain as the other ErodeWithRain does, but the
+    drops start in one rectangle and may run on through a larger one.
+
+    Attribute: Parameter data The terrain.
+    Attribute: Parameter startMinimumX The smallest sample along x where drops start.
+    Attribute: Parameter startMinimumZ The smallest sample along z where drops start.
+    Attribute: Parameter startMaximumX The largest sample along x where drops start.
+    Attribute: Parameter startMaximumZ The largest sample along z where drops start.
+    Attribute: Parameter minimumX The smallest sample along x drops may reach.
+    Attribute: Parameter minimumZ The smallest sample along z drops may reach.
+    Attribute: Parameter maximumX The largest sample along x drops may reach.
+    Attribute: Parameter maximumZ The largest sample along z drops may reach.
+    Attribute: Parameter drops How many drops.
+    */
+    action ErodeWithRain(TerrainData data, integer startMinimumX, integer startMinimumZ, integer startMaximumX, integer startMaximumZ,
+            integer minimumX, integer minimumZ, integer maximumX, integer maximumZ, integer drops)
+        if startMaximumX - startMinimumX < 2 or startMaximumZ - startMinimumZ < 2
+            return now
+        end
+        Random random
+        random:SetSeed(seed)
+        integer drop = 0
+        repeat while drop < drops
+            number positionX = startMinimumX + random:RandomNumber() * (startMaximumX - startMinimumX - 1)
+            number positionZ = startMinimumZ + random:RandomNumber() * (startMaximumZ - startMinimumZ - 1)
+            number directionX = 0
+            number directionZ = 0
+            number speed = 1
+            number water = 1
+            number sediment = 0
+
+            integer step = 0
+            boolean rolling = HasCell(data, positionX, positionZ, minimumX, minimumZ, maximumX, maximumZ)
+            repeat while rolling and step < maximumSteps
+                number height = GetCellHeight(data, positionX, positionZ)
+                number slopeX = GetCellSlopeX(data, positionX, positionZ)
+                number slopeZ = GetCellSlopeZ(data, positionX, positionZ)
+
+                // Roll downhill, keeping a little of the last direction.
+                directionX = directionX * inertia - slopeX * (1 - inertia)
+                directionZ = directionZ * inertia - slopeZ * (1 - inertia)
+                number length = math:SquareRoot(directionX * directionX + directionZ * directionZ)
+                if length < 0.000001
+                    // Flat ground: pick a direction at random.
+                    number angle = random:RandomNumber() * 2 * math:pi
+                    directionX = math:Cosine(angle)
+                    directionZ = math:Sine(angle)
+                else
+                    directionX = directionX / length
+                    directionZ = directionZ / length
+                end
+                number nextX = positionX + directionX
+                number nextZ = positionZ + directionZ
+
+                if not HasCell(data, nextX, nextZ, minimumX, minimumZ, maximumX, maximumZ)
+                    rolling = false
+                else
+                    number nextHeight = GetCellHeight(data, nextX, nextZ)
+                    number change = nextHeight - height
+                    number capacity = math:MaximumOf(-change, minimumCapacity) * speed * water * capacityFactor
+                    if sediment > capacity or change > 0
+                        // Too much to carry, or going uphill: leave some
+                        // ground here, enough to fill the rise if uphill.
+                        number left = (sediment - capacity) * depositRate
+                        if change > 0
+                            left = math:MinimumOf(change, sediment)
+                        end
+                        sediment = sediment - left
+                        AddToCell(data, positionX, positionZ, left)
+                    else
+                        // Room to carry more: pick up ground, but never dig
+                        // deeper than the drop to the next point.
+                        number taken = math:MinimumOf((capacity - sediment) * erodeRate, -change)
+                        sediment = sediment + taken
+                        SpreadAround(data, positionX, positionZ, -taken, minimumX, minimumZ, maximumX, maximumZ)
+                    end
+                    speed = math:SquareRoot(math:MaximumOf(0, speed * speed - change * gravity))
+                    water = water * (1 - evaporation)
+                    positionX = nextX
+                    positionZ = nextZ
+                    step = step + 1
+                end
+            end
+            // Whatever the drop still carries is left where it stopped.
+            if sediment > 0 and HasCell(data, positionX, positionZ, minimumX, minimumZ, maximumX, maximumZ)
+                SpreadAround(data, positionX, positionZ, sediment, minimumX, minimumZ, maximumX, maximumZ)
+            end
+            drop = drop + 1
+        end
+    end
+
+    /*
+    This action lets ground slide off slopes steeper than an angle. Each pass
+    looks at every sample in a rectangle, and if it stands higher above its
+    lowest neighbor than the angle allows, moves half the extra to that
+    neighbor. Ground is moved, not added or taken away.
+
+    Attribute: Parameter data The terrain.
+    Attribute: Parameter minimumX The rectangle's smallest sample along x.
+    Attribute: Parameter minimumZ The rectangle's smallest sample along z.
+    Attribute: Parameter maximumX The rectangle's largest sample along x.
+    Attribute: Parameter maximumZ The rectangle's largest sample along z.
+    Attribute: Parameter passes How many times to go over the rectangle.
+    Attribute: Parameter degrees The steepest slope that stays, in degrees.
+    */
+    action Settle(TerrainData data, integer minimumX, integer minimumZ, integer maximumX, integer maximumZ, integer passes,
+            number degrees)
+        number most = math:Tangent(math:DegreesToRadians(degrees)) * data:GetVertexSpacing()
+        integer pass = 0
+        repeat while pass < passes
+            integer z = minimumZ
+            repeat while z <= maximumZ
+                integer x = minimumX
+                repeat while x <= maximumX
+                    if data:HasSample(x, z)
+                        number height = data:GetSampleHeight(x, z)
+                        integer lowestX = x
+                        integer lowestZ = z
+                        number lowest = height
+                        integer neighbor = 0
+                        repeat while neighbor < 4
+                            integer nearX = x
+                            integer nearZ = z
+                            if neighbor = 0
+                                nearX = x + 1
+                            elseif neighbor = 1
+                                nearX = x - 1
+                            elseif neighbor = 2
+                                nearZ = z + 1
+                            else
+                                nearZ = z - 1
+                            end
+                            if data:HasSample(nearX, nearZ)
+                                number nearHeight = data:GetSampleHeight(nearX, nearZ)
+                                if nearHeight < lowest
+                                    lowest = nearHeight
+                                    lowestX = nearX
+                                    lowestZ = nearZ
+                                end
+                            end
+                            neighbor = neighbor + 1
+                        end
+                        number extra = height - lowest - most
+                        if extra > 0
+                            number moved = extra / 2
+                            data:SetSampleHeight(x, z, height - moved)
+                            data:SetSampleHeight(lowestX, lowestZ, lowest + moved)
+                        end
+                    end
+                    x = x + 1
+                end
+                z = z + 1
+            end
+            pass = pass + 1
+        end
+    end
+
+    /*
+    This action sets auto paint's rules.
+
+    Attribute: Parameter rockLow The slope, in degrees, where rock starts.
+    Attribute: Parameter rockHigh The slope where the ground is all rock. It must be more than rockLow.
+    Attribute: Parameter sandHeight The height below which the ground is all sand.
+    Attribute: Parameter sandFade How far above sandHeight sand fades out.
+    Attribute: Parameter hollowDepth How far below the ground around it a hollow must be to be all dirt.
+    */
+    action SetPaintRules(number rockLow, number rockHigh, number sandHeight, number sandFade, number hollowDepth)
+        if rockHigh <= rockLow
+            alert("The slope where the ground is all rock, " + rockHigh + ", must be more than where rock starts, " + rockLow + ".")
+        end
+        rockLowDegrees = rockLow
+        rockHighDegrees = rockHigh
+        me:sandHeight = sandHeight
+        me:sandFade = math:MaximumOf(0.01, sandFade)
+        me:hollowDepth = math:MaximumOf(0.01, hollowDepth)
+    end
+
+    /*
+    This action sets the splat weights of a rectangle of samples by rules:
+    rock (green) where the ground is steep, fading in between two slopes;
+    sand (alpha) below a height; dirt (blue) in hollows, where the ground is
+    lower than the average around it; and grass (red) everywhere else. Rock
+    comes first, then sand, then dirt, each taking its share of what is
+    left. Samples with no region are skipped, and samples whose weights
+    already match are left alone, so painting the same area twice changes
+    nothing the second time.
+
+    Attribute: Parameter data The terrain.
+    Attribute: Parameter minimumX The rectangle's smallest sample along x.
+    Attribute: Parameter minimumZ The rectangle's smallest sample along z.
+    Attribute: Parameter maximumX The rectangle's largest sample along x.
+    Attribute: Parameter maximumZ The rectangle's largest sample along z.
+    */
+    action AutoPaint(TerrainData data, integer minimumX, integer minimumZ, integer maximumX, integer maximumZ)
+        number spacing = data:GetVertexSpacing()
+        integer z = minimumZ
+        repeat while z <= maximumZ
+            integer x = minimumX
+            repeat while x <= maximumX
+                if data:HasSample(x, z)
+                    number height = data:GetSampleHeight(x, z)
+                    number slope = data:GetSlope(x * spacing, z * spacing)
+                    number rock = Smooth((slope - rockLowDegrees) / (rockHighDegrees - rockLowDegrees))
+                    number sand = math:Clamp((sandHeight + sandFade - height) / sandFade, 0, 1)
+                    number dirt = math:Clamp(GetHollowDepth(data, x, z) / hollowDepth, 0, 1)
+
+                    number left = 1 - rock
+                    number sandShare = left * sand
+                    left = left - sandShare
+                    number dirtShare = left * dirt
+                    left = left - dirtShare
+                    // Only changed weights are written, so painting again
+                    // changes nothing and the splat texture isn't remade.
+                    integer code = data:PackSplat(left, rock, dirtShare, sandShare)
+                    if code not= data:GetSampleSplat(x, z)
+                        data:SetSampleSplat(x, z, code)
+                    end
+                end
+                x = x + 1
+            end
+            z = z + 1
+        end
+    end
+
+    /*
+    This action returns how far a sample lies below the average of the
+    ground around it, within hollowRadius samples, or 0 if it isn't lower.
+    Every other sample is read, which gives nearly the same average at a
+    quarter of the cost.
+
+    Attribute: Parameter data The terrain.
+    Attribute: Parameter x The sample along x.
+    Attribute: Parameter z The sample along z.
+    Attribute: Returns The depth of the hollow, in world units.
+    */
+    action GetHollowDepth(TerrainData data, integer x, integer z) returns number
+        number total = 0
+        integer count = 0
+        integer offsetZ = -hollowRadius
+        repeat while offsetZ <= hollowRadius
+            integer offsetX = -hollowRadius
+            repeat while offsetX <= hollowRadius
+                if data:HasSample(x + offsetX, z + offsetZ)
+                    total = total + data:GetSampleHeight(x + offsetX, z + offsetZ)
+                    count = count + 1
+                end
+                offsetX = offsetX + 2
+            end
+            offsetZ = offsetZ + 2
+        end
+        if count = 0
+            return 0
+        end
+        return math:MaximumOf(0, total / count - data:GetSampleHeight(x, z))
+    end
+
+    /*
+    This action is a smooth step: 0 at or below 0, 1 at or above 1, and an
+    S-shaped curve between.
+
+    Attribute: Parameter value The value.
+    Attribute: Returns The smoothed value, from 0 to 1.
+    */
+    action Smooth(number value) returns number
+        number t = math:Clamp(value, 0, 1)
+        return t * t * (3 - 2 * t)
+    end
+
+    /*
+    This action returns true if a drop at a position, in samples, is over a
+    cell whose four corners have regions, inside a rectangle.
+
+    Attribute: Parameter data The terrain.
+    Attribute: Parameter positionX The position along x, in samples.
+    Attribute: Parameter positionZ The position along z, in samples.
+    Attribute: Parameter minimumX The rectangle's smallest sample along x.
+    Attribute: Parameter minimumZ The rectangle's smallest sample along z.
+    Attribute: Parameter maximumX The rectangle's largest sample along x.
+    Attribute: Parameter maximumZ The rectangle's largest sample along z.
+    Attribute: Returns True if the drop can be there.
+    */
+    private action HasCell(TerrainData data, number positionX, number positionZ, integer minimumX, integer minimumZ,
+            integer maximumX, integer maximumZ) returns boolean
+        integer x = cast(integer, math:Floor(positionX))
+        integer z = cast(integer, math:Floor(positionZ))
+        if x < minimumX or z < minimumZ or x + 1 > maximumX or z + 1 > maximumZ
+            return false
+        end
+        return data:HasSample(x, z) and data:HasSample(x + 1, z) and data:HasSample(x, z + 1) and data:HasSample(x + 1, z + 1)
+    end
+
+    /*
+    This action returns the ground's height at a position in samples,
+    blended between the cell's four corners.
+
+    Attribute: Parameter data The terrain.
+    Attribute: Parameter positionX The position along x, in samples.
+    Attribute: Parameter positionZ The position along z, in samples.
+    Attribute: Returns The height.
+    */
+    private action GetCellHeight(TerrainData data, number positionX, number positionZ) returns number
+        integer x = cast(integer, math:Floor(positionX))
+        integer z = cast(integer, math:Floor(positionZ))
+        number u = positionX - x
+        number v = positionZ - z
+        number top = data:GetSampleHeight(x, z) * (1 - u) + data:GetSampleHeight(x + 1, z) * u
+        number bottom = data:GetSampleHeight(x, z + 1) * (1 - u) + data:GetSampleHeight(x + 1, z + 1) * u
+        return top * (1 - v) + bottom * v
+    end
+
+    /*
+    This action returns how fast the ground rises along x at a position in
+    samples, in world units per sample.
+
+    Attribute: Parameter data The terrain.
+    Attribute: Parameter positionX The position along x, in samples.
+    Attribute: Parameter positionZ The position along z, in samples.
+    Attribute: Returns The rise along x.
+    */
+    private action GetCellSlopeX(TerrainData data, number positionX, number positionZ) returns number
+        integer x = cast(integer, math:Floor(positionX))
+        integer z = cast(integer, math:Floor(positionZ))
+        number v = positionZ - z
+        return (data:GetSampleHeight(x + 1, z) - data:GetSampleHeight(x, z)) * (1 - v) +
+            (data:GetSampleHeight(x + 1, z + 1) - data:GetSampleHeight(x, z + 1)) * v
+    end
+
+    /*
+    This action returns how fast the ground rises along z at a position in
+    samples, in world units per sample.
+
+    Attribute: Parameter data The terrain.
+    Attribute: Parameter positionX The position along x, in samples.
+    Attribute: Parameter positionZ The position along z, in samples.
+    Attribute: Returns The rise along z.
+    */
+    private action GetCellSlopeZ(TerrainData data, number positionX, number positionZ) returns number
+        integer x = cast(integer, math:Floor(positionX))
+        integer z = cast(integer, math:Floor(positionZ))
+        number u = positionX - x
+        return (data:GetSampleHeight(x, z + 1) - data:GetSampleHeight(x, z)) * (1 - u) +
+            (data:GetSampleHeight(x + 1, z + 1) - data:GetSampleHeight(x + 1, z)) * u
+    end
+
+    /*
+    This action adds an amount of ground around a position in samples,
+    shared among the samples within spreadRadius by how near each is, the
+    nearest getting the most. Only samples with regions inside the rectangle
+    share it, so all of the amount lands somewhere.
+
+    Attribute: Parameter data The terrain.
+    Attribute: Parameter positionX The position along x, in samples.
+    Attribute: Parameter positionZ The position along z, in samples.
+    Attribute: Parameter amount How much to add, in world units. Negative takes ground away.
+    Attribute: Parameter minimumX The rectangle's smallest sample along x.
+    Attribute: Parameter minimumZ The rectangle's smallest sample along z.
+    Attribute: Parameter maximumX The rectangle's largest sample along x.
+    Attribute: Parameter maximumZ The rectangle's largest sample along z.
+    */
+    private action SpreadAround(TerrainData data, number positionX, number positionZ, number amount,
+            integer minimumX, integer minimumZ, integer maximumX, integer maximumZ)
+        if amount = 0
+            return now
+        end
+        integer firstX = cast(integer, math:MaximumOf(minimumX, math:Ceiling(positionX - spreadRadius)))
+        integer lastX = cast(integer, math:MinimumOf(maximumX, math:Floor(positionX + spreadRadius)))
+        integer firstZ = cast(integer, math:MaximumOf(minimumZ, math:Ceiling(positionZ - spreadRadius)))
+        integer lastZ = cast(integer, math:MinimumOf(maximumZ, math:Floor(positionZ + spreadRadius)))
+
+        // First the total of the weights, so the shares add up to the amount.
+        number total = 0
+        integer z = firstZ
+        repeat while z <= lastZ
+            integer x = firstX
+            repeat while x <= lastX
+                total = total + GetSpreadWeight(data, x, z, positionX, positionZ)
+                x = x + 1
+            end
+            z = z + 1
+        end
+        if total <= 0
+            AddToCell(data, positionX, positionZ, amount)
+            return now
+        end
+
+        z = firstZ
+        repeat while z <= lastZ
+            integer x = firstX
+            repeat while x <= lastX
+                number weight = GetSpreadWeight(data, x, z, positionX, positionZ)
+                if weight > 0
+                    data:SetSampleHeight(x, z, data:GetSampleHeight(x, z) + amount * weight / total)
+                end
+                x = x + 1
+            end
+            z = z + 1
+        end
+    end
+
+    /*
+    This action returns how much of a spread amount a sample gets: more the
+    nearer it is, nothing at spreadRadius or beyond, or if it has no region.
+
+    Attribute: Parameter data The terrain.
+    Attribute: Parameter x The sample along x.
+    Attribute: Parameter z The sample along z.
+    Attribute: Parameter positionX The position the amount is spread around, along x, in samples.
+    Attribute: Parameter positionZ The position the amount is spread around, along z, in samples.
+    Attribute: Returns The weight, 0 or more.
+    */
+    private action GetSpreadWeight(TerrainData data, integer x, integer z, number positionX, number positionZ) returns number
+        if not data:HasSample(x, z)
+            return 0
+        end
+        number offsetX = x - positionX
+        number offsetZ = z - positionZ
+        return math:MaximumOf(0, spreadRadius - math:SquareRoot(offsetX * offsetX + offsetZ * offsetZ))
+    end
+
+    /*
+    This action adds an amount of ground at a position in samples, shared
+    among the cell's four corners by how near each is.
+
+    Attribute: Parameter data The terrain.
+    Attribute: Parameter positionX The position along x, in samples.
+    Attribute: Parameter positionZ The position along z, in samples.
+    Attribute: Parameter amount How much to add, in world units. Negative takes ground away.
+    */
+    private action AddToCell(TerrainData data, number positionX, number positionZ, number amount)
+        if amount = 0
+            return now
+        end
+        integer x = cast(integer, math:Floor(positionX))
+        integer z = cast(integer, math:Floor(positionZ))
+        number u = positionX - x
+        number v = positionZ - z
+        data:SetSampleHeight(x, z, data:GetSampleHeight(x, z) + amount * (1 - u) * (1 - v))
+        data:SetSampleHeight(x + 1, z, data:GetSampleHeight(x + 1, z) + amount * u * (1 - v))
+        data:SetSampleHeight(x, z + 1, data:GetSampleHeight(x, z + 1) + amount * (1 - u) * v)
+        data:SetSampleHeight(x + 1, z + 1, data:GetSampleHeight(x + 1, z + 1) + amount * u * v)
+    end
+end

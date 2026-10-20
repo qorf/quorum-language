@@ -1,0 +1,149 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.Game.Graphics.Worlds.TerrainItem
+use Libraries.Game.Graphics.Worlds.TerrainData
+use Libraries.Game.Graphics.Worlds.TerrainRegion
+use Libraries.Interface.Controls.Scenes.SceneEditor
+
+/*
+    The EditorTerrain class is a terrain in the Scene Editor. It is saved in
+    the scene like any item, and loaded with the scene. In the editor it only
+    draws, so it has no collision. A terrain's heights are world positions,
+    so it stays at the origin: the editor's move, turn and scale keys leave
+    it where it is.
+
+    It isn't an EditorItem, since those are the editor's own helpers, such as
+    highlights and the cursor, which are never saved. Like a model in the
+    editor, it is a scene item with a little more for the editor.
+*/
+class EditorTerrain is TerrainItem
+    SceneEditor editor = undefined
+
+    // Whether the terrain's own files have changes that the next save of the
+    // scene must write.
+    boolean changed = false
+
+    on create
+        // The editor only draws the terrain.
+        SetCollision(false)
+    end
+
+    /*
+        Sets the SceneEditor this terrain is a part of.
+
+        Attribute: Parameter editor The SceneEditor this terrain is in
+    */
+    action SetSceneEditor(SceneEditor editor)
+        me:editor = editor
+    end
+
+    /*
+        Returns the SceneEditor this terrain is a part of.
+
+        Attribute: Returns The SceneEditor this terrain is in
+    */
+    action GetSceneEditor returns SceneEditor
+        return editor
+    end
+
+    /*
+        Returns whether the terrain's own files have changes that the next
+        save of the scene must write.
+
+        Attribute: Returns True if the terrain has changed since it was saved
+    */
+    action IsChanged returns boolean
+        return changed
+    end
+
+    /*
+        Sets whether the terrain's own files have changes that the next save
+        of the scene must write. Tools that change the terrain set it.
+
+        Attribute: Parameter changed True if the terrain has changed
+    */
+    action SetChanged(boolean changed)
+        me:changed = changed
+    end
+
+    /*
+        Saves the terrain's own files, if they have changed, and marks it
+        unchanged. The scene editor calls it when the scene is saved.
+    */
+    action SaveIfChanged
+        if changed
+            SaveTerrain()
+            changed = false
+        end
+    end
+
+    /*
+        Returns the smallest x the terrain's regions cover, in world units.
+
+        Attribute: Returns The smallest x, or 0 for a terrain with no regions
+    */
+    action GetMinimumX returns number
+        return GetEdge(true, true)
+    end
+
+    /*
+        Returns the largest x the terrain's regions cover, in world units.
+
+        Attribute: Returns The largest x, or 0 for a terrain with no regions
+    */
+    action GetMaximumX returns number
+        return GetEdge(true, false)
+    end
+
+    /*
+        Returns the smallest z the terrain's regions cover, in world units.
+
+        Attribute: Returns The smallest z, or 0 for a terrain with no regions
+    */
+    action GetMinimumZ returns number
+        return GetEdge(false, true)
+    end
+
+    /*
+        Returns the largest z the terrain's regions cover, in world units.
+
+        Attribute: Returns The largest z, or 0 for a terrain with no regions
+    */
+    action GetMaximumZ returns number
+        return GetEdge(false, false)
+    end
+
+    /*
+        Finds one edge of the terrain's regions. A region at location n along
+        an axis covers n times its width up to n plus 1 times its width.
+    */
+    private action GetEdge(boolean alongX, boolean smallest) returns number
+        TerrainData data = GetWorldTerrain():GetData()
+        integer count = data:GetRegionCount()
+        if count = 0
+            return 0
+        end
+        number regionWidth = data:GetRegionSize() * data:GetVertexSpacing()
+        integer i = 0
+        integer edge = 0
+        repeat while i < count
+            TerrainRegion region = data:GetRegionAtIndex(i)
+            integer location = region:GetLocationZ()
+            if alongX
+                location = region:GetLocationX()
+            end
+            if not smallest
+                location = location + 1
+            end
+            if i = 0
+                edge = location
+            elseif smallest and location < edge
+                edge = location
+            elseif not smallest and location > edge
+                edge = location
+            end
+            i = i + 1
+        end
+        return edge * regionWidth
+    end
+end

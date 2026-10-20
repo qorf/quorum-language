@@ -1,5 +1,7 @@
 package Libraries.Interface.Controls.Scenes.Items
 
+use Libraries.Game.Graphics.Worlds.TerrainItem
+use Libraries.Game.Graphics.Worlds.TerrainData
 use Libraries.Game.Graphics.Model
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
@@ -84,7 +86,17 @@ class EditorCursor3D is EditorCursor, EditorItem3D
             Item3D item = iterator:Next()
             if item:HasProperty(constants:EDITOR_TAG) = false
                 boolean shouldAdd = false
-                if item:GetShape() not= undefined and item:GetCenterOfMassTransform() not= undefined
+                if item is TerrainItem
+                    // A terrain is at the cursor where its ground passes
+                    // through the cursor, not by its box, which would be all
+                    // its regions.
+                    TerrainItem terrain = cast(TerrainItem, item)
+                    TerrainData data = terrain:GetWorldTerrain():GetData()
+                    if data:HasHeight(GetX(), GetZ())
+                        number ground = data:GetHeight(GetX(), GetZ())
+                        shouldAdd = ground >= y1 and ground <= y2
+                    end
+                elseif item:GetShape() not= undefined and item:GetCenterOfMassTransform() not= undefined
                     shouldAdd = collisionSolver:Collide(item:GetShape(), item:GetCenterOfMassTransform(), GetShape(), GetCenterOfMassTransform(), 0, collisionResults)
                 else
                     number itemWidth = item:GetWidth()
