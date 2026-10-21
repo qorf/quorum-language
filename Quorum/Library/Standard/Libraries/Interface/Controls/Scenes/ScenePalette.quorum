@@ -18,6 +18,7 @@ use Libraries.Interface.Controls.Scenes.Blueprints.CustomModelBlueprint
 use Libraries.Interface.Controls.Scenes.Blueprints.ModelBlueprint
 use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprintComparison
 use Libraries.Interface.Controls.Scenes.Blueprints.PointLightBlueprint
+use Libraries.Interface.Controls.Scenes.Blueprints.SpotLightBlueprint
 use Libraries.Interface.Controls.Scenes.Blueprints.TerrainBlueprint
 use Libraries.Interface.Controls.Scenes.Assets.AssetPack
 use Libraries.Interface.Controls.Tree
@@ -73,6 +74,7 @@ class ScenePalette is Tree
     text sphereThumbnailLocation = ""
     text cylinderThumbnailLocation = ""
     text pointLightThumbnailLocation = ""
+    text spotLightThumbnailLocation = ""
     text audio3DThumbnailLocation = ""
     text customModelThumbnailLocation = ""
     text customCubeThumbnailLocation = ""
@@ -143,6 +145,10 @@ class ScenePalette is Tree
     /*
         Sets the icon for the ScenePaletteItem for the point light item
     */
+    action SetDefaultSpotLightThumbnail(text file)
+        me:spotLightThumbnailLocation = file
+    end
+
     action SetDefaultPointLightThumbnail(text file)
         me:pointLightThumbnailLocation = file
     end
@@ -308,6 +314,24 @@ class ScenePalette is Tree
                 pointLight:SetModelTexture(LoadDefaultIcon():GetTexture())
             end
             primitives3D:Add(pointLight)
+
+            // A spotlight shines in a cone, and is aimed by turning it.
+            SpotLightBlueprint spotLight
+            spotLight:SetName("Spotlight")
+            spotLight:SetDescription("A light that shines in a cone, like a stage light. Turn it to aim it; it starts pointing down.")
+            if spotLightThumbnailLocation not= ""
+                Drawable spotThumbnail
+                spotThumbnail:Load(spotLightThumbnailLocation)
+                spotLight:SetPaletteIcon(spotThumbnail)
+            else
+                spotLight:SetPaletteIcon(LoadDefaultIcon())
+            end
+            if pointLightTexture not= undefined
+                spotLight:SetModelTexture(pointLightTexture)
+            else
+                spotLight:SetModelTexture(LoadDefaultIcon():GetTexture())
+            end
+            primitives3D:Add(spotLight)
 
             Audio3DBlueprint audio
             audio:SetName("Audio3D")

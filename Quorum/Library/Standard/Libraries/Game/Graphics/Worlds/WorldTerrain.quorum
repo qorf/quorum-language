@@ -17,6 +17,8 @@ use Libraries.Game.Graphics.Models.Data.Material
 use Libraries.Game.Graphics.Models.Vulkan.MaterialVulkan
 use Libraries.Game.Graphics.Models.Vulkan.MaterialManagerVulkan
 use Libraries.Compute.BitwiseOperations
+use Libraries.Game.Graphics.Vulkan.VulkanTextureManager
+use Libraries.Game.Graphics.Vulkan.VulkanImageView
 
 /*
 A WorldTerrain is ground for a large world. It holds a TerrainData, which
@@ -139,12 +141,13 @@ class WorldTerrain
     // texture, splatTexture, covering splatWidth by splatDepth samples from
     // sample (splatStartX, splatStartZ), with a copy of its pixels kept in
     // splatPixels so a change only needs the changed pixels updated. One
-    // texture for everything keeps the terrain to five textures, which
+    // texture for everything keeps the terrain's textures few, which
     // matters because the renderer binds textures in small groups (31 on
-    // some devices), and only works properly with the first group. layerColor
-    // carries the four ground textures' places to the splat shader through
-    // each model's color override; it is made once every texture has a
-    // place, which happens during a frame.
+    // some devices); the terrain keeps all of its textures in one block of
+    // places in one group (see blockStart). layerColor carries the four
+    // ground textures' places to the splat shader through each model's
+    // color override; it is made once every texture has a place, which
+    // happens during a frame.
     TextureSplat textureSplat = undefined
     boolean splatting = false
     Texture splatTexture = undefined
@@ -163,6 +166,22 @@ class WorldTerrain
     integer splatUpdateCount = 0
     Color layerColor = undefined
     boolean layersReady = false
+
+    // The terrain's block of texture places. The renderer binds textures in
+    // groups, and a shader drawing a model can only reach the textures in
+    // the model's group, by their places inside it. So the terrain reserves
+    // places in one group, links each of its textures there, and is drawn
+    // in that group: places 0 to 3 of the block hold the ground layers'
+    // color textures, 4 to 7 their normal-roughness textures, 8 the layer
+    // table and 9 the splat texture. The textures keep their own places
+    // too. The models are given splatStandIn, a texture that stands for the
+    // splat texture at its place in the block.
+    integer blockStart = -1
+    constant integer BLOCK_SIZE = 10
+    constant integer TABLE_SLOT = 8
+    constant integer SPLAT_SLOT = 9
+    Texture splatStandIn = undefined
+    VulkanImageView linkedSplatView = undefined
 
     // Texture sets for the ground layers (library item 24). A layer with a
     // Material in layerMaterials is drawn from the set's two packed
@@ -808,10 +827,10 @@ class WorldTerrain
     the plain textures from SetTextureSplat.
 
     The set is loaded and packed right away, which takes a moment for each
-    set. Call this before Build or StartStreaming, and before any labels
-    are made: the splat shader can only find textures loaded early (see
-    VulkanChanges.md #22). It needs the Vulkan renderer and a splat program
-    (SetSplatProgram).
+    set. Call this before Build or StartStreaming. The terrain links the
+    set's textures into its own block of texture places, so the splat
+    shader finds them however many textures were loaded before. It needs
+    the Vulkan renderer and a splat program (SetSplatProgram).
 
     The Material's texture scale (SetTextureScale) is how many world units
     one tile covers, from 0.25 to 63.75.
@@ -1453,7 +1472,100 @@ class WorldTerrain
         if splatTexture = undefined
             PrepareSplatTexture()
         end
+        return GetModelSplatTexture()
+    end
+
+    /*
+    This action returns the texture the models are drawn with while
+    splatting: the stand-in at the splat texture's place in the terrain's
+    block, once the splat texture is linked there, or the splat texture
+    itself until then.
+
+    Attribute: Returns The texture.
+    */
+    private action GetModelSplatTexture returns Texture
+        if splatStandIn not= undefined and splatTexture not= undefined and linkedSplatView not= undefined and
+                linkedSplatView = splatTexture:GetVulkanImageView()
+            return splatStandIn
+        end
         return splatTexture
+    end
+
+    /*
+    This action returns the texture manager, which gives out texture places.
+    */
+    private action GetTextureManager returns VulkanTextureManager
+        GameStateManager gameState
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        return graphics:GetTextureManager()
+    end
+
+    /*
+    This action reserves the terrain's block of texture places, the first
+    time it's needed.
+    */
+    private action EnsureBlock
+        if blockStart < 0
+            blockStart = GetTextureManager():ReserveBlock(BLOCK_SIZE)
+        end
+    end
+
+    /*
+    This action returns a place of the terrain's block, as the splat shader
+    finds it: its place inside its group.
+
+    Attribute: Parameter slot The place in the block, from 0 to 9.
+    Attribute: Returns The place inside the group.
+    */
+    private action GetBlockPlace(integer slot) returns integer
+        return (blockStart + slot) mod GetTextureManager():GetDescriptorSetEntries()
+    end
+
+    /*
+    This action links a loaded texture into one of the block's places.
+
+    Attribute: Returns True if it was linked, false if it isn't loaded yet.
+    */
+    private action LinkToBlock(Texture texture, integer slot) returns boolean
+        if texture = undefined or texture:GetVulkanTextureIndex() < 0
+            return false
+        end
+        return GetTextureManager():LinkTextureAt(texture, blockStart + slot)
+    end
+
+    /*
+    This action links the splat texture into the block, and makes the
+    stand-in the models are drawn with, at its place.
+
+    Attribute: Returns True if it was linked, false if the splat texture isn't loaded yet.
+    */
+    private action LinkSplatToBlock returns boolean
+        if splatTexture = undefined or not LinkToBlock(splatTexture, SPLAT_SLOT)
+            return false
+        end
+        if splatStandIn = undefined
+            TerrainTextureStandIn standIn
+            standIn:SetVulkanTextureIndex(blockStart + SPLAT_SLOT)
+            splatStandIn = standIn
+        end
+        linkedSplatView = splatTexture:GetVulkanImageView()
+        splatStandIn:SetVulkanImageView(linkedSplatView)
+        return true
+    end
+
+    /*
+    This action gives back the terrain's block of texture places, such as
+    when the terrain is no longer used. The models must not be drawn
+    afterward.
+    */
+    action ReleaseTexturePlaces
+        if blockStart >= 0
+            GetTextureManager():ReleaseBlock(blockStart, BLOCK_SIZE)
+            blockStart = -1
+            splatStandIn = undefined
+            linkedSplatView = undefined
+            layersReady = false
+        end
     end
 
     /*
@@ -1631,6 +1743,9 @@ class WorldTerrain
             splatTextureDepth = splatDepth
             splatRebuildCount = splatRebuildCount + 1
             GiveSplatTextureToModels()
+            // The new splat texture is linked into the terrain's block once
+            // it is loaded.
+            layersReady = false
         end
     end
 
@@ -1660,23 +1775,23 @@ class WorldTerrain
             alpha = red
         end
 
-        integer redIndex = red:GetVulkanTextureIndex()
-        integer greenIndex = green:GetVulkanTextureIndex()
-        integer blueIndex = blue:GetVulkanTextureIndex()
-        integer alphaIndex = alpha:GetVulkanTextureIndex()
-        if redIndex < 0 or greenIndex < 0 or blueIndex < 0 or alphaIndex < 0
+        // Every texture is linked into the terrain's block, so the splat
+        // shader finds them in the group the terrain is drawn in.
+        EnsureBlock()
+        if not LinkToBlock(red, 0) or not LinkToBlock(green, 1) or not LinkToBlock(blue, 2) or not LinkToBlock(alpha, 3)
             return false
         end
-        if redIndex > 254 or greenIndex > 254 or blueIndex > 254 or alphaIndex > 254
-            alert("The splat shader can only find ground textures among the first 255 textures loaded.")
+        if not LinkSplatToBlock()
+            return false
         end
 
         // The color override is packed by multiplying each part by 255 and
         // dropping the fraction, so adding a half keeps each place exact.
         Color color
-        layerColor = color:CustomColor((redIndex + 0.5) / 255.0, (greenIndex + 0.5) / 255.0,
-            (blueIndex + 0.5) / 255.0, (alphaIndex + 0.5) / 255.0)
+        layerColor = color:CustomColor((GetBlockPlace(0) + 0.5) / 255.0, (GetBlockPlace(1) + 0.5) / 255.0,
+            (GetBlockPlace(2) + 0.5) / 255.0, (GetBlockPlace(3) + 0.5) / 255.0)
         layersReady = true
+        GiveSplatTextureToModels()
         GiveLayerColorToModels()
         return true
     end
@@ -1735,19 +1850,20 @@ class WorldTerrain
                 if albedo = undefined
                     alert("Ground layer " + layer + " has no texture: give the terrain a TextureSplat with a red texture, or a Material for layer 0.")
                 end
-                integer albedoPlace = albedo:GetVulkanTextureIndex()
-                if albedoPlace < 0
+                // Each texture is linked into the terrain's block, and the
+                // table holds its place there, inside the block's group.
+                EnsureBlock()
+                if not LinkToBlock(albedo, layer)
                     return false
                 end
+                integer albedoPlace = GetBlockPlace(layer)
                 integer normalPlace = 255
                 if normals not= undefined
-                    normalPlace = normals:GetVulkanTextureIndex()
-                    if normalPlace < 0
+                    if not LinkToBlock(normals, 4 + layer)
                         return false
                     end
-                    WarnIfNotFound(normals, "ground layer " + layer + "'s normal-roughness texture")
+                    normalPlace = GetBlockPlace(4 + layer)
                 end
-                WarnIfNotFound(albedo, "ground layer " + layer + "'s color texture")
                 integer code = bits:ShiftLeft(albedoPlace, 24)
                 code = bits:Or(code, bits:ShiftLeft(normalPlace, 16))
                 code = bits:Or(code, bits:ShiftLeft(GetLayerTileQuarters(layer), 8))
@@ -1777,34 +1893,32 @@ class WorldTerrain
             return false
         end
 
-        integer tablePlace = layerTable:GetVulkanTextureIndex()
-        if tablePlace < 0
+        if not LinkToBlock(layerTable, TABLE_SLOT)
             return false
         end
-        WarnIfNotFound(layerTable, "the ground layer table")
+        // The layers' textures are linked again too, in case one was loaded
+        // again since the table was made.
+        integer relink = 0
+        repeat while relink < 4
+            boolean colorLinked = LinkToBlock(GetLayerColorTexture(relink), relink)
+            Texture relinkNormals = GetLayerNormalTexture(relink)
+            if relinkNormals not= undefined
+                boolean normalLinked = LinkToBlock(relinkNormals, 4 + relink)
+            end
+            relink = relink + 1
+        end
+        if not LinkSplatToBlock()
+            return false
+        end
+        integer tablePlace = GetBlockPlace(TABLE_SLOT)
 
         Color color
         layerColor = color:CustomColor((tablePlace + 0.5) / 255.0, (math:Round(heightBlendSoftness * 254) + 0.5) / 255.0,
             0, 1)
         layersReady = true
+        GiveSplatTextureToModels()
         GiveLayerColorToModels()
-        output "Ground layers ready: layer table at texture place " + tablePlace + "."
         return true
-    end
-
-    /*
-    This action writes a warning if a texture's place is past what the
-    splat shader can reach: it must be among the first 255 textures, and in
-    the renderer's first group of textures (VulkanChanges.md #22).
-
-    Attribute: Parameter texture The texture.
-    Attribute: Parameter name What to call it in the warning.
-    */
-    private action WarnIfNotFound(Texture texture, text name)
-        if texture:GetVulkanTextureIndex() > 254 or texture:GetVulkanTextureGroupIndex() not= 0
-            output "Warning: " + name + " is at texture place " + texture:GetVulkanTextureIndex() + ", in group " +
-                texture:GetVulkanTextureGroupIndex() + ". The splat shader may not find it; load the ground layers before any labels."
-        end
     end
 
     /*
@@ -1936,18 +2050,18 @@ class WorldTerrain
     private action GiveSplatTextureToModels
         integer i = 0
         repeat while i < regionModels:GetSize()
-            regionModels:Get(i):GetResources():SetTexture(splatTexture)
+            regionModels:Get(i):GetResources():SetTexture(GetModelSplatTexture())
             i = i + 1
         end
         i = 0
         repeat while i < modelMap:GetSize()
             TerrainRegionModel model = modelMap:Get(i)
             if model not= undefined
-                model:GetResources():SetTexture(splatTexture)
+                model:GetResources():SetTexture(GetModelSplatTexture())
             end
             TerrainRegionFarModel far = farModelMap:Get(i)
             if far not= undefined
-                far:GetResources():SetTexture(splatTexture)
+                far:GetResources():SetTexture(GetModelSplatTexture())
             end
             i = i + 1
         end

@@ -710,8 +710,7 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         if path = ""
             label = label + "none"
         else
-            File mapFile
-            mapFile:SetPath(path)
+            File mapFile = names:MakeFile(path)
             if material:GetFile() not= undefined
                 label = label + names:GetRelativePath(material:GetFile():GetParentDirectory():GetAbsolutePath(), mapFile:GetAbsolutePath())
             else
@@ -844,6 +843,9 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         filter:Add("json")
         filter:Add("png")
         filter:Add("jpg")
+        filter:Add("jpeg")
+        // Only these can be chosen; other files are greyed out.
+        filter:SetAcceptAll(false)
         File chosen = chooser:OpenFileDialog(editor:GetProjectLocation(), filter)
         if chosen = undefined
             return now
@@ -872,6 +874,8 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         FileFilter filter
         filter:Add("png")
         filter:Add("jpg")
+        filter:Add("jpeg")
+        filter:SetAcceptAll(false)
         File chosen = chooser:OpenFileDialog(start, filter)
         if chosen not= undefined
             editor:SetTerrainLayerMap(terrain, detailsLayer, mapKind, chosen)

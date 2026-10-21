@@ -12,6 +12,8 @@ use Libraries.Interface.Behaviors.Scenes.Selection.TerrainChooseToolBehavior
 use Libraries.Interface.Behaviors.Scenes.Selection.TerrainBrushUseBehavior
 use Libraries.Interface.Behaviors.Scenes.Selection.TerrainStrengthBehavior
 use Libraries.Interface.Behaviors.Scenes.Selection.TerrainNextLayerBehavior
+use Libraries.Interface.Behaviors.Scenes.Selection.TerrainRampPointBehavior
+use Libraries.Interface.Behaviors.Scenes.Selection.TerrainTakeHeightBehavior
 use Libraries.Interface.Behaviors.Scenes.Camera.all
 use Libraries.Interface.Behaviors.Scenes.Controls.all
 use Libraries.Interface.Behaviors.Scenes.Grid.all
@@ -1886,6 +1888,13 @@ InputSet shiftF10SetTextBox
         // The next paint layer, Alt+L by default (step 9).
         TerrainNextLayerBehavior terrainNextLayerBehavior
         selectionTable:Add(sceneKeys:GetTerrainNextLayerKey(), terrainNextLayerBehavior)
+
+        // The ramp's ends, start then end, Alt+G, and the flatten height from
+        // under the brush, Alt+M, by default (step 8).
+        TerrainRampPointBehavior terrainRampPointBehavior
+        selectionTable:Add(sceneKeys:GetTerrainRampPointKey(), terrainRampPointBehavior)
+        TerrainTakeHeightBehavior terrainTakeHeightBehavior
+        selectionTable:Add(sceneKeys:GetTerrainTakeHeightKey(), terrainTakeHeightBehavior)
 
         // 2D selection
         selectionTable2D:Add(reportLocation, reportLocationBehavior)

@@ -1,0 +1,226 @@
+package Libraries.Interface.Controls.Scenes.Dialogs
+
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.TextField
+use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Item
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Selections.SceneEditorSelection
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.Items.EditorSpotLight
+use Libraries.Interface.Controls.Scenes.Items.Highlights.SpotLightSelectionHighlight
+
+/*
+    The SpotLightPropertiesDialog is a selected spotlight's section in the
+    Properties panel: its name, color, intensity, cone and range. The cone's
+    angles are half-angles, in degrees, from the way the light points: full
+    strength inside the inner one, fading to nothing at the outer one. A
+    range of 0 works out how far the light reaches from its intensity. The
+    spotlight is aimed by turning it, with the editor's rotate keys.
+*/
+class SpotLightPropertiesDialog is PropertiesDialog
+    TextField nameField = undefined
+    TextField redField = undefined
+    TextField greenField = undefined
+    TextField blueField = undefined
+    TextField intensityField = undefined
+    TextField innerField = undefined
+    TextField outerField = undefined
+    TextField rangeField = undefined
+
+    // The spotlight whose settings are shown, or undefined.
+    EditorSpotLight light = undefined
+
+    // True while the fields are being filled, so filling them isn't taken
+    // as typing.
+    boolean updating = false
+
+    /*
+        Creates and adds the interface components for this dialog.
+    */
+    private action CreateInterface(Control panel, Array<Control> focusArray)
+        SetName("Spotlight")
+
+        Label headingLabel
+        headingLabel:SetSize(18)
+        headingLabel:SetText("Spotlight")
+        headingLabel:SetLeftMargin(20)
+        panel:Add(headingLabel)
+
+        nameField = AddField(panel, focusArray, "Name:", "Name")
+        redField = AddField(panel, focusArray, "Red:", "Red, from 0 to 1")
+        greenField = AddField(panel, focusArray, "Green:", "Green, from 0 to 1")
+        blueField = AddField(panel, focusArray, "Blue:", "Blue, from 0 to 1")
+        intensityField = AddField(panel, focusArray, "Intensity:", "Intensity")
+        innerField = AddField(panel, focusArray, "Inner angle:", "Inner angle, in degrees, of full strength")
+        outerField = AddField(panel, focusArray, "Outer angle:", "Outer angle, in degrees, where the light ends")
+        rangeField = AddField(panel, focusArray, "Range:", "Range, in world units, or 0 to work it out from the intensity")
+    end
+
+    /*
+        Adds a labelled field.
+    */
+    private action AddField(Control panel, Array<Control> focusArray, text label, text name) returns TextField
+        FlowLayout layout
+        Control container
+        container:SetLayout(layout)
+        container:SetPercentageWidth(1.0)
+        container:SetVerticalLayoutMode(container:FIT_CONTENTS)
+        container:SetLeftMargin(20)
+        container:SetTopMargin(6)
+        container:SetRightMargin(30)
+        container:SetBottomMargin(6)
+
+        Label fieldLabel
+        fieldLabel:SetText(label)
+        fieldLabel:SetRightMargin(10)
+        container:Add(fieldLabel)
+
+        TextField field
+        field:SetName(name)
+        field:SetText("")
+        field:SetFocusable(true)
+        field:AddTextChangeListener(me)
+        field:SetRightMargin(8)
+        field:SetHorizontalLayoutMode(container:FILL)
+        container:Add(field)
+        focusArray:Add(field)
+        panel:Add(container)
+        return field
+    end
+
+    /*
+        This action shows the dialog when a spotlight is selected, and hides
+        it otherwise.
+    */
+    action SelectionChanged(SelectionEvent event)
+        if not (event:GetSelection() is SceneEditorSelection)
+            return now
+        end
+        SceneEditorSelection selection = cast(SceneEditorSelection, event:GetSelection())
+        Item selectedItem = undefined
+        if selection:IsItemSelected()
+            selectedItem = selection:GetSelectedItem()
+        end
+        if selectedItem is SpotLightSelectionHighlight
+            SetFields(cast(EditorItem, selectedItem))
+            if not IsShowing()
+                Show()
+            end
+        else
+            light = undefined
+            if IsShowing()
+                Hide()
+            end
+        end
+    end
+
+    /*
+        This action shows a selected spotlight's settings.
+    */
+    action SetFields(EditorItem item)
+        if not (item is SpotLightSelectionHighlight)
+            return now
+        end
+        SpotLightSelectionHighlight highlight = cast(SpotLightSelectionHighlight, item)
+        light = highlight:GetEditorSpotLight()
+        if light = undefined
+            return now
+        end
+        updating = true
+        SetText(nameField, light:GetName())
+        Color color = light:GetColor()
+        if color not= undefined
+            SetText(redField, "" + color:GetRed())
+            SetText(greenField, "" + color:GetGreen())
+            SetText(blueField, "" + color:GetBlue())
+        end
+        SetText(intensityField, "" + light:GetIntensity())
+        SetText(innerField, "" + light:GetInnerAngle())
+        SetText(outerField, "" + light:GetOuterAngle())
+        SetText(rangeField, "" + light:GetRangeSetting())
+        updating = false
+    end
+
+    /*
+        Puts text in a field without it being taken as typing.
+    */
+    private action SetText(TextField field, text value)
+        field:RemoveTextChangeListener(me)
+        field:SetText(value)
+        field:AddTextChangeListener(me)
+    end
+
+    /*
+        This action changes the spotlight as its settings are typed. Text
+        that isn't a number, or is out of range, is ignored.
+    */
+    action TextChanged(TextChangeEvent event)
+        if light = undefined or updating
+            return now
+        end
+        Control control = event:GetControl()
+        if control:Equals(nameField)
+            if nameField:GetText() not= light:GetName()
+                light:SetName(nameField:GetText())
+            end
+            return now
+        end
+        number value = ReadNumber(cast(TextField, control))
+        if value < 0
+            return now
+        end
+        if control:Equals(redField) or control:Equals(greenField) or control:Equals(blueField)
+            if value <= 1
+                Color old = light:GetColor()
+                number red = old:GetRed()
+                number green = old:GetGreen()
+                number blue = old:GetBlue()
+                if control:Equals(redField)
+                    red = value
+                elseif control:Equals(greenField)
+                    green = value
+                else
+                    blue = value
+                end
+                Color color
+                color:SetColor(red, green, blue, 1)
+                light:SetColor(color)
+            end
+        elseif control:Equals(intensityField)
+            light:SetIntensity(value)
+        elseif control:Equals(innerField)
+            light:SetConeAngles(value, light:GetOuterAngle())
+        elseif control:Equals(outerField)
+            if value >= 1 and value <= 89
+                light:SetConeAngles(light:GetInnerAngle(), value)
+            end
+        elseif control:Equals(rangeField)
+            light:SetRange(value)
+        end
+    end
+
+    /*
+        Returns the number in a field, or -1 if it doesn't hold one yet.
+    */
+    private action ReadNumber(TextField field) returns number
+        number value = -1
+        check
+            value = field:GetText():ParseNumber()
+        detect e is Error
+            value = -1
+        end
+        return value
+    end
+
+    /*
+        Moves the focus to the name field.
+    */
+    action FocusField
+        nameField:Focus()
+    end
+end

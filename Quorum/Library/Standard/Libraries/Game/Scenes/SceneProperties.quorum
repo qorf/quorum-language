@@ -99,7 +99,8 @@ shared class SceneProperties
     TEXTURE_REGION_RIGHT (Drawable with TYPE = CUSTOM)
     TEXTURE_REGION_TOP (Drawable with TYPE = CUSTOM)
     TEXTURE_REGION_BOTTOM (Drawable with TYPE = CUSTOM)
-    INTENSITY (PointLight)
+    INTENSITY (PointLight, SpotLight)
+    DIRECTION, INNER_ANGLE, OUTER_ANGLE, RANGE (SpotLight)
 
     The following properties are optional:
     DESCRIPTION
@@ -131,6 +132,14 @@ shared class SceneProperties
     public constant text RESTITUTION = "Restitution"
     public constant text VIEW = "View"
     public constant text INTENSITY = "Intensity"
+
+    // A spotlight's cone: the half-angles, in degrees, of full strength and
+    // of where the light ends, and how far it reaches (0 works it out from
+    // the intensity). Its "Direction" is in its own space, so its rotation
+    // turns it.
+    public constant text INNER_ANGLE = "Inner Angle"
+    public constant text OUTER_ANGLE = "Outer Angle"
+    public constant text RANGE = "Range"
 
     // CUSTOM is a valid value for the TYPE property for both Models and Drawables.
     // NONE is typically used for TYPE if a Model or Drawable hasn't been loaded yet.

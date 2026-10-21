@@ -60,6 +60,11 @@ class TerrainBrushPreview is Model
     number outlineShare = 0.6
     number outlineDrop = 0.02
 
+    // The rings' color: yellow by default. The black edges stay black.
+    number ringRed = 1
+    number ringGreen = 0.85
+    number ringBlue = 0.1
+
     boolean loaded = false
     MeshVulkan ringMesh = undefined
     MeshVulkan outlineMesh = undefined
@@ -226,6 +231,28 @@ class TerrainBrushPreview is Model
     end
 
     /*
+    This action sets the rings' color; their black edges stay black. The
+    default is yellow. A scene editor uses green for a ramp's start, and
+    red for the brush while it marks a ramp's end.
+
+    Attribute: Parameter red The red, from 0 to 1.
+    Attribute: Parameter green The green, from 0 to 1.
+    Attribute: Parameter blue The blue, from 0 to 1.
+    */
+    action SetRingColor(number red, number green, number blue)
+        if red = ringRed and green = ringGreen and blue = ringBlue
+            return now
+        end
+        ringRed = red
+        ringGreen = green
+        ringBlue = blue
+        if loaded
+            Color color
+            SetColor(0, color:CustomColor(red, green, blue, 1))
+        end
+    end
+
+    /*
     This action returns the ground's height at a place, or a height to use
     where there is no region.
 
@@ -294,7 +321,7 @@ class TerrainBrushPreview is Model
         outlineMesh = ringBlueprint:GetMeshes():Get(1)
 
         Color color
-        SetColor(0, color:CustomColor(1, 0.85, 0.1, 1))
+        SetColor(0, color:CustomColor(ringRed, ringGreen, ringBlue, 1))
         SetColor(1, color:CustomColor(0.02, 0.02, 0.02, 1))
         SetCastsShadows(false)
     end

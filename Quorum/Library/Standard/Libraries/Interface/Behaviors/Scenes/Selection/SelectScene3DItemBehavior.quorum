@@ -12,6 +12,7 @@ use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Compute.Ray
 use Libraries.Compute.Vector3
+use Libraries.Interface.Controls.Scenes.Items.EditorCursor3D
 use Libraries.Game.Graphics.Camera
 use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
 use Libraries.Interface.Controls.Scenes.Items.EditorCamera3D
@@ -54,7 +55,11 @@ class SelectScene3DItemBehavior is Behavior
         EditorCamera3D camera = layer:GetEditorCamera()
         
         //Ray ray = camera:GetPickRay(mouse:GetX() - editor:GetGlobalX(), camera:GetHeight() - mouse:GetY() - editor:GetGlobalY())
-        Ray ray = camera:GetPickRay(mouse:GetX(), mouse:GetY(), editor:GetGlobalX(), editor:GetGlobalY(), camera:GetWidth(), camera:GetHeight())
+        // GetPickRay mirrors x across the view, so the pointer's x is
+        // mirrored first, as the terrain brush's picking does; otherwise the
+        // click tests the mirrored place.
+        number mirroredX = 2 * editor:GetGlobalX() + camera:GetWidth() - mouse:GetX()
+        Ray ray = camera:GetPickRay(mirroredX, mouse:GetY(), editor:GetGlobalX(), editor:GetGlobalY(), camera:GetWidth(), camera:GetHeight())
         
         
         Vector3 origin = ray:GetOrigin()
@@ -71,6 +76,7 @@ class SelectScene3DItemBehavior is Behavior
         // its box would be all its regions.
         TerrainItem nearestTerrain = undefined
         number nearestTerrainDistance = 0
+        Vector3 nearestTerrainHit = undefined
 
         Iterator<Item3D> items = layer:GetIterator()
         repeat while items:HasNext()
@@ -84,6 +90,7 @@ class SelectScene3DItemBehavior is Behavior
                         if nearestTerrain = undefined or distance < nearestTerrainDistance
                             nearestTerrain = terrain
                             nearestTerrainDistance = distance
+                            nearestTerrainHit = hit
                         end
                     end
                 elseif RayIntersectsItem(ray, temp)
@@ -110,6 +117,12 @@ class SelectScene3DItemBehavior is Behavior
         end
         
         if not result:IsEmpty()
+            // A click on the ground puts the cursor where it landed, rather
+            // than at the terrain's middle, which may be far away.
+            if result:Get(0) is TerrainItem and nearestTerrainHit not= undefined
+                EditorCursor3D cursor = cast(EditorCursor3D, layer:GetCursor())
+                cursor:SetPosition(nearestTerrainHit:GetX(), nearestTerrainHit:GetY(), nearestTerrainHit:GetZ())
+            end
             editor:SetFilteredItems(result, true)
         end
     end

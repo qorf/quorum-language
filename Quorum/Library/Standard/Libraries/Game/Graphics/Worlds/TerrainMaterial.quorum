@@ -1,5 +1,7 @@
 package Libraries.Game.Graphics.Worlds
 
+use Libraries.System.Logging.SharedLogger
+
 use Libraries.Containers.Array
 use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
@@ -297,7 +299,8 @@ class TerrainMaterial
                 material:Load(materialFile)
                 materials:Add(key, material)
             else
-                output "The material " + materialFile:GetAbsolutePath() + " wasn't found, so layer " + (layerMaterials:GetSize() + 1) + " is empty."
+                SharedLogger logger
+                logger:Log("The material " + materialFile:GetAbsolutePath() + " wasn't found, so layer " + (layerMaterials:GetSize() + 1) + " is empty.")
             end
         end
         if layerName = ""

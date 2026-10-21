@@ -1,0 +1,26 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Game.Graphics.Texture
+
+/*
+A TerrainTextureStandIn stands for a terrain's splat texture at its place in
+the terrain's block of texture places (WorldTerrain). The terrain's models
+are drawn with it, so they are drawn in the block's texture group, where
+every texture the splat shader needs is linked.
+
+The shader reads a model's texture from the group bound for the draw, by its
+place inside that group, so this returns that place as its texture index
+too. It is never loaded or disposed of itself; the splat texture it stands
+for is.
+*/
+class TerrainTextureStandIn is Texture
+    /*
+    This action returns the stand-in's place inside its texture group, which
+    is where the shader finds it.
+
+    Attribute: Returns The place inside the group.
+    */
+    action GetVulkanTextureIndex returns integer
+        return GetVulkanTextureLocalIndex()
+    end
+end

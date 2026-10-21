@@ -51,6 +51,8 @@ class CameraMouseMoveDirectionBehavior is Behavior
             cameraDirection:SetY(math:Sine(pitch))
             cameraDirection:SetZ(math:Cosine(pitch) * math:Cosine(yaw))
             camera:SetDirection(cameraDirection)
+            // The new angle stays when the camera moves to a target later.
+            camera:MatchView()
         elseif mouseEvent:mouseButton = mouseEvent:MIDDLE
 if mouseEvent:IsClicked() 
                 Vector3 cameraPosition = camera:GetPosition():Copy()
@@ -102,6 +104,7 @@ newCameraDirection:SetX(dirX)
 newCameraDirection:SetY(dirY)
 newCameraDirection:SetZ(dirZ)
 camera:SetDirection(newCameraDirection)
+            camera:MatchView()
             end
         end
         

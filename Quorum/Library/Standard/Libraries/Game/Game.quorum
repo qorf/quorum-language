@@ -1371,13 +1371,17 @@ if gl20 is OpenGLManager
         integer i = 0
         repeat while i < layers:GetSize()
             Layer layer = layers:Get(i)
+            Camera camera = undefined
             if layer is Layer3D
                 Layer3D layer3D = cast(Layer3D, layer)
-                Camera camera = layer3D:GetCamera()
-                if camera not= undefined and camera:IsFollowing() and not followedCameras:Has(camera)
-                    camera:UpdateFollow(seconds)
-                    followedCameras:Add(camera)
-                end
+                camera = layer3D:GetCamera()
+            elseif layer is Layer2D
+                Layer2D layer2D = cast(Layer2D, layer)
+                camera = layer2D:GetCamera()
+            end
+            if camera not= undefined and camera:IsFollowing() and not followedCameras:Has(camera)
+                camera:UpdateFollow(seconds)
+                followedCameras:Add(camera)
             end
             i = i + 1
         end

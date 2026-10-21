@@ -1,5 +1,7 @@
 package Libraries.Game.Graphics.Worlds
 
+use Libraries.System.Logging.SharedLogger
+
 use Libraries.Interface.Item3D
 use Libraries.System.File
 use Libraries.Game.Layer3D
@@ -99,7 +101,8 @@ class TerrainItem is Item3D
         // The scene still loads: the terrain is empty, and keeps its path.
         if not file:Exists()
             missing = true
-            output "The terrain " + file:GetPath() + " wasn't found, so it is empty. Its folder may have been moved or not copied with the project."
+            SharedLogger logger
+            logger:Log("The terrain " + file:GetPath() + " wasn't found, so it is empty. Its folder may have been moved or not copied with the project.")
             return now
         end
         missing = false
@@ -311,6 +314,16 @@ class TerrainItem is Item3D
     end
 
     /*
+    This action gives back the places the terrain's ground textures hold in
+    the renderer, once the terrain is no longer used, such as when its scene
+    is closed. Remove the terrain from its layer first. If it is added and
+    drawn again, it takes new places on its next update.
+    */
+    action Dispose
+        terrain:ReleaseTexturePlaces()
+    end
+
+    /*
     This action sets whether the terrain's region models have collision
     shapes, so physics objects land on them. Set it before Load or
     CreateFlat. Quorum Studio's editor turns it off, since it only draws.
@@ -493,6 +506,10 @@ class TerrainItem is Item3D
         terrain:Build()
         integer i = 0
         repeat while i < terrain:GetRegionModelCount()
+            // The region models take mouse input only if the item does, so a
+            // terrain that doesn't (such as in a scene editor) passes clicks
+            // through to what is under it.
+            terrain:GetRegionModel(i):SetAcceptsMouseInput(IsAcceptingMouseInput())
             Add(terrain:GetRegionModel(i))
             i = i + 1
         end

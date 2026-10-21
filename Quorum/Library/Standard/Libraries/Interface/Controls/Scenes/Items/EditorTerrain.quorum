@@ -44,6 +44,18 @@ class EditorTerrain is TerrainItem
     // editor, 1 to 9, or 0 for no tool: then the terrain is only selected.
     TerrainBrush brush
     TerrainTool tools
+    constant number DEFAULT_STRENGTH = 2.5
+
+    // The ramp tool's two ends (step 8): set at the brush, each with the
+    // ground's height there. The brush gets the ramp once both are set.
+    boolean rampStartSet = false
+    boolean rampEndSet = false
+    number rampStartX = 0
+    number rampStartZ = 0
+    number rampStartHeight = 0
+    number rampEndX = 0
+    number rampEndZ = 0
+    number rampEndHeight = 0
     integer toolNumber = 0
     number brushX = 0
     number brushZ = 0
@@ -53,6 +65,15 @@ class EditorTerrain is TerrainItem
     on create
         // The editor only draws the terrain.
         parent:TerrainItem:SetCollision(false)
+        // Clicks over the terrain go to the scene editor, which picks the
+        // ground itself (step 7); the terrain's models don't take them.
+        SetAcceptsMouseInput(false)
+        // A stronger brush than the library's default of 1, which felt slow
+        // in the editor (the user, 2026-10-21).
+        brush:SetStrength(DEFAULT_STRENGTH)
+        // Flatten starts by evening the ground to the height where each
+        // stroke begins, which needs no setting first.
+        brush:SetFlattenToStart(true)
     end
 
     /*
@@ -577,6 +598,139 @@ class EditorTerrain is TerrainItem
     end
 
     /*
+        Sets one end of the ramp at the brush, with the ground's height there
+        (step 8). Once both ends are set, the ramp tool shapes the ground
+        under the brush toward a straight slope between them.
+
+        Attribute: Parameter isEnd True for the ramp's end, false for its start
+        Attribute: Returns What was set, for speaking
+    */
+    action SetRampPoint(boolean isEnd) returns text
+        if not brushOnGround
+            return "The brush is off the ground, so the ramp's point wasn't set."
+        end
+        number height = GetWorldTerrain():GetData():GetSurfaceHeight(brushX, brushZ)
+        text which = "start"
+        if isEnd
+            rampEndX = brushX
+            rampEndZ = brushZ
+            rampEndHeight = height
+            rampEndSet = true
+            which = "end"
+        else
+            rampStartX = brushX
+            rampStartZ = brushZ
+            rampStartHeight = height
+            rampStartSet = true
+            // A new start begins a new ramp.
+            rampEndSet = false
+        end
+        text result = "Ramp " + which + " at " + Round(brushX) + ", " + Round(brushZ) + ", height " + Round(height) + "."
+        if HasRamp()
+            brush:SetGradient(rampStartX, rampStartZ, rampStartHeight, rampEndX, rampEndZ, rampEndHeight)
+            result = result + " The ramp is ready: " + DescribeRamp()
+        elseif isEnd
+            result = result + " Now set its start."
+        else
+            result = result + " Now set its end."
+        end
+        return result
+    end
+
+    /*
+        Sets the ramp's next end at the brush, for its key (step 8): the
+        start if none is set or both are, which begins a new ramp; otherwise
+        the end.
+
+        Attribute: Returns What was set, for speaking
+    */
+    action SetNextRampPoint returns text
+        if rampStartSet and not rampEndSet
+            return SetRampPoint(true)
+        end
+        if rampStartSet and rampEndSet and brushOnGround
+            // Both are set, so this begins a new ramp.
+            rampEndSet = false
+        end
+        return SetRampPoint(false)
+    end
+
+    /*
+        Returns true once the ramp's start is set.
+
+        Attribute: Returns True if the start is set
+    */
+    action HasRampStart returns boolean
+        return rampStartSet
+    end
+
+    /*
+        Returns the ramp's start along x.
+
+        Attribute: Returns The start's x
+    */
+    action GetRampStartX returns number
+        return rampStartX
+    end
+
+    /*
+        Returns the ramp's start along z.
+
+        Attribute: Returns The start's z
+    */
+    action GetRampStartZ returns number
+        return rampStartZ
+    end
+
+    /*
+        Returns the ramp's height at its start.
+
+        Attribute: Returns The start's height
+    */
+    action GetRampStartHeight returns number
+        return rampStartHeight
+    end
+
+    /*
+        Clears the ramp, so its start and end are set again (step 8).
+    */
+    action ClearRamp
+        rampStartSet = false
+        rampEndSet = false
+    end
+
+    /*
+        Returns true once both ends of the ramp are set.
+
+        Attribute: Returns True if the ramp is set
+    */
+    action HasRamp returns boolean
+        return rampStartSet and rampEndSet
+    end
+
+    /*
+        Describes the ramp, such as "from 10, 5 at height 2 to 30, 5 at
+        height 8", or what is still missing.
+
+        Attribute: Returns The description
+    */
+    action DescribeRamp returns text
+        if not rampStartSet and not rampEndSet
+            return "not set. With the Ramp tool, click where it starts, then where it ends."
+        end
+        text startText = "start not set"
+        if rampStartSet
+            startText = "from " + Round(rampStartX) + ", " + Round(rampStartZ) + " at height " + Round(rampStartHeight)
+        end
+        text endText = "end not set"
+        if rampEndSet
+            endText = "to " + Round(rampEndX) + ", " + Round(rampEndZ) + " at height " + Round(rampEndHeight)
+        end
+        return startText + ", " + endText
+    end
+
+    /*
+        Says the ground's height under the brush in a few words, such as    /*
         Says the ground's height under the brush in a few words, such as
         "Height 3.2", for each arrow key move (step 12).
 

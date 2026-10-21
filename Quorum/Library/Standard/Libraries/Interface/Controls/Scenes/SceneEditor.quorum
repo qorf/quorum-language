@@ -52,6 +52,11 @@ use Libraries.Interface.Controls.Scenes.Items.Previews.ItemPreview3D
 use Libraries.Interface.Controls.Scenes.Items.Previews.ModelPreview
 use Libraries.Interface.Controls.Scenes.Items.Previews.PointLightPreview
 use Libraries.Interface.Controls.Scenes.Blueprints.PointLightBlueprint
+use Libraries.Interface.Controls.Scenes.Blueprints.SpotLightBlueprint
+use Libraries.Interface.Controls.Scenes.Items.EditorSpotLight
+use Libraries.Interface.Controls.Scenes.Items.Previews.SpotLightPreview
+use Libraries.Interface.Controls.Scenes.Items.Highlights.SpotLightSelectionHighlight
+use Libraries.Interface.Controls.Scenes.Dialogs.SpotLightPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Items.Previews.Audio3DPreview
 use Libraries.Interface.Controls.Scenes.Blueprints.Audio3DBlueprint
 use Libraries.Interface.Controls.Scenes.Items.Previews.Custom3DPrimitivePreview
@@ -84,6 +89,7 @@ use Libraries.Interface.Controls.Scenes.Dialogs.TerrainPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.TerrainPhysicsPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.TerrainBrushPropertiesDialog
 use Libraries.Game.Graphics.Worlds.TerrainBrushPreview
+use Libraries.Game.Graphics.Worlds.TerrainRampPreview
 use Libraries.Game.Graphics.Worlds.TerrainBrush
 use Libraries.Interface.Controls.Scenes.Items.EditorCamera3D
 use Libraries.Compute.Ray
@@ -204,6 +210,7 @@ class SceneEditor is Control, DefaultSceneManager
     Camera2DPropertiesDialog camera2dPropertiesDialog
     Camera3DPropertiesDialog camera3dPropertiesDialog
     PointLightPropertiesDialog pointLightPropertiesDialog
+    SpotLightPropertiesDialog spotLightPropertiesDialog
     Audio3DPropertiesDialog audio3DPropertiesDialog
 
     // A terrain's properties (step 5). They are added only with a
@@ -232,6 +239,12 @@ class SceneEditor is Control, DefaultSceneManager
     number previewZ = 0
     number previewSize = 0
     TerrainBrushMouseListener brushMouseListener
+
+    // A ramp being marked (step 8): a green ring at its start, and a green
+    // outline from there to the brush, which turns red as the ramp's end.
+    TerrainBrushPreview rampStartMarker = undefined
+    TerrainRampPreview rampOutline = undefined
+    boolean rampShown = false
 
     // A stroke with a terrain's brush (step 8): it goes on while the key
     // that started it, or the left mouse button, is held.
@@ -306,6 +319,7 @@ class SceneEditor is Control, DefaultSceneManager
         propertiesDialogs:Add(camera2dPropertiesDialog)
         propertiesDialogs:Add(camera3dPropertiesDialog)
         propertiesDialogs:Add(pointLightPropertiesDialog)
+        propertiesDialogs:Add(spotLightPropertiesDialog)
         propertiesDialogs:Add(audio3DPropertiesDialog)
 
         integer counter = 0
@@ -618,8 +632,21 @@ class SceneEditor is Control, DefaultSceneManager
 
         EditorLayer3D layer3D = cast(EditorLayer3D, layer)
 
+        // A terrain is too big to center on: going to its middle would fly
+        // the camera away from where the user was looking, so selecting one
+        // keeps the camera where it is.
+        if item is TerrainSelectionHighlight
+            return now
+        end
+
         if item = undefined and IsFocused()
-            item = layer3D:GetCursor()
+            // The cursor becomes the target without the camera jumping to
+            // it, such as after a click in the view; moving the cursor with
+            // the keys then moves the camera with it. The cursor is held as
+            // an Item, since it can only be cast to an Item3D from there.
+            Item cursorItem = layer3D:GetCursor()
+            layer3D:GetEditorCamera():SetTargetWithoutMoving(cast(Item3D, cursorItem))
+            return now
         end
         
         layer3D:GetEditorCamera():SetTarget(cast(Item3D, item))
@@ -963,6 +990,9 @@ action Update(number seconds)
                     if item is EditorPointLight
                         PointLightSelectionHighlight light
                         highlight = light
+                    elseif item is EditorSpotLight
+                        SpotLightSelectionHighlight spot
+                        highlight = spot
                     elseif item is EditorAudio3D
                         Audio3DSelectionHighlight light
                         highlight = light
@@ -1222,7 +1252,7 @@ action Update(number seconds)
             layer:Add(preview)
             preview:Focus()
             return preview
-        elseif schematic is ModelBlueprint or schematic is PointLightBlueprint or schematic is Audio3DBlueprint
+        elseif schematic is ModelBlueprint or schematic is PointLightBlueprint or schematic is SpotLightBlueprint or schematic is Audio3DBlueprint
             
             if not (GetSelectedLayer() is EditorLayer3D)
                 integer counter = 0
@@ -1258,6 +1288,11 @@ action Update(number seconds)
                     preview = lightPreview
                     PointLightBlueprint lightBlueprint = cast(PointLightBlueprint, schematic)
                     lightPreview:Load(me, lightBlueprint)
+                elseif schematic is SpotLightBlueprint
+                    SpotLightPreview spotPreview
+                    preview = spotPreview
+                    SpotLightBlueprint spotBlueprint = cast(SpotLightBlueprint, schematic)
+                    spotPreview:Load(me, spotBlueprint)
                 else
                     Audio3DPreview audioPreview
                     preview = audioPreview
@@ -1557,16 +1592,16 @@ action Update(number seconds)
 
     /*
     This action returns true if a tool's strokes are ready in the scene
-    editor for a terrain. Raise and lower are (step 8), paint, once the
-    terrain has two or more materials (step 9), and add and remove region
-    (step 11); the other tools come in later steps, one at a time.
+    editor for a terrain: raise, lower, smooth, flatten and ramp (step 8),
+    paint, once the terrain has two or more materials (step 9), and add and
+    remove region (step 11). Blend paint comes later.
 
     Attribute: Parameter terrain The terrain
     Attribute: Parameter tool The tool's number, from 1 to 9
     Attribute: Returns True if the tool can make strokes
     */
     action CanStrokeWithTool(EditorTerrain terrain, integer tool) returns boolean
-        if tool = 1 or tool = 2 or tool = 8 or tool = 9
+        if tool = 1 or tool = 2 or tool = 3 or tool = 4 or tool = 5 or tool = 8 or tool = 9
             return true
         end
         return tool = 6 and terrain not= undefined and terrain:GetLayerCount() >= 2
@@ -1594,7 +1629,14 @@ action Update(number seconds)
             return now
         end
         if not CanStrokeWithTool(terrain, tool)
-            NotifyAccessibility(terrain, terrain:GetToolName(tool) + " strokes aren't ready yet. Raise, lower, paint, add region and remove region are.")
+            NotifyAccessibility(terrain, terrain:GetToolName(tool) + " strokes aren't ready yet. The other tools are.")
+            return now
+        end
+        if tool = 5
+            // The ramp isn't a stroke: the first click (or Space) marks its
+            // start, and the second makes the whole ramp to where the brush
+            // is (step 8).
+            SetNextTerrainRampPoint(terrain)
             return now
         end
         if tool = 6 and terrain:GetBrush():GetLayer() >= terrain:GetLayerCount()
@@ -1718,6 +1760,22 @@ action Update(number seconds)
                 change = -change
             end
             return verb + " by up to " + RoundTenth(change) + ". " + terrain:DescribeBrushHeight()
+        elseif tool = 4 or tool = 5
+            number shaped = strokeEdit:GetLargestHeightChange()
+            if shaped < 0
+                shaped = -shaped
+            end
+            text shapedVerb = "Flattened"
+            if tool = 5
+                shapedVerb = "Shaped the ramp"
+            end
+            return shapedVerb + ", changing heights by up to " + RoundTenth(shaped) + ". " + terrain:DescribeBrushHeight()
+        elseif tool = 3
+            number smoothed = strokeEdit:GetLargestHeightChange()
+            if smoothed < 0
+                smoothed = -smoothed
+            end
+            return "Smoothed, changing heights by up to " + RoundTenth(smoothed) + ". " + terrain:DescribeBrushHeight()
         elseif tool = 6
             return "Painted " + terrain:GetLayerLabel(terrain:GetBrush():GetLayer()) + ". " + terrain:DescribeBrushHeight()
         elseif tool = 8 or tool = 9
@@ -2570,8 +2628,9 @@ action Update(number seconds)
             return now
         end
         Material before = material:Copy()
-        File colorMap
-        colorMap:SetPath(material:GetColorMapPath())
+        // The color map's path is a full path, which File's SetPath
+        // doesn't take.
+        File colorMap = material:MakeFile(material:GetColorMapPath())
         text found = material:FindTextureSetMaps(colorMap, false)
         // A map found by name must still be the size of the color map.
         integer kind = material:NORMAL_MAP
@@ -2817,8 +2876,9 @@ action Update(number seconds)
         end
         made:SetName(materialName)
 
+        // The folder is a full path, which File's SetPath doesn't take.
         File materialFile
-        materialFile:SetPath(folder + "/" + materialName + ".json")
+        materialFile:SetAbsolutePath(folder + "/" + materialName + ".json")
         text key = materialFile:GetAbsolutePath()
         if materials:HasKey(key)
             layerMaterialNote = ""
@@ -2928,6 +2988,209 @@ action Update(number seconds)
     end
 
     /*
+    This action sets one end of a terrain's ramp at its brush, and says it
+    (step 8).
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter isEnd True for the ramp's end, false for its start
+    */
+    action SetTerrainRampPoint(EditorTerrain terrain, boolean isEnd)
+        if terrain = undefined
+            return now
+        end
+        if not terrain:HasTool()
+            NotifyAccessibility(terrain, "Choose a tool first, with Alt and a number, to place the brush.")
+            return now
+        end
+        if isEnd
+            // The end makes the ramp, if its start is set.
+            if terrain:HasRampStart()
+                ApplyTerrainRamp(terrain)
+            else
+                NotifyAccessibility(terrain, "Set the ramp's start first.")
+            end
+            return now
+        end
+        NotifyAccessibility(terrain, terrain:SetRampPoint(false))
+        TerrainBrushChanged(terrain)
+    end
+
+    /*
+    This action sets the next end of a terrain's ramp at its brush, for its
+    key (step 8): the start, then the end; after both, a new start.
+
+    Attribute: Parameter terrain The terrain
+    */
+    action SetNextTerrainRampPoint(EditorTerrain terrain)
+        if terrain = undefined or not terrain:HasTool()
+            return now
+        end
+        if not terrain:HasRampStart()
+            text started = terrain:SetRampPoint(false)
+            if terrain:HasRampStart()
+                started = "Ramp start at " + RoundTenth(terrain:GetRampStartX()) + ", " + RoundTenth(terrain:GetRampStartZ()) +
+                    ", height " + RoundTenth(terrain:GetRampStartHeight()) + ". Move to where it ends, and click or press Alt+G again."
+            end
+            NotifyAccessibility(terrain, started)
+            TerrainBrushChanged(terrain)
+            return now
+        end
+        ApplyTerrainRamp(terrain)
+    end
+
+    /*
+    This action makes a whole ramp at once (step 8): a straight slope from
+    the ramp's start, at its height, to the brush, at the ground's height
+    there, as wide as the brush. The ground across the ramp is set to the
+    slope, fading back to the ground over the brush's outer edge. It can be
+    undone, and the ramp is cleared for the next one.
+
+    Attribute: Parameter terrain The terrain
+    */
+    action ApplyTerrainRamp(EditorTerrain terrain)
+        if not CanOperateOn(terrain)
+            return now
+        end
+        if not terrain:HasRampStart()
+            return now
+        end
+        if not terrain:IsBrushOnGround()
+            NotifyAccessibility(terrain, "The brush is off the ground, so the ramp can't end there.")
+            return now
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        number startX = terrain:GetRampStartX()
+        number startZ = terrain:GetRampStartZ()
+        number startHeight = terrain:GetRampStartHeight()
+        number endX = terrain:GetBrushX()
+        number endZ = terrain:GetBrushZ()
+        number endHeight = data:GetSurfaceHeight(endX, endZ)
+        number halfWidth = terrain:GetBrush():GetSize()
+
+        number lineX = endX - startX
+        number lineZ = endZ - startZ
+        number length = math:SquareRoot(lineX * lineX + lineZ * lineZ)
+        if length < data:GetVertexSpacing()
+            NotifyAccessibility(terrain, "The ramp's end is too close to its start. Move further away.")
+            return now
+        end
+        number alongX = lineX / length
+        number alongZ = lineZ / length
+
+        number reach = halfWidth + 1
+        integer minimumX = data:GetSampleX(math:MinimumOf(startX, endX) - reach)
+        integer minimumZ = data:GetSampleZ(math:MinimumOf(startZ, endZ) - reach)
+        integer maximumX = data:GetSampleX(math:MaximumOf(startX, endX) + reach) + 1
+        integer maximumZ = data:GetSampleZ(math:MaximumOf(startZ, endZ) + reach) + 1
+        TerrainStroke operation = BeginTerrainOperation(terrain, "ramp", true, false, minimumX, minimumZ, maximumX, maximumZ)
+
+        number spacing = data:GetVertexSpacing()
+        // Full strength across the middle of the ramp, fading to nothing at
+        // its sides.
+        number solid = halfWidth * 0.7
+        integer z = minimumZ
+        repeat while z <= maximumZ
+            integer x = minimumX
+            repeat while x <= maximumX
+                if data:HasSample(x, z)
+                    number offsetX = x * spacing - startX
+                    number offsetZ = z * spacing - startZ
+                    number along = offsetX * alongX + offsetZ * alongZ
+                    number across = math:AbsoluteValue(offsetZ * alongX - offsetX * alongZ)
+                    if along >= 0 and along <= length and across <= halfWidth
+                        number weight = 1
+                        if across > solid
+                            number fade = (halfWidth - across) / (halfWidth - solid)
+                            weight = fade * fade * (3 - 2 * fade)
+                        end
+                        number goal = startHeight + (endHeight - startHeight) * along / length
+                        number height = data:GetSampleHeight(x, z)
+                        data:SetSampleHeight(x, z, height + (goal - height) * weight)
+                    end
+                end
+                x = x + 1
+            end
+            z = z + 1
+        end
+
+        terrain:ClearRamp()
+        FinishTerrainOperation(terrain, operation, "Made a ramp from height " + RoundTenth(startHeight) + " to " + RoundTenth(endHeight) +
+            ", " + RoundTenth(length) + " units long. Click again to start another.")
+        TerrainBrushChanged(terrain)
+    end
+
+    /*
+    This action clears a terrain's ramp, so the next two clicks (or Alt+G
+    presses) set a new start and end (step 8).
+
+    Attribute: Parameter terrain The terrain
+    */
+    action ClearTerrainRamp(EditorTerrain terrain)
+        if terrain = undefined
+            return now
+        end
+        terrain:ClearRamp()
+        NotifyAccessibility(terrain, "Ramp cleared. With the Ramp tool, click where the next one starts.")
+        TerrainBrushChanged(terrain)
+    end
+
+    /*
+    This action sets what flatten evens the ground to: the height where each
+    stroke starts, or a set height (step 8).
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter toStart True for the height where each stroke starts
+    */
+    action SetTerrainFlattenToStart(EditorTerrain terrain, boolean toStart)
+        if terrain = undefined
+            return now
+        end
+        terrain:GetBrush():SetFlattenToStart(toStart)
+        if toStart
+            NotifyAccessibility(terrain, "Flatten to the height where each stroke starts")
+        else
+            NotifyAccessibility(terrain, "Flatten to height " + RoundTenth(terrain:GetBrush():GetTargetHeight()))
+        end
+    end
+
+    /*
+    This action sets the height flatten evens the ground to, and makes it
+    flatten to that height rather than where each stroke starts (step 8).
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter height The height
+    */
+    action SetTerrainFlattenHeight(EditorTerrain terrain, number height)
+        if terrain = undefined
+            return now
+        end
+        terrain:GetBrush():SetTargetHeight(height)
+        terrain:GetBrush():SetFlattenToStart(false)
+        TerrainBrushChanged(terrain)
+    end
+
+    /*
+    This action takes the ground's height under a terrain's brush as the
+    height flatten evens to (step 8).
+
+    Attribute: Parameter terrain The terrain
+    */
+    action TakeTerrainFlattenHeight(EditorTerrain terrain)
+        if terrain = undefined
+            return now
+        end
+        if not terrain:HasTool() or not terrain:IsBrushOnGround()
+            NotifyAccessibility(terrain, "Place the brush on the ground first, with a tool chosen.")
+            return now
+        end
+        number height = terrain:GetWorldTerrain():GetData():GetSurfaceHeight(terrain:GetBrushX(), terrain:GetBrushZ())
+        terrain:GetBrush():SetTargetHeight(height)
+        terrain:GetBrush():SetFlattenToStart(false)
+        NotifyAccessibility(terrain, "Flatten to height " + RoundTenth(height))
+        TerrainBrushChanged(terrain)
+    end
+
+    /*
     This action says what the ground under a terrain's whole brush is like:
     its heights, its steepest slope, and how much of it each layer covers
     (step 12). The Brush section's "Describe the area" button calls it.
@@ -2998,6 +3261,7 @@ action Update(number seconds)
                 brushPreview:Hide()
                 brushPreviewShown = false
             end
+            HideRampPreview()
             return now
         end
         EditorLayer layer = GetSelectedLayer()
@@ -3006,10 +3270,13 @@ action Update(number seconds)
         end
         number size = brushTerrain:GetBrush():GetSize()
         boolean moved = brushTerrain:GetBrushX() not= previewX or brushTerrain:GetBrushZ() not= previewZ or size not= previewSize
+        UpdateRampPreview(cast(EditorLayer3D, layer))
         if brushPreview = undefined
             TerrainBrushPreview preview
             preview:SetName("Terrain Brush")
             preview:SetProperty(constants:EDITOR_TAG, undefined)
+            // The ring lets clicks through to the scene editor.
+            preview:SetAcceptsMouseInput(false)
             preview:Place(brushTerrain:GetWorldTerrain():GetData(), brushTerrain:GetBrushX(), brushTerrain:GetBrushZ(), size)
             brushPreview = preview
             EditorLayer3D layer3D = cast(EditorLayer3D, layer)
@@ -3019,6 +3286,12 @@ action Update(number seconds)
         if moved
             brushPreview:Place(brushTerrain:GetWorldTerrain():GetData(), brushTerrain:GetBrushX(), brushTerrain:GetBrushZ(), size)
         end
+        // The brush turns red while it marks a ramp's end.
+        if brushTerrain:GetToolNumber() = 5 and brushTerrain:HasRampStart()
+            brushPreview:SetRingColor(0.95, 0.15, 0.1)
+        else
+            brushPreview:SetRingColor(1, 0.85, 0.1)
+        end
         if not brushPreviewShown
             brushPreview:Show()
             brushPreviewShown = true
@@ -3026,6 +3299,86 @@ action Update(number seconds)
         previewX = brushTerrain:GetBrushX()
         previewZ = brushTerrain:GetBrushZ()
         previewSize = size
+    end
+
+    /*
+    This action shows a ramp being marked (step 8): a green ring at its
+    start, and a green outline from the start, at its height, to the brush,
+    at the ground's height there, as wide as the brush. They are the
+    editor's own items, so they aren't saved, listed or picked.
+
+    Attribute: Parameter layer The 3D layer the terrain is in
+    */
+    private action UpdateRampPreview(EditorLayer3D layer)
+        boolean marking = brushTerrain:GetToolNumber() = 5 and brushTerrain:HasRampStart()
+        if not marking
+            HideRampPreview()
+            return now
+        end
+        TerrainData data = brushTerrain:GetWorldTerrain():GetData()
+        number size = brushTerrain:GetBrush():GetSize()
+        number startX = brushTerrain:GetRampStartX()
+        number startZ = brushTerrain:GetRampStartZ()
+        if rampStartMarker = undefined
+            TerrainBrushPreview marker
+            marker:SetName("Ramp Start")
+            marker:SetProperty(constants:EDITOR_TAG, undefined)
+            marker:SetAcceptsMouseInput(false)
+            marker:SetRingColor(0.15, 0.85, 0.25)
+            marker:Place(data, startX, startZ, size)
+            rampStartMarker = marker
+            layer:Add(marker)
+
+            TerrainRampPreview outline
+            outline:SetName("Ramp")
+            outline:SetProperty(constants:EDITOR_TAG, undefined)
+            outline:SetAcceptsMouseInput(false)
+            rampOutline = outline
+            layer:Add(outline)
+        end
+        rampStartMarker:Place(data, startX, startZ, size)
+        number endHeight = data:GetSurfaceHeight(brushTerrain:GetBrushX(), brushTerrain:GetBrushZ())
+        rampOutline:Place(startX, startZ, brushTerrain:GetRampStartHeight(), brushTerrain:GetBrushX(), brushTerrain:GetBrushZ(),
+            endHeight, size)
+        if not rampShown
+            rampStartMarker:Show()
+            rampOutline:Show()
+            rampShown = true
+        end
+    end
+
+    /*
+    This action hides a ramp's start ring and outline.
+    */
+    private action HideRampPreview
+        if rampShown
+            rampStartMarker:Hide()
+            rampOutline:Hide()
+            rampShown = false
+        end
+    end
+
+    /*
+    This action gives back what each terrain in the 3D layers holds in the
+    renderer, such as its block of texture places. Call it when the scene is
+    closed, after HideLayers, so reopening scenes doesn't use up places.
+    */
+    action ReleaseTerrains
+        integer counter = 0
+        repeat while counter < layers:GetSize()
+            EditorLayer editorLayer = layers:Get(counter)
+            if editorLayer is EditorLayer3D
+                EditorLayer3D layer = cast(EditorLayer3D, editorLayer)
+                Iterator<Item3D> items = layer:GetIterator()
+                repeat while items:HasNext()
+                    Item3D item = items:Next()
+                    if item is EditorTerrain
+                        item:Dispose()
+                    end
+                end
+            end
+            counter = counter + 1
+        end
     end
 
     /*
@@ -3336,6 +3689,11 @@ action Update(number seconds)
     action SetCursorToItem(EditorItem item)
         // We don't want the cursor to jump to the camera item, so abort now.
         if item is CameraItem
+            return now
+        end
+        // A terrain's middle may be far from where it was clicked, so the
+        // cursor stays where it is when a terrain is selected.
+        if item is TerrainSelectionHighlight
             return now
         end
 
@@ -3905,6 +4263,9 @@ action Update(number seconds)
         elseif type = "PointLight"
             EditorPointLight light
             return light
+        elseif type = "SpotLight"
+            EditorSpotLight spot
+            return spot
         elseif type = "Terrain"
             EditorTerrain terrain
             terrain:SetSceneEditor(me)
@@ -4027,6 +4388,9 @@ action Update(number seconds)
         if key = properties:CLASS
             if item is EditorPointLight
                 json:Add(key, "PointLight")
+                return true
+            elseif item is EditorSpotLight
+                json:Add(key, "SpotLight")
                 return true
             else
                 return false

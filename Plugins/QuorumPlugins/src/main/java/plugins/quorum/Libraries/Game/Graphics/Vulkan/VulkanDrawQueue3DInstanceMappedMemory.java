@@ -49,7 +49,11 @@ public class VulkanDrawQueue3DInstanceMappedMemory
         else
         {
             byteBuffer.putInt(1);
-            byteBuffer.putInt(texture.GetVulkanTextureIndex());
+            // The shader reads the override from the texture group bound for
+            // the draw, so it needs the texture's place inside that group, as
+            // materials give theirs (MaterialVulkan). The overall place only
+            // matched it in the first group.
+            byteBuffer.putInt(texture.GetVulkanTextureLocalIndex());
         }
 
         if (color == null)

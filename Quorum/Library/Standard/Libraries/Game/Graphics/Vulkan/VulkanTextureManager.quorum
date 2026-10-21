@@ -768,6 +768,115 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
     end
 
     /*
+    This action reserves a block of places in the global texture array, all
+    in one group and at places inside the group below 255, so a shader drawing
+    with that group can find every texture linked there by its place inside
+    the group, in one byte. Places left over at the end of a group when the
+    block starts the next one are given to later textures. The places start
+    out showing the unit texture; LinkTextureAt puts textures in them. A
+    terrain keeps its ground textures together this way (Quorum Studio plan,
+    texture groups).
+
+    Attribute: Parameter count How many places, from 1 to the group's size or 255, whichever is less.
+    Attribute: Returns The first place, in the global array.
+    */
+    action ReserveBlock(integer count) returns integer
+        integer limit = descriptorSetEntries
+        if limit > 255
+            limit = 255
+        end
+        if count < 1 or count > limit
+            alert("A block of texture places must hold from 1 to " + limit + " places, but was asked for " + count + ".")
+        end
+        integer inside = nextTextureID mod descriptorSetEntries
+        if inside + count > limit
+            // The block starts the next group. The places skipped are given
+            // to later textures.
+            integer nextGroup = (nextTextureID / descriptorSetEntries + 1) * descriptorSetEntries
+            repeat while nextTextureID < nextGroup
+                globalTextureArray:Add(undefined)
+                VulkanDescriptorSet skippedSet = GetDescriptorSetForIndex(nextTextureID)
+                recycledTextureIDs:AddToEnd(nextTextureID)
+                nextTextureID = nextTextureID + 1
+            end
+        end
+        integer first = nextTextureID
+        integer i = 0
+        repeat while i < count
+            globalTextureArray:Add(undefined)
+            ShowUnitTextureAt(nextTextureID)
+            nextTextureID = nextTextureID + 1
+            i = i + 1
+        end
+        return first
+    end
+
+    /*
+    This action links a loaded texture into a place, such as one in a block
+    from ReserveBlock, as well as the texture's own place. Shaders drawing
+    with that place's group then find the texture there. The texture keeps
+    its own place. Link it again if the texture is loaded again at a new
+    size, since that gives it a new image.
+
+    Attribute: Parameter texture A loaded texture.
+    Attribute: Parameter index The place in the global array.
+    Attribute: Returns True if it was linked, false if the texture isn't loaded yet.
+    */
+    action LinkTextureAt(Texture texture, integer index) returns boolean
+        VulkanImageView view = texture:GetVulkanImageView()
+        if view = undefined
+            return false
+        end
+        VulkanConstants constants
+        VulkanDescriptorSet set = GetDescriptorSetForIndex(index)
+        VulkanDescriptorResourcesInfo resourcesInfo
+        resourcesInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_SAMPLED_IMAGE)
+        resourcesInfo:SetDestinationArrayElement(index mod descriptorSetEntries)
+        resourcesInfo:AddImageInfo(undefined, view, constants:IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+        set:LinkResources(resourcesInfo)
+        return true
+    end
+
+    /*
+    This action gives back a block from ReserveBlock, once no frame can
+    still draw with it, for later textures.
+
+    Attribute: Parameter first The block's first place.
+    Attribute: Parameter count How many places it has.
+    */
+    action ReleaseBlock(integer first, integer count)
+        GameStateManager manager
+        VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+        integer i = 0
+        repeat while i < count
+            VulkanTextureIndexRelease release
+            release:Set(me, first + i)
+            graphics:Retire(release)
+            i = i + 1
+        end
+    end
+
+    /*
+    This action makes a place show the unit texture, until a texture is
+    linked there.
+    */
+    private action ShowUnitTextureAt(integer index)
+        GameStateManager unitState
+        SharedTextureManager sharedManager = unitState:GetSharedTextureManager()
+        Texture unit = sharedManager:GetUnitTexture()
+        VulkanDescriptorSet set = GetDescriptorSetForIndex(index)
+        VulkanImageView unitView = unit:GetVulkanImageView()
+        if unitView not= undefined
+            VulkanConstants constants
+            VulkanDescriptorResourcesInfo resourcesInfo
+            resourcesInfo:SetDescriptorType(constants:DESCRIPTOR_TYPE_SAMPLED_IMAGE)
+            resourcesInfo:SetDestinationArrayElement(index mod descriptorSetEntries)
+            resourcesInfo:AddImageInfo(undefined, unitView, constants:IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+            set:LinkResources(resourcesInfo)
+        end
+    end
+
+    /*
     This action returns how many textures have a place in the global array.
 
     Attribute: Returns The number of textures.

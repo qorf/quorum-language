@@ -337,6 +337,24 @@ class SceneEditorKeys
         return WithModifiers(keys:L, false, false, true, false)
     end
 
+    /*
+        Sets the next end of a terrain's ramp at the brush: its start, then
+        its end (step 8). Default: Alt+G, for grade. Alt+R is Studio's Run
+        menu.
+    */
+    action GetTerrainRampPointKey returns InputSet
+        return WithModifiers(keys:G, false, false, true, false)
+    end
+
+    /*
+        Takes the ground's height under a terrain's brush as the height
+        flatten evens to (step 8). Default: Alt+M, for match. Alt+T is
+        Studio's Team menu.
+    */
+    action GetTerrainTakeHeightKey returns InputSet
+        return WithModifiers(keys:M, false, false, true, false)
+    end
+
     // ------------------------------------------------------------ helpers
 
     /*

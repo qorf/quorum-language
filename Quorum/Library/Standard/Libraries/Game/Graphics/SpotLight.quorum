@@ -142,6 +142,17 @@ class SpotLight is Light, Item3D
     end
 
     /*
+    This action returns the range as set with SetRange: 0 if the range is
+    worked out from the intensity and color. A scene saves this, so a light
+    whose range was never set keeps working it out.
+
+    Attribute: Returns The range set, in world units, or 0.
+    */
+    action GetRangeSetting returns number
+        return range
+    end
+
+    /*
     This action sets the cone's half-angles, in degrees, measured from the
     direction the light points. Inside the inner angle the light is at full
     strength; it fades between the two, and gives no light past the outer

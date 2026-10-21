@@ -1,5 +1,7 @@
 package Libraries.Game.Scenes
 
+use Libraries.System.Logging.SharedLogger
+
 use Libraries.Compute.Matrix4
 use Libraries.Compute.Vector2
 use Libraries.Compute.Vector3
@@ -17,6 +19,7 @@ use Libraries.Game.Graphics.Model
 use Libraries.Game.Graphics.AmbientLight
 use Libraries.Game.Graphics.DirectionalLight
 use Libraries.Game.Graphics.PointLight
+use Libraries.Game.Graphics.SpotLight
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.PerspectiveCamera
@@ -547,6 +550,9 @@ class DefaultSceneManager is SceneManager
         elseif type = "PointLight"
             PointLight pointLight
             return pointLight
+        elseif type = "SpotLight"
+            SpotLight spotLight
+            return spotLight
         elseif type = "Audio3D"
             Audio3D audio
             return audio
@@ -583,6 +589,13 @@ class DefaultSceneManager is SceneManager
 
         // Variables used if the Item is a PointLight.
         PointLight light = undefined
+
+        // Variables used if the Item is a SpotLight.
+        SpotLight spot = undefined
+        Number32BitArray spotDirection = undefined
+        number innerAngle = -1
+        number outerAngle = -1
+        number range = 0
         number intensity = 0
 
         // Color is used for both Models and PointLights.
@@ -613,6 +626,10 @@ number restitution = 0
 
         if classValue = "PointLight"
             light = cast(PointLight, item)
+        end
+
+        if classValue = "SpotLight"
+            spot = cast(SpotLight, item)
         end
 
         if classValue = "Audio3D"
@@ -666,6 +683,14 @@ number restitution = 0
                 restitution = json:GetNumber(key)
             elseif key = properties:INTENSITY
                 intensity = json:GetNumber(key)
+            elseif key = properties:DIRECTION
+                spotDirection = ConvertToNumber32BitArray(json:GetObject(key))
+            elseif key = properties:INNER_ANGLE
+                innerAngle = json:GetNumber(key)
+            elseif key = properties:OUTER_ANGLE
+                outerAngle = json:GetNumber(key)
+            elseif key = properties:RANGE
+                range = json:GetNumber(key)
             elseif key = properties:VOLUME
                 volume = json:GetNumber(key)
             elseif key = properties:PITCH
@@ -747,11 +772,32 @@ number restitution = 0
                 audio:Play()
             end
         else
-            // Set the size, which would've been handled by model loading.
-            item:SetDimensions(size:Get(0), size:Get(1), size:Get(2))
+            // Set the size, which would've been handled by model loading. An
+            // item of a kind this program doesn't know may have no size.
+            if size not= undefined
+                item:SetDimensions(size:Get(0), size:Get(1), size:Get(2))
+            end
 
             if light not= undefined
                 light:SetLight(color, light:GetPosition(), intensity)
+            end
+
+            if spot not= undefined
+                if color not= undefined
+                    spot:SetColor(color)
+                end
+                spot:SetIntensity(intensity)
+                if spotDirection not= undefined
+                    spot:SetDirection(spotDirection:Get(0), spotDirection:Get(1), spotDirection:Get(2))
+                end
+                if outerAngle > 0
+                    number inner = innerAngle
+                    if inner < 0
+                        inner = outerAngle * 2 / 3
+                    end
+                    spot:SetConeAngles(inner, outerAngle)
+                end
+                spot:SetRange(range)
             end
         end
 
@@ -952,7 +998,8 @@ number restitution = 0
         // next save drops it.
         text terrainKey = terrainFile:GetAbsolutePath()
         if loadedTerrainFiles:HasKey(terrainKey)
-            output "This scene names the terrain " + path + " twice. The second is left out, since two terrains can't share one folder; saving the scene drops it."
+            SharedLogger logger
+            logger:Log("This scene names the terrain " + path + " twice. The second is left out, since two terrains can't share one folder; saving the scene drops it.")
             return undefined
         end
         loadedTerrainFiles:Add(terrainKey, path)
@@ -976,7 +1023,8 @@ number restitution = 0
                     terrain:SetMaterial(material)
                 end
             else
-                output "The terrain material " + materialFile:GetAbsolutePath() + " wasn't found, so the ground is plain."
+                SharedLogger logger
+                logger:Log("The terrain material " + materialFile:GetAbsolutePath() + " wasn't found, so the ground is plain.")
             end
         end
         terrain:Load(terrainFile)
@@ -1340,6 +1388,7 @@ number restitution = 0
         JavaScriptObjectNotation json
         Model model = undefined
         PointLight light = undefined
+        SpotLight spot = undefined
         Audio3D audio = undefined
 
         if not CustomSaveProperty3D(item, properties:CLASS, json)
@@ -1349,6 +1398,9 @@ number restitution = 0
             elseif item is PointLight
                 json:Add(properties:CLASS, "PointLight")
                 light = cast(PointLight, item)
+            elseif item is SpotLight
+                json:Add(properties:CLASS, "SpotLight")
+                spot = cast(SpotLight, item)
             elseif item is Audio3D
                 json:Add(properties:CLASS, "Audio3D")
                 audio = cast(Audio3D, item)
@@ -1361,6 +1413,8 @@ number restitution = 0
                 model = cast(Model, item)
             elseif classValue = "PointLight"
                 light = cast(PointLight, item)
+            elseif classValue = "SpotLight"
+                spot = cast(SpotLight, item)
             elseif classValue = "Audio3D"
                 audio = cast(Audio3D, item)
             end
@@ -1431,6 +1485,17 @@ number restitution = 0
             if not CustomSaveProperty3D(item, properties:INTENSITY, json)
                 json:Add(properties:INTENSITY, light:GetIntensity())
             end
+        elseif spot not= undefined
+            Color spotColor = spot:GetColor()
+            if spotColor not= undefined
+                json:Add(properties:COLOR, NewJsonArray(spotColor:GetRed(), spotColor:GetGreen(), spotColor:GetBlue(), spotColor:GetAlpha()))
+            end
+            json:Add(properties:INTENSITY, spot:GetIntensity())
+            Vector3 aim = spot:GetDirection()
+            json:Add(properties:DIRECTION, NewJsonArray(aim:GetX(), aim:GetY(), aim:GetZ()))
+            json:Add(properties:INNER_ANGLE, spot:GetInnerAngle())
+            json:Add(properties:OUTER_ANGLE, spot:GetOuterAngle())
+            json:Add(properties:RANGE, spot:GetRangeSetting())
         elseif audio not= undefined
             if not CustomSaveProperty3D(audio, properties:FILE, json)
                 json:Add(properties:FILE, audio:GetSourceFile():GetPath())

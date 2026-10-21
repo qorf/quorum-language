@@ -38,6 +38,12 @@ class TerrainSelectionHighlight is SelectionHighlight3D
     // a terrain stays at the origin.
     boolean told = false
 
+    on create
+        // The border spans the whole terrain, so it lets clicks through to
+        // the scene editor, which picks the ground itself.
+        SetAcceptsMouseInput(false)
+    end
+
     // How many straight pieces make up each edge of the border.
     constant integer BORDER_SEGMENTS = 64
 

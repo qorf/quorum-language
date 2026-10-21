@@ -53,6 +53,14 @@ class EditorLayer3D is Layer3D, EditorLayer
         if editor = undefined or (not editor:GetSelectedLayer():Equals(me))
             return undefined
         end
+        // The layer is above the rest of the program, and a 3D item the
+        // pointer's ray meets takes the event, so outside the scene's own view
+        // the layer leaves mouse events alone. Otherwise a large item, such
+        // as a terrain, takes clicks meant for the rest of the window.
+        if event:GetX() < GetViewportX() or event:GetX() > GetViewportX() + GetViewportWidth()
+                or event:GetY() < GetViewportY() or event:GetY() > GetViewportY() + GetViewportHeight()
+            return undefined
+        end
 
         Item item = parent:Layer3D:ProcessMouseEvent(event)
         return item

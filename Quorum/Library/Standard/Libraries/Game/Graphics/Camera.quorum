@@ -8,6 +8,7 @@ use Libraries.Compute.Ray
 use Libraries.Compute.Math
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Item3D
+use Libraries.Interface.Item2D
 
 class Camera 
     
@@ -80,6 +81,8 @@ class Camera
 
     // Following an item (see Follow). Distances are in world units.
     private Item3D followItem = undefined
+    // A 2D item to keep in the middle of the view (see Follow(Item2D)).
+    private Item2D followItem2D = undefined
     private number distanceBehind = 10
     private number distanceAbove = 4
     private number followAngle = 0
@@ -1862,6 +1865,51 @@ class Camera
     */
     action Follow(Item3D item)
         followItem = item
+        followItem2D = undefined
+        followJump = true
+    end
+
+    /*
+    The Follow action makes a 2D camera keep an item in the middle of its
+    view. Every frame, after the physics has run and every item is where it
+    will be drawn, the camera moves so the item's center is in the middle of
+    the screen. SetFollowSmoothing makes the camera glide after the item
+    instead of jumping with it.
+
+    While the camera follows, it places itself every frame, so positions set
+    with SetPosition are replaced. Use StopFollowing to place the camera
+    yourself again.
+
+    Attribute: Parameter item The 2D item to follow.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Drawable
+        use Libraries.Game.Graphics.Color
+
+        class Main is Game
+            Drawable box
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Color color
+                box:LoadFilledRectangle(50, 50, color:Red())
+                Add(box)
+                GetCamera2D():Follow(box)
+            end
+
+            action Update(number seconds)
+                box:Move(100 * seconds, 0)
+            end
+        end
+    */
+    action Follow(Item2D item)
+        followItem2D = item
+        followItem = undefined
         followJump = true
     end
 
@@ -1907,6 +1955,7 @@ class Camera
     */
     action StopFollowing
         followItem = undefined
+        followItem2D = undefined
     end
 
     /*
@@ -1915,7 +1964,7 @@ class Camera
     Attribute: Returns True if the camera is following an item.
     */
     action IsFollowing returns boolean
-        return followItem not= undefined
+        return followItem not= undefined or followItem2D not= undefined
     end
 
     /*
@@ -1926,6 +1975,16 @@ class Camera
     */
     action GetFollowItem returns Item3D
         return followItem
+    end
+
+    /*
+    This action returns the 2D item the camera follows, or undefined if it
+    doesn't follow one.
+
+    Attribute: Returns The 2D item being followed.
+    */
+    action GetFollowItem2D returns Item2D
+        return followItem2D
     end
 
     /*
@@ -2072,6 +2131,10 @@ class Camera
     Attribute: Parameter seconds The time since the last frame, in seconds.
     */
     action UpdateFollow(number seconds)
+        if followItem2D not= undefined
+            UpdateFollow2D(seconds)
+            return now
+        end
         if followItem = undefined
             return now
         end
@@ -2123,5 +2186,25 @@ class Camera
         // Up first, so no roll builds up over time.
         SetUp(0, 1, 0)
         LookAt(targetX, targetY + aimHeight, targetZ)
+    end
+
+    /*
+    Places a camera following a 2D item so the item's center is in the
+    middle of the view, keeping the camera's own distance in z.
+    */
+    private action UpdateFollow2D(number seconds)
+        number wantX = followItem2D:GetGlobalX() + followItem2D:GetWidth() / 2
+        number wantY = followItem2D:GetGlobalY() + followItem2D:GetHeight() / 2
+        Vector3 current = GetPosition()
+        number z = current:GetZ()
+
+        if followJump or followSmoothing <= 0
+            SetPosition(wantX, wantY, z)
+            followJump = false
+        else
+            number blend = 1 - math:RaiseToPower(math:e, -seconds / followSmoothing)
+            SetPosition(current:GetX() + (wantX - current:GetX()) * blend,
+                current:GetY() + (wantY - current:GetY()) * blend, z)
+        end
     end
 end

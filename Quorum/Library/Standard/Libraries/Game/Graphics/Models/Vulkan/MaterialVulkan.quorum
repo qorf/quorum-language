@@ -233,8 +233,10 @@ Two reserved words (uint, 4 bytes each), 0*/
     Attribute: Returns The PixelMap.
     */
     private action LoadMap(text path) returns PixelMap
-        File file
-        file:SetPath(path)
+        // A map's path may be a full path, as a material file's maps are
+        // (Material's Load), and File's SetPath doesn't take those.
+        Material paths
+        File file = paths:MakeFile(path)
         if not file:Exists()
             alert("I couldn't find the texture set map " + path + ".")
         end

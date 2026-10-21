@@ -5,6 +5,7 @@ use Libraries.Interface.Item3D
 use Libraries.Compute.Matrix4
 use Libraries.Compute.Quaternion
 use Libraries.Compute.Vector3
+use Libraries.Compute.Math
 
 /*
     EditorCamera3D represents the PerspectiveCamera in a 3D scene that shows the objects in the 3D layer
@@ -64,8 +65,67 @@ class EditorCamera3D is PerspectiveCamera
             return now
         end
 
+        // The same target again, such as after a click that leaves the
+        // selection as it was, keeps the view where the user put it.
+        if target = me:target
+            return now
+        end
+
         me:target = target
         UpdateCameraPosition()
+    end
+
+    /*
+        SetTargetWithoutMoving makes an item the camera's target, keeping the
+        camera where it is: its angle and distance are matched to the view.
+        When the target moves later, such as the cursor with the arrow keys,
+        the camera follows it from there.
+
+        Attribute: Parameter target The 3D item the camera should follow
+    */
+    action SetTargetWithoutMoving(Item3D target)
+        if target is CameraItem
+            return now
+        end
+        me:target = target
+        MatchView()
+    end
+
+    /*
+        MatchView makes the camera's own angle and distance match where it is
+        and where it looks, after the mouse moved it directly: zooming with
+        the wheel, panning, turning or orbiting. Moving to a new target then
+        keeps the user's angle and zoom, instead of going back to the ones
+        from before.
+    */
+    action MatchView
+        Math math
+        Vector3 direction = GetDirection()
+        number directionY = direction:GetY()
+        if directionY > 1
+            directionY = 1
+        elseif directionY < -1
+            directionY = -1
+        end
+        // The inverse of UpdateCameraRotation, which looks along the yaw and
+        // the negative pitch.
+        yaw = math:RadiansToDegrees(math:InverseTangent2(direction:GetX(), direction:GetZ()))
+        pitch = -math:RadiansToDegrees(math:InverseSine(directionY))
+        calcQuaternion:SetEulerAngles(yaw, pitch, roll)
+        rotationMatrix:Set(calcQuaternion)
+
+        // The distance is how far ahead of the camera the target is.
+        if target not= undefined
+            Vector3 position = GetPosition()
+            Vector3 targetPosition = target:GetPosition()
+            number ahead = (targetPosition:GetX() - position:GetX()) * direction:GetX() +
+                (targetPosition:GetY() - position:GetY()) * direction:GetY() +
+                (targetPosition:GetZ() - position:GetZ()) * direction:GetZ()
+            if ahead < 0.5
+                ahead = 0.5
+            end
+            distance = ahead
+        end
     end
 
     /*

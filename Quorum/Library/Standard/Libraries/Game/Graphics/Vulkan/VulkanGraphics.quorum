@@ -1,5 +1,7 @@
 package Libraries.Game.Graphics.Vulkan
 
+use Libraries.System.Logging.SharedLogger
+
 use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Containers.Number32BitArray
 use Libraries.Game.Graphics.Vulkan.Commands.all
@@ -165,7 +167,8 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
             end
         else
             //Should this remain, but be logged?
-            output "Display was already defined: " + (gameState:GetGameDisplay() not= undefined)
+            SharedLogger logger
+            logger:Log("Display was already defined: " + (gameState:GetGameDisplay() not= undefined))
         end
 
         VulkanSurface surface
@@ -562,7 +565,8 @@ boolean success = swapchain:Create(device, surface, info)
     action GetUsableMultisampleCount returns integer
         integer samples = FindUsableSampleCount(multisampleCount)
         if samples not= multisampleCount and multisampleCount > 1 and not warnedAboutSampleCount
-            output "MSAA: " + multisampleCount + " samples asked for; this device can do " + samples + ", so " + samples + " are used."
+            SharedLogger logger
+            logger:Log("MSAA: " + multisampleCount + " samples asked for; this device can do " + samples + ", so " + samples + " are used.")
             warnedAboutSampleCount = true
         end
         return samples
@@ -604,7 +608,8 @@ boolean success = swapchain:Create(device, surface, info)
     action GetUsableMultisampleCount2D returns integer
         integer samples = FindUsableSampleCount(multisampleCount2D)
         if samples not= multisampleCount2D and multisampleCount2D > 1 and not warnedAboutSampleCount2D
-            output "2D MSAA: " + multisampleCount2D + " samples asked for; this device can do " + samples + ", so " + samples + " are used."
+            SharedLogger logger
+            logger:Log("2D MSAA: " + multisampleCount2D + " samples asked for; this device can do " + samples + ", so " + samples + " are used.")
             warnedAboutSampleCount2D = true
         end
         return samples

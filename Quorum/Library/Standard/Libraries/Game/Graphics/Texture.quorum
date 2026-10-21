@@ -133,9 +133,7 @@ class Texture is Disposable
         end
     */
     action LoadFromFile(text filePath)
-        File file
-        file:SetPath(filePath)
-        LoadFromFile(file)
+        LoadFromFile(MakeFile(filePath))
     end
 
     /*
@@ -154,9 +152,28 @@ class Texture is Disposable
     ground:LoadFromFile("Textures/grass.png", true)
     */
     action LoadFromFile(text filePath, boolean useMipMaps)
+        LoadFromFile(MakeFile(filePath), undefined, useMipMaps)
+    end
+
+    /*
+    This action returns a File for a path, which may be a full path or
+    relative to the working directory. File's SetPath puts the working
+    directory in front of any path, even a full one, so a full path is
+    given with SetAbsolutePath instead.
+    */
+    private action MakeFile(text path) returns File
         File file
-        file:SetPath(filePath)
-        LoadFromFile(file, undefined, useMipMaps)
+        boolean full = path:StartsWith("/") or path:StartsWith("\")
+        if not full and path:GetSize() >= 3
+            text afterDrive = path:GetSubtext(1, 3)
+            full = afterDrive = ":\" or afterDrive = ":/"
+        end
+        if full
+            file:SetAbsolutePath(path)
+        else
+            file:SetPath(path)
+        end
+        return file
     end
 
     /*

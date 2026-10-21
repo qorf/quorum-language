@@ -1,0 +1,164 @@
+package Libraries.Interface.Controls.Scenes.Blueprints
+
+use Libraries.Game.Graphics.TextureRegion
+use Libraries.Game.Graphics.Texture
+use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
+
+/*
+    The SpotLightBlueprint is a blueprint for a spotlight in a 3D scene: a
+    light that shines in a cone, like a stage light or a flashlight. It holds
+    the light's color, intensity and cone. In the editor, the spotlight is
+    shown by a small textured box, so its place is easy to see; turning it
+    aims the cone, which starts pointing straight down.
+*/
+class SpotLightBlueprint is ItemBlueprint
+    TextureRegion paletteIcon = undefined
+    Texture modelTexture = undefined
+    number red = 1
+    number green = 1
+    number blue = 1
+    number intensity = 20
+    number innerAngle = 20
+    number outerAngle = 30
+
+    /*
+        This action returns the texture used as the spotlight's icon in a palette.
+
+        Attribute: Returns The icon
+    */
+    action GetPaletteIcon returns TextureRegion
+        return paletteIcon
+    end
+
+    /*
+        This action sets the texture used as the spotlight's icon in a palette.
+
+        Attribute: Parameter paletteIcon The icon
+    */
+    action SetPaletteIcon(TextureRegion paletteIcon)
+        me:paletteIcon = paletteIcon
+    end
+
+    /*
+        This action returns the texture on the box that shows the spotlight
+        in the editor.
+
+        Attribute: Returns The texture
+    */
+    action GetModelTexture returns Texture
+        return modelTexture
+    end
+
+    /*
+        This action sets the texture on the box that shows the spotlight in
+        the editor.
+
+        Attribute: Parameter modelTexture The texture
+    */
+    action SetModelTexture(Texture modelTexture)
+        me:modelTexture = modelTexture
+    end
+
+    /*
+        This action returns the amount of red in the light, from 0 to 1.
+
+        Attribute: Returns The red
+    */
+    action GetRed returns number
+        return red
+    end
+
+    /*
+        This action sets the amount of red in the light, from 0 to 1.
+
+        Attribute: Parameter red The red
+    */
+    action SetRed(number red)
+        me:red = red
+    end
+
+    /*
+        This action returns the amount of green in the light, from 0 to 1.
+
+        Attribute: Returns The green
+    */
+    action GetGreen returns number
+        return green
+    end
+
+    /*
+        This action sets the amount of green in the light, from 0 to 1.
+
+        Attribute: Parameter green The green
+    */
+    action SetGreen(number green)
+        me:green = green
+    end
+
+    /*
+        This action returns the amount of blue in the light, from 0 to 1.
+
+        Attribute: Returns The blue
+    */
+    action GetBlue returns number
+        return blue
+    end
+
+    /*
+        This action sets the amount of blue in the light, from 0 to 1.
+
+        Attribute: Parameter blue The blue
+    */
+    action SetBlue(number blue)
+        me:blue = blue
+    end
+
+    /*
+        This action returns how bright the light is.
+
+        Attribute: Returns The intensity
+    */
+    action GetIntensity returns number
+        return intensity
+    end
+
+    /*
+        This action sets how bright the light is.
+
+        Attribute: Parameter intensity The intensity
+    */
+    action SetIntensity(number intensity)
+        me:intensity = intensity
+    end
+
+    /*
+        This action returns the cone's half-angle of full strength, in degrees.
+
+        Attribute: Returns The inner angle
+    */
+    action GetInnerAngle returns number
+        return innerAngle
+    end
+
+    /*
+        This action returns the cone's half-angle where the light ends, in
+        degrees.
+
+        Attribute: Returns The outer angle
+    */
+    action GetOuterAngle returns number
+        return outerAngle
+    end
+
+    /*
+        This action sets the cone's half-angles, in degrees: full strength
+        inside the inner one, fading to nothing at the outer one.
+
+        Attribute: Parameter inner The inner angle
+        Attribute: Parameter outer The outer angle
+    */
+    action SetConeAngles(number inner, number outer)
+        innerAngle = inner
+        outerAngle = outer
+    end
+end
