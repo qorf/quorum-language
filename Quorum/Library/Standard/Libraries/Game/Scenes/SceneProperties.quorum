@@ -154,6 +154,24 @@ shared class SceneProperties
     // The FILE value typically indicates the location of a texture or a model file.
     public constant text FILE = "File"
 
+    // A terrain's terrain material file, relative to the project, such as
+    // "Scenes/Materials/Terrain1.json" (step 9). Written only when the
+    // terrain has one.
+    public constant text MATERIAL = "Material"
+
+    // A terrain's collision in games (step 13): "Full" (every region),
+    // "Dynamic" (only near moving bodies) or "Disabled". Older scenes have
+    // only "Physics Enabled", which is still written.
+    public constant text COLLISION = "Collision"
+    public constant text COLLISION_FULL_VALUE = "Full"
+    public constant text COLLISION_DYNAMIC_VALUE = "Dynamic"
+    public constant text COLLISION_DISABLED_VALUE = "Disabled"
+
+    // Whether a terrain streams its regions in games, and how near a region
+    // must be to be drawn (step 13). Written only for a streaming terrain.
+    public constant text STREAMING = "Streaming"
+    public constant text DRAW_RADIUS = "Draw Radius"
+
     /*
     The folders a scene's own files go in, inside the project. The project's
     Scenes folder holds the scenes, and under it, one folder for each kind of

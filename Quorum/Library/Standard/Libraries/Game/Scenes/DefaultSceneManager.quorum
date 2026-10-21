@@ -30,12 +30,22 @@ use Libraries.System.File
 use Libraries.Containers.HashTable
 use Libraries.Game.Audio3D
 use Libraries.Game.Graphics.Worlds.TerrainItem
+use Libraries.Game.Graphics.Worlds.TerrainMaterial
 use Libraries.Game.Graphics.Vulkan.VulkanGraphics
 
 class DefaultSceneManager is SceneManager
     
     GameStateManager gameState
     HashTable<text, Texture> loadedTextures
+
+    // The terrain materials loaded for the scene being loaded, by full
+    // path, so terrains that share one share it (step 9).
+    HashTable<text, TerrainMaterial> loadedTerrainMaterials
+
+    // The terrain.json files of the terrains loaded for the scene being
+    // loaded, by full path. Two terrains can't share one folder: each would
+    // save over the other, and both would draw in the same place.
+    HashTable<text, text> loadedTerrainFiles
 
     // True while loading a scene saved before version 2, which needs its
     // rotations and 2D cameras converted to the left-handed world.
@@ -44,6 +54,8 @@ class DefaultSceneManager is SceneManager
     action Load(Scene scene)
         Game game = gameState:GetGame()
         SceneProperties properties
+        loadedTerrainMaterials:Empty()
+        loadedTerrainFiles:Empty()
 
         number version = 1.0
         JavaScriptObjectNotation data = scene:GetData()
@@ -315,7 +327,12 @@ class DefaultSceneManager is SceneManager
         repeat while iterator:HasNext()
             JavaScriptObjectNotation item = iterator:Next()
             if item not= undefined and not item:IsUndefined() //if this isn't an empty object value
-                items:Add(LoadItem3D(item))
+                // An item can be left out, such as a second terrain naming
+                // the same files as another.
+                Item3D loaded = LoadItem3D(item)
+                if loaded not= undefined
+                    items:Add(loaded)
+                end
             end
         end
 
@@ -888,8 +905,30 @@ number restitution = 0
         if json:HasValue(properties:PHYSICS_ENABLED)
             terrain:SetCollision(json:GetBoolean(properties:PHYSICS_ENABLED))
         end
+        // The collision mode, when the scene has it, is more exact than
+        // "Physics Enabled" (step 13).
+        if json:HasValue(properties:COLLISION)
+            text collisionValue = json:GetValue(properties:COLLISION)
+            if collisionValue = properties:COLLISION_DYNAMIC_VALUE
+                terrain:SetCollisionMode(1)
+            elseif collisionValue = properties:COLLISION_DISABLED_VALUE
+                terrain:SetCollisionMode(0)
+            else
+                terrain:SetCollisionMode(2)
+            end
+        end
         if json:HasValue(properties:FRICTION)
             terrain:SetFriction(json:GetNumber(properties:FRICTION))
+        end
+        if json:HasValue(properties:STREAMING) and json:GetBoolean(properties:STREAMING)
+            number radius = 100
+            if json:HasValue(properties:DRAW_RADIUS)
+                radius = GetTerrainNumber(json, properties:DRAW_RADIUS, 100)
+            end
+            if radius <= 0
+                radius = 100
+            end
+            terrain:SetStreaming(true, radius)
         end
         text path = json:GetValue(properties:FILE)
         File terrainFile = ConvertToProjectFile(path)
@@ -903,13 +942,66 @@ number restitution = 0
                 terrainFile = moved
             end
         end
+        // A second terrain naming the same terrain.json is left out, so the
+        // next save drops it.
+        text terrainKey = terrainFile:GetAbsolutePath()
+        if loadedTerrainFiles:HasKey(terrainKey)
+            output "This scene names the terrain " + path + " twice. The second is left out, since two terrains can't share one folder; saving the scene drops it."
+            return undefined
+        end
+        loadedTerrainFiles:Add(terrainKey, path)
+
+        // The ground's look, if it has one (step 9). It is given before the
+        // terrain loads, so the region models are made once, with it. A
+        // missing file leaves the ground plain, and the scene keeps naming
+        // it.
+        if json:HasValue(properties:MATERIAL)
+            text materialPath = json:GetValue(properties:MATERIAL)
+            terrain:SetMaterialFile(materialPath)
+            File materialFile = ConvertToProjectFile(materialPath)
+            if materialFile:Exists()
+                text key = materialFile:GetAbsolutePath()
+                if loadedTerrainMaterials:HasKey(key)
+                    terrain:SetMaterial(loadedTerrainMaterials:GetValue(key))
+                else
+                    TerrainMaterial material
+                    material:Load(materialFile)
+                    loadedTerrainMaterials:Add(key, material)
+                    terrain:SetMaterial(material)
+                end
+            else
+                output "The terrain material " + materialFile:GetAbsolutePath() + " wasn't found, so the ground is plain."
+            end
+        end
         terrain:Load(terrainFile)
         return terrain
     end
 
     /*
+    This action returns a number from a terrain's entry, whether it was
+    written as a whole number or with a decimal point, or a default if the
+    entry doesn't have it.
+    */
+    private action GetTerrainNumber(JavaScriptObjectNotation json, text key, number defaultValue) returns number
+        Iterator<JavaScriptObjectNotation> children = json:GetIterator()
+        repeat while children:HasNext()
+            JavaScriptObjectNotation child = children:Next()
+            if child:GetKey() = key
+                if child:IsInteger()
+                    return child:GetInteger()
+                elseif child:IsNumber()
+                    return child:GetNumber()
+                end
+            end
+        end
+        return defaultValue
+    end
+
+    /*
     This action saves a terrain into a scene: its name, its description,
-    its terrain.json file, whether it has collision, and its friction.
+    its terrain.json file, its terrain material file if it has one, its
+    collision (as "Physics Enabled" and "Collision"), its friction, and its
+    streaming if it streams.
 
     Attribute: Parameter terrain The terrain.
     Attribute: Returns The terrain's entry for the scene.
@@ -921,8 +1013,23 @@ number restitution = 0
         json:Add(properties:NAME, terrain:GetName())
         json:Add(properties:DESCRIPTION, terrain:GetDescription())
         json:Add(properties:FILE, terrain:GetTerrainFile())
+        if terrain:GetMaterialFile() not= ""
+            json:Add(properties:MATERIAL, terrain:GetMaterialFile())
+        end
         json:Add(properties:PHYSICS_ENABLED, terrain:HasCollision())
+        integer mode = terrain:GetCollisionMode()
+        if mode = 1
+            json:Add(properties:COLLISION, properties:COLLISION_DYNAMIC_VALUE)
+        elseif mode = 0
+            json:Add(properties:COLLISION, properties:COLLISION_DISABLED_VALUE)
+        else
+            json:Add(properties:COLLISION, properties:COLLISION_FULL_VALUE)
+        end
         json:Add(properties:FRICTION, terrain:GetFriction())
+        if terrain:IsStreaming()
+            json:Add(properties:STREAMING, true)
+            json:Add(properties:DRAW_RADIUS, terrain:GetDrawRadius())
+        end
         return json
     end
 

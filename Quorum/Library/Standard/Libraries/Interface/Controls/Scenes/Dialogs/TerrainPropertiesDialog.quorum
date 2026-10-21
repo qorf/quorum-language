@@ -13,6 +13,8 @@ use Libraries.Interface.Controls.Scenes.Items.EditorItem
 use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
 use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
 use Libraries.Game.Graphics.Worlds.TerrainData
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Behaviors.Scenes.Properties.TerrainGrowBehavior
 
 /*
     The TerrainPropertiesDialog shows a selected terrain's name, which can be
@@ -79,6 +81,35 @@ class TerrainPropertiesDialog is PropertiesDialog
         spacingLabel = AddInfoLine(panel, focusArray)
         heightsLabel = AddInfoLine(panel, focusArray)
         folderLabel = AddInfoLine(panel, focusArray)
+
+        // Makes the terrain bigger without the brush (step 11).
+        FlowLayout growLayout
+        Control growLine
+        growLine:SetLayout(growLayout)
+        growLine:SetPercentageWidth(1.0)
+        growLine:SetVerticalLayoutMode(growLine:FIT_CONTENTS)
+        growLine:SetLeftMargin(20)
+        growLine:SetTopMargin(6)
+        growLine:SetBottomMargin(8)
+        Button growButton
+        growButton:SetName("Grow by one region on every side")
+        growButton:SetDescription("Add flat regions all around the terrain")
+        TerrainGrowBehavior growBehavior
+        growBehavior:SetDialog(me)
+        growButton:SetBehavior(growBehavior)
+        growLine:Add(growButton)
+        panel:Add(growLine)
+        focusArray:Add(growButton)
+    end
+
+    /*
+        Makes the terrain one region bigger on every side. The section's
+        grow button calls it.
+    */
+    action Grow
+        if terrain not= undefined and GetSceneEditor() not= undefined
+            GetSceneEditor():GrowTerrain(terrain)
+        end
     end
 
     /*

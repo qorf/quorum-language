@@ -11,6 +11,7 @@ use Libraries.Interface.Behaviors.Scenes.Selection.all
 use Libraries.Interface.Behaviors.Scenes.Selection.TerrainChooseToolBehavior
 use Libraries.Interface.Behaviors.Scenes.Selection.TerrainBrushUseBehavior
 use Libraries.Interface.Behaviors.Scenes.Selection.TerrainStrengthBehavior
+use Libraries.Interface.Behaviors.Scenes.Selection.TerrainNextLayerBehavior
 use Libraries.Interface.Behaviors.Scenes.Camera.all
 use Libraries.Interface.Behaviors.Scenes.Controls.all
 use Libraries.Interface.Behaviors.Scenes.Grid.all
@@ -1881,6 +1882,10 @@ InputSet shiftF10SetTextBox
         TerrainStrengthBehavior terrainStrengthDownBehavior
         terrainStrengthDownBehavior:SetStronger(false)
         selectionTable:Add(sceneKeys:GetTerrainStrengthDownKey(), terrainStrengthDownBehavior)
+
+        // The next paint layer, Alt+L by default (step 9).
+        TerrainNextLayerBehavior terrainNextLayerBehavior
+        selectionTable:Add(sceneKeys:GetTerrainNextLayerKey(), terrainNextLayerBehavior)
 
         // 2D selection
         selectionTable2D:Add(reportLocation, reportLocationBehavior)

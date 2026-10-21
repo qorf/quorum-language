@@ -5,6 +5,8 @@ use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Controls.ButtonGroup
 use Libraries.Interface.Controls.RadioButton
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Behaviors.Scenes.Properties.TerrainDescribeAreaBehavior
 use Libraries.Game.Graphics.Label
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Item
@@ -23,7 +25,9 @@ use Libraries.Game.Graphics.Worlds.TerrainBrush
     falloff. Choosing a tool here does the same as Alt+1 to Alt+9: a ring
     shows the brush on the ground, and the arrow keys and pointer move it.
     "No tool" leaves the tool. Raise and lower make strokes, with Space held
-    or a left drag (step 8); the other tools come in later steps.
+    or a left drag (step 8), and so does Paint, on the paint layer chosen
+    here, once the terrain has two or more materials (step 9); the other
+    tools come in later steps.
 
     It shows in the scene editor's Properties panel, between the terrain's
     facts (TerrainPropertiesDialog) and its physics.
@@ -31,6 +35,9 @@ use Libraries.Game.Graphics.Worlds.TerrainBrush
 class TerrainBrushPropertiesDialog is PropertiesDialog
 
     ButtonGroup toolGroup = undefined
+    // The layer the Paint tool paints (step 9), named from the terrain's
+    // materials.
+    ButtonGroup layerGroup = undefined
     TextField sizeField = undefined
     TextField strengthField = undefined
     TextField falloffField = undefined
@@ -90,9 +97,69 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         panel:Add(toolPanel)
         focusArray:Add(toolGroup)
 
+        Control layerPanel
+        layerPanel:SetPercentageWidth(1.0)
+        layerPanel:SetVerticalLayoutMode(layerPanel:FIT_CONTENTS)
+        FlowLayout layerPanelLayout
+        layerPanel:SetLayout(layerPanelLayout)
+        layerPanel:SetLeftMargin(20)
+        layerPanel:SetRightMargin(30)
+        layerPanel:SetBottomMargin(10)
+
+        Label layerLabel
+        layerLabel:SetText("Paint layer:")
+        layerPanel:Add(layerLabel)
+
+        ButtonGroup layers
+        layerGroup = layers
+        layerGroup:SetName("Paint layer")
+        Control layoutValues
+        layerGroup:SetHorizontalLayoutMode(layoutValues:FILL)
+        layerGroup:SetVerticalLayoutMode(layoutValues:FIT_CONTENTS)
+        FlowLayout layerGroupLayout
+        layerGroup:SetLayout(layerGroupLayout)
+        integer layer = 0
+        repeat while layer < 4
+            AddLayerButton(layer)
+            layer = layer + 1
+        end
+        layerGroup:AddSelectionListener(me)
+        layerPanel:Add(layerGroup)
+        panel:Add(layerPanel)
+        focusArray:Add(layerGroup)
+
         sizeField = AddNumberField(panel, focusArray, "Size:", "Size")
         strengthField = AddNumberField(panel, focusArray, "Strength:", "Strength")
         falloffField = AddNumberField(panel, focusArray, "Falloff:", "Falloff")
+
+        // Says what the ground under the whole brush is like (step 12).
+        FlowLayout describeLayout
+        Control describeLine
+        describeLine:SetLayout(describeLayout)
+        describeLine:SetPercentageWidth(1.0)
+        describeLine:SetVerticalLayoutMode(describeLine:FIT_CONTENTS)
+        describeLine:SetLeftMargin(20)
+        describeLine:SetTopMargin(6)
+        describeLine:SetBottomMargin(10)
+        Button describeButton
+        describeButton:SetName("Describe the area")
+        describeButton:SetDescription("Say the heights, steepest slope and layers under the whole brush")
+        TerrainDescribeAreaBehavior describeBehavior
+        describeBehavior:SetDialog(me)
+        describeButton:SetBehavior(describeBehavior)
+        describeLine:Add(describeButton)
+        panel:Add(describeLine)
+        focusArray:Add(describeButton)
+    end
+
+    /*
+        Says what the ground under the whole brush is like. The section's
+        "Describe the area" button calls it.
+    */
+    action DescribeArea
+        if terrain not= undefined and GetSceneEditor() not= undefined
+            GetSceneEditor():DescribeTerrainArea(terrain)
+        end
     end
 
     /*
@@ -107,6 +174,19 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         button:SetHorizontalLayoutMode(layoutValues:FILL)
         toolGroup:AddToGrouping(button)
         toolGroup:Add(button)
+    end
+
+    /*
+        Adds one paint layer's radio button. Its name is set from the
+        terrain's materials.
+    */
+    private action AddLayerButton(integer layer)
+        Control layoutValues
+        RadioButton button
+        button:SetName("Layer " + (layer + 1))
+        button:SetHorizontalLayoutMode(layoutValues:FILL)
+        layerGroup:AddToGrouping(button)
+        layerGroup:Add(button)
     end
 
     /*
@@ -151,6 +231,14 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
                 return now
             end
             ButtonGroupSelection choice = cast(ButtonGroupSelection, event:GetSelection())
+            if choice:GetButtonGroup() = layerGroup
+                integer layer = choice:GetIndex()
+                if layer >= 0 and layer < 4 and layer not= terrain:GetBrush():GetLayer()
+                    terrain:GetBrush():SetLayer(layer)
+                    GetSceneEditor():NotifyAccessibility(terrain, "Painting " + DescribeLayer(layer))
+                end
+                return now
+            end
             integer tool = choice:GetIndex()
             if tool >= 0 and tool <= 9 and tool not= terrain:GetToolNumber()
                 GetSceneEditor():SetTerrainTool(terrain, tool)
@@ -205,10 +293,30 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         updating = true
         toolGroup:GetButtonAt(terrain:GetToolNumber()):SetToggleState(true)
         TerrainBrush brush = terrain:GetBrush()
+        integer layer = 0
+        repeat while layer < 4
+            layerGroup:GetButtonAt(layer):SetName(DescribeLayer(layer))
+            layer = layer + 1
+        end
+        if brush:GetLayer() >= 0 and brush:GetLayer() < 4
+            layerGroup:GetButtonAt(brush:GetLayer()):SetToggleState(true)
+        end
         SetFieldText(sizeField, brush:GetSize())
         SetFieldText(strengthField, brush:GetStrength())
         SetFieldText(falloffField, brush:GetGamma())
         updating = false
+    end
+
+    /*
+        Names a paint layer from the terrain's materials, such as "layer 2,
+        Rock", or "layer 3, no material".
+    */
+    private action DescribeLayer(integer layer) returns text
+        text result = "Layer " + (layer + 1)
+        if terrain not= undefined and layer < terrain:GetLayerCount()
+            return result + ", " + terrain:GetMaterial():GetLayerName(layer)
+        end
+        return result + ", no material"
     end
 
     /*

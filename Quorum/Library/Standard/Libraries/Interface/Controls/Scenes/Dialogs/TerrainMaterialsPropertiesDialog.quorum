@@ -1,0 +1,509 @@
+package Libraries.Interface.Controls.Scenes.Dialogs
+
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.FileChooser
+use Libraries.Interface.Controls.FileFilter
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Item
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Selections.SceneEditorSelection
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
+use Libraries.Interface.Behaviors.Scenes.Properties.TerrainMaterialButtonBehavior
+use Libraries.Game.Graphics.Worlds.TerrainMaterial
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.System.File
+
+/*
+    The TerrainMaterialsPropertiesDialog is a selected terrain's Materials
+    section (step 9): the ground layers it can be painted with. A new
+    terrain has none, and its ground is plain. "Add material..." adds a
+    layer from a material file, or from a texture set's color map or
+    another image, for which a material file is written. The first layer
+    covers the whole ground; the others show where they are painted, with
+    the Paint tool in the Brush section.
+
+    Each layer has its name, its material file, its tile size, "Choose..."
+    to give it another material, and "Remove". The blend softness is how
+    softly texture set layers blend where they meet. Adding, choosing and
+    removing layers can be undone.
+
+    It shows in the scene editor's Properties panel, between the terrain's
+    facts and its brush.
+*/
+class TerrainMaterialsPropertiesDialog is PropertiesDialog
+    // The most layers a terrain can have.
+    constant integer LAYERS = 4
+
+    // What a button does: add a layer, choose a layer's material, or
+    // remove a layer.
+    public constant integer ADD = 0
+    public constant integer CHOOSE = 1
+    public constant integer REMOVE = 2
+
+    Control sectionPanel = undefined
+    Label statusLabel = undefined
+    Control layersPanel = undefined
+    Button addButton = undefined
+    Control blendContainer = undefined
+    TextField blendField = undefined
+
+    // Each layer's row, and the controls in it.
+    Array<Control> rows
+    Array<Label> nameLabels
+    Array<Label> fileLabels
+    Array<TextField> tileFields
+    Array<Button> chooseButtons
+    Array<Button> removeButtons
+
+    // How many rows are in the panel now, and whether the blend softness is.
+    integer rowsShown = 0
+    boolean blendShown = false
+
+    // The terrain whose materials are shown, or undefined.
+    EditorTerrain terrain = undefined
+
+    // True while the fields are being filled, so filling them isn't taken
+    // as typing.
+    boolean updating = false
+
+    /*
+        Creates and adds the interface components for this dialog.
+    */
+    private action CreateInterface(Control panel, Array<Control> focusArray)
+        SetName("Terrain Materials")
+        sectionPanel = panel
+
+        Label headingLabel
+        headingLabel:SetSize(18)
+        headingLabel:SetText("Materials")
+        headingLabel:SetLeftMargin(20)
+        panel:Add(headingLabel)
+
+        Label status
+        statusLabel = status
+        statusLabel:SetText("")
+        statusLabel:SetLeftMargin(20)
+        statusLabel:SetTopMargin(6)
+        statusLabel:SetBottomMargin(4)
+        statusLabel:SetFocusable(true)
+        panel:Add(statusLabel)
+        focusArray:Add(statusLabel)
+
+        Control layers
+        layersPanel = layers
+        FlowLayout layersLayout
+        layersPanel:SetLayout(layersLayout)
+        layersPanel:SetPercentageWidth(1.0)
+        layersPanel:SetVerticalLayoutMode(layersPanel:FIT_CONTENTS)
+        panel:Add(layersPanel)
+
+        integer index = 0
+        repeat while index < LAYERS
+            MakeRow(index, focusArray)
+            index = index + 1
+        end
+
+        Control blend = MakeLine()
+        blendContainer = blend
+        Label blendLabel
+        blendLabel:SetText("Blend softness:")
+        blendLabel:SetRightMargin(10)
+        blendContainer:Add(blendLabel)
+        TextField field
+        blendField = field
+        blendField:SetName("Blend softness")
+        blendField:SetText("")
+        blendField:SetFocusable(true)
+        blendField:AddTextChangeListener(me)
+        blendField:SetHorizontalLayoutMode(blendContainer:FILL)
+        blendContainer:Add(blendField)
+        focusArray:Add(blendField)
+
+        Control addLine = MakeLine()
+        Button button
+        addButton = button
+        addButton:SetName("Add material...")
+        addButton:SetDescription("Choose a material file, or an image, to add as the terrain's next ground layer")
+        TerrainMaterialButtonBehavior addBehavior
+        addBehavior:Setup(me, ADD, 0)
+        addButton:SetBehavior(addBehavior)
+        addLine:Add(addButton)
+        panel:Add(addLine)
+        focusArray:Add(addButton)
+    end
+
+    /*
+        Makes one layer's row: its name, its file, its tile size, and its
+        Choose and Remove buttons. Rows are put in the panel when the
+        terrain has that layer.
+    */
+    private action MakeRow(integer index, Array<Control> focusArray)
+        Control row
+        FlowLayout rowLayout
+        row:SetLayout(rowLayout)
+        row:SetPercentageWidth(1.0)
+        row:SetVerticalLayoutMode(row:FIT_CONTENTS)
+        row:SetTopMargin(6)
+
+        Control nameLine = MakeLine()
+        Label nameLabel
+        nameLabel:SetText("Layer " + (index + 1))
+        nameLabel:SetFocusable(true)
+        nameLine:Add(nameLabel)
+        row:Add(nameLine)
+
+        Control fileLine = MakeLine()
+        Label fileLabel
+        fileLabel:SetText("")
+        fileLabel:SetFocusable(true)
+        fileLine:Add(fileLabel)
+        row:Add(fileLine)
+
+        Control tileLine = MakeLine()
+        Label tileLabel
+        tileLabel:SetText("Tile size:")
+        tileLabel:SetRightMargin(10)
+        tileLine:Add(tileLabel)
+        TextField tileField
+        tileField:SetName("Layer " + (index + 1) + " tile size")
+        tileField:SetText("")
+        tileField:SetFocusable(true)
+        tileField:AddTextChangeListener(me)
+        tileField:SetHorizontalLayoutMode(tileLine:FILL)
+        tileLine:Add(tileField)
+        row:Add(tileLine)
+
+        Control buttonLine = MakeLine()
+        Button chooseButton
+        chooseButton:SetName("Choose...")
+        chooseButton:SetDescription("Choose another material for layer " + (index + 1))
+        chooseButton:SetRightMargin(10)
+        TerrainMaterialButtonBehavior chooseBehavior
+        chooseBehavior:Setup(me, CHOOSE, index)
+        chooseButton:SetBehavior(chooseBehavior)
+        buttonLine:Add(chooseButton)
+        Button removeButton
+        removeButton:SetName("Remove")
+        removeButton:SetDescription("Remove layer " + (index + 1))
+        TerrainMaterialButtonBehavior removeBehavior
+        removeBehavior:Setup(me, REMOVE, index)
+        removeButton:SetBehavior(removeBehavior)
+        buttonLine:Add(removeButton)
+        row:Add(buttonLine)
+
+        rows:Add(row)
+        nameLabels:Add(nameLabel)
+        fileLabels:Add(fileLabel)
+        tileFields:Add(tileField)
+        chooseButtons:Add(chooseButton)
+        removeButtons:Add(removeButton)
+
+        // The rows' controls are in the Tab order only while their row is
+        // shown, which SetTerrain arranges.
+        if index = 0
+            focusArray:Add(nameLabel)
+            focusArray:Add(fileLabel)
+            focusArray:Add(tileField)
+            focusArray:Add(chooseButton)
+            focusArray:Add(removeButton)
+        end
+    end
+
+    /*
+        Makes a container for one line of controls, the width of the
+        section.
+    */
+    private action MakeLine returns Control
+        FlowLayout layout
+        Control line
+        line:SetLayout(layout)
+        line:SetPercentageWidth(1.0)
+        line:SetVerticalLayoutMode(line:FIT_CONTENTS)
+        line:SetLeftMargin(20)
+        line:SetRightMargin(30)
+        line:SetTopMargin(4)
+        line:SetBottomMargin(4)
+        return line
+    end
+
+    /*
+        This action shows the dialog when a terrain is selected, and hides it
+        otherwise.
+    */
+    action SelectionChanged(SelectionEvent event)
+        if not (event:GetSelection() is SceneEditorSelection)
+            return now
+        end
+
+        SceneEditorSelection selection = cast(SceneEditorSelection, event:GetSelection())
+        Item selectedItem = undefined
+        if selection:IsItemSelected()
+            selectedItem = selection:GetSelectedItem()
+        end
+
+        if selectedItem is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, selectedItem)
+            SetTerrain(highlight:GetEditorTerrain())
+            if not IsShowing()
+                Show()
+            end
+        else
+            terrain = undefined
+            if IsShowing()
+                Hide()
+            end
+        end
+    end
+
+    /*
+        This action sets the fields from a selected terrain's highlight.
+    */
+    action SetFields(EditorItem item)
+        if item is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, item)
+            SetTerrain(highlight:GetEditorTerrain())
+        end
+    end
+
+    /*
+        This action shows a terrain's materials: a row for each layer, and
+        the blend softness, or that it has none.
+
+        Attribute: Parameter terrain The terrain
+    */
+    action SetTerrain(EditorTerrain terrain)
+        me:terrain = terrain
+        if terrain = undefined
+            return now
+        end
+        updating = true
+
+        TerrainMaterial material = terrain:GetMaterial()
+        integer count = terrain:GetLayerCount()
+        ShowRows(count)
+
+        if material = undefined
+            if terrain:GetMaterialFile() not= ""
+                statusLabel:SetText("Material file not found: " + terrain:GetMaterialFile() + ". The ground is plain.")
+            else
+                statusLabel:SetText("No materials. The ground is plain.")
+            end
+        else
+            text status = "Terrain material: " + material:GetName() + ", in " + terrain:GetMaterialFile() + "."
+            SceneEditor editor = GetSceneEditor()
+            if editor not= undefined
+                integer users = editor:CountTerrainsUsing(material)
+                if users > 1
+                    status = status + " Used by " + users + " terrains in this scene."
+                end
+            end
+            if count < 2
+                status = status + " Add another material to paint with."
+            end
+            if material:HasMixedPlainTileSizes()
+                status = status + " Plain textures share the first plain layer's tile size."
+            end
+            statusLabel:SetText(status)
+            SetFieldText(blendField, material:GetBlendSoftness())
+        end
+
+        integer i = 0
+        repeat while i < count
+            Material layerMaterial = material:GetLayerMaterial(i)
+            nameLabels:Get(i):SetText("Layer " + (i + 1) + ": " + material:GetLayerName(i))
+            text fileText = "No file"
+            if layerMaterial:GetFile() not= undefined
+                fileText = "File: " + layerMaterial:GetFile():GetFileName()
+            end
+            if layerMaterial:UsesTextureSet()
+                fileText = fileText + ", a texture set"
+            elseif layerMaterial:GetTexturePath() not= ""
+                fileText = fileText + ", a plain texture"
+            else
+                fileText = fileText + ", not found"
+            end
+            fileLabels:Get(i):SetText(fileText)
+            SetFieldText(tileFields:Get(i), layerMaterial:GetTextureScale())
+            i = i + 1
+        end
+
+        addButton:SetName("Add material...")
+        LinkFocus(count, material not= undefined)
+        updating = false
+    end
+
+    /*
+        Puts as many layer rows in the panel as the terrain has layers, then
+        the blend softness if it has any.
+    */
+    private action ShowRows(integer count)
+        boolean showBlend = count > 0
+        if count = rowsShown and showBlend = blendShown
+            return now
+        end
+        if blendShown
+            boolean removedBlend = layersPanel:Remove(blendContainer)
+        end
+        integer i = 0
+        repeat while i < rowsShown
+            boolean removed = layersPanel:Remove(rows:Get(i))
+            i = i + 1
+        end
+        i = 0
+        repeat while i < count
+            layersPanel:Add(rows:Get(i))
+            i = i + 1
+        end
+        if showBlend
+            layersPanel:Add(blendContainer)
+        end
+        rowsShown = count
+        blendShown = showBlend
+    end
+
+    /*
+        Links the Tab order through the controls that are shown: the status
+        line, each layer's controls, the blend softness, then "Add
+        material...". The status line and the button stay the first and
+        last, so the Properties panel's links to the other sections hold.
+    */
+    private action LinkFocus(integer count, boolean withBlend)
+        Array<Control> chain
+        chain:Add(statusLabel)
+        integer i = 0
+        repeat while i < count
+            chain:Add(nameLabels:Get(i))
+            chain:Add(fileLabels:Get(i))
+            chain:Add(tileFields:Get(i))
+            chain:Add(chooseButtons:Get(i))
+            chain:Add(removeButtons:Get(i))
+            i = i + 1
+        end
+        if withBlend
+            chain:Add(blendField)
+        end
+        chain:Add(addButton)
+        i = 0
+        repeat while i < chain:GetSize() - 1
+            chain:Get(i):SetNextFocus(chain:Get(i + 1))
+            chain:Get(i + 1):SetPreviousFocus(chain:Get(i))
+            i = i + 1
+        end
+    end
+
+    /*
+        Puts a number into a field without it being taken as typing. A field
+        that already says that number, such as one being typed in, is left
+        as it is.
+    */
+    private action SetFieldText(TextField field, number value)
+        boolean same = false
+        check
+            same = field:GetText() not= "" and field:GetText():ParseNumber() = value
+        detect e is Error
+            // Not a number; it is replaced.
+        end
+        if same
+            return now
+        end
+        field:RemoveTextChangeListener(me)
+        field:SetText("" + value)
+        field:AddTextChangeListener(me)
+    end
+
+    /*
+        This action is called by the section's buttons: it asks for a file
+        to add a layer or choose a layer's material, or removes a layer.
+
+        Attribute: Parameter kind ADD, CHOOSE or REMOVE
+        Attribute: Parameter layer The layer, from 0, for CHOOSE and REMOVE
+    */
+    action ButtonActivated(integer kind, integer layer)
+        SceneEditor editor = GetSceneEditor()
+        if terrain = undefined or editor = undefined
+            return now
+        end
+        if kind = REMOVE
+            editor:RemoveTerrainLayer(terrain, layer)
+            return now
+        end
+        FileChooser chooser
+        FileFilter filter
+        filter:Add("json")
+        filter:Add("png")
+        filter:Add("jpg")
+        File chosen = chooser:OpenFileDialog(editor:GetProjectLocation(), filter)
+        if chosen = undefined
+            return now
+        end
+        if kind = ADD
+            editor:AddTerrainLayer(terrain, chosen)
+        else
+            editor:ChooseTerrainLayer(terrain, layer, chosen)
+        end
+    end
+
+    /*
+        This action sets a layer's tile size, or the blend softness, as it
+        is typed. Text that isn't a number, or is out of range, is ignored:
+        a tile size from 0.25 to 63.75, and a softness from 0.01 to 1.
+    */
+    action TextChanged(TextChangeEvent event)
+        SceneEditor editor = GetSceneEditor()
+        if terrain = undefined or updating or editor = undefined
+            return now
+        end
+        Control control = event:GetControl()
+        if control:Equals(blendField)
+            number softness = ReadNumber(blendField)
+            if softness >= 0.01 and softness <= 1
+                editor:SetTerrainBlendSoftness(terrain, softness)
+            end
+            return now
+        end
+        integer i = 0
+        repeat while i < rowsShown
+            if control:Equals(tileFields:Get(i))
+                number size = ReadNumber(tileFields:Get(i))
+                if size >= 0.25 and size <= 63.75
+                    editor:SetTerrainLayerTileSize(terrain, i, size)
+                end
+                return now
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+        Returns the number in a field, or -1 if it doesn't hold one yet.
+    */
+    private action ReadNumber(TextField field) returns number
+        number value = -1
+        check
+            value = field:GetText():ParseNumber()
+        detect e is Error
+            value = -1
+        end
+        return value
+    end
+
+    /*
+        Moves the focus to the first layer's name, or to "Add material..."
+        when there are none.
+    */
+    action FocusField
+        if rowsShown > 0
+            nameLabels:Get(0):Focus()
+        else
+            addButton:Focus()
+        end
+    end
+end

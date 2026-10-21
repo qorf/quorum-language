@@ -1,0 +1,32 @@
+package Libraries.Interface.Behaviors.Scenes.Properties
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Scenes.Dialogs.TerrainGeneratePropertiesDialog
+
+/*
+    The TerrainGenerateButtonBehavior is a button in a terrain's Generate
+    section (step 10), such as "Generate" or "Stamp here". It tells the
+    section which was pressed.
+*/
+class TerrainGenerateButtonBehavior is Behavior
+    TerrainGeneratePropertiesDialog dialog = undefined
+    integer kind = 0
+
+    /*
+        Sets which section and button this is.
+
+        Attribute: Parameter dialog The Generate section
+        Attribute: Parameter kind What the button does, such as the section's GENERATE
+    */
+    action Setup(TerrainGeneratePropertiesDialog dialog, integer kind)
+        me:dialog = dialog
+        me:kind = kind
+    end
+
+    action Run(BehaviorEvent event)
+        if dialog not= undefined
+            dialog:ButtonActivated(kind)
+        end
+    end
+end

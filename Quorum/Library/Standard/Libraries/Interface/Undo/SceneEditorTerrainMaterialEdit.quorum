@@ -1,0 +1,129 @@
+package Libraries.Interface.Undo
+
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+use Libraries.Game.Graphics.Worlds.TerrainMaterial
+use Libraries.Game.Graphics.Worlds.TerrainStrokeEdit
+
+/*
+    The SceneEditorTerrainMaterialEdit is one change to a terrain's
+    materials in the scene editor's undo list (step 9): adding, choosing
+    or removing a layer. It keeps:
+    - which terrain material the terrain had, and its file, before and
+      after;
+    - the layers of the terrain material that changed, before and after,
+      since terrains sharing it change with it;
+    - the painting it moved, such as a removed layer's weight going to the
+      first layer, on each terrain it moved it on.
+*/
+class SceneEditorTerrainMaterialEdit is Edit
+    SceneEditor controller = undefined
+    EditorTerrain terrain = undefined
+    text name = ""
+
+    TerrainMaterial beforeMaterial = undefined
+    TerrainMaterial afterMaterial = undefined
+    text beforeFile = ""
+    text afterFile = ""
+
+    // The terrain material whose layers changed, and copies of its layers
+    // from before and after, or undefined if none changed.
+    TerrainMaterial changedMaterial = undefined
+    TerrainMaterial beforeLayers = undefined
+    TerrainMaterial afterLayers = undefined
+
+    Array<TerrainStrokeEdit> paintingEdits
+
+    /*
+        Sets up the edit with the terrain's material from before and after
+        the change.
+
+        Attribute: Parameter controller The scene editor
+        Attribute: Parameter terrain The terrain whose materials changed
+        Attribute: Parameter name What changed, such as "add Grass"
+        Attribute: Parameter beforeMaterial The terrain's terrain material before, or undefined
+        Attribute: Parameter beforeFile Its file's path in the scene before
+        Attribute: Parameter afterMaterial The terrain's terrain material after, or undefined
+        Attribute: Parameter afterFile Its file's path in the scene after
+    */
+    action Create(SceneEditor controller, EditorTerrain terrain, text name, TerrainMaterial beforeMaterial, text beforeFile,
+            TerrainMaterial afterMaterial, text afterFile)
+        me:controller = controller
+        me:terrain = terrain
+        me:name = name
+        me:beforeMaterial = beforeMaterial
+        me:beforeFile = beforeFile
+        me:afterMaterial = afterMaterial
+        me:afterFile = afterFile
+    end
+
+    /*
+        Records that a terrain material's layers changed.
+
+        Attribute: Parameter material The terrain material that changed
+        Attribute: Parameter beforeLayers A copy of it from before
+        Attribute: Parameter afterLayers A copy of it from after
+    */
+    action SetChangedLayers(TerrainMaterial material, TerrainMaterial beforeLayers, TerrainMaterial afterLayers)
+        changedMaterial = material
+        me:beforeLayers = beforeLayers
+        me:afterLayers = afterLayers
+    end
+
+    /*
+        Adds the edit that undoes painting the change moved on one terrain.
+
+        Attribute: Parameter edit The painting's edit
+    */
+    action AddPaintingEdit(TerrainStrokeEdit edit)
+        if edit not= undefined
+            paintingEdits:Add(edit)
+        end
+    end
+
+    action Undo
+        integer i = paintingEdits:GetSize() - 1
+        repeat while i >= 0
+            paintingEdits:Get(i):Undo()
+            i = i - 1
+        end
+        if changedMaterial not= undefined
+            changedMaterial:CopyFrom(beforeLayers)
+        end
+        terrain:SetMaterialFile(beforeFile)
+        terrain:SetMaterial(beforeMaterial)
+        controller:TerrainMaterialEdited(terrain, changedMaterial, "Undid " + name)
+    end
+
+    action Redo
+        integer i = 0
+        repeat while i < paintingEdits:GetSize()
+            paintingEdits:Get(i):Redo()
+            i = i + 1
+        end
+        if changedMaterial not= undefined
+            changedMaterial:CopyFrom(afterLayers)
+        end
+        terrain:SetMaterialFile(afterFile)
+        terrain:SetMaterial(afterMaterial)
+        controller:TerrainMaterialEdited(terrain, changedMaterial, "Redid " + name)
+    end
+
+    action GetUndoName returns text
+        return "Undo " + name
+    end
+
+    action GetRedoName returns text
+        return "Redo " + name
+    end
+
+    action Dispose
+        integer i = 0
+        repeat while i < paintingEdits:GetSize()
+            paintingEdits:Get(i):Dispose()
+            i = i + 1
+        end
+        paintingEdits:Empty()
+    end
+end

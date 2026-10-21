@@ -53,7 +53,24 @@ class TerrainItem is Item3D
     // has no regions, but keeps the file's path, so a scene that names it
     // still loads, and saves it unchanged.
     boolean missing = false
-    boolean collision = true
+
+    // How the terrain can be collided with: WorldTerrain's COLLISION_FULL
+    // (every region), COLLISION_DYNAMIC (only near moving bodies) or
+    // COLLISION_DISABLED (step 13).
+    integer collisionMode = 2
+
+    // Streaming (step 13): the terrain loads and draws only the regions near
+    // the camera, or near an item it follows, instead of every region. It
+    // starts on the item's first update in a layer.
+    boolean streaming = false
+    boolean streamingStarted = false
+    number drawRadius = 100
+    Item3D followItem = undefined
+
+    // The ground's look (step 9): undefined for plain ground, and the
+    // terrain material file's path, as the scene names it.
+    TerrainMaterial material = undefined
+    text materialFile = ""
 
     /*
     This action loads a terrain from its terrain.json file, and makes its
@@ -86,6 +103,11 @@ class TerrainItem is Item3D
             return now
         end
         missing = false
+        // A streaming terrain loads its regions as it starts, on its first
+        // update in a layer (step 13).
+        if streaming
+            return now
+        end
         terrain:GetData():Load(GetFolder(file))
         BuildModels()
     end
@@ -157,7 +179,98 @@ class TerrainItem is Item3D
             plainFile:SetPath(terrainFile)
             file = plainFile
         end
+        // Regions removed in a scene editor are left out of terrain.json, so
+        // they don't load again; their files stay in the folder, unused
+        // (step 11). The item holds every region, so a saved region that
+        // isn't in memory was removed.
+        // A streaming terrain has only some regions in memory, so the others
+        // stay listed.
+        if not streaming
+            integer forgotten = terrain:GetData():ForgetRegionsNotLoaded()
+        end
         terrain:GetData():Save(GetFolder(file))
+    end
+
+    /*
+    This action makes the region models again after regions were added or
+    removed, such as by a scene editor's region tools (step 11).
+    */
+    action RebuildRegionModels
+        RebuildModels()
+    end
+
+    /*
+    This action gives the ground a look: its layers and how they blend. The
+    region models are made again with it. Undefined goes back to plain
+    ground. Call it again after changing the TerrainMaterial.
+
+    Attribute: Parameter material The terrain material, or undefined for plain ground.
+    */
+    action SetMaterial(TerrainMaterial material)
+        me:material = material
+        RefreshMaterial()
+    end
+
+    /*
+    This action returns the ground's terrain material.
+
+    Attribute: Returns The terrain material, or undefined for plain ground.
+    */
+    action GetMaterial returns TerrainMaterial
+        return material
+    end
+
+    /*
+    This action gives the terrain its material again, after the
+    TerrainMaterial changed, and makes the region models again.
+    */
+    action RefreshMaterial
+        if material = undefined
+            terrain:SetTextureSplat(undefined)
+            integer layer = 0
+            repeat while layer < 4
+                if terrain:GetLayerMaterial(layer) not= undefined
+                    terrain:SetLayerMaterial(layer, undefined)
+                end
+                layer = layer + 1
+            end
+        else
+            material:ApplyTo(terrain)
+        end
+        if terrain:GetData():GetRegionCount() > 0
+            RebuildModels()
+        end
+    end
+
+    /*
+    This action loads a terrain material file and gives the ground its look.
+
+    Attribute: Parameter file The terrain material file.
+    */
+    action LoadMaterial(File file)
+        TerrainMaterial loaded
+        loaded:Load(file)
+        materialFile = file:GetPath()
+        SetMaterial(loaded)
+    end
+
+    /*
+    This action returns the terrain material file's path, as a scene names
+    it.
+
+    Attribute: Returns The path, or an empty text for plain ground.
+    */
+    action GetMaterialFile returns text
+        return materialFile
+    end
+
+    /*
+    This action sets the terrain material file's path, as a scene names it.
+
+    Attribute: Parameter path The path, or an empty text for plain ground.
+    */
+    action SetMaterialFile(text path)
+        materialFile = path
     end
 
     /*
@@ -188,7 +301,11 @@ class TerrainItem is Item3D
     Attribute: Parameter enabled True for collision, the default.
     */
     action SetCollision(boolean enabled)
-        collision = enabled
+        if enabled
+            collisionMode = terrain:COLLISION_FULL
+        else
+            collisionMode = terrain:COLLISION_DISABLED
+        end
     end
 
     /*
@@ -198,7 +315,120 @@ class TerrainItem is Item3D
     Attribute: Returns True for collision.
     */
     action HasCollision returns boolean
-        return collision
+        return collisionMode not= terrain:COLLISION_DISABLED
+    end
+
+    /*
+    This action sets how the terrain can be collided with: WorldTerrain's
+    COLLISION_FULL, every region (the default); COLLISION_DYNAMIC, only near
+    moving bodies, for large worlds; or COLLISION_DISABLED. Set it before
+    Load or CreateFlat.
+
+    Attribute: Parameter mode The collision mode.
+    */
+    action SetCollisionMode(integer mode)
+        if mode < 0 or mode > 2
+            alert("The collision mode must be COLLISION_DISABLED, COLLISION_DYNAMIC or COLLISION_FULL, but was given " + mode + ".")
+        end
+        collisionMode = mode
+    end
+
+    /*
+    This action returns how the terrain can be collided with.
+
+    Attribute: Returns WorldTerrain's COLLISION_FULL, COLLISION_DYNAMIC or COLLISION_DISABLED.
+    */
+    action GetCollisionMode returns integer
+        return collisionMode
+    end
+
+    /*
+    This action sets whether the terrain streams: it then loads and draws
+    only the regions within the draw radius of the camera, or of the item it
+    follows (SetFollowItem), loading and unloading regions as that moves.
+    For large terrains. Set it before Load; streaming starts on the item's
+    first update in a layer.
+
+    Attribute: Parameter stream True to stream.
+    Attribute: Parameter radius How near, in world units, a region must be to be drawn. It must be more than 0.
+    */
+    action SetStreaming(boolean stream, number radius)
+        if radius <= 0
+            alert("The draw radius must be more than 0, but was given " + radius + ".")
+        end
+        streaming = stream
+        drawRadius = radius
+    end
+
+    /*
+    This action returns true if the terrain streams its regions.
+
+    Attribute: Returns True for streaming.
+    */
+    action IsStreaming returns boolean
+        return streaming
+    end
+
+    /*
+    This action returns how near a region must be to be drawn while
+    streaming.
+
+    Attribute: Returns The draw radius, in world units.
+    */
+    action GetDrawRadius returns number
+        return drawRadius
+    end
+
+    /*
+    This action sets the item the terrain keeps its regions and collision
+    around, such as a player's car. Undefined, the default, uses the camera.
+
+    Attribute: Parameter item The item to follow, or undefined for the camera.
+    */
+    action SetFollowItem(Item3D item)
+        followItem = item
+    end
+
+    /*
+    This action returns the item the terrain keeps its regions around.
+
+    Attribute: Returns The item, or undefined for the camera.
+    */
+    action GetFollowItem returns Item3D
+        return followItem
+    end
+
+    /*
+    This action keeps the terrain up to date each frame, so a game needs no
+    code for it: ground textures become ready to draw, and a streaming
+    terrain loads and unloads regions around the camera, or the item it
+    follows. The layer calls it.
+
+    Attribute: Parameter secondsSinceUpdate The time since the last frame.
+    */
+    action Update(number secondsSinceUpdate)
+        Layer3D layer = GetLayer()
+        if layer = undefined or missing
+            return now
+        end
+        number x = 0
+        number z = 0
+        if followItem not= undefined
+            x = followItem:GetGlobalX()
+            z = followItem:GetGlobalZ()
+        else
+            x = layer:GetCamera():GetPosition():GetX()
+            z = layer:GetCamera():GetPosition():GetZ()
+        end
+        if streaming and not streamingStarted
+            streamingStarted = true
+            terrain:SetCollisionMode(collisionMode)
+            terrain:SetName(GetName())
+            terrain:SetDrawRadius(drawRadius)
+            terrain:StartStreaming(GetFolder(terrainLocation), layer, x, z)
+            return now
+        end
+        boolean changed = terrain:Update(layer, x, z)
     end
 
     /*
@@ -241,11 +471,7 @@ class TerrainItem is Item3D
     This action makes the terrain's region models and adds them to the item.
     */
     private action BuildModels
-        if collision
-            terrain:SetCollisionMode(terrain:COLLISION_FULL)
-        else
-            terrain:SetCollisionMode(terrain:COLLISION_DISABLED)
-        end
+        terrain:SetCollisionMode(collisionMode)
         terrain:SetName(GetName())
         terrain:Build()
         integer i = 0

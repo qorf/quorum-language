@@ -706,6 +706,131 @@ class TerrainData
     end
 
     /*
+    This action takes a ground layer out of every sample's splat weights,
+    for when a terrain material loses a layer: the layer's weight goes to
+    the first layer, and the layers after it move down one channel, so
+    their painting stays on the same textures. Every region becomes part of
+    the splat edited area.
+
+    Attribute: Parameter layer The layer to take out, from 0 to 3. Taking out layer 0 gives its weight to the new first layer.
+    */
+    action RemoveSplatLayer(integer layer)
+        if layer < 0 or layer > 3
+            alert("A ground layer is from 0 to 3, but was given " + layer + ".")
+        end
+        Number32BitArray weights
+        weights:SetSize(4)
+        integer i = 0
+        repeat while i < regions:GetSize()
+            TerrainRegion region = regions:Get(i)
+            integer z = 0
+            repeat while z < regionSize
+                integer x = 0
+                repeat while x < regionSize
+                    integer code = region:GetSplat(x, z)
+                    number removed = GetSplatWeight(code, layer)
+                    integer channel = 0
+                    integer place = 0
+                    repeat while channel < 4
+                        if channel not= layer
+                            weights:Set(place, GetSplatWeight(code, channel))
+                            place = place + 1
+                        end
+                        channel = channel + 1
+                    end
+                    weights:Set(3, 0)
+                    weights:Set(0, weights:Get(0) + removed)
+                    integer newCode = PackSplat(weights:Get(0), weights:Get(1), weights:Get(2), weights:Get(3))
+                    if newCode not= code
+                        region:SetSplat(x, z, newCode)
+                    end
+                    x = x + 1
+                end
+                z = z + 1
+            end
+            AddRegionToSplatEditedArea(region)
+            i = i + 1
+        end
+    end
+
+    /*
+    This action gives the weights of layers a terrain doesn't have to its
+    first layer, over a rectangle of samples, such as after auto paint,
+    which paints four layers, on a terrain with fewer materials (step 10).
+
+    Attribute: Parameter layerCount How many layers the terrain has, from 1 to 4.
+    Attribute: Parameter minimumX The rectangle's smallest sample along x.
+    Attribute: Parameter minimumZ The rectangle's smallest sample along z.
+    Attribute: Parameter maximumX The rectangle's largest sample along x.
+    Attribute: Parameter maximumZ The rectangle's largest sample along z.
+    */
+    action FoldSplatLayers(integer layerCount, integer minimumX, integer minimumZ, integer maximumX, integer maximumZ)
+        if layerCount >= 4 or layerCount < 1
+            return now
+        end
+        integer z = minimumZ
+        repeat while z <= maximumZ
+            integer x = minimumX
+            repeat while x <= maximumX
+                integer locationX = GetRegionLocation(x)
+                integer locationZ = GetRegionLocation(z)
+                if HasRegion(locationX, locationZ)
+                    integer code = GetSampleSplat(x, z)
+                    number first = GetSplatWeight(code, 0)
+                    number second = GetSplatWeight(code, 1)
+                    number third = GetSplatWeight(code, 2)
+                    number fourth = GetSplatWeight(code, 3)
+                    if layerCount < 4
+                        first = first + fourth
+                        fourth = 0
+                    end
+                    if layerCount < 3
+                        first = first + third
+                        third = 0
+                    end
+                    if layerCount < 2
+                        first = first + second
+                        second = 0
+                    end
+                    integer newCode = PackSplat(first, second, third, fourth)
+                    if newCode not= code
+                        SetSampleSplat(x, z, newCode)
+                    end
+                end
+                x = x + 1
+            end
+            z = z + 1
+        end
+    end
+
+    /*
+    This action sets every sample's splat weights back to the default, all
+    the first layer, and marks every region unpainted, so the next save
+    deletes their splat images. It is for a terrain that no longer has any
+    materials (step 9).
+    */
+    action ClearSplat
+        integer allFirst = PackSplat(1, 0, 0, 0)
+        integer i = 0
+        repeat while i < regions:GetSize()
+            TerrainRegion region = regions:Get(i)
+            region:FillSplat(allFirst)
+            region:SetSplatPainted(false)
+            AddRegionToSplatEditedArea(region)
+            i = i + 1
+        end
+    end
+
+    /*
+    This action adds a whole region to the splat edited area.
+    */
+    private action AddRegionToSplatEditedArea(TerrainRegion region)
+        integer firstX = region:GetLocationX() * regionSize
+        integer firstZ = region:GetLocationZ() * regionSize
+        AddToSplatEditedArea(firstX, firstZ, firstX + regionSize - 1, firstZ + regionSize - 1)
+    end
+
+    /*
     This action copies splat weights from an image into the terrain, adding
     regions wherever they are needed. Each pixel's red, green, blue and alpha
     are the weights of the four textures. The pixels are read in the same
@@ -1540,9 +1665,14 @@ class TerrainData
         image:Save(GetFileInFolder(folder, GetRegionFileName(region:GetLocationX(), region:GetLocationZ())))
         // A region that was never painted saves no splat image: loading
         // gives it the default weights anyway (Quorum Studio plan, step 2).
-        if region:IsSplatPainted()
+        File splatFile = GetFileInFolder(folder, GetSplatFileName(region:GetLocationX(), region:GetLocationZ()))
+        // A region whose painting was cleared, such as when a terrain's last
+        // material was removed (step 9), still has its old image. Saving
+        // never deletes files, so the cleared weights are written over it,
+        // and loading it gives the default weights.
+        if region:IsSplatPainted() or splatFile:Exists()
             PixelMap splatImage = region:GetSplatImage()
-            splatImage:Save(GetFileInFolder(folder, GetSplatFileName(region:GetLocationX(), region:GetLocationZ())))
+            splatImage:Save(splatFile)
         end
 
         integer index = GetRegionMapIndex(region:GetLocationX(), region:GetLocationZ())

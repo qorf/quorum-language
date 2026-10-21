@@ -890,6 +890,16 @@ class WorldTerrain
     end
 
     /*
+    This action makes the layer table again the next time the terrain
+    updates, such as after a texture set layer's tile size changed. The
+    texture sets aren't loaded again.
+    */
+    action RefreshLayers
+        layerTable = undefined
+        layersReady = false
+    end
+
+    /*
     This action returns the 4 by 1 texture that tells the splat shader each
     texture set layer's texture places and tile size.
 

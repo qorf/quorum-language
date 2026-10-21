@@ -163,6 +163,41 @@ class TerrainStrokeEdit is Edit
     end
 
     /*
+    This action returns the biggest change in height the stroke made at any
+    sample, such as 2.4 for ground raised by up to 2.4, or -1.5 for ground
+    lowered by up to 1.5. Regions the stroke added or removed are left out.
+
+    Attribute: Returns The change in world units, or 0 if no height changed.
+    */
+    action GetLargestHeightChange returns number
+        number largest = 0
+        number largestSize = 0
+        integer i = 0
+        repeat while i < beforeCopies:GetSize()
+            TerrainRegion before = beforeCopies:Get(i)
+            TerrainRegion after = afterCopies:Get(i)
+            if before not= undefined and after not= undefined
+                integer count = before:GetRegionSize() * before:GetRegionSize()
+                integer sample = 0
+                repeat while sample < count
+                    number change = after:GetHeightAt(sample) - before:GetHeightAt(sample)
+                    number size = change
+                    if size < 0
+                        size = -size
+                    end
+                    if size > largestSize
+                        largestSize = size
+                        largest = change
+                    end
+                    sample = sample + 1
+                end
+            end
+            i = i + 1
+        end
+        return largest
+    end
+
+    /*
     This action returns how many regions the stroke touched.
 
     Attribute: Returns The number of regions.

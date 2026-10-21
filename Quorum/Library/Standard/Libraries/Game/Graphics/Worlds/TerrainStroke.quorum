@@ -141,6 +141,23 @@ class TerrainStroke
     end
 
     /*
+    This action is CopyArea, but it also notes the locations in the
+    rectangle that have no region, so undo removes regions the operation
+    adds there, such as growing a terrain (step 11).
+
+    Attribute: Parameter minimumX The rectangle's smallest sample along x.
+    Attribute: Parameter minimumZ The rectangle's smallest sample along z.
+    Attribute: Parameter maximumX The rectangle's largest sample along x.
+    Attribute: Parameter maximumZ The rectangle's largest sample along z.
+    */
+    action CopyAreaIncludingEmpty(integer minimumX, integer minimumZ, integer maximumX, integer maximumZ)
+        if not active
+            alert("A terrain operation must begin before its area is copied.")
+        end
+        CopyRegionsFor(minimumX, minimumZ, maximumX, maximumZ, true)
+    end
+
+    /*
     This action makes the stroke active with empty lists of touched regions.
     */
     private action StartLists

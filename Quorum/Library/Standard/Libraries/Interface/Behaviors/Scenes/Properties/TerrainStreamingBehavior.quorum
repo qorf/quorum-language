@@ -1,0 +1,46 @@
+package Libraries.Interface.Behaviors.Scenes.Properties
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.ToggleButton
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Controls.Scenes.Dialogs.TerrainPhysicsPropertiesDialog
+
+/*
+    This behavior is used by the streaming checkbox of a terrain's physics
+    properties (step 13). When the checkbox is toggled, it tells the dialog,
+    which sets whether the terrain streams its regions in games.
+*/
+class TerrainStreamingBehavior is Behavior
+
+    TerrainPhysicsPropertiesDialog dialog = undefined
+
+    /*
+        Sets the dialog this behavior tells about the checkbox.
+
+        Attribute: Parameter dialog The terrain's physics dialog
+    */
+    action SetDialog(TerrainPhysicsPropertiesDialog dialog)
+        me:dialog = dialog
+    end
+
+    /*
+        Returns the dialog this behavior tells about the checkbox.
+
+        Attribute: Returns The terrain's physics dialog
+    */
+    action GetDialog returns TerrainPhysicsPropertiesDialog
+        return dialog
+    end
+
+    action Run(BehaviorEvent event)
+        if dialog = undefined
+            return now
+        end
+        Item item = event:GetItem()
+        if item is ToggleButton
+            ToggleButton button = cast(ToggleButton, item)
+            dialog:SetStreaming(button:GetToggleState())
+        end
+    end
+end

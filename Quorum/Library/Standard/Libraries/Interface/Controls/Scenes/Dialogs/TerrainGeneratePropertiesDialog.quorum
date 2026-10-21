@@ -1,0 +1,388 @@
+package Libraries.Interface.Controls.Scenes.Dialogs
+
+use Libraries.Containers.Array
+use Libraries.Compute.Random
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Controls.Checkbox
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.ButtonGroup
+use Libraries.Interface.Controls.RadioButton
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Item
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Selections.SceneEditorSelection
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
+use Libraries.Interface.Behaviors.Scenes.Properties.TerrainGenerateButtonBehavior
+use Libraries.Game.Graphics.Worlds.TerrainGenerator
+
+/*
+    The TerrainGeneratePropertiesDialog is a selected terrain's Generate
+    section (step 10). For the whole terrain, it remakes the ground with a
+    preset (rolling hills, mountains, plateaus, canyons or flat), a seed and
+    a height, and can auto paint it; it also erodes or auto paints the
+    whole terrain. At the brush, placed with any tool from the Brush
+    section, it presses a stamp (a hill, mountain, mesa, crater or ridge, as
+    big as the brush), erodes, or auto paints. Each can be undone.
+
+    Auto paint needs two or more materials (step 9): layer 1 goes on flat
+    ground, layer 2 on slopes, layer 3 in hollows and layer 4 low down.
+
+    It shows in the scene editor's Properties panel, after the Brush
+    section.
+*/
+class TerrainGeneratePropertiesDialog is PropertiesDialog
+    // What a button does.
+    public constant integer GENERATE = 0
+    public constant integer NEW_SEED = 1
+    public constant integer ERODE_ALL = 2
+    public constant integer AUTO_PAINT_ALL = 3
+    public constant integer STAMP = 4
+    public constant integer ERODE_HERE = 5
+    public constant integer AUTO_PAINT_HERE = 6
+
+    ButtonGroup presetGroup = undefined
+    TextField seedField = undefined
+    TextField heightField = undefined
+    Checkbox autoPaintCheckbox = undefined
+    ButtonGroup stampGroup = undefined
+    ButtonGroup modeGroup = undefined
+    TextField stampHeightField = undefined
+    TextField turnField = undefined
+
+    TerrainGenerator names
+    Random random
+
+    // The terrain whose tools are shown, or undefined.
+    EditorTerrain terrain = undefined
+
+    /*
+        Creates and adds the interface components for this dialog.
+    */
+    private action CreateInterface(Control panel, Array<Control> focusArray)
+        SetName("Terrain Generate")
+
+        AddHeading(panel, "Generate", 18)
+
+        Control presetLine = MakeLine()
+        Label presetLabel
+        presetLabel:SetText("Preset:")
+        presetLine:Add(presetLabel)
+        panel:Add(presetLine)
+        ButtonGroup presets
+        presetGroup = MakeGroup(presets, "Preset")
+        integer preset = 0
+        repeat while preset < names:GetPresetCount()
+            AddRadio(presetGroup, Capitalize(names:GetPresetName(preset)))
+            preset = preset + 1
+        end
+        presetGroup:GetButtonAt(0):SetToggleState(true)
+        AddGroup(panel, presetGroup, focusArray)
+
+        Control seedLine = MakeLine()
+        seedField = AddField(seedLine, "Seed:", "Seed", "7", focusArray)
+        Button newSeed = AddButton(seedLine, "New seed", "Pick a seed at random", NEW_SEED, focusArray)
+        panel:Add(seedLine)
+
+        Control heightLine = MakeLine()
+        heightField = AddField(heightLine, "Height:", "Height in world units", "32", focusArray)
+        panel:Add(heightLine)
+
+        Control paintLine = MakeLine()
+        Checkbox checkbox
+        autoPaintCheckbox = checkbox
+        autoPaintCheckbox:SetName("Auto paint afterward")
+        paintLine:Add(autoPaintCheckbox)
+        panel:Add(paintLine)
+        focusArray:Add(autoPaintCheckbox)
+
+        Control wholeLine = MakeLine()
+        Button generate = AddButton(wholeLine, "Generate", "Remake the whole terrain's ground with the preset", GENERATE, focusArray)
+        panel:Add(wholeLine)
+        Control wholeLine2 = MakeLine()
+        Button erodeAll = AddButton(wholeLine2, "Erode whole terrain", "Wear the whole ground as rain would", ERODE_ALL, focusArray)
+        Button paintAll = AddButton(wholeLine2, "Auto paint whole terrain", "Paint the layers by height and slope", AUTO_PAINT_ALL, focusArray)
+        panel:Add(wholeLine2)
+
+        AddHeading(panel, "At the brush", 16)
+
+        Control stampLine = MakeLine()
+        Label stampLabel
+        stampLabel:SetText("Stamp:")
+        stampLine:Add(stampLabel)
+        panel:Add(stampLine)
+        ButtonGroup stamps
+        stampGroup = MakeGroup(stamps, "Stamp")
+        integer stamp = 0
+        repeat while stamp < names:GetStampCount()
+            AddRadio(stampGroup, Capitalize(names:GetStampName(stamp)))
+            stamp = stamp + 1
+        end
+        stampGroup:GetButtonAt(0):SetToggleState(true)
+        AddGroup(panel, stampGroup, focusArray)
+
+        Control modeLine = MakeLine()
+        Label modeLabel
+        modeLabel:SetText("Stamp mode:")
+        modeLine:Add(modeLabel)
+        panel:Add(modeLine)
+        ButtonGroup modes
+        modeGroup = MakeGroup(modes, "Stamp mode")
+        AddRadio(modeGroup, "Usual for the shape")
+        AddRadio(modeGroup, "Add")
+        AddRadio(modeGroup, "Subtract")
+        AddRadio(modeGroup, "Raise to the shape")
+        modeGroup:GetButtonAt(0):SetToggleState(true)
+        AddGroup(panel, modeGroup, focusArray)
+
+        Control stampHeightLine = MakeLine()
+        stampHeightField = AddField(stampHeightLine, "Stamp height:", "Stamp height in world units", "15", focusArray)
+        panel:Add(stampHeightLine)
+        Control turnLine = MakeLine()
+        turnField = AddField(turnLine, "Turn:", "Stamp turn in degrees", "0", focusArray)
+        panel:Add(turnLine)
+
+        Control hereLine = MakeLine()
+        Button stampHere = AddButton(hereLine, "Stamp here", "Press the stamp into the ground at the brush", STAMP, focusArray)
+        Button erodeHere = AddButton(hereLine, "Erode here", "Wear the ground under the brush", ERODE_HERE, focusArray)
+        panel:Add(hereLine)
+        Control hereLine2 = MakeLine()
+        Button paintHere = AddButton(hereLine2, "Auto paint here", "Paint the layers under the brush by height and slope", AUTO_PAINT_HERE, focusArray)
+        panel:Add(hereLine2)
+    end
+
+    /*
+        Adds a heading.
+    */
+    private action AddHeading(Control panel, text value, integer size)
+        Label heading
+        heading:SetSize(size)
+        heading:SetText(value)
+        heading:SetLeftMargin(20)
+        heading:SetTopMargin(6)
+        panel:Add(heading)
+    end
+
+    /*
+        Makes a container for one line of controls, the width of the
+        section.
+    */
+    private action MakeLine returns Control
+        FlowLayout layout
+        Control line
+        line:SetLayout(layout)
+        line:SetPercentageWidth(1.0)
+        line:SetVerticalLayoutMode(line:FIT_CONTENTS)
+        line:SetLeftMargin(20)
+        line:SetRightMargin(30)
+        line:SetTopMargin(4)
+        line:SetBottomMargin(4)
+        return line
+    end
+
+    /*
+        Sets up a group of radio buttons.
+    */
+    private action MakeGroup(ButtonGroup group, text name) returns ButtonGroup
+        Control layoutValues
+        group:SetName(name)
+        group:SetHorizontalLayoutMode(layoutValues:FILL)
+        group:SetVerticalLayoutMode(layoutValues:FIT_CONTENTS)
+        FlowLayout layout
+        group:SetLayout(layout)
+        return group
+    end
+
+    /*
+        Adds a radio button to a group.
+    */
+    private action AddRadio(ButtonGroup group, text name)
+        Control layoutValues
+        RadioButton button
+        button:SetName(name)
+        button:SetHorizontalLayoutMode(layoutValues:FILL)
+        group:AddToGrouping(button)
+        group:Add(button)
+    end
+
+    /*
+        Puts a group of radio buttons in the section.
+    */
+    private action AddGroup(Control panel, ButtonGroup group, Array<Control> focusArray)
+        Control line = MakeLine()
+        line:Add(group)
+        panel:Add(line)
+        focusArray:Add(group)
+    end
+
+    /*
+        Adds a labelled field to a line.
+    */
+    private action AddField(Control line, text label, text name, text value, Array<Control> focusArray) returns TextField
+        Label fieldLabel
+        fieldLabel:SetText(label)
+        fieldLabel:SetRightMargin(10)
+        line:Add(fieldLabel)
+        TextField field
+        field:SetName(name)
+        field:SetText(value)
+        field:SetFocusable(true)
+        field:SetRightMargin(8)
+        field:SetHorizontalLayoutMode(line:FILL)
+        line:Add(field)
+        focusArray:Add(field)
+        return field
+    end
+
+    /*
+        Adds a button to a line.
+    */
+    private action AddButton(Control line, text name, text description, integer kind, Array<Control> focusArray) returns Button
+        Button button
+        button:SetName(name)
+        button:SetDescription(description)
+        button:SetRightMargin(10)
+        TerrainGenerateButtonBehavior behavior
+        behavior:Setup(me, kind)
+        button:SetBehavior(behavior)
+        line:Add(button)
+        focusArray:Add(button)
+        return button
+    end
+
+    /*
+        Returns a name with its first letter in capitals.
+    */
+    private action Capitalize(text name) returns text
+        if name:GetSize() = 0
+            return name
+        end
+        return name:GetSubtext(0, 1):ToUpperCase() + name:GetSubtext(1)
+    end
+
+    /*
+        This action shows the dialog when a terrain is selected, and hides it
+        otherwise.
+    */
+    action SelectionChanged(SelectionEvent event)
+        if not (event:GetSelection() is SceneEditorSelection)
+            return now
+        end
+
+        SceneEditorSelection selection = cast(SceneEditorSelection, event:GetSelection())
+        Item selectedItem = undefined
+        if selection:IsItemSelected()
+            selectedItem = selection:GetSelectedItem()
+        end
+
+        if selectedItem is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, selectedItem)
+            terrain = highlight:GetEditorTerrain()
+            if not IsShowing()
+                Show()
+            end
+        else
+            terrain = undefined
+            if IsShowing()
+                Hide()
+            end
+        end
+    end
+
+    /*
+        This action sets the terrain from a selected terrain's highlight.
+    */
+    action SetFields(EditorItem item)
+        if item is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, item)
+            terrain = highlight:GetEditorTerrain()
+        end
+    end
+
+    /*
+        The fields are read when a button is pressed, so typing does nothing.
+    */
+    action TextChanged(TextChangeEvent event)
+    end
+
+    /*
+        This action is called by the section's buttons.
+
+        Attribute: Parameter kind What the button does, such as GENERATE
+    */
+    action ButtonActivated(integer kind)
+        SceneEditor editor = GetSceneEditor()
+        if terrain = undefined or editor = undefined
+            return now
+        end
+        TerrainGenerator generator = editor:GetTerrainGenerator()
+        if kind = NEW_SEED
+            integer pickedSeed = random:RandomIntegerBetween(1, 99999)
+            seedField:SetText("" + pickedSeed)
+            editor:NotifyAccessibility(terrain, "Seed " + pickedSeed)
+        elseif kind = GENERATE
+            number seedValue = ReadNumber(seedField, 7)
+            number heightValue = ReadNumber(heightField, 32)
+            if heightValue < 0
+                heightValue = 0
+            end
+            editor:GenerateTerrain(terrain, GetChoice(presetGroup), seedValue, heightValue, autoPaintCheckbox:GetToggleState())
+        elseif kind = ERODE_ALL
+            editor:ErodeTerrain(terrain)
+        elseif kind = AUTO_PAINT_ALL
+            editor:AutoPaintTerrain(terrain)
+        elseif kind = STAMP
+            integer stampChoice = GetChoice(stampGroup)
+            integer modeChoice = GetChoice(modeGroup)
+            integer mode = generator:GetStampMode(stampChoice)
+            if modeChoice = 1
+                mode = generator:STAMP_ADD
+            elseif modeChoice = 2
+                mode = generator:STAMP_SUBTRACT
+            elseif modeChoice = 3
+                mode = generator:STAMP_RAISE
+            end
+            editor:StampTerrain(terrain, stampChoice, mode, ReadNumber(stampHeightField, 15), ReadNumber(turnField, 0))
+        elseif kind = ERODE_HERE
+            editor:ErodeTerrainAtBrush(terrain)
+        elseif kind = AUTO_PAINT_HERE
+            editor:AutoPaintTerrainAtBrush(terrain)
+        end
+    end
+
+    /*
+        Returns which radio button in a group is chosen, from 0.
+    */
+    private action GetChoice(ButtonGroup group) returns integer
+        integer index = group:GetSelection():GetIndex()
+        if index < 0
+            return 0
+        end
+        return index
+    end
+
+    /*
+        Returns the number in a field, or a default if it doesn't hold one.
+    */
+    private action ReadNumber(TextField field, number defaultValue) returns number
+        number value = defaultValue
+        check
+            value = field:GetText():ParseNumber()
+        detect e is Error
+            value = defaultValue
+        end
+        return value
+    end
+
+    /*
+        Moves the focus to the preset choice.
+    */
+    action FocusField
+        presetGroup:Focus()
+    end
+end

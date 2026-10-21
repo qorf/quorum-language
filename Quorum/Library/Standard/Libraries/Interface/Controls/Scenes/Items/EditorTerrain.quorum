@@ -6,6 +6,9 @@ use Libraries.Game.Graphics.Worlds.TerrainRegion
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Game.Graphics.Worlds.TerrainBrush
 use Libraries.Game.Graphics.Worlds.TerrainTool
+use Libraries.Game.Graphics.Worlds.TerrainMaterial
+use Libraries.Game.Graphics.Worlds.TerrainStroke
+use Libraries.Containers.Integer32BitArray
 
 /*
     The EditorTerrain class is a terrain in the Scene Editor. It is saved in
@@ -25,9 +28,17 @@ class EditorTerrain is TerrainItem
     // scene must write.
     boolean changed = false
 
-    // Whether the terrain collides in games, as saved in the scene. The
-    // editor's own region models never collide (step 5).
-    boolean collisionInGames = true
+    // Whether the terrain's material files have changes that the next save
+    // of the scene must write (step 9).
+    boolean materialChanged = false
+
+    // How the terrain collides in games, and whether it streams there, as
+    // saved in the scene (steps 5 and 13): WorldTerrain's COLLISION_FULL,
+    // COLLISION_DYNAMIC or COLLISION_DISABLED. The editor's own region models
+    // never collide, and the editor loads every region.
+    integer gameCollisionMode = 2
+    boolean streamingInGames = false
+    number gameDrawRadius = 100
 
     // The brush (step 7). The tool is numbered as in the in-game terrain
     // editor, 1 to 9, or 0 for no tool: then the terrain is only selected.
@@ -51,7 +62,11 @@ class EditorTerrain is TerrainItem
         Attribute: Parameter enabled True for collision in games
     */
     action SetCollision(boolean enabled)
-        collisionInGames = enabled
+        if enabled
+            gameCollisionMode = 2
+        else
+            gameCollisionMode = 0
+        end
     end
 
     /*
@@ -60,7 +75,71 @@ class EditorTerrain is TerrainItem
         Attribute: Returns True for collision in games
     */
     action HasCollision returns boolean
-        return collisionInGames
+        return gameCollisionMode not= 0
+    end
+
+    /*
+        Sets how the terrain collides in games (step 13): WorldTerrain's
+        COLLISION_FULL (2), COLLISION_DYNAMIC (1) or COLLISION_DISABLED (0).
+        It is saved in the scene. In the editor, the terrain only draws.
+
+        Attribute: Parameter mode The collision mode
+    */
+    action SetCollisionMode(integer mode)
+        if mode < 0 or mode > 2
+            alert("The collision mode must be from 0 to 2, but was given " + mode + ".")
+        end
+        gameCollisionMode = mode
+    end
+
+    /*
+        Returns how the terrain collides in games, as saved in the scene.
+
+        Attribute: Returns The collision mode
+    */
+    action GetCollisionMode returns integer
+        return gameCollisionMode
+    end
+
+    /*
+        Sets whether the terrain streams in games, and its draw radius
+        there (step 13). It is saved in the scene. The editor always loads
+        every region.
+
+        Attribute: Parameter stream True to stream in games
+        Attribute: Parameter radius The draw radius in games, more than 0
+    */
+    action SetStreaming(boolean stream, number radius)
+        if radius <= 0
+            alert("The draw radius must be more than 0, but was given " + radius + ".")
+        end
+        streamingInGames = stream
+        gameDrawRadius = radius
+    end
+
+    /*
+        Returns whether the terrain streams in games.
+
+        Attribute: Returns True for streaming in games
+    */
+    action IsStreaming returns boolean
+        return streamingInGames
+    end
+
+    /*
+        Returns the terrain's draw radius in games, for streaming.
+
+        Attribute: Returns The draw radius
+    */
+    action GetDrawRadius returns number
+        return gameDrawRadius
+    end
+
+    /*
+        Does nothing: the scene editor keeps its terrains up to date itself,
+        around its own camera.
+    */
+    action Update(number secondsSinceUpdate)
     end
 
     /*
@@ -109,6 +188,67 @@ class EditorTerrain is TerrainItem
         if changed
             SaveTerrain()
             changed = false
+        end
+        if materialChanged
+            TerrainMaterial material = GetMaterial()
+            if material not= undefined and material:GetFile() not= undefined
+                material:Save(material:GetFile())
+                material:SaveMaterials()
+            end
+            materialChanged = false
+        end
+    end
+
+    /*
+        Returns whether the terrain's material files have changes that the
+        next save of the scene must write.
+
+        Attribute: Returns True if the material has changed since it was saved
+    */
+    action IsMaterialChanged returns boolean
+        return materialChanged
+    end
+
+    /*
+        Sets whether the terrain's material files have changes that the next
+        save of the scene must write (step 9).
+
+        Attribute: Parameter changed True if the material has changed
+    */
+    action SetMaterialChanged(boolean changed)
+        materialChanged = changed
+    end
+
+    /*
+        Returns how many ground layers the terrain's material has, from 0 to
+        4 (step 9).
+
+        Attribute: Returns The number of layers
+    */
+    action GetLayerCount returns integer
+        if GetMaterial() = undefined
+            return 0
+        end
+        return GetMaterial():GetLayerCount()
+    end
+
+    /*
+        Keeps a copy of every region in a stroke, before an operation that
+        changes the whole terrain's painting, such as removing a layer, so
+        it can be undone (step 9).
+
+        Attribute: Parameter stroke A stroke begun with BeginOperation
+    */
+    action CopyAllRegions(TerrainStroke stroke)
+        TerrainData data = GetWorldTerrain():GetData()
+        integer size = data:GetRegionSize()
+        integer i = 0
+        repeat while i < data:GetRegionCount()
+            TerrainRegion region = data:GetRegionAtIndex(i)
+            integer firstX = region:GetLocationX() * size
+            integer firstZ = region:GetLocationZ() * size
+            stroke:CopyArea(firstX, firstZ, firstX + size - 1, firstZ + size - 1)
+            i = i + 1
         end
     end
 
@@ -321,7 +461,94 @@ class EditorTerrain is TerrainItem
         Attribute: Returns True if the brush is on the ground
     */
     action IsBrushOnGround returns boolean
+        // Add region works past the edge of the ground, anywhere in the
+        // grid of regions (step 11).
+        if toolNumber = 8
+            return brushPlaced and IsBrushInGrid()
+        end
         return brushOnGround
+    end
+
+    /*
+        Returns true if the brush's middle is inside the grid of places a
+        region can be, from -16 to 15 regions along each side.
+
+        Attribute: Returns True if a region can be at the brush
+    */
+    action IsBrushInGrid returns boolean
+        TerrainData data = GetWorldTerrain():GetData()
+        return data:IsInRegionMap(data:GetRegionLocation(data:GetSampleX(brushX)), data:GetRegionLocation(data:GetSampleZ(brushZ)))
+    end
+
+    /*
+        Returns the region location under the brush, as "x, z".
+
+        Attribute: Returns The location
+    */
+    action DescribeBrushRegion returns text
+        TerrainData data = GetWorldTerrain():GetData()
+        return "" + data:GetRegionLocation(data:GetSampleX(brushX)) + ", " + data:GetRegionLocation(data:GetSampleZ(brushZ))
+    end
+
+    /*
+        Returns the terrain's size, such as "128 by 128 units, 4 regions".
+
+        Attribute: Returns The size
+    */
+    action DescribeSize returns text
+        TerrainData data = GetWorldTerrain():GetData()
+        integer width = cast(integer, GetMaximumX() - GetMinimumX() + 0.5)
+        integer depth = cast(integer, GetMaximumZ() - GetMinimumZ() + 0.5)
+        text regionWord = " regions"
+        if data:GetRegionCount() = 1
+            regionWord = " region"
+        end
+        return "" + width + " by " + depth + " units, " + data:GetRegionCount() + regionWord
+    end
+
+    /*
+        Returns true if the terrain has a region model for each of its
+        regions. After regions are added or removed, it doesn't, until
+        RebuildRegionModels.
+
+        Attribute: Returns True if the models match the regions
+    */
+    action RegionsMatchModels returns boolean
+        return GetWorldTerrain():GetData():GetRegionCount() = GetWorldTerrain():GetRegionModelCount()
+    end
+
+    /*
+        Returns the smallest sample along x or z that any region has, or the
+        largest (step 10).
+
+        Attribute: Parameter alongX True for x, false for z
+        Attribute: Parameter smallest True for the smallest, false for the largest
+        Attribute: Returns The sample, or 0 for a terrain with no regions
+    */
+    action GetSampleEdge(boolean alongX, boolean smallest) returns integer
+        TerrainData data = GetWorldTerrain():GetData()
+        integer size = data:GetRegionSize()
+        if data:GetRegionCount() = 0
+            return 0
+        end
+        integer edge = 0
+        integer i = 0
+        repeat while i < data:GetRegionCount()
+            TerrainRegion region = data:GetRegionAtIndex(i)
+            integer location = region:GetLocationZ()
+            if alongX
+                location = region:GetLocationX()
+            end
+            integer sample = location * size
+            if not smallest
+                sample = sample + size - 1
+            end
+            if i = 0 or (smallest and sample < edge) or (not smallest and sample > edge)
+                edge = sample
+            end
+            i = i + 1
+        end
+        return edge
     end
 
     /*
@@ -333,11 +560,151 @@ class EditorTerrain is TerrainItem
     action DescribeBrush returns text
         text name = GetToolName(toolNumber)
         if not brushOnGround
+            if toolNumber = 8 and IsBrushOnGround()
+                return name + " brush at " + Round(brushX) + ", " + Round(brushZ) + ", region " + DescribeBrushRegion() + ", no ground yet"
+            end
             return name + " brush, off the ground"
         end
-        number height = GetWorldTerrain():GetData():GetHeight(brushX, brushZ)
-        return name + " brush at " + Round(brushX) + ", " + Round(brushZ) + ", ground height " + Round(height) +
-            ", size " + Round(brush:GetSize())
+        TerrainData data = GetWorldTerrain():GetData()
+        number height = data:GetSurfaceHeight(brushX, brushZ)
+        text result = name + " brush at " + Round(brushX) + ", " + Round(brushZ) + ", ground height " + Round(height) +
+            ", slope " + cast(integer, data:GetSlope(brushX, brushZ) + 0.5) + " degrees"
+        if GetLayerCount() > 0
+            integer code = data:GetSampleSplat(data:GetSampleX(brushX), data:GetSampleZ(brushZ))
+            result = result + ", " + GetLayerLabel(GetMainLayer(code))
+        end
+        return result + ", size " + Round(brush:GetSize())
+    end
+
+    /*
+        Says the ground's height under the brush in a few words, such as
+        "Height 3.2", for each arrow key move (step 12).
+
+        Attribute: Returns The description
+    */
+    action DescribeBrushHeight returns text
+        if not brushOnGround
+            if toolNumber = 8 and IsBrushOnGround()
+                return "Region " + DescribeBrushRegion() + ", no ground yet"
+            end
+            return "Off the ground"
+        end
+        return "Height " + Round(GetWorldTerrain():GetData():GetSurfaceHeight(brushX, brushZ))
+    end
+
+    /*
+        Describes the ground under the whole brush: its lowest and highest
+        heights, its steepest slope, and how much of it each layer covers
+        (step 12).
+
+        Attribute: Returns The description
+    */
+    action DescribeArea returns text
+        if not brushOnGround
+            return "The brush isn't over the ground."
+        end
+        TerrainData data = GetWorldTerrain():GetData()
+        number spacing = data:GetVertexSpacing()
+        number radius = brush:GetSize()
+        integer firstX = data:GetSampleX(brushX - radius)
+        integer lastX = data:GetSampleX(brushX + radius) + 1
+        integer firstZ = data:GetSampleZ(brushZ - radius)
+        integer lastZ = data:GetSampleZ(brushZ + radius) + 1
+
+        boolean found = false
+        number lowest = 0
+        number highest = 0
+        number total = 0
+        number steepest = 0
+        integer samples = 0
+        Integer32BitArray counts
+        counts:SetSize(4)
+        integer layer = 0
+        repeat while layer < 4
+            counts:Set(layer, 0)
+            layer = layer + 1
+        end
+        integer z = firstZ
+        repeat while z <= lastZ
+            integer x = firstX
+            repeat while x <= lastX
+                number offsetX = x * spacing - brushX
+                number offsetZ = z * spacing - brushZ
+                if offsetX * offsetX + offsetZ * offsetZ < radius * radius and data:HasSample(x, z)
+                    number height = data:GetSampleHeight(x, z)
+                    if not found or height < lowest
+                        lowest = height
+                    end
+                    if not found or height > highest
+                        highest = height
+                    end
+                    found = true
+                    total = total + height
+                    samples = samples + 1
+                    number slope = data:GetSlope(x * spacing, z * spacing)
+                    if slope > steepest
+                        steepest = slope
+                    end
+                    integer mainLayer = GetMainLayer(data:GetSampleSplat(x, z))
+                    counts:Set(mainLayer, counts:Get(mainLayer) + 1)
+                end
+                x = x + 1
+            end
+            z = z + 1
+        end
+        if not found
+            return "There is no ground under the brush."
+        end
+        text result = "Under the brush: heights from " + Round(lowest) + " to " + Round(highest) + ", average " +
+            Round(total / samples) + ", steepest slope " + cast(integer, steepest + 0.5) + " degrees."
+        if GetLayerCount() > 0
+            layer = 0
+            repeat while layer < GetLayerCount()
+                if counts:Get(layer) > 0
+                    integer percent = cast(integer, 100.0 * counts:Get(layer) / samples + 0.5)
+                    result = result + " " + GetLayerLabel(layer) + " " + percent + " percent."
+                end
+                layer = layer + 1
+            end
+        end
+        return result
+    end
+
+    /*
+        Returns the layer with the most weight in packed splat weights, from
+        0 to 3.
+
+        Attribute: Parameter code The packed weights
+        Attribute: Returns The layer
+    */
+    action GetMainLayer(integer code) returns integer
+        TerrainData data = GetWorldTerrain():GetData()
+        integer best = 0
+        number bestWeight = data:GetSplatWeight(code, 0)
+        integer channel = 1
+        repeat while channel < 4
+            number weight = data:GetSplatWeight(code, channel)
+            if weight > bestWeight
+                best = channel
+                bestWeight = weight
+            end
+            channel = channel + 1
+        end
+        return best
+    end
+
+    /*
+        Returns a layer's name for speaking, from the terrain's materials,
+        such as "Rocks", or "layer 3" if it has no material.
+
+        Attribute: Parameter layer The layer, from 0
+        Attribute: Returns The name
+    */
+    action GetLayerLabel(integer layer) returns text
+        if layer < GetLayerCount()
+            return GetMaterial():GetLayerName(layer)
+        end
+        return "layer " + (layer + 1)
     end
 
     /*

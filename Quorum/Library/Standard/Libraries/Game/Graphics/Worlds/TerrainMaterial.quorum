@@ -1,0 +1,504 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Game.Graphics.Texture
+use Libraries.System.File
+
+/*
+A TerrainMaterial is the whole look of a terrain's ground: up to four
+layers, each a Material, and how they blend (Quorum Studio plan, step 9).
+Layers 1 to 4 are painted with the splat weights' red, green, blue and
+alpha. A new terrain's weights are all red, so the first layer covers the
+whole ground until other layers are painted.
+
+A layer's Material can be a texture set, which has bumps and roughness and
+blends with other texture sets by height, or a plain texture. Plain
+layers share one tile size: the first plain layer's.
+
+Terrains can share one TerrainMaterial. It is kept in a file, with Load
+and Save, which names each layer's material file relative to its own
+folder:
+
+{
+    "Format": "Quorum Terrain Material",
+    "Version": 1,
+    "Name": "Meadow",
+    "Layers": [
+        { "Name": "Grass", "Material": "../../Textures/Ground037_1K-PNG/Ground037.json" },
+        { "Name": "Rock",  "Material": "../../Textures/Rocks002_1K-PNG/Rocks002.json" }
+    ],
+    "Blend Softness": 0.2
+}
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.TerrainMaterial
+use Libraries.Game.Graphics.Worlds.TerrainItem
+use Libraries.System.File
+
+TerrainItem ground
+ground:Load("Scenes/Terrains/Terrain1/terrain.json")
+File file
+file:SetPath("Scenes/Materials/Meadow.json")
+TerrainMaterial meadow
+meadow:Load(file)
+ground:SetMaterial(meadow)
+*/
+class TerrainMaterial
+    text name = ""
+    Array<text> layerNames
+    Array<Material> layerMaterials
+    number blendSoftness = 0.2
+    File file = undefined
+
+    // Plain textures, loaded once each, by full path.
+    HashTable<text, Texture> plainTextures
+
+    // The splat program, made the first time it's needed, and the plain
+    // layers' tile size it was made with.
+    TerrainSplatShaderProgram program = undefined
+    number programRepeat = 0
+
+    /*
+    This action returns the terrain material's name, such as "Meadow".
+
+    Attribute: Returns The name.
+    */
+    action GetName returns text
+        return name
+    end
+
+    /*
+    This action sets the terrain material's name, which is saved in its file.
+
+    Attribute: Parameter name The name.
+    */
+    action SetName(text name)
+        me:name = name
+    end
+
+    /*
+    This action returns the file the terrain material was loaded from or
+    last saved to.
+
+    Attribute: Returns The file, or undefined.
+    */
+    action GetFile returns File
+        return file
+    end
+
+    /*
+    This action returns how many layers there are, from 0 to 4.
+
+    Attribute: Returns The number of layers.
+    */
+    action GetLayerCount returns integer
+        return layerMaterials:GetSize()
+    end
+
+    /*
+    This action returns a layer's name.
+
+    Attribute: Parameter layer The layer, from 0.
+    Attribute: Returns The layer's name.
+    */
+    action GetLayerName(integer layer) returns text
+        return layerNames:Get(layer)
+    end
+
+    /*
+    This action returns a layer's material.
+
+    Attribute: Parameter layer The layer, from 0.
+    Attribute: Returns The layer's Material.
+    */
+    action GetLayerMaterial(integer layer) returns Material
+        return layerMaterials:Get(layer)
+    end
+
+    /*
+    This action adds a layer after the others. There can be four.
+
+    Attribute: Parameter layerName The layer's name.
+    Attribute: Parameter material The layer's Material.
+    */
+    action AddLayer(text layerName, Material material)
+        if layerMaterials:GetSize() >= 4
+            alert("A terrain material can have four layers, and this one has four already.")
+        end
+        layerNames:Add(layerName)
+        layerMaterials:Add(material)
+    end
+
+    /*
+    This action gives a layer a different name and material. Its painted
+    places stay the same.
+
+    Attribute: Parameter layer The layer, from 0.
+    Attribute: Parameter layerName The layer's name.
+    Attribute: Parameter material The layer's Material.
+    */
+    action SetLayer(integer layer, text layerName, Material material)
+        layerNames:Set(layer, layerName)
+        layerMaterials:Set(layer, material)
+    end
+
+    /*
+    This action removes a layer; the layers after it move down one place.
+    It doesn't change any terrain's painting: TerrainData's RemoveSplatLayer
+    does that.
+
+    Attribute: Parameter layer The layer, from 0.
+    */
+    action RemoveLayer(integer layer)
+        layerNames:RemoveAt(layer)
+        layerMaterials:RemoveAt(layer)
+    end
+
+    /*
+    This action returns how softly texture set layers blend where they
+    meet, from 0.01 to 1.
+
+    Attribute: Returns The softness.
+    */
+    action GetBlendSoftness returns number
+        return blendSoftness
+    end
+
+    /*
+    This action sets how softly texture set layers blend where they meet.
+    Near 0, the higher layer wins outright; near 1, they fade into each
+    other.
+
+    Attribute: Parameter softness From 0.01 to 1.
+    */
+    action SetBlendSoftness(number softness)
+        if softness < 0.01
+            softness = 0.01
+        elseif softness > 1
+            softness = 1
+        end
+        blendSoftness = softness
+    end
+
+    /*
+    This action returns a copy with the same name, file, layers and blend
+    softness. The layers' Materials are shared, not copied. Undo keeps
+    copies like this.
+
+    Attribute: Returns The copy.
+    */
+    action Copy returns TerrainMaterial
+        TerrainMaterial copy
+        copy:CopyFrom(me)
+        return copy
+    end
+
+    /*
+    This action makes this terrain material the same as another: its name,
+    file, layers and blend softness. The layers' Materials are shared.
+
+    Attribute: Parameter other The terrain material to copy.
+    */
+    action CopyFrom(TerrainMaterial other)
+        name = other:GetName()
+        file = other:GetFile()
+        blendSoftness = other:GetBlendSoftness()
+        layerNames:Empty()
+        layerMaterials:Empty()
+        integer i = 0
+        repeat while i < other:GetLayerCount()
+            layerNames:Add(other:GetLayerName(i))
+            layerMaterials:Add(other:GetLayerMaterial(i))
+            i = i + 1
+        end
+    end
+
+    /*
+    This action reads a terrain material file, and each layer's material
+    file. A layer whose material file isn't there keeps its place, with an
+    empty Material, so the painting of the layers after it stays right.
+
+    Attribute: Parameter file The terrain material file, a .json file whose "Format" is "Quorum Terrain Material".
+    */
+    action Load(File file)
+        if not file:Exists()
+            alert("I couldn't find the terrain material file " + file:GetAbsolutePath() + ".")
+        end
+        JavaScriptObjectNotation json
+        json:Read(file)
+        if not json:HasValue("Format") or json:GetValue("Format") not= "Quorum Terrain Material"
+            alert("The file " + file:GetAbsolutePath() + " is not a terrain material, since its Format isn't Quorum Terrain Material.")
+        end
+        me:file = file
+        text folder = file:GetParentDirectory():GetAbsolutePath()
+        layerNames:Empty()
+        layerMaterials:Empty()
+        if json:HasValue("Name")
+            name = json:GetValue("Name")
+        end
+        if HasNumber(json, "Blend Softness")
+            SetBlendSoftness(ReadNumber(json, "Blend Softness"))
+        end
+
+        // When the standard library reads "Layers": [...], the value under
+        // "Layers" holds the array as its one child.
+        JavaScriptObjectNotation holder = json:GetObject("Layers")
+        if holder = undefined
+            return now
+        end
+        JavaScriptObjectNotation list = holder
+        if holder:IsArrayObject()
+            list = holder:GetArray()
+        end
+        integer i = 0
+        repeat while i < list:GetSize() and i < 4
+            LoadLayer(list:Get(i), folder)
+            i = i + 1
+        end
+    end
+
+    /*
+    This action reads one layer of a terrain material file.
+    */
+    private action LoadLayer(JavaScriptObjectNotation item, text folder)
+        text layerName = ""
+        if item:HasValue("Name")
+            layerName = item:GetValue("Name")
+        end
+        Material material
+        if item:HasValue("Material")
+            File materialFile
+            materialFile:SetWorkingDirectory(folder)
+            materialFile:SetPath(item:GetValue("Material"))
+            if materialFile:Exists()
+                material:Load(materialFile)
+            else
+                output "The material " + materialFile:GetAbsolutePath() + " wasn't found, so layer " + (layerMaterials:GetSize() + 1) + " is empty."
+            end
+        end
+        if layerName = ""
+            layerName = material:GetName()
+        end
+        layerNames:Add(layerName)
+        layerMaterials:Add(material)
+    end
+
+    /*
+    This action writes the terrain material to a file, naming each layer's
+    material file relative to it. It doesn't write the layers' material
+    files; SaveMaterials does. The folder must exist.
+
+    Attribute: Parameter file The terrain material file, usually ending in .json.
+    */
+    action Save(File file)
+        text folder = file:GetParentDirectory():GetAbsolutePath()
+        Material paths
+
+        JavaScriptObjectNotation json
+        json:SetPrettyPrint(true)
+        json:Add("Format", "Quorum Terrain Material")
+        json:Add("Version", 1)
+        json:Add("Name", name)
+
+        JavaScriptObjectNotation list
+        list:SetPrettyPrint(true)
+        list:SetArray()
+        integer i = 0
+        repeat while i < layerMaterials:GetSize()
+            JavaScriptObjectNotation item
+            item:Add("Name", layerNames:Get(i))
+            Material material = layerMaterials:Get(i)
+            if material:GetFile() not= undefined
+                item:Add("Material", paths:GetRelativePath(folder, material:GetFile():GetAbsolutePath()))
+            end
+            list:Add(item)
+            i = i + 1
+        end
+        json:Add("Layers", list)
+        json:Add("Blend Softness", blendSoftness)
+
+        file:Write(json:ToText())
+        me:file = file
+    end
+
+    /*
+    This action writes each layer's material back to the file it was
+    loaded from, such as after its tile size changed. Layers whose material
+    has no file are skipped.
+    */
+    action SaveMaterials
+        integer i = 0
+        repeat while i < layerMaterials:GetSize()
+            Material material = layerMaterials:Get(i)
+            if material:GetFile() not= undefined
+                material:Save(material:GetFile())
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+    This action returns true if the plain layers don't all have the same
+    tile size. Plain layers share the first one's, so the others' are
+    ignored.
+
+    Attribute: Returns True if plain layers' tile sizes differ.
+    */
+    action HasMixedPlainTileSizes returns boolean
+        boolean found = false
+        number first = 0
+        integer i = 0
+        repeat while i < layerMaterials:GetSize()
+            Material material = layerMaterials:Get(i)
+            if IsPlain(material)
+                if not found
+                    found = true
+                    first = material:GetTextureScale()
+                elseif material:GetTextureScale() not= first
+                    return true
+                end
+            end
+            i = i + 1
+        end
+        return false
+    end
+
+    /*
+    This action gives a WorldTerrain this terrain material's look. Texture
+    set layers go to its layer materials, plain layers to its TextureSplat,
+    and the blend softness and splat program are set. With no layers, the
+    ground goes back to plain. Only layers whose material changed are
+    loaded again, since loading a texture set takes a moment and uses up
+    texture places in the renderer.
+
+    The terrain's region models must be made again afterward, as
+    TerrainItem's SetMaterial does.
+
+    Attribute: Parameter terrain The terrain.
+    */
+    action ApplyTo(WorldTerrain terrain)
+        TextureSplat splat
+        boolean hasPlain = false
+        number plainRepeat = 4
+        Texture firstPlain = undefined
+        integer i = 0
+        repeat while i < 4
+            Material material = undefined
+            if i < layerMaterials:GetSize()
+                material = layerMaterials:Get(i)
+            end
+            Material setMaterial = undefined
+            if material not= undefined and material:UsesTextureSet()
+                setMaterial = material
+            end
+            if terrain:GetLayerMaterial(i) not= setMaterial
+                terrain:SetLayerMaterial(i, setMaterial)
+            end
+            if IsPlain(material)
+                Texture texture = GetPlainTexture(material:GetTexturePath())
+                SetChannel(splat, i, texture)
+                if not hasPlain
+                    hasPlain = true
+                    plainRepeat = material:GetTextureScale()
+                    firstPlain = texture
+                end
+            end
+            i = i + 1
+        end
+
+        if hasPlain
+            // The splat needs a red texture; a texture set in layer 1 draws
+            // over it anyway.
+            if splat:GetRed() = undefined
+                splat:SetRed(firstPlain)
+            end
+            terrain:SetTextureSplat(splat)
+        else
+            terrain:SetTextureSplat(undefined)
+        end
+        terrain:SetHeightBlendSoftness(blendSoftness)
+        terrain:RefreshLayers()
+
+        if layerMaterials:GetSize() > 0
+            if program = undefined or programRepeat not= plainRepeat
+                TerrainSplatShaderProgram newProgram
+                newProgram:InstallAsProgram(plainRepeat)
+                program = newProgram
+                programRepeat = plainRepeat
+            end
+            terrain:SetSplatProgram(program)
+        end
+    end
+
+    /*
+    This action returns true if a material is a plain texture.
+    */
+    private action IsPlain(Material material) returns boolean
+        return material not= undefined and not material:UsesTextureSet() and material:GetTexturePath() not= ""
+    end
+
+    /*
+    This action returns a plain texture, loading it the first time.
+    */
+    private action GetPlainTexture(text path) returns Texture
+        if plainTextures:HasKey(path)
+            return plainTextures:GetValue(path)
+        end
+        Texture texture
+        texture:LoadFromFile(path, true)
+        plainTextures:Add(path, texture)
+        return texture
+    end
+
+    /*
+    This action puts a texture in one of a TextureSplat's channels.
+    */
+    private action SetChannel(TextureSplat splat, integer channel, Texture texture)
+        if channel = 0
+            splat:SetRed(texture)
+        elseif channel = 1
+            splat:SetGreen(texture)
+        elseif channel = 2
+            splat:SetBlue(texture)
+        else
+            splat:SetAlpha(texture)
+        end
+    end
+
+    /*
+    This action returns true if a file has a number with a name.
+    */
+    private action HasNumber(JavaScriptObjectNotation json, text key) returns boolean
+        Iterator<JavaScriptObjectNotation> children = json:GetIterator()
+        repeat while children:HasNext()
+            JavaScriptObjectNotation child = children:Next()
+            if child:GetKey() = key and (child:IsInteger() or child:IsNumber())
+                return true
+            end
+        end
+        return false
+    end
+
+    /*
+    This action returns a number from a file, whether it was written as a
+    whole number or with a decimal point.
+    */
+    private action ReadNumber(JavaScriptObjectNotation json, text key) returns number
+        Iterator<JavaScriptObjectNotation> children = json:GetIterator()
+        repeat while children:HasNext()
+            JavaScriptObjectNotation child = children:Next()
+            if child:GetKey() = key
+                if child:IsInteger()
+                    return child:GetInteger()
+                elseif child:IsNumber()
+                    return child:GetNumber()
+                end
+            end
+        end
+        return 0
+    end
+end

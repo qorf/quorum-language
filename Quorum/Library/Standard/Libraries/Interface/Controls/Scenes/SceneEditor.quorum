@@ -98,6 +98,14 @@ use Libraries.Game.Graphics.Worlds.TerrainStrokeEdit
 use Libraries.Game.InputMonitor
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Undo.SceneEditorTerrainEdit
+use Libraries.Interface.Undo.SceneEditorTerrainMaterialEdit
+use Libraries.Interface.Controls.Scenes.Dialogs.TerrainMaterialsPropertiesDialog
+use Libraries.Game.Graphics.Worlds.TerrainMaterial
+use Libraries.Game.Graphics.Worlds.TerrainData
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Game.Graphics.Worlds.TerrainGenerator
+use Libraries.Interface.Controls.Scenes.Dialogs.TerrainGeneratePropertiesDialog
+use Libraries.Containers.Number32BitArray
 
 
 /*
@@ -202,6 +210,12 @@ class SceneEditor is Control, DefaultSceneManager
     TerrainPropertiesDialog terrainPropertiesDialog
     TerrainPhysicsPropertiesDialog terrainPhysicsPropertiesDialog
     TerrainBrushPropertiesDialog terrainBrushPropertiesDialog
+    TerrainMaterialsPropertiesDialog terrainMaterialsPropertiesDialog
+    TerrainGeneratePropertiesDialog terrainGeneratePropertiesDialog
+
+    // Makes and changes terrain in bulk: presets, stamps, erosion and auto
+    // paint (step 10).
+    TerrainGenerator generator
 
     // A terrain's brush (step 7): the terrain whose tool is chosen, and the
     // ring that shows the brush on its ground. The ring is placed again only
@@ -222,6 +236,10 @@ class SceneEditor is Control, DefaultSceneManager
     // True when a click took the focus from the terrain's highlight while
     // its tool was chosen, so the next update gives it back.
     boolean refocusBrushHighlight = false
+    // Painting is shown a few times a second during a stroke, since each
+    // showing loads the splat texture again (step 9).
+    number paintShownSeconds = 0
+    constant number PAINT_SHOW_INTERVAL = 0.2
     integer strokeKey = 0
     InputMonitor strokeMonitor
     MouseEvent mouseButtons
@@ -478,10 +496,13 @@ class SceneEditor is Control, DefaultSceneManager
         end
 
         // A terrain's sections, after the built-in dialogs (step 5): its
-        // facts, its brush (step 7) and its physics.
+        // facts, its materials (step 9), its brush (step 7), its generate
+        // tools (step 10) and its physics.
         if firstPanel
             AddPropertiesDialog(terrainPropertiesDialog)
+            AddPropertiesDialog(terrainMaterialsPropertiesDialog)
             AddPropertiesDialog(terrainBrushPropertiesDialog)
+            AddPropertiesDialog(terrainGeneratePropertiesDialog)
             AddPropertiesDialog(terrainPhysicsPropertiesDialog)
         end
     end
@@ -1451,6 +1472,9 @@ action Update(number seconds)
         number x = terrain:GetBrushX() + (rightX * right + forwardX * forward) * speed
         number z = terrain:GetBrushZ() + (rightZ * right + forwardZ * forward) * speed
         terrain:SetBrushPosition(x, z)
+        // Each arrow key move says the height in a few words; the report
+        // location key says everything (step 12).
+        NotifyAccessibility(terrain, terrain:DescribeBrushHeight())
     end
 
     /*
@@ -1507,6 +1531,18 @@ action Update(number seconds)
         number mirroredX = 2 * GetGlobalX() + camera:GetWidth() - x
         Ray ray = camera:GetPickRay(mirroredX, y, GetGlobalX(), GetGlobalY(), camera:GetWidth(), camera:GetHeight())
         Vector3 hit = brushTerrain:GetWorldTerrain():GetData():RayCast(ray:GetOrigin(), ray:GetDirection(), camera:GetFar())
+        if hit = undefined and brushTerrain:GetToolNumber() = 8
+            // Add region works past the edge of the ground, so the pointer
+            // finds where it meets the level of the ground's base, height 0
+            // (step 11).
+            Vector3 direction = ray:GetDirection()
+            Vector3 origin = ray:GetOrigin()
+            if direction:GetY() < -0.0001
+                number distance = -origin:GetY() / direction:GetY()
+                brushTerrain:SetBrushPosition(origin:GetX() + direction:GetX() * distance, origin:GetZ() + direction:GetZ() * distance)
+                return now
+            end
+        end
         if hit = undefined
             brushTerrain:SetBrushOffGround()
         else
@@ -1516,14 +1552,19 @@ action Update(number seconds)
 
     /*
     This action returns true if a tool's strokes are ready in the scene
-    editor. Raise and lower are (step 8); the other tools come in later
-    steps, one at a time.
+    editor for a terrain. Raise and lower are (step 8), paint, once the
+    terrain has two or more materials (step 9), and add and remove region
+    (step 11); the other tools come in later steps, one at a time.
 
+    Attribute: Parameter terrain The terrain
     Attribute: Parameter tool The tool's number, from 1 to 9
     Attribute: Returns True if the tool can make strokes
     */
-    action CanStrokeWithTool(integer tool) returns boolean
-        return tool = 1 or tool = 2
+    action CanStrokeWithTool(EditorTerrain terrain, integer tool) returns boolean
+        if tool = 1 or tool = 2 or tool = 8 or tool = 9
+            return true
+        end
+        return tool = 6 and terrain not= undefined and terrain:GetLayerCount() >= 2
     end
 
     /*
@@ -1542,15 +1583,29 @@ action Update(number seconds)
         if stroking or terrain = undefined or terrain not= brushTerrain or not terrain:HasTool()
             return now
         end
-        if not CanStrokeWithTool(terrain:GetToolNumber())
-            NotifyAccessibility(terrain, terrain:GetToolName(terrain:GetToolNumber()) + " strokes aren't ready yet. Raise and lower are.")
+        integer tool = terrain:GetToolNumber()
+        if tool = 6 and terrain:GetLayerCount() < 2
+            NotifyAccessibility(terrain, "Paint needs two or more materials. Add them in the Materials section.")
+            return now
+        end
+        if not CanStrokeWithTool(terrain, tool)
+            NotifyAccessibility(terrain, terrain:GetToolName(tool) + " strokes aren't ready yet. Raise, lower, paint, add region and remove region are.")
+            return now
+        end
+        if tool = 6 and terrain:GetBrush():GetLayer() >= terrain:GetLayerCount()
+            NotifyAccessibility(terrain, "Layer " + (terrain:GetBrush():GetLayer() + 1) + " has no material. Choose another layer to paint.")
             return now
         end
         if not terrain:IsBrushOnGround()
-            NotifyAccessibility(terrain, "The brush is off the ground")
+            if tool = 8
+                NotifyAccessibility(terrain, "A region can't go there: the grid of regions runs from -16 to 15 along each side.")
+            else
+                NotifyAccessibility(terrain, "The brush is off the ground")
+            end
             return now
         end
         terrainStroke:Begin(terrain:GetWorldTerrain():GetData(), terrain:GetBrush())
+        paintShownSeconds = 0
         stroking = true
         strokeByMouse = byMouse
         strokeKey = key
@@ -1590,7 +1645,30 @@ action Update(number seconds)
         end
         if brushTerrain:IsBrushOnGround()
             terrainStroke:Apply(brushTerrain:GetBrushX(), brushTerrain:GetBrushZ(), seconds)
-            RedrawTerrain(brushTerrain)
+            integer toolNumber = brushTerrain:GetToolNumber()
+            if toolNumber = 8 or toolNumber = 9
+                // A region tool adds or removes the region under the ring,
+                // once; the models are made again when it does.
+                if not brushTerrain:RegionsMatchModels()
+                    RedrawTerrain(brushTerrain)
+                    text verb = "Added region "
+                    if toolNumber = 9
+                        verb = "Removed region "
+                    end
+                    NotifyAccessibility(brushTerrain, verb + brushTerrain:DescribeBrushRegion() + ". The terrain is now " + brushTerrain:DescribeSize())
+                    TerrainFactsChanged(brushTerrain)
+                end
+            elseif toolNumber = 6
+                // Painting loads the splat texture again to show, so it is
+                // shown a few times a second, and fully at the end.
+                paintShownSeconds = paintShownSeconds + seconds
+                if paintShownSeconds >= PAINT_SHOW_INTERVAL
+                    paintShownSeconds = 0
+                    RedrawTerrain(brushTerrain)
+                end
+            else
+                RedrawTerrain(brushTerrain)
+            end
         end
     end
 
@@ -1617,7 +1695,30 @@ action Update(number seconds)
         brushTerrain:SetChanged(true)
         RedrawTerrain(brushTerrain)
         TerrainFactsChanged(brushTerrain)
-        NotifyAccessibility(brushTerrain, brushTerrain:GetToolName(brushTerrain:GetToolNumber()) + " done. " + brushTerrain:DescribeBrush())
+        NotifyAccessibility(brushTerrain, DescribeStroke(brushTerrain, strokeEdit))
+    end
+
+    /*
+    This action says what a finished stroke did (step 12): "Raised by up to
+    2.4" for raise and lower, the layer for paint, and the size for the
+    region tools, then the ground under the brush.
+    */
+    private action DescribeStroke(EditorTerrain terrain, TerrainStrokeEdit strokeEdit) returns text
+        integer tool = terrain:GetToolNumber()
+        if tool = 1 or tool = 2
+            number change = strokeEdit:GetLargestHeightChange()
+            text verb = "Raised"
+            if change < 0
+                verb = "Lowered"
+                change = -change
+            end
+            return verb + " by up to " + RoundTenth(change) + ". " + terrain:DescribeBrushHeight()
+        elseif tool = 6
+            return "Painted " + terrain:GetLayerLabel(terrain:GetBrush():GetLayer()) + ". " + terrain:DescribeBrushHeight()
+        elseif tool = 8 or tool = 9
+            return terrain:GetToolName(tool) + " done. The terrain is now " + terrain:DescribeSize()
+        end
+        return terrain:GetToolName(tool) + " done. " + terrain:DescribeBrush()
     end
 
     /*
@@ -1647,7 +1748,14 @@ action Update(number seconds)
     Attribute: Parameter terrain The terrain
     */
     private action RedrawTerrain(EditorTerrain terrain)
-        terrain:GetWorldTerrain():Rebuild()
+        if terrain:RegionsMatchModels()
+            terrain:GetWorldTerrain():Rebuild()
+        else
+            // Regions were added or removed (step 11), so the models are
+            // made again, and the selection's border fits the new size.
+            terrain:RebuildRegionModels()
+            RefreshTerrainHighlight(terrain)
+        end
         if terrain = brushTerrain
             // The ring follows the ground, so it is placed again.
             previewSize = -1
@@ -1685,6 +1793,784 @@ action Update(number seconds)
         if terrainPropertiesDialog:IsShowing()
             terrainPropertiesDialog:SetTerrain(terrain)
         end
+    end
+
+    /*
+    This action fits the selection's border to a terrain again, after its
+    size changed, if the terrain is selected.
+
+    Attribute: Parameter terrain The terrain
+    */
+    action RefreshTerrainHighlight(EditorTerrain terrain)
+        EditorItem selected = GetSelectedItem()
+        if selected is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, selected)
+            if highlight:GetEditorTerrain() = terrain
+                highlight:LoadTerrain(terrain, me)
+            end
+        end
+    end
+
+    /*
+    This action returns the TerrainGenerator the scene editor uses for
+    presets, stamps, erosion and auto paint (step 10).
+
+    Attribute: Returns The generator
+    */
+    action GetTerrainGenerator returns TerrainGenerator
+        return generator
+    end
+
+    /*
+    This action remakes a terrain's whole ground with a preset (step 10):
+    rolling hills, mountains, plateaus, canyons or flat. The same seed gives
+    the same ground. With auto paint, the layers are painted by height and
+    slope afterward, if the terrain has two or more materials. It can be
+    undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter preset The preset, such as TerrainGenerator's PRESET_MOUNTAINS
+    Attribute: Parameter seed The seed
+    Attribute: Parameter height The tallest the ground can be, in world units
+    Attribute: Parameter autoPaint True to auto paint afterward
+    */
+    action GenerateTerrain(EditorTerrain terrain, integer preset, number seed, number height, boolean autoPaint)
+        if not CanOperateOn(terrain)
+            return now
+        end
+        boolean painting = autoPaint and terrain:GetLayerCount() >= 2
+        text presetName = generator:GetPresetName(preset)
+        NotifyAccessibility(terrain, "Generating " + presetName + "...")
+        integer minimumX = terrain:GetSampleEdge(true, true)
+        integer minimumZ = terrain:GetSampleEdge(false, true)
+        integer maximumX = terrain:GetSampleEdge(true, false)
+        integer maximumZ = terrain:GetSampleEdge(false, false)
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        TerrainStroke operation = BeginTerrainOperation(terrain, "generate " + presetName, true, painting, minimumX, minimumZ, maximumX, maximumZ)
+        generator:SetSeed(seed)
+        generator:GeneratePreset(data, preset, minimumX, minimumZ, maximumX - minimumX + 1, maximumZ - minimumZ + 1, height)
+        if painting
+            PaintArea(terrain, minimumX, minimumZ, maximumX, maximumZ)
+        end
+        text message = "Generated " + presetName + ", seed " + cast(integer, seed) + ", heights " +
+            RoundTenth(data:GetLowestHeight()) + " to " + RoundTenth(data:GetHighestHeight()) + "."
+        if autoPaint and not painting
+            message = message + " Auto paint needs two or more materials, so the ground wasn't painted."
+        end
+        FinishTerrainOperation(terrain, operation, message)
+    end
+
+    /*
+    This action wears a terrain's whole ground as weather would, with one
+    drop of rain for every eight samples (step 10). It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    */
+    action ErodeTerrain(EditorTerrain terrain)
+        if not CanOperateOn(terrain)
+            return now
+        end
+        NotifyAccessibility(terrain, "Eroding the whole terrain...")
+        integer minimumX = terrain:GetSampleEdge(true, true)
+        integer minimumZ = terrain:GetSampleEdge(false, true)
+        integer maximumX = terrain:GetSampleEdge(true, false)
+        integer maximumZ = terrain:GetSampleEdge(false, false)
+        TerrainStroke operation = BeginTerrainOperation(terrain, "erode", true, false, minimumX, minimumZ, maximumX, maximumZ)
+        integer drops = (maximumX - minimumX + 1) * (maximumZ - minimumZ + 1) / 8
+        generator:Erode(terrain:GetWorldTerrain():GetData(), minimumX, minimumZ, maximumX, maximumZ, drops)
+        FinishTerrainOperation(terrain, operation, "Eroded the whole terrain, " + drops + " drops of rain.")
+    end
+
+    /*
+    This action paints a terrain's whole ground by rules (step 10): layer 1
+    on flat ground, layer 2 on slopes, layer 3 in hollows and layer 4 low
+    down. Rules for layers the terrain doesn't have go to layer 1. It needs
+    two or more materials, and can be undone.
+
+    Attribute: Parameter terrain The terrain
+    */
+    action AutoPaintTerrain(EditorTerrain terrain)
+        if not CanOperateOn(terrain) or not CanAutoPaint(terrain)
+            return now
+        end
+        integer minimumX = terrain:GetSampleEdge(true, true)
+        integer minimumZ = terrain:GetSampleEdge(false, true)
+        integer maximumX = terrain:GetSampleEdge(true, false)
+        integer maximumZ = terrain:GetSampleEdge(false, false)
+        TerrainStroke operation = BeginTerrainOperation(terrain, "auto paint", false, true, minimumX, minimumZ, maximumX, maximumZ)
+        PaintArea(terrain, minimumX, minimumZ, maximumX, maximumZ)
+        FinishTerrainOperation(terrain, operation, "Auto painted the whole terrain.")
+    end
+
+    /*
+    This action presses a stamp into the ground at a terrain's brush, as big
+    as the brush (step 10). It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter stamp The shape, such as TerrainGenerator's STAMP_HILL
+    Attribute: Parameter mode STAMP_ADD, STAMP_SUBTRACT or STAMP_RAISE
+    Attribute: Parameter height The height of the shape's top, in world units
+    Attribute: Parameter turn How far to turn the shape, in degrees
+    */
+    action StampTerrain(EditorTerrain terrain, integer stamp, integer mode, number height, number turn)
+        if not CanOperateOn(terrain) or not BrushReady(terrain)
+            return now
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        number size = terrain:GetBrush():GetSize()
+        number reach = size * 1.4143
+        number x = terrain:GetBrushX()
+        number z = terrain:GetBrushZ()
+        text name = "stamp a " + generator:GetStampName(stamp)
+        TerrainStroke operation = BeginTerrainOperation(terrain, name, true, false, data:GetSampleX(x - reach) - 1, data:GetSampleZ(z - reach) - 1,
+            data:GetSampleX(x + reach) + 2, data:GetSampleZ(z + reach) + 2)
+        integer width = 129
+        Number32BitArray shape = generator:MakeStampShape(stamp, width)
+        generator:Stamp(data, shape, width, x, z, size, turn, height, mode)
+        FinishTerrainOperation(terrain, operation, "Stamped a " + generator:GetStampName(stamp) + ". " + terrain:DescribeBrush())
+    end
+
+    /*
+    This action erodes the ground under a terrain's brush (step 10). Drops
+    of rain start under it and may run on one brush size past it. It can be
+    undone.
+
+    Attribute: Parameter terrain The terrain
+    */
+    action ErodeTerrainAtBrush(EditorTerrain terrain)
+        if not CanOperateOn(terrain) or not BrushReady(terrain)
+            return now
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        number radius = terrain:GetBrush():GetSize()
+        number x = terrain:GetBrushX()
+        number z = terrain:GetBrushZ()
+        integer minimumX = data:GetSampleX(x - radius)
+        integer minimumZ = data:GetSampleZ(z - radius)
+        integer maximumX = data:GetSampleX(x + radius) + 1
+        integer maximumZ = data:GetSampleZ(z + radius) + 1
+        integer runOn = cast(integer, math:Ceiling(radius / data:GetVertexSpacing()))
+        TerrainStroke operation = BeginTerrainOperation(terrain, "erode", true, false, minimumX - runOn - 1, minimumZ - runOn - 1,
+            maximumX + runOn + 1, maximumZ + runOn + 1)
+        integer drops = (maximumX - minimumX + 1) * (maximumZ - minimumZ + 1)
+        generator:Erode(data, minimumX, minimumZ, maximumX, maximumZ, minimumX - runOn, minimumZ - runOn, maximumX + runOn, maximumZ + runOn, drops)
+        FinishTerrainOperation(terrain, operation, "Eroded under the brush, " + drops + " drops of rain. " + terrain:DescribeBrush())
+    end
+
+    /*
+    This action auto paints the ground under a terrain's brush (step 10).
+    It needs two or more materials, and can be undone.
+
+    Attribute: Parameter terrain The terrain
+    */
+    action AutoPaintTerrainAtBrush(EditorTerrain terrain)
+        if not CanOperateOn(terrain) or not BrushReady(terrain) or not CanAutoPaint(terrain)
+            return now
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        number radius = terrain:GetBrush():GetSize()
+        number x = terrain:GetBrushX()
+        number z = terrain:GetBrushZ()
+        integer minimumX = data:GetSampleX(x - radius)
+        integer minimumZ = data:GetSampleZ(z - radius)
+        integer maximumX = data:GetSampleX(x + radius) + 1
+        integer maximumZ = data:GetSampleZ(z + radius) + 1
+        TerrainStroke operation = BeginTerrainOperation(terrain, "auto paint", false, true, minimumX, minimumZ, maximumX, maximumZ)
+        PaintArea(terrain, minimumX, minimumZ, maximumX, maximumZ)
+        FinishTerrainOperation(terrain, operation, "Auto painted under the brush.")
+    end
+
+    /*
+    This action makes a terrain one region bigger on every side, with flat
+    new regions, as far as the grid of regions allows (step 11). It can be
+    undone.
+
+    Attribute: Parameter terrain The terrain
+    */
+    action GrowTerrain(EditorTerrain terrain)
+        if not CanOperateOn(terrain)
+            return now
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        integer size = data:GetRegionSize()
+        integer firstX = data:GetRegionLocation(terrain:GetSampleEdge(true, true)) - 1
+        integer firstZ = data:GetRegionLocation(terrain:GetSampleEdge(false, true)) - 1
+        integer lastX = data:GetRegionLocation(terrain:GetSampleEdge(true, false)) + 1
+        integer lastZ = data:GetRegionLocation(terrain:GetSampleEdge(false, false)) + 1
+        TerrainStroke operation
+        operation:BeginOperation(data, "grow", true, true)
+        operation:CopyAreaIncludingEmpty(firstX * size, firstZ * size, lastX * size + size - 1, lastZ * size + size - 1)
+        integer added = 0
+        integer locationZ = firstZ
+        repeat while locationZ <= lastZ
+            integer locationX = firstX
+            repeat while locationX <= lastX
+                if data:IsInRegionMap(locationX, locationZ) and not data:HasRegion(locationX, locationZ)
+                    data:AddRegion(locationX, locationZ)
+                    added = added + 1
+                end
+                locationX = locationX + 1
+            end
+            locationZ = locationZ + 1
+        end
+        if added = 0
+            operation:Cancel()
+            NotifyAccessibility(terrain, "The terrain can't grow: it reaches the edge of the grid of regions on every side.")
+            return now
+        end
+        FinishTerrainOperation(terrain, operation, "Added " + added + " regions. The terrain is now " + terrain:DescribeSize())
+    end
+
+    /*
+    This action returns true if a terrain can be changed by an operation,
+    and says why not otherwise. A stroke going on is finished first.
+    */
+    private action CanOperateOn(EditorTerrain terrain) returns boolean
+        if terrain = undefined
+            return false
+        end
+        if terrain:IsMissing()
+            NotifyAccessibility(terrain, "This terrain's files weren't found, so it can't be changed.")
+            return false
+        end
+        if terrain:GetWorldTerrain():GetData():GetRegionCount() = 0
+            NotifyAccessibility(terrain, "This terrain has no regions.")
+            return false
+        end
+        if stroking
+            EndTerrainStroke()
+        end
+        return true
+    end
+
+    /*
+    This action returns true if a terrain's brush is chosen and on the
+    ground, and says what to do otherwise.
+    */
+    private action BrushReady(EditorTerrain terrain) returns boolean
+        if not terrain:HasTool()
+            NotifyAccessibility(terrain, "Choose a tool in the Brush section first, with Alt and a number, to place the brush.")
+            return false
+        end
+        if not terrain:IsBrushOnGround()
+            NotifyAccessibility(terrain, "The brush is off the ground")
+            return false
+        end
+        return true
+    end
+
+    /*
+    This action returns true if a terrain has the two or more materials auto
+    paint needs, and says so otherwise.
+    */
+    private action CanAutoPaint(EditorTerrain terrain) returns boolean
+        if terrain:GetLayerCount() < 2
+            NotifyAccessibility(terrain, "Auto paint needs two or more materials. Add them in the Materials section.")
+            return false
+        end
+        return true
+    end
+
+    /*
+    This action auto paints a rectangle of samples, then gives rules for
+    layers the terrain doesn't have to its first layer.
+    */
+    private action PaintArea(EditorTerrain terrain, integer minimumX, integer minimumZ, integer maximumX, integer maximumZ)
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        generator:AutoPaint(data, minimumX, minimumZ, maximumX, maximumZ)
+        data:FoldSplatLayers(terrain:GetLayerCount(), minimumX, minimumZ, maximumX, maximumZ)
+    end
+
+    /*
+    This action starts an operation on a terrain, copying a rectangle of
+    samples so it can be undone.
+    */
+    private action BeginTerrainOperation(EditorTerrain terrain, text name, boolean changesShape, boolean changesSplat,
+            integer minimumX, integer minimumZ, integer maximumX, integer maximumZ) returns TerrainStroke
+        TerrainStroke operation
+        operation:BeginOperation(terrain:GetWorldTerrain():GetData(), name, changesShape, changesSplat)
+        operation:CopyArea(minimumX, minimumZ, maximumX, maximumZ)
+        return operation
+    end
+
+    /*
+    This action finishes an operation: it goes into the undo list, the
+    terrain is redrawn and marked changed, the Properties panel follows, and
+    the message is announced.
+    */
+    private action FinishTerrainOperation(EditorTerrain terrain, TerrainStroke operation, text message)
+        TerrainStrokeEdit strokeEdit = operation:End()
+        if strokeEdit not= undefined
+            SceneEditorTerrainEdit edit
+            edit:Create(me, terrain, strokeEdit)
+            editManager:Add(edit)
+        end
+        terrain:SetChanged(true)
+        RedrawTerrain(terrain)
+        TerrainFactsChanged(terrain)
+        NotifyAccessibility(terrain, message)
+    end
+
+    /*
+    This action rounds a number to one place after the point, for speaking.
+    */
+    private action RoundTenth(number value) returns number
+        return math:Round(value, 1)
+    end
+
+    /*
+    This action returns every terrain in the scene's 3D layers.
+
+    Attribute: Returns The terrains
+    */
+    action GetEditorTerrains returns Array<EditorTerrain>
+        Array<EditorTerrain> result
+        integer counter = 0
+        repeat while counter < layers:GetSize()
+            EditorLayer editorLayer = layers:Get(counter)
+            if editorLayer is EditorLayer3D
+                EditorLayer3D layer = cast(EditorLayer3D, editorLayer)
+                Iterator<Item3D> items = layer:GetIterator()
+                repeat while items:HasNext()
+                    Item3D item = items:Next()
+                    if item is EditorTerrain
+                        result:Add(cast(EditorTerrain, item))
+                    end
+                end
+            end
+            counter = counter + 1
+        end
+        return result
+    end
+
+    /*
+    This action returns how many terrains in the scene use a terrain
+    material (step 9).
+
+    Attribute: Parameter material The terrain material
+    Attribute: Returns How many terrains use it
+    */
+    action CountTerrainsUsing(TerrainMaterial material) returns integer
+        if material = undefined
+            return 0
+        end
+        Array<EditorTerrain> terrains = GetEditorTerrains()
+        integer count = 0
+        integer i = 0
+        repeat while i < terrains:GetSize()
+            if terrains:Get(i):GetMaterial() = material
+                count = count + 1
+            end
+            i = i + 1
+        end
+        return count
+    end
+
+    /*
+    This action adds a material to a terrain as its next ground layer
+    (step 9). The file can be a material file, a texture set's color map,
+    such as Ground037_1K-PNG_Color.png, or another image, used as a plain
+    texture; for an image, a material file is written beside it. The first
+    layer makes the terrain's terrain material file, in the project's
+    Scenes/Materials folder, and covers the whole ground. It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter chosen The file chosen
+    */
+    action AddTerrainLayer(EditorTerrain terrain, File chosen)
+        if not CanChangeMaterials(terrain)
+            return now
+        end
+        if terrain:GetLayerCount() >= 4
+            NotifyAccessibility(terrain, "This terrain has four materials, which is the most it can have.")
+            return now
+        end
+        Material material = MakeTerrainLayerMaterial(terrain, chosen)
+        if material = undefined
+            return now
+        end
+        TerrainMaterial current = terrain:GetMaterial()
+        text beforeFile = terrain:GetMaterialFile()
+        text layerName = material:GetName()
+        SceneEditorTerrainMaterialEdit edit
+        if current = undefined
+            TerrainMaterial created = CreateTerrainMaterial(terrain)
+            created:AddLayer(layerName, material)
+            created:Save(created:GetFile())
+            terrain:SetMaterialFile(created:GetFile():GetPath())
+            terrain:SetMaterial(created)
+            edit:Create(me, terrain, "add " + layerName, undefined, beforeFile, created, terrain:GetMaterialFile())
+        else
+            TerrainMaterial before = current:Copy()
+            current:AddLayer(layerName, material)
+            edit:Create(me, terrain, "add " + layerName, current, beforeFile, current, beforeFile)
+            edit:SetChangedLayers(current, before, current:Copy())
+            terrain:RefreshMaterial()
+        end
+        editManager:Add(edit)
+        integer count = terrain:GetLayerCount()
+        // The new layer is the one painted next.
+        terrain:GetBrush():SetLayer(count - 1)
+        text message = "Added " + layerName + " as layer " + count + ", tiles " + RoundTenth(material:GetTextureScale()) + " units."
+        if count = 1
+            message = message + " It covers the whole ground. Add another material to paint with."
+        else
+            message = message + " Paint it with the Paint tool."
+        end
+        TerrainMaterialEdited(terrain, current, message)
+    end
+
+    /*
+    This action gives one of a terrain's ground layers a different
+    material. Its painted places stay the same. It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter layer The layer, from 0
+    Attribute: Parameter chosen The file chosen, as for AddTerrainLayer
+    */
+    action ChooseTerrainLayer(EditorTerrain terrain, integer layer, File chosen)
+        if not CanChangeMaterials(terrain) or layer < 0 or layer >= terrain:GetLayerCount()
+            return now
+        end
+        Material material = MakeTerrainLayerMaterial(terrain, chosen)
+        if material = undefined
+            return now
+        end
+        TerrainMaterial current = terrain:GetMaterial()
+        TerrainMaterial before = current:Copy()
+        current:SetLayer(layer, material:GetName(), material)
+        SceneEditorTerrainMaterialEdit edit
+        edit:Create(me, terrain, "choose " + material:GetName(), current, terrain:GetMaterialFile(), current, terrain:GetMaterialFile())
+        edit:SetChangedLayers(current, before, current:Copy())
+        editManager:Add(edit)
+        terrain:RefreshMaterial()
+        TerrainMaterialEdited(terrain, current, "Layer " + (layer + 1) + " is now " + material:GetName())
+    end
+
+    /*
+    This action removes one of a terrain's ground layers. Its painted
+    weight goes to the first layer, and the layers after it move down one,
+    on every terrain sharing the terrain material. Removing the last layer
+    makes the ground plain again: the painting is cleared, its files are
+    deleted on the next save, and the scene stops naming a material. It can
+    be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter layer The layer, from 0
+    */
+    action RemoveTerrainLayer(EditorTerrain terrain, integer layer)
+        if not CanChangeMaterials(terrain) or layer < 0 or layer >= terrain:GetLayerCount()
+            return now
+        end
+        TerrainMaterial current = terrain:GetMaterial()
+        text layerName = current:GetLayerName(layer)
+        text beforeFile = terrain:GetMaterialFile()
+        SceneEditorTerrainMaterialEdit edit
+        if current:GetLayerCount() = 1
+            edit:Create(me, terrain, "remove " + layerName, current, beforeFile, undefined, "")
+            edit:AddPaintingEdit(ClearTerrainPainting(terrain))
+            terrain:SetMaterialFile("")
+            terrain:SetMaterial(undefined)
+            editManager:Add(edit)
+            terrain:GetBrush():SetLayer(0)
+            TerrainMaterialEdited(terrain, undefined, layerName + " removed. The ground is plain.")
+            return now
+        end
+
+        TerrainMaterial before = current:Copy()
+        Array<EditorTerrain> terrains = GetEditorTerrains()
+        integer i = 0
+        repeat while i < terrains:GetSize()
+            EditorTerrain sharing = terrains:Get(i)
+            if sharing:GetMaterial() = current
+                edit:AddPaintingEdit(RemoveTerrainPaintingLayer(sharing, layer))
+            end
+            i = i + 1
+        end
+        current:RemoveLayer(layer)
+        edit:Create(me, terrain, "remove " + layerName, current, beforeFile, current, beforeFile)
+        edit:SetChangedLayers(current, before, current:Copy())
+        editManager:Add(edit)
+        terrain:RefreshMaterial()
+        if terrain:GetBrush():GetLayer() >= current:GetLayerCount()
+            terrain:GetBrush():SetLayer(current:GetLayerCount() - 1)
+        end
+        TerrainMaterialEdited(terrain, current, layerName + " removed. Where it was painted, " + current:GetLayerName(0) + " shows.")
+    end
+
+    /*
+    This action sets how many world units one tile of a ground layer's
+    material covers. It is saved into the material's file with the scene.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter layer The layer, from 0
+    Attribute: Parameter size The tile size, more than 0
+    */
+    action SetTerrainLayerTileSize(EditorTerrain terrain, integer layer, number size)
+        if terrain = undefined or layer < 0 or layer >= terrain:GetLayerCount() or size <= 0
+            return now
+        end
+        TerrainMaterial current = terrain:GetMaterial()
+        current:GetLayerMaterial(layer):SetTextureScale(size)
+        terrain:RefreshMaterial()
+        TerrainMaterialEdited(terrain, current, "")
+    end
+
+    /*
+    This action sets how softly a terrain's texture set layers blend where
+    they meet, from 0.01 to 1. It is saved into the terrain material file
+    with the scene.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter softness The softness
+    */
+    action SetTerrainBlendSoftness(EditorTerrain terrain, number softness)
+        if terrain = undefined or terrain:GetMaterial() = undefined
+            return now
+        end
+        TerrainMaterial current = terrain:GetMaterial()
+        current:SetBlendSoftness(softness)
+        terrain:RefreshMaterial()
+        TerrainMaterialEdited(terrain, current, "")
+    end
+
+    /*
+    This action is called after a terrain's materials changed, or the
+    change was undone or redone (step 9). The terrain was given its new
+    look already; other terrains sharing the terrain material that changed
+    are given theirs. Each is marked changed for the next save, the
+    Properties panel follows, and the message is announced.
+
+    Attribute: Parameter terrain The terrain whose materials changed
+    Attribute: Parameter changed The terrain material whose layers changed, or undefined
+    Attribute: Parameter message What happened, or an empty text to say nothing
+    */
+    action TerrainMaterialEdited(EditorTerrain terrain, TerrainMaterial changed, text message)
+        if stroking
+            CancelTerrainStroke()
+        end
+        Array<EditorTerrain> terrains = GetEditorTerrains()
+        integer i = 0
+        repeat while i < terrains:GetSize()
+            EditorTerrain other = terrains:Get(i)
+            if other not= terrain and changed not= undefined and other:GetMaterial() = changed
+                other:RefreshMaterial()
+                other:SetMaterialChanged(true)
+                other:SetChanged(true)
+            end
+            i = i + 1
+        end
+        terrain:SetMaterialChanged(true)
+        terrain:SetChanged(true)
+        if terrain:GetBrush():GetLayer() >= terrain:GetLayerCount() and terrain:GetLayerCount() > 0
+            terrain:GetBrush():SetLayer(terrain:GetLayerCount() - 1)
+        end
+        // The region models were made again, so the brush's ring is placed
+        // again over them.
+        previewSize = -1
+        if terrainMaterialsPropertiesDialog:IsShowing()
+            terrainMaterialsPropertiesDialog:SetTerrain(terrain)
+        end
+        TerrainBrushChanged(terrain)
+        if message not= ""
+            NotifyAccessibility(terrain, message)
+        end
+    end
+
+    /*
+    This action returns true if a terrain's materials can be changed, and
+    says why not otherwise.
+    */
+    private action CanChangeMaterials(EditorTerrain terrain) returns boolean
+        if terrain = undefined
+            return false
+        end
+        if terrain:IsMissing()
+            NotifyAccessibility(terrain, "This terrain's files weren't found, so its materials can't be changed.")
+            return false
+        end
+        if stroking
+            EndTerrainStroke()
+        end
+        return true
+    end
+
+    /*
+    This action makes a ground layer's material from a chosen file: a
+    material file is loaded; a texture set's color map, such as
+    Ground037_1K-PNG_Color.png, or another image makes a new material,
+    written beside it as a .json file named after it, unless that file is
+    there already. It returns undefined, and says why, for other files.
+    */
+    private action MakeTerrainLayerMaterial(EditorTerrain terrain, File chosen) returns Material
+        if chosen = undefined or not chosen:Exists()
+            return undefined
+        end
+        text fileName = chosen:GetFileName()
+        text lower = fileName:ToLowerCase()
+        Material material
+        if lower:EndsWith(".json")
+            boolean loaded = true
+            check
+                material:Load(chosen)
+            detect e is Error
+                loaded = false
+            end
+            if not loaded
+                NotifyAccessibility(terrain, fileName + " isn't a material file.")
+                return undefined
+            end
+            if material:GetName() = ""
+                material:SetName(fileName:GetSubtext(0, fileName:GetSize() - 5))
+            end
+            return material
+        end
+        if not (lower:EndsWith(".png") or lower:EndsWith(".jpg") or lower:EndsWith(".jpeg"))
+            NotifyAccessibility(terrain, "Choose a material file, or an image: a texture set's color map, such as Ground037_1K-PNG_Color.png, or a plain texture.")
+            return undefined
+        end
+
+        text folder = chosen:GetParentDirectory():GetAbsolutePath()
+        text materialName = ""
+        text colorEnding = "_Color.png"
+        if fileName:EndsWith(colorEnding)
+            text setName = fileName:GetSubtext(0, fileName:GetSize() - colorEnding:GetSize())
+            material:SetTextureSet(folder, setName)
+            material:SetTextureScale(3)
+            materialName = setName
+            integer underscore = setName:IndexOf("_")
+            if underscore > 0
+                materialName = setName:GetSubtext(0, underscore)
+            end
+        else
+            material:SetTexturePath(chosen:GetAbsolutePath())
+            material:SetTextureScale(4)
+            integer dot = fileName:GetSize() - 4
+            if lower:EndsWith(".jpeg")
+                dot = fileName:GetSize() - 5
+            end
+            materialName = fileName:GetSubtext(0, dot)
+        end
+        material:SetName(materialName)
+
+        File materialFile
+        materialFile:SetPath(folder + "/" + materialName + ".json")
+        if materialFile:Exists()
+            Material existing
+            existing:Load(materialFile)
+            return existing
+        end
+        material:Save(materialFile)
+        return material
+    end
+
+    /*
+    This action makes a terrain's terrain material, with its file in the
+    project's Scenes/Materials folder, named after the terrain's folder,
+    such as Scenes/Materials/Terrain1.json. The folder is made if needed.
+    The file isn't written yet.
+    */
+    private action CreateTerrainMaterial(EditorTerrain terrain) returns TerrainMaterial
+        SceneProperties sceneProperties
+        text folderPath = sceneProperties:SCENES_FOLDER + "/" + sceneProperties:MATERIALS_FOLDER
+        File folder = ConvertToProjectFile(folderPath)
+        if not folder:Exists()
+            boolean made = folder:CreateDirectories()
+        end
+
+        // The terrain's folder name, from "Scenes/Terrains/Terrain1/terrain.json".
+        text baseName = "Terrain"
+        text terrainPath = terrain:GetTerrainFile()
+        Array<text> parts = terrainPath:Split("/")
+        if parts:GetSize() >= 2
+            baseName = parts:Get(parts:GetSize() - 2)
+        end
+
+        text candidate = baseName
+        integer count = 2
+        File file = ConvertToProjectFile(folderPath + "/" + candidate + ".json")
+        repeat while file:Exists()
+            candidate = baseName + " " + count
+            count = count + 1
+            file = ConvertToProjectFile(folderPath + "/" + candidate + ".json")
+        end
+
+        TerrainMaterial material
+        material:SetName(candidate)
+        material:Save(file)
+        return material
+    end
+
+    /*
+    This action takes one ground layer out of a terrain's painting, keeping
+    a copy for undo, and returns the edit that puts it back.
+    */
+    private action RemoveTerrainPaintingLayer(EditorTerrain terrain, integer layer) returns TerrainStrokeEdit
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        TerrainStroke operation
+        operation:BeginOperation(data, "remove layer", false, true)
+        terrain:CopyAllRegions(operation)
+        data:RemoveSplatLayer(layer)
+        terrain:SetChanged(true)
+        return operation:End()
+    end
+
+    /*
+    This action clears a terrain's painting, keeping a copy for undo, and
+    returns the edit that puts it back.
+    */
+    private action ClearTerrainPainting(EditorTerrain terrain) returns TerrainStrokeEdit
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        TerrainStroke operation
+        operation:BeginOperation(data, "clear painting", false, true)
+        terrain:CopyAllRegions(operation)
+        data:ClearSplat()
+        terrain:SetChanged(true)
+        return operation:End()
+    end
+
+    /*
+    This action moves a terrain's paint layer to the next layer that has a
+    material, going back to the first after the last, and says which it is
+    (step 9).
+
+    Attribute: Parameter terrain The terrain
+    */
+    action NextTerrainPaintLayer(EditorTerrain terrain)
+        if terrain = undefined or not terrain:HasTool()
+            return now
+        end
+        integer count = terrain:GetLayerCount()
+        if count = 0
+            NotifyAccessibility(terrain, "No materials to paint. Add them in the Materials section.")
+            return now
+        end
+        TerrainBrush brush = terrain:GetBrush()
+        integer layer = brush:GetLayer() + 1
+        if layer >= count
+            layer = 0
+        end
+        brush:SetLayer(layer)
+        NotifyAccessibility(terrain, "Paint layer " + (layer + 1) + ", " + terrain:GetMaterial():GetLayerName(layer))
+        TerrainBrushChanged(terrain)
+    end
+
+    /*
+    This action says what the ground under a terrain's whole brush is like:
+    its heights, its steepest slope, and how much of it each layer covers
+    (step 12). The Brush section's "Describe the area" button calls it.
+
+    Attribute: Parameter terrain The terrain
+    */
+    action DescribeTerrainArea(EditorTerrain terrain)
+        if terrain = undefined
+            return now
+        end
+        if not terrain:HasTool()
+            NotifyAccessibility(terrain, "Choose a tool first, with Alt and a number, to place the brush.")
+            return now
+        end
+        NotifyAccessibility(terrain, terrain:DescribeArea())
     end
 
     /*

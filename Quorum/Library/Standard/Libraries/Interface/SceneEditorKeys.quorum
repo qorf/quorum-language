@@ -332,6 +332,11 @@ class SceneEditorKeys
         return WithModifiers(keys:LEFT_BRACKET, false, false, true, false)
     end
 
+    /* Paints the next of a terrain's ground layers (step 9). Default: Alt+L. */
+    action GetTerrainNextLayerKey returns InputSet
+        return WithModifiers(keys:L, false, false, true, false)
+    end
+
     // ------------------------------------------------------------ helpers
 
     /*

@@ -2,7 +2,49 @@ package Libraries.Game.Graphics.Models.Data
 
 use Libraries.Compute.Vector4
 use Libraries.System.File
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
 
+/*
+The Material class holds how a surface looks: a texture, or a texture set
+of separate maps, and the values that shade it.
+
+A material can be kept in a file, with Load and Save (Quorum Studio plan,
+step 9). The file is plain JSON, says what it is in its "Format", and gives
+each map's path relative to the file's own folder, so a texture set's
+folder can be copied between projects with its material file:
+
+{
+    "Format": "Quorum Material",
+    "Version": 1,
+    "Name": "Mossy ground",
+    "Color Map": "Ground037_1K-PNG_Color.png",
+    "Normal Map": "Ground037_1K-PNG_NormalGL.png",
+    "Normal Map Convention": "OpenGL",
+    "Roughness Map": "Ground037_1K-PNG_Roughness.png",
+    "Ambient Occlusion Map": "Ground037_1K-PNG_AmbientOcclusion.png",
+    "Height Map": "Ground037_1K-PNG_Displacement.png",
+    "Tile Size": 3
+}
+
+A plain texture uses "Texture" instead of the maps. "Color" and "Emissive"
+(four numbers each), "Roughness", "Metallic", "Bump Shading", "Opaque" and
+"Refractive Index" are written only when they differ from the default.
+When reading, missing values keep their defaults, and unknown ones are
+ignored.
+
+Attribute: Example
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.System.File
+
+Material rock
+rock:SetTextureSet("Textures/Rocks002_1K-PNG", "Rocks002_1K-PNG")
+rock:SetName("Rocks")
+File file
+file:SetPath("Textures/Rocks002_1K-PNG/Rocks002.json")
+rock:Save(file)
+*/
 class Material
     text texturePath = ""
     text normalMapPath = ""
@@ -24,6 +66,11 @@ class Material
     text heightMapPath = ""
     boolean normalMapIsDirectX = false
     number textureScale = 1.0
+
+    // The material's name, and the file it was loaded from or saved to
+    // (step 9).
+    text name = ""
+    File file = undefined
     
     action GetTexturePath returns text
         return texturePath
@@ -280,6 +327,298 @@ class Material
         if FileExists(start + "Displacement.png")
             SetHeightMapPath(start + "Displacement.png")
         end
+    end
+
+    /*
+    This action returns the material's name, such as "Mossy ground".
+
+    Attribute: Returns The name, or an empty text if it has none.
+    */
+    action GetName returns text
+        return name
+    end
+
+    /*
+    This action sets the material's name, which is saved in its file.
+
+    Attribute: Parameter name The name.
+    */
+    action SetName(text name)
+        me:name = name
+    end
+
+    /*
+    This action returns the file the material was loaded from or last saved
+    to.
+
+    Attribute: Returns The file, or undefined if it hasn't been loaded or saved.
+    */
+    action GetFile returns File
+        return file
+    end
+
+    /*
+    This action reads a material file. Each map's path in the file is
+    relative to the file's folder; it is kept as a full path, so the
+    material is found wherever the program runs. Values the file doesn't
+    have keep their defaults.
+
+    Attribute: Parameter file The material file, a .json file whose "Format" is "Quorum Material".
+    */
+    action Load(File file)
+        if not file:Exists()
+            alert("I couldn't find the material file " + file:GetAbsolutePath() + ".")
+        end
+        JavaScriptObjectNotation json
+        json:Read(file)
+        if not json:HasValue("Format") or json:GetValue("Format") not= "Quorum Material"
+            alert("The file " + file:GetAbsolutePath() + " is not a material, since its Format isn't Quorum Material.")
+        end
+        text folder = file:GetParentDirectory():GetAbsolutePath()
+        me:file = file
+
+        if json:HasValue("Name")
+            name = json:GetValue("Name")
+        end
+        texturePath = ReadPath(json, "Texture", folder)
+        colorMapPath = ReadPath(json, "Color Map", folder)
+        normalMapPath = ReadPath(json, "Normal Map", folder)
+        metalRoughMap = ReadPath(json, "Metal Rough Map", folder)
+        roughnessMapPath = ReadPath(json, "Roughness Map", folder)
+        ambientOcclusionMapPath = ReadPath(json, "Ambient Occlusion Map", folder)
+        heightMapPath = ReadPath(json, "Height Map", folder)
+        if json:HasValue("Normal Map Convention")
+            normalMapIsDirectX = json:GetValue("Normal Map Convention") = "DirectX"
+        end
+        if HasNumber(json, "Tile Size")
+            number size = ReadNumber(json, "Tile Size")
+            if size > 0
+                textureScale = size
+            end
+        end
+        if HasNumber(json, "Roughness")
+            roughness = ReadNumber(json, "Roughness")
+        end
+        if HasNumber(json, "Metallic")
+            metallic = ReadNumber(json, "Metallic")
+        end
+        if HasNumber(json, "Bump Shading")
+            bumpShading = ReadNumber(json, "Bump Shading")
+        end
+        if HasNumber(json, "Opaque")
+            opaque = ReadNumber(json, "Opaque")
+        end
+        if HasNumber(json, "Refractive Index")
+            refractiveIndex = ReadNumber(json, "Refractive Index")
+        end
+        ReadColor(json, "Color", diffuse)
+        ReadColor(json, "Emissive", emissive)
+    end
+
+    /*
+    This action writes the material to a file, with each map's path
+    relative to the file's folder. The folder must exist.
+
+    Attribute: Parameter file The material file, usually ending in .json.
+    */
+    action Save(File file)
+        text folder = file:GetParentDirectory():GetAbsolutePath()
+        Material defaults
+
+        JavaScriptObjectNotation json
+        json:SetPrettyPrint(true)
+        json:Add("Format", "Quorum Material")
+        json:Add("Version", 1)
+        json:Add("Name", name)
+        WritePath(json, "Texture", texturePath, folder)
+        WritePath(json, "Color Map", colorMapPath, folder)
+        WritePath(json, "Normal Map", normalMapPath, folder)
+        if normalMapPath not= ""
+            if normalMapIsDirectX
+                json:Add("Normal Map Convention", "DirectX")
+            else
+                json:Add("Normal Map Convention", "OpenGL")
+            end
+        end
+        WritePath(json, "Metal Rough Map", metalRoughMap, folder)
+        WritePath(json, "Roughness Map", roughnessMapPath, folder)
+        WritePath(json, "Ambient Occlusion Map", ambientOcclusionMapPath, folder)
+        WritePath(json, "Height Map", heightMapPath, folder)
+        json:Add("Tile Size", textureScale)
+        if roughness not= defaults:GetRoughness()
+            json:Add("Roughness", roughness)
+        end
+        if metallic not= defaults:GetMetallic()
+            json:Add("Metallic", metallic)
+        end
+        if bumpShading not= defaults:GetBumpShading()
+            json:Add("Bump Shading", bumpShading)
+        end
+        if opaque not= defaults:GetOpaque()
+            json:Add("Opaque", opaque)
+        end
+        if refractiveIndex not= defaults:GetRefractiveIndex()
+            json:Add("Refractive Index", refractiveIndex)
+        end
+        WriteColor(json, "Color", diffuse, defaults:GetDiffuse())
+        WriteColor(json, "Emissive", emissive, defaults:GetEmissive())
+
+        file:Write(json:ToText())
+        me:file = file
+    end
+
+    /*
+    This action reads a map's path from a material file, as a full path.
+    */
+    private action ReadPath(JavaScriptObjectNotation json, text key, text folder) returns text
+        if not json:HasValue(key)
+            return ""
+        end
+        text value = json:GetValue(key)
+        if value = ""
+            return ""
+        end
+        File mapFile
+        mapFile:SetWorkingDirectory(folder)
+        mapFile:SetPath(value)
+        return mapFile:GetAbsolutePath()
+    end
+
+    /*
+    This action writes a map's path into a material file, relative to the
+    file's folder. Nothing is written for a map the material doesn't have.
+    */
+    private action WritePath(JavaScriptObjectNotation json, text key, text path, text folder)
+        if path = ""
+            return now
+        end
+        File mapFile
+        mapFile:SetPath(path)
+        json:Add(key, GetRelativePath(folder, mapFile:GetAbsolutePath()))
+    end
+
+    /*
+    This action returns a file's path relative to a folder, such as
+    "../Textures/grass.png". Both are full paths.
+
+    Attribute: Parameter folder The folder's full path.
+    Attribute: Parameter target The file's full path.
+    Attribute: Returns The relative path.
+    */
+    action GetRelativePath(text folder, text target) returns text
+        text separator = "/"
+        text splitter = "/"
+        if folder:Contains("\")
+            separator = "\"
+            splitter = "\\"
+        end
+        Array<text> start = folder:Split(splitter)
+        Array<text> goal = target:Split(splitter)
+        integer common = 0
+        repeat while common < start:GetSize() and common < goal:GetSize() and start:Get(common) = goal:Get(common)
+            common = common + 1
+        end
+        text result = ""
+        integer i = common
+        repeat while i < start:GetSize()
+            if start:Get(i) not= ""
+                result = result + ".." + separator
+            end
+            i = i + 1
+        end
+        i = common
+        repeat while i < goal:GetSize()
+            result = result + goal:Get(i)
+            if i < goal:GetSize() - 1
+                result = result + separator
+            end
+            i = i + 1
+        end
+        return result
+    end
+
+    /*
+    This action returns true if a material file has a number with a name,
+    written as a whole number or with a decimal point.
+    */
+    private action HasNumber(JavaScriptObjectNotation json, text key) returns boolean
+        Iterator<JavaScriptObjectNotation> children = json:GetIterator()
+        repeat while children:HasNext()
+            JavaScriptObjectNotation child = children:Next()
+            if child:GetKey() = key and (child:IsInteger() or child:IsNumber())
+                return true
+            end
+        end
+        return false
+    end
+
+    /*
+    This action returns a number from a material file, whether it was
+    written as a whole number or with a decimal point.
+    */
+    private action ReadNumber(JavaScriptObjectNotation json, text key) returns number
+        Iterator<JavaScriptObjectNotation> children = json:GetIterator()
+        repeat while children:HasNext()
+            JavaScriptObjectNotation child = children:Next()
+            if child:GetKey() = key
+                if child:IsInteger()
+                    return child:GetInteger()
+                elseif child:IsNumber()
+                    return child:GetNumber()
+                end
+            end
+        end
+        return 0
+    end
+
+    /*
+    This action reads four numbers, red, green, blue and alpha, into a
+    color, if the file has them.
+    */
+    private action ReadColor(JavaScriptObjectNotation json, text key, Vector4 color)
+        if not json:HasValue(key)
+            return now
+        end
+        JavaScriptObjectNotation holder = json:GetObject(key)
+        if holder = undefined
+            return now
+        end
+        JavaScriptObjectNotation list = holder
+        if holder:IsArrayObject()
+            list = holder:GetArray()
+        end
+        if list:GetSize() < 4
+            return now
+        end
+        color:Set(GetListNumber(list, 0), GetListNumber(list, 1), GetListNumber(list, 2), GetListNumber(list, 3))
+    end
+
+    /*
+    This action returns one number from a list in a material file.
+    */
+    private action GetListNumber(JavaScriptObjectNotation list, integer index) returns number
+        JavaScriptObjectNotation item = list:Get(index)
+        if item:IsInteger()
+            return item:GetInteger()
+        end
+        return item:GetNumber()
+    end
+
+    /*
+    This action writes a color as four numbers, if it differs from the
+    default.
+    */
+    private action WriteColor(JavaScriptObjectNotation json, text key, Vector4 color, Vector4 defaultColor)
+        if color:GetX() = defaultColor:GetX() and color:GetY() = defaultColor:GetY() and color:GetZ() = defaultColor:GetZ() and color:GetW() = defaultColor:GetW()
+            return now
+        end
+        JavaScriptObjectNotation list
+        list:SetArray()
+        list:Add(color:GetX())
+        list:Add(color:GetY())
+        list:Add(color:GetZ())
+        list:Add(color:GetW())
+        json:Add(key, list)
     end
 
     /*
