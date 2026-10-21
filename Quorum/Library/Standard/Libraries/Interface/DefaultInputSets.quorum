@@ -8,6 +8,9 @@ use Libraries.Game.GameStateManager
 use Libraries.Game.InputTable
 use Libraries.Interface.Controls.Scenes.SceneEditorInputTable
 use Libraries.Interface.Behaviors.Scenes.Selection.all
+use Libraries.Interface.Behaviors.Scenes.Selection.TerrainChooseToolBehavior
+use Libraries.Interface.Behaviors.Scenes.Selection.TerrainBrushUseBehavior
+use Libraries.Interface.Behaviors.Scenes.Selection.TerrainStrengthBehavior
 use Libraries.Interface.Behaviors.Scenes.Camera.all
 use Libraries.Interface.Behaviors.Scenes.Controls.all
 use Libraries.Interface.Behaviors.Scenes.Grid.all
@@ -1427,7 +1430,22 @@ InputSet shiftF10SetTextBox
         gameInput:AddInputTable(textFieldTable)
     end
 
+    /*
+        This action builds the scene editor's input tables with the default
+        keys. See SetupSceneEditorInput(GameInput, SceneEditorKeys) to use
+        other keys.
+    */
     action SetupSceneEditorInput(GameInput gameInput)
+        SceneEditorKeys defaultKeys
+        SetupSceneEditorInput(gameInput, defaultKeys)
+    end
+
+    /*
+        This action builds the scene editor's input tables, with every key
+        from a SceneEditorKeys, so a program can change them. Tables are kept
+        by name, so building them again replaces the old ones.
+    */
+    action SetupSceneEditorInput(GameInput gameInput, SceneEditorKeys sceneKeys)
         SceneEditorInputTable table
         table:SetIdentifier("SceneEditor")
         InputTable selectionTable
@@ -1563,56 +1581,33 @@ InputSet shiftF10SetTextBox
         CursorIncreaseSizeBehavior cursorIncreaseSizeBehavior
         CursorDecreaseSizeBehavior cursorDecreaseSizeBehavior
 
-        InputSet reportLocation
-        reportLocation:SetKeyboardInput(keys:NUM_1)
-        reportLocation:AddModifier(reportLocation:CONTROL)
-        reportLocation:AddModifier(reportLocation:SHIFT)
-        InputSet reportCameraDirection
-        reportCameraDirection:SetKeyboardInput(keys:NUM_2)
-        reportCameraDirection:AddModifier(reportCameraDirection:CONTROL)
-        reportCameraDirection:AddModifier(reportCameraDirection:SHIFT)
-        InputSet reportItemsInView
-        reportItemsInView:SetKeyboardInput(keys:NUM_3)
-        reportItemsInView:AddModifier(reportItemsInView:CONTROL)
-        reportItemsInView:AddModifier(reportItemsInView:SHIFT)
+        InputSet reportLocation = sceneKeys:GetReportLocationKey()
+        InputSet reportCameraDirection = sceneKeys:GetReportCameraDirectionKey()
+        InputSet reportItemsInView = sceneKeys:GetReportItemsInViewKey()
 
         table:Add(reportLocation, reportLocationBehavior)
         table:Add(reportCameraDirection, reportCameraDirectionBehavior)
         table:Add(reportItemsInView, reportItemsInViewBehavior)
 
-        InputSet selectionMoveLeft3DStart = GetLeftArrowKey()
-        InputSet selectionMoveLeft3DStop = GetLeftArrowKey()
+        InputSet selectionMoveLeft3DStart = sceneKeys:GetSelectionMoveLeft3DKey()
+        InputSet selectionMoveLeft3DStop = sceneKeys:GetSelectionMoveLeft3DKey()
         selectionMoveLeft3DStop:SetInputTrigger(selectionMoveLeft3DStop:FINISH)
-        InputSet selectionMoveRight3DStart = GetRightArrowKey()
-        InputSet selectionMoveRight3DStop = GetRightArrowKey()
+        InputSet selectionMoveRight3DStart = sceneKeys:GetSelectionMoveRight3DKey()
+        InputSet selectionMoveRight3DStop = sceneKeys:GetSelectionMoveRight3DKey()
         selectionMoveRight3DStop:SetInputTrigger(selectionMoveRight3DStop:FINISH)
 
-        InputSet selectionMoveUp3DStart
-        InputSet selectionMoveUp3DStop
-        InputSet selectionMoveDown3DStart
-        InputSet selectionMoveDown3DStop
+        InputSet selectionMoveUp3DStart = sceneKeys:GetSelectionMoveUp3DKey()
+        InputSet selectionMoveUp3DStop = sceneKeys:GetSelectionMoveUp3DKey()
+        selectionMoveUp3DStop:SetInputTrigger(selectionMoveUp3DStop:FINISH)
+        InputSet selectionMoveDown3DStart = sceneKeys:GetSelectionMoveDown3DKey()
+        InputSet selectionMoveDown3DStop = sceneKeys:GetSelectionMoveDown3DKey()
+        selectionMoveDown3DStop:SetInputTrigger(selectionMoveDown3DStop:FINISH)
 
-        if ShouldUseMacKeys()
-            selectionMoveUp3DStart = AddMetaModifier(GetUpArrowKey())
-            selectionMoveUp3DStop = AddMetaModifier(GetUpArrowKey())
-            selectionMoveUp3DStop:SetInputTrigger(selectionMoveUp3DStop:FINISH)
-            selectionMoveDown3DStart = AddMetaModifier(GetDownArrowKey())
-            selectionMoveDown3DStop = AddMetaModifier(GetDownArrowKey())
-            selectionMoveDown3DStop:SetInputTrigger(selectionMoveDown3DStop:FINISH)
-        else
-            selectionMoveUp3DStart = AddControlModifier(GetUpArrowKey())
-            selectionMoveUp3DStop = AddControlModifier(GetUpArrowKey())
-            selectionMoveUp3DStop:SetInputTrigger(selectionMoveUp3DStop:FINISH)
-            selectionMoveDown3DStart = AddControlModifier(GetDownArrowKey())
-            selectionMoveDown3DStop = AddControlModifier(GetDownArrowKey())
-            selectionMoveDown3DStop:SetInputTrigger(selectionMoveDown3DStop:FINISH)
-        end
-
-        InputSet selectionMoveForward3DStart = GetUpArrowKey()
-        InputSet selectionMoveForward3DStop = GetUpArrowKey()
+        InputSet selectionMoveForward3DStart = sceneKeys:GetSelectionMoveForward3DKey()
+        InputSet selectionMoveForward3DStop = sceneKeys:GetSelectionMoveForward3DKey()
         selectionMoveForward3DStop:SetInputTrigger(selectionMoveForward3DStop:FINISH)
-        InputSet selectionMoveBackward3DStart = GetDownArrowKey()
-        InputSet selectionMoveBackward3DStop = GetDownArrowKey()
+        InputSet selectionMoveBackward3DStart = sceneKeys:GetSelectionMoveBackward3DKey()
+        InputSet selectionMoveBackward3DStop = sceneKeys:GetSelectionMoveBackward3DKey()
         selectionMoveBackward3DStop:SetInputTrigger(selectionMoveBackward3DStop:FINISH)
 
         // move 3D selection in x direction
@@ -1671,18 +1666,18 @@ InputSet shiftF10SetTextBox
         table:Add3D(mouseShiftMiddleMouseMove, cameraMousePanBehavior)
         
 
-        InputSet selectionMoveLeft2DStart = GetLeftArrowKey()
-        InputSet selectionMoveLeft2DStop = GetLeftArrowKey()
+        InputSet selectionMoveLeft2DStart = sceneKeys:GetSelectionMoveLeft2DKey()
+        InputSet selectionMoveLeft2DStop = sceneKeys:GetSelectionMoveLeft2DKey()
         selectionMoveLeft2DStop:SetInputTrigger(selectionMoveLeft2DStop:FINISH)
-        InputSet selectionMoveRight2DStart = GetRightArrowKey()
-        InputSet selectionMoveRight2DStop = GetRightArrowKey()
+        InputSet selectionMoveRight2DStart = sceneKeys:GetSelectionMoveRight2DKey()
+        InputSet selectionMoveRight2DStop = sceneKeys:GetSelectionMoveRight2DKey()
         selectionMoveRight2DStop:SetInputTrigger(selectionMoveRight2DStop:FINISH)
 
-        InputSet selectionMoveUp2DStart = GetUpArrowKey()
-        InputSet selectionMoveUp2DStop = GetUpArrowKey()
+        InputSet selectionMoveUp2DStart = sceneKeys:GetSelectionMoveUp2DKey()
+        InputSet selectionMoveUp2DStop = sceneKeys:GetSelectionMoveUp2DKey()
         selectionMoveUp2DStop:SetInputTrigger(selectionMoveUp2DStop:FINISH)
-        InputSet selectionMoveDown2DStart = GetDownArrowKey()
-        InputSet selectionMoveDown2DStop = GetDownArrowKey()
+        InputSet selectionMoveDown2DStart = sceneKeys:GetSelectionMoveDown2DKey()
+        InputSet selectionMoveDown2DStop = sceneKeys:GetSelectionMoveDown2DKey()
         selectionMoveDown2DStop:SetInputTrigger(selectionMoveDown2DStop:FINISH)
 
         // move 2D selection in x direction
@@ -1696,36 +1691,10 @@ InputSet shiftF10SetTextBox
         table:Add2D(selectionMoveDown2DStart, selectionStartMovingDownBehavior)
         table:Add2D(selectionMoveDown2DStop, selectionStopMovingYBehavior)
 
-        InputSet toggleGridInput
-        InputSet increaseGridUnitInput
-        InputSet decreaseGridUnitInput
-        InputSet openEditorFindDialogInput
-
-        if ShouldUseMacKeys()
-            InputSet set
-            toggleGridInput:SetKeyboardInput(keys:G)
-            toggleGridInput:AddModifier(set:META)
-            increaseGridUnitInput:SetKeyboardInput(keys:G)
-            increaseGridUnitInput:AddModifier(set:META)
-            increaseGridUnitInput:AddModifier(set:SHIFT)
-            decreaseGridUnitInput:SetKeyboardInput(keys:G)
-            decreaseGridUnitInput:AddModifier(set:META)
-            decreaseGridUnitInput:AddModifier(set:ALT)
-            openEditorFindDialogInput:SetKeyboardInput(keys:F)
-            openEditorFindDialogInput:AddModifier(set:META)
-        else
-            InputSet set
-            toggleGridInput:SetKeyboardInput(keys:G)
-            toggleGridInput:AddModifier(set:CONTROL)
-            increaseGridUnitInput:SetKeyboardInput(keys:G)
-            increaseGridUnitInput:AddModifier(set:CONTROL)
-            increaseGridUnitInput:AddModifier(set:SHIFT)
-            decreaseGridUnitInput:SetKeyboardInput(keys:G)
-            decreaseGridUnitInput:AddModifier(set:CONTROL)
-            decreaseGridUnitInput:AddModifier(set:ALT)
-            openEditorFindDialogInput:SetKeyboardInput(keys:F)
-            openEditorFindDialogInput:AddModifier(set:CONTROL)
-        end
+        InputSet toggleGridInput = sceneKeys:GetToggleGridKey()
+        InputSet increaseGridUnitInput = sceneKeys:GetIncreaseGridUnitKey()
+        InputSet decreaseGridUnitInput = sceneKeys:GetDecreaseGridUnitKey()
+        InputSet openEditorFindDialogInput = sceneKeys:GetOpenFindDialogKey()
 
         table:Add(toggleGridInput, toggleGridBehavior)
         table:Add(increaseGridUnitInput, increaseGridUnitBehavior)
@@ -1733,24 +1702,17 @@ InputSet shiftF10SetTextBox
 
         table:Add(openEditorFindDialogInput, openFindDialogBehavior)
 
-        InputSet selectionScaleUpSet
-        selectionScaleUpSet:SetKeyboardInput(keys:EQUALS)
-        selectionScaleUpSet = AddAltModifier(selectionScaleUpSet)
-        InputSet selectionScaleDownSet
-        selectionScaleDownSet:SetKeyboardInput(keys:MINUS)
-        selectionScaleDownSet = AddAltModifier(selectionScaleDownSet)
+        InputSet selectionScaleUpSet = sceneKeys:GetSelectionScaleUpKey()
+        InputSet selectionScaleDownSet = sceneKeys:GetSelectionScaleDownKey()
 
-        InputSet cursorSelectItemsInput
-        cursorSelectItemsInput:SetKeyboardInput(keys:ENTER)
+        InputSet cursorSelectItemsInput = sceneKeys:GetCursorSelectItemsKey()
 
         table:Add(cursorSelectItemsInput, cursorSelectItemsBehavior)
 
-        table:Add(selectionScaleUpSet, cursorIncreaseSizeBehavior)
-        table:Add(selectionScaleDownSet, cursorDecreaseSizeBehavior)
+        table:Add(sceneKeys:GetCursorSizeUpKey(), cursorIncreaseSizeBehavior)
+        table:Add(sceneKeys:GetCursorSizeDownKey(), cursorDecreaseSizeBehavior)
 
-        InputSet focusCameraSet
-        focusCameraSet:SetKeyboardInput(keys:F)
-        focusCameraSet:AddModifier(focusCameraSet:ALT)
+        InputSet focusCameraSet = sceneKeys:GetCameraFocusKey()
 
         table:Add(focusCameraSet, focusCameraBehavior)
 
@@ -1771,19 +1733,11 @@ InputSet shiftF10SetTextBox
         cameraItemTable2D:Add(selectionScaleUpSet, selectionScaleUpBehavior)
         cameraItemTable2D:Add(selectionScaleDownSet, selectionScaleDownBehavior)
 
-        InputSet focusPropertiesSet
-        if ShouldUseMacKeys()
-            focusPropertiesSet:SetKeyboardInput(keys:P)
-            focusPropertiesSet:AddModifier(focusPropertiesSet:META)
-        else
-            focusPropertiesSet:SetKeyboardInput(keys:P)
-            focusPropertiesSet:AddModifier(focusPropertiesSet:CONTROL)
-        end
+        InputSet focusPropertiesSet = sceneKeys:GetFocusPropertiesKey()
 
         cameraItemTable2D:Add(focusPropertiesSet, focusPropertiesBehavior)
 
-        InputSet selectionCancelSet
-        selectionCancelSet:SetKeyboardInput(keys:ESCAPE)
+        InputSet selectionCancelSet = sceneKeys:GetSelectionCancelKey()
         cameraItemTable2D:Add(selectionCancelSet, selectionCancelBehavior)
 
         // 3D camera set
@@ -1827,40 +1781,26 @@ InputSet shiftF10SetTextBox
         selectionTable:Add(selectionMoveBackward3DStart, selectionStartMovingBackwardBehavior)
         selectionTable:Add(selectionMoveBackward3DStop, selectionStopMovingZBehavior)
 
-        InputSet selectionRotateYawLeftStart = AddAltModifier(GetLeftArrowKey())
-        InputSet selectionRotateYawLeftStop = AddAltModifier(GetLeftArrowKey())
+        InputSet selectionRotateYawLeftStart = sceneKeys:GetSelectionRotateYawLeftKey()
+        InputSet selectionRotateYawLeftStop = sceneKeys:GetSelectionRotateYawLeftKey()
         selectionRotateYawLeftStop:SetInputTrigger(selectionRotateYawLeftStop:FINISH)
-        InputSet selectionRotateYawRightStart = AddAltModifier(GetRightArrowKey())
-        InputSet selectionRotateYawRightStop = AddAltModifier(GetRightArrowKey())
+        InputSet selectionRotateYawRightStart = sceneKeys:GetSelectionRotateYawRightKey()
+        InputSet selectionRotateYawRightStop = sceneKeys:GetSelectionRotateYawRightKey()
         selectionRotateYawRightStop:SetInputTrigger(selectionRotateYawRightStop:FINISH)
 
-        InputSet selectionRotatePitchUpStart = AddAltModifier(GetUpArrowKey())
-        InputSet selectionRotatePitchUpStop = AddAltModifier(GetUpArrowKey())
+        InputSet selectionRotatePitchUpStart = sceneKeys:GetSelectionRotatePitchUpKey()
+        InputSet selectionRotatePitchUpStop = sceneKeys:GetSelectionRotatePitchUpKey()
         selectionRotatePitchUpStop:SetInputTrigger(selectionRotatePitchUpStop:FINISH)
-        InputSet selectionRotatePitchDownStart = AddAltModifier(GetDownArrowKey())
-        InputSet selectionRotatePitchDownStop = AddAltModifier(GetDownArrowKey())
+        InputSet selectionRotatePitchDownStart = sceneKeys:GetSelectionRotatePitchDownKey()
+        InputSet selectionRotatePitchDownStop = sceneKeys:GetSelectionRotatePitchDownKey()
         selectionRotatePitchDownStop:SetInputTrigger(selectionRotatePitchDownStop:FINISH)
 
-        InputSet selectionRotateRollLeftStart
-        InputSet selectionRotateRollLeftStop
-        InputSet selectionRotateRollRightStart
-        InputSet selectionRotateRollRightStop
-
-        if ShouldUseMacKeys()
-            selectionRotateRollLeftStart = AddMetaModifier(AddAltModifier(GetLeftArrowKey()))
-            selectionRotateRollLeftStop = AddMetaModifier(AddAltModifier(GetLeftArrowKey()))
-            selectionRotateRollLeftStop:SetInputTrigger(selectionRotateRollLeftStop:FINISH)
-            selectionRotateRollRightStart = AddMetaModifier(AddAltModifier(GetRightArrowKey()))
-            selectionRotateRollRightStop = AddMetaModifier(AddAltModifier(GetRightArrowKey()))
-            selectionRotateRollRightStop:SetInputTrigger(selectionRotateRollRightStop:FINISH)
-        else
-            selectionRotateRollLeftStart = AddControlModifier(AddAltModifier(GetLeftArrowKey()))
-            selectionRotateRollLeftStop = AddControlModifier(AddAltModifier(GetLeftArrowKey()))
-            selectionRotateRollLeftStop:SetInputTrigger(selectionRotateRollLeftStop:FINISH)
-            selectionRotateRollRightStart = AddControlModifier(AddAltModifier(GetRightArrowKey()))
-            selectionRotateRollRightStop = AddControlModifier(AddAltModifier(GetRightArrowKey()))
-            selectionRotateRollRightStop:SetInputTrigger(selectionRotateRollRightStop:FINISH)
-        end
+        InputSet selectionRotateRollLeftStart = sceneKeys:GetSelectionRotateRollLeftKey()
+        InputSet selectionRotateRollLeftStop = sceneKeys:GetSelectionRotateRollLeftKey()
+        selectionRotateRollLeftStop:SetInputTrigger(selectionRotateRollLeftStop:FINISH)
+        InputSet selectionRotateRollRightStart = sceneKeys:GetSelectionRotateRollRightKey()
+        InputSet selectionRotateRollRightStop = sceneKeys:GetSelectionRotateRollRightKey()
+        selectionRotateRollRightStop:SetInputTrigger(selectionRotateRollRightStop:FINISH)
 
         selectionTable:Add(selectionRotateYawLeftStart, selectionStartRotatingYawLeftBehavior)
         selectionTable:Add(selectionRotateYawLeftStop, selectionStopRotatingYawBehavior)
@@ -1879,26 +1819,14 @@ InputSet shiftF10SetTextBox
 
 
 
-        InputSet selectionScaleXUpSet
-        selectionScaleXUpSet:SetKeyboardInput(keys:D)
-        selectionScaleXUpSet = AddAltModifier(selectionScaleXUpSet)
-        InputSet selectionScaleXDownSet
-        selectionScaleXDownSet:SetKeyboardInput(keys:A)
-        selectionScaleXDownSet = AddAltModifier(selectionScaleXDownSet)
+        InputSet selectionScaleXUpSet = sceneKeys:GetSelectionScaleXUpKey()
+        InputSet selectionScaleXDownSet = sceneKeys:GetSelectionScaleXDownKey()
 
-        InputSet selectionScaleYUpSet
-        selectionScaleYUpSet:SetKeyboardInput(keys:SPACE)
-        selectionScaleYUpSet = AddAltModifier(selectionScaleYUpSet)
-        InputSet selectionScaleYDownSet
-        selectionScaleYDownSet:SetKeyboardInput(keys:X)
-        selectionScaleYDownSet = AddAltModifier(selectionScaleYDownSet)
+        InputSet selectionScaleYUpSet = sceneKeys:GetSelectionScaleYUpKey()
+        InputSet selectionScaleYDownSet = sceneKeys:GetSelectionScaleYDownKey()
 
-        InputSet selectionScaleZUpSet
-        selectionScaleZUpSet:SetKeyboardInput(keys:W)
-        selectionScaleZUpSet = AddAltModifier(selectionScaleZUpSet)
-        InputSet selectionScaleZDownSet
-        selectionScaleZDownSet:SetKeyboardInput(keys:S)
-        selectionScaleZDownSet = AddAltModifier(selectionScaleZDownSet)
+        InputSet selectionScaleZUpSet = sceneKeys:GetSelectionScaleZUpKey()
+        InputSet selectionScaleZDownSet = sceneKeys:GetSelectionScaleZDownKey()
 
 
         selectionTable:Add(selectionScaleUpSet, selectionScaleUpBehavior)
@@ -1913,10 +1841,8 @@ InputSet shiftF10SetTextBox
         selectionTable:Add(selectionScaleZUpSet, selectionScaleZUpBehavior)
         selectionTable:Add(selectionScaleZDownSet, selectionScaleZDownBehavior)
 
-        InputSet selectionDeleteSet
-        selectionDeleteSet:SetKeyboardInput(keys:FORWARD_DELETE)
-        InputSet selectionDeleteSet2
-        selectionDeleteSet2:SetKeyboardInput(keys:BACKSPACE)
+        InputSet selectionDeleteSet = sceneKeys:GetSelectionDeleteKey()
+        InputSet selectionDeleteSet2 = sceneKeys:GetSelectionDeleteKey2()
 
         selectionTable:Add(selectionDeleteSet, selectionDeleteBehavior)
         selectionTable:Add(selectionDeleteSet2, selectionDeleteBehavior)
@@ -1930,16 +1856,31 @@ InputSet shiftF10SetTextBox
 
         selectionTable:Add(openEditorFindDialogInput, openFindDialogBehavior)
 
-        InputSet resetScaleSet        
-        if ShouldUseMacKeys()
-            resetScaleSet:SetKeyboardInput(keys:R)
-            resetScaleSet = AddMetaModifier(resetScaleSet)
-        else
-            resetScaleSet:SetKeyboardInput(keys:R)
-            resetScaleSet = AddControlModifier(resetScaleSet)
-        end
+        InputSet resetScaleSet = sceneKeys:GetSelectionResetScaleKey()
 
         selectionTable:Add(resetScaleSet, selectionResetScaleBehavior)
+
+        // A selected terrain's tools, Alt+1 to Alt+9 by default (step 7).
+        integer toolNumber = 1
+        repeat while toolNumber <= 9
+            AddTerrainToolKey(selectionTable, sceneKeys, toolNumber)
+            toolNumber = toolNumber + 1
+        end
+
+        // A selected terrain's brush (step 8): Space, held, makes a stroke,
+        // and Alt+] and Alt+[ change its strength, by default.
+        InputSet brushUseSet = sceneKeys:GetTerrainBrushUseKey()
+        TerrainBrushUseBehavior terrainBrushUseBehavior
+        terrainBrushUseBehavior:SetKey(brushUseSet:GetInputValue())
+        selectionTable:Add(brushUseSet, terrainBrushUseBehavior)
+
+        TerrainStrengthBehavior terrainStrengthUpBehavior
+        terrainStrengthUpBehavior:SetStronger(true)
+        selectionTable:Add(sceneKeys:GetTerrainStrengthUpKey(), terrainStrengthUpBehavior)
+
+        TerrainStrengthBehavior terrainStrengthDownBehavior
+        terrainStrengthDownBehavior:SetStronger(false)
+        selectionTable:Add(sceneKeys:GetTerrainStrengthDownKey(), terrainStrengthDownBehavior)
 
         // 2D selection
         selectionTable2D:Add(reportLocation, reportLocationBehavior)
@@ -1954,11 +1895,11 @@ InputSet shiftF10SetTextBox
         selectionTable2D:Add(selectionMoveDown2DStart, selectionStartMovingDownBehavior)
         selectionTable2D:Add(selectionMoveDown2DStop, selectionStopMovingYBehavior)
 
-        InputSet selectionRotateForward2DStart = AddAltModifier(GetRightArrowKey())
-        InputSet selectionRotateForward2DStop = AddAltModifier(GetRightArrowKey())
+        InputSet selectionRotateForward2DStart = sceneKeys:GetSelectionRotateForward2DKey()
+        InputSet selectionRotateForward2DStop = sceneKeys:GetSelectionRotateForward2DKey()
         selectionRotateForward2DStop:SetInputTrigger(selectionRotateForward2DStop:FINISH)
-        InputSet selectionRotateBackward2DStart = AddAltModifier(GetLeftArrowKey())
-        InputSet selectionRotateBackward2DStop = AddAltModifier(GetLeftArrowKey())
+        InputSet selectionRotateBackward2DStart = sceneKeys:GetSelectionRotateBackward2DKey()
+        InputSet selectionRotateBackward2DStop = sceneKeys:GetSelectionRotateBackward2DKey()
         selectionRotateBackward2DStop:SetInputTrigger(selectionRotateBackward2DStop:FINISH)
 
         selectionTable2D:Add(selectionRotateForward2DStart, selectionStartRotatingRollLeftBehavior)
@@ -2076,10 +2017,8 @@ table:Add3D(GetLeftClick(), selectScene3DItemBehavior)
         itemPreviewTable:Add(selectionScaleZUpSet, selectionScaleZUpBehavior)
         itemPreviewTable:Add(selectionScaleZDownSet, selectionScaleZDownBehavior)
 
-        InputSet newItemCancel
-        newItemCancel:SetKeyboardInput(keys:ESCAPE)
-        InputSet newItemConfirm
-        newItemConfirm:SetKeyboardInput(keys:ENTER)
+        InputSet newItemCancel = sceneKeys:GetNewItemCancelKey()
+        InputSet newItemConfirm = sceneKeys:GetNewItemConfirmKey()
 
 
         itemPreviewTable:Add(newItemCancel, itemCancelBehavior)
@@ -2139,10 +2078,8 @@ table:Add3D(GetLeftClick(), selectScene3DItemBehavior)
 
 
         // properties dialog
-        InputSet unfocusPropertiesSet1
-        unfocusPropertiesSet1:SetKeyboardInput(keys:ESCAPE)
-        InputSet unfocusPropertiesSet2
-        unfocusPropertiesSet2:SetKeyboardInput(keys:ENTER)
+        InputSet unfocusPropertiesSet1 = sceneKeys:GetUnfocusPropertiesKey1()
+        InputSet unfocusPropertiesSet2 = sceneKeys:GetUnfocusPropertiesKey2()
         
         propertiesDialogTable:Add(unfocusPropertiesSet1, unfocusPropertiesBehavior)
         propertiesDialogTable:Add(unfocusPropertiesSet2, unfocusPropertiesBehavior)
@@ -2152,10 +2089,8 @@ table:Add3D(GetLeftClick(), selectScene3DItemBehavior)
         propertiesDialogTable:Add(focusCameraSet, focusCameraBehavior)
 
         // find dialog
-        InputSet closeVisualEditorFindDialogSet1
-        closeVisualEditorFindDialogSet1:SetKeyboardInput(keys:ESCAPE)
-        InputSet closeVisualEditorFindDialogSet2
-        closeVisualEditorFindDialogSet2:SetKeyboardInput(keys:ENTER)
+        InputSet closeVisualEditorFindDialogSet1 = sceneKeys:GetCloseFindDialogKey1()
+        InputSet closeVisualEditorFindDialogSet2 = sceneKeys:GetCloseFindDialogKey2()
 
         findTable:Add(closeVisualEditorFindDialogSet1, closeFindDialogBehavior)
         findTable:Add(closeVisualEditorFindDialogSet2, closeFindDialogBehavior)
@@ -2820,6 +2755,16 @@ connectorTable:Add(startDrag, dragBehavior)
         gameInput:AddInputTable(scrollPaneTable)
     end
     
+    /*
+        Binds the key for one of a selected terrain's tools to a behavior of
+        its own, which chooses that tool (step 7).
+    */
+    private action AddTerrainToolKey(InputTable table, SceneEditorKeys sceneKeys, integer tool)
+        TerrainChooseToolBehavior chooseTool
+        chooseTool:SetTool(tool)
+        table:Add(sceneKeys:GetTerrainToolKey(tool), chooseTool)
+    end
+
     private action ShouldUseMacKeys returns boolean
         if manager:GetOperatingSystem():Contains("OS X")
             return true

@@ -1,0 +1,44 @@
+package Libraries.Interface.Behaviors.Scenes.Selection
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
+
+/*
+    The TerrainBrushUseBehavior starts a stroke with a selected terrain's
+    brush, when its tool is chosen (step 8). The stroke goes on while the
+    key is held, and ends when it is let go. Space by default.
+*/
+class TerrainBrushUseBehavior is Behavior
+    integer key = 0
+
+    /*
+        Sets the key this behavior is bound to, so the stroke can tell when
+        it is let go.
+
+        Attribute: Parameter key The key's code
+    */
+    action SetKey(integer key)
+        me:key = key
+    end
+
+    /*
+        Returns the key this behavior is bound to.
+
+        Attribute: Returns The key's code
+    */
+    action GetKey returns integer
+        return key
+    end
+
+    action Run(BehaviorEvent event)
+        if event:GetItem() is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, event:GetItem())
+            EditorTerrain terrain = highlight:GetEditorTerrain()
+            if terrain not= undefined and terrain:HasTool() and highlight:GetSceneEditor() not= undefined
+                highlight:GetSceneEditor():BeginTerrainStroke(terrain, false, key)
+            end
+        end
+    end
+end

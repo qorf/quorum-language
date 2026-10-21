@@ -1,0 +1,188 @@
+package Libraries.Interface.Controls.Scenes.Dialogs
+
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.Checkbox
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Item
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Selections.SceneEditorSelection
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
+use Libraries.Interface.Behaviors.Scenes.Properties.TerrainCollisionBehavior
+
+/*
+    The TerrainPhysicsPropertiesDialog sets how a selected terrain behaves in
+    a game: whether things collide with it, and its friction. They are saved
+    in the scene. The scene editor itself never collides with a terrain; it
+    only draws it.
+
+    It shows in the scene editor's Properties panel, after the terrain's
+    name and facts (TerrainPropertiesDialog).
+*/
+class TerrainPhysicsPropertiesDialog is PropertiesDialog
+
+    Checkbox collisionCheckbox = undefined
+    TextField frictionField = undefined
+
+    // The terrain whose physics are shown, or undefined.
+    EditorTerrain terrain = undefined
+
+    /*
+        Creates and adds the interface components for this dialog.
+    */
+    private action CreateInterface(Control panel, Array<Control> focusArray)
+        SetName("Terrain Physics")
+
+        Label headingLabel
+        headingLabel:SetSize(18)
+        headingLabel:SetText("Physics")
+        headingLabel:SetLeftMargin(20)
+        panel:Add(headingLabel)
+
+        FlowLayout collisionLayout
+        Control collisionContainer
+        collisionContainer:SetLayout(collisionLayout)
+        collisionContainer:SetPercentageWidth(1.0)
+        collisionContainer:SetVerticalLayoutMode(collisionContainer:FIT_CONTENTS)
+        collisionContainer:SetLeftMargin(20)
+        collisionContainer:SetTopMargin(10)
+        collisionContainer:SetRightMargin(30)
+        collisionContainer:SetBottomMargin(10)
+
+        Checkbox checkbox
+        collisionCheckbox = checkbox
+        collisionCheckbox:SetName("Collision in games")
+        TerrainCollisionBehavior collisionBehavior
+        collisionBehavior:SetDialog(me)
+        collisionCheckbox:SetBehavior(collisionBehavior)
+        collisionContainer:Add(collisionCheckbox)
+        focusArray:Add(collisionCheckbox)
+        panel:Add(collisionContainer)
+
+        FlowLayout frictionLayout
+        Control frictionContainer
+        frictionContainer:SetLayout(frictionLayout)
+        frictionContainer:SetPercentageWidth(1.0)
+        frictionContainer:SetVerticalLayoutMode(frictionContainer:FIT_CONTENTS)
+        frictionContainer:SetLeftMargin(20)
+        frictionContainer:SetTopMargin(10)
+        frictionContainer:SetRightMargin(30)
+        frictionContainer:SetBottomMargin(10)
+
+        Label frictionLabel
+        frictionLabel:SetText("Friction:")
+        frictionLabel:SetRightMargin(10)
+        frictionContainer:Add(frictionLabel)
+
+        TextField field
+        frictionField = field
+        frictionField:SetName("Friction")
+        frictionField:SetText("")
+        frictionField:SetFocusable(true)
+        frictionField:AddTextChangeListener(me)
+        frictionField:SetRightMargin(8)
+        frictionField:SetHorizontalLayoutMode(frictionContainer:FILL)
+        frictionContainer:Add(frictionField)
+        focusArray:Add(frictionField)
+        panel:Add(frictionContainer)
+    end
+
+    /*
+        This action shows the dialog when a terrain is selected, and hides it
+        otherwise.
+    */
+    action SelectionChanged(SelectionEvent event)
+        if not (event:GetSelection() is SceneEditorSelection)
+            return now
+        end
+
+        SceneEditorSelection selection = cast(SceneEditorSelection, event:GetSelection())
+        Item selectedItem = undefined
+        if selection:IsItemSelected()
+            selectedItem = selection:GetSelectedItem()
+        end
+
+        if selectedItem is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, selectedItem)
+            SetTerrain(highlight:GetEditorTerrain())
+            if not IsShowing()
+                Show()
+            end
+        else
+            terrain = undefined
+            if IsShowing()
+                Hide()
+            end
+        end
+    end
+
+    /*
+        This action sets the fields from a selected terrain's highlight.
+    */
+    action SetFields(EditorItem item)
+        if item is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, item)
+            SetTerrain(highlight:GetEditorTerrain())
+        end
+    end
+
+    /*
+        This action shows a terrain's physics settings.
+
+        Attribute: Parameter terrain The terrain
+    */
+    action SetTerrain(EditorTerrain terrain)
+        me:terrain = terrain
+        if terrain = undefined
+            return now
+        end
+        collisionCheckbox:SetToggleState(terrain:HasCollision())
+        frictionField:RemoveTextChangeListener(me)
+        frictionField:SetText("" + terrain:GetFriction())
+        frictionField:AddTextChangeListener(me)
+    end
+
+    /*
+        This action sets whether the terrain collides in games. The collision
+        checkbox calls it.
+
+        Attribute: Parameter enabled True for collision
+    */
+    action SetCollision(boolean enabled)
+        if terrain not= undefined
+            terrain:SetCollision(enabled)
+        end
+    end
+
+    /*
+        This action sets the terrain's friction as it is typed. Text that
+        isn't a number, or is below 0, is ignored.
+    */
+    action TextChanged(TextChangeEvent event)
+        if terrain = undefined
+            return now
+        end
+        if event:GetControl():Equals(frictionField)
+            check
+                number value = frictionField:GetText():ParseNumber()
+                if value >= 0 and value not= terrain:GetFriction()
+                    terrain:SetFriction(value)
+                end
+            detect e is Error
+                // Not a number yet; do nothing.
+            end
+        end
+    end
+
+    /*
+        Moves the focus to the collision checkbox.
+    */
+    action FocusField
+        collisionCheckbox:Focus()
+    end
+end

@@ -5,6 +5,7 @@ use Libraries.Compute.Vector3
 use Libraries.Game.Graphics.OrthographicCamera
 use Libraries.Interface.Controls.Scenes.Items.EditorItem2D
 use Libraries.Interface.Controls.Scenes.Items.EditorItem3D
+use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
 use Libraries.Interface.Controls.Scenes.Items.CameraItem2D
 use Libraries.Interface.Behaviors.Behavior
 
@@ -48,6 +49,12 @@ class SelectionScaleBehavior is Behavior
         elseif event:GetItem() is EditorItem3D
             EditorItem3D item = cast(EditorItem3D, event:GetItem())
             item:Scale(scale)
+
+            // A terrain's highlight says what happened itself: it sizes the
+            // brush, or says a terrain isn't scaled (step 7).
+            if item is TerrainSelectionHighlight
+                return now
+            end
 
             // Temporary output while developing.
             if (scale:GetX() > 1 and scale:GetY() > 1 and scale:GetZ() > 1)

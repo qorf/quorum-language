@@ -1,0 +1,398 @@
+package Libraries.Interface
+
+use Libraries.Game.InputSet
+use Libraries.Game.GameStateManager
+use Libraries.Game.WebApplication
+use Libraries.Interface.Events.KeyboardEvent
+
+/*
+    The SceneEditorKeys class gives the keys the scene editor uses, one
+    action per key. DefaultInputSets:SetupSceneEditorInput builds the scene
+    editor's input tables from them. Each action returns the default key,
+    for Mac or for Windows and Linux. A program that lets people change
+    their keys, such as Quorum Studio, inherits from this class and returns
+    its own keys, then calls Game:ReplaceSceneEditorInput.
+
+    Each action returns a new InputSet, which the caller may change, such as
+    by setting its trigger.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Interface.SceneEditorKeys
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            SceneEditorKeys keys
+            ReplaceSceneEditorInput(keys)
+        end
+    end
+*/
+class SceneEditorKeys
+    KeyboardEvent keys
+    GameStateManager manager
+
+    // ------------------------------------------------------------ reports
+
+    /* Says where the cursor or selection is. Default: Ctrl+Shift+1. */
+    action GetReportLocationKey returns InputSet
+        return WithModifiers(keys:NUM_1, false, true, false, true)
+    end
+
+    /* Says which way the camera faces. Default: Ctrl+Shift+2. */
+    action GetReportCameraDirectionKey returns InputSet
+        return WithModifiers(keys:NUM_2, false, true, false, true)
+    end
+
+    /* Says which items the camera sees. Default: Ctrl+Shift+3. */
+    action GetReportItemsInViewKey returns InputSet
+        return WithModifiers(keys:NUM_3, false, true, false, true)
+    end
+
+    // ------------------------------------------------------ moving, in 3D
+
+    /* Moves the 3D cursor or selection left. Default: Left. */
+    action GetSelectionMoveLeft3DKey returns InputSet
+        return Plain(keys:LEFT)
+    end
+
+    /* Moves the 3D cursor or selection right. Default: Right. */
+    action GetSelectionMoveRight3DKey returns InputSet
+        return Plain(keys:RIGHT)
+    end
+
+    /* Moves the 3D cursor or selection up. Default: Cmd+Up on Mac, Ctrl+Up elsewhere. */
+    action GetSelectionMoveUp3DKey returns InputSet
+        return WithCommand(keys:UP)
+    end
+
+    /* Moves the 3D cursor or selection down. Default: Cmd+Down on Mac, Ctrl+Down elsewhere. */
+    action GetSelectionMoveDown3DKey returns InputSet
+        return WithCommand(keys:DOWN)
+    end
+
+    /* Moves the 3D cursor or selection forward. Default: Up. */
+    action GetSelectionMoveForward3DKey returns InputSet
+        return Plain(keys:UP)
+    end
+
+    /* Moves the 3D cursor or selection backward. Default: Down. */
+    action GetSelectionMoveBackward3DKey returns InputSet
+        return Plain(keys:DOWN)
+    end
+
+    // ------------------------------------------------------ moving, in 2D
+
+    /* Moves the 2D cursor or selection left. Default: Left. */
+    action GetSelectionMoveLeft2DKey returns InputSet
+        return Plain(keys:LEFT)
+    end
+
+    /* Moves the 2D cursor or selection right. Default: Right. */
+    action GetSelectionMoveRight2DKey returns InputSet
+        return Plain(keys:RIGHT)
+    end
+
+    /* Moves the 2D cursor or selection up. Default: Up. */
+    action GetSelectionMoveUp2DKey returns InputSet
+        return Plain(keys:UP)
+    end
+
+    /* Moves the 2D cursor or selection down. Default: Down. */
+    action GetSelectionMoveDown2DKey returns InputSet
+        return Plain(keys:DOWN)
+    end
+
+    // ------------------------------------------------------------ turning
+
+    /* Turns the 3D selection left. Default: Alt+Left. */
+    action GetSelectionRotateYawLeftKey returns InputSet
+        return WithModifiers(keys:LEFT, false, false, true, false)
+    end
+
+    /* Turns the 3D selection right. Default: Alt+Right. */
+    action GetSelectionRotateYawRightKey returns InputSet
+        return WithModifiers(keys:RIGHT, false, false, true, false)
+    end
+
+    /* Tips the 3D selection up. Default: Alt+Up. */
+    action GetSelectionRotatePitchUpKey returns InputSet
+        return WithModifiers(keys:UP, false, false, true, false)
+    end
+
+    /* Tips the 3D selection down. Default: Alt+Down. */
+    action GetSelectionRotatePitchDownKey returns InputSet
+        return WithModifiers(keys:DOWN, false, false, true, false)
+    end
+
+    /* Rolls the 3D selection left. Default: Cmd+Alt+Left on Mac, Ctrl+Alt+Left elsewhere. */
+    action GetSelectionRotateRollLeftKey returns InputSet
+        InputSet set = WithCommand(keys:LEFT)
+        set:AddModifier(set:ALT)
+        return set
+    end
+
+    /* Rolls the 3D selection right. Default: Cmd+Alt+Right on Mac, Ctrl+Alt+Right elsewhere. */
+    action GetSelectionRotateRollRightKey returns InputSet
+        InputSet set = WithCommand(keys:RIGHT)
+        set:AddModifier(set:ALT)
+        return set
+    end
+
+    /* Turns the 2D selection one way. Default: Alt+Right. */
+    action GetSelectionRotateForward2DKey returns InputSet
+        return WithModifiers(keys:RIGHT, false, false, true, false)
+    end
+
+    /* Turns the 2D selection the other way. Default: Alt+Left. */
+    action GetSelectionRotateBackward2DKey returns InputSet
+        return WithModifiers(keys:LEFT, false, false, true, false)
+    end
+
+    // ------------------------------------------------------------ scaling
+
+    /* Makes the selection larger. Default: Alt+=. */
+    action GetSelectionScaleUpKey returns InputSet
+        return WithModifiers(keys:EQUALS, false, false, true, false)
+    end
+
+    /* Makes the selection smaller. Default: Alt+-. */
+    action GetSelectionScaleDownKey returns InputSet
+        return WithModifiers(keys:MINUS, false, false, true, false)
+    end
+
+    /* Stretches the selection along x. Default: Alt+D. */
+    action GetSelectionScaleXUpKey returns InputSet
+        return WithModifiers(keys:D, false, false, true, false)
+    end
+
+    /* Shrinks the selection along x. Default: Alt+A. */
+    action GetSelectionScaleXDownKey returns InputSet
+        return WithModifiers(keys:A, false, false, true, false)
+    end
+
+    /* Stretches the selection along y. Default: Alt+Space. */
+    action GetSelectionScaleYUpKey returns InputSet
+        return WithModifiers(keys:SPACE, false, false, true, false)
+    end
+
+    /* Shrinks the selection along y. Default: Alt+X. */
+    action GetSelectionScaleYDownKey returns InputSet
+        return WithModifiers(keys:X, false, false, true, false)
+    end
+
+    /* Stretches the selection along z. Default: Alt+W. */
+    action GetSelectionScaleZUpKey returns InputSet
+        return WithModifiers(keys:W, false, false, true, false)
+    end
+
+    /* Shrinks the selection along z. Default: Alt+S. */
+    action GetSelectionScaleZDownKey returns InputSet
+        return WithModifiers(keys:S, false, false, true, false)
+    end
+
+    /* Sets the selection's scale back to 1. Default: Cmd+R on Mac, Ctrl+R elsewhere. */
+    action GetSelectionResetScaleKey returns InputSet
+        return WithCommand(keys:R)
+    end
+
+    /* Makes the cursor larger, or a terrain's brush when a tool is chosen. Default: Alt+=. */
+    action GetCursorSizeUpKey returns InputSet
+        return WithModifiers(keys:EQUALS, false, false, true, false)
+    end
+
+    /* Makes the cursor smaller, or a terrain's brush when a tool is chosen. Default: Alt+-. */
+    action GetCursorSizeDownKey returns InputSet
+        return WithModifiers(keys:MINUS, false, false, true, false)
+    end
+
+    // ------------------------------------------------- selecting and items
+
+    /* Selects the items at the cursor. Default: Enter. */
+    action GetCursorSelectItemsKey returns InputSet
+        return Plain(keys:ENTER)
+    end
+
+    /* Deletes the selection. Default: Forward Delete. */
+    action GetSelectionDeleteKey returns InputSet
+        return Plain(keys:FORWARD_DELETE)
+    end
+
+    /* Deletes the selection. Default: Backspace. */
+    action GetSelectionDeleteKey2 returns InputSet
+        return Plain(keys:BACKSPACE)
+    end
+
+    /* Leaves the selection, or a terrain's tool. Default: Escape. */
+    action GetSelectionCancelKey returns InputSet
+        return Plain(keys:ESCAPE)
+    end
+
+    /* Leaves a new item's preview without adding it. Default: Escape. */
+    action GetNewItemCancelKey returns InputSet
+        return Plain(keys:ESCAPE)
+    end
+
+    /* Adds a new item's preview to the scene. Default: Enter. */
+    action GetNewItemConfirmKey returns InputSet
+        return Plain(keys:ENTER)
+    end
+
+    /* Points the camera at the selection. Default: Alt+F. */
+    action GetCameraFocusKey returns InputSet
+        return WithModifiers(keys:F, false, false, true, false)
+    end
+
+    // ------------------------------------------------------------- grid
+
+    /* Turns the grid on or off. Default: Cmd+G on Mac, Ctrl+G elsewhere. */
+    action GetToggleGridKey returns InputSet
+        return WithCommand(keys:G)
+    end
+
+    /* Makes the grid's squares larger. Default: Cmd+Shift+G on Mac, Ctrl+Shift+G elsewhere. */
+    action GetIncreaseGridUnitKey returns InputSet
+        InputSet set = WithCommand(keys:G)
+        set:AddModifier(set:SHIFT)
+        return set
+    end
+
+    /* Makes the grid's squares smaller. Default: Cmd+Alt+G on Mac, Ctrl+Alt+G elsewhere. */
+    action GetDecreaseGridUnitKey returns InputSet
+        InputSet set = WithCommand(keys:G)
+        set:AddModifier(set:ALT)
+        return set
+    end
+
+    // ------------------------------------------------- properties and find
+
+    /* Moves into the selection's properties. Default: Cmd+P on Mac, Ctrl+P elsewhere. */
+    action GetFocusPropertiesKey returns InputSet
+        return WithCommand(keys:P)
+    end
+
+    /* Leaves the properties, back to the scene. Default: Escape. */
+    action GetUnfocusPropertiesKey1 returns InputSet
+        return Plain(keys:ESCAPE)
+    end
+
+    /* Leaves the properties, back to the scene. Default: Enter. */
+    action GetUnfocusPropertiesKey2 returns InputSet
+        return Plain(keys:ENTER)
+    end
+
+    /* Opens the scene's find box. Default: Cmd+F on Mac, Ctrl+F elsewhere. */
+    action GetOpenFindDialogKey returns InputSet
+        return WithCommand(keys:F)
+    end
+
+    /* Closes the scene's find box. Default: Escape. */
+    action GetCloseFindDialogKey1 returns InputSet
+        return Plain(keys:ESCAPE)
+    end
+
+    /* Closes the scene's find box. Default: Enter. */
+    action GetCloseFindDialogKey2 returns InputSet
+        return Plain(keys:ENTER)
+    end
+
+    // ------------------------------------------------- terrain (step 6, B)
+
+    /*
+        Chooses one of a terrain's tools, when a terrain is selected. The
+        tools are numbered as in the in-game terrain editor: 1 raise, 2 lower,
+        3 smooth, 4 flatten, 5 ramp, 6 paint, 7 blend paint, 8 add region,
+        9 remove region. Default: Alt+1 to Alt+9.
+
+        Attribute: Parameter tool The tool's number, from 1 to 9.
+        Attribute: Returns The key that chooses it.
+    */
+    action GetTerrainToolKey(integer tool) returns InputSet
+        if tool < 1 or tool > 9
+            alert("A terrain tool's number is from 1 to 9, but was given " + tool + ".")
+        end
+        return WithModifiers(keys:NUM_1 + tool - 1, false, false, true, false)
+    end
+
+    /* Uses a terrain's brush, while held. Default: Space. */
+    action GetTerrainBrushUseKey returns InputSet
+        return Plain(keys:SPACE)
+    end
+
+    /* Makes a terrain's brush stronger. Default: Alt+]. */
+    action GetTerrainStrengthUpKey returns InputSet
+        return WithModifiers(keys:RIGHT_BRACKET, false, false, true, false)
+    end
+
+    /* Makes a terrain's brush weaker. Default: Alt+[. */
+    action GetTerrainStrengthDownKey returns InputSet
+        return WithModifiers(keys:LEFT_BRACKET, false, false, true, false)
+    end
+
+    // ------------------------------------------------------------ helpers
+
+    /*
+        Returns a key with no modifiers.
+    */
+    action Plain(integer key) returns InputSet
+        InputSet set
+        set:SetKeyboardInput(key)
+        return set
+    end
+
+    /*
+        Returns a key with the platform's command modifier: Cmd on Mac, and
+        Ctrl elsewhere.
+    */
+    action WithCommand(integer key) returns InputSet
+        InputSet set = Plain(key)
+        if ShouldUseMacKeys()
+            set:AddModifier(set:META)
+        else
+            set:AddModifier(set:CONTROL)
+        end
+        return set
+    end
+
+    /*
+        Returns a key with the modifiers asked for.
+    */
+    action WithModifiers(integer key, boolean meta, boolean control, boolean alt, boolean shift) returns InputSet
+        InputSet set = Plain(key)
+        if meta
+            set:AddModifier(set:META)
+        end
+        if control
+            set:AddModifier(set:CONTROL)
+        end
+        if alt
+            set:AddModifier(set:ALT)
+        end
+        if shift
+            set:AddModifier(set:SHIFT)
+        end
+        return set
+    end
+
+    /*
+        Returns true for Mac keys, as DefaultInputSets decides it: on a Mac,
+        or in a web browser on a Mac.
+    */
+    action ShouldUseMacKeys returns boolean
+        if manager:GetOperatingSystem():Contains("OS X")
+            return true
+        end
+        if manager:GetOperatingSystem():Contains("Web Browser")
+            if manager:GetApplication() is WebApplication
+                WebApplication webApp = cast(WebApplication, manager:GetApplication())
+                if webApp:GetWebOperatingSystem():Contains("Mac")
+                    return true
+                end
+            end
+        end
+        return false
+    end
+end

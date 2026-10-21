@@ -1,0 +1,262 @@
+package Libraries.Interface.Controls.Scenes.Dialogs
+
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.ButtonGroup
+use Libraries.Interface.Controls.RadioButton
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Item
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Selections.SceneEditorSelection
+use Libraries.Interface.Selections.ButtonGroupSelection
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
+use Libraries.Game.Graphics.Worlds.TerrainBrush
+
+/*
+    The TerrainBrushPropertiesDialog is a selected terrain's Brush section
+    (step 7): which tool is chosen, and the brush's size, strength and
+    falloff. Choosing a tool here does the same as Alt+1 to Alt+9: a ring
+    shows the brush on the ground, and the arrow keys and pointer move it.
+    "No tool" leaves the tool. Raise and lower make strokes, with Space held
+    or a left drag (step 8); the other tools come in later steps.
+
+    It shows in the scene editor's Properties panel, between the terrain's
+    facts (TerrainPropertiesDialog) and its physics.
+*/
+class TerrainBrushPropertiesDialog is PropertiesDialog
+
+    ButtonGroup toolGroup = undefined
+    TextField sizeField = undefined
+    TextField strengthField = undefined
+    TextField falloffField = undefined
+
+    // The terrain whose brush is shown, or undefined.
+    EditorTerrain terrain = undefined
+
+    // True while the fields are being filled, so filling them isn't taken
+    // as the user choosing.
+    boolean updating = false
+
+    /*
+        Creates and adds the interface components for this dialog.
+    */
+    private action CreateInterface(Control panel, Array<Control> focusArray)
+        SetName("Terrain Brush")
+
+        Label headingLabel
+        headingLabel:SetSize(18)
+        headingLabel:SetText("Brush")
+        headingLabel:SetLeftMargin(20)
+        panel:Add(headingLabel)
+
+        Control toolPanel
+        toolPanel:SetPercentageWidth(1.0)
+        toolPanel:SetVerticalLayoutMode(toolPanel:FIT_CONTENTS)
+        FlowLayout toolPanelLayout
+        toolPanel:SetLayout(toolPanelLayout)
+        toolPanel:SetLeftMargin(20)
+        toolPanel:SetRightMargin(30)
+        toolPanel:SetTopMargin(10)
+        toolPanel:SetBottomMargin(10)
+
+        ButtonGroup group
+        toolGroup = group
+        toolGroup:SetName("Tool")
+        toolGroup:SetHorizontalLayoutMode(toolPanel:FILL)
+        toolGroup:SetVerticalLayoutMode(toolPanel:FIT_CONTENTS)
+        FlowLayout groupLayout
+        toolGroup:SetLayout(groupLayout)
+
+        // The buttons' places are the tools' numbers: 0 is no tool. The
+        // names are EditorTerrain:GetToolName's.
+        AddToolButton("No tool")
+        AddToolButton("Raise")
+        AddToolButton("Lower")
+        AddToolButton("Smooth")
+        AddToolButton("Flatten")
+        AddToolButton("Ramp")
+        AddToolButton("Paint")
+        AddToolButton("Blend paint")
+        AddToolButton("Add region")
+        AddToolButton("Remove region")
+        toolGroup:AddSelectionListener(me)
+
+        toolPanel:Add(toolGroup)
+        panel:Add(toolPanel)
+        focusArray:Add(toolGroup)
+
+        sizeField = AddNumberField(panel, focusArray, "Size:", "Size")
+        strengthField = AddNumberField(panel, focusArray, "Strength:", "Strength")
+        falloffField = AddNumberField(panel, focusArray, "Falloff:", "Falloff")
+    end
+
+    /*
+        Adds one tool's radio button to the tool group.
+    */
+    private action AddToolButton(text name)
+        // FILL is read through a plain Control: the compiler finds a
+        // Control's layout values only through that type.
+        Control layoutValues
+        RadioButton button
+        button:SetName(name)
+        button:SetHorizontalLayoutMode(layoutValues:FILL)
+        toolGroup:AddToGrouping(button)
+        toolGroup:Add(button)
+    end
+
+    /*
+        Adds a labelled number field.
+    */
+    private action AddNumberField(Control panel, Array<Control> focusArray, text label, text name) returns TextField
+        FlowLayout layout
+        Control container
+        container:SetLayout(layout)
+        container:SetPercentageWidth(1.0)
+        container:SetVerticalLayoutMode(container:FIT_CONTENTS)
+        container:SetLeftMargin(20)
+        container:SetTopMargin(10)
+        container:SetRightMargin(30)
+        container:SetBottomMargin(10)
+
+        Label fieldLabel
+        fieldLabel:SetText(label)
+        fieldLabel:SetRightMargin(10)
+        container:Add(fieldLabel)
+
+        TextField field
+        field:SetName(name)
+        field:SetText("")
+        field:SetFocusable(true)
+        field:AddTextChangeListener(me)
+        field:SetRightMargin(8)
+        field:SetHorizontalLayoutMode(container:FILL)
+        container:Add(field)
+        focusArray:Add(field)
+        panel:Add(container)
+        return field
+    end
+
+    /*
+        This action shows the dialog when a terrain is selected, and hides it
+        otherwise. It also takes a tool chosen with the radio buttons.
+    */
+    action SelectionChanged(SelectionEvent event)
+        if event:GetSelection() is ButtonGroupSelection
+            if updating or terrain = undefined or GetSceneEditor() = undefined
+                return now
+            end
+            ButtonGroupSelection choice = cast(ButtonGroupSelection, event:GetSelection())
+            integer tool = choice:GetIndex()
+            if tool >= 0 and tool <= 9 and tool not= terrain:GetToolNumber()
+                GetSceneEditor():SetTerrainTool(terrain, tool)
+            end
+            return now
+        end
+
+        if not (event:GetSelection() is SceneEditorSelection)
+            return now
+        end
+
+        SceneEditorSelection selection = cast(SceneEditorSelection, event:GetSelection())
+        Item selectedItem = undefined
+        if selection:IsItemSelected()
+            selectedItem = selection:GetSelectedItem()
+        end
+
+        if selectedItem is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, selectedItem)
+            SetTerrain(highlight:GetEditorTerrain())
+            if not IsShowing()
+                Show()
+            end
+        else
+            terrain = undefined
+            if IsShowing()
+                Hide()
+            end
+        end
+    end
+
+    /*
+        This action sets the fields from a selected terrain's highlight.
+    */
+    action SetFields(EditorItem item)
+        if item is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, item)
+            SetTerrain(highlight:GetEditorTerrain())
+        end
+    end
+
+    /*
+        This action shows a terrain's tool and brush.
+
+        Attribute: Parameter terrain The terrain
+    */
+    action SetTerrain(EditorTerrain terrain)
+        me:terrain = terrain
+        if terrain = undefined
+            return now
+        end
+        updating = true
+        toolGroup:GetButtonAt(terrain:GetToolNumber()):SetToggleState(true)
+        TerrainBrush brush = terrain:GetBrush()
+        SetFieldText(sizeField, brush:GetSize())
+        SetFieldText(strengthField, brush:GetStrength())
+        SetFieldText(falloffField, brush:GetGamma())
+        updating = false
+    end
+
+    /*
+        Puts a number into a field without it being taken as typing.
+    */
+    private action SetFieldText(TextField field, number value)
+        field:RemoveTextChangeListener(me)
+        field:SetText("" + value)
+        field:AddTextChangeListener(me)
+    end
+
+    /*
+        This action sets the brush as its numbers are typed. Text that isn't
+        a number, or is out of range, is ignored: the size from 0.5 to 64,
+        the strength 0 or more, and the falloff more than 0.
+    */
+    action TextChanged(TextChangeEvent event)
+        if terrain = undefined or updating
+            return now
+        end
+        TerrainBrush brush = terrain:GetBrush()
+        Control control = event:GetControl()
+        check
+            if control:Equals(sizeField)
+                number value = sizeField:GetText():ParseNumber()
+                if value >= 0.5 and value <= 64
+                    brush:SetSize(value)
+                end
+            elseif control:Equals(strengthField)
+                number value = strengthField:GetText():ParseNumber()
+                if value >= 0
+                    brush:SetStrength(value)
+                end
+            elseif control:Equals(falloffField)
+                number value = falloffField:GetText():ParseNumber()
+                if value > 0
+                    brush:SetGamma(value)
+                end
+            end
+        detect e is Error
+            // Not a number yet; do nothing.
+        end
+    end
+
+    /*
+        Moves the focus to the tool buttons.
+    */
+    action FocusField
+        toolGroup:Focus()
+    end
+end

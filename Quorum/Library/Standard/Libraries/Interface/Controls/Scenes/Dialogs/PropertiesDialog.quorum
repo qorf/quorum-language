@@ -12,6 +12,7 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Controls.Scenes.Items.EditorItem
 use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.PropertiesPanel
 
 /*
     The PropertiesDialog class is a parent class for most dialogs in the Scene Editor library. 
@@ -23,6 +24,18 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
 
     boolean initialized = false
     SceneEditor editor = undefined
+
+    // The control holding the dialog's fields, made by Initialize.
+    Control content = undefined
+
+    // The panel the dialog is docked in, or undefined for a floating
+    // dialog (step 4).
+    PropertiesPanel dock = undefined
+
+    // The first and last fields in the dialog's Tab order, so a panel can
+    // link one section's fields to the next (step 5).
+    Control firstFocus = undefined
+    Control lastFocus = undefined
 
     on create
         SetInputGroup("PropertiesDialog")
@@ -66,8 +79,12 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
         // Generate the contents of the panel and the tab-path.
         // Implemented on a per-dialog basis.
         CreateInterface(panel, focusArray)
-     
-        Add(panel)
+
+        // A docked dialog's fields go into its panel when it shows.
+        content = panel
+        if dock = undefined
+            Add(panel)
+        end
 
         // Set up focus targets.
         focusArray:Get(0):SetPreviousFocus(focusArray:Get(focusArray:GetSize() - 1))
@@ -80,6 +97,9 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
             control:SetNextFocus(focusArray:Get((i + 1) mod focusArray:GetSize()))
             i = i + 1
         end   
+
+        firstFocus = focusArray:Get(0)
+        lastFocus = focusArray:Get(focusArray:GetSize() - 1)
     end
 
     /*
@@ -103,6 +123,12 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
         shows the dialog. 
     */
     action Show
+        // Docked: the fields go into the panel, and nothing floats.
+        if dock not= undefined
+            dock:ShowDialog(me)
+            return now
+        end
+
         if editor not= undefined
             LayoutProperties properties = GetDefaultLayoutProperties()
             properties:SetPercentageX(0)
@@ -127,6 +153,87 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
             */
         end
         parent:Dialog:Show()
+    end
+
+    /*
+        Hides the dialog. A docked dialog's fields are taken out of its
+        panel instead.
+    */
+    action Hide
+        if dock not= undefined
+            dock:HideDialog(me)
+            return now
+        end
+        parent:Dialog:Hide()
+    end
+
+    /*
+        Returns true if the dialog is showing. A docked dialog is showing
+        while its fields are in its panel.
+
+        Attribute: Returns True if the dialog, or its fields in the panel, are showing
+    */
+    action IsShowing returns boolean
+        if dock not= undefined
+            return dock:IsShowingDialog(me)
+        end
+        return parent:Dialog:IsShowing()
+    end
+
+    /*
+        Docks the dialog in a PropertiesPanel. From then on, showing it
+        puts its fields into the panel, and it never floats. A dialog is
+        docked once, and stays docked.
+
+        Attribute: Parameter panel The panel to dock in
+    */
+    action DockIn(PropertiesPanel panel)
+        if dock not= undefined
+            return now
+        end
+        if parent:Dialog:IsShowing()
+            parent:Dialog:Hide()
+        end
+        if content not= undefined
+            Remove(content)
+        end
+        dock = panel
+    end
+
+    /*
+        Returns true if the dialog is docked in a PropertiesPanel.
+
+        Attribute: Returns True if docked
+    */
+    action IsDocked returns boolean
+        return dock not= undefined
+    end
+
+    /*
+        Returns the control holding the dialog's fields.
+
+        Attribute: Returns The fields' control, or undefined before Initialize
+    */
+    action GetContent returns Control
+        return content
+    end
+
+    /*
+        Returns the first field in the dialog's Tab order.
+
+        Attribute: Returns The first field, or undefined before Initialize
+    */
+    action GetFirstFocus returns Control
+        return firstFocus
+    end
+
+    /*
+        Returns the last field in the dialog's Tab order.
+
+        Attribute: Returns The last field, or undefined before Initialize
+    */
+    action GetLastFocus returns Control
+        return lastFocus
     end
 
     /*

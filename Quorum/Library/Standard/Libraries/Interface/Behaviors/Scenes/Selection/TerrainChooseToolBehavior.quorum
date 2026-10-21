@@ -1,0 +1,46 @@
+package Libraries.Interface.Behaviors.Scenes.Selection
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
+
+/*
+    The TerrainChooseToolBehavior chooses one of a selected terrain's tools
+    in the scene editor (step 7). The scene editor's input tables give it the
+    keys Alt+1 to Alt+9 by default (SceneEditorKeys:GetTerrainToolKey). With
+    anything but a terrain selected, it does nothing.
+*/
+class TerrainChooseToolBehavior is Behavior
+    integer tool = 1
+
+    /*
+        Sets which tool this behavior chooses, numbered as in the in-game
+        terrain editor: 1 raise, 2 lower, 3 smooth, 4 flatten, 5 ramp,
+        6 paint, 7 blend paint, 8 add region, 9 remove region.
+
+        Attribute: Parameter toolNumber The tool's number, from 1 to 9
+    */
+    action SetTool(integer toolNumber)
+        tool = toolNumber
+    end
+
+    /*
+        Returns which tool this behavior chooses.
+
+        Attribute: Returns The tool's number, from 1 to 9
+    */
+    action GetTool returns integer
+        return tool
+    end
+
+    action Run(BehaviorEvent event)
+        if event:GetItem() is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, event:GetItem())
+            EditorTerrain terrain = highlight:GetEditorTerrain()
+            if terrain not= undefined and highlight:GetSceneEditor() not= undefined
+                highlight:GetSceneEditor():SetTerrainTool(terrain, tool)
+            end
+        end
+    end
+end

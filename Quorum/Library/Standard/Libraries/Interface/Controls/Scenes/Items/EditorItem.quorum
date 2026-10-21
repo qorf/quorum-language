@@ -65,7 +65,9 @@ class EditorItem is Item
         class that this is the item that currently has the selection.
     */
     action GainedFocus(FocusEvent event)
-        if editor not= undefined
+        // An item that is already selected stays selected, so it isn't told
+        // it lost the selection, and the camera stays where it is.
+        if editor not= undefined and editor:GetSelectedItem() not= me
             editor:SetSelectedItem(me)
         end
     end

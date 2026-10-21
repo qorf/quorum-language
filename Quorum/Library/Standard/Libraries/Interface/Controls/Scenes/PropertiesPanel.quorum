@@ -1,0 +1,157 @@
+package Libraries.Interface.Controls.Scenes
+
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.ScrollPane
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Game.Graphics.Label
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
+
+/*
+    The PropertiesPanel class shows the selected scene item's properties
+    beside a SceneEditor, instead of in floating dialogs. Give it to the
+    editor with SetPropertiesPanel: each of the editor's properties dialogs
+    then shows its fields here when an item it describes is selected. With
+    nothing selected, it says so. The panel scrolls when its fields are
+    taller than it is.
+
+    Pressing Escape or Enter in one of its fields returns the focus to the
+    editor, as in the dialogs.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Scenes.SceneEditor
+    use Libraries.Interface.Controls.Scenes.PropertiesPanel
+
+    SceneEditor editor
+    PropertiesPanel panel
+    editor:SetPropertiesPanel(panel)
+*/
+class PropertiesPanel is Control
+    SceneEditor editor = undefined
+    ScrollPane scrollPane
+    Control contents
+    Label emptyLabel
+
+    // The dialogs whose fields are in the panel now, in the order shown.
+    Array<PropertiesDialog> showing
+
+    on create
+        SetName("Properties")
+        // The dialogs' Escape and Enter bindings, to return to the editor.
+        SetInputGroup("PropertiesDialog")
+        SetPixelWidth(300)
+        SetPercentageHeight(1.0)
+        FlowLayout layout
+        SetLayout(layout)
+
+        scrollPane:SetName("Properties")
+        scrollPane:SetPercentageWidth(1.0)
+        scrollPane:SetPercentageHeight(1.0)
+
+        FlowLayout contentsLayout
+        contents:SetLayout(contentsLayout)
+        contents:SetPercentageWidth(1.0)
+        contents:SetVerticalLayoutMode(contents:FIT_CONTENTS)
+
+        emptyLabel:SetText("Nothing selected")
+        emptyLabel:SetLeftMargin(20)
+        emptyLabel:SetTopMargin(10)
+        contents:Add(emptyLabel)
+
+        scrollPane:Add(contents)
+        Add(scrollPane)
+    end
+
+    /*
+        Sets the SceneEditor whose selection this panel describes.
+
+        Attribute: Parameter editor The SceneEditor
+    */
+    action SetSceneEditor(SceneEditor editor)
+        me:editor = editor
+    end
+
+    /*
+        Returns the SceneEditor whose selection this panel describes.
+
+        Attribute: Returns The SceneEditor, or undefined before one is set
+    */
+    action GetSceneEditor returns SceneEditor
+        return editor
+    end
+
+    /*
+        Puts a docked dialog's fields into the panel, after any already
+        shown. PropertiesDialog:Show calls it once the dialog is docked.
+
+        Attribute: Parameter dialog The dialog whose fields to show
+    */
+    action ShowDialog(PropertiesDialog dialog)
+        if showing:Has(dialog)
+            return now
+        end
+        if showing:IsEmpty()
+            contents:Remove(emptyLabel)
+        end
+        Control content = dialog:GetContent()
+        // Each section is read as one named group, such as "Object
+        // Properties" or "Terrain" (step 12).
+        content:SetName(dialog:GetName())
+        content:SetAccessibilityCode(parent:Item:GROUP)
+        contents:Add(content)
+        content:Show()
+        showing:Add(dialog)
+        LinkFocus()
+        contents:RequestLayout()
+    end
+
+    /*
+        Takes a docked dialog's fields out of the panel. PropertiesDialog:Hide
+        calls it once the dialog is docked.
+
+        Attribute: Parameter dialog The dialog whose fields to take out
+    */
+    action HideDialog(PropertiesDialog dialog)
+        if not showing:Has(dialog)
+            return now
+        end
+        contents:Remove(dialog:GetContent())
+        showing:Remove(dialog)
+        if showing:IsEmpty()
+            contents:Add(emptyLabel)
+        end
+        LinkFocus()
+        contents:RequestLayout()
+    end
+
+    /*
+        Returns true if a docked dialog's fields are in the panel now.
+
+        Attribute: Parameter dialog The dialog
+        Attribute: Returns True if its fields are showing
+    */
+    action IsShowingDialog(PropertiesDialog dialog) returns boolean
+        return showing:Has(dialog)
+    end
+
+    /*
+        Links the Tab order through every showing section, in order: each
+        section's last field leads to the next section's first field, and
+        the last section's leads back to the first's. With one section, its
+        own order loops as in its dialog (step 5).
+    */
+    private action LinkFocus
+        integer i = 0
+        repeat while i < showing:GetSize()
+            PropertiesDialog dialog = showing:Get(i)
+            PropertiesDialog following = showing:Get((i + 1) mod showing:GetSize())
+            Control last = dialog:GetLastFocus()
+            Control first = following:GetFirstFocus()
+            if last not= undefined and first not= undefined
+                last:SetNextFocus(first)
+                first:SetPreviousFocus(last)
+            end
+            i = i + 1
+        end
+    end
+end

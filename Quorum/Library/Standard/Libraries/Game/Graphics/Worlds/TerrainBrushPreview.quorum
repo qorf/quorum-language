@@ -18,7 +18,9 @@ use Libraries.Compute.Math
 A TerrainBrushPreview shows where a terrain brush is and how big it is: a
 thin ring at the brush's edge, and a fainter ring at half its size, where
 the default falloff is at half strength. Both rings follow the ground, a
-little above it, so they can be seen over hills and in hollows.
+little above it, so they can be seen over hills and in hollows. Each ring
+is yellow with a black edge on both sides, so it shows on light ground and
+on dark ground.
 
 Call Place every frame the brush moves or the ground under it changes. The
 rings' mesh is made once and then updated in place, so moving the preview
@@ -52,13 +54,21 @@ class TerrainBrushPreview is Model
     // How far above the ground the rings float, in world units.
     number lift = 0.15
 
+    // How wide the black edge is on each side of a ring, compared with the
+    // ring's width, and how far below the yellow ring it sits, so the yellow
+    // is drawn over it.
+    number outlineShare = 0.6
+    number outlineDrop = 0.02
+
     boolean loaded = false
     MeshVulkan ringMesh = undefined
+    MeshVulkan outlineMesh = undefined
     Math math
 
     // The arrays the mesh is built from, made once and filled again for
     // each Place.
     Number32BitArray vertices
+    Number32BitArray outlineVertices
     Number32BitArray normals
     Number32BitArray tangents
     Number32BitArray bitangents
@@ -68,6 +78,7 @@ class TerrainBrushPreview is Model
     on create
         integer vertexCount = segments * 4
         vertices:SetSize(vertexCount * 3)
+        outlineVertices:SetSize(vertexCount * 3)
         normals:SetSize(vertexCount * 3)
         tangents:SetSize(vertexCount * 3)
         bitangents:SetSize(vertexCount * 3)
@@ -144,28 +155,26 @@ class TerrainBrushPreview is Model
                 number angle = 2 * math:pi * segment / segments
                 number cosine = math:Cosine(angle)
                 number sine = math:Sine(angle)
+                number border = ringWidth * outlineShare
                 integer side = 0
                 repeat while side < 2
                     number edgeRadius = ringRadius - ringWidth / 2
+                    number outlineRadius = edgeRadius - border
                     if side = 1
                         edgeRadius = ringRadius + ringWidth / 2
-                    end
-                    number offsetX = cosine * edgeRadius
-                    number offsetZ = sine * edgeRadius
-                    number height = centerHeight
-                    if data:HasHeight(centerX + offsetX, centerZ + offsetZ)
-                        height = data:GetSurfaceHeight(centerX + offsetX, centerZ + offsetZ)
-                    end
-                    if height < lowest
-                        lowest = height
-                    end
-                    if height > highest
-                        highest = height
+                        outlineRadius = edgeRadius + border
                     end
                     integer place = ring * segments * 2 + segment * 2 + side
-                    vertices:Set(place * 3, offsetX)
+                    number height = GroundHeight(data, centerX + cosine * edgeRadius, centerZ + sine * edgeRadius, centerHeight)
+                    vertices:Set(place * 3, cosine * edgeRadius)
                     vertices:Set(place * 3 + 1, height)
-                    vertices:Set(place * 3 + 2, offsetZ)
+                    vertices:Set(place * 3 + 2, sine * edgeRadius)
+                    number outlineHeight = GroundHeight(data, centerX + cosine * outlineRadius, centerZ + sine * outlineRadius, centerHeight)
+                    outlineVertices:Set(place * 3, cosine * outlineRadius)
+                    outlineVertices:Set(place * 3 + 1, outlineHeight)
+                    outlineVertices:Set(place * 3 + 2, sine * outlineRadius)
+                    lowest = math:MinimumOf(lowest, math:MinimumOf(height, outlineHeight))
+                    highest = math:MaximumOf(highest, math:MaximumOf(height, outlineHeight))
                     side = side + 1
                 end
                 segment = segment + 1
@@ -179,6 +188,7 @@ class TerrainBrushPreview is Model
         integer vertex = 0
         repeat while vertex < segments * 4
             vertices:Set(vertex * 3 + 1, vertices:Get(vertex * 3 + 1) + lift - middle)
+            outlineVertices:Set(vertex * 3 + 1, outlineVertices:Get(vertex * 3 + 1) + lift - outlineDrop - middle)
             vertex = vertex + 1
         end
 
@@ -191,17 +201,45 @@ class TerrainBrushPreview is Model
         mesh:SetTextureCoordinates(textureCoordinates)
         mesh:SetMaterialIndex(0)
 
+        MeshData outline
+        outline:SetVertices(outlineVertices)
+        outline:SetIndices(indices)
+        outline:SetNormals(normals)
+        outline:SetTangents(tangents)
+        outline:SetBitangents(bitangents)
+        outline:SetTextureCoordinates(textureCoordinates)
+        outline:SetMaterialIndex(0)
+
         if not loaded
-            LoadRings(mesh)
+            LoadRings(mesh, outline)
             loaded = true
         else
             ringMesh:UpdateVertices(mesh)
+            outlineMesh:UpdateVertices(outline)
         end
 
         SetPosition(centerX, middle, centerZ)
-        SetWidth(2 * (radius + width))
+        number outer = radius + width * (0.5 + outlineShare)
+        SetWidth(2 * outer)
         SetHeight(highest - lowest + 2 * lift)
-        SetDepth(2 * (radius + width))
+        SetDepth(2 * outer)
+    end
+
+    /*
+    This action returns the ground's height at a place, or a height to use
+    where there is no region.
+
+    Attribute: Parameter data The terrain.
+    Attribute: Parameter x The place along x, in world units.
+    Attribute: Parameter z The place along z, in world units.
+    Attribute: Parameter fallback The height to use where there is no region.
+    Attribute: Returns The height.
+    */
+    private action GroundHeight(TerrainData data, number x, number z, number fallback) returns number
+        if data:HasHeight(x, z)
+            return data:GetSurfaceHeight(x, z)
+        end
+        return fallback
     end
 
     /*
@@ -225,15 +263,17 @@ class TerrainBrushPreview is Model
     end
 
     /*
-    This action turns the rings' mesh into a blueprint and loads it, the
-    first time the preview is placed. It is bright yellow and doesn't cast
-    shadows.
+    This action turns the rings' meshes into a blueprint and loads it, the
+    first time the preview is placed. The rings are bright yellow, their
+    edges black, and they don't cast shadows.
 
     Attribute: Parameter mesh The rings' mesh.
+    Attribute: Parameter outline The mesh of the rings' black edges.
     */
-    private action LoadRings(MeshData mesh)
+    private action LoadRings(MeshData mesh, MeshData outline)
         Array<MeshData> meshes
         meshes:Add(mesh)
+        meshes:Add(outline)
 
         Material material
         Vector4 diffuse
@@ -251,9 +291,11 @@ class TerrainBrushPreview is Model
         ModelBlueprintVulkan ringBlueprint = manager:GetModelBlueprint(modelData)
         Load(ringBlueprint)
         ringMesh = ringBlueprint:GetMeshes():Get(0)
+        outlineMesh = ringBlueprint:GetMeshes():Get(1)
 
         Color color
-        GetResources():SetColor(color:CustomColor(1, 0.85, 0.1, 1))
+        SetColor(0, color:CustomColor(1, 0.85, 0.1, 1))
+        SetColor(1, color:CustomColor(0.02, 0.02, 0.02, 1))
         SetCastsShadows(false)
     end
 end

@@ -154,6 +154,17 @@ shared class SceneProperties
     // The FILE value typically indicates the location of a texture or a model file.
     public constant text FILE = "File"
 
+    /*
+    The folders a scene's own files go in, inside the project. The project's
+    Scenes folder holds the scenes, and under it, one folder for each kind of
+    file a scene refers to: each terrain's folder goes in Terrains, and
+    material files go in Materials. Paths in a scene are relative to the
+    project, such as "Scenes/Terrains/Terrain1/terrain.json".
+    */
+    public constant text SCENES_FOLDER = "Scenes"
+    public constant text TERRAINS_FOLDER = "Terrains"
+    public constant text MATERIALS_FOLDER = "Materials"
+
     // Valid values for the RESPONSIVENESS property.
     public constant text RESPONSIVE = "Responsive"
     public constant text NONRESPONSIVE = "Nonresponsive"

@@ -1872,7 +1872,7 @@ end
             bindLightPipeline:SetPipeline(lightPipeline)
             commandBuffer:Record(bindLightPipeline)
         
-        SetViewportAndScissor(commandBuffer, swapchain)
+        SetLightingViewportAndScissor(commandBuffer, swapchain)
         
         // We can reuse the earlier BindVertexBufferCommand to bind our dummy vertex data.
         commandBuffer:Record(bindVertex)
@@ -2115,6 +2115,53 @@ BindDescriptorSetCommand resultDescriptorBind
         commandBuffer:Record(setScissor)
     end
     
+    /*
+        The lighting pass reads the scene's buffers at the same place on the
+        screen as the pixel it writes, so it covers the whole image, and the
+        scissor keeps it to the 3D view. With the 3D view's own viewport, a
+        view smaller than the window (such as a scene editor in a panel) got
+        a shrunken copy of the whole screen.
+    */
+    private action SetLightingViewportAndScissor(VulkanCommandBuffer commandBuffer, VulkanSwapchain swapchain)
+        integer imageWidth = swapchain:GetImageWidth()
+        integer imageHeight = swapchain:GetImageHeight()
+
+        SetViewportCommand setViewport
+        setViewport:SetPosition(0, imageHeight)
+        setViewport:SetSize(imageWidth, -imageHeight)
+        commandBuffer:Record(setViewport)
+
+        // The viewport's y is measured from the bottom, and the scissor's
+        // from the top.
+        integer left = viewportX
+        integer top = imageHeight - viewportY - viewportHeight
+        integer right = viewportX + viewportWidth
+        integer bottom = imageHeight - viewportY
+        if left < 0
+            left = 0
+        end
+        if top < 0
+            top = 0
+        end
+        if right > imageWidth
+            right = imageWidth
+        end
+        if bottom > imageHeight
+            bottom = imageHeight
+        end
+        if right < left
+            right = left
+        end
+        if bottom < top
+            bottom = top
+        end
+
+        SetScissorCommand setScissor
+        setScissor:SetPosition(left, top)
+        setScissor:SetSize(right - left, bottom - top)
+        commandBuffer:Record(setScissor)
+    end
+
     private action SetResultViewportAndScissor(VulkanCommandBuffer commandBuffer, VulkanSwapchain swapchain)
         SetViewportCommand setViewport
             setViewport:SetPosition(0, swapchain:GetImageHeight())

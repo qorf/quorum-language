@@ -80,12 +80,24 @@ use Libraries.Interface.Controls.Scenes.Dialogs.Camera3DPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.PointLightPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.Audio3DPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
+use Libraries.Interface.Controls.Scenes.Dialogs.TerrainPropertiesDialog
+use Libraries.Interface.Controls.Scenes.Dialogs.TerrainPhysicsPropertiesDialog
+use Libraries.Interface.Controls.Scenes.Dialogs.TerrainBrushPropertiesDialog
+use Libraries.Game.Graphics.Worlds.TerrainBrushPreview
+use Libraries.Game.Graphics.Worlds.TerrainBrush
+use Libraries.Interface.Controls.Scenes.Items.EditorCamera3D
+use Libraries.Compute.Ray
 use Libraries.Interface.Controls.Scenes.Dialogs.SceneEditorFindDialog
 use Libraries.Containers.Iterator
 use Libraries.Interface.Controls.Scenes.Blueprints.TerrainBlueprint
 use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
 use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
 use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Worlds.TerrainStroke
+use Libraries.Game.Graphics.Worlds.TerrainStrokeEdit
+use Libraries.Game.InputMonitor
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Undo.SceneEditorTerrainEdit
 
 
 /*
@@ -185,8 +197,55 @@ class SceneEditor is Control, DefaultSceneManager
     PointLightPropertiesDialog pointLightPropertiesDialog
     Audio3DPropertiesDialog audio3DPropertiesDialog
 
+    // A terrain's properties (step 5). They are added only with a
+    // Properties panel, since two floating dialogs would cover each other.
+    TerrainPropertiesDialog terrainPropertiesDialog
+    TerrainPhysicsPropertiesDialog terrainPhysicsPropertiesDialog
+    TerrainBrushPropertiesDialog terrainBrushPropertiesDialog
+
+    // A terrain's brush (step 7): the terrain whose tool is chosen, and the
+    // ring that shows the brush on its ground. The ring is placed again only
+    // when the brush moves or changes size.
+    EditorTerrain brushTerrain = undefined
+    TerrainBrushPreview brushPreview = undefined
+    boolean brushPreviewShown = false
+    number previewX = 0
+    number previewZ = 0
+    number previewSize = 0
+    TerrainBrushMouseListener brushMouseListener
+
+    // A stroke with a terrain's brush (step 8): it goes on while the key
+    // that started it, or the left mouse button, is held.
+    TerrainStroke terrainStroke
+    boolean stroking = false
+    boolean strokeByMouse = false
+    // True when a click took the focus from the terrain's highlight while
+    // its tool was chosen, so the next update gives it back.
+    boolean refocusBrushHighlight = false
+    integer strokeKey = 0
+    InputMonitor strokeMonitor
+    MouseEvent mouseButtons
+
+    // How much each strength key strengthens or weakens the brush, and its
+    // limits.
+    constant number BRUSH_STRENGTH_STEP = 1.25
+    constant number BRUSH_WEAKEST = 0.1
+    constant number BRUSH_STRONGEST = 50
+
+    // How fast the arrow keys move a terrain's brush, compared with how fast
+    // they move a selection.
+    constant number BRUSH_KEY_SPEED = 2
+    // How much each size key grows or shrinks the brush, and its limits.
+    constant number BRUSH_SIZE_STEP = 1.15
+    constant number BRUSH_SMALLEST = 0.5
+    constant number BRUSH_LARGEST = 64
+
     // An array containing the different property dialogs.
     Array<PropertiesDialog> propertiesDialogs
+
+    // The panel the properties dialogs are docked in, or undefined to show
+    // them as floating dialogs (step 4).
+    PropertiesPanel propertiesPanel = undefined
 
     // A reference to the find dialog for this controller.
     SceneEditorFindDialog findDialog
@@ -214,6 +273,10 @@ class SceneEditor is Control, DefaultSceneManager
 
         selection:Initialize(me)
         findDialog:Initialize(me)
+
+        // A terrain's brush follows the pointer while a tool is chosen.
+        brushMouseListener:SetSceneEditor(me)
+        AddMouseMovementListener(brushMouseListener)
 
         propertiesDialogs:Add(item2dPropertiesDialog)
         propertiesDialogs:Add(item3dPropertiesDialog)
@@ -381,10 +444,69 @@ class SceneEditor is Control, DefaultSceneManager
         This action takes every dialog added to this Scene Editor and hides all of them.
     */
     action HideDialogs
+        // A docked panel is part of the editor's own view, so it keeps
+        // showing the selection, for example when switching tabs.
+        if propertiesPanel not= undefined
+            return now
+        end
         integer counter = 0
         repeat while counter < propertiesDialogs:GetSize()
             propertiesDialogs:Get(counter):Hide()
             counter = counter + 1
+        end
+    end
+
+    /*
+        Shows the properties of the selected item in a panel, instead of in
+        floating dialogs. Every properties dialog, including any added later
+        with AddPropertiesDialog, docks in the panel. Set it once, before the
+        scene is loaded.
+
+        Attribute: Parameter panel The panel
+    */
+    action SetPropertiesPanel(PropertiesPanel panel)
+        boolean firstPanel = false
+        if propertiesPanel = undefined
+            firstPanel = true
+        end
+        propertiesPanel = panel
+        panel:SetSceneEditor(me)
+        integer counter = 0
+        repeat while counter < propertiesDialogs:GetSize()
+            propertiesDialogs:Get(counter):DockIn(panel)
+            counter = counter + 1
+        end
+
+        // A terrain's sections, after the built-in dialogs (step 5): its
+        // facts, its brush (step 7) and its physics.
+        if firstPanel
+            AddPropertiesDialog(terrainPropertiesDialog)
+            AddPropertiesDialog(terrainBrushPropertiesDialog)
+            AddPropertiesDialog(terrainPhysicsPropertiesDialog)
+        end
+    end
+
+    /*
+        Returns the panel showing the selected item's properties.
+
+        Attribute: Returns The panel, or undefined if the editor uses floating dialogs
+    */
+    action GetPropertiesPanel returns PropertiesPanel
+        return propertiesPanel
+    end
+
+    /*
+        Adds a properties dialog for another kind of item. It is set up as
+        the built-in ones are: it listens to the selection, and docks in the
+        panel if there is one. Step 5 adds a terrain's dialog this way.
+
+        Attribute: Parameter dialog The dialog
+    */
+    action AddPropertiesDialog(PropertiesDialog dialog)
+        dialog:Initialize(me)
+        propertiesDialogs:Add(dialog)
+        if propertiesPanel not= undefined
+            dialog:DockIn(propertiesPanel)
         end
     end
 
@@ -507,6 +629,14 @@ action Update(number seconds)
         end
 
         UpdateTerrains()
+        if refocusBrushHighlight
+            refocusBrushHighlight = false
+            if IsTerrainBrushActive() and GetSelectedItem() is TerrainSelectionHighlight and IsFocused()
+                GetSelectedItem():Focus()
+            end
+        end
+        UpdateTerrainStroke(seconds)
+        UpdateBrushPreview()
 
         Camera camera = GetSelectedLayer():GetCamera()
         boolean moved = false
@@ -1144,8 +1274,9 @@ action Update(number seconds)
 
     /*
     This action adds a new, flat terrain to the scene's 3D layer. Its files
-    are saved at once into the project, in a new folder, Terrains/Terrain1
-    (then Terrain2, and so on), and the scene refers to its terrain.json. It
+    are saved at once into the project, in a new folder under the project's
+    Scenes folder, Scenes/Terrains/Terrain1 (then Terrain2, and so on), and
+    the scene refers to its terrain.json. It
     is then selected and announced. Adding it can be undone. A terrain needs
     Vulkan, and a scene that is in a project.
 
@@ -1167,15 +1298,17 @@ action Update(number seconds)
             return undefined
         end
 
-        // The first free folder: Terrains/Terrain1, Terrains/Terrain2, ...
+        // The first free folder: Scenes/Terrains/Terrain1, then Terrain2, ...
+        // A scene's own files go under the project's Scenes folder.
+        text terrainsPath = properties:SCENES_FOLDER + "/" + properties:TERRAINS_FOLDER + "/Terrain"
         text folderPath = ""
         integer count = 1
         repeat while folderPath = ""
             File candidateFolder
             candidateFolder:SetWorkingDirectory(projectLocation:GetAbsolutePath())
-            candidateFolder:SetPath("Terrains/Terrain" + count)
+            candidateFolder:SetPath(terrainsPath + count)
             if not candidateFolder:Exists()
-                folderPath = "Terrains/Terrain" + count
+                folderPath = terrainsPath + count
             end
             count = count + 1
         end
@@ -1222,6 +1355,419 @@ action Update(number seconds)
             counter = counter + 1
         end
         return undefined
+    end
+
+    /*
+    This action chooses a terrain's tool, by its number (1 raise, 2 lower,
+    3 smooth, 4 flatten, 5 ramp, 6 paint, 7 blend paint, 8 add region,
+    9 remove region), or 0 to leave the tool (step 7). With a tool chosen, a
+    ring shows the brush on the ground; the arrow keys and the pointer move
+    it, and the size keys size it. A stroke going on is finished first. It is
+    announced, and the Brush section of the Properties panel follows.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter tool The tool's number, from 0 to 9
+    */
+    action SetTerrainTool(EditorTerrain terrain, integer tool)
+        if terrain = undefined
+            return now
+        end
+        // A stroke going on is finished first, so it can be undone.
+        if stroking
+            EndTerrainStroke()
+        end
+        if brushTerrain not= undefined and brushTerrain not= terrain
+            brushTerrain:SetToolNumber(0)
+        end
+        terrain:SetToolNumber(tool)
+        if tool > 0
+            brushTerrain = terrain
+            NotifyAccessibility(terrain, terrain:GetToolName(tool) + " tool. " + terrain:DescribeBrush())
+        else
+            brushTerrain = undefined
+            NotifyAccessibility(terrain, "No tool. The arrow keys move the selection again.")
+        end
+        UpdateBrushPreview()
+        TerrainBrushChanged(terrain)
+    end
+
+    /*
+    This action returns the terrain whose tool is chosen, or undefined.
+
+    Attribute: Returns The terrain with a tool chosen
+    */
+    action GetBrushTerrain returns EditorTerrain
+        return brushTerrain
+    end
+
+    /*
+    This action returns true while a terrain's tool is chosen, so the arrow
+    keys, the pointer and clicks act on its brush.
+
+    Attribute: Returns True while a terrain's brush is in use
+    */
+    action IsTerrainBrushActive returns boolean
+        return brushTerrain not= undefined and brushTerrain:HasTool()
+    end
+
+    /*
+    This action moves a terrain's brush by a selection move: right along the
+    camera's right, and forward along the way the camera faces, flat on the
+    ground (step 7).
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter right How far to the camera's right, as the selection would move along x
+    Attribute: Parameter forward How far forward, as the selection would move along -z
+    */
+    action MoveTerrainBrush(EditorTerrain terrain, number right, number forward)
+        if terrain = undefined or not terrain:HasTool()
+            return now
+        end
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            return now
+        end
+        Camera camera = layer:GetCamera()
+        Vector3 direction = camera:GetDirection()
+        number forwardX = direction:GetX()
+        number forwardZ = direction:GetZ()
+        number flat = math:SquareRoot(forwardX * forwardX + forwardZ * forwardZ)
+        if flat < 0.0001
+            // Looking straight down: forward is the camera's up.
+            Vector3 up = camera:GetUp()
+            forwardX = up:GetX()
+            forwardZ = up:GetZ()
+            flat = math:SquareRoot(forwardX * forwardX + forwardZ * forwardZ)
+            if flat < 0.0001
+                return now
+            end
+        end
+        forwardX = forwardX / flat
+        forwardZ = forwardZ / flat
+        // In Quorum's left-handed world, the right of forward (x, z) is (z, -x).
+        number rightX = forwardZ
+        number rightZ = -forwardX
+        number speed = BRUSH_KEY_SPEED
+        number x = terrain:GetBrushX() + (rightX * right + forwardX * forward) * speed
+        number z = terrain:GetBrushZ() + (rightZ * right + forwardZ * forward) * speed
+        terrain:SetBrushPosition(x, z)
+    end
+
+    /*
+    This action makes a terrain's brush larger or smaller, by one step, and
+    says its new size (step 7).
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter larger True to grow the brush, false to shrink it
+    */
+    action ResizeTerrainBrush(EditorTerrain terrain, boolean larger)
+        if terrain = undefined or not terrain:HasTool()
+            return now
+        end
+        TerrainBrush brush = terrain:GetBrush()
+        number size = brush:GetSize()
+        if larger
+            size = size * BRUSH_SIZE_STEP
+        else
+            size = size / BRUSH_SIZE_STEP
+        end
+        if size < BRUSH_SMALLEST
+            size = BRUSH_SMALLEST
+        elseif size > BRUSH_LARGEST
+            size = BRUSH_LARGEST
+        end
+        brush:SetSize(size)
+        NotifyAccessibility(terrain, "Brush size " + (cast(integer, size * 10 + 0.5) / 10.0))
+        TerrainBrushChanged(terrain)
+    end
+
+    /*
+    This action moves the brush of the terrain whose tool is chosen to the
+    ground under the pointer, given in the same screen coordinates as mouse
+    events. Off the ground, the brush is hidden. The pointer listener calls
+    it (step 7).
+
+    Attribute: Parameter x The pointer's x on the screen
+    Attribute: Parameter y The pointer's y on the screen
+    */
+    action MoveTerrainBrushToPointer(number x, number y)
+        if not IsTerrainBrushActive()
+            return now
+        end
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            return now
+        end
+        EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+        EditorCamera3D camera = layer3D:GetEditorCamera()
+        // The same pick ray the selection click uses.
+        // GetPickRay mirrors x across the view (the world is left-handed),
+        // so the pointer's x is mirrored first, as the in-game terrain
+        // editor does; otherwise the brush moves opposite the pointer.
+        number mirroredX = 2 * GetGlobalX() + camera:GetWidth() - x
+        Ray ray = camera:GetPickRay(mirroredX, y, GetGlobalX(), GetGlobalY(), camera:GetWidth(), camera:GetHeight())
+        Vector3 hit = brushTerrain:GetWorldTerrain():GetData():RayCast(ray:GetOrigin(), ray:GetDirection(), camera:GetFar())
+        if hit = undefined
+            brushTerrain:SetBrushOffGround()
+        else
+            brushTerrain:SetBrushPosition(hit:GetX(), hit:GetZ())
+        end
+    end
+
+    /*
+    This action returns true if a tool's strokes are ready in the scene
+    editor. Raise and lower are (step 8); the other tools come in later
+    steps, one at a time.
+
+    Attribute: Parameter tool The tool's number, from 1 to 9
+    Attribute: Returns True if the tool can make strokes
+    */
+    action CanStrokeWithTool(integer tool) returns boolean
+        return tool = 1 or tool = 2
+    end
+
+    /*
+    This action starts a stroke with the brush of the terrain whose tool is
+    chosen (step 8). The stroke goes on, once a frame, while the key that
+    started it is held, or the left mouse button for a stroke started with
+    a click, and ends when it is let go. Nothing starts if the brush is off
+    the ground, if a stroke is already going, or if the tool's strokes
+    aren't ready yet.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter byMouse True if the left mouse button started the stroke
+    Attribute: Parameter key The key that started it, for a stroke started with a key
+    */
+    action BeginTerrainStroke(EditorTerrain terrain, boolean byMouse, integer key)
+        if stroking or terrain = undefined or terrain not= brushTerrain or not terrain:HasTool()
+            return now
+        end
+        if not CanStrokeWithTool(terrain:GetToolNumber())
+            NotifyAccessibility(terrain, terrain:GetToolName(terrain:GetToolNumber()) + " strokes aren't ready yet. Raise and lower are.")
+            return now
+        end
+        if not terrain:IsBrushOnGround()
+            NotifyAccessibility(terrain, "The brush is off the ground")
+            return now
+        end
+        terrainStroke:Begin(terrain:GetWorldTerrain():GetData(), terrain:GetBrush())
+        stroking = true
+        strokeByMouse = byMouse
+        strokeKey = key
+    end
+
+    /*
+    This action returns true while a stroke with a terrain's brush is going.
+
+    Attribute: Returns True during a stroke
+    */
+    action IsTerrainStroking returns boolean
+        return stroking
+    end
+
+    /*
+    This action keeps a stroke going while its key or button is held, and
+    ends it when it is let go. The ground is redrawn each frame.
+    */
+    private action UpdateTerrainStroke(number seconds)
+        if not stroking
+            return now
+        end
+        boolean held = false
+        if strokeByMouse
+            held = strokeMonitor:IsMouseButtonPressed(mouseButtons:LEFT)
+        else
+            held = strokeMonitor:IsKeyPressed(strokeKey)
+        end
+        if not held
+            EndTerrainStroke()
+            return now
+        end
+        if brushTerrain = undefined
+            terrainStroke:Cancel()
+            stroking = false
+            return now
+        end
+        if brushTerrain:IsBrushOnGround()
+            terrainStroke:Apply(brushTerrain:GetBrushX(), brushTerrain:GetBrushZ(), seconds)
+            RedrawTerrain(brushTerrain)
+        end
+    end
+
+    /*
+    This action finishes a stroke: it goes into the undo list, the terrain
+    is marked changed for the next save, and what happened is announced.
+    */
+    action EndTerrainStroke
+        if not stroking
+            return now
+        end
+        stroking = false
+        TerrainStrokeEdit strokeEdit = terrainStroke:End()
+        if brushTerrain = undefined
+            return now
+        end
+        if strokeEdit = undefined
+            NotifyAccessibility(brushTerrain, "Nothing changed")
+            return now
+        end
+        SceneEditorTerrainEdit edit
+        edit:Create(me, brushTerrain, strokeEdit)
+        editManager:Add(edit)
+        brushTerrain:SetChanged(true)
+        RedrawTerrain(brushTerrain)
+        TerrainFactsChanged(brushTerrain)
+        NotifyAccessibility(brushTerrain, brushTerrain:GetToolName(brushTerrain:GetToolNumber()) + " done. " + brushTerrain:DescribeBrush())
+    end
+
+    /*
+    This action stops a stroke and puts the ground back as it was before
+    it. Escape calls it.
+
+    Attribute: Returns True if a stroke was going and was canceled
+    */
+    action CancelTerrainStroke returns boolean
+        if not stroking
+            return false
+        end
+        terrainStroke:Cancel()
+        stroking = false
+        if brushTerrain not= undefined
+            RedrawTerrain(brushTerrain)
+            TerrainFactsChanged(brushTerrain)
+            NotifyAccessibility(brushTerrain, "Stroke canceled")
+        end
+        return true
+    end
+
+    /*
+    This action redraws a terrain after its ground changed, and places the
+    brush's ring on the new ground.
+
+    Attribute: Parameter terrain The terrain
+    */
+    private action RedrawTerrain(EditorTerrain terrain)
+        terrain:GetWorldTerrain():Rebuild()
+        if terrain = brushTerrain
+            // The ring follows the ground, so it is placed again.
+            previewSize = -1
+        end
+    end
+
+    /*
+    This action is called after a terrain stroke is undone or redone: the
+    terrain is redrawn, marked changed for the next save, and what happened
+    is announced.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter message What happened, such as "Undid raise"
+    */
+    action TerrainEdited(EditorTerrain terrain, text message)
+        if terrain = undefined
+            return now
+        end
+        if stroking
+            CancelTerrainStroke()
+        end
+        RedrawTerrain(terrain)
+        terrain:SetChanged(true)
+        TerrainFactsChanged(terrain)
+        NotifyAccessibility(terrain, message)
+    end
+
+    /*
+    This action shows a terrain's new ground heights in the Terrain section
+    of the Properties panel, after a stroke or an undo.
+
+    Attribute: Parameter terrain The terrain
+    */
+    private action TerrainFactsChanged(EditorTerrain terrain)
+        if terrainPropertiesDialog:IsShowing()
+            terrainPropertiesDialog:SetTerrain(terrain)
+        end
+    end
+
+    /*
+    This action makes a terrain's brush stronger or weaker, by one step, and
+    says its new strength (step 8).
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter stronger True to strengthen the brush, false to weaken it
+    */
+    action ChangeTerrainStrength(EditorTerrain terrain, boolean stronger)
+        if terrain = undefined or not terrain:HasTool()
+            return now
+        end
+        TerrainBrush brush = terrain:GetBrush()
+        number strength = brush:GetStrength()
+        if stronger
+            strength = strength * BRUSH_STRENGTH_STEP
+        else
+            strength = strength / BRUSH_STRENGTH_STEP
+        end
+        if strength < BRUSH_WEAKEST
+            strength = BRUSH_WEAKEST
+        elseif strength > BRUSH_STRONGEST
+            strength = BRUSH_STRONGEST
+        end
+        brush:SetStrength(strength)
+        NotifyAccessibility(terrain, "Brush strength " + (cast(integer, strength * 100 + 0.5) / 100.0))
+        TerrainBrushChanged(terrain)
+    end
+
+    /*
+    This action keeps the Brush section of the Properties panel in step with
+    a terrain's brush, after a key or the pointer changed it (step 7).
+
+    Attribute: Parameter terrain The terrain whose brush changed
+    */
+    action TerrainBrushChanged(EditorTerrain terrain)
+        if terrainBrushPropertiesDialog:IsShowing()
+            terrainBrushPropertiesDialog:SetTerrain(terrain)
+        end
+    end
+
+    /*
+    This action shows the ring for the terrain whose tool is chosen, placed
+    again only when the brush moved or changed size, and hides it otherwise
+    (step 7). The ring is one of the editor's own items: it isn't saved,
+    listed or picked.
+    */
+    private action UpdateBrushPreview
+        boolean show = IsTerrainBrushActive() and brushTerrain:IsBrushOnGround()
+        if not show
+            if brushPreviewShown
+                brushPreview:Hide()
+                brushPreviewShown = false
+            end
+            return now
+        end
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            return now
+        end
+        number size = brushTerrain:GetBrush():GetSize()
+        boolean moved = brushTerrain:GetBrushX() not= previewX or brushTerrain:GetBrushZ() not= previewZ or size not= previewSize
+        if brushPreview = undefined
+            TerrainBrushPreview preview
+            preview:SetName("Terrain Brush")
+            preview:SetProperty(constants:EDITOR_TAG, undefined)
+            preview:Place(brushTerrain:GetWorldTerrain():GetData(), brushTerrain:GetBrushX(), brushTerrain:GetBrushZ(), size)
+            brushPreview = preview
+            EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+            layer3D:Add(preview)
+            moved = false
+        end
+        if moved
+            brushPreview:Place(brushTerrain:GetWorldTerrain():GetData(), brushTerrain:GetBrushX(), brushTerrain:GetBrushZ(), size)
+        end
+        if not brushPreviewShown
+            brushPreview:Show()
+            brushPreviewShown = true
+        end
+        previewX = brushTerrain:GetBrushX()
+        previewZ = brushTerrain:GetBrushZ()
+        previewSize = size
     end
 
     /*
@@ -1558,6 +2104,16 @@ action Update(number seconds)
     // Used when moving an InteractableItem into a grid space to give information about what's under the item.
     // Doesn't include the item itself in the description.
     private action GetDescriptionAtItemPosition(EditorItem item) returns text
+        // With a terrain tool chosen, the arrows move its brush: say where
+        // the brush is and the ground's height there (step 7).
+        if item is TerrainSelectionHighlight
+            TerrainSelectionHighlight terrainHighlight = cast(TerrainSelectionHighlight, item)
+            EditorTerrain highlighted = terrainHighlight:GetEditorTerrain()
+            if highlighted not= undefined and highlighted:HasTool()
+                return highlighted:DescribeBrush()
+            end
+        end
+
         SetCursorToItem(item)
 
         Item ignoredItem = undefined
@@ -1845,6 +2401,14 @@ action Update(number seconds)
     end
 
     action GainedFocus(FocusEvent event)
+        // A click in the view with a terrain's tool chosen is a stroke
+        // (step 8), so the terrain stays selected, and its highlight gets
+        // the focus back on the next update, for the brush's keys.
+        if IsTerrainBrushActive() and GetSelectedItem() is TerrainSelectionHighlight
+            refocusBrushHighlight = true
+            parent:Control:GainedFocus(event)
+            return now
+        end
         SetSelectedItem(undefined)
         UpdateCursorVisibility()
 

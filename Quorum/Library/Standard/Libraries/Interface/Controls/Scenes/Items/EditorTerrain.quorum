@@ -4,6 +4,8 @@ use Libraries.Game.Graphics.Worlds.TerrainItem
 use Libraries.Game.Graphics.Worlds.TerrainData
 use Libraries.Game.Graphics.Worlds.TerrainRegion
 use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Game.Graphics.Worlds.TerrainBrush
+use Libraries.Game.Graphics.Worlds.TerrainTool
 
 /*
     The EditorTerrain class is a terrain in the Scene Editor. It is saved in
@@ -23,9 +25,42 @@ class EditorTerrain is TerrainItem
     // scene must write.
     boolean changed = false
 
+    // Whether the terrain collides in games, as saved in the scene. The
+    // editor's own region models never collide (step 5).
+    boolean collisionInGames = true
+
+    // The brush (step 7). The tool is numbered as in the in-game terrain
+    // editor, 1 to 9, or 0 for no tool: then the terrain is only selected.
+    TerrainBrush brush
+    TerrainTool tools
+    integer toolNumber = 0
+    number brushX = 0
+    number brushZ = 0
+    boolean brushOnGround = false
+    boolean brushPlaced = false
+
     on create
         // The editor only draws the terrain.
-        SetCollision(false)
+        parent:TerrainItem:SetCollision(false)
+    end
+
+    /*
+        Sets whether the terrain collides in games. It is saved in the scene.
+        In the editor, the terrain only draws, whatever this is.
+
+        Attribute: Parameter enabled True for collision in games
+    */
+    action SetCollision(boolean enabled)
+        collisionInGames = enabled
+    end
+
+    /*
+        Returns whether the terrain collides in games, as saved in the scene.
+
+        Attribute: Returns True for collision in games
+    */
+    action HasCollision returns boolean
+        return collisionInGames
     end
 
     /*
@@ -146,4 +181,174 @@ class EditorTerrain is TerrainItem
         end
         return edge * regionWidth
     end
+
+    /*
+        Returns the terrain's brush, with its size, strength and falloff.
+
+        Attribute: Returns The brush
+    */
+    action GetBrush returns TerrainBrush
+        return brush
+    end
+
+    /*
+        Chooses a tool, numbered as in the in-game terrain editor: 1 raise,
+        2 lower, 3 smooth, 4 flatten, 5 ramp, 6 paint, 7 blend paint, 8 add
+        region, 9 remove region; or 0 for none. The first time a tool is
+        chosen, the brush starts at the terrain's middle.
+
+        Attribute: Parameter number The tool's number, from 0 to 9
+    */
+    action SetToolNumber(integer tool)
+        if tool < 0 or tool > 9
+            alert("A terrain tool's number is from 0 to 9, but was given " + tool + ".")
+        end
+        toolNumber = tool
+        if tool = 1
+            brush:SetTool(tools:SCULPT, tools:ADD)
+        elseif tool = 2
+            brush:SetTool(tools:SCULPT, tools:SUBTRACT)
+        elseif tool = 3
+            brush:SetTool(tools:SCULPT, tools:AVERAGE)
+        elseif tool = 4
+            brush:SetTool(tools:HEIGHT, tools:REPLACE)
+        elseif tool = 5
+            brush:SetTool(tools:SCULPT, tools:GRADIENT)
+        elseif tool = 6
+            brush:SetTool(tools:TEXTURE, tools:ADD)
+        elseif tool = 7
+            brush:SetTool(tools:TEXTURE, tools:AVERAGE)
+        elseif tool = 8
+            brush:SetTool(tools:REGION, tools:ADD)
+        elseif tool = 9
+            brush:SetTool(tools:REGION, tools:SUBTRACT)
+        end
+        if tool > 0 and not brushPlaced
+            SetBrushPosition((GetMinimumX() + GetMaximumX()) / 2, (GetMinimumZ() + GetMaximumZ()) / 2)
+        end
+    end
+
+    /*
+        Returns the chosen tool's number, from 1 to 9, or 0 for none.
+
+        Attribute: Returns The tool's number
+    */
+    action GetToolNumber returns integer
+        return toolNumber
+    end
+
+    /*
+        Returns true if a tool is chosen, so the brush is in use.
+
+        Attribute: Returns True if a tool is chosen
+    */
+    action HasTool returns boolean
+        return toolNumber > 0
+    end
+
+    /*
+        Returns a tool's name, by its number.
+
+        Attribute: Parameter number The tool's number, from 0 to 9
+        Attribute: Returns Its name, such as "Raise", or "No tool" for 0
+    */
+    action GetToolName(integer tool) returns text
+        if tool = 1
+            return "Raise"
+        elseif tool = 2
+            return "Lower"
+        elseif tool = 3
+            return "Smooth"
+        elseif tool = 4
+            return "Flatten"
+        elseif tool = 5
+            return "Ramp"
+        elseif tool = 6
+            return "Paint"
+        elseif tool = 7
+            return "Blend paint"
+        elseif tool = 8
+            return "Add region"
+        elseif tool = 9
+            return "Remove region"
+        end
+        return "No tool"
+    end
+
+    /*
+        Puts the brush's middle at a place on the ground. If no region is
+        there, the brush is off the ground, and isn't drawn.
+
+        Attribute: Parameter x The place along x
+        Attribute: Parameter z The place along z
+    */
+    action SetBrushPosition(number x, number z)
+        brushX = x
+        brushZ = z
+        brushPlaced = true
+        brushOnGround = GetWorldTerrain():GetData():HasHeight(x, z)
+    end
+
+    /*
+        Marks the brush as off the ground, such as when the pointer is over
+        the sky.
+    */
+    action SetBrushOffGround
+        brushOnGround = false
+    end
+
+    /*
+        Returns where the brush's middle is along x.
+
+        Attribute: Returns The brush's x
+    */
+    action GetBrushX returns number
+        return brushX
+    end
+
+    /*
+        Returns where the brush's middle is along z.
+
+        Attribute: Returns The brush's z
+    */
+    action GetBrushZ returns number
+        return brushZ
+    end
+
+    /*
+        Returns true if the brush is over the terrain's ground.
+
+        Attribute: Returns True if the brush is on the ground
+    */
+    action IsBrushOnGround returns boolean
+        return brushOnGround
+    end
+
+    /*
+        Describes the brush for a screen reader: the tool, where it is, and
+        the ground's height there.
+
+        Attribute: Returns The description
+    */
+    action DescribeBrush returns text
+        text name = GetToolName(toolNumber)
+        if not brushOnGround
+            return name + " brush, off the ground"
+        end
+        number height = GetWorldTerrain():GetData():GetHeight(brushX, brushZ)
+        return name + " brush at " + Round(brushX) + ", " + Round(brushZ) + ", ground height " + Round(height) +
+            ", size " + Round(brush:GetSize())
+    end
+
+    /*
+        Rounds a number to one place after the point, for speaking.
+    */
+    private action Round(number value) returns number
+        integer tenths = cast(integer, value * 10 + 0.5)
+        if value < 0
+            tenths = cast(integer, value * 10 - 0.5)
+        end
+        return tenths / 10.0
+    end
+
 end

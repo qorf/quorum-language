@@ -1,0 +1,61 @@
+package Libraries.Interface.Undo
+
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+use Libraries.Game.Graphics.Worlds.TerrainStrokeEdit
+
+/*
+    The SceneEditorTerrainEdit is one terrain stroke in the scene editor's
+    undo list (step 8). It holds the stroke's TerrainStrokeEdit, which puts
+    the ground back or forward, and then has the scene editor redraw the
+    terrain and mark it changed, since the stroke's own edit only changes
+    the terrain's data.
+*/
+class SceneEditorTerrainEdit is Edit
+    SceneEditor controller = undefined
+    EditorTerrain terrain = undefined
+    TerrainStrokeEdit strokeEdit = undefined
+
+    /*
+        Sets up the edit.
+
+        Attribute: Parameter controller The scene editor
+        Attribute: Parameter terrain The terrain the stroke changed
+        Attribute: Parameter strokeEdit The stroke's own edit
+    */
+    action Create(SceneEditor controller, EditorTerrain terrain, TerrainStrokeEdit strokeEdit)
+        me:controller = controller
+        me:terrain = terrain
+        me:strokeEdit = strokeEdit
+    end
+
+    action Undo
+        strokeEdit:Undo()
+        controller:TerrainEdited(terrain, "Undid " + strokeEdit:GetName())
+    end
+
+    action Redo
+        strokeEdit:Redo()
+        controller:TerrainEdited(terrain, "Redid " + strokeEdit:GetName())
+    end
+
+    action CanUndo returns boolean
+        return strokeEdit:CanUndo()
+    end
+
+    action CanRedo returns boolean
+        return strokeEdit:CanRedo()
+    end
+
+    action GetUndoName returns text
+        return strokeEdit:GetUndoName()
+    end
+
+    action GetRedoName returns text
+        return strokeEdit:GetRedoName()
+    end
+
+    action Dispose
+        strokeEdit:Dispose()
+    end
+end

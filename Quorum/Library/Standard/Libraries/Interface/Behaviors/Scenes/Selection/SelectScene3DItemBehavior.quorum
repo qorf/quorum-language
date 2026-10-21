@@ -24,6 +24,7 @@ use Libraries.Interface.Controls.Scenes.SceneConstants
 use Libraries.Interface.Controls.Scenes.Items.EditorCursor
 use Libraries.Game.Item3DDepthComparison
 use Libraries.Game.Graphics.Worlds.TerrainItem
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
 
 /*
     This behavior is used to select an item in the scene editor. The input expected 
@@ -39,6 +40,15 @@ class SelectScene3DItemBehavior is Behavior
         MouseEvent mouse = event:GetMouseEvent()
         
         SceneEditor editor = cast(SceneEditor, event:GetItem())
+        // While a terrain's tool is chosen, a click belongs to its brush: it
+        // starts a stroke under the pointer, which goes on while the button
+        // is held (step 8). Escape leaves the tool; the scene tree still
+        // selects (step 7).
+        if editor:IsTerrainBrushActive()
+            editor:MoveTerrainBrushToPointer(mouse:GetX(), mouse:GetY())
+            editor:BeginTerrainStroke(editor:GetBrushTerrain(), true, 0)
+            return now
+        end
         EditorLayer3D layer = cast(EditorLayer3D, editor:GetSelectedLayer())
 
         EditorCamera3D camera = layer:GetEditorCamera()

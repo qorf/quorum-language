@@ -891,7 +891,19 @@ number restitution = 0
         if json:HasValue(properties:FRICTION)
             terrain:SetFriction(json:GetNumber(properties:FRICTION))
         end
-        terrain:Load(ConvertToProjectFile(json:GetValue(properties:FILE)))
+        text path = json:GetValue(properties:FILE)
+        File terrainFile = ConvertToProjectFile(path)
+        // Terrains made before they went under the Scenes folder were at the
+        // project's top level, in Terrains. If one has since been moved
+        // under Scenes, it is found there, and the scene saves the new path.
+        text scenesPrefix = properties:SCENES_FOLDER + "/"
+        if not terrainFile:Exists() and not path:StartsWith(scenesPrefix)
+            File moved = ConvertToProjectFile(scenesPrefix + path)
+            if moved:Exists()
+                terrainFile = moved
+            end
+        end
+        terrain:Load(terrainFile)
         return terrain
     end
 

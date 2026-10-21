@@ -44,6 +44,15 @@ class TerrainItem is Item3D
     // The terrain.json file's path, as given to Load or CreateFlat, so a
     // scene can save it as it was written.
     text terrainFile = ""
+
+    // The terrain.json file itself, with its working directory, so a terrain
+    // loaded relative to a project is saved back to the same place.
+    File terrainLocation = undefined
+
+    // True if Load was given a terrain.json that isn't there. The item then
+    // has no regions, but keeps the file's path, so a scene that names it
+    // still loads, and saves it unchanged.
+    boolean missing = false
     boolean collision = true
 
     /*
@@ -68,8 +77,27 @@ class TerrainItem is Item3D
     action Load(File file)
         CheckEmpty()
         terrainFile = file:GetPath()
+        terrainLocation = file
+        // A scene can name a terrain whose files were moved or not copied.
+        // The scene still loads: the terrain is empty, and keeps its path.
+        if not file:Exists()
+            missing = true
+            output "The terrain " + file:GetPath() + " wasn't found, so it is empty. Its folder may have been moved or not copied with the project."
+            return now
+        end
+        missing = false
         terrain:GetData():Load(GetFolder(file))
         BuildModels()
+    end
+
+    /*
+    This action returns true if Load was given a terrain.json file that
+    isn't there. The item then has no regions, and draws nothing.
+
+    Attribute: Returns True if the terrain's files weren't found.
+    */
+    action IsMissing returns boolean
+        return missing
     end
 
     /*
@@ -85,6 +113,8 @@ class TerrainItem is Item3D
     */
     action CreateFlat(File file, integer regionsAcross, integer regionSize, number spacing)
         CheckEmpty()
+        terrainLocation = file
+        missing = false
         if regionsAcross < 1
             alert("A terrain needs at least one region across, but was given " + regionsAcross + ".")
         end
@@ -114,8 +144,19 @@ class TerrainItem is Item3D
         if terrainFile = ""
             alert("The terrain can't be saved, because it wasn't loaded from or made into a terrain.json file.")
         end
-        File file
-        file:SetPath(terrainFile)
+        // A terrain whose files weren't found has nothing to save, and
+        // saving would replace them with an empty terrain.
+        if missing
+            return now
+        end
+        // The file as it was loaded or made, so a path relative to a project
+        // is saved back into that project.
+        File file = terrainLocation
+        if file = undefined
+            File plainFile
+            plainFile:SetPath(terrainFile)
+            file = plainFile
+        end
         terrain:GetData():Save(GetFolder(file))
     end
 

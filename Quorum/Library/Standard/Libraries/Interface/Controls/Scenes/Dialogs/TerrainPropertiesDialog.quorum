@@ -1,0 +1,207 @@
+package Libraries.Interface.Controls.Scenes.Dialogs
+
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.TextField
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Item
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Selections.SceneEditorSelection
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
+use Libraries.Game.Graphics.Worlds.TerrainData
+
+/*
+    The TerrainPropertiesDialog shows a selected terrain's name, which can be
+    changed, and what the terrain is: its size, its regions, how far apart
+    its samples are, how high and low its ground goes, and the folder its
+    files are in. The facts are read only. Each is on its own line, which
+    the keyboard can move to, so a screen reader reads each one.
+
+    It shows in the scene editor's Properties panel, with the terrain's
+    physics after it (TerrainPhysicsPropertiesDialog).
+*/
+class TerrainPropertiesDialog is PropertiesDialog
+
+    TextField nameField = undefined
+    Label sizeLabel = undefined
+    Label regionsLabel = undefined
+    Label spacingLabel = undefined
+    Label heightsLabel = undefined
+    Label folderLabel = undefined
+
+    // The terrain whose properties are shown, or undefined.
+    EditorTerrain terrain = undefined
+
+    /*
+        Creates and adds the interface components for this dialog.
+    */
+    private action CreateInterface(Control panel, Array<Control> focusArray)
+        SetName("Terrain")
+
+        Label headingLabel
+        headingLabel:SetSize(18)
+        headingLabel:SetText("Terrain")
+        headingLabel:SetLeftMargin(20)
+        panel:Add(headingLabel)
+
+        FlowLayout nameLayout
+        Control nameContainer
+        nameContainer:SetLayout(nameLayout)
+        nameContainer:SetPercentageWidth(1.0)
+        nameContainer:SetVerticalLayoutMode(nameContainer:FIT_CONTENTS)
+        nameContainer:SetLeftMargin(20)
+        nameContainer:SetTopMargin(10)
+        nameContainer:SetRightMargin(30)
+        nameContainer:SetBottomMargin(10)
+
+        Label nameLabel
+        nameLabel:SetText("Name:")
+        nameLabel:SetRightMargin(10)
+        nameContainer:Add(nameLabel)
+
+        TextField field
+        nameField = field
+        nameField:SetHorizontalLayoutMode(nameContainer:FILL)
+        nameField:SetName("Name")
+        nameField:SetText("")
+        nameField:SetFocusable(true)
+        nameField:AddTextChangeListener(me)
+        nameContainer:Add(nameField)
+        focusArray:Add(nameField)
+        panel:Add(nameContainer)
+
+        sizeLabel = AddInfoLine(panel, focusArray)
+        regionsLabel = AddInfoLine(panel, focusArray)
+        spacingLabel = AddInfoLine(panel, focusArray)
+        heightsLabel = AddInfoLine(panel, focusArray)
+        folderLabel = AddInfoLine(panel, focusArray)
+    end
+
+    /*
+        Adds one read-only line of information, which the keyboard can move
+        to, so a screen reader reads it.
+    */
+    private action AddInfoLine(Control panel, Array<Control> focusArray) returns Label
+        Label line
+        line:SetText("")
+        line:SetLeftMargin(20)
+        line:SetTopMargin(6)
+        line:SetBottomMargin(4)
+        line:SetFocusable(true)
+        panel:Add(line)
+        focusArray:Add(line)
+        return line
+    end
+
+    /*
+        This action shows the dialog when a terrain is selected, and hides it
+        otherwise.
+    */
+    action SelectionChanged(SelectionEvent event)
+        if not (event:GetSelection() is SceneEditorSelection)
+            return now
+        end
+
+        SceneEditorSelection selection = cast(SceneEditorSelection, event:GetSelection())
+        Item selectedItem = undefined
+        if selection:IsItemSelected()
+            selectedItem = selection:GetSelectedItem()
+        end
+
+        if selectedItem is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, selectedItem)
+            SetTerrain(highlight:GetEditorTerrain())
+            if not IsShowing()
+                Show()
+            end
+        else
+            terrain = undefined
+            if IsShowing()
+                Hide()
+            end
+        end
+    end
+
+    /*
+        This action sets the fields from a selected terrain's highlight.
+    */
+    action SetFields(EditorItem item)
+        if item is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, item)
+            SetTerrain(highlight:GetEditorTerrain())
+        end
+    end
+
+    /*
+        This action shows a terrain's name and facts.
+
+        Attribute: Parameter terrain The terrain
+    */
+    action SetTerrain(EditorTerrain terrain)
+        me:terrain = terrain
+        if terrain = undefined
+            return now
+        end
+
+        nameField:RemoveTextChangeListener(me)
+        nameField:SetText(terrain:GetName())
+        nameField:AddTextChangeListener(me)
+
+        // A scene can name a terrain whose files weren't found.
+        if terrain:IsMissing()
+            sizeLabel:SetText("Files not found: this terrain is empty")
+            regionsLabel:SetText("Regions: none")
+            spacingLabel:SetText("Its folder may have been moved, or not copied with the project")
+            heightsLabel:SetText("Saving the scene keeps its file name")
+            folderLabel:SetText("Folder: " + GetFolderText(terrain:GetTerrainFile()))
+            return now
+        end
+
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        number width = terrain:GetMaximumX() - terrain:GetMinimumX()
+        number depth = terrain:GetMaximumZ() - terrain:GetMinimumZ()
+        integer regionSize = data:GetRegionSize()
+        sizeLabel:SetText("Size: " + width + " by " + depth + " units")
+        regionsLabel:SetText("Regions: " + data:GetRegionCount() + ", each " + regionSize + " by " + regionSize + " samples")
+        spacingLabel:SetText("Sample spacing: " + data:GetVertexSpacing() + " units")
+        heightsLabel:SetText("Ground height: " + data:GetLowestHeight() + " to " + data:GetHighestHeight())
+        folderLabel:SetText("Folder: " + GetFolderText(terrain:GetTerrainFile()))
+    end
+
+    /*
+        This action returns the folder part of a terrain.json file's path.
+    */
+    private action GetFolderText(text path) returns text
+        text name = "/terrain.json"
+        if path:EndsWith(name)
+            return path:GetSubtext(0, path:GetSize() - name:GetSize())
+        end
+        return path
+    end
+
+    /*
+        This action renames the terrain as its name is typed.
+    */
+    action TextChanged(TextChangeEvent event)
+        if terrain = undefined
+            return now
+        end
+        if event:GetControl():Equals(nameField)
+            if nameField:GetText() not= terrain:GetName()
+                terrain:SetName(nameField:GetText())
+            end
+        end
+    end
+
+    /*
+        Moves the focus to the name field, with its text selected.
+    */
+    action FocusField
+        nameField:Focus()
+        nameField:Select(0, nameField:GetSize(), true)
+    end
+end

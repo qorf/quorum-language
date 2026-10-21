@@ -7,11 +7,22 @@ use Libraries.Interface.Controls.Scenes.SceneConstants
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
 use Libraries.Interface.Controls.Scenes.Items.Highlights.SelectionHighlight3D
+use Libraries.Game.Graphics.Worlds.TerrainData
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
+use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Compute.Vector4
+use Libraries.Compute.Math
 
 /*
     TerrainSelectionHighlight is the SelectionHighlight for a terrain. It is
-    a box over the whole terrain, from its lowest to its highest ground, so
-    a flat terrain is covered by a thin slab, as a plane is. A terrain's
+    a border around the whole terrain, a little above the ground, so the
+    terrain itself can still be seen. A terrain's
     heights are world positions, so the editor's move, turn and scale keys
     don't move it: they leave the terrain and its highlight where they are,
     and say so once each time the terrain is selected.
@@ -27,8 +38,17 @@ class TerrainSelectionHighlight is SelectionHighlight3D
     // a terrain stays at the origin.
     boolean told = false
 
+    // How many straight pieces make up each edge of the border.
+    constant integer BORDER_SEGMENTS = 64
+
+    // How far above the ground the border floats, in world units.
+    constant number BORDER_LIFT = 0.15
+
     /*
-        Loads a box over the whole terrain.
+        Loads a border around the whole terrain: a flat band just outside
+        its edges, a little above the ground, following the ground's height
+        along each edge. A box over the terrain would hide it, since the 3D
+        view draws a highlight's color nearly solid.
 
         Attribute: Parameter terrain The terrain being selected
         Attribute: Parameter controller The scene editor
@@ -47,17 +67,194 @@ class TerrainSelectionHighlight is SelectionHighlight3D
         number maximumX = terrain:GetMaximumX()
         number minimumZ = terrain:GetMinimumZ()
         number maximumZ = terrain:GetMaximumZ()
-        number lowest = terrain:GetWorldTerrain():GetData():GetLowestHeight()
-        number highest = terrain:GetWorldTerrain():GetData():GetHighestHeight()
+        TerrainData data = terrain:GetWorldTerrain():GetData()
 
-        LoadBox(maximumX - minimumX + padding, highest - lowest + padding, maximumZ - minimumZ + padding, color)
-
-        placing = true
-        SetPosition((minimumX + maximumX) / 2, (lowest + highest) / 2, (minimumZ + maximumZ) / 2)
-        placing = false
+        LoadBorder(data, minimumX, maximumX, minimumZ, maximumZ, padding / 2, color)
 
         me:terrain = terrain
         SetSceneEditor(controller)
+    end
+
+    /*
+        Builds the border's mesh and loads it. Each edge is a strip of quads,
+        drawn from both sides, from the inside of the band to the outside.
+        The band's ends reach past the corners, so the four strips overlap
+        there and the corners are filled.
+    */
+    private action LoadBorder(TerrainData data, number minimumX, number maximumX, number minimumZ, number maximumZ, number gap, Color color)
+        Math math
+        number centerX = (minimumX + maximumX) / 2
+        number centerZ = (minimumZ + maximumZ) / 2
+        number band = math:MaximumOf(0.15, math:MaximumOf(maximumX - minimumX, maximumZ - minimumZ) * 0.004)
+        number innerLeft = minimumX - gap
+        number innerRight = maximumX + gap
+        number innerNear = minimumZ - gap
+        number innerFar = maximumZ + gap
+
+        integer pointCount = BORDER_SEGMENTS + 1
+        integer vertexCount = 4 * pointCount * 2
+        Number32BitArray vertices
+        Number32BitArray normals
+        Number32BitArray tangents
+        Number32BitArray bitangents
+        Number32BitArray textureCoordinates
+        Integer32BitArray indices
+        vertices:SetSize(vertexCount * 3)
+        normals:SetSize(vertexCount * 3)
+        tangents:SetSize(vertexCount * 3)
+        bitangents:SetSize(vertexCount * 3)
+        textureCoordinates:SetSize(vertexCount * 2)
+        indices:SetSize(4 * BORDER_SEGMENTS * 12)
+
+        number lowest = 0
+        number highest = 0
+        boolean first = true
+        number lastHeight = 0
+        if data:HasHeight(centerX, centerZ)
+            lastHeight = data:GetSurfaceHeight(centerX, centerZ)
+        end
+
+        number segmentCount = BORDER_SEGMENTS
+        integer index = 0
+        integer side = 0
+        repeat while side < 4
+            integer point = 0
+            repeat while point < pointCount
+                number along = point / segmentCount
+                // Where the band's inside edge is, where its outside edge is,
+                // and the ground point just inside the terrain whose height
+                // the band takes.
+                number innerX = 0
+                number innerZ = 0
+                number outerX = 0
+                number outerZ = 0
+                if side = 0
+                    innerX = innerLeft - band + (innerRight - innerLeft + 2 * band) * along
+                    outerX = innerX
+                    innerZ = innerNear
+                    outerZ = innerNear - band
+                elseif side = 1
+                    innerX = innerLeft - band + (innerRight - innerLeft + 2 * band) * along
+                    outerX = innerX
+                    innerZ = innerFar
+                    outerZ = innerFar + band
+                elseif side = 2
+                    innerZ = innerNear - band + (innerFar - innerNear + 2 * band) * along
+                    outerZ = innerZ
+                    innerX = innerLeft
+                    outerX = innerLeft - band
+                else
+                    innerZ = innerNear - band + (innerFar - innerNear + 2 * band) * along
+                    outerZ = innerZ
+                    innerX = innerRight
+                    outerX = innerRight + band
+                end
+
+                number groundX = math:MinimumOf(math:MaximumOf(innerX, minimumX + 0.01), maximumX - 0.01)
+                number groundZ = math:MinimumOf(math:MaximumOf(innerZ, minimumZ + 0.01), maximumZ - 0.01)
+                if data:HasHeight(groundX, groundZ)
+                    lastHeight = data:GetSurfaceHeight(groundX, groundZ)
+                end
+                if first or lastHeight < lowest
+                    lowest = lastHeight
+                end
+                if first or lastHeight > highest
+                    highest = lastHeight
+                end
+                first = false
+
+                integer vertex = (side * pointCount + point) * 2
+                SetBorderVertex(vertices, normals, tangents, bitangents, textureCoordinates, vertex, innerX - centerX, lastHeight, innerZ - centerZ)
+                SetBorderVertex(vertices, normals, tangents, bitangents, textureCoordinates, vertex + 1, outerX - centerX, lastHeight, outerZ - centerZ)
+
+                if point > 0
+                    integer innerA = vertex - 2
+                    integer outerA = vertex - 1
+                    index = AddBorderQuad(indices, index, innerA, outerA, vertex, vertex + 1)
+                    index = AddBorderQuad(indices, index, innerA, vertex, outerA, vertex + 1)
+                end
+                point = point + 1
+            end
+            side = side + 1
+        end
+
+        // The model sits halfway between the lowest and highest ground, so
+        // its bounds are centered on it, and the heights become offsets.
+        number middle = (lowest + highest) / 2
+        integer place = 0
+        repeat while place < vertexCount
+            vertices:Set(place * 3 + 1, vertices:Get(place * 3 + 1) + BORDER_LIFT - middle)
+            place = place + 1
+        end
+
+        MeshData mesh
+        mesh:SetVertices(vertices)
+        mesh:SetIndices(indices)
+        mesh:SetNormals(normals)
+        mesh:SetTangents(tangents)
+        mesh:SetBitangents(bitangents)
+        mesh:SetTextureCoordinates(textureCoordinates)
+        mesh:SetMaterialIndex(0)
+
+        Array<MeshData> meshes
+        meshes:Add(mesh)
+        Material material
+        Vector4 diffuse
+        diffuse:Set(1, 1, 1, 1)
+        material:SetDiffuse(diffuse)
+        Array<Material> materials
+        materials:Add(material)
+        ModelData modelData
+        modelData:SetID("Terrain selection border " + GetHashCode())
+        modelData:SetMeshes(meshes)
+        modelData:SetMaterials(materials)
+
+        ModelManagerVulkan manager
+        ModelBlueprintVulkan borderBlueprint = manager:GetModelBlueprint(modelData)
+        Load(borderBlueprint)
+        parent:Model:SetColor(color)
+        SetCastsShadows(false)
+
+        placing = true
+        SetPosition(centerX, middle, centerZ)
+        placing = false
+        SetWidth(innerRight - innerLeft + 2 * band)
+        SetHeight(highest - lowest + 2 * BORDER_LIFT)
+        SetDepth(innerFar - innerNear + 2 * band)
+    end
+
+    /*
+        Sets one of the border's corners. Every corner faces up.
+    */
+    private action SetBorderVertex(Number32BitArray vertices, Number32BitArray normals, Number32BitArray tangents, Number32BitArray bitangents, Number32BitArray textureCoordinates, integer vertex, number x, number y, number z)
+        vertices:Set(vertex * 3, x)
+        vertices:Set(vertex * 3 + 1, y)
+        vertices:Set(vertex * 3 + 2, z)
+        normals:Set(vertex * 3, 0)
+        normals:Set(vertex * 3 + 1, 1)
+        normals:Set(vertex * 3 + 2, 0)
+        tangents:Set(vertex * 3, 1)
+        tangents:Set(vertex * 3 + 1, 0)
+        tangents:Set(vertex * 3 + 2, 0)
+        bitangents:Set(vertex * 3, 0)
+        bitangents:Set(vertex * 3 + 1, 0)
+        bitangents:Set(vertex * 3 + 2, 1)
+        textureCoordinates:Set(vertex * 2, 0)
+        textureCoordinates:Set(vertex * 2 + 1, 0)
+    end
+
+    /*
+        Adds two triangles for one quad to the list of indices, and returns
+        where the next ones go.
+    */
+    private action AddBorderQuad(Integer32BitArray indices, integer index, integer a, integer b, integer c, integer d) returns integer
+        indices:Set(index, a)
+        indices:Set(index + 1, b)
+        indices:Set(index + 2, c)
+        indices:Set(index + 3, c)
+        indices:Set(index + 4, b)
+        indices:Set(index + 5, d)
+        return index + 6
     end
 
     /*
@@ -79,10 +276,34 @@ class TerrainSelectionHighlight is SelectionHighlight3D
         told = false
     end
 
+    /*
+        When the terrain stops being selected, its tool is left, so the arrow
+        keys and clicks act on the scene again (step 7).
+    */
+    action LostSelection
+        parent:SelectionHighlight3D:LostSelection()
+        if terrain not= undefined and terrain:HasTool() and GetSceneEditor() not= undefined
+            GetSceneEditor():SetTerrainTool(terrain, 0)
+        end
+    end
+
+    /*
+        Returns true while the terrain's tool is chosen: the move keys then
+        move its brush, and the size keys size it (step 7).
+    */
+    private action BrushInUse returns boolean
+        return terrain not= undefined and terrain:HasTool() and GetSceneEditor() not= undefined
+    end
+
     // A terrain isn't moved, turned or scaled. The Set calls use these
     // Move calls too, so they are covered.
 
     action MoveX(number x)
+        // With a tool chosen, the move keys move the brush (step 7).
+        if BrushInUse()
+            GetSceneEditor():MoveTerrainBrush(terrain, x, 0)
+            return now
+        end
         if placing
             parent:Model:MoveX(x)
         else
@@ -91,6 +312,10 @@ class TerrainSelectionHighlight is SelectionHighlight3D
     end
 
     action MoveY(number y)
+        // A terrain's brush stays on the ground, so up and down don't move it.
+        if BrushInUse()
+            return now
+        end
         if placing
             parent:Model:MoveY(y)
         else
@@ -99,6 +324,11 @@ class TerrainSelectionHighlight is SelectionHighlight3D
     end
 
     action MoveZ(number z)
+        // With a tool chosen, the move keys move the brush (step 7).
+        if BrushInUse()
+            GetSceneEditor():MoveTerrainBrush(terrain, 0, -z)
+            return now
+        end
         if placing
             parent:Model:MoveZ(z)
         else
@@ -107,6 +337,11 @@ class TerrainSelectionHighlight is SelectionHighlight3D
     end
 
     action Move(number x, number y, number z)
+        // With a tool chosen, the move keys move the brush (step 7).
+        if BrushInUse()
+            GetSceneEditor():MoveTerrainBrush(terrain, x, -z)
+            return now
+        end
         if placing
             parent:Model:Move(x, y, z)
         else
@@ -115,6 +350,11 @@ class TerrainSelectionHighlight is SelectionHighlight3D
     end
 
     action Move(Vector3 vector)
+        // With a tool chosen, the move keys move the brush (step 7).
+        if BrushInUse()
+            GetSceneEditor():MoveTerrainBrush(terrain, vector:GetX(), -vector:GetZ())
+            return now
+        end
         if placing
             parent:Model:Move(vector)
         else
@@ -131,10 +371,19 @@ class TerrainSelectionHighlight is SelectionHighlight3D
     end
 
     action Scale(Vector3 vector)
+        // With a tool chosen, the size keys size the brush (step 7).
+        if BrushInUse()
+            GetSceneEditor():ResizeTerrainBrush(terrain, vector:GetX() > 1)
+            return now
+        end
         TellStaysAtOrigin()
     end
 
     action Scale(number x, number y, number z)
+        if BrushInUse()
+            GetSceneEditor():ResizeTerrainBrush(terrain, x > 1)
+            return now
+        end
         TellStaysAtOrigin()
     end
 

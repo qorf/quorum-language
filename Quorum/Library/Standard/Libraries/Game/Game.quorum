@@ -139,6 +139,7 @@ use Libraries.Interface.Events.GestureListener
 use Libraries.Interface.Options.LightModeOptions
 use Libraries.Interface.Events.GestureEvent
 use Libraries.Interface.DefaultInputSets
+use Libraries.Interface.SceneEditorKeys
 use Libraries.Interface.Behaviors.Controls.ChartMovableRegressionDragBehavior
 use Libraries.Interface.Events.ScreenshotListener
 use Libraries.Containers.Support.SortableContainer
@@ -3890,11 +3891,11 @@ if gl20 is OpenGLManager
         end
 
         action CreateGame
-            SetMultisampling(4)
+            SetMultisampling3D(4)
         end
     end
     */
-    action SetMultisampling(integer samples)
+    action SetMultisampling3D(integer samples)
         multisampleCount = samples
         if manager:GetGameGraphics() is VulkanGraphics
             VulkanGraphics vulkan = cast(VulkanGraphics, manager:GetGameGraphics())
@@ -3904,7 +3905,7 @@ if gl20 is OpenGLManager
 
     /*
     This action returns how many samples per pixel MSAA was asked to use (see
-    SetMultisampling).
+    SetMultisampling3D).
 
     Attribute: Returns The count asked for; 1 means MSAA is off.
 
@@ -3917,12 +3918,12 @@ if gl20 is OpenGLManager
         end
 
         action CreateGame
-            SetMultisampling(4)
-            output "MSAA samples: " + GetMultisampling()
+            SetMultisampling3D(4)
+            output "MSAA samples: " + GetMultisampling3D()
         end
     end
     */
-    action GetMultisampling returns integer
+    action GetMultisampling3D returns integer
         return multisampleCount
     end
 
@@ -3933,7 +3934,7 @@ if gl20 is OpenGLManager
     as circles and text, and controls are already smooth, and don't change.
     1 turns it off, which is the default; 4 is the usual choice. It works
     with the Vulkan renderer only; OpenGL ignores it. It is separate from
-    SetMultisampling, which smooths 3D models. It takes effect at the next
+    SetMultisampling3D, which smooths 3D models. It takes effect at the next
     frame.
 
     Attribute: Parameter samples How many samples per pixel: 1 (off), 2, 4 or 8.
@@ -4249,6 +4250,34 @@ if gl20 is OpenGLManager
     */
     action AddInputTable(InputTable table)
         gameInput:AddInputTable(table)
+    end
+
+    /*
+    This action builds the scene editor's input tables again with other
+    keys, replacing the ones the Game made with the default keys. A program
+    that lets people change their keys, such as Quorum Studio, gives it a
+    SceneEditorKeys that returns their keys.
+
+    Attribute: Parameter keys The scene editor's keys.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Interface.SceneEditorKeys
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            SceneEditorKeys keys
+            ReplaceSceneEditorInput(keys)
+        end
+    end
+    */
+    action ReplaceSceneEditorInput(SceneEditorKeys keys)
+        DefaultInputSets sets
+        sets:SetupSceneEditorInput(gameInput, keys)
     end
 
     /*
