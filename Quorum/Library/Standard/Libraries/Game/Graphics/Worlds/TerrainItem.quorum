@@ -243,6 +243,23 @@ class TerrainItem is Item3D
     end
 
     /*
+    This action gives the terrain one layer of its material again, after a
+    map of that layer's Material changed, and makes the region models again
+    (step 14).
+
+    Attribute: Parameter layer The layer, from 0.
+    */
+    action RefreshMaterialLayer(integer layer)
+        if material = undefined
+            return now
+        end
+        material:ReloadLayer(terrain, layer)
+        if terrain:GetData():GetRegionCount() > 0
+            RebuildModels()
+        end
+    end
+
+    /*
     This action loads a terrain material file and gives the ground its look.
 
     Attribute: Parameter file The terrain material file.

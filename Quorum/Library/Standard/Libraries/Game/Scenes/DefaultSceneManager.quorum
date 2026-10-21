@@ -31,6 +31,7 @@ use Libraries.Containers.HashTable
 use Libraries.Game.Audio3D
 use Libraries.Game.Graphics.Worlds.TerrainItem
 use Libraries.Game.Graphics.Worlds.TerrainMaterial
+use Libraries.Game.Graphics.Models.Data.Material
 use Libraries.Game.Graphics.Vulkan.VulkanGraphics
 
 class DefaultSceneManager is SceneManager
@@ -41,6 +42,10 @@ class DefaultSceneManager is SceneManager
     // The terrain materials loaded for the scene being loaded, by full
     // path, so terrains that share one share it (step 9).
     HashTable<text, TerrainMaterial> loadedTerrainMaterials
+
+    // The layer materials loaded for the scene being loaded, by full path,
+    // so layers naming the same material file share it (step 14).
+    HashTable<text, Material> loadedMaterials
 
     // The terrain.json files of the terrains loaded for the scene being
     // loaded, by full path. Two terrains can't share one folder: each would
@@ -55,6 +60,7 @@ class DefaultSceneManager is SceneManager
         Game game = gameState:GetGame()
         SceneProperties properties
         loadedTerrainMaterials:Empty()
+        loadedMaterials:Empty()
         loadedTerrainFiles:Empty()
 
         number version = 1.0
@@ -965,7 +971,7 @@ number restitution = 0
                     terrain:SetMaterial(loadedTerrainMaterials:GetValue(key))
                 else
                     TerrainMaterial material
-                    material:Load(materialFile)
+                    material:Load(materialFile, loadedMaterials)
                     loadedTerrainMaterials:Add(key, material)
                     terrain:SetMaterial(material)
                 end
@@ -1031,6 +1037,17 @@ number restitution = 0
             json:Add(properties:DRAW_RADIUS, terrain:GetDrawRadius())
         end
         return json
+    end
+
+    /*
+    This action returns the layer materials loaded for the scene, by their
+    files' full paths, so a scene editor can share them when it adds a
+    layer from the same file (step 14).
+
+    Attribute: Returns The materials.
+    */
+    action GetLoadedMaterials returns HashTable<text, Material>
+        return loadedMaterials
     end
 
     action Save(Game game) returns Scene

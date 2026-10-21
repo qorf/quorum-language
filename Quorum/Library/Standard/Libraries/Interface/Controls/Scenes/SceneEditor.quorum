@@ -99,6 +99,7 @@ use Libraries.Game.InputMonitor
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Undo.SceneEditorTerrainEdit
 use Libraries.Interface.Undo.SceneEditorTerrainMaterialEdit
+use Libraries.Interface.Undo.SceneEditorMaterialEdit
 use Libraries.Interface.Controls.Scenes.Dialogs.TerrainMaterialsPropertiesDialog
 use Libraries.Game.Graphics.Worlds.TerrainMaterial
 use Libraries.Game.Graphics.Worlds.TerrainData
@@ -216,6 +217,10 @@ class SceneEditor is Control, DefaultSceneManager
     // Makes and changes terrain in bulk: presets, stamps, erosion and auto
     // paint (step 10).
     TerrainGenerator generator
+
+    // What finding a new texture set's maps by name found, said when the
+    // layer is added (step 14).
+    text layerMaterialNote = ""
 
     // A terrain's brush (step 7): the terrain whose tool is chosen, and the
     // ring that shows the brush on its ground. The ring is placed again only
@@ -2217,6 +2222,9 @@ action Update(number seconds)
         else
             message = message + " Paint it with the Paint tool."
         end
+        if layerMaterialNote not= ""
+            message = message + " " + layerMaterialNote
+        end
         TerrainMaterialEdited(terrain, current, message)
     end
 
@@ -2244,7 +2252,11 @@ action Update(number seconds)
         edit:SetChangedLayers(current, before, current:Copy())
         editManager:Add(edit)
         terrain:RefreshMaterial()
-        TerrainMaterialEdited(terrain, current, "Layer " + (layer + 1) + " is now " + material:GetName())
+        text chosenMessage = "Layer " + (layer + 1) + " is now " + material:GetName() + "."
+        if layerMaterialNote not= ""
+            chosenMessage = chosenMessage + " " + layerMaterialNote
+        end
+        TerrainMaterialEdited(terrain, current, chosenMessage)
     end
 
     /*
@@ -2335,6 +2347,343 @@ action Update(number seconds)
     end
 
     /*
+    This action returns a terrain layer's material, or undefined, for the
+    Material details (step 14).
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter layer The layer, from 0
+    Attribute: Returns The layer's Material
+    */
+    action GetTerrainLayerMaterial(EditorTerrain terrain, integer layer) returns Material
+        if terrain = undefined or layer < 0 or layer >= terrain:GetLayerCount()
+            return undefined
+        end
+        return terrain:GetMaterial():GetLayerMaterial(layer)
+    end
+
+    /*
+    This action returns how many layers in the scene's terrains use a
+    material, counting each layer once (step 14).
+
+    Attribute: Parameter material The material
+    Attribute: Returns How many layers use it
+    */
+    action CountLayersUsing(Material material) returns integer
+        if material = undefined
+            return 0
+        end
+        Array<EditorTerrain> terrains = GetEditorTerrains()
+        Array<TerrainMaterial> counted
+        integer count = 0
+        integer i = 0
+        repeat while i < terrains:GetSize()
+            TerrainMaterial terrainMaterial = terrains:Get(i):GetMaterial()
+            if terrainMaterial not= undefined and not counted:Has(terrainMaterial)
+                counted:Add(terrainMaterial)
+                integer layer = 0
+                repeat while layer < terrainMaterial:GetLayerCount()
+                    if terrainMaterial:GetLayerMaterial(layer) = material
+                        count = count + 1
+                    end
+                    layer = layer + 1
+                end
+            end
+            i = i + 1
+        end
+        return count
+    end
+
+    /*
+    This action gives a terrain layer's material a different image for one
+    of its maps (step 14). The image must be the same size as the color map,
+    or it is refused. Choosing a color map for a plain texture makes it a
+    texture set. It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter layer The layer, from 0
+    Attribute: Parameter kind The map, such as Material's NORMAL_MAP
+    Attribute: Parameter chosen The image
+    */
+    action SetTerrainLayerMap(EditorTerrain terrain, integer layer, integer kind, File chosen)
+        Material material = GetTerrainLayerMaterial(terrain, layer)
+        if material = undefined or chosen = undefined or not chosen:Exists()
+            return now
+        end
+        text path = chosen:GetAbsolutePath()
+        text lower = chosen:GetFileName():ToLowerCase()
+        if not (lower:EndsWith(".png") or lower:EndsWith(".jpg") or lower:EndsWith(".jpeg"))
+            NotifyAccessibility(terrain, "A map is an image, a .png or .jpg file.")
+            return now
+        end
+        // Every map in a set must be the size of its color map.
+        text problem = ""
+        if kind = material:COLOR_MAP
+            Material trial = material:Copy()
+            trial:SetMapPath(material:COLOR_MAP, path)
+            integer other = material:NORMAL_MAP
+            repeat while other <= material:HEIGHT_MAP and problem = ""
+                if trial:GetMapPath(other) not= ""
+                    problem = trial:GetMapSizeProblem(trial:GetMapPath(other))
+                end
+                other = other + 1
+            end
+        elseif kind not= material:TEXTURE
+            problem = material:GetMapSizeProblem(path)
+        end
+        if problem not= ""
+            NotifyAccessibility(terrain, problem)
+            return now
+        end
+
+        Material before = material:Copy()
+        if kind = material:COLOR_MAP and not material:UsesTextureSet()
+            // A plain texture becomes a texture set with this color map.
+            material:SetTexturePath("")
+        end
+        material:SetMapPath(kind, path)
+        text message = material:GetMapName(kind) + " is now " + chosen:GetFileName() + "."
+        message = message:GetSubtext(0, 1):ToUpperCase() + message:GetSubtext(1)
+        if not IsInProject(chosen)
+            message = message + " This map is outside the project, so it won't be copied with it."
+        end
+        RecordMaterialChange(material, before, material:GetMapName(kind), true, message)
+    end
+
+    /*
+    This action clears one of a terrain layer's maps (step 14). A texture
+    set's color map, and a plain texture's image, can't be cleared. It can
+    be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter layer The layer, from 0
+    Attribute: Parameter kind The map, such as Material's NORMAL_MAP
+    */
+    action ClearTerrainLayerMap(EditorTerrain terrain, integer layer, integer kind)
+        Material material = GetTerrainLayerMaterial(terrain, layer)
+        if material = undefined or material:GetMapPath(kind) = ""
+            return now
+        end
+        if kind = material:COLOR_MAP
+            NotifyAccessibility(terrain, "A texture set needs its color map. Choose another, or use Make plain.")
+            return now
+        end
+        if kind = material:TEXTURE
+            NotifyAccessibility(terrain, "A plain texture needs its image. Choose another, or remove the layer.")
+            return now
+        end
+        Material before = material:Copy()
+        material:SetMapPath(kind, "")
+        text message = "Cleared the " + material:GetMapName(kind) + "."
+        RecordMaterialChange(material, before, "clear " + material:GetMapName(kind), true, message)
+    end
+
+    /*
+    This action sets whether a terrain layer's normal map uses the DirectX
+    convention, rather than OpenGL's (step 14). It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter layer The layer, from 0
+    Attribute: Parameter directX True for DirectX
+    */
+    action SetTerrainLayerNormalConvention(EditorTerrain terrain, integer layer, boolean directX)
+        Material material = GetTerrainLayerMaterial(terrain, layer)
+        if material = undefined or material:IsNormalMapDirectX() = directX
+            return now
+        end
+        Material before = material:Copy()
+        material:SetNormalMapDirectX(directX)
+        text convention = "OpenGL"
+        if directX
+            convention = "DirectX"
+        end
+        RecordMaterialChange(material, before, "normal map convention", true, "The normal map is now " + convention + ".")
+    end
+
+    /*
+    This action sets a terrain layer's roughness (0) or metallic (1) value,
+    from 0 to 1 (step 14). It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter layer The layer, from 0
+    Attribute: Parameter valueKind 0 for roughness, 1 for metallic
+    Attribute: Parameter value The value, from 0 to 1
+    */
+    action SetTerrainLayerValue(EditorTerrain terrain, integer layer, integer valueKind, number value)
+        Material material = GetTerrainLayerMaterial(terrain, layer)
+        if material = undefined or value < 0 or value > 1
+            return now
+        end
+        Material before = material:Copy()
+        text valueName = "roughness"
+        if valueKind = 0
+            if material:GetRoughness() = value
+                return now
+            end
+            material:SetRoughness(value)
+        else
+            valueName = "metallic"
+            if material:GetMetallic() = value
+                return now
+            end
+            material:SetMetallic(value)
+        end
+        text message = valueName:GetSubtext(0, 1):ToUpperCase() + valueName:GetSubtext(1) + " " + RoundTenth(value) + "."
+        if valueKind = 0 and material:GetRoughnessMapPath() not= ""
+            message = message + " Not used: the roughness map sets it."
+        end
+        RecordMaterialChange(material, before, valueName, true, message)
+    end
+
+    /*
+    This action renames a terrain layer's material (step 14). The layer's
+    name in its terrain material follows. It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter layer The layer, from 0
+    Attribute: Parameter newName The new name
+    */
+    action RenameTerrainLayerMaterial(EditorTerrain terrain, integer layer, text newName)
+        Material material = GetTerrainLayerMaterial(terrain, layer)
+        if material = undefined or newName = "" or newName = material:GetName()
+            return now
+        end
+        Material before = material:Copy()
+        material:SetName(newName)
+        terrain:GetMaterial():SetLayer(layer, newName, material)
+        RecordMaterialChange(material, before, "name", false, "")
+    end
+
+    /*
+    This action fills in a terrain layer's empty maps from its color map's
+    folder, by name, and says what it found (step 14). It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter layer The layer, from 0
+    */
+    action FindTerrainLayerMaps(EditorTerrain terrain, integer layer)
+        Material material = GetTerrainLayerMaterial(terrain, layer)
+        if material = undefined
+            return now
+        end
+        if not material:UsesTextureSet()
+            NotifyAccessibility(terrain, "This is a plain texture. Choose a color map first to make it a texture set.")
+            return now
+        end
+        Material before = material:Copy()
+        File colorMap
+        colorMap:SetPath(material:GetColorMapPath())
+        text found = material:FindTextureSetMaps(colorMap, false)
+        // A map found by name must still be the size of the color map.
+        integer kind = material:NORMAL_MAP
+        repeat while kind <= material:HEIGHT_MAP
+            if material:GetMapPath(kind) not= "" and before:GetMapPath(kind) = ""
+                text problem = material:GetMapSizeProblem(material:GetMapPath(kind))
+                if problem not= ""
+                    material:SetMapPath(kind, "")
+                    found = found + " " + problem + " It was left out."
+                end
+            end
+            kind = kind + 1
+        end
+        RecordMaterialChange(material, before, "find maps", true, found)
+    end
+
+    /*
+    This action makes a terrain layer's texture set a plain texture, with
+    its color map as its one image (step 14). It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter layer The layer, from 0
+    */
+    action MakeTerrainLayerPlain(EditorTerrain terrain, integer layer)
+        Material material = GetTerrainLayerMaterial(terrain, layer)
+        if material = undefined or not material:UsesTextureSet()
+            return now
+        end
+        Material before = material:Copy()
+        material:MakePlain()
+        RecordMaterialChange(material, before, "make plain", true, "Now a plain texture, with its color map.")
+    end
+
+    /*
+    This action is called after a material changed, or the change was
+    undone or redone (step 14): every terrain layer using it is given its
+    new look, each terrain's materials are marked changed for the next
+    save, the Properties panel follows, and the message is said.
+
+    Attribute: Parameter material The material that changed
+    Attribute: Parameter reload True if the layers must be given to the renderer again, false for a name
+    Attribute: Parameter message What happened, or an empty text to say nothing
+    */
+    action MaterialEdited(Material material, boolean reload, text message)
+        if stroking
+            EndTerrainStroke()
+        end
+        Array<EditorTerrain> terrains = GetEditorTerrains()
+        EditorTerrain shown = undefined
+        integer i = 0
+        repeat while i < terrains:GetSize()
+            EditorTerrain terrain = terrains:Get(i)
+            TerrainMaterial terrainMaterial = terrain:GetMaterial()
+            if terrainMaterial not= undefined
+                boolean uses = false
+                integer layer = 0
+                repeat while layer < terrainMaterial:GetLayerCount()
+                    if terrainMaterial:GetLayerMaterial(layer) = material
+                        uses = true
+                        // The layer's name follows the material's.
+                        terrainMaterial:SetLayer(layer, material:GetName(), material)
+                        if reload
+                            terrain:RefreshMaterialLayer(layer)
+                        end
+                    end
+                    layer = layer + 1
+                end
+                if uses
+                    terrain:SetMaterialChanged(true)
+                    shown = terrain
+                end
+            end
+            i = i + 1
+        end
+        previewSize = -1
+        if terrainMaterialsPropertiesDialog:IsShowing()
+            terrainMaterialsPropertiesDialog:Refresh()
+        end
+        if shown not= undefined
+            TerrainBrushChanged(shown)
+            if message not= ""
+                text said = message
+                if reload
+                    said = "Packing the texture set... " + message
+                end
+                NotifyAccessibility(shown, said)
+            end
+        end
+    end
+
+    /*
+    This action adds a material change to the undo list and gives every
+    layer using the material its new look.
+    */
+    private action RecordMaterialChange(Material material, Material before, text name, boolean reload, text message)
+        SceneEditorMaterialEdit edit
+        edit:Create(me, material, before, name, reload)
+        editManager:Add(edit)
+        MaterialEdited(material, reload, message)
+    end
+
+    /*
+    This action returns true if a file is inside the scene's project.
+    */
+    private action IsInProject(File file) returns boolean
+        if projectLocation = undefined
+            return true
+        end
+        return file:GetAbsolutePath():StartsWith(projectLocation:GetAbsolutePath())
+    end
+
+    /*
     This action is called after a terrain's materials changed, or the
     change was undone or redone (step 9). The terrain was given its new
     look already; other terrains sharing the terrain material that changed
@@ -2403,13 +2752,19 @@ action Update(number seconds)
     there already. It returns undefined, and says why, for other files.
     */
     private action MakeTerrainLayerMaterial(EditorTerrain terrain, File chosen) returns Material
+        layerMaterialNote = ""
         if chosen = undefined or not chosen:Exists()
             return undefined
         end
+        HashTable<text, Material> materials = GetLoadedMaterials()
         text fileName = chosen:GetFileName()
         text lower = fileName:ToLowerCase()
-        Material material
         if lower:EndsWith(".json")
+            text jsonKey = chosen:GetAbsolutePath()
+            if materials:HasKey(jsonKey)
+                return materials:GetValue(jsonKey)
+            end
+            Material material
             boolean loaded = true
             check
                 material:Load(chosen)
@@ -2423,45 +2778,62 @@ action Update(number seconds)
             if material:GetName() = ""
                 material:SetName(fileName:GetSubtext(0, fileName:GetSize() - 5))
             end
+            materials:Add(jsonKey, material)
             return material
         end
         if not (lower:EndsWith(".png") or lower:EndsWith(".jpg") or lower:EndsWith(".jpeg"))
-            NotifyAccessibility(terrain, "Choose a material file, or an image: a texture set's color map, such as Ground037_1K-PNG_Color.png, or a plain texture.")
+            NotifyAccessibility(terrain, "Choose a material file, or an image: a texture set's color map, such as Ground037_1K-PNG_Color.png or rock_wall_diff_1k.png, or a plain texture.")
             return undefined
         end
 
+        // An image with a color ending, such as _Color or _diff, is a texture
+        // set, and its other maps are found by name (step 14). Others are
+        // plain textures.
+        Material made
         text folder = chosen:GetParentDirectory():GetAbsolutePath()
-        text materialName = ""
-        text colorEnding = "_Color.png"
-        if fileName:EndsWith(colorEnding)
-            text setName = fileName:GetSubtext(0, fileName:GetSize() - colorEnding:GetSize())
-            material:SetTextureSet(folder, setName)
-            material:SetTextureScale(3)
-            materialName = setName
-            integer underscore = setName:IndexOf("_")
-            if underscore > 0
-                materialName = setName:GetSubtext(0, underscore)
+        text materialName = made:GetSetName(fileName)
+        if made:IsColorMapName(fileName)
+            layerMaterialNote = made:FindTextureSetMaps(chosen, true)
+            made:SetTextureScale(3)
+            // AmbientCG's sets end in a size and format, such as _1K-PNG,
+            // which the material's name leaves out.
+            text lowerName = materialName:ToLowerCase()
+            if lowerName:EndsWith("-png") or lowerName:EndsWith("-jpg")
+                integer last = -1
+                integer i = 0
+                repeat while i < materialName:GetSize()
+                    if materialName:GetSubtext(i, i + 1) = "_"
+                        last = i
+                    end
+                    i = i + 1
+                end
+                if last > 0
+                    materialName = materialName:GetSubtext(0, last)
+                end
             end
         else
-            material:SetTexturePath(chosen:GetAbsolutePath())
-            material:SetTextureScale(4)
-            integer dot = fileName:GetSize() - 4
-            if lower:EndsWith(".jpeg")
-                dot = fileName:GetSize() - 5
-            end
-            materialName = fileName:GetSubtext(0, dot)
+            made:SetTexturePath(chosen:GetAbsolutePath())
+            made:SetTextureScale(4)
         end
-        material:SetName(materialName)
+        made:SetName(materialName)
 
         File materialFile
         materialFile:SetPath(folder + "/" + materialName + ".json")
+        text key = materialFile:GetAbsolutePath()
+        if materials:HasKey(key)
+            layerMaterialNote = ""
+            return materials:GetValue(key)
+        end
         if materialFile:Exists()
             Material existing
             existing:Load(materialFile)
+            materials:Add(key, existing)
+            layerMaterialNote = ""
             return existing
         end
-        material:Save(materialFile)
-        return material
+        made:Save(materialFile)
+        materials:Add(key, made)
+        return made
     end
 
     /*

@@ -5,6 +5,7 @@ use Libraries.System.File
 use Libraries.Data.Formats.JavaScriptObjectNotation
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
+use Libraries.Game.Graphics.PixelMap
 
 /*
 The Material class holds how a surface looks: a texture, or a texture set
@@ -46,6 +47,15 @@ file:SetPath("Textures/Rocks002_1K-PNG/Rocks002.json")
 rock:Save(file)
 */
 class Material
+    // The maps a material can have, for GetMapPath and SetMapPath (step 14).
+    // TEXTURE is a plain texture's one image; the others are a texture set's.
+    public constant integer COLOR_MAP = 0
+    public constant integer NORMAL_MAP = 1
+    public constant integer ROUGHNESS_MAP = 2
+    public constant integer AMBIENT_OCCLUSION_MAP = 3
+    public constant integer HEIGHT_MAP = 4
+    public constant integer TEXTURE = 5
+
     text texturePath = ""
     text normalMapPath = ""
     text metalRoughMap = ""
@@ -291,10 +301,11 @@ class Material
 
     /*
     This action fills in a texture set from a folder of maps named the way
-    AmbientCG and Poly Haven name them: name_Color.png, name_NormalGL.png
-    (or name_NormalDX.png), name_Roughness.png, name_AmbientOcclusion.png
-    and name_Displacement.png. Maps that aren't there are left out. The
-    color map must be there.
+    AmbientCG names them: name_Color.png, name_NormalGL.png (or
+    name_NormalDX.png), name_Roughness.png, name_AmbientOcclusion.png and
+    name_Displacement.png. Maps that aren't there are left out. The color
+    map must be there. For other naming, such as Poly Haven's, use
+    FindTextureSetMaps.
 
     Attribute: Parameter folder The folder holding the maps.
     Attribute: Parameter name The start of the maps' file names, such as "Rocks002_1K-PNG".
@@ -619,6 +630,392 @@ class Material
         list:Add(color:GetZ())
         list:Add(color:GetW())
         json:Add(key, list)
+    end
+
+    /*
+    This action returns a map's path, by its kind (step 14).
+
+    Attribute: Parameter kind COLOR_MAP, NORMAL_MAP, ROUGHNESS_MAP, AMBIENT_OCCLUSION_MAP, HEIGHT_MAP or TEXTURE.
+    Attribute: Returns The path, or "" for none.
+    */
+    action GetMapPath(integer kind) returns text
+        if kind = COLOR_MAP
+            return colorMapPath
+        elseif kind = NORMAL_MAP
+            return normalMapPath
+        elseif kind = ROUGHNESS_MAP
+            return roughnessMapPath
+        elseif kind = AMBIENT_OCCLUSION_MAP
+            return ambientOcclusionMapPath
+        elseif kind = HEIGHT_MAP
+            return heightMapPath
+        end
+        return texturePath
+    end
+
+    /*
+    This action sets a map's path, by its kind (step 14). "" clears it.
+
+    Attribute: Parameter kind COLOR_MAP, NORMAL_MAP, ROUGHNESS_MAP, AMBIENT_OCCLUSION_MAP, HEIGHT_MAP or TEXTURE.
+    Attribute: Parameter path The path, or "" for none.
+    */
+    action SetMapPath(integer kind, text path)
+        if kind = COLOR_MAP
+            colorMapPath = path
+        elseif kind = NORMAL_MAP
+            normalMapPath = path
+        elseif kind = ROUGHNESS_MAP
+            roughnessMapPath = path
+        elseif kind = AMBIENT_OCCLUSION_MAP
+            ambientOcclusionMapPath = path
+        elseif kind = HEIGHT_MAP
+            heightMapPath = path
+        else
+            texturePath = path
+        end
+    end
+
+    /*
+    This action returns a map kind's name for speaking, such as "normal
+    map".
+
+    Attribute: Parameter kind The map's kind.
+    Attribute: Returns The name.
+    */
+    action GetMapName(integer kind) returns text
+        if kind = COLOR_MAP
+            return "color map"
+        elseif kind = NORMAL_MAP
+            return "normal map"
+        elseif kind = ROUGHNESS_MAP
+            return "roughness map"
+        elseif kind = AMBIENT_OCCLUSION_MAP
+            return "ambient occlusion map"
+        elseif kind = HEIGHT_MAP
+            return "height map"
+        end
+        return "texture"
+    end
+
+    /*
+    This action returns a copy of the material: every map, value, its name
+    and its file. Undo keeps copies like this.
+
+    Attribute: Returns The copy.
+    */
+    action Copy returns Material
+        Material copy
+        copy:CopyFrom(me)
+        return copy
+    end
+
+    /*
+    This action makes this material the same as another: every map, value,
+    its name and its file.
+
+    Attribute: Parameter other The material to copy.
+    */
+    action CopyFrom(Material other)
+        texturePath = other:GetTexturePath()
+        normalMapPath = other:GetNormalMapPath()
+        metalRoughMap = other:GetMetalRoughMap()
+        diffuse:Set(other:GetDiffuse())
+        emissive:Set(other:GetEmissive())
+        roughness = other:GetRoughness()
+        metallic = other:GetMetallic()
+        bumpShading = other:GetBumpShading()
+        opaque = other:GetOpaque()
+        refractiveIndex = other:GetRefractiveIndex()
+        colorMapPath = other:GetColorMapPath()
+        roughnessMapPath = other:GetRoughnessMapPath()
+        ambientOcclusionMapPath = other:GetAmbientOcclusionMapPath()
+        heightMapPath = other:GetHeightMapPath()
+        normalMapIsDirectX = other:IsNormalMapDirectX()
+        textureScale = other:GetTextureScale()
+        name = other:GetName()
+        file = other:GetFile()
+    end
+
+    /*
+    This action makes a texture set a plain texture: its color map becomes
+    its one texture, and its other maps are cleared (step 14).
+    */
+    action MakePlain
+        if colorMapPath = ""
+            return now
+        end
+        texturePath = colorMapPath
+        colorMapPath = ""
+        normalMapPath = ""
+        roughnessMapPath = ""
+        ambientOcclusionMapPath = ""
+        heightMapPath = ""
+    end
+
+    /*
+    This action returns true if an image's file name looks like a texture
+    set's color map, by the naming patterns FindTextureSetMaps knows, such
+    as Ground037_1K-PNG_Color.png or rock_wall_diff_1k.png.
+
+    Attribute: Parameter fileName The image's file name.
+    Attribute: Returns True if it looks like a color map.
+    */
+    action IsColorMapName(text fileName) returns boolean
+        return GetColorTokenPlace(fileName:ToLowerCase()) >= 0
+    end
+
+    /*
+    This action returns the start of a texture set's map names, from its
+    color map's file name, such as "Ground037_1K-PNG" from
+    Ground037_1K-PNG_Color.png, or "rock_wall" from rock_wall_diff_1k.png.
+
+    Attribute: Parameter fileName The color map's file name.
+    Attribute: Returns The start, or the name without its extension if it isn't a color map.
+    */
+    action GetSetName(text fileName) returns text
+        text lower = fileName:ToLowerCase()
+        integer place = GetColorTokenPlace(lower)
+        if place < 0
+            integer dot = fileName:GetSize()
+            integer i = 0
+            repeat while i < fileName:GetSize()
+                if fileName:GetSubtext(i, i + 1) = "."
+                    dot = i
+                end
+                i = i + 1
+            end
+            return fileName:GetSubtext(0, dot)
+        end
+        return fileName:GetSubtext(0, place)
+    end
+
+    /*
+    This action fills in a texture set's maps from its color map's folder,
+    by name (step 14). It knows these endings, ignoring case, after the
+    name's start and before any size such as _1k, then .png or .jpg:
+    - color: _Color (AmbientCG), _diff (Poly Haven), _albedo, _basecolor,
+      _base_color, _diffuse;
+    - normal: _NormalGL, _nor_gl, _normal_gl, _normal (OpenGL); _NormalDX,
+      _nor_dx, _normal_dx (DirectX);
+    - roughness: _Roughness, _rough;
+    - ambient occlusion: _AmbientOcclusion, _ao, _occlusion;
+    - height: _Displacement, _disp, _height.
+    The color map is set to the file given. Other maps are only filled where
+    the material has none, unless replace is true.
+
+    Attribute: Parameter colorMap The texture set's color map.
+    Attribute: Parameter replace True to replace maps the material has already.
+    Attribute: Returns What was found, for showing or speaking, such as "Found normal and roughness maps. No ambient occlusion or height map found."
+    */
+    action FindTextureSetMaps(File colorMap, boolean replace) returns text
+        colorMapPath = colorMap:GetAbsolutePath()
+        texturePath = ""
+        text lower = colorMap:GetFileName():ToLowerCase()
+        integer place = GetColorTokenPlace(lower)
+        if place < 0
+            return "The color map's name has no color ending, such as _Color or _diff, so no other maps were looked for."
+        end
+        text stem = lower:GetSubtext(0, place)
+        text tail = GetTail(lower, place)
+
+        Array<File> listing = colorMap:GetParentDirectory():GetDirectoryListing()
+        Array<text> found
+        Array<text> missing
+        FindMap(listing, stem, tail, NORMAL_MAP, replace, found, missing)
+        FindMap(listing, stem, tail, ROUGHNESS_MAP, replace, found, missing)
+        FindMap(listing, stem, tail, AMBIENT_OCCLUSION_MAP, replace, found, missing)
+        FindMap(listing, stem, tail, HEIGHT_MAP, replace, found, missing)
+
+        text result = ""
+        if found:GetSize() > 0
+            result = "Found " + JoinNames(found, "and") + "."
+        end
+        if missing:GetSize() > 0
+            if result not= ""
+                result = result + " "
+            end
+            result = result + "No " + JoinNames(missing, "or") + " found."
+        end
+        return result
+    end
+
+    /*
+    This action looks for one kind of map among a folder's files, and fills
+    it in if it is found and the material has none, or replace is true.
+    */
+    private action FindMap(Array<File> listing, text stem, text tail, integer kind, boolean replace,
+            Array<text> found, Array<text> missing)
+        if GetMapPath(kind) not= "" and not replace
+            found:Add(GetMapName(kind))
+            return now
+        end
+        Array<text> tokens = GetMapTokens(kind)
+        integer t = 0
+        repeat while t < tokens:GetSize()
+            integer i = 0
+            repeat while i < listing:GetSize()
+                File candidate = listing:Get(i)
+                text candidateName = candidate:GetFileName():ToLowerCase()
+                text start = stem + tokens:Get(t) + tail
+                if candidateName = start + ".png" or candidateName = start + ".jpg"
+                    SetMapPath(kind, candidate:GetAbsolutePath())
+                    if kind = NORMAL_MAP
+                        normalMapIsDirectX = tokens:Get(t):Contains("dx")
+                    end
+                    found:Add(GetMapName(kind))
+                    return now
+                end
+                i = i + 1
+            end
+            t = t + 1
+        end
+        missing:Add(GetMapName(kind))
+    end
+
+    /*
+    This action returns the name endings for one kind of map, in lower case,
+    most exact first.
+    */
+    private action GetMapTokens(integer kind) returns Array<text>
+        Array<text> tokens
+        if kind = NORMAL_MAP
+            tokens:Add("_normalgl")
+            tokens:Add("_nor_gl")
+            tokens:Add("_normal_gl")
+            tokens:Add("_normaldx")
+            tokens:Add("_nor_dx")
+            tokens:Add("_normal_dx")
+            tokens:Add("_normal")
+        elseif kind = ROUGHNESS_MAP
+            tokens:Add("_roughness")
+            tokens:Add("_rough")
+        elseif kind = AMBIENT_OCCLUSION_MAP
+            tokens:Add("_ambientocclusion")
+            tokens:Add("_ao")
+            tokens:Add("_occlusion")
+        elseif kind = HEIGHT_MAP
+            tokens:Add("_displacement")
+            tokens:Add("_disp")
+            tokens:Add("_height")
+        else
+            tokens:Add("_base_color")
+            tokens:Add("_basecolor")
+            tokens:Add("_diffuse")
+            tokens:Add("_albedo")
+            tokens:Add("_color")
+            tokens:Add("_diff")
+        end
+        return tokens
+    end
+
+    /*
+    This action returns where a color ending starts in a lower case file
+    name, or -1 if it has none.
+    */
+    private action GetColorTokenPlace(text lower) returns integer
+        Array<text> tokens = GetMapTokens(COLOR_MAP)
+        integer t = 0
+        repeat while t < tokens:GetSize()
+            text token = tokens:Get(t)
+            integer place = lower:IndexOf(token)
+            if place > 0
+                // The ending must be followed by the extension, or by a size
+                // such as _1k.
+                text after = lower:GetSubtext(place + token:GetSize())
+                if after:StartsWith(".") or after:StartsWith("_")
+                    return place
+                end
+            end
+            t = t + 1
+        end
+        return -1
+    end
+
+    /*
+    This action returns what comes after a color ending and before the
+    extension, such as "_1k", or "".
+    */
+    private action GetTail(text lower, integer place) returns text
+        Array<text> tokens = GetMapTokens(COLOR_MAP)
+        integer t = 0
+        repeat while t < tokens:GetSize()
+            text token = tokens:Get(t)
+            if lower:IndexOf(token) = place
+                text after = lower:GetSubtext(place + token:GetSize())
+                integer dot = after:IndexOf(".")
+                if dot >= 0
+                    return after:GetSubtext(0, dot)
+                end
+                return after
+            end
+            t = t + 1
+        end
+        return ""
+    end
+
+    /*
+    This action joins names for speaking, such as "normal and roughness
+    maps".
+    */
+    private action JoinNames(Array<text> names, text joiner) returns text
+        text result = ""
+        integer i = 0
+        repeat while i < names:GetSize()
+            text item = names:Get(i)
+            // "normal map" becomes "normal", and "maps" is said once at the end.
+            if item:EndsWith(" map")
+                item = item:GetSubtext(0, item:GetSize() - 4)
+            end
+            if i > 0
+                if i = names:GetSize() - 1
+                    result = result + " " + joiner + " "
+                else
+                    result = result + ", "
+                end
+            end
+            result = result + item
+            i = i + 1
+        end
+        if names:GetSize() > 1
+            return result + " maps"
+        end
+        return result + " map"
+    end
+
+    /*
+    This action checks that an image is the same size as the texture set's
+    color map, as every map in a set must be (step 14). It loads both
+    images, so it takes a moment for large ones.
+
+    Attribute: Parameter path The image's path.
+    Attribute: Returns The problem, such as "Rocks002_Roughness.png is 2048 by 2048, but the color map is 1024 by 1024. Maps in a set must be the same size.", or "" if there is none.
+    */
+    action GetMapSizeProblem(text path) returns text
+        if colorMapPath = "" or path = colorMapPath
+            return ""
+        end
+        File mapFile
+        mapFile:SetPath(path)
+        File colorFile
+        colorFile:SetPath(colorMapPath)
+        if not mapFile:Exists() or not colorFile:Exists()
+            return ""
+        end
+        PixelMap image
+        image:LoadPixelMap(mapFile)
+        PixelMap color
+        color:LoadPixelMap(colorFile)
+        integer width = image:GetWidth()
+        integer height = image:GetHeight()
+        integer colorWidth = color:GetWidth()
+        integer colorHeight = color:GetHeight()
+        image:Dispose()
+        color:Dispose()
+        if width = colorWidth and height = colorHeight
+            return ""
+        end
+        return mapFile:GetFileName() + " is " + width + " by " + height + ", but the color map is " + colorWidth + " by " +
+            colorHeight + ". Maps in a set must be the same size."
     end
 
     /*

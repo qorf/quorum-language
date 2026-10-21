@@ -225,6 +225,22 @@ class TerrainMaterial
     Attribute: Parameter file The terrain material file, a .json file whose "Format" is "Quorum Terrain Material".
     */
     action Load(File file)
+        HashTable<text, Material> materials
+        Load(file, materials)
+    end
+
+    /*
+    This action reads a terrain material file, sharing layer materials
+    already loaded: a material file whose full path is in the table is
+    used from there, and others are loaded and added to it (step 14). A
+    scene loads its terrain materials with one table, so terrains naming
+    the same material file share one Material, and changing it changes it
+    everywhere.
+
+    Attribute: Parameter file The terrain material file.
+    Attribute: Parameter materials The materials loaded so far, by their files' full paths.
+    */
+    action Load(File file, HashTable<text, Material> materials)
         if not file:Exists()
             alert("I couldn't find the terrain material file " + file:GetAbsolutePath() + ".")
         end
@@ -256,7 +272,7 @@ class TerrainMaterial
         end
         integer i = 0
         repeat while i < list:GetSize() and i < 4
-            LoadLayer(list:Get(i), folder)
+            LoadLayer(list:Get(i), folder, materials)
             i = i + 1
         end
     end
@@ -264,7 +280,7 @@ class TerrainMaterial
     /*
     This action reads one layer of a terrain material file.
     */
-    private action LoadLayer(JavaScriptObjectNotation item, text folder)
+    private action LoadLayer(JavaScriptObjectNotation item, text folder, HashTable<text, Material> materials)
         text layerName = ""
         if item:HasValue("Name")
             layerName = item:GetValue("Name")
@@ -274,8 +290,12 @@ class TerrainMaterial
             File materialFile
             materialFile:SetWorkingDirectory(folder)
             materialFile:SetPath(item:GetValue("Material"))
-            if materialFile:Exists()
+            text key = materialFile:GetAbsolutePath()
+            if materials:HasKey(key)
+                material = materials:GetValue(key)
+            elseif materialFile:Exists()
                 material:Load(materialFile)
+                materials:Add(key, material)
             else
                 output "The material " + materialFile:GetAbsolutePath() + " wasn't found, so layer " + (layerMaterials:GetSize() + 1) + " is empty."
             end
@@ -432,6 +452,29 @@ class TerrainMaterial
             end
             terrain:SetSplatProgram(program)
         end
+    end
+
+    /*
+    This action gives a WorldTerrain one layer again, after a map of the
+    layer's Material changed (step 14): ApplyTo only notices a layer whose
+    Material is a different object. The set is packed again, unless the
+    renderer already has one with the same maps. The terrain's region models
+    must be made again afterward, as TerrainItem's RefreshMaterial does.
+
+    Attribute: Parameter terrain The terrain.
+    Attribute: Parameter layer The layer, from 0.
+    */
+    action ReloadLayer(WorldTerrain terrain, integer layer)
+        if layer < 0 or layer >= layerMaterials:GetSize()
+            return now
+        end
+        Material material = layerMaterials:Get(layer)
+        if material:UsesTextureSet()
+            terrain:SetLayerMaterial(layer, material)
+        elseif terrain:GetLayerMaterial(layer) not= undefined
+            terrain:SetLayerMaterial(layer, undefined)
+        end
+        ApplyTo(terrain)
     end
 
     /*
