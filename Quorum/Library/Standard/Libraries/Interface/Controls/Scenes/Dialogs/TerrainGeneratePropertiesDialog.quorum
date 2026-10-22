@@ -1,7 +1,6 @@
 package Libraries.Interface.Controls.Scenes.Dialogs
 
 use Libraries.Containers.Array
-use Libraries.Compute.Random
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.Button
 use Libraries.Interface.Controls.Checkbox
@@ -14,6 +13,7 @@ use Libraries.Interface.Item
 use Libraries.Interface.Events.SelectionEvent
 use Libraries.Interface.Events.TextChangeEvent
 use Libraries.Interface.Selections.SceneEditorSelection
+use Libraries.Interface.Selections.ButtonGroupSelection
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Controls.Scenes.Items.EditorItem
 use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
@@ -26,9 +26,11 @@ use Libraries.Game.Graphics.Worlds.TerrainGenerator
     section (step 10). For the whole terrain, it remakes the ground with a
     preset (rolling hills, mountains, plateaus, canyons or flat), a seed and
     a height, and can auto paint it; it also erodes or auto paints the
-    whole terrain. At the brush, placed with any tool from the Brush
-    section, it presses a stamp (a hill, mountain, mesa, crater or ridge, as
-    big as the brush), erodes, or auto paints. Each can be undone.
+    whole terrain. It also holds the Stamp tool's settings: the shape (a
+    hill, mountain, mesa, crater or ridge), how it meets the ground, its
+    height and its turn. The Stamp, Erode and Auto paint tools themselves
+    are in the Brush section, and act where the brush is clicked. Each can
+    be undone.
 
     Auto paint needs two or more materials (step 9): layer 1 goes on flat
     ground, layer 2 on slopes, layer 3 in hollows and layer 4 low down.
@@ -39,12 +41,16 @@ use Libraries.Game.Graphics.Worlds.TerrainGenerator
 class TerrainGeneratePropertiesDialog is PropertiesDialog
     // What a button does.
     public constant integer GENERATE = 0
-    public constant integer NEW_SEED = 1
     public constant integer ERODE_ALL = 2
     public constant integer AUTO_PAINT_ALL = 3
-    public constant integer STAMP = 4
-    public constant integer ERODE_HERE = 5
-    public constant integer AUTO_PAINT_HERE = 6
+
+    // How wide the fields' labels are, in pixels before the interface
+    // scale, so the fields line up, as in the other terrain sections.
+    constant number FIELD_LABEL_WIDTH = 110
+
+    // True while the stamp settings are being shown, so showing them isn't
+    // taken as the user choosing.
+    boolean updating = false
 
     ButtonGroup presetGroup = undefined
     TextField seedField = undefined
@@ -56,7 +62,6 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
     TextField turnField = undefined
 
     TerrainGenerator names
-    Random random
 
     // The terrain whose tools are shown, or undefined.
     EditorTerrain terrain = undefined
@@ -78,7 +83,7 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
         presetGroup = MakeGroup(presets, "Preset")
         integer preset = 0
         repeat while preset < names:GetPresetCount()
-            AddRadio(presetGroup, Capitalize(names:GetPresetName(preset)))
+            AddRadio(presetGroup, Capitalize(names:GetPresetName(preset)), "")
             preset = preset + 1
         end
         presetGroup:GetButtonAt(0):SetToggleState(true)
@@ -86,7 +91,6 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
 
         Control seedLine = MakeLine()
         seedField = AddField(seedLine, "Seed:", "Seed", "7", focusArray)
-        Button newSeed = AddButton(seedLine, "New seed", "Pick a seed at random", NEW_SEED, focusArray)
         panel:Add(seedLine)
 
         Control heightLine = MakeLine()
@@ -105,11 +109,9 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
         Button generate = AddButton(wholeLine, "Generate", "Remake the whole terrain's ground with the preset", GENERATE, focusArray)
         panel:Add(wholeLine)
         Control wholeLine2 = MakeLine()
-        Button erodeAll = AddButton(wholeLine2, "Erode whole terrain", "Wear the whole ground as rain would", ERODE_ALL, focusArray)
-        Button paintAll = AddButton(wholeLine2, "Auto paint whole terrain", "Paint the layers by height and slope", AUTO_PAINT_ALL, focusArray)
+        Button erodeAll = AddButton(wholeLine2, "Erode All", "Wear the whole ground as rain would", ERODE_ALL, focusArray)
+        Button paintAll = AddButton(wholeLine2, "Auto paint All", "Paint the layers by height and slope", AUTO_PAINT_ALL, focusArray)
         panel:Add(wholeLine2)
-
-        AddHeading(panel, "At the brush", 16)
 
         Control stampLine = MakeLine()
         Label stampLabel
@@ -120,10 +122,11 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
         stampGroup = MakeGroup(stamps, "Stamp")
         integer stamp = 0
         repeat while stamp < names:GetStampCount()
-            AddRadio(stampGroup, Capitalize(names:GetStampName(stamp)))
+            AddRadio(stampGroup, Capitalize(names:GetStampName(stamp)), "")
             stamp = stamp + 1
         end
         stampGroup:GetButtonAt(0):SetToggleState(true)
+        stampGroup:AddSelectionListener(me)
         AddGroup(panel, stampGroup, focusArray)
 
         Control modeLine = MakeLine()
@@ -133,11 +136,12 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
         panel:Add(modeLine)
         ButtonGroup modes
         modeGroup = MakeGroup(modes, "Stamp mode")
-        AddRadio(modeGroup, "Usual for the shape")
-        AddRadio(modeGroup, "Add")
-        AddRadio(modeGroup, "Subtract")
-        AddRadio(modeGroup, "Raise to the shape")
+        AddRadio(modeGroup, "Usual", "The usual way for the shape: craters add, the others raise to the shape")
+        AddRadio(modeGroup, "Add", "Add the shape to the ground")
+        AddRadio(modeGroup, "Subtract", "Subtract the shape from the ground")
+        AddRadio(modeGroup, "Raise to", "Raise the ground to the shape, leaving higher ground as it is")
         modeGroup:GetButtonAt(0):SetToggleState(true)
+        modeGroup:AddSelectionListener(me)
         AddGroup(panel, modeGroup, focusArray)
 
         Control stampHeightLine = MakeLine()
@@ -146,14 +150,9 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
         Control turnLine = MakeLine()
         turnField = AddField(turnLine, "Turn:", "Stamp turn in degrees", "0", focusArray)
         panel:Add(turnLine)
-
-        Control hereLine = MakeLine()
-        Button stampHere = AddButton(hereLine, "Stamp here", "Press the stamp into the ground at the brush", STAMP, focusArray)
-        Button erodeHere = AddButton(hereLine, "Erode here", "Wear the ground under the brush", ERODE_HERE, focusArray)
-        panel:Add(hereLine)
-        Control hereLine2 = MakeLine()
-        Button paintHere = AddButton(hereLine2, "Auto paint here", "Paint the layers under the brush by height and slope", AUTO_PAINT_HERE, focusArray)
-        panel:Add(hereLine2)
+        // The Stamp tool reads these as they change (Brush section).
+        stampHeightField:AddTextChangeListener(me)
+        turnField:AddTextChangeListener(me)
     end
 
     /*
@@ -199,12 +198,17 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
     end
 
     /*
-        Adds a radio button to a group.
+        Adds a radio button to a group. A radio button is one line tall, so
+        its name is kept short: a longer one wraps over the next button. The
+        description, if not empty, says it in full.
     */
-    private action AddRadio(ButtonGroup group, text name)
+    private action AddRadio(ButtonGroup group, text name, text description)
         Control layoutValues
         RadioButton button
         button:SetName(name)
+        if description not= ""
+            button:SetDescription(description)
+        end
         button:SetHorizontalLayoutMode(layoutValues:FILL)
         group:AddToGrouping(button)
         group:Add(button)
@@ -224,10 +228,18 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
         Adds a labelled field to a line.
     */
     private action AddField(Control line, text label, text name, text value, Array<Control> focusArray) returns TextField
+        // The label sits in a box of one width, so the fields line up.
+        FlowLayout labelLayout
+        Control labelBox
+        labelBox:SetLayout(labelLayout)
+        labelBox:SetPercentageWidth(0)
+        labelBox:SetPixelWidth(FIELD_LABEL_WIDTH)
+        labelBox:SetVerticalLayoutMode(labelBox:FIT_CONTENTS)
+        labelBox:SetRightMargin(10)
         Label fieldLabel
         fieldLabel:SetText(label)
-        fieldLabel:SetRightMargin(10)
-        line:Add(fieldLabel)
+        labelBox:Add(fieldLabel)
+        line:Add(labelBox)
         TextField field
         field:SetName(name)
         field:SetText(value)
@@ -270,6 +282,12 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
         otherwise.
     */
     action SelectionChanged(SelectionEvent event)
+        if event:GetSelection() is ButtonGroupSelection
+            if not updating and terrain not= undefined
+                TakeStampSettings()
+            end
+            return now
+        end
         if not (event:GetSelection() is SceneEditorSelection)
             return now
         end
@@ -283,6 +301,7 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
         if selectedItem is TerrainSelectionHighlight
             TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, selectedItem)
             terrain = highlight:GetEditorTerrain()
+            ShowStampSettings()
             if not IsShowing()
                 Show()
             end
@@ -301,13 +320,66 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
         if item is TerrainSelectionHighlight
             TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, item)
             terrain = highlight:GetEditorTerrain()
+            ShowStampSettings()
         end
     end
 
     /*
-        The fields are read when a button is pressed, so typing does nothing.
+        The Stamp tool's height and turn are taken as they are typed. The
+        Generate fields are read when Generate is pressed.
     */
     action TextChanged(TextChangeEvent event)
+        if not updating and terrain not= undefined
+            TakeStampSettings()
+        end
+    end
+
+    /*
+        Gives the terrain's Stamp tool the shape, mode, height and turn
+        chosen here. A field that doesn't hold a number yet leaves its value
+        as it was.
+    */
+    private action TakeStampSettings
+        terrain:SetStampShape(GetChoice(stampGroup))
+        integer modeChoice = GetChoice(modeGroup)
+        if modeChoice = 0
+            terrain:SetStampMode(-1)
+        elseif modeChoice = 1
+            terrain:SetStampMode(names:STAMP_ADD)
+        elseif modeChoice = 2
+            terrain:SetStampMode(names:STAMP_SUBTRACT)
+        else
+            terrain:SetStampMode(names:STAMP_RAISE)
+        end
+        terrain:SetStampHeight(ReadNumber(stampHeightField, terrain:GetStampHeight()))
+        terrain:SetStampTurn(ReadNumber(turnField, terrain:GetStampTurn()))
+    end
+
+    /*
+        Shows the terrain's Stamp tool settings.
+    */
+    private action ShowStampSettings
+        if terrain = undefined
+            return now
+        end
+        updating = true
+        integer shape = terrain:GetStampShape()
+        if shape >= 0 and shape < stampGroup:GetSize()
+            stampGroup:GetButtonAt(shape):SetToggleState(true)
+        end
+        integer mode = terrain:GetStampMode()
+        integer modeChoice = 0
+        if mode = names:STAMP_ADD
+            modeChoice = 1
+        elseif mode = names:STAMP_SUBTRACT
+            modeChoice = 2
+        elseif mode = names:STAMP_RAISE
+            modeChoice = 3
+        end
+        modeGroup:GetButtonAt(modeChoice):SetToggleState(true)
+        stampHeightField:SetText("" + terrain:GetStampHeight())
+        turnField:SetText("" + terrain:GetStampTurn())
+        updating = false
     end
 
     /*
@@ -320,12 +392,7 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
         if terrain = undefined or editor = undefined
             return now
         end
-        TerrainGenerator generator = editor:GetTerrainGenerator()
-        if kind = NEW_SEED
-            integer pickedSeed = random:RandomIntegerBetween(1, 99999)
-            seedField:SetText("" + pickedSeed)
-            editor:NotifyAccessibility(terrain, "Seed " + pickedSeed)
-        elseif kind = GENERATE
+        if kind = GENERATE
             number seedValue = ReadNumber(seedField, 7)
             number heightValue = ReadNumber(heightField, 32)
             if heightValue < 0
@@ -336,22 +403,6 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
             editor:ErodeTerrain(terrain)
         elseif kind = AUTO_PAINT_ALL
             editor:AutoPaintTerrain(terrain)
-        elseif kind = STAMP
-            integer stampChoice = GetChoice(stampGroup)
-            integer modeChoice = GetChoice(modeGroup)
-            integer mode = generator:GetStampMode(stampChoice)
-            if modeChoice = 1
-                mode = generator:STAMP_ADD
-            elseif modeChoice = 2
-                mode = generator:STAMP_SUBTRACT
-            elseif modeChoice = 3
-                mode = generator:STAMP_RAISE
-            end
-            editor:StampTerrain(terrain, stampChoice, mode, ReadNumber(stampHeightField, 15), ReadNumber(turnField, 0))
-        elseif kind = ERODE_HERE
-            editor:ErodeTerrainAtBrush(terrain)
-        elseif kind = AUTO_PAINT_HERE
-            editor:AutoPaintTerrainAtBrush(terrain)
         end
     end
 

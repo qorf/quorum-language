@@ -46,6 +46,12 @@ class EditorTerrain is TerrainItem
     TerrainTool tools
     constant number DEFAULT_STRENGTH = 2.5
 
+    // The scene editor's own tools, after the in-game editor's nine.
+    public constant integer STAMP_TOOL = 10
+    public constant integer ERODE_TOOL = 11
+    public constant integer AUTO_PAINT_TOOL = 12
+    public constant integer LAST_TOOL = 12
+
     // The ramp tool's two ends (step 8): set at the brush, each with the
     // ground's height there. The brush gets the ramp once both are set.
     boolean rampStartSet = false
@@ -57,6 +63,16 @@ class EditorTerrain is TerrainItem
     number rampEndZ = 0
     number rampEndHeight = 0
     integer toolNumber = 0
+
+    // The Stamp tool's settings (step 10), set in the Generate section: its
+    // shape, as TerrainGenerator's STAMP_HILL and the others; how it meets
+    // the ground, -1 for the shape's usual way or TerrainGenerator's
+    // STAMP_ADD, STAMP_SUBTRACT or STAMP_RAISE; its height; and its turn,
+    // in degrees.
+    integer stampShape = 0
+    integer stampMode = -1
+    number stampHeight = 15
+    number stampTurn = 0
     number brushX = 0
     number brushZ = 0
     boolean brushOnGround = false
@@ -355,14 +371,16 @@ class EditorTerrain is TerrainItem
     /*
         Chooses a tool, numbered as in the in-game terrain editor: 1 raise,
         2 lower, 3 smooth, 4 flatten, 5 ramp, 6 paint, 7 blend paint, 8 add
-        region, 9 remove region; or 0 for none. The first time a tool is
-        chosen, the brush starts at the terrain's middle.
+        region, 9 remove region; then, in the scene editor only, 10 stamp,
+        11 erode and 12 auto paint, which act once per click; or 0 for none.
+        The first time a tool is chosen, the brush starts at the terrain's
+        middle.
 
-        Attribute: Parameter number The tool's number, from 0 to 9
+        Attribute: Parameter number The tool's number, from 0 to 12
     */
     action SetToolNumber(integer tool)
-        if tool < 0 or tool > 9
-            alert("A terrain tool's number is from 0 to 9, but was given " + tool + ".")
+        if tool < 0 or tool > LAST_TOOL
+            alert("A terrain tool's number is from 0 to " + LAST_TOOL + ", but was given " + tool + ".")
         end
         toolNumber = tool
         if tool = 1
@@ -383,6 +401,12 @@ class EditorTerrain is TerrainItem
             brush:SetTool(tools:REGION, tools:ADD)
         elseif tool = 9
             brush:SetTool(tools:REGION, tools:SUBTRACT)
+        elseif tool = STAMP_TOOL or tool = ERODE_TOOL
+            // These change the ground's shape, but not with the brush's
+            // own strokes.
+            brush:SetTool(tools:SCULPT, tools:ADD)
+        elseif tool = AUTO_PAINT_TOOL
+            brush:SetTool(tools:TEXTURE, tools:ADD)
         end
         if tool > 0 and not brushPlaced
             SetBrushPosition((GetMinimumX() + GetMaximumX()) / 2, (GetMinimumZ() + GetMaximumZ()) / 2)
@@ -390,7 +414,7 @@ class EditorTerrain is TerrainItem
     end
 
     /*
-        Returns the chosen tool's number, from 1 to 9, or 0 for none.
+        Returns the chosen tool's number, from 1 to 12, or 0 for none.
 
         Attribute: Returns The tool's number
     */
@@ -410,7 +434,7 @@ class EditorTerrain is TerrainItem
     /*
         Returns a tool's name, by its number.
 
-        Attribute: Parameter number The tool's number, from 0 to 9
+        Attribute: Parameter number The tool's number, from 0 to 12
         Attribute: Returns Its name, such as "Raise", or "No tool" for 0
     */
     action GetToolName(integer tool) returns text
@@ -432,8 +456,89 @@ class EditorTerrain is TerrainItem
             return "Add region"
         elseif tool = 9
             return "Remove region"
+        elseif tool = STAMP_TOOL
+            return "Stamp"
+        elseif tool = ERODE_TOOL
+            return "Erode"
+        elseif tool = AUTO_PAINT_TOOL
+            return "Auto paint"
         end
         return "No tool"
+    end
+
+    /*
+        Sets the Stamp tool's shape: TerrainGenerator's STAMP_HILL,
+        STAMP_MOUNTAIN, STAMP_MESA, STAMP_CRATER or STAMP_RIDGE.
+
+        Attribute: Parameter shape The shape
+    */
+    action SetStampShape(integer shape)
+        stampShape = shape
+    end
+
+    /*
+        Returns the Stamp tool's shape.
+
+        Attribute: Returns The shape
+    */
+    action GetStampShape returns integer
+        return stampShape
+    end
+
+    /*
+        Sets how the Stamp tool meets the ground: -1 for the shape's usual
+        way, or TerrainGenerator's STAMP_ADD, STAMP_SUBTRACT or STAMP_RAISE.
+
+        Attribute: Parameter mode The mode
+    */
+    action SetStampMode(integer mode)
+        stampMode = mode
+    end
+
+    /*
+        Returns how the Stamp tool meets the ground, or -1 for the shape's
+        usual way.
+
+        Attribute: Returns The mode
+    */
+    action GetStampMode returns integer
+        return stampMode
+    end
+
+    /*
+        Sets the height of the Stamp tool's shape, in world units.
+
+        Attribute: Parameter height The height
+    */
+    action SetStampHeight(number height)
+        stampHeight = height
+    end
+
+    /*
+        Returns the height of the Stamp tool's shape, in world units.
+
+        Attribute: Returns The height
+    */
+    action GetStampHeight returns number
+        return stampHeight
+    end
+
+    /*
+        Sets how far the Stamp tool's shape is turned, in degrees.
+
+        Attribute: Parameter turn The turn
+    */
+    action SetStampTurn(number turn)
+        stampTurn = turn
+    end
+
+    /*
+        Returns how far the Stamp tool's shape is turned, in degrees.
+
+        Attribute: Returns The turn
+    */
+    action GetStampTurn returns number
+        return stampTurn
     end
 
     /*

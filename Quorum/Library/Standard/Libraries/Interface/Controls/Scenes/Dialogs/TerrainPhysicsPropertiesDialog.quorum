@@ -32,6 +32,10 @@ use Libraries.Interface.Selections.ButtonGroupSelection
 class TerrainPhysicsPropertiesDialog is PropertiesDialog
 
     ButtonGroup collisionGroup = undefined
+
+    // How wide the fields' labels are, in pixels before the interface
+    // scale, so the fields line up, as in the other terrain sections.
+    constant number FIELD_LABEL_WIDTH = 110
     TextField frictionField = undefined
     Checkbox streamingCheckbox = undefined
     TextField radiusField = undefined
@@ -65,9 +69,21 @@ class TerrainPhysicsPropertiesDialog is PropertiesDialog
         collisionContainer:SetRightMargin(30)
         collisionContainer:SetBottomMargin(10)
 
+        // The label is on its own line, with the choices under it.
+        FlowLayout collisionLabelLayout
+        Control collisionLabelLine
+        collisionLabelLine:SetLayout(collisionLabelLayout)
+        collisionLabelLine:SetPercentageWidth(1.0)
+        collisionLabelLine:SetVerticalLayoutMode(collisionLabelLine:FIT_CONTENTS)
+        collisionLabelLine:SetLeftMargin(20)
+        collisionLabelLine:SetTopMargin(10)
+        collisionLabelLine:SetRightMargin(30)
         Label collisionLabel
         collisionLabel:SetText("Collision in games:")
-        collisionContainer:Add(collisionLabel)
+        collisionLabelLine:Add(collisionLabel)
+        panel:Add(collisionLabelLine)
+        collisionContainer:SetTopMargin(4)
+
         ButtonGroup group
         collisionGroup = group
         collisionGroup:SetName("Collision in games")
@@ -75,11 +91,12 @@ class TerrainPhysicsPropertiesDialog is PropertiesDialog
         collisionGroup:SetVerticalLayoutMode(collisionContainer:FIT_CONTENTS)
         FlowLayout groupLayout
         collisionGroup:SetLayout(groupLayout)
-        // The buttons' places are WorldTerrain's collision modes, from the
-        // most: 0 every region, 1 near moving bodies, 2 none.
-        AddCollisionButton("Every region")
-        AddCollisionButton("Only near moving bodies, for large worlds")
-        AddCollisionButton("None")
+        // The buttons go from the most collision to none: 0 every region
+        // (WorldTerrain's COLLISION_FULL, 2), 1 near moving bodies
+        // (COLLISION_DYNAMIC, 1), 2 none (COLLISION_DISABLED, 0).
+        AddCollisionButton("Every region", "Every region has collision")
+        AddCollisionButton("Near bodies", "Only regions near moving bodies have collision, for large worlds")
+        AddCollisionButton("None", "No region has collision")
         collisionGroup:AddSelectionListener(me)
         collisionContainer:Add(collisionGroup)
         focusArray:Add(collisionGroup)
@@ -95,10 +112,7 @@ class TerrainPhysicsPropertiesDialog is PropertiesDialog
         frictionContainer:SetRightMargin(30)
         frictionContainer:SetBottomMargin(10)
 
-        Label frictionLabel
-        frictionLabel:SetText("Friction:")
-        frictionLabel:SetRightMargin(10)
-        frictionContainer:Add(frictionLabel)
+        frictionContainer:Add(MakeFieldLabel("Friction:"))
 
         TextField field
         frictionField = field
@@ -123,7 +137,8 @@ class TerrainPhysicsPropertiesDialog is PropertiesDialog
         streamingContainer:SetBottomMargin(4)
         Checkbox checkbox
         streamingCheckbox = checkbox
-        streamingCheckbox:SetName("Stream regions in games, for large worlds")
+        streamingCheckbox:SetName("Stream Regions")
+        streamingCheckbox:SetDescription("In games, load only the regions near the camera, for large worlds")
         TerrainStreamingBehavior streamingBehavior
         streamingBehavior:SetDialog(me)
         streamingCheckbox:SetBehavior(streamingBehavior)
@@ -140,10 +155,7 @@ class TerrainPhysicsPropertiesDialog is PropertiesDialog
         radiusContainer:SetTopMargin(4)
         radiusContainer:SetRightMargin(30)
         radiusContainer:SetBottomMargin(10)
-        Label radiusLabel
-        radiusLabel:SetText("Draw radius:")
-        radiusLabel:SetRightMargin(10)
-        radiusContainer:Add(radiusLabel)
+        radiusContainer:Add(MakeFieldLabel("Draw radius:"))
         TextField radius
         radiusField = radius
         radiusField:SetName("Draw radius when streaming, in world units")
@@ -158,12 +170,33 @@ class TerrainPhysicsPropertiesDialog is PropertiesDialog
     end
 
     /*
-        Adds one collision choice's radio button.
+        Makes a field's label, in a box of one width, so the fields line up
+        as in the other terrain sections.
     */
-    private action AddCollisionButton(text name)
+    private action MakeFieldLabel(text value) returns Control
+        FlowLayout labelLayout
+        Control labelBox
+        labelBox:SetLayout(labelLayout)
+        labelBox:SetPercentageWidth(0)
+        labelBox:SetPixelWidth(FIELD_LABEL_WIDTH)
+        labelBox:SetVerticalLayoutMode(labelBox:FIT_CONTENTS)
+        labelBox:SetRightMargin(10)
+        Label fieldLabel
+        fieldLabel:SetText(value)
+        labelBox:Add(fieldLabel)
+        return labelBox
+    end
+
+    /*
+        Adds one collision choice's radio button. A radio button is one line
+        tall, so its name is kept short: a longer one wraps over the next
+        button. The description says it in full.
+    */
+    private action AddCollisionButton(text name, text description)
         Control layoutValues
         RadioButton button
         button:SetName(name)
+        button:SetDescription(description)
         button:SetHorizontalLayoutMode(layoutValues:FILL)
         collisionGroup:AddToGrouping(button)
         collisionGroup:Add(button)

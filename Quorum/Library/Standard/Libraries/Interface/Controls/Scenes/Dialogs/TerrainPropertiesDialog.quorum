@@ -15,12 +15,12 @@ use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlig
 use Libraries.Game.Graphics.Worlds.TerrainData
 use Libraries.Interface.Controls.Button
 use Libraries.Interface.Behaviors.Scenes.Properties.TerrainGrowBehavior
+use Libraries.Compute.Math
 
 /*
     The TerrainPropertiesDialog shows a selected terrain's name, which can be
-    changed, and what the terrain is: its size, its regions, how far apart
-    its samples are, how high and low its ground goes, and the folder its
-    files are in. The facts are read only. Each is on its own line, which
+    changed, and what the terrain is: its size, its regions, and how high
+    and low its ground goes. The facts are read only. Each is on its own line, which
     the keyboard can move to, so a screen reader reads each one.
 
     It shows in the scene editor's Properties panel, with the terrain's
@@ -31,9 +31,8 @@ class TerrainPropertiesDialog is PropertiesDialog
     TextField nameField = undefined
     Label sizeLabel = undefined
     Label regionsLabel = undefined
-    Label spacingLabel = undefined
     Label heightsLabel = undefined
-    Label folderLabel = undefined
+    Math math
 
     // The terrain whose properties are shown, or undefined.
     EditorTerrain terrain = undefined
@@ -78,9 +77,7 @@ class TerrainPropertiesDialog is PropertiesDialog
 
         sizeLabel = AddInfoLine(panel, focusArray)
         regionsLabel = AddInfoLine(panel, focusArray)
-        spacingLabel = AddInfoLine(panel, focusArray)
         heightsLabel = AddInfoLine(panel, focusArray)
-        folderLabel = AddInfoLine(panel, focusArray)
 
         // Makes the terrain bigger without the brush (step 11).
         FlowLayout growLayout
@@ -92,8 +89,8 @@ class TerrainPropertiesDialog is PropertiesDialog
         growLine:SetTopMargin(6)
         growLine:SetBottomMargin(8)
         Button growButton
-        growButton:SetName("Grow by one region on every side")
-        growButton:SetDescription("Add flat regions all around the terrain")
+        growButton:SetName("Grow Everywhere")
+        growButton:SetDescription("Add a flat region on every side of the terrain")
         TerrainGrowBehavior growBehavior
         growBehavior:SetDialog(me)
         growButton:SetBehavior(growBehavior)
@@ -185,10 +182,8 @@ class TerrainPropertiesDialog is PropertiesDialog
         // A scene can name a terrain whose files weren't found.
         if terrain:IsMissing()
             sizeLabel:SetText("Files not found: this terrain is empty")
-            regionsLabel:SetText("Regions: none")
-            spacingLabel:SetText("Its folder may have been moved, or not copied with the project")
+            regionsLabel:SetText("Its folder " + GetFolderText(terrain:GetTerrainFile()) + " may have been moved, or not copied with the project")
             heightsLabel:SetText("Saving the scene keeps its file name")
-            folderLabel:SetText("Folder: " + GetFolderText(terrain:GetTerrainFile()))
             return now
         end
 
@@ -198,9 +193,7 @@ class TerrainPropertiesDialog is PropertiesDialog
         integer regionSize = data:GetRegionSize()
         sizeLabel:SetText("Size: " + width + " by " + depth + " units")
         regionsLabel:SetText("Regions: " + data:GetRegionCount() + ", each " + regionSize + " by " + regionSize + " samples")
-        spacingLabel:SetText("Sample spacing: " + data:GetVertexSpacing() + " units")
-        heightsLabel:SetText("Ground height: " + data:GetLowestHeight() + " to " + data:GetHighestHeight())
-        folderLabel:SetText("Folder: " + GetFolderText(terrain:GetTerrainFile()))
+        heightsLabel:SetText("Height: " + math:Round(data:GetLowestHeight(), 1) + " to " + math:Round(data:GetHighestHeight(), 1))
     end
 
     /*

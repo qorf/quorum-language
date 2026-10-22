@@ -24,6 +24,8 @@ use Libraries.Interface.Controls.ButtonGroup
 use Libraries.Interface.Controls.RadioButton
 use Libraries.Interface.Selections.ButtonGroupSelection
 use Libraries.Interface.Events.TerrainMaterialFieldListener
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Game.Graphics.Color
 
 /*
     The TerrainMaterialsPropertiesDialog is a selected terrain's Materials
@@ -203,6 +205,11 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         row:SetVerticalLayoutMode(row:FIT_CONTENTS)
         row:SetTopMargin(6)
 
+        // A grey line sets each layer apart from the one above it.
+        if index > 0
+            row:Add(MakeDivider())
+        end
+
         Control nameLine = MakeLine()
         Label nameLabel
         nameLabel:SetText("Layer " + (index + 1))
@@ -274,6 +281,25 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
             focusArray:Add(chooseButton)
             focusArray:Add(removeButton)
         end
+    end
+
+    /*
+        Makes a thin grey line across the section, between two layers' rows.
+    */
+    private action MakeDivider returns Control
+        ControlShaderView view
+        view:Initialize()
+        Color color
+        Control divider
+        divider:SetView2D(view)
+        divider:SetBackgroundColor(color:Gray())
+        divider:SetPercentageWidth(1.0)
+        divider:SetPercentageHeight(0)
+        divider:SetPixelHeight(1)
+        divider:SetLeftMargin(20)
+        divider:SetRightMargin(30)
+        divider:SetBottomMargin(6)
+        return divider
     end
 
     /*
@@ -524,7 +550,9 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
                 statusLabel:SetText("No materials. The ground is plain.")
             end
         else
-            text status = "Terrain material: " + material:GetName() + ", in " + terrain:GetMaterialFile() + "."
+            // Only notes worth saying go in the status line; with none, it
+            // says how many layers there are.
+            text status = ""
             SceneEditor editor = GetSceneEditor()
             if editor not= undefined
                 integer users = editor:CountTerrainsUsing(material)
@@ -537,6 +565,13 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
             end
             if material:HasMixedPlainTileSizes()
                 status = status + " Plain textures share the first plain layer's tile size."
+            end
+            if status = "" and count = 1
+                status = "1 layer"
+            elseif status = ""
+                status = count + " layers"
+            else
+                status = status:GetSubtext(1)
             end
             statusLabel:SetText(status)
             SetFieldText(blendField, material:GetBlendSoftness())

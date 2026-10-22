@@ -43,14 +43,13 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
     // height (step 8).
     ButtonGroup flattenGroup = undefined
     TextField flattenHeightField = undefined
-    // The ramp's two ends (step 8).
-    Label rampLabel = undefined
 
-    // What the section's buttons do.
+    // What the section's button does.
     public constant integer TAKE_HEIGHT = 0
-    public constant integer RAMP_START = 1
-    public constant integer RAMP_END = 2
-    public constant integer NEW_RAMP = 3
+
+    // How wide the number fields' labels are, in pixels before the
+    // interface scale, so the fields line up.
+    constant number FIELD_LABEL_WIDTH = 110
     TextField sizeField = undefined
     TextField strengthField = undefined
     TextField falloffField = undefined
@@ -104,6 +103,12 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         AddToolButton("Blend paint")
         AddToolButton("Add region")
         AddToolButton("Remove region")
+        // The scene editor's own tools (EditorTerrain's STAMP_TOOL to
+        // AUTO_PAINT_TOOL), which act once per click. The stamp's shape is
+        // set in the Generate section.
+        AddToolButton("Stamp")
+        AddToolButton("Erode")
+        AddToolButton("Auto paint")
         toolGroup:AddSelectionListener(me)
 
         toolPanel:Add(toolGroup)
@@ -128,7 +133,7 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         layerLabelLine:SetLeftMargin(20)
         layerLabelLine:SetRightMargin(30)
         Label layerLabel
-        layerLabel:SetText("Paint layer (the material the Paint tool paints):")
+        layerLabel:SetText("Paint Layer")
         layerLabelLine:Add(layerLabel)
         panel:Add(layerLabelLine)
 
@@ -161,38 +166,20 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         flattenGroup:SetVerticalLayoutMode(layoutValues:FIT_CONTENTS)
         FlowLayout flattenLayout
         flattenGroup:SetLayout(flattenLayout)
-        AddChoice(flattenGroup, "The height where each stroke starts")
-        AddChoice(flattenGroup, "This height")
+        AddChoice(flattenGroup, "Stroke start", "Flatten to the height where each stroke starts")
+        AddChoice(flattenGroup, "Set height", "Flatten to the height in the Height field")
         flattenGroup:AddSelectionListener(me)
         flattenPanel:Add(flattenGroup)
         panel:Add(flattenPanel)
         focusArray:Add(flattenGroup)
         flattenHeightField = AddNumberField(panel, focusArray, "Height:", "Flatten height")
         Control takeLine = MakeLine()
-        Button takeButton = AddBrushButton(takeLine, "Use the height under the brush", "Flatten to the ground's height where the brush is now", TAKE_HEIGHT)
+        Button takeButton = AddBrushButton(takeLine, "Use Height Under Brush", "Flatten to the ground's height where the brush is now", TAKE_HEIGHT)
         panel:Add(takeLine)
         focusArray:Add(takeButton)
 
-        // Ramp: its two ends, set at the brush (step 8).
-        AddCaption(panel, "Ramp:")
-        Control rampLine = MakeLine()
-        Label ramp
-        rampLabel = ramp
-        rampLabel:SetText("")
-        rampLabel:SetFocusable(true)
-        rampLine:Add(rampLabel)
-        panel:Add(rampLine)
-        focusArray:Add(rampLabel)
-        Control rampButtons = MakeLine()
-        Button startButton = AddBrushButton(rampButtons, "Set ramp start", "Set the ramp's start where the brush is, at the ground's height there", RAMP_START)
-        Button endButton = AddBrushButton(rampButtons, "Set ramp end", "Set the ramp's end where the brush is, at the ground's height there", RAMP_END)
-        panel:Add(rampButtons)
-        focusArray:Add(startButton)
-        focusArray:Add(endButton)
-        Control newRampLine = MakeLine()
-        Button newRampButton = AddBrushButton(newRampLine, "New ramp", "Clear the ramp, so the next two clicks with the Ramp tool set its start and end", NEW_RAMP)
-        panel:Add(newRampLine)
-        focusArray:Add(newRampButton)
+        // The ramp has no controls here: its ends are set with the Ramp
+        // tool, by clicking or with the ramp point key (step 8).
 
         sizeField = AddNumberField(panel, focusArray, "Size:", "Size")
         strengthField = AddNumberField(panel, focusArray, "Strength:", "Strength")
@@ -270,12 +257,15 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
     end
 
     /*
-        Adds a radio button to a group.
+        Adds a radio button to a group. A radio button is one line tall, so
+        its name is kept short: a longer one wraps over the next button. The
+        description says it in full.
     */
-    private action AddChoice(ButtonGroup group, text name)
+    private action AddChoice(ButtonGroup group, text name, text description)
         Control layoutValues
         RadioButton button
         button:SetName(name)
+        button:SetDescription(description)
         button:SetHorizontalLayoutMode(layoutValues:FILL)
         group:AddToGrouping(button)
         group:Add(button)
@@ -299,7 +289,7 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
     /*
         This action is called by the section's buttons.
 
-        Attribute: Parameter kind TAKE_HEIGHT, RAMP_START, RAMP_END or NEW_RAMP
+        Attribute: Parameter kind TAKE_HEIGHT
     */
     action ButtonActivated(integer kind)
         if terrain = undefined or GetSceneEditor() = undefined
@@ -307,12 +297,6 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         end
         if kind = TAKE_HEIGHT
             GetSceneEditor():TakeTerrainFlattenHeight(terrain)
-        elseif kind = RAMP_START
-            GetSceneEditor():SetTerrainRampPoint(terrain, false)
-        elseif kind = RAMP_END
-            GetSceneEditor():SetTerrainRampPoint(terrain, true)
-        elseif kind = NEW_RAMP
-            GetSceneEditor():ClearTerrainRamp(terrain)
         end
     end
 
@@ -343,10 +327,19 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         container:SetRightMargin(30)
         container:SetBottomMargin(10)
 
+        // The label sits in a box of one width, so the fields after the
+        // labels line up and are the same size.
+        FlowLayout labelLayout
+        Control labelBox
+        labelBox:SetLayout(labelLayout)
+        labelBox:SetPercentageWidth(0)
+        labelBox:SetPixelWidth(FIELD_LABEL_WIDTH)
+        labelBox:SetVerticalLayoutMode(labelBox:FIT_CONTENTS)
+        labelBox:SetRightMargin(10)
         Label fieldLabel
         fieldLabel:SetText(label)
-        fieldLabel:SetRightMargin(10)
-        container:Add(fieldLabel)
+        labelBox:Add(fieldLabel)
+        container:Add(labelBox)
 
         TextField field
         field:SetName(name)
@@ -386,7 +379,7 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
                 return now
             end
             integer tool = choice:GetIndex()
-            if tool >= 0 and tool <= 9 and tool not= terrain:GetToolNumber()
+            if tool >= 0 and tool <= terrain:LAST_TOOL and tool not= terrain:GetToolNumber()
                 GetSceneEditor():SetTerrainTool(terrain, tool)
             end
             return now
@@ -453,7 +446,6 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
             flattenGroup:GetButtonAt(1):SetToggleState(true)
         end
         SetFieldText(flattenHeightField, brush:GetTargetHeight())
-        rampLabel:SetText("Ramp " + terrain:DescribeRamp())
         SetFieldText(sizeField, brush:GetSize())
         SetFieldText(strengthField, brush:GetStrength())
         SetFieldText(falloffField, brush:GetGamma())
@@ -461,15 +453,18 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
     end
 
     /*
-        Names a paint layer from the terrain's materials, such as "layer 2,
-        Rock", or "layer 3, no material".
+        Names a paint layer from the terrain's materials: its material's
+        name, such as "Grass001", or "Layer 3, no material".
     */
     private action DescribeLayer(integer layer) returns text
-        text result = "Layer " + (layer + 1)
         if terrain not= undefined and layer < terrain:GetLayerCount()
-            return result + ", " + terrain:GetMaterial():GetLayerName(layer)
+            text name = terrain:GetMaterial():GetLayerName(layer)
+            if name not= ""
+                return name
+            end
+            return "Layer " + (layer + 1)
         end
-        return result + ", no material"
+        return "Layer " + (layer + 1) + ", no material"
     end
 
     /*

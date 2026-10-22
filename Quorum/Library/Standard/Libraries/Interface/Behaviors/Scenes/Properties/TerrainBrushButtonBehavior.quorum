@@ -6,8 +6,8 @@ use Libraries.Interface.Controls.Scenes.Dialogs.TerrainBrushPropertiesDialog
 
 /*
     The TerrainBrushButtonBehavior is a button in a terrain's Brush section
-    (step 8): "Use the height under the brush", "Set ramp start" or "Set
-    ramp end". It tells the section which was pressed.
+    (step 8): "Use Height Under Brush". It tells the section it was
+    pressed.
 */
 class TerrainBrushButtonBehavior is Behavior
     TerrainBrushPropertiesDialog dialog = undefined
@@ -17,7 +17,7 @@ class TerrainBrushButtonBehavior is Behavior
         Sets which section and button this is.
 
         Attribute: Parameter dialog The Brush section
-        Attribute: Parameter kind The section's TAKE_HEIGHT, RAMP_START, RAMP_END or NEW_RAMP
+        Attribute: Parameter kind The section's TAKE_HEIGHT
     */
     action Setup(TerrainBrushPropertiesDialog dialog, integer kind)
         me:dialog = dialog

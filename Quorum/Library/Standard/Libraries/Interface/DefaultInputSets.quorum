@@ -1863,9 +1863,10 @@ InputSet shiftF10SetTextBox
 
         selectionTable:Add(resetScaleSet, selectionResetScaleBehavior)
 
-        // A selected terrain's tools, Alt+1 to Alt+9 by default (step 7).
+        // A selected terrain's tools, Alt+1 to Alt+9 by default (step 7),
+        // then stamp, erode and auto paint, Shift+Alt+1 to Shift+Alt+3.
         integer toolNumber = 1
-        repeat while toolNumber <= 9
+        repeat while toolNumber <= 12
             AddTerrainToolKey(selectionTable, sceneKeys, toolNumber)
             toolNumber = toolNumber + 1
         end

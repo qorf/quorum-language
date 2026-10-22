@@ -1421,13 +1421,14 @@ action Update(number seconds)
     /*
     This action chooses a terrain's tool, by its number (1 raise, 2 lower,
     3 smooth, 4 flatten, 5 ramp, 6 paint, 7 blend paint, 8 add region,
-    9 remove region), or 0 to leave the tool (step 7). With a tool chosen, a
+    9 remove region, 10 stamp, 11 erode, 12 auto paint), or 0 to leave the
+    tool (step 7). With a tool chosen, a
     ring shows the brush on the ground; the arrow keys and the pointer move
     it, and the size keys size it. A stroke going on is finished first. It is
     announced, and the Brush section of the Properties panel follows.
 
     Attribute: Parameter terrain The terrain
-    Attribute: Parameter tool The tool's number, from 0 to 9
+    Attribute: Parameter tool The tool's number, from 0 to 12
     */
     action SetTerrainTool(EditorTerrain terrain, integer tool)
         if terrain = undefined
@@ -1594,17 +1595,24 @@ action Update(number seconds)
     This action returns true if a tool's strokes are ready in the scene
     editor for a terrain: raise, lower, smooth, flatten and ramp (step 8),
     paint, once the terrain has two or more materials (step 9), and add and
-    remove region (step 11). Blend paint comes later.
+    remove region (step 11), and stamp, erode and auto paint. Paint and
+    blend paint need two or more materials.
 
     Attribute: Parameter terrain The terrain
-    Attribute: Parameter tool The tool's number, from 1 to 9
+    Attribute: Parameter tool The tool's number, from 1 to 12
     Attribute: Returns True if the tool can make strokes
     */
     action CanStrokeWithTool(EditorTerrain terrain, integer tool) returns boolean
         if tool = 1 or tool = 2 or tool = 3 or tool = 4 or tool = 5 or tool = 8 or tool = 9
             return true
         end
-        return tool = 6 and terrain not= undefined and terrain:GetLayerCount() >= 2
+        // Stamp, erode and auto paint (EditorTerrain's STAMP_TOOL to
+        // AUTO_PAINT_TOOL).
+        if tool >= 10 and tool <= 12
+            return true
+        end
+        // Paint and blend paint need two materials to paint between.
+        return (tool = 6 or tool = 7) and terrain not= undefined and terrain:GetLayerCount() >= 2
     end
 
     /*
@@ -1624,8 +1632,8 @@ action Update(number seconds)
             return now
         end
         integer tool = terrain:GetToolNumber()
-        if tool = 6 and terrain:GetLayerCount() < 2
-            NotifyAccessibility(terrain, "Paint needs two or more materials. Add them in the Materials section.")
+        if (tool = 6 or tool = 7) and terrain:GetLayerCount() < 2
+            NotifyAccessibility(terrain, terrain:GetToolName(tool) + " needs two or more materials. Add them in the Materials section.")
             return now
         end
         if not CanStrokeWithTool(terrain, tool)
@@ -1651,11 +1659,36 @@ action Update(number seconds)
             end
             return now
         end
+        if tool = terrain:STAMP_TOOL or tool = terrain:ERODE_TOOL or tool = terrain:AUTO_PAINT_TOOL
+            // These aren't strokes: each click (or Space) does it once at
+            // the brush, as one undoable change.
+            UseOperationTool(terrain, tool)
+            return now
+        end
         terrainStroke:Begin(terrain:GetWorldTerrain():GetData(), terrain:GetBrush())
         paintShownSeconds = 0
         stroking = true
         strokeByMouse = byMouse
         strokeKey = key
+    end
+
+    /*
+    This action uses the Stamp, Erode or Auto paint tool once, at the brush:
+    a stamp with the terrain's stamp settings from the Generate section, or
+    erosion or auto paint as wide as the brush.
+    */
+    private action UseOperationTool(EditorTerrain terrain, integer tool)
+        if tool = terrain:STAMP_TOOL
+            integer mode = terrain:GetStampMode()
+            if mode < 0
+                mode = generator:GetStampMode(terrain:GetStampShape())
+            end
+            StampTerrain(terrain, terrain:GetStampShape(), mode, terrain:GetStampHeight(), terrain:GetStampTurn())
+        elseif tool = terrain:ERODE_TOOL
+            ErodeTerrainAtBrush(terrain)
+        else
+            AutoPaintTerrainAtBrush(terrain)
+        end
     end
 
     /*
@@ -1694,19 +1727,15 @@ action Update(number seconds)
             terrainStroke:Apply(brushTerrain:GetBrushX(), brushTerrain:GetBrushZ(), seconds)
             integer toolNumber = brushTerrain:GetToolNumber()
             if toolNumber = 8 or toolNumber = 9
-                // A region tool adds or removes the region under the ring,
-                // once; the models are made again when it does.
-                if not brushTerrain:RegionsMatchModels()
-                    RedrawTerrain(brushTerrain)
-                    text verb = "Added region "
-                    if toolNumber = 9
-                        verb = "Removed region "
-                    end
-                    NotifyAccessibility(brushTerrain, verb + brushTerrain:DescribeBrushRegion() + ". The terrain is now " + brushTerrain:DescribeSize())
-                    TerrainFactsChanged(brushTerrain)
-                end
-            elseif toolNumber = 6
-                // Painting loads the splat texture again to show, so it is
+                // A region tool adds or removes only the region under the
+                // ring where it was clicked: the stroke ends at once, so
+                // the pointer drifting while the button is held doesn't
+                // add or remove others. Ending it redraws the terrain and
+                // says the new size.
+                EndTerrainStroke()
+                return now
+            elseif toolNumber = 6 or toolNumber = 7
+                // Painting and blending load the splat texture again to show, so it is
                 // shown a few times a second, and fully at the end.
                 paintShownSeconds = paintShownSeconds + seconds
                 if paintShownSeconds >= PAINT_SHOW_INTERVAL
@@ -1778,6 +1807,8 @@ action Update(number seconds)
             return "Smoothed, changing heights by up to " + RoundTenth(smoothed) + ". " + terrain:DescribeBrushHeight()
         elseif tool = 6
             return "Painted " + terrain:GetLayerLabel(terrain:GetBrush():GetLayer()) + ". " + terrain:DescribeBrushHeight()
+        elseif tool = 7
+            return "Blended the paint. " + terrain:DescribeBrush()
         elseif tool = 8 or tool = 9
             return terrain:GetToolName(tool) + " done. The terrain is now " + terrain:DescribeSize()
         end
@@ -1967,7 +1998,7 @@ action Update(number seconds)
 
     /*
     This action presses a stamp into the ground at a terrain's brush, as big
-    as the brush (step 10). It can be undone.
+    as the brush (step 10). The Stamp tool calls it. It can be undone.
 
     Attribute: Parameter terrain The terrain
     Attribute: Parameter stamp The shape, such as TerrainGenerator's STAMP_HILL
@@ -2112,7 +2143,7 @@ action Update(number seconds)
     */
     private action BrushReady(EditorTerrain terrain) returns boolean
         if not terrain:HasTool()
-            NotifyAccessibility(terrain, "Choose a tool in the Brush section first, with Alt and a number, to place the brush.")
+            NotifyAccessibility(terrain, "Choose a tool in the Brush section first, to place the brush.")
             return false
         end
         if not terrain:IsBrushOnGround()
