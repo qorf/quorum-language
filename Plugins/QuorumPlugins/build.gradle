@@ -156,12 +156,18 @@ test {
     //useJUnitPlatform()
 }
 
+// Copies the plugins jar and its libraries into the standard library. The jar
+// copy is in doLast, after the jar task: a copy written directly in this block
+// runs while Gradle sets up the build, and copies the previous build's jar.
 task copyToQuorum(type: Copy) {
+    dependsOn jar
     from configurations.runtimeClasspath
     into '../../Quorum/Library/Compiled/Run/libraries'
 
-    copy {
-        from 'build/libs/QuorumStandardPlugins.jar'
-        into '../../Quorum/Library/Compiled/Run/'
+    doLast {
+        copy {
+            from jar.archiveFile
+            into '../../Quorum/Library/Compiled/Run/'
+        }
     }
 }
