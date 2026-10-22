@@ -34,7 +34,8 @@ class SkyboxShaderMappingVulkan is VulkanShaderMapping
         VulkanPipelineInfoCreator creator
         creator:Begin(device)
 
-        creator:AddOpaqueColorBlendAttachmentState()
+        // While transparency often doesn't make sense for skyboxes, Quorum's layer system means that you could use a transparent skybox over a previous layer.
+        creator:AddTransparentColorBlendAttachmentState()
         creator:AddDynamicViewport()
         creator:AddDynamicScissor()
         creator:AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)

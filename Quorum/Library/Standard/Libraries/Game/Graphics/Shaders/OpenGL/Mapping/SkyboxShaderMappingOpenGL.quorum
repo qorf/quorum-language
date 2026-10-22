@@ -52,7 +52,6 @@ class SkyboxShaderMappingOpenGL is ShaderMapping
         glProgram:SetShaderInput("u_up", up:GetX(), up:GetY(), up:GetZ())
         glProgram:SetShaderInput("u_forward", forward:GetX(), forward:GetY(), forward:GetZ())
         glProgram:SetShaderInputMatrix("u_rotation", skybox:GetRotation())
-        glProgram:SetShaderInput("u_inverter", skybox:GetInverter())
 
         // The cube map, on texture unit 0.
         skybox:GetCubeMap():Bind(0)
@@ -61,10 +60,10 @@ class SkyboxShaderMappingOpenGL is ShaderMapping
         // The triangle is at depth 1, so it only shows where nothing nearer
         // was drawn, and it doesn't write depth.
         graphics:EnableProperty(constants:GL_DEPTH_TEST)
+        graphics:EnableProperty(constants:GL_BLEND)
         graphics:SetDepthFunction(constants:GL_LEQUAL)
         graphics:SetDepthMask(false)
         graphics:DisableProperty(constants:GL_CULL_FACE)
-        graphics:DisableProperty(constants:GL_BLEND)
     end
 
     /*
